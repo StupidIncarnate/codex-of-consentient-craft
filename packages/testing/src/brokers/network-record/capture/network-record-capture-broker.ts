@@ -75,13 +75,15 @@ export const networkRecordCaptureBroker = (): {
 
         pendingBodies.push(
           mswResponseToNetworkEntryTransformer({
-            method: pending.method,
-            url: pending.url,
-            status: networkLogEntryContract.shape.status.unwrap().parse(response.status),
-            durationMs,
-            source: 'mock',
+            entry: {
+              method: pending.method,
+              url: pending.url,
+              status: networkLogEntryContract.shape.status.unwrap().parse(response.status),
+              durationMs,
+              requestBody: pending.requestBody,
+              source: 'mock',
+            },
             response,
-            requestBody: pending.requestBody,
           }).then((entry) => {
             entries.push(entry);
             pendingRequests.delete(parsedRequestId);
@@ -102,13 +104,15 @@ export const networkRecordCaptureBroker = (): {
 
         pendingBodies.push(
           mswResponseToNetworkEntryTransformer({
-            method: pending.method,
-            url: pending.url,
-            status: networkLogEntryContract.shape.status.unwrap().parse(response.status),
-            durationMs,
-            source: 'bypass',
+            entry: {
+              method: pending.method,
+              url: pending.url,
+              status: networkLogEntryContract.shape.status.unwrap().parse(response.status),
+              durationMs,
+              requestBody: pending.requestBody,
+              source: 'bypass',
+            },
             response,
-            requestBody: pending.requestBody,
           }).then((entry) => {
             entries.push(entry);
             pendingRequests.delete(parsedRequestId);

@@ -3,58 +3,59 @@ import { AstNodeStub } from '../../contracts/ast-node/ast-node.stub';
 import { RuleViolationStub } from '../../contracts/rule-violation/rule-violation.stub';
 
 describe('astToViolationTransformer', () => {
-  it('VALID: {node, message} => returns RuleViolation with required fields', () => {
+  it('VALID: {node, violation with message only} => returns RuleViolation with required fields', () => {
     const node = AstNodeStub();
-    const { message } = RuleViolationStub({ message: 'Test violation' });
+    const violation = RuleViolationStub({ message: 'Test violation' });
 
-    const result = astToViolationTransformer({ node, message });
+    const result = astToViolationTransformer({ node, violation });
 
     expect(result).toStrictEqual({
       node,
-      message,
+      message: violation.message,
       messageId: undefined,
       data: undefined,
     });
   });
 
-  it('VALID: {node, message, messageId} => returns RuleViolation with messageId', () => {
+  it('VALID: {node, violation with messageId} => returns RuleViolation with messageId', () => {
     const node = AstNodeStub();
-    const { message, messageId } = RuleViolationStub({
+    const violation = RuleViolationStub({
       message: 'Missing return type',
       messageId: 'missingReturnType',
     });
 
-    const result = astToViolationTransformer({ node, message, messageId });
+    const result = astToViolationTransformer({ node, violation });
 
     expect(result).toStrictEqual({
       node,
-      message,
-      messageId,
+      message: violation.message,
+      messageId: violation.messageId,
       data: undefined,
     });
   });
 
-  it('VALID: {node, message, messageId, data} => returns RuleViolation with all fields', () => {
+  it('VALID: {node, violation with messageId and data} => returns RuleViolation with all fields', () => {
     const node = AstNodeStub();
-    const { message, messageId } = RuleViolationStub({
-      message: 'Invalid function',
-      messageId: 'invalidFunction',
-    });
     const data = Object.create(null) as Record<PropertyKey, unknown>;
     data.functionName = 'testFunc';
     data.issue = 'no params';
+    const violation = RuleViolationStub({
+      message: 'Invalid function',
+      messageId: 'invalidFunction',
+      data,
+    });
 
-    const result = astToViolationTransformer({ node, message, messageId, data });
+    const result = astToViolationTransformer({ node, violation });
 
     expect(result).toStrictEqual({
       node,
-      message,
-      messageId,
-      data,
+      message: violation.message,
+      messageId: violation.messageId,
+      data: violation.data,
     });
   });
 
-  it('VALID: {node with all props, message, data} => returns RuleViolation with data but no messageId', () => {
+  it('VALID: {node with all props, violation with data but no messageId} => returns RuleViolation with data but no messageId', () => {
     const node = AstNodeStub({
       type: 'VariableDeclaration',
       range: [5, 15],
@@ -64,18 +65,18 @@ describe('astToViolationTransformer', () => {
       },
       parent: undefined,
     });
-    const { message } = RuleViolationStub({ message: 'Variable issue' });
     const data = Object.create(null) as Record<PropertyKey, unknown>;
     data.varName = 'x';
     data.type = 'let';
+    const violation = RuleViolationStub({ message: 'Variable issue', data });
 
-    const result = astToViolationTransformer({ node, message, data });
+    const result = astToViolationTransformer({ node, violation });
 
     expect(result).toStrictEqual({
       node,
-      message,
+      message: violation.message,
       messageId: undefined,
-      data,
+      data: violation.data,
     });
   });
 });

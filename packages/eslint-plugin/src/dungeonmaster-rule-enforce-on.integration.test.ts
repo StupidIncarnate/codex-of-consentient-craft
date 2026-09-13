@@ -237,10 +237,10 @@ describe('dungeonmasterRuleEnforceOnStatics integration', () => {
       expect(totalCount).toBe(Number(preEditCount) + Number(postEditCount));
     });
 
-    it('VALID: pre-edit count => 64 rules (10 third-party + 54 @dungeonmaster)', () => {
+    it('VALID: pre-edit count => 66 rules (10 third-party + 56 @dungeonmaster)', () => {
       const preEditCount = getPreEditRuleCount();
 
-      expect(preEditCount).toBe(64);
+      expect(preEditCount).toBe(66);
     });
   });
 

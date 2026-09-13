@@ -74,8 +74,7 @@ export const blightChecklistToTextTransformer = ({
   const groups = new Map<
     BlightChecklistItem['implPath'],
     {
-      packageName: BlightChecklistItem['packageName'];
-      pairedFiles: BlightChecklistItem['pairedFiles'];
+      representative: BlightChecklistItem;
       items: BlightChecklistItem[];
     }
   >();
@@ -83,8 +82,7 @@ export const blightChecklistToTextTransformer = ({
     const group = groups.get(item.implPath);
     if (group === undefined) {
       groups.set(item.implPath, {
-        packageName: item.packageName,
-        pairedFiles: item.pairedFiles,
+        representative: item,
         items: [item],
       });
     } else {
@@ -126,10 +124,10 @@ export const blightChecklistToTextTransformer = ({
   const declaredPackages = new Set<Exclude<BlightChecklistItem['packageName'], undefined>>();
   let hasUndeclaredPackage = false;
   for (const group of groups.values()) {
-    if (group.packageName === undefined) {
+    if (group.representative.packageName === undefined) {
       hasUndeclaredPackage = true;
     } else {
-      declaredPackages.add(group.packageName);
+      declaredPackages.add(group.representative.packageName);
     }
   }
   const packageOrder: BlightChecklistItem['packageName'][] = [
@@ -142,7 +140,7 @@ export const blightChecklistToTextTransformer = ({
       // Bounded by the package count (a handful) times the file count, and it keeps every file's
       // paired-count and disposition lines reading from the one map that already holds them.
       const fileEntries = [...groups.entries()].filter(
-        ([, group]) => group.packageName === packageName,
+        ([, group]) => group.representative.packageName === packageName,
       );
       const ownerLabel =
         packageName === undefined ? 'NO DECLARED PACKAGE' : `PACKAGE: ${String(packageName)}`;
@@ -154,7 +152,7 @@ export const blightChecklistToTextTransformer = ({
           const stillRemaining = group.items.filter((item) => remaining.has(String(item.id)));
           return [
             '',
-            `### ${String(implPath)}  (+${String(group.pairedFiles.length)} paired)`,
+            `### ${String(implPath)}  (+${String(group.representative.pairedFiles.length)} paired)`,
             ...(dispositioned.length === 0
               ? []
               : [`    [x] ${dispositioned.map((item) => item.concern).join(' ')}`]),

@@ -24,6 +24,8 @@ import type {
 import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { FlowDetailPanelCommentRowLayerWidget } from './flow-detail-panel-comment-row-layer-widget';
+import { FlowDetailPanelContractEntryLayerWidget } from './flow-detail-panel-contract-entry-layer-widget';
 import { IconButtonWidget } from '../icon-button/icon-button-widget';
 
 const CLOSE_LABEL = buttonLabelContract.parse('Close detail panel');
@@ -113,27 +115,10 @@ export const FlowNodeDetailPanelLayerWidget = ({
       {matchingContracts.length > 0 ? (
         <div data-testid="FLOW_DETAIL_PANEL_CONTRACTS">
           {matchingContracts.map((contract) => (
-            <div
+            <FlowDetailPanelContractEntryLayerWidget
               key={String(contract.id)}
-              data-testid="FLOW_DETAIL_PANEL_CONTRACT_ENTRY"
-              style={{ marginBottom: 8 }}
-            >
-              <div
-                data-testid="FLOW_DETAIL_PANEL_CONTRACT_NAME"
-                style={{ fontWeight: 600, color: colors.primary, marginBottom: 4 }}
-              >
-                {contract.name}
-              </div>
-              {contract.properties.map((prop) => (
-                <div
-                  key={String(prop.name)}
-                  data-testid="FLOW_DETAIL_PANEL_CONTRACT_PROPERTY"
-                  style={{ color: colors['text-dim'], paddingLeft: 8 }}
-                >
-                  {prop.name}: {prop.type}
-                </div>
-              ))}
-            </div>
+              contract={contract}
+            />
           ))}
         </div>
       ) : null}
@@ -153,33 +138,7 @@ export const FlowNodeDetailPanelLayerWidget = ({
             COMMENTS
           </div>
           {comments.map((comment) => (
-            <div
-              key={String(comment.id)}
-              data-testid="FLOW_DETAIL_PANEL_COMMENT_ROW"
-              style={{
-                marginBottom: 8,
-                paddingBottom: 8,
-                borderBottom: `1px solid ${colors.border}`,
-              }}
-            >
-              <div
-                data-testid="FLOW_DETAIL_PANEL_COMMENT_TEXT"
-                // pre-wrap keeps the author's newlines; break-word is what stops a token with no
-                // break opportunity (a long camelCase symbol, a base64 blob, a hash) from painting
-                // past the panel's maxWidth and clipping the rest of the note. Comment text is
-                // free-form user input, so it needs the same guard the node label and the assertion
-                // description already carry.
-                style={{ color: colors.text, whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}
-              >
-                {comment.text}
-              </div>
-              <div
-                data-testid="FLOW_DETAIL_PANEL_COMMENT_TIME"
-                style={{ color: colors['text-dim'], fontSize: 10, marginTop: 4 }}
-              >
-                {comment.createdAt}
-              </div>
-            </div>
+            <FlowDetailPanelCommentRowLayerWidget key={String(comment.id)} comment={comment} />
           ))}
         </div>
       ) : null}

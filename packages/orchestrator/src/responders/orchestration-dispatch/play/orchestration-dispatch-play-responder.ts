@@ -36,8 +36,7 @@ export const OrchestrationDispatchPlayResponder = async ({
   }
 
   const state = await dispatchStateWriteBroker({
-    mode: 'node-playing',
-    ...(current.mcpHeartbeatAt === undefined ? {} : { mcpHeartbeatAt: current.mcpHeartbeatAt }),
+    dispatchState: { ...current, mode: 'node-playing' },
   });
   orchestrationDispatchState.setPlaying({ isPlaying: true });
 

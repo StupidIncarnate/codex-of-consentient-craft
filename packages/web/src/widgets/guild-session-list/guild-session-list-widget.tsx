@@ -10,29 +10,11 @@
  * rather than silently presented as quest-less.
  */
 
-import {
-  Badge,
-  Box,
-  Button,
-  Group,
-  Loader,
-  Popover,
-  SegmentedControl,
-  Stack,
-  Text,
-  UnstyledButton,
-} from '@mantine/core';
-import { IconSkull } from '@tabler/icons-react';
+import { Group, Loader, SegmentedControl, Stack, Text } from '@mantine/core';
 
-import {
-  isPreExecutionQuestStatusGuard,
-  isTerminalQuestStatusGuard,
-  isUserPausedQuestStatusGuard,
-} from '@dungeonmaster/shared/guards';
 import type {
   QuestId,
   QuestListItem,
-  QuestStatus,
   SessionId,
   SessionListItem,
   SkippedQuestFile,
@@ -40,12 +22,11 @@ import type {
 
 import type { SessionFilter } from '../../contracts/session-filter/session-filter-contract';
 import { sessionFilterContract } from '../../contracts/session-filter/session-filter-contract';
-import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
-import { buttonVariantContract } from '../../contracts/button-variant/button-variant-contract';
-import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
-import { IconButtonWidget } from '../icon-button/icon-button-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
+import { QuestRowLayerWidget } from './quest-row-layer-widget';
+import { SessionRowLayerWidget } from './session-row-layer-widget';
+import { UnreadableQuestRowLayerWidget } from './unreadable-quest-row-layer-widget';
 
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
@@ -66,46 +47,7 @@ export interface GuildSessionListWidgetProps {
   deletingQuestId: QuestId | null;
 }
 
-const ITEM_FONT_SIZE = 12;
-const STATUS_FONT_SIZE = 10;
 const { colors } = emberDepthsThemeStatics;
-const DANGER_VARIANT = buttonVariantContract.parse('danger');
-const DELETE_QUEST_LABEL = buttonLabelContract.parse('Delete quest');
-
-const STATUS_COLOR_MAP = new Map<QuestStatus, (typeof colors)[keyof typeof colors]>([
-  ['created', colors.warning],
-  ['pending', colors.warning],
-  ['explore_flows', colors.warning],
-  ['flows_approved', colors.warning],
-  ['explore_observables', colors.warning],
-  ['explore_design', colors.warning],
-  ['review_flows', colors['loot-gold']],
-  ['review_observables', colors['loot-gold']],
-  ['review_design', colors['loot-gold']],
-  ['approved', colors['loot-rare']],
-  ['design_approved', colors['loot-rare']],
-  ['in_progress', colors.primary],
-  ['paused', colors.warning],
-  ['merging', colors.primary],
-  ['complete', colors.success],
-  ['merged', colors.success],
-  ['blocked', colors.danger],
-  ['abandoned', colors['text-dim']],
-]);
-
-const TERMINAL_ROW_OPACITY = 0.5;
-const TERMINAL_STATUSES = new Set(['abandoned']);
-
-const ROW_BASE_STYLE = {
-  fontFamily: 'monospace' as const,
-  fontSize: ITEM_FONT_SIZE,
-  color: colors.text,
-  borderRadius: 2,
-  display: 'flex' as const,
-  alignItems: 'center' as const,
-  justifyContent: 'space-between' as const,
-  gap: 12,
-};
 
 export const GuildSessionListWidget = ({
   sessions,
@@ -166,199 +108,29 @@ export const GuildSessionListWidget = ({
       )}
       {!loading &&
         skippedQuestFiles.map((skippedQuestFile) => (
-          <Box
+          <UnreadableQuestRowLayerWidget
             key={skippedQuestFile.questFolder}
-            px="xs"
-            py={3}
-            data-testid="UNREADABLE_QUEST_ROW"
-            style={{
-              fontFamily: 'monospace',
-              fontSize: ITEM_FONT_SIZE,
-              color: colors.text,
-              borderRadius: 2,
-              borderLeft: `2px solid ${colors.danger}`,
-              backgroundColor: colors['bg-raised'],
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 2,
-            }}
-          >
-            <Group gap={6} wrap="nowrap" justify="space-between">
-              <span style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
-                {`${skippedQuestFile.questFolder}/quest.json`}
-              </span>
-              <span
-                style={{
-                  color: colors.danger,
-                  fontSize: STATUS_FONT_SIZE,
-                  flexShrink: 0,
-                }}
-              >
-                UNREADABLE
-              </span>
-            </Group>
-            <span
-              style={{
-                color: colors['text-dim'],
-                fontSize: STATUS_FONT_SIZE,
-                overflowWrap: 'anywhere',
-              }}
-            >
-              {skippedQuestFile.reason}
-            </span>
-          </Box>
+            skippedQuestFile={skippedQuestFile}
+          />
         ))}
       {!loading &&
         isQuestMode &&
-        quests.map((quest) => {
-          const isTerminal = TERMINAL_STATUSES.has(quest.status);
-          const isDeletable =
-            isTerminalQuestStatusGuard({ status: quest.status }) ||
-            isUserPausedQuestStatusGuard({ status: quest.status }) ||
-            isPreExecutionQuestStatusGuard({ status: quest.status });
-          return (
-            <Box
-              key={quest.id}
-              role="button"
-              tabIndex={0}
-              onClick={() => {
-                onSelectQuest({ questId: quest.id });
-              }}
-              px="xs"
-              py={3}
-              data-testid={`QUEST_ITEM_${quest.id}`}
-              style={{
-                ...ROW_BASE_STYLE,
-                cursor: 'pointer',
-                opacity: isTerminal ? TERMINAL_ROW_OPACITY : 1,
-              }}
-            >
-              <span style={{ flex: 1, minWidth: 0 }}>{quest.title}</span>
-              <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
-                <span
-                  data-testid={`QUEST_STATUS_${quest.id}`}
-                  style={{
-                    color: STATUS_COLOR_MAP.get(quest.status) ?? colors['text-dim'],
-                    fontSize: STATUS_FONT_SIZE,
-                  }}
-                >
-                  {quest.status.toUpperCase().split('_').join(' ')}
-                </span>
-                {isDeletable && (
-                  <Popover
-                    opened={confirmingQuestId === quest.id}
-                    onChange={(opened) => {
-                      onConfirmingQuestIdChange({ questId: opened ? quest.id : null });
-                    }}
-                    position="bottom-end"
-                    withArrow
-                    trapFocus
-                    withinPortal
-                    transitionProps={{ duration: 0 }}
-                  >
-                    <Popover.Target>
-                      <IconButtonWidget
-                        label={DELETE_QUEST_LABEL}
-                        testId={testIdContract.parse(`QUEST_DELETE_${String(quest.id)}`)}
-                        icon={IconSkull}
-                        variant={DANGER_VARIANT}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onConfirmingQuestIdChange({
-                            questId: confirmingQuestId === quest.id ? null : quest.id,
-                          });
-                        }}
-                      />
-                    </Popover.Target>
-                    <Popover.Dropdown
-                      data-testid={`QUEST_DELETE_POPOVER_${quest.id}`}
-                      style={{
-                        background: colors['bg-raised'],
-                        borderColor: colors.border,
-                      }}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                      }}
-                    >
-                      <Stack gap={8}>
-                        <Text ff="monospace" size="xs" style={{ color: colors.text }}>
-                          {`Deleting ${quest.title} is permanent. Are you sure?`}
-                        </Text>
-                        <Group gap={8} justify="flex-end">
-                          <Button
-                            size="xs"
-                            variant="default"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              onConfirmingQuestIdChange({ questId: null });
-                            }}
-                          >
-                            Spare
-                          </Button>
-                          <Button
-                            size="xs"
-                            color="red"
-                            disabled={deletingQuestId === quest.id}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              onDeleteQuest({ questId: quest.id });
-                            }}
-                          >
-                            Banish
-                          </Button>
-                        </Group>
-                      </Stack>
-                    </Popover.Dropdown>
-                  </Popover>
-                )}
-              </Group>
-            </Box>
-          );
-        })}
+        quests.map((quest) => (
+          <QuestRowLayerWidget
+            key={quest.id}
+            quest={quest}
+            confirmingQuestId={confirmingQuestId}
+            onConfirmingQuestIdChange={onConfirmingQuestIdChange}
+            onSelectQuest={onSelectQuest}
+            onDeleteQuest={onDeleteQuest}
+            deletingQuestId={deletingQuestId}
+          />
+        ))}
       {!loading &&
         !isQuestMode &&
-        sessions.map((session) => {
-          const isTerminal =
-            session.questStatus !== undefined && TERMINAL_STATUSES.has(session.questStatus);
-          return (
-            <UnstyledButton
-              key={session.sessionId}
-              onClick={() => {
-                onSelect({ sessionId: session.sessionId });
-              }}
-              px="xs"
-              py={3}
-              data-testid={`SESSION_ITEM_${session.sessionId}`}
-              style={{ ...ROW_BASE_STYLE, opacity: isTerminal ? TERMINAL_ROW_OPACITY : 1 }}
-            >
-              <span style={{ flex: 1, minWidth: 0 }}>{session.summary ?? 'Untitled session'}</span>
-              <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
-                {session.questTitle ? (
-                  <Badge
-                    size="xs"
-                    variant="outline"
-                    data-testid={`SESSION_QUEST_BADGE_${session.sessionId}`}
-                  >
-                    QUEST
-                  </Badge>
-                ) : null}
-                {session.questStatus ? (
-                  <span
-                    data-testid={`SESSION_STATUS_${session.sessionId}`}
-                    style={{
-                      color:
-                        STATUS_COLOR_MAP.get(session.questStatus as unknown as QuestStatus) ??
-                        colors['text-dim'],
-                      fontSize: STATUS_FONT_SIZE,
-                    }}
-                  >
-                    {session.questStatus.toUpperCase().split('_').join(' ')}
-                  </span>
-                ) : null}
-              </Group>
-            </UnstyledButton>
-          );
-        })}
+        sessions.map((session) => (
+          <SessionRowLayerWidget key={session.sessionId} session={session} onSelect={onSelect} />
+        ))}
     </Stack>
   );
 };

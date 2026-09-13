@@ -59,6 +59,11 @@ describe('InstallCreateSettingsResponder', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
             },
             {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet reportingFindings' },
+              ],
+            },
+            {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
             },
             {
@@ -122,6 +127,11 @@ describe('InstallCreateSettingsResponder', () => {
             },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+            },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet reportingFindings' },
+              ],
             },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
@@ -257,6 +267,11 @@ describe('InstallCreateSettingsResponder', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
             },
             {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet reportingFindings' },
+              ],
+            },
+            {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
             },
             {
@@ -320,6 +335,11 @@ describe('InstallCreateSettingsResponder', () => {
             },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+            },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet reportingFindings' },
+              ],
             },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
@@ -462,6 +482,11 @@ describe('InstallCreateSettingsResponder', () => {
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
             },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet reportingFindings' },
+              ],
+            },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }] },
             {
               hooks: [
@@ -518,6 +543,11 @@ describe('InstallCreateSettingsResponder', () => {
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+            },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet reportingFindings' },
+              ],
             },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }] },
             {
@@ -651,6 +681,11 @@ describe('InstallCreateSettingsResponder', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
             },
             {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet reportingFindings' },
+              ],
+            },
+            {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
             },
             {
@@ -714,6 +749,11 @@ describe('InstallCreateSettingsResponder', () => {
             },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+            },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet reportingFindings' },
+              ],
             },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],

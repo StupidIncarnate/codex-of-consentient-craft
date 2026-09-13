@@ -21,11 +21,8 @@ const SERVER_ENTRY = QuestPackageEntryStub({
 describe('questNodePackageCoverageViolationsTransformer', () => {
   describe('every tag declared', () => {
     it('EMPTY: {flows: []} => returns empty array', () => {
-      const { packagesAffected } = QuestStub({ packagesAffected: [WEB_ENTRY] });
-
       const offenders = questNodePackageCoverageViolationsTransformer({
-        flows: [],
-        packagesAffected,
+        quest: QuestStub({ flows: [], packagesAffected: [WEB_ENTRY] }),
       });
 
       expect(offenders).toStrictEqual([]);
@@ -41,8 +38,7 @@ describe('questNodePackageCoverageViolationsTransformer', () => {
       });
 
       const offenders = questNodePackageCoverageViolationsTransformer({
-        flows: [flow],
-        packagesAffected: [WEB_ENTRY, SERVER_ENTRY],
+        quest: QuestStub({ flows: [flow], packagesAffected: [WEB_ENTRY, SERVER_ENTRY] }),
       });
 
       expect(offenders).toStrictEqual([]);
@@ -55,8 +51,7 @@ describe('questNodePackageCoverageViolationsTransformer', () => {
       });
 
       const offenders = questNodePackageCoverageViolationsTransformer({
-        flows: [flow],
-        packagesAffected: [WEB_ENTRY, SERVER_ENTRY],
+        quest: QuestStub({ flows: [flow], packagesAffected: [WEB_ENTRY, SERVER_ENTRY] }),
       });
 
       expect(offenders).toStrictEqual([]);
@@ -69,13 +64,13 @@ describe('questNodePackageCoverageViolationsTransformer', () => {
         id: 'warpgate-merge',
         nodes: [FlowNodeStub({ id: 'press-warp', packages: ['web'] })],
       });
+      const quest = QuestStub({ flows: [flow], packagesAffected: [WEB_ENTRY] });
       // flowNodeContract enforces .min(1), so the untagged shape only reaches this transformer via
       // a merge that produced it; assign past the parse to exercise the branch it exists for.
-      Object.assign(flow.nodes[0] as object, { packages: [] });
+      Object.assign(quest.flows[0]?.nodes[0] as object, { packages: [] });
 
       const offenders = questNodePackageCoverageViolationsTransformer({
-        flows: [flow],
-        packagesAffected: [WEB_ENTRY],
+        quest,
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([
@@ -92,8 +87,7 @@ describe('questNodePackageCoverageViolationsTransformer', () => {
       });
 
       const offenders = questNodePackageCoverageViolationsTransformer({
-        flows: [flow],
-        packagesAffected: [WEB_ENTRY],
+        quest: QuestStub({ flows: [flow], packagesAffected: [WEB_ENTRY] }),
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([
@@ -108,8 +102,7 @@ describe('questNodePackageCoverageViolationsTransformer', () => {
       });
 
       const offenders = questNodePackageCoverageViolationsTransformer({
-        flows: [flow],
-        packagesAffected: [WEB_ENTRY],
+        quest: QuestStub({ flows: [flow], packagesAffected: [WEB_ENTRY] }),
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([
@@ -124,8 +117,7 @@ describe('questNodePackageCoverageViolationsTransformer', () => {
       });
 
       const offenders = questNodePackageCoverageViolationsTransformer({
-        flows: [flow],
-        packagesAffected: [],
+        quest: QuestStub({ flows: [flow], packagesAffected: [] }),
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([
@@ -144,8 +136,10 @@ describe('questNodePackageCoverageViolationsTransformer', () => {
       });
 
       const offenders = questNodePackageCoverageViolationsTransformer({
-        flows: [uiFlow, apiFlow],
-        packagesAffected: [WEB_ENTRY, SERVER_ENTRY],
+        quest: QuestStub({
+          flows: [uiFlow, apiFlow],
+          packagesAffected: [WEB_ENTRY, SERVER_ENTRY],
+        }),
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([

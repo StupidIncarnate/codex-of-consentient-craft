@@ -8,13 +8,7 @@
 
 import { z } from 'zod';
 
-const formattedToolFieldContract = z.object({
-  key: z.string().min(1).brand<'ToolFieldKey'>(),
-  value: z.string().brand<'ToolFieldValue'>(),
-  isLong: z.boolean(),
-});
-
-export type FormattedToolField = z.infer<typeof formattedToolFieldContract>;
+import { formattedToolFieldContract } from '../formatted-tool-field/formatted-tool-field-contract';
 
 export const formattedToolInputContract = z.object({
   fields: z.array(formattedToolFieldContract),

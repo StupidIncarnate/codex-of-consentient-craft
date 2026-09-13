@@ -19,7 +19,9 @@ describe('OrchestrationDispatchPlayResponder', () => {
       allowed: true,
       state: DispatchStateStub({ mode: 'node-playing', updatedAt: '2024-01-15T10:01:00.000Z' }),
     });
-    expect(proxy.getWriteCalls()).toStrictEqual([{ mode: 'node-playing' }]);
+    expect(proxy.getWriteCalls()).toStrictEqual([
+      { dispatchState: DispatchStateStub({ mode: 'node-playing' }) },
+    ]);
     expect(proxy.getIsPlaying()).toBe(true);
   });
 
@@ -33,7 +35,12 @@ describe('OrchestrationDispatchPlayResponder', () => {
     await OrchestrationDispatchPlayResponder({});
 
     expect(proxy.getWriteCalls()).toStrictEqual([
-      { mode: 'node-playing', mcpHeartbeatAt: '2024-01-15T09:00:00.000Z' },
+      {
+        dispatchState: DispatchStateStub({
+          mode: 'node-playing',
+          mcpHeartbeatAt: '2024-01-15T09:00:00.000Z',
+        }),
+      },
     ]);
   });
 

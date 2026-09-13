@@ -39,9 +39,9 @@ import { executionRowSubtitleTransformer } from '../../transformers/execution-ro
 import { mergeCommandOutputEntriesTransformer } from '../../transformers/merge-command-output-entries/merge-command-output-entries-transformer';
 import { stickyHeaderZIndexTransformer } from '../../transformers/sticky-header-z-index/sticky-header-z-index-transformer';
 import { ChatEntryListWidget } from '../chat-entry-list/chat-entry-list-widget';
-import { RiftcarverResultDetailLayerWidget } from './riftcarver-result-detail-layer-widget';
+import { RiftcarverResultRowLayerWidget } from './riftcarver-result-row-layer-widget';
 import { StreamingBarLayerWidget } from './streaming-bar-layer-widget';
-import { WardResultDetailLayerWidget } from './ward-result-detail-layer-widget';
+import { WardResultRowLayerWidget } from './ward-result-row-layer-widget';
 
 export interface ExecutionRowLayerWidgetProps {
   order: RowOrder;
@@ -52,14 +52,13 @@ export interface ExecutionRowLayerWidgetProps {
   dependsOn: DependencyLabel[];
   isAdhoc: boolean;
   errorMessage?: ErrorMessage;
-  summary?: WorkItem['summary'];
+  // Carries summary, attempt, maxAttempts, startedAt, completedAt and actualSignal as ONE object
+  // rather than six flattened WorkItem['x'] properties, so a caller passes the work item it already
+  // has instead of picking it apart field by field.
+  workItem?: WorkItem;
   entries?: ChatEntry[];
   isStreaming?: boolean;
   autoExpand?: boolean;
-  attempt?: WorkItem['attempt'];
-  maxAttempts?: WorkItem['maxAttempts'];
-  startedAt?: WorkItem['startedAt'];
-  completedAt?: WorkItem['completedAt'];
   // The panel's shared 60-second tick supplies this; it is the end point a RUNNING item's figure
   // measures to, and a finished item ignores it.
   now?: IsoTimestamp;
@@ -68,7 +67,6 @@ export interface ExecutionRowLayerWidgetProps {
   outputContracts?: ContractName[];
   wardResults?: WardResult[];
   riftcarverResults?: RiftcarverResult[];
-  actualSignal?: WorkItem['actualSignal'];
   questId?: QuestId;
 }
 
@@ -119,23 +117,19 @@ export const ExecutionRowLayerWidget = ({
   dependsOn,
   isAdhoc,
   errorMessage,
-  summary,
+  workItem,
   entries,
   isStreaming,
   autoExpand,
-  attempt,
-  maxAttempts,
-  startedAt,
-  completedAt,
   now,
   observablesSatisfied,
   inputContracts,
   outputContracts,
   wardResults,
   riftcarverResults,
-  actualSignal,
   questId,
 }: ExecutionRowLayerWidgetProps): React.JSX.Element => {
+  const { summary, attempt, maxAttempts, startedAt, completedAt, actualSignal } = workItem ?? {};
   const { colors } = emberDepthsThemeStatics;
   const hasEntries = entries !== undefined && entries.length > 0;
   // A COMMAND row (ward, riftcarver) streams raw program output one entry per LINE, so it is
@@ -502,47 +496,20 @@ export const ExecutionRowLayerWidget = ({
           ) : null}
           {wardResults && wardResults.length > 0
             ? wardResults.map((wr) => (
-                <Box
+                <WardResultRowLayerWidget
                   key={wr.id}
-                  data-testid="execution-row-ward-result"
-                  style={{ marginBottom: EXPANDED_DETAIL_MARGIN_BOTTOM }}
-                >
-                  <Text
-                    ff="monospace"
-                    style={{
-                      fontSize: EXPANDED_DETAIL_FONT_SIZE,
-                      color: wr.exitCode === 0 ? colors.success : colors.danger,
-                    }}
-                  >
-                    Ward exit code: {String(wr.exitCode)}
-                    {wr.wardMode ? ` (${wr.wardMode})` : ''}
-                  </Text>
-                  {questId === undefined ? null : (
-                    <WardResultDetailLayerWidget questId={questId} wardResult={wr} />
-                  )}
-                </Box>
+                  wardResult={wr}
+                  {...(questId === undefined ? {} : { questId })}
+                />
               ))
             : null}
           {riftcarverResults && riftcarverResults.length > 0
             ? riftcarverResults.map((rr) => (
-                <Box
+                <RiftcarverResultRowLayerWidget
                   key={rr.id}
-                  data-testid="execution-row-riftcarver-result"
-                  style={{ marginBottom: EXPANDED_DETAIL_MARGIN_BOTTOM }}
-                >
-                  <Text
-                    ff="monospace"
-                    style={{
-                      fontSize: EXPANDED_DETAIL_FONT_SIZE,
-                      color: rr.exitCode === 0 ? colors.success : colors.danger,
-                    }}
-                  >
-                    Riftcarver exit code: {String(rr.exitCode)} ({rr.outcome})
-                  </Text>
-                  {questId === undefined ? null : (
-                    <RiftcarverResultDetailLayerWidget questId={questId} riftcarverResult={rr} />
-                  )}
-                </Box>
+                  riftcarverResult={rr}
+                  {...(questId === undefined ? {} : { questId })}
+                />
               ))
             : null}
           {summary ? (

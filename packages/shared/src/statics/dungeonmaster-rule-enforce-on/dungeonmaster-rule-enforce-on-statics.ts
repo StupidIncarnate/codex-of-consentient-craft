@@ -78,6 +78,8 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/ban-unknown-payload-in-discriminated-union': 'pre-edit',
   '@dungeonmaster/require-validation-on-untyped-property-access': 'pre-edit',
   '@dungeonmaster/enforce-proxy-param-binding': 'pre-edit',
+  '@dungeonmaster/ban-flattened-contract-params': 'pre-edit',
+  '@dungeonmaster/ban-anonymous-jsx-in-map': 'pre-edit',
 
   // @dungeonmaster - POST-EDIT (4 rules)
   '@dungeonmaster/enforce-proxy-patterns': 'post-edit',

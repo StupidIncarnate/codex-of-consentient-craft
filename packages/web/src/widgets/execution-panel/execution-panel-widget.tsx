@@ -23,7 +23,6 @@ import type {
   UserInput,
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
-import { riftcarverResultContract } from '@dungeonmaster/shared/contracts';
 
 import { useElapsedTickBinding } from '../../bindings/use-elapsed-tick/use-elapsed-tick-binding';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
@@ -52,7 +51,6 @@ import {
 } from '@dungeonmaster/shared/guards';
 import { displayHeaderQuestStatusTransformer } from '@dungeonmaster/shared/transformers';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
-import { mergeDescendantSubagentEntriesTransformer } from '../../transformers/merge-descendant-subagent-entries/merge-descendant-subagent-entries-transformer';
 import { unclaimedOperationsTransformer } from '../../transformers/unclaimed-operations/unclaimed-operations-transformer';
 import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
@@ -62,6 +60,7 @@ import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widge
 import { QuestTitleBarWidget } from '../quest-title-bar/quest-title-bar-widget';
 import { ExecutionRowLayerWidget } from './execution-row-layer-widget';
 import { ExecutionStatusBarLayerWidget } from './execution-status-bar-layer-widget';
+import { ExecutionWorkItemRowLayerWidget } from './execution-work-item-row-layer-widget';
 
 const DUMPSTER_LAUNCH_BANNER_MESSAGE = displayLabelContract.parse(
   "Run this in your Claude session — it'll pick this quest up on its next pass.",
@@ -116,12 +115,6 @@ const ACTION_BAR_PADDING = 12;
 // a flex item's default min-height: auto does not floor it here because its own content
 // scrolls internally.
 const EXECUTION_FLOOR_MIN_HEIGHT = 160;
-const WARD_RESULTS_PREFIX = 'wardResults/';
-const WARD_RESULTS_PREFIX_LENGTH = WARD_RESULTS_PREFIX.length;
-const RIFTCARVER_RESULTS_PREFIX = 'riftcarverResults/';
-const RIFTCARVER_RESULTS_PREFIX_LENGTH = RIFTCARVER_RESULTS_PREFIX.length;
-const OPERATIONS_PREFIX = 'operations/';
-const OPERATIONS_PREFIX_LENGTH = OPERATIONS_PREFIX.length;
 const FLOOR_CONTENT_TEST_ID = testIdContract.parse('execution-panel-floor-content');
 // ChatPanelWidget's onSendMessage/onStopChat are required props. onSendFollowupMessage is
 // only reachable as undefined for the single render tick between a prop change and the
@@ -330,91 +323,23 @@ export const ExecutionPanelWidget = ({
             testId={FLOOR_CONTENT_TEST_ID}
             style={{ flex: 1, padding: '0 12px 12px', minHeight: EXECUTION_FLOOR_MIN_HEIGHT }}
           >
-            {visibleWorkItems.map((wi, wiIndex) => {
-              const wiOwnEntries =
-                workItemEntries.get(wi.id) ??
-                (wi.sessionId ? sessionEntries.get(wi.sessionId) : undefined) ??
-                [];
-              const wiEntries = mergeDescendantSubagentEntriesTransformer({
-                ownEntries: wiOwnEntries,
-                poolEntries: wi.sessionId ? (sessionEntries.get(wi.sessionId) ?? []) : [],
-              });
-              const wiDepLabels = wi.dependsOn
-                .map((depId) => workItemIdToLabel.get(depId) ?? depId)
-                .filter((label) => label.length > 0);
-              const wiWardRefs = wi.relatedDataItems.filter((ref) =>
-                ref.startsWith(WARD_RESULTS_PREFIX),
-              );
-              const wiWardResults = wiWardRefs
-                .map((ref) =>
-                  wardResultsById.get(
-                    ref.slice(WARD_RESULTS_PREFIX_LENGTH) as (typeof quest.wardResults)[0]['id'],
-                  ),
-                )
-                .filter((wr): wr is NonNullable<typeof wr> => wr !== undefined);
-              const wiRiftcarverRefs = wi.relatedDataItems.filter((ref) =>
-                ref.startsWith(RIFTCARVER_RESULTS_PREFIX),
-              );
-              const wiRiftcarverResults = wiRiftcarverRefs
-                .map((ref) => {
-                  // Parse the sliced id through the contract's own id schema to re-brand it,
-                  // rather than asserting the raw slice into RiftcarverResult['id'] — a ref that
-                  // fails to parse (corrupt/legacy data) is treated as not-found instead of lying
-                  // to the type system about a string that was never validated.
-                  const parsedId = riftcarverResultContract.shape.id.safeParse(
-                    ref.slice(RIFTCARVER_RESULTS_PREFIX_LENGTH),
-                  );
-                  return parsedId.success ? riftcarverResultsById.get(parsedId.data) : undefined;
-                })
-                .filter((rr): rr is NonNullable<typeof rr> => rr !== undefined);
-              const wiStatus = wi.status as ExecutionStepStatus;
-              const wiOperationRef = wi.relatedDataItems.find((ref) =>
-                ref.startsWith(OPERATIONS_PREFIX),
-              );
-              const wiOperation = wiOperationRef
-                ? operationsById.get(
-                    wiOperationRef.slice(
-                      OPERATIONS_PREFIX_LENGTH,
-                    ) as (typeof quest.operations)[0]['id'],
-                  )
-                : undefined;
-              const wiName = displayLabelContract.parse(
-                wiOperation
-                  ? wiOperation.text
-                  : `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)}`,
-              );
-              return (
-                <ExecutionRowLayerWidget
-                  key={wi.id}
-                  order={(wiIndex + 1) as RowOrder}
-                  name={wiName}
-                  role={wi.role as unknown as ExecutionRole}
-                  status={wiStatus}
-                  files={[] as DisplayFilePath[]}
-                  dependsOn={wiDepLabels as unknown as DependencyLabel[]}
-                  isAdhoc={wi.insertedBy !== undefined}
-                  entries={wiEntries}
-                  isStreaming={wiStatus === ('in_progress' as ExecutionStepStatus)}
-                  {...(includeSkipped ? { autoExpand: true } : {})}
-                  attempt={wi.attempt}
-                  maxAttempts={wi.maxAttempts}
-                  now={now}
-                  {...(wi.startedAt ? { startedAt: wi.startedAt } : {})}
-                  {...(wi.completedAt ? { completedAt: wi.completedAt } : {})}
-                  {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
-                  {...(wi.summary ? { summary: wi.summary } : {})}
-                  {...(wiWardResults.length > 0
-                    ? { wardResults: wiWardResults, questId: quest.id }
-                    : {})}
-                  {...(wiRiftcarverResults.length > 0
-                    ? { riftcarverResults: wiRiftcarverResults, questId: quest.id }
-                    : {})}
-                  {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
-                  {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
-                  {...(guildSlug ? { guildSlug } : {})}
-                />
-              );
-            })}
+            {visibleWorkItems.map((wi, wiIndex) => (
+              <ExecutionWorkItemRowLayerWidget
+                key={wi.id}
+                order={(wiIndex + 1) as RowOrder}
+                workItem={wi}
+                questId={quest.id}
+                now={now}
+                includeSkipped={includeSkipped}
+                workItemEntries={workItemEntries}
+                sessionEntries={sessionEntries}
+                workItemIdToLabel={workItemIdToLabel}
+                wardResultsById={wardResultsById}
+                riftcarverResultsById={riftcarverResultsById}
+                operationsById={operationsById}
+                {...(guildSlug ? { guildSlug } : {})}
+              />
+            ))}
             {/* The numbering continues straight on from the work-item rows above, because this is
                 ONE list: an operation nothing has claimed is the next thing that will run, not a
                 separate register. The row is handed no entries, no timestamps and no results —

@@ -1,8 +1,10 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { IconButtonWidgetProxy } from '../icon-button/icon-button-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
+import { QuestRowLayerWidgetProxy } from './quest-row-layer-widget.proxy';
+import { SessionRowLayerWidgetProxy } from './session-row-layer-widget.proxy';
+import { UnreadableQuestRowLayerWidgetProxy } from './unreadable-quest-row-layer-widget.proxy';
 
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 
@@ -33,9 +35,11 @@ export const GuildSessionListWidgetProxy = (): {
   clickSpare: () => Promise<void>;
 } => {
   PixelBtnWidgetProxy();
-  // The quest-delete skull is an IconButtonWidget. Its proxy mocks nothing, so this constructs it
-  // for the child-proxy rule only — the skull is addressed here by its per-quest testid.
-  IconButtonWidgetProxy();
+  // The three row shapes are layer widgets; their proxies mock nothing, so these constructs are
+  // for the child-proxy rule only — every helper below still addresses the row by its own testid.
+  UnreadableQuestRowLayerWidgetProxy();
+  QuestRowLayerWidgetProxy();
+  SessionRowLayerWidgetProxy();
 
   return {
     hasHeader: (): boolean => screen.queryByText('SESSIONS') !== null,

@@ -49,9 +49,12 @@ import {
   operationItemContract,
   riftcarverResultContract,
   workItemContract,
+  type AbsoluteFilePath,
+  type BaseBranchName,
   type ErrorMessage,
   type ModifyQuestInput,
   type Quest,
+  type QuestBranchName,
   type QuestId,
   type QuestWorkItemId,
   type RiftcarverResult,
@@ -99,9 +102,9 @@ type WorktreePrepareStepValue = (typeof STEPS)[keyof typeof STEPS];
 type CarveResult =
   | {
       ok: true;
-      branchName: NonNullable<Quest['branchName']>;
-      baseBranch: NonNullable<Quest['baseBranch']>;
-      worktreePath: NonNullable<Quest['worktreePath']>;
+      branchName: QuestBranchName;
+      baseBranch: BaseBranchName;
+      worktreePath: AbsoluteFilePath;
       baseRef: NonNullable<Quest['baseRef']>;
     }
   | { ok: false; failedStep: WorktreePrepareStepValue; error: unknown };

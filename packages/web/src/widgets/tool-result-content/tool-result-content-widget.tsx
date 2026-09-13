@@ -19,10 +19,10 @@ import { Box, Text } from '@mantine/core';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import type { CssPixels } from '@dungeonmaster/shared/contracts';
 import type { ToolResultDisplayContent } from '../../contracts/tool-result-display-content/tool-result-display-content-contract';
-import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import type { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { markdownTypographyStatics } from '../../statics/markdown-typography/markdown-typography-statics';
 import { parseToolResultDisplayTransformer } from '../../transformers/parse-tool-result-display/parse-tool-result-display-transformer';
-import { MarkdownTextWidget } from '../markdown-text/markdown-text-widget';
+import { ToolResultPartLayerWidget } from './tool-result-part-layer-widget';
 
 export interface ToolResultContentWidgetProps {
   content: ToolResultDisplayContent;
@@ -31,14 +31,12 @@ export interface ToolResultContentWidgetProps {
 }
 
 const DEFAULT_FONT_SIZE = cssPixelsContract.parse(markdownTypographyStatics.bodyFontSize);
-const LABEL_FONT_WEIGHT = 600;
 
 export const ToolResultContentWidget = ({
   content,
   color,
   fontSize = DEFAULT_FONT_SIZE,
 }: ToolResultContentWidgetProps): React.JSX.Element => {
-  const { colors } = emberDepthsThemeStatics;
   const parts = parseToolResultDisplayTransformer({ content });
 
   if (parts === null) {
@@ -55,43 +53,14 @@ export const ToolResultContentWidget = ({
 
   return (
     <Box data-testid="TOOL_RESULT_FORMATTED">
-      {parts.map((part, index) => {
-        // A scalar property is one short line; captioning it on a line of its own doubles the
-        // height of the reply for nothing, so only the units that actually open out get a caption
-        // above them.
-        const isInlineField = part.kind === 'text' && !part.text.includes('\n');
-
-        return (
-          <Box key={`${String(index)}-${part.kind}`} mb={markdownTypographyStatics.blockGap}>
-            {part.label === undefined || isInlineField ? null : (
-              <Text
-                data-testid="TOOL_RESULT_FIELD_LABEL"
-                ff="monospace"
-                fw={LABEL_FONT_WEIGHT}
-                style={{ fontSize: Number(fontSize), color: colors['text-dim'] }}
-              >
-                {part.label}
-              </Text>
-            )}
-            {part.kind === 'markdown' ? (
-              // A tool's answer is machine-formatted: its newlines and indentation are what say one
-              // logical item ended and which continuations belong to it. Rejoining them the way an
-              // agent's hard-wrapped prose wants turns a quest's contract ledger into a single
-              // run-on sentence with every nesting level flattened out of it.
-              <MarkdownTextWidget content={part.source} preserveLineBreaks={true} />
-            ) : (
-              <Text
-                ff="monospace"
-                style={{ fontSize: Number(fontSize), color, whiteSpace: 'pre-wrap' }}
-              >
-                {isInlineField && part.label !== undefined
-                  ? `${String(part.label)}: ${String(part.text)}`
-                  : part.text}
-              </Text>
-            )}
-          </Box>
-        );
-      })}
+      {parts.map((part, index) => (
+        <ToolResultPartLayerWidget
+          key={`${String(index)}-${part.kind}`}
+          part={part}
+          color={color}
+          fontSize={fontSize}
+        />
+      ))}
     </Box>
   );
 };

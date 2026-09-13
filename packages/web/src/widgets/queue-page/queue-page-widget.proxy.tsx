@@ -12,6 +12,7 @@ import type { DispatchStateStub } from '@dungeonmaster/shared/contracts';
 
 import { useQuestQueueBindingProxy } from '../../bindings/use-quest-queue/use-quest-queue-binding.proxy';
 import { DispatchToggleWidgetProxy } from '../dispatch-toggle/dispatch-toggle-widget.proxy';
+import { QueueRowLayerWidgetProxy } from './queue-row-layer-widget.proxy';
 
 type DispatchState = ReturnType<typeof DispatchStateStub>;
 
@@ -24,6 +25,9 @@ export const QueuePageWidgetProxy = (): ReturnType<typeof useQuestQueueBindingPr
 } => {
   const queue = useQuestQueueBindingProxy();
   const toggle = DispatchToggleWidgetProxy();
+  // The list renders one QueueRowLayerWidget per entry; enforce-proxy-child-creation requires its
+  // proxy be created here. Empty — the row has no I/O of its own to mock.
+  QueueRowLayerWidgetProxy();
 
   return {
     ...queue,

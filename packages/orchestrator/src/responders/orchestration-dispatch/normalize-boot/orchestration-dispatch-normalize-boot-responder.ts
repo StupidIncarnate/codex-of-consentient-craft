@@ -25,8 +25,5 @@ export const OrchestrationDispatchNormalizeBootResponder = async (): Promise<Dis
     return current;
   }
 
-  return dispatchStateWriteBroker({
-    mode: 'paused',
-    ...(current.mcpHeartbeatAt === undefined ? {} : { mcpHeartbeatAt: current.mcpHeartbeatAt }),
-  });
+  return dispatchStateWriteBroker({ dispatchState: { ...current, mode: 'paused' } });
 };

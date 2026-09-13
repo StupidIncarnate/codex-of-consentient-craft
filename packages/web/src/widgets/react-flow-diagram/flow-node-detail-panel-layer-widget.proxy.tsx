@@ -1,5 +1,7 @@
 import { screen } from '@testing-library/react';
 
+import { FlowDetailPanelCommentRowLayerWidgetProxy } from './flow-detail-panel-comment-row-layer-widget.proxy';
+import { FlowDetailPanelContractEntryLayerWidgetProxy } from './flow-detail-panel-contract-entry-layer-widget.proxy';
 import { IconButtonWidgetProxy } from '../icon-button/icon-button-widget.proxy';
 
 interface FlowNodeDetailPanelLayerWidgetProxyResult {
@@ -19,6 +21,10 @@ export const FlowNodeDetailPanelLayerWidgetProxy =
     // The panel's close control is an IconButtonWidget. Its proxy mocks nothing, so this constructs
     // it for the child-proxy rule only — the close button is addressed here by its own testid.
     IconButtonWidgetProxy();
+    // Neither row widget below has a dependency of its own to mock; constructed here only for the
+    // child-proxy rule, and addressed in tests by their own testids.
+    FlowDetailPanelContractEntryLayerWidgetProxy();
+    FlowDetailPanelCommentRowLayerWidgetProxy();
 
     return {
       getPanel: (): HTMLElement | null => screen.queryByTestId('FLOW_NODE_DETAIL_PANEL'),

@@ -7,7 +7,7 @@
  * all; that one asks whether two already-well-formed tags meet.
  *
  * USAGE:
- * questNodePackageCoverageViolationsTransformer({flows: quest.flows, packagesAffected: quest.packagesAffected});
+ * questNodePackageCoverageViolationsTransformer({quest});
  * // Returns ErrorMessage[] — one sentence per offending node/tag, each carrying its own remediation.
  */
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
@@ -17,16 +17,14 @@ import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 type Quest = ReturnType<typeof QuestStub>;
 
 export const questNodePackageCoverageViolationsTransformer = ({
-  flows,
-  packagesAffected,
+  quest,
 }: {
-  flows: Quest['flows'];
-  packagesAffected: Quest['packagesAffected'];
+  quest: Quest;
 }): ErrorMessage[] => {
-  const declaredNames = new Set<unknown>(packagesAffected.map((entry) => String(entry.name)));
+  const declaredNames = new Set<unknown>(quest.packagesAffected.map((entry) => String(entry.name)));
   const offenders: ErrorMessage[] = [];
 
-  for (const flow of flows) {
+  for (const flow of quest.flows) {
     for (const node of flow.nodes) {
       if (node.packages.length === 0) {
         offenders.push(

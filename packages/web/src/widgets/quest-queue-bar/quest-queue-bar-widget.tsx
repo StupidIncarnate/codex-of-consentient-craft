@@ -10,13 +10,15 @@ import { Group, Stack, Text, UnstyledButton } from '@mantine/core';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { arrayIndexContract, totalCountContract } from '@dungeonmaster/shared/contracts';
+
 import { useQuestQueueBinding } from '../../bindings/use-quest-queue/use-quest-queue-binding';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { DispatchToggleWidget } from '../dispatch-toggle/dispatch-toggle-widget';
+import { QueueRowLayerWidget } from './queue-row-layer-widget';
 
 const BAR_HEIGHT = 48;
 const ROW_FONT_SIZE = 13;
-const CHEVRON_SIZE = 14;
 const ERROR_BADGE_SIZE = 10;
 const BORDER_WIDTH = 1;
 const ROW_PADDING_Y = 6;
@@ -161,50 +163,15 @@ export const QuestQueueBarWidget = (): React.JSX.Element | null => {
             backgroundColor: colors['bg-surface'],
           }}
         >
-          {allEntries.map((entry, index) => {
-            const isActive = index === activeIndex;
-            const rowHasError = entry.error !== undefined;
-            const href = `/${entry.guildSlug}/quest/${entry.questId}`;
-            const rowLabel = `${index + 1}/${total} — ${entry.guildSlug} / ${entry.questTitle}`;
-            return (
-              <Link
-                key={entry.questId}
-                to={href}
-                data-testid={`QUEST_QUEUE_BAR_ROW_${entry.questId.toUpperCase()}`}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: `${ROW_PADDING_Y}px ${ROW_PADDING_X}px`,
-                  color: isActive ? colors['loot-gold'] : colors.text,
-                  backgroundColor: isActive ? colors['bg-raised'] : 'transparent',
-                  borderLeft: `${BORDER_WIDTH}px solid ${
-                    isActive ? colors['loot-gold'] : 'transparent'
-                  }`,
-                  fontFamily: 'monospace',
-                  fontSize: ROW_FONT_SIZE,
-                  textDecoration: 'none',
-                }}
-              >
-                {rowHasError ? (
-                  <span
-                    data-testid={`QUEST_QUEUE_BAR_ROW_ERROR_${entry.questId.toUpperCase()}`}
-                    aria-label="Entry error"
-                    title={entry.error?.message ?? ''}
-                    style={{
-                      display: 'inline-block',
-                      width: ERROR_BADGE_SIZE,
-                      height: ERROR_BADGE_SIZE,
-                      borderRadius: ERROR_BADGE_SIZE,
-                      backgroundColor: colors.danger,
-                      marginRight: CHEVRON_SIZE - ERROR_BADGE_SIZE,
-                    }}
-                  />
-                ) : null}
-                <span>{rowLabel}</span>
-              </Link>
-            );
-          })}
+          {allEntries.map((entry, index) => (
+            <QueueRowLayerWidget
+              key={entry.questId}
+              entry={entry}
+              index={arrayIndexContract.parse(index)}
+              total={totalCountContract.parse(total)}
+              isActive={index === activeIndex}
+            />
+          ))}
         </Stack>
       ) : null}
     </div>

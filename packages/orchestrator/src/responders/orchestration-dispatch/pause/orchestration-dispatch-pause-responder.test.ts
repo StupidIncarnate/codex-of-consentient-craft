@@ -15,7 +15,9 @@ describe('OrchestrationDispatchPauseResponder', () => {
     const result = await OrchestrationDispatchPauseResponder();
 
     expect(result).toStrictEqual(DispatchStateStub({ updatedAt: '2024-01-15T10:02:00.000Z' }));
-    expect(proxy.getWriteCalls()).toStrictEqual([{ mode: 'paused' }]);
+    expect(proxy.getWriteCalls()).toStrictEqual([
+      { dispatchState: DispatchStateStub({ mode: 'paused' }) },
+    ]);
     expect(proxy.getIsPlaying()).toBe(false);
   });
 
@@ -31,7 +33,12 @@ describe('OrchestrationDispatchPauseResponder', () => {
     await OrchestrationDispatchPauseResponder();
 
     expect(proxy.getWriteCalls()).toStrictEqual([
-      { mode: 'paused', mcpHeartbeatAt: '2024-01-15T09:00:00.000Z' },
+      {
+        dispatchState: DispatchStateStub({
+          mode: 'paused',
+          mcpHeartbeatAt: '2024-01-15T09:00:00.000Z',
+        }),
+      },
     ]);
   });
 });

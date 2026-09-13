@@ -60,10 +60,7 @@ export const questSaveInvariantsTransformer = ({
     relational.push(
       {
         name: 'Node Package Coverage',
-        offenders: questNodePackageCoverageViolationsTransformer({
-          flows: quest.flows,
-          packagesAffected: quest.packagesAffected,
-        }),
+        offenders: questNodePackageCoverageViolationsTransformer({ quest }),
       },
       {
         name: 'No Unglued Seam',
@@ -83,10 +80,7 @@ export const questSaveInvariantsTransformer = ({
     // whichever type is being saved.
     relational.push({
       name: 'Contract Source Coverage',
-      offenders: questContractSourceCoverageViolationsTransformer({
-        contracts: quest.contracts,
-        packagesAffected: quest.packagesAffected,
-      }),
+      offenders: questContractSourceCoverageViolationsTransformer({ quest }),
     });
   }
 

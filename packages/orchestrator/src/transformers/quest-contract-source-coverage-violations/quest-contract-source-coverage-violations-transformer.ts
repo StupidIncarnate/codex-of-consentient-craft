@@ -22,7 +22,7 @@
  * package nobody is going to touch.
  *
  * USAGE:
- * questContractSourceCoverageViolationsTransformer({contracts: quest.contracts, packagesAffected: quest.packagesAffected});
+ * questContractSourceCoverageViolationsTransformer({quest});
  * // Returns ErrorMessage[] — one sentence per offending contract, each carrying its own remediation.
  */
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
@@ -33,15 +33,13 @@ import { questContractSourceOwnerTransformer } from '@dungeonmaster/shared/trans
 type Quest = ReturnType<typeof QuestStub>;
 
 export const questContractSourceCoverageViolationsTransformer = ({
-  contracts,
-  packagesAffected,
+  quest,
 }: {
-  contracts: Quest['contracts'];
-  packagesAffected: Quest['packagesAffected'];
+  quest: Quest;
 }): ErrorMessage[] => {
   const offenders: ErrorMessage[] = [];
 
-  for (const contract of contracts) {
+  for (const contract of quest.contracts) {
     if (contract.status === 'existing') {
       continue;
     }
@@ -50,7 +48,12 @@ export const questContractSourceCoverageViolationsTransformer = ({
     // makes this gate meaningful: a contract this refuses is exactly a contract the generator
     // would have dropped, and a divergence between the two would refuse work that does route, or
     // pass work that does not.
-    if (questContractSourceOwnerTransformer({ contract, packagesAffected }) === undefined) {
+    if (
+      questContractSourceOwnerTransformer({
+        contract,
+        packagesAffected: quest.packagesAffected,
+      }) === undefined
+    ) {
       offenders.push(
         errorMessageContract.parse(
           `Contract '${String(contract.name)}' declares source '${String(contract.source)}', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.`,
@@ -63,7 +66,11 @@ export const questContractSourceCoverageViolationsTransformer = ({
     for (const property of contract.properties) {
       if (
         property.source !== undefined &&
-        questContractSourceOwnerTransformer({ contract, property, packagesAffected }) === undefined
+        questContractSourceOwnerTransformer({
+          contract,
+          property,
+          packagesAffected: quest.packagesAffected,
+        }) === undefined
       ) {
         offenders.push(
           errorMessageContract.parse(

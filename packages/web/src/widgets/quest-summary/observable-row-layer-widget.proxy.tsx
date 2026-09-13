@@ -1,0 +1,2 @@
+export const ObservableRowLayerWidgetProxy = (): Record<PropertyKey, never> =>
+  ({}) as Record<PropertyKey, never>;

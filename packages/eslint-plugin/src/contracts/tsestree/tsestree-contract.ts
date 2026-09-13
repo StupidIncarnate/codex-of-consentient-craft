@@ -83,6 +83,12 @@ interface RecursiveNodeOutput {
   optional?: boolean | undefined;
   // TSTypeLiteral properties
   members?: RecursiveNodeOutput[] | undefined;
+  // TSIndexedAccessType properties — `objectType[indexType]`, as in WorkItem['summary']
+  objectType?: RecursiveNodeOutput | null | undefined;
+  indexType?: RecursiveNodeOutput | null | undefined;
+  // JSXElement / JSXFragment properties
+  openingElement?: RecursiveNodeOutput | null | undefined;
+  children?: RecursiveNodeOutput[] | undefined;
   // ExportNamedDeclaration properties
   exportKind?: 'type' | 'value' | undefined;
   declaration?: RecursiveNodeOutput | null | undefined;
@@ -133,6 +139,8 @@ interface RecursiveNodeOutput {
   // SwitchCase properties
   test?: RecursiveNodeOutput | null | undefined;
   consequent?: RecursiveNodeOutput | RecursiveNodeOutput[] | null | undefined;
+  // ConditionalExpression / IfStatement else-branch
+  alternate?: RecursiveNodeOutput | RecursiveNodeOutput[] | null | undefined;
   // Literal regex properties (ESLint AST stores /pattern/flags as {regex: {pattern, flags}})
   regex?: { pattern?: unknown; flags?: unknown } | undefined;
 }
@@ -191,6 +199,12 @@ interface RecursiveNodeInput {
   optional?: boolean | undefined;
   // TSTypeLiteral properties
   members?: RecursiveNodeInput[] | undefined;
+  // TSIndexedAccessType properties — `objectType[indexType]`, as in WorkItem['summary']
+  objectType?: RecursiveNodeInput | null | undefined;
+  indexType?: RecursiveNodeInput | null | undefined;
+  // JSXElement / JSXFragment properties
+  openingElement?: RecursiveNodeInput | null | undefined;
+  children?: RecursiveNodeInput[] | undefined;
   // ExportNamedDeclaration properties
   exportKind?: 'type' | 'value' | undefined;
   declaration?: RecursiveNodeInput | null | undefined;
@@ -241,6 +255,8 @@ interface RecursiveNodeInput {
   // SwitchCase properties
   test?: RecursiveNodeInput | null | undefined;
   consequent?: RecursiveNodeInput | RecursiveNodeInput[] | null | undefined;
+  // ConditionalExpression / IfStatement else-branch
+  alternate?: RecursiveNodeInput | RecursiveNodeInput[] | null | undefined;
   // Literal regex properties (ESLint AST stores /pattern/flags as {regex: {pattern, flags}})
   regex?: { pattern?: unknown; flags?: unknown } | undefined;
 }
@@ -358,6 +374,21 @@ const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeI
   optional: z.boolean().optional(),
   // TSTypeLiteral properties
   members: z.array(z.lazy(() => recursiveBase)).optional(),
+  // TSIndexedAccessType properties — `objectType[indexType]`, as in WorkItem['summary']
+  objectType: z
+    .lazy(() => recursiveBase)
+    .nullable()
+    .optional(),
+  indexType: z
+    .lazy(() => recursiveBase)
+    .nullable()
+    .optional(),
+  // JSXElement / JSXFragment properties
+  openingElement: z
+    .lazy(() => recursiveBase)
+    .nullable()
+    .optional(),
+  children: z.array(z.lazy(() => recursiveBase)).optional(),
   // ExportNamedDeclaration properties
   exportKind: z.enum(['type', 'value']).optional(),
   declaration: z
@@ -428,6 +459,11 @@ const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeI
     .union([z.lazy(() => recursiveBase), z.array(z.lazy(() => recursiveBase))])
     .nullable()
     .optional(),
+  // ConditionalExpression / IfStatement else-branch
+  alternate: z
+    .union([z.lazy(() => recursiveBase), z.array(z.lazy(() => recursiveBase))])
+    .nullable()
+    .optional(),
   // Literal regex properties
   regex: z.object({ pattern: z.unknown().optional(), flags: z.unknown().optional() }).optional(),
 }) as unknown as z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput>;
@@ -488,6 +524,12 @@ export const tsestreeContract = z.object({
   optional: z.boolean().optional(),
   // TSTypeLiteral properties
   members: z.array(recursiveBase).optional(),
+  // TSIndexedAccessType properties — `objectType[indexType]`, as in WorkItem['summary']
+  objectType: recursiveBase.nullable().optional(),
+  indexType: recursiveBase.nullable().optional(),
+  // JSXElement / JSXFragment properties
+  openingElement: recursiveBase.nullable().optional(),
+  children: z.array(recursiveBase).optional(),
   // ExportNamedDeclaration properties
   exportKind: z.enum(['type', 'value']).optional(),
   declaration: recursiveBase.nullable().optional(),
@@ -540,6 +582,11 @@ export const tsestreeContract = z.object({
   // SwitchCase properties
   test: recursiveBase.nullable().optional(),
   consequent: z
+    .union([recursiveBase, z.array(recursiveBase)])
+    .nullable()
+    .optional(),
+  // ConditionalExpression / IfStatement else-branch
+  alternate: z
     .union([recursiveBase, z.array(recursiveBase)])
     .nullable()
     .optional(),

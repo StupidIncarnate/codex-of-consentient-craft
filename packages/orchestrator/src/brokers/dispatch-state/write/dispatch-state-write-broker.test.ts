@@ -9,7 +9,9 @@ describe('dispatchStateWriteBroker', () => {
       const proxy = dispatchStateWriteBrokerProxy();
       proxy.setupWriteSuccess();
 
-      const result = await dispatchStateWriteBroker({ mode: 'node-playing' });
+      const result = await dispatchStateWriteBroker({
+        dispatchState: DispatchStateStub({ mode: 'node-playing' }),
+      });
 
       expect(result).toStrictEqual(
         DispatchStateStub({ mode: 'node-playing', updatedAt: '2024-01-15T10:00:00.000Z' }),
@@ -24,11 +26,12 @@ describe('dispatchStateWriteBroker', () => {
     it('VALID: {mode: paused, mcpHeartbeatAt} => persists heartbeat alongside mode', async () => {
       const proxy = dispatchStateWriteBrokerProxy();
       proxy.setupWriteSuccess();
-      const { mcpHeartbeatAt } = DispatchStateStub({
-        mcpHeartbeatAt: '2024-01-15T09:59:00.000Z',
+      const result = await dispatchStateWriteBroker({
+        dispatchState: DispatchStateStub({
+          mode: 'paused',
+          mcpHeartbeatAt: '2024-01-15T09:59:00.000Z',
+        }),
       });
-
-      const result = await dispatchStateWriteBroker({ mode: 'paused', mcpHeartbeatAt });
 
       expect(result).toStrictEqual(
         DispatchStateStub({
@@ -45,7 +48,9 @@ describe('dispatchStateWriteBroker', () => {
       const proxy = dispatchStateWriteBrokerProxy();
       proxy.setupWriteFailure({ error: new Error('disk full') });
 
-      await expect(dispatchStateWriteBroker({ mode: 'paused' })).rejects.toThrow(/^disk full$/u);
+      await expect(
+        dispatchStateWriteBroker({ dispatchState: DispatchStateStub({ mode: 'paused' }) }),
+      ).rejects.toThrow(/^disk full$/u);
     });
   });
 });

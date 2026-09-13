@@ -1,5 +1,6 @@
 import { useDisclosureAnchorBindingProxy } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding.proxy';
 import { ToolResultContentWidgetProxy } from '../tool-result-content/tool-result-content-widget.proxy';
+import { ToolRowFieldLayerWidgetProxy } from './tool-row-field-layer-widget.proxy';
 
 export const ToolRowWidgetProxy = (): {
   setupAutoScrollReleased: () => void;
@@ -7,6 +8,7 @@ export const ToolRowWidgetProxy = (): {
 } => {
   const anchorProxy = useDisclosureAnchorBindingProxy();
   ToolResultContentWidgetProxy();
+  ToolRowFieldLayerWidgetProxy();
 
   return {
     setupAutoScrollReleased: (): void => {

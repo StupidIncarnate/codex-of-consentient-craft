@@ -1,4 +1,8 @@
-import { QuestContractEntryStub, QuestPackageEntryStub } from '@dungeonmaster/shared/contracts';
+import {
+  QuestContractEntryStub,
+  QuestPackageEntryStub,
+  QuestStub,
+} from '@dungeonmaster/shared/contracts';
 import { packageForPathTransformer } from '@dungeonmaster/shared/transformers';
 
 import { questContractSourceCoverageViolationsTransformer } from './quest-contract-source-coverage-violations-transformer';
@@ -32,8 +36,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       const offenders = questContractSourceCoverageViolationsTransformer({
-        contracts: [contract],
-        packagesAffected: [SHARED_ENTRY, WEB_ENTRY],
+        quest: QuestStub({ contracts: [contract], packagesAffected: [SHARED_ENTRY, WEB_ENTRY] }),
       });
 
       expect(offenders).toStrictEqual([]);
@@ -48,8 +51,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       const offenders = questContractSourceCoverageViolationsTransformer({
-        contracts: [contract],
-        packagesAffected: [SHARED_ENTRY],
+        quest: QuestStub({ contracts: [contract], packagesAffected: [SHARED_ENTRY] }),
       });
 
       expect(offenders).toStrictEqual([]);
@@ -57,8 +59,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
 
     it('EMPTY: {contracts: []} => returns no violations', () => {
       const offenders = questContractSourceCoverageViolationsTransformer({
-        contracts: [],
-        packagesAffected: [SHARED_ENTRY],
+        quest: QuestStub({ contracts: [], packagesAffected: [SHARED_ENTRY] }),
       });
 
       expect(offenders).toStrictEqual([]);
@@ -75,8 +76,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       const offenders = questContractSourceCoverageViolationsTransformer({
-        contracts: [contract],
-        packagesAffected: [SHARED_ENTRY, WEB_ENTRY],
+        quest: QuestStub({ contracts: [contract], packagesAffected: [SHARED_ENTRY, WEB_ENTRY] }),
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([
@@ -93,8 +93,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       const offenders = questContractSourceCoverageViolationsTransformer({
-        contracts: [contract],
-        packagesAffected: [SHARED_ENTRY],
+        quest: QuestStub({ contracts: [contract], packagesAffected: [SHARED_ENTRY] }),
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([
@@ -111,8 +110,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       const offenders = questContractSourceCoverageViolationsTransformer({
-        contracts: [contract],
-        packagesAffected: [],
+        quest: QuestStub({ contracts: [contract], packagesAffected: [] }),
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([
@@ -141,8 +139,10 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       const offenders = questContractSourceCoverageViolationsTransformer({
-        contracts: [firstOffender, routes, secondOffender],
-        packagesAffected: [SHARED_ENTRY],
+        quest: QuestStub({
+          contracts: [firstOffender, routes, secondOffender],
+          packagesAffected: [SHARED_ENTRY],
+        }),
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([
@@ -174,8 +174,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       const offenders = questContractSourceCoverageViolationsTransformer({
-        contracts: [contract],
-        packagesAffected: [SHARED_ENTRY, WEB_ENTRY],
+        quest: QuestStub({ contracts: [contract], packagesAffected: [SHARED_ENTRY, WEB_ENTRY] }),
       });
 
       expect(offenders).toStrictEqual([]);
@@ -198,8 +197,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       const offenders = questContractSourceCoverageViolationsTransformer({
-        contracts: [contract],
-        packagesAffected: [SHARED_ENTRY, WEB_ENTRY],
+        quest: QuestStub({ contracts: [contract], packagesAffected: [SHARED_ENTRY, WEB_ENTRY] }),
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([
@@ -223,8 +221,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       const offenders = questContractSourceCoverageViolationsTransformer({
-        contracts: [contract],
-        packagesAffected: [SHARED_ENTRY],
+        quest: QuestStub({ contracts: [contract], packagesAffected: [SHARED_ENTRY] }),
       });
 
       expect(offenders).toStrictEqual([]);
@@ -247,8 +244,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       const offenders = questContractSourceCoverageViolationsTransformer({
-        contracts: [contract],
-        packagesAffected: [SHARED_ENTRY],
+        quest: QuestStub({ contracts: [contract], packagesAffected: [SHARED_ENTRY] }),
       });
 
       expect(offenders).toStrictEqual([]);
@@ -267,8 +263,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       const offenders = questContractSourceCoverageViolationsTransformer({
-        contracts: [contract],
-        packagesAffected: [SHARED_ENTRY],
+        quest: QuestStub({ contracts: [contract], packagesAffected: [SHARED_ENTRY] }),
       });
 
       expect(offenders).toStrictEqual([]);
@@ -289,8 +284,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       });
 
       const offenders = questContractSourceCoverageViolationsTransformer({
-        contracts: [reference, work],
-        packagesAffected: [SHARED_ENTRY],
+        quest: QuestStub({ contracts: [reference, work], packagesAffected: [SHARED_ENTRY] }),
       });
 
       expect(offenders.map((offender) => String(offender))).toStrictEqual([
@@ -315,8 +309,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       expect({
         routesTo: String(packageForPathTransformer({ path: source, packagesAffected })),
         violations: questContractSourceCoverageViolationsTransformer({
-          contracts: [contract],
-          packagesAffected,
+          quest: QuestStub({ contracts: [contract], packagesAffected }),
         }).map((offender) => String(offender)),
       }).toStrictEqual({ routesTo: 'chart', violations: [] });
     });
@@ -334,8 +327,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
       expect({
         routesTo: String(packageForPathTransformer({ path: source, packagesAffected })),
         violations: questContractSourceCoverageViolationsTransformer({
-          contracts: [contract],
-          packagesAffected,
+          quest: QuestStub({ contracts: [contract], packagesAffected }),
         }).map((offender) => String(offender)),
       }).toStrictEqual({
         routesTo: 'undefined',

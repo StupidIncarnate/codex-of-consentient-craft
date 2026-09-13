@@ -6,7 +6,7 @@ import type { QuestId } from '@dungeonmaster/shared/contracts';
 import type { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { ReactFlowDiagramWidgetProxy } from '../react-flow-diagram/react-flow-diagram-widget.proxy';
 import { SectionHeaderWidgetProxy } from '../section-header/section-header-widget.proxy';
-import { FlowTabQueueMarkLayerWidgetProxy } from './flow-tab-queue-mark-layer-widget.proxy';
+import { FlowTabLayerWidgetProxy } from './flow-tab-layer-widget.proxy';
 
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 
@@ -33,7 +33,7 @@ export const FlowsLayerWidgetProxy = (): {
 } => {
   SectionHeaderWidgetProxy();
   const reactFlowProxy = ReactFlowDiagramWidgetProxy();
-  const tabMarkProxy = FlowTabQueueMarkLayerWidgetProxy();
+  const tabProxy = FlowTabLayerWidgetProxy();
   const user = userEvent.setup(userEventStatics.options);
 
   return {
@@ -42,6 +42,7 @@ export const FlowsLayerWidgetProxy = (): {
     },
     setupEmptyQueue: (): void => {
       reactFlowProxy.setupEmptyQueue();
+      tabProxy.setupEmptyQueue();
     },
     setupQueuedComments: ({
       questId,
@@ -50,7 +51,7 @@ export const FlowsLayerWidgetProxy = (): {
       questId: QuestId;
       entries: QueuedEntry[];
     }): void => {
-      tabMarkProxy.setupQueuedComments({ questId, entries });
+      tabProxy.setupQueuedComments({ questId, entries });
     },
     clickNode: reactFlowProxy.clickNode,
     clickObservableNode: reactFlowProxy.clickObservableNode,
@@ -79,7 +80,7 @@ export const FlowsLayerWidgetProxy = (): {
         .queryAllByTestId('FLOW_TAB')
         .filter((tab) => tab.querySelector('[data-testid="FLOW_TAB_QUEUE_MARK"]') !== null)
         .map((tab) => tab.textContent),
-    countTabQueueMarks: (): HTMLElement['childElementCount'] => tabMarkProxy.countMarks(),
-    tabQueueMarkGlyphs: (): HTMLElement['className'][] => tabMarkProxy.markGlyphs(),
+    countTabQueueMarks: (): HTMLElement['childElementCount'] => tabProxy.countMarks(),
+    tabQueueMarkGlyphs: (): HTMLElement['className'][] => tabProxy.markGlyphs(),
   };
 };

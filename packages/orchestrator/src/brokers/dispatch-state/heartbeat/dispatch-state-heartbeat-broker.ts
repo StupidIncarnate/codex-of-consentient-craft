@@ -20,7 +20,6 @@ export const dispatchStateHeartbeatBroker = async (): Promise<DispatchState> => 
   const heartbeatAt = dispatchStateContract.shape.mcpHeartbeatAt.parse(new Date().toISOString());
 
   return dispatchStateWriteBroker({
-    mode: current.mode,
-    mcpHeartbeatAt: heartbeatAt,
+    dispatchState: { ...current, mcpHeartbeatAt: heartbeatAt },
   });
 };

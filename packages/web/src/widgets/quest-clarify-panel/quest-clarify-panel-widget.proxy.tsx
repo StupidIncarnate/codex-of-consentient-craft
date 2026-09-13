@@ -5,6 +5,7 @@ import type { AskUserQuestionOption } from '@dungeonmaster/shared/contracts';
 import type { FormInputValue } from '../../contracts/form-input-value/form-input-value-contract';
 import { FormInputWidgetProxy } from '../form-input/form-input-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
+import { ClarifyOptionLayerWidgetProxy } from './clarify-option-layer-widget.proxy';
 
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 
@@ -17,6 +18,7 @@ export const QuestClarifyPanelWidgetProxy = (): {
   getCounter: () => HTMLElement['textContent'];
   getOptionLabels: () => HTMLElement['textContent'][];
 } => {
+  ClarifyOptionLayerWidgetProxy();
   const formInputProxy = FormInputWidgetProxy();
   const pixelBtnProxy = PixelBtnWidgetProxy();
 

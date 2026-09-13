@@ -8,11 +8,7 @@ describe('mswResponseToNetworkEntryTransformer', () => {
       const response = new Response('{"id":"123"}', { status: 200 });
 
       const result = await mswResponseToNetworkEntryTransformer({
-        method: stub.method,
-        url: stub.url,
-        status: stub.status,
-        durationMs: stub.durationMs,
-        source: 'mock',
+        entry: stub,
         response,
       });
 
@@ -28,17 +24,16 @@ describe('mswResponseToNetworkEntryTransformer', () => {
     });
 
     it('VALID: {response with request body} => returns entry with both bodies', async () => {
-      const stub = NetworkLogEntryStub({ method: 'POST', requestBody: '{"name":"test"}' });
+      const stub = NetworkLogEntryStub({
+        method: 'POST',
+        requestBody: '{"name":"test"}',
+        source: 'bypass',
+      });
       const response = new Response('{"created":true}', { status: 201 });
 
       const result = await mswResponseToNetworkEntryTransformer({
-        method: stub.method,
-        url: stub.url,
-        status: stub.status,
-        durationMs: stub.durationMs,
-        source: 'bypass',
+        entry: stub,
         response,
-        requestBody: stub.requestBody,
       });
 
       expect(result).toStrictEqual({
@@ -57,11 +52,7 @@ describe('mswResponseToNetworkEntryTransformer', () => {
       const response = new Response(null, { status: 200 });
 
       const result = await mswResponseToNetworkEntryTransformer({
-        method: stub.method,
-        url: stub.url,
-        status: stub.status,
-        durationMs: stub.durationMs,
-        source: 'mock',
+        entry: stub,
         response,
       });
 

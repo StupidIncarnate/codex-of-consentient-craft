@@ -17,10 +17,7 @@ import { orchestrationDispatchState } from '../../../state/orchestration-dispatc
 export const OrchestrationDispatchPauseResponder = async (): Promise<DispatchState> => {
   const current = await dispatchStateReadBroker();
 
-  const state = await dispatchStateWriteBroker({
-    mode: 'paused',
-    ...(current.mcpHeartbeatAt === undefined ? {} : { mcpHeartbeatAt: current.mcpHeartbeatAt }),
-  });
+  const state = await dispatchStateWriteBroker({ dispatchState: { ...current, mode: 'paused' } });
   orchestrationDispatchState.setPlaying({ isPlaying: false });
 
   return state;

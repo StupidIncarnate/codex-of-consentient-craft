@@ -2,13 +2,15 @@ import { EslintPluginCreateResponderProxy } from './eslint-plugin-create-respond
 
 describe('EslintPluginCreateResponder', () => {
   describe('rule initialization', () => {
-    it('VALID: {} => returns plugin with all 59 rule names', () => {
+    it('VALID: {} => returns plugin with all 61 rule names', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
       expect(Object.keys(plugin.rules).sort()).toStrictEqual([
         'ban-adhoc-types',
+        'ban-anonymous-jsx-in-map',
         'ban-fetch-in-proxies',
+        'ban-flattened-contract-params',
         'ban-inline-helpers-in-test-scenarios',
         'ban-jest-mock-in-proxies',
         'ban-jest-mock-in-tests',

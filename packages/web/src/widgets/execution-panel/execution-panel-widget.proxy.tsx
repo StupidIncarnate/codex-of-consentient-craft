@@ -13,6 +13,7 @@ import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-
 import { QuestTitleBarWidgetProxy } from '../quest-title-bar/quest-title-bar-widget.proxy';
 import { ExecutionRowLayerWidgetProxy } from './execution-row-layer-widget.proxy';
 import { ExecutionStatusBarLayerWidgetProxy } from './execution-status-bar-layer-widget.proxy';
+import { ExecutionWorkItemRowLayerWidgetProxy } from './execution-work-item-row-layer-widget.proxy';
 
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 
@@ -85,7 +86,12 @@ export const ExecutionPanelWidgetProxy = (): {
 } => {
   AutoScrollContainerWidgetProxy();
   DumpsterCommandBannerWidgetProxy();
+  // Both the unclaimed-operations map (renders ExecutionRowLayerWidget directly) and the
+  // visible-work-item map (renders it through ExecutionWorkItemRowLayerWidget) need this row's
+  // mocks staged — registerMock/registerSpyOn addresses are shared, so constructing it twice just
+  // restages the same behaviour rather than conflicting.
   ExecutionRowLayerWidgetProxy();
+  ExecutionWorkItemRowLayerWidgetProxy();
   ExecutionStatusBarLayerWidgetProxy();
   PixelBtnWidgetProxy();
   QuestSpecPanelWidgetProxy();

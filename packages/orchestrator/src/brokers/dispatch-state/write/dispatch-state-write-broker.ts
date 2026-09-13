@@ -1,11 +1,14 @@
 /**
  * PURPOSE: Atomically persists the dispatch state to <dungeonmasterHome>/dispatch-state.json
- * (temp file + rename) with a fresh updatedAt stamp. Ensures the home dir exists first so a
- * fresh install can flip play/pause before anything else touched the home.
+ * (temp file + rename) with a fresh updatedAt stamp, overriding whatever the caller passed for it.
+ * Takes the whole `DispatchState` rather than its fields separately — every caller already holds
+ * one (read fresh, or the current in-memory mirror), so it spreads that in with the one field it
+ * means to change. Ensures the home dir exists first so a fresh install can flip play/pause before
+ * anything else touched the home.
  *
  * USAGE:
- * const state = await dispatchStateWriteBroker({ mode: 'node-playing' });
- * // Returns the persisted DispatchState (updatedAt stamped to now)
+ * const state = await dispatchStateWriteBroker({ dispatchState: { ...current, mode: 'node-playing' } });
+ * // Returns the persisted DispatchState (updatedAt stamped to now, regardless of what was passed)
  */
 
 import type { DispatchState } from '@dungeonmaster/shared/contracts';
@@ -24,15 +27,12 @@ import { fsRenameAdapter } from '../../../adapters/fs/rename/fs-rename-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 
 export const dispatchStateWriteBroker = async ({
-  mode,
-  mcpHeartbeatAt,
+  dispatchState,
 }: {
-  mode: DispatchState['mode'];
-  mcpHeartbeatAt?: DispatchState['mcpHeartbeatAt'];
+  dispatchState: DispatchState;
 }): Promise<DispatchState> => {
   const state = dispatchStateContract.parse({
-    mode,
-    ...(mcpHeartbeatAt === undefined ? {} : { mcpHeartbeatAt }),
+    ...dispatchState,
     updatedAt: new Date().toISOString(),
   });
 

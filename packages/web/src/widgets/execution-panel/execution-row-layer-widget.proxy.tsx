@@ -2,9 +2,9 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { ChatEntryListWidgetProxy } from '../chat-entry-list/chat-entry-list-widget.proxy';
-import { RiftcarverResultDetailLayerWidgetProxy } from './riftcarver-result-detail-layer-widget.proxy';
+import { RiftcarverResultRowLayerWidgetProxy } from './riftcarver-result-row-layer-widget.proxy';
 import { StreamingBarLayerWidgetProxy } from './streaming-bar-layer-widget.proxy';
-import { WardResultDetailLayerWidgetProxy } from './ward-result-detail-layer-widget.proxy';
+import { WardResultRowLayerWidgetProxy } from './ward-result-row-layer-widget.proxy';
 
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 
@@ -14,11 +14,11 @@ export const ExecutionRowLayerWidgetProxy = (): {
 } => {
   ChatEntryListWidgetProxy();
   StreamingBarLayerWidgetProxy();
-  // The row renders WardResultDetailLayerWidget for ward rows; create its proxy so the
+  // The row renders WardResultRowLayerWidget for ward rows; create its proxy so the
   // ward-detail HTTP endpoint is mocked (no-op for non-ward rows that never fetch).
-  WardResultDetailLayerWidgetProxy();
+  WardResultRowLayerWidgetProxy();
   // Same reasoning for riftcarver rows and the riftcarver-detail endpoint.
-  RiftcarverResultDetailLayerWidgetProxy();
+  RiftcarverResultRowLayerWidgetProxy();
 
   return {
     clickShowEarlier: async (): Promise<void> => {

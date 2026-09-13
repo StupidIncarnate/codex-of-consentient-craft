@@ -7,6 +7,7 @@ import {
   ObservableIdStub,
   RiftcarverResultStub,
   WardResultStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
@@ -521,7 +522,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'complete' })}
-            summary={'Implemented auth with tests' as never}
+            workItem={WorkItemStub({ summary: 'Implemented auth with tests' })}
           />
         ),
       });
@@ -542,7 +543,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'failed' })}
-            summary={'BLOCKED: type errors in auth module' as never}
+            workItem={WorkItemStub({ summary: 'BLOCKED: type errors in auth module' })}
             errorMessage={ErrorMessageStub({ value: 'verification_failed' })}
           />
         ),
@@ -1138,8 +1139,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'in_progress' })}
-            attempt={1 as never}
-            maxAttempts={3 as never}
+            workItem={WorkItemStub({ attempt: 1, maxAttempts: 3 })}
           />
         ),
       });
@@ -1157,8 +1157,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'in_progress' })}
-            attempt={0 as never}
-            maxAttempts={3 as never}
+            workItem={WorkItemStub({ attempt: 0, maxAttempts: 3 })}
           />
         ),
       });
@@ -1204,7 +1203,7 @@ describe('ExecutionRowLayerWidget', () => {
               <ExecutionRowLayerWidget
                 {...defaultProps()}
                 status={ExecutionStepStatusStub({ value: status })}
-                startedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
+                workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
                 now={NOW}
               />
             ),
@@ -1224,7 +1223,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
               now={NOW}
             />
           ),
@@ -1241,7 +1240,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T10:03:30.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:30.000Z' })}
               now={NOW}
             />
           ),
@@ -1258,7 +1257,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T10:03:01.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:01.000Z' })}
               now={NOW}
             />
           ),
@@ -1275,7 +1274,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T10:03:00.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:00.000Z' })}
               now={NOW}
             />
           ),
@@ -1292,7 +1291,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T09:59:30.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T09:59:30.000Z' })}
               now={NOW}
             />
           ),
@@ -1309,7 +1308,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T09:04:01.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T09:04:01.000Z' })}
               now={NOW}
             />
           ),
@@ -1326,7 +1325,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T09:04:00.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T09:04:00.000Z' })}
               now={NOW}
             />
           ),
@@ -1343,7 +1342,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T08:51:00.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T08:51:00.000Z' })}
               now={NOW}
             />
           ),
@@ -1360,7 +1359,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T08:04:00.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T08:04:00.000Z' })}
               now={NOW}
             />
           ),
@@ -1382,7 +1381,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T09:59:02.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T09:59:02.000Z' })}
               now={NOW}
             />
           ),
@@ -1401,8 +1400,10 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'complete' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
-              completedAt={IsoTimestampStub({ value: '2024-01-15T10:00:12.000Z' })}
+              workItem={WorkItemStub({
+                startedAt: '2024-01-15T10:00:00.000Z',
+                completedAt: '2024-01-15T10:00:12.000Z',
+              })}
             />
           ),
         });
@@ -1418,8 +1419,10 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'complete' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
-              completedAt={IsoTimestampStub({ value: '2024-01-15T10:04:12.000Z' })}
+              workItem={WorkItemStub({
+                startedAt: '2024-01-15T10:00:00.000Z',
+                completedAt: '2024-01-15T10:04:12.000Z',
+              })}
             />
           ),
         });
@@ -1435,8 +1438,10 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'complete' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T09:00:00.000Z' })}
-              completedAt={IsoTimestampStub({ value: '2024-01-15T10:13:00.000Z' })}
+              workItem={WorkItemStub({
+                startedAt: '2024-01-15T09:00:00.000Z',
+                completedAt: '2024-01-15T10:13:00.000Z',
+              })}
             />
           ),
         });
@@ -1452,8 +1457,10 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'complete' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T08:00:00.000Z' })}
-              completedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
+              workItem={WorkItemStub({
+                startedAt: '2024-01-15T08:00:00.000Z',
+                completedAt: '2024-01-15T10:00:00.000Z',
+              })}
             />
           ),
         });
@@ -1469,8 +1476,10 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'complete' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
-              completedAt={IsoTimestampStub({ value: '2024-01-15T10:04:12.000Z' })}
+              workItem={WorkItemStub({
+                startedAt: '2024-01-15T10:00:00.000Z',
+                completedAt: '2024-01-15T10:04:12.000Z',
+              })}
               now={NOW}
             />
           ),
@@ -1482,8 +1491,10 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'complete' })}
-            startedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
-            completedAt={IsoTimestampStub({ value: '2024-01-15T10:04:12.000Z' })}
+            workItem={WorkItemStub({
+              startedAt: '2024-01-15T10:00:00.000Z',
+              completedAt: '2024-01-15T10:04:12.000Z',
+            })}
             now={IsoTimestampStub({ value: '2024-01-15T10:05:00.000Z' })}
           />,
         );
@@ -1499,7 +1510,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
               now={NOW}
             />
           ),
@@ -1511,8 +1522,10 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'complete' })}
-            startedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
-            completedAt={IsoTimestampStub({ value: '2024-01-15T11:13:00.000Z' })}
+            workItem={WorkItemStub({
+              startedAt: '2024-01-15T10:00:00.000Z',
+              completedAt: '2024-01-15T11:13:00.000Z',
+            })}
             now={NOW}
           />,
         );
@@ -1528,7 +1541,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T10:03:30.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:30.000Z' })}
               now={NOW}
             />
           ),
@@ -1540,8 +1553,10 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'complete' })}
-            startedAt={IsoTimestampStub({ value: '2024-01-15T10:03:30.000Z' })}
-            completedAt={IsoTimestampStub({ value: '2024-01-15T11:16:30.000Z' })}
+            workItem={WorkItemStub({
+              startedAt: '2024-01-15T10:03:30.000Z',
+              completedAt: '2024-01-15T11:16:30.000Z',
+            })}
             now={NOW}
           />,
         );
@@ -1557,7 +1572,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T08:51:00.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T08:51:00.000Z' })}
               now={NOW}
             />
           ),
@@ -1569,8 +1584,10 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'complete' })}
-            startedAt={IsoTimestampStub({ value: '2024-01-15T08:51:00.000Z' })}
-            completedAt={IsoTimestampStub({ value: '2024-01-15T10:51:00.000Z' })}
+            workItem={WorkItemStub({
+              startedAt: '2024-01-15T08:51:00.000Z',
+              completedAt: '2024-01-15T10:51:00.000Z',
+            })}
             now={NOW}
           />,
         );
@@ -1588,7 +1605,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'pending' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
               now={NOW}
             />
           ),
@@ -1605,7 +1622,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'pending' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
               now={NOW}
             />
           ),
@@ -1622,7 +1639,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
               now={NOW}
             />
           ),
@@ -1634,7 +1651,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'pending' })}
-            startedAt={IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' })}
+            workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
             now={NOW}
           />,
         );
@@ -1645,7 +1662,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'in_progress' })}
-            startedAt={NOW}
+            workItem={WorkItemStub({ startedAt: NOW })}
             now={NOW}
           />,
         );
@@ -1661,7 +1678,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T10:03:30.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:30.000Z' })}
               now={NOW}
             />
           ),
@@ -1673,7 +1690,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'pending' })}
-            startedAt={IsoTimestampStub({ value: '2024-01-15T10:03:30.000Z' })}
+            workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:30.000Z' })}
             now={NOW}
           />,
         );
@@ -1689,7 +1706,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T08:51:00.000Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T08:51:00.000Z' })}
               now={NOW}
             />
           ),
@@ -1701,7 +1718,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'pending' })}
-            startedAt={IsoTimestampStub({ value: '2024-01-15T08:51:00.000Z' })}
+            workItem={WorkItemStub({ startedAt: '2024-01-15T08:51:00.000Z' })}
             now={NOW}
           />,
         );
@@ -1717,7 +1734,7 @@ describe('ExecutionRowLayerWidget', () => {
             <ExecutionRowLayerWidget
               {...defaultProps()}
               status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              startedAt={IsoTimestampStub({ value: '2024-01-15T10:03:00.500Z' })}
+              workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:00.500Z' })}
               now={NOW}
             />
           ),
@@ -1729,7 +1746,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'pending' })}
-            startedAt={IsoTimestampStub({ value: '2024-01-15T10:03:00.500Z' })}
+            workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:00.500Z' })}
             now={NOW}
           />,
         );
@@ -1743,7 +1760,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'pending' })}
-            startedAt={IsoTimestampStub({ value: '2024-01-15T10:03:00.500Z' })}
+            workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:00.500Z' })}
             now={IsoTimestampStub({ value: '2024-01-15T10:05:00.000Z' })}
           />,
         );
@@ -1889,7 +1906,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'complete' })}
-            actualSignal={'complete'}
+            workItem={WorkItemStub({ actualSignal: 'complete' })}
           />
         ),
       });
@@ -1910,7 +1927,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'failed' })}
-            actualSignal={'complete'}
+            workItem={WorkItemStub({ actualSignal: 'complete' })}
           />
         ),
       });

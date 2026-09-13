@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { GuildRowLayerWidgetProxy } from './guild-row-layer-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
@@ -13,6 +14,7 @@ export const GuildListWidgetProxy = (): {
   hasHeader: () => boolean;
 } => {
   PixelBtnWidgetProxy();
+  GuildRowLayerWidgetProxy();
 
   return {
     isItemVisible: ({ testId }: { testId: string }): boolean =>

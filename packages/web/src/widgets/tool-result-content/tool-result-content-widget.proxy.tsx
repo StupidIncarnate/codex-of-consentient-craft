@@ -1,7 +1,7 @@
-import { MarkdownTextWidgetProxy } from '../markdown-text/markdown-text-widget.proxy';
+import { ToolResultPartLayerWidgetProxy } from './tool-result-part-layer-widget.proxy';
 
 export const ToolResultContentWidgetProxy = (): Record<PropertyKey, never> => {
-  MarkdownTextWidgetProxy();
+  ToolResultPartLayerWidgetProxy();
 
   return {} as Record<PropertyKey, never>;
 };

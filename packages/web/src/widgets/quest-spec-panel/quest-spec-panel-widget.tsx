@@ -98,13 +98,11 @@ interface QuestSpecPanelSharedProps {
   pendingQuestion?: {
     questions: AskUserQuestionItem[];
   } | null;
-  onSubmitAnswers?: (params: {
-    answers: {
-      header: AskUserQuestionItem['header'];
-      question: AskUserQuestionItem['question'];
-      label: string;
-    }[];
-  }) => void;
+  // Borrowed rather than redeclared. QuestClarifyPanelWidget owns the answer shape, so this prop
+  // IS its `onSubmitAnswers` parameter type — a second declaration here would drift the next time
+  // that shape changes, and every mount reading an answer would keep typechecking against the
+  // stale copy.
+  onSubmitAnswers?: Parameters<typeof QuestClarifyPanelWidget>[0]['onSubmitAnswers'];
   onAbandon?: () => void;
 }
 

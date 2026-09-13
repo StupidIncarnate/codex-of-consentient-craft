@@ -14,7 +14,9 @@ describe('OrchestrationDispatchNormalizeBootResponder', () => {
     const result = await OrchestrationDispatchNormalizeBootResponder();
 
     expect(result).toStrictEqual(DispatchStateStub({ updatedAt: '2024-01-15T10:05:00.000Z' }));
-    expect(proxy.getWriteCalls()).toStrictEqual([{ mode: 'paused' }]);
+    expect(proxy.getWriteCalls()).toStrictEqual([
+      { dispatchState: DispatchStateStub({ mode: 'paused' }) },
+    ]);
   });
 
   it('VALID: {persisted node-playing with heartbeat} => preserves the heartbeat in the paused write', async () => {
@@ -29,7 +31,12 @@ describe('OrchestrationDispatchNormalizeBootResponder', () => {
     await OrchestrationDispatchNormalizeBootResponder();
 
     expect(proxy.getWriteCalls()).toStrictEqual([
-      { mode: 'paused', mcpHeartbeatAt: '2024-01-15T09:00:00.000Z' },
+      {
+        dispatchState: DispatchStateStub({
+          mode: 'paused',
+          mcpHeartbeatAt: '2024-01-15T09:00:00.000Z',
+        }),
+      },
     ]);
   });
 

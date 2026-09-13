@@ -23,6 +23,10 @@ import type { QuestId } from '@dungeonmaster/shared/contracts';
 
 import { useQuestSummaryBinding } from '../../bindings/use-quest-summary/use-quest-summary-binding';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { FlowRowLayerWidget } from './flow-row-layer-widget';
+import { NoteGroupLayerWidget } from './note-group-layer-widget';
+import { ObservableRowLayerWidget } from './observable-row-layer-widget';
+import { UnconfirmableRowLayerWidget } from './unconfirmable-row-layer-widget';
 
 export interface QuestSummaryWidgetProps {
   questId: QuestId;
@@ -32,7 +36,6 @@ const TITLE_FONT_SIZE = 11;
 const ROW_FONT_SIZE = 10;
 const PANEL_PADDING = 8;
 const SECTION_GAP = 10;
-const ROW_GAP = 6;
 const ROW_INDENT = 10;
 
 export const QuestSummaryWidget = ({ questId }: QuestSummaryWidgetProps): React.JSX.Element => {
@@ -116,58 +119,7 @@ export const QuestSummaryWidget = ({ questId }: QuestSummaryWidgetProps): React.
             no flows on this quest
           </Text>
         ) : (
-          data.flows.map((flow) => (
-            <Box key={flow.id} data-testid="QUEST_SUMMARY_FLOW_ROW" style={{ marginTop: ROW_GAP }}>
-              <Text
-                ff="monospace"
-                data-testid="QUEST_SUMMARY_FLOW_NAME"
-                style={{ fontSize: ROW_FONT_SIZE, color: colors.text, fontWeight: 600 }}
-              >
-                {flow.name} [{flow.flowType}]
-              </Text>
-              {flow.tracks.map((track) => (
-                <Box
-                  key={track.id}
-                  data-testid="QUEST_SUMMARY_TRACK_ROW"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'baseline',
-                    gap: ROW_GAP,
-                    paddingLeft: ROW_INDENT,
-                  }}
-                >
-                  <Text
-                    ff="monospace"
-                    data-testid="QUEST_SUMMARY_TRACK_NAME"
-                    style={{ fontSize: ROW_FONT_SIZE, color: colors['loot-rare'], flexShrink: 0 }}
-                  >
-                    {track.id.toUpperCase()}
-                  </Text>
-                  <Text
-                    ff="monospace"
-                    data-testid="QUEST_SUMMARY_TRACK_CONFIRMED"
-                    style={{ fontSize: ROW_FONT_SIZE, color: colors.success, flexShrink: 0 }}
-                  >
-                    {track.confirmed} confirmed
-                  </Text>
-                  <Text
-                    ff="monospace"
-                    data-testid="QUEST_SUMMARY_TRACK_UNCONFIRMABLE"
-                    style={{ fontSize: ROW_FONT_SIZE, color: colors.warning, flexShrink: 0 }}
-                  >
-                    {track.unconfirmable} unconfirmable
-                  </Text>
-                  <Text
-                    ff="monospace"
-                    data-testid="QUEST_SUMMARY_TRACK_OUTSTANDING"
-                    style={{ fontSize: ROW_FONT_SIZE, color: colors['text-dim'], flexShrink: 0 }}
-                  >
-                    {track.outstanding} outstanding
-                  </Text>
-                </Box>
-              ))}
-            </Box>
-          ))
+          data.flows.map((flow) => <FlowRowLayerWidget key={flow.id} flow={flow} />)
         )}
       </Box>
 
@@ -189,33 +141,7 @@ export const QuestSummaryWidget = ({ questId }: QuestSummaryWidgetProps): React.
           </Text>
         ) : (
           data.midQuestObservables.map((observable) => (
-            <Box
-              key={observable.id}
-              data-testid="QUEST_SUMMARY_OBSERVABLE_ROW"
-              style={{ paddingLeft: ROW_INDENT, marginTop: ROW_GAP }}
-            >
-              <Text
-                ff="monospace"
-                data-testid="QUEST_SUMMARY_OBSERVABLE_ADDED_BY"
-                style={{ fontSize: ROW_FONT_SIZE, color: colors['loot-rare'], fontWeight: 600 }}
-              >
-                added by {observable.addedBy}
-              </Text>
-              <Text
-                ff="monospace"
-                data-testid="QUEST_SUMMARY_OBSERVABLE_ANCHOR"
-                style={{ fontSize: ROW_FONT_SIZE, color: colors['text-dim'] }}
-              >
-                {observable.flowId} / {observable.nodeId} [{observable.observableType}]
-              </Text>
-              <Text
-                ff="monospace"
-                data-testid="QUEST_SUMMARY_OBSERVABLE_DESCRIPTION"
-                style={{ fontSize: ROW_FONT_SIZE, color: colors.text }}
-              >
-                {observable.description}
-              </Text>
-            </Box>
+            <ObservableRowLayerWidget key={observable.id} observable={observable} />
           ))
         )}
       </Box>
@@ -238,37 +164,7 @@ export const QuestSummaryWidget = ({ questId }: QuestSummaryWidgetProps): React.
           </Text>
         ) : (
           data.unconfirmable.map((entry) => (
-            <Box
-              key={entry.id}
-              data-testid="QUEST_SUMMARY_UNCONFIRMABLE_ROW"
-              style={{ paddingLeft: ROW_INDENT, marginTop: ROW_GAP }}
-            >
-              <Text
-                ff="monospace"
-                data-testid="QUEST_SUMMARY_UNCONFIRMABLE_UNIT"
-                style={{ fontSize: ROW_FONT_SIZE, color: colors.warning, fontWeight: 600 }}
-              >
-                [{entry.track}] {entry.unitId}
-              </Text>
-              <Text
-                ff="monospace"
-                data-testid="QUEST_SUMMARY_UNCONFIRMABLE_REASON"
-                style={{ fontSize: ROW_FONT_SIZE, color: colors.text }}
-              >
-                {entry.signoff.evidence}
-              </Text>
-              {/* `toSettle` is required by the contract on this verdict, but it is optional on the
-                  Signoff shape itself, so the absent case renders nothing rather than an empty row. */}
-              {entry.signoff.toSettle === undefined ? null : (
-                <Text
-                  ff="monospace"
-                  data-testid="QUEST_SUMMARY_UNCONFIRMABLE_TO_SETTLE"
-                  style={{ fontSize: ROW_FONT_SIZE, color: colors.primary }}
-                >
-                  → {entry.signoff.toSettle}
-                </Text>
-              )}
-            </Box>
+            <UnconfirmableRowLayerWidget key={entry.id} entry={entry} />
           ))
         )}
       </Box>
@@ -282,37 +178,7 @@ export const QuestSummaryWidget = ({ questId }: QuestSummaryWidgetProps): React.
           NOTES
         </Text>
         {data.noteGroups.map((group) => (
-          <Box
-            key={group.id}
-            data-testid="QUEST_SUMMARY_NOTE_GROUP"
-            style={{ paddingLeft: ROW_INDENT, marginTop: ROW_GAP }}
-          >
-            <Text
-              ff="monospace"
-              data-testid="QUEST_SUMMARY_NOTE_GROUP_TITLE"
-              style={{ fontSize: ROW_FONT_SIZE, color: colors['loot-rare'], fontWeight: 600 }}
-            >
-              {group.id.toUpperCase()} ({group.notes.length})
-            </Text>
-            {group.notes.map((note) => (
-              <Box key={note.id} data-testid="QUEST_SUMMARY_NOTE_ROW">
-                <Text
-                  ff="monospace"
-                  data-testid="QUEST_SUMMARY_NOTE_SUMMARY"
-                  style={{ fontSize: ROW_FONT_SIZE, color: colors.text }}
-                >
-                  {note.summary}
-                </Text>
-                <Text
-                  ff="monospace"
-                  data-testid="QUEST_SUMMARY_NOTE_DETAIL"
-                  style={{ fontSize: ROW_FONT_SIZE, color: colors['text-dim'] }}
-                >
-                  {note.role} — {note.detail}
-                </Text>
-              </Box>
-            ))}
-          </Box>
+          <NoteGroupLayerWidget key={group.id} group={group} />
         ))}
       </Box>
     </Box>

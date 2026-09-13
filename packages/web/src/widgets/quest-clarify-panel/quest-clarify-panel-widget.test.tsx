@@ -164,8 +164,7 @@ describe('QuestClarifyPanelWidget', () => {
       expect(onSubmitAnswers).toHaveBeenCalledWith({
         answers: [
           {
-            header: firstQuestion.header,
-            question: firstQuestion.question,
+            question: firstQuestion,
             label: secondOption.label,
           },
         ],
@@ -246,13 +245,11 @@ describe('QuestClarifyPanelWidget', () => {
       expect(onSubmitAnswers).toHaveBeenCalledWith({
         answers: [
           {
-            header: parsed.questions[0]!.header,
-            question: parsed.questions[0]!.question,
+            question: parsed.questions[0]!,
             label: parsed.questions[0]!.options[0]!.label,
           },
           {
-            header: parsed.questions[1]!.header,
-            question: parsed.questions[1]!.question,
+            question: parsed.questions[1]!,
             label: parsed.questions[1]!.options[0]!.label,
           },
         ],

@@ -1,11 +1,11 @@
 /**
- * PURPOSE: Converts an AST node and error message into a standardized rule violation object
+ * PURPOSE: Stamps the node a report should point at onto an already-built violation, so a rule can
+ * assemble the message/messageId/data payload separately from the AST location it belongs to.
  *
  * USAGE:
  * const violation = astToViolationTransformer({
  *   node: astNode,
- *   message: 'Expected export name to match filename',
- *   messageId: 'invalidName'
+ *   violation: RuleViolationStub({ message: 'Expected export name to match filename', messageId: 'invalidName' }),
  * });
  * // Returns { node, message, messageId, data }
  *
@@ -16,17 +16,13 @@ import type { RuleViolation } from '../../contracts/rule-violation/rule-violatio
 
 export const astToViolationTransformer = ({
   node,
-  message,
-  messageId,
-  data,
+  violation,
 }: {
   node: AstNode;
-  message: RuleViolation['message'];
-  messageId?: RuleViolation['messageId'];
-  data?: Record<string, unknown>;
+  violation: RuleViolation;
 }): RuleViolation => ({
   node,
-  message,
-  messageId,
-  data,
+  message: violation.message,
+  messageId: violation.messageId,
+  data: violation.data,
 });

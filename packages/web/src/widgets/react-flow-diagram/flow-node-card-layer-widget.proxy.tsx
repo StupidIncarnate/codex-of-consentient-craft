@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 
 import { xyflowNodeHandlesAdapterProxy } from '../../adapters/xyflow/node-handles/xyflow-node-handles-adapter.proxy';
 import { CommentPopoverWidgetProxy } from '../comment-popover/comment-popover-widget.proxy';
+import { FlowNodePackageChipLayerWidgetProxy } from './flow-node-package-chip-layer-widget.proxy';
 
 interface FlowNodeCardLayerWidgetProxyResult {
   getNodeCard: () => HTMLElement | null;
@@ -20,6 +21,9 @@ interface FlowNodeCardLayerWidgetProxyResult {
 export const FlowNodeCardLayerWidgetProxy = (): FlowNodeCardLayerWidgetProxyResult => {
   xyflowNodeHandlesAdapterProxy();
   const commentProxy = CommentPopoverWidgetProxy();
+  // FlowNodePackageChipLayerWidget has no dependencies of its own to mock; constructed here only
+  // for the child-proxy rule, and addressed in tests by its own testid.
+  FlowNodePackageChipLayerWidgetProxy();
 
   return {
     setupEmptyQueue: (): void => {

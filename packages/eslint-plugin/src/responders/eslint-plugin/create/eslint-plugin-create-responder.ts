@@ -63,6 +63,8 @@ import { ruleBanRequireInSourceBroker } from '../../../brokers/rule/ban-require-
 import { ruleBanUnknownPayloadInDiscriminatedUnionBroker } from '../../../brokers/rule/ban-unknown-payload-in-discriminated-union/rule-ban-unknown-payload-in-discriminated-union-broker';
 import { ruleRequireValidationOnUntypedPropertyAccessBroker } from '../../../brokers/rule/require-validation-on-untyped-property-access/rule-require-validation-on-untyped-property-access-broker';
 import { ruleEnforceProxyParamBindingBroker } from '../../../brokers/rule/enforce-proxy-param-binding/rule-enforce-proxy-param-binding-broker';
+import { ruleBanFlattenedContractParamsBroker } from '../../../brokers/rule/ban-flattened-contract-params/rule-ban-flattened-contract-params-broker';
+import { ruleBanAnonymousJsxInMapBroker } from '../../../brokers/rule/ban-anonymous-jsx-in-map/rule-ban-anonymous-jsx-in-map-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 
@@ -126,6 +128,8 @@ export const EslintPluginCreateResponder = (): {
     readonly 'ban-unknown-payload-in-discriminated-union': EslintRule;
     readonly 'require-validation-on-untyped-property-access': EslintRule;
     readonly 'enforce-proxy-param-binding': EslintRule;
+    readonly 'ban-flattened-contract-params': EslintRule;
+    readonly 'ban-anonymous-jsx-in-map': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
@@ -194,6 +198,8 @@ export const EslintPluginCreateResponder = (): {
       'require-validation-on-untyped-property-access':
         ruleRequireValidationOnUntypedPropertyAccessBroker(),
       'enforce-proxy-param-binding': ruleEnforceProxyParamBindingBroker(),
+      'ban-flattened-contract-params': ruleBanFlattenedContractParamsBroker(),
+      'ban-anonymous-jsx-in-map': ruleBanAnonymousJsxInMapBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),
