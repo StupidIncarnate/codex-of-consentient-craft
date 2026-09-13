@@ -82,6 +82,7 @@ export const ExecutionPanelWidgetProxy = (): {
   getTickIntervalCount: () => TickCallCount;
   getClearedTickCount: () => TickCallCount;
   getRowDurations: () => HTMLElement['textContent'][];
+  getSubagentChainDurations: () => HTMLElement['textContent'][];
   getDurationComputeCount: () => TickCallCount;
 } => {
   AutoScrollContainerWidgetProxy();
@@ -260,6 +261,8 @@ export const ExecutionPanelWidgetProxy = (): {
     getClearedTickCount: (): TickCallCount => elapsedTickProxy.getClearedTickCount(),
     getRowDurations: (): HTMLElement['textContent'][] =>
       screen.queryAllByTestId('execution-row-duration').map((el) => el.textContent),
+    getSubagentChainDurations: (): HTMLElement['textContent'][] =>
+      screen.queryAllByTestId('subagent-chain-duration').map((el) => el.textContent),
     getDurationComputeCount: (): TickCallCount =>
       getTimeHandle.callsMatching([]).length / GET_TIME_CALLS_PER_ELAPSED_COMPUTE,
   };

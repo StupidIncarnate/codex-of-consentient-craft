@@ -1,5 +1,10 @@
 /**
- * PURPOSE: Builds a Map from agentId to ChatEntry[] for all sub-agent entries
+ * PURPOSE: Builds a Map from agentId to ChatEntry[] for all sub-agent entries. Excludes
+ * `task_notification` entries even when they carry `source: 'subagent'` — a nested chain's OWN
+ * completion notification is read from the dispatching sub-agent's transcript file, so it is
+ * always stamped that way, and bucketing it here would mark it `consumed` before
+ * collectSubagentChainsTransformer's dedicated notification search runs, making it permanently
+ * unreachable as `group.taskNotification`.
  *
  * USAGE:
  * indexSubagentEntriesTransformer({entries: chatEntries});
@@ -23,7 +28,8 @@ export const indexSubagentEntriesTransformer = ({
       'agentId' in entry &&
       entry.agentId !== undefined &&
       'source' in entry &&
-      entry.source === 'subagent'
+      entry.source === 'subagent' &&
+      !('type' in entry && entry.type === 'task_notification')
     ) {
       const key = String(entry.agentId) as ChainAgentId;
       const existing = subagentMap.get(key);

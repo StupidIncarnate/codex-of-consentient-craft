@@ -1877,5 +1877,254 @@ describe('chatHistoryReplayBroker', () => {
 
       expect(bProjection).toStrictEqual([{ agentId: bToolUseId, source: 'subagent' }]);
     });
+
+    it('EDGE: {agentId param scopes to a sub-agent file with no Task tool_use line at all, one line malformed} => emits entries for the valid plain-text lines and skips the malformed one without aborting', async () => {
+      // has-start:no — a sub-agent tail file carrying zero Task tool-use lines never builds a
+      // chain (collectSubagentChainsTransformer), so the ONLY way the execution panel can render
+      // this row is by replaying its own plain-text lines. A malformed line mixed among them must
+      // not crash the whole replay — same null-tolerant mechanism the main-session EDGE case above
+      // proves (`claudeLineNormalizeBroker` returns null, `extractTimestampFromJsonlLineTransformer`
+      // falls back to epoch, the processor's own safeParse skips it), exercised here for the
+      // per-work-item (agentId-scoped, main session never read) path instead.
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'test-session-no-start-bad-line' });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      const realAgentId = 'nostartbadline';
+
+      const firstLine = JSON.stringify({
+        ...AssistantTextStreamLineStub({
+          message: { role: 'assistant', content: [{ type: 'text', text: 'FIRST_NO_START_TEXT' }] },
+        }),
+        uuid: 'no-start-first-line-uuid',
+        timestamp: '2025-01-01T00:00:00.000Z',
+      });
+      const thirdLine = JSON.stringify({
+        ...AssistantTextStreamLineStub({
+          message: { role: 'assistant', content: [{ type: 'text', text: 'THIRD_NO_START_TEXT' }] },
+        }),
+        uuid: 'no-start-third-line-uuid',
+        timestamp: '2025-01-01T00:00:02.000Z',
+      });
+
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
+      // Main JSONL read is skipped when agentId is supplied — do not queue main content.
+      proxy.setupSubagentDir({ files: [FileNameStub({ value: `agent-${realAgentId}.jsonl` })] });
+      proxy.setupSubagentFile({
+        content: [firstLine, 'not json at all', thirdLine].join('\n'),
+      });
+
+      const batches: unknown[] = [];
+
+      await chatHistoryReplayBroker({
+        sessionId,
+        agentId: AgentIdStub({ value: realAgentId }),
+        guildId,
+        onEntries: ({ entries }) => {
+          batches.push(entries);
+        },
+      });
+
+      // The malformed line yields no chat-line output (the processor's safeParse fails and
+      // returns `[]`), so only two batches are emitted — one per valid line. The crucial property
+      // is that the broker did NOT throw and the third line was still processed, carrying the
+      // sub-agent's own realAgentId (untranslated — no Task tool_use ever registered a toolUseId
+      // for it).
+      expect(batches).toStrictEqual([
+        [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'FIRST_NO_START_TEXT',
+            source: 'subagent',
+            agentId: realAgentId,
+            uuid: 'no-start-first-line-uuid:0',
+            timestamp: '2025-01-01T00:00:00.000Z',
+          },
+        ],
+        [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'THIRD_NO_START_TEXT',
+            source: 'subagent',
+            agentId: realAgentId,
+            uuid: 'no-start-third-line-uuid:0',
+            timestamp: '2025-01-01T00:00:02.000Z',
+          },
+        ],
+      ]);
+    });
+
+    it('INVALID: {agentId param is a path-traversal-shaped string, subagents dir holds only an unrelated real file} => resolves with zero entries; the traversal string is never woven into a file read path', async () => {
+      // Security question, not a behavior question: does a hostile agentId (`../../../etc/passwd`
+      // -shaped) ever get concatenated into a path the broker reads? It does not, structurally —
+      // the broker never builds `subagentsDir + '/agent-' + filterAgentId + '.jsonl'`. It reads
+      // the real directory listing (fsReaddirAdapter), derives each file's agentId from its
+      // ACTUAL on-disk filename (stripAgentFilenamePrefixTransformer), and only THEN compares
+      // that real, filename-derived id against filterAgentId inside
+      // scopeSubagentFilesToDescendantsLayerBroker. A hostile filterAgentId simply matches no
+      // real file's derived id, so `subagentFiles` stays empty — the same terminal as
+      // has-start:no. Proven here structurally: this test's fs mocks stage ONLY the real decoy
+      // file's address, so a broker that ever built a hostile path and tried to read it would hit
+      // an un-staged registerMock call, which throws synchronously and fails this test — it does
+      // not, because no such call is ever made. agentIdContract itself carries no pattern
+      // restriction (z.string().min(1)), so nothing upstream rejects this value either — the
+      // safety is entirely in how the resolved id is USED, never in what shape it may take.
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'test-session-traversal-agent-id' });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      const realAgentId = 'traversaldecoy';
+
+      const decoyLine = JSON.stringify({
+        ...AssistantTextStreamLineStub({
+          message: { role: 'assistant', content: [{ type: 'text', text: 'DECOY_SUBAGENT_TEXT' }] },
+        }),
+        uuid: 'traversal-decoy-line-uuid',
+        timestamp: '2025-01-01T00:00:00.000Z',
+      });
+
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
+      // Main JSONL read is skipped when agentId is supplied — do not queue main content.
+      proxy.setupSubagentDir({ files: [FileNameStub({ value: `agent-${realAgentId}.jsonl` })] });
+      proxy.setupSubagentFile({ content: decoyLine });
+
+      const batches: unknown[] = [];
+
+      const result = await chatHistoryReplayBroker({
+        sessionId,
+        agentId: AgentIdStub({ value: '../../../../../../etc/passwd' }),
+        guildId,
+        onEntries: ({ entries }) => {
+          batches.push(entries);
+        },
+      });
+
+      expect(batches).toStrictEqual([]);
+      expect(result).toStrictEqual({ success: true });
+    });
+
+    it('EDGE: {agentId param scopes to a sub-agent, but the whole subagents/ directory was never created on disk} => resolves with zero entries instead of throwing', async () => {
+      // Boundary distinct from the has-start:no case above: there the `subagents/` directory
+      // EXISTS and holds a tail file with no Task line, so `fsReaddirAdapter` returns a real
+      // (possibly malformed-content) file list. Here the directory itself never came into being —
+      // `fsReaddirAdapter`'s underlying `readdirSync` throws ENOENT. The broker's own readdir call
+      // is wrapped in a bare `try { ... } catch { // subagents directory may not exist }`, so this
+      // must resolve exactly like an empty subagent-file list: zero onEntries batches, a normal
+      // `{success: true}` return, no throw reaching the caller.
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'test-session-no-subagents-dir' });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
+      // Main JSONL read is skipped when agentId is supplied — do not queue main content.
+      proxy.setupSubagentDirMissing();
+
+      const batches: unknown[] = [];
+
+      const result = await chatHistoryReplayBroker({
+        sessionId,
+        agentId: AgentIdStub({ value: 'missingdiragent' }),
+        guildId,
+        onEntries: ({ entries }) => {
+          batches.push(entries);
+        },
+      });
+
+      expect(batches).toStrictEqual([]);
+      expect(result).toStrictEqual({ success: true });
+    });
+
+    it('EDGE: {agentId-scoped replay; the subagent file is listed on a FIRST call, then the directory holds nothing for it by a SECOND separate call} => the second call resolves cleanly with zero entries instead of throwing on the file that vanished', async () => {
+      // Distinct from the two boundary cases above: has-start:no proves a file that EXISTS with
+      // no Task line, and the missing-directory case proves a directory that was NEVER created.
+      // This proves the THIRD shape — a file that was readable on one replay call and is gone by
+      // a later, separate call (a live browser page open across an on-disk deletion, forcing a
+      // fresh replay via a no-op status PATCH). `fsReaddirAdapter` is a stateless read: it always
+      // reports the directory's CURRENT contents, so a file missing by the second call is simply
+      // absent from that call's listing — `fsReadJsonlAdapter` is never even attempted on it, and
+      // the broker's `try { readdir + Promise.all(reads) } catch { … }` never has anything to
+      // catch. No caching layer sits between the two calls for this to go stale against.
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'test-session-file-vanishes' });
+      const realAgentId = 'vanishingagent';
+
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      const subagentLine = JSON.stringify({
+        ...AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Sub-agent work body, no Task line' }],
+          },
+        }),
+        uuid: 'vanishing-subagent-line-uuid',
+        timestamp: '2025-01-01T00:00:02.000Z',
+      });
+
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
+      // Main JSONL read is skipped when agentId is supplied — do not queue main content.
+      proxy.setupSubagentDir({ files: [FileNameStub({ value: `agent-${realAgentId}.jsonl` })] });
+      proxy.setupSubagentFile({ content: subagentLine });
+
+      const firstBatches: unknown[] = [];
+      const firstResult = await chatHistoryReplayBroker({
+        sessionId,
+        agentId: AgentIdStub({ value: realAgentId }),
+        guildId,
+        onEntries: ({ entries }) => {
+          firstBatches.push(entries);
+        },
+      });
+
+      expect(firstBatches).toStrictEqual([
+        [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'Sub-agent work body, no Task line',
+            source: 'subagent',
+            agentId: realAgentId,
+            uuid: 'vanishing-subagent-line-uuid:0',
+            timestamp: '2025-01-01T00:00:02.000Z',
+          },
+        ],
+      ]);
+      expect(firstResult).toStrictEqual({ success: true });
+
+      // The file is deleted on disk between the two replay calls — re-stage the SAME directory
+      // address to report nothing, mirroring exactly what a real `readdirSync` returns once the
+      // file is gone (the directory itself still exists; it just no longer lists that name).
+      //
+      // guildGetBroker re-reads the guild config on every replay call (real behavior — the config
+      // file can change between calls). Its path.join/os.homedir mocks are ONE-SHOT queued
+      // (`pathJoinAdapterProxy.returns` stages `handle.onceFor([])`), fully consumed by call #1's
+      // own config-file-path build — without a second stage here, call #2 falls through to the
+      // REAL os.homedir()/path.join() and dies trying to read a real, nonexistent config.json.
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
+      proxy.setupSubagentDir({ files: [] });
+
+      const secondBatches: unknown[] = [];
+      const secondResult = await chatHistoryReplayBroker({
+        sessionId,
+        agentId: AgentIdStub({ value: realAgentId }),
+        guildId,
+        onEntries: ({ entries }) => {
+          secondBatches.push(entries);
+        },
+      });
+
+      expect(secondBatches).toStrictEqual([]);
+      expect(secondResult).toStrictEqual({ success: true });
+    });
   });
 });

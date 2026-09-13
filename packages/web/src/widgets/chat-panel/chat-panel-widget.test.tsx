@@ -675,4 +675,178 @@ describe('ChatPanelWidget', () => {
       expect(proxy.hasMessageCount({ count: 2 })).toBe(true);
     });
   });
+
+  describe('session transcript — no clock supplied', () => {
+    // ChatPanelWidget takes no `now` prop, and SessionViewWidget mounts it exactly this way —
+    // readOnly, noop send/stop — for a replayed session transcript. Every entry shape below is
+    // what a chain in that transcript sees: no clock ever reaches it.
+    it('EMPTY: {task tool_use with no notification, no now} => renders no duration figure, chain still present', () => {
+      const proxy = ChatPanelWidgetProxy();
+      const entries = [
+        TaskToolUseChatEntryStub({ agentId: 'agent-run', timestamp: '2026-09-10T10:00:00.000Z' }),
+        AssistantTextChatEntryStub({
+          content: 'still working',
+          source: 'subagent',
+          agentId: 'agent-run',
+        }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={false}
+            onSendMessage={async (): Promise<void> => Promise.resolve()}
+            onStopChat={(): void => undefined}
+            readOnly
+          />
+        ),
+      });
+
+      expect(proxy.hasSubagentChainCount({ count: 1 })).toBe(true);
+      expect(proxy.getDurationTexts()).toStrictEqual([]);
+      expect(screen.queryByTestId('subagent-chain-duration')).toBe(null);
+    });
+
+    it('VALID: {running sub-agent chain rendered} => registers zero elapsed-tick intervals', () => {
+      const proxy = ChatPanelWidgetProxy();
+      const entries = [
+        TaskToolUseChatEntryStub({ agentId: 'agent-run', timestamp: '2026-09-10T10:00:00.000Z' }),
+        AssistantTextChatEntryStub({
+          content: 'still working',
+          source: 'subagent',
+          agentId: 'agent-run',
+        }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={false}
+            onSendMessage={async (): Promise<void> => Promise.resolve()}
+            onStopChat={(): void => undefined}
+            readOnly
+          />
+        ),
+      });
+
+      expect(proxy.hasSubagentChainCount({ count: 1 })).toBe(true);
+      expect(proxy.getTickIntervalCount()).toBe(0);
+    });
+
+    it('VALID: {outer chain + nested chain, both with a completion notification} => renders exactly two duration figures, outer then nested', () => {
+      const proxy = ChatPanelWidgetProxy();
+      const taskA = TaskToolUseChatEntryStub({
+        agentId: 'agent-a',
+        timestamp: '2026-09-10T10:00:00.000Z',
+      });
+      const singleA1 = AssistantTextChatEntryStub({
+        source: 'subagent',
+        agentId: 'agent-a',
+        content: 'a1',
+      });
+      const taskB = TaskToolUseChatEntryStub({
+        agentId: 'agent-b',
+        parentAgentId: 'agent-a',
+        source: 'subagent',
+        timestamp: '2026-09-10T10:02:00.000Z',
+      });
+      const singleB1 = AssistantTextChatEntryStub({
+        source: 'subagent',
+        agentId: 'agent-b',
+        content: 'b1',
+      });
+      const notificationA = TaskNotificationChatEntryStub({
+        taskId: 'agent-a',
+        status: 'completed',
+        timestamp: '2026-09-10T10:04:00.000Z',
+      });
+      const notificationB = TaskNotificationChatEntryStub({
+        taskId: 'agent-b',
+        status: 'completed',
+        timestamp: '2026-09-10T10:04:00.000Z',
+      });
+      const entries = [taskA, singleA1, taskB, singleB1, notificationA, notificationB];
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={false}
+            onSendMessage={async (): Promise<void> => Promise.resolve()}
+            onStopChat={(): void => undefined}
+            readOnly
+          />
+        ),
+      });
+
+      expect(proxy.getDurationTexts()).toStrictEqual(['4m', '2m']);
+    });
+
+    it('VALID: {one finished chain, no nesting} => renders exactly one duration figure', () => {
+      const proxy = ChatPanelWidgetProxy();
+      const entries = [
+        TaskToolUseChatEntryStub({ agentId: 'agent-solo', timestamp: '2026-09-10T10:00:00.000Z' }),
+        AssistantTextChatEntryStub({ source: 'subagent', agentId: 'agent-solo', content: 'work' }),
+        TaskNotificationChatEntryStub({
+          taskId: 'agent-solo',
+          status: 'completed',
+          timestamp: '2026-09-10T10:04:00.000Z',
+        }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={false}
+            onSendMessage={async (): Promise<void> => Promise.resolve()}
+            onStopChat={(): void => undefined}
+            readOnly
+          />
+        ),
+      });
+
+      expect(proxy.getDurationTexts()).toStrictEqual(['4m']);
+    });
+
+    it('EMPTY: {running chain re-rendered with unchanged entries} => still renders no duration figure', () => {
+      ChatPanelWidgetProxy();
+      const entries = [
+        TaskToolUseChatEntryStub({ agentId: 'agent-run', timestamp: '2026-09-10T10:00:00.000Z' }),
+        AssistantTextChatEntryStub({
+          content: 'still working',
+          source: 'subagent',
+          agentId: 'agent-run',
+        }),
+      ];
+
+      const { rerender } = mantineRenderAdapter({
+        ui: (
+          <ChatPanelWidget
+            entries={entries}
+            isStreaming={false}
+            onSendMessage={async (): Promise<void> => Promise.resolve()}
+            onStopChat={(): void => undefined}
+            readOnly
+          />
+        ),
+      });
+
+      expect(screen.queryByTestId('subagent-chain-duration')).toBe(null);
+
+      rerender(
+        <ChatPanelWidget
+          entries={entries}
+          isStreaming={false}
+          onSendMessage={async (): Promise<void> => Promise.resolve()}
+          onStopChat={(): void => undefined}
+          readOnly
+        />,
+      );
+
+      expect(screen.queryByTestId('subagent-chain-duration')).toBe(null);
+    });
+  });
 });

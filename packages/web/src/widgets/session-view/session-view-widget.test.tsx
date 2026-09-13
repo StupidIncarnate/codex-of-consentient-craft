@@ -1,10 +1,13 @@
 import {
+  AssistantTextChatEntryStub,
   GuildIdStub,
   GuildListItemStub,
   ProcessIdStub,
   QuestIdStub,
   QuestWorkItemIdStub,
   SessionIdStub,
+  TaskNotificationChatEntryStub,
+  TaskToolUseChatEntryStub,
 } from '@dungeonmaster/shared/contracts';
 import { act, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -375,6 +378,346 @@ describe('SessionViewWidget', () => {
       });
 
       expect(screen.getByTestId('NOT_FOUND')).toBeInTheDocument();
+    });
+  });
+
+  describe('subagent chain rendering', () => {
+    it('VALID: {Task tool_use + one subagent line delivered} => #check-session-chain-renders proxy.hasSubagentChain() is true', async () => {
+      const proxy = SessionViewWidgetProxy();
+      const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      proxy.setupGuilds({
+        guilds: [
+          GuildListItemStub({
+            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            urlSlug: 'my-guild' as never,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={[`/my-guild/session/${sessionId}`]}>
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<SessionViewWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('dumpster-raccoon-widget')).toBeInTheDocument();
+      });
+
+      act(() => {
+        proxy.setupConnectedChannel();
+      });
+
+      const replayProcessId = ProcessIdStub({ value: `replay-${sessionId}` });
+
+      await waitFor(() => {
+        expect(proxy.getReplayHistorySent()).toBe(true);
+      });
+
+      const entries = [
+        TaskToolUseChatEntryStub({
+          agentId: 'agent-session',
+          timestamp: '2026-09-10T10:00:00.000Z',
+        }),
+        AssistantTextChatEntryStub({
+          content: 'sub working',
+          source: 'subagent',
+          agentId: 'agent-session',
+        }),
+      ];
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: replayProcessId,
+              questId: QuestIdStub(),
+              workItemId: QuestWorkItemIdStub(),
+              entries,
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-history-complete',
+            payload: { chatProcessId: replayProcessId },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('CHAT_PANEL')).toBeInTheDocument();
+      });
+
+      expect(proxy.hasSubagentChain()).toBe(true);
+    });
+
+    it("VALID: {chain with a completion notification reporting durationMs: 270000} => #check-session-finished-figure proxy.getDurationTexts() toStrictEqual ['4m']", async () => {
+      const proxy = SessionViewWidgetProxy();
+      const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      proxy.setupGuilds({
+        guilds: [
+          GuildListItemStub({
+            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            urlSlug: 'my-guild' as never,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={[`/my-guild/session/${sessionId}`]}>
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<SessionViewWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('dumpster-raccoon-widget')).toBeInTheDocument();
+      });
+
+      act(() => {
+        proxy.setupConnectedChannel();
+      });
+
+      const replayProcessId = ProcessIdStub({ value: `replay-${sessionId}` });
+
+      await waitFor(() => {
+        expect(proxy.getReplayHistorySent()).toBe(true);
+      });
+
+      const entries = [
+        TaskToolUseChatEntryStub({
+          agentId: 'agent-session',
+          timestamp: '2026-09-10T10:00:00.000Z',
+        }),
+        AssistantTextChatEntryStub({
+          content: 'sub working',
+          source: 'subagent',
+          agentId: 'agent-session',
+        }),
+        TaskNotificationChatEntryStub({
+          taskId: 'agent-session',
+          status: 'completed',
+          timestamp: '2026-09-10T10:04:30.000Z',
+          durationMs: 270000,
+        }),
+      ];
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: replayProcessId,
+              questId: QuestIdStub(),
+              workItemId: QuestWorkItemIdStub(),
+              entries,
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-history-complete',
+            payload: { chatProcessId: replayProcessId },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('CHAT_PANEL')).toBeInTheDocument();
+      });
+
+      expect(proxy.getDurationTexts()).toStrictEqual(['4m']);
+    });
+
+    it('VALID: {finished chain header} => #check-session-duration-same-test-id proxy.getDurationTestIds() carries subagent-chain-duration', async () => {
+      const proxy = SessionViewWidgetProxy();
+      const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      proxy.setupGuilds({
+        guilds: [
+          GuildListItemStub({
+            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            urlSlug: 'my-guild' as never,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={[`/my-guild/session/${sessionId}`]}>
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<SessionViewWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('dumpster-raccoon-widget')).toBeInTheDocument();
+      });
+
+      act(() => {
+        proxy.setupConnectedChannel();
+      });
+
+      const replayProcessId = ProcessIdStub({ value: `replay-${sessionId}` });
+
+      await waitFor(() => {
+        expect(proxy.getReplayHistorySent()).toBe(true);
+      });
+
+      const entries = [
+        TaskToolUseChatEntryStub({
+          agentId: 'agent-session',
+          timestamp: '2026-09-10T10:00:00.000Z',
+        }),
+        AssistantTextChatEntryStub({
+          content: 'sub working',
+          source: 'subagent',
+          agentId: 'agent-session',
+        }),
+        TaskNotificationChatEntryStub({
+          taskId: 'agent-session',
+          status: 'completed',
+          timestamp: '2026-09-10T10:04:30.000Z',
+          durationMs: 270000,
+        }),
+      ];
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: replayProcessId,
+              questId: QuestIdStub(),
+              workItemId: QuestWorkItemIdStub(),
+              entries,
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-history-complete',
+            payload: { chatProcessId: replayProcessId },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('CHAT_PANEL')).toBeInTheDocument();
+      });
+
+      expect(proxy.getDurationTestIds()).toStrictEqual([null, null, 'subagent-chain-duration']);
+    });
+
+    it("VALID: {finished chain, second chat-history-complete with nothing new} => #session-frozen-duration proxy.getDurationTexts() is still ['4m']", async () => {
+      const proxy = SessionViewWidgetProxy();
+      const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      proxy.setupGuilds({
+        guilds: [
+          GuildListItemStub({
+            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            urlSlug: 'my-guild' as never,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={[`/my-guild/session/${sessionId}`]}>
+            <Routes>
+              <Route path="/:guildSlug/session/:sessionId" element={<SessionViewWidget />} />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('dumpster-raccoon-widget')).toBeInTheDocument();
+      });
+
+      act(() => {
+        proxy.setupConnectedChannel();
+      });
+
+      const replayProcessId = ProcessIdStub({ value: `replay-${sessionId}` });
+
+      await waitFor(() => {
+        expect(proxy.getReplayHistorySent()).toBe(true);
+      });
+
+      const entries = [
+        TaskToolUseChatEntryStub({
+          agentId: 'agent-session',
+          timestamp: '2026-09-10T10:00:00.000Z',
+        }),
+        AssistantTextChatEntryStub({
+          content: 'sub working',
+          source: 'subagent',
+          agentId: 'agent-session',
+        }),
+        TaskNotificationChatEntryStub({
+          taskId: 'agent-session',
+          status: 'completed',
+          timestamp: '2026-09-10T10:04:30.000Z',
+          durationMs: 270000,
+        }),
+      ];
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: replayProcessId,
+              questId: QuestIdStub(),
+              workItemId: QuestWorkItemIdStub(),
+              entries,
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-history-complete',
+            payload: { chatProcessId: replayProcessId },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('CHAT_PANEL')).toBeInTheDocument();
+      });
+
+      expect(proxy.getDurationTexts()).toStrictEqual(['4m']);
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-history-complete',
+            payload: { chatProcessId: replayProcessId },
+            timestamp: '2025-01-01T00:00:01.000Z',
+          }),
+        });
+      });
+
+      expect(proxy.getDurationTexts()).toStrictEqual(['4m']);
     });
   });
 });
