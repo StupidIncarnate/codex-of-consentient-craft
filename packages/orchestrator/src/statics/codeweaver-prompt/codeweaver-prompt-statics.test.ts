@@ -323,7 +323,7 @@ describe('codeweaverPromptStatics', () => {
       }),
       why: hasIn({
         needle:
-          'The operator chose that sketch against the flow, so a swap it never sees is a behaviour change nobody reviewed.',
+          'The operator set those units and fences against the flow, so a swap it never sees is a behaviour change nobody reviewed.',
         text: BRIEF_TEMPLATE,
       }),
       returnCarriesIt: hasIn({
@@ -445,6 +445,72 @@ describe('codeweaverPromptStatics', () => {
     });
   });
 
+  // 2a-bis. THE OPERATOR WROTE THE FILE'S BODY AND THE SUB-AGENT TYPED IT. Measured over one
+  // codeweaver's seven workers: five of five implementation sketches came back in the committed
+  // file essentially verbatim — an opus session drafting in prose so a sonnet session could
+  // transcribe it. What the sub-agent cannot get elsewhere is the file's two SIDES, the units, and
+  // what is already true of the file; what it can work out for itself is the body. So the brief
+  // carries `FACTS` and `FENCES`, the block names no shape, and the acceptance bar is stated in the
+  // same breath — several correct shapes are fine, and only the units and the fences bind.
+  it('VALID: served template => refuses a code sketch in a brief and states what binds instead', () => {
+    expect({
+      noSketch: hasIn({
+        needle: '**You do not write the code, not even as a sketch.**',
+        text: TEMPLATE,
+      }),
+      threeThingsInstead: hasIn({
+        needle:
+          "the file's `in` and `out`, the `UNITS` with their `ASSERT` and `FAILS IF`, and `FACTS`",
+        text: TEMPLATE,
+      }),
+      shapeIsNotMeasured: hasIn({
+        needle:
+          '**Several correct shapes are fine.** What\nis measured is whether the units hold and whether the result is performant, never whether the code\ncame out the way you pictured it.',
+        text: TEMPLATE,
+      }),
+      factsBlockKept: hasIn({ needle: '\nFACTS\n', text: BRIEF_TEMPLATE }),
+      fencesBlockKept: hasIn({ needle: '\nFENCES\n', text: BRIEF_TEMPLATE }),
+      doBlockGone: TEMPLATE.indexOf('\nDO\n'),
+    }).toStrictEqual({
+      noSketch: true,
+      threeThingsInstead: true,
+      shapeIsNotMeasured: true,
+      factsBlockKept: true,
+      fencesBlockKept: true,
+      doBlockGone: -1,
+    });
+  });
+
+  // 2a-ter. A LINE NUMBER IS WRONG BY THE TIME IT IS READ. Groups land in order and each one edits
+  // files, so an anchor the operator recorded at map time has moved by the group that reads it —
+  // one measured brief pointed its worker at "the case at line 653" of a spec three later groups
+  // went on to extend. A NAME survives an edit, and `discover` resolves one in a single call. The
+  // ban is stated for the map AND for the brief, because the brief is cut from the map and a number
+  // banned in only one of them survives through the other.
+  it('VALID: served template => bans a line number as an anchor in both the map and the brief', () => {
+    expect({
+      briefBan: hasIn({
+        needle: '**Never write a line number into a brief, in any block.**',
+        text: TEMPLATE,
+      }),
+      mapBan: hasIn({
+        needle: '**Never a line number, here or in a brief.**',
+        text: TEMPLATE,
+      }),
+      anchorOnAName: hasIn({
+        needle:
+          "Anchor on a NAME — an export, a\nconst, a prop, a test case's own title. A name survives an edit, and `discover` finds it in one\ncall.",
+        text: TEMPLATE,
+      }),
+      bothSidesEveryFile: hasIn({ needle: '**Both sides, every file.**', text: TEMPLATE }),
+    }).toStrictEqual({
+      briefBan: true,
+      mapBan: true,
+      anchorOnAName: true,
+      bothSidesEveryFile: true,
+    });
+  });
+
   // 2b. A `TRAPS` LINE IS A CLAIM ABOUT A LINT RULE, and the block's own instruction — "one line
   // each: a lint rule, …" — invites the operator to assert one from memory. One such assertion said
   // a rule sanctioned an import it refuses on filename alone, and the sub-agent paid for it.
@@ -452,7 +518,7 @@ describe('codeweaverPromptStatics', () => {
     expect(
       hasIn({
         needle:
-          '**A `TRAPS` entry names a rule you have READ this session, never one you remember.** A brief that\n  asserted a lint rule sanctioned an import the rule in fact refuses left its sub-agent unable to\n  tell which of the two was right.',
+          "**A `TRAPS` entry names a rule you have READ this session, never one you remember, and never one\n  the sub-agent's own reading already states.** A brief that asserted a lint rule sanctioned an\n  import the rule in fact refuses left its sub-agent unable to tell which of the two was right. One\n  measured brief went the other way and banned `.toBeInTheDocument`, which nothing bans and the\n  repo's own widget tests use throughout.",
         text: TEMPLATE,
       }),
     ).toBe(true);
@@ -498,7 +564,7 @@ describe('codeweaverPromptStatics', () => {
     expect(
       hasIn({
         needle:
-          '- **Every `<…>` in a brief is substituted or deleted before you dispatch it**, the pseudo-code in\n  your `DO` block included. One that survives is something the sub-agent has to reconstruct from\n  the code, and it reconstructs it its own way.',
+          '- **Every `<…>` in a brief is substituted or deleted before you dispatch it**, every `FACTS` and\n  `FENCES` line included. One that survives is a question the sub-agent has to answer out of the\n  code, and it answers it without you.',
         text: TEMPLATE,
       }),
     ).toBe(true);
@@ -557,7 +623,7 @@ describe('codeweaverPromptStatics', () => {
         text: BRIEF_TEMPLATE,
       }),
       doNotTouchBlockKept: hasIn({
-        needle: 'DO NOT TOUCH\n  <paths another sub-agent is writing right now>',
+        needle: 'DO NOT TOUCH\n  <whole paths another sub-agent is writing right now>',
         text: BRIEF_TEMPLATE,
       }),
       returnMarksTheUnplanned: hasIn({

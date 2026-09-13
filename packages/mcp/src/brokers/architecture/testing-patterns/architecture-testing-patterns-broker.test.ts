@@ -148,6 +148,52 @@ describe('architectureTestingPatternsBroker', () => {
       );
     });
 
+    it('VALID: {} => forbids .toBeNull() and names .toBe(null) as its replacement', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      // `toBeNull` is banned by `ban-weak-existence-matchers`, whose list this table does not
+      // feed, so the row went missing while the lint rule stayed real. An audit of 19 sub-agent
+      // briefs found a hand-written brief was the only place in the system a worker learned it —
+      // which reaches whichever worker its operator happened to remember, and no one else.
+      expect(result).toMatch(/^\| `\.toBeNull\(\)` \| `\.toBe\(null\)` \|$/mu);
+
+      // The same rule bans toBeTruthy/toBeFalsy with the same replacements; pin the row that
+      // already carries them so a table edit cannot drop the half that was never missing.
+      expect(result).toMatch(
+        /^\| `\.toBeTruthy\(\)` \/ `\.toBeFalsy\(\)` \| `\.toBe\(true\)` \/ `\.toBe\(false\)` \|$/mu,
+      );
+    });
+
+    it('VALID: {} => requires bringToFront before any geometry measurement in an e2e', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      // A backgrounded Playwright page reports every node as invisible with a zero-ish box, which
+      // reads as a product bug and has burned real debugging time. Pin the whole four-step
+      // remedy: a partial one (bringToFront with no forced frame) still measures a stale layout.
+      const trapNeedle =
+        'A page that is not the active tab reads `document.visibilityState === "hidden"`, and Chromium then stops committing layout frames';
+      const remedyNeedle =
+        "call `page.bringToFront()`, take a `page.screenshot()` to force a frame, assert `document.visibilityState` is `'visible'`, and only then measure.";
+
+      expect(result).toMatch(/^### Bring the Page to the Front Before Measuring Geometry$/mu);
+      expect(
+        result.slice(result.indexOf(trapNeedle), result.indexOf(trapNeedle) + trapNeedle.length),
+      ).toBe(trapNeedle);
+      expect(
+        result.slice(
+          result.indexOf(remedyNeedle),
+          result.indexOf(remedyNeedle) + remedyNeedle.length,
+        ),
+      ).toBe(remedyNeedle);
+      expect(result).toMatch(
+        /^const visibilityState = await page\.evaluate\(\(\) => document\.visibilityState\);$/mu,
+      );
+    });
+
     it('VALID: {} => includes proxy architecture section', () => {
       architectureTestingPatternsBrokerProxy();
 

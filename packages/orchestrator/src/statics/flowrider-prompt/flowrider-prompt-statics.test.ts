@@ -497,4 +497,307 @@ describe('flowriderPromptStatics', () => {
       namesItsOwnLevel: true,
     });
   });
+
+  // A BRIEF THAT PASTES A SECTION OF THE OPERATOR'S OWN PAGE PAYS THAT COST ONCE PER BRIEF, WHERE THE
+  // MAP PAYS IT ONCE PER FLOW. Measured across twelve real briefs from one flow, the pasted block ran
+  // roughly 13,000 characters over six of them, and about 17 lines in 44 restated
+  // `get-testing-patterns`, which every sub-agent calls for itself. The three `indexOf(...) === -1`
+  // entries are what prove the paste is GONE rather than merely joined by a shorter form beside it —
+  // a `hasIn` on the new `KIND` line alone goes green over a brief still carrying both.
+  it('VALID: brief template => names its test KIND in one word and points at the map, pasting no rules block of its own', () => {
+    expect({
+      pastedBlockHeadingGone: BRIEF_TEMPLATE.indexOf('\nHOW TO WRITE THESE\n'),
+      pastedInstructionGone: BRIEF_TEMPLATE.indexOf(
+        'the rules from the matching section of this page, pasted',
+      ),
+      hasNotReadThatSectionGone: BRIEF_TEMPLATE.indexOf('The sub-agent has not read that section'),
+      kindIsOneWord: hasIn({
+        needle:
+          "KIND\n  <browser | below-browser — one word, this file's test kind and nothing else.",
+        text: BRIEF_TEMPLATE,
+      }),
+      kindPointsAtTheMap: hasIn({
+        needle:
+          'The rules for writing that kind are in the MAP above, under its `HOW TO WRITE THESE` heading. Read the half that matches this word before you write a line.',
+        text: BRIEF_TEMPLATE,
+      }),
+      mapTemplateCarriesBothHalvesOnce: hasIn({
+        needle:
+          'HOW TO WRITE THESE\n  browser        <- `## Proving something in the browser`, written out in full, once\n  below-browser  <- `## Proving something below the browser`, written out in full, once',
+        text: TEMPLATE,
+      }),
+      operatorWritesThemOnce: hasIn({
+        needle: "**Write both kinds' rules into the map ONCE, under `HOW TO WRITE THESE`.**",
+        text: TEMPLATE,
+      }),
+      measurementGiven: hasIn({
+        needle:
+          'roughly 13,000 characters over six of them, of which about 17 lines in 44 restated `get-testing-patterns`, which every sub-agent calls for itself.',
+        text: TEMPLATE,
+      }),
+      browserSectionStillTheOperatorsReference: hasIn({
+        needle:
+          'A browser walk is a Playwright `.e2e.ts` spec. Write these into your map ONCE, under `HOW TO WRITE THESE`; a brief names the kind and reads them there.',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      pastedBlockHeadingGone: -1,
+      pastedInstructionGone: -1,
+      hasNotReadThatSectionGone: -1,
+      kindIsOneWord: true,
+      kindPointsAtTheMap: true,
+      mapTemplateCarriesBothHalvesOnce: true,
+      operatorWritesThemOnce: true,
+      measurementGiven: true,
+      browserSectionStillTheOperatorsReference: true,
+    });
+  });
+
+  // A LINE NUMBER IS AN ANCHOR THAT MOVES. Measured across twelve flowrider briefs, 34 of 34 line
+  // anchors resolved — and only because that operator sequenced every dependent worker and
+  // hand-re-anchored `:137` to `:152` between sessions after its own fix grew the file. Neither of
+  // those survives sub-agents editing one tree at the same time. `RED FIRST` is the one block where a
+  // stale anchor causes a bad WRITE rather than a failed read: it has a sub-agent temporarily mutate
+  // an implementation file it does not own, on a worktree other sessions share.
+  it('VALID: served template => anchors a brief and a map on a NAME, and breaks a NAMED construct under RED FIRST', () => {
+    expect({
+      briefRule: hasIn({
+        needle: '**Never write a line number into a brief, in any block.**',
+        text: TEMPLATE,
+      }),
+      mapRule: hasIn({
+        needle:
+          '**Never a line number, here or in a brief.** Groups land in order and each one writes files, so a number recorded at map time is wrong by the group that reads it. Anchor on a NAME.',
+        text: TEMPLATE,
+      }),
+      measurementGiven: hasIn({
+        needle:
+          'Measured across twelve flowrider briefs, 34 of 34 line anchors resolved — and only because that operator sequenced every dependent worker and hand-re-anchored `:137` to `:152` between sessions after its own fix grew the file.',
+        text: TEMPLATE,
+      }),
+      namesWhatToAnchorOn: hasIn({
+        needle:
+          "Anchor on a NAME — an export, a const, a prop, a test case's own title. A name survives an edit, and `discover` finds it in one call.",
+        text: TEMPLATE,
+      }),
+      redFirstNamedAsTheWorstCase: hasIn({
+        needle:
+          '**`RED FIRST` is where this bites hardest**: it has a sub-agent temporarily MUTATE an implementation file it does not own, so a stale anchor there writes over something else rather than merely failing to find it.',
+        text: TEMPLATE,
+      }),
+      redFirstBreaksANamedConstruct: hasIn({
+        needle:
+          'Break the ONE CONSTRUCT the test guards — a const, an export, a JSX block named by the component it renders. NAME it; never a line number and never a line range.',
+        text: BRIEF_TEMPLATE,
+      }),
+      redFirstReturnNamesTheConstruct: hasIn({
+        needle: 'Name that file and that construct in the return.',
+        text: BRIEF_TEMPLATE,
+      }),
+      brokenLineWordingGone: BRIEF_TEMPLATE.indexOf('Break the ONE line the test guards'),
+      returnLineWordingGone: BRIEF_TEMPLATE.indexOf('Name that file and line in the return.'),
+    }).toStrictEqual({
+      briefRule: true,
+      mapRule: true,
+      measurementGiven: true,
+      namesWhatToAnchorOn: true,
+      redFirstNamedAsTheWorstCase: true,
+      redFirstBreaksANamedConstruct: true,
+      redFirstReturnNamesTheConstruct: true,
+      brokenLineWordingGone: -1,
+      returnLineWordingGone: -1,
+    });
+  });
+
+  // FACTS AND FENCES ARE THE TWO BLOCKS ONLY THE OPERATOR CAN SUPPLY, and the MAP is where they have
+  // to live: a fact or a fence authored inside a brief exists in one sub-agent's context and nowhere
+  // else, so the reviewer, a sibling flowrider on another flow and the next `pt N` session all miss
+  // it. Written onto the map it is durable, and a brief becomes a SLICE of the map rather than a
+  // place facts are authored. Both wordings are taken from live flowrider briefs that carried them ad
+  // hoc: `THE DEFECT — already traced for you, by the session that wrote the spec`, and a fence
+  // naming the sub-agent working on the same file right now. Keyed by PATH, one line each, matching
+  // the sibling codeweaver map exactly — parity across the three operator roles is what stops a
+  // sub-agent having to learn a different brief shape per role.
+  it('VALID: served template => defines FACTS and FENCES once in the map, keyed by path', () => {
+    expect({
+      factsMapEntry: hasIn({
+        needle:
+          'FACTS\n  <path>  <one line: something true about that file already, anchored on a NAME>',
+        text: TEMPLATE,
+      }),
+      fencesMapEntry: hasIn({
+        needle:
+          "FENCES\n  <path>  <one line: a part of that file that is NOT its group's, and whose it is>",
+        text: TEMPLATE,
+      }),
+      writtenOnceAndCutFromThere: hasIn({
+        needle:
+          '**`FACTS` and `FENCES` are written HERE, once, and CUT into briefs from here.** Both are keyed by PATH, one line each.',
+        text: TEMPLATE,
+      }),
+      namesWhoElseReadsTheMap: hasIn({
+        needle:
+          "A fact or a fence authored inside a brief lives in one sub-agent's context and nowhere else; on the map your reviewer reads it, so does a sibling flowrider on another flow, and so does the `pt N` session that picks this item up after you.",
+        text: TEMPLATE,
+      }),
+      factDefinitionTakesTheTracedDefect: hasIn({
+        needle:
+          'A **FACT** is something already TRUE about that file which bears on the test — the defect, already traced for you by the session that wrote the spec;',
+        text: TEMPLATE,
+      }),
+      factBoundedByWhatItAlreadyReads: hasIn({
+        needle:
+          "Write only what a sub-agent cannot already get: it reads `get-architecture`, `get-testing-patterns`, `get-folder-detail` for its folder types and every session snippet, and it has that file's own `SURFACES` and `UNITS`. A FACT restating any of those spends a brief and teaches nothing.",
+        text: TEMPLATE,
+      }),
+      fenceDefinitionNamesTheHolder: hasIn({
+        needle:
+          'A **FENCE** is a part of a file some group DOES touch that is not that group\'s work, and whose it is — "one other sub-agent is working right now on the `wireHarnessLifecycle` export in <path>: read it, never edit it"',
+        text: TEMPLATE,
+      }),
+      fenceIsTheOperatorsAlone: hasIn({
+        needle: 'A fence is a boundary only you can draw, because you split the groups.',
+        text: TEMPLATE,
+      }),
+      fenceIsNarrowerThanDoNotTouch: hasIn({
+        needle:
+          "A brief's `DO NOT TOUCH` fences whole FILES; this fences parts of a file a brief is editing.",
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      factsMapEntry: true,
+      fencesMapEntry: true,
+      writtenOnceAndCutFromThere: true,
+      namesWhoElseReadsTheMap: true,
+      factDefinitionTakesTheTracedDefect: true,
+      factBoundedByWhatItAlreadyReads: true,
+      fenceDefinitionNamesTheHolder: true,
+      fenceIsTheOperatorsAlone: true,
+      fenceIsNarrowerThanDoNotTouch: true,
+    });
+  });
+
+  // A DEFINITION KEPT IN TWO PLACES IS HOW THE TWO DRIFT APART, so the brief carries the LINES and
+  // the map carries the meaning. The four `indexOf(...) === -1` entries are the whole point of this
+  // pin: a brief that re-states the definitions would satisfy every positive needle above while
+  // re-creating the duplication, and only an absence check catches that. Asserted on the fenced
+  // slice, because the brief is the only part a sub-agent ever reads.
+  it('VALID: brief template => cuts its FACTS and FENCES from the map rather than defining them again', () => {
+    expect({
+      factsIsASlice: hasIn({
+        needle:
+          "FACTS\n  <the map's FACTS lines for this brief's own files, copied — path first, one line each.",
+        text: BRIEF_TEMPLATE,
+      }),
+      fencesIsASlice: hasIn({
+        needle:
+          "FENCES\n  <the map's FENCES lines for this brief's own files, copied — path first, one line each.",
+        text: BRIEF_TEMPLATE,
+      }),
+      fencesStillSeparatesItselfFromDoNotTouch: hasIn({
+        needle: 'DO NOT TOUCH fences whole FILES; these fence parts of a file you ARE editing.',
+        text: BRIEF_TEMPLATE,
+      }),
+      operatorBulletSendsItToTheMap: hasIn({
+        needle: '**`FACTS` and `FENCES` are CUT from your map, never authored here.**',
+        text: TEMPLATE,
+      }),
+      operatorBulletNamesWhoMissesAnAdHocOne: hasIn({
+        needle:
+          "Authoring\n  one at dispatch instead puts it in a single sub-agent's context, where your reviewer, a sibling\n  flowrider and the next `pt N` session all miss it.",
+        text: TEMPLATE,
+      }),
+      factDefinitionNotDuplicated: BRIEF_TEMPLATE.indexOf(
+        'A FACT restating any of those spends a brief and teaches nothing',
+      ),
+      fenceDefinitionNotDuplicated: BRIEF_TEMPLATE.indexOf(
+        'A fence is a boundary only you can draw',
+      ),
+      toolListNotDuplicated: BRIEF_TEMPLATE.indexOf(
+        'it reads `get-architecture`, `get-testing-patterns`, `get-folder-detail` for its folder types',
+      ),
+      holderExampleNotDuplicated: BRIEF_TEMPLATE.indexOf('wireHarnessLifecycle'),
+    }).toStrictEqual({
+      factsIsASlice: true,
+      fencesIsASlice: true,
+      fencesStillSeparatesItselfFromDoNotTouch: true,
+      operatorBulletSendsItToTheMap: true,
+      operatorBulletNamesWhoMissesAnAdHocOne: true,
+      factDefinitionNotDuplicated: -1,
+      fenceDefinitionNotDuplicated: -1,
+      toolListNotDuplicated: -1,
+      holderExampleNotDuplicated: -1,
+    });
+  });
+
+  // A TRAP REPEATING THE SUB-AGENT'S OWN READING IS A LINE IT HAS ALREADY READ ONCE. The old block
+  // invited three examples — a lint rule, a fixture seeded twice, a selector — and the first of those
+  // is exactly what `get-architecture` and `get-testing-patterns` already state, so briefs spent the
+  // block restating them. One measured brief on the sibling codeweaver track went further and banned
+  // `.toBeInTheDocument`, which nothing bans and the repo's own widget tests use throughout; naming
+  // where the rule was read is what lets the sub-agent check the operator.
+  it('VALID: brief template => narrows TRAPS to a rule this file trips that the sub-agent has not already read', () => {
+    expect({
+      narrowedWording: hasIn({
+        needle:
+          "TRAPS\n  <one line each: a rule THIS file trips that none of the sub-agent's own reading states.",
+        text: BRIEF_TEMPLATE,
+      }),
+      namesWhatItHasAlreadyRead: hasIn({
+        needle:
+          'It arrives having read get-architecture, get-testing-patterns, get-folder-detail for its folder types and every session snippet, so a trap repeating one of those is a line it has already read once.',
+        text: BRIEF_TEMPLATE,
+      }),
+      namesWhereTheRuleWasRead: hasIn({
+        needle: 'Name where you read the rule, so it can check you.',
+        text: BRIEF_TEMPLATE,
+      }),
+      openEndedExamplesGone: BRIEF_TEMPLATE.indexOf(
+        '<one line each: a lint rule, a fixture that needs seeding twice, a selector>',
+      ),
+    }).toStrictEqual({
+      narrowedWording: true,
+      namesWhatItHasAlreadyRead: true,
+      namesWhereTheRuleWasRead: true,
+      openEndedExamplesGone: -1,
+    });
+  });
+
+  // A PATH AND A MODE ARE ONE SIDE OF A FILE, NOT A SHAPE. A spec path with no units says nothing
+  // about what the file has to bite on, and a harness named with no return says nothing about what
+  // the spec gets back from it — so the sub-agent invents the second side and the operator cannot
+  // check at step 6 that two files meet. Flowrider's files are mostly specs, so the `proves` form
+  // carries the common case and the `in`/`out` pair carries a harness.
+  it('VALID: brief template => gives every file in FILES both sides, proves for a spec and in/out for a harness', () => {
+    expect({
+      specTakesTheProvesForm: hasIn({
+        needle: 'FILES\n  <spec path>     new | extend\n      proves  <unit-id> · <unit-id>',
+        text: BRIEF_TEMPLATE,
+      }),
+      harnessTakesTheInOutForm: hasIn({
+        needle:
+          '<harness path>  new | edit\n      in   <the argument shape>\n      out  <the return type, branded>',
+        text: BRIEF_TEMPLATE,
+      }),
+      operatorBulletDemandsBothSides: hasIn({
+        needle:
+          "**`FILES` carries BOTH SIDES of every file.** A spec's are its path and the units it `proves`; a harness's are its `in` and its `out`.",
+        text: TEMPLATE,
+      }),
+      oneSideIsNotAShape: hasIn({
+        needle:
+          'One side is not a shape — a spec path with no units says nothing about what the file has to bite on, and a harness named with no return says nothing about what the spec gets back from it.',
+        text: TEMPLATE,
+      }),
+      singleSidedFilesBlockGone: BRIEF_TEMPLATE.indexOf(
+        'FILES\n  <spec path>   new | extend\n\nMAP',
+      ),
+    }).toStrictEqual({
+      specTakesTheProvesForm: true,
+      harnessTakesTheInOutForm: true,
+      operatorBulletDemandsBothSides: true,
+      oneSideIsNotAShape: true,
+      singleSidedFilesBlockGone: -1,
+    });
+  });
 });

@@ -294,15 +294,27 @@ One file, at \`<your worktree root>/.quest-plans/<operationItemId>-map.md\`. **B
 path once, now**, from your own \`Operation Item ID:\` below — \`Write\` takes an absolute path, and a
 relative one is refused outright.
 
-**A map, not an essay.** One line per file. It is what you cut briefs out of at step 4 and check
-against at step 5, so anything that is not a path, a change or a constraint is noise:
+**A map, not an essay.** Every file gets its two SIDES and nothing more — what goes in, what comes
+out. It is what you cut briefs out of at step 4 and check against at step 5, so anything that is not
+a path, a shape, a fact or a fence is noise:
 
 \`\`\`
 GROUP 1  (these touch different files — they go out together)
-  <path>  new|edit  — <the change, as a sketch or a mirror-this line>
-  <path>  new|edit  — <the same>
+  <path>  new|edit
+      in   <the argument shape, or the props>
+      out  <the return type, branded>
+  <path>  new|edit                                        <- a test file
+      proves  <unit-id> · <unit-id>
 GROUP 2  (needs group 1 to have landed)
-  <path>  new|edit  — <...>
+  <path>  new|edit
+      in   <...>
+      out  <...>
+
+FACTS
+  <path>  <one line: something true about that file already, anchored on a NAME>
+
+FENCES
+  <path>  <one line: a part of that file that is NOT its group's, and whose it is>
 
 PROVES
   <observable-id>  -> <the file whose unit test proves it>
@@ -311,6 +323,14 @@ PROVES
 TRAPS
   <one line each>
 \`\`\`
+
+**Both sides, every file.** One side is not a shape: a line naming a contract's fields says nothing
+about what parses into it, and a line naming a return says nothing about the argument. The pair is
+what lets a sub-agent write the file without you writing it for them, and what lets you check at
+step 5 that two files actually meet.
+
+**Never a line number, here or in a brief.** Groups land in order and each one edits files, so a
+number recorded at map time is wrong by the group that reads it. Anchor on a NAME.
 
 **Order comes from what a change needs, not from the flow's shape.** Contracts and statics first,
 then the code that reads them, then the code that calls that.
@@ -522,8 +542,22 @@ send that change out again. It does not end the pass.
 Sub-agents that write code get no prompt of their own. **You write the brief.**
 
 **Write a FILE MAP and terse instructions. Never prose.** A paragraph of explanation is a paragraph
-the sub-agent skims — long briefs are how adherence dies. Pseudo-code, a type sketch, a one-line
-"mirror this file" all beat a description. If a sentence does not change what gets typed, cut it.
+the sub-agent skims — long briefs are how adherence dies. If a sentence does not change what gets
+typed, cut it.
+
+**You do not write the code, not even as a sketch.** A brief carrying the file's body in pseudo-code
+makes the sub-agent a typist and you the author. It derives that body from three things you DO give
+it: the file's \`in\` and \`out\`, the \`UNITS\` with their \`ASSERT\` and \`FAILS IF\`, and \`FACTS\`. Those
+three pin the behaviour between them — a precedence ladder, for instance, is exactly what a set of
+units asserting each rung in both directions already says. **Several correct shapes are fine.** What
+is measured is whether the units hold and whether the result is performant, never whether the code
+came out the way you pictured it.
+
+**Never write a line number into a brief, in any block.** Every group that lands edits files, so a
+number you wrote before a sibling committed is wrong by the time your sub-agent reads it, and a
+wrong number sends it hunting for something that is not there. Anchor on a NAME — an export, a
+const, a prop, a test case's own title. A name survives an edit, and \`discover\` finds it in one
+call.
 
 **Put both [GIT FORMS] refusals in every brief's \`TRAPS\`, substitute included.** A sub-agent that
 hits either reads \`This command requires approval\` and reports a wall for something that was never
@@ -534,7 +568,11 @@ Dispatch with \`subagent_type: "general-purpose"\` and \`model: "sonnet"\`. Use 
 \`\`\`
 FILES
   <path>   new | edit
+      in   <the argument shape, or the props>
+      out  <the return type, branded — or, for a test file, "proves <unit-id> · <unit-id>">
   <path>   new | edit
+      in   <the same>
+      out  <the same>
   Create any other file the work turns out to need — a static, a transformer, a contract —
   WHEN the MAP below puts it in no other group. Where the map puts it in another group it
   is that group's: never create or edit it, and name it on the NEXT: rework line instead.
@@ -545,10 +583,20 @@ MAP
   Read it, and read it AGAINST your own FILES above: find the group your files sit in, then
   read the neighbouring groups, so you see what else is being built and by whom.
 
-DO
-  1. <path> — <what, as a sketch>
-       <pseudo-code, a type, a signature, or "mirror <path>">
-  2. <path> — <the same>
+FACTS
+  <one line each: something TRUE about a file in this brief that bears on the change and that
+   the sub-agent would otherwise pay to find. A prop the file already takes, a const it already
+   holds, the existing spec whose setup shape to mirror, the helper to reuse rather than
+   re-implement. Anchor every one on a NAME, never a line number.
+   Only what it cannot already get. It has read get-architecture, get-testing-patterns,
+   get-folder-detail for its folder types and every session snippet, and it has the \`in\` and
+   \`out\` above. A FACT restating any of those spends a brief and teaches nothing.>
+
+FENCES
+  <one line each: something INSIDE a file this brief does touch that is not its work, and who
+   owns it — "the row's own duration figure is existing, read only", "computing a chain figure
+   belongs to group 3". A fence is a boundary only you can draw, because you split the groups.
+   DO NOT TOUCH below fences whole FILES; this fences parts of a file it is editing.>
 
 UNITS
   <unit-id>  [observable | terminal | branch]  "<its text, word for word from the quest>"
@@ -569,13 +617,13 @@ RED FIRST
   never hedge it into a paragraph, and never invent a mutation protocol. Nobody asked for one.
 
 TRAPS
-  <one line each: a lint rule, a branded type to re-parse, a pattern to copy>
+  <one line each: a rule THIS file trips that none of the sub-agent's own reading states.
+   It arrives having read get-architecture, get-testing-patterns, get-folder-detail for its
+   folder types and every session snippet, so a trap repeating one of those is a line it has
+   already read once. Name where you read the rule, so it can check you.>
 
 DO NOT TOUCH
-  <paths another sub-agent is writing right now>
-
-READ FIRST
-  get-architecture, get-testing-patterns
+  <whole paths another sub-agent is writing right now>
 
 DISCOVERY
   Do your OWN discovery, with the discover tool. **Never dispatch a sub-agent to explore.**
@@ -595,8 +643,10 @@ THIS BRIEF IS A BEST GUESS
   denial — is neither a wall nor something to work around silently. Name the rule and what
   it refused.
   **Every deviation comes back under NOT PROVED, or on the NEXT: rework line. Never as a
-  note on a pass.** The operator chose that sketch against the flow, so a swap it never
-  sees is a behaviour change nobody reviewed.
+  note on a pass.** The operator set those units and fences against the flow, so a swap it
+  never sees is a behaviour change nobody reviewed. How you SHAPE the code is yours — several
+  correct shapes are fine, and nothing here asks you to match a picture in the operator's head.
+  What is not yours is a unit left unproven, or a fence crossed.
 
 PROVE
   Verify your work by calling THIS EXACT COMMAND. Two separate \`--\` tokens — that is the
@@ -628,17 +678,19 @@ Each of those lines is load-bearing and each cost something real:
 - **\`UNITS\` is ONE block and every unit on the brief is a row in it** — an observable, a terminal
   node or a labelled edge, each tagged, each quoting the quest WORD FOR WORD. A sub-agent that builds
   against your paraphrase and reports against the same paraphrase passes while proving something
-  else, and a unit smuggled into \`DO\` as an inline marker comes back signed by nothing.
+  else, and a unit smuggled into \`FACTS\` as an inline marker comes back signed by nothing.
 - **You substitute real ids into \`UNITS\`, and \`RETURN\` reports those SAME strings.** \`<unit-id>\`
   is a placeholder in both blocks — an observable id, a terminal node id or a labelled edge id off
   your flow. Leave \`<unit-id>\` standing in \`RETURN\` and the report comes back matching nothing you
   asked for, and you can sign none of it.
-- **Every \`<…>\` in a brief is substituted or deleted before you dispatch it**, the pseudo-code in
-  your \`DO\` block included. One that survives is something the sub-agent has to reconstruct from
-  the code, and it reconstructs it its own way.
-- **A \`TRAPS\` entry names a rule you have READ this session, never one you remember.** A brief that
-  asserted a lint rule sanctioned an import the rule in fact refuses left its sub-agent unable to
-  tell which of the two was right.
+- **Every \`<…>\` in a brief is substituted or deleted before you dispatch it**, every \`FACTS\` and
+  \`FENCES\` line included. One that survives is a question the sub-agent has to answer out of the
+  code, and it answers it without you.
+- **A \`TRAPS\` entry names a rule you have READ this session, never one you remember, and never one
+  the sub-agent's own reading already states.** A brief that asserted a lint rule sanctioned an
+  import the rule in fact refuses left its sub-agent unable to tell which of the two was right. One
+  measured brief went the other way and banned \`.toBeInTheDocument\`, which nothing bans and the
+  repo's own widget tests use throughout.
 - **Never write "this is the last brief" into one.** Your loop is unbounded, so you cannot know it,
   and a sub-agent that believes nothing follows it swallows a red rather than returning it. Say the
   thing that is already true and needs no prediction: **this brief's own paths are green when it

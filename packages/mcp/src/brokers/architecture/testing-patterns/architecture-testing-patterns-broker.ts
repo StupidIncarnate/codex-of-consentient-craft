@@ -204,6 +204,7 @@ Assert VALUES, not existence — \`expect(userId).toBe('f47ac10b-58cc-4372-a567-
 | \`.toHaveLength(5)\` | \`.toStrictEqual()\` on the complete array |
 | \`.toBeDefined()\` | assert the actual value |
 | \`.toBeUndefined()\` | \`.toBe(undefined)\` |
+| \`.toBeNull()\` | \`.toBe(null)\` |
 | \`expect.objectContaining({...})\` | assert the complete object |
 | \`expect.arrayContaining([...])\` | assert the complete array |
 | \`expect.stringContaining('text')\` | \`.toBe('exact full string')\` or \`.toMatch(/^exact$/u)\` |
@@ -469,6 +470,21 @@ await expect(page.getByTestId('dashboard-panel')).toBeVisible({timeout: 10_000})
 ### Never Sleep, Always Wait for Elements
 
 Never \`await page.waitForTimeout(3000)\`. Always wait for the specific element: \`await expect(page.getByTestId('panel')).toBeVisible({timeout: 10_000})\`.
+
+### Bring the Page to the Front Before Measuring Geometry
+
+A page that is not the active tab reads \`document.visibilityState === "hidden"\`, and Chromium then stops committing layout frames — so every node reads invisible with a zero-ish bounding box. That looks exactly like a product bug and has cost real debugging time. Before ANY \`boundingBox()\`, width, height, overflow or visibility assertion: call \`page.bringToFront()\`, take a \`page.screenshot()\` to force a frame, assert \`document.visibilityState\` is \`'visible'\`, and only then measure.
+
+\`\`\`typescript
+// <e2e-eligible-package>/src/flows/session-view/transcript-broken-image.e2e.ts
+await page.bringToFront();
+await page.screenshot();
+const visibilityState = await page.evaluate(() => document.visibilityState);
+expect(visibilityState).toBe('visible');
+
+const box = await images.readBrokenThumbnailBoundingBox({ page });
+expect(box).toStrictEqual({ width: sizePx, height: sizePx });
+\`\`\`
 
 ### Drive State via Server/Filesystem Writes — ONLY for preconditions
 
