@@ -110,6 +110,21 @@ export const serverAppHarness = (): {
     guildId: string;
     questFolder: string;
   }) => { restore: () => void };
+  // Strips every permission bit from a REAL file (chmod 0o000) so a genuine fs read fails with
+  // EACCES — the file-exists check upstream already saw the file, only the read itself must fail.
+  // Restores to 0o644 rather than the mode seedImageFile's writeFileSync left (0o666 masked by the
+  // process umask): re-reading that first mode would cost more code for the same result.
+  makeFileUnreadable: (params: { filePath: string }) => { restore: () => void };
+  // Creates the quest's images directory (mkdir -p) then strips write permission (chmod 0o555) so
+  // pastedImagePersistBroker's own `mkdir({recursive: true})` still succeeds — recursive mkdir is a
+  // no-op on an already-existing directory whatever its mode — and only the file WRITE inside it
+  // fails. Builds the path the same way readImagesDir does (guilds/<guildId>/quests/<questId>/images),
+  // or this chmods a directory the broker never writes to. Restores to 0o755.
+  makeQuestImagesDirectoryReadOnly: (params: {
+    dungeonmasterHome: string;
+    guildId: string;
+    questId: string;
+  }) => { restore: () => void };
   // Registers a REAL guild via the orchestrator package's own public API (the same one this
   // package's adapters call in production) so `guildGetBroker` — invoked deep inside
   // chatSpawnBroker when a comment-batch send resumes a chat session — can resolve it for real.
@@ -338,6 +353,34 @@ export const serverAppHarness = (): {
     };
   };
 
+  const makeFileUnreadable = ({ filePath }: { filePath: string }): { restore: () => void } => {
+    chmodSync(filePath, 0o000);
+    return {
+      restore: (): void => {
+        chmodSync(filePath, 0o644);
+      },
+    };
+  };
+
+  const makeQuestImagesDirectoryReadOnly = ({
+    dungeonmasterHome,
+    guildId,
+    questId,
+  }: {
+    dungeonmasterHome: string;
+    guildId: string;
+    questId: string;
+  }): { restore: () => void } => {
+    const imagesDir = join(dungeonmasterHome, 'guilds', guildId, 'quests', questId, 'images');
+    mkdirSync(imagesDir, { recursive: true });
+    chmodSync(imagesDir, 0o555);
+    return {
+      restore: (): void => {
+        chmodSync(imagesDir, 0o755);
+      },
+    };
+  };
+
   const registerRealGuild = async ({
     name,
     path,
@@ -508,6 +551,8 @@ export const serverAppHarness = (): {
     seedImageFile,
     seedSymlinkEscapingImagesDir,
     makeQuestDirectoryReadOnly,
+    makeFileUnreadable,
+    makeQuestImagesDirectoryReadOnly,
     registerRealGuild,
     configureFakeClaudeCli,
     waitForClaudeInvocation,

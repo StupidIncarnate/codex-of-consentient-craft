@@ -1530,6 +1530,697 @@ describe('QuestFlow', () => {
     });
   });
 
+  // Flow: screenshot-path-server-side. More cases against the SAME scan the block above already
+  // proves happy-path: no absolute path anywhere in the text (three near-miss forms), a
+  // well-formed path whose file was never written, a real file converted on a send that carries
+  // no `images` key at all, every text shape the scan must accept in one message, a path already
+  // sitting inside a token, the ordinal continuing past pasted bitmaps with the trailer appearing
+  // once, the five-image cap counting both kinds together, a source file that exists but cannot
+  // be read, a copy destination that cannot be written, and the source file surviving the send
+  // while the copy survives the source's own later deletion. Same real-spawn shape as every block
+  // above (registerRealGuild + configureFakeClaudeCli): only a real spawn proves the whole `-p`
+  // prompt, and only a real fs read proves what actually landed on disk.
+  describe('POST /api/quests/:questId/chat with screenshot-path scan branches', () => {
+    it('VALID: {message carrying a relative path, a bare filename, and a URL — no absolute image path anywhere} => 200, the message forwarded byte-identical, no images directory created, and no read-the-images trailer appended', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-screenshot-no-absolute-path' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const cli = harness.configureFakeClaudeCli();
+      const guild = await harness.registerRealGuild({
+        name: 'Screenshot No Absolute Path Guild',
+        path: dungeonmasterHome,
+      });
+      const guildId = String(guild.id);
+      const questId = 'server-http-screenshot-no-absolute-path';
+      const sessionId = SessionIdStub({ value: 'bbbbbbbb-9001-4222-8222-444444444444' });
+      const quest = QuestStub({
+        id: questId as never,
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9001-4222-8222-444444444444' }),
+            role: 'chaoswhisperer',
+            status: 'in_progress',
+            sessionId,
+          }),
+        ],
+      });
+      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+
+      const message = 'relative ./shot.png bare shot.png url https://example.com/a.png done';
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+      const actualPrompt = await harness.waitForClaudeInvocationPrompt({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const dir = harness.readImagesDir({ dungeonmasterHome, guildId, questId });
+      const sentinelOccurrences = [
+        ...actualPrompt.matchAll(new RegExp(pastedImageStatics.promptSentinel, 'gu')),
+      ].map((match) => match[0]);
+
+      cli.restore();
+      restore();
+
+      expect(response.status).toBe(200);
+      expect(dir.exists).toBe(false);
+      expect(actualPrompt).toBe(message);
+      expect(sentinelOccurrences).toStrictEqual([]);
+    });
+
+    it("VALID: {message holding an absolute path to a file that was never written} => 200, the unresolved path reaches the agent verbatim, and the quest's images directory gains no file", async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-screenshot-missing-file' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const cli = harness.configureFakeClaudeCli();
+      const guild = await harness.registerRealGuild({
+        name: 'Screenshot Missing File Guild',
+        path: dungeonmasterHome,
+      });
+      const guildId = String(guild.id);
+      const questId = 'server-http-screenshot-missing-file';
+      const sessionId = SessionIdStub({ value: 'bbbbbbbb-9002-4222-8222-444444444444' });
+      const quest = QuestStub({
+        id: questId as never,
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9002-4222-8222-444444444444' }),
+            role: 'chaoswhisperer',
+            status: 'in_progress',
+            sessionId,
+          }),
+        ],
+      });
+      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+
+      // A real seeded directory with a real sibling file — only `never-written.png` itself is
+      // absent, so the miss is "this file", never "this whole tree".
+      const seeded = harness.seedImageFile({
+        baseName: 'quest-flow-screenshot-missing-file-fixture',
+        fileName: 'placeholder.png',
+        bytes: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]),
+      });
+      const missingPath = `${seeded.dirPath}/never-written.png`;
+      const message = `see ${missingPath} ok`;
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+      const actualPrompt = await harness.waitForClaudeInvocationPrompt({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const dir = harness.readImagesDir({ dungeonmasterHome, guildId, questId });
+
+      cli.restore();
+      restore();
+      seeded.cleanup();
+
+      expect(response.status).toBe(200);
+      expect(actualPrompt).toBe(message);
+      // The broker mkdirs the quest's own images directory as soon as ANY text match is found —
+      // whether or not that match's source file can actually be read — so a well-formed but
+      // unresolved path leaves the directory PRESENT and EMPTY, never absent.
+      expect({ exists: dir.exists, fileNames: dir.fileNames }).toStrictEqual({
+        exists: true,
+        fileNames: [],
+      });
+    });
+
+    it('VALID: {message carrying an absolute screenshot path, POST body with no images key at all} => 200, the quest images directory gains exactly one uuid-named copy holding the source bytes, and the whole prompt shows the path replaced by its token', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-screenshot-no-images-key' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const cli = harness.configureFakeClaudeCli();
+      const guild = await harness.registerRealGuild({
+        name: 'Screenshot No Images Key Guild',
+        path: dungeonmasterHome,
+      });
+      const guildId = String(guild.id);
+      const questId = 'server-http-screenshot-no-images-key';
+      const sessionId = SessionIdStub({ value: 'bbbbbbbb-9003-4222-8222-444444444444' });
+      const quest = QuestStub({
+        id: questId as never,
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9003-4222-8222-444444444444' }),
+            role: 'chaoswhisperer',
+            status: 'in_progress',
+            sessionId,
+          }),
+        ],
+      });
+      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+
+      // Not uuid-shaped, unlike the copy's own name — a copy that reused the source name would
+      // pass the uuid-shape check below only by accident of extension.
+      const seeded = harness.seedImageFile({
+        baseName: 'quest-flow-screenshot-no-images-key-fixture',
+        fileName: 'a-screenshot.png',
+        bytes: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 42, 43, 44, 45]),
+      });
+      const originalBase64 = harness.readFileBase64({ filePath: seeded.imagePath });
+      const message = `before ${seeded.imagePath} after`;
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+      const actualPrompt = await harness.waitForClaudeInvocationPrompt({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const dir = harness.readImagesDir({ dungeonmasterHome, guildId, questId });
+      const [copiedFileName] = dir.fileNames;
+      const copiedBase64 = harness.readFileBase64({ filePath: `${dir.dirPath}/${copiedFileName}` });
+
+      cli.restore();
+      restore();
+      seeded.cleanup();
+
+      const expectedPrompt =
+        `before ![Pasted Image 1](${dir.dirPath}/${copiedFileName}) after\n\n` +
+        `${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+
+      expect(response.status).toBe(200);
+      expect(new Set(dir.fileNames).size).toBe(1);
+      expect(copiedFileName).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.png$/u,
+      );
+      expect(copiedBase64).toBe(originalBase64);
+      expect(actualPrompt).toBe(expectedPrompt);
+    });
+
+    it('VALID: {message carrying four absolute paths in every shape the scan must accept — two on one line, one parenthesized, one at the very end} => the whole prompt rewrites all four in order, and each token names a file holding its own source bytes', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-screenshot-every-shape' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const cli = harness.configureFakeClaudeCli();
+      const guild = await harness.registerRealGuild({
+        name: 'Screenshot Every Shape Guild',
+        path: dungeonmasterHome,
+      });
+      const guildId = String(guild.id);
+      const questId = 'server-http-screenshot-every-shape';
+      const sessionId = SessionIdStub({ value: 'bbbbbbbb-9004-4222-8222-444444444444' });
+      const quest = QuestStub({
+        id: questId as never,
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9004-4222-8222-444444444444' }),
+            role: 'chaoswhisperer',
+            status: 'in_progress',
+            sessionId,
+          }),
+        ],
+      });
+      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+
+      // Four distinct extensions and four distinct byte arrays — a swapped ordinal-to-file mapping
+      // reads identical to correct behavior when every fixture shares one extension, and only the
+      // byte comparison below would catch it.
+      const one = harness.seedImageFile({
+        baseName: 'quest-flow-screenshot-every-shape-one',
+        fileName: 'one.png',
+        bytes: new Uint8Array([1, 2, 3, 4]),
+      });
+      const two = harness.seedImageFile({
+        baseName: 'quest-flow-screenshot-every-shape-two',
+        fileName: 'two.jpg',
+        bytes: new Uint8Array([5, 6, 7, 8]),
+      });
+      const three = harness.seedImageFile({
+        baseName: 'quest-flow-screenshot-every-shape-three',
+        fileName: 'three.gif',
+        bytes: new Uint8Array([9, 10, 11, 12]),
+      });
+      const four = harness.seedImageFile({
+        baseName: 'quest-flow-screenshot-every-shape-four',
+        fileName: 'four.webp',
+        bytes: new Uint8Array([13, 14, 15, 16]),
+      });
+      const sourceBase64s = [one, two, three, four].map((seededFile) =>
+        harness.readFileBase64({ filePath: seededFile.imagePath }),
+      );
+      const message =
+        `first ${one.imagePath} and ${two.imagePath} on one line, ` +
+        `then (${three.imagePath}) in parens, ending ${four.imagePath}`;
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+      const actualPrompt = await harness.waitForClaudeInvocationPrompt({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const tokenPaths = await harness.waitForClaudeInvocationImagePaths({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const [firstPath, secondPath, thirdPath, fourthPath] = tokenPaths;
+      const tokenBytes = tokenPaths.map((filePath) => harness.readFileBase64({ filePath }));
+
+      cli.restore();
+      restore();
+      one.cleanup();
+      two.cleanup();
+      three.cleanup();
+      four.cleanup();
+
+      const expectedPrompt =
+        `first ![Pasted Image 1](${firstPath}) and ![Pasted Image 2](${secondPath}) on one line, ` +
+        `then (![Pasted Image 3](${thirdPath})) in parens, ending ![Pasted Image 4](${fourthPath})\n\n` +
+        `${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+
+      expect(response.status).toBe(200);
+      expect(actualPrompt).toBe(expectedPrompt);
+      expect(tokenBytes).toStrictEqual(sourceBase64s);
+    });
+
+    it('VALID: {message carrying a path already inside a pasted-image token, POST body with no images key} => 200, the token survives whole plus the trailer, and the quest images directory is never created', async () => {
+      const restore = harness.setupTestHome({
+        baseName: 'quest-flow-screenshot-already-tokenised',
+      });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const cli = harness.configureFakeClaudeCli();
+      const guild = await harness.registerRealGuild({
+        name: 'Screenshot Already Tokenised Guild',
+        path: dungeonmasterHome,
+      });
+      const guildId = String(guild.id);
+      const questId = 'server-http-screenshot-already-tokenised';
+      const sessionId = SessionIdStub({ value: 'bbbbbbbb-9005-4222-8222-444444444444' });
+      const quest = QuestStub({
+        id: questId as never,
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9005-4222-8222-444444444444' }),
+            role: 'chaoswhisperer',
+            status: 'in_progress',
+            sessionId,
+          }),
+        ],
+      });
+      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+
+      const seeded = harness.seedImageFile({
+        baseName: 'quest-flow-screenshot-already-tokenised-fixture',
+        fileName: 'already-tokenised.png',
+        bytes: new Uint8Array([137, 80, 78, 71]),
+      });
+      const message = `look ![Pasted Image 1](${seeded.imagePath}) ok`;
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+      const actualPrompt = await harness.waitForClaudeInvocationPrompt({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const dir = harness.readImagesDir({ dungeonmasterHome, guildId, questId });
+
+      cli.restore();
+      restore();
+      seeded.cleanup();
+
+      const expectedPrompt = `${message}\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+
+      expect(response.status).toBe(200);
+      expect(actualPrompt).toBe(expectedPrompt);
+      expect(dir.exists).toBe(false);
+    });
+
+    it("VALID: {images: [two distinct bitmaps], message carrying two bitmap placeholders and one absolute screenshot path} => the screenshot's token continues the ordinal after both bitmaps, and the read-the-images trailer appears exactly once", async () => {
+      const restore = harness.setupTestHome({
+        baseName: 'quest-flow-screenshot-ordinal-continues',
+      });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const cli = harness.configureFakeClaudeCli();
+      const guild = await harness.registerRealGuild({
+        name: 'Screenshot Ordinal Continues Guild',
+        path: dungeonmasterHome,
+      });
+      const guildId = String(guild.id);
+      const questId = 'server-http-screenshot-ordinal-continues';
+      const sessionId = SessionIdStub({ value: 'bbbbbbbb-9006-4222-8222-444444444444' });
+      const quest = QuestStub({
+        id: questId as never,
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9006-4222-8222-444444444444' }),
+            role: 'chaoswhisperer',
+            status: 'in_progress',
+            sessionId,
+          }),
+        ],
+      });
+      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+
+      // A distinct extension from the uploaded bitmaps' ('png') is what lets this test tell the
+      // screenshot's own written file apart from theirs without parsing the prompt it exists to
+      // prove.
+      const seeded = harness.seedImageFile({
+        baseName: 'quest-flow-screenshot-ordinal-continues-fixture',
+        fileName: 'ordinal-screenshot.jpg',
+        bytes: new Uint8Array([255, 216, 255, 224, 1, 2, 3, 4]),
+      });
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `one [Pasted Image 1] two [Pasted Image 2] shot ${seeded.imagePath} end`,
+          images: [
+            { mediaType: 'image/png', dataBase64: 'Zmlyc3QtaW1hZ2U=' },
+            { mediaType: 'image/png', dataBase64: 'c2Vjb25kLWltYWdl' },
+          ],
+        }),
+      });
+      const actualPrompt = await harness.waitForClaudeInvocationPrompt({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const tokenPaths = await harness.waitForClaudeInvocationImagePaths({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const [firstBitmapPath, secondBitmapPath, screenshotPath] = tokenPaths;
+      const sentinelOccurrences = [
+        ...actualPrompt.matchAll(new RegExp(pastedImageStatics.promptSentinel, 'gu')),
+      ].map((match) => match[0]);
+
+      cli.restore();
+      restore();
+      seeded.cleanup();
+
+      // The bitmaps are ordinals 1 and 2 (they are the only uploads), so the screenshot path found
+      // after them must continue at 3 rather than restarting — the ordinal is written by hand here
+      // rather than read back off the actual match, since an ordinal-collision bug would still put
+      // the RIGHT path at the WRONG number and only a hand-written expectation catches that.
+      const expectedPrompt =
+        `one ![Pasted Image 1](${firstBitmapPath}) two ![Pasted Image 2](${secondBitmapPath}) ` +
+        `shot ![Pasted Image 3](${screenshotPath}) end\n\n` +
+        `${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+
+      expect(response.status).toBe(200);
+      expect(actualPrompt).toBe(expectedPrompt);
+      expect(sentinelOccurrences).toStrictEqual([pastedImageStatics.promptSentinel]);
+    });
+
+    it('VALID: {images: [maxImagesPerMessage distinct bitmaps], message carrying every placeholder plus one absolute screenshot path} => the bitmaps convert and the screenshot path is left raw, because the per-message cap counts both kinds together', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-screenshot-cap-both-kinds' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const cli = harness.configureFakeClaudeCli();
+      const guild = await harness.registerRealGuild({
+        name: 'Screenshot Cap Both Kinds Guild',
+        path: dungeonmasterHome,
+      });
+      const guildId = String(guild.id);
+      const questId = 'server-http-screenshot-cap-both-kinds';
+      const sessionId = SessionIdStub({ value: 'bbbbbbbb-9008-4222-8222-444444444444' });
+      const quest = QuestStub({
+        id: questId as never,
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9008-4222-8222-444444444444' }),
+            role: 'chaoswhisperer',
+            status: 'in_progress',
+            sessionId,
+          }),
+        ],
+      });
+      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+
+      const seeded = harness.seedImageFile({
+        baseName: 'quest-flow-screenshot-cap-both-kinds-fixture',
+        fileName: 'over-cap-screenshot.jpg',
+        bytes: new Uint8Array([255, 216, 255, 224, 9, 8, 7, 6]),
+      });
+      const atCapImages = Array.from({ length: pastedImageStatics.maxImagesPerMessage }, () => ({
+        mediaType: 'image/png',
+        dataBase64: 'Zmlyc3QtaW1hZ2U=',
+      }));
+      const placeholders = Array.from(
+        { length: pastedImageStatics.maxImagesPerMessage },
+        (_unused, index) => `[Pasted Image ${index + 1}]`,
+      ).join(' ');
+      const message = `${placeholders} shot ${seeded.imagePath} end`;
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, images: atCapImages }),
+      });
+      const actualPrompt = await harness.waitForClaudeInvocationPrompt({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const tokenPaths = await harness.waitForClaudeInvocationImagePaths({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const dir = harness.readImagesDir({ dungeonmasterHome, guildId, questId });
+
+      cli.restore();
+      restore();
+      seeded.cleanup();
+
+      // Hand-written ordinals 1..5, same reasoning as the mixed-ordinal test above — the
+      // screenshot's own path is a SIXTH candidate the ordinal filter drops before it ever reaches
+      // the copy step, so it must survive as the exact raw string the message posted.
+      const rewrittenPlaceholders = tokenPaths
+        .map((filePath, index) => `![Pasted Image ${index + 1}](${filePath})`)
+        .join(' ');
+      const expectedPrompt =
+        `${rewrittenPlaceholders} shot ${seeded.imagePath} end\n\n` +
+        `${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+      // The honest read: a bare count of 5 cannot tell "the screenshot was skipped" from "the
+      // screenshot was copied and a bitmap was not" — the sorted extension list can.
+      const sortedExtensions = [...dir.fileNames]
+        .map((name) => name.slice(name.lastIndexOf('.') + 1))
+        .sort();
+
+      expect(response.status).toBe(200);
+      expect(actualPrompt).toBe(expectedPrompt);
+      expect(sortedExtensions).toStrictEqual(
+        Array.from({ length: pastedImageStatics.maxImagesPerMessage }, () => 'png'),
+      );
+    });
+
+    it('VALID: {message holding an absolute path to a real file chmod-ed unreadable} => 200, the message forwarded byte-identical, and the quest images directory gains no file', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-screenshot-unreadable-file' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const cli = harness.configureFakeClaudeCli();
+      const guild = await harness.registerRealGuild({
+        name: 'Screenshot Unreadable File Guild',
+        path: dungeonmasterHome,
+      });
+      const guildId = String(guild.id);
+      const questId = 'server-http-screenshot-unreadable-file';
+      const sessionId = SessionIdStub({ value: 'bbbbbbbb-9009-4222-8222-444444444444' });
+      const quest = QuestStub({
+        id: questId as never,
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9009-4222-8222-444444444444' }),
+            role: 'chaoswhisperer',
+            status: 'in_progress',
+            sessionId,
+          }),
+        ],
+      });
+      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+
+      const seeded = harness.seedImageFile({
+        baseName: 'quest-flow-screenshot-unreadable-file-fixture',
+        fileName: 'unreadable-screenshot.png',
+        bytes: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]),
+      });
+      // The file-exists check upstream already saw the file; only the read itself must fail —
+      // chmod'ing the FILE (not its directory) is what isolates that.
+      const unreadable = harness.makeFileUnreadable({ filePath: seeded.imagePath });
+      const message = `see ${seeded.imagePath} ok`;
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+      const actualPrompt = await harness.waitForClaudeInvocationPrompt({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const dir = harness.readImagesDir({ dungeonmasterHome, guildId, questId });
+
+      // Restored before setupTestHome's own restore and before the fixture cleanup — that restore
+      // recursively removes the temp tree and needs write permission on every directory in it.
+      unreadable.restore();
+      cli.restore();
+      restore();
+      seeded.cleanup();
+
+      // The broker mkdirs the quest's own images directory as soon as one text match is found —
+      // whether or not that match's source file can actually be read — so a well-formed but
+      // unreadable path leaves the directory PRESENT and EMPTY, never absent (same shape as the
+      // missing-file case above).
+      expect(response.status).toBe(200);
+      expect(actualPrompt).toBe(message);
+      expect({ exists: dir.exists, fileNames: dir.fileNames }).toStrictEqual({
+        exists: true,
+        fileNames: [],
+      });
+    });
+
+    it('VALID: {message holding an absolute path to a real readable file, quest images directory pre-created and chmod-ed read-only} => 200, the message forwarded byte-identical, and the images directory gains no file', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-screenshot-copy-fails' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const cli = harness.configureFakeClaudeCli();
+      const guild = await harness.registerRealGuild({
+        name: 'Screenshot Copy Fails Guild',
+        path: dungeonmasterHome,
+      });
+      const guildId = String(guild.id);
+      const questId = 'server-http-screenshot-copy-fails';
+      const sessionId = SessionIdStub({ value: 'bbbbbbbb-9010-4222-8222-444444444444' });
+      const quest = QuestStub({
+        id: questId as never,
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9010-4222-8222-444444444444' }),
+            role: 'chaoswhisperer',
+            status: 'in_progress',
+            sessionId,
+          }),
+        ],
+      });
+      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+
+      const seeded = harness.seedImageFile({
+        baseName: 'quest-flow-screenshot-copy-fails-fixture',
+        fileName: 'copy-fails-screenshot.png',
+        bytes: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]),
+      });
+      // Pre-creates the quest's OWN images directory then strips its write bit — the broker's own
+      // mkdir is recursive and succeeds as a no-op on an already-existing directory whatever its
+      // mode, so only the file WRITE inside it fails.
+      const readOnlyImagesDir = harness.makeQuestImagesDirectoryReadOnly({
+        dungeonmasterHome,
+        guildId,
+        questId,
+      });
+      const message = `see ${seeded.imagePath} ok`;
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+      const actualPrompt = await harness.waitForClaudeInvocationPrompt({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const dir = harness.readImagesDir({ dungeonmasterHome, guildId, questId });
+
+      readOnlyImagesDir.restore();
+      cli.restore();
+      restore();
+      seeded.cleanup();
+
+      expect(response.status).toBe(200);
+      expect(actualPrompt).toBe(message);
+      // The sibling "yes" branch (the real-file-converted test above) leaves exactly one file; a
+      // failed copy leaves zero.
+      expect(dir.fileNames).toStrictEqual([]);
+    });
+
+    it('VALID: {message holding an absolute screenshot path} => the source file is unchanged immediately after the send, and once it is deleted the quest images directory still holds the copy carrying the source bytes', async () => {
+      const restore = harness.setupTestHome({
+        baseName: 'quest-flow-screenshot-source-and-copy-survive',
+      });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const cli = harness.configureFakeClaudeCli();
+      const guild = await harness.registerRealGuild({
+        name: 'Screenshot Source And Copy Survive Guild',
+        path: dungeonmasterHome,
+      });
+      const guildId = String(guild.id);
+      const questId = 'server-http-screenshot-source-and-copy-survive';
+      const sessionId = SessionIdStub({ value: 'bbbbbbbb-9011-4222-8222-444444444444' });
+      const quest = QuestStub({
+        id: questId as never,
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9011-4222-8222-444444444444' }),
+            role: 'chaoswhisperer',
+            status: 'in_progress',
+            sessionId,
+          }),
+        ],
+      });
+      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+
+      const seeded = harness.seedImageFile({
+        baseName: 'quest-flow-screenshot-source-and-copy-survive-fixture',
+        fileName: 'survives-screenshot.png',
+        bytes: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 11, 22, 33, 44]),
+      });
+      const originalBase64 = harness.readFileBase64({ filePath: seeded.imagePath });
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: `see ${seeded.imagePath} ok` }),
+      });
+      const sourceBase64AfterSend = harness.readFileBase64({ filePath: seeded.imagePath });
+
+      // The fixture directory (holding the ORIGINAL source file) is removed only after the source
+      // has already been read back once — proving the send left it in place — so only THEN does
+      // this test find out whether the copy survives the deletion.
+      seeded.cleanup();
+
+      const dir = harness.readImagesDir({ dungeonmasterHome, guildId, questId });
+      const [copiedFileName] = dir.fileNames;
+      const copiedBase64AfterDelete = harness.readFileBase64({
+        filePath: `${dir.dirPath}/${copiedFileName}`,
+      });
+
+      cli.restore();
+      restore();
+
+      expect(response.status).toBe(200);
+      expect(sourceBase64AfterSend).toBe(originalBase64);
+      expect(copiedBase64AfterDelete).toBe(originalBase64);
+    });
+  });
+
   // Flow: send-message-with-images, the CREATE surface. Mirrors the "chat with images" block
   // above, but for the FIRST message of a brand-new quest: no seedQuest, no pre-existing session —
   // the questId pastedImagePersistBroker needs to resolve <questFolder>/images does not exist
