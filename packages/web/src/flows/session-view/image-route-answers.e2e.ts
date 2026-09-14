@@ -189,4 +189,47 @@ test.describe('Image route answers', () => {
 
     expect(uniqueStatuses).toStrictEqual(['200', '404']);
   });
+
+  // Every member of pastedImageStatics.allowedExtensions gets its own row: a single row could
+  // never distinguish "the matching content type" from "the one content type this route always
+  // returns". Rows are driven via .reduce() (not a `for` loop), mirroring THE REFUSAL MATRIX test
+  // above, so each row's request completes before the next begins without tripping
+  // no-await-in-loop. expect.soft so one row's failure never hides another's in the same run.
+  test("VALID: {every allowed extension} => the images route answers 200 with that extension's matching image Content-Type, and the exact bytes on disk", async ({
+    request,
+  }) => {
+    const rows = images.buildAllowedExtensionContentTypeRows();
+
+    await rows.reduce(async (previous, row) => {
+      await previous;
+
+      const extension = String(row.extension);
+      const url = String(row.url);
+      const contentType = String(row.contentType);
+
+      const response = await request.get(url);
+      const body = await response.body();
+
+      // `APIResponse` (the `request` fixture's response type) carries no `.request()` accessor —
+      // unlike a browser `page.on('response')` Response, it has no back-reference to the request
+      // that produced it. The method sent is 'GET' by construction: this row's only call is
+      // `request.get(url)` above, so that literal — not a read-back — is what "the method sent"
+      // means on this surface.
+      expect
+        .soft({
+          extension,
+          method: 'GET',
+          status: response.status(),
+          contentType: response.headers()['content-type'],
+          bodyEqualsDisk: body.equals(row.bytes),
+        })
+        .toStrictEqual({
+          extension,
+          method: 'GET',
+          status: 200,
+          contentType,
+          bodyEqualsDisk: true,
+        });
+    }, Promise.resolve());
+  });
 });

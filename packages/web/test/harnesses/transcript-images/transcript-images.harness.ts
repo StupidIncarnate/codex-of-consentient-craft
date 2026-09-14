@@ -199,6 +199,93 @@ const READ_TRANSCRIPT_SEQUENCE_SAMPLES_BROWSER_FN = () =>
   (globalThis as unknown as { __transcriptImagesSequence?: { samples: unknown[] } })
     .__transcriptImagesSequence?.samples ?? [];
 
+// Installed BEFORE the send, beside installTranscriptSequenceRecorder: freezes, in ONE synchronous
+// turn, both halves of "the staged copy painted without a network request" — the decoded width and
+// the images-route request count read off performance.getEntriesByType — the instant the bubble
+// matching matchText first holds a CHAT_MESSAGE_IMAGE whose src is a data: URL AND whose
+// naturalWidth is > 0. Reading both in the SAME turn is what a Playwright round trip between two
+// separate reads cannot guarantee: the delivered (http:) copy can replace the staged one inside that
+// gap, so a naturalWidth read and a request-count read taken as two round trips can each land on a
+// different render than the other.
+//
+// An <img> finishing its decode fires no DOM mutation (only a 'load' event, which this probe does
+// not listen for), so a MutationObserver alone would miss the moment — see
+// INSTALL_TRANSCRIPT_SEQUENCE_RECORDER_BROWSER_FN above, which relies on MutationObserver alone and
+// is provably not enough here. `tick` below re-checks every animation frame regardless of whether
+// anything mutated, recursing rather than looping (`while (true)` is banned repo-wide) and capped at
+// MAX_CAPTURE_FRAMES so a probe that never captures cannot spin for the page's whole remaining life.
+// `serveRoutePath` arrives via params rather than a closure over the module-level
+// `pastedImageStatics` import: a browser-evaluated function keeps no outer closure, so only what
+// page.evaluate's params object carries survives the trip.
+const INSTALL_STAGED_COPY_PAINT_PROBE_BROWSER_FN = (params: {
+  matchText: string;
+  serveRoutePath: string;
+}): void => {
+  const state = { result: null as unknown };
+  Object.assign(globalThis, { __transcriptStagedCopyPaintProbe: state });
+
+  const MAX_CAPTURE_FRAMES = 6000;
+
+  const attemptCapture = (): boolean => {
+    if (state.result !== null) {
+      return true;
+    }
+    const bubbles = Array.from(document.querySelectorAll('[data-testid="CHAT_MESSAGE"]')).filter(
+      (element) => (element.textContent ?? '').includes(params.matchText),
+    );
+    const [firstBubble] = bubbles;
+    if (firstBubble === undefined) {
+      return false;
+    }
+    const image = firstBubble.querySelector('[data-testid="CHAT_MESSAGE_IMAGE"]');
+    if (!(image instanceof HTMLImageElement)) {
+      return false;
+    }
+    const src = image.getAttribute('src') ?? '';
+    if (!src.startsWith('data:') || image.naturalWidth <= 0) {
+      return false;
+    }
+    state.result = {
+      stagedImageNaturalWidth: image.naturalWidth,
+      serveRouteRequestsAtThatMoment: performance
+        .getEntriesByType('resource')
+        .filter((entry) => entry.name.includes(params.serveRoutePath)).length,
+    };
+    return true;
+  };
+
+  const tick = (framesLeft: number): void => {
+    if (attemptCapture() || framesLeft <= 0) {
+      return;
+    }
+    requestAnimationFrame(() => {
+      tick(framesLeft - 1);
+    });
+  };
+
+  const observer = new MutationObserver(() => {
+    if (attemptCapture()) {
+      observer.disconnect();
+    }
+  });
+  observer.observe(document, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['src'],
+  });
+
+  tick(MAX_CAPTURE_FRAMES);
+};
+
+// Reads back INSTALL_STAGED_COPY_PAINT_PROBE_BROWSER_FN's globalThis stash: `null` if the probe
+// never captured (the staged copy never painted at all), otherwise the frozen
+// { stagedImageNaturalWidth, serveRouteRequestsAtThatMoment } object. Split into its own function to
+// match every other browser-evaluated read in this file.
+const READ_STAGED_COPY_PAINT_PROBE_BROWSER_FN = () =>
+  (globalThis as unknown as { __transcriptStagedCopyPaintProbe?: { result: unknown } })
+    .__transcriptStagedCopyPaintProbe?.result ?? null;
+
 // --- Node-side PNG encoder -------------------------------------------------------------------
 // A hand-rolled encoder rather than a canvas round-trip: seedImageFile has no `page` (per its own
 // signature below), and a real decodable PNG is what proves the "readable image" branch and the
@@ -320,6 +407,22 @@ const HOSTILE_NUL_BYTE = 0x00;
 const HOSTILE_FF_RUN_LENGTH = 4;
 const HOSTILE_LF_BYTE = 0x0a;
 
+// --- Allowed-extension content-type fixtures (image-route-answers.e2e.ts) ---------------------
+// image-content-type-transformer.ts's own extension→Content-Type map, read (never imported — an
+// e2e harness may not reach into packages/server) and mirrored here so a row's expected
+// Content-Type can never silently drift from what the real route answers with. No type annotation
+// on this object: `Record<string, string>` would put a banned raw `string` type in non-input,
+// non-return position, so the literal keys/values are left to inference via `as const`.
+const ALLOWED_EXTENSION_CONTENT_TYPES = {
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  gif: 'image/gif',
+  webp: 'image/webp',
+} as const;
+const ALLOWED_EXTENSION_ROW_SIZE_PX = 4;
+const ALLOWED_EXTENSION_ROW_SEED_BASE = 71;
+
 // --- Path-encoding fixtures (transcript-image-path-encoding.e2e.ts) --------------------------
 // Extracts the `path` query parameter's value EXACTLY as it sits on the wire — by string position,
 // never through URLSearchParams or new URL().searchParams. Both of those DECODE on read, which
@@ -401,6 +504,16 @@ export const transcriptImagesHarness = (): {
   // must never leak. Each element's fields are `unknown` (mirrors seedImageFile's own imagePath) —
   // callers read them via String(row.url) / String(row.canary), same as every other harness read.
   buildRefusalMatrixRows: () => readonly { name: unknown; url: unknown; canary: unknown }[];
+  // One row per member of pastedImageStatics.allowedExtensions: seeds a real file at that
+  // extension, builds its already-built serve-route URL, and pairs it with the image content
+  // type that extension must answer with — see the ALLOWED_EXTENSION_CONTENT_TYPES module
+  // const above for where that pairing comes from.
+  buildAllowedExtensionContentTypeRows: () => readonly {
+    extension: unknown;
+    url: unknown;
+    contentType: unknown;
+    bytes: Buffer;
+  }[];
   getBrokenThumbnailSizePx: () => unknown;
   // Boundary is CHAT_MESSAGE_IMAGE_BROKEN's own box, not the transcript bubble around it — the
   // placeholder is a fixed-size span regardless of what its neighbouring text does to bubble width.
@@ -421,6 +534,13 @@ export const transcriptImagesHarness = (): {
   // duplicated alongside its transcript copy.
   installTranscriptSequenceRecorder: (params: { page: Page; matchText: string }) => Promise<void>;
   readTranscriptSequenceSamples: (params: { page: Page }) => Promise<readonly unknown[]>;
+  // Installed BEFORE the send, beside installTranscriptSequenceRecorder — see
+  // INSTALL_STAGED_COPY_PAINT_PROBE_BROWSER_FN's own comment for why this needs an in-page freeze
+  // rather than two separate Playwright reads.
+  installStagedCopyPaintProbe: (params: { page: Page; matchText: string }) => Promise<void>;
+  // `null` if the probe above never captured; otherwise
+  // { stagedImageNaturalWidth, serveRouteRequestsAtThatMoment }.
+  readStagedCopyPaintProbe: (params: { page: Page }) => Promise<unknown>;
   // A counter (and per-URL response reader) for real GETs to the served images route — installed
   // BEFORE the send so it can prove NO request fired while a bubble still held its in-memory data:
   // URL, then resolve the exact response the browser's own <img> triggered once a served URL
@@ -428,6 +548,7 @@ export const transcriptImagesHarness = (): {
   // decided to fetch, it never intercepts.
   recordImagesRequests: (params: { page: Page }) => {
     getCount: () => unknown;
+    countResponsesFor: (params: { url: string }) => unknown;
     readResponseStatusFor: (params: { url: string }) => Promise<unknown>;
     readResponseBodyLengthFor: (params: { url: string }) => Promise<unknown>;
   };
@@ -723,6 +844,33 @@ export const transcriptImagesHarness = (): {
       ];
     },
 
+    // Seeds one real file per allowed extension (a same-bytes file renamed per extension — the
+    // route maps Content-Type from the extension alone, exactly as this file's own
+    // content-type test above already relies on), and returns each row's already-percent-encoded
+    // URL paired with the Content-Type that extension must answer with.
+    buildAllowedExtensionContentTypeRows: (): readonly {
+      extension: unknown;
+      url: unknown;
+      contentType: unknown;
+      bytes: Buffer;
+    }[] =>
+      pastedImageStatics.allowedExtensions.map((extension, index) => {
+        const seeded = seedPngFileToTemp({
+          fileName: `allowed-extension-row.${extension}`,
+          widthPx: ALLOWED_EXTENSION_ROW_SIZE_PX,
+          heightPx: ALLOWED_EXTENSION_ROW_SIZE_PX,
+          seed: ALLOWED_EXTENSION_ROW_SEED_BASE + index,
+        });
+        return {
+          extension,
+          url: buildImagesRouteUrlImpl({
+            query: `path=${encodeURIComponent(String(seeded.imagePath))}`,
+          }),
+          contentType: ALLOWED_EXTENSION_CONTENT_TYPES[extension],
+          bytes: seeded.bytes,
+        };
+      }),
+
     getBrokenThumbnailSizePx: (): unknown => webConfigStatics.pastedImage.brokenThumbnailSizePx,
 
     // CHAT_MESSAGE_IMAGE_BROKEN's own box — not the bubble around it — since the placeholder is a
@@ -797,12 +945,29 @@ export const transcriptImagesHarness = (): {
     readTranscriptSequenceSamples: async ({ page }: { page: Page }): Promise<readonly unknown[]> =>
       page.evaluate(READ_TRANSCRIPT_SEQUENCE_SAMPLES_BROWSER_FN),
 
+    installStagedCopyPaintProbe: async ({
+      page,
+      matchText,
+    }: {
+      page: Page;
+      matchText: string;
+    }): Promise<void> => {
+      await page.evaluate(INSTALL_STAGED_COPY_PAINT_PROBE_BROWSER_FN, {
+        matchText,
+        serveRoutePath: pastedImageStatics.serveRoutePath,
+      });
+    },
+
+    readStagedCopyPaintProbe: async ({ page }: { page: Page }): Promise<unknown> =>
+      page.evaluate(READ_STAGED_COPY_PAINT_PROBE_BROWSER_FN),
+
     recordImagesRequests: ({
       page,
     }: {
       page: Page;
     }): {
       getCount: () => unknown;
+      countResponsesFor: (params: { url: string }) => unknown;
       readResponseStatusFor: (params: { url: string }) => Promise<unknown>;
       readResponseBodyLengthFor: (params: { url: string }) => Promise<unknown>;
     } => {
@@ -821,6 +986,11 @@ export const transcriptImagesHarness = (): {
 
       return {
         getCount: (): unknown => responses.length,
+        // Sibling to getCount: that one answers "how many images-route responses landed on the
+        // whole page", which cannot tell a single element refetching its own src from two
+        // DIFFERENT images each requested once. This narrows to one exact url.
+        countResponsesFor: ({ url }: { url: string }): unknown =>
+          responses.filter((response) => response.url() === url).length,
         // The `await Promise.resolve()` no-op satisfies BOTH promise-function-async (this method's
         // declared return type is Promise<unknown>, matching readResponseBodyLengthFor's own real
         // await) AND require-await (an async method needs a genuine await) at once — mirrors

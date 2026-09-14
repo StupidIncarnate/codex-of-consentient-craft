@@ -234,4 +234,90 @@ test.describe('Transcript renders images', () => {
 
     await expect(page.getByText(String(images.getPromptInstructionText()))).toHaveCount(0);
   });
+
+  test('VALID: {message "Left <image> Right" with one real image} => the image renders inline at its place in the text, off a real 200 from the image serve route, leaving no page or console errors behind', async ({
+    page,
+    request,
+  }) => {
+    const nav = navigationHarness({ page });
+    const guilds = guildHarness({ request });
+    const guild = await guilds.createGuild({
+      name: 'Transcript Images Inline Render Guild',
+      path: GUILD_PATH,
+    });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+
+    const seeded = images.seedImageFile({
+      fileName: 'inline-render.png',
+      widthPx: 22,
+      heightPx: 22,
+      seed: 5,
+    });
+    const content = images.buildTokenLine({
+      segments: [
+        { text: 'Left ' },
+        { imagePath: String(seeded.imagePath), ordinal: 1 },
+        { text: ' Right' },
+      ],
+    });
+
+    const sessionId = `e2e-session-transcript-inline-render-${Date.now()}`;
+    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+
+    const expectedUrl = String(
+      images.buildExpectedImageUrl({ imagePath: String(seeded.imagePath) }),
+    );
+
+    const pageErrors = images.recordPageErrors({ page });
+    const consoleErrors = images.recordConsoleErrors({ page });
+    const responsePromise = page.waitForResponse((response) => response.url() === expectedUrl);
+
+    await nav.navigateToSession({ urlSlug, sessionId });
+    await expect(page.getByTestId('CHAT_MESSAGE_IMAGE')).toHaveCount(1, {
+      timeout: PANEL_TIMEOUT,
+    });
+
+    const response = await responsePromise;
+    const body = await response.body();
+
+    await expect.poll(async () => images.readNaturalWidth({ page, index: 0 })).toBe(22);
+
+    const children = await images.readBubbleChildren({ page });
+    const naturalWidth = Number(await images.readNaturalWidth({ page, index: 0 }));
+    const brokenCount = await page.getByTestId('CHAT_MESSAGE_IMAGE_BROKEN').count();
+    const bubbleCount = await page.getByTestId('CHAT_MESSAGE').count();
+    const imageCount = await page.getByTestId('CHAT_MESSAGE_IMAGE').count();
+
+    expect({
+      children,
+      naturalWidth,
+      brokenCount,
+      bubbleCount,
+      pageErrors: pageErrors.getErrors(),
+      consoleErrors: consoleErrors.getErrors(),
+    }).toStrictEqual({
+      children: [
+        { tag: 'span', text: 'Left ', testId: 'CHAT_MESSAGE_TEXT', src: '' },
+        { tag: 'img', text: '', testId: 'CHAT_MESSAGE_IMAGE', src: expectedUrl },
+        { tag: 'span', text: ' Right', testId: 'CHAT_MESSAGE_TEXT', src: '' },
+      ],
+      naturalWidth: 22,
+      brokenCount: 0,
+      bubbleCount: 1,
+      pageErrors: [],
+      consoleErrors: [],
+    });
+
+    expect({
+      status: response.status(),
+      bodyLength: body.length,
+      brokenCount,
+      imageCount,
+    }).toStrictEqual({
+      status: 200,
+      bodyLength: seeded.bytes.length,
+      brokenCount: 0,
+      imageCount: 1,
+    });
+  });
 });

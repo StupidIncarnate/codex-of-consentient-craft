@@ -328,4 +328,91 @@ test.describe('Transcript broken image', () => {
       naturalHeightFarExceedsCap: true,
     });
   });
+
+  test('VALID: {a message with one missing image, read as two named units} => the terminal renders the broken box in place while the branch is forced by a real fetch-image-bytes 404', async ({
+    page,
+    request,
+  }) => {
+    const nav = navigationHarness({ page });
+    const guilds = guildHarness({ request });
+    const guild = await guilds.createGuild({
+      name: 'Broken Image Render Box Guild',
+      path: GUILD_PATH,
+    });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+
+    const seeded = images.seedImageFile({
+      fileName: 'render-box-missing.png',
+      widthPx: 22,
+      heightPx: 22,
+      seed: 11,
+    });
+    images.removeImageFile({ imagePath: String(seeded.imagePath) });
+
+    const content = images.buildTokenLine({
+      segments: [
+        { text: 'Left ' },
+        { imagePath: String(seeded.imagePath), ordinal: 1 },
+        { text: ' Right' },
+      ],
+    });
+    const sessionId = `e2e-session-broken-render-box-${Date.now()}`;
+    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+
+    const expectedUrl = String(
+      images.buildExpectedImageUrl({ imagePath: String(seeded.imagePath) }),
+    );
+    const pageErrors = images.recordPageErrors({ page });
+    const responsePromise = page.waitForResponse((response) => response.url() === expectedUrl);
+
+    await nav.navigateToSession({ urlSlug, sessionId });
+
+    const response = await responsePromise;
+    const body = await response.body();
+    await expect(page.getByTestId('CHAT_MESSAGE_IMAGE_BROKEN')).toHaveCount(1, {
+      timeout: PANEL_TIMEOUT,
+    });
+
+    await page.bringToFront();
+    await page.screenshot();
+    const visibilityState = await page.evaluate(() => document.visibilityState);
+    expect(visibilityState).toBe('visible');
+
+    const sizePx = Number(images.getBrokenThumbnailSizePx());
+    const children = await images.readBubbleChildren({ page });
+    const box = await images.readBrokenThumbnailBoundingBox({ page });
+    const bubbleCount = await page.getByTestId('CHAT_MESSAGE').count();
+    const imageCount = await page.getByTestId('CHAT_MESSAGE_IMAGE').count();
+
+    // TERMINAL — the end state itself plus its side-effect surface: bubbleCount proves the message
+    // was not silently consumed by its own failed image.
+    expect({
+      children,
+      box,
+      bubbleCount,
+      imageCount,
+      pageErrors: pageErrors.getErrors(),
+    }).toStrictEqual({
+      children: [
+        { tag: 'span', text: 'Left ', testId: 'CHAT_MESSAGE_TEXT', src: '' },
+        { tag: 'span', text: '', testId: 'CHAT_MESSAGE_IMAGE_BROKEN', src: '' },
+        { tag: 'span', text: ' Right', testId: 'CHAT_MESSAGE_TEXT', src: '' },
+      ],
+      box: { width: sizePx, height: sizePx },
+      bubbleCount: 1,
+      imageCount: 0,
+      pageErrors: [],
+    });
+
+    const brokenCount = await page.getByTestId('CHAT_MESSAGE_IMAGE_BROKEN').count();
+
+    // BRANCH — the state after fetch-image-bytes was forced down the real "404" arm by an actual
+    // removeImageFile deletion, never by page.route.
+    expect({
+      status: response.status(),
+      bodyLength: body.length,
+      brokenCount,
+      imageCount,
+    }).toStrictEqual({ status: 404, bodyLength: 0, brokenCount: 1, imageCount: 0 });
+  });
 });

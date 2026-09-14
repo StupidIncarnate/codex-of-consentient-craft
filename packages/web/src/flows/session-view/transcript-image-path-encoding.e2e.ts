@@ -431,4 +431,52 @@ test.describe('Transcript image path encoding', () => {
 
     await expect.poll(async () => images.readNaturalWidth({ page, index: 0 })).toBe(43);
   });
+
+  test('VALID: {a session message carrying one real image token} => the rendered img src points at the image serve route with the path percent-encoded in its query, never the bare filesystem path', async ({
+    page,
+    request,
+  }) => {
+    const nav = navigationHarness({ page });
+    const guilds = guildHarness({ request });
+    const guild = await guilds.createGuild({
+      name: 'Transcript Image Path Encoding Served URL Guild',
+      path: GUILD_PATH,
+    });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+
+    const seeded = images.seedImageFile({
+      fileName: 'served-url.png',
+      widthPx: 24,
+      heightPx: 24,
+      seed: 108,
+    });
+    const content = images.buildTokenLine({
+      segments: [{ imagePath: String(seeded.imagePath), ordinal: 1 }],
+    });
+
+    const sessionId = `e2e-session-encoding-servedurl-${Date.now()}`;
+    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+
+    const expectedUrl = String(
+      images.buildExpectedImageUrl({ imagePath: String(seeded.imagePath) }),
+    );
+    const routePrefix = String(images.buildImagesRouteUrl({ query: '' }));
+
+    await nav.navigateToSession({ urlSlug, sessionId });
+    await expect(page.getByTestId('CHAT_MESSAGE_IMAGE')).toHaveCount(1);
+
+    const src = String(await page.getByTestId('CHAT_MESSAGE_IMAGE').getAttribute('src'));
+
+    expect({
+      src,
+      routePrefixPresent: src.startsWith(routePrefix),
+      rawPathPresent: src.includes(String(seeded.imagePath)),
+      slashCount: String(images.readRawPathQueryValue({ url: src })).split('/').length - 1,
+    }).toStrictEqual({
+      src: expectedUrl,
+      routePrefixPresent: true,
+      rawPathPresent: false,
+      slashCount: 0,
+    });
+  });
 });

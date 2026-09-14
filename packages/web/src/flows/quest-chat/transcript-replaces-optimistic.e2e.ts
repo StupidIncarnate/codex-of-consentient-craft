@@ -106,6 +106,18 @@ test.describe('Transcript entry replaces the optimistic bubble it matches', () =
     // Every recorder installed BEFORE the send, per this file's own authoring rule.
     const imagesRequests = images.recordImagesRequests({ page });
     await images.installTranscriptSequenceRecorder({ page, matchText: MATCH_TEXT });
+    // image-renders-inline:observable:staged-copy-needs-no-network — installed here, before the
+    // Enter keypress, so it is already watching once the optimistic bubble first mounts.
+    await images.installStagedCopyPaintProbe({ page, matchText: MATCH_TEXT });
+
+    // image-renders-inline:observable:image-shows-without-a-reload — counts real document loads
+    // from here (navigation has already settled above) through the Enter keypress below. 'load'
+    // fires only for a genuine document load; 'framenavigated' also fires for same-document SPA
+    // history pushes and would read noise for this unit's "no page reload" claim.
+    let reloadCount = 0;
+    page.on('load', () => {
+      reloadCount += 1;
+    });
 
     await composer.focusComposer();
     await page.keyboard.type(MATCH_TEXT_BEFORE);
@@ -137,6 +149,52 @@ test.describe('Transcript entry replaces the optimistic bubble it matches', () =
     const optimisticSrc = String(await matchingBubbleImage.getAttribute('src'));
     expect(optimisticSrc.startsWith('data:image/png;base64,')).toBe(true);
     expect(Number(imagesRequests.getCount())).toBe(0);
+
+    // image-renders-inline:observable:staged-copy-needs-no-network — the probe installed above,
+    // before the Enter keypress, freezes the staged copy's naturalWidth and the images-route
+    // request count together in ONE in-page turn, at the instant its own data: <img> first decodes.
+    // An earlier version of this check polled naturalWidth and THEN separately read a live request
+    // count — two round trips with a gap between them the delivered (http:) copy could land inside,
+    // and it lost outright on repeat runs (`{ requestCount: 1, naturalWidth: 20 }`, both already
+    // flipped). See INSTALL_STAGED_COPY_PAINT_PROBE_BROWSER_FN's own comment for why only an in-page
+    // freeze removes that gap. A probe that never captured reads back `null`, which fails this same
+    // assertion rather than passing silently.
+    expect.soft(await images.readStagedCopyPaintProbe({ page })).toStrictEqual({
+      stagedImageNaturalWidth: IMAGE_SIZE_PX,
+      serveRouteRequestsAtThatMoment: 0,
+    });
+
+    // image-renders-inline:observable:image-shows-without-a-reload — the optimistic bubble's image
+    // is the data: URL the tab already held from the paste, and no real document load happened
+    // between the quest route opening and this point.
+    const noReloadObservation = {
+      srcScheme: optimisticSrc.slice(0, 'data:image/png;base64,'.length),
+      reloadCount,
+    };
+    expect
+      .soft(noReloadObservation)
+      .toStrictEqual({ srcScheme: 'data:image/png;base64,', reloadCount: 0 });
+
+    // image-renders-inline:branch:which-optimistic — names the sibling explicitly: "delivered from
+    // server" produces a src that DOES start with the served-image route prefix; this branch
+    // produces one that never can.
+    const whichOptimisticObservation = {
+      srcIsDataUrl: optimisticSrc.startsWith('data:'),
+      srcIsServedUrl: optimisticSrc.startsWith(String(images.buildImagesRouteUrl({ query: '' }))),
+    };
+    expect
+      .soft(whichOptimisticObservation)
+      .toStrictEqual({ srcIsDataUrl: true, srcIsServedUrl: false });
+
+    // image-renders-inline:branch:memory-present — the sibling "no" -> render-broken-box branch
+    // produces the inverse pair; the rest of this test never reads the broken count at all.
+    const memoryPresentObservation = {
+      imageElements: await matchingBubbles.locator('[data-testid="CHAT_MESSAGE_IMAGE"]').count(),
+      brokenElements: await matchingBubbles
+        .locator('[data-testid="CHAT_MESSAGE_IMAGE_BROKEN"]')
+        .count(),
+    };
+    expect.soft(memoryPresentObservation).toStrictEqual({ imageElements: 1, brokenElements: 0 });
 
     // THE REAL, SERVER-MINTED PATH: pastedImagePersistBroker names every file from a fresh
     // crypto.randomUUID(), so this is the only way to learn what the actual send just wrote — and
@@ -172,6 +230,19 @@ test.describe('Transcript entry replaces the optimistic bubble it matches', () =
     expect(survivingSrc).toBe(expectedServedUrl);
     await expect(page.locator('[data-testid="CHAT_MESSAGE_IMAGE"][src^="data:"]')).toHaveCount(0);
 
+    // image-renders-inline:branch:which-delivered — names the sibling's absence in the same breath
+    // as this branch's own arrival. Both halves already exist above as separate expects.
+    const whichDeliveredObservation = {
+      survivingSrcIsServedUrl: survivingSrc === expectedServedUrl,
+      anyDataUrlImagesLeft: await page
+        .locator('[data-testid="CHAT_MESSAGE_IMAGE"][src^="data:"]')
+        .count(),
+    };
+    expect.soft(whichDeliveredObservation).toStrictEqual({
+      survivingSrcIsServedUrl: true,
+      anyDataUrlImagesLeft: 0,
+    });
+
     await expect
       .poll(async () => imagesRequests.readResponseStatusFor({ url: survivingSrc }), {
         timeout: TRANSCRIPT_WAIT_TIMEOUT,
@@ -201,5 +272,22 @@ test.describe('Transcript entry replaces the optimistic bubble it matches', () =
     const dataIndex = samples.findIndex((sample) => sample.firstImageSrcPrefix === 'data:');
     const httpIndex = samples.findIndex((sample) => sample.firstImageSrcPrefix === 'http:');
     expect(dataIndex !== -1 && httpIndex !== -1 && dataIndex < httpIndex).toBe(true);
+
+    // image-renders-inline:observable:one-bubble-per-sent-message — the WHOLE recorded run, not an
+    // index comparison: the distinct firstImageSrcPrefix values the run passed through (a leading ''
+    // dropped — the recorder's first sample can fire before the staged image is in the DOM), and the
+    // largest bubbleCount seen across every sample.
+    const distinctPrefixes = samples
+      .map((sample) => sample.firstImageSrcPrefix)
+      .filter((prefix, index, all) => prefix !== all[index - 1]);
+    const prefixSequence = distinctPrefixes
+      .filter((prefix) => prefix.length > 0)
+      .map((prefix) => String(prefix));
+    const maxBubbleCount = Number(Math.max(...samples.map((sample) => Number(sample.bubbleCount))));
+    const replacementSequenceObservation = { prefixSequence, maxBubbleCount };
+    expect.soft(replacementSequenceObservation).toStrictEqual({
+      prefixSequence: ['data:', 'http:'],
+      maxBubbleCount: 1,
+    });
   });
 });
