@@ -16,6 +16,7 @@ export const fsWatchTailAdapterProxy = (): {
   setupFileMissingUntilCreated: () => void;
   markFileCreated: () => void;
   setupExistingFileWithContent: () => void;
+  setupFileTruncated: () => void;
   lastStartPositionWasFromFileEnd: () => boolean;
   lastStartPositionWasZero: () => boolean;
   lastWatchedPath: () => unknown;
@@ -148,6 +149,12 @@ export const fsWatchTailAdapterProxy = (): {
 
     setupExistingFileWithContent: (): void => {
       fileSizeState.bytes = EXISTING_FILE_SIZE_BYTES;
+    },
+
+    // Someone else emptied the file out from under a running tail — the quest outbox's
+    // single-owner boot reset. Every subsequent statSync reports the new, smaller size.
+    setupFileTruncated: (): void => {
+      fileSizeState.bytes = 0;
     },
 
     lastStartPositionWasFromFileEnd: (): boolean => {

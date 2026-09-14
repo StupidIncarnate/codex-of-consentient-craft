@@ -167,6 +167,40 @@ describe('fsWatchTailAdapter', () => {
       expect(onLine).toHaveBeenNthCalledWith(1, { line: 'drained-from-start' });
     });
 
+    it('EDGE: {file emptied below the last read position} => the next drain restarts at 0 and delivers what was appended after the truncation', async () => {
+      // The quest outbox is emptied once per HTTP server boot, by one owner, while every other
+      // watcher in every other process is already positioned inside it. Without this reset those
+      // tails open past the new end of the file on every change event and never deliver another
+      // line — a silently deaf event bus rather than a visible failure.
+      const proxy = fsWatchTailAdapterProxy();
+      const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });
+      const onLine = jest.fn();
+      const onError = jest.fn();
+
+      proxy.setupExistingFileWithContent();
+
+      fsWatchTailAdapter({
+        filePath,
+        onLine,
+        onError,
+        startPosition: 'end',
+      });
+
+      proxy.setupLines({ lines: [] });
+      proxy.triggerChange();
+      await flushPromises();
+
+      proxy.setupFileTruncated();
+      proxy.setupLines({ lines: ['written-after-the-truncation'] });
+      proxy.triggerChange();
+      await flushPromises();
+
+      expect(proxy.lastStartPositionWasZero()).toBe(true);
+      expect(onLine).toHaveBeenCalledTimes(1);
+      expect(onLine).toHaveBeenNthCalledWith(1, { line: 'written-after-the-truncation' });
+      expect(onError).toHaveBeenCalledTimes(0);
+    });
+
     it('EDGE: {startPosition omitted, existing file content} => defaults to 0 (beginning) and drains existing content', async () => {
       const proxy = fsWatchTailAdapterProxy();
       const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });
@@ -247,7 +281,7 @@ describe('fsWatchTailAdapter', () => {
       expect(onError).toHaveBeenCalledTimes(0);
     });
 
-    it('ERROR: statSync fails on close => calls onError', async () => {
+    it('ERROR: statSync fails during a drain => calls onError', async () => {
       const proxy = fsWatchTailAdapterProxy();
       const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });
       const onError = jest.fn();
@@ -267,7 +301,7 @@ describe('fsWatchTailAdapter', () => {
       expect(onError).toHaveBeenNthCalledWith(1, { error: new Error('ENOENT: file deleted') });
     });
 
-    it('ERROR: statSync fails on close after stop => onError not called', async () => {
+    it('ERROR: statSync fails during a drain after stop => onError not called', async () => {
       const proxy = fsWatchTailAdapterProxy();
       const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });
       const onError = jest.fn();

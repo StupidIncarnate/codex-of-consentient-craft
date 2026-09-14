@@ -39,13 +39,15 @@ export const orchestratorOutboxWatchAdapterProxy = (): {
     onQuestChanged: OnQuestChanged | undefined;
     onError: OnError | undefined;
   };
+  getCapturedResetOnStart: () => boolean | undefined;
 } => {
   const mock = registerMock({ fn: orchestratorOutboxWatchAdapter });
 
   const captured: {
     onQuestChanged: OnQuestChanged | undefined;
     onError: OnError | undefined;
-  } = { onQuestChanged: undefined, onError: undefined };
+    resetOnStart: boolean | undefined;
+  } = { onQuestChanged: undefined, onError: undefined, resetOnStart: undefined };
 
   mock
     .calledWith([])
@@ -53,12 +55,15 @@ export const orchestratorOutboxWatchAdapterProxy = (): {
       async ({
         onQuestChanged,
         onError,
+        resetOnStart,
       }: {
         onQuestChanged: OnQuestChanged;
         onError: OnError;
+        resetOnStart?: boolean;
       }): Promise<{ stop: () => void }> => {
         captured.onQuestChanged = onQuestChanged;
         captured.onError = onError;
+        captured.resetOnStart = resetOnStart;
         return Promise.resolve({ stop: jest.fn() });
       },
     );
@@ -74,5 +79,6 @@ export const orchestratorOutboxWatchAdapterProxy = (): {
       onQuestChanged: OnQuestChanged | undefined;
       onError: OnError | undefined;
     } => captured,
+    getCapturedResetOnStart: (): boolean | undefined => captured.resetOnStart,
   };
 };
