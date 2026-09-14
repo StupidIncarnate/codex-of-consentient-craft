@@ -29,10 +29,12 @@ describe('ImageContentLayerWidget', () => {
 
       mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
 
+      // #one-image-element-per-image: the COMPLETE list of rendered srcs is this one element —
+      // a widget that duplicated the image into two DOM nodes would fail this exact assertion.
       expect(proxy.getImageSrcs()).toStrictEqual([SRC_A]);
     });
 
-    it('VALID: {content: text A, token, text B} => child order is text, img, text', () => {
+    it('VALID: {content: text A, token, text B} => child order is text, img, text; the img carries the token src and the trailing text stays an inline span', () => {
       const proxy = ImageContentLayerWidgetProxy();
       const { content, uuid } = [
         UserChatEntryStub({ content: `A![Pasted Image 1](${SRC_A})B` }),
@@ -40,11 +42,29 @@ describe('ImageContentLayerWidget', () => {
 
       mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
 
+      // #render-inline
       expect(proxy.getChildTestIds()).toStrictEqual([
         'CHAT_MESSAGE_TEXT',
         'CHAT_MESSAGE_IMAGE',
         'CHAT_MESSAGE_TEXT',
       ]);
+      expect(proxy.getImageSrcs()).toStrictEqual([SRC_A]);
+      // #text-after-image-continues-on-the-line: the trailing text is a SPAN (inline), not a DIV
+      // that would start a new line after the image.
+      expect(proxy.getChildTagNames()).toStrictEqual(['SPAN', 'IMG', 'SPAN']);
+    });
+
+    it('VALID: {content: a delivered markdown token whose served path is percent-encoded} => the rendered src carries the query string byte-for-byte, undecoded', () => {
+      // #delivered-token-carries-served-url
+      const proxy = ImageContentLayerWidgetProxy();
+      const servedUrl = 'http://host/api/images?path=%2Fhome%2Fu%2Fq%2Fimages%2Fa.png';
+      const { content, uuid } = [
+        UserChatEntryStub({ content: `![Pasted Image 1](${servedUrl})` }),
+      ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
+
+      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+
+      expect(proxy.getImageSrcs()).toStrictEqual([servedUrl]);
     });
 
     it('VALID: {content: two tokens, one message} => both images render between their sentence halves, in composed order', () => {
@@ -96,6 +116,23 @@ describe('ImageContentLayerWidget', () => {
         `${webConfigStatics.pastedImage.inlineImageMaxHeightPx}px`,
       );
     });
+
+    it('VALID: {content: text followed by a markdown image token} => the img declares inline-block display and middle vertical-align, so it shares the text line rather than forcing a break or sinking below the baseline', () => {
+      // #image-sits-on-the-same-line
+      ImageContentLayerWidgetProxy();
+      const { content, uuid } = [
+        UserChatEntryStub({ content: `Here is the diagram: ![Pasted Image 1](${SRC_A})` }),
+      ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
+
+      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+
+      const image = screen.getByTestId('CHAT_MESSAGE_IMAGE');
+
+      expect({
+        display: image.style.display,
+        verticalAlign: image.style.verticalAlign,
+      }).toStrictEqual({ display: 'inline-block', verticalAlign: 'middle' });
+    });
   });
 
   describe('trailer', () => {
@@ -127,20 +164,65 @@ describe('ImageContentLayerWidget', () => {
 
       // A `data:` src carries its own bytes inline in the attribute value, so there is nothing for
       // the browser to fetch — the "no GET issued" half of this scenario rests entirely on the src
-      // being this exact data URL rather than an http one.
+      // being this exact data URL rather than an http one. #staged-copy-needs-no-network
+      // This assertion runs against the FIRST render — no waitFor, no rerender above — so it is
+      // also what proves #image-shows-without-a-reload: the image is already there with nothing
+      // else having to happen first.
       expect(proxy.getImageSrcs()).toStrictEqual([dataUrl]);
     });
 
-    it('VALID: {content: bare placeholder, nothing staged in memory} => renders no image and drops the placeholder text entirely', () => {
-      const proxy = ImageContentLayerWidgetProxy();
-      const { content, uuid } = [
-        UserChatEntryStub({ content: 'before [Pasted Image 1] after' }),
-      ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
+    describe('bytes not staged in memory', () => {
+      it('VALID: {content: bare placeholder, nothing staged in memory} => the broken-image box takes the place the missing image would have occupied', () => {
+        // #missing-image-never-vanishes
+        const proxy = ImageContentLayerWidgetProxy();
+        const { content, uuid } = [
+          UserChatEntryStub({ content: 'before [Pasted Image 1] after' }),
+        ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+        mantineRenderAdapter({
+          ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+        });
 
-      expect(proxy.getImageSrcs()).toStrictEqual([]);
-      expect(proxy.getBubbleText()).toBe('before  after');
+        expect(proxy.getChildTestIds()).toStrictEqual([
+          'CHAT_MESSAGE_TEXT',
+          'CHAT_MESSAGE_IMAGE_BROKEN',
+          'CHAT_MESSAGE_TEXT',
+        ]);
+      });
+
+      it('VALID: {content: bare placeholder, nothing staged in memory} => the text before and after is unchanged and the box names itself for the missing image', () => {
+        // #broken-box-keeps-its-place
+        const proxy = ImageContentLayerWidgetProxy();
+        const { content, uuid } = [
+          UserChatEntryStub({ content: 'before [Pasted Image 1] after' }),
+        ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
+
+        mantineRenderAdapter({
+          ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+        });
+
+        expect(proxy.getBubbleText()).toBe('before  after');
+        expect(screen.getByTestId('CHAT_MESSAGE_IMAGE_BROKEN').getAttribute('aria-label')).toBe(
+          'Pasted image 1 could not be loaded',
+        );
+      });
+
+      it('VALID: {content: bare placeholder, nothing staged in memory} => the broken box measures the configured broken-thumbnail size, both dimensions', () => {
+        // #render-broken-box
+        const proxy = ImageContentLayerWidgetProxy();
+        const { content, uuid } = [
+          UserChatEntryStub({ content: 'before [Pasted Image 1] after' }),
+        ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
+
+        mantineRenderAdapter({
+          ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+        });
+
+        expect(proxy.getBrokenPlaceholderSize()).toStrictEqual({
+          width: `${webConfigStatics.pastedImage.brokenThumbnailSizePx}px`,
+          height: `${webConfigStatics.pastedImage.brokenThumbnailSizePx}px`,
+        });
+      });
     });
   });
 
@@ -342,6 +424,30 @@ describe('ImageContentLayerWidget', () => {
 
       expect(proxy.getImageSrcs()).toStrictEqual([SRC_B]);
       expect(proxy.getImageBoxDimensions({ index: 0 })).toStrictEqual({ width: '', height: '' });
+    });
+  });
+
+  describe('image element identity', () => {
+    it('VALID: {content: one markdown image token, rerendered with identical props} => exactly one element carries the src, and the rerender keeps the same DOM node mounted', () => {
+      // #image-requested-once: React re-using the node (rather than remounting a second one) is
+      // what keeps the browser from ever issuing a second request for it. jsdom loads no image, so
+      // "paints the returned bytes" is out of reach here — see NOT PROVED in the final report.
+      const proxy = ImageContentLayerWidgetProxy();
+      const { content, uuid } = [
+        UserChatEntryStub({ content: `![Pasted Image 1](${SRC_A})` }),
+      ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
+
+      const { rerender } = mantineRenderAdapter({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
+
+      expect(proxy.getImageSrcs()).toStrictEqual([SRC_A]);
+
+      const firstImageElement = proxy.getImageElement({ index: 0 });
+
+      rerender(<ImageContentLayerWidget content={content} entryUuid={uuid} />);
+
+      expect(proxy.getImageElement({ index: 0 })).toBe(firstImageElement);
     });
   });
 

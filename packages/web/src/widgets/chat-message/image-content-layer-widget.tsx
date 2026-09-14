@@ -5,12 +5,13 @@
  * or the same message read back from disk with `![Pasted Image N](url)` markdown tokens pointing at
  * a served URL. `parseTranscriptSegmentsTransformer` already resolves both shapes into one ordered
  * segment list; this widget's only job is walking that list into DOM, and isolating one image's
- * decode failure from its siblings and from the surrounding text.
+ * failure — arriving already broken with no bytes recovered, or failing to decode at runtime —
+ * from its siblings and from the surrounding text.
  *
  * USAGE:
  * <ImageContentLayerWidget content={entry.content} entryUuid={entry.uuid} />
- * // Renders the message's text and image segments in composed order, each failed image replaced
- * // in place by a fixed-size placeholder
+ * // Renders the message's text and image segments in composed order, each broken or failed image
+ * // replaced in place by a fixed-size placeholder
  */
 
 import { Box, Text } from '@mantine/core';
@@ -69,7 +70,7 @@ export const ImageContentLayerWidget = ({
             );
           }
 
-          if (brokenOrdinals.has(segment.ordinal)) {
+          if (segment.kind === 'broken-image' || brokenOrdinals.has(segment.ordinal)) {
             return (
               <span
                 key={index}
@@ -110,7 +111,13 @@ export const ImageContentLayerWidget = ({
                 cursor: 'pointer',
                 maxWidth: '100%',
                 maxHeight: webConfigStatics.pastedImage.inlineImageMaxHeightPx,
-                display: 'block',
+                // `inline-block`, not `block` — a `block` image forces a line break both before
+                // and after itself, so text following it on the same composed line drops to a
+                // line of its own. `verticalAlign` keeps it level with the text run it now shares
+                // a line with, rather than sitting on its default baseline (bottom-aligned, which
+                // reads as sunken relative to the monospace text beside it).
+                display: 'inline-block',
+                verticalAlign: 'middle',
               }}
               onClick={() => {
                 setOverlaySrc(segment.src);

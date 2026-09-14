@@ -22,6 +22,12 @@ describe('transcriptSegmentContract', () => {
         src: 'data:image/png;base64,iVBORw0KGgo=',
       });
     });
+
+    it('VALID: {kind: broken-image, ordinal: 1} => parses a broken-image segment', () => {
+      const result = transcriptSegmentContract.parse({ kind: 'broken-image', ordinal: 1 });
+
+      expect(result).toStrictEqual({ kind: 'broken-image', ordinal: 1 });
+    });
   });
 
   describe('invalid inputs', () => {
@@ -52,6 +58,12 @@ describe('transcriptSegmentContract', () => {
         /String must contain at least 1 character/u,
       );
     });
+
+    it('INVALID: {kind: broken-image, ordinal: 1, src: "x"} => throws for a src field this member does not carry', () => {
+      expect(() =>
+        transcriptSegmentContract.parse({ kind: 'broken-image', ordinal: 1, src: 'x' }),
+      ).toThrow(/Unrecognized key/u);
+    });
   });
 
   describe('stub', () => {
@@ -73,6 +85,12 @@ describe('transcriptSegmentContract', () => {
         ordinal: 1,
         src: '/api/images?path=x',
       });
+    });
+
+    it('EDGE: {kind: broken-image, ordinal} => overrides into a broken-image segment', () => {
+      const result = TranscriptSegmentStub({ kind: 'broken-image', ordinal: 1 });
+
+      expect(result).toStrictEqual({ kind: 'broken-image', ordinal: 1 });
     });
   });
 });

@@ -16,6 +16,8 @@ export const ImageContentLayerWidgetProxy = (): {
   getImageSrcs: () => readonly HTMLImageElement['src'][];
   getBubbleText: () => NonNullable<HTMLElement['textContent']>;
   getChildTestIds: () => readonly ReturnType<Element['getAttribute']>[];
+  getChildTagNames: () => readonly Element['tagName'][];
+  getImageElement: (params: { index: number }) => HTMLElement;
   clickImage: (params: { index: number }) => Promise<void>;
   failImage: (params: { index: number }) => void;
   hasOverlay: () => boolean;
@@ -60,6 +62,18 @@ export const ImageContentLayerWidgetProxy = (): {
       Array.from(screen.getByTestId('IMAGE_CONTENT_LAYER').children).map((child) =>
         child.getAttribute('data-testid'),
       ),
+    getChildTagNames: (): readonly Element['tagName'][] =>
+      Array.from(screen.getByTestId('IMAGE_CONTENT_LAYER').children).map((child) => child.tagName),
+    // Returns the element itself, not just its src — that is what lets a caller assert DOM-node
+    // IDENTITY (via toBe) across a rerender, proving React re-used the node rather than mounting a
+    // second one that would issue a second request.
+    getImageElement: ({ index }): HTMLElement => {
+      const image = screen.getAllByTestId('CHAT_MESSAGE_IMAGE')[index];
+      if (image === undefined) {
+        throw new Error(`no CHAT_MESSAGE_IMAGE was rendered at index ${String(index)}`);
+      }
+      return image;
+    },
     clickImage: async ({ index }): Promise<void> => {
       const image = screen.getAllByTestId('CHAT_MESSAGE_IMAGE')[index];
       if (image === undefined) {

@@ -1766,10 +1766,10 @@ describe('QuestChatContentLayerWidget', () => {
       )!;
 
       expect({
-        bubbleCount: bubblesAfterDelivery.length,
+        bubbleTexts: bubblesAfterDelivery.map((bubble) => String(bubble.textContent)),
         imageSrc: imageAfterDelivery.getAttribute('src'),
       }).toStrictEqual({
-        bubbleCount: 1,
+        bubbleTexts: ['YOUAB'],
         imageSrc: 'http://host/api/images?path=%2Fp%2Fx.png',
       });
     });

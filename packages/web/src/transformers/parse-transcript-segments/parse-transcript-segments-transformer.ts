@@ -69,10 +69,18 @@ export const parseTranscriptSegmentsTransformer = ({
       const memorySrc = memoryImages?.[Number(placeholderOrdinal) - 1];
 
       // Missing-record case: the bytes for this placeholder are gone (no memoryImages, or this
-      // ordinal's entry is absent). The raw `[Pasted Image N]` characters are dropped entirely
-      // rather than left on screen or turned into a broken image segment — either would misreport
-      // what the message actually contains.
-      if (memorySrc !== undefined) {
+      // ordinal's entry is absent). A broken-image segment holds the image's place in the
+      // transcript rather than dropping the raw `[Pasted Image N]` characters — the reader sees
+      // where a picture used to be instead of the message silently losing a sentence's worth of
+      // content.
+      if (memorySrc === undefined) {
+        segments.push(
+          transcriptSegmentContract.parse({
+            kind: 'broken-image',
+            ordinal: Number(placeholderOrdinal),
+          }),
+        );
+      } else {
         segments.push(
           transcriptSegmentContract.parse({
             kind: 'image',

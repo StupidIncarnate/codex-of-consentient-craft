@@ -19,6 +19,15 @@ export const transcriptSegmentContract = z.discriminatedUnion('kind', [
     ordinal: z.number().int().positive().brand<'TranscriptSegmentOrdinal'>(),
     src: z.string().min(1).brand<'TranscriptSegmentSrc'>(),
   }),
+  // `.strict()` — this member carries no `src` at all, unlike `image`, so a caller that hands one
+  // over (stale broken-image data still carrying the field it lost) is refused rather than having
+  // the field silently dropped, which would mask the bug that produced it.
+  z
+    .object({
+      kind: z.literal('broken-image'),
+      ordinal: z.number().int().positive().brand<'TranscriptSegmentOrdinal'>(),
+    })
+    .strict(),
 ]);
 
 export type TranscriptSegment = z.infer<typeof transcriptSegmentContract>;

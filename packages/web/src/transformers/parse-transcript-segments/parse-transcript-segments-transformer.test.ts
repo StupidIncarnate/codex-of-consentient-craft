@@ -81,11 +81,12 @@ describe('parseTranscriptSegmentsTransformer', () => {
   });
 
   describe('bare placeholder with no recovered bytes', () => {
-    it('EDGE: {content: a bare placeholder, no memoryImages} => no image segment and no leftover placeholder text', () => {
+    it("EDGE: {content: a bare placeholder, no memoryImages} => becomes a broken-image segment holding the image's place", () => {
       const result = parseTranscriptSegmentsTransformer({ content: 'A[Pasted Image 1]B' });
 
       expect(result).toStrictEqual([
         { kind: 'text', text: 'A' },
+        { kind: 'broken-image', ordinal: 1 },
         { kind: 'text', text: 'B' },
       ]);
     });
@@ -96,21 +97,32 @@ describe('parseTranscriptSegmentsTransformer', () => {
   // message, at ordinals 1 and 2 respectively, is what a mis-numbered offset cannot pass — each
   // ordinal would resolve through the wrong form's extraction path.
   describe('mixed markdown token and bare placeholder in one message', () => {
-    it('VALID: {content: an image token at ordinal 1 followed by a bare placeholder at ordinal 2} => each ordinal resolves through its own form', () => {
-      const dataUrl = ImageDataUrlStub({ value: 'data:image/png;base64,BBBB' });
+    it("VALID: {content: a bare placeholder at ordinal 2, memoryImages carrying its bytes} => the bare placeholder resolves through memory, not through the token's own url", () => {
+      const firstDataUrl = ImageDataUrlStub();
+      const secondDataUrl = ImageDataUrlStub({ value: 'data:image/png;base64,BBBB' });
 
       const result = parseTranscriptSegmentsTransformer({
         content: 'A![Pasted Image 1](http://host/api/images?path=%2Fp%2Fa.png)B[Pasted Image 2]C',
-        memoryImages: [ImageDataUrlStub(), dataUrl],
+        memoryImages: [firstDataUrl, secondDataUrl],
       });
 
-      expect(result).toStrictEqual([
-        { kind: 'text', text: 'A' },
-        { kind: 'image', ordinal: 1, src: 'http://host/api/images?path=%2Fp%2Fa.png' },
-        { kind: 'text', text: 'B' },
-        { kind: 'image', ordinal: 2, src: dataUrl },
-        { kind: 'text', text: 'C' },
-      ]);
+      expect(result[3]).toStrictEqual({ kind: 'image', ordinal: 2, src: secondDataUrl });
+    });
+
+    it('VALID: {content: an image token at ordinal 1, memoryImages present} => the token resolves through its own parentheses, not through memory', () => {
+      const firstDataUrl = ImageDataUrlStub();
+      const secondDataUrl = ImageDataUrlStub({ value: 'data:image/png;base64,BBBB' });
+
+      const result = parseTranscriptSegmentsTransformer({
+        content: 'A![Pasted Image 1](http://host/api/images?path=%2Fp%2Fa.png)B[Pasted Image 2]C',
+        memoryImages: [firstDataUrl, secondDataUrl],
+      });
+
+      expect(result[1]).toStrictEqual({
+        kind: 'image',
+        ordinal: 1,
+        src: 'http://host/api/images?path=%2Fp%2Fa.png',
+      });
     });
   });
 
