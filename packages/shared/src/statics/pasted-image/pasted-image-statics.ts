@@ -38,6 +38,10 @@
  * UI and inert against that comparison. `promptInstruction` is the one line that trailer carries,
  * telling the agent to read the images before it answers.
  *
+ * `localImagePathPattern` matches an absolute local file path ending in one of the five extensions
+ * `allowedExtensions` lists; the server's send-time scan reads it to find local image paths inside
+ * message text.
+ *
  * `serveRoutePath` is the mount point the orchestrator's user-line parser builds
  * `<serverUrl><serveRoutePath>?path=<encoded>` from and the server mounts its image-serve route at,
  * so the two cannot drift apart.
@@ -53,6 +57,7 @@ export const pastedImageStatics = {
   allowedExtensions: ['png', 'jpg', 'jpeg', 'gif', 'webp'],
   placeholderPattern: '\\[Pasted Image (\\d+)\\]',
   imageTokenPattern: '!\\[Pasted Image (\\d+)\\]\\(([^)]+)\\)',
+  localImagePathPattern: '/[^\\s()<>"\']+\\.(png|jpg|jpeg|gif|webp)',
   promptSentinel: '<!-- dungeonmaster:images -->',
   promptInstruction: 'Read every image referenced above before answering.',
   serveRoutePath: '/api/images',

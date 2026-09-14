@@ -12,6 +12,7 @@ describe('pastedImageStatics', () => {
       allowedExtensions: ['png', 'jpg', 'jpeg', 'gif', 'webp'],
       placeholderPattern: '\\[Pasted Image (\\d+)\\]',
       imageTokenPattern: '!\\[Pasted Image (\\d+)\\]\\(([^)]+)\\)',
+      localImagePathPattern: '/[^\\s()<>"\']+\\.(png|jpg|jpeg|gif|webp)',
       promptSentinel: '<!-- dungeonmaster:images -->',
       promptInstruction: 'Read every image referenced above before answering.',
       serveRoutePath: '/api/images',
