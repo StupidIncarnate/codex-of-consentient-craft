@@ -98,6 +98,12 @@ const assistantToolResultEntryContract = z.object({
   toolName: z.string().min(1).brand<'ToolName'>(),
   content: z.string().brand<'ToolResultContent'>(),
   isError: z.boolean().optional(),
+  // Claude CLI reports a BLOCKING sub-agent call's own elapsed time here, from the completion
+  // line's `toolUseResult.totalDurationMs`. An ASYNC launch reports nothing here — its result
+  // lands milliseconds after dispatch — and sends a `<task-notification>` carrying `durationMs`
+  // when the agent finishes. So the two duration sources are mutually exclusive per call, and a
+  // chain that has neither is one still running.
+  durationMs: z.number().int().nonnegative().brand<'DurationMs'>().optional(),
   source: sourceContract,
   agentId: agentIdContract,
   parentAgentId: agentIdContract,

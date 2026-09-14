@@ -106,11 +106,13 @@ test.describe('The subagent-chain duration figure is placed and styled like exec
     // same single copy the header alone does, so nothing renders in the body between them.
     await expect(chain.getByTestId('subagent-chain-duration')).toHaveCount(1);
 
-    // (2) after the description — real geometry, only trustworthy in a focused, painted tab.
+    // (2) after the description, and (4) hard against the header's right edge rather than hugging
+    // that description — real geometry, only trustworthy in a focused, painted tab.
     await page.bringToFront();
     await page.screenshot();
     expect(await page.evaluate(() => document.visibilityState)).toBe('visible');
     expect(await placement.durationSitsAfterDescription()).toBe(true);
+    expect(await placement.durationSitsAtHeaderRightEdge()).toBe(true);
   });
 
   test('VALID: {a running chain sharing its row with execution-row-duration} => subagent-chain-duration renders in monospace at font size 9 in colour text-dim, matching execution-row-duration exactly', async ({

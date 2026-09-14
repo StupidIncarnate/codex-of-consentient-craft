@@ -1,6 +1,7 @@
 /**
  * PURPOSE: Turns a `SubagentElapsedInput` into the duration figure a sub-agent chain header
- * shows, applying one fixed precedence: the CLI's own `reportedDurationMs` beats the
+ * shows, applying one fixed precedence: either CLI-reported duration — the notification's
+ * `reportedDurationMs` or the completion tool_result's `completionDurationMs` — beats the
  * notification's `endedAt` gap, which beats the panel's live `clockReading`, which beats
  * showing nothing. Reach for this over calling `elapsedPartsTransformer` /
  * `durationDisplayTransformer` directly wherever a chain's duration needs to be picked FROM
@@ -26,12 +27,16 @@ export const subagentDurationLabelTransformer = ({
 }): DisplayLabel | null => {
   const startedAtMs = new Date(String(input.startedAt)).getTime();
 
+  // The two REPORTED figures both win over any timestamp arithmetic, because each is the CLI's
+  // own measurement of the run rather than of the lines describing it. They never both arrive:
+  // `reportedDurationMs` comes from an async launch's notification, `completionDurationMs` from
+  // a blocking call's own tool_result.
+  const reportedMs = input.reportedDurationMs ?? input.completionDurationMs;
+
   const endPoint: IsoTimestamp | undefined =
-    input.reportedDurationMs === undefined
+    reportedMs === undefined
       ? (input.endedAt ?? input.clockReading)
-      : isoTimestampContract.parse(
-          new Date(startedAtMs + Number(input.reportedDurationMs)).toISOString(),
-        );
+      : isoTimestampContract.parse(new Date(startedAtMs + Number(reportedMs)).toISOString());
 
   if (endPoint === undefined) return null;
 

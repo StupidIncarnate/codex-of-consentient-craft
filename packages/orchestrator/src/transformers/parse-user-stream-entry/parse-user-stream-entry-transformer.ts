@@ -129,6 +129,20 @@ export const parseUserStreamEntryTransformer = ({
 
   const entries: ChatEntry[] = [];
 
+  // `toolUseResult` is a union of an object, an array and an error string — only the object
+  // branch ever carries `totalDurationMs`, the CLI's own measurement of a BLOCKING sub-agent
+  // run. It is the only place that figure exists: an async launch sends a `<task-notification>`
+  // instead, and lifting it here is what gives a finished sub-agent chain a duration to show.
+  const { toolUseResult } = line;
+  const rawTotalDurationMs =
+    typeof toolUseResult === 'object' && !Array.isArray(toolUseResult)
+      ? toolUseResult.totalDurationMs
+      : undefined;
+  const validDurationMs =
+    typeof rawTotalDurationMs === 'number' && Number.isFinite(rawTotalDurationMs)
+      ? Math.max(0, Math.trunc(rawTotalDurationMs))
+      : undefined;
+
   for (let index = 0; index < contentArray.length; index += 1) {
     const rawItem: unknown = contentArray[index];
     const itemParse = normalizedStreamLineContentItemContract.safeParse(rawItem);
@@ -141,6 +155,7 @@ export const parseUserStreamEntryTransformer = ({
       usage: undefined,
       ...(validSource ? { source: validSource } : {}),
       ...(validAgentId ? { agentId: validAgentId } : {}),
+      ...(validDurationMs === undefined ? {} : { durationMs: validDurationMs }),
       uuid: `${resolvedLineUuid}:${String(index)}`,
       timestamp: resolvedTimestamp,
     });

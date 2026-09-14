@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const group: ChatEntryGroup = { kind: 'single', entry: chatEntry };
- * // Or: { kind: 'subagent-chain', agentId, description, taskToolUse, innerGroups, taskNotification, entryCount, contextTokens }
+ * // Or: { kind: 'subagent-chain', agentId, description, taskToolUse, innerGroups, taskNotification, completionDurationMs?, entryCount, contextTokens }
  * // innerGroups is recursive — a sub-agent chain can contain nested sub-agent chains with no depth cap
  */
 
@@ -23,6 +23,15 @@ const baseSubagentChainGroupContract = z.object({
   description: z.string().brand<'ChainDescription'>(),
   taskToolUse: chatEntryContract.nullable(),
   taskNotification: chatEntryContract.nullable(),
+  // What the Task's completion tool_result reported it took. OPTIONAL rather than nullable —
+  // the key is absent unless the CLI actually measured a duration, which it does only for a
+  // BLOCKING sub-agent call. A chain with no notification AND no figure here is still running.
+  completionDurationMs: z
+    .number()
+    .int()
+    .nonnegative()
+    .brand<'ChainCompletionDurationMs'>()
+    .optional(),
   entryCount: z.number().int().nonnegative().brand<'ChainEntryCount'>(),
   contextTokens: contextTokenCountContract.nullable(),
 });

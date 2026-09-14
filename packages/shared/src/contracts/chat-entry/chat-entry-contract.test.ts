@@ -172,6 +172,36 @@ describe('chatEntryContract', () => {
         timestamp: FIXED_TS,
       });
     });
+
+    it('VALID: {role: "assistant", type: "tool_result", durationMs: 59965} => parses with durationMs', () => {
+      const entry = AssistantToolResultChatEntryStub({
+        durationMs: 59965,
+        uuid: FIXED_UUID,
+        timestamp: FIXED_TS,
+      } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_result',
+        toolName: 'read_file',
+        content: 'file contents here',
+        durationMs: 59965,
+        uuid: FIXED_UUID,
+        timestamp: FIXED_TS,
+      });
+    });
+
+    it('INVALID: {role: "assistant", type: "tool_result", durationMs: -1} => throws on the nonnegative bound', () => {
+      expect(() =>
+        AssistantToolResultChatEntryStub({
+          durationMs: -1,
+          uuid: FIXED_UUID,
+          timestamp: FIXED_TS,
+        } as never),
+      ).toThrow(/greater than or equal to 0/u);
+    });
   });
 
   describe('system error entries', () => {

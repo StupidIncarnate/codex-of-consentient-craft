@@ -27,6 +27,10 @@ export const SubagentChainWidgetProxy = (): {
     fontSize: CSSStyleDeclaration['fontSize'];
     color: CSSStyleDeclaration['color'];
   };
+  getHeaderDescriptionFlexStyle: () => {
+    flex: CSSStyleDeclaration['flex'];
+    minWidth: CSSStyleDeclaration['minWidth'];
+  };
 } => {
   const anchorProxy = useDisclosureAnchorBindingProxy();
   ChatMessageWidgetProxy();
@@ -89,6 +93,20 @@ export const SubagentChainWidgetProxy = (): {
         fontSize: element.style.fontSize,
         color: element.style.color,
       };
+    },
+    // The header's SECOND child is the description, and its flex pair is what decides where the
+    // duration paints. jsdom lays nothing out, so the declared values are all a unit test can
+    // reach — the e2e measures the painted right edge.
+    getHeaderDescriptionFlexStyle: (): {
+      flex: CSSStyleDeclaration['flex'];
+      minWidth: CSSStyleDeclaration['minWidth'];
+    } => {
+      const [header] = screen.getAllByTestId('SUBAGENT_CHAIN_HEADER');
+      if (header === undefined) throw new Error('No SUBAGENT_CHAIN_HEADER found');
+      const [, description] = Array.from(header.children);
+      if (!(description instanceof HTMLElement))
+        throw new Error('SUBAGENT_CHAIN_HEADER has no description child');
+      return { flex: description.style.flex, minWidth: description.style.minWidth };
     },
   };
 };

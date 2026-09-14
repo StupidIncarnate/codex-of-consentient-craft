@@ -77,7 +77,14 @@ const taskNotification = z
 // tool-error string form ("Error: File content (N tokens) exceeds..."). All must parse;
 // readers must narrow to the object branch before accessing `.agentId`.
 const toolUseResult = z.union([
-  z.object({ agentId: z.unknown().optional() }).passthrough(),
+  z
+    .object({
+      agentId: z.unknown().optional(),
+      // Present on a BLOCKING Task/Agent completion only — the CLI's own measurement of that
+      // sub-agent run. An async launch's result object carries no such field.
+      totalDurationMs: z.number().brand<'NormalizedToolUseResultTotalDurationMs'>().nullish(),
+    })
+    .passthrough(),
   z.array(z.unknown()),
   z.string().brand<'NormalizedToolUseResultErrorMessage'>(),
 ]);

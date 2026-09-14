@@ -88,6 +88,66 @@ describe('collectSubagentChainsTransformer', () => {
       ]);
     });
 
+    it('VALID: {completion tool_result reports durationMs: 59965} => lifted onto the chain as completionDurationMs', () => {
+      const taskToolUse = TaskToolUseChatEntryStub({ agentId: 'agent-001' });
+      const subagentToolUse = AssistantToolUseChatEntryStub({
+        source: 'subagent',
+        agentId: 'agent-001',
+      });
+      const sessionToolResult = AssistantToolResultChatEntryStub({
+        agentId: 'agent-001',
+        durationMs: 59965,
+      });
+
+      const result = collectSubagentChainsTransformer({
+        entries: [taskToolUse, subagentToolUse, sessionToolResult],
+      });
+
+      expect(result).toStrictEqual([
+        {
+          kind: 'subagent-chain',
+          agentId: 'agent-001',
+          description: 'Run tests',
+          taskToolUse,
+          innerGroups: [{ kind: 'single', entry: subagentToolUse }],
+          taskNotification: null,
+          completionDurationMs: 59965,
+          entryCount: 1,
+          contextTokens: null,
+        },
+      ]);
+    });
+
+    it('VALID: {completion tool_result pinned by toolName, reports durationMs} => lifted onto the chain', () => {
+      const taskToolUse = TaskToolUseChatEntryStub({ agentId: 'agent-001' });
+      const subagentToolUse = AssistantToolUseChatEntryStub({
+        source: 'subagent',
+        agentId: 'agent-001',
+      });
+      const sessionToolResult = AssistantToolResultChatEntryStub({
+        toolName: 'agent-001',
+        durationMs: 270000,
+      });
+
+      const result = collectSubagentChainsTransformer({
+        entries: [taskToolUse, subagentToolUse, sessionToolResult],
+      });
+
+      expect(result).toStrictEqual([
+        {
+          kind: 'subagent-chain',
+          agentId: 'agent-001',
+          description: 'Run tests',
+          taskToolUse,
+          innerGroups: [{ kind: 'single', entry: subagentToolUse }],
+          taskNotification: null,
+          completionDurationMs: 270000,
+          entryCount: 1,
+          contextTokens: null,
+        },
+      ]);
+    });
+
     it('VALID: {chain description extracted from toolInput JSON}', () => {
       const taskToolUse = TaskToolUseChatEntryStub({
         agentId: 'agent-001',

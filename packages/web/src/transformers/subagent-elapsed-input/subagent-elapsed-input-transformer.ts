@@ -1,9 +1,10 @@
 /**
  * PURPOSE: Gathers the raw timestamps a sub-agent chain's duration figure is computed from —
  * the Task tool-use's own timestamp, the completion notification's timestamp and reported
- * duration (if either arrived), and the panel's live clock reading (if the caller is still
- * ticking) — into one `SubagentElapsedInput`. Returns null for a chain with no start at all,
- * so `subagentDurationLabelTransformer` never has to special-case a missing timestamp itself.
+ * duration (if either arrived), the duration the completion tool_result reported (if the call
+ * was a blocking one), and the panel's live clock reading (if the caller is still ticking) —
+ * into one `SubagentElapsedInput`. Returns null for a chain with no start at all, so
+ * `subagentDurationLabelTransformer` never has to special-case a missing timestamp itself.
  *
  * USAGE:
  * subagentElapsedInputTransformer({ group: subagentChainGroup, now: currentIsoTimestamp });
@@ -37,10 +38,13 @@ export const subagentElapsedInputTransformer = ({
       ? taskNotification.durationMs
       : undefined;
 
+  const { completionDurationMs } = group;
+
   return subagentElapsedInputContract.parse({
     startedAt: taskToolUse.timestamp,
     ...(taskNotification === null ? {} : { endedAt: taskNotification.timestamp }),
     ...(reportedDurationMs === undefined ? {} : { reportedDurationMs }),
+    ...(completionDurationMs === undefined ? {} : { completionDurationMs }),
     ...(now === undefined ? {} : { clockReading: now }),
   });
 };

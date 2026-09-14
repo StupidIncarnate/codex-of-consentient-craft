@@ -1,19 +1,21 @@
 /**
  * PURPOSE: Renders a collapsible sub-agent chain with header showing description, entry count,
- * and — while the caller is still ticking — the chain's own elapsed-duration figure
+ * and the chain's own elapsed-duration figure wherever one can be computed
  *
  * USAGE:
  * <SubagentChainWidget group={subagentChainGroup} />
- * // Renders collapsed chain header, expands to show inner tool groups and messages
+ * // Renders collapsed chain header, expands to show inner tool groups and messages. A chain that
+ * // has FINISHED still shows its frozen figure here — the duration rides on the chain itself, so
+ * // no clock has to be threaded in for it.
  *
  * <SubagentChainWidget group={subagentChainGroup} defaultShowAllEarlier={true} />
  * // Same, with the tail window open: every entry renders and the toggle offers to hide them again.
  *
  * <SubagentChainWidget group={subagentChainGroup} now={currentIsoTimestamp} />
- * // `now` is threaded down only while the owning execution row is in_progress. The header then
- * // shows a live duration that keeps pace with `now` until a completion notification arrives, at
- * // which point the figure freezes on the notification's own gap. Every nested chain gets the same
- * // `now` and computes its own figure independently.
+ * // `now` is threaded down only while the owning execution row is in_progress, and it is what a
+ * // chain that has NOT yet reported a duration ticks against. Once the call returns — its own
+ * // duration, or a completion notification — the figure freezes on that. Every nested chain gets
+ * // the same `now` and computes its own figure independently.
  */
 
 import { Box, Text } from '@mantine/core';
@@ -57,8 +59,8 @@ export interface SubagentChainWidgetProps {
   // way, so a chain opened whole can still be folded back down by hand.
   defaultShowAllEarlier?: boolean;
   // The execution panel's shared 60-second clock, threaded down only while the owning row
-  // is in_progress. Absent means an unfinished chain shows no figure at all, which is what
-  // stops a sub-agent that stopped hours ago still climbing on screen.
+  // is in_progress. Absent, a chain that has reported no duration of its own shows no figure at
+  // all, which is what stops a sub-agent that stopped hours ago still climbing on screen.
   now?: IsoTimestamp;
 }
 
@@ -160,12 +162,19 @@ export const SubagentChainWidget = ({
         </Text>
         {/* Held to one line so the header's height is the constant the offsets below it are built
             on. A description long enough to wrap would push a pinned bar to two lines and every
-            header nested under it would pin into the gap. */}
+            header nested under it would pin into the gap.
+
+            `flex: 1` is what pushes the duration to the header's RIGHT EDGE rather than leaving it
+            hugging the description — the same mechanism the execution row's name uses, so a row's
+            figure and its chains' figures line up in one column down the panel. `minWidth: 0` has
+            to stay alongside it: a flex item floors at its content width without it, so a long
+            description would grow the header instead of taking the ellipsis. */}
         <Text
           ff="monospace"
           size="xs"
           style={{
             color: colors['text-dim'],
+            flex: 1,
             minWidth: 0,
             overflow: 'hidden',
             textOverflow: 'ellipsis',

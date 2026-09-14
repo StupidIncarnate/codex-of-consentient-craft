@@ -19,6 +19,7 @@ export const mapContentItemToChatEntryTransformer = ({
   model,
   uuid,
   timestamp,
+  durationMs,
 }: {
   item: Record<string, unknown>;
   usage: ChatUsage | undefined;
@@ -27,6 +28,10 @@ export const mapContentItemToChatEntryTransformer = ({
   model?: string;
   uuid?: string;
   timestamp?: string;
+  // The line's own `toolUseResult.totalDurationMs`, lifted by the caller. It belongs to the
+  // whole line rather than to any one content item, so a line carrying several tool results
+  // stamps the same figure on each — which is the honest reading, since the CLI reports one.
+  durationMs?: number;
 }): ChatEntry | null => {
   const itemType = item.type;
   const resolvedUuid = typeof uuid === 'string' && uuid.length > 0 ? uuid : crypto.randomUUID();
@@ -107,6 +112,7 @@ export const mapContentItemToChatEntryTransformer = ({
       toolName: toolUseId,
       content,
       ...(isError ? { isError } : {}),
+      ...(typeof durationMs === 'number' ? { durationMs } : {}),
       ...(source ? { source } : {}),
       ...(agentId ? { agentId } : {}),
       uuid: resolvedUuid,

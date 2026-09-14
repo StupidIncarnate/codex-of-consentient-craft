@@ -588,6 +588,71 @@ describe('mapContentItemToChatEntryTransformer', () => {
     });
   });
 
+  describe('tool_result durationMs', () => {
+    it('VALID: {tool_result, durationMs: 59965} => includes durationMs in result', () => {
+      const proxy = mapContentItemToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'tool_result', toolUseId: 'toolu_task', content: 'Committed.' },
+        usage: undefined,
+        durationMs: 59965,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_result',
+        toolName: 'toolu_task',
+        content: 'Committed.',
+        durationMs: 59965,
+        uuid: UUID1,
+        timestamp: TS,
+      });
+    });
+
+    it('EMPTY: {tool_result, durationMs omitted} => omits durationMs from result', () => {
+      const proxy = mapContentItemToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const result = mapContentItemToChatEntryTransformer({
+        item: { type: 'tool_result', toolUseId: 'toolu_task', content: 'launched' },
+        usage: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_result',
+        toolName: 'toolu_task',
+        content: 'launched',
+        uuid: UUID1,
+        timestamp: TS,
+      });
+    });
+
+    it('EDGE: {tool_use item, durationMs: 59965} => the duration reaches no entry but a tool_result', () => {
+      const proxy = mapContentItemToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const result = mapContentItemToChatEntryTransformer({
+        item: {
+          type: 'tool_use',
+          id: 'toolu_task',
+          name: 'Agent',
+          input: { description: 'Sweep' },
+        },
+        usage: undefined,
+        durationMs: 59965,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_use',
+        toolUseId: 'toolu_task',
+        toolName: 'Agent',
+        toolInput: JSON.stringify({ description: 'Sweep' }),
+        uuid: UUID1,
+        timestamp: TS,
+      });
+    });
+  });
+
   describe('tool_use id edge cases', () => {
     it('EDGE: {tool_use with non-string id} => omits toolUseId', () => {
       const proxy = mapContentItemToChatEntryTransformerProxy();

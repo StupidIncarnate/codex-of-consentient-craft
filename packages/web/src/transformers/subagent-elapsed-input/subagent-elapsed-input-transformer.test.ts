@@ -74,6 +74,42 @@ describe('subagentElapsedInputTransformer', () => {
     });
   });
 
+  describe('completionDurationMs branch', () => {
+    it('VALID: {completionDurationMs: 59965, taskNotification: null} => returns startedAt and completionDurationMs', () => {
+      const group = SubagentChainGroupStub({
+        taskToolUse: TaskToolUseChatEntryStub({ timestamp: '2026-09-10T19:57:55.585Z' }),
+        taskNotification: null,
+        completionDurationMs: 59965,
+      });
+
+      const result = subagentElapsedInputTransformer({ group });
+
+      expect(result).toStrictEqual({
+        startedAt: '2026-09-10T19:57:55.585Z',
+        completionDurationMs: 59965,
+      });
+    });
+
+    it('VALID: {completionDurationMs: 59965, now supplied} => returns both, so the label can freeze', () => {
+      const group = SubagentChainGroupStub({
+        taskToolUse: TaskToolUseChatEntryStub({ timestamp: '2026-09-10T10:00:00.000Z' }),
+        taskNotification: null,
+        completionDurationMs: 59965,
+      });
+
+      const result = subagentElapsedInputTransformer({
+        group,
+        now: IsoTimestampStub({ value: '2026-09-10T11:00:00.000Z' }),
+      });
+
+      expect(result).toStrictEqual({
+        startedAt: '2026-09-10T10:00:00.000Z',
+        completionDurationMs: 59965,
+        clockReading: '2026-09-10T11:00:00.000Z',
+      });
+    });
+  });
+
   describe('now branch', () => {
     it('VALID: {now: "2026-09-10T10:02:00.000Z"} => returns clockReading alongside startedAt', () => {
       const group = SubagentChainGroupStub({

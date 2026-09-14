@@ -27,6 +27,66 @@ describe('subagentDurationLabelTransformer', () => {
     });
   });
 
+  describe('completionDurationMs branch — did the blocking call report its own duration?', () => {
+    it('VALID: {completionDurationMs: 59965, no endedAt, no clockReading} => returns "<1m"', () => {
+      const input = SubagentElapsedInputStub({
+        startedAt: '2026-09-10T19:57:55.585Z',
+        completionDurationMs: 59965,
+      });
+
+      const result = subagentDurationLabelTransformer({ input });
+
+      expect(result).toBe('<1m');
+    });
+
+    it('VALID: {completionDurationMs: 270000, no notification, no clock} => returns "4m"', () => {
+      const input = SubagentElapsedInputStub({
+        startedAt: '2026-09-10T10:00:00.000Z',
+        completionDurationMs: 270000,
+      });
+
+      const result = subagentDurationLabelTransformer({ input });
+
+      expect(result).toBe('4m');
+    });
+
+    it('VALID: {completionDurationMs: 270000, clockReading: 1h gap} => freezes at "4m" rather than climbing', () => {
+      const input = SubagentElapsedInputStub({
+        startedAt: '2026-09-10T10:00:00.000Z',
+        completionDurationMs: 270000,
+        clockReading: '2026-09-10T11:00:00.000Z',
+      });
+
+      const result = subagentDurationLabelTransformer({ input });
+
+      expect(result).toBe('4m');
+    });
+
+    it('VALID: {reportedDurationMs: 270000, completionDurationMs: 3600000} => the notification wins with "4m"', () => {
+      const input = SubagentElapsedInputStub({
+        startedAt: '2026-09-10T10:00:00.000Z',
+        reportedDurationMs: 270000,
+        completionDurationMs: 3600000,
+      });
+
+      const result = subagentDurationLabelTransformer({ input });
+
+      expect(result).toBe('4m');
+    });
+
+    it('VALID: {completionDurationMs: 270000, endedAt: 10m gap} => the reported figure wins with "4m"', () => {
+      const input = SubagentElapsedInputStub({
+        startedAt: '2026-09-10T10:00:00.000Z',
+        endedAt: '2026-09-10T10:10:00.000Z',
+        completionDurationMs: 270000,
+      });
+
+      const result = subagentDurationLabelTransformer({ input });
+
+      expect(result).toBe('4m');
+    });
+  });
+
   describe('endedAt branch — does the chain carry a completion notification?', () => {
     it('VALID: {endedAt: 4m30s gap, clockReading: 1h gap} => returns the endedAt figure', () => {
       const input = SubagentElapsedInputStub({

@@ -115,6 +115,14 @@ export const collectSubagentChainsTransformer = ({
         consumed.add(toolResult);
       }
 
+      // The completion tool_result is consumed rather than rendered, so its `durationMs` — the
+      // only measurement a BLOCKING sub-agent leaves behind — has to be lifted onto the chain
+      // here or it leaves with the entry.
+      const completionDurationMs =
+        toolResult !== null && 'durationMs' in toolResult && toolResult.durationMs !== undefined
+          ? Number(toolResult.durationMs)
+          : undefined;
+
       consumed.add(entry);
 
       const description = extractTaskDescriptionTransformer({ entry });
@@ -152,6 +160,7 @@ export const collectSubagentChainsTransformer = ({
         taskToolUse: entry,
         innerGroups,
         taskNotification,
+        ...(completionDurationMs === undefined ? {} : { completionDurationMs }),
         entryCount: subagentEntries.length,
         contextTokens,
       } as SubagentChainGroup;

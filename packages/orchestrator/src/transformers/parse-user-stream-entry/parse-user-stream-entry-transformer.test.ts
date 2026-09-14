@@ -82,6 +82,161 @@ describe('parseUserStreamEntryTransformer', () => {
     });
   });
 
+  describe('toolUseResult.totalDurationMs lift', () => {
+    it('VALID: {toolUseResult object reporting totalDurationMs: 59965} => stamps durationMs on the tool_result entry', () => {
+      const proxy = parseUserStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize({
+          type: 'user',
+          message: {
+            content: [{ type: 'tool_result', tool_use_id: 'toolu_task', content: 'Committed.' }],
+          },
+          toolUseResult: { agentId: 'af8a13db', status: 'completed', totalDurationMs: 59965 },
+        }),
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'tool_result',
+          toolName: 'toolu_task',
+          content: 'Committed.',
+          durationMs: 59965,
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
+        },
+      ]);
+    });
+
+    it('EDGE: {totalDurationMs: 59965.7} => truncates to 59965 rather than failing the integer contract', () => {
+      const proxy = parseUserStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize({
+          type: 'user',
+          message: {
+            content: [{ type: 'tool_result', tool_use_id: 'toolu_task', content: 'done' }],
+          },
+          toolUseResult: { totalDurationMs: 59965.7 },
+        }),
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'tool_result',
+          toolName: 'toolu_task',
+          content: 'done',
+          durationMs: 59965,
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
+        },
+      ]);
+    });
+
+    it('EDGE: {totalDurationMs: -5} => floors at 0 rather than failing the nonnegative contract', () => {
+      const proxy = parseUserStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize({
+          type: 'user',
+          message: {
+            content: [{ type: 'tool_result', tool_use_id: 'toolu_task', content: 'done' }],
+          },
+          toolUseResult: { totalDurationMs: -5 },
+        }),
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'tool_result',
+          toolName: 'toolu_task',
+          content: 'done',
+          durationMs: 0,
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
+        },
+      ]);
+    });
+
+    it('EMPTY: {toolUseResult object with no totalDurationMs} => omits durationMs', () => {
+      const proxy = parseUserStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize({
+          type: 'user',
+          message: {
+            content: [{ type: 'tool_result', tool_use_id: 'toolu_task', content: 'launched' }],
+          },
+          toolUseResult: { agentId: 'af8a13db', status: 'pending' },
+        }),
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'tool_result',
+          toolName: 'toolu_task',
+          content: 'launched',
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
+        },
+      ]);
+    });
+
+    it('EMPTY: {toolUseResult is an array} => omits durationMs', () => {
+      const proxy = parseUserStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize({
+          type: 'user',
+          message: {
+            content: [{ type: 'tool_result', tool_use_id: 'toolu_bash', content: 'ok' }],
+          },
+          toolUseResult: [{ type: 'text', text: 'ok' }],
+        }),
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'tool_result',
+          toolName: 'toolu_bash',
+          content: 'ok',
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
+        },
+      ]);
+    });
+
+    it('EMPTY: {toolUseResult is a tool-error string} => omits durationMs', () => {
+      const proxy = parseUserStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const result = parseUserStreamEntryTransformer({
+        parsed: normalize({
+          type: 'user',
+          message: {
+            content: [{ type: 'tool_result', tool_use_id: 'toolu_read', content: 'too big' }],
+          },
+          toolUseResult: 'Error: File content (30000 tokens) exceeds the limit',
+        }),
+      });
+
+      expect(result).toStrictEqual([
+        {
+          role: 'assistant',
+          type: 'tool_result',
+          toolName: 'toolu_read',
+          content: 'too big',
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
+        },
+      ]);
+    });
+  });
+
   describe('source and agentId propagation', () => {
     it('VALID: {entry with source and agentId} => propagates to tool_result entries', () => {
       const proxy = parseUserStreamEntryTransformerProxy();

@@ -1,14 +1,15 @@
 /**
  * PURPOSE: Reads real geometry and real computed style off a rendered SUBAGENT_CHAIN_HEADER —
- * whether the duration figure paints after the header's description text, and whether its
- * font/colour genuinely match execution-row-duration's rather than merely declaring the same
- * literals. jsdom has no layout engine (every rect reads zero-ish) and an inline `ff="monospace"`
- * prop resolves to a CSS custom property rather than the literal word, so neither claim is
- * checkable below a real browser painting the page.
+ * whether the duration figure paints after the header's description text, whether it sits at the
+ * header's right edge, and whether its font/colour genuinely match execution-row-duration's rather
+ * than merely declaring the same literals. jsdom has no layout engine (every rect reads zero-ish)
+ * and an inline `ff="monospace"` prop resolves to a CSS custom property rather than the literal
+ * word, so none of those claims is checkable below a real browser painting the page.
  *
  * USAGE:
  * const placement = subagentDurationPlacementHarness({ page });
  * expect(await placement.durationSitsAfterDescription()).toBe(true);
+ * expect(await placement.durationSitsAtHeaderRightEdge()).toBe(true);
  * const chainStyle = await placement.readDurationStyle({ testId: 'subagent-chain-duration' });
  * const rowStyle = await placement.readDurationStyle({ testId: 'execution-row-duration' });
  * expect(rowStyle).toStrictEqual(chainStyle);
@@ -29,6 +30,24 @@ const DURATION_AFTER_DESCRIPTION_BROWSER_FN = (header: Element): boolean => {
   const descriptionRect = description.getBoundingClientRect();
   const durationRect = duration.getBoundingClientRect();
   return durationRect.x > descriptionRect.x + descriptionRect.width;
+};
+
+// Browser-evaluated predicate: the duration is RIGHT-ALIGNED in its header, not merely painted
+// somewhere after the description text. Measured as the gap between the duration's right edge and
+// the header's own content-box right edge, which is the whole difference between a figure hugging
+// a short description and one sitting in a column with the execution row's. A tolerance is needed
+// because the header carries horizontal padding and sub-pixel rounding, so an exact equality would
+// flake on any zoom level but 100%.
+const DURATION_AT_RIGHT_EDGE_BROWSER_FN = (header: Element): boolean => {
+  const duration = header.querySelector('[data-testid="subagent-chain-duration"]');
+  if (duration === null) {
+    return false;
+  }
+  const headerRect = header.getBoundingClientRect();
+  const durationRect = duration.getBoundingClientRect();
+  const paddingRight = Number.parseFloat(window.getComputedStyle(header).paddingRight);
+  const gap = headerRect.right - paddingRight - durationRect.right;
+  return gap >= -1 && gap <= 1;
 };
 
 // Browser-evaluated read of the three CSS properties the styling claim is actually about, plus a
@@ -61,6 +80,7 @@ export const subagentDurationPlacementHarness = ({
   page: Page;
 }): {
   durationSitsAfterDescription: () => Promise<boolean>;
+  durationSitsAtHeaderRightEdge: () => Promise<boolean>;
   readDurationStyle: (params: { testId: string }) => Promise<{
     fontSize: CSSStyleDeclaration['fontSize'];
     color: CSSStyleDeclaration['color'];
@@ -73,6 +93,9 @@ export const subagentDurationPlacementHarness = ({
       .getByTestId('SUBAGENT_CHAIN_HEADER')
       .first()
       .evaluate(DURATION_AFTER_DESCRIPTION_BROWSER_FN),
+
+  durationSitsAtHeaderRightEdge: async (): Promise<boolean> =>
+    page.getByTestId('SUBAGENT_CHAIN_HEADER').first().evaluate(DURATION_AT_RIGHT_EDGE_BROWSER_FN),
 
   readDurationStyle: async ({
     testId,
