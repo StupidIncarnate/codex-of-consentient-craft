@@ -67,7 +67,9 @@ module.exports = [
       '**/jest.config.js',
       'jest.config.base.js',
       '**/jest-config-base.js',
-      '**/jest.setup.js',
+      // Every jest setup entry, not just the one: these are plain CJS that no package tsconfig
+      // includes, so typed linting cannot parse them.
+      '**/jest.setup*.js',
       '**/configs/**/*.js',
     ],
     languageOptions: {

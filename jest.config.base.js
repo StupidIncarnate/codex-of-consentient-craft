@@ -6,6 +6,11 @@ module.exports = {
   // `source` first is what makes a test read a sibling workspace package's TypeScript rather than
   // its last build — see packages/config/src/module-resolution.integration.test.ts.
   testEnvironmentOptions: { customExportConditions: ['source', 'require', 'default'] },
+  // `setupFiles`, not `setupFilesAfterEnv`: this one has to run before the test file's own imports,
+  // because the orchestrator barrel bootstraps a guardrail poller at module load that reads
+  // `DUNGEONMASTER_HOME` on its first pass. The file itself says what that costs when it resolves to
+  // the developer's real home.
+  setupFiles: ['<rootDir>/../../packages/testing/src/jest.setup-home.js'],
   setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
   testMatch: ['**/src/**/*.test.[jt]s', '**/bin/**/*.test.[jt]s'],
   testPathIgnorePatterns: ['/node_modules/', '/tests/tmp/', '/hypothesis/', '/dist/'],

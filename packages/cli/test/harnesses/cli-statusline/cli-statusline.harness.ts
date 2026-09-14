@@ -40,6 +40,20 @@ export const cliStatuslineHarness = (): {
     const savedHome = process.env.DUNGEONMASTER_HOME;
     process.env.DUNGEONMASTER_HOME = tempDir;
     fs.mkdirSync(tempDir, { recursive: true });
+    // A ledger stamped NOW, so usageLedgerScanBroker takes its throttle path instead of walking the
+    // developer's own ~/.claude/projects. `packages/testing/src/jest.setup-home.js` carries the full
+    // reasoning and seeds the same file into the process-wide sandbox home; every harness that
+    // re-points DUNGEONMASTER_HOME at a fresh directory owes it again, because a new directory has
+    // no ledger and the default one is stamped at the epoch.
+    fs.writeFileSync(
+      path.join(tempDir, 'usage-ledger.json'),
+      JSON.stringify({
+        buckets: {},
+        cursors: {},
+        ceilings: { fiveHour: null, sevenDay: null },
+        updatedAt: new Date().toISOString(),
+      }),
+    );
     return {
       restore: (): void => {
         if (savedHome === undefined) {

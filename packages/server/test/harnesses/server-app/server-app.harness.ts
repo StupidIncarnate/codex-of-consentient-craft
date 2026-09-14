@@ -176,6 +176,20 @@ export const serverAppHarness = (): {
     process.env.DUNGEONMASTER_HOME = tempDir;
     mkdirSync(tempDir, { recursive: true });
     writeFileSync(join(tempDir, 'config.json'), JSON.stringify({ guilds: [] }));
+    // A ledger stamped NOW, so usageLedgerScanBroker takes its throttle path instead of walking the
+    // developer's own ~/.claude/projects. `packages/testing/src/jest.setup-home.js` carries the full
+    // reasoning and seeds the same pair into the process-wide sandbox home; every harness that
+    // re-points DUNGEONMASTER_HOME at a fresh directory owes it again, because a new directory has
+    // no ledger and the default one is stamped at the epoch.
+    writeFileSync(
+      join(tempDir, 'usage-ledger.json'),
+      JSON.stringify({
+        buckets: {},
+        cursors: {},
+        ceilings: { fiveHour: null, sevenDay: null },
+        updatedAt: new Date().toISOString(),
+      }),
+    );
 
     return (): void => {
       if (savedDungeonmasterHome === undefined) {

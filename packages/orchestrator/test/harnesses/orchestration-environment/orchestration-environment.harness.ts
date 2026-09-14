@@ -37,6 +37,28 @@ const FAKE_CLAUDE_CLI = path.resolve(
 const FAKE_WARD_BIN_DIR = path.resolve(__dirname, '../../../test-fixtures/fake-ward-bin');
 const FAKE_WARD_CLI = path.join(FAKE_WARD_BIN_DIR, 'dungeonmaster-ward');
 
+const GUILD_CONFIG_FILENAME = 'config.json';
+const USAGE_LEDGER_FILENAME = 'usage-ledger.json';
+
+// Both files a dungeonmaster home needs before anything reads it. The ledger stamped NOW is what
+// makes usageLedgerScanBroker take its throttle path — a fresh directory has none, the default one
+// is stamped at the epoch, and every guardrail pass then reads that as a measurement due and walks
+// the developer's own ~/.claude/projects. `packages/testing/src/jest.setup-home.js` carries the
+// full reasoning and seeds the same pair into the process-wide sandbox home.
+const seedHomeFiles = ({ homeDir }: { homeDir: GuildPath }): void => {
+  fs.mkdirSync(homeDir, { recursive: true });
+  fs.writeFileSync(path.join(homeDir, GUILD_CONFIG_FILENAME), JSON.stringify({ guilds: [] }));
+  fs.writeFileSync(
+    path.join(homeDir, USAGE_LEDGER_FILENAME),
+    JSON.stringify({
+      buckets: {},
+      cursors: {},
+      ceilings: { fiveHour: null, sevenDay: null },
+      updatedAt: new Date().toISOString(),
+    }),
+  );
+};
+
 export const orchestrationEnvironmentHarness = (): {
   beforeEach: () => void;
   afterEach: () => void;
@@ -94,8 +116,7 @@ export const orchestrationEnvironmentHarness = (): {
       const savedDungeonmasterHome = process.env.DUNGEONMASTER_HOME;
       process.env.DUNGEONMASTER_HOME = tempDir;
 
-      fs.mkdirSync(tempDir, { recursive: true });
-      fs.writeFileSync(path.join(tempDir, 'config.json'), JSON.stringify({ guilds: [] }));
+      seedHomeFiles({ homeDir: tempDir });
 
       const restore = (): void => {
         if (savedDungeonmasterHome === undefined) {
@@ -246,8 +267,7 @@ export const orchestrationEnvironmentHarness = (): {
       process.env.WARD_CLI_PATH = FAKE_WARD_CLI;
       process.env.DUNGEONMASTER_HOME = tempDir;
 
-      fs.mkdirSync(tempDir, { recursive: true });
-      fs.writeFileSync(path.join(tempDir, 'config.json'), JSON.stringify({ guilds: [] }));
+      seedHomeFiles({ homeDir: tempDir });
 
       const restore = (): void => {
         process.env.CLAUDE_CLI_PATH = savedClaudeCliPath;
