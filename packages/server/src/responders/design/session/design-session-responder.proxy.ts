@@ -1,5 +1,10 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { ProcessIdStub, QuestId, QuestStub } from '@dungeonmaster/shared/contracts';
+import type {
+  AbsoluteFilePath,
+  ProcessIdStub,
+  QuestId,
+  QuestStub,
+} from '@dungeonmaster/shared/contracts';
 import { orchestratorGetQuestAdapterProxy } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.proxy';
 import { orchestratorStartDesignChatAdapterProxy } from '../../../adapters/orchestrator/start-design-chat/orchestrator-start-design-chat-adapter.proxy';
 import { pastedImagePersistBrokerProxy } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker.proxy';
@@ -14,6 +19,15 @@ export const DesignSessionResponderProxy = (): {
   setupDesignChatError: (params: { questId: QuestId; error: Error }) => void;
   setupImagePersistHome: (params: { homePath: string }) => void;
   stagePersistedImageIds: (params: { ids: readonly string[] }) => void;
+  // Stages the real read-a-local-path-and-copy-it path the persist broker now always runs when
+  // the posted message holds an absolute image path and no upload at all — composes the two
+  // pasted-image-persist-broker proxy setup calls that path needs (the source read, and the copy
+  // broker's own minted destination id) behind one call, per the proxy-encapsulation rule.
+  stageLocalImageCopy: (params: {
+    sourcePath: AbsoluteFilePath;
+    bytes: Uint8Array;
+    copyId: string;
+  }) => void;
   persistedImageWriteCallCount: () => unknown;
   getStartDesignChatCalls: () => readonly unknown[];
   callResponder: typeof DesignSessionResponder;
@@ -43,6 +57,18 @@ export const DesignSessionResponderProxy = (): {
     },
     stagePersistedImageIds: ({ ids }: { ids: readonly string[] }): void => {
       imagePersistProxy.stageImageIds({ ids });
+    },
+    stageLocalImageCopy: ({
+      sourcePath,
+      bytes,
+      copyId,
+    }: {
+      sourcePath: AbsoluteFilePath;
+      bytes: Uint8Array;
+      copyId: string;
+    }): void => {
+      imagePersistProxy.sourceReads({ filePath: sourcePath, bytes });
+      imagePersistProxy.stageCopyIds({ ids: [copyId] });
     },
     persistedImageWriteCallCount: (): unknown => imagePersistProxy.writeCallCount(),
     // StartOrchestrator.startDesignChat is the SAME auto-mocked function reference

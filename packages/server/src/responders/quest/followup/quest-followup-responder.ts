@@ -90,12 +90,16 @@ export const QuestFollowupResponder = async ({
     // Resolve guildId via the quest path adapter — quests do not carry guildId directly.
     const { guildId } = await orchestratorFindQuestPathAdapter({ questId });
 
-    // Pasted images are persisted to disk and their placeholder tokens rewritten to the paths
-    // written — a text-only send has no images key and skips the broker entirely.
-    const rewrittenMessage =
-      images === undefined || images.length === 0
-        ? message
-        : await pastedImagePersistBroker({ guildId, questId, message, images });
+    // Pasted images are persisted to disk, and a screenshot's absolute local path can ride in the
+    // text alone with no images key at all — the broker scans every send for both, so the call is
+    // unconditional here. Its own early return (see its header) is what keeps a plain-text send
+    // from touching the filesystem.
+    const rewrittenMessage = await pastedImagePersistBroker({
+      guildId,
+      questId,
+      message,
+      images: images ?? [],
+    });
 
     const { chatProcessId } = await orchestratorStartFollowupChatAdapter({
       questId,

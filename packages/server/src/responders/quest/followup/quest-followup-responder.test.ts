@@ -1,4 +1,5 @@
 import {
+  AbsoluteFilePathStub,
   GuildIdStub,
   PastedImageUploadStub,
   ProcessIdStub,
@@ -380,6 +381,41 @@ describe('QuestFollowupResponder', () => {
         { questId, guildId, message: 'no images here' },
       ]);
       expect(proxy.getPastedImageWriteCallCount()).toBe(0);
+    });
+
+    it('VALID: {no images key at all, message holding an absolute local image path} => the path is converted to a pasted-image token rather than skipped', async () => {
+      const proxy = QuestFollowupResponderProxy();
+      const homePath = '/home/quest-followup-responder-local-path-test';
+      const copyId = '66666666-6666-4666-8666-666666666666';
+      const questId = QuestIdStub({ value: 'quest-local-path-no-images-key' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'proc-local-path-no-images-key' });
+      const quest = QuestStub({ id: questId, status: 'complete' });
+
+      proxy.setupQuestLoad({ quest });
+      proxy.setupFindQuestPath({ questId, guildId });
+      proxy.setupStartFollowupChat({ questId, chatProcessId });
+      proxy.setupPastedImageHome({ homePath });
+      proxy.stagePastedImageIds({ ids: [copyId] });
+      proxy.stagePastedImageSourceRead({
+        filePath: AbsoluteFilePathStub({ value: '/tmp/snip.png' }),
+        bytes: new Uint8Array([1, 2, 3]),
+      });
+
+      const result = await proxy.callResponder({
+        params: { questId },
+        body: { message: 'see /tmp/snip.png ok' },
+      });
+
+      const expectedPath = `${homePath}/.dungeonmaster/guilds/${guildId}/quests/${questId}/images/${copyId}.png`;
+
+      expect(result).toStrictEqual({
+        status: 200,
+        data: { chatProcessId: 'proc-local-path-no-images-key' },
+      });
+      expect(proxy.getStartFollowupChatCalls()).toStrictEqual([
+        { questId, guildId, message: `see ![Pasted Image 1](${expectedPath}) ok` },
+      ]);
     });
 
     it('INVALID: {rejected quest status, images present in body} => returns 400 and writes zero files before ever reaching the broker', async () => {

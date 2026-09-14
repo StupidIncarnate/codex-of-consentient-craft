@@ -57,6 +57,7 @@ import { QuestFollowupResponder } from './quest-followup-responder';
 type Quest = ReturnType<typeof QuestStub>;
 type ProcessId = ReturnType<typeof ProcessIdStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
+type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
 
 export const QuestFollowupResponderProxy = (): {
   setupQuestLoad: (params: { quest: Quest }) => void;
@@ -67,6 +68,7 @@ export const QuestFollowupResponderProxy = (): {
   getStartFollowupChatCalls: () => readonly unknown[];
   setupPastedImageHome: (params: { homePath: string }) => void;
   stagePastedImageIds: (params: { ids: readonly string[] }) => void;
+  stagePastedImageSourceRead: (params: { filePath: AbsoluteFilePath; bytes: Uint8Array }) => void;
   getPastedImageWrittenPayloadFor: (params: { filePath: string }) => unknown;
   getPastedImageWriteCallCount: () => unknown;
   callResponder: typeof QuestFollowupResponder;
@@ -113,6 +115,18 @@ export const QuestFollowupResponderProxy = (): {
     },
     stagePastedImageIds: ({ ids }: { ids: readonly string[] }): void => {
       pastedImageProxy.stageImageIds({ ids });
+    },
+    // A local image path never carries an upload — its bytes come from the filesystem read the
+    // persist broker's own scan/copy step performs, which this stages through the same composed
+    // pastedImageProxy the upload path above uses.
+    stagePastedImageSourceRead: ({
+      filePath,
+      bytes,
+    }: {
+      filePath: AbsoluteFilePath;
+      bytes: Uint8Array;
+    }): void => {
+      pastedImageProxy.sourceReads({ filePath, bytes });
     },
     getPastedImageWrittenPayloadFor: ({ filePath }: { filePath: string }): unknown =>
       pastedImageProxy.writtenPayloadFor({ filePath }),

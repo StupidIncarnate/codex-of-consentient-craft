@@ -1,4 +1,5 @@
 import {
+  AbsoluteFilePathStub,
   GuildIdStub,
   PastedImageUploadStub,
   ProcessIdStub,
@@ -285,6 +286,50 @@ describe('QuestNewResponder', () => {
         mintedQuestId: questId,
         message: `see ![Pasted Image 1](${expectedPath}) please`,
       });
+    });
+
+    it('VALID: {message holds an absolute local image path, no images key at all} => forwards the rewritten image token to startChat, not the raw path', async () => {
+      const proxy = QuestNewResponderProxy();
+      const homePath = '/home/quest-new-forwarded-to-agent';
+      proxy.setupPastedImageHome({ homePath });
+      const questId = QuestIdStub({ value: '33333333-3333-4333-8333-333333333333' });
+      proxy.setupMintedQuestId({ questId });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'proc-forwarded-to-agent' });
+      proxy.setupQuestNew({ guildId, chatProcessId, questId });
+      const sourcePath = AbsoluteFilePathStub({ value: '/tmp/snip.png' });
+      const copyId = '66666666-6666-4666-8666-666666666666';
+      proxy.stageLocalImageCopy({ sourcePath, bytes: new Uint8Array([9, 9, 9]), copyId });
+
+      await proxy.callResponder({
+        params: { guildId },
+        body: { message: 'see /tmp/snip.png ok' },
+      });
+
+      const expectedPath = `${homePath}/.dungeonmaster/guilds/${guildId}/quests/${questId}/images/${copyId}.png`;
+
+      expect(proxy.getLastStartChatMessage()).toBe(`see ![Pasted Image 1](${expectedPath}) ok`);
+    });
+
+    it('VALID: {message holds an absolute local image path, no uploads} => mints a questId and forwards it as mintedQuestId rather than omitting it', async () => {
+      const proxy = QuestNewResponderProxy();
+      const homePath = '/home/quest-new-mint-on-path';
+      proxy.setupPastedImageHome({ homePath });
+      const questId = QuestIdStub({ value: '77777777-7777-4777-8777-777777777777' });
+      proxy.setupMintedQuestId({ questId });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'proc-mint-on-path' });
+      proxy.setupQuestNew({ guildId, chatProcessId, questId });
+      const sourcePath = AbsoluteFilePathStub({ value: '/tmp/only-a-path.png' });
+      const copyId = '88888888-8888-4888-8888-888888888888';
+      proxy.stageLocalImageCopy({ sourcePath, bytes: new Uint8Array([4, 5, 6]), copyId });
+
+      await proxy.callResponder({
+        params: { guildId },
+        body: { message: 'see /tmp/only-a-path.png ok' },
+      });
+
+      expect(proxy.getLastStartChatMintedQuestId()).toBe(questId);
     });
 
     it('ERROR: {images: [one image], orchestratorStartChatAdapter rejects} => removes the minted quest folder and still returns 500 with the original error', async () => {

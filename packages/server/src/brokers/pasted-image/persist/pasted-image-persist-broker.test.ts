@@ -1,4 +1,10 @@
-import { GuildIdStub, QuestIdStub, PastedImageUploadStub } from '@dungeonmaster/shared/contracts';
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
+import {
+  GuildIdStub,
+  QuestIdStub,
+  PastedImageUploadStub,
+  AbsoluteFilePathStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { pastedImagePersistBroker } from './pasted-image-persist-broker';
 import { pastedImagePersistBrokerProxy } from './pasted-image-persist-broker.proxy';
@@ -176,14 +182,170 @@ describe('pastedImagePersistBroker', () => {
     });
   });
 
-  describe('empty images', () => {
-    it('EMPTY: {images: []} => still creates the images dir, writes nothing, and returns the message unchanged', async () => {
+  describe('unreadable-file-left-alone', () => {
+    it('ERROR: {images: [], message with a path whose source read rejects with EACCES} => the message is forwarded unchanged and the send still resolves', async () => {
+      const proxy = pastedImagePersistBrokerProxy();
+      const homePath = '/home/test-guild-home';
+      proxy.setupHome({ homePath });
+      const guildId = GuildIdStub();
+      const questId = QuestIdStub({ value: 'inline-images' });
+      proxy.stageCopyIds({ ids: ['facefeed-0000-4000-8000-000000000000'] });
+      proxy.sourceReadFails({
+        filePath: AbsoluteFilePathStub({ value: '/tmp/snip.png' }),
+        error: new Error('EACCES: permission denied'),
+      });
+
+      const result = await pastedImagePersistBroker({
+        guildId,
+        questId,
+        message: 'see /tmp/snip.png ok',
+        images: [],
+      });
+
+      expect(result).toBe('see /tmp/snip.png ok');
+    });
+  });
+
+  describe('over-cap-path-writes-nothing', () => {
+    it('EDGE: {five bitmap uploads plus one screenshot path} => only the five upload destinations are written, the sixth path never reaches disk', async () => {
       const proxy = pastedImagePersistBrokerProxy();
       const homePath = '/home/test-guild-home';
       proxy.setupHome({ homePath });
       const guildId = GuildIdStub();
       const questId = QuestIdStub({ value: 'inline-images' });
       const imagesDirPath = `${homePath}/.dungeonmaster/guilds/${guildId}/quests/${questId}/images`;
+      const uploadIds = Array.from(
+        { length: pastedImageStatics.maxImagesPerMessage },
+        (_unused, index) => `aaaaaaaa-0000-4000-8000-${String(index).padStart(12, '0')}`,
+      );
+      proxy.stageImageIds({ ids: uploadIds });
+      const image = PastedImageUploadStub({ mediaType: 'image/png', dataBase64: 'aGVsbG8=' });
+      const images = uploadIds.map(() => image);
+      const placeholders = uploadIds
+        .map((_unused, index) => `[Pasted Image ${index + 1}]`)
+        .join(' ');
+
+      await pastedImagePersistBroker({
+        guildId,
+        questId,
+        message: `${placeholders} see /tmp/snip.png ok`,
+        images,
+      });
+
+      const expectedPaths = uploadIds.map((id) => `${imagesDirPath}/${id}.png`);
+
+      expect(proxy.writtenImagePaths()).toStrictEqual(expectedPaths);
+    });
+  });
+
+  describe('failed-copy-keeps-the-send', () => {
+    it('ERROR: {images: [], message with a path whose source read resolves but whose destination write rejects} => the message is forwarded unchanged and the send still resolves', async () => {
+      const proxy = pastedImagePersistBrokerProxy();
+      const homePath = '/home/test-guild-home';
+      proxy.setupHome({ homePath });
+      const guildId = GuildIdStub();
+      const questId = QuestIdStub({ value: 'inline-images' });
+      const imagesDirPath = `${homePath}/.dungeonmaster/guilds/${guildId}/quests/${questId}/images`;
+      const copyId = 'bbbbbbbb-0000-4000-8000-000000000000';
+      proxy.stageCopyIds({ ids: [copyId] });
+      proxy.sourceReads({
+        filePath: AbsoluteFilePathStub({ value: '/tmp/snip.png' }),
+        bytes: new Uint8Array([1, 2, 3]),
+      });
+      proxy.destinationWriteFails({
+        filePath: AbsoluteFilePathStub({ value: `${imagesDirPath}/${copyId}.png` }),
+        error: new Error('EACCES: permission denied'),
+      });
+
+      const result = await pastedImagePersistBroker({
+        guildId,
+        questId,
+        message: 'see /tmp/snip.png ok',
+        images: [],
+      });
+
+      expect(result).toBe('see /tmp/snip.png ok');
+    });
+  });
+
+  describe('cap-applies-across-both-kinds', () => {
+    it('EDGE: {five bitmap uploads plus one screenshot path} => the bitmaps convert to tokens and the screenshot path is left as text', async () => {
+      const proxy = pastedImagePersistBrokerProxy();
+      const homePath = '/home/test-guild-home';
+      proxy.setupHome({ homePath });
+      const guildId = GuildIdStub();
+      const questId = QuestIdStub({ value: 'inline-images' });
+      const imagesDirPath = `${homePath}/.dungeonmaster/guilds/${guildId}/quests/${questId}/images`;
+      const uploadIds = Array.from(
+        { length: pastedImageStatics.maxImagesPerMessage },
+        (_unused, index) => `cccccccc-0000-4000-8000-${String(index).padStart(12, '0')}`,
+      );
+      proxy.stageImageIds({ ids: uploadIds });
+      const image = PastedImageUploadStub({ mediaType: 'image/png', dataBase64: 'aGVsbG8=' });
+      const images = uploadIds.map(() => image);
+      const placeholders = uploadIds
+        .map((_unused, index) => `[Pasted Image ${index + 1}]`)
+        .join(' ');
+
+      const result = await pastedImagePersistBroker({
+        guildId,
+        questId,
+        message: `${placeholders} see /tmp/snip.png ok`,
+        images,
+      });
+
+      const expectedTokens = uploadIds
+        .map((id, index) => `![Pasted Image ${index + 1}](${imagesDirPath}/${id}.png)`)
+        .join(' ');
+
+      expect(result).toBe(`${expectedTokens} see /tmp/snip.png ok`);
+    });
+  });
+
+  describe('ordinal-continues-after-bitmaps', () => {
+    it('VALID: {two bitmap uploads plus one screenshot path} => the screenshot becomes Pasted Image 3', async () => {
+      const proxy = pastedImagePersistBrokerProxy();
+      const homePath = '/home/test-guild-home';
+      proxy.setupHome({ homePath });
+      const guildId = GuildIdStub();
+      const questId = QuestIdStub({ value: 'inline-images' });
+      const imagesDirPath = `${homePath}/.dungeonmaster/guilds/${guildId}/quests/${questId}/images`;
+      const firstId = 'dddddddd-0000-4000-8000-000000000001';
+      const secondId = 'dddddddd-0000-4000-8000-000000000002';
+      const copyId = 'dddddddd-0000-4000-8000-000000000003';
+      proxy.stageImageIds({ ids: [firstId, secondId] });
+      proxy.stageCopyIds({ ids: [copyId] });
+      proxy.sourceReads({
+        filePath: AbsoluteFilePathStub({ value: '/tmp/snip.png' }),
+        bytes: new Uint8Array([9, 9, 9]),
+      });
+      const firstImage = PastedImageUploadStub({ mediaType: 'image/png', dataBase64: 'aGVsbG8=' });
+      const secondImage = PastedImageUploadStub({ mediaType: 'image/png', dataBase64: 'd29ybGQ=' });
+
+      const result = await pastedImagePersistBroker({
+        guildId,
+        questId,
+        message: '[Pasted Image 1] [Pasted Image 2] see /tmp/snip.png ok',
+        images: [firstImage, secondImage],
+      });
+
+      const firstPath = `${imagesDirPath}/${firstId}.png`;
+      const secondPath = `${imagesDirPath}/${secondId}.png`;
+      const copiedPath = `${imagesDirPath}/${copyId}.png`;
+
+      expect(result).toBe(
+        `![Pasted Image 1](${firstPath}) ![Pasted Image 2](${secondPath}) see ![Pasted Image 3](${copiedPath}) ok`,
+      );
+    });
+  });
+
+  describe('forward-unchanged', () => {
+    it('EMPTY: {images: [], message with no absolute image path} => the message is forwarded unchanged and mkdir is never called', async () => {
+      const proxy = pastedImagePersistBrokerProxy();
+      const homePath = '/home/test-guild-home';
+      proxy.setupHome({ homePath });
+      const guildId = GuildIdStub();
+      const questId = QuestIdStub({ value: 'inline-images' });
 
       const result = await pastedImagePersistBroker({
         guildId,
@@ -193,8 +355,76 @@ describe('pastedImagePersistBroker', () => {
       });
 
       expect(result).toBe('no images here');
-      expect(proxy.mkdirRequestedDirPaths()).toStrictEqual([imagesDirPath]);
-      expect(proxy.writeCallCount()).toBe(0);
+      expect(proxy.mkdirRequestedDirPaths()).toStrictEqual([]);
+    });
+  });
+
+  describe('leave-path-as-text', () => {
+    it('ERROR: {images: [], one path whose source read rejects} => nothing is written and the path stays in the text', async () => {
+      const proxy = pastedImagePersistBrokerProxy();
+      const homePath = '/home/test-guild-home';
+      proxy.setupHome({ homePath });
+      const guildId = GuildIdStub();
+      const questId = QuestIdStub({ value: 'inline-images' });
+      proxy.stageCopyIds({ ids: ['deadbeef-0000-4000-8000-000000000000'] });
+      proxy.sourceReadFails({
+        filePath: AbsoluteFilePathStub({ value: '/tmp/snip.png' }),
+        error: new Error('ENOENT: no such file or directory'),
+      });
+
+      const result = await pastedImagePersistBroker({
+        guildId,
+        questId,
+        message: 'see /tmp/snip.png ok',
+        images: [],
+      });
+
+      expect(proxy.writtenImagePaths()).toStrictEqual([]);
+      expect(result).toBe('see /tmp/snip.png ok');
+    });
+  });
+
+  describe('found-none', () => {
+    it('EMPTY: {images: [], message holding only a relative path} => the message is forwarded unchanged and mkdir is never called', async () => {
+      const proxy = pastedImagePersistBrokerProxy();
+      const homePath = '/home/test-guild-home';
+      proxy.setupHome({ homePath });
+      const guildId = GuildIdStub();
+      const questId = QuestIdStub({ value: 'inline-images' });
+
+      const result = await pastedImagePersistBroker({
+        guildId,
+        questId,
+        message: 'see ./shot.png ok',
+        images: [],
+      });
+
+      expect(proxy.mkdirRequestedDirPaths()).toStrictEqual([]);
+      expect(result).toBe('see ./shot.png ok');
+    });
+  });
+
+  describe('found-some', () => {
+    it('VALID: {images: [], one absolute path, source read resolves} => the read is attempted on exactly that path', async () => {
+      const proxy = pastedImagePersistBrokerProxy();
+      const homePath = '/home/test-guild-home';
+      proxy.setupHome({ homePath });
+      const guildId = GuildIdStub();
+      const questId = QuestIdStub({ value: 'inline-images' });
+      proxy.stageCopyIds({ ids: ['eeeeeeee-0000-4000-8000-000000000000'] });
+      proxy.sourceReads({
+        filePath: AbsoluteFilePathStub({ value: '/tmp/snip.png' }),
+        bytes: new Uint8Array([4, 5, 6]),
+      });
+
+      await pastedImagePersistBroker({
+        guildId,
+        questId,
+        message: 'see /tmp/snip.png ok',
+        images: [],
+      });
+
+      expect(proxy.sourceReadAttemptedPaths()).toStrictEqual(['/tmp/snip.png']);
     });
   });
 });

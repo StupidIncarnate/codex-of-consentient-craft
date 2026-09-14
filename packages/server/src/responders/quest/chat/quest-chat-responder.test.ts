@@ -532,5 +532,46 @@ describe('QuestChatResponder', () => {
         existingQuestId: questId,
       });
     });
+
+    it('VALID: {no images key at all, message holding an absolute local image path} => the path is converted to a pasted-image token rather than skipped', async () => {
+      const proxy = QuestChatResponderProxy();
+      const homePath = '/home/quest-chat-responder-local-path-test';
+      proxy.setupPastedImageHome({ homePath });
+      const copyId = '55555555-5555-4555-8555-555555555555';
+      proxy.stagePastedImageIds({ ids: [copyId] });
+      proxy.stagePastedImageSourceRead({
+        filePath: AbsoluteFilePathStub({ value: '/tmp/snip.png' }),
+        bytes: new Uint8Array([1, 2, 3]),
+      });
+      const questId = QuestIdStub({ value: 'quest-local-path-no-images-key' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'proc-local-path-no-images-key' });
+      const quest = QuestStub({ id: questId, workItems: [] });
+
+      proxy.setupQuestLoad({ quest });
+      proxy.setupFindQuestPath({
+        questId,
+        guildId,
+        questPath: AbsoluteFilePathStub({ value: '/quests/local-path-no-images-key' }),
+      });
+      proxy.setupStartChat({ guildId, chatProcessId });
+
+      const result = await proxy.callResponder({
+        params: { questId },
+        body: { message: 'see /tmp/snip.png ok' },
+      });
+
+      const expectedPath = `${homePath}/.dungeonmaster/guilds/${guildId}/quests/${questId}/images/${copyId}.png`;
+
+      expect(result).toStrictEqual({
+        status: 200,
+        data: { chatProcessId: 'proc-local-path-no-images-key' },
+      });
+      expect(proxy.getStartChatCallArgs({ guildId })).toStrictEqual({
+        guildId,
+        message: `see ![Pasted Image 1](${expectedPath}) ok`,
+        existingQuestId: questId,
+      });
+    });
   });
 });

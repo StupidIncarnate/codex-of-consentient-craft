@@ -102,13 +102,16 @@ export const QuestChatResponder = async ({
     // Resolve guildId via the quest path adapter — quests do not carry guildId directly.
     const { guildId } = await orchestratorFindQuestPathAdapter({ questId });
 
-    // Pasted images ride in the body as base64; the broker writes each to disk and rewrites the
-    // message's bare placeholder tokens to the paths it wrote. A text-only send (images absent or
-    // empty) skips the broker entirely and forwards the posted message as-is.
-    const rewrittenMessage =
-      images !== undefined && images.length > 0
-        ? await pastedImagePersistBroker({ guildId, questId, message, images })
-        : message;
+    // Pasted images ride in the body as base64, and a screenshot's absolute local path can ride in
+    // the text alone with no images key at all — the broker scans every send for both, so the call
+    // is unconditional here. Its own early return (see its header) is what keeps a plain-text send
+    // from touching the filesystem.
+    const rewrittenMessage = await pastedImagePersistBroker({
+      guildId,
+      questId,
+      message,
+      images: images ?? [],
+    });
 
     // The URL already names this quest, and it was loaded off disk above — so it is never a
     // guess. Passing it as `existingQuestId` (rather than relying solely on the sessionId-derived

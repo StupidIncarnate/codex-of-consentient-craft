@@ -1298,6 +1298,238 @@ describe('QuestFlow', () => {
     });
   });
 
+  // Flow: screenshot-path-server-side. A real file on a real filesystem, referenced by its
+  // absolute path in the message text rather than uploaded through `images` — the server's scan
+  // finds it, copies it into the quest's own images folder, and rewrites the path to the same
+  // `![Pasted Image N](...)` token a pasted bitmap produces. Every case here resumes a real
+  // chaoswhisperer session (registerRealGuild + configureFakeClaudeCli), same reasoning as "chat
+  // with images" above: only a real spawn proves what the agent's prompt really carries, and only
+  // a real copy (not a mocked fs) proves the source survives untouched.
+  describe('POST /api/quests/:questId/chat with a local image path in the message', () => {
+    it('VALID: {message holding an absolute screenshot path} => 200, and the original file at that path still exists with its original bytes intact', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-local-image-source-kept' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const cli = harness.configureFakeClaudeCli();
+      const guild = await harness.registerRealGuild({
+        name: 'Local Image Source Kept Guild',
+        path: dungeonmasterHome,
+      });
+      const guildId = String(guild.id);
+      const questId = 'server-http-local-image-source-kept';
+      const sessionId = SessionIdStub({ value: 'bbbbbbbb-8001-4222-8222-444444444444' });
+      const quest = QuestStub({
+        id: questId as never,
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-8001-4222-8222-444444444444' }),
+            role: 'chaoswhisperer',
+            status: 'in_progress',
+            sessionId,
+          }),
+        ],
+      });
+      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+
+      const seeded = harness.seedImageFile({
+        baseName: 'quest-flow-local-image-source-kept-fixture',
+        fileName: 'local-screenshot.png',
+        bytes: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 1, 2, 3, 4, 5, 6, 7, 8]),
+      });
+      const originalBase64 = harness.readFileBase64({ filePath: seeded.imagePath });
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: `see ${seeded.imagePath} ok` }),
+      });
+      const originalBase64After = harness.readFileBase64({ filePath: seeded.imagePath });
+
+      cli.restore();
+      restore();
+      seeded.cleanup();
+
+      expect(response.status).toBe(200);
+      expect(originalBase64After).toBe(originalBase64);
+    });
+
+    it('VALID: {message holding an absolute screenshot path, original deleted after the send} => the quest images directory keeps exactly one file, holding the original bytes', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-local-image-copy-survives' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const cli = harness.configureFakeClaudeCli();
+      const guild = await harness.registerRealGuild({
+        name: 'Local Image Copy Survives Guild',
+        path: dungeonmasterHome,
+      });
+      const guildId = String(guild.id);
+      const questId = 'server-http-local-image-copy-survives';
+      const sessionId = SessionIdStub({ value: 'bbbbbbbb-8002-4222-8222-444444444444' });
+      const quest = QuestStub({
+        id: questId as never,
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-8002-4222-8222-444444444444' }),
+            role: 'chaoswhisperer',
+            status: 'in_progress',
+            sessionId,
+          }),
+        ],
+      });
+      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+
+      const seeded = harness.seedImageFile({
+        baseName: 'quest-flow-local-image-copy-survives-fixture',
+        fileName: 'deleted-screenshot.png',
+        bytes: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 9, 8, 7, 6, 5, 4, 3, 2]),
+      });
+      const originalBase64 = harness.readFileBase64({ filePath: seeded.imagePath });
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: `see ${seeded.imagePath} ok` }),
+      });
+
+      // Removes the fixture directory — including the source file the message pointed at — only
+      // after the send has resolved, so the copy this test is about has already happened.
+      seeded.cleanup();
+
+      const dir = harness.readImagesDir({ dungeonmasterHome, guildId, questId });
+      const [copiedFileName] = dir.fileNames;
+      const copiedBase64 = harness.readFileBase64({ filePath: `${dir.dirPath}/${copiedFileName}` });
+
+      cli.restore();
+      restore();
+
+      expect(response.status).toBe(200);
+      // A real directory can never hold two entries sharing a name, so a Set landing at exactly 1
+      // proves the copy is the ONLY file left, without a bare `.length` check.
+      expect(new Set(dir.fileNames).size).toBe(1);
+      expect(copiedBase64).toBe(originalBase64);
+    });
+
+    it("VALID: {images: [one bitmap], message carrying both a bare bitmap placeholder AND an absolute screenshot path} => the agent's prompt carries the read-the-images trailer exactly once", async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-local-image-trailer-once' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const cli = harness.configureFakeClaudeCli();
+      const guild = await harness.registerRealGuild({
+        name: 'Local Image Trailer Once Guild',
+        path: dungeonmasterHome,
+      });
+      const guildId = String(guild.id);
+      const questId = 'server-http-local-image-trailer-once';
+      const sessionId = SessionIdStub({ value: 'bbbbbbbb-8003-4222-8222-444444444444' });
+      const quest = QuestStub({
+        id: questId as never,
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-8003-4222-8222-444444444444' }),
+            role: 'chaoswhisperer',
+            status: 'in_progress',
+            sessionId,
+          }),
+        ],
+      });
+      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+
+      // A distinct extension from the uploaded bitmap's ('png') is what lets this test tell the
+      // two written files apart afterward without parsing the prompt it is trying to prove.
+      const seeded = harness.seedImageFile({
+        baseName: 'quest-flow-local-image-trailer-once-fixture',
+        fileName: 'trailer-screenshot.jpg',
+        bytes: new Uint8Array([255, 216, 255, 224, 1, 2, 3, 4]),
+      });
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `first [Pasted Image 1] then see ${seeded.imagePath} ok`,
+          images: [{ mediaType: 'image/png', dataBase64: 'Zmlyc3QtaW1hZ2U=' }],
+        }),
+      });
+      const actualPrompt = await harness.waitForClaudeInvocationPrompt({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const dir = harness.readImagesDir({ dungeonmasterHome, guildId, questId });
+      const [bitmapFileName] = dir.fileNames.filter((name) => name.endsWith('.png'));
+      const [screenshotFileName] = dir.fileNames.filter((name) => name.endsWith('.jpg'));
+
+      cli.restore();
+      restore();
+      seeded.cleanup();
+
+      // The bitmap is ordinal 1 (it is the only upload), the screenshot path is ordinal 2 (it is
+      // found after the upload's own count) — pinning the WHOLE prompt is the strongest proof
+      // available on the resume branch this quest's seeded sessionId puts the spawn on: a trailer
+      // appended twice (once per image kind, rather than once for the whole message) would make
+      // this string differ from what the fake CLI actually recorded.
+      const expectedPrompt =
+        `first ![Pasted Image 1](${dir.dirPath}/${bitmapFileName}) then see ` +
+        `![Pasted Image 2](${dir.dirPath}/${screenshotFileName}) ok\n\n` +
+        `${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+
+      expect(response.status).toBe(200);
+      expect(actualPrompt).toBe(expectedPrompt);
+    });
+
+    it('VALID: {message with no absolute image path and no images array} => the agent receives the message byte-identical, with no read-the-images trailer appended', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-local-image-text-only' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const cli = harness.configureFakeClaudeCli();
+      const guild = await harness.registerRealGuild({
+        name: 'Local Image Text Only Guild',
+        path: dungeonmasterHome,
+      });
+      const guildId = String(guild.id);
+      const questId = 'server-http-local-image-text-only';
+      const sessionId = SessionIdStub({ value: 'bbbbbbbb-8004-4222-8222-444444444444' });
+      const quest = QuestStub({
+        id: questId as never,
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-8004-4222-8222-444444444444' }),
+            role: 'chaoswhisperer',
+            status: 'in_progress',
+            sessionId,
+          }),
+        ],
+      });
+      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+
+      const message = 'plain text with no screenshot path at all';
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+      const actualPrompt = await harness.waitForClaudeInvocationPrompt({
+        claudeQueueDir: cli.claudeQueueDir,
+        cwd: dungeonmasterHome,
+        timeoutMs: 8000,
+      });
+      const sentinelOccurrences = [
+        ...actualPrompt.matchAll(new RegExp(pastedImageStatics.promptSentinel, 'gu')),
+      ].map((match) => match[0]);
+
+      cli.restore();
+      restore();
+
+      expect(response.status).toBe(200);
+      expect(sentinelOccurrences).toStrictEqual([]);
+      // Resume branch (this quest's chat work item carries a sessionId), so the whole `-p` prompt
+      // is nothing but the message plus whatever trailer would have been appended — pinning it
+      // against the posted message directly is the stronger proof that nothing else rides along.
+      expect(actualPrompt).toBe(message);
+    });
+  });
+
   // Flow: send-message-with-images, the CREATE surface. Mirrors the "chat with images" block
   // above, but for the FIRST message of a brand-new quest: no seedQuest, no pre-existing session —
   // the questId pastedImagePersistBroker needs to resolve <questFolder>/images does not exist

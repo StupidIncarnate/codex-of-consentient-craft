@@ -84,6 +84,7 @@ export const QuestChatResponderProxy = (): {
   getStartChatCallCount: () => unknown;
   setupPastedImageHome: (params: { homePath: string }) => void;
   stagePastedImageIds: (params: { ids: readonly string[] }) => void;
+  stagePastedImageSourceRead: (params: { filePath: AbsoluteFilePath; bytes: Uint8Array }) => void;
   getWrittenPayloadsInOrder: () => unknown[];
   callResponder: typeof QuestChatResponder;
 } => {
@@ -185,6 +186,18 @@ export const QuestChatResponderProxy = (): {
     },
     stagePastedImageIds: ({ ids }: { ids: readonly string[] }): void => {
       persistProxy.stageImageIds({ ids });
+    },
+    // A local image path never carries an upload — its bytes come from the filesystem read the
+    // persist broker's own scan/copy step performs, which this stages through the same composed
+    // persistProxy the upload path above uses.
+    stagePastedImageSourceRead: ({
+      filePath,
+      bytes,
+    }: {
+      filePath: AbsoluteFilePath;
+      bytes: Uint8Array;
+    }): void => {
+      persistProxy.sourceReads({ filePath, bytes });
     },
     // Raw base64 payload per write, in the order fs actually received them — the images.map()
     // callback in pastedImagePersistBroker starts each write synchronously in input order (see

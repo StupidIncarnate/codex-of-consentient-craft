@@ -1,9 +1,12 @@
 /**
- * PURPOSE: Handles design chat session requests, rewriting any pasted images to on-disk paths
- * before delegating to the orchestrator design chat adapter. Runs the image write only after the
- * quest-not-found and design-phase guards pass, so a refused send never touches disk. Reads guildId
- * off the body rather than resolving it from questId, since the design surface is the one of the
- * three send routes whose caller already has guildId from its own guild-scoped URL.
+ * PURPOSE: Handles design chat session requests, rewriting any pasted images AND any local image
+ * path the message text carries to on-disk paths before delegating to the orchestrator design chat
+ * adapter. Calls pastedImagePersistBroker unconditionally rather than gating on a non-empty
+ * `images` array — a screenshot path arrives as text with no uploads, and the broker itself is a
+ * no-op (no adapter touched) for a message with neither. Runs after the quest-not-found and
+ * design-phase guards pass, so a refused send never touches disk. Reads guildId off the body rather
+ * than resolving it from questId, since the design surface is the one of the three send routes
+ * whose caller already has guildId from its own guild-scoped URL.
  *
  * USAGE:
  * const result = await DesignSessionResponder({ params: { questId: 'abc' }, body: { guildId: 'xyz', message: 'update color' } });
@@ -94,10 +97,12 @@ export const DesignSessionResponder = async ({
       });
     }
 
-    const rewrittenMessage =
-      images !== undefined && images.length > 0
-        ? await pastedImagePersistBroker({ guildId, questId, message, images })
-        : message;
+    const rewrittenMessage = await pastedImagePersistBroker({
+      guildId,
+      questId,
+      message,
+      images: images ?? [],
+    });
 
     const { chatProcessId } = await orchestratorStartDesignChatAdapter({
       questId,

@@ -1,4 +1,5 @@
 import {
+  AbsoluteFilePathStub,
   GuildIdStub,
   PastedImageUploadStub,
   ProcessIdStub,
@@ -180,6 +181,37 @@ describe('DesignSessionResponder', () => {
       expect(proxy.persistedImageWriteCallCount()).toBe(0);
       expect(proxy.getStartDesignChatCalls()).toStrictEqual([
         { questId, guildId, message: 'Update the button color' },
+      ]);
+    });
+
+    it('VALID: {message holds an absolute local image path, no images key at all} => copies the file into the quest images dir and forwards the rewritten token to startDesignChat', async () => {
+      const proxy = DesignSessionResponderProxy();
+      const questId = QuestIdStub();
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub();
+      const quest = QuestStub({ id: questId, status: 'explore_design' });
+      const homePath = '/home/design-local-path';
+      const sourcePath = AbsoluteFilePathStub({ value: '/tmp/snip.png' });
+      const copyId = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+      proxy.setupQuest({ quest });
+      proxy.setupDesignChat({ questId, chatProcessId });
+      proxy.setupImagePersistHome({ homePath });
+      proxy.stageLocalImageCopy({ sourcePath, bytes: new Uint8Array([1, 2, 3]), copyId });
+
+      const result = await proxy.callResponder({
+        params: { questId },
+        body: { guildId, message: 'see /tmp/snip.png ok' },
+      });
+
+      const imagesDirPath = `${homePath}/.dungeonmaster/guilds/${guildId}/quests/${questId}/images`;
+      const expectedPath = `${imagesDirPath}/${copyId}.png`;
+
+      expect(result).toStrictEqual({
+        status: 200,
+        data: { chatProcessId },
+      });
+      expect(proxy.getStartDesignChatCalls()).toStrictEqual([
+        { questId, guildId, message: `see ![Pasted Image 1](${expectedPath}) ok` },
       ]);
     });
 

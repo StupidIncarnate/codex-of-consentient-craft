@@ -62,6 +62,10 @@ const claudeInvocationPromptContract = z.object({
   prompt: z.string().brand<'ClaudeInvocationPrompt'>(),
 });
 
+// Derived from the contract above rather than hand-written, so the branded prompt string stays
+// branded through waitForClaudeInvocationPrompt below without a second contract to keep in sync.
+type ClaudeInvocationPrompt = z.infer<typeof claudeInvocationPromptContract>['prompt'];
+
 export const serverAppHarness = (): {
   setupTestHome: (params: { baseName: string }) => () => void;
   toPlain: (value: unknown) => unknown;
@@ -169,6 +173,16 @@ export const serverAppHarness = (): {
     cwd: string;
     timeoutMs: number;
   }) => Promise<readonly FilePath[]>;
+  // Reach for THIS over waitForClaudeInvocationImagePaths when a case needs the raw prompt TEXT
+  // itself — pinning the whole `-p` string, or counting how many times the sentinel/instruction
+  // trailer occurs in it — rather than just the paths inside its tokens. Parses the invocation
+  // through the same zod contract internally, so no caller reaches for an inline structural cast
+  // on the `unknown` prompt field.
+  waitForClaudeInvocationPrompt: (params: {
+    claudeQueueDir: FilePath;
+    cwd: string;
+    timeoutMs: number;
+  }) => Promise<ClaudeInvocationPrompt>;
 } => {
   const setupTestHome = ({ baseName }: { baseName: string }): (() => void) => {
     const savedDungeonmasterHome = process.env.DUNGEONMASTER_HOME;
@@ -480,6 +494,13 @@ export const serverAppHarness = (): {
     return matches.map((match) => FilePathStub({ value: match[2] ?? '' }));
   };
 
+  const waitForClaudeInvocationPrompt = async (params: {
+    claudeQueueDir: FilePath;
+    cwd: string;
+    timeoutMs: number;
+  }): Promise<ClaudeInvocationPrompt> =>
+    claudeInvocationPromptContract.parse(await waitForClaudeInvocation(params)).prompt;
+
   return {
     setupTestHome,
     toPlain,
@@ -495,5 +516,6 @@ export const serverAppHarness = (): {
     readCreatedQuestId,
     readListedQuestIds,
     waitForClaudeInvocationImagePaths,
+    waitForClaudeInvocationPrompt,
   };
 };

@@ -1,13 +1,15 @@
 /**
  * PURPOSE: Handles new-quest-from-chat creation by validating input, persisting any pasted images
- * ahead of the send under a pre-minted questId, then delegating to orchestrator startChat, and
- * returning questId + chatProcessId. The image-persist step must mint its own questId here (rather
- * than reuse the chat/followup routes' pattern of persisting against an already-existing quest)
- * because the first message of a brand-new quest has no questId to persist under until this
- * responder makes one. A throw anywhere after that mint (the persist write itself, or the
- * orchestrator create that follows it) removes the folder this responder minted, because
- * `isQuestFolderGuard` accepts a bare UUID and would otherwise have `questListBroker` report the
- * orphaned images-only folder as a broken quest on every list call, forever.
+ * AND any local image path the message text carries ahead of the send under a pre-minted questId,
+ * then delegating to orchestrator startChat, and returning questId + chatProcessId. The
+ * image-persist step must mint its own questId here (rather than reuse the chat/followup routes'
+ * pattern of persisting against an already-existing quest) because the first message of a
+ * brand-new quest has no questId to persist under until this responder makes one — so the mint
+ * condition widens to either an upload or a text path, since a pasted screenshot path arrives with
+ * no upload at all. A throw anywhere after that mint (the persist write itself, or the orchestrator
+ * create that follows it) removes the folder this responder minted, because `isQuestFolderGuard`
+ * accepts a bare UUID and would otherwise have `questListBroker` report the orphaned images-only
+ * folder as a broken quest on every list call, forever.
  *
  * USAGE:
  * const result = await QuestNewResponder({ params: { guildId }, body: { message, images } });
@@ -25,6 +27,7 @@ import { questNewBodyContract } from '../../../contracts/quest-new-body/quest-ne
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { localImagePathsFindTransformer } from '../../../transformers/local-image-paths-find/local-image-paths-find-transformer';
 
 export const QuestNewResponder = async ({
   params,
@@ -78,19 +81,21 @@ export const QuestNewResponder = async ({
     const { message, questType, images } = parsedBody.data;
 
     // A pre-minted id: the create route is the one send surface where the quest does not exist
-    // yet, so pasted images have nowhere to persist until this responder makes one. Only minted
-    // when there is something to persist — a text-only create keeps letting the orchestrator mint
-    // its own id, unchanged from before.
+    // yet, so pasted images — and a local image path the message text carries with no upload at
+    // all, such as a pasted screenshot path — have nowhere to persist until this responder makes
+    // one. Only minted when there is something to persist — a create with neither keeps letting
+    // the orchestrator mint its own id, unchanged from before.
     const questId =
-      images !== undefined && images.length > 0
+      (images !== undefined && images.length > 0) ||
+      localImagePathsFindTransformer({ message, startOrdinal: 1 }).length > 0
         ? questIdContract.parse(crypto.randomUUID())
         : undefined;
 
     try {
       const rewrittenMessage =
-        images === undefined || images.length === 0 || questId === undefined
+        questId === undefined
           ? message
-          : await pastedImagePersistBroker({ guildId, questId, message, images });
+          : await pastedImagePersistBroker({ guildId, questId, message, images: images ?? [] });
 
       const { chatProcessId, questId: startedQuestId } = await orchestratorStartChatAdapter({
         guildId,
@@ -107,8 +112,9 @@ export const QuestNewResponder = async ({
         },
       });
     } catch (error: unknown) {
-      // Only clean up when THIS responder minted the id — a text-only create never wrote a
-      // folder, and an id the orchestrator mints itself is the orchestrator's to manage.
+      // Only clean up when THIS responder minted the id — a create that minted nothing (no
+      // upload, no text path) never wrote a folder, and an id the orchestrator mints itself is
+      // the orchestrator's to manage.
       if (questId !== undefined) {
         const questFolderPath = locationsQuestFolderPathFindBroker({ guildId, questId });
         try {
