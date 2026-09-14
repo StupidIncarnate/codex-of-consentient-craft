@@ -1,5 +1,7 @@
 import { Hono } from 'hono';
 
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
+
 import { serverAppHarness } from '../../../test/harnesses/server-app/server-app.harness';
 import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';
 import { imageServeStatics } from '../../statics/image-serve/image-serve-statics';
@@ -12,6 +14,40 @@ const PNG_SIGNATURE_BYTES = new Uint8Array([
 const WEBP_BYTES = new Uint8Array([
   0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50,
 ]);
+
+const JPG_BYTES = new Uint8Array([
+  0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
+]);
+
+const JPEG_BYTES = new Uint8Array([
+  0xff, 0xd8, 0xff, 0xe1, 0x00, 0x10, 0x45, 0x78, 0x69, 0x66, 0x00, 0x00,
+]);
+
+const GIF_BYTES = new Uint8Array([
+  0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00,
+]);
+
+// The case LIST is derived from pastedImageStatics.allowedExtensions, so a newly admitted
+// extension is picked up automatically; only the per-extension expected MIME and fixture bytes
+// are literal here (each extension's bytes byte-distinct from every other fixture in this file,
+// so a bytes-match-disk assertion proves which file the route actually read). A route-admitted
+// extension with no case below throws rather than silently dropping out of coverage.
+const VALID_EXTENSION_CASES = pastedImageStatics.allowedExtensions.map((extension) => {
+  switch (extension) {
+    case 'png':
+      return [extension, 'image/png', PNG_SIGNATURE_BYTES] as const;
+    case 'jpg':
+      return [extension, 'image/jpeg', JPG_BYTES] as const;
+    case 'jpeg':
+      return [extension, 'image/jpeg', JPEG_BYTES] as const;
+    case 'gif':
+      return [extension, 'image/gif', GIF_BYTES] as const;
+    case 'webp':
+      return [extension, 'image/webp', WEBP_BYTES] as const;
+    default:
+      throw new Error(`no fixture bytes registered for extension: ${String(extension)}`);
+  }
+});
 
 // The bytes a symlink escaping the images directory points at — byte-distinct from every other
 // fixture here, so a response carrying them can only have come from outside that directory.
@@ -116,47 +152,31 @@ describe('ImagesFlow', () => {
       ],
     ] as const;
 
-    it('VALID: {a real .png file on disk} => returns 200 with bytes matching disk and Content-Type image/png', async () => {
-      const app = ImagesFlow();
-      const { imagePath, cleanup } = harness.seedImageFile({
-        baseName: 'images-flow-png',
-        fileName: 'pasted.png',
-        bytes: PNG_SIGNATURE_BYTES,
-      });
+    it.each(VALID_EXTENSION_CASES)(
+      'VALID: {a real .%s file on disk} => returns 200 with bytes matching disk and Content-Type %s',
+      async (extension, expectedContentType, bytes) => {
+        const app = ImagesFlow();
+        const { imagePath, cleanup } = harness.seedImageFile({
+          baseName: `images-flow-${extension}`,
+          fileName: `pasted.${extension}`,
+          bytes,
+        });
 
-      const response = await app.request(
-        `${apiRoutesStatics.images.serve}?${PATH_PARAM}=${encodeURIComponent(imagePath)}`,
-      );
-      const responseBytes = new Uint8Array(await response.arrayBuffer());
-      const { status } = response;
-      const contentType = response.headers.get('content-type');
-      cleanup();
+        const response = await app.request(
+          `${apiRoutesStatics.images.serve}?${PATH_PARAM}=${encodeURIComponent(imagePath)}`,
+        );
+        const responseBytes = new Uint8Array(await response.arrayBuffer());
+        const { status } = response;
+        const contentType = response.headers.get('content-type');
+        cleanup();
 
-      expect(status).toBe(200);
-      expect(responseBytes).toStrictEqual(PNG_SIGNATURE_BYTES);
-      expect(contentType).toBe('image/png');
-    });
-
-    it('VALID: {a real .webp file on disk} => returns Content-Type image/webp', async () => {
-      const app = ImagesFlow();
-      const { imagePath, cleanup } = harness.seedImageFile({
-        baseName: 'images-flow-webp',
-        fileName: 'pasted.webp',
-        bytes: WEBP_BYTES,
-      });
-
-      const response = await app.request(
-        `${apiRoutesStatics.images.serve}?${PATH_PARAM}=${encodeURIComponent(imagePath)}`,
-      );
-      const responseBytes = new Uint8Array(await response.arrayBuffer());
-      const { status } = response;
-      const contentType = response.headers.get('content-type');
-      cleanup();
-
-      expect(status).toBe(200);
-      expect(responseBytes).toStrictEqual(WEBP_BYTES);
-      expect(contentType).toBe('image/webp');
-    });
+        expect({ status, contentType, responseBytes }).toStrictEqual({
+          status: 200,
+          contentType: expectedContentType,
+          responseBytes: bytes,
+        });
+      },
+    );
 
     it('VALID: {mounted ahead of the SPA catch-all} => answers with the image instead of falling through', async () => {
       const app = new Hono();
