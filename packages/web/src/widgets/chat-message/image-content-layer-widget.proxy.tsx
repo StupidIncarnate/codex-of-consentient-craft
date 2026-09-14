@@ -13,6 +13,7 @@ type ImageDataUrl = ReturnType<typeof ImageDataUrlStub>;
 
 export const ImageContentLayerWidgetProxy = (): {
   rememberImages: (params: { uuid: ChatEntryUuid; dataUrls: readonly ImageDataUrl[] }) => void;
+  setupEmptyMemory: () => void;
   getImageSrcs: () => readonly HTMLImageElement['src'][];
   getBubbleText: () => NonNullable<HTMLElement['textContent']>;
   getChildTestIds: () => readonly ReturnType<Element['getAttribute']>[];
@@ -49,6 +50,11 @@ export const ImageContentLayerWidgetProxy = (): {
     rememberImages: ({ uuid, dataUrls }): void => {
       memoryProxy.setupEmpty();
       pastedImageMemoryState.remember({ uuid, dataUrls });
+    },
+    // Clears every staged byte and stages nothing — the state a freshly reloaded tab is in, where
+    // module state (not a mock) would otherwise still carry bytes a previous test staged.
+    setupEmptyMemory: (): void => {
+      memoryProxy.setupEmpty();
     },
     // getAttribute (not the `.src` IDL property) so a data URL comes back byte-for-byte what the
     // widget wrote — same reasoning as ImageOverlayWidgetProxy's getImageSrc.

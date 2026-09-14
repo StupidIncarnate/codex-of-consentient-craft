@@ -6,23 +6,23 @@ import { normaliseChatContentTransformer } from './normalise-chat-content-transf
 
 describe('normaliseChatContentTransformer', () => {
   describe('optimistic vs transcript parity', () => {
-    it('VALID: {content: optimistic composer text} and {content: transcript text with a resolved image URL} => both normalise to the identical bare-placeholder string', () => {
+    it('VALID: {content: optimistic composer text} and {content: transcript text with a resolved image URL} => both normalise to the identical ordinal-free marker', () => {
       const optimisticResult = normaliseChatContentTransformer({ content: 'A[Pasted Image 1]B' });
       const transcriptResult = normaliseChatContentTransformer({
         content: 'A![Pasted Image 1](http://host/api/images?path=%2Fp%2Fx.png)B',
       });
 
-      expect(optimisticResult).toBe('A[Pasted Image 1]B');
-      expect(transcriptResult).toBe('A[Pasted Image 1]B');
+      expect(optimisticResult).toBe('A[Pasted Image]B');
+      expect(transcriptResult).toBe('A[Pasted Image]B');
     });
 
-    it('VALID: {content: transcript text with two resolved image URLs} => reduces both tokens to their bare placeholder form in order', () => {
+    it('VALID: {content: transcript text with two resolved image URLs} => reduces both tokens to the same ordinal-free marker', () => {
       const result = normaliseChatContentTransformer({
         content:
           'A![Pasted Image 1](http://host/api/images?path=%2Fp%2Fx.png)B![Pasted Image 2](http://host/api/images?path=%2Fp%2Fy.png)C',
       });
 
-      expect(result).toBe('A[Pasted Image 1]B[Pasted Image 2]C');
+      expect(result).toBe('A[Pasted Image]B[Pasted Image]C');
     });
 
     it('VALID: {content: optimistic composer text} and {content: transcript text with a resolved image URL} => normalise to the same exact string, and the equivalence guard recognises the pair as duplicates', () => {
@@ -33,7 +33,7 @@ describe('normaliseChatContentTransformer', () => {
       const transcriptResult = normaliseChatContentTransformer({ content: transcriptContent });
 
       expect(optimisticResult).toBe(transcriptResult);
-      expect(optimisticResult).toBe('A[Pasted Image 1]B');
+      expect(optimisticResult).toBe('A[Pasted Image]B');
 
       const optimisticEntry = UserChatEntryStub({ content: optimisticContent });
       const transcriptEntry = UserChatEntryStub({ content: transcriptContent });
@@ -41,6 +41,51 @@ describe('normaliseChatContentTransformer', () => {
       expect(
         hasEquivalentChatEntryGuard({ entry: optimisticEntry, among: [transcriptEntry] }),
       ).toBe(true);
+    });
+  });
+
+  describe('screenshot path parity', () => {
+    it('VALID: {content: optimistic screenshot path text} and {content: transcript text with the converted image token plus the images trailer} => both normalise to the identical ordinal-free marker', () => {
+      const optimisticContent = 'see /tmp/snips/snip-20260913-165729.png';
+      const transcriptContent = `see ![Pasted Image 1](http://host/api/images?path=%2Fq%2Fimages%2Fu.png)\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+
+      const optimisticResult = normaliseChatContentTransformer({ content: optimisticContent });
+      const transcriptResult = normaliseChatContentTransformer({ content: transcriptContent });
+
+      expect(optimisticResult).toBe('see [Pasted Image]');
+      expect(transcriptResult).toBe('see [Pasted Image]');
+    });
+
+    it('VALID: {content: optimistic text with a screenshot path before a pasted-bitmap placeholder} and {content: transcript text whose token ordinals the server numbered out of text order} => both normalise to the same ordinal-free string', () => {
+      const optimisticContent = 'A /tmp/snips/snip.png B [Pasted Image 1] C';
+      const transcriptContent =
+        'A ![Pasted Image 2](http://host/api/images?path=%2Fp%2Fsnip.png) B ![Pasted Image 1](http://host/api/images?path=%2Fp%2Fbitmap.png) C';
+
+      const optimisticResult = normaliseChatContentTransformer({ content: optimisticContent });
+      const transcriptResult = normaliseChatContentTransformer({ content: transcriptContent });
+
+      expect(optimisticResult).toBe('A [Pasted Image] B [Pasted Image] C');
+      expect(transcriptResult).toBe('A [Pasted Image] B [Pasted Image] C');
+    });
+
+    it('VALID: {content: a local image path the server left as plain text because the file was missing} => the optimistic and delivered copies (identical, untouched by any server rewrite) still normalise to the same ordinal-free string', () => {
+      const content = 'missing file at /tmp/snips/ghost.png, sorry';
+
+      const optimisticResult = normaliseChatContentTransformer({ content });
+      const transcriptResult = normaliseChatContentTransformer({ content });
+
+      expect(optimisticResult).toBe('missing file at [Pasted Image], sorry');
+      expect(transcriptResult).toBe('missing file at [Pasted Image], sorry');
+    });
+
+    it('VALID: {content: prose mentioning an absolute .png path with no image attached at all} => both copies normalise identically', () => {
+      const content = 'the icon lives at /opt/app/assets/icon.png in the repo';
+
+      const optimisticResult = normaliseChatContentTransformer({ content });
+      const transcriptResult = normaliseChatContentTransformer({ content });
+
+      expect(optimisticResult).toBe('the icon lives at [Pasted Image] in the repo');
+      expect(transcriptResult).toBe('the icon lives at [Pasted Image] in the repo');
     });
   });
 
@@ -52,8 +97,8 @@ describe('normaliseChatContentTransformer', () => {
       const withTrailerResult = normaliseChatContentTransformer({ content: withTrailer });
       const withoutTrailerResult = normaliseChatContentTransformer({ content: baseMessage });
 
-      expect(withTrailerResult).toBe('A[Pasted Image 1]B');
-      expect(withoutTrailerResult).toBe('A[Pasted Image 1]B');
+      expect(withTrailerResult).toBe('A[Pasted Image]B');
+      expect(withoutTrailerResult).toBe('A[Pasted Image]B');
     });
 
     it('EDGE: {content: only the images trailer, no message text} => normalises to an empty string', () => {

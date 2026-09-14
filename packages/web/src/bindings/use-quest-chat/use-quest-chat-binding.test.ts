@@ -3443,6 +3443,71 @@ describe('useQuestChatBinding', () => {
       expect(result.current.entriesBySession).toStrictEqual(expectedMap);
     });
 
+    it('VALID: {screenshot path typed into composer: optimistic copy holds the raw path, delivered copy holds a resolved image token plus a trailer} => entriesBySession still collapses to the delivered copy alone', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-dedupe-screenshot-1' });
+      const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const optimisticUuid = '00000000-0000-4000-8000-000000000710';
+      const optimisticTs = '2026-09-02T00:00:00.000Z';
+      const deliveredUuid = '00000000-0000-4000-8000-000000000711';
+      const deliveredTs = '2026-09-02T00:00:01.000Z';
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-dedupe-screenshot-1' }) });
+      proxy.setupUuids({ uuids: [optimisticUuid] });
+      proxy.setupTimestamps({ timestamps: [optimisticTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendMessage({
+            message: UserInputStub({ value: 'A /tmp/snips/snip-20260913-165729.png B' }),
+          });
+        },
+      });
+
+      const deliveredContent = `A ![Pasted Image 1](http://host/api/images?path=%2Fq%2Fimages%2Fu.png) B\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-dedupe-screenshot-1',
+                sessionId,
+                chatProcessId: ProcessIdStub({ value: 'proc-dedupe-screenshot-1' }),
+                entries: [
+                  {
+                    role: 'user',
+                    content: deliveredContent,
+                    uuid: deliveredUuid,
+                    timestamp: deliveredTs,
+                  },
+                ],
+              },
+              timestamp: '2026-09-02T00:00:01.000Z',
+            }),
+          });
+        },
+      });
+
+      // The wrong value this turns red against: the synthetic bucket still carrying the optimistic
+      // raw-path entry alongside the delivered image, which is the two-copy state the transcript
+      // was in before the normaliser learned to reduce a local path — the path rendering as text
+      // beside the real image.
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+      const expectedMap = new Map();
+      expectedMap.set(synthKey, []);
+      expectedMap.set(sessionId, [
+        { role: 'user', content: deliveredContent, uuid: deliveredUuid, timestamp: deliveredTs },
+      ]);
+
+      expect(result.current.entriesBySession).toStrictEqual(expectedMap);
+    });
+
     it('VALID: {optimistic entry staged, no delivered twin ever arrives} => the optimistic entry survives in the synthetic bucket', async () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();

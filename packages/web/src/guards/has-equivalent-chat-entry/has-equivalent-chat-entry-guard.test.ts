@@ -107,11 +107,19 @@ describe('hasEquivalentChatEntryGuard', () => {
       expect(hasEquivalentChatEntryGuard({ entry, among })).toBe(true);
     });
 
-    it('VALID: {entry: user "A[Pasted Image 1]B", among contains user "A[Pasted Image 2]B"} => returns false (ordinal differs)', () => {
+    it('VALID: {entry: user "A[Pasted Image 1]B", among contains user "A[Pasted Image 2]B"} => returns true (ordinal is dropped, not compared)', () => {
       const entry = UserChatEntryStub({ content: 'A[Pasted Image 1]B' });
       const among = [UserChatEntryStub({ content: 'A[Pasted Image 2]B' })];
 
-      expect(hasEquivalentChatEntryGuard({ entry, among })).toBe(false);
+      expect(hasEquivalentChatEntryGuard({ entry, among })).toBe(true);
+    });
+
+    it('VALID: {entry: user optimistic screenshot path text, among contains user transcript text with the converted image token plus the images trailer} => returns true', () => {
+      const entry = UserChatEntryStub({ content: 'see /tmp/snips/snip-20260913-165729.png' });
+      const transcriptContent = `see ![Pasted Image 1](http://host/api/images?path=%2Fq%2Fimages%2Fu.png)\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
+      const among = [UserChatEntryStub({ content: transcriptContent })];
+
+      expect(hasEquivalentChatEntryGuard({ entry, among })).toBe(true);
     });
   });
 });

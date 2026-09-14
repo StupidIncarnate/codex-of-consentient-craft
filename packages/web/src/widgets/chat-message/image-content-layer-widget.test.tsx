@@ -151,6 +151,43 @@ describe('ImageContentLayerWidget', () => {
     });
   });
 
+  describe('screenshot path converted server-side (no in-memory bytes)', () => {
+    it('VALID: {content: full markdown token for a converted screenshot path, no bytes in memory} => renders the screenshot as an image element, not as the path text', () => {
+      // #transcript-shows-the-screenshot
+      const proxy = ImageContentLayerWidgetProxy();
+      proxy.setupEmptyMemory();
+      const servedUrl = 'http://host/api/images?path=%2Ftmp%2Fsnips%2Fsnip-20260913-165729.png';
+      const { content, uuid } = [
+        UserChatEntryStub({ content: `Look at ![Pasted Image 1](${servedUrl}) now` }),
+      ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
+
+      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+
+      expect(proxy.getImageSrcs()).toStrictEqual([servedUrl]);
+      expect(proxy.getBubbleText()).toBe('Look at  now');
+    });
+
+    it('VALID: {content: same screenshot token plus the images trailer, no bytes in memory} => the transcript still renders text, image, text once the tab is reloaded and the original file is gone', () => {
+      // #historic-render-survives
+      const proxy = ImageContentLayerWidgetProxy();
+      proxy.setupEmptyMemory();
+      const servedUrl = 'http://host/api/images?path=%2Ftmp%2Fsnips%2Fsnip-20260913-165729.png';
+      const { content, uuid } = [
+        UserChatEntryStub({
+          content: `Look at ![Pasted Image 1](${servedUrl}) now\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`,
+        }),
+      ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
+
+      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+
+      expect(proxy.getChildTestIds()).toStrictEqual([
+        'CHAT_MESSAGE_TEXT',
+        'CHAT_MESSAGE_IMAGE',
+        'CHAT_MESSAGE_TEXT',
+      ]);
+    });
+  });
+
   describe('optimistic messages (in-memory bytes)', () => {
     it('VALID: {content: bare placeholder, matching uuid staged in memory} => renders the staged data URL immediately', () => {
       const proxy = ImageContentLayerWidgetProxy();

@@ -1775,6 +1775,124 @@ describe('QuestChatContentLayerWidget', () => {
     });
   });
 
+  describe('typed screenshot path dedupes against its delivered image token', () => {
+    it('VALID: {create surface, screenshot path typed and sent, transcript copy delivered under the new quest with a markdown image token} => #transcript-shows-the-screenshot exactly one bubble survives and it renders the image, not the raw path', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'node' });
+      const newQuestId = QuestIdStub({ value: 'q-screenshot' });
+      proxy.setupNewQuest({
+        questId: newQuestId,
+        chatProcessId: ProcessIdStub({ value: 'proc-screenshot' }),
+      });
+      const guildId = GuildIdStub({ value: 'eeeeeee6-1111-2222-3333-444444444444' });
+
+      const rendered = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={null}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      await screen.findByTestId('CHAT_PANEL');
+
+      const typedMessage = 'SHOT /tmp/snips/snip-20260913-165729.png DONE';
+      await proxy.typeMessage({ text: typedMessage });
+      await proxy.clickSend();
+
+      await waitFor(() => {
+        expect(proxy.getNewQuestRequestCount()).toBe(1);
+      });
+
+      // BEFORE: only the optimistic entry exists. Nothing was pasted — the browser never held
+      // image bytes for a typed path — so it renders the raw path as TEXT, with no
+      // CHAT_MESSAGE_IMAGE to draw.
+      const bubblesBeforeDelivery = screen
+        .queryAllByTestId('CHAT_MESSAGE')
+        .filter((bubble) => String(bubble.textContent).includes('SHOT'));
+
+      expect({
+        bubbleTexts: bubblesBeforeDelivery.map((bubble) => String(bubble.textContent)),
+        hasImage: bubblesBeforeDelivery.some(
+          (bubble) => bubble.querySelector('[data-testid="CHAT_MESSAGE_IMAGE"]') !== null,
+        ),
+      }).toStrictEqual({
+        bubbleTexts: [`YOU${typedMessage}`],
+        hasImage: false,
+      });
+
+      // The same component instance, now told about the quest the send just created — the same
+      // questId-prop transition a parent route would drive after handleSend's navigate(), driven
+      // here via rerender (state-preserving: same element types at the same positions) rather than
+      // real routing, so the binding's WS subscription re-arms under the real id and localEntries
+      // (still holding the raw-path optimistic entry) survives the transition untouched.
+      rendered.rerender(
+        <MemoryRouter>
+          <QuestChatContentLayerWidget
+            questId={newQuestId}
+            guildId={guildId}
+            guildSlug={'test-guild' as never}
+          />
+        </MemoryRouter>,
+      );
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: newQuestId,
+              sessionId: 'dddddddd-5555-4666-8777-888888888888',
+              chatProcessId: 'proc-screenshot',
+              entries: [
+                {
+                  role: 'user',
+                  content: `SHOT ![Pasted Image 1](http://host/api/images?path=%2Fq%2Fimages%2Fu.png) DONE\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`,
+                  uuid: 'eeeeeeee-4444-4444-8444-444444444444',
+                  timestamp: '2026-09-13T16:57:30.000Z',
+                },
+              ],
+            },
+            timestamp: '2026-09-13T16:57:30.000Z',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        const stillMatchingCount = screen
+          .queryAllByTestId('CHAT_MESSAGE')
+          .filter((bubble) => String(bubble.textContent).includes('SHOT')).length;
+
+        expect(stillMatchingCount).toBe(1);
+      });
+
+      // AFTER: the transcript's own copy of the SAME message lands with a resolved markdown image
+      // token plus the read-the-images trailer. The optimistic raw-path copy must fall out of
+      // localEntries (hasEquivalentChatEntryGuard, via the normaliser's ordinal-free marker) —
+      // leaving exactly one bubble, the one carrying the picture.
+      const bubblesAfterDelivery = screen
+        .queryAllByTestId('CHAT_MESSAGE')
+        .filter((bubble) => String(bubble.textContent).includes('SHOT'));
+      const [bubbleAfterDelivery] = bubblesAfterDelivery;
+      const imageAfterDelivery = bubbleAfterDelivery!.querySelector(
+        '[data-testid="CHAT_MESSAGE_IMAGE"]',
+      );
+
+      expect({
+        bubbleTexts: bubblesAfterDelivery.map((bubble) => String(bubble.textContent)),
+        imageSrc: imageAfterDelivery?.getAttribute('src'),
+      }).toStrictEqual({
+        bubbleTexts: ['YOUSHOT  DONE'],
+        imageSrc: 'http://host/api/images?path=%2Fq%2Fimages%2Fu.png',
+      });
+    });
+  });
+
   describe('create-surface rejection', () => {
     it('ERROR: {questNewBroker rejects} => the composer catches the rejection and shows a toast with the exact error text, instead of clearing as if the send had succeeded', async () => {
       // The wrong value this turns red against: handleSend's create-surface branch consuming the
