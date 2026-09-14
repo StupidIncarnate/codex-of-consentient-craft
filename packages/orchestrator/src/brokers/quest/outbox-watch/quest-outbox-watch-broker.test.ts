@@ -68,6 +68,59 @@ describe('questOutboxWatchBroker', () => {
     });
   });
 
+  describe('what starting a watcher does to the bus', () => {
+    it('VALID: {default} => creates the outbox if absent and truncates nothing', async () => {
+      const proxy = questOutboxWatchBrokerProxy();
+      const outboxPath = FilePathStub({
+        value: '/home/user/.dungeonmaster/event-outbox.jsonl',
+      });
+
+      proxy.setupOutboxPath({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        outboxPath,
+      });
+
+      const { stop } = await questOutboxWatchBroker({
+        onQuestChanged: jest.fn(),
+        onError: jest.fn(),
+      });
+
+      stop();
+
+      expect(proxy.getCreatedPaths()).toStrictEqual([
+        '/home/user/.dungeonmaster/event-outbox.jsonl',
+      ]);
+      expect(proxy.getTruncatedPaths()).toStrictEqual([]);
+    });
+
+    it('VALID: {resetOnStart: true} => truncates the outbox exactly once', async () => {
+      const proxy = questOutboxWatchBrokerProxy();
+      const outboxPath = FilePathStub({
+        value: '/home/user/.dungeonmaster/event-outbox.jsonl',
+      });
+
+      proxy.setupOutboxPath({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        outboxPath,
+      });
+
+      const { stop } = await questOutboxWatchBroker({
+        onQuestChanged: jest.fn(),
+        onError: jest.fn(),
+        resetOnStart: true,
+      });
+
+      stop();
+
+      expect(proxy.getTruncatedPaths()).toStrictEqual([
+        '/home/user/.dungeonmaster/event-outbox.jsonl',
+      ]);
+      expect(proxy.getCreatedPaths()).toStrictEqual([]);
+    });
+  });
+
   describe('invalid lines', () => {
     it('ERROR: {invalid JSON} => calls onError with parse error', async () => {
       const proxy = questOutboxWatchBrokerProxy();
