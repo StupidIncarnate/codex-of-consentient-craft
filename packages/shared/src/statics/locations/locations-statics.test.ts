@@ -25,6 +25,7 @@ describe('locationsStatics', () => {
         dungeonmasterQuests: '.dungeonmaster-quests',
         dungeonmasterDevHome: '.dungeonmaster-dev',
         wardLocalDir: '.ward',
+        siegelenseLink: '.siegelense',
       },
       dungeonmasterHome: {
         dir: '.dungeonmaster',
@@ -63,6 +64,19 @@ describe('locationsStatics', () => {
           '.dungeonmaster-hooks.config.mjs',
           '.dungeonmaster-hooks.config.cjs',
         ],
+      },
+      siegelense: {
+        dir: 'siegelense',
+        registry: 'registry.json',
+        registryTmp: 'registry.json.tmp',
+        bootLock: 'boot.lock',
+        profilesDir: 'profiles',
+        guildsDir: 'guilds',
+        instancesDir: 'instances',
+        unownedDir: 'unowned',
+        heartbeat: 'heartbeat.json',
+        apiLog: 'api-server.log',
+        webLog: 'web-server.log',
       },
     });
   });

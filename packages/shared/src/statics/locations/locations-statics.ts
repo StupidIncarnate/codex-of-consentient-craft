@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Single source of truth for every filename and dirname literal that
  * dungeonmaster code reaches on disk. Grouped by anchor (repo root, dungeonmaster
- * home, guild, quest, user home, hooks). Resolver brokers under
+ * home, guild, quest, user home, hooks, siegelense). Resolver brokers under
  * src/brokers/locations/** compose absolute paths from these constants; lint
  * rules enforce that string values from this module are the only legal
  * location-shape literals in the codebase.
@@ -37,6 +37,7 @@ export const locationsStatics = {
     dungeonmasterQuests: '.dungeonmaster-quests',
     dungeonmasterDevHome: '.dungeonmaster-dev',
     wardLocalDir: '.ward',
+    siegelenseLink: '.siegelense',
   },
   dungeonmasterHome: {
     dir: '.dungeonmaster',
@@ -75,5 +76,18 @@ export const locationsStatics = {
       '.dungeonmaster-hooks.config.mjs',
       '.dungeonmaster-hooks.config.cjs',
     ],
+  },
+  siegelense: {
+    dir: 'siegelense',
+    registry: 'registry.json',
+    registryTmp: 'registry.json.tmp',
+    bootLock: 'boot.lock',
+    profilesDir: 'profiles',
+    guildsDir: 'guilds',
+    instancesDir: 'instances',
+    unownedDir: 'unowned',
+    heartbeat: 'heartbeat.json',
+    apiLog: 'api-server.log',
+    webLog: 'web-server.log',
   },
 } as const;

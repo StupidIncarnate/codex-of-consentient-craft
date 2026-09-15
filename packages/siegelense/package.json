@@ -1,0 +1,35 @@
+{
+  "name": "@dungeonmaster/siegelense",
+  "version": "0.1.0",
+  "description": "siegelense package",
+  "exports": {
+    "./flows": {
+      "source": "./flows.ts",
+      "import": "./dist/flows.js",
+      "require": "./dist/flows.js",
+      "types": "./dist/flows.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:clean": "rm -rf dist .ward/build.tsbuildinfo && npm run build",
+    "test": "dungeonmaster-ward --only test",
+    "typecheck": "dungeonmaster-ward --only typecheck",
+    "lint": "dungeonmaster-ward --only lint",
+    "ward": "dungeonmaster-ward"
+  },
+  "dependencies": {
+    "@dungeonmaster/shared": "*"
+  },
+  "devDependencies": {
+    "@dungeonmaster/testing": "*",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
