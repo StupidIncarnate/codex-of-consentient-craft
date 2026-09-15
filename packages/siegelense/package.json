@@ -56,6 +56,12 @@
       "import": "./dist/state.js",
       "require": "./dist/state.js",
       "types": "./dist/state.d.ts"
+    },
+    "./testing": {
+      "source": "./testing.ts",
+      "import": "./dist/testing.js",
+      "require": "./dist/testing.js",
+      "types": "./dist/testing.d.ts"
     }
   },
   "files": [

@@ -1842,6 +1842,79 @@ describe('McpServerFlow', () => {
     });
   });
 
+  // These three drive the REAL stdio server end-to-end (registration → dispatch Map entry →
+  // SiegelenseHandleResponder → contract parse), the same reason get-quest-summary's block exists.
+  // Unlike that one, none of these three calls a REAL siegelense broker: `siegelense-start` would
+  // spawn a real detached driver process, and `siegelense-run`/`siegelense-kill` would need a real
+  // running instance — none of which this harness's throwaway DUNGEONMASTER_HOME can safely stand
+  // up or tear down (the same reason all three are `skip-from-suite` in
+  // smoketestProbeArgsStatics). What each block below DOES prove for free, over the REAL stdio
+  // server and a genuinely empty registry.json: the tool answers a boundary case as an error
+  // rather than throwing or hanging, which is exactly the behavior this work item is graded on.
+  describe('tools/call with siegelense-start', () => {
+    it('ERROR: {missing specName} => returns the JSON error shape with isError, never spawning a driver', async () => {
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 8101 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'siegelense-start',
+          arguments: {},
+        },
+      });
+
+      const response = await client.sendRequest(request);
+      const result = ToolCallResultStub(response.result as never);
+
+      expect(response.error).toBe(undefined);
+      expect(result.isError).toBe(true);
+    });
+  });
+
+  describe('tools/call with siegelense-run', () => {
+    it('ERROR: {instanceId a fresh registry never held} => answers unknown, never existed, without reaching for a driver', async () => {
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 8102 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'siegelense-run',
+          arguments: {
+            instanceId: 'inst_deadbeef',
+            steps: [{ step: 'goto', path: '/', node: null, expect: 'ok' }],
+          },
+        },
+      });
+
+      const response = await client.sendRequest(request);
+      const result = ToolCallResultStub(response.result as never);
+
+      expect(response.error).toBe(undefined);
+      expect(String(result.content[0]?.text)).toMatch(
+        /^\{\n {2}"success": false,\n {2}"error": "siegelense-run: no instance by the id \\"inst_deadbeef\\" — unknown, never existed\. Check the id siegelense-start returned\."\n\}$/u,
+      );
+    });
+  });
+
+  describe('tools/call with siegelense-kill', () => {
+    it('ERROR: {instanceId a fresh registry never held} => answers unknown, never existed, without reaching for a driver', async () => {
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 8103 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'siegelense-kill',
+          arguments: { instanceId: 'inst_deadbeef' },
+        },
+      });
+
+      const response = await client.sendRequest(request);
+      const result = ToolCallResultStub(response.result as never);
+
+      expect(response.error).toBe(undefined);
+      expect(String(result.content[0]?.text)).toMatch(
+        /^\{\n {2}"success": false,\n {2}"error": "siegelense-kill: no instance by the id \\"inst_deadbeef\\" — unknown, never existed\. Check the id siegelense-start returned\."\n\}$/u,
+      );
+    });
+  });
+
   describe('content size cap', () => {
     // Tools whose response is NOT bounded by the 50KB cap. When a new tool is
     // added to mcpToolsStatics.tools.names it is automatically size-checked,
@@ -1874,6 +1947,10 @@ describe('McpServerFlow', () => {
       'list-quests',
       'list-guilds',
       'get-next-step',
+      // Require args — cannot be invoked with `{}` (all three take a required instanceId or specName)
+      'siegelense-start',
+      'siegelense-run',
+      'siegelense-kill',
     ] as const;
 
     const sizeCappedTools = mcpToolsStatics.tools.names.filter(

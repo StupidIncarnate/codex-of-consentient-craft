@@ -50,3 +50,18 @@ export * from './src/contracts/instance-state/instance-state.stub';
 
 export * from './src/contracts/instance-id/instance-id-contract';
 export * from './src/contracts/instance-id/instance-id.stub';
+
+export * from './src/contracts/step/step-contract';
+export * from './src/contracts/step/step.stub';
+
+export * from './src/contracts/stop-on/stop-on-contract';
+export * from './src/contracts/stop-on/stop-on.stub';
+
+export * from './src/contracts/instance-manifest/instance-manifest-contract';
+export * from './src/contracts/instance-manifest/instance-manifest.stub';
+
+export * from './src/contracts/kill-result/kill-result-contract';
+export * from './src/contracts/kill-result/kill-result.stub';
+
+export * from './src/contracts/run-result/run-result-contract';
+export * from './src/contracts/run-result/run-result.stub';

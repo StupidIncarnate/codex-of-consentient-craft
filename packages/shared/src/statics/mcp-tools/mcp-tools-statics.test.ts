@@ -34,6 +34,9 @@ describe('mcpToolsStatics', () => {
           'reset-flow-signoffs',
           'get-quest-summary',
           'create-worktree',
+          'siegelense-start',
+          'siegelense-run',
+          'siegelense-kill',
         ],
       },
     });
