@@ -1,215 +1,19 @@
-# Giving siegemaster something to look at
+# Siegelense — the tool, its surface, and what it must guarantee
 
-> An architecture doc, written so a session that was not in the design conversation can build this.
-> It is deliberately NOT a file-by-file plan. It states the problems, what solves each one, the
-> decisions already taken and why, and where the open questions are.
->
-> **Read Parts 1-11 once. Then live in Part 7 (every decision), Part 8 (what must be deterministic)
-> and Part 12 (the whole call surface).**
->
-> Every figure under "What we measured" came from live lanes driven on 2026-09-14 and is anchored to
-> those runs. Nothing else here is built.
->
-> **Its companion is `~/.claude/plans/how-does-this-then-curious-fern.md`, which covers SEEDING.**
-> That plan's full ownership architecture is out of scope here. A RECIPE BOOK is not — a walk cannot
-> verify a state it cannot create, and half the raw material already exists. See Part 10.
+> One of three documents split out of `../siege-verification-tooling.md`, carrying the siegelense tool
+> itself: the service, every capability, the determinism it depends on, and the whole consolidated surface.
+> Its companions are `siegelense-recipes.md` and `siege-verification-remainder.md`.
 
 ---
 
-## Part 1 — What a siegemaster is for, and what it cannot do today
-
-A siegemaster drives a running system by hand and signs whether each verification unit holds. It is the third of three
-tracks over the same flow: codeweaver proves units with unit tests, flowrider proves them with test suites, siegemaster
-is the independent second look at the real thing.
-
-Its own prompt tells it to treat all of this as a defect:
-
-> an ugly transition, a misaligned control, a truncated label, a spinner that never resolves, a state
-> with no feedback
-
-And the repo's verification standard is blunt about who decides:
-
-> **The browser UI is the verdict, not the backend.** A run FAILS if a UI surface broke during it —
-> blank panel, frozen spinner, missing rows, wrong route, console errors — **even when
-> `quest.status` is `complete`**.
-
-So the whole role rests on a question nobody had tested: **can a language model actually perceive those failures, and
-how does it name the control it wants to drive?**
-
-### What exists
-
-`packages/web/test/siege-driver/` holds three files that work and are the right idea:
-
-| File               | What it does                                                                                                                                                                               |
-|--------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `siege-lane.ts`    | stands up one isolated stack — API server, Vite server, headless Chromium, its own OS-assigned port pair and throwaway `DUNGEONMASTER_HOME`, with a fake Claude CLI and fake ward wired in |
-| `siege-command.ts` | turns a named command into a READING — 16 verbs, never a verdict                                                                                                                           |
-| `siege-driver.ts`  | a process that holds one lane open and takes commands as files, so an agent can drive it across many turns                                                                                 |
-
-`siege-command.ts`'s header states the rule that governs the whole design and must survive any rewrite:
-
-> Turns one named command into a READING off a lane — and **never into a verdict**, so whoever signs
-> a unit is signing against evidence rather than against this file's opinion of it.
-
-A command reports what it measured. Whether a UNIT is satisfied is the session's judgement. Computing a difference
-between two measured values is still a reading; deciding a unit passes is not.
-
----
-
-## Part 2 — What we measured
-
-Five lanes booted and torn down against this repo's own web package, plus a three-agent trial.
-
-| Finding                                     | Evidence                                                                                                                                                   |
-|---------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| A lane boots in **20 seconds**              | the verifier prompt's "a cold boot can take three minutes" is a ceiling, not the norm. This number changes what parallelism is affordable                  |
-| A command round-trips in **~3 seconds**     | write to `commands/`, read from `results/`                                                                                                                 |
-| Teardown is clean                           | `end` sent, ports free, no orphaned process, no `dm-siege-*` left in the OS tmpdir                                                                         |
-| **A model genuinely sees a screenshot**     | opened a PNG of the create-guild screen and spotted that two form rows did not share a left edge                                                           |
-| That defect is real                         | `GUILD_NAME_INPUT` x=510, `GUILD_PATH_INPUT` x=472 — same width, 37.9px apart. The `Name` and `Path` labels carry the same offset, so the whole row shifts |
-| **No JSON reading raised it**               | `goto` returned status 200; both inputs read `visible: true` at the correct width. Every value true, none of it about the defect                           |
-| `dom` on a broad selector is unusable       | `dom` with `body *` returned 58 nodes whose first entry carried the entire Mantine stylesheet in its `text` field                                          |
-| A page listing is small                     | 21 rows on the create-guild screen, 19 on `/queue`, 28 on a guild screen holding three guilds, 36 on a session transcript                                  |
-| **Rendering is deterministic across lanes** | three agents, three lanes, three port pairs produced byte-identical PNGs of the same screen — 46,786 bytes each                                            |
-| Playwright here is 1.58.2                   | `locator.ariaSnapshot()` exists                                                                                                                            |
-
-### The perception result, stated plainly
-
-**JSON readings catch wiring. They are structurally blind to painting.**
-
-Good: wrong status, wrong body, wrong payload, uncaught exception, missing rows, wrong route after a click, a file never
-written, a websocket frame that never arrives. Better than a human eye.
-
-Blind, and each for a concrete reason:
-
-| Defect                       | Why the reading misses it                                                                                                                     |
-|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
-| truncated label              | `text` comes from `textContent`, which is the FULL string. A CSS ellipsis clips the paint and leaves it untouched                             |
-| misaligned control           | one rect at a time. Seeing misalignment needs two rects and a comparison nobody asked for                                                     |
-| overlapping elements         | both report `visible: true`, both have rects, nothing says which paints on top                                                                |
-| unreadable contrast          | `color` and `background-color` are not in the reading at all                                                                                  |
-| jumpy transition             | readings are point samples. There is no timeline                                                                                              |
-| off-screen or behind a modal | Playwright's `isVisible()` means "has a box and is not `visibility: hidden`". Scrolled out of view is `true`. Covered by an overlay is `true` |
-
-**The model is good at gross wrongness and poor at fine geometry.** A blank panel, a collapsed layout, text over text, a
-control off the edge — it sees those. A 3-pixel misalignment or a contrast ratio it will not reliably catch and must not
-be asked to. Those belong in computed checks.
-
-The 37.9px find is the pattern to design for: **the eye flagged it from the picture, the number confirmed it.** Neither
-half works alone.
-
----
-
-## Part 3 — The three-arm trial, and what it actually proved
-
-Three `general-purpose` sub-agents on **sonnet** — the model production minions run — each verified the same six units
-on quest `1dac5395-c828-4472-868c-d4a3425e43a0`, flow
-`subagent-duration-session-view`. Same seed, same units, same driver, own lane each. The briefs differed in ONE section:
-how to find a selector.
-
-| Arm             | Told to find selectors by            | Correct | Selector misses | Tool calls | Tokens      | Shots opened | Wall |
-|-----------------|--------------------------------------|---------|-----------------|------------|-------------|--------------|------|
-| A control       | nothing — "work it out"              | 6/6     | 0               | 82         | 184,107     | 3            | 500s |
-| B source-first  | reading widget source before driving | 6/6     | 0               | **41**     | 185,238     | 3            | 552s |
-| C listing-first | reading a generated page listing     | 6/6     | 0               | 49         | **140,419** | 4            | 474s |
-
-All six verdicts in every arm matched ground truth driven by hand beforehand.
-
-### Result 1 — source-first destroys the independence the role exists for
-
-Arm B volunteered this:
-
-> all six units reached on first attempt with **exact expected values known in advance from the
-> harness/e2e specs** and seed script
-
-Reading source to find selectors means reading the e2e specs, and the e2e specs carry the answers. B did not measure the
-system; it confirmed what flowrider's tests had already told it. The verifier prompt forbids exactly this:
-
-> Where the code and the unit disagree, the UNIT wins… Taking your expectation from it means you
-> would confirm whatever it happens to do, **including the defect you were sent to find**.
-
-Siegemaster runs AFTER flowrider precisely to be an independent look. Source-first is not merely the expensive route —
-it is the route that removes the reason for the pass. **That cost appears in no metric**: B looks competitive on calls,
-tokens and wall clock.
-
-**Decision: a walk gets its selectors from the running page, not from test files.** Source stays the right tool for what
-a page cannot show — a configured cap, a default, where an off-screen value is written — which is the guide's
-`OFF-SCREEN` heading, never its `CONTROLS` heading.
-
-### Result 2 — the listing is cheaper even when selectors are free
-
-Measured against the same guild screen:
-
-| Route to a selector                      | Cost            | Yields                                     |
-|------------------------------------------|-----------------|--------------------------------------------|
-| the five widget files behind that screen | ~5,978 tokens   | static testIds only                        |
-| one e2e spec plus two harnesses          | ~7,000 tokens   | THREE testIds, one of them ambiguous       |
-| **a generated page listing**             | **~243 tokens** | every addressable element, scoped, current |
-
-Roughly 24x. And arm C spent 24% fewer tokens than either other arm **with the selectors already given away in the unit
-text** — so that saving never came from finding selectors. It came from not reading source and not issuing broad `dom`
-reads.
-
-### Result 3 — all three found the same real bug
-
-On the nested-chain session, the inner sub-agent's body renders **twice** — once correctly nested, once orphaned at the
-chat panel's root indent with no header and no duration. Arm B measured both rects: `x=74,y=323` nested, `x=50,y=618`
-orphaned. No console warning fires.
-
-**The fixture is not the cause.** `subagent-duration.harness.ts`'s `seedNestedChain` writes
-`"Inner agent body"` exactly once, through `writeSubagentStub`. One line on disk, two renders. It matches the
-orphan-trailing-singleton failure `packages/orchestrator/CLAUDE.md` describes by hand.
-
-Evidence, still on disk: `tmp/siege/expC/screenshots/shot-210.png`, plus arm A's and B's own byte-identical copies.
-**This bug is unfiled.** It sits on an abandoned quest, so nothing will pick it up on its own.
-
-### Result 4 — all three needed a command none of them had
-
-`check-session-registers-no-interval` asks how many intervals the app registers. Counting a registration means watching
-BEFORE it happens — and `eval` only runs once `goto` has completed, by which point React has mounted and any mount-time
-`setInterval` has already fired.
-
-This repo's own e2e solves it: `elapsed-duration.harness.ts` exposes `installIntervalCounter()`
-carrying the comment `// BEFORE page.goto` — Playwright's `addInitScript`. The driver has no equivalent.
-
-Two arms independently invented the same dodge: `goto` a neutral page, patch `setInterval` there via
-`eval`, then `history.pushState` plus a `popstate` event into the target route so React Router navigates without a fresh
-document and the patch survives the mount. The third sat in the browser for 65 real seconds to span a tick period.
-
-**This is foundational, not incidental.** Every instrumentation this doc proposes — an interval counter, computed
-geometry checks, a health probe — is an injection that must be installed ahead of the app.
-
-### What the trial did NOT establish
-
-**The selector question barely arose, and that is a property of the SPEC.** Four of the six units name their own testId
-in the claim, and the quest's `#dd-placement` decision reads "Its own element on the right, test id
-subagent-chain-duration". Observables here are AUTHORED with their testIds, deliberately, because that is what connects
-spec to implementation to test. So zero selector misses is representative, not an artefact — a siegemaster on this
-codebase really is handed most of its selectors.
-
-What that leaves the listing doing is narrower and still real: a runtime id like
-`GUILD_ITEM_<uuid>` that exists in no file, WHICH of several identical controls was meant, which branch is currently
-mounted, and every element the walk passes THROUGH that no unit names — the surface the `[LOOK AT EVERYTHING]` rule is
-about.
-
-**Whether the agent looks at the screen went untested.** The question was whether a tool handing over a screenshot
-unasked beats a prompt line telling the session to look. Every brief carried the prompt line — including the control —
-and all three then opened screenshots. There was nothing for forced capture to beat. At this sample, telling them was
-enough.
-
-**The numbered overlay went unused.** Arm C rendered three and opened none, reporting that testIds were legible straight
-from the listing and that the `dom` verb's exact count/text/rect reading was stronger evidence. One run is not a
-verdict, but nothing here argues for building it early.
-
----
-
-## Part 4 — The architecture
+## Part 1 — The architecture
 
 ### Decision: an INSTANCE service, reached over MCP
 
-**This IS a set of MCP tools.** Every instance call — `start`, `run`, `results`, `kill`, `capacity`,
+**This IS a set of MCP tools.** Every call — `start`, `run`, `results`, `kill`, `capacity`,
 `profile`, `status`, `cleanup`, `prune`, `compare`, `snapshots`, `recipes`, `docs` — is one. What was rejected is not
-MCP; it is making each STEP its own tool.
+MCP; it is making each STEP its own tool. **Three of the thirteen need a running instance** — `start`, `run`, `kill` —
+and the other ten read disk, the registry or the machine.
 
 Three shapes were considered.
 
@@ -246,9 +50,10 @@ run      → submit a BATCH of steps; blocks; returns a STATUS, never a payload
            { run: run_N, status: done | timeout | failed, stepsRun, stoppedAt, reason, index }
 
 results  → query by RUN id, NARROWLY: one step, one kind, filtered.
+           Reads off DISK, so it needs no live instance and no `start`.
            Every run stays reachable for the instance's retention window — `kill` included.
 
-kill     → tear down this instance
+kill     → tear down this instance. The state goes; the evidence stays
 ```
 
 **The completion status is an index, not the payload.** Same relationship as a page listing to a screenshot. It must say
@@ -325,15 +130,51 @@ MCP server and the Node loop is file-backed at
 answer.
 
 ```
-<home>/siege/
-  registry.json        one entry per instance: id · pid · pgids · specHash · ports · state · lastBeat
+<home>/.dungeonmaster/siegelense/
+  registry.json        one entry per instance: id · owner · quest · pid · pgids · specHash · ports · state · lastBeat
   boot.lock            held for the duration of one boot; staleness releases it
   profiles/<hash>/     append-only samples per spec
-  instances/<id>/      that instance's logs, captures, video, transcript, snapshots
+  guilds/<guildId>/instances/<id>/    that instance's logs, captures, video, transcript, snapshots
+  unowned/instances/<id>/             the same, for an instance no quest owns
 ```
 
 **Per-instance drivers, one shared registry.** Every process can read it, it survives any single process dying, and
 there is no election, no master and no split-brain.
+
+**Assets are partitioned by the GUILD that owns the quest the instance was started for.** The key is the guild owning
+that QUEST — **never a guild a recipe seeded**, which is minted fresh inside the throwaway home on every run and would
+file every instance under a partition of its own.
+
+**Deleting a guild then takes that guild's siege evidence and reaches no other guild's.** That is the containment
+everything else under `<home>/.dungeonmaster/` already has. It also loses nothing anyone still needs, because the
+guild's quests went with it.
+
+**`unowned/` is a real partition, not a fallback.** A session nobody orchestrated drives this tool too — the `docs` call
+exists partly so it can — and it has no quest and therefore no guild. Its evidence lands in `unowned/`, where no guild
+wipe can take it and no quest reference protects it. An instance filed under a guild id that no guild has would be the
+worse answer: it reads as corruption where `unowned` reads as what it is.
+
+**Every path the tool hands back is inside the repo, through a symlink `dungeonmaster init` creates:**
+
+```
+<repoRoot>/.siegelense  →  <home>/.dungeonmaster/siegelense/
+```
+
+**This is what makes a shot openable at all.** A shot is a PNG and the only way a model sees one is a `Read` of its
+path, so a path the reader's `Read` cannot reach is a path that hands back nothing. This repo already answered the same
+question the same way: `npm run prod` puts its home at `<repo>/.dungeonmaster/` rather than `~/.dungeonmaster`
+specifically "so Claude Code Read/Grep can reach quest files". The symlink buys that for every repo without moving
+anyone's home, and it means ONE path shape everywhere — `<repoRoot>/.siegelense/guilds/<guildId>/instances/<id>/…` reads
+the same in this checkout and in a consumer's.
+
+**Where the link is absent — a repo where `init` has not run — the tool hands back the real path under the home and says
+the link is missing.** A path that silently stops resolving is the one failure worse than an inconvenient one.
+
+**The link is gitignored by the same install step that writes it**, exactly as `@dungeonmaster/orchestrator` does for
+`../../worktrees`. **And the ignore has to cover more than git**: a symlinked directory inside the repo is something
+lint, typecheck and test globs can walk into, and the evidence tree holds thousands of PNGs. Whoever builds this adds
+`.siegelense` wherever `../../worktrees` is already excluded, and an instance's assets are not a file tree anything
+grades.
 
 ### What the registry has to make safe
 
@@ -362,12 +203,92 @@ a fixer read a run whose instance is long gone.
 
 - **age out by default.** An instance's assets survive a configurable window, not forever.
 - **`prune` is explicit** for reclaiming sooner, and refuses anything referenced by a `VERIFIED`
-  prelude or an open issue record — those are the ones a fixer still needs.
+  prelude, an open issue record or an open quest's `WALKED` line — those are the ones a fixer or an antagonist still
+  needs.
 - **video is the big one.** A screencast dwarfs every shot and transcript combined, so it ages out first and separately.
+
+**What "referenced" means MECHANICALLY, because both refusals above are worthless as prose.** `start` records the quest
+id in the registry entry. `prune` and `cleanup` then resolve a reference by reading that quest's `.quest-plans/` and
+refuse anything cited there, naming the citing file in the refusal. An instance with no quest id has nothing citing it
+and ages out on the ordinary window, which is the right answer for a session nobody orchestrated and the reason
+`unowned/` needs no special case.
+
+**What counts as a citation:**
+
+| Citation                                     | Held for                                               |
+|----------------------------------------------|--------------------------------------------------------|
+| a `VERIFIED` line naming a run               | a fixer re-running that prelude                        |
+| an open issue naming an instance and run     | the fixer working that defect                          |
+| **a `WALKED` line, while the quest is open** | **the antagonist that has not attacked that path yet** |
+| a `verifyByHuman` item naming a video        | the person handed that list at quest end               |
+
+**The `WALKED` row is the one that gets left out, and leaving it out unprotects a CLEAN happy walk's shots** — precisely
+the evidence the adversarial phase is about to read. A clean walk raises no issue, so an issue-only rule leaves its
+baselines citable by nothing, and the operator's own `cleanup` at the start of the next phase ages them out. The
+attacker then arrives with no baseline for a path that passed, on the phase that exists to compare against one.
+
+**The video row is the exception to ageing out first, and it is the case video was kept for.** A `verifyByHuman` unit
+hands a person a `.webm` and a question, and that list reaches them at quest END — so a screencast deleted on the
+two-day video window is a link that rots before the only reader it has.
 
 **Never prune on `start` to make room.** A start that quietly deletes another session's evidence to free space is the
 worst version of this: the deletion is invisible, and the session that lost its record finds out when it goes to read
 it. Report the shortage and refuse — the hard floor already written down.
+
+### Reading evidence starts nothing, and that is a SEPARATE PATH through the tool
+
+**Three of the thirteen tools need a driver. `start`, `run` and `kill` — nothing else.** Every other call reads the
+registry, the asset tree or the machine, and a session that only wants to read costs no boot, no port pair, no memory
+and no pool slot.
+
+**This has to be stated or it does not get built, because the architecture above argues the opposite.** The tools are
+thin clients over a local socket to a per-instance driver. A killed instance has no driver, so a `results` call routed
+down that socket answers with a bare connection error — which this doc already names as the least useful thing a session
+can be handed, because it cannot tell a crash from a kill from an instance that never existed.
+
+**So the rule is one rule, not a branch: every evidence read resolves off disk, whether the instance lives or not.** Not
+"off the driver while it is up, off disk afterwards" — that shape works in every test written the same afternoon as the
+walk and fails for every fixer, which is the one reader that matters here.
+
+| Call                                                    | Needs               | Because                                                             |
+|---------------------------------------------------------|---------------------|---------------------------------------------------------------------|
+| `start` · `run` · `kill`                                | a live driver       | they spawn, drive and tear down a browser                           |
+| `results` · `compare`                                   | the asset tree      | every reading was flushed to disk as it was taken                   |
+| `status` · `capacity` · `cleanup` · `prune` · `profile` | the registry and OS | fleet and machine state, which no one driver holds                  |
+| `snapshots`                                             | the asset tree, but | it lists STATE, and state does not outlive its instance — see below |
+| `recipes` · `docs`                                      | nothing at all      | static data, already the case                                       |
+
+**`snapshots` is the one that looks like an evidence read and is not.** A snapshot is a point `reset` can return to,
+which is state, and `kill` takes the state with it. So `snapshots` against a finished instance answers "gone with the
+instance" rather than listing names that no longer restore anything — the state-versus-evidence line, showing up in the
+one call that straddles it.
+
+**`compare` works within ONE instance, and there is no cross-instance form.** Two runs of one instance share a timeline,
+which is what an index delta means; two instances share nothing but a spec. The artifact that DOES compare across
+instances is the shot, measured byte-identical across three lanes, and promoting a baseline is how it travels.
+
+**`prune` refuses a LIVE instance's assets**, whoever started it. Deleting captures out from under a running walk is the
+same failure as pruning on `start` to make room, with the walk still going.
+
+**The entry to evidence is an ID CARRIED IN A RECORD. Nothing browses.** No call lists another instance's runs, and no
+call walks the tree looking for what a pass left behind. That is a context decision before it is a safety one: a session
+handed a list of runs reads the list instead of the finding, and the finding is what its record already holds.
+
+**So the id has to survive in writing, and that is a requirement on the RECORD rather than on the tool.** A walk records
+the instance id and the run id against every issue it raises — the walker's table below says so — and the quest record's
+required fields are where that becomes enforceable rather than habitual. **A session nobody orchestrated writes nothing
+down by default**, so `start` hands back its evidence directory and the honest instruction is: keep that path somewhere
+you will still have it, because the tool will not find it for you afterwards.
+
+**A crashed minion is answered by a fresh instance, never by mining the corpse.** The operator re-dispatches the walk;
+it does not go reading a half-written run to salvage what the walk had reached. A partial run's evidence is for saying
+WHY the instance died — `status` and `likelyCause` — and for a defect the walk had already recorded in words. It is not
+a way to finish a walk, and a verdict assembled out of two runs is not a walk either.
+
+**What is GONE answers as gone, never as empty.** A reaped instance keeps its registry entry as a tombstone, and pruned
+or aged-out assets leave one too, so a query lands on `pruned at 03:14, olderThan 7d` rather than on an empty list. An
+empty list reads as "that step produced nothing", which is the `count: 0` ambiguity this design keeps meeting, arriving
+where it does the most damage: a fixer concluding the walk saw nothing when the truth is that nobody kept it.
 
 ### What a batch buys beyond call count
 
@@ -380,7 +301,7 @@ the bad case; small batches cover the rest. Say this out loud rather than discov
 
 ---
 
-## Part 5 — The capabilities, and the problem each one solves
+## Part 2 — The capabilities, and the problem each one solves
 
 ### Addressing: a listing, not a selector
 
@@ -398,54 +319,192 @@ three maps and opened none, reporting that testIds were legible straight from th
 it has to carry enough — a row is one line, and most of what follows is absent on most rows:
 
 ```
- ref  element                            text / value              flags
- ---  --------------------------------   -----------------------   --------------------
+ ref  element                            text / value              attrs                 flags
+ ---  --------------------------------   -----------------------   -------------------   ------------
   22  SUBAGENT_CHAIN <div>
   23    SUBAGENT_CHAIN_HEADER <div>
   24      (p)                             "▾ SUB-AGENT"
   25      (p)                             "Finished sub-agent (1 entries)"
-  26      subagent-chain-duration <span>  "4m"                      clipped
+  26      subagent-chain-duration <span>  "4m"                                            clipped-x
   27    CHAT_MESSAGE <div> [1/2]
   ---
-  31  GUILD_ITEM_f52c…c546 <button>       "guild-alpha"             selected
-  32  PIXEL_BTN <button>                  "CREATE"                  disabled
-  35  HOME_QUEUE_LINK <a → /queue>        "⚔ EXECUTION QUEUE"
-  41  GUILD_NAME_INPUT <input>            "" ph:"my-guild"          focused
-  52  QUEST_ROW_9a1b <div>                "older quest"             offscreen
-  58  MODAL_BACKDROP <div>                                          covers 22-31
+  31  GUILD_ITEM_f52c…c546 <button>       "guild-alpha"             data-state=open       selected
+  32  PIXEL_BTN <button>                  "CREATE"                                        disabled
+  35  HOME_QUEUE_LINK <a>                 "⚔ EXECUTION QUEUE"       → /queue
+  38  DOCS_LINK <a>                       "docs"                    → /docs ↗
+  41  GUILD_NAME_INPUT <input>            "" ph:"my-guild"          maxlength=40          focused
+  52  QUEST_ROW_9a1b <div>                "older quest"             data-status=failed    offscreen
+  58  MODAL_BACKDROP <div>                                                                covers 22-31
 ```
 
 **What each column carries, and why it is not optional:**
 
-| Column       | Holds                                                                                                                                     |
-|--------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| `ref`        | the ephemeral handle, valid in this instance and page state only                                                                          |
-| indentation  | scope. The selector reads off the nesting                                                                                                 |
-| element      | the `data-testid`, **plus the TAG even when a testId exists**, plus a DOM `id` where one is set, plus `[n/m]` where siblings share a name |
-| text / value | the naming ladder's answer. For an input, the CURRENT value and the placeholder separately — they are different questions                 |
-| flags        | everything below, absent on most rows                                                                                                     |
+| Column       | Holds                                                                                                                                                      |
+|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `ref`        | the ephemeral handle, valid in this instance and page state only                                                                                           |
+| indentation  | scope. The selector reads off the nesting                                                                                                                  |
+| element      | the `data-testid`, **plus the TAG even when a testId exists**, plus the `role`, plus a DOM `id` where one is set, plus `[n/m]` where siblings share a name |
+| text / value | the naming ladder's answer. For an input, the CURRENT value and the placeholder separately — they are different questions                                  |
+| **attrs**    | **the DECLARED values it carries** — `href` as `→ /path`, `data-*`, and the input constraints. Empty on most rows                                          |
+| flags        | the CONDITIONS it is in. Also empty on most rows                                                                                                           |
 
 **The tag matters even when the testId is present.** `PIXEL_BTN` does not say whether it is a
 `<button>` a keyboard can reach or a `<div>` with a click handler that a keyboard cannot — and that difference is a
-defect class of its own. `<a → /queue>` carries the href, so "where does this go"
-needs no second call.
+defect class of its own.
+
+**Attrs and flags split on DECLARED versus CONDITION, and the split is what keeps either column readable.** An attr is a
+value the markup states and you would quote — a path, a status string, a number. A flag is a condition, boolean or
+computed, where the presence of the word IS the message.
+
+| This                    | Goes  | Because                                               |
+|-------------------------|-------|-------------------------------------------------------|
+| `href`, `data-status=…` | attrs | the VALUE is the answer                               |
+| `disabled`, `focused`   | flags | the presence of the word is the whole message         |
+| `low-contrast 1.4`      | flags | computed, not declared — the number is a measurement  |
+| `maxlength=40`          | attrs | declared, and the number is exactly what a walk wants |
+
+**Put `href` in the flags column and the rule collapses**, because a link's target is present on every link and a flag
+that fires on every row of its kind is a column wearing the wrong hat. The arrow keeps the compact form the element
+column had — `→ /queue`, not `href="/queue"` — and `↗` marks `target="_blank"`, which is worth a glyph because a click
+that opens a tab breaks a walk.
 
 **The flags are what turn a reading into a finding without anyone asking.**
 
-| Flag                            | Answers                                                                         | How                                         |
-|---------------------------------|---------------------------------------------------------------------------------|---------------------------------------------|
-| `disabled`                      | a click here does nothing — and that looks exactly like a broken control        | the attribute                               |
-| `focused`                       | where the keyboard is                                                           | `document.activeElement`                    |
-| `selected` `checked` `expanded` | control state                                                                   | the aria attributes                         |
-| `offscreen`                     | painted, but outside the viewport — `isVisible()` says `true` and means little  | rect against `innerWidth`/`innerHeight`     |
-| `covered by N`                  | something paints on top. Also `isVisible(): true`                               | `elementFromPoint` at the rect centre       |
-| `clipped`                       | the label is ellipsed. **`text` shows the full string and the screen does not** | `scrollWidth > clientWidth`                 |
-| `low-contrast 1.4`              | technically painted, perceptually absent                                        | computed colour against computed background |
-| `collapsed-ancestor`            | present in the tree, zero-size somewhere above                                  | walking up for a zero width or height       |
+| Flag                            | Answers                                                                          | How                                                 |
+|---------------------------------|----------------------------------------------------------------------------------|-----------------------------------------------------|
+| `disabled`                      | a click here does nothing — and that looks exactly like a broken control         | the attribute                                       |
+| **`aria-disabled`**             | **the same, on a control that still takes the click and does nothing with it**   | the attribute, reported SEPARATELY                  |
+| `focused`                       | where the keyboard is                                                            | `document.activeElement`                            |
+| `selected` `checked` `expanded` | control state                                                                    | the aria attributes                                 |
+| **`busy`**                      | **this subtree says it is loading — the stuck-spinner class, stated by the app** | `aria-busy`                                         |
+| **`invalid`**                   | **a field the app has marked wrong. The sad path's own signal**                  | `aria-invalid`, and `:invalid`                      |
+| **`live` `alert` `status`**     | **an announcement region — where a TOAST lands.** Absence here is a finding      | `aria-live`, `role`                                 |
+| **`aria-hidden`**               | **painted, and invisible to assistive tech. Often a duplicate nobody meant**     | the attribute, on a box that has size               |
+| **`invisible opacity:0`**       | **present, sized, painted, and not there.** Slips past every visibility check    | computed `opacity`                                  |
+| `offscreen`                     | painted, but outside the viewport — `isVisible()` says `true` and means little   | rect against `innerWidth`/`innerHeight`             |
+| **`scrollable, 340px below`**   | **the reading is PARTIAL — rows exist past the fold of this container**          | `scrollHeight`/`clientHeight` and `scrollTop`       |
+| `covered by N`                  | something paints on top. Also `isVisible(): true`                                | `elementFromPoint` at the rect centre               |
+| `clipped-x` `clipped-y`         | the label is cut. **`text` shows the full string and the screen does not**       | `scrollWidth`/`scrollHeight` against client         |
+| **`cut, no ellipsis`**          | **cut with no visual sign it was cut — worse than an ellipsis, and silent**      | overflow hidden, no `text-overflow`                 |
+| `low-contrast 1.4`              | technically painted, perceptually absent                                         | computed colour against computed background         |
+| `collapsed-ancestor`            | present in the tree, zero-size somewhere above                                   | walking up for a zero width or height               |
+| **`empty`**                     | **a container with a box and no content in it — the partial-blank case**         | no content-bearing descendant                       |
+| **`not-tabbable`**              | **looks clickable, keyboard cannot reach it.** A PROXY — see below               | `cursor: pointer`, non-focusable tag, no `tabindex` |
+| **`broken-image`**              | **an `<img>` that loaded nothing.** A sprite-heavy UI hides this well            | `naturalWidth === 0`                                |
 
-**The last four ARE the computed geometry checks, and their home is the key row.** As a separate command they are
+**These ARE the computed checks, and their home is the key row.** As a separate command they are
 something a session has to think to ask for, and it will not. On the row they are seen whether or not anyone was looking
 for them — which is the whole difference between a check that exists and a check that fires.
+
+**Four of the new ones pay for themselves immediately, and each closes a hole something else in this design opened:**
+
+| Flag                  | The hole it closes                                                                                                                                                                     |
+|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `aria-disabled`       | `disabled` is the sharp flag and this is its blind spot. An `aria-disabled` control is not disabled to a click — it takes it and does nothing, which is the failure wearing a disguise |
+| `live` / `alert`      | the sad-path baseline turns on "was the toast there". A toast lands in a live region, so the key can answer it instead of a pixel diff against a frame the toast has since left        |
+| `scrollable`          | `offscreen` is viewport-relative and says nothing about a row below the fold of a scrolling panel. "The list showed 2 rows" with a third one scrolled out is the same defect report    |
+| `invisible opacity:0` | the exclusion list drops `display: none` and `visibility: hidden`, and `opacity: 0` walks straight through it. Excluding it too would hide a defect; flagging it reports one           |
+
+### The `attrs` column — what the element DECLARES, in the app's own words
+
+**A unit's claim is usually phrased in the app's vocabulary, and that vocabulary is in the attributes.**
+`data-status="failed"` answers "which one is the failed row" in the same words the observable was written in, and
+`→ /queue` answers "where does this go". That is the naming ladder's problem solved from the other end: not what do I
+CALL this, but which one IS it, and what does it carry.
+
+**What goes in the column, and the question each one closes:**
+
+| Attr                                     | Closes                                                                                                        |
+|------------------------------------------|---------------------------------------------------------------------------------------------------------------|
+| `→ /path`, and `↗` for `target="_blank"` | where a link goes, and whether clicking it will open a tab and break the walk                                 |
+| `data-*`                                 | which row is the failed one, which panel is open — the app's own state, in the app's own words                |
+| `maxlength` `pattern` `required`         | **what the antagonist is attacking.** A `maxlength` that silently truncates an oversized paste IS the finding |
+| `type=` on an input                      | whether this is a password, a file picker, a number — which decides what can drive it at all                  |
+| `title`                                  | whether a `clipped-x` label has a tooltip behind it, which is the difference between a defect and a design    |
+
+**It needs a budget or it eats the key.** The key is ~243 tokens because every column is short, and attributes are the
+one column an app controls. So: `data-testid` is the element column and is never repeated; values truncate; a row past
+its cap says how many it dropped, the same way the key reports truncation everywhere else. An `<img src>` holding a data
+URI is the shape that would blow this, and the `broken-image` flag already answers the question anyone was asking.
+
+**And it needs a determinism guard**, which is the part that would bite silently. A framework writes runtime ids into
+data attributes — an id minted per mount — and a key carrying one differs between two readings of the same state. That
+makes the element delta report churn on a page nothing touched, which is the exact failure the identity rules in Part 5
+exist to prevent. **A value that looks like a runtime id is dropped**, and the same rule that keeps recipes off
+`randomUUID()` is the one being enforced here, one layer out.
+
+**`className` is NOT in this column, and that is a decision rather than an omission.** Two reasons, and the second is
+the one that matters:
+
+- **Most of it is generated.** `m-4081bf90`, `css-1x2y3z` — build-time hashes that change when nothing about the page
+  changed, which is the runtime-id hazard above wearing its most common costume.
+- **A class is the MECHANISM behind something a person sees, never the thing itself.** Putting it on every row invites a
+  walk to settle a unit on it — class present, stylesheet rule deleted, row not red, unit `confirmed`. That is the
+  cheapest false pass available, and `siege-verification-remainder.md` Part 4 holds the rule for what a walk does
+  instead.
+
+It stays readable where it is genuinely the question: `dom { target, fields: ['className'] }`, narrow, through the
+hatch — which is the right cost for an implementation question and the wrong cost for every row.
+
+### "Does this element have a click handler?" — four routes, and none of them answers it here
+
+**Write this one down, because `not-tabbable` looks like it should be built on a listener check and it must not be.**
+The obvious implementation is the one that fails silently on this app.
+
+| Route                                  | Sees                                                                  | Misses                                                                           |
+|----------------------------------------|-----------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| `el.onclick`, the `onclick` attribute  | inline handlers                                                       | everything `addEventListener` registered, which is nearly everything here        |
+| patch `addEventListener` in a `before` | every listener registered after the patch, with its target            | **that React does not register one per element** — see below                     |
+| CDP `DOMDebugger.getEventListeners`    | the real list for one object: type, capture, and the handler's source | nothing, and it is Chromium-only and costs a round trip PER ELEMENT              |
+| React's fiber props — `__reactProps$…` | the `onClick` a JSX author wrote                                      | nothing, and it is a private API keyed by a random suffix that changes per build |
+
+**React DELEGATES, and that is what defeats the first two routes and blunts the third.** It attaches one click listener
+at the root container, not one per button. So a page-script patch reports the root has a listener and every button has
+none, which is worse than no answer: it reads as "nothing on this page is wired up". The CDP route is accurate and hits
+the same wall from the other side — it truthfully says the button has no listener, because the button has no listener.
+
+**And the design already has a BETTER answer to the question behind the question.** "Is this control dead" is settled by
+clicking it: `pixelChange: 0%` beside `+0 -0 moved 0` and zero network exchanges is a control that did nothing,
+measured. A listener check is a proxy for that, and a worse one — **a handler that exists and does nothing passes it**,
+which is the same defect waved through.
+
+**So:**
+
+- **`not-tabbable` stays a PROXY and says so** — `cursor: pointer` on a non-focusable tag with no `tabindex`. It answers
+  an a11y question, not a wiring one, and a proxy honestly labelled beats an inference nobody can audit.
+- **Listener inspection is available on `dom`, never on a key row.** `fields: ['listeners']` takes the CDP route for one
+  named selector, which is the right cost for a rare question and the wrong cost for every row of every key.
+- **Nothing infers "dead control" from a listener count.** The click is the test.
+
+### Two key-level readings, which are not row flags at all
+
+**A testId appearing under two DIFFERENT parents — reported as a line under the key.** The `[n/m]` marker handles
+siblings; this handles the case that is not siblings, and it is worth building because the trial already found it:
+
+```
+… subagent-chain-duration appears 2× — under SUBAGENT_CHAIN_HEADER and under CHAT_PANEL
+```
+
+**That line is the bug all three trial arms found, printed without anyone looking for it.** The inner sub-agent's body
+rendered twice — once correctly nested, once orphaned at the chat panel's root — and no console warning fired. Arm B
+caught it by measuring two rects by hand. A duplicate-name line catches it on every key of every page, for free.
+
+**`role` sits beside the tag in the element column, not in attrs**, because it is part of what the element IS rather
+than something it carries. `<div role="button">` is a control to assistive tech and not to a keyboard, and the tag alone
+does not say which of those the author meant.
+
+### What is deliberately NOT computed, and why
+
+| Not doing                                  | Because                                                                                                                                                                     |
+|--------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| rect-intersection overlap between siblings | it is n² over the page, and it is the one thing the MODEL'S EYE is reliably good at — the 37.9px find came from a picture, confirmed by a number                            |
+| **event listeners, on a key row**          | React delegates to the root, so a per-element answer is "none" for every button in this app. It lives on `dom` as an opt-in field and nothing infers a dead control from it |
+| z-index and stacking-context analysis      | `covered by N` already answers the question a user would have, and the rest is a rabbit hole with no defect class behind it                                                 |
+| anything about motion                      | cut everywhere else in this design, for reasons Part 2 gives                                                                                                                |
+
+**The rule that keeps this set from growing forever: a flag earns its place by being ABSENT on most rows.** A flag that
+fires everywhere is a column, a column that reads the same on every row is noise, and noise is what a 243-token key
+cannot afford. Anything that would fire on most rows belongs in the element column, in a `dom` read, or nowhere.
 
 **Every one of these is cheap at the scale measured** — 19 to 36 rows, one `getComputedStyle` and one
 `elementFromPoint` each, on a page that already had its layout computed. On a page of several hundred they may not be,
@@ -469,6 +528,8 @@ Decisions taken, each with a reason that cost something:
   intermediate wrapper divs collapse out on their own.
 - **Excluded outright:** `style`, `script`, `meta`, `link`, `title`, `head`, `noscript`; any zero-size box; anything
   `display: none` or `visibility: hidden`.
+- **`opacity: 0` is FLAGGED, not excluded.** It is the one invisibility that carries a box, a rect and a hit area, so
+  excluding it alongside the other two would delete a defect from the reading instead of reporting one.
 
 **Naming ladder** — four rungs, each catching what the one above missed, all four observed firing on one real screen:
 
@@ -498,6 +559,66 @@ shifts is worse than no ref.
 
 **Scoping.** The listing takes an optional `within` naming a testId, so a crowded region is read on its own. This is
 also the untested mitigation for a page holding a long transcript: read it a region at a time rather than whole.
+
+### `dom` is the ESCAPE HATCH, and the ladder above it has four rungs
+
+**The hatch has to exist.** A key is a shaped reading, and a shaped reading always leaves something out — an attribute
+nobody anticipated, a value the key truncated, the exact text of a message a unit quotes word for word. Without a way
+down to the raw nodes, a session meeting one of those either guesses or invents a workaround, and the workarounds are
+worse than the call.
+
+**It also has to be LAST, and this is the one measured cost in this whole design.** `dom` with `body *` returned 58
+nodes whose first entry carried the entire Mantine stylesheet in its `text` field. That single reading is why the old
+verb was called unusable, and why the key reads own text nodes rather than `textContent`.
+
+**The ladder, cheapest first:**
+
+| Reach for         | When                                                                    | Costs                        |
+|-------------------|-------------------------------------------------------------------------|------------------------------|
+| `look`            | **the default.** What is here, what is it called, what is wrong with it | ~243 tokens for a whole page |
+| `look { within }` | the region is crowded, or the page holds a long transcript              | less                         |
+| `box { ref }`     | one element's geometry, exactly                                         | a few lines                  |
+| `dom { target }`  | **the hatch.** A named selector, and a question the key does not carry  | unbounded without care       |
+| `eval`            | a question no step shapes at all                                        | whatever you asked for       |
+
+**Every column and flag the key gained removes a reason to open the hatch.** `href`, `role`, the input's current value,
+the `data-*` attributes, `maxlength`, the geometry flags — each of those was a `dom` call before it was part of a row.
+The hatch is for what is left after that, which is a much smaller set than it was.
+
+**When it IS the right call:**
+
+- an attribute the row does not carry — `maxlength`, `pattern`, `title`
+- the exact text where the key truncated it, or where a unit quotes a message word for word
+- a COUNT of matches across the page, where the number is the whole answer
+- the raw shape of something surprising, when the key's reading and the picture disagree
+
+**Three guards on the call, because prose will not hold this one either:**
+
+| Guard                                                                | Because                                                                                                                       |
+|----------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
+| **own text by default**; `text: 'full'` opts into `textContent`      | the measured blowup was recursive text. Making the expensive one the opt-in reverses which mistake is easy to make            |
+| **`fields:` projects**, the same way a `network` query does          | "count and rect for these" is a fraction of a full node reading, and the common case is one field                             |
+| **a match cap that SAYS it capped**, with the true `count` beside it | a reading that quietly stops is the `count: 0` problem again. `count: 58, showing 10` is an answer; ten silent rows is a trap |
+
+```jsonc
+{ step: 'dom', target: '[data-testid="QUEST_ROW"]', fields: ['count'] }
+{ step: 'dom', target: '[data-testid="TOAST"]', fields: ['text', 'rect'] }
+{ step: 'dom', target: 'body *' }        // → count: 412, showing 10, capped. Narrow this.
+```
+
+**Where each audience learns this:**
+
+| Who               | Learns                                                                             | From                                                |
+|-------------------|------------------------------------------------------------------------------------|-----------------------------------------------------|
+| a walking session | "the key first. `dom` is the hatch, it is expensive, and it needs a narrow target" | one line in its prompt — interpretation, not action |
+| the same session  | the whole ladder, the guards and the field names                                   | `docs { for: 'walking' }`                           |
+| whoever builds it | own text by default, projection, a cap that reports itself                         | this doc                                            |
+
+**`eval` is a DIFFERENT hatch and carries a different risk.** `dom` is expensive; `eval` is cheap and can quietly break
+the founding rule. A session can compute a verdict inside the page and hand it back as a value, and what arrives looks
+exactly like a reading. That is why the package's `../../CLAUDE.md` already bans `querySelector` in eval source —
+singular silently returns match one — and why `eval` is for a question no step shapes, never for a judgement a session
+would rather not show its working for.
 
 ### Perception: three artifacts, and they are not interchangeable
 
@@ -612,7 +733,7 @@ under the container that should have them.
 
 **It is noise on an animated page unless the capture is frozen.** That is not a caveat, it is a precondition:
 `animations: 'disabled'` and `caret: 'hide'` on every comparison capture, or every step reports a difference and the
-signal is dead. Part 8 has the detail.
+signal is dead. Part 5 has the detail.
 
 ### Settling: a step ends when the page is DONE, not when a clock says so
 
@@ -661,9 +782,9 @@ counter and the health probe all stand on, not a one-off.
 
 **Problem.** The listing hands over rects and the session does the subtraction. It will not think to.
 
-**Solution — they are FLAGS on the key, and the section above lists them.** `clipped`, `offscreen`,
-`covered by N`, `low-contrast`, `collapsed-ancestor`: each is a cheap computation the key already has the element and
-the computed style for.
+**Solution — they are FLAGS on the key, and the section above lists the whole set.** `clipped-x`, `offscreen`,
+`scrollable`, `covered by N`, `low-contrast`, `collapsed-ancestor`, `invisible opacity:0`: each is a cheap computation
+the key already has the element and the computed style for.
 
 **The placement is the decision, not the computations.** As a separate command every one of these is something a session
 must think to ask for, and the whole premise of this doc is that it will not — that is the same failure as "looking is
@@ -734,10 +855,14 @@ instruction to go reproduce it:
 ```
 NEEDS A PERSON
   #check-row-expand-is-smooth   "expanding an execution row animates without stuttering"
-    watch:  instances/inst_7f3a/video/step9.webm      ← from the `video` step
+    watch:  .siegelense/guilds/<guildId>/instances/inst_7f3a/video/step9.webm   ← from the `video` step
     frames: step9-a.png · step9-b.png · step9-c.png
     context: 12 rows on screen, expanded row 4
 ```
+
+**Two things about that `watch:` line, and both are load-bearing.** It is repo-local, through the symlink, so the person
+opens it where they already are rather than hunting through a home directory. And the video it points at is HELD:
+video otherwise ages out first and fastest, which would rot the only link the only reader of this list ever gets.
 
 **`toSettle` already carries this shape.** The contract calls it "an INSTRUCTION, never a question — the action that
 would settle the unit", which is exactly what a human checklist line is. What is missing is not the verdict, it is the
@@ -831,6 +956,21 @@ page today: garbage through `type`, key spam through `key`, an oversized payload
 `staleness` and `configuration` mostly need. The lane already injects a fake Claude CLI and a fake ward binary, so the
 mechanism exists; it stops at those two.
 
+**Three key columns serve the ATTACKER rather than the walker, and they are why the key is not a browser-walk-only
+tool:**
+
+| On the row                         | What it is to an antagonist                                                                                                                                       |
+|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `maxlength` · `pattern` in `attrs` | **the cap it is measuring against.** A field that silently truncates an oversized paste is the finding, and the declared limit is what makes "silently" checkable |
+| `live` · `alert` · `status`        | where the refusal LANDS. "The system rejected this properly" is a toast in a live region, and its absence is the app swallowing the error                         |
+| `invalid`                          | the app stating its own verdict on the input — which the attacker reads, and never assumes                                                                        |
+
+**And the attack surface changes shape entirely with no browser.** The off-map families are properties of the BUILT
+SYSTEM rather than of any drawn flow, so `hostile-input` and `perf` coverage exists on an operational flow too — where
+there is no `paste`, no `key` and no `click`. There the attack is `request`, `file` and the process itself, against the
+browserless spec. `siege-verification-remainder.md` Part 4 holds the full verifier-versus-antagonist table, which is the
+ROLE half of this section.
+
 ### Resetting: three layers, and a reset must say which one it touched
 
 **Problem.** A stress tester runs many attacks against one instance. Attack 1 corrupts something; attack 2 then starts
@@ -910,6 +1050,30 @@ that was already broken, see no difference, report that it held. A false pass on
 The "or before" half is the easy one to drop. Once a defect lands the system may be in a bad state, so a later screen
 that looks right was reached through a fault.
 
+**How an antagonist actually GETS them.** "Inherits a verified-clean baseline" is a property, not a mechanism. The
+mechanism is the one every other reader of a finished walk uses: **the operator's dispatch carries the happy walk's
+instance id and run id for the path being attacked, and the antagonist reads its shots with `results`.** That starts
+nothing and answers for an instance killed hours earlier.
+
+```
+results { instance: 'inst_9b2c', run: 'run_2', kind: 'screenshots' }
+→ step 4  …/run_2/step4.png   node: guild-selected
+  step 7  …/run_2/step7.png   node: chain-rendered
+```
+
+**Every shot carries the NODE it was taken at**, which is what makes a baseline fetchable per node rather than per walk.
+The promotion rule is already per node; without the node on the shot, the reader has only a step number and has to
+reconstruct which screen it was.
+
+**On a SAD path, "known good" is an error rendered CORRECTLY — usually a toast.** The baseline for a failure branch HAS
+the error message in it, and that message is the correct screen. An antagonist comparing against a happy-screen baseline
+instead reports the toast as damage; the inverse is worse, where the app swallows the error, `pixelChange` reads `0%`
+and "nothing changed" is written down as *it held*. `siege-verification-remainder.md` Part 4 holds the role-side rule.
+
+**A toast is TRANSIENT and a baseline of one is a baseline of a moment.** It auto-dismisses, so a pixel comparison
+against it can report a difference that is only timing. A transient baseline is read as a PRESENCE question — was the
+toast there, with that text — which is a `look` against the key, not a diff against the frame.
+
 ### Teardown: the failure that is silent, costs three processes, and is never noticed by the session that caused it
 
 **Every instance is three processes, a port pair, two open file descriptors, a throwaway home and a growing pile of
@@ -923,7 +1087,7 @@ the return reads clean, and three processes stay up. Under a pool of three paral
 | servers spawn `detached: true` so the whole process GROUP can be killed | `npm run` is a wrapper and the real listener is a grandchild via `sh -c`. Killing the child leaves the listener holding the port              |
 | SIGTERM, a 3-second grace, then SIGKILL                                 | a server given no grace leaves a half-written log                                                                                             |
 | **skip the signal for a child that already exited**                     | otherwise every clean teardown logs `kill ESRCH`, "which reads as a failure in the one log a later session opens to find out what went wrong" |
-| the throwaway home is removed; the lane directory is NOT                | logs, captures and the transcript are evidence and outlive the instance. See the state-versus-evidence boundary above                         |
+| the throwaway home is removed; the instance's EVIDENCE directory is NOT | logs, captures and the transcript are evidence and outlive the instance. See the state-versus-evidence boundary above                         |
 
 **The vulnerability the current design names and does not solve** is in the driver's own comment:
 servers are spawned detached "which also means **nothing reaps them if this process is interrupted**."
@@ -989,12 +1153,17 @@ status {}
       lastStep:  { run: 'run_2', step: 7, verb: 'click' },
       rssAtLastBeat: 2980,
       orphans:   [ { pgid: 33812, cmd: 'npm run dev:no-watch', alive: true } ],
-      evidence:  { transcript: '…/run_2.jsonl', logs: [ … ], lastShot: '…/run_2/step7.png' },
+      evidence:  { dir:        '<repoRoot>/.siegelense/guilds/<guildId>/instances/inst_9b2c/',
+                   transcript: 'run_2.jsonl', logs: ['api-server.log', 'web-server.log'],
+                   lastShot:   'run_2/step7.png' },
       likelyCause: 'OOM — rss 2980MB at last beat against a 2600MB profile peak; kernel OOM kill at 20:11:04' } ]
 ```
 
-Five things that shape is carrying:
+What that shape is carrying:
 
+- **`evidence` is the raw-file route, and it survives the instance.** `results` gives the filtered view — errors in
+  steps 4 to 9 — and this gives the files themselves, under a `dir` a `Read` can open. A session that wants the whole
+  server log rather than a window has it without another call.
 - **`monitored` answers "what can I even ask about".** Without it a session guesses at metric names, and a guess that
   returns nothing reads exactly like a metric that is zero — the `count: 0` problem again, one layer up.
 - **`likelyCause` is a READING, not a verdict.** "rss 2980MB against a 2600MB profile peak, kernel OOM kill at 20:11:04"
@@ -1079,21 +1248,36 @@ back there on its own.
 
 **What the walker records against every issue:**
 
-| Field                      | For                                                                                          |
-|----------------------------|----------------------------------------------------------------------------------------------|
-| the INSTANCE id and RUN id | provenance — which run produced this, and the handle `results` still answers on              |
-| the failing STEP           | `{ run: 'run_2', step: 7, verb: 'click' }`. Usually the whole answer                         |
-| **the PRELUDE**            | the runnable batch that reaches this path's entry. This is what makes the state reproducible |
-| the evidence paths         | the shot, the key at that step, the server log window, the transcript                        |
+| Field                      | For                                                                                                                                      |
+|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| the INSTANCE id and RUN id | provenance, and **the only handle anything has on the evidence** — nothing browses for it                                                |
+| the failing STEP           | `{ run: 'run_2', step: 7, verb: 'click' }`. Usually the whole answer                                                                     |
+| **the PRELUDE**            | the runnable batch that reaches this path's entry. This is what makes the state reproducible                                             |
+| the evidence paths         | the shot and the video, as paths. The server log, the key and the wire are QUERIES, and the run id plus the step range is what they take |
+
+**An id that never gets written down is evidence nobody can reach.** The tool keeps the run for its retention window and
+offers no way to find it without the id, so the record is the index — which is why these fields belong in what the quest
+record REQUIRES rather than in what a careful walker remembers.
+
+**That recording is a requirement in its own right, and it is not limited to issues.** Every path walked carries the
+instance and run that walked it, a CLEAN walk included, because that id is the proof the path was driven at all — the
+same thing a prelude's `VERIFIED` line does one level down. `siege-verification-remainder.md` Part 4 states it.
 
 **The fixer does not resurrect the dead instance — it RE-RUNS THE PRELUDE on a fresh one.** That is what preludes were
 for, and why `VERIFIED` matters: the fixer is handed a batch already proven to land where it claims. "Restart to check
 state" is a fresh instance plus a known-good prelude, not a corpse brought back.
 
-**`results` keeps answering for a killed instance.** Its evidence lives in the lane directory, which survives `kill` by
-the state-versus-evidence rule, so the index is read from disk and the answer carries a flag saying the instance itself
-is gone. Without that, a fixer holding a run id would find it resolves to nothing — and the handoff would depend on the
-walker having copied every reading into its record by hand.
+**`results` keeps answering for a killed instance, and answering costs no instance.** The evidence lives in the
+instance's own directory under the asset tree, which survives `kill` by the state-versus-evidence rule, so every reading
+is read from disk and the answer carries a flag saying the instance itself is gone. Without that, a fixer holding a run
+id would find it resolves to nothing — and the handoff would depend on the walker having copied every reading into its
+record by hand.
+
+**Against a finished instance the RUN ID is required, and `results` refuses to guess.** A live session driving its own
+instance may omit it and get the latest, because it knows what the latest is. A fixer does not: the instance it was
+handed may carry the prelude's proving run, the walk, and a re-walk, and "latest" silently reads whichever went last.
+That is `.first()` again, one layer out — a defensible-looking default landing on the wrong thing and returning a
+clean-looking answer.
 
 ### The fixer writes the e2e, and the PRELUDE is what makes that possible
 
@@ -1151,7 +1335,7 @@ cleanup {}
     lockReleased: true,
     assetsAged: { instances: 3, freedMB: 1840, videoFirst: true },
     leftAlone: [ { id: 'inst_7f3a', why: 'live — last beat 2s ago' },
-                 { id: 'inst_1d09', why: 'assets referenced by a VERIFIED prelude' } ] }
+                 { id: 'inst_1d09', why: 'run_7 cited by a VERIFIED prelude in .quest-plans/1dac5395…/path-3.md' } ] }
 ```
 
 **`leftAlone` is not padding.** A cleanup that reports only what it removed is indistinguishable from one that removed
@@ -1160,7 +1344,7 @@ the wrong thing, and the question a session actually has after running it is *di
 **It is safe to run at any moment, including mid-pass**, because it only ever acts on staleness. The operator's own
 minions are live and young when it runs at the start; another developer's instance is live and protected the same way.
 **No cleanup kills a live instance, ever**, and none prunes evidence a
-`VERIFIED` prelude or an open issue still references.
+`VERIFIED` prelude, an open issue or an open quest's `WALKED` line still references.
 
 **This is deliberately a bookend rather than supervision.** Continuous watching is a daemon, and this design has already
 refused one twice. Two calls per pass is not complete cover — an orphan created between the bookends waits for the next
@@ -1176,7 +1360,8 @@ What a QUEST gets instead is the guarantee this suite buys: `kill` works, and a 
 rather than something each walk defends against.
 
 **Teardown tests are the ones most likely to pass while proving nothing.** This repo has already measured that trap:
-`packages/orchestrator/CLAUDE.md` records a leak-guard attempt where "a `process.getActiveResourcesInfo()` Timeout count
+`../../packages/orchestrator/CLAUDE.md` records a leak-guard attempt where "a `process.getActiveResourcesInfo()` Timeout
+count
 taken either side of the import comes back unchanged whether the spies are installed or not — measured both ways — so it
 passed for every tree and proved nothing about the mock it was written to protect."
 
@@ -1198,203 +1383,7 @@ exactly the shape the two-phase pass introduces.
 
 ---
 
-## Part 6 — Restructuring the pass
-
-### Phase zero: a PLANNER provisions the recipes — not the operator
-
-**The operator cannot do this work, by its own rules.** Siegemaster's tool block says it drives nothing: no browser, no
-`curl`, no CLI run. Proving a recipe means RUNNING it against a live instance and reading the state back. So
-provisioning is dispatched, exactly as the guide already is.
-
-**It is a distinct sub-agent from the guide-writer**, because the mandates conflict. The guide-writer is told "DO NOT
-change any file but the guide · run no test · start no server" — and that constraint is load-bearing, not incidental. A
-planner must write files and start an instance. Widening the guide-writer to cover both is how a bounded job stops being
-bounded.
-
-**What the planner does, WALK BY WALK:**
-
-1. Read the checklist's `## WALK PATHS` — every route through the flow.
-2. For each path, work out the state it needs to be reachable at all.
-3. Match those states against existing recipes. Write a recipe for each gap.
-4. **RUN the whole prelude for that path and confirm it lands where it claims.** Not each recipe alone — the SEQUENCE,
-   end to end, against a throwaway instance.
-5. Record the path's entry, keyed to the path.
-
-**It validates EVERY recipe it plans to use, not only the ones it wrote.** An existing recipe is not trusted on the
-grounds that it worked last quarter. Recipes are `fidelity: direct` more often than not, which means they mimic a shape
-production owns and can drift from it silently — and nothing about that drift touches the feature under test, so nothing
-else would have caught it. The recipe is simply out of date, and the first thing to notice is a walk that cannot start.
-
-**Testing the SEQUENCE is what testing each recipe alone does not give you.** Three recipes that each pass in isolation
-can still fail composed: one leaves state the next does not expect, an id from the first is not what the second wants,
-the order matters and nobody wrote that down. The thing that has to be true is "this path is reachable", not "these
-recipes run".
-
-**And a stale recipe is nastier than a missing one, in the way this doc keeps running into.** A missing recipe fails
-loudly at plan time. A stale one succeeds partially, the walk starts against a state nobody intended, and what it
-reports is a defect that does not exist — a fixer briefed against a symptom, hunting in working code.
-
-**Its cost grows with path count, and not linearly.** Ten paths means ten preludes run once each, but the planner's own
-`start` calls queue behind whatever else holds the pool, so the wall-clock is longer than ten boots and shorter than ten
-serial walks. Against a 20-second boot it is minutes either way — and it buys not losing a whole ROUND to a seed nobody
-checked.
-
-**Step 5 is the one that cannot be skipped, because an unproven recipe does not fail loudly — it manufactures false
-defects.** A recipe that claims two rows and seeds one leaves the verifier looking at a one-row list. The verifier does
-its job correctly and reports a defect. A fixer is briefed against a symptom that does not exist and goes hunting in
-working code. A whole round is spent, and nothing in the record says the seed was the problem.
-
-The quieter version is worse. A recipe seeding ONE of something an assertion must tell apart makes
-"the right one" and "the first one" the same value — so an off-by-index bug passes, the walk comes back clean, and the
-clean result means nothing. That is the guide's own **"TWO of anything an assertion must tell apart"** rule failing one
-level below where it is written down.
-
-**What it produces — a PRELUDE per path, runnable, and already run once:**
-
-```
-PATH 3   entry → guild selected → quest open → row expanded → chain rendered
-  PRELUDE                                    ← reaching the path's entry state
-    seed  guild-with-three-quests                          as: g
-    seed  quest-mid-execution  guild:{g.guildId}           as: q
-    goto  /{g.guildSlug}/quest/{q.questId}
-    click [data-testid="EXECUTION_ROW_0"]                  ← no recipe covers this; it is a step
-  MID-WALK                                   ← seeds that fire PARTWAY, not at the start
-    at node  chain-rendered:
-      seed  subagent-chain-arrives  quest:{q.questId}
-  VERIFIED  run_7 · 2026-09-14 · prelude reached the entry, all produces: asserted
-```
-
-Three things that shape earns:
-
-- **The prelude is a runnable batch, not prose.** It is handed to a walk and submitted, rather than described and
-  re-derived. Anything the guide would have spelled out under `SEEDING` is here as steps.
-- **It mixes recipes and driving steps, because reaching a state does both.** A row that must be expanded before the
-  thing under test exists is not seeding and no recipe should pretend it is.
-- **Mid-walk seeds are keyed to the NODE they fire at**, not appended to the end. That is the live-update shape — seed
-  with the page open, watch the screen react — and a mid-walk seed recorded as part of the prelude would silently become
-  a fresh-render test instead.
-
-**`VERIFIED` names the run that proved it.** Not a claim that it should work: the id of a run where it did, on a date. A
-prelude with no `VERIFIED` line is a path no walk may be sent down.
-
-**And its outputs split along the same line as everything else here:**
-
-| Output                  | Where it lives             | Why                                                                               |
-|-------------------------|----------------------------|-----------------------------------------------------------------------------------|
-| the per-path preludes   | `.quest-plans/`, per quest | they are about THIS flow's routes and are meaningless to the next quest           |
-| **any recipe it wrote** | the committed recipe book  | a state worth creating once is worth creating again. This is the compounding half |
-
-**The operator's job shrinks to what an operator does:** dispatch the planner, read what came back, and refuse to
-dispatch a walk down a path whose recipe is missing or unproven. It never runs one.
-
-**The guide-writer then runs after, and its `SEEDING` heading cites the mapping** rather than deriving commands — the
-same transformation `CONTROLS` undergoes when the key arrives, and `TRAPS` when the oddities file does.
-
-**Nothing is trusted on age.** An existing recipe gets run exactly as a new one does, because the failure this catches
-is a recipe that rotted while nobody was using it. A round that STILL finds one wrong reports it, the same way it
-reports a wrong guide heading — but that is the second line of defence, not the first.
-
-### The planner reads almost no implementation — sub-agents do, for BOTH jobs
-
-**Two jobs, one dispatch shape.** A recipe is either missing or broken, and in both cases the work is reading production
-code to find out what a state really requires. The planner does neither.
-
-| Job                                    | Input the planner supplies                                                                                 | What comes back                                                                                                     |
-|----------------------------------------|------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| **research** — the state has no recipe | the state in the FLOW's own words, the package likely owning it, the recipes already nearby                | whether existing recipes already compose to it; otherwise a new recipe, its test, its `fidelity` and its `mirrors:` |
-| **diagnose** — a recipe ran and failed | the recipe, its `produces:` claim, its `fidelity` and `mirrors`, **and the readings from the failing run** | what changed, the fix, and whether the break is really a finding about the app                                      |
-
-**"Does something existing already compose to this?" is the FIRST question, not the last.** The composition rule says
-the catalogue gets deeper rather than wider, and a researcher that writes a new recipe where two existing ones compose
-has made the book worse while appearing productive.
-
-**The researcher is who fills `mirrors:` correctly**, because it has just read the production writer. Left for later it
-becomes a guess, and a wrong mirror pointer makes the drift test assert against the wrong thing — which is worse than
-having no pointer, since it passes.
-
-**Why the planner must not just do this itself:** it has N paths to get through. Reading the quest contract, the
-work-item shape and the valid statuses to write one recipe would spend the context the remaining paths need. Same lever
-every operator in this system pulls, one level down.
-
-**There is a second reason, and it is the trial's result arriving at a different door.** Arm B read implementation and
-absorbed the answers before it drove anything. A planner that reads deeply is not signing units, but it IS deciding what
-state every walk starts from — and a planner steeped in what the code does will tend to set up the state the code
-produces rather than the state the flow claims. Keeping it at arm's length keeps the setup answerable to the spec.
-
-**Both jobs end the same way: the PLANNER re-runs the prelude.** A sub-agent's claim that its recipe works is not
-evidence, and a research job is no different from a repair in that respect.
-
-**Two at a time over disjoint recipes.** That mirrors a rule that already exists in siegemaster's own prompt — *"Cap two
-fixers, and only over a DISJOINT file set"* — and it is stated here rather than cited loosely, because that rule lives
-in the orchestrator's prompt statics and not in this document. And **depth stops** — the planner is already one level
-below the operator, so neither job dispatches anything.
-
-### What each job is bounded by
-
-**A DIAGNOSIS is bounded, not exploratory, and `fidelity` is what bounds it:**
-
-| The recipe declares | The diagnosis is                                                                                                                                           |
-|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `direct`            | find the production writer whose shape it copies, and diff what that writes NOW against what the recipe writes. The recipe is a copy that stopped matching |
-| `production`        | the real code path it calls changed — a route, a payload contract, a status. Read the handler                                                              |
-| `captured`          | the recording is of a version that no longer exists. Re-capture, do not patch                                                                              |
-
-**So a `direct` recipe must name what it mirrors.** Without it, every diagnosis opens with a hunt for the counterpart.
-The companion plan's own example is exactly this: a web harness "hand-appends the
-`event-outbox.jsonl` line that `questPersistBroker` writes in production" — so that recipe's entry reads
-`mirrors: questPersistBroker`, and a diagnosing agent starts there instead of guessing.
-
-**The brief carries what only the planner has:** the recipe as it stands, its `produces:` claim, its
-`fidelity` and `mirrors`, and **the actual failure — the readings from the run that just failed**. That last part is the
-difference between "this recipe is broken, go look" and a diagnosis that starts from a measured symptom.
-
-**A RESEARCH job is bounded by the flow, not by the code.** Its input is the state in the flow's own words — "a quest
-mid-execution with one running work item" — and its job is to find what that requires. Handed an implementation detail
-to start from instead, it writes a recipe for whatever the code happens to do, which is the thing arm B proved is worth
-avoiding.
-
-**Sometimes the break is the correct alarm.** Three recipes failing at once because production changed what it writes is
-either an intentional migration nobody told the recipe book about, or an unintentional one nobody noticed. The diagnosis
-says which, and the second case is a finding about the app rather than about the recipe — it goes to the quest as an
-observable, not into a recipe patch.
-
-**This is strictly a pre-phase.** If every happy walk dispatches at once, every recipe those walks need is written,
-proven and mapped before the first one goes out.
-
-### The two phases
-
-Siegemaster today runs one ROUND per path walk, each round dispatching a verifier and a stress tester **in parallel**,
-each in its own lane. That parallelism is why round N's walk cannot hand a baseline to round N's attacker.
-
-**Decision: split the pass into two phases.**
-
-```
-every happy walk, through a POOL (three here) — dispatch, refill as each returns
-  → any bugs?  → fix  → walk again  → clean
-  → no bugs
-  → STAMP
-  → every adversarial walk, same pool, each in its own instance
-```
-
-Three things follow, none needing a special case:
-
-- **Every adversarial inherits a verified-clean baseline.** No round-1 exception, no `health`-only fallback, because no
-  attack starts until every happy walk is clean.
-- **Stale baselines cannot happen.** A fix invalidates the shots taken before it, and this shape re-walks after fixing —
-  so what gets stamped is post-fix by construction.
-- **The stamp means something.** A sign-off lands on a system just confirmed clean end to end rather than on a snapshot
-  from partway through a fix loop.
-
-What does NOT change: **lane separation.** Each adversarial still gets its own instance, because it corrupts and kills
-what it is handed.
-
-**"In parallel" means a POOL, and the pool size is MEASURED rather than assumed.** Three is this repo's policy ceiling
-today. It is not a property of the tool, and nothing should treat it as one.
-
-**The cost of an instance is a property of its LANE SPEC, not of siege.** This repo's spec happens to be three
-processes — an API server, a Vite server, a browser. A repo with one server is cheaper; a repo with two is not; **and
-adding a second server here changes the right cap the moment it lands.**
-A number typed into a doc cannot track that.
+## Part 3 — Restructuring the pass
 
 ### Profiling: measure what an instance costs, then divide
 
@@ -1412,15 +1401,16 @@ profile  spec 'dungeonmaster-web' (hash 7f3a…)          ← ILLUSTRATIVE FIGUR
   processes  3        api · vite · chromium
   steady     1.8 GB   sampled at pool size 1 · 2 · 3
   peak       2.6 GB   during boot, at pool size 1
-  boot       20s      ← the one real number here; see Part 2
+  boot       20s      ← the one real number here; see siege-verification-remainder.md Part 2
   from       14 instances, last 2026-09-14
 ```
 
-**Only `boot 20s` is measured.** Part 2 holds every figure this project actually took, and it has no memory numbers in
+**Only `boot 20s` is measured.** `siege-verification-remainder.md` Part 2 holds every figure this project actually took,
+and it has no memory numbers in
 it — nobody has profiled an instance yet. The memory values above exist to show the SHAPE and the arithmetic; treat them
 as a worked example, not as this repo's real cost.
 
-**Every sample carries the pool size it was taken at**, which is the invariant Part 8 states and which a schema without
+**Every sample carries the pool size it was taken at**, which is the invariant Part 5 states and which a schema without
 the field cannot satisfy. Averaging a solo sample with a contended one produces a number true of neither condition, and
 `suggested` derived from it is wrong in a direction nobody can see.
 
@@ -1537,13 +1527,13 @@ lane boots in 20 seconds and a command answers in about 3.
 
 ---
 
-## Part 7 — Decisions already taken
+## Part 4 — Decisions already taken
 
-Two halves. **7A is what the TOOL implements** — it binds whoever builds it, and stays grouped by subject. **7B is what
-each ROLE is bound by** — it binds a session at run time, and is grouped by who. A builder reads 7A; a prompt author
-reads 7B.
+Two halves. **4A is what the TOOL implements** — it binds whoever builds it, and stays grouped by subject. **The other
+half, what each ROLE is bound by**, binds a session at run time, is grouped by who, and lives in
+`siege-verification-remainder.md` and `siegelense-recipes.md`. A builder reads 4A; a prompt author reads that half.
 
-**The vocabulary these rows use is defined in Part 5**, under "Perception: three artifacts" — **the shot** (a clean PNG,
+**The vocabulary these rows use is defined in Part 2**, under "Perception: three artifacts" — **the shot** (a clean PNG,
 the only one that is evidence), **the map** (the same frame with numbered boxes on it), **the key** (the text tree).
 Elsewhere: an **instance** is one running stack, a **run** is one submitted batch, a **recipe** creates state, a
 **prelude** is the batch that reaches a path's entry, and the `video` STEP records a screencast — distinct from a
@@ -1551,7 +1541,7 @@ Elsewhere: an **instance** is one running stack, a **run** is one submitted batc
 
 ---
 
-### 7A — What the tool implements
+### 4A — What the tool implements
 
 #### Readings, and what a step may never do
 
@@ -1560,41 +1550,58 @@ Elsewhere: an **instance** is one running stack, a **run** is one submitted batc
 | A step returns a READING, never a verdict on a unit                                                          | `siege-command.ts`'s founding rule. Comparing two measured values is still a reading; deciding a unit passes is not                                                                                                                                               |
 | **No step ever picks among matches. Ambiguity THROWS, and the error carries the candidates with their refs** | `.first()` is live today in `click`, `type`, `waitFor`, `paste` and `screenshot`. It clicks BROWSE while you meant CREATE and hands back a clean-looking result. Zero matches throws too, naming near-miss testIds, because a misremembered id is the common case |
 | The no-pick rule is held by a LINT RULE over the command implementations, not by prose                       | `page.locator(t).first().click()` is the obvious line to write and the wrong one. `.first()`/`.last()` are banned outright there; `.nth()` only with a caller-supplied argument                                                                                   |
-| `querySelector` in eval source is banned by the package's `CLAUDE.md`, not by lint                           | singular silently returns match one — the same defect — but it sits inside a template literal, and a rule inspecting string contents is its own liability                                                                                                         |
-| The package carries a `CLAUDE.md` of invariants, each with its measurement                                   | same pattern as `packages/orchestrator/CLAUDE.md` and `packages/web/CLAUDE.md`. Part 12 lists the minimum entries                                                                                                                                                 |
+| `querySelector` in eval source is banned by the package's `../../CLAUDE.md`, not by lint                     | singular silently returns match one — the same defect — but it sits inside a template literal, and a rule inspecting string contents is its own liability                                                                                                         |
+| The package carries a `../../CLAUDE.md` of invariants, each with its measurement                             | same pattern as `../../packages/orchestrator/CLAUDE.md` and `../../packages/web/CLAUDE.md`. Part 8 lists the minimum entries                                                                                                                                      |
 
 #### Addressing: the key, refs, the map
 
-| Decision                                                                                                                    | Because                                                                                                                                                                                                                                                         |
-|-----------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| The key and the map get different filters                                                                                   | one filter produced outlines around invisible wrappers                                                                                                                                                                                                          |
-| The KEY is the primary navigation surface; the map is secondary                                                             | the one trial arm holding both rendered three maps and opened none, reporting testIds were legible straight from the key                                                                                                                                        |
-| A key row carries the TAG even when a testId exists, plus a DOM id and an href                                              | `PIXEL_BTN` does not say whether it is a `<button>` a keyboard reaches or a `<div>` with a click handler that it cannot — which is a defect class of its own                                                                                                    |
-| An input shows its CURRENT value and its placeholder separately                                                             | they are different questions and the naming ladder collapsing them loses the one the walk is usually asking                                                                                                                                                     |
-| State flags ride on the row: `disabled` `focused` `selected` `expanded` `offscreen` `covered`                               | `disabled` is the sharp one — a click there does nothing, and that looks exactly like a broken control                                                                                                                                                          |
-| The computed geometry checks are FLAGS ON THE KEY, not a command of their own                                               | as a separate call they are something a session must think to ask for, and it will not. That is the same failure as "looking is optional"                                                                                                                       |
-| Truncation of the key is reported, never silent                                                                             | a key that quietly stops is the `count: 0` problem wearing a different hat                                                                                                                                                                                      |
-| A ref is EPHEMERAL — for driving, never for storing. Durable handles are testId plus `within`                               | a saved batch carrying `ref: 14` does not throw; ref 14 may exist and point at something else, so it drives the wrong element and returns a clean-looking result. That is `.first()` wearing a number. Navigation, `reset` and restart all invalidate every ref |
-| A ref is scoped to ONE INSTANCE, and inside it to one page state. The instance is the only thing that can resolve one       | four boundaries it cannot cross and all look passable: minion→parent (the parent owns no instance), parent→fixer (a fixer never starts one), walk→re-walk (a fresh instance), happy→adversarial phase (different instances by design)                           |
-| The map's BADGES get no colour-coding by nesting depth, for now                                                             | four badges competing for ten pixels is not a colour problem                                                                                                                                                                                                    |
-| The numbered MAP is built LAST and is OPTIONAL — `look` omits the field until it ships, then returns it only on `map: true` | the one trial arm that had it rendered three and opened none, reporting the key was enough. An absent field is honest where an empty one invites a session to wonder what went wrong                                                                            |
+| Decision                                                                                                                    | Because                                                                                                                                                                                                                                                                                |
+|-----------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| The key and the map get different filters                                                                                   | one filter produced outlines around invisible wrappers                                                                                                                                                                                                                                 |
+| The KEY is the primary navigation surface; the map is secondary                                                             | the one trial arm holding both rendered three maps and opened none, reporting testIds were legible straight from the key                                                                                                                                                               |
+| A key row carries the TAG even when a testId exists, plus the `role` and a DOM id                                           | `PIXEL_BTN` does not say whether it is a `<button>` a keyboard reaches or a `<div>` with a click handler that it cannot — which is a defect class of its own                                                                                                                           |
+| **A key row has FOUR columns: element, text/value, `attrs`, flags — split on DECLARED versus CONDITION**                    | an attr is a value the markup states and you would quote; a flag is a condition, boolean or computed, where the word's presence is the message. `href` in the flags column collapses the rule, because it fires on every link and a flag that always fires is a column                 |
+| An input shows its CURRENT value and its placeholder separately                                                             | they are different questions and the naming ladder collapsing them loses the one the walk is usually asking                                                                                                                                                                            |
+| State flags ride on the row: `disabled` `focused` `selected` `expanded` `offscreen` `covered`                               | `disabled` is the sharp one — a click there does nothing, and that looks exactly like a broken control                                                                                                                                                                                 |
+| **`aria-disabled` is reported SEPARATELY from `disabled`**                                                                  | it is the same failure wearing a disguise: the control still takes the click and does nothing with it, so a reading that folded the two together would report the click as landing                                                                                                     |
+| **A live region — `aria-live`, `role="alert"`, `role="status"` — is flagged**                                               | it is where a TOAST lands, and the sad-path baseline turns entirely on "was the toast there, with that text". On the key that is a presence question; against a frame it is a pixel diff against a moment that has passed                                                              |
+| **`scrollable` carries how much is past the fold of that container**                                                        | `offscreen` is viewport-relative and says nothing about a row below the fold of a scrolling panel. "The list showed 2 rows" with a third one scrolled out of a panel is the same defect report, from a cause nothing else here would name                                              |
+| **`opacity: 0` is FLAGGED, never excluded**                                                                                 | it is the one invisibility that keeps its box, its rect and its hit area, so excluding it beside `display: none` would delete a defect rather than report one                                                                                                                          |
+| **`attrs` carries `href` as `→ /path` (`↗` for a new tab), `data-*`, the input constraints, `type` and `title`**            | each closes a question that was a `dom` call: where a link goes, which row is the failed one, what cap an oversized paste is being measured against, whether a clipped label has a tooltip behind it                                                                                   |
+| **The `attrs` column is BUDGETED, and runtime-looking values are DROPPED**                                                  | it is the one column an app controls, so an unbudgeted one eats a 243-token key. The guard is not optional either: a framework's per-mount id in a data attribute makes two keys of one state differ, and the element delta then reports churn on a still page                         |
+| **`className` is NOT a key column — it is a `dom` field**                                                                   | most of it is build-time hashes, which is the runtime-id hazard in its commonest costume. And a class is the MECHANISM behind what a person sees: on every row it invites a walk to settle a unit on a class that is present while the paint is wrong                                  |
+| **A testId appearing under two DIFFERENT parents is a line under the key**                                                  | `[n/m]` covers siblings and this covers what is not siblings. The trial's real bug was a body rendered twice, once nested and once orphaned, with no console warning — a duplicate-name line prints it on every key without anyone looking                                             |
+| **`role` sits beside the tag in the element column**                                                                        | same reason the tag is there: `<div role="button">` is a control to assistive tech and not to a keyboard, and neither half alone says which the author meant                                                                                                                           |
+| **A flag earns its place by being ABSENT on most rows**                                                                     | this is the rule that stops the set growing forever. A flag that fires everywhere is a column, a column that reads the same on every row is noise, and a 243-token key cannot afford noise                                                                                             |
+| **`dom` stays as the ESCAPE HATCH and is last on a four-rung ladder** — `look`, `look { within }`, `box`, then `dom`        | a shaped reading always leaves something out, and a session with no way down to the raw nodes invents a workaround worse than the call. It is last because of the one measured cost here: `body *` returned 58 nodes carrying a whole stylesheet                                       |
+| **`dom` gains three guards: own text unless `text: 'full'`, a `fields:` projection, and a cap that reports the true count** | the measured blowup was recursive text, so the expensive read is the opt-in. A cap that stops quietly is the `count: 0` problem; `count: 58, showing 10` is an answer                                                                                                                  |
+| **`eval` is a DIFFERENT hatch — cheap, and the one that can launder a verdict into a reading**                              | a session can compute a judgement inside the page and hand back a value that looks exactly like a measurement. It is for a question no step shapes, and `querySelector` in its source is already banned for the neighbouring reason                                                    |
+| **Event listeners are a `dom` field over CDP, never a key row — and "dead control" is never inferred from one**             | React delegates to the root container, so a per-element listener check answers "none" for every button in this app. The click is the test: `pixelChange: 0%` beside `+0 -0 moved 0` and no exchanges is measured, where a handler that exists and does nothing passes a listener check |
+| The computed geometry checks are FLAGS ON THE KEY, not a command of their own                                               | as a separate call they are something a session must think to ask for, and it will not. That is the same failure as "looking is optional"                                                                                                                                              |
+| Truncation of the key is reported, never silent                                                                             | a key that quietly stops is the `count: 0` problem wearing a different hat                                                                                                                                                                                                             |
+| A ref is EPHEMERAL — for driving, never for storing. Durable handles are testId plus `within`                               | a saved batch carrying `ref: 14` does not throw; ref 14 may exist and point at something else, so it drives the wrong element and returns a clean-looking result. That is `.first()` wearing a number. Navigation, `reset` and restart all invalidate every ref                        |
+| A ref is scoped to ONE INSTANCE, and inside it to one page state. The instance is the only thing that can resolve one       | four boundaries it cannot cross and all look passable: minion→parent (the parent owns no instance), parent→fixer (a fixer never starts one), walk→re-walk (a fresh instance), happy→adversarial phase (different instances by design)                                                  |
+| The map's BADGES get no colour-coding by nesting depth, for now                                                             | four badges competing for ten pixels is not a colour problem                                                                                                                                                                                                                           |
+| The numbered MAP is built LAST and is OPTIONAL — `look` omits the field until it ships, then returns it only on `map: true` | the one trial arm that had it rendered three and opened none, reporting the key was enough. An absent field is honest where an empty one invites a session to wonder what went wrong                                                                                                   |
 
 #### Perception: shots, pixelChange, animation
 
-| Decision                                                                                                                   | Because                                                                                                                                                                                                                                 |
-|----------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Only the shot is evidence                                                                                                  | the map's own boxes change what the page looks like                                                                                                                                                                                     |
-| SCREENSHOTS are captured always, and the RUN lists every one with an `open: true` flag                                     | capturing is cheap and opening costs real context. Putting the policy in the response rather than in prompt text means no prompt carries it, no session remembers it, and "did I get a screenshot here?" is answered before it is asked |
-| `pixelChange` routes ATTENTION and measures nothing; it is only interpretable against what the step was trying to do       | `0%` after a click is a defect, after a read it is correct. It cannot say whether a change was right, or where on screen it happened                                                                                                    |
-| `pixelChange` is `null` on a first capture, never `0`                                                                      | `0` would manufacture a no-change finding on the opening step of every walk                                                                                                                                                             |
-| Every capture carries `blank`, and it is checked BEFORE `pixelChange` is interpreted                                       | two blank frames give `pixelChange: 0%`, which this design reads as "the control did nothing" — the wrong finding. The page is dead, not unresponsive, and a session handed that will go looking at the button                          |
-| A blank capture reports its COLOUR                                                                                         | blank in the app's own background means the shell rendered and the content did not; blank white means the document died or never styled. Different bugs, different places to look                                                       |
-| `blank` rides on every capture even though `health` also reports it                                                        | `health` is a reading a session asks for; `blank` fires whether or not anyone asked. Same reasoning as the geometry flags on the key                                                                                                    |
-| `pixelChange: 0%` is a strong signal; non-zero is a prompt to LOOK, never a verdict                                        | font races, rasterisation and scrollbars are outside this tool's control. Same rule as every other reading here                                                                                                                         |
-| Capture for COMPARISON runs with `animations: 'disabled'` and `caret: 'hide'`                                              | this UI animates on purpose, so two captures of one logical state are otherwise never identical and `pixelChange` is noise on every step. The byte-identity measured in Part 2 was a STATIC screen and does not generalise              |
-| `hold` stays LIVE while every comparison capture is frozen                                                                 | freezing animation would make every `hold` frame identical and answer "did it settle" falsely                                                                                                                                           |
-| **Nothing in this system grades animation quality.** `hold` detects NON-SETTLEMENT, a binary                               | four frames 1.5s apart cannot distinguish a clean 300ms transition from a janky one; frame drops are invisible at that rate; a two-frame flicker falls between samples; and `video` produces a screencast no model watches              |
-| The `video` STEP records a screencast, and that screencast is for a human and for the evidence trail — never for a verdict | when a walk reports something odd at step 9, a person can watch step 9. No step reads the video back and no model grades it. Not to be confused with a ROUND RECORD, which is the written file a walk produces                          |
+| Decision                                                                                                                   | Because                                                                                                                                                                                                                                                      |
+|----------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Only the shot is evidence                                                                                                  | the map's own boxes change what the page looks like                                                                                                                                                                                                          |
+| SCREENSHOTS are captured always, and the RUN lists every one with an `open: true` flag                                     | capturing is cheap and opening costs real context. Putting the policy in the response rather than in prompt text means no prompt carries it, no session remembers it, and "did I get a screenshot here?" is answered before it is asked                      |
+| **A step may carry an optional `node:` label, recorded on its shot and its reading**                                       | promotion is already defined per node, and an antagonist fetching the baseline for the node it is attacking otherwise holds a step number from a run it did not submit. Only the session knows which step reached which node                                 |
+| **A baseline is fetched per NODE, by `results` against the happy walk's instance — which starts nothing**                  | "inherits a verified-clean baseline" had no mechanism behind it. And on a SAD path the baseline is the error rendered correctly, so a happy-screen baseline there reports the toast as damage and its absence as "it held"                                   |
+| `pixelChange` routes ATTENTION and measures nothing; it is only interpretable against what the step was trying to do       | `0%` after a click is a defect, after a read it is correct. It cannot say whether a change was right, or where on screen it happened                                                                                                                         |
+| `pixelChange` is `null` on a first capture, never `0`                                                                      | `0` would manufacture a no-change finding on the opening step of every walk                                                                                                                                                                                  |
+| Every capture carries `blank`, and it is checked BEFORE `pixelChange` is interpreted                                       | two blank frames give `pixelChange: 0%`, which this design reads as "the control did nothing" — the wrong finding. The page is dead, not unresponsive, and a session handed that will go looking at the button                                               |
+| A blank capture reports its COLOUR                                                                                         | blank in the app's own background means the shell rendered and the content did not; blank white means the document died or never styled. Different bugs, different places to look                                                                            |
+| `blank` rides on every capture even though `health` also reports it                                                        | `health` is a reading a session asks for; `blank` fires whether or not anyone asked. Same reasoning as the geometry flags on the key                                                                                                                         |
+| `pixelChange: 0%` is a strong signal; non-zero is a prompt to LOOK, never a verdict                                        | font races, rasterisation and scrollbars are outside this tool's control. Same rule as every other reading here                                                                                                                                              |
+| Capture for COMPARISON runs with `animations: 'disabled'` and `caret: 'hide'`                                              | this UI animates on purpose, so two captures of one logical state are otherwise never identical and `pixelChange` is noise on every step. The byte-identity measured in `siege-verification-remainder.md` Part 2 was a STATIC screen and does not generalise |
+| `hold` stays LIVE while every comparison capture is frozen                                                                 | freezing animation would make every `hold` frame identical and answer "did it settle" falsely                                                                                                                                                                |
+| **Nothing in this system grades animation quality.** `hold` detects NON-SETTLEMENT, a binary                               | four frames 1.5s apart cannot distinguish a clean 300ms transition from a janky one; frame drops are invisible at that rate; a two-frame flicker falls between samples; and `video` produces a screencast no model watches                                   |
+| The `video` STEP records a screencast, and that screencast is for a human and for the evidence trail — never for a verdict | when a walk reports something odd at step 9, a person can watch step 9. No step reads the video back and no model grades it. Not to be confused with a ROUND RECORD, which is the written file a walk produces                                               |
 
 #### The service: instances, runs, batches
 
@@ -1602,7 +1609,9 @@ Elsewhere: an **instance** is one running stack, a **run** is one submitted batc
 |--------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | The service IS a set of MCP tools — THIRTEEN of them. What was rejected is one tool per STEP, not MCP                                      | a file drop costs ~3 calls per command; a tool per step grows the tool surface with every verb AND forces each reading through a 50,000-char result ceiling. Steps are DATA inside `run` instead: the tool surface is bounded, the step surface is open                  |
 | The tool's instructions are served by a `docs` CALL, never stored in a role prompt                                                         | any session can then be told "drive it with this instead of the browser extension" and go read how; one source instead of a contract on three prompts; and a full manual inside a prompt spends the 50,000-char ceiling a call serves for free                           |
-| `docs { for: … }` has ONE SCOPE PER TOOL-USING ROLE — `operating`, `planning`, `walking`, `attacking`, `fixing`                            | a stress tester reading the naming ladder in full is context spent on something it barely touches — the same reasoning as filtering `verifyByHuman` units                                                                                                                |
+| `docs { for: … }` has ONE SCOPE PER TOOL-USING ROLE — `operating`, `planning`, `walking`, `attacking`, `fixing`, `driving`, `operational`  | a stress tester reading the naming ladder in full is context spent on something it barely touches — the same reasoning as filtering `verifyByHuman` units                                                                                                                |
+| **A BROWSERLESS lane spec is a first-class spec, and the browser steps error against it BY NAME**                                          | an operational flow has no screen, and a spec is keyed by content hash, so the cheaper spec profiles itself and `capacity` allows more of them. A `look` answering an empty key instead of an error is `count: 0` where a walk cannot recover from it                    |
+| **`driving` serves a session NO QUEST DISPATCHED**, and covers the machine it shares, its own `kill`, and where its evidence went          | the case for a `docs` call at all was that any session can be told to drive this instead of the browser extension. Every other scope is written for a quest role and reads as a brief the session does not have, with a record it is not writing                         |
 | The `operating` scope contains NO STEP VERBS                                                                                               | the operator never submits a batch. Its whole surface is fleet management — `cleanup`, `capacity`, `status` — plus reading what a minion brings back. Handing it the driving verbs hands it the one thing its own rules forbid                                           |
 | The MCP tools are thin clients over a local socket; the DRIVER holding the browsers is a separate process                                  | about lifetime, not transport: an MCP rebuild-and-reconnect would otherwise kill every live instance mid-pass                                                                                                                                                            |
 | Many sessions share ONE MACHINE through a disk REGISTRY — no daemon, no master, one driver per instance                                    | a daemon owning every instance is a single point of failure for N unrelated sessions and a lifecycle problem nobody wants. This repo already answers the same question the same way: dispatch exclusivity is file-backed BECAUSE the MCP server is a separate OS process |
@@ -1612,13 +1621,17 @@ Elsewhere: an **instance** is one running stack, a **run** is one submitted batc
 | Profile samples are APPEND-ONLY; steady and peak are computed on read                                                                      | read-modify-write from three processes loses samples, and a lock for something written this often is not worth it                                                                                                                                                        |
 | Reaping is by STALENESS, never by ownership — no session kills a live instance it does not own                                             | a cold heartbeat is a fact anyone can check. The operator's cleanup duty covers its own pass, not another developer's browser                                                                                                                                            |
 | Assets live under the MINTED instance id                                                                                                   | unique by construction, so two instances cannot collide on a path                                                                                                                                                                                                        |
-| Assets AGE OUT by default; `prune` is explicit and refuses anything a `VERIFIED` prelude or an open issue still references                 | evidence outliving its instance is the point, and a disk that only grows is a failure mode already documented here                                                                                                                                                       |
+| Assets AGE OUT by default; `prune` refuses anything a `VERIFIED` prelude, an open issue or an open quest's `WALKED` line still references  | evidence outliving its instance is the point, and a disk that only grows is a failure mode already documented here                                                                                                                                                       |
 | Video ages out FIRST and separately                                                                                                        | a screencast dwarfs every shot and transcript combined                                                                                                                                                                                                                   |
 | **`start` NEVER prunes to make room**                                                                                                      | a start that quietly deletes another session's evidence is the worst version of this: invisible, and discovered only when someone goes to read what is gone. Report the shortage and refuse                                                                              |
 | The completion status is an index, not a payload                                                                                           | otherwise every run returns everything and the cap problem returns                                                                                                                                                                                                       |
 | Instance ids are minted, not chosen                                                                                                        | deletes the lane-name allocation section and its failure class                                                                                                                                                                                                           |
 | An instance is a TIMELINE of runs; every `run` mints an id and every earlier run stays queryable for the RETENTION WINDOW, `kill` included | run → analyze → run is the normal loop, not an edge case. `results { step: 4 }` means nothing once a second run exists                                                                                                                                                   |
 | Step numbers restart at 1 per run; screenshots are namespaced by run                                                                       | otherwise run 2 silently overwrites run 1's evidence and `stoppedAt: { step: 4 }` is ambiguous                                                                                                                                                                           |
+| **Every evidence read resolves off DISK, live instance or dead. Only `start`, `run` and `kill` need a driver**                             | the tools are thin clients over a per-instance socket, and a killed instance has no driver — so a read routed there answers a bare connection error that cannot be told from a crash. One path, no branch: the alternative works all afternoon and fails for every fixer |
+| **The entry to evidence is an ID CARRIED IN A RECORD. No call lists another instance's runs and nothing walks the tree**                   | a context decision before a safety one: a session handed a list of runs reads the list instead of the finding its record already holds. It makes the walker's recorded instance id load-bearing, which is a quest-record requirement rather than a habit                 |
+| **Against a FINISHED instance the run id is required; `run` defaults to latest only for the session driving it**                           | a fixer's instance may hold the prelude's proving run, the walk and a re-walk, and "latest" silently reads whichever went last. A defensible default landing on the wrong thing and returning a clean-looking answer is `.first()` one layer out                         |
+| **`results { instance, run }` with no `step` and no `kind` returns that run's stored return** — index, shot list, `stoppedAt`              | the index and the `open: true` flags are produced by `run`, and a fixer never made the run. Without this it has to guess which kinds to query, which is the everything-query the index exists to prevent                                                                 |
 | Buffers are continuous; a run records its WINDOW, and its index counts only that window                                                    | the listeners are armed once at boot and never stop. An index counting the running total makes run 5 report 47 errors that are mostly run 1's                                                                                                                            |
 | A run boundary does NOT invalidate refs — only navigation, `reset` and restart do                                                          | a `look` at the end of run 1 exists so run 2 can act on it. Invalidating per run would break the main loop                                                                                                                                                               |
 | `compare { runA, runB }` is a first-class call                                                                                             | the point of a cycle is the difference between iterations. Diffing two result sets inside a session's own context is the blob problem returning by a side route. It is a READING — a computed difference between measured values                                         |
@@ -1640,29 +1653,34 @@ Elsewhere: an **instance** is one running stack, a **run** is one submitted batc
 
 #### Teardown and crash recovery
 
-| Decision                                                                                                              | Because                                                                                                                                                                                                      |
-|-----------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `kill` is mandatory and explicit                                                                                      | a session's final response does not reap an instance it did not parent. The idle timeout is a backstop, not the mechanism                                                                                    |
-| Teardown is a first-class concern with its own tests, not a `finally` block                                           | every leak is invisible to the session that caused it — the walk completes, the return reads clean, three processes stay up. Under a pool of three parallel instances that compounds fast                    |
-| A SIGKILLed driver cannot be handled — only recovered from, using what was written to disk BEFORE it died             | nothing of ours runs. The heartbeat file and its recorded process-group ids are the entire recovery path                                                                                                     |
-| `status` is the POST-MORTEM call — `capacity` looks forward, `status` reports what is and what went wrong             | after a death a session needs the machine state, the orphans, the last step and the evidence paths in one place, not four calls and its own arithmetic                                                       |
-| `status` returns `monitored` — the metric names it can answer about                                                   | without it a session guesses at names, and a guess returning nothing reads exactly like a metric that is zero. The `count: 0` problem, one layer up                                                          |
-| `likelyCause` is stated as EVIDENCE, never as a verdict                                                               | "rss 2980MB against a 2600MB profile peak, kernel OOM kill at 20:11:04" is weighable; "it ran out of memory" is a claim                                                                                      |
-| Kernel OOM evidence is reported when readable and `unavailable` when not — never inferred from absence                | it is platform-specific and may need privileges this process lacks. A missing kernel line is not evidence of a clean death                                                                                   |
-| A death mid-run does not lose the runs before it — `results` still reaches them                                       | everything up to the failing step is on disk, so a session salvages most of a walk instead of re-running an hour of work                                                                                     |
-| `kill` is NOT the retention boundary — every run stays queryable for the instance's retention window, `kill` included | a fixer reads a run whose walker killed the instance before handing over the record. Tying results to `kill` would break the handoff the fixer depends on                                                    |
-| Each instance keeps a HEARTBEAT FILE carrying its pid, instance id and every child's PROCESS-GROUP ID                 | after a SIGKILL nothing in memory holds those pgids, so without the file the orphans cannot be found, only guessed at                                                                                        |
-| `start` and `capacity` REAP instances whose heartbeat has gone stale, and say so                                      | there is no other recovery path, and a silent reap is indistinguishable from a bug                                                                                                                           |
-| `cleanup` is an explicit call, because opportunistic reaping misses the QUIET case                                    | a pass crashes at 2am and nothing calls the tool for nine hours: nine hours of orphans holding ports with nobody to notice                                                                                   |
-| `cleanup` reports `leftAlone` as well as what it reaped                                                               | a cleanup reporting only removals cannot be told from one that removed the wrong thing, and the question a session has afterwards is whether it touched anything of theirs                                   |
-| The step transcript is flushed PER STEP, never buffered                                                               | a buffered transcript loses the whole run on a crash, including the steps that led to it — the part anyone would want most                                                                                   |
-| Free disk is checked before `start` AND before every large write                                                      | a pre-flight check is necessary and not sufficient: the disk can fill from something this tool never started, between two steps. A half-written capture reads as a corrupt screen rather than a missing file |
-| An OOM death is NEVER auto-restarted; it is reported, and it CORRECTS THE PROFILE                                     | an instance killed for memory will be killed again, and a walk spanning two processes is not a walk. The death is evidence the spec peaks higher than the profile recorded                                   |
-| A child dying is reported with WHICH child and its last log lines                                                     | that is the recoverable case and the common one — an API server that OOMs is not the same failure as a browser that crashed, and the session can act on the difference                                       |
-| `kill` removes the throwaway STATE and never the evidence                                                             | a session that kills before writing its ROUND RECORD would otherwise lose the logs, captures and transcript that were the point                                                                              |
-| Teardown's test suite is the TOOL's, run once by ward — never per quest                                               | a pass that had to verify its own teardown could not trust the thing it is driving                                                                                                                           |
-| Every teardown assertion is shown FAILING against broken teardown before it is trusted                                | this repo already measured a leak-guard that passed whether or not the thing it protected was present, and proved nothing. Red first, applied to cleanup                                                     |
-| The parallel case is tested explicitly: killing one of three instances leaves the other two untouched                 | it only fails under parallelism, which is the shape the two-phase pass introduces, and it is the row everyone skips                                                                                          |
+| Decision                                                                                                              | Because                                                                                                                                                                                                            |
+|-----------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `kill` is mandatory and explicit                                                                                      | a session's final response does not reap an instance it did not parent. The idle timeout is a backstop, not the mechanism                                                                                          |
+| Teardown is a first-class concern with its own tests, not a `finally` block                                           | every leak is invisible to the session that caused it — the walk completes, the return reads clean, three processes stay up. Under a pool of three parallel instances that compounds fast                          |
+| A SIGKILLed driver cannot be handled — only recovered from, using what was written to disk BEFORE it died             | nothing of ours runs. The heartbeat file and its recorded process-group ids are the entire recovery path                                                                                                           |
+| `status` is the POST-MORTEM call — `capacity` looks forward, `status` reports what is and what went wrong             | after a death a session needs the machine state, the orphans, the last step and the evidence paths in one place, not four calls and its own arithmetic                                                             |
+| `status` returns `monitored` — the metric names it can answer about                                                   | without it a session guesses at names, and a guess returning nothing reads exactly like a metric that is zero. The `count: 0` problem, one layer up                                                                |
+| `likelyCause` is stated as EVIDENCE, never as a verdict                                                               | "rss 2980MB against a 2600MB profile peak, kernel OOM kill at 20:11:04" is weighable; "it ran out of memory" is a claim                                                                                            |
+| Kernel OOM evidence is reported when readable and `unavailable` when not — never inferred from absence                | it is platform-specific and may need privileges this process lacks. A missing kernel line is not evidence of a clean death                                                                                         |
+| A death mid-run does not lose the runs before it — `results` still reaches them                                       | everything up to the failing step is on disk. That is for explaining the DEATH and for a finding the walk had already recorded in words — never for finishing the walk, which is re-dispatched on a fresh instance |
+| **A reaped or pruned instance leaves a TOMBSTONE; what is gone answers as gone, never as empty**                      | `pruned at 03:14, olderThan 7d` is an answer. An empty list reads as "that step produced nothing", which is the `count: 0` ambiguity landing where it does most damage: a fixer concluding the walk saw nothing    |
+| **Assets are partitioned by the GUILD owning the instance's quest; `unowned/` holds the rest**                        | deleting a guild takes its siege evidence and reaches no other guild's. The key is the quest's guild, never a guild a recipe seeded — that one is minted per run and would file every instance separately          |
+| **`start` records the quest id, and that is how `prune` and `cleanup` resolve "still referenced"**                    | both refusals are asserted all through this design with no mechanism. The quest id resolves to its `.quest-plans/`, the refusal names the citing file, and an instance with no quest ages out ordinarily           |
+| **Video cited by a `verifyByHuman` item is HELD until the quest closes**                                              | video otherwise ages out first and fastest, and the human-check list reaches its reader at quest end — so the general rule would rot the only link the only reader of that list ever gets                          |
+| **`dungeonmaster init` creates `<repoRoot>/.siegelense` and ignores it — in git AND in the check globs**              | a shot is only evidence if the reader's `Read` reaches it, and one path shape in every repo beats a home that moves. A symlinked tree of thousands of PNGs is also something lint and test globs walk into         |
+| `kill` is NOT the retention boundary — every run stays queryable for the instance's retention window, `kill` included | a fixer reads a run whose walker killed the instance before handing over the record. Tying results to `kill` would break the handoff the fixer depends on                                                          |
+| Each instance keeps a HEARTBEAT FILE carrying its pid, instance id and every child's PROCESS-GROUP ID                 | after a SIGKILL nothing in memory holds those pgids, so without the file the orphans cannot be found, only guessed at                                                                                              |
+| `start` and `capacity` REAP instances whose heartbeat has gone stale, and say so                                      | there is no other recovery path, and a silent reap is indistinguishable from a bug                                                                                                                                 |
+| `cleanup` is an explicit call, because opportunistic reaping misses the QUIET case                                    | a pass crashes at 2am and nothing calls the tool for nine hours: nine hours of orphans holding ports with nobody to notice                                                                                         |
+| `cleanup` reports `leftAlone` as well as what it reaped                                                               | a cleanup reporting only removals cannot be told from one that removed the wrong thing, and the question a session has afterwards is whether it touched anything of theirs                                         |
+| The step transcript is flushed PER STEP, never buffered                                                               | a buffered transcript loses the whole run on a crash, including the steps that led to it — the part anyone would want most                                                                                         |
+| Free disk is checked before `start` AND before every large write                                                      | a pre-flight check is necessary and not sufficient: the disk can fill from something this tool never started, between two steps. A half-written capture reads as a corrupt screen rather than a missing file       |
+| An OOM death is NEVER auto-restarted; it is reported, and it CORRECTS THE PROFILE                                     | an instance killed for memory will be killed again, and a walk spanning two processes is not a walk. The death is evidence the spec peaks higher than the profile recorded                                         |
+| A child dying is reported with WHICH child and its last log lines                                                     | that is the recoverable case and the common one — an API server that OOMs is not the same failure as a browser that crashed, and the session can act on the difference                                             |
+| `kill` removes the throwaway STATE and never the evidence                                                             | a session that kills before writing its ROUND RECORD would otherwise lose the logs, captures and transcript that were the point                                                                                    |
+| Teardown's test suite is the TOOL's, run once by ward — never per quest                                               | a pass that had to verify its own teardown could not trust the thing it is driving                                                                                                                                 |
+| Every teardown assertion is shown FAILING against broken teardown before it is trusted                                | this repo already measured a leak-guard that passed whether or not the thing it protected was present, and proved nothing. Red first, applied to cleanup                                                           |
+| The parallel case is tested explicitly: killing one of three instances leaves the other two untouched                 | it only fails under parallelism, which is the shape the two-phase pass introduces, and it is the row everyone skips                                                                                                |
 
 #### Capacity and profiling
 
@@ -1686,136 +1704,33 @@ Elsewhere: an **instance** is one running stack, a **run** is one submitted batc
 
 #### Recipes: what one is and what holds it
 
-| Decision                                                                                                                                          | Because                                                                                                                                                                                                                                                    |
-|---------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| A recipe touches STATE, never a screen — held by a local lint rule, not by prose                                                                  | a recipe carrying a DOM handle is a design error, not a stale value: it means the recipe is doing a walk's job. `@dungeonmaster/local-eslint`'s `no-hardcoded-package-names` is the template — and its own blind spot is the caution to copy with it       |
-| The tool is `siegelense`: `packages/siegelense/`, `dungeonmaster siegelense`, MCP tools `siegelense-*`, recipes at `packages/siegelense-recipes/` | the recipe path must be a CONVENTION because the tool enumerates them before anything is seeded. A config key is one more thing to set, get wrong and diverge on; a bare `recipes` could collide with a repo's own package, and the tool's own name cannot |
-| `packages/siegelense-recipes/` exists in EVERY repo siegelense is installed in, scaffolded by `dungeonmaster init`                                | a convention nothing creates is a convention half the repos will not have. Each package's `StartInstall` already writes what its own package needs; this is the same move                                                                                  |
-| An EMPTY recipes package is a real answer where a MISSING one is not                                                                              | an empty folder says "no recipes yet"; an absent folder can only say "something is wrong", and the tool cannot tell "you have written none" from "you have not installed this". The `count: 0` ambiguity, one layer up again                               |
-| Recipes are a PACKAGE, not `.dungeonmaster-assets/`, because they are code that must be graded                                                    | being a workspace package is what gets them a ward run, and the ward run is the entire reason a recipe's test fires on the commit that breaks it. A dot-folder gets no ward, no tsconfig, no lint                                                          |
-| Non-code artifacts DO go in `.dungeonmaster-assets/` — the oddities file and `captured` fixtures                                                  | the split is "does this need to compile and be graded". Prose an agent appends to does not                                                                                                                                                                 |
-| `packages/` assumes a MONOREPO — a known limit, not a settled answer                                                                              | a consumer with a flat `src/` has nowhere to put it. The package NAME is the convention; its LOCATION follows the repo's workspace layout, which dungeonmaster already detects. Staying in `packages/` for now because the flat case has no consumer yet   |
-| A recipe is LISTABLE without being RUN — `produces:`, `fidelity` and `mirrors:` are static data                                                   | the listing is called before anything is seeded. One that had to execute every recipe to describe them would seed a machine just to answer a question                                                                                                      |
-| It is a real workspace package, made with `dungeonmaster create-package`                                                                          | that is what gives it a ward run, which is what makes the colocated recipe tests fire on the commit that breaks them                                                                                                                                       |
-| Every recipe carries a colocated integration test asserting its `produces:`                                                                       | it moves staleness from "discovered months later by whichever planner needed it" to "fails on the commit that caused it, next to the diff". The companion plan argued the same thing from the other side                                                   |
-| The test owns CORRECTNESS; the planner's prelude owns FITNESS for a path                                                                          | a recipe can be perfectly correct and be the wrong recipe for path 3. And three recipes that each pass alone still fail composed. No test can know either                                                                                                  |
-| A `direct` recipe's test asserts against its `mirrors:` output, not a hardcoded snapshot                                                          | a snapshot pins it to a shape somebody typed; a mirror test pins it to what production emits and fails when they diverge — which is the entire risk `direct` exists to declare                                                                             |
-| Production-fidelity recipes share ONE instance for the whole suite                                                                                | one 20-second boot per recipe is a suite nobody runs. `direct` recipes need no instance at all                                                                                                                                                             |
-| A recipe whose claim is about what a URL RENDERS needs a browser to assert it — the most expensive of three test costs                            | files assert with a temp dir, a route asserts with a shared server, a rendering asserts with a full instance. Narrow a claim to the cheapest tier that is still honest                                                                                     |
-| A browser-asserted recipe test is DELIBERATE, because the prelude's `VERIFIED` run already covers rendering                                       | the prelude is proven by running; a recipe test that re-proves the same rendering pays twice for one fact                                                                                                                                                  |
-| Recipes take their dependencies EXPLICITLY — `quest-mid-execution guild:{g.guildId}`                                                              | a recipe that silently requires a prior one is the ordering-folklore that kills a step catalogue. A parameter is the fix, and this is the guard against becoming Cucumber-with-extra-steps                                                                 |
-| `fidelity` bounds the diagnosis, and a `direct` recipe must declare `mirrors:`                                                                    | the counterpart it copied is where the answer is. Without the pointer every diagnosis opens with a hunt for it                                                                                                                                             |
-| A recipe never calls `Date.now()`, `Math.random()` or `randomUUID()` for anything that reaches a screen                                           | three of the four content-determinism rows reduce to this one rule, and a `fidelity: direct` recipe writing a live clock is the exact drift the marker exists to warn about                                                                                |
-| `seed` is a STEP, placed anywhere in a batch, not a prologue                                                                                      | seeding with a page already open is the only way to exercise a live-update path. A walk that always seeds up front then navigates only ever measures a fresh render                                                                                        |
-| A durable, committed ODDITIES file holds driving knowledge; a round that finds a new one appends                                                  | proxies already do this for unit tests. The guide's `TRAPS` heading is the per-quest version and `.quest-plans/` is wiped, so every oddity is rediscovered at "a wrong command costs a whole round"                                                        |
-| An oddity that is really an app defect gets an OBSERVABLE, not an entry                                                                           | "click the wrapper, not the label" usually means the hit area is wrong, which is a real defect for a real user. A file that only grows is a list of accepted defects                                                                                       |
+| Decision                                                                                                                                          | Because                                                                                                                                                                                                                                                       |
+|---------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| A recipe touches STATE, never a screen — held by a local lint rule, not by prose                                                                  | a recipe carrying a DOM handle is a design error, not a stale value: it means the recipe is doing a walk's job. `@dungeonmaster/local-eslint`'s `no-hardcoded-package-names` is the template — and its own blind spot is the caution to copy with it          |
+| The tool is `siegelense`: `packages/siegelense/`, `dungeonmaster siegelense`, MCP tools `siegelense-*`, recipes at `packages/siegelense-recipes/` | the recipe path must be a CONVENTION because the tool enumerates them before anything is seeded. A config key is one more thing to set, get wrong and diverge on; a bare `recipes` could collide with a repo's own package, and the tool's own name cannot    |
+| `packages/siegelense-recipes/` exists in EVERY repo siegelense is installed in, scaffolded by `dungeonmaster init`                                | a convention nothing creates is a convention half the repos will not have. Each package's `StartInstall` already writes what its own package needs; this is the same move                                                                                     |
+| An EMPTY recipes package is a real answer where a MISSING one is not                                                                              | an empty folder says "no recipes yet"; an absent folder can only say "something is wrong", and the tool cannot tell "you have written none" from "you have not installed this". The `count: 0` ambiguity, one layer up again                                  |
+| Recipes are a PACKAGE, not `.dungeonmaster-assets/`, because they are code that must be graded                                                    | being a workspace package is what gets them a ward run, and the ward run is the entire reason a recipe's test fires on the commit that breaks it. A dot-folder gets no ward, no tsconfig, no lint                                                             |
+| Non-code artifacts DO go in `.dungeonmaster-assets/` — the oddities file and `captured` fixtures                                                  | the split is "does this need to compile and be graded". Prose an agent appends to does not                                                                                                                                                                    |
+| `../../packages` assumes a MONOREPO — a known limit, not a settled answer                                                                         | a consumer with a flat `src/` has nowhere to put it. The package NAME is the convention; its LOCATION follows the repo's workspace layout, which dungeonmaster already detects. Staying in `../../packages` for now because the flat case has no consumer yet |
+| A recipe is LISTABLE without being RUN — `produces:`, `fidelity` and `mirrors:` are static data                                                   | the listing is called before anything is seeded. One that had to execute every recipe to describe them would seed a machine just to answer a question                                                                                                         |
+| It is a real workspace package, made with `dungeonmaster create-package`                                                                          | that is what gives it a ward run, which is what makes the colocated recipe tests fire on the commit that breaks them                                                                                                                                          |
+| Every recipe carries a colocated integration test asserting its `produces:`                                                                       | it moves staleness from "discovered months later by whichever planner needed it" to "fails on the commit that caused it, next to the diff". The companion plan argued the same thing from the other side                                                      |
+| The test owns CORRECTNESS; the planner's prelude owns FITNESS for a path                                                                          | a recipe can be perfectly correct and be the wrong recipe for path 3. And three recipes that each pass alone still fail composed. No test can know either                                                                                                     |
+| A `direct` recipe's test asserts against its `mirrors:` output, not a hardcoded snapshot                                                          | a snapshot pins it to a shape somebody typed; a mirror test pins it to what production emits and fails when they diverge — which is the entire risk `direct` exists to declare                                                                                |
+| Production-fidelity recipes share ONE instance for the whole suite                                                                                | one 20-second boot per recipe is a suite nobody runs. `direct` recipes need no instance at all                                                                                                                                                                |
+| A recipe whose claim is about what a URL RENDERS needs a browser to assert it — the most expensive of three test costs                            | files assert with a temp dir, a route asserts with a shared server, a rendering asserts with a full instance. Narrow a claim to the cheapest tier that is still honest                                                                                        |
+| A browser-asserted recipe test is DELIBERATE, because the prelude's `VERIFIED` run already covers rendering                                       | the prelude is proven by running; a recipe test that re-proves the same rendering pays twice for one fact                                                                                                                                                     |
+| Recipes take their dependencies EXPLICITLY — `quest-mid-execution guild:{g.guildId}`                                                              | a recipe that silently requires a prior one is the ordering-folklore that kills a step catalogue. A parameter is the fix, and this is the guard against becoming Cucumber-with-extra-steps                                                                    |
+| `fidelity` bounds the diagnosis, and a `direct` recipe must declare `mirrors:`                                                                    | the counterpart it copied is where the answer is. Without the pointer every diagnosis opens with a hunt for it                                                                                                                                                |
+| A recipe never calls `Date.now()`, `Math.random()` or `randomUUID()` for anything that reaches a screen                                           | three of the four content-determinism rows reduce to this one rule, and a `fidelity: direct` recipe writing a live clock is the exact drift the marker exists to warn about                                                                                   |
+| `seed` is a STEP, placed anywhere in a batch, not a prologue                                                                                      | seeding with a page already open is the only way to exercise a live-update path. A walk that always seeds up front then navigates only ever measures a fresh render                                                                                           |
+| A durable, committed ODDITIES file holds driving knowledge; a round that finds a new one appends                                                  | proxies already do this for unit tests. The guide's `TRAPS` heading is the per-quest version and `.quest-plans/` is wiped, so every oddity is rediscovered at "a wrong command costs a whole round"                                                           |
+| An oddity that is really an app defect gets an OBSERVABLE, not an entry                                                                           | "click the wrapper, not the label" usually means the hit area is wrong, which is a real defect for a real user. A file that only grows is a list of accepted defects                                                                                          |
 
 ---
 
-### 7B — What each role is bound by
-
-#### The OPERATOR — siegemaster itself
-
-*Dispatches, reads what comes back, decides. Drives nothing.*
-
-| Decision                                                                                                                                      | Because                                                                                                                                                                                                                          |
-|-----------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| A dispatched PLANNER provisions recipes — the operator never does                                                                             | the operator's own tool block forbids driving anything, and proving a recipe means running one. It is a separate sub-agent from the guide-writer, whose "change no file but the guide, start no server" mandate is load-bearing  |
-| The operator's job is to dispatch the planner, read what came back, and refuse to send a walk down a path whose recipe is missing or unproven | that is what an operator does. It never runs one                                                                                                                                                                                 |
-| After any instance death the operator OWNS cleanup: `status`, reap the orphans, re-read `capacity`, re-dispatch                               | it is the only session that knows which instances are legitimately alive, so it is the only one with the standing to kill anything                                                                                               |
-| The operator calls `cleanup` at the START of its pass and again at the END                                                                    | start catches what a PREVIOUS pass left and makes the first `capacity` reading honest; end catches what THIS pass leaked. Two bookends, not supervision — continuous watching is a daemon, and this design has refused one twice |
-| The operator opens by fetching `docs { for: 'operating' }` rather than carrying the tool's rules in its prompt                                | one source for `cleanup`, `capacity` and `status`, and a scope that cannot accidentally teach it to drive                                                                                                                        |
-| NO phase advances while any instance is in an unknown state                                                                                   | stamping the happy phase and launching the antagonists while orphans hold ports and memory hands the attackers a machine already under pressure — and the first thing they measure is that pressure                              |
-| The pass runs in TWO PHASES — every happy walk first, then a STAMP once they are all clean, then every adversarial walk. Never interleaved    | the STAMP is the boundary between the phases, not a phase of its own. This makes a clean baseline structural rather than a special case                                                                                          |
-
-#### The PLANNER — dispatched, provisions the walk
-
-*Maps every path to a prelude and proves each by running it. One level below the operator.*
-
-| Decision                                                                                                                                       | Because                                                                                                                                                                                                                    |
-|------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| The planner RUNS every recipe it plans to use — not only the ones it wrote — and asserts each `produces:` claim before any round depends on it | a `fidelity: direct` recipe mimics a shape production owns and drifts from it silently. The drift touches nothing about the feature under test, so nothing else catches it — the first symptom is a walk that cannot start |
-| The planner DRIVES THE TOOL — it starts and stops instances to prove preludes — so every rule binding a walker binds it too                    | it is easy to read the planner as a paper exercise. It is not: it meets every crash, every capacity limit and every `kill` obligation a walker meets                                                                       |
-| The planner's own starts QUEUE behind whatever else is running                                                                                 | proving ten preludes is ten instances over time, and if a phase is already using the pool it waits like anyone else. Its wall-clock is not linear in paths                                                                 |
-| The planner tests the SEQUENCE per path, not each recipe alone                                                                                 | three recipes that each pass in isolation can fail composed: one leaves state the next does not expect, an id does not match, the order matters and nobody wrote it down. What must be true is "this path is reachable"    |
-| A prelude is a RUNNABLE batch mixing recipes and driving steps, not prose                                                                      | reaching a state does both — a row that must be expanded first is not seeding, and no recipe should pretend it is                                                                                                          |
-| Mid-walk seeds are recorded against the NODE they fire at                                                                                      | appended to the prelude instead, a live-update test silently becomes a fresh-render test                                                                                                                                   |
-| Every prelude carries a `VERIFIED` line naming the run that proved it; a path without one is not walked                                        | not a claim that it should work — the id of a run where it did                                                                                                                                                             |
-| The planner's outputs split: the path→recipe MAPPING is per-quest `.quest-plans/`, any RECIPE it wrote is committed                            | the mapping is about this flow's routes; a state worth creating once is worth creating again. The recipe is the compounding half                                                                                           |
-| The planner dispatches for BOTH jobs — researching a missing recipe and diagnosing a broken one — and reads almost no implementation itself    | it has N paths to get through; reading the quest contract and work-item shape to write one recipe would spend the context the rest need                                                                                    |
-| Both jobs end with the PLANNER re-running the prelude                                                                                          | a sub-agent's claim that its recipe works is not evidence, and a research job is no different from a repair in that respect                                                                                                |
-
-#### The planner's SUB-AGENTS — researcher and diagnoser
-
-*One reads code to write a missing recipe, the other to repair a broken one. The last level; they dispatch nothing.*
-
-| Decision                                                                               | Because                                                                                                                                                                                            |
-|----------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| A researcher's FIRST question is whether existing recipes already compose to the state | the composition rule keeps the catalogue deep rather than wide, and a new recipe where two compose makes the book worse while looking productive                                                   |
-| The researcher fills `mirrors:`, because it has just read the production writer        | left for later it is a guess, and a wrong mirror makes the drift test assert against the wrong thing — worse than no pointer, because it passes                                                    |
-| A research job is briefed in the FLOW's words, never from an implementation detail     | handed the code to start from, it writes a recipe for whatever the code happens to do. That is arm B's failure arriving at a different door: the planner decides what state every walk starts from |
-| The diagnosis brief carries the READINGS from the run that failed                      | otherwise it is "this is broken, go look" rather than a diagnosis starting from a measured symptom                                                                                                 |
-| A break that turns out to be production changing shape is a finding about the APP      | three recipes failing at once is an intentional migration nobody told the recipe book about, or an unintentional one nobody noticed. That becomes an observable, not a recipe patch                |
-
-#### The HAPPY WALKER — `siegemaster-verifier`
-
-*Walks one path and signs what it measured. Its clean shots become the attacker's baseline.*
-
-| Decision                                                                                                                    | Because                                                                                                                                                                                                                            |
-|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Selectors come from the running page, not from test files                                                                   | arm B read the e2e specs and learned the answers before driving. That removes the reason siegemaster runs at all                                                                                                                   |
-| A dead instance is bubbled up as `rework` with the `status` output — never self-healed, never `wall`                        | `wall` means no session of any role could pass, and halts the quest. A crash is not that: fewer instances or a fresh one very likely succeeds. And a minion self-healing is a session acting on a third of the picture             |
-| A walk that sees its instance stop checks `status` BEFORE writing anything down                                             | a dead driver leaves a blank screen, and "the page went blank" is exactly what a walker is trained to report. That blank was the tool dying, and a fixer briefed against it hunts a rendering bug that never existed               |
-| A slow `start` is a QUEUE, not a hang — never a `wall`                                                                      | the tool admits one boot at a time, so the third walk in a pool waits out two. `queuedMs` in the result says so, and a session that reports a wall over it halts a quest for nothing                                               |
-| A DRIVER death is never a finding about the app; an API-SERVER death may be                                                 | `status` separates them. A leak or an unbounded allocation that kills the server is a real defect, and it is recorded WITH the server log as well as bubbled up                                                                    |
-| Every issue a walker records carries the INSTANCE id, the RUN id, the failing STEP, **the PRELUDE**, and the evidence paths | the walker kills its instance as its last action, so the handoff cannot be "here is my instance". The prelude is what lets a fixer get back to that state on a fresh one                                                           |
-| READING SOURCE is still right for what a page cannot show                                                                   | a configured cap, a default, where an off-screen value is written — the guide's `OFF-SCREEN` heading                                                                                                                               |
-| Baselines promote per-shot, gated on `confirmed` with no issue at or before that node                                       | a tainted baseline inverts the check into a false pass                                                                                                                                                                             |
-| The walk still gathers the evidence for a human-settled unit — the VIDEO, the frames either side, which step                | that is what makes this a route rather than a euphemism for skipping. The person is handed the file and the question, never an instruction to go reproduce it                                                                      |
-| A promoted baseline carries shots and selectors, never refs                                                                 | pixels compare across instances (measured byte-identical) and a testId plus `within` means the same everywhere. A ref means nothing in the instance that inherits it, and that session cannot tell it apart from one that resolves |
-
-#### The FIXER — a generic sub-agent the operator briefs
-
-*Reads code, repairs the defect, and writes the e2e that keeps it fixed. The only role here that writes product code.*
-
-| Decision                                                                               | Because                                                                                                                                                                                                                     |
-|----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| A fixer RE-RUNS THE PRELUDE on a fresh instance; it never resurrects the dead one      | "restart to check state" is a fresh instance plus a batch already proven to land where it claims. The walker's instance is gone by the time a fixer reads its record                                                        |
-| `results` still answers for a KILLED instance, flagged as gone                         | the evidence lives in the lane directory and survives `kill`. Without this a fixer holding a run id finds it resolves to nothing, and the handoff depends on the walker having hand-copied every reading                    |
-| A fixer writes the e2e using **the same recipes the prelude named**                    | a recipe is a plain function a spec can call. The state the walk ran against and the state its regression test runs against then come from one source, instead of the fixer re-deriving setup that ends up subtly different |
-| `RED FIRST` is unchanged: watch it fail against unchanged source, for the right reason | handed the prelude and the walk's `SAW:` value, a fixer already has the setup and the assertion. What it must supply is the fix                                                                                             |
-| A fixer touches no instance it did not start, and starts none to "look around"         | every instance is three processes against a measured pool, and a fixer exploring is a fourth nobody accounted for                                                                                                           |
-| Fixers go out TWO AT A TIME, over a disjoint file set                                  | siegemaster's prompt already says "Cap two fixers, and only over a DISJOINT file set" — two processes appending to one file can silently drop an edit, with neither agent able to tell                                      |
-
-#### The ANTAGONIST — `siegemaster-stress`
-
-*Attacks one path in its own instance. Proves an absence, so it needs a baseline and a known reset point.*
-
-| Decision                                                                                                     | Because                                                                                                                                                                                   |
-|--------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Each attack declares the reset level it needs                                                                | `instance` destroys any uptime / monotonic / append-only measurement, so it cannot share a batch with a unit measuring one                                                                |
-| The antagonist bubbles a dead instance up exactly as a walker does, and is the role most likely to CAUSE one | it corrupts and exhausts on purpose, so an OOM it triggered is a plausible finding rather than background noise — which is precisely why it must not judge that itself                    |
-| The antagonist waits on the same start queue as everyone else                                                | it opens its own instance like every other tool-using session, so a slow start means the same thing and gets the same reading                                                             |
-| Motion quality is cut from what siegemaster claims to check — a PROMPT change, not a tooling one             | a rule nobody can follow is not ignored, it is answered with an invented adjective. That is the failure the prompt's own "search your draft for 'as expected'" discipline exists to catch |
-
-#### ChaosWhisperer and BugHunt — spec authors
-
-*The only roles that may route an observable to a person.*
-
-| Decision                                                                                                                                                           | Because                                                                                                                                                                                                                                     |
-|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| There is a THIRD settlement route: a person. An observable no automated track can settle is flagged on the OBSERVABLE and drops out of every automated denominator | exactly as `verifyByReading` does today. Otherwise siegemaster carries a unit it can never close. The flag is a property of the criterion, not a per-track `unconfirmable`                                                                  |
-| `verifyByHuman` units are COLLECTED into a list handed to the user at quest end                                                                                    | `toSettle` already carries the right shape — "an INSTRUCTION, never a question". What is missing is nothing gathering them and putting them in front of anyone                                                                              |
-| The human-check category stays NARROW: motion quality and taste, nothing else                                                                                      | contrast, alignment and clipping are computable; an error message's clarity a model can judge. A long list is a list nobody works                                                                                                           |
-| The flag is `verifyByHuman: true`, beside `verifyByReading: true`                                                                                                  | one field, one settlement route, named for who settles it                                                                                                                                                                                   |
-| A `verifyByHuman` observable is FILTERED from every work item's view once the quest is `in_progress`                                                               | stronger than dropping it from a denominator, because an agent that can SEE a unit it cannot close reaches for the nearest thing it CAN measure — a proxy assertion, a change-detector — and the quest gains a test pinning the wrong thing |
-| The "can anything automate this?" table lives in ONE statics and is interpolated into BOTH ChaosWhisperer's prompt and siegemaster's                               | the AUTHOR needs it at spec time or three tracks each pay to rediscover that a unit cannot be automated. `standardsReviewConcernsStatics` is the pattern — one source, several prompts, never a copy                                        |
-| The route itself goes in `signoffTrackEligibilityStatics` beside the other denominator rules                                                                       | it is already "the same statics every denominator reader shares". Dropping a human-check unit then happens once rather than per track                                                                                                       |
-| ChaosWhisperer and BugHunt alone may SET the flag, matching `verifyByReading`                                                                                      | a mid-quest role marking its own hard units human-check is a cheaper escape than marking them unconfirmable. Siegemaster may still ADD an observable, but a `questNotes` open-question is its route to requesting the flag                  |
-
----
-
-## Part 8 — The determinism this system depends on
+## Part 5 — The determinism this system depends on
 
 Most of this design works by **comparing two readings and calling the difference a finding**: the element delta on a
 second `look`, `pixelChange` against the previous capture, a `health` reading against a baseline, a `reset` diff, `hold`
@@ -1859,7 +1774,8 @@ That is the single rule behind three of those four rows, and it is checkable —
 sprite, a spinner, a transition or a blinking caret means **two captures of the same logical state are never
 byte-identical**, and `pixelChange` becomes noise on every step.
 
-The byte-identity measured in Part 2 — three lanes, 46,786 bytes each — was on a STATIC screen. It does not generalise
+The byte-identity measured in `siege-verification-remainder.md` Part 2 — three lanes, 46,786 bytes each — was on a
+STATIC screen. It does not generalise
 to an animated one, and nothing should be built assuming it does.
 
 Playwright answers this directly, and the capture path must use it:
@@ -1876,7 +1792,7 @@ app. Which surfaces need it belongs in the guide, discovered once, rather than i
 **Freezing animation costs nothing that was ever available.** The obvious worry is that a frozen capture cannot see a
 defect IN the animation — a jump, a stutter, a flicker — which siegemaster's prompt does call a defect. But no capture
 mode gives a model that: sampled frames cannot resolve motion quality at any interval a walk can afford, and `video`
-produces a file nothing grades. See Part 5. So there is no trade here, only a clarification: **every comparison capture
+produces a file nothing grades. See Part 2. So there is no trade here, only a clarification: **every comparison capture
 is frozen, and nothing anywhere judges motion.**
 
 `video` stays live, for a human to watch and for the trail. `hold` stays live too, because its question is whether a
@@ -1896,250 +1812,7 @@ that one does not.
 
 ---
 
-## Part 9 — Open questions
-
-Answered ones have been removed rather than left with a note, because a list of solved questions is a list nobody
-rereads. What went: the curl surface (now the `request` step), one viewport (now
-`resize`), console errors needing to be asked for (now counted in every run's index and attributed to a step), and what
-to call the human-check flag (`verifyByHuman`).
-
-**Where does this live?** It should be a dungeonmaster-provided command rather than something under
-`packages/web/test/`, so consumers get it — the move to `@dungeonmaster/testing` the seeding plan already argued for on
-other grounds. Two hard constraints from that plan: `server-app.harness.ts:250`
-records the root barrel is unreachable from server integration tests, because importing it drags msw's ESM into a jest
-run that does not transform it. So anything shared must be subpath-importable and must not pull msw behind it. **The
-package is not chosen.**
-
-**Scale is unproven.** Every page listed was 19–36 rows. A quest page holding a long chat transcript is the real test
-and was never seeded. `within` scoping is the intended mitigation and is untested.
-
-**Image context cost is unmeasured.** Capture-always with open-on-signal is reasoned, not measured. So is the claim that
-a `pixelChange` number is enough to route attention — plausible, untested.
-
-**What `verifyByHuman` RENDERS as on the graph.** `verifyByReading` prints `(read-check)`, so this wants its peer. The
-field, its denominator rule and its shared decision table are all settled; the token a reader sees is not.
-
-**Where the human-check list SURFACES.** `toSettle` lines already carry the right shape, but nothing gathers them. A
-quest-end summary, a panel in the execution view and a file in the worktree are all plausible and not equivalent — a
-file nobody opens is the same as not collecting them.
-
-**The checklist side is untouched.** The verifier prompt states it: *"Nothing tells you which node an observable hangs
-on except the flow you read… your brief does not carry it and the checklist does not print it."* Every sign-off pays
-that lookup. Printing the owning node id in `get-qa-checklist` is a small adjacent fix.
-
-**How long the retention window is.** Assets age out, `prune` is explicit, video goes first — but no number is defended
-anywhere here, and the right one depends on how often a fixer arrives long after the walk that found the defect.
-
----
-
-## Part 10 — The recipe book
-
-**Seeding is in scope for this work.** What is out of scope is the full ownership architecture the companion plan argues
-for — seeders living beside the contracts they build, a scenario layer, a
-`fidelity` contract. That is a bigger change and it is not a prerequisite.
-
-What IS a prerequisite is that **a session can put the system into a known state without deriving how every single
-time.**
-
-### The problem
-
-A fresh instance has an empty home. Nothing is reachable until something seeds it. So every walk begins with seeding,
-and today every walk works out how from scratch: siegemaster's step-3 guide has a `SEEDING` heading that a sub-agent
-fills by reading code —
-
-> **SEEDING** how to create the data each path needs, as commands or requests that actually work.
-> TWO of anything an assertion must tell apart.
-
-That is re-derived per quest, by a different agent, every time. It is the same repeated-derivation cost the page key
-removes for selectors, and it fails the same way: a wrong command costs a whole round, and the prompt already carries "a
-round that finds the guide wrong reports it."
-
-The trial hit this directly. Walking one flow needed a guild plus three session transcripts, so it took a throwaway
-script — handed identically to all three arms so seeding stayed a constant rather than a variable. That worked for one
-flow and does not generalise by itself.
-
-### The raw material already exists
-
-`packages/web/test/harnesses/` holds 35 harnesses. Counted by what they actually need:
-
-| Group                                                                    | How many | What it means                                                                                                                                                            |
-|--------------------------------------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **already free** — take `guildPath` or nothing, write through `fs`       | 12       | callable from an instance today, unchanged. `session`, `subagent-duration`, `subagent-duration-triple-chain`, `claude-mock`, `ward-mock`, `environment`, `rate-limits`   |
-| **HTTP-only** — take Playwright's `request` and use it as an HTTP client | 5        | `guild`, `quest`, `dispatch`, `dispatch-pause`, `warpgate`. `guildHarness` is literally `POST /api/guilds` — swapping `APIRequestContext` for `fetch` frees it in a line |
-| **page-only** — need a live browser                                      | 10       | these DRIVE or INSPECT rather than seed, and mostly belong on that side                                                                                                  |
-| **page + request**                                                       | 8        | composites that seed, navigate and measure together. The seed half is extractable; the drive half stays                                                                  |
-
-So **roughly half the harness tree is a seeder or one transport swap away from being one.** The recipe book is largely
-already written — it is locked behind a fixture type most of it never uses. The companion plan measured the same thing
-from the other direction: `questHarness` takes Playwright's
-`request` though seven of its nine functions never touch it.
-
-### What a recipe is
-
-Not an API. A named, runnable thing with four properties:
-
-| Property                                  | Why                                                                                                                                                     |
-|-------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
-| a **name**                                | so a brief can say `seed session-with-nested-subagent` instead of describing it                                                                         |
-| a **`produces:` sentence**                | what state exists after it runs, in one line, so a session picks without reading the script                                                             |
-| a **fidelity** marker                     | see below — this is the one that stops a fixture lying                                                                                                  |
-| **`mirrors:` where fidelity is `direct`** | the production writer whose shape it copies. It is what makes a later diagnosis bounded instead of a hunt — see the planner's diagnosis route in Part 6 |
-| **returns the ids**                       | guild id, slug, quest id, session ids, URLs. A walk cannot address what it cannot name                                                                  |
-
-**Fidelity is three values, and it is not decoration:**
-
-| Value        | Means                                                                                            | Risk it declares                                      |
-|--------------|--------------------------------------------------------------------------------------------------|-------------------------------------------------------|
-| `production` | built by calling the real code path — `POST /api/guilds` and the server does what it really does | none; this is the honest one                          |
-| `direct`     | written straight to disk in the shape production *would* have made                               | **it can drift from what production actually writes** |
-| `captured`   | recorded from a real run and replayed                                                            | the only one that cannot lie about shape              |
-
-`direct` is the one that needs the warning label, and the companion plan has the live example: a web harness
-hand-appends the `event-outbox.jsonl` line that `questPersistBroker` writes in production, so the two can diverge
-silently. A recipe that declares `direct` tells its reader what it is trusting.
-
-**A fabricated fixture fools flowrider and siegemaster identically**, so nothing downstream catches it. That is why the
-marker rides on the recipe rather than living in someone's head.
-
-### What makes it a book rather than a pile
-
-**Discovery, the same "ls before the query" pattern this doc uses twice already.** `get-project-map`
-before `discover`; the page key before a selector; a recipe list before a seed. A session asks what recipes exist and
-gets names plus `produces:` lines — it never greps a directory hoping.
-
-**Composition, so the catalogue gets DEEPER rather than wider.** `guild` → `quest --guild X` →
-`session-with-nested-subagent --guild X`. Recipes that compose stay navigable at fifty entries; recipes that each build
-a whole world do not.
-
-**One standing rule, lifted from the guide that already states it: TWO of anything an assertion must tell apart.** With
-one row, "the right one" and "the first one" are the same value, so an off-by-index bug passes and a clean walk means
-nothing.
-
-### What this changes for siegemaster
-
-The guide's `SEEDING` heading stops being derived prose and becomes recipe NAMES — the same transformation `CONTROLS`
-undergoes when the page key arrives. Both headings exist because a walk needs something it currently has to work out;
-both stop being work once the running system can answer.
-
-**Who fills the gaps is a dispatched PLANNER, at phase zero** — see Part 6. Not the operator, which drives nothing by
-its own rules and so cannot prove a recipe by running it. The planner reads every path, works out which states the flow
-needs, writes what is missing, and RUNS each new one against its own `produces:` line before any round is allowed to
-depend on it.
-
-### Constraints a recipe must be held to MECHANICALLY, not by prose
-
-**A recipe touches STATE, never a screen.** It writes files and calls APIs. It has no business holding a DOM handle —
-not a ref, not a selector, not a position — and it asserts nothing about what renders. The moment a recipe knows about
-the UI it has become a walk, and a walk that seeds is the thing the companion plan's rule 3 forbids: *"A harness drives
-or inspects a surface and may not seed."*
-
-**"Never write a ref into a durable thing" cannot be enforced in one place, because refs leak into two different kinds
-of artifact.** Enforcement is layered, and only one of the layers actually protects you:
-
-| Layer                                                                                                                 | What it stops                                                                                   | Reaches                                          |
-|-----------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|--------------------------------------------------|
-| **runtime** — only the minting INSTANCE holds the handles, and it invalidates them on navigation, `reset` and restart | a ref resolving anywhere it should not. Outside its instance there is nothing to look one up in | everything, including artifacts nothing can lint |
-| **types** — a durable step shape that structurally omits `ref`                                                        | a saved batch being written with one                                                            | anything typed                                   |
-| **lint** — a local rule over recipe files                                                                             | a recipe mentioning a DOM handle at all                                                         | source only                                      |
-| prose — the prompt                                                                                                    | the rest                                                                                        | nothing, reliably                                |
-
-**The runtime guard is the one that matters, and it is the reason the other layers can stay simple.**
-Guides, round records and fixer briefs are markdown agents write DURING a pass into `.quest-plans/`, which no lint rule
-will ever see. It does not need to. **A ref is resolvable only by the instance that minted it, so a ref that travels has
-nowhere to land** — it fails loudly the moment somebody tries it, rather than quietly driving the wrong element. Make
-the constraint self-enforcing at the point of USE and the point of writing stops mattering.
-
-**The lint rule is worth having anyway, for recipes specifically**, because a recipe carrying a selector is a design
-error rather than a stale value — it says the recipe is doing someone else's job. `@dungeonmaster/local-eslint` is the
-home: repo-only, never shipped, and
-`no-hardcoded-package-names` is the working template — a rule broker plus a statics file holding its watchlist and path
-allowlists, registered in `eslint.config.js`.
-
-**And that rule carries the caution to copy along with the shape.** Measured this session:
-`siege-lane.ts` passes it while hardcoding `@dungeonmaster/server` and `@dungeonmaster/web`, because
-`packageNameLiteralStatics` only matches a role-bearing name AFTER a workspace directory segment — so the `@scope/name`
-form is waved through by design. **A rule that looks like it covers something and does not is worse than no rule**,
-because people stop checking. Whatever this one's scope is, say it in the rule's own message.
-
-The same mechanism carries the rest of the recipe contract, which is otherwise a convention nobody checks: a recipe
-declares `produces:` and `fidelity`, and returns the ids it created. Those are contract-shaped, so a `satisfies` catches
-a missing one at build time rather than at the moment a walk needs an id that was never returned.
-
-### The oddities file — durable driving knowledge, the way proxies hold it for unit tests
-
-**Problem.** Some things about driving an app are true forever and discoverable only by driving it:
-
-> for THIS button, clicking the label does nothing — click the wrapper
-> this panel takes ~2s to mount; asserting before it does reads as a missing element
-> this control needs scrolling into view before a click lands
-> `PIXEL_BTN` appears twice on this screen; the one you want is under `GUILD_SESSION_LIST`
-
-**Unit tests already have a home for exactly this: the proxy.** `home-content-widget.proxy.tsx`
-encodes "the session-list add button needs `within(GUILD_SESSION_LIST)`" so no test has to rediscover it. That knowledge
-is written once and reused by everything.
-
-**A walk has no such home, and the place it currently lands is wiped.** Siegemaster's guide has a
-`TRAPS` heading — "what has bitten here before — timing, a fixture that lies, a control that needs scrolling into
-view" — but a guide is written per quest, by a sub-agent, into `.quest-plans/`, and
-`.quest-plans/` is gone when the quest ends. So every oddity is rediscovered by the next quest, at the cost the prompt
-already names: "a wrong command costs a whole round."
-
-**Solution — a committed file of app oddities that every walk reads and every walk can append to.**
-
-| Property                                                                    | Why                                                                                                |
-|-----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
-| **durable and committed**, not `.quest-plans/`                              | the whole point is surviving the quest that found it                                               |
-| keyed by testId or route, not by quest                                      | the reader is a walk on some future flow, not this one                                             |
-| one line per oddity, with what it cost                                      | "click the wrapper, not the label" plus the symptom it produces when you get it wrong              |
-| **a round that hits a NEW oddity appends to it**                            | knowledge compounds instead of being rediscovered. This is the difference between it and the guide |
-| a round that finds an entry WRONG reports it, same as a wrong guide heading | an oddity nobody corrects is worse than none, because every walk after trusts it                   |
-
-**The guide's `TRAPS` heading becomes a per-quest pointer at this file**, the same way `CONTROLS`
-becomes the key and `SEEDING` becomes recipe names. All three headings exist because a walk needs something it has to
-work out; all three stop being work once something durable answers.
-
-**Much of what lands here should be read as a bug report about the app, not just a workaround.** "For this button, click
-the wrapper" usually means the control's hit area is wrong, which is a real defect for a real user with a real mouse. An
-oddity file that only ever grows is a list of accepted defects — so each entry carries whether it is a genuine quirk of
-the platform or something that should be fixed, and the second kind gets an observable rather than an entry.
-
-### Recipes carry integration tests, and that is a DIFFERENT guarantee from the planner's
-
-**Every recipe has a colocated integration test that runs it and asserts its `produces:` claim.** The companion plan
-already argued for this — "a colocated test that runs it and asserts the state it claims — 'the planner tests its own
-tooling', made structural" — and the case is stronger from this side.
-
-**It moves staleness detection from months late to the commit that caused it.** Without it, a recipe that rots is
-discovered by whichever planner next happens to need it, with a broken recipe and no idea what broke it. With it, the
-commit that changed `questPersistBroker` fails that recipe's test in the same ward run, next to the diff that did it.
-
-**Three layers, and each catches something the others cannot:**
-
-| Layer                         | Asks                                                                     | Runs                                    |
-|-------------------------------|--------------------------------------------------------------------------|-----------------------------------------|
-| the recipe's integration test | does this recipe still do what it CLAIMS?                                | every ward, on the commit that broke it |
-| the planner's prelude run     | do these recipes COMPOSE, and does the sequence reach THIS path's entry? | plan time, per path                     |
-| the walk itself               | is the state actually usable for what the path does?                     | round time                              |
-
-**The middle layer does not become redundant, and this is the part worth being explicit about.** A recipe test proves
-`produces: one guild holding three quests, one in_progress`. It cannot prove that is what PATH 3 needs — and a recipe
-can be perfectly correct and simply be the wrong recipe for a path. Nor can it prove composition: three recipes that
-each pass alone still fail in sequence when one leaves state the next does not expect.
-
-So the split is **correctness versus fitness**. The test owns correctness and owns it continuously. The planner owns
-fitness for a specific walk, which no test can know.
-
-**For a `direct` recipe the test has a sharper form available, and should take it.** A recipe declaring
-`mirrors: questPersistBroker` can assert its output against **what that broker actually writes**, rather than against a
-hardcoded expectation. A snapshot test pins the recipe to a shape somebody typed; a mirror test pins it to the shape
-production emits, and fails the moment the two diverge. Since "it is a copy that can drift silently" is the entire risk
-`fidelity: direct` exists to declare, that is the test that matches the risk.
-
-**Cost, or nobody will run it.** A `direct` recipe is pure `fs` and tests cleanly under
-`installTestbedCreateBroker` with its own temp dir. A `production` recipe calls a real route and needs a server — at a
-20-second instance boot, one test per recipe is 20s × N and the suite gets skipped. So the production-fidelity recipes
-share ONE instance for the whole suite: boot once, run each, assert each, tear down. The `direct` ones need no instance
-at all.
+## Part 6 — The recipe book
 
 ### The tool is `siegelense`, and its recipes live beside it
 
@@ -2180,8 +1853,8 @@ is fixed — a config key is one more thing to set, get wrong, and diverge on be
 collides is one that breaks on somebody's real code. The tool's own name makes that essentially impossible and says who
 owns the folder.
 
-**The existing prototype files keep their names.** `packages/web/test/siege-driver/siege-lane.ts` and its siblings are
-what exists today; they are superseded rather than renamed, and Part 13 lists them as scratch. `siegemaster` is
+**The existing prototype files keep their names.** `../../packages/web/test/siege-driver/siege-lane.ts` and its siblings
+are what exists today; they are superseded rather than renamed, and Part 9 lists them as scratch. `siegemaster` is
 unchanged too — that is the ROLE, and the tool is not named after one role any more, because the planner, the antagonist
 and the fixer all drive it.
 
@@ -2194,6 +1867,12 @@ create-package` — so each gets its own tsconfig pair, its own jest config and 
 makes the colocated recipe tests fire: they get graded by the command that grades everything else, on the commit that
 breaks them.
 
+**Each barrel must be SUBPATH-IMPORTABLE and must not pull msw behind it**, and this is measured rather than cautious.
+`server-app.harness.ts:250` records that `@dungeonmaster/testing`'s root barrel is unreachable from server integration
+tests, because importing it drags msw's ESM into a jest run that does not transform it. A recipe carries a colocated
+integration test by design, so a barrel with that problem makes the recipe package's own tests unable to import it — the
+one consumer it cannot afford to lose.
+
 **In a consumer repo the folder is there and the contents are theirs.** The convention travels; the recipes do not.
 Nobody else has guilds and quests, and nobody else should inherit ours.
 
@@ -2202,118 +1881,62 @@ Recipes are CODE — TypeScript importing the repo's own packages, with types an
 workspace package is what gets them a WARD RUN, and the ward run is the entire reason those tests fire on the commit
 that breaks a recipe. A dot-folder gets no ward run, no tsconfig ownership and no lint; most tooling skips dot-folders
 by default, so you would end up rebuilding package infrastructure by hand inside a directory designed to be ignored.
-There is also a line worth keeping clean: `.dungeonmaster/` and `.dungeonmaster-dev/` hold RUNTIME DATA, and source
+There is also a line worth keeping clean: `../../.dungeonmaster` and `../../.dungeonmaster-dev` hold RUNTIME DATA, and
+source
 sitting beside runtime state blurs it.
 
 **Non-code artifacts do go there**, and the split is "does this need to compile and be graded":
 
-| Artifact                                | Home                                                                      |
-|-----------------------------------------|---------------------------------------------------------------------------|
-| recipes                                 | the workspace package — they compile and are graded                       |
-| the ODDITIES file                       | `.dungeonmaster-assets/` — prose an agent appends to, nothing compiles it |
-| `fidelity: captured` fixtures           | `.dungeonmaster-assets/` — recorded data                                  |
-| profiles, the registry, instance assets | `<home>/siege/` — runtime, not in the repo at all                         |
+| Artifact                                | Home                                                                                                   |
+|-----------------------------------------|--------------------------------------------------------------------------------------------------------|
+| recipes                                 | the workspace package — they compile and are graded                                                    |
+| the ODDITIES file                       | `.dungeonmaster-assets/` — prose an agent appends to, nothing compiles it                              |
+| `fidelity: captured` fixtures           | `.dungeonmaster-assets/` — recorded data                                                               |
+| profiles, the registry, instance assets | `<home>/.dungeonmaster/siegelense/` — runtime, reached from the repo through the `.siegelense` symlink |
 
-**`packages/` assumes a monorepo, and that is a known limit rather than a settled answer.** A consumer with a flat
-`src/` has no `packages/` to put this in, so "the same path in every repo" is already false for that class. The
+**`../../packages` assumes a monorepo, and that is a known limit rather than a settled answer.** A consumer with a flat
+`src/` has no `../../packages` to put this in, so "the same path in every repo" is already false for that class. The
 resolution is that the package NAME is the convention and its LOCATION follows whatever workspace layout the repo has —
 which dungeonmaster already detects through
-`workspaceDiscoverBroker` and `get-project-map`. Staying in `packages/` is the call for now because this repo is a
+`workspaceDiscoverBroker` and `get-project-map`. Staying in `../../packages` is the call for now because this repo is a
 monorepo and the flat case has no consumer yet.
-
-### Some recipes' claims can only be asserted in a BROWSER
-
-**A recipe whose `produces:` is about a URL cannot be tested by reading a file.** Most recipes write state and their
-test reads it back — `subagentDurationHarness` writes JSONL, the test asserts the JSONL. But a claim like *"a URL that
-renders the nested chain"* is only true if something renders it, and that needs a page.
-
-So recipe tests come in three costs, not two:
-
-| The claim is about      | Test needs                                  | Cost                                          |
-|-------------------------|---------------------------------------------|-----------------------------------------------|
-| files on disk           | `installTestbedCreateBroker` and a temp dir | cheap, no instance                            |
-| a real route's response | a server                                    | one shared instance for the whole suite       |
-| **what a URL RENDERS**  | a server AND a browser                      | a full instance, and the slowest of the three |
-
-**That third row is where a recipe starts overlapping a walk**, and the line stays where it was: the recipe creates the
-state and hands back the URL; the PRELUDE does the `goto`. A recipe that navigates has taken a walk's job, and the rule
-"a recipe touches state, never a screen" still holds — what the third row means is only that PROVING its claim needs a
-screen, not that the recipe drives one.
-
-**The practical effect is that a browser-asserted recipe test is expensive enough to be deliberate.**
-Where a claim can be narrowed to "this file exists with this shape", narrow it — and let the prelude's own `VERIFIED`
-run cover whether the URL then renders. The prelude is already proven by running, so a recipe test that re-proves the
-rendering is paying twice for one fact.
-
-### On the resemblance to Cucumber
-
-**It is real and worth naming, because the thing it resembles has a well-known way of dying.** Named reusable setup
-steps, a `produces:` sentence per step, a declarative sequence a session composes — that is Given/When/Then with the
-serial numbers filed off.
-
-**What was deliberately not taken:**
-
-| Cucumber has                                                    | Here                                                                                                               |
-|-----------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| a natural-language layer, steps matched by regex or expressions | no parsing. A prelude step is data with a name, and the name is a lookup, not a pattern                            |
-| business-readable specs as the selling point                    | the reader is a MODEL. Readability matters for the same reason, but nobody is pitching this to a stakeholder       |
-| a shared mutable `World` object                                 | recipes return typed ids, and later steps reference them by name — `{g.guildId}`, not a bag everything writes into |
-
-**The failure mode to actually watch for is the one Cucumber suites die of: a catalogue of steps that composes correctly
-only if you know unwritten ordering rules.** Someone writes `given a guild` and
-`given a quest`, and six months later nobody can tell you whether the second assumes the first, because the knowledge
-lives in whichever scenario happened to work.
-
-**Three things here are the guard, and all three already exist for other reasons:**
-
-- **A prelude is RUN, not assumed.** `VERIFIED` names the run that proved this sequence lands where it claims. An
-  ordering rule nobody wrote down fails at plan time rather than surviving as folklore.
-- **Recipes take their dependencies explicitly.** `quest-mid-execution guild:{g.guildId}` says what it needs. A recipe
-  that silently requires a prior one is the ambiguity, and a parameter is the fix.
-- **`produces:` is data the tool reads, not prose in a feature file.** It cannot drift from the code the way a Gherkin
-  sentence drifts from its step definition, because the listing and the runner read the same declaration.
-
-### Guidance for other repos
-
-**The convention ships; the recipes do not.** Another repo's states are its own — nobody else has guilds and quests.
-What travels is:
-
-- recipes are discoverable by name, not by grepping a test tree
-- each declares `produces:` and `fidelity`
-- each returns the ids a walk needs to address what it made
-- they compose rather than duplicate
-- two of anything an assertion must distinguish
-
-That is a convention plus a listing mechanism, not a package abstraction — which is deliberately short of the ownership
-architecture the companion plan wants, and enough to stop every walk re-deriving its own setup.
 
 ---
 
-## Part 11 — Where to go, in order
+## Part 7 — Where to go, in order
 
-| #   | Item                                                                                                                                                                                                                                                                                            | Why here                                                                                                                                                                                                                                                                                                                              |
-|-----|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1   | Gate `POST /api/tooling/smoketest/run` at registration, with an absence test                                                                                                                                                                                                                    | Independent live finding: it registers unconditionally and spawns real Claude subprocesses. `E2E_SIGNAL_BACK_HTTP`'s registration-time gate in `quest-flow.ts` is the pattern, and the lane already depends on it working                                                                                                             |
-| 2   | The instance service — start / run / results / kill / **capacity** / **profile** / **status** / **cleanup** / **docs**, with a status-as-index that LISTS its shots and flags which to open, **refs invalidated on navigation, reset and restart**, and RSS sampling per process group          | Everything else is a step inside it. Getting this shape wrong means rewriting every capability twice                                                                                                                                                                                                                                  |
-| 2b  | **Teardown and crash recovery, with tests written red-first** — process groups, port release, home removal, evidence retention, idle-timeout reaping, the three-instance parallel case, plus the heartbeat file and stale-instance reaping that are the ONLY defence against a SIGKILLed driver | shipped with item 2, never after it. A leak is invisible to whoever caused it, and every later item adds another instance to leak                                                                                                                                                                                                     |
-| 3   | The recipe book — free the HTTP-only harnesses, expose the already-free ones by name, add `produces:` and `fidelity`, make them listable                                                                                                                                                        |
-| 3a  | Recipe integration tests — each asserts its own `produces:`; `direct` ones assert against their `mirrors:`; production ones share one instance                                                                                                                                                  | staleness caught on the commit that caused it rather than by whichever planner next needed the recipe                                                                                                                                                                                                                                 |
-| 3b  | The PLANNER role — maps paths to recipes and proves every prelude by running it; **dispatches for both research and diagnosis so it reads almost no implementation**                                                                                                                            | the operator cannot do it at all (it drives nothing), and a planner that read code for every recipe would spend the context its remaining paths need                                                                                                                                                                                  | Nothing downstream can be exercised against a state nobody can create, and roughly half the harness tree is already a seeder or one transport swap from being one |
-| 4   | A transcript of every step and reading, written by the instance                                                                                                                                                                                                                                 | ~20 lines, no design decisions, and it makes a fixer's quoted symptom block machine-written instead of retyped from memory                                                                                                                                                                                                            |
-| 5   | `before` — run a script ahead of the page's own                                                                                                                                                                                                                                                 | The substrate every later instrumentation stands on                                                                                                                                                                                                                                                                                   |
-| 6   | Capture on every acting step — **frozen (`animations: 'disabled'`, `caret: 'hide'`) for the comparison path** — with a change-amount number; open start and end                                                                                                                                 | The only item that changes what gets SIGNED rather than what a walk costs. Frozen capture is not optional: this UI animates, and a live capture makes `pixelChange` noise on every step                                                                                                                                               |
-| 7   | The key as a tree — element-bound refs, `within` scoping, tags, state flags and the computed geometry flags on every row. **Ship without the map**: `look` returns the key and the shot, and omits the `map` field entirely until the later item adds it                                        | The primary navigation surface. Cheapest route to a selector, and the one arm that used it spent 24% fewer tokens. The geometry checks ride here because a separate command is one nobody calls                                                                                                                                       |
-| 8   | `health`, one reading with one verdict line, including the server logs                                                                                                                                                                                                                          | The stress tester's counterpart to the key; composes readings that already exist                                                                                                                                                                                                                                                      |
-| 9   | `until` — wait on a response, a file or a predicate, not just a locator state                                                                                                                                                                                                                   | Today the only condition is visible/hidden/attached/detached; everything else is polled a turn at a time                                                                                                                                                                                                                              |
-| 10  | Selectable readings — `network` by method and path, projecting fields                                                                                                                                                                                                                           | Costs context AND attention: a model given forty exchanges finds the one that matters, given four hundred it skims                                                                                                                                                                                                                    |
-| 11  | `hold` (non-settlement, live), plus `video` (for a human, never graded)                                                                                                                                                                                                                         | The stuck-loader and no-feedback classes, which nothing else catches. Neither one judges motion                                                                                                                                                                                                                                       |
-| 11b | The human-check route — a flag on the observable, dropped from automated denominators, collected into a list handed to the user with its evidence attached                                                                                                                                      | otherwise the only options are an unsignable unit nobody can close, or a real expectation nobody ever checks. Spec-side work, not tooling                                                                                                                                                                                             |
-| 12  | Server-side failure injection                                                                                                                                                                                                                                                                   | What `interruption`, `staleness` and `configuration` need and cannot drive through the page                                                                                                                                                                                                                                           |
-| 13b | `compare { runA, runB }` — the index delta between two runs                                                                                                                                                                                                                                     | a cycle's output is the difference between iterations; without this every cycle costs two result queries and hand arithmetic                                                                                                                                                                                                          |
-| 14  | The three reset levels — `page` / `state` / `instance`, with NAMED snapshots and an explicit `to` — each reporting the diff it undid                                                                                                                                                            | Replaces the one unverified lever a guide currently derives by reading code, answers "what did this error branch leave behind", and is what lets one instance carry many attacks                                                                                                                                                      |
-| 15  | `resize`, and a direct `request` step for the curl surface                                                                                                                                                                                                                                      | Coverage no walk can reach today                                                                                                                                                                                                                                                                                                      |
-| 16  | The two local lint rules — no `.first()`/`.last()` in a command, and no DOM handle in a recipe — plus the package `CLAUDE.md`                                                                                                                                                                   | prose does not hold either one. `@dungeonmaster/local-eslint`'s `no-hardcoded-package-names` is the template, and its own blind spot is the caution to copy with it                                                                                                                                                                   |
-| 17  | The lane spec and N ports; move it where consumers get it                                                                                                                                                                                                                                       | The real generalisation, and the largest. What has to go: `siege-lane.ts`'s `SERVER_WORKSPACE` / `WEB_WORKSPACE` literals, exactly two processes against one port pair, this repo's fake-CLI env block, and `REPO_ROOT` resolved four directories up from the file. `scrolls/workflow-paralellizer.md` G22 already logs the port half |
+| #   | Item                                                                                                                                                                                                                                                                                                                                                         | Why here                                                                                                                                                                                                                                                                                                                                                                       |
+|-----|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1   | Gate `POST /api/tooling/smoketest/run` at registration, with an absence test                                                                                                                                                                                                                                                                                 | Independent live finding: it registers unconditionally and spawns real Claude subprocesses. `E2E_SIGNAL_BACK_HTTP`'s registration-time gate in `quest-flow.ts` is the pattern, and the lane already depends on it working                                                                                                                                                      |
+| 2   | The instance service — start / run / results / kill / **capacity** / **profile** / **status** / **cleanup** / **docs**, with a status-as-index that LISTS its shots and flags which to open, **refs invalidated on navigation, reset and restart**, and RSS sampling per process group                                                                       | Everything else is a step inside it. Getting this shape wrong means rewriting every capability twice                                                                                                                                                                                                                                                                           |
+| 2a  | **The evidence read path** — `results` and `status` resolving off the asset tree rather than the driver socket, assets partitioned by the quest's guild, the `.siegelense` symlink that `init` creates and ignores, and every returned path absolute and repo-local                                                                                          | it is the whole fixer handoff, and it is the half a socket-shaped service silently omits: a read routed at a dead instance's driver answers a bare connection error. Cheap while item 2 is being written, a rewrite afterwards                                                                                                                                                 |
+| 2b  | **Teardown and crash recovery, with tests written red-first** — process groups, port release, home removal, evidence retention, idle-timeout reaping, the three-instance parallel case, plus the heartbeat file and stale-instance reaping that are the ONLY defence against a SIGKILLed driver                                                              | shipped with item 2, never after it. A leak is invisible to whoever caused it, and every later item adds another instance to leak                                                                                                                                                                                                                                              |
+| 2c  | **Retention and its tombstones** — the quest id recorded at `start`, `prune` and `cleanup` resolving references through `.quest-plans/` and naming the citing file, a reaped entry surviving as a tombstone, and a pruned query answering `pruned` rather than `[]`                                                                                          | evidence a fixer cannot find is evidence nobody kept. Both refusal rules are asserted all through this design with no mechanism behind them, and an empty answer where evidence was reclaimed is read as "the walk saw nothing"                                                                                                                                                |
+| 3   | The recipe book — free the HTTP-only harnesses, expose the already-free ones by name, add `produces:` and `fidelity`, make them listable                                                                                                                                                                                                                     |
+| 3a  | Recipe integration tests — each asserts its own `produces:`; `direct` ones assert against their `mirrors:`; production ones share one instance                                                                                                                                                                                                               | staleness caught on the commit that caused it rather than by whichever planner next needed the recipe                                                                                                                                                                                                                                                                          |
+| 3b  | The PLANNER role — maps paths to recipes and proves every prelude by running it; **dispatches for both research and diagnosis so it reads almost no implementation**                                                                                                                                                                                         | the operator cannot do it at all (it drives nothing), and a planner that read code for every recipe would spend the context its remaining paths need                                                                                                                                                                                                                           | Nothing downstream can be exercised against a state nobody can create, and roughly half the harness tree is already a seeder or one transport swap from being one |
+| 4   | A transcript of every step and reading, written by the instance                                                                                                                                                                                                                                                                                              | ~20 lines, no design decisions, and it makes a fixer's quoted symptom block machine-written instead of retyped from memory                                                                                                                                                                                                                                                     |
+| 4b  | **The record's `WALKED` field** — the instance id and run id against every path walked and every attack run, clean ones included                                                                                                                                                                                                                             | it is the proof the path was driven rather than claimed, and the only handle on that walk's evidence. Spec-side work: a quest-contract change, not tooling. See `siege-verification-remainder.md` Part 4                                                                                                                                                                       |
+| 5   | `before` — run a script ahead of the page's own                                                                                                                                                                                                                                                                                                              | The substrate every later instrumentation stands on                                                                                                                                                                                                                                                                                                                            |
+| 6   | Capture on every acting step — **frozen (`animations: 'disabled'`, `caret: 'hide'`) for the comparison path** — with a change-amount number; open start and end                                                                                                                                                                                              | The only item that changes what gets SIGNED rather than what a walk costs. Frozen capture is not optional: this UI animates, and a live capture makes `pixelChange` noise on every step                                                                                                                                                                                        |
+| 7   | The key as a tree — element-bound refs, `within` scoping, four columns (element with tag and role, text/value, **`attrs`** budgeted with its runtime-id guard, flags), and the duplicate-testId line under it. **Ship without the map**: `look` returns the key and the shot, and omits the `map` field entirely until the later item adds it                | The primary navigation surface. Cheapest route to a selector, and the one arm that used it spent 24% fewer tokens. The geometry checks ride here because a separate command is one nobody calls                                                                                                                                                                                |
+| 8   | `health`, one reading with one verdict line, including the server logs                                                                                                                                                                                                                                                                                       | The stress tester's counterpart to the key; composes readings that already exist                                                                                                                                                                                                                                                                                               |
+| 9   | `until` — wait on a response, a file or a predicate, not just a locator state                                                                                                                                                                                                                                                                                | Today the only condition is visible/hidden/attached/detached; everything else is polled a turn at a time                                                                                                                                                                                                                                                                       |
+| 10  | Selectable readings — `network` by method and path, projecting fields; and the same projection plus a self-reporting cap on `dom`, with own text as its default                                                                                                                                                                                              | Costs context AND attention: a model given forty exchanges finds the one that matters, given four hundred it skims. `dom` is the same problem with a measured number on it — `body *` returned 58 nodes carrying a whole stylesheet                                                                                                                                            |
+| 11  | `hold` (non-settlement, live), plus `video` (for a human, never graded)                                                                                                                                                                                                                                                                                      | The stuck-loader and no-feedback classes, which nothing else catches. Neither one judges motion                                                                                                                                                                                                                                                                                |
+| 11b | The human-check route — a flag on the observable, dropped from automated denominators, collected into a list handed to the user with its evidence attached                                                                                                                                                                                                   | otherwise the only options are an unsignable unit nobody can close, or a real expectation nobody ever checks. Spec-side work, not tooling                                                                                                                                                                                                                                      |
+| 11c | **The declared-value block, and its third reader.** Extract the enumeration copied in `dumpster-create-prompt-statics.ts:163` and `chaoswhisperer-gap-minion-statics.ts:191` into one interpolated statics; add the siege consequence to its rationale; and give `siegemaster-prompt-statics.ts` a rule for an UNFLAGGED one, which it has nothing for today | the rule exists and the gap is on the walker. The two copies have already drifted with the AUTHOR's list narrower than the reviewer's — no raw colour, no margin — and the author is the only role that may set the flag. Spec-side work, not tooling                                                                                                                          |
+| 11d | **`siegemaster-reader`** — a minion that opens the files a walk must not, returning values with `file:line` against each; the guide's `OFF-SCREEN` heading becomes its answers rather than its instructions                                                                                                                                                  | it removes the LAST reason a walker opens a source file, which is the one thing the three-arm trial proved destroys the pass. Code changes it needs: the name added to `agentPromptNameContract`, to `agentPromptClassificationStatics.minionNames`, and a row in `agentNameToPromptTransformer` (sonnet, like every minion)                                                   |
+| 11e | **`siegemaster-operational`**, dispatched per OPERATIONAL flow, plus the surfaces it needs — `process-state`, `environment`, a log tail beyond the instance's own two, and a named elapsed figure                                                                                                                                                            | siege is the ONLY track on an operational flow, and the browser walker's whole vocabulary is inapplicable there. The gaps are measured against `qaCheckSurfaceStatics`' own list, not guessed. Its lane spec carries no Chromium, which the content-hash profile already prices on its own                                                                                     |
+| 11f | **The `(human-check)` PANEL on the quest**, in the web UI — every `verifyByHuman` unit with its `toSettle` instruction, its repo-local evidence links, an outstanding count, and a control that TAKES the person's verdict                                                                                                                                   | it is the only place such a unit reappears: once the quest is `in_progress` they are filtered from every work item's view, so with no panel the expectation is invisible everywhere. A list a person can read and cannot tick is a list nobody works                                                                                                                           |
+| 11g | **A `walked` kind on `questNotes`**, with typed `instanceId` and `runId` beside the prose                                                                                                                                                                                                                                                                    | the id must outlive `.quest-plans/`, which is wiped at quest end while the evidence is still retained. Typed fields rather than a sentence, because a `WALKED` line is one of the citations `prune` and `cleanup` refuse to delete over, and a resolver cannot match an id buried in prose                                                                                     |
+| 11h | **Print the owning NODE id in `get-qa-checklist`**                                                                                                                                                                                                                                                                                                           | the verifier prompt states the gap: *"Nothing tells you which node an observable hangs on except the flow you read… your brief does not carry it and the checklist does not print it."* Every sign-off pays that lookup. It is now the value TWO mechanisms read: a step carries an optional `node:` label, and an antagonist fetches the baseline of the node it is attacking |
+| 12  | Server-side failure injection                                                                                                                                                                                                                                                                                                                                | What `interruption`, `staleness` and `configuration` need and cannot drive through the page                                                                                                                                                                                                                                                                                    |
+| 13b | `compare { runA, runB }` — the index delta between two runs                                                                                                                                                                                                                                                                                                  | a cycle's output is the difference between iterations; without this every cycle costs two result queries and hand arithmetic                                                                                                                                                                                                                                                   |
+| 14  | The three reset levels — `page` / `state` / `instance`, with NAMED snapshots and an explicit `to` — each reporting the diff it undid                                                                                                                                                                                                                         | Replaces the one unverified lever a guide currently derives by reading code, answers "what did this error branch leave behind", and is what lets one instance carry many attacks                                                                                                                                                                                               |
+| 15  | `resize`, and a direct `request` step for the curl surface                                                                                                                                                                                                                                                                                                   | Coverage no walk can reach today                                                                                                                                                                                                                                                                                                                                               |
+| 16  | The two local lint rules — no `.first()`/`.last()` in a command, and no DOM handle in a recipe — plus the package `../../CLAUDE.md`                                                                                                                                                                                                                          | prose does not hold either one. `@dungeonmaster/local-eslint`'s `no-hardcoded-package-names` is the template, and its own blind spot is the caution to copy with it                                                                                                                                                                                                            |
+| 17  | The lane spec and N ports; move it where consumers get it                                                                                                                                                                                                                                                                                                    | The real generalisation, and the largest. What has to go: `siege-lane.ts`'s `SERVER_WORKSPACE` / `WEB_WORKSPACE` literals, exactly two processes against one port pair, this repo's fake-CLI env block, and `REPO_ROOT` resolved four directories up from the file. `../workflow-paralellizer.md` G22 already logs the port half                                               |
 
 **Items 2 and 3 are the foundation and neither is optional.** The service decides the shape every capability is written
 against; the recipe book decides whether there is anything to point them at.
@@ -2330,10 +1953,10 @@ form is waved through by design. Whoever does this work is finding those literal
 
 ---
 
-## Part 12 — The surface, consolidated
+## Part 8 — The surface, consolidated
 
-Parts 4 and 5 say WHY each of these exists. This is the lookup table. Status is against what sits in
-`packages/web/test/siege-driver/` today.
+Parts 1 and 2 say WHY each of these exists. This is the lookup table. Status is against what sits in
+`../../packages/web/test/siege-driver` today.
 
 ### The rule that governs every targeting step
 
@@ -2385,10 +2008,11 @@ where its argument comes from caller input, because `nth` is a naming-ladder run
 `.nth(0)` written as a literal is `.first()`
 with extra steps.
 
-**State the rule's scope in its own message**, per the caution recorded in Part 10: this repo already has a rule that
+**State the rule's scope in its own message**, per the caution recorded in `siegelense-recipes.md`: this repo already
+has a rule that
 looks broader than it is, and a rule people over-trust is worse than none.
 
-**What lint cannot reach, and must therefore go in the package's `CLAUDE.md`:** `querySelector`
+**What lint cannot reach, and must therefore go in the package's `../../CLAUDE.md`:** `querySelector`
 inside a page-eval source string. It silently returns the first match — the identical failure — but it lives inside a
 template literal, and a rule inspecting string contents is fragile enough to be its own liability. The key builder
 already uses `querySelectorAll` for exactly this reason.
@@ -2443,42 +2067,75 @@ Two rules keep it loud:
 `#dd-placement` on the trial's quest literally reads "Its own element on the right, test id subagent-chain-duration" —
 so a durable walk already has stable handles. The ref is a shortcut for the live session, not a replacement for them.
 
-### The package needs a `CLAUDE.md`, and these are the entries
+### The package needs a `../../CLAUDE.md`, and these are the entries
 
-`packages/orchestrator/CLAUDE.md` and `packages/web/CLAUDE.md` are the pattern — package invariants with the measurement
+`../../packages/orchestrator/CLAUDE.md` and `../../packages/web/CLAUDE.md` are the pattern — package invariants with the
+measurement
 behind each one. This package needs the same. **The entries below are the rules above this line, compressed into the
 form a session editing the package will actually read**, plus the two that live nowhere else:
 
-| Entry                                                                                                 | Why it earns a line                                                                                                                                                                                    |
-|-------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Never `.first()` / `.last()` in a command. Ambiguity THROWS, and the error carries the candidates** | the obvious line to write is the wrong one, and the lint rule's message should point here                                                                                                              |
-| **Never `querySelector` in eval source — `querySelectorAll` and count**                               | singular silently returns match one; lint cannot see inside the template literal                                                                                                                       |
-| **A command returns a READING, never a verdict on a unit**                                            | the founding rule from `siege-command.ts`'s own header. Comparing two measured values is a reading; deciding a unit passes is not                                                                      |
-| **The key reads OWN text nodes, never `textContent`**                                                 | recursive text pulled an entire Mantine stylesheet into one reading. This is the single measured reason the old `dom` verb was unusable                                                                |
-| **A ref resolves only in its minting instance and page state**                                        | four boundaries look passable and none are; see the ref rule below                                                                                                                                     |
-| **A recipe touches state, never a screen**                                                            | a recipe holding a DOM handle is doing a walk's job                                                                                                                                                    |
-| **`run` returns a status; `results` returns payloads**                                                | collapsing them walks back into the 50,000-char ceiling the service exists to route around                                                                                                             |
-| **Kill the process GROUP, not the child — and skip the signal for one that already exited**           | `npm run` is a wrapper; the listener is a grandchild via `sh -c`. And signalling a dead child logs `kill ESRCH` on every clean teardown, which reads as a failure in the one log a later session opens |
-| **`kill` removes the throwaway home and never the lane directory**                                    | logs, captures and the transcript are evidence and outlive the instance                                                                                                                                |
-| **`dev:no-watch`, never `dev`, for the lane's API server**                                            | `--conditions=source` puts every `packages/*/src` file in the watcher's graph; one save anywhere restarts the server and Vite's `/api` proxy answers with a bare 500 for ~1.5s                         |
+| Entry                                                                                                                         | Why it earns a line                                                                                                                                                                                    |
+|-------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Never `.first()` / `.last()` in a command. Ambiguity THROWS, and the error carries the candidates**                         | the obvious line to write is the wrong one, and the lint rule's message should point here                                                                                                              |
+| **Never `querySelector` in eval source — `querySelectorAll` and count**                                                       | singular silently returns match one; lint cannot see inside the template literal                                                                                                                       |
+| **A command returns a READING, never a verdict on a unit**                                                                    | the founding rule from `siege-command.ts`'s own header. Comparing two measured values is a reading; deciding a unit passes is not                                                                      |
+| **The key reads OWN text nodes, never `textContent`**                                                                         | recursive text pulled an entire Mantine stylesheet into one reading. This is the single measured reason the old `dom` verb was unusable                                                                |
+| **A ref resolves only in its minting instance and page state**                                                                | four boundaries look passable and none are; see the ref rule below                                                                                                                                     |
+| **A recipe touches state, never a screen**                                                                                    | a recipe holding a DOM handle is doing a walk's job                                                                                                                                                    |
+| **`run` returns a status; `results` returns payloads**                                                                        | collapsing them walks back into the 50,000-char ceiling the service exists to route around                                                                                                             |
+| **Kill the process GROUP, not the child — and skip the signal for one that already exited**                                   | `npm run` is a wrapper; the listener is a grandchild via `sh -c`. And signalling a dead child logs `kill ESRCH` on every clean teardown, which reads as a failure in the one log a later session opens |
+| **`kill` removes the throwaway home and never the evidence directory**                                                        | logs, captures and the transcript are evidence and outlive the instance                                                                                                                                |
+| **Evidence reads go to DISK, never down the driver socket — `start`, `run` and `kill` are the only calls that need a driver** | a killed instance has no driver, and a fixer reading one is the normal case rather than the edge. Routing a read at the socket answers a bare connection error, which cannot be told from a crash      |
+| **Every path handed back is repo-local, through `<repoRoot>/.siegelense`**                                                    | a shot is only evidence if the reader's `Read` reaches it. Same reason `npm run prod` keeps its home inside this repo                                                                                  |
+| **`dev:no-watch`, never `dev`, for the lane's API server**                                                                    | `--conditions=source` puts every `packages/*/src` file in the watcher's graph; one save anywhere restarts the server and Vite's `/api` proxy answers with a bare 500 for ~1.5s                         |
 
 ---
 
-### Instance calls
+### The thirteen calls
 
 **Every tool below is registered as `siegelense-<name>`** — `siegelense-start`, `siegelense-run`, and so on. The
 examples drop the prefix for readability; there is no bare `start` tool. **Steps are not tools**: `look`, `click`,
 `health` and the rest are values inside `run`'s `steps` array, which is the whole point of the bounded-tool-surface
-decision in Part 4.
+decision in Part 1.
+
+**Only `start`, `run` and `kill` need a live instance.** The other ten read the asset tree, the registry or the machine,
+so a session that only wants to read a finished walk starts nothing and holds no pool slot. Part 1 has the table.
 
 **`start`** — stands up an instance and hands back its id.
 
 ```
-start { spec: 'dungeonmaster-web', seed: 'guild-with-three-quests' }
+start { spec: 'dungeonmaster-web', seed: 'guild-with-three-quests',
+        quest: '1dac5395-c828-4472-868c-d4a3425e43a0' }
 → { instance: 'inst_7f3a', baseUrl: 'http://…:34173', home: '/tmp/dm-siege-…',
+    evidence: '<repoRoot>/.siegelense/guilds/<guildId>/instances/inst_7f3a/',
     logs: { api: '…/api-server.log', web: '…/web-server.log' },
     seeded: { guildSlug: 'siege-1', guildId: '7306b468-…' } }
 ```
+
+**`quest` is optional and decides two things.** It files the instance's evidence under that quest's guild, and it is how
+`prune` and `cleanup` later discover the evidence is still referenced. Omit it — a session nobody orchestrated, a
+developer driving by hand — and the instance files under `unowned/` and ages out on the ordinary window.
+
+**A BROWSERLESS spec is just another spec, and the profile prices it on its own.** An operational flow has no screen to
+drive, so its instance wants the servers and no Chromium — and because a profile is keyed by the spec's content hash,
+that spec measures its own steady and peak, and `capacity` allows more of them in a pool. Nothing special is needed for
+this: it is the "I added a second server" case running in the other direction.
+
+```
+start { spec: 'dungeonmaster-headless', quest: '1dac5395…' }
+```
+
+**Only the browser steps go missing with it, and they go missing LOUDLY.** A `look`, a `click` or a `hold` submitted
+against a browserless instance is an error naming the spec, never an empty key — a reading that quietly returns nothing
+is the `count: 0` problem arriving at the one place a walk cannot recover from it.
+
+**The `guildId` in `seeded` is NOT the one in the path.** The seeded guild lives in the throwaway home and is minted per
+run; the partition guild is the one that owns `quest`. Keying assets by the seeded id would file every instance under a
+partition of its own and defeat the point.
+
+**`evidence` is what a session with no record works from.** Everything `results` returns lives under it, and after the
+instance is gone that directory is still there and still readable. There is no LOOKUP call to recover it later, so a
+path a person will want tomorrow belongs in what the session writes down today.
 
 **`recipes`** — what states can be created. No instance needed.
 
@@ -2493,17 +2150,39 @@ recipes {}
 
 **`run`** — submit a batch. Blocks. Returns a status, never a payload. See the worked example below.
 
-**`results`** — query narrowly, after a run.
+**`results`** — query narrowly, after a run. **Starts nothing, and answers for an instance that is long dead.**
 
 ```
+results { instance: 'inst_7f3a', run: 'run_2' }                     // the run's own return: index, shots, stoppedAt
 results { instance: 'inst_7f3a', run: 'run_2', step: 4 }
 results { instance: 'inst_7f3a', run: 'run_2', kind: 'network', where: { path: '/api/quests', method: 'POST' } }
 results { instance: 'inst_7f3a', run: 'run_1', kind: 'server', where: { level: 'error', steps: '4-9' } }
 results { instance: 'inst_7f3a', kind: 'console', since: 'boot' }   // the whole timeline, not one run
 ```
 
-**`run` defaults to the latest when omitted**, which is the common case. Name it explicitly whenever the query is about
-an EARLIER run — a session two batches on, going back for the exchange that explains what it is now seeing.
+**With no `step` and no `kind` it returns the RUN's stored return** — the same index, shot list and `stoppedAt` that
+`run` handed the session that submitted it. A fixer never made the run, so without this its first move is guessing which
+kinds to query, which is the query-everything the index exists to prevent.
+
+**`run` defaults to the latest ONLY while you are the session driving that instance.** There it is the common case, and
+naming an earlier run explicitly is how you go back for the exchange that explains what you are now seeing. **Against a
+finished instance the run id is required and `results` refuses to guess**, because that instance may hold the prelude's
+proving run, the walk and a re-walk, and "latest" would silently read whichever went last. The one other way to omit it
+is `since: 'boot'`, which asks for the whole timeline deliberately rather than landing on one run by default.
+
+**Every answer carries `instanceState`**, so a reading is never mistaken for a live one:
+
+| `instanceState` | Means                                                                                                     |
+|-----------------|-----------------------------------------------------------------------------------------------------------|
+| `alive`         | the driver is up and the buffers are still filling                                                        |
+| `killed`        | torn down cleanly. The evidence is complete                                                               |
+| `dead`          | the heartbeat stopped. The transcript ends at the last flushed step; after that is ABSENT, not uneventful |
+| `pruned`        | the assets were reclaimed. The answer says when and by which rule, and returns no rows                    |
+| `unknown`       | no instance by that id, ever. A mistyped or misremembered id, not a walk that found nothing               |
+
+**`pruned` and `unknown` are real answers, not empty results.** A query that lands on reclaimed evidence and returns
+`[]` reads as "that step produced nothing", which is the one conclusion a fixer must never draw from a missing file —
+and a bad id answering the same way sends it looking at the app instead of at its own record.
 
 **`docs`** — the tool's own instructions. **This is how a session learns to use it, not the prompt.**
 
@@ -2511,9 +2190,15 @@ an EARLIER run — a session two batches on, going back for the exchange that ex
 docs {}                      → the whole surface
 docs { for: 'operating' }    → cleanup, capacity, status, reaping rules, reading a minion's return
 docs { for: 'planning' }     → recipes, preludes, profiles, capacity, proving a prelude
-docs { for: 'walking' }      → goto/click/look/until/dom and the reading rules
+docs { for: 'walking' }      → goto/click/look/until, the reading rules, and the LADDER:
+                               key first, `dom` last and narrow
 docs { for: 'attacking' }    → health, reset levels, expect:'error', baselines
-docs { for: 'fixing' }       → re-running a prelude, and calling a recipe from an e2e
+docs { for: 'fixing' }       → reading a finished run without starting anything, re-running a prelude,
+                               and calling a recipe from an e2e
+docs { for: 'driving' }      → the same surface for a session no quest dispatched: capacity, start, run,
+                               the reading steps, kill, and where its own evidence went
+docs { for: 'operational' }  → a flow with no screen: request, file, until{file}, storage,
+                               results{kind:'server'}, and the browserless lane spec
 ```
 
 **One scope per tool-using role**, and `operating` is the odd one out in a way worth stating: **it contains no step
@@ -2521,6 +2206,26 @@ verbs at all.** The operator never submits a batch. Its whole surface is fleet m
 the pass, `capacity` before opening a pool, `status`
 after something dies — plus how to read what a minion brings back. Handing it the driving verbs would be handing it the
 one thing its own rules forbid.
+
+**`siegemaster-reader` gets no scope, and that absence is the point.** It opens source files so no walker has to, calls
+no tool here, starts no instance and holds no pool slot. A role that never touches the tool needs no page of its
+instructions — and handing it one would be handing a code-reading session the vocabulary for driving a browser.
+
+**`driving` is the scope for a session nobody orchestrated, and it exists because this design already promised it.** The
+argument for serving the instructions from a call rather than a prompt was that "go drive the app with the siege tool
+instead of the browser extension" becomes a usable instruction to a session outside any quest. That promise is empty if
+every scope is written for a quest role — `walking` reads as a verifier's brief, with sign-offs, units and a round
+record attached, none of which such a session has.
+
+**What `driving` says that no other scope does:**
+
+| It must say                                                              | Or else                                                                                                                                                           |
+|--------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| you are sharing this machine — read `capacity` first, and `start` queues | it opens three instances beside a running pass and the pass measures its pressure                                                                                 |
+| `kill` is yours to call and nothing else will                            | no dispatcher is watching, so its instance leaks until the idle timeout or someone's `cleanup`                                                                    |
+| where its evidence went — `start` returns the id and the directory       | it holds both for its whole life. What it does not get is a LOOKUP, so anything a person wants tomorrow goes into what the session writes, not left in scrollback |
+| your instance is `unowned/` — no quest protects it from ageing out       | it comes back next week for a shot that was reclaimed on the ordinary window                                                                                      |
+| `cleanup` is safe for you to run and will not touch anyone's live work   | either it never reaps and orphans accumulate, or it reaches for something blunter                                                                                 |
 
 **Why a call and not prompt text**, for three reasons that each cost something:
 
@@ -2545,12 +2250,19 @@ prune { olderThan: '7d' }                    → everything past the window
 prune { instance: 'inst_9b2c' }              → one instance's assets
 prune { kind: 'video', olderThan: '2d' }     → video first, it dwarfs everything else
 → { freedMB: 4100, removed: [ … ],
-    refused: [ { id: 'inst_1d09', why: 'referenced by a VERIFIED prelude' } ] }
+    refused: [ { id: 'inst_1d09',
+                 why: 'run_7 cited by a VERIFIED prelude in .quest-plans/1dac5395…/path-3.md' } ] }
 ```
 
-**It refuses rather than warns.** Anything a `VERIFIED` prelude or an open issue record still points at stays, and the
+**It refuses rather than warns.** Anything a `VERIFIED` prelude, an open issue record or an open quest's `WALKED` line
+still points at stays, and the
 refusal is named — a prune that quietly took the evidence a fixer was about to read is the failure this whole retention
 section exists to prevent.
+
+**The refusal NAMES THE CITING FILE, which is also how the rule is checkable.** "Referenced by a prelude" is a claim; a
+path and a run id is something the caller can open. The reference itself is resolved through the quest id `start`
+recorded, so an instance with no quest has nothing citing it and no protection — the `unowned` case, working as intended
+rather than falling through.
 
 Distinct from `cleanup`, which acts on STALE INSTANCES and ages assets as a side effect. `prune` acts on ASSETS and
 touches no instance.
@@ -2564,8 +2276,9 @@ cleanup {}
     leftAlone: [ { id: 'inst_7f3a', why: 'live — last beat 2s ago' } ] }
 ```
 
-Acts on STALENESS only — never kills a live instance, never prunes evidence a `VERIFIED` prelude or an open issue
-references. Safe to run at any moment, including mid-pass. `leftAlone` is part of the answer: a cleanup reporting only
+Acts on STALENESS only — never kills a live instance, never prunes evidence a `VERIFIED` prelude, an open issue or an
+open quest's `WALKED` line references. Safe to run at any moment, including mid-pass. `leftAlone` is part of the answer:
+a cleanup reporting only
 what it removed cannot be told from one that removed the wrong thing.
 
 **`compare`** — the index delta between two runs. A READING: a computed difference between measured values, never a
@@ -2598,6 +2311,15 @@ status {}                      → the machine, every instance alive or dead, an
 status { instance: 'inst_9b2c' } → one instance: last beat, last step, orphans, evidence, likely cause
 ```
 
+**`status {}` lists instances and their state. It never lists their RUNS and never lists their evidence** — those appear
+only when you name an instance you already hold the id for. That is the no-browsing rule: fleet state is what an
+operator needs to decide whether to reap or to dispatch, and a list of runs is what a session reads instead of reading
+its own record.
+
+**A reaped entry survives as a tombstone for as long as its evidence does.** Otherwise `cleanup` — which any session may
+run, at any moment — would make a fixer's first call answer "unknown instance" for a walk whose shots are sitting on
+disk.
+
 Returns `monitored` (the metric names, so a session does not guess at them), `machine` (memory, disk, load, kernel OOM
 events where readable), and an entry per instance. A dead one carries its last heartbeat, the last STEP it ran, its RSS
 at that moment, its surviving orphan pgids, the paths to what it left behind, and a `likelyCause` stated as evidence
@@ -2629,7 +2351,7 @@ profile { spec: 'dungeonmaster-web' }
 
 **Samples are grouped by POOL SIZE, never averaged across them.** A solo sample and a contended one describe different
 worlds; `capacity` reads the group matching the pool it is about to open. Memory figures here are illustrative — see
-Part 6.
+Part 3.
 
 **`kill`** — tear it down. Replaces `end`.
 
@@ -2654,7 +2376,7 @@ All keep their behaviour except that ambiguity now throws.
 { step: 'paste',      ref: 14, filePath: '/tmp/fixture.png' }
 { step: 'box',        ref: 26 }
 { step: 'screenshot', name: 'after-create.png' }
-{ step: 'dom',        target: '[data-testid="subagent-chain-duration"]' }
+{ step: 'dom',        target: '[data-testid="subagent-chain-duration"]', fields: ['text', 'rect'] }
 { step: 'storage',    prefix: 'dm-' }
 { step: 'eval',       source: 'document.title' }
 { step: 'file',       path: 'guilds/<id>/quests/<id>/quest.json' }
@@ -2662,6 +2384,10 @@ All keep their behaviour except that ambiguity now throws.
 
 **A ref is only meaningful after the `look` that minted it, in the same page state.** A step that must survive being
 saved or re-run takes a `target` and a `within`, never a ref — see the rule above.
+
+**`dom` is the escape hatch and is LAST on the ladder.** It keeps its behaviour and gains three guards: own text unless
+`text: 'full'` is asked for, a `fields:` projection, and a match cap that reports the true `count` beside what it
+showed. Part 2 has the ladder and the case for each rung; `docs { for: 'walking' }` serves it to a session.
 
 `console`, `network` and `ws` remain available as steps for the case where a batch must gate on one, but are primarily
 results queries now. `end` becomes the instance-level `kill`.
@@ -2672,7 +2398,7 @@ results queries now. `end` becomes the instance-level `kill`.
 
 **`look`** — addressing. Returns the KEY inline and writes the SHOT, returning its path. **The MAP is optional and ships
 later** — `look { map: true }` requests it once it exists, and until then the field is simply absent rather than empty.
-Part 11 defers it deliberately: the one trial arm that had a map rendered three and opened none.
+Part 7 defers it deliberately: the one trial arm that had a map rendered three and opened none.
 
 ```
 { step: 'look' }
@@ -2799,6 +2525,12 @@ verdict is taken from it.
 `console` · `network` · `ws` · `server` (the server logs — the thing nothing surfaces today) ·
 `screenshots` · `steps`
 
+**`steps` is the transcript** — every step with its verb, its arguments and its reading, flushed as it ran. **A step's
+own reading is reached by `step: N` with no `kind`**, and for a `look` that reading IS the key as it stood at that
+moment. So "the key at step 4" is not a file anyone has to keep a path to; it is a query, and the run id plus the step
+number is what it takes. The same goes for the server log window and the wire: a walker records the run and the step,
+never a log excerpt it copied by hand.
+
 These accumulate during a batch and are READ afterwards. `network` is both LISTABLE and QUERYABLE, because it currently
 returns every exchange since boot behind a substring filter:
 
@@ -2883,8 +2615,9 @@ for anything measuring a path.
 ### A FIXER reading a finished instance
 
 **A fixer arrives after the walk is over and the instance is gone.** Its record carries an instance id, a run id, a
-failing step, the prelude and the evidence paths — and every `results` call below works against a KILLED instance,
-because the evidence lives in the lane directory and outlives it.
+failing step, the prelude and the evidence paths — and **steps 1 to 4 below start nothing**. They read the asset tree
+and the registry, cost no boot and no pool slot, and answer exactly as well for an instance killed an hour ago as for
+one still running. The first thing that needs a live instance is step 5, which is the reproduction.
 
 Handed this:
 
@@ -2903,16 +2636,23 @@ status { instance: 'inst_9b2c' }
 ```
 
 A `DEAD — no heartbeat` answer instead means the transcript stops where the driver died, so anything after the last
-flushed step is simply absent rather than uneventful.
+flushed step is simply absent rather than uneventful. **`status` answers here because a reaped entry becomes a
+tombstone**, not a deletion: an instance whose orphans a `cleanup` collected still says what it was and how it ended,
+for as long as its evidence is retained.
 
-**Step 2 — what did the failing step actually read?**
+**Step 2 — what did the failing step actually read?** The run id is named, not defaulted: this instance holds two runs
+and `latest` is not a thing a fixer knows.
 
 ```
 results { instance: 'inst_9b2c', run: 'run_2', step: 7 }
 → { verb: 'click', instanceState: 'killed',
     reading: { before: { count: 1, text: 'EXECUTION_ROW_0' }, urlAfter: '/g/quest/abc' },
-    shot: 'inst_9b2c/run_2/step7.png', pixelChange: '4%', blank: false }
+    shot: '<repoRoot>/.siegelense/guilds/<guildId>/instances/inst_9b2c/run_2/step7.png',
+    pixelChange: '4%', blank: false }
 ```
+
+**That `shot` path is absolute and inside the repo**, so the next move is a plain `Read` of it. A path under someone's
+home directory would hand back a filename the reader cannot open, which is the same as handing back nothing.
 
 **Step 3 — what did the SERVER say while it happened?** This is the reading nothing else surfaces, and on this example
 it is the whole answer:
@@ -2946,9 +2686,14 @@ test and the walk exercise one seeding vocabulary rather than two.
 
 **Step 7 — `kill { instance: 'inst_c41e' }`.** The fixer started it, so the fixer closes it.
 
-**What a fixer must not do:** resurrect `inst_9b2c`, start an instance to "look around", or read the evidence of an
-instance it was not handed. Every instance is three processes against a measured pool, and an unaccounted fourth is how
-a phase runs out of room.
+**What a fixer must not do:** resurrect `inst_9b2c`, start an instance to "look around", or go looking for the evidence
+of an instance it was not handed. Every instance is three processes against a measured pool, and an unaccounted fourth
+is how a phase runs out of room.
+
+**None of that forbids the reading, and the distinction matters because a fixer will get it wrong in the cautious
+direction.** "Touch no instance you did not start" is about PROCESSES. Steps 1 to 4 start none, so a fixer that believes
+it must boot something before it may look at its own record's evidence has both spent a pool slot and read a fresh
+instance's state instead of the one where the defect happened.
 
 ### Interleaving recipes and steps
 
@@ -2971,7 +2716,8 @@ run {
 }
 ```
 
-The second recipe takes `guild: '{g.guildId}'`. That is the composition rule from Part 9 doing its job: a recipe stacks
+The second recipe takes `guild: '{g.guildId}'`. That is the composition rule from `siegelense-recipes.md` Part 5 doing
+its job: a recipe stacks
 onto what an earlier one made rather than building a whole world of its own, which is what keeps the catalogue deep
 instead of wide.
 
@@ -3061,14 +2807,28 @@ did not" costs a session two full result queries and its own arithmetic, every c
   },
   shots: [
     { step: 1, path: 'run_2/step1.png', pixelChange: null,  blank: false, open: true,  why: 'start state' },
-    { step: 2, path: 'run_2/step2.png', pixelChange: '38%', blank: false, open: true,  why: 'large change' },
+    { step: 2, path: 'run_2/step2.png', pixelChange: '38%', blank: false, open: true,  why: 'large change',
+      node: 'guild-selected' },
     { step: 3, path: 'run_2/step3.png', pixelChange: '0%',  blank: false, open: false },
-    { step: 4, path: 'run_2/step4.png', pixelChange: '0%',  blank: false, open: false },
+    { step: 4, path: 'run_2/step4.png', pixelChange: '0%',  blank: false, open: false,
+      node: 'chain-rendered' },
     { step: 5, path: 'run_2/step5.png', pixelChange: '0%',  blank: true,  open: true,
       why: 'BLANK — single colour #0d0907 across the whole frame' },
   ],
 }
 ```
+
+**`node` is an optional label a STEP carries, echoed onto its shot and its reading.** Most steps have none; a step that
+lands on a named node of the path says so, and the tool records it.
+
+```jsonc
+{ step: 'until', visible: '[data-testid="SUBAGENT_CHAIN"]', node: 'chain-rendered' }
+```
+
+**Without it, promotion and baseline fetching are a mapping exercise somebody redoes every time.** The promotion rule is
+already written per node — "every unit on that node came back `confirmed`" — and an antagonist asking for the baseline
+of the node it is about to attack has only a step number otherwise, in a run it did not submit. The session is the only
+thing that knows which step reached which node, so it is the one that says, once, in the batch.
 
 **Every run lists the shots it took, and flags which to OPEN.** That removes a whole paragraph of prompt instruction —
 "capture always, open the start and end, open an intermediate on signal" stops being something a session has to remember
@@ -3122,16 +2882,16 @@ already written — the session reads the index, queries the two errors, and has
 
 ---
 
-## Part 13 — What exists as scratch
+## Part 9 — What exists as scratch
 
-Nothing in Parts 4 to 6 is built. The prototypes below were driven through the existing `eval`
+Nothing in Parts 1 to 3 is built. The prototypes below were driven through the existing `eval`
 command and are throwaway:
 
-| Path                                           | What it is                                                                            |
-|------------------------------------------------|---------------------------------------------------------------------------------------|
-| `tmp/siege-seed.ts`                            | creates a guild and seeds three session transcripts into a running lane               |
-| `tmp/siege-look.ts`                            | emits the key, the shot and the map for whatever a lane is showing                    |
-| `tmp/siege/exp{A,B,C}/`                        | the trial's lanes — each holds its own `RECORD.md`, screenshots and every result file |
-| `tmp/siege/demo{1..5}/`, `tmp/siege/seedtest/` | the exploratory lanes behind Part 2's figures                                         |
+| Path                                                | What it is                                                                            |
+|-----------------------------------------------------|---------------------------------------------------------------------------------------|
+| `../../tmp/siege-seed.ts`                           | creates a guild and seeds three session transcripts into a running lane               |
+| `../../tmp/siege-look.ts`                           | emits the key, the shot and the map for whatever a lane is showing                    |
+| `tmp/siege/exp{A,B,C}/`                             | the trial's lanes — each holds its own `RECORD.md`, screenshots and every result file |
+| `tmp/siege/demo{1..5}/`, `../../tmp/siege/seedtest` | the exploratory lanes behind `siege-verification-remainder.md` Part 2's figures       |
 
 `siege-command.ts` gained no verbs and the driver holds no refs.
