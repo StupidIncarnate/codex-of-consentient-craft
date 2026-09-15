@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
@@ -6,13 +5,13 @@ import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { laneSessionContract } from './lane-session-contract';
 import type { LaneSession } from './lane-session-contract';
 import { BrowserSessionStub } from '../browser-session/browser-session.stub';
+import { fileDescriptorContract } from '../file-descriptor/file-descriptor-contract';
 import { PortPairStub } from '../port-pair/port-pair.stub';
 import { processGroupIdContract } from '../process-group-id/process-group-id-contract';
 import { ProcessGroupIdStub } from '../process-group-id/process-group-id.stub';
+import { serverLogByteCountContract } from '../server-log-byte-count/server-log-byte-count-contract';
+import type { ServerLogByteCount } from '../server-log-byte-count/server-log-byte-count-contract';
 import { SpecNameStub } from '../spec-name/spec-name.stub';
-
-const serverLogByteCountContract = z.number().int().nonnegative().brand<'ServerLogByteCount'>();
-type ServerLogByteCount = z.infer<typeof serverLogByteCountContract>;
 
 export const LaneSessionStub = ({ ...props }: StubArgument<LaneSession> = {}): LaneSession => {
   const { readServerLogSince, serverLogLength, ...dataProps } = props;
@@ -34,6 +33,10 @@ export const LaneSessionStub = ({ ...props }: StubArgument<LaneSession> = {}): L
         ? [ProcessGroupIdStub()]
         : dataProps.pgids.map((value) => processGroupIdContract.parse(value)),
     browser: dataProps.browser === null ? null : BrowserSessionStub(dataProps.browser),
+    logFds:
+      dataProps.logFds === undefined
+        ? []
+        : dataProps.logFds.map((value) => fileDescriptorContract.parse(value)),
     readServerLogSince: readServerLogSince ?? ((): readonly ContentText[] => []),
     serverLogLength:
       serverLogLength ?? ((): ServerLogByteCount => serverLogByteCountContract.parse(0)),
