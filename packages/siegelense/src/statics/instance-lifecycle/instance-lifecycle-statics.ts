@@ -58,4 +58,19 @@ export const instanceLifecycleStatics = {
     // vanishingly unlikely; five attempts absorbs bad luck without spinning indefinitely.
     claimAttempts: 5,
   },
+  registryLock: {
+    // registryUpdateBroker's whole read-mutate-write is a couple of small file reads/writes, not a
+    // 20s boot — so this TTL is two orders of magnitude below bootLock's 45_000ms, not the same
+    // "roughly double a real boot" ratio: it only needs to comfortably outlast a slow disk write,
+    // not a slow browser launch.
+    ttlMs: 2_000,
+    // Bounded wait before a caller gives up rather than retrying forever. The pool ceiling of three
+    // instances means at most two other updates can be queued ahead of a third; this is generous
+    // headroom above that even if every queued update independently hits the stale takeover path.
+    waitCeilingMs: 5_000,
+    // How often the acquire retries while another process holds a fresh lock. Far shorter than
+    // bootLock's 1000ms poll — a registry update finishes in milliseconds, so waiting a full second
+    // between checks would make the wait ceiling nearly untestable in practice.
+    pollMs: 25,
+  },
 } as const;

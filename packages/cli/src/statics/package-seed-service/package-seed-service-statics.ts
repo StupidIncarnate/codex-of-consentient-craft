@@ -25,6 +25,7 @@ export const packageSeedServiceStatics = {
     jestKind: 'node',
     e2eEligible: false,
     exportsDot: false,
+    needsMswTransform: false,
     files: [
       {
         path: 'src/adapters/hono/app-create/hono-app-create-adapter.ts',
@@ -80,6 +81,7 @@ describe('honoAppCreateAdapter', () => {
     jestKind: 'node',
     e2eEligible: false,
     exportsDot: false,
+    needsMswTransform: true,
     files: [
       {
         path: 'src/contracts/tool-registration/tool-registration-contract.ts',
@@ -200,6 +202,7 @@ describe('__PASCAL__Flow', () => {
     jestKind: 'node',
     e2eEligible: false,
     exportsDot: true,
+    needsMswTransform: true,
     files: [
       {
         path: 'bin/__NAME__-entry.ts',

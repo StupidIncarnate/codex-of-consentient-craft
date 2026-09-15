@@ -23,6 +23,11 @@ describe('instanceLifecycleStatics', () => {
       ports: {
         claimAttempts: 5,
       },
+      registryLock: {
+        ttlMs: 2_000,
+        waitCeilingMs: 5_000,
+        pollMs: 25,
+      },
     });
   });
 });

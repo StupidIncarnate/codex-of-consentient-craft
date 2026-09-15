@@ -69,6 +69,7 @@ describe('locationsStatics', () => {
         dir: 'siegelense',
         registry: 'registry.json',
         registryTmp: 'registry.json.tmp',
+        registryLock: 'registry.lock',
         bootLock: 'boot.lock',
         profilesDir: 'profiles',
         guildsDir: 'guilds',

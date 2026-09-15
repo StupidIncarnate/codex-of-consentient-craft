@@ -17,6 +17,7 @@ describe('packageSeedContract', () => {
         jestKind: 'tsx-jsdom',
         e2eEligible: true,
         exportsDot: true,
+        needsMswTransform: true,
         files: [
           {
             path: 'src/widgets/foo-panel/foo-panel-widget.tsx',
@@ -38,6 +39,7 @@ describe('packageSeedContract', () => {
         jestKind: 'tsx-jsdom',
         e2eEligible: true,
         exportsDot: true,
+        needsMswTransform: true,
         files: [
           {
             path: 'src/widgets/foo-panel/foo-panel-widget.tsx',
@@ -58,6 +60,7 @@ describe('packageSeedContract', () => {
         jestKind: 'node',
         e2eEligible: false,
         exportsDot: false,
+        needsMswTransform: false,
         files: [],
       });
 
@@ -75,6 +78,7 @@ describe('packageSeedContract', () => {
         jestKind: 'node',
         e2eEligible: false,
         exportsDot: false,
+        needsMswTransform: false,
         files: [
           {
             path: 'src/statics/foo/foo-statics.ts',
@@ -97,6 +101,7 @@ describe('packageSeedContract', () => {
         jestKind: 'node',
         e2eEligible: false,
         exportsDot: false,
+        needsMswTransform: false,
         files: [],
       });
 
@@ -117,6 +122,7 @@ describe('packageSeedContract', () => {
           jestKind: 'browser',
           e2eEligible: false,
           exportsDot: false,
+          needsMswTransform: false,
           files: [],
         } as never);
       }).toThrow(/Invalid enum value/u);
@@ -133,6 +139,7 @@ describe('packageSeedContract', () => {
           jestKind: 'node',
           e2eEligible: false,
           exportsDot: false,
+          needsMswTransform: false,
           files: [],
         } as never);
       }).toThrow(/Required/u);
@@ -153,6 +160,7 @@ describe('packageSeedContract', () => {
         jestKind: 'node',
         e2eEligible: false,
         exportsDot: false,
+        needsMswTransform: false,
         files: [
           {
             path: 'src/statics/thing/thing-statics.ts',
