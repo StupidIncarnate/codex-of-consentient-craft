@@ -27,6 +27,7 @@ describe('laneSpecContract', () => {
         browser: false,
         bootTimeoutMs: 180_000,
         env: { DUNGEONMASTER_PORT: '{apiPort}' },
+        requiresFakeAgentCli: false,
       });
     });
 

@@ -2,6 +2,9 @@ import { readFile } from 'fs/promises';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import { locationsBootLockPathFindBrokerProxy } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker.proxy';
+import { locationsRootPathFindBrokerProxy } from '../../locations/root-path-find/locations-root-path-find-broker.proxy';
+import { fsMkdirAdapterProxy } from '@dungeonmaster/shared/testing';
+import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
@@ -21,8 +24,17 @@ type InstanceId = ReturnType<typeof InstanceIdStub>;
 type EpochMs = ReturnType<typeof EpochMsStub>;
 
 const HOME_DIR = '/home/user';
+const HOME_PATH_VALUE = `${HOME_DIR}/.dungeonmaster`;
+const ROOT_PATH_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense`;
 const BOOT_LOCK_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense/boot.lock`;
 
+// These stage a SAME-REALM `Error` deliberately, not the cross-realm shape a real `fs/promises`
+// rejection actually has under Jest — see `registryLockAcquireBrokerProxy`'s identical comment for
+// why (`@dungeonmaster/testing`'s own `mockStagingCreateTransformer` shares the same instanceof
+// gap, so `.throws()`/`.rejects()` cannot relay a cross-realm error faithfully at this level).
+// `errorIsNativeErrorAdapter`'s own test proves the realm-safety mechanism against a genuine
+// `vm`-realm error; `driver-flow.integration.test.ts` proves it against the real failure mode.
+//
 // A failed exclusive create is what every scenario but the plain-absent one stages FIRST — the
 // broker always tries `wx` before it ever reads, so an EEXIST rejection is the trigger for the
 // read-and-decide logic every other setup method below exercises.
@@ -39,8 +51,14 @@ const enoentError = (): Error =>
 const emfileError = (): Error =>
   Object.assign(new Error('EMFILE: too many open files'), { code: 'EMFILE' });
 
+// A real permission failure on the stale-lock unlink itself — never absence-shaped, so it must
+// stay a real thrown error rather than being classified alongside a competitor's ENOENT.
+const eaccesError = (): Error =>
+  Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' });
+
 export const bootLockAcquireBrokerProxy = (): {
   bootLockPath: ReturnType<typeof AbsoluteFilePathStub>;
+  rootPath: ReturnType<typeof FilePathStub>;
   setupNow: (params: { nowMs: EpochMs }) => void;
   setupLockHeldBy: (params: {
     heldBy: InstanceId;
@@ -48,6 +66,14 @@ export const bootLockAcquireBrokerProxy = (): {
     acquiredAtMs: EpochMs;
   }) => void;
   setupStaleLockHeldBy: (params: { otherInstanceId: InstanceId; nowMs: EpochMs }) => void;
+  setupStaleUnlinkLostRaceToAnotherContender: (params: {
+    otherInstanceId: InstanceId;
+    nowMs: EpochMs;
+  }) => void;
+  setupStaleUnlinkFailsForNonAbsenceReason: (params: {
+    otherInstanceId: InstanceId;
+    nowMs: EpochMs;
+  }) => void;
   setupWriteSucceeds: () => void;
   setupFreshLockHeldByAnotherPastCeiling: (params: { otherInstanceId: InstanceId }) => {
     startedAtMs: EpochMs;
@@ -60,27 +86,37 @@ export const bootLockAcquireBrokerProxy = (): {
   setupLockVanishesBeforeRetryRead: () => void;
   getWrittenLock: () => unknown;
   getLastWriteFlag: () => unknown;
+  getCreatedDirs: () => readonly unknown[];
 } => {
   const bootLockPath = AbsoluteFilePathStub({ value: BOOT_LOCK_VALUE });
+  const homePath = FilePathStub({ value: HOME_PATH_VALUE });
+  const rootPath = FilePathStub({ value: ROOT_PATH_VALUE });
 
+  const rootPathProxy = locationsRootPathFindBrokerProxy();
   const pathProxy = locationsBootLockPathFindBrokerProxy();
+  const mkdirProxy = fsMkdirAdapterProxy();
+  // pathJoinAdapterProxy's `returns()` is call-order-scoped (one resolution per staging), so a
+  // broker that resolves the path more than once per test needs this staged again for each
+  // resolution it will trigger. Each real acquire attempt now resolves the root path TWICE —
+  // once directly (for the mkdir the broker runs before its exclusive create) and once more
+  // inside `locationsBootLockPathFindBroker`'s own internal composition — plus the bootLock join
+  // itself, matching `registryLockAcquireBrokerProxy`'s identical double-root-resolution shape.
+  // Four calls covers every scenario in this proxy's own test file with headroom.
   const stageBootLockPathResolution = (): void => {
+    rootPathProxy.setupRootPath({ homeDir: HOME_DIR, homePath, rootPath });
     pathProxy.setupBootLockPath({
       homeDir: HOME_DIR,
-      homePath: FilePathStub({ value: `${HOME_DIR}/.dungeonmaster` }),
-      rootPath: FilePathStub({ value: `${HOME_DIR}/.dungeonmaster/siegelense` }),
+      homePath,
+      rootPath,
       bootLockPath: FilePathStub({ value: BOOT_LOCK_VALUE }),
     });
   };
-  // pathJoinAdapterProxy's `returns()` is call-order-scoped (one resolution per staging), so a
-  // broker that resolves the path more than once per test — the acquire broker does, on every
-  // retried exclusive create and every poll — needs this staged again for each resolution it
-  // will trigger. Four covers every scenario in this proxy's own test file with headroom.
   stageBootLockPathResolution();
   stageBootLockPathResolution();
   stageBootLockPathResolution();
   stageBootLockPathResolution();
 
+  errorIsNativeErrorAdapterProxy();
   const readProxy = fsReadFileAdapterProxy();
   const writeProxy = fsWriteFileAdapterProxy();
   const unlinkProxy = fsUnlinkAdapterProxy();
@@ -89,6 +125,7 @@ export const bootLockAcquireBrokerProxy = (): {
 
   return {
     bootLockPath,
+    rootPath,
 
     setupNow: ({ nowMs }: { nowMs: EpochMs }): void => {
       dateHandle.calledWith([]).returns(nowMs);
@@ -139,6 +176,63 @@ export const bootLockAcquireBrokerProxy = (): {
         content: FileContentsStub({ value: JSON.stringify(lock) }),
       });
       unlinkProxy.succeeds({ filePath: bootLockPath });
+    },
+
+    // Two contenders agree the lock is stale; this one loses the race to remove it — its unlink
+    // finds nothing there. Pair with `setupWriteSucceeds()` for the RETRY create the ENOENT should
+    // still reach, exactly as `setupStaleLockHeldBy` pairs with it.
+    setupStaleUnlinkLostRaceToAnotherContender: ({
+      otherInstanceId,
+      nowMs,
+    }: {
+      otherInstanceId: InstanceId;
+      nowMs: EpochMs;
+    }): void => {
+      const acquiredAtMs = EpochMsStub({
+        value:
+          nowMs -
+          instanceLifecycleStatics.bootLock.ttlMs -
+          instanceLifecycleStatics.bootLock.pollMs,
+      });
+      const lock = BootLockStub({
+        heldBy: otherInstanceId,
+        heldByPid: ProcessIdStub(),
+        acquiredAtMs,
+      });
+      writeProxy.throwsOnce({ filePath: bootLockPath, error: eexistError() });
+      readProxy.resolves({
+        filePath: bootLockPath,
+        content: FileContentsStub({ value: JSON.stringify(lock) }),
+      });
+      unlinkProxy.throws({ filePath: bootLockPath, error: enoentError() });
+    },
+
+    // The stale-lock unlink fails for a reason that has nothing to do with a competitor's cleanup
+    // — EACCES, not ENOENT — so it must still throw rather than being classified as a benign race.
+    setupStaleUnlinkFailsForNonAbsenceReason: ({
+      otherInstanceId,
+      nowMs,
+    }: {
+      otherInstanceId: InstanceId;
+      nowMs: EpochMs;
+    }): void => {
+      const acquiredAtMs = EpochMsStub({
+        value:
+          nowMs -
+          instanceLifecycleStatics.bootLock.ttlMs -
+          instanceLifecycleStatics.bootLock.pollMs,
+      });
+      const lock = BootLockStub({
+        heldBy: otherInstanceId,
+        heldByPid: ProcessIdStub(),
+        acquiredAtMs,
+      });
+      writeProxy.throwsOnce({ filePath: bootLockPath, error: eexistError() });
+      readProxy.resolves({
+        filePath: bootLockPath,
+        content: FileContentsStub({ value: JSON.stringify(lock) }),
+      });
+      unlinkProxy.throws({ filePath: bootLockPath, error: eaccesError() });
     },
 
     setupWriteSucceeds: (): void => {
@@ -257,5 +351,7 @@ export const bootLockAcquireBrokerProxy = (): {
     },
 
     getLastWriteFlag: (): unknown => writeProxy.getFlagFor({ filePath: bootLockPath }),
+
+    getCreatedDirs: (): readonly unknown[] => mkdirProxy.getCreatedDirs(),
   };
 };

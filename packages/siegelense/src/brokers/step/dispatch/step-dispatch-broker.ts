@@ -20,6 +20,7 @@
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
+import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { Step } from '../../../contracts/step/step-contract';
@@ -84,8 +85,21 @@ export const stepDispatchBroker = async ({
       throw error;
     }
 
+    // `runVerbLayerBroker` drives Playwright directly against the resolved target, and Playwright
+    // raises errors built by Node's own internals outside the vm realm a Jest test file runs
+    // inside — `error instanceof Error` reads false even though the value genuinely is one
+    // (error-is-native-error-adapter.ts's header documents the same failure).
+    // `errorIsNativeErrorAdapter` checks the V8-internal error slot instead, answering correctly
+    // whichever realm constructed the value; the `'message' in error` check is what lets the
+    // property access typecheck, since the adapter call itself returns a plain boolean and
+    // narrows nothing.
     const reading: ContentText = contentTextContract.parse(
-      error instanceof Error ? error.message : String(error),
+      error !== null &&
+        typeof error === 'object' &&
+        errorIsNativeErrorAdapter({ value: error }) &&
+        'message' in error
+        ? String(error.message)
+        : String(error),
     );
 
     if (shotPath !== null && step.step !== 'screenshot') {

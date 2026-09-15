@@ -76,6 +76,7 @@
     "ward": "dungeonmaster-ward"
   },
   "dependencies": {
+    "@dungeonmaster/cli": "*",
     "@dungeonmaster/shared": "*",
     "zod": "^3.25.76"
   },

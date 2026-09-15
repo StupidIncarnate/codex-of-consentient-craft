@@ -2,7 +2,7 @@
  * PURPOSE: Builds the MockStaging object that calledWith()/onceFor() hand back, wiring each method to set what the described call answers with
  *
  * USAGE:
- * const staging = mockStagingCreateTransformer({ record });
+ * const staging = mockStagingCreateTransformer({ record, isNativeError });
  * staging.resolves('quest-json');
  * // record.impl now resolves to 'quest-json' when the described call is dispatched
  */
@@ -12,7 +12,16 @@ import type { StagedCall } from '../../contracts/staged-call/staged-call-contrac
 
 type ImplField = StagedCall['impl'];
 
-export const mockStagingCreateTransformer = ({ record }: { record: StagedCall }): MockStaging => ({
+export const mockStagingCreateTransformer = ({
+  record,
+  isNativeError,
+}: {
+  record: StagedCall;
+  // Realm-safe check for a genuine, engine-constructed Error, injected rather than imported —
+  // this file is a transformer and may not import util/types itself. mockStagingCreateMiddleware
+  // is the caller that wires in errorIsNativeErrorAdapter.
+  isNativeError: (value: unknown) => value is Error;
+}): MockStaging => ({
   returns: (val: unknown): void => {
     record.impl = (): unknown => val;
   },
@@ -30,15 +39,21 @@ export const mockStagingCreateTransformer = ({ record }: { record: StagedCall })
   resolves: (val: unknown): void => {
     record.impl = async (): Promise<unknown> => await val;
   },
+  // A cross-realm Error — one Node's own internals constructed outside this vm realm (fs/promises,
+  // process.kill, fetch's underlying I/O) — fails `val instanceof Error` here even though it
+  // genuinely is one; `isNativeError` inspects the V8-internal error slot instead and catches it.
+  // `val instanceof Error` stays as a second, OR'd check because `isNativeError` is false for a
+  // same-realm DOMException (fetch's abort reason) — DOMException is not V8-native — and without
+  // this branch it would get flattened into a generic Error, losing its .name/.code.
   rejects: (val: unknown): void => {
-    const reason = val instanceof Error ? val : new Error(String(val));
+    const reason = isNativeError(val) || val instanceof Error ? val : new Error(String(val));
     record.impl = async (): Promise<unknown> => {
       await Promise.resolve();
       throw reason;
     };
   },
   throws: (val: unknown): void => {
-    const reason = val instanceof Error ? val : new Error(String(val));
+    const reason = isNativeError(val) || val instanceof Error ? val : new Error(String(val));
     record.impl = (): never => {
       throw reason;
     };

@@ -180,6 +180,101 @@ describe('bootLockAcquireBroker', () => {
       await expect(bootLockAcquireBroker({ instanceId })).rejects.toThrow(expectedError.message);
       expect(proxy.getLastWriteFlag()).toBe('wx');
     });
+
+    // Reproduces the row driver-flow.integration.test.ts's parallel-boot case measured under real
+    // concurrency: two contenders read the SAME stale lock and both try to remove it. The loser's
+    // unlink fails ENOENT — a raw, unwrapped `fs/promises` rejection, unlike the read path's
+    // `{cause}`-wrapped one — and that must be classified as benign (a competitor already cleared
+    // it) rather than escaping to the caller.
+    it('EDGE: {two contenders race to remove the same stale lock} => the loser retries instead of throwing', async () => {
+      const proxy = bootLockAcquireBrokerProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
+      const otherInstanceId = InstanceIdStub({ value: 'inst_deadbeef' });
+      const nowMs = EpochMsStub();
+
+      proxy.setupStaleUnlinkLostRaceToAnotherContender({ otherInstanceId, nowMs });
+      proxy.setupNow({ nowMs });
+      proxy.setupWriteSucceeds();
+
+      const result = await bootLockAcquireBroker({ instanceId });
+
+      expect(result).toStrictEqual({
+        lock: {
+          heldBy: instanceId,
+          heldByPid: ProcessIdStub({ value: String(process.pid) }),
+          acquiredAtMs: nowMs,
+        },
+        tookOverStale: true,
+      });
+    });
+
+    it('ERROR: {the stale-lock unlink fails for a reason other than absence} => throws', async () => {
+      const proxy = bootLockAcquireBrokerProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
+      const otherInstanceId = InstanceIdStub({ value: 'inst_deadbeef' });
+      const nowMs = EpochMsStub();
+
+      proxy.setupStaleUnlinkFailsForNonAbsenceReason({ otherInstanceId, nowMs });
+      proxy.setupNow({ nowMs });
+
+      await expect(bootLockAcquireBroker({ instanceId })).rejects.toThrow(/EACCES/u);
+    });
+  });
+
+  describe('a fresh home with no siegelense root yet', () => {
+    it('EDGE: {no siegelense root yet} => creates the root directory before acquiring the lock', async () => {
+      const proxy = bootLockAcquireBrokerProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
+      const nowMs = EpochMsStub();
+
+      proxy.setupNow({ nowMs });
+      proxy.setupWriteSucceeds();
+
+      await bootLockAcquireBroker({ instanceId });
+
+      expect(proxy.getCreatedDirs()).toStrictEqual([proxy.rootPath]);
+    });
+
+    it('VALID: {no siegelense root yet} => the create is still exclusive, not a plain overwrite', async () => {
+      const proxy = bootLockAcquireBrokerProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
+      const nowMs = EpochMsStub();
+
+      proxy.setupNow({ nowMs });
+      proxy.setupWriteSucceeds();
+
+      await bootLockAcquireBroker({ instanceId });
+
+      expect(proxy.getLastWriteFlag()).toBe('wx');
+    });
+  });
+
+  describe('boot.lock already held by another instance', () => {
+    it('VALID: {boot.lock already held by another instance} => the failed create still used the exclusive flag', async () => {
+      const proxy = bootLockAcquireBrokerProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
+      const otherInstanceId = InstanceIdStub({ value: 'inst_deadbeef' });
+
+      proxy.setupFreshLockHeldByAnotherPastCeiling({ otherInstanceId });
+
+      await bootLockAcquireBroker({ instanceId }).catch((error: unknown) => error);
+
+      expect(proxy.getLastWriteFlag()).toBe('wx');
+    });
+
+    it('ERROR: {boot.lock already held by another instance} => a second acquire against the held lock still throws', async () => {
+      const proxy = bootLockAcquireBrokerProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
+      const otherInstanceId = InstanceIdStub({ value: 'inst_deadbeef' });
+
+      const { expectedError } = proxy.setupFreshLockHeldByAnotherPastCeiling({ otherInstanceId });
+
+      const thrownError = await bootLockAcquireBroker({ instanceId }).catch(
+        (error: unknown) => error,
+      );
+
+      expect(String(thrownError)).toBe(String(expectedError));
+    });
   });
 
   describe('lock already held by this instance', () => {

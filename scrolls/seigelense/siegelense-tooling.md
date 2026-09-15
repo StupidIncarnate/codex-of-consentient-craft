@@ -10,6 +10,8 @@
 
 ### Decision: an INSTANCE service, reached over MCP
 
+> **Status: PARTIAL (chunk 2)** — three of the thirteen tools registered and working end to end — `siegelense-start`, `siegelense-run`, `siegelense-kill` — each verified against the real stdio MCP server (`mcp-server-flow.integration.test.ts`'s `describe('tools/call with siegelense-*')` blocks) and by reading `siegelense-flow.ts` · NOT YET: the other ten names (`results`, `capacity`, `profile`, `status`, `cleanup`, `prune`, `compare`, `snapshots`, `recipes`, `docs`) stay pinned and unclaimed
+
 **This IS a set of MCP tools.** Every call — `start`, `run`, `results`, `kill`, `capacity`,
 `profile`, `status`, `cleanup`, `prune`, `compare`, `snapshots`, `recipes`, `docs` — is one. What was rejected is not
 MCP; it is making each STEP its own tool. **Three of the thirteen need a running instance** — `start`, `run`, `kill` —
@@ -41,6 +43,8 @@ long-lived process that sub-agents already call.
 
 ### The shape
 
+> **Status: PARTIAL (chunk 2)** — `start`, `run` and `kill` read exactly as worded here · verified by reading `instance-start-broker.ts`, `run-execute-broker.ts` and `instance-kill-broker.ts` · NOT YET: `results`
+
 ```
 start    → instance id
   └─ the instance owns: an API server, a Vite server, a browser,
@@ -61,6 +65,8 @@ where it stopped, why, and what is worth querying — "3 console errors, 1 serve
 exchanges" — or the session queries everything to find out whether anything happened, and you have reinvented the blob.
 
 ### An instance is a TIMELINE of runs, and every run is addressable
+
+> **Status: PARTIAL (chunk 2)** — run ids, per-run step numbering, run-namespaced shots, and the continuous browser/server buffers recording a per-run WINDOW all hold · verified by reading `run-execute-broker.ts`, which records `bufferLengths()`/`serverLogLength()` before a single step of the batch dispatches · NOT YET: the retention window, and a query surface over another run — `results` does not exist
 
 **`run` → `results` → `run` → `results` is the normal shape, not an edge case.** A session submits a batch, reads the
 index, queries what it points at, decides, and submits the next batch. So results must be addressed by RUN, not by
@@ -295,6 +301,8 @@ empty list reads as "that step produced nothing", which is the `count: 0` ambigu
 where it does the most damage: a fixer concluding the walk saw nothing when the truth is that nobody kept it.
 
 ### What a batch buys beyond call count
+
+> **Status: DELIVERED (chunk 2)** — steps in one batch run in strict sequence and stop at the first non-`ok` reading unless `stopOn: 'never'`; `expect: 'error'` inverts a single step's own outcome, once, centrally · verified by reading `run-execute-broker.ts` and `step-dispatch-broker.ts`
 
 **It is the only way a race is reachable.** `siege-lane.ts` exists because "six of nine defects on the paste flow were
 races and replaying a race is not being in one." A model round trip between commands is seconds of dead air, so a
@@ -1080,6 +1088,8 @@ toast there, with that text — which is a `look` against the key, not a diff ag
 
 ### Teardown: the failure that is silent, costs three processes, and is never noticed by the session that caused it
 
+> **Status: DELIVERED (chunk 2)** — `lane-teardown-broker.ts`: SIGTERM every live process group, wait `driverStatics.teardown.graceMs`, SIGKILL the survivors, skip the signal entirely for a group already reported dead, and remove only the throwaway home — the evidence directory is never passed to the removal call · verified by reading the broker · the dedicated suite that walks this against real processes is BLOCKED, see the "Testing teardown" section below
+
 **Every instance is three processes, a port pair, two open file descriptors, a throwaway home and a growing pile of
 snapshots.** Nothing about a leak is visible to the session that leaked it — the walk completes, the record is written,
 the return reads clean, and three processes stay up. Under a pool of three parallel instances that compounds fast.
@@ -1115,6 +1125,8 @@ instance; only the throwaway state goes.
 ### When it dies without warning: OOM, SIGKILL, a full disk
 
 > **Status: PARTIAL (chunk 1)** — the heartbeat file carrying pid, instance id, every child's pgid and a timestamp, written before the registry row is stamped, plus the staleness guard that names a dead instance · NOT YET: the reaping sweep itself, `status`, `likelyCause`, the OOM evidence, the per-step transcript flush and the disk checks
+
+> **Status: PARTIAL (chunk 2)** — adds the heartbeat TICKER (`driver-serve-layer-responder.ts`'s `setInterval`, which reports a failing tick to stderr and keeps ticking rather than letting the interval die), reaping on next contact (`instance-start-broker.ts` reaps a stale entry before reserving a new one), and `kill`'s ORPHAN-REAP path reading a dead driver's own recorded pgids (`instance-kill-broker.ts`) · verified by reading all three files · NOT YET: `status`, `likelyCause`, the OOM evidence and the disk checks
 
 **Teardown assumes the tool gets to run code. This is the case where it does not**, and the design has to say plainly
 what it handles and what it cannot.
@@ -1358,6 +1370,8 @@ pass — and it is enough for now, which is the honest claim.
 
 ### Testing teardown — ONCE, as the tool's own suite. Never per quest.
 
+> **Status: PARTIAL (chunk 2)** — six of the seven assertions are WRITTEN in `driver-flow.integration.test.ts` against real spawned drivers (never a mock), including the SIGKILLed-driver orphan reap and the three-instance parallel case; the snapshot row is named NOT APPLICABLE YET rather than a vacuous pass · NOT YET: none of this has been run green — a driver spawned from inside a Jest worker crashes resolving `@dungeonmaster/shared/contracts` to TypeScript source instead of compiled `dist/`. The assertions are believed sound but UNVERIFIED
+
 **This is a test suite for the TOOL, written when the tool is written, run by ward like any other.**
 No quest runs it, no siegemaster runs it, no walk runs it. A pass that had to verify its own teardown would be a pass
 that cannot trust the thing it is driving.
@@ -1461,6 +1475,8 @@ against `steady × N` over-provisions and invites the OOM this whole section exi
 
 ### The TOOL staggers, because nobody else can
 
+> **Status: PARTIAL (chunk 2)** — `start` blocks on `boot.lock` and reports both `queuedMs` and `aheadOfMe` in the returned manifest · verified by reading `instance-start-broker.ts` · NOT YET: the pool-size refusal, which needs a measured profile from `capacity`
+
 **The operator cannot stagger starts: it never calls `start`.** Each minion opens its own instance — that is already how
 the verifier prompt reads, and it is right, because the minion is the only session that knows when it is actually ready
 to drive. The operator dispatches; it does not hold the start calls. Staggering its DISPATCHES instead would be guessing
@@ -1553,6 +1569,8 @@ Elsewhere: an **instance** is one running stack, a **run** is one submitted batc
 
 > **Status: PARTIAL (chunk 1)** — the package `CLAUDE.md` at `packages/siegelense/CLAUDE.md` (line 1562), carrying the reading-not-verdict rule, the no-pick rule and the `querySelector` ban as prose · NOT YET: the LINT rule that is meant to hold the no-pick rule, and the command implementations it would grade
 
+> **Status: PARTIAL (chunk 2)** — the rule is real code now, not only prose: every step broker returns a reading, `step-target-resolve-broker.ts` throws `StepAmbiguousError`/`StepNoMatchError` rather than picking a match, and `describeMatches`/`nearestNames` in `playwright-session-adapter.ts` use `querySelectorAll`, never `querySelector` · verified by reading all three files · NOT YET: the LINT rule that would hold this mechanically over code nobody has written yet
+
 | Decision                                                                                                     | Because                                                                                                                                                                                                                                                           |
 |--------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | A step returns a READING, never a verdict on a unit                                                          | `siege-command.ts`'s founding rule. Comparing two measured values is still a reading; deciding a unit passes is not                                                                                                                                               |
@@ -1594,6 +1612,8 @@ Elsewhere: an **instance** is one running stack, a **run** is one submitted batc
 
 #### Perception: shots, pixelChange, animation
 
+> **Status: PARTIAL (chunk 2)** — every acting step captures unasked; the run flags the first, last and failing shot `open: true` with a `why`; the `node:` label rides both the reading and the shot; every capture is frozen (`page.screenshot({ animations: 'disabled', caret: 'hide' })`) · verified by reading `step-dispatch-broker.ts`, `shot-open-decide-transformer.ts` and `playwright-session-adapter.ts` · NOT YET: `pixelChange`, `blank`, `video`
+
 | Decision                                                                                                                   | Because                                                                                                                                                                                                                                                      |
 |----------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Only the shot is evidence                                                                                                  | the map's own boxes change what the page looks like                                                                                                                                                                                                          |
@@ -1614,6 +1634,8 @@ Elsewhere: an **instance** is one running stack, a **run** is one submitted batc
 #### The service: instances, runs, batches
 
 > **Status: PARTIAL (chunk 1)** — the disk registry (1627), ports claimed before binding (1628), reservation before boot (1629), `boot.lock` across processes (1630), assets under the minted id (1633), minted ids (1638) and per-run step numbering (1640) · NOT YET: every row needing a driver, a tool registration or an evidence writer — the thirteen tools, `docs`, the browserless spec, the socket clients, append-only samples, staleness reaping, run timelines, disk-resolved reads, `compare`, `stopOn` and settle
+
+> **Status: PARTIAL (chunk 2)** — adds the driver process, `start`/`run`/`kill` as real thin clients over a unix socket, three of the thirteen tools registered, the browserless spec erroring by NAME on a browser step (`BrowserStepUnsupportedError`), run timelines, and `stopOn` · verified by reading `driver-handle-request-broker.ts`, `step-dispatch-broker.ts` and `run-execute-broker.ts` · NOT YET: `docs`, `capacity`, `profile`, `status`, `cleanup` as its own call, append-only PROFILE samples, disk-resolved reads (`results`), `compare`, and settle-based stepping — a per-step timeout ceiling stands in for it today
 
 | Decision                                                                                                                                   | Because                                                                                                                                                                                                                                                                  |
 |--------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -1664,6 +1686,8 @@ Elsewhere: an **instance** is one running stack, a **run** is one submitted batc
 #### Teardown and crash recovery
 
 > **Status: PARTIAL (chunk 1)** — the tombstone row (1678), guild/`unowned` partitioning (1679), the `.siegelense` symlink `init` creates and ignores (1682), and the heartbeat file carrying every child's pgid (1684) · NOT YET: `kill`, the teardown suite, `status`, the reaping sweep (1685), retention, the per-step flush and the disk checks — and 1682's check-glob half inserts nothing where the target array is written on a SINGLE line
+
+> **Status: PARTIAL (chunk 2)** — adds `kill` itself (`instance-kill-broker.ts`), teardown as its own broker rather than a `finally` (`lane-teardown-broker.ts`), the per-step transcript flush (`run-transcript-append-broker.ts`), and opportunistic staleness reaping on `start`. The 1682 check-glob defect is now CLOSED — `array-entry-anchor-insert-layer-responder.ts` was rewritten around a structural per-line parser that handles a single-line array · verified by reading all four files · NOT YET: `status`, a dedicated reaping sweep as its own call, retention, the disk checks — and the SUITE that would prove teardown end to end against real processes is BLOCKED, see the "Testing teardown" section in Part 2
 
 | Decision                                                                                                              | Because                                                                                                                                                                                                            |
 |-----------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -1758,6 +1782,8 @@ working code, and nothing in the record says the tool was the problem.
 
 > **Status: PARTIAL (chunk 1)** — port allocation claimed in the registry before binding (1766), one boot at a time held by `boot.lock` (1771), and per-run step numbering pinned in `stepIndexContract` (1769) · NOT YET: ref stability, key row order, element identity, the retention window, append-only evidence, settle-based steps, and the per-sample pool size
 
+> **Status: PARTIAL (chunk 2)** — append-only evidence now ENFORCED, not only intended: `run-transcript-append-broker.ts` appends after every step and before the next one dispatches, never rewriting the file; per-run step numbering now ENFORCED by `run-execute-broker.ts` itself · verified by reading both files · NOT YET: ref stability, key row order, element identity, the retention window, settle-based steps and the per-sample pool size
+
 | Must be deterministic                                                                                                                                          | Why it is load-bearing                                                                                                                                                                  | What it breaks as                                                                      |
 |----------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
 | a `ref` maps to one element, for a whole page state                                                                                                            | a ref must mean one thing for the length of a walk                                                                                                                                      | ref 14 addresses two different elements in one session, silently                       |
@@ -1833,6 +1859,8 @@ that one does not.
 ### The tool is `siegelense`, and its recipes live beside it
 
 > **Status: PARTIAL (chunk 1)** — both real workspace packages at their exact paths, subpath-importable barrels measured msw-free, `init` scaffolding `packages/siegelense-recipes/`, and an empty one being a real answer · NOT YET: the `dungeonmaster siegelense` command, the `siegelense-*` tool registrations and the recipe listing
+
+> **Status: PARTIAL (chunk 2)** — `dungeonmaster siegelense` now exists in both forms — `driver --instance <id>` (`cli-siegelense-responder.ts`, reached through a runtime dynamic import so Playwright never enters the published binary) and the bare fleet listing (`siegelense-fleet-responder.ts`) — plus three of the thirteen `siegelense-*` tools, registered and callable · verified by reading both responders and `packages/cli/CLAUDE.md`'s own entry for the command · NOT YET: the recipe listing
 
 **Three fixed names, and they are conventions rather than configuration:**
 
@@ -1925,6 +1953,8 @@ monorepo and the flat case has no consumer yet.
 
 > **Status: PARTIAL (chunk 1)** — item 1 delivered in full; items 2, 2a, 2b, 2c and 16 in part — the registry spine, the evidence path shape, the heartbeat, the tombstone fields and the package `CLAUDE.md` · NOT YET: every other item, and `build-ledger.md` carries the row-by-row state
 
+> **Status: PARTIAL (chunk 2)** — item 2 further in part (the driver, `start`/`run`/`kill`, three tool registrations); item 2b further in part (teardown implemented; its own seven-assertion suite BLOCKED); item 6 in part (capture-always, the shot list, frozen comparison capture; the change number stays open); item 17 in part (the lane spec is DATA with N processes and a content hash; moving it where a consumer repo can use it stays open) · `build-ledger.md` carries the row-by-row state
+
 | #   | Item                                                                                                                                                                                                                                                                                                                                                         | Why here                                                                                                                                                                                                                                                                                                                                                                       |
 |-----|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 1   | Gate `POST /api/tooling/smoketest/run` at registration, with an absence test                                                                                                                                                                                                                                                                                 | Independent live finding: it registers unconditionally and spawns real Claude subprocesses. `E2E_SIGNAL_BACK_HTTP`'s registration-time gate in `quest-flow.ts` is the pattern, and the lane already depends on it working                                                                                                                                                      |
@@ -1979,6 +2009,8 @@ Parts 1 and 2 say WHY each of these exists. This is the lookup table. Status is 
 `../../packages/web/test/siege-driver` today.
 
 ### The rule that governs every targeting step
+
+> **Status: PARTIAL (chunk 2)** — all three outcomes hold: one match proceeds; more than one throws `StepAmbiguousError` carrying every candidate, with the `within` that would disambiguate it in place of a ref; zero throws `StepNoMatchError` naming the near-miss testIds · verified by reading `step-target-resolve-broker.ts` · NOT YET: refs — a candidate row carries `within`, not a `ref`, until `look` exists
 
 **Nothing ever silently picks a match. Ambiguity is an ERROR.**
 
@@ -2118,6 +2150,8 @@ form a session editing the package will actually read**, plus the two that live 
 ### The thirteen calls
 
 > **Status: PARTIAL (chunk 1)** — the thirteen names and the `siegelense-` prefix pinned in `siegelenseToolsStatics`, with `look` deliberately absent, plus the seven `docs` scopes · NOT YET: no name is registered in `mcpToolsStatics` and nothing handles one — the surface does not exist yet
+
+> **Status: PARTIAL (chunk 2)** — `siegelense-start`, `siegelense-run` and `siegelense-kill` are real, registered, working tools, each verified against the live stdio MCP server · NOT YET: the other ten calls
 
 **Every tool below is registered as `siegelense-<name>`** — `siegelense-start`, `siegelense-run`, and so on. The
 examples drop the prefix for readability; there is no bare `start` tool. **Steps are not tools**: `look`, `click`,
@@ -2390,6 +2424,8 @@ kill { instance: 'inst_7f3a' }
 
 ### Steps that exist today and are kept
 
+> **Status: PARTIAL (chunk 2)** — six of the thirteen ship: `goto`, `waitFor`, `click`, `type`, `screenshot`, `eval` — confirmed exhaustively in `step-statics.ts`'s `verbs.all`; ambiguity throws; `end` is gone, replaced by the instance-level `kill` · NOT YET: `key`, `paste`, `box`, `dom`, `storage`, `file`
+
 All keep their behaviour except that ambiguity now throws.
 
 ```jsonc
@@ -2589,6 +2625,8 @@ whole question.
 
 ### What every acting step returns, on top of its own reading
 
+> **Status: PARTIAL (chunk 2)** — `shot` on every acting step, confirmed in `step-dispatch-broker.ts` (`goto`/`click`/`type` capture unasked; `screenshot` is its own capture) · NOT YET: `pixelChange`, `elements`
+
 | Field         | Why                                                                                    |
 |---------------|----------------------------------------------------------------------------------------|
 | `shot`        | capturing is cheap, opening is not. The trail is complete whether or not anyone looked |
@@ -2601,6 +2639,8 @@ to notice unaided.
 ---
 
 ### A worked batch
+
+> **Status: PARTIAL (chunk 2)** — `stopOn` and `expect: 'error'` both hold, and a step declaring `expect: 'error'` that succeeds returns `ok: false` and stops the batch · verified by reading `run-execute-broker.ts` and `step-dispatch-broker.ts`'s inversion logic · NOT YET: `as` naming a step's output and `{name.field}` reading it back, which need `seed`
 
 This is the call a session actually makes. One `run`, five steps, one turn.
 
@@ -2771,6 +2811,8 @@ and reports a defect that only exists in the browser's memory. Which of the two 
 in a session's guess.
 
 ### Cycles — run, snapshot, collect, repeat
+
+> **Status: PARTIAL (chunk 2)** — the `RunResult` shape holds: `status`, `stepsRun`, `index`, `shots` with `open`/`why`, and `stoppedAt` naming the step and the verb · verified by reading `run-result-contract.ts` and `run-execute-broker.ts` · NOT YET: `compare`, the two cycle shapes, and a genuine settle-based timeout — a per-step ceiling stands in for it today
 
 **The loop a stress tester actually runs is a cycle, and it is two calls per turn:**
 

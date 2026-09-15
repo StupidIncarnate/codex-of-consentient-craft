@@ -1,3 +1,5 @@
+import { runInNewContext } from 'vm';
+
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { processKillGroupAdapter } from './process-kill-group-adapter';
 import { processKillGroupAdapterProxy } from './process-kill-group-adapter.proxy';
@@ -60,6 +62,29 @@ describe('processKillGroupAdapter', () => {
       proxy.setupUnknownError({ pgid, signal: 'SIGTERM', error });
 
       expect(() => processKillGroupAdapter({ pgid, signal: 'SIGTERM' })).toThrow('kill EPERM');
+    });
+  });
+
+  // Realm-safety, proven the way error-is-native-error-adapter.test.ts proves it:
+  // `vm.runInNewContext` builds this ESRCH the same way Node's own `process.kill` internals do —
+  // with a DIFFERENT realm's Error constructor — so `crossRealmEsrch instanceof Error` reads
+  // false even though it genuinely is one. A pre-fix `error instanceof Error` check would take
+  // this branch's `throw error` path instead of reporting the gone group as success.
+  describe('ESRCH built in a different vm realm', () => {
+    it('EDGE: {ESRCH from a cross-realm Error} => returns signalSent:false without throwing', () => {
+      const proxy = processKillGroupAdapterProxy();
+      const pgid = ProcessGroupIdStub({ value: 4821 });
+      const crossRealmEsrch: unknown = runInNewContext(
+        'const e = new Error("kill ESRCH"); e.code = "ESRCH"; e;',
+      );
+
+      expect(crossRealmEsrch instanceof Error).toBe(false);
+
+      proxy.setupUnknownError({ pgid, signal: 'SIGKILL', error: crossRealmEsrch });
+
+      const result = processKillGroupAdapter({ pgid, signal: 'SIGKILL' });
+
+      expect(result).toStrictEqual({ success: true, signalSent: false });
     });
   });
 });

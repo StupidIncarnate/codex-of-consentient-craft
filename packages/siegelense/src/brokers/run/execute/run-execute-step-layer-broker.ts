@@ -25,6 +25,7 @@
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
+import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { Step } from '../../../contracts/step/step-contract';
 import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
@@ -74,8 +75,23 @@ export const runExecuteStepLayerBroker = async ({
     };
   } catch (error: unknown) {
     const nowMs = epochMsContract.parse(Date.now());
+    // The error reaching here can be a raw, unwrapped Playwright rejection re-thrown unchanged by
+    // `stepDispatchBroker` (when `step.expect` was not `'error'`) as well as this package's own
+    // `WaitForCeilingHitError` or `BrowserStepUnsupportedError`. Playwright raises errors built by
+    // Node's own internals outside the vm realm a Jest test file runs inside — `error instanceof
+    // Error` reads false even though the value genuinely is one (error-is-native-error-adapter.ts's
+    // header documents the same failure) — while `errorIsNativeErrorAdapter` answers correctly
+    // whichever realm constructed the value, our own error classes included, since `isNativeError`
+    // inspects the V8 error slot rather than the prototype chain. The `'message' in error` check is
+    // what lets the property access typecheck, since the adapter call itself returns a plain
+    // boolean and narrows nothing.
     const message = contentTextContract.parse(
-      error instanceof Error ? error.message : String(error),
+      error !== null &&
+        typeof error === 'object' &&
+        errorIsNativeErrorAdapter({ value: error }) &&
+        'message' in error
+        ? String(error.message)
+        : String(error),
     );
     const reading = stepReadingContract.parse({
       step: index,

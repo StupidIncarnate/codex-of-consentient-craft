@@ -52,6 +52,7 @@ module.exports = [
       '.git/**',
       'v1/**',
       'worktrees/**',
+      '.siegelense/**',
       'scripts/**',
       '**/*.d.ts',
       '*.md',

@@ -98,6 +98,21 @@ describe('instanceKillBroker', () => {
       expect(proxy.getRemovedPaths()).toStrictEqual([HOME_PATH]);
     });
 
+    it('ERROR: {heartbeat read fails for a reason other than absence} => rejects rather than reaping nothing', async () => {
+      const proxy = instanceKillBrokerProxy();
+      const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: SOCKET_PATH });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+
+      const heartbeatPath = AbsoluteFilePathStub({
+        value: `${String(EVIDENCE_PATH)}/heartbeat.json`,
+      });
+      proxy.setupDriverUnreachableHeartbeatReadFails({ socketPath: SOCKET_PATH, heartbeatPath });
+
+      await expect(instanceKillBroker({ instanceId: INSTANCE_ID })).rejects.toThrow(
+        `Failed to read file at ${String(heartbeatPath)}`,
+      );
+    });
+
     it('VALID: {kill, driver already dead} => accepts the dead instance id rather than refusing', async () => {
       const proxy = instanceKillBrokerProxy();
       const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: SOCKET_PATH, state: 'dead' });

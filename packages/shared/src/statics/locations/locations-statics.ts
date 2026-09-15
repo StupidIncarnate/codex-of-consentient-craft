@@ -102,5 +102,7 @@ export const locationsStatics = {
     runsDir: 'runs',
     socketsDirName: 'dm-siege-sockets',
     driverLog: 'driver.log',
+    claudeQueueDir: 'claude-queue',
+    wardQueueDir: 'ward-queue',
   },
 } as const;

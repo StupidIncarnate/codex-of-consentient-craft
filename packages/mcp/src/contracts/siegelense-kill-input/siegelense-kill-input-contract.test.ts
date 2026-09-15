@@ -17,7 +17,7 @@ describe('siegelenseKillInputContract', () => {
 
     it('INVALID: {instanceId: malformed} => throws validation error', () => {
       expect(() => siegelenseKillInputContract.parse({ instanceId: 'not-an-instance-id' })).toThrow(
-        /Invalid/u,
+        /Instance id must look like/u,
       );
     });
 

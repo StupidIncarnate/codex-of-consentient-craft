@@ -12,6 +12,7 @@
  * // No lock, or another instance's lock: leaves the file alone, returns { success: true }.
  */
 
+import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
 import { locationsBootLockPathFindBroker } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker';
@@ -48,10 +49,20 @@ export const bootLockReleaseBroker = async ({
     // an absence at the read itself. Treating a real failure as absence reports success without
     // unlinking: the lock may still genuinely be held by this instance, and a caller told
     // "released" when it is not queues the next boot behind a lock nobody is protecting anymore,
-    // with no signal that anything went wrong.
+    // with no signal that anything went wrong. `readError` is usually this broker's own wrapping
+    // `new Error(...)` from fsReadFileAdapter, safely same-realm, but `.cause` is always a raw
+    // `fs/promises` rejection built by Node's own internals outside Jest's vm realm, where
+    // `instanceof Error` reads false even though the value genuinely is one —
+    // `errorIsNativeErrorAdapter` checks the V8-internal error slot instead. The null/typeof
+    // checks ahead of each adapter call are what let the later property accesses typecheck.
     if (
-      !(readError instanceof Error) ||
-      !(readError.cause instanceof Error) ||
+      readError === null ||
+      typeof readError !== 'object' ||
+      !errorIsNativeErrorAdapter({ value: readError }) ||
+      !('cause' in readError) ||
+      readError.cause === null ||
+      typeof readError.cause !== 'object' ||
+      !errorIsNativeErrorAdapter({ value: readError.cause }) ||
       !('code' in readError.cause) ||
       readError.cause.code !== 'ENOENT'
     ) {

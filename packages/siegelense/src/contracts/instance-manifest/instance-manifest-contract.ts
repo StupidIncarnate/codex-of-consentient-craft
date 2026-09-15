@@ -1,7 +1,12 @@
 /**
  * PURPOSE: What `start` hands back — an instance id, the URL to open a browser against, the throwaway
  * home, and every path a session will want tomorrow, because there is no LOOKUP call to recover one
- * later (siegelense-tooling.md lines 2162–2164). `evidence` and both `logs` entries are `RepoLocalPath`,
+ * later (siegelense-tooling.md lines 2162–2164). `baseUrl` is `.nullable()`, never a live-looking URL
+ * by default: a `dungeonmaster-headless` spec binds no `web` port (spec line 2145 — "A BROWSERLESS
+ * spec is just another spec"), so a caller that only checks "is this field present" before opening it
+ * would otherwise get a URL nothing answers, with nothing saying why. `null` here means exactly "this
+ * spec never claimed a web surface" — never "the surface failed to come up," which is what
+ * `LaneBootFailedError` is for. `evidence` and both `logs` entries are `RepoLocalPath`,
  * never a bare `AbsoluteFilePath`, because a shot is only evidence if the reader's `Read` can reach it
  * (line 165) and a repo that has never run `init` still needs an honest answer rather than a path that
  * silently stops resolving. The guild folded into `evidence`'s and each log's underlying path is the
@@ -44,7 +49,7 @@ import { specNameContract } from '../spec-name/spec-name-contract';
 export const instanceManifestContract = z.object({
   instanceId: instanceIdContract,
   specName: specNameContract,
-  baseUrl: contentTextContract,
+  baseUrl: contentTextContract.nullable(),
   home: absoluteFilePathContract,
   evidence: repoLocalPathContract,
   logs: z.object({

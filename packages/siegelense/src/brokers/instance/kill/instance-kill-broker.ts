@@ -18,6 +18,7 @@ import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
+import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { netUnixRequestAdapter } from '../../../adapters/net/unix-request/net-unix-request-adapter';
@@ -79,9 +80,22 @@ export const instanceKillBroker = async ({
       const heartbeat = await fsReadFileAdapter({ filePath: heartbeatPath })
         .then((contents) => instanceHeartbeatContract.parse(JSON.parse(contents)))
         .catch((heartbeatReadError: unknown) => {
+          // fsReadFileAdapter wraps every failure in a generic Error with the original as
+          // `cause`, so ENOENT here means this instance's driver died before ever writing a
+          // heartbeat — the orphan-reap path below then simply has no pgids to reap. Both
+          // `heartbeatReadError` and its `.cause` are real `fs/promises` rejections built by
+          // Node's own internals outside Jest's vm realm, where `instanceof Error` reads false
+          // even though the value genuinely is one — `errorIsNativeErrorAdapter` checks the
+          // V8-internal error slot instead. The null/typeof checks ahead of each adapter call are
+          // what let the later property accesses typecheck.
           if (
-            heartbeatReadError instanceof Error &&
-            heartbeatReadError.cause instanceof Error &&
+            heartbeatReadError !== null &&
+            typeof heartbeatReadError === 'object' &&
+            errorIsNativeErrorAdapter({ value: heartbeatReadError }) &&
+            'cause' in heartbeatReadError &&
+            heartbeatReadError.cause !== null &&
+            typeof heartbeatReadError.cause === 'object' &&
+            errorIsNativeErrorAdapter({ value: heartbeatReadError.cause }) &&
             'code' in heartbeatReadError.cause &&
             heartbeatReadError.cause.code === 'ENOENT'
           ) {

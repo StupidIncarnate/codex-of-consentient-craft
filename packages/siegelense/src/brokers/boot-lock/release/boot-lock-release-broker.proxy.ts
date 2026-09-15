@@ -1,4 +1,5 @@
 import { locationsBootLockPathFindBrokerProxy } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker.proxy';
+import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
@@ -38,6 +39,7 @@ export const bootLockReleaseBrokerProxy = (): {
     bootLockPath: FilePathStub({ value: BOOT_LOCK_VALUE }),
   });
 
+  errorIsNativeErrorAdapterProxy();
   const readProxy = fsReadFileAdapterProxy();
   const unlinkProxy = fsUnlinkAdapterProxy();
 

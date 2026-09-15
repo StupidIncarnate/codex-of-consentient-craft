@@ -15,6 +15,7 @@
  */
 
 import { kill } from 'process';
+import { isNativeError } from 'util/types';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import type { ProcessGroupId } from '../../../contracts/process-group-id/process-group-id-contract';
@@ -30,7 +31,20 @@ export const processKillGroupAdapter = ({
     kill(-Number(pgid), signal);
     return { success: true as const, signalSent: true };
   } catch (error) {
-    if (error instanceof Error && 'code' in error && error.code === 'ESRCH') {
+    // `process.kill` is a Node builtin — a real ESRCH is built by Node's own internals outside
+    // the vm realm a Jest test file runs inside, so `error instanceof Error` reads false even
+    // though the value genuinely is one (error-is-native-error-adapter.ts's header documents the
+    // same failure). `isNativeError` (from `util/types`, imported directly since this IS the
+    // adapter wrapping the builtin — a sibling adapter would violate the no-adapter-imports-
+    // adapter rule) checks the V8-internal error slot instead, answering correctly whichever
+    // realm constructed the value.
+    if (
+      error !== null &&
+      typeof error === 'object' &&
+      isNativeError(error) &&
+      'code' in error &&
+      error.code === 'ESRCH'
+    ) {
       return { success: true as const, signalSent: false };
     }
     throw error;

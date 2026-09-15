@@ -9,7 +9,9 @@ type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
 export const processIsAliveAdapterProxy = (): {
   setupAlive: (params: { pgid: ProcessGroupId }) => void;
   setupGone: (params: { pgid: ProcessGroupId }) => void;
-  setupUnknownError: (params: { pgid: ProcessGroupId; error: Error }) => void;
+  // `error` stays `unknown` rather than `Error` — a test proving realm-safety stages a value built
+  // by `vm.runInNewContext`, which this repo's own Error is not the constructor of.
+  setupUnknownError: (params: { pgid: ProcessGroupId; error: unknown }) => void;
   // The raw arg tuple the probe called `kill` with — how a test proves the probe is signal `0`
   // (no real signal ever reaches the group) against the NEGATED pgid.
   getCallFor: (params: { pgid: ProcessGroupId }) => unknown;
@@ -29,7 +31,7 @@ export const processIsAliveAdapterProxy = (): {
       });
     },
 
-    setupUnknownError: ({ pgid, error }: { pgid: ProcessGroupId; error: Error }): void => {
+    setupUnknownError: ({ pgid, error }: { pgid: ProcessGroupId; error: unknown }): void => {
       handle.calledWith([-Number(pgid), 0]).implement(() => {
         throw error;
       });

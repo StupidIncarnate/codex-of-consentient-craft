@@ -9,7 +9,9 @@ type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
 export const processKillGroupAdapterProxy = (): {
   setupSent: (params: { pgid: ProcessGroupId; signal: string }) => void;
   setupAlreadyGone: (params: { pgid: ProcessGroupId; signal: string }) => void;
-  setupUnknownError: (params: { pgid: ProcessGroupId; signal: string; error: Error }) => void;
+  // `error` stays `unknown` rather than `Error` — a test proving realm-safety stages a value built
+  // by `vm.runInNewContext`, which this repo's own Error is not the constructor of.
+  setupUnknownError: (params: { pgid: ProcessGroupId; signal: string; error: unknown }) => void;
   // The raw arg tuples `kill` was called with, in call order — how a test proves the target is the
   // NEGATED pgid, and how it proves an escalation's two signals fired in order.
   getCallsFor: (params: { pgid: ProcessGroupId }) => unknown[];
@@ -36,7 +38,7 @@ export const processKillGroupAdapterProxy = (): {
     }: {
       pgid: ProcessGroupId;
       signal: string;
-      error: Error;
+      error: unknown;
     }): void => {
       handle.calledWith([-Number(pgid), signal]).implement(() => {
         throw error;

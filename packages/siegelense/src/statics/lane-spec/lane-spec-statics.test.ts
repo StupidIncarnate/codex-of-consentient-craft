@@ -17,10 +17,8 @@ describe('laneSpecStatics', () => {
               env: {
                 DUNGEONMASTER_HOME: '{home}',
                 HOME: '{home}',
-                CLAUDE_CLI_PATH: '{fakeClaudeCliPath}',
                 FAKE_CLAUDE_QUEUE_DIR: '{claudeQueueDir}',
                 FAKE_WARD_QUEUE_DIR: '{wardQueueDir}',
-                WARD_CLI_PATH: '{fakeWardCliPath}',
                 E2E_SIGNAL_BACK_HTTP: '1',
                 DUNGEONMASTER_RATE_LIMITS_POLL_MS: '500',
               },
@@ -38,6 +36,7 @@ describe('laneSpecStatics', () => {
           browser: true,
           bootTimeoutMs: 180_000,
           env: { DUNGEONMASTER_PORT: '{apiPort}' },
+          requiresFakeAgentCli: true,
         },
         'dungeonmaster-headless': {
           name: 'dungeonmaster-headless',
@@ -52,10 +51,8 @@ describe('laneSpecStatics', () => {
               env: {
                 DUNGEONMASTER_HOME: '{home}',
                 HOME: '{home}',
-                CLAUDE_CLI_PATH: '{fakeClaudeCliPath}',
                 FAKE_CLAUDE_QUEUE_DIR: '{claudeQueueDir}',
                 FAKE_WARD_QUEUE_DIR: '{wardQueueDir}',
-                WARD_CLI_PATH: '{fakeWardCliPath}',
                 E2E_SIGNAL_BACK_HTTP: '1',
                 DUNGEONMASTER_RATE_LIMITS_POLL_MS: '500',
               },
@@ -64,6 +61,7 @@ describe('laneSpecStatics', () => {
           browser: false,
           bootTimeoutMs: 180_000,
           env: { DUNGEONMASTER_PORT: '{apiPort}' },
+          requiresFakeAgentCli: true,
         },
       });
     });

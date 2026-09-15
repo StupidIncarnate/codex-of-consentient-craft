@@ -25,4 +25,21 @@ describe('instanceIdContract', () => {
 
     expect(result).toBe('inst_abcd');
   });
+
+  it('INVALID: {value: "inst_bogus1234"} => the rendered ZodError names the instance id format', async () => {
+    const thrownError = await Promise.resolve()
+      .then(() => instanceIdContract.parse('inst_bogus1234'))
+      .catch((error: unknown) => error);
+
+    expect(String(thrownError)).toBe(
+      '[\n' +
+        '  {\n' +
+        '    "validation": "regex",\n' +
+        '    "code": "invalid_string",\n' +
+        '    "message": "Instance id must look like \\"inst_\\" followed by 4 or more lowercase hex characters, e.g. \\"inst_7f3a9c21\\"",\n' +
+        '    "path": []\n' +
+        '  }\n' +
+        ']',
+    );
+  });
 });

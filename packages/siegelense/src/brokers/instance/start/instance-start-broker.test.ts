@@ -4,9 +4,15 @@ import { instanceStartBroker } from './instance-start-broker';
 import { instanceStartBrokerProxy } from './instance-start-broker.proxy';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
+import { LaneProcessStub } from '../../../contracts/lane-process/lane-process.stub';
+import { LaneProcessNameStub } from '../../../contracts/lane-process-name/lane-process-name.stub';
+import { LaneSpecStub } from '../../../contracts/lane-spec/lane-spec.stub';
+import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
+import { PortRoleStub } from '../../../contracts/port-role/port-role.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
+import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
 
 const UNOWNED_EVIDENCE_PATH_VALUE =
@@ -41,6 +47,9 @@ describe('instanceStartBroker', () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
       const nowMs = 1_700_000_000_000;
+      const specName = SpecNameStub({ value: 'test-boot-never-answers' });
+      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
+      proxy.stageProcessUnreachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
       proxy.setupBootNeverAnswers({
         instanceId,
         evidencePath: UNOWNED_EVIDENCE_PATH,
@@ -50,13 +59,113 @@ describe('instanceStartBroker', () => {
         nowMs,
       });
 
-      await expect(
-        instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null }),
-      ).rejects.toThrow(LaneBootFailedError);
+      await expect(instanceStartBroker({ specName, questId: null, guildId: null })).rejects.toThrow(
+        LaneBootFailedError,
+      );
 
       expect(proxy.getBootLockReleasedPaths()).toStrictEqual([
         '/home/user/.dungeonmaster/siegelense/boot.lock',
       ]);
+    });
+  });
+
+  describe('unready names only the processes that actually failed to answer', () => {
+    it('ERROR: {api reachable, web unreachable} => unready names only the web process', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      const nowMs = 1_700_000_000_000;
+      const specName = SpecNameStub({ value: 'test-two-process-partial-failure' });
+      const webProcessName = LaneProcessNameStub({ value: 'web' });
+      proxy.stageLaneSpec({
+        specName,
+        spec: LaneSpecStub({
+          name: specName,
+          processes: [
+            LaneProcessStub(),
+            LaneProcessStub({
+              name: webProcessName,
+              portRole: PortRoleStub({ value: 'web' }),
+              readyPath: UrlPathStub({ value: '/' }),
+            }),
+          ],
+        }),
+      });
+      proxy.stageProcessReachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
+      proxy.stageProcessUnreachable({ url: 'http://dungeonmaster.localhost:34173/' });
+      proxy.setupBootNeverAnswers({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [RegistryEntryStub({ id: instanceId })],
+        }),
+        nowMs,
+      });
+
+      const thrownError = await instanceStartBroker({
+        specName,
+        questId: null,
+        guildId: null,
+      }).catch((error: unknown) => error);
+
+      expect(String(thrownError)).toBe(
+        `LaneBootFailedError: Lane ${specName} for instance ${instanceId} did not become ready: ${webProcessName} never answered their ready path. Logs: ${UNOWNED_EVIDENCE_PATH_VALUE}/driver.log`,
+      );
+    });
+  });
+
+  describe('baseUrl', () => {
+    it('VALID: {spec with no process claiming the web port} => baseUrl is null', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      const specName = SpecNameStub({ value: 'test-browserless-baseurl' });
+      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId, specName })] }),
+      });
+
+      const result = await instanceStartBroker({ specName, questId: null, guildId: null });
+
+      expect(result.baseUrl).toBe(null);
+    });
+
+    it('VALID: {spec with a process claiming the web port} => baseUrl is the real web URL', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      const specName = SpecNameStub({ value: 'test-browsered-baseurl' });
+      proxy.stageLaneSpec({
+        specName,
+        spec: LaneSpecStub({
+          name: specName,
+          processes: [
+            LaneProcessStub(),
+            LaneProcessStub({
+              name: LaneProcessNameStub({ value: 'web' }),
+              portRole: PortRoleStub({ value: 'web' }),
+              readyPath: UrlPathStub({ value: '/' }),
+            }),
+          ],
+          browser: true,
+        }),
+      });
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [
+            RegistryEntryStub({
+              id: instanceId,
+              specName,
+              ports: PortPairStub({ api: 40_500, web: 40_501 }),
+            }),
+          ],
+        }),
+      });
+
+      const result = await instanceStartBroker({ specName, questId: null, guildId: null });
+
+      expect(result.baseUrl).toBe('http://dungeonmaster.localhost:40501');
     });
   });
 

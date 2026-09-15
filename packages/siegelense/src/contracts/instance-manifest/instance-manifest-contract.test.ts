@@ -131,6 +131,14 @@ describe('instanceManifestContract', () => {
 
       expect(result.aheadOfMe).toBe(0);
     });
+
+    it('EDGE: {baseUrl: null} => a browserless instance parses with no base URL', () => {
+      const manifest = InstanceManifestStub({ baseUrl: null });
+
+      const result = instanceManifestContract.parse(manifest);
+
+      expect(result.baseUrl).toBe(null);
+    });
   });
 
   describe('the tool-response round trip', () => {

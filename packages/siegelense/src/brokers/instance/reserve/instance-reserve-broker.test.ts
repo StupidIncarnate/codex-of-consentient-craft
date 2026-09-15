@@ -98,7 +98,10 @@ describe('instanceReserveBroker', () => {
         guildId: null,
       });
 
-      expect(proxy.getCreatedDirs()).toStrictEqual([ROOT_PATH, UNOWNED_EVIDENCE_PATH]);
+      // registryUpdateBroker's own two steps each mkdir the root — registryLockAcquireBroker
+      // before its exclusive create, registryWriteBroker before its tmp-file write — so ROOT_PATH
+      // appears twice ahead of the evidence directory this broker mkdirs itself, last.
+      expect(proxy.getCreatedDirs()).toStrictEqual([ROOT_PATH, ROOT_PATH, UNOWNED_EVIDENCE_PATH]);
     });
 
     it('VALID: {questId and guildId supplied} => the written row carries them', async () => {

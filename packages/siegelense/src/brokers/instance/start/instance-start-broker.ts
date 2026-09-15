@@ -14,7 +14,12 @@
  * `home` is never written to the registry (the driver computes it privately when it boots the
  * lane), so this broker derives the SAME deterministic value from `instanceId` alone — the
  * convention every other siegelense OS-tmp path in this package already follows (see
- * `locationsSocketPathFindBroker`).
+ * `locationsSocketPathFindBroker`). The manifest's `baseUrl` is `null` for a spec whose processes
+ * never claim the `web` portRole — a `dungeonmaster-headless` boot has nothing listening there —
+ * rather than a URL built unconditionally off a port nothing binds. When the driver's ping never
+ * answers, `LaneBootFailedError.unready` names only the processes THIS broker can confirm are
+ * still not answering their own readyPath, probed directly rather than assumed to be every
+ * process the spec declares.
  *
  * USAGE:
  * await instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null });
@@ -32,6 +37,7 @@ import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/stat
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 
 import { childProcessSpawnDetachedAdapter } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter';
+import { cliPackageBinResolveAdapter } from '../../../adapters/cli-package/bin-resolve/cli-package-bin-resolve-adapter';
 import { fsOpenFdAdapter } from '../../../adapters/fs/open-fd/fs-open-fd-adapter';
 import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
 import { instanceStartBootPollLayerBroker } from './instance-start-boot-poll-layer-broker';
@@ -39,6 +45,7 @@ import { bootLockAcquireBroker } from '../../boot-lock/acquire/boot-lock-acquire
 import { bootLockReleaseBroker } from '../../boot-lock/release/boot-lock-release-broker';
 import { isStaleRegistryEntryGuard } from '../../../guards/is-stale-registry-entry/is-stale-registry-entry-guard';
 import { instanceKillBroker } from '../kill/instance-kill-broker';
+import { laneReadyWaitBroker } from '../../lane/ready-wait/lane-ready-wait-broker';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { locationsRepoLinkPathFindBroker } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker';
 import { locationsSocketPathFindBroker } from '../../locations/socket-path-find/locations-socket-path-find-broker';
@@ -47,12 +54,14 @@ import { registryReadBroker } from '../../registry/read/registry-read-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceManifestContract } from '../../../contracts/instance-manifest/instance-manifest-contract';
 import type { InstanceManifest } from '../../../contracts/instance-manifest/instance-manifest-contract';
+import type { LaneProcessName } from '../../../contracts/lane-process-name/lane-process-name-contract';
 import { laneSpecFindBroker } from '../../lane-spec/find/lane-spec-find-broker';
 import { laneSpecHashBroker } from '../../lane-spec/hash/lane-spec-hash-broker';
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
+import { laneProcessPortResolveTransformer } from '../../../transformers/lane-process-port-resolve/lane-process-port-resolve-transformer';
 
 export const instanceStartBroker = async ({
   specName,
@@ -114,11 +123,24 @@ export const instanceStartBroker = async ({
     const cwdSeed = processCwdAdapter();
     const repoRoot = await cwdResolveBroker({ startPath: cwdSeed, kind: 'repo-root' });
 
+    // Spawns the CLI's own resolved bin script through the CURRENT node binary rather than the
+    // bare command 'dungeonmaster' — PATH can resolve that name to an unrelated checkout (a
+    // global npm link, a second session's worktree, an older consumer install), and the wrong
+    // binary boots quietly, reading back as a boot timeout rather than as the wrong process. See
+    // cliPackageBinResolveAdapter's own PURPOSE for how it locates the right one everywhere.
+    const driverBinPath = cliPackageBinResolveAdapter();
+
     childProcessSpawnDetachedAdapter({
-      command: 'dungeonmaster',
+      command: process.execPath,
       // `locationsStatics.siegelense.dir` doubles as the CLI subcommand name here — both are the
       // literal string 'siegelense', and `no-bare-location-literals` bans typing it a second time.
-      args: [locationsStatics.siegelense.dir, 'driver', '--instance', reservedEntry.id],
+      args: [
+        driverBinPath,
+        locationsStatics.siegelense.dir,
+        'driver',
+        '--instance',
+        reservedEntry.id,
+      ],
       cwd: absoluteFilePathContract.parse(repoRoot),
       stdoutFd: driverLogFd,
       stderrFd: driverLogFd,
@@ -136,10 +158,46 @@ export const instanceStartBroker = async ({
     });
 
     if (!bootAnswered) {
+      // The driver's own control socket never answered, which says nothing by itself about
+      // WHICH of the spec's processes stalled — a process with no readyPath is never a boot-
+      // readiness candidate at all (lane-boot-broker never checks it), and a process that DOES
+      // have one may already be answering fine while a sibling hangs. A fresh, immediate probe
+      // (`deadlineMs: Date.now()` — one attempt, no further poll wait) against each checkable
+      // process's own readyPath is the only way this caller can tell those apart from here; the
+      // driver crashing mid-boot kills every spawned process together, in which case every probe
+      // below reports unready together too, which is the honest answer for that case.
+      const unreadyNames = await Promise.all(
+        spec.processes.map(async (laneProcess): Promise<LaneProcessName | null> => {
+          const { portRole, readyPath } = laneProcess;
+          if (portRole === null || readyPath === null) {
+            return null;
+          }
+
+          const port = laneProcessPortResolveTransformer({
+            portRole,
+            ports: reservedEntry.ports,
+          });
+          if (port === null) {
+            // Unreachable in practice — portRole is non-null here, and the transformer only
+            // returns null for a null portRole. Satisfies noUncheckedIndexedAccess rather than
+            // asserting the value away.
+            return null;
+          }
+
+          const readyUrl = `http://${environmentStatics.hostname}:${String(port)}${readyPath}`;
+          const stillAnswering = await laneReadyWaitBroker({
+            url: readyUrl,
+            deadlineMs: Date.now(),
+          });
+
+          return stillAnswering ? null : laneProcess.name;
+        }),
+      );
+
       throw new LaneBootFailedError({
         specName: spec.name,
         instanceId: reservedEntry.id,
-        unready: spec.processes.map((laneProcess) => laneProcess.name),
+        unready: unreadyNames.filter((name): name is LaneProcessName => name !== null),
         logPaths: [driverLogPath],
       });
     }
@@ -173,12 +231,28 @@ export const instanceStartBroker = async ({
       locationsRepoLinkPathFindBroker({ homePath: webLogPath }),
     ]);
 
+    // A browserless spec (spec line 2145: "just another spec") never assigns any process the
+    // `web` portRole — nothing binds that half of the claimed pair, so a URL built from it points
+    // at a port nothing is listening on. `null` says so directly rather than handing back a URL a
+    // caller has to discover is dead by trying it. Resolved through `laneProcessPortResolveTransformer`
+    // and compared against the claimed web port, never a bare `=== 'web'` — `portRole` shares its
+    // spelling with a package name but decides nothing about one.
+    const hasWebSurface = spec.processes.some(
+      (laneProcess) =>
+        laneProcessPortResolveTransformer({
+          portRole: laneProcess.portRole,
+          ports: bootedEntry.ports,
+        }) === bootedEntry.ports.web,
+    );
+
     return instanceManifestContract.parse({
       instanceId: reservedEntry.id,
       specName,
-      baseUrl: contentTextContract.parse(
-        `http://${environmentStatics.hostname}:${String(bootedEntry.ports.web)}`,
-      ),
+      baseUrl: hasWebSurface
+        ? contentTextContract.parse(
+            `http://${environmentStatics.hostname}:${String(bootedEntry.ports.web)}`,
+          )
+        : null,
       home: homePath,
       evidence: evidenceRepoLocal,
       logs: { api: apiLogRepoLocal, web: webLogRepoLocal },

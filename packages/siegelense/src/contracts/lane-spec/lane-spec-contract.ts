@@ -7,6 +7,10 @@
  * operational flow has no screen, so its instance wants the servers and no Chromium, and because the
  * profile is keyed by content it prices that cheaper spec on its own (line 2145). `env` here is
  * merged into every process's own env at boot; a process's own `env` is that process's override.
+ * `requiresFakeAgentCli` declares that some process in this spec would otherwise spawn against the
+ * REAL `claude`/`dungeonmaster-ward` binaries — `lane-boot-broker` refuses to boot rather than do
+ * that silently when it is true and `fake-agent-cli-statics.ts`'s env vars are not supplied; see
+ * that broker's own header for why this cannot default to resolving a path itself.
  *
  * USAGE:
  * const spec = laneSpecContract.parse({
@@ -16,6 +20,7 @@
  *   browser: false,
  *   bootTimeoutMs: 180000,
  *   env: { DUNGEONMASTER_PORT: '{apiPort}' },
+ *   requiresFakeAgentCli: true,
  * });
  * // Returns a validated LaneSpec
  */
@@ -34,6 +39,7 @@ export const laneSpecContract = z
     browser: z.boolean(),
     bootTimeoutMs: timeoutMsContract,
     env: z.record(z.string().brand<'EnvVarName'>(), contentTextContract),
+    requiresFakeAgentCli: z.boolean().default(false),
   })
   .refine((spec) => spec.processes.length > 0, {
     message: 'a lane spec must declare at least one process',

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { stepDispatchBrokerProxy } from '../../step/dispatch/step-dispatch-broker.proxy';
@@ -19,6 +20,7 @@ export const runExecuteStepLayerBrokerProxy = (): {
   laneWaitForHitsCeiling: (params: { error: Error }) => LaneSession;
 } => {
   stepDispatchBrokerProxy();
+  errorIsNativeErrorAdapterProxy();
 
   return {
     laneGotoSucceeds: (): LaneSession =>

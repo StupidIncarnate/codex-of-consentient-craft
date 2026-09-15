@@ -55,7 +55,7 @@ describe('siegelenseRunInputContract', () => {
     it('INVALID: {instanceId: malformed} => throws validation error', () => {
       expect(() =>
         siegelenseRunInputContract.parse({ instanceId: 'not-an-instance-id', steps: [] }),
-      ).toThrow(/Invalid/u);
+      ).toThrow(/Instance id must look like/u);
     });
 
     it('INVALID: {missing steps} => throws validation error', () => {

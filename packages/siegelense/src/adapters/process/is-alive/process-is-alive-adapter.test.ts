@@ -1,3 +1,5 @@
+import { runInNewContext } from 'vm';
+
 import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { processIsAliveAdapter } from './process-is-alive-adapter';
@@ -67,6 +69,29 @@ describe('processIsAliveAdapter', () => {
       proxy.setupUnknownError({ pgid, error });
 
       expect(() => processIsAliveAdapter({ pgid })).toThrow('kill EPERM');
+    });
+  });
+
+  // Realm-safety, proven the way error-is-native-error-adapter.test.ts proves it:
+  // `vm.runInNewContext` builds this ESRCH the same way Node's own `process.kill` internals do —
+  // with a DIFFERENT realm's Error constructor — so `crossRealmEsrch instanceof Error` reads
+  // false even though it genuinely is one. A pre-fix `error instanceof Error` check would take
+  // this branch's `throw error` path instead of reporting the exited group as `false`.
+  describe('ESRCH built in a different vm realm', () => {
+    it('EDGE: {ESRCH from a cross-realm Error} => returns false without throwing', () => {
+      const proxy = processIsAliveAdapterProxy();
+      const pgid = ProcessGroupIdStub({ value: 4821 });
+      const crossRealmEsrch: unknown = runInNewContext(
+        'const e = new Error("kill ESRCH"); e.code = "ESRCH"; e;',
+      );
+
+      expect(crossRealmEsrch instanceof Error).toBe(false);
+
+      proxy.setupUnknownError({ pgid, error: crossRealmEsrch });
+
+      const result = processIsAliveAdapter({ pgid });
+
+      expect(result).toBe(false);
     });
   });
 });

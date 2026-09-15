@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
+import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { runVerbLayerBrokerProxy } from './run-verb-layer-broker.proxy';
@@ -22,6 +23,7 @@ export const stepDispatchBrokerProxy = (): {
   // proxy builds its own BrowserSession scenarios directly, so it is never addressed further. Same
   // pattern as lane-boot-broker.proxy.ts's own unaddressed child proxy constructions.
   runVerbLayerBrokerProxy();
+  errorIsNativeErrorAdapterProxy();
 
   const dateHandle = registerSpyOn({ object: Date, method: 'now' });
   dateHandle.calledWith([]).returns(FIXED_NOW_MS);

@@ -1,7 +1,7 @@
 import { existsSync } from 'fs';
 import { access, readFile, realpath, rename, unlink, writeFile } from 'fs/promises';
 import { homedir } from 'os';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import { createServer } from 'net';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -31,16 +31,23 @@ import { laneSpecFindBrokerProxy } from '../../lane-spec/find/lane-spec-find-bro
 import { laneSpecHashBrokerProxy } from '../../lane-spec/hash/lane-spec-hash-broker.proxy';
 import { fsOpenFdAdapterProxy } from '../../../adapters/fs/open-fd/fs-open-fd-adapter.proxy';
 import { childProcessSpawnDetachedAdapterProxy } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter.proxy';
+import { cliPackageBinResolveAdapterProxy } from '../../../adapters/cli-package/bin-resolve/cli-package-bin-resolve-adapter.proxy';
 import { osTmpdirAdapterProxy } from '../../../adapters/os/tmpdir/os-tmpdir-adapter.proxy';
 import { instanceStartBootPollLayerBrokerProxy } from './instance-start-boot-poll-layer-broker.proxy';
+import { laneReadyWaitBrokerProxy } from '../../lane/ready-wait/lane-ready-wait-broker.proxy';
 import { FileDescriptorStub } from '../../../contracts/file-descriptor/file-descriptor.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
+import type { LaneSpecStub } from '../../../contracts/lane-spec/lane-spec.stub';
+import type { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { driverStatics } from '../../../statics/driver/driver-statics';
+import { laneSpecStatics } from '../../../statics/lane-spec/lane-spec-statics';
 
 type InstanceId = ReturnType<typeof InstanceIdStub>;
 type Registry = ReturnType<typeof RegistryStub>;
+type SpecName = ReturnType<typeof SpecNameStub>;
+type LaneSpec = ReturnType<typeof LaneSpecStub>;
 
 // Every path below is REAL `path.join` output off two sticky roots (os.homedir() and
 // processCwdAdapter()'s own built-in default) — never a one-shot `pathJoinAdapter.returns()`.
@@ -59,6 +66,9 @@ const CWD_PATH_VALUE = '/default/cwd';
 const CONFIG_FILE_PATH_VALUE = `${CWD_PATH_VALUE}/.dungeonmaster.json`;
 const LINK_PATH_VALUE = `${CWD_PATH_VALUE}/.siegelense`;
 const TMP_DIR_VALUE = '/tmp';
+// cliPackageBinResolveAdapter resolves @dungeonmaster/cli's package root through a REAL
+// require.resolve() call (never mocked — see cliPackageBinResolveAdapterProxy's own comment).
+const CLI_BIN_RELATIVE_VALUE = './dist/bin/dungeonmaster.js';
 const MINTED_UUID_VALUE = '7f3a9c21-58cc-4372-a567-0e02b2c3d479';
 const FIRST_PORT_VALUE = 40_000;
 const SECOND_PORT_VALUE = 40_001;
@@ -115,6 +125,9 @@ export const instanceStartBrokerProxy = (): {
   getStderrMessages: () => readonly ReturnType<typeof ContentTextStub>[];
   mintInstanceId: () => InstanceId;
   setupStaleReap: (params: { staleInstanceId: InstanceId }) => void;
+  stageLaneSpec: (params: { specName: SpecName; spec: LaneSpec }) => void;
+  stageProcessReachable: (params: { url: string }) => void;
+  stageProcessUnreachable: (params: { url: string }) => void;
 } => {
   // Created to satisfy enforce-proxy-child-creation; their onceFor-based semantic setup methods
   // are never called, since every path here resolves through the REAL pathJoin passthrough (see
@@ -139,8 +152,11 @@ export const instanceStartBrokerProxy = (): {
 
   const openFdProxy = fsOpenFdAdapterProxy();
   const spawnProxy = childProcessSpawnDetachedAdapterProxy();
+  const cliBinProxy = cliPackageBinResolveAdapterProxy();
+  cliBinProxy.manifestDeclaresBin({ binRelative: CLI_BIN_RELATIVE_VALUE });
   const tmpdirProxy = osTmpdirAdapterProxy();
   const pollProxy = instanceStartBootPollLayerBrokerProxy();
+  const readyWaitProxy = laneReadyWaitBrokerProxy();
   const cwdProxy = processCwdAdapterProxy();
   const stderrHandle = registerSpyOn({ object: process.stderr, method: 'write' });
 
@@ -219,16 +235,37 @@ export const instanceStartBrokerProxy = (): {
       },
     );
 
+    // Computed AFTER the drain above, for the same reason the drain exists at all: `join` is
+    // globally mocked as a one-shot QUEUE (pathJoinAdapterProxy), and a call made before the
+    // queue is drained steals an entry staged for an unrelated caller instead of reaching the
+    // sticky real-passthrough default. Must mirror the real cliPackageBinResolveAdapter's own
+    // require.resolve('@dungeonmaster/cli') + join(dirname(...), ...) exactly.
+    const expectedDriverBinPath = join(
+      dirname(require.resolve('@dungeonmaster/cli')),
+      CLI_BIN_RELATIVE_VALUE,
+    );
+
     readHandle.calledWith([REGISTRY_PATH_ABS]).resolves(JSON.stringify(registry));
 
     const driverLogPath = AbsoluteFilePathStub({ value: `${String(evidencePath)}/driver.log` });
     openFdProxy.returns({ filePath: driverLogPath, fd: FileDescriptorStub({ value: 17 }) });
 
     spawnProxy.succeeds({
-      command: 'dungeonmaster',
-      args: ['siegelense', 'driver', '--instance', instanceId],
+      command: process.execPath,
+      args: [expectedDriverBinPath, 'siegelense', 'driver', '--instance', instanceId],
       pid: 4821,
     });
+  };
+
+  // `laneSpecStatics.specs` is typed `as const` (readonly at the TYPE level only — nothing here
+  // freezes it at runtime), and `laneSpecFindBroker` itself reads through this SAME widened-type
+  // alias rather than `Reflect.set` (confined to *-guard.ts/*-contract.ts) to register the value a
+  // test builds. Adding a NEW key here — never overwriting 'dungeonmaster-web' or
+  // 'dungeonmaster-headless' — keeps every OTHER test's use of the real built-ins untouched
+  // regardless of run order within this file.
+  const registerLaneSpec = ({ specName, spec }: { specName: SpecName; spec: LaneSpec }): void => {
+    const mutableSpecs: Record<SpecName, LaneSpec> = laneSpecStatics.specs;
+    mutableSpecs[specName] = spec;
   };
 
   return {
@@ -302,6 +339,12 @@ export const instanceStartBrokerProxy = (): {
         .calledWith([BOOT_LOCK_PATH_ABS])
         .resolves(JSON.stringify({ heldBy: instanceId, heldByPid: '4821', acquiredAtMs: nowMs }));
       unlinkHandle.calledWith([BOOT_LOCK_PATH_ABS]).resolves(undefined);
+
+      // The driver's own ping never answers here, but this stages nothing about WHICH lane
+      // process is unready — instanceStartBroker now probes each checkable process's own
+      // readyPath directly once the ping times out, so a caller of this method also stages
+      // `stageLaneSpec` and a `stageProcessReachable`/`stageProcessUnreachable` per process it
+      // cares about.
     },
 
     getWriteOrder: (): readonly FilePath[] =>
@@ -315,6 +358,18 @@ export const instanceStartBrokerProxy = (): {
 
     mintInstanceId: (): InstanceId =>
       InstanceIdStub({ value: `inst_${MINTED_UUID_VALUE.split('-').join('')}` }),
+
+    stageLaneSpec: ({ specName, spec }: { specName: SpecName; spec: LaneSpec }): void => {
+      registerLaneSpec({ specName, spec });
+    },
+
+    stageProcessReachable: ({ url }: { url: string }): void => {
+      readyWaitProxy.setupReachable({ url });
+    },
+
+    stageProcessUnreachable: ({ url }: { url: string }): void => {
+      readyWaitProxy.setupUnreachable({ url });
+    },
 
     setupStaleReap: ({ staleInstanceId }: { staleInstanceId: InstanceId }): void => {
       const staleSocketPath = AbsoluteFilePathStub({

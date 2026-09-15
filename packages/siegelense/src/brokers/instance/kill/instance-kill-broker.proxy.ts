@@ -8,6 +8,7 @@ import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
+import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
 import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.proxy';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
@@ -65,6 +66,10 @@ export const instanceKillBrokerProxy = (): {
     heartbeatPath: ReturnType<typeof AbsoluteFilePathStub>;
     homePath: ReturnType<typeof AbsoluteFilePathStub>;
   }) => void;
+  setupDriverUnreachableHeartbeatReadFails: (params: {
+    socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+    heartbeatPath: ReturnType<typeof AbsoluteFilePathStub>;
+  }) => void;
   getRemovedPaths: () => unknown[];
   getKillGroupCallsFor: (params: { pgid: ProcessGroupId }) => unknown[];
   getReleasedRegistry: () => unknown;
@@ -72,6 +77,7 @@ export const instanceKillBrokerProxy = (): {
     socketPath: ReturnType<typeof AbsoluteFilePathStub>;
   }) => ReturnType<typeof ReadingCountStub>;
 } => {
+  errorIsNativeErrorAdapterProxy();
   registryReadBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
   locationsRepoLinkPathFindBrokerProxy();
@@ -186,6 +192,25 @@ export const instanceKillBrokerProxy = (): {
         .calledWith([heartbeatPath])
         .rejects(Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }));
       rmProxy.succeeds({ dirPath: homePath });
+    },
+
+    // This instance is itself mid-teardown, so EMFILE (file descriptor exhaustion) is the
+    // realistic non-absence code the heartbeat read can fail with. That failure must not be read
+    // as "no heartbeat was ever written" and skip straight to reaping nothing.
+    setupDriverUnreachableHeartbeatReadFails: ({
+      socketPath,
+      heartbeatPath,
+    }: {
+      socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+      heartbeatPath: ReturnType<typeof AbsoluteFilePathStub>;
+    }): void => {
+      socketProxy.connectFails({
+        socketPath,
+        error: Object.assign(new Error('connect ECONNREFUSED'), { code: 'ECONNREFUSED' }),
+      });
+      readHandle
+        .calledWith([heartbeatPath])
+        .rejects(Object.assign(new Error('EMFILE: too many open files'), { code: 'EMFILE' }));
     },
 
     getRemovedPaths: (): unknown[] => rmProxy.getRemovedPaths(),
