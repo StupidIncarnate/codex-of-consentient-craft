@@ -1,7 +1,56 @@
 # Siegelense build — handoff
 
-Pick this up with the same instruction that started it. This file says where the work is, what
-holds, what does not, and the one thing most likely to mislead you.
+**The work is unfinished and was stopped deliberately, not because it ran out of road.** Two chunks
+of roughly four are delivered. This file says where the work is, what holds, what does not, and the
+one thing most likely to mislead you.
+
+## Re-issue this instruction to continue
+
+Give a new session the text below. It is the instruction this build ran under, verbatim.
+
+> We must implement the tooling described in `scrolls/seigelense/siegelense-tooling.md` in all its
+> nitty gritty detail so that I can manually test everything once without finding holes that are
+> documented as requirements.
+>
+> You must use sub agents for everything including planning, work, ward runs, and manual
+> verification. Commit as you see fit.
+>
+> The general flow you should run is:
+>
+> - sub agent plans features against the doc that makes sense for a chunk. It has to dictate what to
+>   build and in what order; parallelization is good but not required.
+> - send sub agents to work on features as the plan dictates, including unit and int tests. I don't
+>   think yall need e2e tests for this.
+> - send sub agents to review code against plan and look for holes code may have or blindspots.
+> - send sub agent to manually use the tool to make sure it adheres to the requirements of the doc.
+> - send sub agent to review what the plan promised and delivered and mark all sections in the doc
+>   that were delivered properly in the detail specified in the doc so we have a running mark of
+>   what requirements are covered vs not
+> - start over
+>
+> Do this until the planner sub agent has said there's nothing left to implement. Then send a sub
+> agent or more to validate the doc's requirements are all met by manually running the tool.
+>
+> Before committing, always do `ward --uncommitted --committed` until green. You can save a full ward
+> till the feature is completely finished. Agents modifying files should run `ward -- -- {files}` on
+> what they change for quick sanity checks and so they don't collide with other parallel agents.
+>
+> This is an actual package to be put in packages folder so it must adhere to our arch that all sub
+> agents should be pulling as well as testing standards.
+>
+> If hiccups with the flow or blockers happen, send out sub agents sonnet to fix them and unblock.
+>
+> Move to a worktree before you start. Only parallel 3 sub agents at a time. Use opus for planning,
+> sonnet for everything else.
+
+**The worktree already exists** — do not carve a new one. Use `worktrees/siegelense`, branch
+`siegelense`. Everything below is relative to that worktree root.
+
+**Manual verification means driving the real CLI and the real web UI**, not a script calling brokers.
+That clarification came mid-build and is the reason several of the worst defects were caught.
+
+**Your first act should be chunk 3's plan**, with opus, against the spec and the ledger. The ledger
+is current; trust it for what the spec contains, and verify the code yourself for what is done.
 
 ## Where the work is
 
