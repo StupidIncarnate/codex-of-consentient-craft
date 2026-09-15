@@ -144,6 +144,69 @@ describe('stepDispatchBroker', () => {
         endedAtMs: FIXED_NOW_MS,
       });
     });
+
+    it('VALID: {expect: error, waitFor hits its ceiling} => the ceiling hit is inverted into ok true, not a throw', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const { lane } = proxy.laneRejectingWaitForMatch({
+        error: new Error('Timeout 30000ms exceeded'),
+      });
+      const step = StepStub({
+        step: 'waitFor',
+        target: SelectorStub(),
+        state: LocatorStateStub({ value: 'visible' }),
+        expect: 'error',
+      });
+
+      const result = await stepDispatchBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 1 }),
+        shotPath: null,
+      });
+
+      expect(result).toStrictEqual({
+        step: 1,
+        verb: 'waitFor',
+        node: null,
+        ok: true,
+        expected: 'error',
+        reading:
+          'visible [data-testid="GUILD_ADD"] never resolved in 30000ms: Error: Timeout 30000ms exceeded',
+        shot: null,
+        startedAtMs: FIXED_NOW_MS,
+        endedAtMs: FIXED_NOW_MS,
+      });
+    });
+
+    it('INVALID: {expect: error, waitFor resolves} => the resolved state is reported as a finding, ok false', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const { lane } = proxy.happyLane();
+      const step = StepStub({
+        step: 'waitFor',
+        target: SelectorStub(),
+        state: LocatorStateStub({ value: 'visible' }),
+        expect: 'error',
+      });
+
+      const result = await stepDispatchBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 1 }),
+        shotPath: null,
+      });
+
+      expect(result).toStrictEqual({
+        step: 1,
+        verb: 'waitFor',
+        node: null,
+        ok: false,
+        expected: 'error',
+        reading: '[data-testid="GUILD_ADD"] reached state "visible"',
+        shot: null,
+        startedAtMs: FIXED_NOW_MS,
+        endedAtMs: FIXED_NOW_MS,
+      });
+    });
   });
 
   describe('a node label', () => {

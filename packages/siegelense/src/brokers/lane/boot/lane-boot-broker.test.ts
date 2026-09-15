@@ -318,6 +318,41 @@ describe('laneBootBroker', () => {
 
       expect(lane.browser).toBe(null);
     });
+
+    it('VALID: {browser: false} => a successful boot removes nothing', async () => {
+      const proxy = laneBootBrokerProxy();
+      proxy.resolveRepoRoot();
+      const ports = PortPairStub({ api: 34_172, web: 34_173 });
+      const apiProcess = LaneProcessStub({
+        name: 'api',
+        command: 'npm',
+        args: ['run', 'dev:no-watch'],
+        portRole: 'api',
+        readyPath: '/api/guilds',
+        logFileName: 'api-server.log',
+        env: {},
+      });
+      const spec = LaneSpecStub({ processes: [apiProcess], browser: false, env: {} });
+      proxy.setupProcessBoot({
+        logPath: API_LOG_PATH,
+        fd: FileDescriptorStub({ value: 10 }),
+        command: 'npm',
+        args: ['run', 'dev:no-watch'],
+        pid: 1_001,
+      });
+      proxy.setupServerReachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
+
+      await laneBootBroker({
+        spec,
+        ports,
+        instanceId: INSTANCE_ID,
+        homePath: HOME_PATH,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      // The home belongs to the live instance now; teardown removes it later, not a successful boot.
+      expect(proxy.getRemovedHomePaths()).toStrictEqual([]);
+    });
   });
 
   describe('a spec whose only process never becomes ready', () => {
@@ -351,6 +386,7 @@ describe('laneBootBroker', () => {
       });
       proxy.setupServerNeverReachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
       proxy.setupBootDeadlineAlreadyPast();
+      proxy.setupHomeRemoved({ homePath: HOME_PATH });
 
       const caughtError = (await laneBootBroker({
         spec,
@@ -368,6 +404,48 @@ describe('laneBootBroker', () => {
       });
       expect(proxy.getKillSignalsFor({ pgid: apiPgid })).toStrictEqual(['SIGKILL']);
       expect(proxy.getClosedFds()).toStrictEqual([apiFd]);
+    });
+
+    it('ERROR: {api never ready} => removes the throwaway home', async () => {
+      const proxy = laneBootBrokerProxy();
+      proxy.resolveRepoRoot();
+      const ports = PortPairStub({ api: 34_172, web: 34_173 });
+      const apiFd = FileDescriptorStub({ value: 10 });
+      const apiProcess = LaneProcessStub({
+        name: 'api',
+        command: 'npm',
+        args: ['run', 'dev:no-watch'],
+        portRole: 'api',
+        readyPath: '/api/guilds',
+        logFileName: 'api-server.log',
+        env: {},
+      });
+      const spec = LaneSpecStub({
+        name: 'dungeonmaster-headless',
+        processes: [apiProcess],
+        browser: false,
+        env: {},
+      });
+      proxy.setupProcessBoot({
+        logPath: API_LOG_PATH,
+        fd: apiFd,
+        command: 'npm',
+        args: ['run', 'dev:no-watch'],
+        pid: 1_001,
+      });
+      proxy.setupServerNeverReachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
+      proxy.setupBootDeadlineAlreadyPast();
+      proxy.setupHomeRemoved({ homePath: HOME_PATH });
+
+      await laneBootBroker({
+        spec,
+        ports,
+        instanceId: INSTANCE_ID,
+        homePath: HOME_PATH,
+        evidencePath: EVIDENCE_PATH,
+      }).catch((error: unknown) => error);
+
+      expect(proxy.getRemovedHomePaths()).toStrictEqual([HOME_PATH]);
     });
   });
 
@@ -421,6 +499,7 @@ describe('laneBootBroker', () => {
       proxy.setupServerReachable({ url: 'http://dungeonmaster.localhost:34173/' });
       proxy.setupServerNeverReachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
       proxy.setupBootDeadlineAlreadyPast();
+      proxy.setupHomeRemoved({ homePath: HOME_PATH });
 
       const caughtError = (await laneBootBroker({
         spec,
@@ -439,6 +518,68 @@ describe('laneBootBroker', () => {
       expect(proxy.getKillSignalsFor({ pgid: apiPgid })).toStrictEqual(['SIGKILL']);
       expect(proxy.getKillSignalsFor({ pgid: webPgid })).toStrictEqual(['SIGKILL']);
       expect(proxy.getClosedFds()).toStrictEqual([apiFd, webFd]);
+    });
+
+    it('ERROR: {web ready, api not} => removes the home but never the evidence directory', async () => {
+      const proxy = laneBootBrokerProxy();
+      proxy.resolveRepoRoot();
+      const ports = PortPairStub({ api: 34_172, web: 34_173 });
+      const apiFd = FileDescriptorStub({ value: 10 });
+      const webFd = FileDescriptorStub({ value: 11 });
+      const apiProcess = LaneProcessStub({
+        name: 'api',
+        command: 'npm',
+        args: ['run', 'dev:no-watch'],
+        portRole: 'api',
+        readyPath: '/api/guilds',
+        logFileName: 'api-server.log',
+        env: {},
+      });
+      const webProcess = LaneProcessStub({
+        name: 'web',
+        command: 'npm',
+        args: ['run', 'dev'],
+        portRole: 'web',
+        readyPath: '/',
+        logFileName: 'web-server.log',
+        env: {},
+      });
+      const spec = LaneSpecStub({
+        name: 'dungeonmaster-web',
+        processes: [apiProcess, webProcess],
+        browser: false,
+        env: {},
+      });
+      proxy.setupProcessBoot({
+        logPath: API_LOG_PATH,
+        fd: apiFd,
+        command: 'npm',
+        args: ['run', 'dev:no-watch'],
+        pid: 1_001,
+      });
+      proxy.setupProcessBoot({
+        logPath: WEB_LOG_PATH,
+        fd: webFd,
+        command: 'npm',
+        args: ['run', 'dev'],
+        pid: 1_002,
+      });
+      proxy.setupServerReachable({ url: 'http://dungeonmaster.localhost:34173/' });
+      proxy.setupServerNeverReachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
+      proxy.setupBootDeadlineAlreadyPast();
+      proxy.setupHomeRemoved({ homePath: HOME_PATH });
+
+      await laneBootBroker({
+        spec,
+        ports,
+        instanceId: INSTANCE_ID,
+        homePath: HOME_PATH,
+        evidencePath: EVIDENCE_PATH,
+      }).catch((error: unknown) => error);
+
+      // Both processes' logs sit under EVIDENCE_PATH — a complete-set assertion here is what fails
+      // if the fix ever removed that path alongside (or instead of) the home.
+      expect(proxy.getRemovedHomePaths()).toStrictEqual([HOME_PATH]);
     });
   });
 

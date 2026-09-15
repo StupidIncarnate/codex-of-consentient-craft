@@ -1,4 +1,6 @@
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
+import { SelectorStub } from '../../../contracts/selector/selector.stub';
+import { LocatorStateStub } from '../../../contracts/locator-state/locator-state.stub';
 import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 
@@ -34,6 +36,7 @@ describe('runExecuteStepLayerBroker', () => {
           endedAtMs: FIXED_NOW_MS,
         },
         stoppedAt: null,
+        timedOut: false,
       });
     });
   });
@@ -71,6 +74,51 @@ describe('runExecuteStepLayerBroker', () => {
           error: 'page.goto: Timeout 30000ms exceeded.',
           candidates: [],
         },
+        timedOut: false,
+      });
+    });
+  });
+
+  describe('a waitFor that hits its ceiling', () => {
+    it('ERROR: {waitFor never resolves, expect ok} => an ok:false reading, a stoppedAt, and timedOut true', async () => {
+      const proxy = runExecuteStepLayerBrokerProxy();
+      const lane = proxy.laneWaitForHitsCeiling({
+        error: new Error('Timeout 30000ms exceeded'),
+      });
+      const step = StepStub({
+        step: 'waitFor',
+        target: SelectorStub(),
+        state: LocatorStateStub({ value: 'visible' }),
+      });
+
+      const outcome = await runExecuteStepLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 2 }),
+        shotPath: null,
+      });
+
+      expect(outcome).toStrictEqual({
+        reading: {
+          step: 2,
+          verb: 'waitFor',
+          node: null,
+          ok: false,
+          expected: 'ok',
+          reading:
+            'visible [data-testid="GUILD_ADD"] never resolved in 30000ms: Error: Timeout 30000ms exceeded',
+          shot: null,
+          startedAtMs: FIXED_NOW_MS,
+          endedAtMs: FIXED_NOW_MS,
+        },
+        stoppedAt: {
+          step: 2,
+          verb: 'waitFor',
+          error:
+            'visible [data-testid="GUILD_ADD"] never resolved in 30000ms: Error: Timeout 30000ms exceeded',
+          candidates: [],
+        },
+        timedOut: true,
       });
     });
   });
@@ -105,6 +153,7 @@ describe('runExecuteStepLayerBroker', () => {
           endedAtMs: FIXED_NOW_MS,
         },
         stoppedAt: null,
+        timedOut: false,
       });
     });
   });
@@ -144,6 +193,7 @@ describe('runExecuteStepLayerBroker', () => {
           error: "step 4 (goto) declared expect: 'error' but succeeded: /guilds",
           candidates: [],
         },
+        timedOut: false,
       });
     });
   });

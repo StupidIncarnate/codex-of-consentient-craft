@@ -48,21 +48,28 @@ describe('stepWaitForBroker', () => {
   });
 
   describe('the ceiling is hit', () => {
-    it('EDGE: {target, timeoutMs} => reports the ceiling it hit rather than throwing', async () => {
+    it('ERROR: {target, timeoutMs} => throws WaitForCeilingHitError naming the state, the target and the ceiling', async () => {
       const proxy = stepWaitForBrokerProxy();
       const { session } = proxy.sessionHittingCeiling();
 
-      const result = await stepWaitForBroker({
+      const error = await stepWaitForBroker({
         session,
         target: '[data-testid="MODAL"]',
         within: null,
         state: 'visible',
         timeoutMs: 5000,
-      });
-
-      expect(result).toBe(
-        '[data-testid="MODAL"] did not reach state "visible" within the 5000ms ceiling: Error: Timeout 30000ms exceeded',
+      }).then(
+        (): never => {
+          throw new Error('Expected stepWaitForBroker to reject');
+        },
+        (caught: unknown): Error => caught as Error,
       );
+
+      expect({ name: error.name, message: error.message }).toStrictEqual({
+        name: 'WaitForCeilingHitError',
+        message:
+          'visible [data-testid="MODAL"] never resolved in 5000ms: Error: Timeout 30000ms exceeded',
+      });
     });
   });
 });

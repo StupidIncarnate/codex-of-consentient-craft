@@ -55,16 +55,18 @@ export const laneTeardownBroker = async ({
   // attempts a signal `processKillGroupAdapter` would otherwise have to swallow.
   const liveTargets = session.pgids.filter((pgid) => processIsAliveAdapter({ pgid }));
 
-  liveTargets.forEach((pgid) => {
-    processKillGroupAdapter({ pgid, signal: 'SIGTERM' });
-  });
-
-  // Nothing to escalate against — skip the grace wait entirely rather than pausing a headless
-  // teardown for no live group. When there IS at least one target, the grace is counted from when
-  // SIGTERM actually went out, not from when this wait starts, so any real time the signalling loop
-  // itself spent does not stack on top of the full grace period.
+  // Nothing to escalate against — skip the SIGTERM send and the grace wait entirely rather than
+  // pausing a headless teardown for no live group. When there IS at least one target,
+  // `sigtermSentAtMs` is captured BEFORE the loop below sends any signal, so the grace is counted
+  // from when SIGTERM actually started going out — any real time the signalling loop itself spent
+  // is subtracted from the wait instead of stacking on top of the full grace period.
   if (liveTargets.length > 0) {
     const sigtermSentAtMs = Date.now();
+
+    liveTargets.forEach((pgid) => {
+      processKillGroupAdapter({ pgid, signal: 'SIGTERM' });
+    });
+
     const elapsedSinceSigtermMs = Date.now() - sigtermSentAtMs;
     const remainingGraceMs = Math.max(0, driverStatics.teardown.graceMs - elapsedSinceSigtermMs);
 

@@ -19,6 +19,9 @@ export const playwrightSessionAdapterProxy = (): {
   setNearestNamesResult: (params: { raw: readonly unknown[] }) => void;
   setEvaluateSourceResult: (params: { result: unknown }) => void;
   getScreenshotCalls: () => readonly unknown[];
+  getClickCalls: () => readonly unknown[];
+  getFillCalls: () => readonly unknown[];
+  getWaitForCalls: () => readonly unknown[];
   setResponseTextThrows: () => void;
   emitConsoleMessage: (params: { type: string; text: string; url: string; line: number }) => void;
   emitPageError: (params: { name: string; message: string; stack: string | undefined }) => void;
@@ -56,22 +59,38 @@ export const playwrightSessionAdapterProxy = (): {
     evaluateSourceResult: undefined as unknown,
     responseTextThrows: false,
     screenshotCalls: [] as unknown[],
+    clickCalls: [] as unknown[],
+    fillCalls: [] as unknown[],
+    waitForCalls: [] as unknown[],
   };
 
+  // Keyed on the selector string `page.locator(...)` actually received — the same string
+  // `countMatches`/`clickMatch`/`fillMatch`/`waitForMatch` compose from `within` and `target`. A
+  // broken composition sends a different string here, so `count()` misses the staged entry (falls
+  // back to 0) and click/fill/waitFor record a call against a selector the test never described.
   const buildFakeLocator = ({
     selector,
   }: {
     selector: string;
   }): {
     count: () => Promise<unknown>;
-    click: () => Promise<undefined>;
-    fill: () => Promise<undefined>;
-    waitFor: () => Promise<undefined>;
+    click: (options: unknown) => Promise<undefined>;
+    fill: (value: unknown, options: unknown) => Promise<undefined>;
+    waitFor: (options: unknown) => Promise<undefined>;
   } => ({
     count: async (): Promise<unknown> => Promise.resolve(state.locatorCounts.get(selector) ?? 0),
-    click: async (): Promise<undefined> => Promise.resolve(undefined),
-    fill: async (): Promise<undefined> => Promise.resolve(undefined),
-    waitFor: async (): Promise<undefined> => Promise.resolve(undefined),
+    click: async (options: unknown): Promise<undefined> => {
+      state.clickCalls.push({ selector, options });
+      return Promise.resolve(undefined);
+    },
+    fill: async (value: unknown, options: unknown): Promise<undefined> => {
+      state.fillCalls.push({ selector, value, options });
+      return Promise.resolve(undefined);
+    },
+    waitFor: async (options: unknown): Promise<undefined> => {
+      state.waitForCalls.push({ selector, options });
+      return Promise.resolve(undefined);
+    },
   });
 
   const page = Object.assign(new EventEmitter(), {
@@ -129,6 +148,9 @@ export const playwrightSessionAdapterProxy = (): {
       state.evaluateSourceResult = result;
     },
     getScreenshotCalls: (): readonly unknown[] => state.screenshotCalls,
+    getClickCalls: (): readonly unknown[] => state.clickCalls,
+    getFillCalls: (): readonly unknown[] => state.fillCalls,
+    getWaitForCalls: (): readonly unknown[] => state.waitForCalls,
     setResponseTextThrows: (): void => {
       state.responseTextThrows = true;
     },

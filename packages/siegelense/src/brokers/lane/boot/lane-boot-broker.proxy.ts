@@ -1,6 +1,6 @@
 // PURPOSE: Proxy for lane-boot-broker — stages every boundary it composes (cwd resolution, mkdir,
-// path joining, process spawn, log fds, process kill, the browser launch, and readiness) behind
-// semantic setup methods, so a test never chains through a child proxy directly.
+// path joining, process spawn, log fds, process kill, home removal, the browser launch, and
+// readiness) behind semantic setup methods, so a test never chains through a child proxy directly.
 // USAGE: const proxy = laneBootBrokerProxy(); const repoRoot = proxy.resolveRepoRoot();
 //        proxy.setupProcessBoot({ logPath, fd, command: 'npm', args: [...], pid: 1001 });
 
@@ -18,6 +18,7 @@ import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contra
 import { childProcessSpawnDetachedAdapterProxy } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter.proxy';
 import { fsCloseFdAdapterProxy } from '../../../adapters/fs/close-fd/fs-close-fd-adapter.proxy';
 import { fsOpenFdAdapterProxy } from '../../../adapters/fs/open-fd/fs-open-fd-adapter.proxy';
+import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { playwrightSessionAdapterProxy } from '../../../adapters/playwright/session/playwright-session-adapter.proxy';
 import { processKillGroupAdapterProxy } from '../../../adapters/process/kill-group/process-kill-group-adapter.proxy';
 import { laneReadyWaitBrokerProxy } from '../ready-wait/lane-ready-wait-broker.proxy';
@@ -49,9 +50,11 @@ export const laneBootBrokerProxy = (): {
   setupServerReachable: (params: { url: string }) => void;
   setupServerNeverReachable: (params: { url: string }) => void;
   setupBootDeadlineAlreadyPast: () => void;
+  setupHomeRemoved: (params: { homePath: AbsoluteFilePath }) => void;
   getSpawnOptionsFor: (params: { command: string; args: readonly string[] }) => unknown;
   getKillSignalsFor: (params: { pgid: ProcessGroupId }) => readonly unknown[];
   getClosedFds: () => readonly unknown[];
+  getRemovedHomePaths: () => readonly unknown[];
   getBrowserLaunchCallCount: () => ReadingCount;
   // The env a spawned process's stdio inherits, captured at the SAME point `lane-boot-broker`
   // itself reads `process.env` — a test reading process.env only after `await`ing the whole boot
@@ -67,6 +70,7 @@ export const laneBootBrokerProxy = (): {
   const spawnProxy = childProcessSpawnDetachedAdapterProxy();
   const openFdProxy = fsOpenFdAdapterProxy();
   const closeFdProxy = fsCloseFdAdapterProxy();
+  const rmProxy = fsRmAdapterProxy();
   const killProxy = processKillGroupAdapterProxy();
   playwrightSessionAdapterProxy();
   const readyWaitProxy = laneReadyWaitBrokerProxy();
@@ -119,6 +123,13 @@ export const laneBootBrokerProxy = (): {
       });
     },
 
+    // The failure path removes ONLY this home — never evidencePath, which fsRmAdapterProxy is never
+    // staged for, so an accidental rm(evidencePath) call throws "nothing set up" instead of quietly
+    // succeeding.
+    setupHomeRemoved: ({ homePath }: { homePath: AbsoluteFilePath }): void => {
+      rmProxy.succeeds({ dirPath: homePath });
+    },
+
     getSpawnOptionsFor: ({
       command,
       args,
@@ -131,6 +142,8 @@ export const laneBootBrokerProxy = (): {
       killProxy.getCallsFor({ pgid }),
 
     getClosedFds: (): readonly unknown[] => closeFdProxy.getClosedFds(),
+
+    getRemovedHomePaths: (): readonly unknown[] => rmProxy.getRemovedPaths(),
 
     getBrowserLaunchCallCount: (): ReadingCount =>
       ReadingCountStub({ value: (chromium.launch as unknown as jest.Mock).mock.calls.length }),

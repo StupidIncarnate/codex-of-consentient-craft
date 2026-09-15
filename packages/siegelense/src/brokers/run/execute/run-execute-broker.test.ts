@@ -1,8 +1,10 @@
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
+import { LocatorStateStub } from '../../../contracts/locator-state/locator-state.stub';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
+import { SelectorStub } from '../../../contracts/selector/selector.stub';
 import { StepExpectationStub } from '../../../contracts/step-expectation/step-expectation.stub';
 import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
@@ -182,8 +184,8 @@ describe('runExecuteBroker', () => {
     });
   });
 
-  describe('a timeout-shaped failure', () => {
-    it('VALID: {step 2 times out} => status timeout, stoppedAt carries the step, the verb and the full message', async () => {
+  describe('a goto failure whose message merely names "timeout"', () => {
+    it('VALID: {step 2 fails, message contains the word "timeout"} => status failed, not timeout — the signal is the error TYPE, never the rendered text', async () => {
       const proxy = runExecuteBrokerProxy();
       const runId = RunIdStub({ value: 'run_1' });
       proxy.stagePaths({ runId });
@@ -203,7 +205,7 @@ describe('runExecuteBroker', () => {
       });
 
       expect({ status: result.status, stoppedAt: result.stoppedAt }).toStrictEqual({
-        status: 'timeout',
+        status: 'failed',
         stoppedAt: {
           step: 2,
           verb: 'goto',
@@ -212,6 +214,133 @@ describe('runExecuteBroker', () => {
           candidates: [],
         },
       });
+    });
+  });
+
+  describe('a hung waitFor, default stopOn', () => {
+    it('VALID: {step 2 waitFor never resolves, stopOn error} => status timeout, step 3 never dispatched, stoppedAt names the step, the verb and the target', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane, gotoCallCount } = proxy.laneHangingOnWaitFor({
+        error: new Error('Timeout 30000ms exceeded'),
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
+          StepStub({
+            step: 'waitFor',
+            target: SelectorStub(),
+            state: LocatorStateStub({ value: 'visible' }),
+          }),
+          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-3' }) }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({
+        status: 'timeout',
+        stepsRun: 2,
+        stoppedAt: {
+          step: 2,
+          verb: 'waitFor',
+          error:
+            'visible [data-testid="GUILD_ADD"] never resolved in 30000ms: Error: Timeout 30000ms exceeded',
+          candidates: [],
+        },
+      });
+      expect(gotoCallCount()).toBe(1);
+    });
+  });
+
+  describe('a hung waitFor, stopOn never', () => {
+    it('VALID: {step 2 waitFor never resolves, stopOn never} => status timeout, stepsRun 3, and step 3 DOES run', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane, gotoCallCount } = proxy.laneHangingOnWaitFor({
+        error: new Error('Timeout 30000ms exceeded'),
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
+          StepStub({
+            step: 'waitFor',
+            target: SelectorStub(),
+            state: LocatorStateStub({ value: 'visible' }),
+          }),
+          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-3' }) }),
+        ],
+        stopOn: StopOnStub({ value: 'never' }),
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({
+        status: 'timeout',
+        stepsRun: 3,
+        stoppedAt: {
+          step: 2,
+          verb: 'waitFor',
+          error:
+            'visible [data-testid="GUILD_ADD"] never resolved in 30000ms: Error: Timeout 30000ms exceeded',
+          candidates: [],
+        },
+      });
+      expect(gotoCallCount()).toBe(2);
+    });
+  });
+
+  describe('a waitFor that hits its ceiling under expect: error', () => {
+    it("VALID: {step 2 waitFor never resolves, expect: 'error'} => the batch does not stop and status is done", async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane, gotoCallCount } = proxy.laneHangingOnWaitFor({
+        error: new Error('Timeout 30000ms exceeded'),
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
+          StepStub({
+            step: 'waitFor',
+            target: SelectorStub(),
+            state: LocatorStateStub({ value: 'visible' }),
+            expect: 'error',
+          }),
+          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-3' }) }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({
+        status: 'done',
+        stepsRun: 3,
+        stoppedAt: null,
+      });
+      expect(gotoCallCount()).toBe(2);
     });
   });
 

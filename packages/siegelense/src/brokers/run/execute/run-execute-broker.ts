@@ -8,7 +8,10 @@
  * 1676), and stops on the first failing step unless the caller set `stopOn: 'never'` (line 1638).
  * `runExecuteStepLayerBroker` is what turns BOTH an uncaught exception and the dispatcher's own
  * `expect: 'error'`-but-succeeded finding into the same `ok: false` reading, so the loop below only
- * ever has ONE stop condition to check.
+ * ever has ONE stop condition to check. `status` reads whether the run's first stop carries
+ * `timedOut` — set only when the underlying step threw `WaitForCeilingHitError` — rather than
+ * sniffing `stoppedAt.error` text for the word "timeout", so a driver rewording its own message
+ * never flips the run's own verdict.
  *
  * USAGE:
  * await runExecuteBroker({
@@ -36,7 +39,6 @@ import { stepIndexContract } from '../../../contracts/step-index/step-index-cont
 import type { StepReading } from '../../../contracts/step-reading/step-reading-contract';
 import type { StopOn } from '../../../contracts/stop-on/stop-on-contract';
 import type { StoppedAt } from '../../../contracts/stopped-at/stopped-at-contract';
-import { isTimeoutMessageGuard } from '../../../guards/is-timeout-message/is-timeout-message-guard';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { stepStatics } from '../../../statics/step/step-statics';
 import { runIndexComputeTransformer } from '../../../transformers/run-index-compute/run-index-compute-transformer';
@@ -70,7 +72,7 @@ export const runExecuteBroker = async ({
   await fsMkdirAdapter({ filepath: filePathContract.parse(shotsDir) });
 
   const readings: StepReading[] = [];
-  const stoppedAtCandidates: StoppedAt[] = [];
+  const stopCandidates: { stoppedAt: StoppedAt; timedOut: boolean }[] = [];
 
   // A sequential reduce chain, not a for-of with await: each step's dispatch depends on the page
   // state the PREVIOUS step left behind, and the transcript must flush in that same order, so
@@ -96,13 +98,14 @@ export const runExecuteBroker = async ({
     await runTranscriptAppendBroker({ transcriptPath: transcript, reading: outcome.reading });
 
     if (outcome.stoppedAt !== null) {
-      stoppedAtCandidates.push(outcome.stoppedAt);
+      stopCandidates.push({ stoppedAt: outcome.stoppedAt, timedOut: outcome.timedOut });
     }
   }, Promise.resolve());
 
   // The FIRST failure only — a later one under stopOn: 'never' still gets its own transcript
   // entry, but the run's own verdict reports where it would have stopped.
-  const stoppedAt: StoppedAt | null = stoppedAtCandidates.at(0) ?? null;
+  const firstStop = stopCandidates.at(0) ?? null;
+  const stoppedAt: StoppedAt | null = firstStop === null ? null : firstStop.stoppedAt;
 
   const consoleLines: readonly ContentText[] =
     lane.browser === null || browserWindowStart === null
@@ -133,11 +136,9 @@ export const runExecuteBroker = async ({
   });
 
   const status: RunStatus =
-    stoppedAt === null
+    firstStop === null
       ? runStatusContract.parse('done')
-      : runStatusContract.parse(
-          isTimeoutMessageGuard({ message: stoppedAt.error }) ? 'timeout' : 'failed',
-        );
+      : runStatusContract.parse(firstStop.timedOut ? 'timeout' : 'failed');
 
   const result = runResultContract.parse({
     instanceId,

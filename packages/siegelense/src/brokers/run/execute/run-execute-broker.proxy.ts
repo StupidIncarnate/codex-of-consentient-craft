@@ -18,6 +18,8 @@ import { runExecuteStepLayerBrokerProxy } from './run-execute-step-layer-broker.
 // Re-declared locally rather than imported: browser-session-contract.ts keeps its own parsing
 // contract private, the same reason step-dispatch-broker.proxy.ts re-declares matchCountContract.
 const bufferLineCountContract = z.number().int().nonnegative().brand<'BufferLineCount'>();
+const matchCountContract = z.number().int().nonnegative().brand<'MatchCount'>();
+const ONE_MATCH_COUNT = 1;
 
 const EVIDENCE_PATH = AbsoluteFilePathStub({
   value: '/repo/.siegelense/guilds/g1/instances/inst_1',
@@ -32,6 +34,10 @@ export const runExecuteBrokerProxy = (): {
   };
   cleanLane: () => LaneSession;
   laneFailingOnPath: (params: { failingPath: string; error: Error }) => {
+    lane: LaneSession;
+    gotoCallCount: () => ReadingCount;
+  };
+  laneHangingOnWaitFor: (params: { error: Error }) => {
     lane: LaneSession;
     gotoCallCount: () => ReadingCount;
   };
@@ -99,6 +105,27 @@ export const runExecuteBrokerProxy = (): {
       const lane = LaneSessionStub({
         evidencePath: EVIDENCE_PATH,
         browser: { goto: gotoMock, capture: jest.fn().mockResolvedValue(undefined) },
+      });
+      return {
+        lane,
+        gotoCallCount: (): ReadingCount => ReadingCountStub({ value: gotoMock.mock.calls.length }),
+      };
+    },
+
+    laneHangingOnWaitFor: ({
+      error,
+    }: {
+      error: Error;
+    }): { lane: LaneSession; gotoCallCount: () => ReadingCount } => {
+      const gotoMock = jest.fn().mockResolvedValue(undefined);
+      const lane = LaneSessionStub({
+        evidencePath: EVIDENCE_PATH,
+        browser: {
+          goto: gotoMock,
+          countMatches: jest.fn().mockResolvedValue(matchCountContract.parse(ONE_MATCH_COUNT)),
+          waitForMatch: jest.fn().mockRejectedValue(error),
+          capture: jest.fn().mockResolvedValue(undefined),
+        },
       });
       return {
         lane,

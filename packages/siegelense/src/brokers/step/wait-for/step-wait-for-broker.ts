@@ -1,22 +1,26 @@
 /**
  * PURPOSE: Drives the `waitFor` step against a target already known to resolve to exactly one
  * element — `stepDispatchBroker` runs `stepTargetResolveBroker` first, so this broker never re-checks
- * the count itself. Its own failure mode is different from the other two targeting verbs: chunk 2
- * delivers the CEILING half of "an acting step ends on SETTLE, with a ceiling, not a timeout"
- * (siegelense-tooling.md line 1641) — a `waitForMatch` that hits its timeout is not an unexpected
- * error here, it is the reading, so this is the one broker in the six that catches rather than lets
- * the failure propagate. `within` and `timeoutMs` stay nullable, matching `stepContract`'s own
- * `waitFor` member, for the same reason `step-click-broker.ts` gives.
+ * the count itself. When `session.waitForMatch` rejects, this wraps the rejection in
+ * `WaitForCeilingHitError` and re-throws — a hung wait is a FINDING that must stop a default batch
+ * (siegelense-tooling.md line 101: "A timeout must name the step... a hang is a finding, not a tool
+ * failure"), never a passing-looking reading, so this broker now matches the other five: it lets a
+ * failure propagate rather than catching it into a return value. `stepDispatchBroker`'s existing
+ * `expect: 'error'` inversion is what decides whether that finding halts the batch or is the attack
+ * an adversarial step declared it wanted. `within` and `timeoutMs` stay nullable, matching
+ * `stepContract`'s own `waitFor` member, for the same reason `step-click-broker.ts` gives.
  *
  * USAGE:
  * await stepWaitForBroker({ session, target: '[data-testid="MODAL"]', within: null, state: 'visible', timeoutMs: null });
- * // Returns a reading naming the state that resolved, or the ceiling it hit waiting for one
+ * // Returns a reading naming the state that resolved, or throws WaitForCeilingHitError naming the
+ * // state, the target and the ceiling it hit
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
+import { WaitForCeilingHitError } from '../../../errors/wait-for-ceiling-hit/wait-for-ceiling-hit-error';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 
 export const stepWaitForBroker = async ({
@@ -40,10 +44,15 @@ export const stepWaitForBroker = async ({
 
   try {
     await session.waitForMatch(matchParams);
-    return contentTextContract.parse(`${target} reached state "${state}"`);
   } catch (error: unknown) {
-    return contentTextContract.parse(
-      `${target} did not reach state "${state}" within the ${String(resolvedTimeoutMs)}ms ceiling: ${String(error)}`,
-    );
+    throw new WaitForCeilingHitError({
+      target,
+      within,
+      state,
+      timeoutMs: resolvedTimeoutMs,
+      cause: error,
+    });
   }
+
+  return contentTextContract.parse(`${target} reached state "${state}"`);
 };

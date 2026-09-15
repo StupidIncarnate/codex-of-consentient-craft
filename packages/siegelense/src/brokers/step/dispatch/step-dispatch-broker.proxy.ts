@@ -16,6 +16,7 @@ export const stepDispatchBrokerProxy = (): {
   happyLane: () => { lane: LaneSession; captureCallArgs: () => readonly unknown[] };
   laneWithTwoMatches: () => { lane: LaneSession; clickMatchCallArgs: () => readonly unknown[] };
   laneRejectingClickMatch: (params: { error: Error }) => { lane: LaneSession };
+  laneRejectingWaitForMatch: (params: { error: Error }) => { lane: LaneSession };
 } => {
   // Constructed for its own default behavior only to satisfy enforce-proxy-child-creation — this
   // proxy builds its own BrowserSession scenarios directly, so it is never addressed further. Same
@@ -68,6 +69,15 @@ export const stepDispatchBrokerProxy = (): {
         browser: {
           countMatches: jest.fn().mockResolvedValue(matchCountContract.parse(ONE_MATCH_COUNT)),
           clickMatch: jest.fn().mockRejectedValue(error),
+        },
+      }),
+    }),
+
+    laneRejectingWaitForMatch: ({ error }: { error: Error }): { lane: LaneSession } => ({
+      lane: LaneSessionStub({
+        browser: {
+          countMatches: jest.fn().mockResolvedValue(matchCountContract.parse(ONE_MATCH_COUNT)),
+          waitForMatch: jest.fn().mockRejectedValue(error),
         },
       }),
     }),

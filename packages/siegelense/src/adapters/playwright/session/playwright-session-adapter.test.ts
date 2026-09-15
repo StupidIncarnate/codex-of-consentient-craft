@@ -1,6 +1,7 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { StepCandidateStub } from '../../../contracts/step-candidate/step-candidate.stub';
+import { driverStatics } from '../../../statics/driver/driver-statics';
 import { playwrightSessionAdapter } from './playwright-session-adapter';
 import { playwrightSessionAdapterProxy } from './playwright-session-adapter.proxy';
 
@@ -9,6 +10,7 @@ const EVIDENCE_PATH = AbsoluteFilePathStub({
   value: '/home/user/.dungeonmaster/siegelense/inst_1',
 });
 const TARGET = '[data-testid="PIXEL_BTN"]';
+const WITHIN = '[data-testid="GUILD_LIST"]';
 
 describe('playwrightSessionAdapter', () => {
   describe('countMatches()', () => {
@@ -49,6 +51,152 @@ describe('playwrightSessionAdapter', () => {
       const result = await session.countMatches({ target: TARGET });
 
       expect(result).toBe(4);
+    });
+
+    it('VALID: {target and within} => counts against "within target" composed into one selector, not the bare target', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setLocatorCount({ selector: TARGET, count: 9 });
+      proxy.setLocatorCount({ selector: `${WITHIN} ${TARGET}`, count: 2 });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.countMatches({ target: TARGET, within: WITHIN });
+
+      expect(result).toBe(2);
+    });
+  });
+
+  describe('clickMatch()', () => {
+    it('VALID: {target only} => clicks the locator built from the bare target', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.clickMatch({
+        target: TARGET,
+        timeoutMs: driverStatics.run.defaultStepTimeoutMs,
+      });
+
+      expect(proxy.getClickCalls()).toStrictEqual([
+        { selector: TARGET, options: { timeout: driverStatics.run.defaultStepTimeoutMs } },
+      ]);
+    });
+
+    it('VALID: {target and within} => clicks the locator built from "within target" composed into one selector', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.clickMatch({
+        target: TARGET,
+        within: WITHIN,
+        timeoutMs: driverStatics.run.defaultStepTimeoutMs,
+      });
+
+      expect(proxy.getClickCalls()).toStrictEqual([
+        {
+          selector: `${WITHIN} ${TARGET}`,
+          options: { timeout: driverStatics.run.defaultStepTimeoutMs },
+        },
+      ]);
+    });
+  });
+
+  describe('fillMatch()', () => {
+    it('VALID: {target only} => fills the locator built from the bare target', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.fillMatch({
+        target: TARGET,
+        value: 'quest name',
+        timeoutMs: driverStatics.run.defaultStepTimeoutMs,
+      });
+
+      expect(proxy.getFillCalls()).toStrictEqual([
+        {
+          selector: TARGET,
+          value: 'quest name',
+          options: { timeout: driverStatics.run.defaultStepTimeoutMs },
+        },
+      ]);
+    });
+
+    it('VALID: {target and within} => fills the locator built from "within target" composed into one selector', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.fillMatch({
+        target: TARGET,
+        within: WITHIN,
+        value: 'quest name',
+        timeoutMs: driverStatics.run.defaultStepTimeoutMs,
+      });
+
+      expect(proxy.getFillCalls()).toStrictEqual([
+        {
+          selector: `${WITHIN} ${TARGET}`,
+          value: 'quest name',
+          options: { timeout: driverStatics.run.defaultStepTimeoutMs },
+        },
+      ]);
+    });
+  });
+
+  describe('waitForMatch()', () => {
+    it('VALID: {target only} => waits on the locator built from the bare target', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.waitForMatch({
+        target: TARGET,
+        state: 'visible',
+        timeoutMs: driverStatics.run.defaultStepTimeoutMs,
+      });
+
+      expect(proxy.getWaitForCalls()).toStrictEqual([
+        {
+          selector: TARGET,
+          options: { state: 'visible', timeout: driverStatics.run.defaultStepTimeoutMs },
+        },
+      ]);
+    });
+
+    it('VALID: {target and within} => waits on the locator built from "within target" composed into one selector', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.waitForMatch({
+        target: TARGET,
+        within: WITHIN,
+        state: 'visible',
+        timeoutMs: driverStatics.run.defaultStepTimeoutMs,
+      });
+
+      expect(proxy.getWaitForCalls()).toStrictEqual([
+        {
+          selector: `${WITHIN} ${TARGET}`,
+          options: { state: 'visible', timeout: driverStatics.run.defaultStepTimeoutMs },
+        },
+      ]);
     });
   });
 

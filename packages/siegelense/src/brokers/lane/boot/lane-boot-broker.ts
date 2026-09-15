@@ -3,8 +3,11 @@
  * the evidence dir, open one log fd per process, spawn every `LaneProcess` the spec declares
  * (detached, cwd resolved to the repo root so a worktree boot never silently resolves a sibling
  * checkout's compiled output — see `<dungeonmaster-worktrees>`), wait every process with a
- * `readyPath` against ONE shared deadline, and on any failure SIGKILL every spawned group and close
- * every fd before throwing `LaneBootFailedError`. `packages/web/test/siege-driver/siege-lane.ts`
+ * `readyPath` against ONE shared deadline, and on any failure SIGKILL every spawned group, close
+ * every fd, and remove the throwaway HOME this call mkdir'd — never the evidence directory, whose
+ * logs are the only record of why the boot failed — before throwing `LaneBootFailedError`. A
+ * successful boot removes nothing: the home belongs to the live `LaneSession` and stays until
+ * teardown removes it. `packages/web/test/siege-driver/siege-lane.ts`
  * lines 59–368 is the measured shape this generalises from two hardcoded processes to N declared by
  * `spec.processes`. Takes the port pair as a PARAMETER rather than claiming one itself —
  * `instanceReserveBroker` already claimed it in the registry before anything here binds it — and
@@ -34,6 +37,7 @@ import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contra
 import { childProcessSpawnDetachedAdapter } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter';
 import { fsCloseFdAdapter } from '../../../adapters/fs/close-fd/fs-close-fd-adapter';
 import { fsOpenFdAdapter } from '../../../adapters/fs/open-fd/fs-open-fd-adapter';
+import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { playwrightSessionAdapter } from '../../../adapters/playwright/session/playwright-session-adapter';
 import { processKillGroupAdapter } from '../../../adapters/process/kill-group/process-kill-group-adapter';
 import { serverLogReaderLayerBroker } from './server-log-reader-layer-broker';
@@ -131,6 +135,9 @@ export const laneBootBroker = async ({
     booted.forEach((entry) => {
       fsCloseFdAdapter({ fd: entry.fd });
     });
+    // homePath only — never evidencePath. Evidence (the logs `unready` names) is the one record of
+    // why this boot failed, and outlives the instance; see packages/siegelense/CLAUDE.md.
+    await fsRmAdapter({ dirPath: homePath });
 
     throw new LaneBootFailedError({
       specName: spec.name,
