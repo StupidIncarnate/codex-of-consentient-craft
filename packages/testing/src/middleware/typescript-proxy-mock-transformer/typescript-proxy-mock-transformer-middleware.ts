@@ -15,12 +15,12 @@ import { typescriptMockCallsToStatementsAdapter } from '../../adapters/typescrip
 import { typescriptSourceFileWithPrependedStatementsAdapter } from '../../adapters/typescript/source-file-with-prepended-statements/typescript-source-file-with-prepended-statements-adapter';
 import { importPathResolverMiddleware } from '../import-path-resolver/import-path-resolver-middleware';
 import { proxyMockCollectorMiddleware } from '../proxy-mock-collector/proxy-mock-collector-middleware';
+import { mockCallsMergeByModuleTransformer } from '../../transformers/mock-calls-merge-by-module/mock-calls-merge-by-module-transformer';
 import { filePathContract } from '../../contracts/file-path/file-path-contract';
 import type { TypescriptProgram } from '../../contracts/typescript-program/typescript-program-contract';
 import type { TypescriptSourceFile } from '../../contracts/typescript-source-file/typescript-source-file-contract';
 import type { TypescriptNodeFactory } from '../../contracts/typescript-node-factory/typescript-node-factory-contract';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
-import type { ModuleName } from '../../contracts/module-name/module-name-contract';
 
 export const typescriptProxyMockTransformerMiddleware = ({
   sourceFile,
@@ -54,32 +54,7 @@ export const typescriptProxyMockTransformerMiddleware = ({
     return sourceFile;
   }
 
-  // Deduplicate and merge mocks by module name.
-  // - When both an auto-mock (no factory, no identifierNames) and a factory-mock exist
-  //   for the same module, the factory-mock wins.
-  // - When multiple registerMock calls target the same module with different identifierNames,
-  //   merge them into one MockCall with all identifierNames combined.
-  // - An explicit factory always wins over identifierNames-based selective mocking.
-  const mocksByModule = new Map<ModuleName, MockCall>();
-  for (const mock of mockCalls) {
-    const existing = mocksByModule.get(mock.moduleName);
-    if (!existing) {
-      mocksByModule.set(mock.moduleName, mock);
-    } else if (mock.factory && !existing.factory) {
-      // Explicit factory wins over auto-mock or identifier-based mock
-      mocksByModule.set(mock.moduleName, mock);
-    } else if (!mock.factory && !existing.factory && mock.identifierNames.length > 0) {
-      // Merge identifierNames from multiple registerMock calls for the same module
-      const mergedIdentifiers = [...existing.identifierNames];
-      for (const name of mock.identifierNames) {
-        if (!mergedIdentifiers.includes(name)) {
-          mergedIdentifiers.push(name);
-        }
-      }
-      mocksByModule.set(mock.moduleName, { ...existing, identifierNames: mergedIdentifiers });
-    }
-  }
-  const deduplicatedMocks = [...mocksByModule.values()];
+  const deduplicatedMocks = mockCallsMergeByModuleTransformer({ mockCalls });
 
   const mockStatements = typescriptMockCallsToStatementsAdapter({
     mockCalls: deduplicatedMocks,

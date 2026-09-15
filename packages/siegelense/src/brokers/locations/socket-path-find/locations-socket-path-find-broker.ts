@@ -16,6 +16,7 @@ import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
+import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 
 export const locationsSocketPathFindBroker = ({
   instanceId,
@@ -28,7 +29,7 @@ export const locationsSocketPathFindBroker = ({
     paths: [
       tmpDir,
       locationsStatics.siegelense.socketsDirName,
-      `${instanceId}${locationsStatics.siegelense.socketExtension}`,
+      `${instanceId}${evidenceFileStatics.extensions.socket}`,
     ],
   });
 

@@ -182,28 +182,6 @@ module.exports = [
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
-  // Jest's mock registry resolves a bare builtin specifier ('process') and its `node:`-prefixed
-  // form ('node:process') to the SAME module. Two proxies that registerMock() the same builtin
-  // under different specifier strings silently collide — the losing proxy's calls fall through to
-  // the real syscall with no error (see process-is-alive-adapter.test.ts's regression case). Banning
-  // the `node:` prefix here keeps every siegelense adapter on one specifier per builtin, so this
-  // collision can't recur inside this package.
-  {
-    files: ['packages/siegelense/src/**/*.ts'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['node:*'],
-              message: "Import from the bare specifier (e.g. 'process', not 'node:process') — see the comment above this override in eslint.config.js.",
-            },
-          ],
-        },
-      ],
-    },
-  },
   {
     // ts-jest needs the scalar exports
     files: [

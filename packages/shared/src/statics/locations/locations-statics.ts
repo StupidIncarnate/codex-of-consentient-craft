@@ -4,7 +4,16 @@
  * home, guild, quest, user home, hooks, siegelense). Resolver brokers under
  * src/brokers/locations/** compose absolute paths from these constants; lint
  * rules enforce that string values from this module are the only legal
- * location-shape literals in the codebase.
+ * location-shape literals in the codebase — repo-wide, across every package, not
+ * just the one a value was added for. A value here MUST be a complete filename or
+ * dirname, something you would see whole in a directory listing. A bare extension
+ * ('.json', '.sock') or a fragment meant only to be concatenated onto something
+ * else (a 'step' prefix) is not a name and does not belong here: every other
+ * package's own, unrelated use of that same fragment becomes a lint failure the
+ * moment it lands. That vocabulary belongs in the owning package's own statics —
+ * see packages/siegelense/src/statics/evidence-file/evidence-file-statics.ts for
+ * the run/shot/socket extension and prefix fragments siegelense's own resolvers
+ * compose onto a run id or step index.
  *
  * USAGE:
  * locationsStatics.repoRoot.config;
@@ -91,12 +100,7 @@ export const locationsStatics = {
     apiLog: 'api-server.log',
     webLog: 'web-server.log',
     runsDir: 'runs',
-    transcriptExtension: '.jsonl',
-    runReturnExtension: '.json',
-    shotExtension: '.png',
-    shotPrefix: 'step',
     socketsDirName: 'dm-siege-sockets',
-    socketExtension: '.sock',
     driverLog: 'driver.log',
   },
 } as const;

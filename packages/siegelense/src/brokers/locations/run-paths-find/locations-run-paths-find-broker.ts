@@ -23,6 +23,7 @@ import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
+import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 
 export const locationsRunPathsFindBroker = ({
   evidencePath,
@@ -39,7 +40,7 @@ export const locationsRunPathsFindBroker = ({
     paths: [
       evidencePath,
       locationsStatics.siegelense.runsDir,
-      `${runId}${locationsStatics.siegelense.transcriptExtension}`,
+      `${runId}${evidenceFileStatics.extensions.transcript}`,
     ],
   });
 
@@ -47,7 +48,7 @@ export const locationsRunPathsFindBroker = ({
     paths: [
       evidencePath,
       locationsStatics.siegelense.runsDir,
-      `${runId}${locationsStatics.siegelense.runReturnExtension}`,
+      `${runId}${evidenceFileStatics.extensions.runReturn}`,
     ],
   });
 

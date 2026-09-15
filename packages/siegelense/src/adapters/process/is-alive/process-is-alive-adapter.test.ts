@@ -6,9 +6,10 @@ import { processIsAliveAdapterProxy } from './process-is-alive-adapter.proxy';
 describe('processIsAliveAdapter', () => {
   // Regression guard: `kill` here and `@dungeonmaster/shared`'s processCwdAdapter both wrap
   // `process`. Jest's mock registry resolves the bare specifier and the `node:`-prefixed one to
-  // the SAME module, so a proxy on one side mocking under a different specifier string than the
-  // other silently loses — the losing side's calls fall through to the real syscall with no error.
-  // Both adapters must import from the bare `'process'` specifier for this composition to stay safe.
+  // the SAME module, so two proxies mocking it under different specifier strings must merge into
+  // one factory or the losing proxy's calls fall through to the real syscall with no error.
+  // `mockCallsMergeByModuleTransformer` (in `@dungeonmaster/testing`) is what keeps this
+  // composition safe, whichever specifier either adapter imports from.
   describe('composed with a cross-package proxy that also mocks process', () => {
     it('VALID: {cwd proxy registered before isAlive proxy} => isAlive mock still intercepts kill', () => {
       const cwdProxy = processCwdAdapterProxy();

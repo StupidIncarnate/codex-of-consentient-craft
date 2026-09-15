@@ -242,13 +242,16 @@ describe('PrepareQuestPackageGraphLayerResponder', () => {
       // from the same pass Start runs, and `depth` is the sole input to the codeweaver dispatch
       // order — so a dependency added to any package.json moves a number here instead of passing
       // unseen. The six layers it spells out, alphabetical by directory name:
-      //   L0 testing / L1 shared / L2 config, eslint-plugin, hooks, session-forensics, tooling,
-      //   web / L3 local-eslint, orchestrator, ward / L4 mcp, server / L5 cli
+      //   L0 testing, siegelense-recipes / L1 shared / L2 config, eslint-plugin, hooks,
+      //   session-forensics, siegelense, tooling, web / L3 local-eslint, orchestrator, ward /
+      //   L4 mcp, server / L5 cli
       // `shared` is L1 rather than a leaf because its `@dungeonmaster/testing` devDependency is a
       // real edge — packageJsonDependencyNamesTransformer unions all three dependency fields.
       // `ward` sits at L3, not L2, because it now depends on `@dungeonmaster/config` (itself L2),
       // which pushes `ward` one layer above the L2 packages it used to sit beside. `mcp` (L4)
       // already depended on `orchestrator` (L3), so ward's move does not move mcp in turn.
+      // `siegelense` is L2 off its own `@dungeonmaster/shared` (L1) and `@dungeonmaster/testing`
+      // (L0) devDependency; `siegelense-recipes` declares no workspace dependency, so it is a leaf.
       expect(result?.map((entry) => `${String(entry.id)}=${String(entry.depth)}`)).toStrictEqual([
         'cli=5',
         'config=2',
@@ -260,6 +263,8 @@ describe('PrepareQuestPackageGraphLayerResponder', () => {
         'server=4',
         'session-forensics=2',
         'shared=1',
+        'siegelense=2',
+        'siegelense-recipes=0',
         'testing=0',
         'tooling=2',
         'ward=3',

@@ -14,9 +14,9 @@
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
+import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 
 export const locationsShotPathFindBroker = ({
   shotsDir,
@@ -28,7 +28,7 @@ export const locationsShotPathFindBroker = ({
   const joined = pathJoinAdapter({
     paths: [
       shotsDir,
-      `${locationsStatics.siegelense.shotPrefix}${step}${locationsStatics.siegelense.shotExtension}`,
+      `${evidenceFileStatics.naming.shotPrefix}${step}${evidenceFileStatics.extensions.shot}`,
     ],
   });
 
