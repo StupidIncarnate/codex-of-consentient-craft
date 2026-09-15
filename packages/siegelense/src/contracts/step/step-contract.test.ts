@@ -173,10 +173,138 @@ describe('stepContract', () => {
     });
   });
 
+  describe('rejecting a field that belongs to a different member', () => {
+    it('INVALID: {step: goto, +target from click/waitFor/type} => throws naming the stray key', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'goto',
+          path: '/api/guilds',
+          node: null,
+          target: '[data-testid="PIXEL_BTN"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+
+    it('INVALID: {step: waitFor, +path from goto} => throws naming the stray key', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'waitFor',
+          target: '[data-testid="SUBAGENT_CHAIN"]',
+          within: null,
+          state: 'visible',
+          timeoutMs: 20000,
+          node: null,
+          path: '/api/guilds',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'path'/u);
+    });
+
+    it('INVALID: {step: click, +value from type} => throws naming the stray key', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'click',
+          target: '[data-testid="PIXEL_BTN"]',
+          within: null,
+          timeoutMs: null,
+          node: null,
+          value: '<script>alert(1)</script>',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'value'/u);
+    });
+
+    it('INVALID: {step: type, +name from screenshot} => throws naming the stray key', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'type',
+          target: '[data-testid="CHAT_INPUT"]',
+          within: null,
+          value: '<script>alert(1)</script>',
+          timeoutMs: null,
+          node: null,
+          name: 'step1.png',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'name'/u);
+    });
+
+    it('INVALID: {step: screenshot, +source from eval} => throws naming the stray key', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'screenshot',
+          name: 'step1.png',
+          node: null,
+          source: 'document.title',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'source'/u);
+    });
+
+    it('INVALID: {step: eval, +path from goto} => throws naming the stray key', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'eval',
+          source: 'document.querySelectorAll("button").length',
+          node: null,
+          path: '/api/guilds',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'path'/u);
+    });
+
+    it('INVALID: {step: eval, +path from goto} => throws the exact rendered message', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'eval',
+          source: 'document.querySelectorAll("button").length',
+          node: null,
+          path: '/api/guilds',
+        } as never),
+      ).toThrow(
+        '[\n' +
+          '  {\n' +
+          '    "code": "unrecognized_keys",\n' +
+          '    "keys": [\n' +
+          '      "path"\n' +
+          '    ],\n' +
+          '    "path": [],\n' +
+          '    "message": "Unrecognized key(s) in object: \'path\'"\n' +
+          '  }\n' +
+          ']',
+      );
+    });
+
+    it('INVALID: {step: waitFor, misspelled "taget"} => throws naming the misspelled key', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'waitFor',
+          taget: '[data-testid="SUBAGENT_CHAIN"]',
+          within: null,
+          state: 'visible',
+          timeoutMs: 20000,
+          node: null,
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'taget'/u);
+    });
+  });
+
   describe('an unknown discriminator', () => {
     it('INVALID: {step: "look"} => throws for a verb outside the six-member union', () => {
       expect(() =>
         stepContract.parse({ step: 'look', target: '[data-testid="X"]' } as never),
+      ).toThrow(/Invalid discriminator/u);
+    });
+
+    it('INVALID: {step: "look", every field of every member} => discriminator error wins over any unknown-key error', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'look',
+          path: '/api/guilds',
+          target: '[data-testid="X"]',
+          within: null,
+          state: 'visible',
+          timeoutMs: null,
+          value: 'hello',
+          name: 'step1.png',
+          source: 'document.title',
+          node: null,
+        } as never),
       ).toThrow(/Invalid discriminator/u);
     });
   });

@@ -9,17 +9,25 @@
  * one liveness check up front gates both passes, so a clean teardown never asks `kill` to hit a pid
  * that is already gone. A browser-close failure is reported (fire-and-forget, matching this repo's
  * `.catch` convention) rather than swallowed, but never skips the process-group kill that follows it —
- * a broken browser must not leave two live servers mislabeled as torn down.
+ * a broken browser must not leave two live servers mislabeled as torn down. Every `session.logFds`
+ * descriptor — the killed processes' own stdout/stderr redirects `lane-boot-broker` opened — is closed
+ * only AFTER the SIGKILL pass, matching the order `lane-boot-broker`'s own failure path already uses
+ * (kill first, close fd after): severing a still-writing process's redirect out from under it is a
+ * different failure than closing it once the group is confirmed dead. A close failure is reported the
+ * same way a browser-close failure is above — logged, never thrown — so one bad descriptor neither
+ * skips the rest of the fds nor the home removal that follows (siegelense-tooling.md line 1083).
  *
  * USAGE:
  * const result = await laneTeardownBroker({ session, instanceId });
- * // Kills every live process group, removes session.homePath, leaves session.evidencePath standing,
- * // and returns a KillResult naming the released ports and the repo-local evidence path
+ * // Kills every live process group, closes every session.logFds descriptor, removes session.homePath,
+ * // leaves session.evidencePath standing, and returns a KillResult naming the released ports and the
+ * // repo-local evidence path
  */
 
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { processKillGroupAdapter } from '../../../adapters/process/kill-group/process-kill-group-adapter';
 import { processIsAliveAdapter } from '../../../adapters/process/is-alive/process-is-alive-adapter';
+import { fsCloseFdAdapter } from '../../../adapters/fs/close-fd/fs-close-fd-adapter';
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { locationsRepoLinkPathFindBroker } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker';
 import { killResultContract } from '../../../contracts/kill-result/kill-result-contract';
@@ -67,6 +75,21 @@ export const laneTeardownBroker = async ({
 
   liveTargets.forEach((pgid) => {
     processKillGroupAdapter({ pgid, signal: 'SIGKILL' });
+  });
+
+  // Every fd here is a killed process's own stdout/stderr redirect. Closing only now — after both
+  // signal passes, never before or interleaved with them — means a still-writing process never has
+  // its own redirect severed out from under it; `lane-boot-broker`'s failure path uses this same
+  // kill-then-close order. A close failure is reported like the browser-close failure above rather
+  // than thrown, so one bad descriptor neither skips the remaining fds nor the home removal below.
+  session.logFds.forEach((fd) => {
+    try {
+      fsCloseFdAdapter({ fd });
+    } catch (error) {
+      process.stderr.write(
+        `[lane-teardown] fd close failed for instance ${instanceId}, fd ${String(fd)}: ${String(error)}\n`,
+      );
+    }
   });
 
   const [, evidenceKept] = await Promise.all([

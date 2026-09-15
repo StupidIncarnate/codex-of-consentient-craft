@@ -13,7 +13,7 @@
  * // Group already exited (ESRCH): false
  */
 
-import { kill } from 'node:process';
+import { kill } from 'process';
 
 import type { ProcessGroupId } from '../../../contracts/process-group-id/process-group-id-contract';
 

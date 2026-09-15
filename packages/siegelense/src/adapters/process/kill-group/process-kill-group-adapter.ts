@@ -14,7 +14,7 @@
  * // Group already gone: returns { success: true, signalSent: false } without throwing
  */
 
-import { kill } from 'node:process';
+import { kill } from 'process';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import type { ProcessGroupId } from '../../../contracts/process-group-id/process-group-id-contract';

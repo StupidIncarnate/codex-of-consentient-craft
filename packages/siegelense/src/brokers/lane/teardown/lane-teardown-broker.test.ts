@@ -9,6 +9,7 @@ import { KillResultStub } from '../../../contracts/kill-result/kill-result.stub'
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
 import { RepoLocalPathStub } from '../../../contracts/repo-local-path/repo-local-path.stub';
+import { FileDescriptorStub } from '../../../contracts/file-descriptor/file-descriptor.stub';
 
 describe('laneTeardownBroker', () => {
   describe('the SIGTERM-then-SIGKILL escalation', () => {
@@ -201,6 +202,113 @@ describe('laneTeardownBroker', () => {
       const result = await laneTeardownBroker({ session, instanceId });
 
       expect(result.portsReleased).toStrictEqual([40_001, 40_002]);
+    });
+  });
+
+  describe('closing the session log file descriptors', () => {
+    it('VALID: {two log fds on the session} => every descriptor is closed', async () => {
+      const proxy = laneTeardownBrokerProxy();
+      const instanceId = InstanceIdStub();
+      const pgid = ProcessGroupIdStub({ value: 9001 });
+      const fdA = FileDescriptorStub({ value: 10 });
+      const fdB = FileDescriptorStub({ value: 11 });
+      proxy.setupLiveGroup({ pgid });
+      proxy.setupGraceElapsesInstantly();
+      proxy.setupFdCloseSucceeds({ fd: fdA });
+      proxy.setupFdCloseSucceeds({ fd: fdB });
+      const { homePath } = LaneSessionStub();
+      proxy.setupHomeRemoved({ homePath });
+      proxy.setupEvidenceResolved();
+      const session = LaneSessionStub({
+        homePath,
+        evidencePath: proxy.getEvidencePath(),
+        browser: null,
+        pgids: [pgid],
+        logFds: [fdA, fdB],
+      });
+
+      await laneTeardownBroker({ session, instanceId });
+
+      expect(proxy.getClosedFds()).toStrictEqual([fdA, fdB]);
+    });
+
+    it('VALID: {a live process group} => the fd closes happen after the SIGTERM/SIGKILL signals', async () => {
+      const proxy = laneTeardownBrokerProxy();
+      const instanceId = InstanceIdStub();
+      const pgid = ProcessGroupIdStub({ value: 9002 });
+      const fd = FileDescriptorStub({ value: 12 });
+      proxy.setupLiveGroup({ pgid });
+      proxy.setupGraceElapsesInstantly();
+      proxy.setupFdCloseSucceeds({ fd });
+      const { homePath } = LaneSessionStub();
+      proxy.setupHomeRemoved({ homePath });
+      proxy.setupEvidenceResolved();
+      const session = LaneSessionStub({
+        homePath,
+        evidencePath: proxy.getEvidencePath(),
+        browser: null,
+        pgids: [pgid],
+        logFds: [fd],
+      });
+
+      await laneTeardownBroker({ session, instanceId });
+
+      expect(proxy.assertFdCloseHappensAfterKillSignals()).toBe(true);
+    });
+
+    it('EMPTY: {logFds: []} => tears down cleanly and closes nothing', async () => {
+      const proxy = laneTeardownBrokerProxy();
+      const instanceId = InstanceIdStub();
+      const { homePath } = LaneSessionStub();
+      proxy.setupHomeRemoved({ homePath });
+      proxy.setupEvidenceResolved();
+      const session = LaneSessionStub({
+        homePath,
+        evidencePath: proxy.getEvidencePath(),
+        browser: null,
+        pgids: [],
+        logFds: [],
+      });
+
+      await laneTeardownBroker({ session, instanceId });
+
+      expect(proxy.getClosedFds()).toStrictEqual([]);
+    });
+
+    it('ERROR: {one fd close rejects} => the process groups are still signalled, the other fd still closes, and the home is still removed', async () => {
+      const proxy = laneTeardownBrokerProxy();
+      const instanceId = InstanceIdStub();
+      const pgid = ProcessGroupIdStub({ value: 9003 });
+      const failingFd = FileDescriptorStub({ value: 13 });
+      const okFd = FileDescriptorStub({ value: 14 });
+      proxy.setupLiveGroup({ pgid });
+      proxy.setupGraceElapsesInstantly();
+      proxy.setupFdCloseFails({ fd: failingFd, error: new Error('EBADF: bad file descriptor') });
+      proxy.setupFdCloseSucceeds({ fd: okFd });
+      const { homePath } = LaneSessionStub();
+      proxy.setupHomeRemoved({ homePath });
+      proxy.setupEvidenceResolved();
+      const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
+      stderrSpy.calledWith([]).implement(() => true);
+      const session = LaneSessionStub({
+        homePath,
+        evidencePath: proxy.getEvidencePath(),
+        browser: null,
+        pgids: [pgid],
+        logFds: [failingFd, okFd],
+      });
+
+      await laneTeardownBroker({ session, instanceId });
+
+      expect(proxy.getKillCallsFor({ pgid })).toStrictEqual(['SIGTERM', 'SIGKILL']);
+
+      const stderrCalls = [...stderrSpy.callsMatching([])];
+
+      expect(stderrCalls.at(-1)?.[0]).toBe(
+        `[lane-teardown] fd close failed for instance ${instanceId}, fd ${String(failingFd)}: Error: EBADF: bad file descriptor\n`,
+      );
+      expect(proxy.getClosedFds()).toStrictEqual([failingFd, okFd]);
+      expect(proxy.getRemovedPaths()).toStrictEqual([homePath]);
     });
   });
 });

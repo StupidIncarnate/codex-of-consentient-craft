@@ -3,23 +3,27 @@ import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-// Import order is load-bearing below: `locationsRepoLinkPathFindBrokerProxy` pulls in
-// `@dungeonmaster/shared`'s `processCwdAdapterProxy`, which mocks `process.cwd` off the BARE
-// `'process'` specifier. This package's own process adapters (`process-kill-group-adapter.ts`,
-// `process-is-alive-adapter.ts`) mock `process.kill` off `'node:process'` — a DIFFERENT specifier
-// string that Jest's auto-mock registry resolves to the same underlying built-in, so whichever
-// specifier's mock factory is registered LAST wins for the whole module. Importing the two
-// process/kill-group and process/is-alive proxies AFTER the locations/fs proxies below is what
-// keeps `kill` mocked; reversing this order silently sends SIGTERM/SIGKILL through the REAL
-// `process.kill`, which throws ESRCH against every test pgid. See W12's report for the reproduction.
 import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker.proxy';
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { processIsAliveAdapterProxy } from '../../../adapters/process/is-alive/process-is-alive-adapter.proxy';
 import { processKillGroupAdapterProxy } from '../../../adapters/process/kill-group/process-kill-group-adapter.proxy';
+
+// Every proxy above mocks its builtin off the BARE specifier — `'process'`, `'fs'` — which is what
+// lets two proxies that touch one module compose instead of overwriting each other. The repo's
+// proxy-mock transformer keys its dedup on the specifier STRING, so a `node:`-prefixed import of
+// the same module becomes a second, competing partial `jest.mock` factory and one of the two
+// silently loses to the real syscall. `no-restricted-imports` holds the rule for this package.
+// The `kill` and `closeSync` imports below are read-only: they cast the already-mocked functions
+// to `jest.MockedFunction` to read `.mock.invocationCallOrder`, and never register a mock.
+import { fsCloseFdAdapterProxy } from '../../../adapters/fs/close-fd/fs-close-fd-adapter.proxy';
+import { closeSync } from 'fs';
+import { kill } from 'process';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
+import type { FileDescriptorStub } from '../../../contracts/file-descriptor/file-descriptor.stub';
 
 type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
+type FileDescriptor = ReturnType<typeof FileDescriptorStub>;
 
 // The evidence-link resolution a lane's evidencePath must resolve through for
 // locationsRepoLinkPathFindBroker to answer a repo-local RepoLocalPath. Fixed rather than
@@ -43,11 +47,16 @@ export const laneTeardownBrokerProxy = (): {
   setupEvidenceResolved: () => void;
   getKillCallsFor: (params: { pgid: ProcessGroupId }) => unknown[];
   getRemovedPaths: () => unknown[];
+  setupFdCloseSucceeds: (params: { fd: FileDescriptor }) => void;
+  setupFdCloseFails: (params: { fd: FileDescriptor; error: Error }) => void;
+  getClosedFds: () => unknown[];
+  assertFdCloseHappensAfterKillSignals: () => boolean;
 } => {
   const evidenceProxy = locationsRepoLinkPathFindBrokerProxy();
   const rmProxy = fsRmAdapterProxy();
   const aliveProxy = processIsAliveAdapterProxy();
   const killProxy = processKillGroupAdapterProxy();
+  const closeFdProxy = fsCloseFdAdapterProxy();
   const dateNowHandle: SpyOnHandle = registerSpyOn({ object: Date, method: 'now' });
 
   return {
@@ -94,5 +103,38 @@ export const laneTeardownBrokerProxy = (): {
       killProxy.getCallsFor({ pgid }).filter((signal) => typeof signal === 'string'),
 
     getRemovedPaths: (): unknown[] => rmProxy.getRemovedPaths(),
+
+    setupFdCloseSucceeds: ({ fd }: { fd: FileDescriptor }): void => {
+      closeFdProxy.succeeds({ fd });
+    },
+
+    setupFdCloseFails: ({ fd, error }: { fd: FileDescriptor; error: Error }): void => {
+      closeFdProxy.throws({ fd, error });
+    },
+
+    getClosedFds: (): unknown[] => closeFdProxy.getClosedFds(),
+
+    // `kill` and `closeSync` are two different mocked functions, so ordering them needs the raw
+    // `invocationCallOrder` Jest stamps on each mock call — MockHandle's own `callsMatching` only
+    // orders calls WITHIN one function. Filtering to `typeof signal === 'string'` excludes
+    // `processIsAliveAdapter`'s liveness probe (signal `0`), matching `getKillCallsFor` above, so
+    // this reads the SIGTERM/SIGKILL signals only, not the probe that precedes them.
+    assertFdCloseHappensAfterKillSignals: (): boolean => {
+      const killFn = kill as jest.MockedFunction<typeof kill>;
+      const closeFn = closeSync as jest.MockedFunction<typeof closeSync>;
+
+      const signalOrders = killFn.mock.calls
+        .map((call, index) =>
+          typeof call[1] === 'string' ? killFn.mock.invocationCallOrder[index] : undefined,
+        )
+        .filter((order): order is NonNullable<typeof order> => order !== undefined);
+      const closeOrders = closeFn.mock.invocationCallOrder;
+
+      if (signalOrders.length === 0 || closeOrders.length === 0) {
+        return false;
+      }
+
+      return Math.min(...closeOrders) > Math.max(...signalOrders);
+    },
   };
 };

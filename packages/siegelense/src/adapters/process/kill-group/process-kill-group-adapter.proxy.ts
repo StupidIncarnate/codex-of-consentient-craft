@@ -1,4 +1,4 @@
-import { kill } from 'node:process';
+import { kill } from 'process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
