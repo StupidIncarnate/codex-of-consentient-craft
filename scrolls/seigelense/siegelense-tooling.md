@@ -1,5 +1,11 @@
 # Siegelense — the tool, its surface, and what it must guarantee
 
+> **Building this? Read `HANDOFF.md` in this folder first.** Part of this specification is already
+> built, in the worktree `worktrees/siegelense` on branch `siegelense`. The handoff carries what is
+> done, what is not, the open bug that blocks the teardown suite, and the instruction to resume
+> under. `build-ledger.md` tracks coverage section by section, and headings below carry a
+> `> **Status:** …` line where a chunk has delivered them.
+
 > One of three documents split out of `../siege-verification-tooling.md`, carrying the siegelense tool
 > itself: the service, every capability, the determinism it depends on, and the whole consolidated surface.
 > Its companions are `siegelense-recipes.md` and `siege-verification-remainder.md`.
