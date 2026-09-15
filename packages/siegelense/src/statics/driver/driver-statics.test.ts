@@ -15,9 +15,11 @@ describe('driverStatics', () => {
         readyPollMs: 250,
         defaultTimeoutMs: 180_000,
         readyProbeTimeoutMs: 5_000,
+        homePrefix: 'dm-siege-',
       },
       teardown: {
         graceMs: 3_000,
+        signals: ['SIGINT', 'SIGTERM'],
       },
       run: {
         defaultStepTimeoutMs: 30_000,

@@ -12,6 +12,7 @@ import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 import { fileScopeEmptyStatics } from '../../../statics/file-scope-empty/file-scope-empty-statics';
+import { gitScopeDroppedPathsStatics } from '../../../statics/git-scope-dropped-paths/git-scope-dropped-paths-statics';
 import { noFilesProcessedStatics } from '../../../statics/no-files-processed/no-files-processed-statics';
 import { pathNotFoundStatics } from '../../../statics/path-not-found/path-not-found-statics';
 import { pathCheckLayerBroker } from './path-check-layer-broker';
@@ -80,11 +81,12 @@ export const commandRunBroker = async ({
       ? gitScopedConfig
       : { ...gitScopedConfig, passthrough: normalizedPassthrough };
 
-  // A PATH DISK DOES NOT HAVE IS THE CALLER BEING WRONG, and that is a different answer from the
-  // empty scope above. An empty `--uncommitted` legitimately has nothing to check and exits 0; a typo'd
-  // `-- <file>` asked for something specific and must not come back quiet. It cannot come back loud
-  // on its own either: the path matches no package, no child ward spawns, and
+  // A PATH DISK DOES NOT HAVE IS THE CALLER BEING WRONG ONLY WHEN THE CALLER NAMED IT. A typo'd
+  // `-- <file>` asked for something specific and must not come back quiet — it cannot come back
+  // loud on its own either: the path matches no package, no child ward spawns, and
   // `checkResultBuildTransformer` reads an EMPTY `projectResults` as `pass` rather than `skip`.
+  // `isExplicitPathScopeGuard` is what tells the two apart: a git-derived scope failing this same
+  // check is answered below, never here.
   //
   // It runs AFTER normalization so the paths asked about are the repaired repo-relative ones, and
   // BEFORE `workspaceDiscoverBroker` so a typo costs no discovery.
@@ -93,7 +95,7 @@ export const commandRunBroker = async ({
     rootPath,
   });
 
-  if (missingPaths.length > 0) {
+  if (missingPaths.length > 0 && isExplicitPathScopeGuard({ config })) {
     const pathList = missingPaths.map((arg) => `  ${String(arg)}`).join('\n');
     process.stdout.write(
       `${pathNotFoundStatics.heading}\n${pathList}\n\n${pathNotFoundStatics.guidance}\n`,
@@ -102,16 +104,47 @@ export const commandRunBroker = async ({
     return adapterResultContract.parse({ success: true });
   }
 
+  // A GIT-DERIVED PATH THAT IS GONE IS NOT A TYPO. `--committed` diffs merge-base against HEAD
+  // alone — it has no idea what the working tree currently holds — so a file this branch's own
+  // commits already added or modified stays in its answer even after an uncommitted `rm` deletes
+  // it, and staging that deletion changes nothing because `--committed` never reads the index
+  // either. Refusing the whole run here would make the ordinary pre-commit gate
+  // (`--uncommitted --committed`) impossible on any change that deletes a file, so the path is
+  // dropped and named instead of refused.
+  const missingSet = new Set(missingPaths);
+  const survivingPassthrough: WardConfig['passthrough'] =
+    missingPaths.length === 0
+      ? resolvedConfig.passthrough
+      : (resolvedConfig.passthrough ?? []).filter((arg) => !missingSet.has(arg));
+
+  if (missingPaths.length > 0) {
+    const droppedList = missingPaths.map((arg) => `  ${String(arg)}`).join('\n');
+    process.stdout.write(`${gitScopeDroppedPathsStatics.heading}\n${droppedList}\n\n`);
+
+    // DROPPING EVERY SURVIVING PATH LANDS ON THE SAME EMPTY-SCOPE ANSWER an already-clean tree
+    // gets, not a silent pass: a scope that resolved to zero files after the drop has exactly as
+    // much to check as one that resolved to zero files from the start.
+    if (!(Array.isArray(survivingPassthrough) && survivingPassthrough.length > 0)) {
+      process.stdout.write(`${fileScopeEmptyStatics.message}\n`);
+      return adapterResultContract.parse({ success: true });
+    }
+  }
+
+  const scopedConfig: WardConfig =
+    missingPaths.length === 0
+      ? resolvedConfig
+      : { ...resolvedConfig, passthrough: survivingPassthrough };
+
   const workspaces = await workspaceDiscoverBroker({ rootPath });
 
   const wardResult =
     workspaces === null
       ? await (async () => {
           const projectFolder = await folderResolveLayerBroker({ rootPath });
-          return singlePackageLayerBroker({ config: resolvedConfig, projectFolder, rootPath });
+          return singlePackageLayerBroker({ config: scopedConfig, projectFolder, rootPath });
         })()
       : await multiPackageLayerBroker({
-          config: resolvedConfig,
+          config: scopedConfig,
           projectFolders: workspaces,
           rootPath,
         });
@@ -157,9 +190,7 @@ export const commandRunBroker = async ({
   // files nothing lints — reddening those would break the ordinary pre-push gate. So the question is
   // asked of `config`, the object the CALLER handed in, never of `resolvedConfig`.
   if (isExplicitPathScopeGuard({ config }) && hasNoFilesProcessedGuard({ wardResult })) {
-    const scopeList = (resolvedConfig.passthrough ?? [])
-      .map((arg) => `  ${String(arg)}`)
-      .join('\n');
+    const scopeList = (scopedConfig.passthrough ?? []).map((arg) => `  ${String(arg)}`).join('\n');
     process.stdout.write(
       `\n${noFilesProcessedStatics.heading}\n${scopeList}\n\n${noFilesProcessedStatics.guidance}\n`,
     );

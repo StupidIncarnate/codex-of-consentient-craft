@@ -62,12 +62,22 @@ export const driverStatics = {
     // connects and then hangs cannot wedge the whole readyPollMs cadence behind it. 5s is
     // generous for one HTTP round trip against localhost.
     readyProbeTimeoutMs: 5_000,
+    // The throwaway home prefix `lane-boot-broker`'s own USAGE example already assumes
+    // (`/tmp/dm-siege-inst_1`) — joined onto `osTmpdirAdapter()` plus the instance id by
+    // `locationsInstanceHomePathFindBroker`. Matches the measured prototype's own home-directory
+    // naming (packages/web/test/siege-driver/siege-lane.ts).
+    homePrefix: 'dm-siege-',
   },
   teardown: {
     // Matches KILL_GRACE_MS in the measured prototype
     // (packages/web/test/siege-driver/siege-lane.ts:37) — SIGTERM, then this long a wait, then
     // SIGKILL to whatever is still standing.
     graceMs: 3_000,
+    // The OS signals a driver process reacts to by tearing its own lane down, matching
+    // `siege-driver.ts`'s own `process.on('SIGINT', shutdown)` / `SIGTERM` pair
+    // (packages/web/test/siege-driver/siege-driver.ts:180-181) — a bare array literal at the call
+    // site is a magic-string-array lint violation, so it lives here instead.
+    signals: ['SIGINT', 'SIGTERM'],
   },
   run: {
     // Playwright's own default action timeout for `click`/`fill`/`waitFor`-style calls is

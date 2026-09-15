@@ -8,3 +8,4 @@
 
 export * from './src/startup/start-install';
 export * from './src/startup/start-siegelense';
+export * from './src/startup/start-siegelense-driver';

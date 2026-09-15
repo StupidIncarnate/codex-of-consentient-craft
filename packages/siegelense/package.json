@@ -50,6 +50,12 @@
       "import": "./dist/flows.js",
       "require": "./dist/flows.js",
       "types": "./dist/flows.d.ts"
+    },
+    "./state": {
+      "source": "./state.ts",
+      "import": "./dist/state.js",
+      "require": "./dist/state.js",
+      "types": "./dist/state.d.ts"
     }
   },
   "files": [

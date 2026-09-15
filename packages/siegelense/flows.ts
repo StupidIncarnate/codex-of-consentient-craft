@@ -6,4 +6,5 @@
  * import { ... } from '@dungeonmaster/siegelense/flows';
  */
 
+export * from './src/flows/driver/driver-flow';
 export * from './src/flows/siegelense/siegelense-flow';
