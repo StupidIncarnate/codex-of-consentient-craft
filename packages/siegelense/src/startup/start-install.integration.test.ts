@@ -14,16 +14,22 @@ describe('StartInstall', () => {
         baseName: BaseNameStub({ value: 'siegelense-start-install-wiring' }),
       });
 
-      // dungeonmasterRoot mirrors targetProjectRoot here rather than testbed.dungeonmasterPath —
-      // see install-flow.integration.test.ts for why: this package's link-create responder is the
-      // first in the repo to WRITE under dungeonmasterRoot, and testbed.dungeonmasterPath is the
-      // real checked-out worktree root.
+      // The siegelense root is resolved through DUNGEONMASTER_HOME — the same env var
+      // locationsRootPathFindBroker reads at runtime — never through context.dungeonmasterRoot,
+      // which names the CLI package's own install location. The two point at DIFFERENT
+      // testbed-nested directories, so a responder that read the wrong one produces a visibly
+      // wrong link target instead of silently agreeing by accident.
+      const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
+      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+
       const result = await StartInstall({
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: `${testbed.guildPath}/.wrong-cli-root` }),
         },
       });
+
+      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
 
       testbed.cleanup();
 
@@ -31,7 +37,7 @@ describe('StartInstall', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'created',
-        message: `Created .siegelense -> ${testbed.guildPath}/siegelense; Created .gitignore with .siegelense/; Created packages/siegelense-recipes/src/`,
+        message: `Created .siegelense -> ${dungeonmasterHomePath}/siegelense; Created .gitignore with .siegelense; Created packages/siegelense-recipes/src/`,
       });
     });
   });
@@ -42,22 +48,28 @@ describe('StartInstall', () => {
         baseName: BaseNameStub({ value: 'siegelense-start-install-link-resolves' }),
       });
 
+      const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
+      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+
       await StartInstall({
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: `${testbed.guildPath}/.wrong-cli-root` }),
         },
       });
 
-      // A write THROUGH the link path, read back through the REAL (unlinked) path: a dangling
-      // link throws on the write, and a link pointing at the wrong directory reads back null here
-      // — either way this fails loudly, unlike an existence check on `.siegelense` alone.
+      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+
+      // A write THROUGH the link path, read back through the REAL path under the dungeonmaster
+      // home: a dangling link throws on the write, and a link pointing at the wrong directory
+      // reads back null here — either way this fails loudly, unlike an existence check on
+      // `.siegelense` alone.
       testbed.writeFile({
         relativePath: RelativePathStub({ value: '.siegelense/probe.txt' }),
         content: FileContentStub({ value: 'siegelense-link-resolves-here\n' }),
       });
       const readThroughRealPath = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'siegelense/probe.txt' }),
+        relativePath: RelativePathStub({ value: '.dm-home/siegelense/probe.txt' }),
       });
 
       testbed.cleanup();
@@ -72,18 +84,23 @@ describe('StartInstall', () => {
         baseName: BaseNameStub({ value: 'siegelense-start-install-gitignore-twice' }),
       });
 
+      const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
+      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+
       await StartInstall({
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: `${testbed.guildPath}/.wrong-cli-root` }),
         },
       });
       await StartInstall({
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: `${testbed.guildPath}/.wrong-cli-root` }),
         },
       });
+
+      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
 
       const gitignoreContent = testbed.readFile({
         relativePath: RelativePathStub({ value: '.gitignore' }),
@@ -93,7 +110,7 @@ describe('StartInstall', () => {
 
       const entryLines = String(gitignoreContent)
         .split('\n')
-        .filter((line) => line === '.siegelense/');
+        .filter((line) => line === '.siegelense');
       const entryCount = entryLines.length;
 
       expect(entryCount).toBe(1);
@@ -106,12 +123,17 @@ describe('StartInstall', () => {
         baseName: BaseNameStub({ value: 'siegelense-start-install-recipes-empty' }),
       });
 
+      const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
+      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+
       await StartInstall({
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: `${testbed.guildPath}/.wrong-cli-root` }),
         },
       });
+
+      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
 
       const recipesEntries = testbed.listDir({
         relativePath: RelativePathStub({ value: 'packages/siegelense-recipes/src' }),
@@ -127,10 +149,13 @@ describe('StartInstall', () => {
         baseName: BaseNameStub({ value: 'siegelense-start-install-recipes-untouched' }),
       });
 
+      const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
+      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+
       await StartInstall({
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: `${testbed.guildPath}/.wrong-cli-root` }),
         },
       });
 
@@ -142,9 +167,11 @@ describe('StartInstall', () => {
       await StartInstall({
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: `${testbed.guildPath}/.wrong-cli-root` }),
         },
       });
+
+      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
 
       const markerContent = testbed.readFile({
         relativePath: RelativePathStub({ value: 'packages/siegelense-recipes/src/marker.txt' }),
@@ -157,25 +184,63 @@ describe('StartInstall', () => {
   });
 
   describe('path shape of the result', () => {
-    it('VALID: {fresh target} => the resolved siegelense root embedded in the result message is an absolute path', async () => {
+    it('VALID: {fresh target} => the resolved siegelense root embedded in the result message names the dungeonmaster home, not targetProjectRoot or context.dungeonmasterRoot', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'siegelense-start-install-absolute-path' }),
       });
 
+      const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
+      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+
       const result = await StartInstall({
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: `${testbed.guildPath}/.wrong-cli-root` }),
         },
       });
+
+      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
 
       testbed.cleanup();
 
       const afterArrow = String(String(result.message).split(' -> ')[1]);
       const resolvedTarget = String(afterArrow.split(';')[0]);
 
-      expect(resolvedTarget).toBe(`${testbed.guildPath}/siegelense`);
-      expect(resolvedTarget.startsWith('/')).toBe(true);
+      expect(resolvedTarget).toBe(`${dungeonmasterHomePath}/siegelense`);
+    });
+
+    it('VALID: {fresh target} => every path the result message hands back is absolute', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'siegelense-start-install-every-path-absolute' }),
+      });
+
+      const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
+      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+
+      const result = await StartInstall({
+        context: {
+          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: `${testbed.guildPath}/.wrong-cli-root` }),
+        },
+      });
+
+      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+
+      testbed.cleanup();
+
+      // Every clause the flow joins into `message` with '; ' names a real filesystem path only
+      // where it carries a `-> ` marker (the link-create clause) — the ignore-write and
+      // recipes-scaffold clauses name REPO-RELATIVE labels (`.gitignore`, `packages/.../src/`) by
+      // design, so they are excluded rather than failed against absoluteness.
+      const handedBackPaths = String(result.message)
+        .split('; ')
+        .filter((clause) => clause.includes(' -> '))
+        .map((clause) => String(clause.split(' -> ')[1]));
+      const absoluteFlags = handedBackPaths.map((candidatePath) => candidatePath.startsWith('/'));
+
+      // A literal [true], not handedBackPaths.map(() => true): comparing against a count derived
+      // from the same extraction would pass vacuously if the extraction found nothing at all.
+      expect(absoluteFlags).toStrictEqual([true]);
     });
   });
 });

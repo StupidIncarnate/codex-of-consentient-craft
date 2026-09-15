@@ -1,16 +1,20 @@
 /**
- * PURPOSE: Creates or repairs `<targetProjectRoot>/.siegelense`, the symlink onto
- * `<dungeonmasterRoot>/siegelense/` that is the whole reason a siegelense evidence path resolves
- * at all — a shot is a PNG, the only way a model sees one is a `Read` of its path, and a path the
- * reader's `Read` cannot reach hands back nothing. `mkdir -p`s the target BEFORE the link is
- * touched, so the link is never dangling even for one step. Idempotent in the sense that matters
- * in practice: a link left over from another checkout still resolves to something real, so this
- * compares the link's STORED target (via fsReadlinkAdapter) rather than trusting its mere
- * presence, and only replaces it when that stored target is wrong.
+ * PURPOSE: Creates or repairs `<targetProjectRoot>/.siegelense`, the symlink onto the resolved
+ * siegelense root that is the whole reason a siegelense evidence path resolves at all — a shot is
+ * a PNG, the only way a model sees one is a `Read` of its path, and a path the reader's `Read`
+ * cannot reach hands back nothing. The target comes from locationsRootPathFindBroker — the SAME
+ * broker the runtime resolves siegelense's home through — never from context.dungeonmasterRoot,
+ * which names the CLI package's own install location (see cli-entry.ts) and has no relation to
+ * DUNGEONMASTER_HOME. Resolving through the shared broker keeps install time and runtime naming the
+ * identical directory by construction, rather than by two call sites agreeing. `mkdir -p`s the
+ * target BEFORE the link is touched, so the link is never dangling even for one step. Idempotent in
+ * the sense that matters in practice: a link left over from another checkout still resolves to
+ * something real, so this compares the link's STORED target (via fsReadlinkAdapter) rather than
+ * trusting its mere presence, and only replaces it when that stored target is wrong.
  *
  * USAGE:
  * const result = await InstallLinkCreateResponder({ context });
- * // Creates <targetProjectRoot>/.siegelense onto <dungeonmasterRoot>/siegelense/, leaves an
+ * // Creates <targetProjectRoot>/.siegelense onto the resolved siegelense root, leaves an
  * // already-correct link untouched, or replaces one pointing somewhere else
  */
 
@@ -28,6 +32,7 @@ import {
 import type { InstallContext, InstallResult } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
+import { locationsRootPathFindBroker } from '../../../brokers/locations/root-path-find/locations-root-path-find-broker';
 import { fsReadlinkAdapter } from '../../../adapters/fs/readlink/fs-readlink-adapter';
 import { fsSymlinkAdapter } from '../../../adapters/fs/symlink/fs-symlink-adapter';
 import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
@@ -40,9 +45,7 @@ export const InstallLinkCreateResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const targetDir = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [context.dungeonmasterRoot, locationsStatics.siegelense.dir] }),
-  );
+  const targetDir = locationsRootPathFindBroker();
   const linkPath = absoluteFilePathContract.parse(
     pathJoinAdapter({ paths: [context.targetProjectRoot, LINK_ENTRY] }),
   );

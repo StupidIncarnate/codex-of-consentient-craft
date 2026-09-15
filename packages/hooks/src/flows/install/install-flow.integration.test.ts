@@ -1,6 +1,7 @@
 import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { InstallFlow } from './install-flow';
+import { freshProjectHarness } from '../../../test/harnesses/fresh-project/fresh-project.harness';
 
 describe('InstallFlow', () => {
   describe('delegation to responder', () => {
@@ -32,6 +33,214 @@ describe('InstallFlow', () => {
       const parsed = JSON.parse(settingsContent!) as Record<PropertyKey, unknown>;
 
       expect(parsed).toStrictEqual({
+        hooks: {
+          PreToolUse: [
+            {
+              matcher: 'Write|Edit|MultiEdit',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-edit-lint' }],
+            },
+            {
+              matcher: 'Bash',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
+            },
+            {
+              matcher: 'Grep|Glob|Search|Find',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
+            },
+            {
+              matcher: 'Write',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-folder-detail' }],
+            },
+          ],
+          PostToolUse: [
+            {
+              matcher: 'AskUserQuestion',
+              hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
+            },
+          ],
+          SessionStart: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+            },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet reportingFindings' },
+              ],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet modifyingCodeGuidance',
+                },
+              ],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
+            },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet commentDiscipline',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet buildDiscipline',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet worktrees',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
+          ],
+          SubagentStart: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+            },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet reportingFindings' },
+              ],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet modifyingCodeGuidance',
+                },
+              ],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
+            },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
+            },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet commentDiscipline',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet buildDiscipline',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet worktrees',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
+          ],
+          SubagentStop: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-subagent-stop' }],
+            },
+          ],
+          WorktreeCreate: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }],
+            },
+          ],
+        },
+      });
+    });
+  });
+
+  // installTestbedCreateBroker (above) pre-creates .claude/ before any package installs, which is
+  // why that scenario never exercises a target whose .claude/ directory is missing entirely.
+  // freshProjectHarness leaves the project with only a package.json, matching a brand-new repo.
+  describe('no .claude directory at all', () => {
+    const project = freshProjectHarness();
+
+    it('VALID: {context: fresh project with no .claude directory} => creates .claude directory and settings.json', async () => {
+      const projectPath = project.create();
+
+      const result = await InstallFlow({
+        context: {
+          targetProjectRoot: projectPath,
+          dungeonmasterRoot: projectPath,
+        },
+      });
+
+      const settings = project.readSettings({ projectPath });
+
+      project.cleanup();
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/hooks',
+        success: true,
+        action: 'created',
+        message: 'Created .claude/settings.json with hooks',
+      });
+
+      expect(settings).toStrictEqual({
         hooks: {
           PreToolUse: [
             {

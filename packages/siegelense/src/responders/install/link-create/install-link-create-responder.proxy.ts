@@ -6,15 +6,17 @@ import {
 } from '@dungeonmaster/shared/testing';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
+import { locationsRootPathFindBrokerProxy } from '../../../brokers/locations/root-path-find/locations-root-path-find-broker.proxy';
 import { fsReadlinkAdapterProxy } from '../../../adapters/fs/readlink/fs-readlink-adapter.proxy';
 import { fsSymlinkAdapterProxy } from '../../../adapters/fs/symlink/fs-symlink-adapter.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 import { InstallLinkCreateResponder } from './install-link-create-responder';
 
-// Every caller in this file exercises targetProjectRoot: '/project', dungeonmasterRoot:
-// '/dm-root' (the real, unstaged pathJoin passthrough resolves those to the two paths below), so
-// every setup method targets the same pair.
-const TARGET_DIR_VALUE = '/dm-root/siegelense';
+// Every caller in this file exercises targetProjectRoot: '/project', with the siegelense root
+// resolved through locationsRootPathFindBrokerProxy to TARGET_DIR_VALUE (never through
+// context.dungeonmasterRoot — the responder no longer reads that field), so every setup method
+// targets the same pair.
+const TARGET_DIR_VALUE = '/home/user/.dungeonmaster/siegelense';
 const LINK_PATH_VALUE = '/project/.siegelense';
 
 const targetDirAbs = AbsoluteFilePathStub({ value: TARGET_DIR_VALUE });
@@ -32,18 +34,33 @@ export const InstallLinkCreateResponderProxy = (): {
   getUnlinkedPaths: () => readonly unknown[];
   assertMkdirCalledBeforeSymlink: () => boolean;
 } => {
-  pathJoinAdapterProxy();
+  const rootPathProxy = locationsRootPathFindBrokerProxy();
+  const pathJoinProxy = pathJoinAdapterProxy();
   const mkdirProxy = fsMkdirAdapterProxy();
   const existsProxy = fsExistsSyncAdapterProxy();
   const symlinkProxy = fsSymlinkAdapterProxy();
   const readlinkProxy = fsReadlinkAdapterProxy();
   const unlinkProxy = fsUnlinkAdapterProxy();
 
+  // The responder resolves targetDir (locationsRootPathFindBroker's own pathJoin, staged inside
+  // rootPathProxy.setupRootPath) BEFORE it resolves linkPath (this file's own pathJoin) —
+  // pathJoinAdapterProxy's `returns()` is call-order scoped, so registration order here has to
+  // match that execution order.
+  const setupTargetDir = (): void => {
+    rootPathProxy.setupRootPath({
+      homeDir: '/home/user',
+      homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+      rootPath: targetDirFp,
+    });
+  };
+
   return {
     callResponder: InstallLinkCreateResponder,
 
     // Neither the target dir nor the link exist yet — the fresh-install case.
     setupNoLink: (): void => {
+      setupTargetDir();
+      pathJoinProxy.returns({ result: linkPathFp });
       mkdirProxy.succeeds({ filepath: targetDirFp });
       existsProxy.returns({ filePath: linkPathFp, result: false });
       symlinkProxy.succeeds({ targetPath: targetDirAbs, linkPath: linkPathAbs });
@@ -51,6 +68,8 @@ export const InstallLinkCreateResponderProxy = (): {
 
     // The link exists and already reads back the right target — the no-op case.
     setupCorrectLink: (): void => {
+      setupTargetDir();
+      pathJoinProxy.returns({ result: linkPathFp });
       mkdirProxy.succeeds({ filepath: targetDirFp });
       existsProxy.returns({ filePath: linkPathFp, result: true });
       readlinkProxy.resolves({ linkPath: linkPathAbs, resolvedTarget: targetDirAbs });
@@ -58,6 +77,8 @@ export const InstallLinkCreateResponderProxy = (): {
 
     // The link exists but stores a different target — a leftover from another checkout.
     setupWrongTarget: ({ wrongTarget }: { wrongTarget: string }): void => {
+      setupTargetDir();
+      pathJoinProxy.returns({ result: linkPathFp });
       mkdirProxy.succeeds({ filepath: targetDirFp });
       existsProxy.returns({ filePath: linkPathFp, result: true });
       readlinkProxy.resolves({ linkPath: linkPathAbs, resolvedTarget: wrongTarget });

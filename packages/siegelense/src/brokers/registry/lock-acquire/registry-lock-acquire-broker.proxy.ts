@@ -24,12 +24,24 @@ const REGISTRY_LOCK_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense/registry.lock
 const eexistError = (): Error =>
   Object.assign(new Error('EEXIST: file already exists'), { code: 'EEXIST' });
 
+// ENOENT on the read that follows a failed create is the one code the broker treats as absence —
+// the holder released the file in the instant between the create and this read.
+const enoentError = (): Error =>
+  Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' });
+
+// An instance mid-spin-up of an API server, a Vite server and Chromium is exactly what starves
+// file descriptors, so EMFILE is the realistic non-absence code the read can fail with.
+const emfileError = (): Error =>
+  Object.assign(new Error('EMFILE: too many open files'), { code: 'EMFILE' });
+
 export const registryLockAcquireBrokerProxy = (): {
   lockPath: ReturnType<typeof AbsoluteFilePathStub>;
   setupNow: (params: { nowMs: EpochMs }) => void;
   setupAvailable: () => void;
   setupStaleHeldByAnother: (params: { nowMs: EpochMs }) => void;
   setupFreshHeldByAnotherPastCeiling: () => { startedAtMs: EpochMs; nowMs: EpochMs };
+  setupLockReadFailsForNonAbsenceReason: () => void;
+  setupLockVanishesBeforeRetryRead: () => void;
   getLastWriteFlag: () => unknown;
   getDeletedPaths: () => unknown[];
 } => {
@@ -110,6 +122,25 @@ export const registryLockAcquireBrokerProxy = (): {
       dateHandle.onceFor([]).returns(nowMs);
 
       return { startedAtMs, nowMs };
+    },
+
+    // The read that classifies a failed exclusive create fails for a reason that has nothing to
+    // do with absence — EMFILE, not ENOENT. Persistent (not one-shot): the broker must throw on
+    // the FIRST occurrence rather than recursing, so a regression that goes back to swallowing
+    // this into "absent" keeps failing the same way on every subsequent attempt too.
+    setupLockReadFailsForNonAbsenceReason: (): void => {
+      stagePathResolution();
+      writeProxy.throws({ filePath: lockPath, error: eexistError() });
+      readProxy.rejects({ filePath: lockPath, error: emfileError() });
+    },
+
+    // FIRST exclusive create fails (a competitor's file was there) → the read that classifies it
+    // finds nothing (ENOENT) — its holder released it in between → RETRY exclusive create
+    // (staged separately via setupAvailable) takes the now-genuinely-absent path.
+    setupLockVanishesBeforeRetryRead: (): void => {
+      stagePathResolution();
+      writeProxy.throwsOnce({ filePath: lockPath, error: eexistError() });
+      readProxy.rejects({ filePath: lockPath, error: enoentError() });
     },
 
     getLastWriteFlag: (): unknown => writeProxy.getFlagFor({ filePath: lockPath }),

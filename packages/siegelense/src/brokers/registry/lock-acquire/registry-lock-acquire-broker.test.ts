@@ -61,4 +61,29 @@ describe('registryLockAcquireBroker', () => {
       );
     });
   });
+
+  describe('lock read fails for a reason other than absence', () => {
+    it('ERROR: {the lock read fails for a reason other than absence} => does not loop forever', async () => {
+      const proxy = registryLockAcquireBrokerProxy();
+      proxy.setupNow({ nowMs: EpochMsStub() });
+      proxy.setupLockReadFailsForNonAbsenceReason();
+
+      await expect(registryLockAcquireBroker({})).rejects.toThrow(
+        `Failed to read file at ${proxy.lockPath}`,
+      );
+    }, 1000);
+  });
+
+  describe('lock vanishes between the failed create and the read', () => {
+    it('EDGE: {the lock vanishes between the failed create and the read} => retries the create', async () => {
+      const proxy = registryLockAcquireBrokerProxy();
+      proxy.setupNow({ nowMs: EpochMsStub() });
+      proxy.setupLockVanishesBeforeRetryRead();
+      proxy.setupAvailable();
+
+      const result = await registryLockAcquireBroker({});
+
+      expect(result).toStrictEqual({ success: true });
+    });
+  });
 });

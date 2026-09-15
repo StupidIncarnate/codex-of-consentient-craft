@@ -10,11 +10,21 @@
  * — this repo's own tsconfig.json family permits comments, and a parse/stringify round-trip would
  * silently drop them and reformat the whole file for one inserted line.
  *
+ * The gitignore entry carries NO trailing slash. A trailing slash means "directory only" to git,
+ * and `.siegelense` is a SYMLINK — git never treats a symlink as a directory, even one pointing at
+ * one, so a slash-suffixed pattern never matches it (confirmed live: `git check-ignore -v
+ * .siegelense` exits 1 against `.siegelense/` and exits 0 against bare `.siegelense`). A repo whose
+ * `.gitignore` already carries that broken `.siegelense/` line gets it REPLACED in place with the
+ * working pattern, rather than left dead beside a second, working line — the responder's job is
+ * that the symlink ends up actually ignored, and a stale line achieves nothing.
+ *
  * USAGE:
  * const result = await InstallIgnoreWriteResponder({ context });
- * // Appends `.siegelense/` to .gitignore when missing, and inserts a `.siegelense` entry beside
- * // `worktrees` in eslint.config.*, tsconfig.json and jest.config.{js,cjs} — each only when that
- * // file already excludes `worktrees` and does not yet exclude `.siegelense`
+ * // Appends `.siegelense` to .gitignore when missing (replacing a stale `.siegelense/` line in
+ * // place if one is there), and inserts a `.siegelense` entry — shaped like its `worktrees`
+ * // neighbour (bare, trailing-slash, or `/**`) — beside `worktrees` in eslint.config.*,
+ * // tsconfig.json and jest.config.{js,cjs}, each only when that file already excludes `worktrees`
+ * // and does not yet exclude `.siegelense`
  */
 
 import { fsExistsSyncAdapter, pathResolveAdapter } from '@dungeonmaster/shared/adapters';
@@ -33,7 +43,12 @@ import { ArrayEntryAnchorInsertLayerResponder } from './array-entry-anchor-inser
 
 const PACKAGE_NAME = '@dungeonmaster/siegelense';
 const GITIGNORE_FILENAME = '.gitignore';
-const SIEGELENSE_GITIGNORE_ENTRY = `${locationsStatics.repoRoot.siegelenseLink}/`;
+// Bare — no trailing slash. See the file header: a trailing slash means "directory only" to git,
+// and never matches the `.siegelense` symlink.
+const SIEGELENSE_GITIGNORE_ENTRY = locationsStatics.repoRoot.siegelenseLink;
+// The broken shape an earlier install wrote. Any `.gitignore` still carrying this line gets it
+// replaced with SIEGELENSE_GITIGNORE_ENTRY rather than left in place beside a second, working line.
+const SIEGELENSE_GITIGNORE_STALE_ENTRY = `${locationsStatics.repoRoot.siegelenseLink}/`;
 
 // A repo may name its jest config `.js` or `.cjs` — this repo alone has packages using both — and
 // locationsStatics carries no jest-config-filename entry to reuse (unlike tsconfig.json, which
@@ -56,7 +71,6 @@ const SIEGELENSE_GLOB_VALUES = [
   `${locationsStatics.repoRoot.siegelenseLink}/`,
   `${locationsStatics.repoRoot.siegelenseLink}/**`,
 ];
-const SIEGELENSE_GLOB_ENTRY = `${locationsStatics.repoRoot.siegelenseLink}/**`;
 
 // jest's `testPathIgnorePatterns` entries are REGEX strings (jest wraps each one in
 // `new RegExp(...)`), not globs, so this repo's own jest.config.base.js wraps a directory name in
@@ -71,7 +85,6 @@ const SIEGELENSE_REGEX_VALUES = [
   `${locationsStatics.repoRoot.siegelenseLink}/`,
   `/${locationsStatics.repoRoot.siegelenseLink}/`,
 ];
-const SIEGELENSE_REGEX_ENTRY = `/${locationsStatics.repoRoot.siegelenseLink}/`;
 
 export const InstallIgnoreWriteResponder = async ({
   context,
@@ -91,15 +104,20 @@ export const InstallIgnoreWriteResponder = async ({
   // trimEnd, never trim — see install-repo-scaffold-responder.ts: git strips TRAILING pattern
   // whitespace but treats LEADING whitespace as part of the pattern.
   const gitignoreLines = existingGitignore.split('\n').map((line) => line.trimEnd());
-  const gitignoreHasEntry =
-    gitignoreLines.includes(SIEGELENSE_GITIGNORE_ENTRY) ||
-    gitignoreLines.includes(locationsStatics.repoRoot.siegelenseLink);
+  const gitignoreHasEntry = gitignoreLines.includes(SIEGELENSE_GITIGNORE_ENTRY);
+  const staleEntryLineIndex = gitignoreLines.findIndex(
+    (line) => line === SIEGELENSE_GITIGNORE_STALE_ENTRY,
+  );
+  const gitignoreHasStaleEntry = staleEntryLineIndex !== -1;
 
   if (!gitignoreHasEntry) {
-    const appended = `${SIEGELENSE_GITIGNORE_ENTRY}\n`;
-    const newGitignore = existingGitignore
-      ? `${existingGitignore.trimEnd()}\n${appended}`
-      : appended;
+    const newGitignore = gitignoreHasStaleEntry
+      ? gitignoreLines
+          .map((line, index) => (index === staleEntryLineIndex ? SIEGELENSE_GITIGNORE_ENTRY : line))
+          .join('\n')
+      : existingGitignore
+        ? `${existingGitignore.trimEnd()}\n${SIEGELENSE_GITIGNORE_ENTRY}\n`
+        : `${SIEGELENSE_GITIGNORE_ENTRY}\n`;
     await fsWriteFileAdapter({
       filePath: gitignorePath,
       contents: fileContentsContract.parse(newGitignore),
@@ -108,9 +126,11 @@ export const InstallIgnoreWriteResponder = async ({
 
   const gitignoreClause = gitignoreHasEntry
     ? `${SIEGELENSE_GITIGNORE_ENTRY} already in ${GITIGNORE_FILENAME}`
-    : gitignorePresent
-      ? `Added ${SIEGELENSE_GITIGNORE_ENTRY} to existing ${GITIGNORE_FILENAME}`
-      : `Created ${GITIGNORE_FILENAME} with ${SIEGELENSE_GITIGNORE_ENTRY}`;
+    : gitignoreHasStaleEntry
+      ? `Replaced stale ${SIEGELENSE_GITIGNORE_STALE_ENTRY} with ${SIEGELENSE_GITIGNORE_ENTRY} in ${GITIGNORE_FILENAME}`
+      : gitignorePresent
+        ? `Added ${SIEGELENSE_GITIGNORE_ENTRY} to existing ${GITIGNORE_FILENAME}`
+        : `Created ${GITIGNORE_FILENAME} with ${SIEGELENSE_GITIGNORE_ENTRY}`;
 
   const clauses = [gitignoreClause];
   let anySurfaceWritten = false;
@@ -131,15 +151,14 @@ export const InstallIgnoreWriteResponder = async ({
       content: eslintContent,
       anchorValueCandidates: WORKTREES_GLOB_VALUES,
       entryValueCandidates: SIEGELENSE_GLOB_VALUES,
-      newEntryValue: SIEGELENSE_GLOB_ENTRY,
     });
 
     if (eslintResult.inserted) {
       await fsWriteFileAdapter({ filePath: eslintConfigPath, contents: eslintResult.content });
-      clauses.push(`Added ${SIEGELENSE_GLOB_ENTRY} to eslint ignores`);
+      clauses.push(`Added ${eslintResult.matchedEntryValue} to eslint ignores`);
       anySurfaceWritten = true;
     } else if (eslintResult.alreadyPresent) {
-      clauses.push(`${SIEGELENSE_GLOB_ENTRY} already in eslint ignores`);
+      clauses.push(`${eslintResult.matchedEntryValue} already in eslint ignores`);
     }
     // Neither branch: this config does not exclude `worktrees` either, so there is nowhere for
     // `.siegelense` to sit beside — quietly skipped, no clause. Same gate as tsconfig and jest
@@ -159,15 +178,14 @@ export const InstallIgnoreWriteResponder = async ({
       content: tsconfigContent,
       anchorValueCandidates: WORKTREES_GLOB_VALUES,
       entryValueCandidates: SIEGELENSE_GLOB_VALUES,
-      newEntryValue: SIEGELENSE_GLOB_ENTRY,
     });
 
     if (tsconfigResult.inserted) {
       await fsWriteFileAdapter({ filePath: tsconfigPath, contents: tsconfigResult.content });
-      clauses.push(`Added ${SIEGELENSE_GLOB_ENTRY} to tsconfig exclude`);
+      clauses.push(`Added ${tsconfigResult.matchedEntryValue} to tsconfig exclude`);
       anySurfaceWritten = true;
     } else if (tsconfigResult.alreadyPresent) {
-      clauses.push(`${SIEGELENSE_GLOB_ENTRY} already in tsconfig exclude`);
+      clauses.push(`${tsconfigResult.matchedEntryValue} already in tsconfig exclude`);
     }
   }
 
@@ -185,15 +203,14 @@ export const InstallIgnoreWriteResponder = async ({
       content: jestContent,
       anchorValueCandidates: WORKTREES_REGEX_VALUES,
       entryValueCandidates: SIEGELENSE_REGEX_VALUES,
-      newEntryValue: SIEGELENSE_REGEX_ENTRY,
     });
 
     if (jestResult.inserted) {
       await fsWriteFileAdapter({ filePath: jestConfigPath, contents: jestResult.content });
-      clauses.push(`Added ${SIEGELENSE_REGEX_ENTRY} to jest testPathIgnorePatterns`);
+      clauses.push(`Added ${jestResult.matchedEntryValue} to jest testPathIgnorePatterns`);
       anySurfaceWritten = true;
     } else if (jestResult.alreadyPresent) {
-      clauses.push(`${SIEGELENSE_REGEX_ENTRY} already in jest testPathIgnorePatterns`);
+      clauses.push(`${jestResult.matchedEntryValue} already in jest testPathIgnorePatterns`);
     }
   }
 

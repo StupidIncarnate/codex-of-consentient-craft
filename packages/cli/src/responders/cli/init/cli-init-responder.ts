@@ -22,7 +22,11 @@ export const CliInitResponder = async ({
 
   for (const result of results) {
     const status = result.success ? 'OK' : 'FAIL';
-    process.stdout.write(`[${status}] ${result.packageName}: ${result.message}\n`);
+    // message is populated on success, error on failure — never both, and either can be absent,
+    // so a bare `result.message` prints the literal string "undefined" on every real failure.
+    const detail =
+      (result.success ? result.message : result.error) ?? 'no install message reported';
+    process.stdout.write(`[${status}] ${result.packageName}: ${detail}\n`);
   }
   return adapterResultContract.parse({ success: true });
 };

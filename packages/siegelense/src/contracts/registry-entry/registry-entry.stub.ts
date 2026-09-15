@@ -20,6 +20,7 @@ export const RegistryEntryStub = ({ ...props }: StubArgument<RegistryEntry> = {}
     specHash: SpecHashStub(),
     pid: null,
     pgids: [],
+    socketPath: null,
     ports: PortPairStub(),
     state: InstanceStateStub(),
     reservedAtMs: EpochMsStub(),

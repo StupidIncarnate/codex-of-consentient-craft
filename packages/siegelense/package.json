@@ -64,10 +64,15 @@
     "ward": "dungeonmaster-ward"
   },
   "dependencies": {
-    "@dungeonmaster/shared": "*"
+    "@dungeonmaster/shared": "*",
+    "zod": "^3.25.76"
+  },
+  "peerDependencies": {
+    "@playwright/test": "^1.58.2"
   },
   "devDependencies": {
     "@dungeonmaster/testing": "*",
+    "@playwright/test": "^1.58.2",
     "@types/node": "^20.11.0",
     "typescript": "^5.3.3"
   },

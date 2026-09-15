@@ -17,7 +17,7 @@ import {
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { fsEnsureWriteAdapter } from '../../../adapters/fs/ensure-write/fs-ensure-write-adapter';
 import type { ClaudeSettings } from '../../../contracts/claude-settings/claude-settings-contract';
 import { dungeonmasterHooksCreatorTransformer } from '../../../transformers/dungeonmaster-hooks-creator/dungeonmaster-hooks-creator-transformer';
 import { upsertDungeonmasterHookListTransformer } from '../../../transformers/upsert-dungeonmaster-hook-list/upsert-dungeonmaster-hook-list-transformer';
@@ -84,7 +84,7 @@ export const InstallCreateSettingsResponder = async ({
       JSON.stringify(mergedSettings, null, JSON_INDENT_SPACES),
     );
 
-    await fsWriteFileAdapter({ filepath: settingsPath, contents });
+    await fsEnsureWriteAdapter({ filepath: settingsPath, contents });
 
     return {
       packageName: packageNameContract.parse(PACKAGE_NAME),
@@ -102,7 +102,7 @@ export const InstallCreateSettingsResponder = async ({
     JSON.stringify(newSettings, null, JSON_INDENT_SPACES),
   );
 
-  await fsWriteFileAdapter({ filepath: settingsPath, contents });
+  await fsEnsureWriteAdapter({ filepath: settingsPath, contents });
 
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),

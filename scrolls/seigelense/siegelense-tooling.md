@@ -115,6 +115,8 @@ because a human-chosen name can collide. A minted id deletes the section and its
 
 ### Many sessions, one machine: a disk REGISTRY, not a master
 
+> **Status: DELIVERED (chunk 1)** — the whole `<home>/.dungeonmaster/siegelense/` tree, its path resolvers, guild/`unowned` partitioning and the `<repoRoot>/.siegelense` symlink `init` writes · verified by the `locations-*-path-find-broker` unit tests and the real CLI run against a scratch consumer repo
+
 **Three unrelated sessions can be driving this at once**, and none of them orchestrated by the same siegemaster. Nothing
 about that is exotic — a developer runs one by hand while a quest's phase runs two. So the coordination question has to
 be answered, not left to whoever builds it.
@@ -177,6 +179,8 @@ lint, typecheck and test globs can walk into, and the evidence tree holds thousa
 grades.
 
 ### What the registry has to make safe
+
+> **Status: PARTIAL (chunk 1)** — port allocation claimed before binding, `boot.lock` across processes, reservation before boot, and assets under the minted id · NOT YET: the append-only profile sampler (line 190), which has no writer until an instance runs; and `registry-lock-acquire-broker.ts:59` still reads every failed lock read as absence, so that lock can recurse past its own wait ceiling
 
 | Race                         | Without the registry                                                                          | With it                                                                                            |
 |------------------------------|-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
@@ -1110,6 +1114,8 @@ instance; only the throwaway state goes.
 
 ### When it dies without warning: OOM, SIGKILL, a full disk
 
+> **Status: PARTIAL (chunk 1)** — the heartbeat file carrying pid, instance id, every child's pgid and a timestamp, written before the registry row is stamped, plus the staleness guard that names a dead instance · NOT YET: the reaping sweep itself, `status`, `likelyCause`, the OOM evidence, the per-step transcript flush and the disk checks
+
 **Teardown assumes the tool gets to run code. This is the case where it does not**, and the design has to say plainly
 what it handles and what it cannot.
 
@@ -1545,6 +1551,8 @@ Elsewhere: an **instance** is one running stack, a **run** is one submitted batc
 
 #### Readings, and what a step may never do
 
+> **Status: PARTIAL (chunk 1)** — the package `CLAUDE.md` at `packages/siegelense/CLAUDE.md` (line 1562), carrying the reading-not-verdict rule, the no-pick rule and the `querySelector` ban as prose · NOT YET: the LINT rule that is meant to hold the no-pick rule, and the command implementations it would grade
+
 | Decision                                                                                                     | Because                                                                                                                                                                                                                                                           |
 |--------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | A step returns a READING, never a verdict on a unit                                                          | `siege-command.ts`'s founding rule. Comparing two measured values is still a reading; deciding a unit passes is not                                                                                                                                               |
@@ -1605,6 +1613,8 @@ Elsewhere: an **instance** is one running stack, a **run** is one submitted batc
 
 #### The service: instances, runs, batches
 
+> **Status: PARTIAL (chunk 1)** — the disk registry (1627), ports claimed before binding (1628), reservation before boot (1629), `boot.lock` across processes (1630), assets under the minted id (1633), minted ids (1638) and per-run step numbering (1640) · NOT YET: every row needing a driver, a tool registration or an evidence writer — the thirteen tools, `docs`, the browserless spec, the socket clients, append-only samples, staleness reaping, run timelines, disk-resolved reads, `compare`, `stopOn` and settle
+
 | Decision                                                                                                                                   | Because                                                                                                                                                                                                                                                                  |
 |--------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | The service IS a set of MCP tools — THIRTEEN of them. What was rejected is one tool per STEP, not MCP                                      | a file drop costs ~3 calls per command; a tool per step grows the tool surface with every verb AND forces each reading through a 50,000-char result ceiling. Steps are DATA inside `run` instead: the tool surface is bounded, the step surface is open                  |
@@ -1652,6 +1662,8 @@ Elsewhere: an **instance** is one running stack, a **run** is one submitted batc
 | A reset reports the diff it undid                                                                       | turns "what does this not reset" from a guide-writer's guess into a measurement, and doubles as the damage check after an error branch                                                                            |
 
 #### Teardown and crash recovery
+
+> **Status: PARTIAL (chunk 1)** — the tombstone row (1678), guild/`unowned` partitioning (1679), the `.siegelense` symlink `init` creates and ignores (1682), and the heartbeat file carrying every child's pgid (1684) · NOT YET: `kill`, the teardown suite, `status`, the reaping sweep (1685), retention, the per-step flush and the disk checks — and 1682's check-glob half inserts nothing where the target array is written on a SINGLE line
 
 | Decision                                                                                                              | Because                                                                                                                                                                                                            |
 |-----------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -1704,6 +1716,8 @@ Elsewhere: an **instance** is one running stack, a **run** is one submitted batc
 
 #### Recipes: what one is and what holds it
 
+> **Status: PARTIAL (chunk 1)** — both real workspace packages made with `dungeonmaster create-package` (1724, 1727, 1731), `init` scaffolding the recipes one (1725), and an empty one answering as empty rather than as missing (1726) · NOT YET: recipe content, `produces:`, `fidelity`, `mirrors:`, the listing, the colocated recipe tests and the DOM-handle lint rule
+
 | Decision                                                                                                                                          | Because                                                                                                                                                                                                                                                       |
 |---------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | A recipe touches STATE, never a screen — held by a local lint rule, not by prose                                                                  | a recipe carrying a DOM handle is a design error, not a stale value: it means the recipe is doing a walk's job. `@dungeonmaster/local-eslint`'s `no-hardcoded-package-names` is the template — and its own blind spot is the caution to copy with it          |
@@ -1741,6 +1755,8 @@ most expensive false result there is, because it arrives looking like evidence. 
 working code, and nothing in the record says the tool was the problem.
 
 ### What the TOOLING must guarantee
+
+> **Status: PARTIAL (chunk 1)** — port allocation claimed in the registry before binding (1766), one boot at a time held by `boot.lock` (1771), and per-run step numbering pinned in `stepIndexContract` (1769) · NOT YET: ref stability, key row order, element identity, the retention window, append-only evidence, settle-based steps, and the per-sample pool size
 
 | Must be deterministic                                                                                                                                          | Why it is load-bearing                                                                                                                                                                  | What it breaks as                                                                      |
 |----------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
@@ -1815,6 +1831,8 @@ that one does not.
 ## Part 6 — The recipe book
 
 ### The tool is `siegelense`, and its recipes live beside it
+
+> **Status: PARTIAL (chunk 1)** — both real workspace packages at their exact paths, subpath-importable barrels measured msw-free, `init` scaffolding `packages/siegelense-recipes/`, and an empty one being a real answer · NOT YET: the `dungeonmaster siegelense` command, the `siegelense-*` tool registrations and the recipe listing
 
 **Three fixed names, and they are conventions rather than configuration:**
 
@@ -1904,6 +1922,8 @@ monorepo and the flat case has no consumer yet.
 ---
 
 ## Part 7 — Where to go, in order
+
+> **Status: PARTIAL (chunk 1)** — item 1 delivered in full; items 2, 2a, 2b, 2c and 16 in part — the registry spine, the evidence path shape, the heartbeat, the tombstone fields and the package `CLAUDE.md` · NOT YET: every other item, and `build-ledger.md` carries the row-by-row state
 
 | #   | Item                                                                                                                                                                                                                                                                                                                                                         | Why here                                                                                                                                                                                                                                                                                                                                                                       |
 |-----|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -1997,6 +2017,8 @@ real answer and not a silent miss.
 
 ### Holding the no-pick rule mechanically
 
+> **Status: PARTIAL (chunk 1)** — the `../../CLAUDE.md` half, carrying both the `.first()`/`.last()` rule and the `querySelector` ban · NOT YET: the local lint rule, deliberately deferred to the chunk that creates the command implementations it would grade, since a rule that cannot be shown firing is one nobody can audit
+
 Prose does not hold this one. The `.first()` calls live in `siege-command.ts` today and read as perfectly reasonable
 code — `page.locator(target).first().click()` is the obvious line to write, and it is what a session will write again.
 
@@ -2069,6 +2091,8 @@ so a durable walk already has stable handles. The ref is a shortcut for the live
 
 ### The package needs a `../../CLAUDE.md`, and these are the entries
 
+> **Status: DELIVERED (chunk 1)** — all twelve entries written at `packages/siegelense/CLAUDE.md`, each carrying the measurement behind it, in this table's own order · verified by reading that file against this table entry by entry
+
 `../../packages/orchestrator/CLAUDE.md` and `../../packages/web/CLAUDE.md` are the pattern — package invariants with the
 measurement
 behind each one. This package needs the same. **The entries below are the rules above this line, compressed into the
@@ -2092,6 +2116,8 @@ form a session editing the package will actually read**, plus the two that live 
 ---
 
 ### The thirteen calls
+
+> **Status: PARTIAL (chunk 1)** — the thirteen names and the `siegelense-` prefix pinned in `siegelenseToolsStatics`, with `look` deliberately absent, plus the seven `docs` scopes · NOT YET: no name is registered in `mcpToolsStatics` and nothing handles one — the surface does not exist yet
 
 **Every tool below is registered as `siegelense-<name>`** — `siegelense-start`, `siegelense-run`, and so on. The
 examples drop the prefix for readability; there is no bare `start` tool. **Steps are not tools**: `look`, `click`,

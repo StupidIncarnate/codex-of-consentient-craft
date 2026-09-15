@@ -5,10 +5,14 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { InstallLinkCreateResponderProxy } from './install-link-create-responder.proxy';
 
+// dungeonmasterRoot is deliberately NOT the siegelense root — it names the CLI package's own
+// install location (see cli-entry.ts), which the responder no longer reads at all. Every
+// assertion below pins the target to TARGET_DIR_VALUE from the proxy (resolved through
+// locationsRootPathFindBrokerProxy), proving the responder ignores this field.
 const CONTEXT = InstallContextStub({
   value: {
     targetProjectRoot: FilePathStub({ value: '/project' }),
-    dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+    dungeonmasterRoot: FilePathStub({ value: '/wrong-cli-install-root' }),
   },
 });
 
@@ -24,11 +28,11 @@ describe('InstallLinkCreateResponder', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'created',
-        message: 'Created .siegelense -> /dm-root/siegelense',
+        message: 'Created .siegelense -> /home/user/.dungeonmaster/siegelense',
       });
       expect(proxy.getSymlinkCalls()).toStrictEqual([
         {
-          targetPath: AbsoluteFilePathStub({ value: '/dm-root/siegelense' }),
+          targetPath: AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
           linkPath: AbsoluteFilePathStub({ value: '/project/.siegelense' }),
           type: 'dir',
         },
@@ -56,7 +60,7 @@ describe('InstallLinkCreateResponder', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'skipped',
-        message: '.siegelense already points at /dm-root/siegelense',
+        message: '.siegelense already points at /home/user/.dungeonmaster/siegelense',
       });
       expect(proxy.getSymlinkCalls()).toStrictEqual([]);
       expect(proxy.getReadlinkCalls()).toStrictEqual([
@@ -76,14 +80,14 @@ describe('InstallLinkCreateResponder', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'created',
-        message: 'Replaced .siegelense to point at /dm-root/siegelense',
+        message: 'Replaced .siegelense to point at /home/user/.dungeonmaster/siegelense',
       });
       expect(proxy.getUnlinkedPaths()).toStrictEqual([
         AbsoluteFilePathStub({ value: '/project/.siegelense' }),
       ]);
       expect(proxy.getSymlinkCalls()).toStrictEqual([
         {
-          targetPath: AbsoluteFilePathStub({ value: '/dm-root/siegelense' }),
+          targetPath: AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
           linkPath: AbsoluteFilePathStub({ value: '/project/.siegelense' }),
           type: 'dir',
         },

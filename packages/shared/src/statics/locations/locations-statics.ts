@@ -90,5 +90,13 @@ export const locationsStatics = {
     heartbeat: 'heartbeat.json',
     apiLog: 'api-server.log',
     webLog: 'web-server.log',
+    runsDir: 'runs',
+    transcriptExtension: '.jsonl',
+    runReturnExtension: '.json',
+    shotExtension: '.png',
+    shotPrefix: 'step',
+    socketsDirName: 'dm-siege-sockets',
+    socketExtension: '.sock',
+    driverLog: 'driver.log',
   },
 } as const;

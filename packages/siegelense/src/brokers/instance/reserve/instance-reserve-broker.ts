@@ -2,7 +2,7 @@
  * PURPOSE: Mints an instance id, resolves the owner from `process.pid` (the MCP stdio child is
  * one-per-parent-session, so its own pid identifies "this session" exactly — see
  * `packages/mcp/CLAUDE.md`), claims a free port pair, and writes a RESERVATION row —
- * `pid: null`, `bootedAtMs: null` — before anything boots. Reserving ahead of booting is the cure
+ * `pid: null`, `bootedAtMs: null`, `socketPath: null` — before anything boots. Reserving ahead of booting is the cure
  * for two failure classes: the OS can hand two sessions the same free pair in the same moment
  * (spec line 183), and `capacity` has to count a reservation as taken or three sessions each
  * dividing free memory by peak all conclude they can start two, and six boot (spec line 185).
@@ -93,6 +93,7 @@ export const instanceReserveBroker = async ({
         specHash,
         pid: null,
         pgids: [],
+        socketPath: null,
         ports: winner,
         state: 'alive',
         reservedAtMs: resolvedReservedAtMs,

@@ -9,18 +9,22 @@ describe('InstallFlow', () => {
         baseName: BaseNameStub({ value: 'siegelense-flow-fresh' }),
       });
 
-      // dungeonmasterRoot mirrors targetProjectRoot rather than testbed.dungeonmasterPath here,
-      // unlike every other package's install-flow test: InstallLinkCreateResponder is the first
-      // responder in this repo that actually WRITES under dungeonmasterRoot (mkdir + symlink), so
-      // testbed.dungeonmasterPath — the real checked-out worktree root — would land a real
-      // siegelense/ directory in the live repo tree. Pointing both context fields at the same
-      // isolated testbed directory keeps every write inside the OS tmp dir.
+      // The siegelense root is resolved through DUNGEONMASTER_HOME — the same env var
+      // locationsRootPathFindBroker reads at runtime — never through context.dungeonmasterRoot,
+      // which names the CLI package's own install location. The two point at DIFFERENT
+      // testbed-nested directories, so a responder that read the wrong one produces a visibly
+      // wrong link target instead of silently agreeing by accident.
+      const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
+      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+
       const result = await InstallFlow({
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: `${testbed.guildPath}/.wrong-cli-root` }),
         },
       });
+
+      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
 
       const gitignoreContent = testbed.readFile({
         relativePath: RelativePathStub({ value: '.gitignore' }),
@@ -35,9 +39,9 @@ describe('InstallFlow', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'created',
-        message: `Created .siegelense -> ${testbed.guildPath}/siegelense; Created .gitignore with .siegelense/; Created packages/siegelense-recipes/src/`,
+        message: `Created .siegelense -> ${dungeonmasterHomePath}/siegelense; Created .gitignore with .siegelense; Created packages/siegelense-recipes/src/`,
       });
-      expect(gitignoreContent).toBe('.siegelense/\n');
+      expect(gitignoreContent).toBe('.siegelense\n');
       expect(recipesEntries).toStrictEqual([]);
     });
 
@@ -46,19 +50,24 @@ describe('InstallFlow', () => {
         baseName: BaseNameStub({ value: 'siegelense-flow-twice' }),
       });
 
+      const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
+      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+
       await InstallFlow({
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: `${testbed.guildPath}/.wrong-cli-root` }),
         },
       });
 
       const secondResult = await InstallFlow({
         context: {
           targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
-          dungeonmasterRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: `${testbed.guildPath}/.wrong-cli-root` }),
         },
       });
+
+      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
 
       const gitignoreContent = testbed.readFile({
         relativePath: RelativePathStub({ value: '.gitignore' }),
@@ -73,9 +82,9 @@ describe('InstallFlow', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'skipped',
-        message: `.siegelense already points at ${testbed.guildPath}/siegelense; .siegelense/ already in .gitignore; packages/siegelense-recipes/ already present; left untouched`,
+        message: `.siegelense already points at ${dungeonmasterHomePath}/siegelense; .siegelense already in .gitignore; packages/siegelense-recipes/ already present; left untouched`,
       });
-      expect(gitignoreContent).toBe('.siegelense/\n');
+      expect(gitignoreContent).toBe('.siegelense\n');
       expect(recipesEntries).toStrictEqual([]);
     });
   });

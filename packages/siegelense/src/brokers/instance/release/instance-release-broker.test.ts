@@ -1,4 +1,4 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
 
 import { instanceReleaseBroker } from './instance-release-broker';
 import { instanceReleaseBrokerProxy } from './instance-release-broker.proxy';
@@ -16,6 +16,7 @@ describe('instanceReleaseBroker', () => {
         id: instanceId,
         pid: ProcessIdStub(),
         pgids: [ProcessGroupIdStub()],
+        socketPath: AbsoluteFilePathStub({ value: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock' }),
         state: 'alive',
       });
       const registry = RegistryStub({ instances: [entry] });
@@ -24,7 +25,7 @@ describe('instanceReleaseBroker', () => {
       const result = await instanceReleaseBroker({ instanceId });
 
       expect(result).toStrictEqual(
-        RegistryEntryStub({ ...entry, state: 'killed', pid: null, pgids: [] }),
+        RegistryEntryStub({ ...entry, state: 'killed', pid: null, pgids: [], socketPath: null }),
       );
     });
   });
@@ -38,6 +39,7 @@ describe('instanceReleaseBroker', () => {
         id: instanceId,
         pid: ProcessIdStub(),
         pgids: [ProcessGroupIdStub()],
+        socketPath: AbsoluteFilePathStub({ value: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock' }),
       });
       const bystander = RegistryEntryStub({ id: bystanderId });
       const registry = RegistryStub({ instances: [bystander, released] });
@@ -48,7 +50,13 @@ describe('instanceReleaseBroker', () => {
       const expectedRegistry = RegistryStub({
         instances: [
           bystander,
-          RegistryEntryStub({ ...released, state: 'killed', pid: null, pgids: [] }),
+          RegistryEntryStub({
+            ...released,
+            state: 'killed',
+            pid: null,
+            pgids: [],
+            socketPath: null,
+          }),
         ],
       });
 

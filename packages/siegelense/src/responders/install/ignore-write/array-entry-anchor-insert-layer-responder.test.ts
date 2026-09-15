@@ -4,46 +4,55 @@ import { ArrayEntryAnchorInsertLayerResponderProxy } from './array-entry-anchor-
 const ANCHOR_VALUES = ['worktrees', 'worktrees/', 'worktrees/**'];
 const ENTRY_VALUES = ['.siegelense', '.siegelense/', '.siegelense/**'];
 
+const GLOB_ANCHOR_SHAPE_CASES = [
+  ['worktrees', '.siegelense'],
+  ['worktrees/', '.siegelense/'],
+  ['worktrees/**', '.siegelense/**'],
+] as const;
+
 describe('ArrayEntryAnchorInsertLayerResponder', () => {
-  describe('anchor present, entry absent, single-quoted with a trailing comma', () => {
-    it('VALID: {anchor mid-array, single-quoted, trailing comma} => inserted right after it, same quote and comma style', () => {
-      ArrayEntryAnchorInsertLayerResponderProxy();
-      const content = [
-        'module.exports = [',
-        '  {',
-        '    ignores: [',
-        "      'node_modules/**',",
-        "      'worktrees/**',",
-        "      'scripts/**',",
-        '    ],',
-        '  },',
-        '];',
-      ].join('\n');
-
-      const result = ArrayEntryAnchorInsertLayerResponder({
-        content,
-        anchorValueCandidates: ANCHOR_VALUES,
-        entryValueCandidates: ENTRY_VALUES,
-        newEntryValue: '.siegelense/**',
-      });
-
-      expect(result).toStrictEqual({
-        content: [
+  describe('inserted entry shape follows the matched anchor shape', () => {
+    it.each(GLOB_ANCHOR_SHAPE_CASES)(
+      'VALID: {anchor: %s} => inserted entry takes the matching shape %s',
+      (anchorShape, expectedEntryShape) => {
+        ArrayEntryAnchorInsertLayerResponderProxy();
+        const content = [
           'module.exports = [',
           '  {',
           '    ignores: [',
           "      'node_modules/**',",
-          "      'worktrees/**',",
-          "      '.siegelense/**',",
+          `      '${anchorShape}',`,
           "      'scripts/**',",
           '    ],',
           '  },',
           '];',
-        ].join('\n'),
-        inserted: true,
-        alreadyPresent: false,
-      });
-    });
+        ].join('\n');
+
+        const result = ArrayEntryAnchorInsertLayerResponder({
+          content,
+          anchorValueCandidates: ANCHOR_VALUES,
+          entryValueCandidates: ENTRY_VALUES,
+        });
+
+        expect(result).toStrictEqual({
+          content: [
+            'module.exports = [',
+            '  {',
+            '    ignores: [',
+            "      'node_modules/**',",
+            `      '${anchorShape}',`,
+            `      '${expectedEntryShape}',`,
+            "      'scripts/**',",
+            '    ],',
+            '  },',
+            '];',
+          ].join('\n'),
+          inserted: true,
+          alreadyPresent: false,
+          matchedEntryValue: expectedEntryShape,
+        });
+      },
+    );
   });
 
   describe('anchor present, entry absent, double-quoted as the LAST entry with no trailing comma', () => {
@@ -62,7 +71,6 @@ describe('ArrayEntryAnchorInsertLayerResponder', () => {
         content,
         anchorValueCandidates: ANCHOR_VALUES,
         entryValueCandidates: ENTRY_VALUES,
-        newEntryValue: '.siegelense',
       });
 
       expect(result).toStrictEqual({
@@ -77,6 +85,46 @@ describe('ArrayEntryAnchorInsertLayerResponder', () => {
         ].join('\n'),
         inserted: true,
         alreadyPresent: false,
+        matchedEntryValue: '.siegelense',
+      });
+    });
+  });
+
+  describe('regex array: anchor wrapped in slashes, entry follows the same wrap', () => {
+    it('VALID: {jest testPathIgnorePatterns anchor /worktrees/, not /.siegelense/} => inserted entry is wrapped the same way, the distinct third shape a glob array never takes', () => {
+      ArrayEntryAnchorInsertLayerResponderProxy();
+      const regexAnchorValues = ['worktrees', 'worktrees/', '/worktrees/'];
+      const regexEntryValues = ['.siegelense', '.siegelense/', '/.siegelense/'];
+      const content = [
+        'module.exports = {',
+        '  testPathIgnorePatterns: [',
+        "    '/node_modules/',",
+        "    '/worktrees/',",
+        "    '/dist/',",
+        '  ],',
+        '};',
+      ].join('\n');
+
+      const result = ArrayEntryAnchorInsertLayerResponder({
+        content,
+        anchorValueCandidates: regexAnchorValues,
+        entryValueCandidates: regexEntryValues,
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          'module.exports = {',
+          '  testPathIgnorePatterns: [',
+          "    '/node_modules/',",
+          "    '/worktrees/',",
+          "    '/.siegelense/',",
+          "    '/dist/',",
+          '  ],',
+          '};',
+        ].join('\n'),
+        inserted: true,
+        alreadyPresent: false,
+        matchedEntryValue: '/.siegelense/',
       });
     });
   });
@@ -99,10 +147,14 @@ describe('ArrayEntryAnchorInsertLayerResponder', () => {
         content,
         anchorValueCandidates: ANCHOR_VALUES,
         entryValueCandidates: ENTRY_VALUES,
-        newEntryValue: '.siegelense/**',
       });
 
-      expect(result).toStrictEqual({ content, inserted: false, alreadyPresent: true });
+      expect(result).toStrictEqual({
+        content,
+        inserted: false,
+        alreadyPresent: true,
+        matchedEntryValue: '.siegelense/**',
+      });
     });
   });
 
@@ -124,10 +176,175 @@ describe('ArrayEntryAnchorInsertLayerResponder', () => {
         content,
         anchorValueCandidates: ANCHOR_VALUES,
         entryValueCandidates: ENTRY_VALUES,
-        newEntryValue: '.siegelense/**',
       });
 
-      expect(result).toStrictEqual({ content, inserted: false, alreadyPresent: false });
+      expect(result).toStrictEqual({
+        content,
+        inserted: false,
+        alreadyPresent: false,
+        matchedEntryValue: undefined,
+      });
+    });
+  });
+
+  describe('single-line array: anchor packed inline with a sibling entry', () => {
+    it('VALID: {tsconfig exclude packed on one line, anchor present, entry absent} => inserted inline, in the anchor quote character and shape', () => {
+      ArrayEntryAnchorInsertLayerResponderProxy();
+      const content = [
+        '{',
+        '  // scratch tsconfig',
+        '  "compilerOptions": { "strict": true },',
+        '  "exclude": ["node_modules", "worktrees"]',
+        '}',
+      ].join('\n');
+
+      const result = ArrayEntryAnchorInsertLayerResponder({
+        content,
+        anchorValueCandidates: ANCHOR_VALUES,
+        entryValueCandidates: ENTRY_VALUES,
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          '{',
+          '  // scratch tsconfig',
+          '  "compilerOptions": { "strict": true },',
+          '  "exclude": ["node_modules", "worktrees", ".siegelense"]',
+          '}',
+        ].join('\n'),
+        inserted: true,
+        alreadyPresent: false,
+        matchedEntryValue: '.siegelense',
+      });
+    });
+  });
+
+  describe('single-line array: anchor is the first entry, sibling follows', () => {
+    it('VALID: {eslint ignores packed on one line, anchor first, entry absent} => inserted inline right after the anchor, before the next entry', () => {
+      ArrayEntryAnchorInsertLayerResponderProxy();
+      const content = "  ignores: ['worktrees/**', 'scripts/**'],";
+
+      const result = ArrayEntryAnchorInsertLayerResponder({
+        content,
+        anchorValueCandidates: ANCHOR_VALUES,
+        entryValueCandidates: ENTRY_VALUES,
+      });
+
+      expect(result).toStrictEqual({
+        content: "  ignores: ['worktrees/**', '.siegelense/**', 'scripts/**'],",
+        inserted: true,
+        alreadyPresent: false,
+        matchedEntryValue: '.siegelense/**',
+      });
+    });
+  });
+
+  describe('single-line array: anchor is the only entry', () => {
+    it('EDGE: {"exclude": ["worktrees"]} => inserted inline with a default ", " separator, there being no sibling to copy one from', () => {
+      ArrayEntryAnchorInsertLayerResponderProxy();
+      const content = '  "exclude": ["worktrees"]';
+
+      const result = ArrayEntryAnchorInsertLayerResponder({
+        content,
+        anchorValueCandidates: ANCHOR_VALUES,
+        entryValueCandidates: ENTRY_VALUES,
+      });
+
+      expect(result).toStrictEqual({
+        content: '  "exclude": ["worktrees", ".siegelense"]',
+        inserted: true,
+        alreadyPresent: false,
+        matchedEntryValue: '.siegelense',
+      });
+    });
+  });
+
+  describe('single-line array: entry already present inline', () => {
+    it('EDGE: {"exclude": ["worktrees", ".siegelense"]} => content returned unchanged, alreadyPresent true', () => {
+      ArrayEntryAnchorInsertLayerResponderProxy();
+      const content = '  "exclude": ["node_modules", "worktrees", ".siegelense"]';
+
+      const result = ArrayEntryAnchorInsertLayerResponder({
+        content,
+        anchorValueCandidates: ANCHOR_VALUES,
+        entryValueCandidates: ENTRY_VALUES,
+      });
+
+      expect(result).toStrictEqual({
+        content,
+        inserted: false,
+        alreadyPresent: true,
+        matchedEntryValue: '.siegelense',
+      });
+    });
+  });
+
+  describe('single-line array: idempotence across two runs', () => {
+    it('VALID: {responder run twice against a single-line tsconfig exclude} => .siegelense appears exactly once, not twice', () => {
+      ArrayEntryAnchorInsertLayerResponderProxy();
+      const content = '  "exclude": ["node_modules", "worktrees"]';
+
+      const firstResult = ArrayEntryAnchorInsertLayerResponder({
+        content,
+        anchorValueCandidates: ANCHOR_VALUES,
+        entryValueCandidates: ENTRY_VALUES,
+      });
+      const secondResult = ArrayEntryAnchorInsertLayerResponder({
+        content: firstResult.content,
+        anchorValueCandidates: ANCHOR_VALUES,
+        entryValueCandidates: ENTRY_VALUES,
+      });
+
+      expect(firstResult.content).toBe('  "exclude": ["node_modules", "worktrees", ".siegelense"]');
+      expect(secondResult).toStrictEqual({
+        content: firstResult.content,
+        inserted: false,
+        alreadyPresent: true,
+        matchedEntryValue: '.siegelense',
+      });
+    });
+  });
+
+  describe('single-line array: a comment mentions the anchor word, in quotes, but is not an entry', () => {
+    it("EDGE: {// still exclude 'worktrees' via legacy config, beside a real single-line array} => the comment is never read as an anchor, and the real array is untouched because it does not exclude worktrees", () => {
+      ArrayEntryAnchorInsertLayerResponderProxy();
+      const content = [
+        "  // still exclude 'worktrees' via legacy config",
+        '  "exclude": ["node_modules", "dist"]',
+      ].join('\n');
+
+      const result = ArrayEntryAnchorInsertLayerResponder({
+        content,
+        anchorValueCandidates: ANCHOR_VALUES,
+        entryValueCandidates: ENTRY_VALUES,
+      });
+
+      expect(result).toStrictEqual({
+        content,
+        inserted: false,
+        alreadyPresent: false,
+        matchedEntryValue: undefined,
+      });
+    });
+  });
+
+  describe('single-line array: a longer path contains the anchor word but is not equal to it', () => {
+    it('EDGE: {"exclude": ["node_modules", "src/worktrees-helper.ts"]} => not read as the worktrees anchor, nothing inserted', () => {
+      ArrayEntryAnchorInsertLayerResponderProxy();
+      const content = '  "exclude": ["node_modules", "src/worktrees-helper.ts"]';
+
+      const result = ArrayEntryAnchorInsertLayerResponder({
+        content,
+        anchorValueCandidates: ANCHOR_VALUES,
+        entryValueCandidates: ENTRY_VALUES,
+      });
+
+      expect(result).toStrictEqual({
+        content,
+        inserted: false,
+        alreadyPresent: false,
+        matchedEntryValue: undefined,
+      });
     });
   });
 
@@ -149,7 +366,6 @@ describe('ArrayEntryAnchorInsertLayerResponder', () => {
         content,
         anchorValueCandidates: ANCHOR_VALUES,
         entryValueCandidates: ENTRY_VALUES,
-        newEntryValue: '.siegelense/**',
       });
 
       expect(result).toStrictEqual({
@@ -166,6 +382,7 @@ describe('ArrayEntryAnchorInsertLayerResponder', () => {
         ].join('\n'),
         inserted: true,
         alreadyPresent: false,
+        matchedEntryValue: '.siegelense/**',
       });
     });
   });

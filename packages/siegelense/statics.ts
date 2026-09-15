@@ -6,5 +6,7 @@
  * import { ... } from '@dungeonmaster/siegelense/statics';
  */
 
+export * from './src/statics/driver/driver-statics';
 export * from './src/statics/instance-lifecycle/instance-lifecycle-statics';
 export * from './src/statics/siegelense-tools/siegelense-tools-statics';
+export * from './src/statics/step/step-statics';
