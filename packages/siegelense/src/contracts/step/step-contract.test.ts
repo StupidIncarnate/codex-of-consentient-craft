@@ -317,6 +317,36 @@ describe('stepContract', () => {
     });
   });
 
+  describe('the node/within/timeoutMs defaults', () => {
+    it('EDGE: {step: goto, path: "/", node omitted} => parses to the complete member with node null', () => {
+      const result = stepContract.parse({ step: 'goto', path: '/' });
+
+      expect(result).toStrictEqual({ step: 'goto', path: '/', node: null, expect: 'ok' });
+    });
+
+    it('EDGE: {step: click, target, within/timeoutMs/node omitted} => parses to the complete member with all three null', () => {
+      const result = stepContract.parse({
+        step: 'click',
+        target: '[data-testid="GUILD_ADD"]',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'click',
+        target: '[data-testid="GUILD_ADD"]',
+        within: null,
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: goto, path: "/", node: null explicit} => still parses to node null', () => {
+      const result = stepContract.parse({ step: 'goto', path: '/', node: null });
+
+      expect(result).toStrictEqual({ step: 'goto', path: '/', node: null, expect: 'ok' });
+    });
+  });
+
   describe('stub', () => {
     it('VALID: {default} => creates a click step with no node and the default expectation', () => {
       const result = StepStub();

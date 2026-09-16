@@ -4,7 +4,10 @@
  * blocks; returns a STATUS, never a payload"). Records the instance's continuous browser/server
  * buffers as THIS run's own window before anything dispatches (line 90: "a run's index counts its
  * OWN window, never the running total"), restarts step numbering at 1 inside a run-namespaced shots
- * directory (line 1630), flushes the transcript after every step rather than buffering it (line
+ * directory (line 1630) — every acting step's unasked capture resolves there by index, and a
+ * `screenshot` step resolves by its own `name` (line 2516) instead, still inside that same
+ * run-namespaced directory so two runs never collide on one caller-chosen filename — flushes the
+ * transcript after every step rather than buffering it (line
  * 1676), and stops on the first failing step unless the caller set `stopOn: 'never'` (line 1638).
  * `runExecuteStepLayerBroker` is what turns BOTH an uncaught exception and the dispatcher's own
  * `expect: 'error'`-but-succeeded finding into the same `ok: false` reading, so the loop below only
@@ -184,7 +187,9 @@ export const runExecuteBroker = async ({
     const index = stepIndexContract.parse(position + instanceLifecycleStatics.numbering.firstStep);
     const shotPath = stepStatics.verbs.acting.some((verb) => verb === step.step)
       ? locationsShotPathFindBroker({ shotsDir, step: index })
-      : null;
+      : step.step === 'screenshot'
+        ? locationsShotPathFindBroker({ shotsDir, step: index, name: step.name })
+        : null;
 
     const outcome = await runExecuteStepLayerBroker({
       lane,

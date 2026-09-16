@@ -20,7 +20,7 @@
 export class InstanceUnknownError extends Error {
   public constructor({ instanceId }: { instanceId: string }) {
     super(
-      `No instance by the id "${instanceId}" — unknown, never existed. Check the id siegelense-start returned.`,
+      `No instance by the id "${instanceId}" — unknown, never existed. Check the id dungeonmaster siegelense start returned.`,
     );
     this.name = 'InstanceUnknownError';
   }

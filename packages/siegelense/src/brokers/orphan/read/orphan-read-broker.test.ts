@@ -25,17 +25,58 @@ describe('orphanReadBroker', () => {
     ]);
   });
 
-  it('EDGE: {a pid exits before its stat can be read} => still resolves, cmd null for that pgid', async () => {
+  it('EDGE: {a pid exits before its stat can be read, ENOENT} => still resolves, cmd null for that pgid', async () => {
     const proxy = orphanReadBrokerProxy();
     const pgid = ProcessGroupIdStub({ value: 300 });
 
     proxy.setupProcListing({ pids: ['105'] });
-    proxy.setupPidStatVanished({ pid: '105' });
+    proxy.setupPidStatVanished({ pid: '105', code: 'ENOENT' });
     proxy.setupGone({ pgid });
 
     const result = await orphanReadBroker({ pgids: [pgid] });
 
     expect(result).toStrictEqual([OrphanReadingStub({ pgid, cmd: null, alive: false })]);
+  });
+
+  it('EDGE: {a pid exits between the stat open and the stat read, ESRCH} => still resolves, cmd null for that pgid', async () => {
+    const proxy = orphanReadBrokerProxy();
+    const pgid = ProcessGroupIdStub({ value: 300 });
+
+    proxy.setupProcListing({ pids: ['106'] });
+    proxy.setupPidStatVanished({ pid: '106', code: 'ESRCH' });
+    proxy.setupGone({ pgid });
+
+    const result = await orphanReadBroker({ pgids: [pgid] });
+
+    expect(result).toStrictEqual([OrphanReadingStub({ pgid, cmd: null, alive: false })]);
+  });
+
+  it('EDGE: {a pid matches the pgid then exits before its cmdline can be read, ENOENT} => resolves, cmd null', async () => {
+    const proxy = orphanReadBrokerProxy();
+    const pgid = ProcessGroupIdStub({ value: 300 });
+
+    proxy.setupProcListing({ pids: ['110'] });
+    proxy.setupPidStat({ pid: '110', pgrp: 300, comm: 'node' });
+    proxy.setupCmdlineVanished({ pid: '110', code: 'ENOENT' });
+    proxy.setupAlive({ pgid });
+
+    const result = await orphanReadBroker({ pgids: [pgid] });
+
+    expect(result).toStrictEqual([OrphanReadingStub({ pgid, cmd: null, alive: true })]);
+  });
+
+  it('EDGE: {a pid matches the pgid then exits between the cmdline open and read, ESRCH} => resolves, cmd null', async () => {
+    const proxy = orphanReadBrokerProxy();
+    const pgid = ProcessGroupIdStub({ value: 300 });
+
+    proxy.setupProcListing({ pids: ['111'] });
+    proxy.setupPidStat({ pid: '111', pgrp: 300, comm: 'node' });
+    proxy.setupCmdlineVanished({ pid: '111', code: 'ESRCH' });
+    proxy.setupAlive({ pgid });
+
+    const result = await orphanReadBroker({ pgids: [pgid] });
+
+    expect(result).toStrictEqual([OrphanReadingStub({ pgid, cmd: null, alive: true })]);
   });
 
   it('ERROR: {stat read fails for a reason other than absence} => rejects rather than treating it as vanished', async () => {

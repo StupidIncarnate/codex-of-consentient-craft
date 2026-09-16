@@ -13,8 +13,8 @@ describe('RunIdRequiredError', () => {
         name: 'RunIdRequiredError',
         message:
           'Instance inst_7f3a9c21 is killed with 2 run(s) recorded; "latest" cannot be guessed. ' +
-          "Name a run with { run: 'run_N' }, or pass { since: 'boot' } for the whole timeline. " +
-          "See status { instance: 'inst_7f3a9c21' } for the run count.",
+          'Name a run with --run <runId>, or pass --since boot for the whole timeline. ' +
+          'See dungeonmaster siegelense status --instance inst_7f3a9c21 for the run count.',
       });
     });
 
@@ -27,8 +27,8 @@ describe('RunIdRequiredError', () => {
 
       expect(error.message).toBe(
         'Instance inst_00000000 is dead with 1 run(s) recorded; "latest" cannot be guessed. ' +
-          "Name a run with { run: 'run_N' }, or pass { since: 'boot' } for the whole timeline. " +
-          "See status { instance: 'inst_00000000' } for the run count.",
+          'Name a run with --run <runId>, or pass --since boot for the whole timeline. ' +
+          'See dungeonmaster siegelense status --instance inst_00000000 for the run count.',
       );
     });
   });

@@ -14,9 +14,10 @@ const PROC_ROOT = AbsoluteFilePathStub({ value: '/proc' });
 export const orphanReadBrokerProxy = (): {
   setupProcListing: (params: { pids: readonly string[] }) => void;
   setupPidStat: (params: { pid: string; pgrp: number; comm?: string }) => void;
-  setupPidStatVanished: (params: { pid: string }) => void;
+  setupPidStatVanished: (params: { pid: string; code?: 'ENOENT' | 'ESRCH' }) => void;
   setupPidStatFails: (params: { pid: string; error: Error }) => void;
   setupCmdline: (params: { pid: string; argv: readonly string[] }) => void;
+  setupCmdlineVanished: (params: { pid: string; code?: 'ENOENT' | 'ESRCH' }) => void;
   setupAlive: (params: { pgid: ProcessGroupId }) => void;
   setupGone: (params: { pgid: ProcessGroupId }) => void;
 } => {
@@ -43,10 +44,18 @@ export const orphanReadBrokerProxy = (): {
       });
     },
 
-    setupPidStatVanished: ({ pid }: { pid: string }): void => {
+    // Two codes, one meaning: ENOENT when the directory was already gone before the read opened
+    // it, ESRCH when the process exited between that open succeeding and the read completing.
+    setupPidStatVanished: ({
+      pid,
+      code = 'ENOENT',
+    }: {
+      pid: string;
+      code?: 'ENOENT' | 'ESRCH';
+    }): void => {
       readFileProxy.rejects({
         filePath: AbsoluteFilePathStub({ value: `/proc/${pid}/stat` }),
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
+        error: Object.assign(new Error(`${code}: process vanished mid-read`), { code }),
       });
     },
 
@@ -64,6 +73,19 @@ export const orphanReadBrokerProxy = (): {
       readFileProxy.resolves({
         filePath: AbsoluteFilePathStub({ value: `/proc/${pid}/cmdline` }),
         content: `${argv.join(String.fromCharCode(0))}${String.fromCharCode(0)}`,
+      });
+    },
+
+    setupCmdlineVanished: ({
+      pid,
+      code = 'ENOENT',
+    }: {
+      pid: string;
+      code?: 'ENOENT' | 'ESRCH';
+    }): void => {
+      readFileProxy.rejects({
+        filePath: AbsoluteFilePathStub({ value: `/proc/${pid}/cmdline` }),
+        error: Object.assign(new Error(`${code}: process vanished mid-read`), { code }),
       });
     },
 

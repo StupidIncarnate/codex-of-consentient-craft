@@ -1,7 +1,11 @@
 import { z } from 'zod';
 import { fsMkdirAdapterProxy } from '@dungeonmaster/shared/testing';
-import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import {
+  absoluteFilePathContract,
+  AbsoluteFilePathStub,
+  ContentTextStub,
+} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ContentText, FilePath } from '@dungeonmaster/shared/contracts';
 
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
@@ -55,6 +59,10 @@ export const runExecuteBrokerProxy = (): {
   laneWithGrowingConsoleBuffer: () => {
     lane: LaneSession;
     pushConsoleLine: (params: { text: ContentText }) => void;
+  };
+  laneCapturingShots: () => {
+    lane: LaneSession;
+    captureCalls: () => readonly AbsoluteFilePath[];
   };
   headlessLane: () => LaneSession;
   laneRecordingTranscriptGrowth: (params: { transcriptPath: AbsoluteFilePath }) => {
@@ -254,6 +262,27 @@ export const runExecuteBrokerProxy = (): {
         pushConsoleLine: ({ text }: { text: ContentText }): void => {
           consoleBuffer.push(text);
         },
+      };
+    },
+
+    // Records every `session.capture` call's `filePath`, in order — the acting steps' own unasked
+    // capture and a `screenshot` step's explicit one land in the same log, so a test can assert the
+    // FULL sequence of paths a batch actually wrote to, not just what `RunResult.shots` reports back.
+    laneCapturingShots: (): {
+      lane: LaneSession;
+      captureCalls: () => readonly AbsoluteFilePath[];
+    } => {
+      const captureMock = jest.fn().mockResolvedValue(undefined);
+      const lane = LaneSessionStub({
+        evidencePath: EVIDENCE_PATH,
+        browser: { goto: jest.fn().mockResolvedValue(undefined), capture: captureMock },
+      });
+      return {
+        lane,
+        captureCalls: (): readonly AbsoluteFilePath[] =>
+          (captureMock.mock.calls as [{ filePath: FilePath }][]).map(([{ filePath }]) =>
+            absoluteFilePathContract.parse(filePath),
+          ),
       };
     },
 

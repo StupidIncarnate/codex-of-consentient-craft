@@ -5,10 +5,18 @@ import {
   FileContentStub,
 } from '@dungeonmaster/testing';
 import { FileContentsStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { siegelenseHelpStatics } from '@dungeonmaster/siegelense/statics';
 
 import { cliStatuslineHarness } from '../../../test/harnesses/cli-statusline/cli-statusline.harness';
 
 import { CliFlow } from './cli-flow';
+
+type BuiltSiegelenseCall = keyof typeof siegelenseHelpStatics.calls;
+
+// Derived from the same statics the spawned seam test (packages/cli/bin/cli-entry.integration.test.ts)
+// reads — never a second hardcoded list — so this fast, in-process check and that slow, spawned one
+// can never silently drift apart on which calls are built.
+const BUILT_CALL_NAMES = Object.keys(siegelenseHelpStatics.calls) as readonly BuiltSiegelenseCall[];
 
 describe('CliFlow', () => {
   describe('command routing', () => {
@@ -265,5 +273,39 @@ describe('CliFlow', () => {
 
       expect(stdoutOutput).toStrictEqual(['No siegelense instances running.\n']);
     });
+
+    // Beside the bare-invocation test above, driving the same real dynamic import — the cheaper
+    // half of the seam test: a fast, unit-speed check that reads the first line the same way the
+    // slow, spawned check in cli-entry.integration.test.ts does, so a renderer or routing
+    // regression shows up here first.
+    it.each(BUILT_CALL_NAMES)(
+      "VALID: {command: \"siegelense\", args: ['%s', '--help']} => routes through the real dynamic import to that call's help page",
+      async (call) => {
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: `cli-flow-siegelense-help-${call}` }),
+        });
+        const env = harness.setupHome({ tempDir: testbed.guildPath });
+        const stdout = harness.captureStdout();
+
+        await CliFlow({
+          command: 'siegelense',
+          args: [call, '--help'],
+          context: {
+            targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
+            dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
+          },
+        });
+
+        stdout.restore();
+        const stdoutOutput = stdout.getOutput();
+
+        env.restore();
+        testbed.cleanup();
+
+        const [firstWrite] = stdoutOutput;
+
+        expect(String(firstWrite).split('\n')[0]).toBe(siegelenseHelpStatics.calls[call].summary);
+      },
+    );
   });
 });

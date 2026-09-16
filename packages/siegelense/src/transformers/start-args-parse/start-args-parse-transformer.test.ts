@@ -1,0 +1,88 @@
+import { startArgsParseTransformer } from './start-args-parse-transformer';
+
+describe('startArgsParseTransformer', () => {
+  describe('the unowned case', () => {
+    it('VALID: {--spec dungeonmaster-web} => quest and guild null', () => {
+      const result = startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-web'] });
+
+      expect(result).toStrictEqual({
+        specName: 'dungeonmaster-web',
+        questId: null,
+        guildId: null,
+      });
+    });
+  });
+
+  describe('every flag named', () => {
+    it('VALID: {--spec, --quest, --guild} => returns the complete object', () => {
+      const result = startArgsParseTransformer({
+        args: [
+          '--spec',
+          'dungeonmaster-web',
+          '--quest',
+          'add-auth',
+          '--guild',
+          'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        ],
+      });
+
+      expect(result).toStrictEqual({
+        specName: 'dungeonmaster-web',
+        questId: 'add-auth',
+        guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
+    });
+  });
+
+  describe('--json is accepted as an explicit affirmation of the default', () => {
+    it('VALID: {--spec, --quest, --guild, --json} => the same object --json contributes no field to', () => {
+      const result = startArgsParseTransformer({
+        args: [
+          '--spec',
+          'dungeonmaster-web',
+          '--quest',
+          'add-auth',
+          '--guild',
+          'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          '--json',
+        ],
+      });
+
+      expect(result).toStrictEqual({
+        specName: 'dungeonmaster-web',
+        questId: 'add-auth',
+        guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
+    });
+  });
+
+  describe('missing --spec', () => {
+    it('INVALID: {args: []} => throws naming --spec as required', () => {
+      expect(() => startArgsParseTransformer({ args: [] })).toThrow(
+        /^--spec is required: name the lane spec to boot\.$/u,
+      );
+    });
+
+    it('INVALID: {--quest and --guild but no --spec} => throws naming --spec as required', () => {
+      expect(() =>
+        startArgsParseTransformer({ args: ['--quest', 'add-auth', '--guild', 'x'] }),
+      ).toThrow(/^--spec is required: name the lane spec to boot\.$/u);
+    });
+  });
+
+  describe('unknown flag', () => {
+    it('INVALID: {--bogus X} => throws naming the flag and listing the accepted ones', () => {
+      expect(() => startArgsParseTransformer({ args: ['--bogus', 'X'] })).toThrow(
+        /^Unknown flag: --bogus\n\nAccepted flags: --spec, --quest, --guild, --json\n\nUsage: dungeonmaster siegelense start --spec <specName> \[--quest <questId>\] \[--guild <guildId>\] \[--json\]$/u,
+      );
+    });
+  });
+
+  describe('positional argument', () => {
+    it('INVALID: {a bare token} => throws naming it', () => {
+      expect(() => startArgsParseTransformer({ args: ['dungeonmaster-web'] })).toThrow(
+        /^Unexpected positional argument: dungeonmaster-web\n\nEvery value must directly follow the flag it belongs to\.\n\nUsage: dungeonmaster siegelense start --spec <specName> \[--quest <questId>\] \[--guild <guildId>\] \[--json\]$/u,
+      );
+    });
+  });
+});

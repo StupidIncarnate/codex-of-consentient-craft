@@ -173,3 +173,24 @@ export * from './src/contracts/file-stat/file-stat.stub';
 
 export * from './src/contracts/colour-channel/colour-channel-contract';
 export * from './src/contracts/colour-channel/colour-channel.stub';
+
+export * from './src/contracts/start-args/start-args-contract';
+export * from './src/contracts/start-args/start-args.stub';
+
+export * from './src/contracts/compare-args/compare-args-contract';
+export * from './src/contracts/compare-args/compare-args.stub';
+
+export * from './src/contracts/kill-args/kill-args-contract';
+export * from './src/contracts/kill-args/kill-args.stub';
+
+export * from './src/contracts/status-args/status-args-contract';
+export * from './src/contracts/status-args/status-args.stub';
+
+export * from './src/contracts/cleanup-args/cleanup-args-contract';
+export * from './src/contracts/cleanup-args/cleanup-args.stub';
+
+export * from './src/contracts/run-args/run-args-contract';
+export * from './src/contracts/run-args/run-args.stub';
+
+export * from './src/contracts/results-args/results-args-contract';
+export * from './src/contracts/results-args/results-args.stub';

@@ -26,7 +26,16 @@ describe('statusAnswerContract', () => {
           lastOomAt: '20:11:04',
         },
         instances: [],
+        queriedInstanceState: null,
       });
+    });
+
+    it("VALID: {queriedInstanceState: 'unknown'} => a named query that resolved nothing still parses", () => {
+      const answer = StatusAnswerStub({ instances: [], queriedInstanceState: 'unknown' });
+
+      const result = statusAnswerContract.parse(answer);
+
+      expect(result.queriedInstanceState).toBe('unknown');
     });
 
     it('VALID: {instances: [one alive row]} => parses one fleet entry', () => {
@@ -87,6 +96,7 @@ describe('statusAnswerContract', () => {
             lastOomAt: '20:11:04',
           },
           instances: [],
+          queriedInstanceState: null,
         }),
       ).toThrow(/Invalid enum value/u);
     });
@@ -95,6 +105,25 @@ describe('statusAnswerContract', () => {
       expect(() =>
         statusAnswerContract.parse({
           monitored: [],
+          instances: [],
+          queriedInstanceState: null,
+        }),
+      ).toThrow(/Required/u);
+    });
+
+    it('INVALID: {missing queriedInstanceState} => throws Required', () => {
+      expect(() =>
+        statusAnswerContract.parse({
+          monitored: [],
+          machine: {
+            freeMemMB: 980,
+            totalMemMB: 16_000,
+            freeDiskMB: 2100,
+            cores: 8,
+            loadAvg: [7.9, 6.2, 4.1],
+            oomKillsSinceBoot: 2,
+            lastOomAt: '20:11:04',
+          },
           instances: [],
         }),
       ).toThrow(/Required/u);

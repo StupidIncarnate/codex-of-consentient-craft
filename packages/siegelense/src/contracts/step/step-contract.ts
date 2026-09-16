@@ -35,7 +35,7 @@ export const stepContract = z.discriminatedUnion('step', [
     .object({
       step: z.literal('goto'),
       path: urlPathContract,
-      node: nodeLabelContract.nullable(),
+      node: nodeLabelContract.nullable().default(null),
       expect: stepExpectationContract.default(stepStatics.defaults.expect),
     })
     .strict(),
@@ -43,10 +43,10 @@ export const stepContract = z.discriminatedUnion('step', [
     .object({
       step: z.literal('waitFor'),
       target: selectorContract,
-      within: selectorContract.nullable(),
+      within: selectorContract.nullable().default(null),
       state: locatorStateContract,
-      timeoutMs: timeoutMsContract.nullable(),
-      node: nodeLabelContract.nullable(),
+      timeoutMs: timeoutMsContract.nullable().default(null),
+      node: nodeLabelContract.nullable().default(null),
       expect: stepExpectationContract.default(stepStatics.defaults.expect),
     })
     .strict(),
@@ -54,9 +54,9 @@ export const stepContract = z.discriminatedUnion('step', [
     .object({
       step: z.literal('click'),
       target: selectorContract,
-      within: selectorContract.nullable(),
-      timeoutMs: timeoutMsContract.nullable(),
-      node: nodeLabelContract.nullable(),
+      within: selectorContract.nullable().default(null),
+      timeoutMs: timeoutMsContract.nullable().default(null),
+      node: nodeLabelContract.nullable().default(null),
       expect: stepExpectationContract.default(stepStatics.defaults.expect),
     })
     .strict(),
@@ -64,10 +64,10 @@ export const stepContract = z.discriminatedUnion('step', [
     .object({
       step: z.literal('type'),
       target: selectorContract,
-      within: selectorContract.nullable(),
+      within: selectorContract.nullable().default(null),
       value: contentTextContract,
-      timeoutMs: timeoutMsContract.nullable(),
-      node: nodeLabelContract.nullable(),
+      timeoutMs: timeoutMsContract.nullable().default(null),
+      node: nodeLabelContract.nullable().default(null),
       expect: stepExpectationContract.default(stepStatics.defaults.expect),
     })
     .strict(),
@@ -75,7 +75,7 @@ export const stepContract = z.discriminatedUnion('step', [
     .object({
       step: z.literal('screenshot'),
       name: fileNameContract,
-      node: nodeLabelContract.nullable(),
+      node: nodeLabelContract.nullable().default(null),
       expect: stepExpectationContract.default(stepStatics.defaults.expect),
     })
     .strict(),
@@ -83,7 +83,7 @@ export const stepContract = z.discriminatedUnion('step', [
     .object({
       step: z.literal('eval'),
       source: contentTextContract,
-      node: nodeLabelContract.nullable(),
+      node: nodeLabelContract.nullable().default(null),
       expect: stepExpectationContract.default(stepStatics.defaults.expect),
     })
     .strict(),

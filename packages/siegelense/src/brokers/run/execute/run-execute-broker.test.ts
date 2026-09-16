@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub, FileNameStub } from '@dungeonmaster/shared/contracts';
 
 import { BufferEntryStub } from '../../../contracts/buffer-entry/buffer-entry.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -735,6 +735,117 @@ describe('runExecuteBroker', () => {
       ).toStrictEqual([
         { step: 1, path: firstShotPath, pixelChange: null, blank: false },
         { step: 2, path: secondShotPath, pixelChange: '0%', blank: false },
+      ]);
+    });
+  });
+
+  describe('a screenshot step', () => {
+    it('VALID: {goto then screenshot with a caller name} => the shot writes at the caller-supplied name inside the run directory, and the acting step still captures unasked at its own step-indexed name', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const evidencePath = proxy.evidencePath();
+      const { lane, captureCalls } = proxy.laneCapturingShots();
+      const shotName = FileNameStub({ value: 'after-create.png' });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
+          StepStub({ step: 'screenshot', name: shotName }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const expectedActingShotPath = `${String(evidencePath)}/runs/run_1/step1.png`;
+      const expectedNamedShotPath = `${String(evidencePath)}/runs/run_1/after-create.png`;
+
+      expect({ status: result.status, stepsRun: result.stepsRun }).toStrictEqual({
+        status: 'done',
+        stepsRun: 2,
+      });
+      expect(result.shots.map((shot) => [shot.step, String(shot.path)])).toStrictEqual([
+        [1, expectedActingShotPath],
+        [2, expectedNamedShotPath],
+      ]);
+      // The seam: `session.capture` — the actual write — received the SAME two paths RunResult
+      // reports, in the same order. Asserting only `result.shots` would still pass if the dispatcher
+      // captured to one path but reported another.
+      expect(captureCalls().map((path) => String(path))).toStrictEqual([
+        expectedActingShotPath,
+        expectedNamedShotPath,
+      ]);
+    });
+
+    it('VALID: {a batch of only a screenshot step} => never throws for a missing shotPath, the defect this fix removes', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane } = proxy.laneCapturingShots();
+      const shotName = FileNameStub({ value: 'lone-shot.png' });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [StepStub({ step: 'screenshot', name: shotName })],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({ status: result.status, stoppedAt: result.stoppedAt }).toStrictEqual({
+        status: 'done',
+        stoppedAt: null,
+      });
+    });
+
+    it('VALID: {the same caller-supplied name in run_1 and run_2} => each run keeps its own shot under its own run directory', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const firstRunId = RunIdStub({ value: 'run_1' });
+      const secondRunId = RunIdStub({ value: 'run_2' });
+      proxy.stagePaths({ runId: firstRunId });
+      proxy.stagePaths({ runId: secondRunId });
+      const evidencePath = proxy.evidencePath();
+      const shotName = FileNameStub({ value: 'shot.png' });
+
+      const firstResult = await runExecuteBroker({
+        lane: proxy.laneCapturingShots().lane,
+        instanceId: InstanceIdStub(),
+        runId: firstRunId,
+        steps: [StepStub({ step: 'screenshot', name: shotName })],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+      const secondResult = await runExecuteBroker({
+        lane: proxy.laneCapturingShots().lane,
+        instanceId: InstanceIdStub(),
+        runId: secondRunId,
+        steps: [StepStub({ step: 'screenshot', name: shotName })],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect([
+        String(firstResult.shots[0]?.path),
+        String(secondResult.shots[0]?.path),
+      ]).toStrictEqual([
+        `${String(evidencePath)}/runs/run_1/shot.png`,
+        `${String(evidencePath)}/runs/run_2/shot.png`,
       ]);
     });
   });

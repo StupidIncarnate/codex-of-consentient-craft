@@ -5,7 +5,11 @@
  * still alive, because that is what a session needs to decide whether to reap"). `cmd` is `null`
  * when nothing in `/proc` carries the pgid — the ordinary outcome once the group has been reaped, not
  * a fetch failure — and a pid that exits mid-scan is skipped rather than treated as an error, the
- * same rule `machineRssByPgidBroker` applies to its own `/proc` walk.
+ * same rule `machineRssByPgidBroker` applies to its own `/proc` walk: `ENOENT` when the directory is
+ * already gone before the read opens it, `ESRCH` when the process exits in the gap between that open
+ * succeeding and the read completing (the gap a busy machine's scheduler contention widens enough to
+ * hit — see that broker's header for the full mechanism). Both mean "gone", not "failed", so both are
+ * skipped; any other read failure (EACCES, a bad handle) still propagates.
  *
  * USAGE:
  * await orphanReadBroker({ pgids: [ProcessGroupIdStub()] });
@@ -54,7 +58,9 @@ export const orphanReadBroker = async ({
             typeof error.cause === 'object' &&
             errorIsNativeErrorAdapter({ value: error.cause }) &&
             'code' in error.cause &&
-            error.cause.code === 'ENOENT'
+            // ENOENT: the directory was already gone when the read opened it. ESRCH: the process
+            // exited between that open succeeding and the read completing. Both mean "vanished".
+            (error.cause.code === 'ENOENT' || error.cause.code === 'ESRCH')
           ) {
             return null;
           }
@@ -106,7 +112,9 @@ export const orphanReadBroker = async ({
             typeof error.cause === 'object' &&
             errorIsNativeErrorAdapter({ value: error.cause }) &&
             'code' in error.cause &&
-            error.cause.code === 'ENOENT'
+            // ENOENT: the directory was already gone when the read opened it. ESRCH: the process
+            // exited between that open succeeding and the read completing. Both mean "vanished".
+            (error.cause.code === 'ENOENT' || error.cause.code === 'ESRCH')
           ) {
             return null;
           }

@@ -41,7 +41,6 @@
     "@dungeonmaster/eslint-plugin": "*",
     "@dungeonmaster/orchestrator": "*",
     "@dungeonmaster/shared": "*",
-    "@dungeonmaster/siegelense": "*",
     "@dungeonmaster/ward": "*",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "glob": "^10.0.0",

@@ -5,10 +5,16 @@
  * `/proc/<pid>/stat` (field `pgrp`) and `/proc/<pid>/statm` (resident pages)"). `null` means `/proc`
  * itself is absent — a platform fact, checked separately from an empty `pgids` list so the two never
  * collapse into the same answer: no children costs no memory (`0`), an unreadable machine costs
- * nothing to say (`null`). A pid that exits between the readdir and its own read is skipped rather
- * than treated as a failure — a process dying mid-walk is the ordinary case here. Any other read
- * failure (EACCES, a bad handle) propagates: swallowing it would make a status call under-report a
- * live instance's memory as smaller than it really is.
+ * nothing to say (`null`). A pid that exits mid-walk is not a failure, and it surfaces as either of
+ * two codes depending on WHEN it exits: `ENOENT` when `/proc/<pid>` is already gone before the read
+ * opens it, `ESRCH` when the process exits in the gap between that open succeeding and the read
+ * itself completing — a gap `fsReadFileAdapter`'s single `readFile()` call still spans internally.
+ * That gap is microseconds on a quiet machine and near-impossible to hit; a full ward run's scheduler
+ * contention (hundreds of these reads firing at once via the `Promise.all` below) widens it enough to
+ * hit routinely, which is why this crashed under load and never in isolation. Both codes mean the
+ * same fact — the process is gone, not a read that failed — so both are skipped rather than treated
+ * as a failure. Any other read failure (EACCES, a bad handle) propagates: swallowing it would make a
+ * status call under-report a live instance's memory as smaller than it really is.
  *
  * USAGE:
  * await machineRssByPgidBroker({ pgids: [ProcessGroupIdStub()] });
@@ -64,7 +70,9 @@ export const machineRssByPgidBroker = async ({
             typeof error.cause === 'object' &&
             errorIsNativeErrorAdapter({ value: error.cause }) &&
             'code' in error.cause &&
-            error.cause.code === 'ENOENT'
+            // ENOENT: the directory was already gone when the read opened it. ESRCH: the process
+            // exited between that open succeeding and the read completing. Both mean "vanished".
+            (error.cause.code === 'ENOENT' || error.cause.code === 'ESRCH')
           ) {
             return null;
           }
@@ -109,7 +117,9 @@ export const machineRssByPgidBroker = async ({
             typeof error.cause === 'object' &&
             errorIsNativeErrorAdapter({ value: error.cause }) &&
             'code' in error.cause &&
-            error.cause.code === 'ENOENT'
+            // ENOENT: the directory was already gone when the read opened it. ESRCH: the process
+            // exited between that open succeeding and the read completing. Both mean "vanished".
+            (error.cause.code === 'ENOENT' || error.cause.code === 'ESRCH')
           ) {
             return null;
           }

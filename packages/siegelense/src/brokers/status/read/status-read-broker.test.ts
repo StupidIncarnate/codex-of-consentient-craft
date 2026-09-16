@@ -279,6 +279,49 @@ describe('statusReadBroker', () => {
               evidenceComplete: false,
             },
           ],
+          queriedInstanceState: 'dead',
+        }),
+      );
+    });
+  });
+
+  describe('a named instance the registry never held', () => {
+    it("EMPTY: {instanceId named, no matching registry row} => instances [], queriedInstanceState 'unknown'", async () => {
+      const proxy = statusReadBrokerProxy();
+      const nowMs = 1_700_001_000_000;
+      const instanceId = InstanceIdStub({ value: 'inst_deadbeef' });
+      const registry = RegistryStub({ instances: [] });
+
+      proxy.setupNow({ nowMs });
+      // statusReadBroker's named path resolves state directly through instanceStateResolveBroker —
+      // an empty registry means it finds no matching row, so the resolution is 'unknown'.
+      proxy.setupInstanceStateResolution({ registry });
+      proxy.setupMachineReading({
+        freeMemBytes: 980 * 1_048_576,
+        totalMemBytes: 16_000 * 1_048_576,
+        coreCount: 8,
+        loadAvg: [7.9, 6.2, 4.1],
+        diskBavail: 512_000,
+        diskBsize: 4096,
+        vmstatContent: 'nr_free_pages 100\noom_kill 2\n',
+      });
+
+      const result = await statusReadBroker({ instanceId });
+
+      expect(result).toStrictEqual(
+        StatusAnswerStub({
+          monitored: [...machineStatics.monitored],
+          machine: {
+            freeMemMB: 980,
+            totalMemMB: 16_000,
+            freeDiskMB: 2000,
+            cores: 8,
+            loadAvg: [7.9, 6.2, 4.1],
+            oomKillsSinceBoot: 2,
+            lastOomAt: null,
+          },
+          instances: [],
+          queriedInstanceState: 'unknown',
         }),
       );
     });
