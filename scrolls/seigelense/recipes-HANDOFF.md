@@ -2,8 +2,7 @@
 
 ## The prompt that starts the next session
 
-**Paste everything in this block.** It moves the session into the right worktree, points it at this
-document for the state, and restates the goal unchanged.
+**Paste everything in this block.**
 
 ---
 
@@ -11,11 +10,14 @@ document for the state, and restates the goal unchanged.
 > one.
 >
 > **Read `scrolls/seigelense/recipes-HANDOFF.md` first, all of it, before anything else.** It carries
-> the state of the build, what is committed, what each chunk has reached, the rulings already made,
-> the traps that each cost an agent a cycle, and the three things to do first. Do not re-derive any of
-> it and do not re-litigate a ruling recorded there.
+> what is built, what each chunk has reached, the rulings already made, the traps that each cost an
+> agent a cycle, and the three things to do first. Do not re-derive any of it, and do not re-litigate
+> a ruling recorded there.
 >
-> Then continue the goal below, which is unchanged:
+> **Merge master before anything else.** It has moved and is settled. Sweep green after it, and never
+> merge on a red tree.
+>
+> Then continue the goal, unchanged:
 >
 > Implement the recipe book in `scrolls/seigelense/siegelense-recipes.md` in every detail, so one
 > manual test pass finds no holes the doc documents as requirements.
@@ -25,8 +27,7 @@ document for the state, and restates the goal unchanged.
 >
 > The loop:
 >
-> - A sub agent plans features against the doc for a chunk — what to build, in what order. Parallelize
->   where it helps.
+> - A sub agent plans features against the doc for a chunk — what to build, in what order.
 > - Sub agents build them, with unit and integration tests. No e2e needed.
 > - Sub agents review the code against the plan for holes and blindspots.
 > - A sub agent manually uses the tool against the doc's requirements.
@@ -38,58 +39,29 @@ document for the state, and restates the goal unchanged.
 > requirement by manually running the tool.
 >
 > Before every commit, run `ward --uncommitted --committed` until green; save the full ward for when
-> the feature is done. Agents run `ward -- -- {files}` on files they change — quick sanity, no
-> collisions.
+> the feature is done. Agents run `ward -- -- {files}` on files they change.
 >
 > **Three packages** under `packages/`, bound by our arch and testing standards, which every sub agent
-> pulls: `@dungeonmaster/hydration` (the framework, ships), `packages/hydration-recipes` (this repo's
-> own ingredients and recipes, must NOT ship), and the `@dungeonmaster/siegelense` changes that list
-> and seed them. Part 5's "Where each part lands in this repo's architecture" is the map.
->
-> The chainables get their own PLANNING SESSION. Part 5's "The combinatorial planning session" hands
-> it two tables — what an ingredient must versus may have — and rounds A through D. Do not let a
-> session invent that list; it will re-derive written-down cases and miss the rest. Round D is the sad
-> paths, none implemented or tested today.
+> pulls: `@dungeonmaster/hydration` (the framework, ships), `packages/siegelense-recipes` (this repo's
+> own ingredients and recipes, must NOT ship — it is renamed to `hydration-recipes` late), and the
+> `@dungeonmaster/siegelense` changes that list and seed them.
 >
 > The chainables need manual COMBINATORIAL exercise, not one example each. Every verb's example
-> compiles; that is not knowing what composing them does. Drive whole rounds of combinations against a
-> live instance and write down what breaks — a `filter` inside an `add` whose transition minted the
-> rows it matches; a `saveRecordAs` on a row a later `remove` deletes; a `fromSaved` pointing at a row
-> inside a `filter`; two ingredients whose `links` name the same parent; a transition that mints rows
-> another transition removes. The doc could not anticipate these; the round that finds one writes it
-> into the doc rather than working around it.
+> compiles; that is not knowing what composing them does. **`plans/recipes-chunk-12-combinatorial-rounds.md`
+> holds 65 numbered cases from Part 5's two tables — work from it, never from a blank page.** Drive
+> rounds against a live instance and write down what breaks. The doc could not anticipate these; the
+> round that finds one writes it into the doc rather than working around it.
 >
-> Converting the existing suites is part of this work, and proves the design. Part 5's "The migration
-> IS the validation" has the order; `python3 scrolls/tools/seed-census.py` produces the target file
-> list and running mark. Its counts: 17 integration domain-seeders first (cheap environment), then 118
-> e2e specs in small batches, suite green between them, then one manual siegelense round for the tool
-> half neither suite crosses. A converted test keeps its assertions exactly — if it needs a different
-> assertion to pass, the ingredient is wrong, not the test. A test that will not convert is a finding,
-> written into the doc.
+> Converting the existing suites proves the design and is in scope. **`plans/recipes-chunk-09-10-migration.md`
+> has the order and the batches**; `python3 scrolls/tools/seed-census.py --methods` is the running
+> mark. A converted test keeps its assertions exactly — if it needs a different assertion to pass, the
+> ingredient is wrong, not the test. A test that will not convert is a finding, written into the doc.
 >
 > Blockers: send sonnet agents to unblock.
 >
-> Siegelense is merged to master and this branch tracks it — no second branch to chase. Part 5's "This
-> branch tracks master" says when to merge, what the end rename touches, and the one coordination
-> left: chunk 8 edits `packages/siegelense`, where manual-testing rounds still land fixes. Ask before
-> starting it; merge either side.
->
-> Master is not settled — a full `npm run ward` over the just-merged tree is still running in another
-> session; its findings land as fixes. Start chunks 1-6 anyway; nothing on master can invalidate a new
-> package. Merge master again once that run is green, and before any conversion batch — otherwise
-> chunks 9 and 10 rewrite 900 call sites against a tree about to move.
-
----
-
-**Three notes on that prompt, now that the build has run against it:**
-
-**The census counts in it are wrong**, and this document says why below. Its 916 is not seeding call
-sites, and 17 integration targets is really 11, of which 1 converts.
-
-**Master is now settled and has moved** — that last paragraph is satisfied, and the merge is job two.
-
-**The two packages named `hydration-recipes` and `@dungeonmaster/hydration` exist**, the first still
-under its pre-rename name `siegelense-recipes`. The rename is a late, separate step.
+> **Chunk 8 edits `packages/siegelense`, where manual rounds land fixes. Ask before starting it** —
+> and re-plan it first, because master moved that surface to the CLI and ended the MCP layer the doc
+> still describes.
 
 ---
 
