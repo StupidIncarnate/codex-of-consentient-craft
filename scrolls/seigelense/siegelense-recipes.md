@@ -70,11 +70,10 @@ build ran under, with the two clauses this feature needs that that one did not.
 >
 > If hiccups with the flow or blockers happen, send out sub agents sonnet to fix them and unblock.
 >
-> **Siegelense is still being finished on its own branch while you work.** Part 5's "Building this
-> while siegelense is still being finished" says which chunks need it (7 onward) and which do not
-> (1-6, start those immediately), when to merge `siegelense` in, and what the rename at the end
-> actually touches. **Chunk 8 edits the package that session is still building — hold it until they
-> report done.**
+> **Siegelense is already merged to master, and this branch tracks master — there is no second
+> branch to chase.** Part 5's "This branch tracks master" says when to merge, what the rename at
+> the end touches, and the one coordination left: **chunk 8 edits `packages/siegelense`, which
+> manual-testing rounds still land fixes in. Ask before starting it, and merge either side of it.**
 >
 > Move to a worktree before you start. Only parallel 3 sub agents at a time. Use opus for planning,
 > sonnet for everything else.
@@ -132,63 +131,63 @@ already recorded, at much greater cost.
 
 ---
 
-### Building this while siegelense is still being finished
+### This branch tracks master, and siegelense is already in it
 
-**This build starts before siegelense is done, and the orchestrator has to schedule around that rather
-than discover it.** The two are on different branches, and most of this work does not touch siegelense
-at all — which is what makes the overlap safe.
-
-| Branch | Holds | State |
-|---|---|---|
-| `siegelense` | `packages/siegelense`, `packages/siegelense-recipes`, and edits across shared, testing, mcp, server, ward, cli | being finished |
-| this branch | the specification, `proto/`, `scrolls/tools/seed-census.py` | ready |
-
-**`packages/siegelense-recipes` exists ONLY on the `siegelense` branch.** Seven files, an empty
-scaffold. It is not on `master` and not here.
-
-#### What can start immediately, and what has to wait
-
-| Chunks | Needs siegelense? | Why |
-|---|---|---|
-| 1-6 — contracts, the factory, the chain, the runner, transitions, `filter` | **no** | `@dungeonmaster/hydration` is a brand-new package that touches nothing siegelense touches. Start it today, off this branch |
-| 7 — this repo's real ingredients and their tests | **yes** | they live in the recipes package, which only exists over there |
-| 8 — discovery, `recipes {}`, the `seed` step's params | **yes, and last** | it edits `packages/siegelense`, the package still being built. Editing it mid-build collides with whoever is finishing it |
-| 9-12 — the migration, the manual round, the combinatorial rounds | **yes** | all of them need 7 and 8 |
-
-**So roughly half this build is independent, and the orchestrator should spend the overlap window
-there.** A planner told "wait for siegelense" idles through chunks that never needed it.
-
-#### Merging, and in which direction
-
-**Merge `siegelense` INTO this branch, repeatedly, and never the other way.** That branch is being
-actively worked by another session; a merge landing in it would arrive mid-chunk in someone else's
-tree.
+**Siegelense was merged to master so the MCP could restart, and those sessions went back to manual
+testing in their own worktree.** So this build has no second branch to chase: **merge `master`, and
+nothing else.**
 
 ```bash
-git merge siegelense      # in this worktree, at each interval below
+git merge master      # in this worktree, at the intervals below
 ```
+
+| | |
+|---|---|
+| this branch | `recipes-doc`, off `master` |
+| where siegelense lives | `master` — merged, including `packages/siegelense-recipes` |
+| what still moves | `packages/siegelense`, as manual testing finds defects. Fixes, not construction |
+
+**`packages/siegelense-recipes` is already here.** Seven files, an empty scaffold, arrived with the
+merge. Nothing is blocked on reaching it any more.
+
+#### What that leaves to schedule
+
+**Chunks 1 through 7 are unblocked today.** The framework is a new package that touches nothing anyone
+else is in, and chunk 7's recipes package is on disk.
+
+**Chunk 8 is the only one that still wants coordination**, and the reason changed with the merge.
+Siegelense is no longer being BUILT — it is being driven by hand, and a manual round that finds a
+defect lands a fix in `packages/siegelense`. Chunk 8 edits that same package.
+
+| Then | Now |
+|---|---|
+| a package under active construction; editing it collided with whoever was finishing it | a package under manual testing; edits collide only with a fix a round happens to land |
+
+So chunk 8 no longer waits on a milestone. **It wants a quick word before it starts** — ask whether a
+manual round is mid-flight, and merge `master` immediately before and after it.
+
+#### When to merge
 
 | When | Why then |
 |---|---|
-| before chunk 7 starts | the first merge that matters — it is what brings the recipes package into reach |
-| at each of siegelense's own chunk boundaries | its ledger records them; merging at a boundary lands a tree that session already made green |
-| once more when siegelense reports finished | the merge the rename and chunk 8 are written against |
+| before chunk 7 | it is the merge that brought the recipes package; done already if the tree holds it |
+| before and after chunk 8 | the one place both builds write the same package |
+| before each migration batch in chunks 9 and 10 | those convert hundreds of real tests, and converting against a stale tree converts the wrong thing |
+| before the rename | so it is done once |
 
-**The collision surface is small and known.** Both branches add to root `package.json` `dependencies`
-and both touch `eslint.config.js` — siegelense already adds three lines there, and `hydration` needs
-its own `ban-primitives` entry. Everything else this branch writes is new files. Expect to resolve
-those two by hand each time and nothing else.
+**The collision surface is small and known**: root `package.json` `dependencies` and `eslint.config.js`,
+where `hydration` needs its own `ban-primitives` entry. Everything else this branch writes is new files.
+The merge that brought siegelense in landed clean, with no conflicts at all.
 
-**Never merge on a red tree.** `npm run ward -- --committed --uncommitted` after each merge, before any
-new work lands on top; a merge that broke something is far cheaper to find on its own than underneath a
-chunk.
+**Never merge on a red tree.** `npm run ward -- --committed --uncommitted` after each one, before new
+work lands on top.
 
 #### The rename is its own step, and it is bigger than the folder
 
-**`siegelense-recipes` becomes `hydration-recipes`, near the end, after the last merge.** Doing it
-early means re-doing it on every merge that follows.
+**`siegelense-recipes` becomes `hydration-recipes` late, after the last merge that matters** — earlier
+and it is re-done on every merge after.
 
-The surface, measured on the `siegelense` branch:
+The surface, measured on this tree:
 
 | What | Detail |
 |---|---|
@@ -207,18 +206,6 @@ The surface, measured on the `siegelense` branch:
 **The scaffolder already exists and already does the right thing.** `InstallRecipesScaffoldResponder`
 creates the package when absent, leaves an existing one untouched, and its header already carries the
 empty-versus-missing reasoning. **It needs the rename and nothing else** — do not write a second one.
-
-#### What "siegelense is done" means for this build
-
-Not its ledger reaching the bottom. Three things this build actually depends on:
-
-1. `packages/siegelense`'s tool surface stops changing, so chunk 8 edits a stable package
-2. the `seed` step's place in the batch contract is settled
-3. a full `npm run ward` on `siegelense` is green, so a merge brings a tree that was whole
-
-**Chunk 8 is the one to hold back hardest.** Everything before it writes new files; chunk 8 edits the
-package another session is finishing, and that is the only place the two builds can genuinely corrupt
-each other's work.
 
 ### 3A — The decision index
 
@@ -1417,12 +1404,12 @@ synthetic round exercises what somebody thought to write. Two hundred real tests
 actually needs, across the three environments this design claims to serve — and a conversion that
 cannot reproduce a test's setup has found a hole no invented example would have.
 
-**Measured on this branch:**
+**Measured on this branch, 2026-09-16, by the script below — re-run it rather than trusting these:**
 
 | | Files | Seed domain state | What they use |
 |---|---|---|---|
 | `*.e2e.ts` | 122, all in `web` | **118** | Playwright harnesses, every one |
-| `*.integration.test.ts` | 121, across 14 packages | **17** | `installTestbedCreateBroker` plus, in 5 cases, the hydrator |
+| `*.integration.test.ts` | 129, across 14 packages | **17**, of which **16 are convertible** | `installTestbedCreateBroker`; one is a test OF the hydrator and is excluded below |
 
 **The other 104 integration tests are not conversion targets.** They take a temp directory from
 `installTestbedCreateBroker` and never build a guild or a quest. Leave them alone; a migration that
