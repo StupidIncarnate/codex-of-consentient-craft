@@ -1,6 +1,7 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
+import { PixelChangeStub } from '../pixel-change/pixel-change.stub';
 import { ShotOpenReasonStub } from '../shot-open-reason/shot-open-reason.stub';
 import { StepIndexStub } from '../step-index/step-index.stub';
 import { shotListingContract } from './shot-listing-contract';
@@ -15,5 +16,8 @@ export const ShotListingStub = ({ ...props }: StubArgument<ShotListing> = {}): S
     open: true,
     why: ShotOpenReasonStub({ value: 'start' }),
     node: null,
+    pixelChange: PixelChangeStub(),
+    blank: false,
+    blankColour: null,
     ...props,
   });

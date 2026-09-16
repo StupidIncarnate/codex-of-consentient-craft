@@ -78,8 +78,8 @@ export const siegeLane = async ({
   const homePath = filePathContract.parse(
     path.join(os.tmpdir(), `dm-siege-${laneName}-${String(process.pid)}`),
   );
-  const claudeQueueDir = path.join(homePath, 'claude-queue');
-  const wardQueueDir = path.join(homePath, 'ward-queue');
+  const claudeQueueDir = path.join(homePath, locationsStatics.siegelense.claudeQueueDir);
+  const wardQueueDir = path.join(homePath, locationsStatics.siegelense.wardQueueDir);
   const laneDir = filePathContract.parse(path.join(REPO_ROOT, 'tmp', 'siege', laneName));
   const screenshotDir = filePathContract.parse(path.join(laneDir, 'screenshots'));
 

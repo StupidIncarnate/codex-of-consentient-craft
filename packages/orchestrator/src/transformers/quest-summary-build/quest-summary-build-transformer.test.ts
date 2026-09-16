@@ -686,7 +686,7 @@ describe('questSummaryBuildTransformer', () => {
   });
 
   describe('quest notes grouped by kind', () => {
-    it('VALID: {one note of each kind, plus a second open question} => one group per kind, in quest order', () => {
+    it('VALID: {one note of each kind, plus a second open question} => one group per kind, in quest order, with a walked note keeping its branded ids', () => {
       const quest = QuestStub({
         flows: [],
         planningNotes: {
@@ -697,6 +697,12 @@ describe('questSummaryBuildTransformer', () => {
             QuestNoteStub({ id: 'out-of-scope-legacy-panel', kind: 'out-of-scope' }),
             QuestNoteStub({ id: 'walk-reset-after-anchor-fix', kind: 'walk-reset' }),
             QuestNoteStub({ id: 'open-question-batch-notify', kind: 'open-question' }),
+            QuestNoteStub({
+              id: 'walked-login-flow-path-3',
+              kind: 'walked',
+              instanceId: 'inst_9b2c1234',
+              runId: 'run_2',
+            }),
           ],
           operationPlans: [],
         },
@@ -724,7 +730,20 @@ describe('questSummaryBuildTransformer', () => {
           id: 'walk-reset',
           notes: [QuestNoteStub({ id: 'walk-reset-after-anchor-fix', kind: 'walk-reset' })],
         },
+        {
+          id: 'walked',
+          notes: [
+            QuestNoteStub({
+              id: 'walked-login-flow-path-3',
+              kind: 'walked',
+              instanceId: 'inst_9b2c1234',
+              runId: 'run_2',
+            }),
+          ],
+        },
       ]);
+      expect(result.noteGroups[4]?.notes[0]?.instanceId).toBe('inst_9b2c1234');
+      expect(result.noteGroups[4]?.notes[0]?.runId).toBe('run_2');
     });
 
     it('EMPTY: {no notes} => every kind still gets a group, so "none" is stated rather than implied', () => {
@@ -737,6 +756,7 @@ describe('questSummaryBuildTransformer', () => {
         { id: 'tooling-error', notes: [] },
         { id: 'out-of-scope', notes: [] },
         { id: 'walk-reset', notes: [] },
+        { id: 'walked', notes: [] },
       ]);
     });
   });
@@ -757,6 +777,7 @@ describe('questSummaryBuildTransformer', () => {
           { id: 'tooling-error', notes: [] },
           { id: 'out-of-scope', notes: [] },
           { id: 'walk-reset', notes: [] },
+          { id: 'walked', notes: [] },
         ],
       });
     });

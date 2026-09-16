@@ -66,6 +66,28 @@ The spec carries inline status markers under the headings that have been deliver
 `> **Status: DELIVERED (chunk N)** — …` or `PARTIAL` or `BLOCKED`. Match that format exactly when
 you add more, so they stay findable by a search.
 
+## The search tools cannot see this worktree. Read this before dispatching anyone.
+
+**`discover`, `get-project-map` and `get-project-inventory` are blind to `packages/siegelense`, and stale for
+every other package on this branch.** The MCP server is rooted at the main checkout, which sits on `master`,
+and `packages/siegelense` has never existed on `master`. Measured:
+
+| Call | Answers | Truth |
+|---|---|---|
+| `get-project-inventory({ packageName: 'siegelense' })` | `## siegelense (0 files) (empty)` | the package holds a full tree |
+| `discover({ glob: 'packages/siegelense/src/brokers/step/**' })` | `count: 0` | eight broker folders |
+
+No rebuild fixes it. The tools point at a different tree.
+
+**An empty answer reads exactly like a package with nothing in it**, which is the documented path to deciding
+code is missing and writing a second copy of it. The blindness also reaches past this package:
+`git diff master...siegelense` spans 75 files in `shared`, `testing`, `mcp`, `server`, `ward` and `cli`, so
+for those the tools serve `master`'s version rather than this branch's.
+
+Search here with `Read` for contents, `ls -R` for structure, and a `python3 -c` one-liner over `os.walk` plus
+a regex. Put this in every agent brief; an agent told to `discover` first will otherwise report a true thing
+absent.
+
 ## What a person can do today
 
 The repo is built, linked and `init`-ed, so these work at a terminal right now:
@@ -114,50 +136,87 @@ No recipes. No evidence read path. No retention or pruning. No `look`, `health`,
 The ledger has the full picture, row by row. Read it before planning — it is the map of what the
 spec contains, and it is current as of this handoff.
 
-## The one open bug, and it blocks the teardown suite
+## The source-condition bug: SOLVED. Read the mechanism before you spawn anything.
 
-**A driver spawned from inside a Jest worker crashes on startup**, resolving
-`@dungeonmaster/shared/contracts` to TypeScript source instead of compiled `dist/`:
+**A driver spawned from inside a Jest worker resolved `@dungeonmaster/shared/contracts` to TypeScript source
+instead of compiled `dist/`.** Three sessions failed on it. It is fixed. The mechanism is worth knowing,
+because the same trap catches any spawn from a Jest worker in this repo.
 
-```
-Error [ERR_MODULE_NOT_FOUND]: Cannot find module
-  '.../packages/shared/src/contracts/file-path/file-path-contract'
-  imported from '.../packages/shared/contracts.ts'
-```
+**The chain, in order:**
 
-It reproduces every time. These were ruled out by direct measurement, so do not re-check them:
-`NODE_OPTIONS`, `NODE_PATH` and `TS_NODE_PROJECT` are undefined at spawn time, `process.execArgv` is
-empty, the resolved binary path is correct, and the identical spawn — same binary, same args, same
-cwd, same full 129-key environment — succeeds every time from a standalone Node script outside Jest.
-Whatever is wrong is specific to being a live descendant of a Jest worker.
+1. Ward's unit and integration runners inject `NODE_OPTIONS=--conditions=source` into the Jest process
+   (`packages/ward/README.md` section 5).
+2. `packages/testing/src/jest.setup.js` strips that variable back out of the live `process.env`.
+3. **A child spawned with `env` OMITTED does not read the live object.** Node's "default: inherit
+   `process.env`" resolves against a STALE, PRE-STRIP snapshot taken inside the Jest worker. The strip never
+   reaches the child.
+4. `instance-start-broker.ts` spawned the driver with no `env` field — the one call site relying on that
+   default. So the child ran with `--conditions=source` active, and Node dutifully resolved the package's
+   `source` export condition to `./contracts.ts`.
 
-`packages/ward/README.md` documents a related hazard worth reading first: a `--conditions=source`
-leaking into a spawned compiled child.
+**The fix:** `instance-start-broker.ts` now builds an explicit env snapshot from live `process.env` and passes
+it as `env:` on the spawn. `laneBootBroker` already did exactly this for its own spawns, which is why the
+"twin" experiment sometimes succeeded — it went through the other path.
 
-**Because of it, the teardown suite's boot-dependent assertions are gated, not weakened.** Every
-test name and every assertion is intact behind one reason string at
-`packages/siegelense/src/flows/driver/driver-flow.integration.test.ts:52`.
+**Why three sessions of measurement missed it, which is the reusable lesson.** Every ruled-out row below was
+measured in the PARENT, against the live `process.env` — where the strip HAD worked, so `NODE_OPTIONS` really
+did read as `undefined`. Nobody measured what the CHILD received. The parent and the child disagreed, and only
+one of them was ever asked.
 
-To unblock, in order:
+**Do not re-check these. Each was ruled out by live measurement, and none of them was the cause:**
 
-1. Fix the resolution bug.
-2. Confirm a real boot succeeds from inside Jest — watch `LaneBootFailedError` stop appearing.
-3. Set `DRIVER_BOOT_BLOCKER` to `''`. That single edit re-registers all fourteen tests unchanged.
-4. Run them and confirm they pass **for real**, not merely that they are no longer gated.
+| Ruled out | How |
+|---|---|
+| `NODE_OPTIONS`, `NODE_PATH`, `TS_NODE_PROJECT` | all undefined **in the parent** — the measurement that misled everyone |
+| `process.execArgv` | empty |
+| the resolved binary path | correct |
+| the same spawn outside Jest | succeeds every time — because nothing injects the condition there |
+| worktree hermeticity | the crash's own stack names paths inside the worktree throughout, never the main checkout |
+| `detached: true` | reproduced without it |
+| numeric-fd stdio vs pipe | reproduced with a real `fs.openSync` fd |
+| `spawnSync` vs async `spawn` | reproduced both ways |
+| concurrent process launches | dozens in parallel from Bash and from a plain Node parent, no crash |
+| ward's `--detectOpenHandles` | reproduced under bare `npx jest --runInBand` |
+| a Node 22.17 `require(esm)` race | Node 21.6.0 crashes too, through the old CJS loader. The `ModuleJobSync` frames were a symptom of Node 22's TypeScript support |
+| the twin spawn running alone | crashed twice, identically. The earlier twin SUCCESS was the other spawn path, which already passed an explicit env |
 
-Native `.skip` is unavailable here: `forbid-todo-skip`, `jest/no-disabled-tests` and
-`jest/no-commented-out-tests` are all active, by design.
+## The teardown suite is GREEN. All fifteen tests pass against real spawned drivers.
 
-## Two things to verify rather than trust
+`DRIVER_BOOT_BLOCKER` is `''` and the gate is gone. Two independent full runs of
+`packages/siegelense/src/flows/driver/driver-flow.integration.test.ts` pass every test — the single-instance
+clean kill, the SIGKILLed driver's orphans reaped by a second process, and killing one of three parallel
+instances while the other two keep answering ping and keep every one of their own process groups alive.
 
-**The proxy-mock specifier fix may be incomplete.** A commit claims `'process'` and `'node:process'`
-now merge into one mock factory. A later reading found
-`packages/testing/src/middleware/proxy-mock-collector/proxy-mock-collector-middleware.ts` still
-pushes the raw specifier with no normalisation. Both can be true — the merge happens in a different
-transformer — but confirm it before relying on it.
+**The suite paid for itself immediately by catching two real defects**, and the second was invisible until the
+first was fixed.
+
+| Defect | Where | What it was |
+|---|---|---|
+| The socket directory was never created | `adapters/net/unix-serve/net-unix-serve-adapter.ts` | Nothing ever made `<os.tmpdir()>/dm-siege-sockets`. **Binding a unix socket whose parent directory is absent fails with `EACCES`, not `ENOENT`** — which is why three sessions read it as a permissions or contention problem. The directory only ever existed on this machine as a leftover from an earlier successful run. Fixed with a `mkdirSync(dirname(socketPath), { recursive: true })` before the bind |
+| A driver SIGKILLed inside the first 5 seconds leaked its whole lane | `responders/siegelense/driver/driver-serve-layer-responder.ts` | `instanceKillBroker`'s orphan reap reads `heartbeat.json` for the pgids to signal, but the heartbeat ticker's first tick waits `instanceLifecycleStatics.heartbeat.intervalMs` — 5 seconds. A driver killed in that window left no heartbeat file, so the reap found zero pgids and the lane processes never died. Fixed by writing one beat CONCURRENTLY with standing up the socket, closing the window to effectively zero |
+
+**Stale sockets were already handled** and still are: the adapter unlinks an existing socket file before
+binding, because a SIGKILLed driver leaves its socket file behind and a unix socket path is not removed when
+its process dies.
+
+**One leak remains, found while verifying and not covered by any of the fifteen tests.** The driver's own
+top-level process does not exit after a successful `kill` — its socket server is never closed, so the Node
+event loop stays alive. The idle-timeout backstop (`driver-idle-wait-layer-responder.ts`) eventually reaps it,
+which makes this a slow leak rather than a permanent one. Every existing test checks lane pgids, ports, home
+and evidence — never the driver's own process — which is exactly why it slipped through.
+
+## One thing to verify rather than trust
 
 **`siegelense-start` was proven broken by a real run, then fixed, and the fix has not been
 re-verified by a person.** Its unit tests pass. Drive it yourself early.
+
+## The proxy-mock specifier question, settled
+
+`'process'` and `'node:process'` DO merge into one `jest.mock()` factory, and the fix reaches every
+package. Read the merge at
+`packages/testing/src/transformers/mock-calls-merge-by-module/mock-calls-merge-by-module-transformer.ts:31`,
+not at the collector — `proxy-mock-collector-middleware.ts` normalises relative specifiers only, which
+is why reading that file alone makes the bug look open. The ledger's last row carries the full trace.
 
 ## The lesson this build kept teaching
 

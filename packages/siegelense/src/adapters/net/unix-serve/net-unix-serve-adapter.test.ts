@@ -9,7 +9,7 @@ type DriverResponse = ReturnType<typeof DriverResponseStub>;
 
 describe('netUnixServeAdapter', () => {
   describe('binding the socket', () => {
-    it('VALID: {socketPath: nothing there yet} => resolves success once listening', async () => {
+    it('VALID: {socketPath: nothing there yet} => resolves success and a close function once listening', async () => {
       const proxy = netUnixServeAdapterProxy();
       const socketPath = AbsoluteFilePathStub({
         value: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock',
@@ -26,7 +26,7 @@ describe('netUnixServeAdapter', () => {
           Promise.resolve(DriverResponseStub({ ok: true, payload: '', error: null })),
       });
 
-      expect(result).toStrictEqual({ success: true });
+      expect(result).toStrictEqual({ success: true, close: expect.any(Function) });
     });
 
     it('VALID: {socketPath: nothing there yet} => never unlinks anything', async () => {
@@ -47,6 +47,26 @@ describe('netUnixServeAdapter', () => {
       });
 
       expect(proxy.getUnlinkedPaths()).toStrictEqual([]);
+    });
+
+    it('VALID: {socketPath: parent directory absent} => creates it before checking for a stale file', async () => {
+      const proxy = netUnixServeAdapterProxy();
+      const socketPath = AbsoluteFilePathStub({
+        value: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock',
+      });
+      proxy.setupFreshSocket();
+
+      await netUnixServeAdapter({
+        socketPath,
+        onRequest: async ({
+          request: _request,
+        }: {
+          request: DriverRequest;
+        }): Promise<DriverResponse> =>
+          Promise.resolve(DriverResponseStub({ ok: true, payload: '', error: null })),
+      });
+
+      expect(proxy.getCreatedDirs()).toStrictEqual(['/tmp/dm-siege-sockets']);
     });
 
     it('VALID: {socketPath: a stale socket file sits there} => unlinks it before listening', async () => {
@@ -274,6 +294,49 @@ describe('netUnixServeAdapter', () => {
       expect(String(writtenFrame)).toMatch(
         /^\{"ok":false,"payload":"","error":"Malformed request frame: .+"\}\n$/u,
       );
+    });
+  });
+
+  describe('closing the server', () => {
+    it('VALID: {close called} => stops the underlying net.Server exactly once', async () => {
+      const proxy = netUnixServeAdapterProxy();
+      const socketPath = AbsoluteFilePathStub({
+        value: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock',
+      });
+      proxy.setupFreshSocket();
+
+      const { close } = await netUnixServeAdapter({
+        socketPath,
+        onRequest: async ({
+          request: _request,
+        }: {
+          request: DriverRequest;
+        }): Promise<DriverResponse> =>
+          Promise.resolve(DriverResponseStub({ ok: true, payload: '', error: null })),
+      });
+      await close();
+
+      expect(proxy.getCloseCallCount()).toBe(1);
+    });
+
+    it('VALID: {close called} => the returned promise resolves', async () => {
+      const proxy = netUnixServeAdapterProxy();
+      const socketPath = AbsoluteFilePathStub({
+        value: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock',
+      });
+      proxy.setupFreshSocket();
+
+      const { close } = await netUnixServeAdapter({
+        socketPath,
+        onRequest: async ({
+          request: _request,
+        }: {
+          request: DriverRequest;
+        }): Promise<DriverResponse> =>
+          Promise.resolve(DriverResponseStub({ ok: true, payload: '', error: null })),
+      });
+
+      await expect(close()).resolves.toBe(undefined);
     });
   });
 });

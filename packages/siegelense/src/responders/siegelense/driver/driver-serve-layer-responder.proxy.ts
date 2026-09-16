@@ -4,7 +4,9 @@
  * laneTeardownBroker, instanceReleaseBroker) because each already carries its own dedicated test
  * suite; this proxy only proves the WIRING between them. `netUnixServeAdapter` runs through its own
  * real proxy (mocking only 'net'/'fs') so a test drives a request through the real socket-framing
- * path via `connectClient()`/`sendFrame()`. `setInterval` and `process.on` are captured rather than
+ * path via `connectClient()`/`sendFrame()`, and `getSocketCloseCallCount()` reads that same real
+ * proxy's own close counter — proving THIS responder called `close()` on its way out, not merely
+ * that the adapter proxy supports one. `setInterval` and `process.on` are captured rather than
  * left real, so a test can fire a heartbeat tick or a signal handler on demand instead of waiting on
  * a real timer or sending a real OS signal to the test runner.
  *
@@ -44,6 +46,7 @@ export const DriverServeLayerResponderProxy = (): {
   stageIdleWaitResolves: (params: { killed: boolean }) => void;
   getLaneTeardownCallCount: () => ReturnType<typeof ReadingCountStub>;
   getInstanceReleaseCallCount: () => ReturnType<typeof ReadingCountStub>;
+  getSocketCloseCallCount: () => ReturnType<typeof ReadingCountStub>;
   fireHeartbeatTick: () => void;
   stageHeartbeatTickFails: (params: { error: Error }) => void;
   getStderrWrites: () => unknown[];
@@ -126,6 +129,9 @@ export const DriverServeLayerResponderProxy = (): {
 
     getInstanceReleaseCallCount: (): ReturnType<typeof ReadingCountStub> =>
       ReadingCountStub({ value: instanceReleaseHandle.callsMatching([]).length }),
+
+    getSocketCloseCallCount: (): ReturnType<typeof ReadingCountStub> =>
+      socketProxy.getCloseCallCount(),
 
     fireHeartbeatTick: (): void => {
       intervalCallbacks.at(-1)?.();

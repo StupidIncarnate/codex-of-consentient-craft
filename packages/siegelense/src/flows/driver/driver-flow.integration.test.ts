@@ -34,22 +34,40 @@ describe('DriverFlow', () => {
 // covers either outcome without Jest's own 5000ms default hook timeout cutting the real answer off.
 const BOOT_HOOK_TIMEOUT_MS = 220_000;
 const HEARTBEAT_WAIT_CEILING_MS = 20_000;
+// Every connection the driver's socket serves ends server-side the moment its reply is queued (see
+// net-unix-serve-adapter.ts's own header), and laneTeardownBroker's own grace window
+// (driverStatics.teardown.graceMs, 3s) is the only real wait on the kill path — 10s leaves ample
+// margin over that without reading as a timing-sensitive guess.
+const DRIVER_EXIT_WAIT_CEILING_MS = 10_000;
 const HEADLESS_SPEC = SpecNameStub({ value: 'dungeonmaster-headless' });
 
-// The driver, spawned as a real OS process from inside a Jest worker, currently crashes before it
-// ever answers its ready path: `Error [ERR_MODULE_NOT_FOUND]: Cannot find module
-// '.../file-path-contract' imported from '.../contracts.ts'` — it resolves
-// `@dungeonmaster/shared/contracts` to TypeScript SOURCE instead of compiled `dist/`. Every test
-// below that boots a real instance times out on `LaneBootFailedError` as a direct consequence.
-// This is narrowed to being a live descendant of a Jest worker specifically: NODE_OPTIONS,
-// NODE_PATH and TS_NODE_PROJECT are confirmed unset at spawn time, `process.execArgv` is empty,
-// the resolved binary path is correct, and reproducing the identical spawn outside Jest (same
-// binary, same args, same cwd, same full environment) succeeds every time. The fix belongs to
-// that module-resolution bug, not to this file. The assertions gated below are believed sound and
-// UNTESTED — nobody has watched one pass — not known-good. Set this to '' once the driver boots
-// from inside Jest again; that is the only edit un-skipping needs.
-const DRIVER_BOOT_BLOCKER =
-  'ERR_MODULE_NOT_FOUND resolving @dungeonmaster/shared/contracts to source inside a Jest-spawned driver';
+// FIXED: the driver, spawned as a real OS process from inside a Jest worker, used to crash before
+// answering its ready path with `Error [ERR_MODULE_NOT_FOUND]` resolving
+// `@dungeonmaster/shared/contracts` to TypeScript SOURCE instead of compiled `dist/`. Root cause,
+// measured directly: `instanceStartBroker`'s spawn of the driver omitted `env` entirely, and Node's
+// default (inherit `process.env`) does not read the LIVE environment when the spawning code runs
+// inside a Jest worker — it resolves against a snapshot that predates any mutation the test process
+// makes, including `packages/testing/src/jest.setup.js`'s own `--conditions=source` strip. So a
+// Jest run that sets `NODE_OPTIONS=--conditions=source` for its own unit/integration jest process
+// (ward's own injection, see `packages/ward/README.md` §5) handed that same flag to the driver
+// despite the strip, and the driver's compiled bundle then resolved its own
+// `require("@dungeonmaster/shared/contracts")` via the `source` condition. Plain Node (no Jest) does
+// not have this split — confirmed by an A/B measurement. The fix is
+// `instance-start-broker.ts` passing an explicit, freshly-built env snapshot (the same pattern
+// `laneBootBroker` already used), never leaving `env` to Node's default. Confirmed by a real ward
+// run: `ERR_MODULE_NOT_FOUND` no longer appears anywhere in this file's output.
+//
+// SECOND BLOCKER, FOUND AND FIXED: with the env fix above applied, a ward-driven run of this file
+// still timed out on `LaneBootFailedError`. Reproduced in isolation with nothing else running — a
+// bare `net.createServer().listen(socketPath)` against a path whose PARENT DIRECTORY does not exist
+// rejects `EACCES`, not the `ENOENT` you would expect (measured directly, twice, before and after
+// creating the directory by hand). Nothing in this package ever created
+// `<os.tmpdir()>/dm-siege-sockets` — no caller of `netUnixServeAdapter` mkdir'd it, and the directory
+// only ever existed on this machine as a leftover from an earlier successful run, which is what made
+// the earlier manual reproduction read as flaky cross-process contention rather than a deterministic
+// missing-directory defect. `netUnixServeAdapter` now `mkdirSync(dirname(socketPath), {recursive:
+// true})`s before binding — see its own header.
+const DRIVER_BOOT_BLOCKER = '';
 
 describe('driver teardown', () => {
   if (DRIVER_BOOT_BLOCKER.length === 0) {
@@ -68,6 +86,7 @@ describe('driver teardown', () => {
       let homeGoneAfterKill: boolean;
       let evidenceDirKeptAfterKill: boolean;
       let apiLogKeptAfterKill: boolean;
+      let driverProcessExitedAfterKill: boolean;
 
       beforeAll(async () => {
         process.env.DUNGEONMASTER_HOME = testbed.guildPath;
@@ -85,6 +104,7 @@ describe('driver teardown', () => {
 
         const entry = await fleet.registryEntry({ instanceId: manifest.instanceId });
         const ports = entry === undefined ? [] : [entry.ports.api, entry.ports.web];
+        const driverPid = entry === undefined ? null : entry.pid;
 
         const killed = await fleet.killViaBroker({ instanceId: manifest.instanceId });
         killStopped = killed.stopped;
@@ -99,6 +119,12 @@ describe('driver teardown', () => {
         homeGoneAfterKill = !fleet.homeDirExists({ instanceId: killed.instanceId });
         evidenceDirKeptAfterKill = fleet.evidenceDirExists({ instanceId: killed.instanceId });
         apiLogKeptAfterKill = fleet.apiLogExists({ instanceId: killed.instanceId });
+        driverProcessExitedAfterKill =
+          driverPid !== null &&
+          (await fleet.waitForDriverProcessExit({
+            pid: driverPid,
+            deadlineMs: Date.now() + DRIVER_EXIT_WAIT_CEILING_MS,
+          }));
       }, BOOT_HOOK_TIMEOUT_MS);
 
       afterAll(async () => {
@@ -141,6 +167,10 @@ describe('driver teardown', () => {
 
       it("VALID: {kill} => the evidence directory's api-server.log is NOT removed", () => {
         expect(apiLogKeptAfterKill).toBe(true);
+      });
+
+      it("VALID: {kill} => the driver's own OS process exits", () => {
+        expect(driverProcessExitedAfterKill).toBe(true);
       });
     });
   }

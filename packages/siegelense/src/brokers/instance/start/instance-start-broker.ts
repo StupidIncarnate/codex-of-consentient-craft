@@ -30,6 +30,7 @@ import { pathJoinAdapter, processCwdAdapter } from '@dungeonmaster/shared/adapte
 import {
   absoluteFilePathContract,
   contentTextContract,
+  type ContentText,
   type GuildId,
   type QuestId,
 } from '@dungeonmaster/shared/contracts';
@@ -130,6 +131,22 @@ export const instanceStartBroker = async ({
     // cliPackageBinResolveAdapter's own PURPOSE for how it locates the right one everywhere.
     const driverBinPath = cliPackageBinResolveAdapter();
 
+    // `env` must be passed explicitly, never omitted. Leaving it undefined asks Node to default to
+    // `process.env`, and from inside a live Jest worker that default resolves against a STALE
+    // snapshot taken before the test process's own mutations — measured directly: a jest test that
+    // strips `--conditions=source` from `process.env.NODE_OPTIONS` (exactly what
+    // `packages/testing/src/jest.setup.js` does, per ward/README.md §5) still hands that same
+    // `--conditions=source` to a child spawned with `env` omitted, while an explicit
+    // `env: process.env` on the same call correctly sees the stripped value. Plain Node (no Jest)
+    // does not have this split at all. `laneBootBroker` already builds this same explicit snapshot
+    // for its own spawns; this is that pattern, applied here so the driver — spawned with no other
+    // env override — is never the one call site still relying on Node's default.
+    const inheritedEnv = Object.fromEntries(
+      Object.entries(process.env)
+        .filter(([, value]) => value !== undefined)
+        .map(([key, value]): [PropertyKey, ContentText] => [key, contentTextContract.parse(value)]),
+    );
+
     childProcessSpawnDetachedAdapter({
       command: process.execPath,
       // `locationsStatics.siegelense.dir` doubles as the CLI subcommand name here — both are the
@@ -142,6 +159,7 @@ export const instanceStartBroker = async ({
         reservedEntry.id,
       ],
       cwd: absoluteFilePathContract.parse(repoRoot),
+      env: inheritedEnv,
       stdoutFd: driverLogFd,
       stderrFd: driverLogFd,
     });

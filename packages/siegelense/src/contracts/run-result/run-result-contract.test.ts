@@ -22,6 +22,9 @@ describe('runResultContract', () => {
             open: true,
             why: 'start',
             node: null,
+            pixelChange: null,
+            blank: false,
+            blankColour: null,
           },
         ],
       });
@@ -44,6 +47,9 @@ describe('runResultContract', () => {
             open: true,
             why: 'start',
             node: null,
+            pixelChange: null,
+            blank: false,
+            blankColour: null,
           },
         ],
       });
@@ -175,6 +181,9 @@ describe('runResultContract', () => {
             open: true,
             why: 'start',
             node: null,
+            pixelChange: '38%',
+            blank: false,
+            blankColour: null,
           },
         ],
       });

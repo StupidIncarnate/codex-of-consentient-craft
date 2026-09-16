@@ -5,7 +5,12 @@
  * 134). Writes `heartbeat.json` into that instance's own evidence directory — the file a post-mortem
  * `Read`s once the driver holding them is SIGKILLed, because nothing in memory survives that to hand
  * the pgids back; the row can say "how long since the last beat", the file is the only place the
- * orphaned process-group ids themselves are recorded (spec lines 1132-1133, 1672).
+ * orphaned process-group ids themselves are recorded (spec lines 1132-1133, 1672). `rssMB` is measured
+ * over these SAME pgids via `machineRssByPgidBroker` and written into the beat itself — the last
+ * chance to record it while the pgids are still alive, since `status` reads it back as a dead
+ * instance's `rssAtLastBeat` rather than trying to re-measure a process group that may already be
+ * gone. That measurement happens AFTER both path-resolving calls below, never before: reordering it
+ * earlier would race it against the evidence-dir and heartbeat-path resolution in a mocked test.
  *
  * USAGE:
  * await heartbeatWriteBroker({
@@ -30,6 +35,7 @@ import type { InstanceHeartbeat } from '../../../contracts/instance-heartbeat/in
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { ProcessGroupId } from '../../../contracts/process-group-id/process-group-id-contract';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
+import { machineRssByPgidBroker } from '../../machine/rss-by-pgid/machine-rss-by-pgid-broker';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
 
 export const heartbeatWriteBroker = async ({
@@ -43,17 +49,21 @@ export const heartbeatWriteBroker = async ({
   pgids: readonly ProcessGroupId[];
   guildId: GuildId | null;
 }): Promise<InstanceHeartbeat> => {
+  const evidenceDir = locationsInstanceEvidencePathFindBroker({ instanceId, guildId });
+  const heartbeatPath = absoluteFilePathContract.parse(
+    pathJoinAdapter({ paths: [evidenceDir, locationsStatics.siegelense.heartbeat] }),
+  );
+
+  const rssMB = await machineRssByPgidBroker({ pgids });
+
   const heartbeat = instanceHeartbeatContract.parse({
     instanceId,
     pid,
     pgids,
     beatAtMs: epochMsContract.parse(Date.now()),
+    rssMB,
   });
 
-  const evidenceDir = locationsInstanceEvidencePathFindBroker({ instanceId, guildId });
-  const heartbeatPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [evidenceDir, locationsStatics.siegelense.heartbeat] }),
-  );
   const contents = fileContentsContract.parse(`${JSON.stringify(heartbeat)}\n`);
 
   // The file lands BEFORE the row is stamped. A crash between the two steps then leaves a row whose

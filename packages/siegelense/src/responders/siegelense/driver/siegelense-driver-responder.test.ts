@@ -2,7 +2,9 @@ import { GuildIdStub } from '@dungeonmaster/shared/contracts';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
+import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
+import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
 
 import { SiegelenseDriverResponder } from './siegelense-driver-responder';
 import { SiegelenseDriverResponderProxy } from './siegelense-driver-responder.proxy';
@@ -44,6 +46,28 @@ describe('SiegelenseDriverResponder', () => {
         pgids: lane.pgids,
         socketPath: proxy.getExpectedSocketPath(),
       });
+    });
+  });
+
+  describe('laneBootBroker throws instead of booting', () => {
+    it('ERROR: {laneBootBroker rejects} => releases boot.lock, never stamps the registry, and rethrows the same error', async () => {
+      const proxy = SiegelenseDriverResponderProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_bad60071' });
+      const entry = RegistryEntryStub({ id: instanceId });
+      const bootError = new LaneBootFailedError({
+        specName: entry.specName,
+        instanceId,
+        unready: ['api'],
+        logPaths: ['/repo/.siegelense/guilds/g1/instances/inst_bad60071/api.log'],
+      });
+      proxy.stageRegistryRow({ entry });
+      proxy.stageBootFails({ error: bootError });
+
+      await expect(SiegelenseDriverResponder({ instanceId })).rejects.toThrow(bootError);
+
+      expect(proxy.getBootLockReleaseCallArgs()).toStrictEqual({ instanceId });
+      expect(proxy.getRegistryUpdateCallCount()).toStrictEqual(ReadingCountStub({ value: 0 }));
+      expect(proxy.getServeCallArgs()).toBe(undefined);
     });
   });
 

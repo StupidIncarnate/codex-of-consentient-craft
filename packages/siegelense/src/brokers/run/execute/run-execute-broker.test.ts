@@ -1,5 +1,6 @@
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
+import { BufferEntryStub } from '../../../contracts/buffer-entry/buffer-entry.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { LocatorStateStub } from '../../../contracts/locator-state/locator-state.stub';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
@@ -46,6 +47,10 @@ describe('runExecuteBroker', () => {
         runId,
         steps: gotoBatch({ count: 5 }),
         stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect({
@@ -76,6 +81,10 @@ describe('runExecuteBroker', () => {
         runId,
         steps: gotoBatch({ count: 5 }),
         stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect({
@@ -112,6 +121,10 @@ describe('runExecuteBroker', () => {
         runId,
         steps: gotoBatch({ count: 5 }),
         stopOn: StopOnStub({ value: 'never' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect({ status: result.status, stepsRun: result.stepsRun }).toStrictEqual({
@@ -140,6 +153,10 @@ describe('runExecuteBroker', () => {
           stepExpectation: StepExpectationStub({ value: 'error' }),
         }),
         stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect({ status: result.status, stepsRun: result.stepsRun }).toStrictEqual({
@@ -165,6 +182,10 @@ describe('runExecuteBroker', () => {
           stepExpectation: StepExpectationStub({ value: 'error' }),
         }),
         stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect({
@@ -202,6 +223,10 @@ describe('runExecuteBroker', () => {
         runId,
         steps: gotoBatch({ count: 5 }),
         stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect({ status: result.status, stoppedAt: result.stoppedAt }).toStrictEqual({
@@ -240,6 +265,10 @@ describe('runExecuteBroker', () => {
           StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-3' }) }),
         ],
         stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect({
@@ -284,6 +313,10 @@ describe('runExecuteBroker', () => {
           StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-3' }) }),
         ],
         stopOn: StopOnStub({ value: 'never' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect({
@@ -329,6 +362,10 @@ describe('runExecuteBroker', () => {
           StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-3' }) }),
         ],
         stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect({
@@ -359,6 +396,10 @@ describe('runExecuteBroker', () => {
         runId,
         steps: gotoBatch({ count: 5 }),
         stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       // Five snapshots, one per step, each equal to the number of lines already flushed the
@@ -382,6 +423,10 @@ describe('runExecuteBroker', () => {
         runId,
         steps: gotoBatch({ count: 2 }),
         stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect(proxy.storedReturnWrite({ storedReturnPath: storedReturn })).toBe(
@@ -406,6 +451,10 @@ describe('runExecuteBroker', () => {
         runId: firstRunId,
         steps: gotoBatch({ count: 2 }),
         stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
       const secondResult = await runExecuteBroker({
         lane: secondLane,
@@ -413,6 +462,10 @@ describe('runExecuteBroker', () => {
         runId: secondRunId,
         steps: gotoBatch({ count: 2 }),
         stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       const expectedFirstShotPath = locationsShotPathFindBroker({
@@ -466,6 +519,10 @@ describe('runExecuteBroker', () => {
         runId,
         steps: gotoBatch({ count: 1 }),
         stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect(result.index.console).toStrictEqual({ errors: 1, warnings: 0 });
@@ -485,6 +542,10 @@ describe('runExecuteBroker', () => {
         runId,
         steps: gotoBatch({ count: 5 }),
         stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect(result.shots.map((shot) => [shot.step, shot.open, shot.why])).toStrictEqual([
@@ -512,6 +573,10 @@ describe('runExecuteBroker', () => {
           stepExpectation: StepExpectationStub({ value: 'error' }),
         }),
         stopOn: StopOnStub({ value: 'never' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect(result.shots.map((shot) => [shot.step, shot.open, shot.why])).toStrictEqual([
@@ -520,6 +585,148 @@ describe('runExecuteBroker', () => {
         [3, true, 'failed'],
         [4, false, null],
         [5, true, 'end'],
+      ]);
+    });
+  });
+
+  describe('the buffers, flushed per step and tagged with this run', () => {
+    it('VALID: {a two-step run} => console.jsonl received exactly the lines each step produced, each tagged with its own step', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane } = proxy.laneWithGrowingConsoleBuffer();
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 2 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const entries = proxy
+        .writtenBufferEntriesFor({ kind: 'console' })
+        .map((raw) => BufferEntryStub(raw as never));
+
+      expect(
+        entries.map((entry) => ({ runId: entry.runId, step: entry.step, text: entry.text })),
+      ).toStrictEqual([
+        { runId: 'run_1', step: 1, text: '{"line":0}' },
+        { runId: 'run_1', step: 2, text: '{"line":1}' },
+      ]);
+    });
+
+    it('EMPTY: {a run whose steps produce nothing} => no buffer write happens', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const lane = proxy.cleanLane();
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 2 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(proxy.bufferAppendCallCountFor({ kind: 'console' })).toStrictEqual(
+        ReadingCountStub({ value: 0 }),
+      );
+    });
+  });
+
+  describe('lines arriving between two runs', () => {
+    it('VALID: {a console line arrives after run_1 ends} => flushed at run_2 start with runId null and step null', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const firstRunId = RunIdStub({ value: 'run_1' });
+      const secondRunId = RunIdStub({ value: 'run_2' });
+      proxy.stagePaths({ runId: firstRunId });
+      proxy.stagePaths({ runId: secondRunId });
+      const { lane, pushConsoleLine } = proxy.laneWithGrowingConsoleBuffer();
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId: firstRunId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      pushConsoleLine({ text: ContentTextStub({ value: '{"betweenRuns":true}' }) });
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId: secondRunId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const entries = proxy
+        .writtenBufferEntriesFor({ kind: 'console' })
+        .map((raw) => BufferEntryStub(raw as never));
+      const betweenRunsEntries = entries.filter((entry) => entry.text === '{"betweenRuns":true}');
+
+      expect(
+        betweenRunsEntries.map((entry) => ({ runId: entry.runId, step: entry.step })),
+      ).toStrictEqual([{ runId: null, step: null }]);
+    });
+  });
+
+  describe("a run's shots carry their step's own perception fields", () => {
+    it('VALID: {two steps, one measured change} => each ShotListing carries the pixelChange and blank its step measured', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      const { shotsDir } = proxy.stagePaths({ runId });
+      const lane = proxy.cleanLane();
+      const firstShotPath = locationsShotPathFindBroker({
+        shotsDir,
+        step: StepIndexStub({ value: 1 }),
+      });
+      const secondShotPath = locationsShotPathFindBroker({
+        shotsDir,
+        step: StepIndexStub({ value: 2 }),
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 2 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(
+        result.shots.map((shot) => ({
+          step: shot.step,
+          path: shot.path,
+          pixelChange: shot.pixelChange,
+          blank: shot.blank,
+        })),
+      ).toStrictEqual([
+        { step: 1, path: firstShotPath, pixelChange: null, blank: false },
+        { step: 2, path: secondShotPath, pixelChange: '0%', blank: false },
       ]);
     });
   });

@@ -8,8 +8,11 @@
  * fixed key order (`at`, `kind`, `type`, ...) is what makes a plain substring match safe rather than a
  * full parse. Each network line carries `"status":<n|null>`; a request that never got a response
  * (`status: null`, from `requestfailed`) counts as non-2xx alongside anything outside [200, 300).
- * Reach for this over reading the buffers directly inside `runExecuteBroker`: keeping the counting
- * pure and separate is what lets it run with no browser and no server process at all.
+ * Every pattern is built from `resultsStatics.patterns` rather than a locally declared regex, so this
+ * count and a `results { where: { level } }` query can never classify the same line differently
+ * (chunk-03-read-path-and-perception.md §3.A: "One error pattern, one place"). Reach for this over
+ * reading the buffers directly inside `runExecuteBroker`: keeping the counting pure and separate is
+ * what lets it run with no browser and no server process at all.
  *
  * USAGE:
  * runIndexComputeTransformer({
@@ -24,12 +27,26 @@ import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { readingCountContract } from '../../contracts/reading-count/reading-count-contract';
 import { runIndexContract } from '../../contracts/run-index/run-index-contract';
 import type { RunIndex } from '../../contracts/run-index/run-index-contract';
+import { resultsStatics } from '../../statics/results/results-statics';
 
-const CONSOLE_ERROR_PATTERN = /"kind":"pageerror"|"kind":"console","type":"error"/u;
-const NETWORK_STATUS_PATTERN = /"status":(null|\d+)/u;
+const CONSOLE_ERROR_PATTERN = new RegExp(
+  resultsStatics.patterns.consoleError.source,
+  resultsStatics.patterns.consoleError.flags,
+);
+const CONSOLE_WARNING_PATTERN = new RegExp(
+  resultsStatics.patterns.consoleWarning.source,
+  resultsStatics.patterns.consoleWarning.flags,
+);
+const NETWORK_STATUS_PATTERN = new RegExp(
+  resultsStatics.patterns.networkStatus.source,
+  resultsStatics.patterns.networkStatus.flags,
+);
+const SERVER_ERROR_PATTERN = new RegExp(
+  resultsStatics.patterns.serverError.source,
+  resultsStatics.patterns.serverError.flags,
+);
 const NON2XX_FLOOR = 200;
 const NON2XX_CEILING = 300;
-const SERVER_ERROR_PATTERN = /error/iu;
 
 export const runIndexComputeTransformer = ({
   consoleLines,
@@ -41,9 +58,7 @@ export const runIndexComputeTransformer = ({
   serverLines: readonly ContentText[];
 }): RunIndex => {
   const consoleErrors = consoleLines.filter((line) => CONSOLE_ERROR_PATTERN.test(line)).length;
-  const consoleWarnings = consoleLines.filter((line) =>
-    line.includes('"kind":"console","type":"warning"'),
-  ).length;
+  const consoleWarnings = consoleLines.filter((line) => CONSOLE_WARNING_PATTERN.test(line)).length;
 
   const networkNon2xx = networkLines.filter((line) => {
     const match = NETWORK_STATUS_PATTERN.exec(line);

@@ -435,4 +435,27 @@ describe('mcpDiscoverBroker', () => {
       });
     });
   });
+
+  describe('rootPath override', () => {
+    it('VALID: {rootPath: a worktree path} => scans from rootPath, not the server cwd', async () => {
+      const brokerProxy = mcpDiscoverBrokerProxy();
+      const rootPath = FilePathStub({ value: '/repo/worktrees/siegelense' });
+      const filepath = FilePathStub({
+        value: '/repo/worktrees/siegelense/src/brokers/step/step-run-broker.ts',
+      });
+      const pattern = GlobPatternStub({
+        value: '/repo/worktrees/siegelense/packages/siegelense/src/brokers/step/**',
+      });
+      const contents = FileContentsStub({ value: 'export const stepRunBroker = () => true;' });
+
+      brokerProxy.setupFileDiscoveryAtRoot({ rootPath, filepath, contents, pattern });
+
+      const result = await mcpDiscoverBroker({
+        input: DiscoverInputStub({ glob: 'packages/siegelense/src/brokers/step/**' as never }),
+        rootPath,
+      });
+
+      expect(result.count).toBe(1);
+    });
+  });
 });

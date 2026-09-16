@@ -104,5 +104,8 @@ export const locationsStatics = {
     driverLog: 'driver.log',
     claudeQueueDir: 'claude-queue',
     wardQueueDir: 'ward-queue',
+    consoleLog: 'console.jsonl',
+    networkLog: 'network.jsonl',
+    websocketLog: 'ws.jsonl',
   },
 } as const;

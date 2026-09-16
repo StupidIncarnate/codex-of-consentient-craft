@@ -33,10 +33,13 @@ import { registryReadBrokerProxy } from '../../../brokers/registry/read/registry
 import { registryUpdateBroker } from '../../../brokers/registry/update/registry-update-broker';
 import { registryUpdateBrokerProxy } from '../../../brokers/registry/update/registry-update-broker.proxy';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
+import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import type { Registry } from '../../../contracts/registry/registry-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { DriverServeLayerResponder } from './driver-serve-layer-responder';
 import { DriverServeLayerResponderProxy } from './driver-serve-layer-responder.proxy';
+
+type ReadingCount = ReturnType<typeof ReadingCountStub>;
 
 const SHARED_PATH_VALUE = '/tmp/dm-siege-sockets/inst-driver-test.sock';
 const SOCKET_PATH = AbsoluteFilePathStub({ value: SHARED_PATH_VALUE });
@@ -45,9 +48,12 @@ export const SiegelenseDriverResponderProxy = (): {
   stageRegistryRow: (params: { entry: RegistryEntry }) => void;
   stageEmptyRegistry: () => void;
   stageBootSucceeds: (params: { lane: LaneSession }) => void;
+  stageBootFails: (params: { error: Error }) => void;
   applyRegistryMutate: (params: { current: Registry }) => Registry;
   getServeCallArgs: () => unknown;
   getExpectedSocketPath: () => AbsoluteFilePath;
+  getBootLockReleaseCallArgs: () => unknown;
+  getRegistryUpdateCallCount: () => ReadingCount;
 } => {
   laneBootBrokerProxy();
   DriverServeLayerResponderProxy();
@@ -105,6 +111,10 @@ export const SiegelenseDriverResponderProxy = (): {
         );
     },
 
+    stageBootFails: ({ error }: { error: Error }): void => {
+      laneBootHandle.calledWith([]).rejects(error);
+    },
+
     applyRegistryMutate: ({ current }: { current: Registry }): Registry => {
       const mutateFns = registryUpdateHandle
         .callsMatching([])
@@ -122,5 +132,13 @@ export const SiegelenseDriverResponderProxy = (): {
     },
 
     getExpectedSocketPath: (): AbsoluteFilePath => SOCKET_PATH,
+
+    getBootLockReleaseCallArgs: (): unknown => {
+      const argsList = bootLockReleaseHandle.callsMatching([]).map((call) => call[0]);
+      return argsList[argsList.length - 1];
+    },
+
+    getRegistryUpdateCallCount: (): ReadingCount =>
+      ReadingCountStub({ value: registryUpdateHandle.callsMatching([]).length }),
   };
 };

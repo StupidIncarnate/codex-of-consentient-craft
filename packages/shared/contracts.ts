@@ -513,10 +513,16 @@ export * from './src/contracts/flow-off-map-signoff/flow-off-map-signoff-contrac
 export * from './src/contracts/flow-off-map-signoff/flow-off-map-signoff.stub';
 
 // Quest Note Contracts (the durable side channel on quest.planningNotes.questNotes — open
-// questions, tooling failures, out-of-scope observations and walk resets, none of which close a
-// unit)
+// questions, tooling failures, out-of-scope observations, walk resets and walked-path records,
+// none of which close a unit)
 export * from './src/contracts/quest-note-id/quest-note-id-contract';
 export * from './src/contracts/quest-note-id/quest-note-id.stub';
+
+export * from './src/contracts/siege-instance-id/siege-instance-id-contract';
+export * from './src/contracts/siege-instance-id/siege-instance-id.stub';
+
+export * from './src/contracts/siege-run-id/siege-run-id-contract';
+export * from './src/contracts/siege-run-id/siege-run-id.stub';
 
 export * from './src/contracts/quest-note-kind/quest-note-kind-contract';
 export * from './src/contracts/quest-note-kind/quest-note-kind.stub';

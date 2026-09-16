@@ -7,11 +7,17 @@
  * whole sequence — read the row, resolve its spec, boot the lane, stamp the row, release
  * `boot.lock`, then serve — has to live at THIS layer regardless of which entry point reaches it.
  * The boot lock is released HERE and not by whichever broker reserved it, because the lock covers
- * the boot and the boot finishes inside the driver (siegelense-tooling.md line 1220).
+ * the boot and the boot finishes inside the driver (siegelense-tooling.md line 1220). `laneBootBroker`
+ * is wrapped in its own try/catch: it can throw `LaneBootFailedError` or `FakeAgentCliRequiredError`,
+ * and this process is about to exit either way, so `boot.lock` is released on that path too rather
+ * than only on success — otherwise it stays held until the TTL expires on top of the calling
+ * `instanceStartBroker` already burning its own full poll deadline against a socket this process
+ * never opens (spec line 1501).
  *
  * USAGE:
  * await SiegelenseDriverResponder({ instanceId: InstanceIdStub() });
  * // Boots the registry row's lane, stamps it, releases boot.lock, and blocks for the driver's life
+ * // A boot failure releases boot.lock and rethrows without stamping the registry or serving
  */
 
 import { processIdContract } from '@dungeonmaster/shared/contracts';
@@ -27,6 +33,7 @@ import { registryReadBroker } from '../../../brokers/registry/read/registry-read
 import { registryUpdateBroker } from '../../../brokers/registry/update/registry-update-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
+import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { DriverServeLayerResponder } from './driver-serve-layer-responder';
 
 export const SiegelenseDriverResponder = async ({
@@ -48,13 +55,29 @@ export const SiegelenseDriverResponder = async ({
     guildId: entry.guildId,
   });
 
-  const lane = await laneBootBroker({
-    spec,
-    ports: entry.ports,
-    instanceId,
-    homePath,
-    evidencePath,
-  });
+  // `laneBootBroker` can throw `LaneBootFailedError` (unready past `bootTimeoutMs`) or
+  // `FakeAgentCliRequiredError` (before it even mkdirs) — either way this process is about to
+  // exit, and `bootLockReleaseBroker` below is otherwise only reached on a SUCCESSFUL boot. Left
+  // unreleased, the lock wedges every other pending boot until instanceLifecycleStatics' TTL
+  // expires, on top of the calling `instanceStartBroker` already burning the full
+  // `driverStatics.boot.defaultTimeoutMs` polling a socket this process never opens (spec line
+  // 1501). Releasing here, matching instanceStartBroker's own catch-and-release shape, at least
+  // frees a QUEUED sibling boot immediately rather than making it wait out this one's dead poll
+  // window too.
+  const lane: LaneSession = await (async (): Promise<LaneSession> => {
+    try {
+      return await laneBootBroker({
+        spec,
+        ports: entry.ports,
+        instanceId,
+        homePath,
+        evidencePath,
+      });
+    } catch (bootError) {
+      await bootLockReleaseBroker({ instanceId });
+      throw bootError;
+    }
+  })();
 
   const socketPath = locationsSocketPathFindBroker({ instanceId });
 

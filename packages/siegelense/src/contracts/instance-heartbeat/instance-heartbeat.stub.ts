@@ -15,5 +15,6 @@ export const InstanceHeartbeatStub = ({
     pid: ProcessIdStub(),
     pgids: [ProcessGroupIdStub()],
     beatAtMs: EpochMsStub(),
+    rssMB: null,
     ...props,
   });

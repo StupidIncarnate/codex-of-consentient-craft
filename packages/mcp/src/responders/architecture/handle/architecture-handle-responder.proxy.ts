@@ -10,7 +10,6 @@ import {
   architectureOverviewBrokerProxy,
   architecturePackageInventoryBrokerProxy,
   architectureProjectMapBrokerProxy,
-  processCwdAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type {
@@ -20,22 +19,29 @@ import type {
   PathSegment,
 } from '@dungeonmaster/shared/contracts';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
+import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { mcpDiscoverBrokerProxy } from '../../../brokers/mcp/discover/mcp-discover-broker.proxy';
 import { architectureFolderDetailBrokerProxy } from '../../../brokers/architecture/folder-detail/architecture-folder-detail-broker.proxy';
 import { architectureTestingPatternsBrokerProxy } from '../../../brokers/architecture/testing-patterns/architecture-testing-patterns-broker.proxy';
+import { ResolveCallerRepoRootLayerResponderProxy } from './resolve-caller-repo-root-layer-responder.proxy';
 import { discoverIgnoreStateProxy } from '../../../state/discover-ignore/discover-ignore-state.proxy';
 import { discoverIgnoreState } from '../../../state/discover-ignore/discover-ignore-state';
 import { folderConstraintsStateProxy } from '../../../state/folder-constraints/folder-constraints-state.proxy';
 import { folderConstraintsState } from '../../../state/folder-constraints/folder-constraints-state';
 import { ArchitectureHandleResponder } from './architecture-handle-responder';
 
-// The responder's get-project-map branch resolves projectRoot from processCwdAdapter(), which
-// this proxy leaves unstaged — the shared proxy's sticky default ('/default/cwd') is therefore
-// the real value every project-map call below is keyed on, not a placeholder.
+// The responder's get-project-map / get-project-inventory / discover branches all resolve their
+// project root via ResolveCallerRepoRootLayerResponder, which (with no `meta` staged for a caller
+// cwd) falls back to the server's own cwd — so this default IS what every call below is keyed on,
+// not a placeholder.
 const DEFAULT_PROJECT_ROOT = AbsoluteFilePathStub({ value: '/default/cwd' });
 
 export const ArchitectureHandleResponderProxy = (): {
-  callResponder: typeof ArchitectureHandleResponder;
+  callResponder: (params: {
+    tool: ToolName;
+    args: Record<string, unknown>;
+    meta?: Record<string, unknown>;
+  }) => ReturnType<typeof ArchitectureHandleResponder>;
   setupFileDiscovery: (params: {
     filepath: PathSegment;
     contents: FileContents;
@@ -46,8 +52,17 @@ export const ArchitectureHandleResponderProxy = (): {
   setupLibraryPackage: (params: { packageName: string }) => void;
   setupFrontendInkPackage: (params: { packageName: string }) => void;
   setupEmptyMonorepo: () => void;
+  setupCallerCwdRoot: (params: {
+    toolUseId: string;
+    homedir: string;
+    sessionId: string;
+    repoRoot: string;
+  }) => void;
 } => {
-  processCwdAdapterProxy();
+  const repoRootProxy = ResolveCallerRepoRootLayerResponderProxy();
+  repoRootProxy.setupServerCwd({ cwd: '/default/cwd' });
+  repoRootProxy.setupRepoRootAtStart({ startPath: '/default/cwd' });
+
   architectureOverviewBrokerProxy();
   architecturePackageInventoryBrokerProxy();
   const projectMapProxy = architectureProjectMapBrokerProxy();
@@ -62,7 +77,8 @@ export const ArchitectureHandleResponderProxy = (): {
   ignoreStateProxy.setupClear();
 
   return {
-    callResponder: ArchitectureHandleResponder,
+    callResponder: async ({ tool, args, meta }) =>
+      ArchitectureHandleResponder({ tool, args, meta }),
     setupDiscoverIgnore: ({ patterns }: { patterns: readonly GlobPattern[] }): void => {
       discoverIgnoreState.set({ patterns });
     },
@@ -97,6 +113,26 @@ export const ArchitectureHandleResponderProxy = (): {
     },
     setupEmptyMonorepo: (): void => {
       projectMapProxy.setupEmptyMonorepo({ projectRoot: DEFAULT_PROJECT_ROOT });
+    },
+    setupCallerCwdRoot: ({
+      toolUseId,
+      homedir,
+      sessionId,
+      repoRoot,
+    }: {
+      toolUseId: string;
+      homedir: string;
+      sessionId: string;
+      repoRoot: string;
+    }): void => {
+      repoRootProxy.setupColdMatch({
+        serverCwd: '/default/cwd',
+        homedir,
+        sessionId,
+        toolUseId,
+        callerCwd: repoRoot,
+      });
+      repoRootProxy.setupRepoRootAtStart({ startPath: repoRoot });
     },
   };
 };

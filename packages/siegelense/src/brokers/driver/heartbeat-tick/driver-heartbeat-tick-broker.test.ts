@@ -30,7 +30,7 @@ describe('driverHeartbeatTickBroker', () => {
 
       expect(result).toStrictEqual({ success: true });
       expect(proxy.getWrittenHeartbeatContent({ evidencePath })).toBe(
-        `{"instanceId":"inst_7f3a9c21","pid":"${String(process.pid)}","pgids":[4821,4822],"beatAtMs":${String(nowMs)}}\n`,
+        `{"instanceId":"inst_7f3a9c21","pid":"${String(process.pid)}","pgids":[4821,4822],"beatAtMs":${String(nowMs)},"rssMB":null}\n`,
       );
     });
   });

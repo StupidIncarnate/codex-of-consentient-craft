@@ -33,6 +33,32 @@ describe('fsReadFileAdapter', () => {
     });
   });
 
+  describe('encoding', () => {
+    it("VALID: {no encoding} => calls readFile with 'utf8' by default", async () => {
+      const proxy = fsReadFileAdapterProxy();
+      const filePath = AbsoluteFilePathStub({
+        value: '/home/user/.dungeonmaster/siegelense/registry.json',
+      });
+      proxy.resolves({ filePath, content: FileContentsStub({ value: '{}' }) });
+
+      await fsReadFileAdapter({ filePath });
+
+      expect(proxy.encodingUsedFor({ filePath })).toBe('utf8');
+    });
+
+    it("VALID: {encoding: 'latin1'} => calls readFile with 'latin1' rather than the utf8 default", async () => {
+      const proxy = fsReadFileAdapterProxy();
+      const filePath = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+      });
+      proxy.resolves({ filePath, content: FileContentsStub({ value: 'raw-bytes' }) });
+
+      await fsReadFileAdapter({ filePath, encoding: 'latin1' });
+
+      expect(proxy.encodingUsedFor({ filePath })).toBe('latin1');
+    });
+  });
+
   describe('error cases', () => {
     it('ERROR: {filePath: does not exist} => throws wrapped error naming the path', async () => {
       const proxy = fsReadFileAdapterProxy();

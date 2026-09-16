@@ -11,12 +11,19 @@
  * rendered message, so `runExecuteBroker` can tell `status: 'timeout'` apart from `status: 'failed'`
  * without parsing prose the underlying driver could reword out from under it. "A timeout must NAME
  * the step" (siegelense-tooling.md line 101) is satisfied here, since `step` and `verb` are known at
- * the call site even when the underlying error carries neither.
+ * the call site even when the underlying error carries neither. `serverWindow` is required on every
+ * `StepReading`, never nullable, so the uncaught-exception branch reads `lane.serverLogLength()`
+ * itself rather than defaulting it — `stepDispatchBroker` never returns a reading on this path, only
+ * a rethrown error, so there is no upstream reading to inherit one from. `lastShotPath`/
+ * `setLastShotPath` are threaded straight through to `stepDispatchBroker` unchanged — a broker's
+ * allowed imports do not include `state/`, so this file never reads the INSTANCE's last-capture
+ * pointer itself, only carries the caller's accessor one layer further down.
  *
  * USAGE:
  * await runExecuteStepLayerBroker({
  *   lane, step: StepStub({ step: 'goto', path: UrlPathStub() }),
  *   index: StepIndexStub({ value: 3 }), shotPath: null,
+ *   lastShotPath: driverSessionState.lastShotPath, setLastShotPath: driverSessionState.setLastShotPath,
  * });
  * // Returns { reading, stoppedAt: null, timedOut: false } on success, or
  * // { reading, stoppedAt, timedOut } once ok is false
@@ -27,6 +34,7 @@ import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
+import { serverLogWindowContract } from '../../../contracts/server-log-window/server-log-window-contract';
 import type { Step } from '../../../contracts/step/step-contract';
 import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -43,16 +51,28 @@ export const runExecuteStepLayerBroker = async ({
   step,
   index,
   shotPath,
+  lastShotPath,
+  setLastShotPath,
 }: {
   lane: LaneSession;
   step: Step;
   index: StepIndex;
   shotPath: AbsoluteFilePath | null;
+  lastShotPath: () => AbsoluteFilePath | null;
+  setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
 }): Promise<{ reading: StepReading; stoppedAt: StoppedAt | null; timedOut: boolean }> => {
   const verb = stepVerbContract.parse(step.step);
+  const serverLogStartByte = lane.serverLogLength();
 
   try {
-    const reading = await stepDispatchBroker({ lane, step, index, shotPath });
+    const reading = await stepDispatchBroker({
+      lane,
+      step,
+      index,
+      shotPath,
+      lastShotPath,
+      setLastShotPath,
+    });
 
     if (reading.ok) {
       return { reading, stoppedAt: null, timedOut: false };
@@ -101,6 +121,13 @@ export const runExecuteStepLayerBroker = async ({
       expected: step.expect,
       reading: message,
       shot: null,
+      pixelChange: null,
+      blank: null,
+      blankColour: null,
+      serverWindow: serverLogWindowContract.parse({
+        fromByte: serverLogStartByte,
+        toByte: lane.serverLogLength(),
+      }),
       startedAtMs: nowMs,
       endedAtMs: nowMs,
     });

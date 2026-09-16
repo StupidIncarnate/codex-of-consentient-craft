@@ -13,6 +13,12 @@ describe('shotOpenReasonContract', () => {
         expect(result).toBe(value);
       },
     );
+
+    it('VALID: {.options} => the five members are listed in PRECEDENCE order, the data shotOpenDecideTransformer reads rather than re-encodes', () => {
+      const result = shotOpenReasonContract.unwrap().options;
+
+      expect(result).toStrictEqual(['blank', 'failed', 'start', 'end', 'changed']);
+    });
   });
 
   describe('invalid members', () => {

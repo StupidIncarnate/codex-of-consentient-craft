@@ -2,12 +2,13 @@
  * PURPOSE: Answers one already-frame-parsed `DriverRequest` — `ping` answers ok without touching the
  * lane; `run` decodes its JSON `payload` through `runRequestContract` and delegates to
  * `runExecuteBroker`; `kill` tears the lane down through `laneTeardownBroker` and marks the registry
- * row through `instanceReleaseBroker`. Takes `lane`, `instanceId` and `mintRunId` as PARAMETERS rather
- * than reading `driverSessionState` itself — a broker's allowed imports do not include `state/` (see
- * `get-architecture`'s layer table), so the responder that owns the socket's request loop reads the
- * current lane and passes it down explicitly, and it is that same caller's job to notice a
- * `kind: 'kill'` response and stop its own idle-wait loop — this broker only tears the LANE down — it
- * has no signal to send anywhere.
+ * row through `instanceReleaseBroker`. Takes `lane`, `instanceId`, `mintRunId` and the four buffer/
+ * shot accessors (`flushCursor`/`advanceFlushCursor`/`lastShotPath`/`setLastShotPath`) as PARAMETERS
+ * rather than reading `driverSessionState` itself — a broker's allowed imports do not include
+ * `state/` (see `get-architecture`'s layer table), so the responder that owns the socket's request
+ * loop reads the current lane and these accessors and passes them all down explicitly, and it is that
+ * same caller's job to notice a `kind: 'kill'` response and stop its own idle-wait loop — this broker
+ * only tears the LANE down — it has no signal to send anywhere.
  *
  * USAGE:
  * await driverHandleRequestBroker({
@@ -15,15 +16,20 @@
  *   instanceId: InstanceIdStub(),
  *   lane: LaneSessionStub(),
  *   mintRunId: () => RunIdStub(),
+ *   flushCursor: driverSessionState.flushCursor, advanceFlushCursor: driverSessionState.advanceFlushCursor,
+ *   lastShotPath: driverSessionState.lastShotPath, setLastShotPath: driverSessionState.setLastShotPath,
  * });
  * // Returns a DriverResponse — ok:true with an empty payload for a ping
  */
+
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { driverResponseContract } from '../../../contracts/driver-response/driver-response-contract';
 import type { DriverResponse } from '../../../contracts/driver-response/driver-response-contract';
 import type { DriverRequest } from '../../../contracts/driver-request/driver-request-contract';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
+import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import { runRequestContract } from '../../../contracts/run-request/run-request-contract';
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { instanceReleaseBroker } from '../../instance/release/instance-release-broker';
@@ -37,11 +43,27 @@ export const driverHandleRequestBroker = async ({
   instanceId,
   lane,
   mintRunId,
+  flushCursor,
+  advanceFlushCursor,
+  lastShotPath,
+  setLastShotPath,
 }: {
   request: DriverRequest;
   instanceId: InstanceId;
   lane: LaneSession;
   mintRunId: () => RunId;
+  flushCursor: () => {
+    consoleLines: ReadingCount;
+    networkLines: ReadingCount;
+    websocketLines: ReadingCount;
+  };
+  advanceFlushCursor: (params: {
+    consoleLines: ReadingCount;
+    networkLines: ReadingCount;
+    websocketLines: ReadingCount;
+  }) => void;
+  lastShotPath: () => AbsoluteFilePath | null;
+  setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
 }): Promise<DriverResponse> => {
   if (request.kind === 'ping') {
     return driverResponseContract.parse({ ok: true, payload: '', error: null });
@@ -79,6 +101,10 @@ export const driverHandleRequestBroker = async ({
       runId: mintRunId(),
       steps: parsedRun.data.steps,
       stopOn: parsedRun.data.stopOn,
+      flushCursor,
+      advanceFlushCursor,
+      lastShotPath,
+      setLastShotPath,
     });
 
     return driverResponseContract.parse({

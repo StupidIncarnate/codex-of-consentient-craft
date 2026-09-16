@@ -3,13 +3,16 @@ import { ShotListingStub } from './shot-listing.stub';
 
 describe('shotListingContract', () => {
   describe('valid listings', () => {
-    it('VALID: {open: true, why: start} => parses the complete listing with no pixelChange or blank field', () => {
+    it('VALID: {open: true, why: start} => parses the complete listing with pixelChange, blank and blankColour', () => {
       const result = shotListingContract.parse({
         step: 1,
         path: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2/step1.png',
         open: true,
         why: 'start',
         node: null,
+        pixelChange: null,
+        blank: false,
+        blankColour: null,
       });
 
       expect(result).toStrictEqual({
@@ -18,6 +21,9 @@ describe('shotListingContract', () => {
         open: true,
         why: 'start',
         node: null,
+        pixelChange: null,
+        blank: false,
+        blankColour: null,
       });
     });
 
@@ -28,6 +34,9 @@ describe('shotListingContract', () => {
         open: false,
         why: null,
         node: null,
+        pixelChange: '4%',
+        blank: false,
+        blankColour: null,
       });
 
       expect(result).toStrictEqual({
@@ -36,6 +45,9 @@ describe('shotListingContract', () => {
         open: false,
         why: null,
         node: null,
+        pixelChange: '4%',
+        blank: false,
+        blankColour: null,
       });
     });
 
@@ -46,6 +58,9 @@ describe('shotListingContract', () => {
         open: false,
         why: null,
         node: 'chain-rendered',
+        pixelChange: '4%',
+        blank: false,
+        blankColour: null,
       });
 
       expect(result.node).toBe('chain-rendered');
@@ -58,29 +73,45 @@ describe('shotListingContract', () => {
         open: true,
         why: 'failed',
         node: null,
+        pixelChange: '0%',
+        blank: false,
+        blankColour: null,
       });
 
       expect(result.why).toBe('failed');
     });
 
-    it('VALID: {pixelChange, blank passed in} => the fields this chunk does not ship are stripped from the output', () => {
+    it('VALID: {blank: true, blankColour: "#0d0907"} => a blank shot reports its colour', () => {
+      const result = shotListingContract.parse({
+        step: 5,
+        path: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2/step5.png',
+        open: true,
+        why: 'blank',
+        node: null,
+        pixelChange: '0%',
+        blank: true,
+        blankColour: '#0d0907',
+      });
+
+      expect({ blank: result.blank, blankColour: result.blankColour }).toStrictEqual({
+        blank: true,
+        blankColour: '#0d0907',
+      });
+    });
+
+    it('VALID: {pixelChange: null} => the first shot in an instance carries no predecessor', () => {
       const result = shotListingContract.parse({
         step: 1,
-        path: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2/step1.png',
+        path: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
         open: true,
         why: 'start',
         node: null,
-        pixelChange: '38%',
+        pixelChange: null,
         blank: false,
-      } as never);
-
-      expect(result).toStrictEqual({
-        step: 1,
-        path: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2/step1.png',
-        open: true,
-        why: 'start',
-        node: null,
+        blankColour: null,
       });
+
+      expect(result.pixelChange).toBe(null);
     });
   });
 
@@ -92,13 +123,30 @@ describe('shotListingContract', () => {
           path: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2/step1.png',
           why: 'start',
           node: null,
+          pixelChange: null,
+          blank: false,
+          blankColour: null,
+        } as never),
+      ).toThrow(/Required/u);
+    });
+
+    it('INVALID: {missing pixelChange} => throws validation error', () => {
+      expect(() =>
+        shotListingContract.parse({
+          step: 1,
+          path: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2/step1.png',
+          open: true,
+          why: 'start',
+          node: null,
+          blank: false,
+          blankColour: null,
         } as never),
       ).toThrow(/Required/u);
     });
   });
 
   describe('stub', () => {
-    it('VALID: {default} => creates an open start shot with no node', () => {
+    it('VALID: {default} => creates an open start shot with no node and a measured pixelChange', () => {
       const result = ShotListingStub();
 
       expect(result).toStrictEqual({
@@ -107,6 +155,9 @@ describe('shotListingContract', () => {
         open: true,
         why: 'start',
         node: null,
+        pixelChange: '38%',
+        blank: false,
+        blankColour: null,
       });
     });
   });

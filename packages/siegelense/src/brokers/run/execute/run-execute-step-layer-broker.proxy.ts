@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
@@ -17,12 +18,21 @@ const ONE_MATCH_COUNT = 1;
 export const runExecuteStepLayerBrokerProxy = (): {
   laneGotoSucceeds: () => LaneSession;
   laneGotoRejects: (params: { error: Error }) => LaneSession;
+  laneGotoRejectsWithServerLogWindow: (params: {
+    error: Error;
+    serverLogLengthSequence: readonly number[];
+  }) => LaneSession;
   laneWaitForHitsCeiling: (params: { error: Error }) => LaneSession;
+  lastShotPath: () => AbsoluteFilePath | null;
+  setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
 } => {
-  stepDispatchBrokerProxy();
+  const dispatchProxy = stepDispatchBrokerProxy();
   errorIsNativeErrorAdapterProxy();
 
   return {
+    lastShotPath: dispatchProxy.lastShotPath,
+    setLastShotPath: dispatchProxy.setLastShotPath,
+
     laneGotoSucceeds: (): LaneSession =>
       LaneSessionStub({
         browser: { goto: jest.fn().mockResolvedValue(undefined) },
@@ -30,6 +40,23 @@ export const runExecuteStepLayerBrokerProxy = (): {
 
     laneGotoRejects: ({ error }: { error: Error }): LaneSession =>
       LaneSessionStub({
+        browser: { goto: jest.fn().mockRejectedValue(error) },
+      }),
+
+    // A distinct scenario from laneGotoRejects rather than an extra param on it: this one exists
+    // solely to give THIS broker's OWN serverWindow (assembled in its catch block, from the
+    // `serverLogLength()` read before dispatch and the one after the rethrow) a real before/after
+    // pair — laneGotoRejects's every existing caller expects the fixed {fromByte: 0, toByte: 0}
+    // default.
+    laneGotoRejectsWithServerLogWindow: ({
+      error,
+      serverLogLengthSequence,
+    }: {
+      error: Error;
+      serverLogLengthSequence: readonly number[];
+    }): LaneSession =>
+      LaneSessionStub({
+        serverLogLengthSequence,
         browser: { goto: jest.fn().mockRejectedValue(error) },
       }),
 

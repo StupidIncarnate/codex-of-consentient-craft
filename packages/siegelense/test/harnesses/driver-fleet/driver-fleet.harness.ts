@@ -97,6 +97,7 @@ export const driverFleetHarness = (): {
     instanceId: InstanceId;
     deadlineMs: number;
   }) => Promise<readonly ProcessGroupId[]>;
+  waitForDriverProcessExit: (params: { pid: ProcessId; deadlineMs: number }) => Promise<boolean>;
   evidenceDirExists: (params: { instanceId: InstanceId }) => boolean;
   apiLogExists: (params: { instanceId: InstanceId }) => boolean;
   homeDirExists: (params: { instanceId: InstanceId }) => boolean;
@@ -230,6 +231,32 @@ export const driverFleetHarness = (): {
     return waitForHeartbeatPgids({ instanceId, deadlineMs });
   };
 
+  // The driver's own OS process is spawned via childProcessSpawnDetachedAdapter — the same
+  // `detached: true` spawn every lane process uses — so its pgid numerically equals its own pid
+  // (that adapter's own header), and `processIsAliveAdapter`'s `kill(-pgid, 0)` probe reads it
+  // exactly like any other lane process group.
+  const waitForDriverProcessExit = async ({
+    pid,
+    deadlineMs,
+  }: {
+    pid: ProcessId;
+    deadlineMs: number;
+  }): Promise<boolean> => {
+    if (!processIsAliveAdapter({ pgid: ProcessGroupIdStub({ value: Number(pid) }) })) {
+      return true;
+    }
+
+    if (Date.now() >= deadlineMs) {
+      return false;
+    }
+
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, HEARTBEAT_POLL_MS);
+    });
+
+    return waitForDriverProcessExit({ pid, deadlineMs });
+  };
+
   const evidenceDirExists = ({ instanceId }: { instanceId: InstanceId }): boolean =>
     existsSync(evidenceDir({ instanceId }));
 
@@ -282,6 +309,7 @@ export const driverFleetHarness = (): {
     heartbeatPgids,
     heartbeatExists,
     waitForHeartbeatPgids,
+    waitForDriverProcessExit,
     evidenceDirExists,
     apiLogExists,
     homeDirExists,

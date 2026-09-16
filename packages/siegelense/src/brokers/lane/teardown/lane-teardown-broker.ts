@@ -6,8 +6,10 @@
  * path a fixer opens once the instance is gone (siegelense-tooling.md lines 1107-1109, 1680;
  * packages/siegelense/CLAUDE.md). The kill escalation is SIGTERM, `driverStatics.teardown.graceMs`,
  * then SIGKILL, and a process group `processIsAliveAdapter` already reports dead gets NEITHER signal —
- * one liveness check up front gates both passes, so a clean teardown never asks `kill` to hit a pid
- * that is already gone. A browser-close failure is reported (fire-and-forget, matching this repo's
+ * liveness is checked once up front (gating SIGTERM) and again per pgid right before SIGKILL, so a
+ * clean teardown never asks `kill` to hit a pid that is already gone, and a group that exits DURING
+ * the grace wait never receives a real SIGKILL either — that pgid can already be recycled to an
+ * unrelated process by the time the escalation would fire. A browser-close failure is reported (fire-and-forget, matching this repo's
  * `.catch` convention) rather than swallowed, but never skips the process-group kill that follows it —
  * a broken browser must not leave two live servers mislabeled as torn down. Every `session.logFds`
  * descriptor — the killed processes' own stdout/stderr redirects `lane-boot-broker` opened — is closed
@@ -50,9 +52,12 @@ export const laneTeardownBroker = async ({
     });
   }
 
-  // One liveness check per pgid, up front, gates BOTH signal passes for that group — the dead ones
-  // never see a SIGTERM or a SIGKILL, so a clean teardown against an already-exited group never
-  // attempts a signal `processKillGroupAdapter` would otherwise have to swallow.
+  // This liveness check decides who gets the SIGTERM pass — a group already reported dead never
+  // attempts a signal `processKillGroupAdapter` would otherwise have to swallow. It does NOT decide
+  // who gets SIGKILL: a group can exit anywhere during the grace wait below, and a pgid can be
+  // recycled by the OS to an unrelated process the instant its owner exits, so SIGKILL re-checks
+  // liveness per pgid immediately before sending (siegelense-tooling.md line 1097: "SIGKILL the
+  // survivors").
   const liveTargets = session.pgids.filter((pgid) => processIsAliveAdapter({ pgid }));
 
   // Nothing to escalate against — skip the SIGTERM send and the grace wait entirely rather than
@@ -75,8 +80,13 @@ export const laneTeardownBroker = async ({
     });
   }
 
+  // Re-checked here, per pgid, right before the real kill signal — matching instance-kill-broker.ts's
+  // own reap loop. A group that exited during the grace wait above must not receive a SIGKILL: its
+  // pgid can already belong to an unrelated process by the time this runs.
   liveTargets.forEach((pgid) => {
-    processKillGroupAdapter({ pgid, signal: 'SIGKILL' });
+    if (processIsAliveAdapter({ pgid })) {
+      processKillGroupAdapter({ pgid, signal: 'SIGKILL' });
+    }
   });
 
   // Every fd here is a killed process's own stdout/stderr redirect. Closing only now — after both

@@ -13,8 +13,27 @@ import { serverLogByteCountContract } from '../server-log-byte-count/server-log-
 import type { ServerLogByteCount } from '../server-log-byte-count/server-log-byte-count-contract';
 import { SpecNameStub } from '../spec-name/spec-name.stub';
 
-export const LaneSessionStub = ({ ...props }: StubArgument<LaneSession> = {}): LaneSession => {
-  const { readServerLogSince, serverLogLength, ...dataProps } = props;
+export const LaneSessionStub = ({
+  ...props
+}: StubArgument<
+  LaneSession,
+  // A test proving `serverWindow` reads the byte count BEFORE and AFTER the verb runs needs two
+  // successive `serverLogLength()` calls to answer differently — a single default value cannot
+  // tell a collapsed-to-one-read regression from a correct implementation. One entry per call,
+  // holding at the last entry once the sequence is exhausted rather than looping back to the
+  // start — a call past the sequence's end should read as "still settled here", not "the log
+  // shrank".
+  { serverLogLengthSequence?: readonly number[] }
+> = {}): LaneSession => {
+  const { readServerLogSince, serverLogLength, serverLogLengthSequence, ...dataProps } = props;
+
+  let serverLogLengthCallCount = 0;
+  const readOneFromSequence = (): ServerLogByteCount => {
+    const sequence = serverLogLengthSequence ?? [];
+    const entryIndex = Math.min(serverLogLengthCallCount, sequence.length - 1);
+    serverLogLengthCallCount += 1;
+    return serverLogByteCountContract.parse(sequence[entryIndex]);
+  };
 
   return {
     ...laneSessionContract.parse({}),
@@ -39,6 +58,9 @@ export const LaneSessionStub = ({ ...props }: StubArgument<LaneSession> = {}): L
         : dataProps.logFds.map((value) => fileDescriptorContract.parse(value)),
     readServerLogSince: readServerLogSince ?? ((): readonly ContentText[] => []),
     serverLogLength:
-      serverLogLength ?? ((): ServerLogByteCount => serverLogByteCountContract.parse(0)),
+      serverLogLength ??
+      (serverLogLengthSequence === undefined
+        ? (): ServerLogByteCount => serverLogByteCountContract.parse(0)
+        : readOneFromSequence),
   };
 };

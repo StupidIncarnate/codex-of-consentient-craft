@@ -21,6 +21,8 @@ describe('runExecuteStepLayerBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect(outcome).toStrictEqual({
@@ -32,12 +34,41 @@ describe('runExecuteStepLayerBroker', () => {
           expected: 'ok',
           reading: '/guilds',
           shot: null,
+          pixelChange: null,
+          blank: null,
+          blankColour: null,
+          serverWindow: { fromByte: 0, toByte: 0 },
           startedAtMs: FIXED_NOW_MS,
           endedAtMs: FIXED_NOW_MS,
         },
         stoppedAt: null,
         timedOut: false,
       });
+    });
+  });
+
+  describe('serverWindow reads the log length before and after the verb runs', () => {
+    it('VALID: {goto rejects, serverLogLength grows across the call} => serverWindow reports the real before/after pair, not the middle read stepDispatchBroker took', async () => {
+      const proxy = runExecuteStepLayerBrokerProxy();
+      const lane = proxy.laneGotoRejectsWithServerLogWindow({
+        error: new Error('page.goto: Timeout 30000ms exceeded.'),
+        // Three reads happen in order: this broker's own pre-dispatch read (100), stepDispatchBroker's
+        // own pre-verb read (250, never surfaced — the verb throws before it reads again), then this
+        // broker's own post-rethrow read (999) once the error unwinds back here.
+        serverLogLengthSequence: [100, 250, 999],
+      });
+      const step = StepStub({ step: 'goto', path: UrlPathStub({ value: '/guilds' }) });
+
+      const outcome = await runExecuteStepLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 3 }),
+        shotPath: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(outcome.reading.serverWindow).toStrictEqual({ fromByte: 100, toByte: 999 });
     });
   });
 
@@ -54,6 +85,8 @@ describe('runExecuteStepLayerBroker', () => {
         step,
         index: StepIndexStub({ value: 3 }),
         shotPath: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect(outcome).toStrictEqual({
@@ -65,6 +98,10 @@ describe('runExecuteStepLayerBroker', () => {
           expected: 'ok',
           reading: 'page.goto: Timeout 30000ms exceeded.',
           shot: null,
+          pixelChange: null,
+          blank: null,
+          blankColour: null,
+          serverWindow: { fromByte: 0, toByte: 0 },
           startedAtMs: FIXED_NOW_MS,
           endedAtMs: FIXED_NOW_MS,
         },
@@ -96,6 +133,8 @@ describe('runExecuteStepLayerBroker', () => {
         step,
         index: StepIndexStub({ value: 2 }),
         shotPath: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect(outcome).toStrictEqual({
@@ -108,6 +147,10 @@ describe('runExecuteStepLayerBroker', () => {
           reading:
             'visible [data-testid="GUILD_ADD"] never resolved in 30000ms: Error: Timeout 30000ms exceeded',
           shot: null,
+          pixelChange: null,
+          blank: null,
+          blankColour: null,
+          serverWindow: { fromByte: 0, toByte: 0 },
           startedAtMs: FIXED_NOW_MS,
           endedAtMs: FIXED_NOW_MS,
         },
@@ -138,6 +181,8 @@ describe('runExecuteStepLayerBroker', () => {
         step,
         index: StepIndexStub({ value: 2 }),
         shotPath: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect(outcome).toStrictEqual({
@@ -149,6 +194,10 @@ describe('runExecuteStepLayerBroker', () => {
           expected: 'error',
           reading: 'boom',
           shot: null,
+          pixelChange: null,
+          blank: null,
+          blankColour: null,
+          serverWindow: { fromByte: 0, toByte: 0 },
           startedAtMs: FIXED_NOW_MS,
           endedAtMs: FIXED_NOW_MS,
         },
@@ -173,6 +222,8 @@ describe('runExecuteStepLayerBroker', () => {
         step,
         index: StepIndexStub({ value: 4 }),
         shotPath: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       expect(outcome).toStrictEqual({
@@ -184,6 +235,10 @@ describe('runExecuteStepLayerBroker', () => {
           expected: 'error',
           reading: '/guilds',
           shot: null,
+          pixelChange: null,
+          blank: null,
+          blankColour: null,
+          serverWindow: { fromByte: 0, toByte: 0 },
           startedAtMs: FIXED_NOW_MS,
           endedAtMs: FIXED_NOW_MS,
         },

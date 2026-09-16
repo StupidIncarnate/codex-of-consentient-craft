@@ -18,6 +18,7 @@ describe('instanceHeartbeatContract', () => {
         pid: 'proc-12345',
         pgids: [4821],
         beatAtMs: 1_700_000_000_000,
+        rssMB: null,
       });
     });
 
@@ -36,6 +37,27 @@ describe('instanceHeartbeatContract', () => {
         pid: 'proc-12345',
         pgids: [4821, 4830],
         beatAtMs: 1_700_000_000_000,
+        rssMB: null,
+      });
+    });
+
+    it('VALID: {rssMB: 1840} => parses a heartbeat carrying a measured rss', () => {
+      const heartbeat = InstanceHeartbeatStub({
+        instanceId: 'inst_7f3a9c21',
+        pid: 'proc-12345',
+        pgids: [4821],
+        beatAtMs: 1_700_000_000_000,
+        rssMB: 1840,
+      });
+
+      const result = instanceHeartbeatContract.parse(heartbeat);
+
+      expect(result).toStrictEqual({
+        instanceId: 'inst_7f3a9c21',
+        pid: 'proc-12345',
+        pgids: [4821],
+        beatAtMs: 1_700_000_000_000,
+        rssMB: 1840,
       });
     });
   });
@@ -56,6 +78,7 @@ describe('instanceHeartbeatContract', () => {
         pid: 'proc-12345',
         pgids: [],
         beatAtMs: 1_700_000_000_000,
+        rssMB: null,
       });
     });
   });

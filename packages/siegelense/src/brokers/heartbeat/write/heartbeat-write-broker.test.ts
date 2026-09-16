@@ -137,6 +137,51 @@ describe('heartbeatWriteBroker', () => {
     });
   });
 
+  describe('the pgids have a measurable rss', () => {
+    it('VALID: {pgids with a measurable rss} => the written heartbeat carries rssMB', async () => {
+      const proxy = heartbeatWriteBrokerProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
+      const pid = ProcessIdStub({ value: 'proc-12345' });
+      const pgids = [ProcessGroupIdStub({ value: 4821 })];
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const nowMs = 1_700_000_500_000;
+      const evidencePath = FilePathStub({
+        value:
+          '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21',
+      });
+      const row = RegistryEntryStub({ id: instanceId });
+      const registry = RegistryStub({ instances: [row] });
+
+      proxy.setupHeartbeatWriteWithMeasuredRss({
+        homeDir: HOME_DIR,
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+        evidencePath,
+        registryJson: JSON.stringify(registry),
+        nowMs,
+        pid: '100',
+        pgrp: 4821,
+        residentPages: 2560,
+      });
+
+      const result = await heartbeatWriteBroker({ instanceId, pid, pgids, guildId });
+
+      // (2560 pages * 4096 bytes/page) / 1_048_576 bytes/MB = 10 MB exactly.
+      const expectedHeartbeat = InstanceHeartbeatStub({
+        instanceId,
+        pid,
+        pgids,
+        beatAtMs: EpochMsStub({ value: nowMs }),
+        rssMB: 10,
+      });
+
+      expect(result).toStrictEqual(expectedHeartbeat);
+      expect(proxy.getWrittenHeartbeatContent({ evidencePath })).toBe(
+        `${JSON.stringify(expectedHeartbeat)}\n`,
+      );
+    });
+  });
+
   describe('the registry has no row for this instance', () => {
     it('EMPTY: {no matching registry row} => writes heartbeat.json and leaves the registry unchanged', async () => {
       const proxy = heartbeatWriteBrokerProxy();

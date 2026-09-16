@@ -13,6 +13,20 @@ import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 import { driverHandleRequestBroker } from './driver-handle-request-broker';
 import { driverHandleRequestBrokerProxy } from './driver-handle-request-broker.proxy';
 
+// Never invoked on the ping/kill paths — a run is the only branch that reads any of these four.
+const unusedFlushCursor = (): never => {
+  throw new Error('ping/kill must never read the flush cursor');
+};
+const unusedAdvanceFlushCursor = (): never => {
+  throw new Error('ping/kill must never advance the flush cursor');
+};
+const unusedLastShotPath = (): never => {
+  throw new Error('ping/kill must never read the last shot path');
+};
+const unusedSetLastShotPath = (): never => {
+  throw new Error('ping/kill must never set the last shot path');
+};
+
 describe('driverHandleRequestBroker', () => {
   describe('a ping request', () => {
     it('VALID: {kind: ping} => answers ok without touching the lane or minting a run id', async () => {
@@ -27,6 +41,10 @@ describe('driverHandleRequestBroker', () => {
         mintRunId: () => {
           throw new Error('ping must never mint a run id');
         },
+        flushCursor: unusedFlushCursor,
+        advanceFlushCursor: unusedAdvanceFlushCursor,
+        lastShotPath: unusedLastShotPath,
+        setLastShotPath: unusedSetLastShotPath,
       });
 
       expect(response).toStrictEqual({ ok: true, payload: '', error: null });
@@ -50,6 +68,10 @@ describe('driverHandleRequestBroker', () => {
         instanceId,
         lane,
         mintRunId: () => runId,
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
       });
 
       const decoded = proxy.decodeRunResult({ payload: response.payload });
@@ -81,6 +103,10 @@ describe('driverHandleRequestBroker', () => {
         mintRunId: () => {
           throw new Error('a malformed payload must never mint a run id');
         },
+        flushCursor: unusedFlushCursor,
+        advanceFlushCursor: unusedAdvanceFlushCursor,
+        lastShotPath: unusedLastShotPath,
+        setLastShotPath: unusedSetLastShotPath,
       });
 
       expect({ ok: response.ok, payload: response.payload }).toStrictEqual({
@@ -101,6 +127,10 @@ describe('driverHandleRequestBroker', () => {
         mintRunId: () => {
           throw new Error('a malformed payload must never mint a run id');
         },
+        flushCursor: unusedFlushCursor,
+        advanceFlushCursor: unusedAdvanceFlushCursor,
+        lastShotPath: unusedLastShotPath,
+        setLastShotPath: unusedSetLastShotPath,
       });
 
       expect(response.error).toMatch(/^Malformed run payload: .+$/su);
@@ -118,6 +148,10 @@ describe('driverHandleRequestBroker', () => {
         mintRunId: () => {
           throw new Error('a malformed payload must never mint a run id');
         },
+        flushCursor: unusedFlushCursor,
+        advanceFlushCursor: unusedAdvanceFlushCursor,
+        lastShotPath: unusedLastShotPath,
+        setLastShotPath: unusedSetLastShotPath,
       });
 
       expect({ ok: response.ok, payload: response.payload }).toStrictEqual({
@@ -138,6 +172,10 @@ describe('driverHandleRequestBroker', () => {
         mintRunId: () => {
           throw new Error('a malformed payload must never mint a run id');
         },
+        flushCursor: unusedFlushCursor,
+        advanceFlushCursor: unusedAdvanceFlushCursor,
+        lastShotPath: unusedLastShotPath,
+        setLastShotPath: unusedSetLastShotPath,
       });
 
       expect(response.error).toMatch(/^Malformed run payload: .+$/su);
@@ -162,6 +200,10 @@ describe('driverHandleRequestBroker', () => {
         mintRunId: () => {
           throw new Error('a kill request must never mint a run id');
         },
+        flushCursor: unusedFlushCursor,
+        advanceFlushCursor: unusedAdvanceFlushCursor,
+        lastShotPath: unusedLastShotPath,
+        setLastShotPath: unusedSetLastShotPath,
       });
 
       const decoded = proxy.decodeKillResult({ payload: response.payload });
@@ -198,6 +240,10 @@ describe('driverHandleRequestBroker', () => {
         mintRunId: () => {
           throw new Error('a kill request must never mint a run id');
         },
+        flushCursor: unusedFlushCursor,
+        advanceFlushCursor: unusedAdvanceFlushCursor,
+        lastShotPath: unusedLastShotPath,
+        setLastShotPath: unusedSetLastShotPath,
       });
 
       const written = proxy.getReleasedRegistry();

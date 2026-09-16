@@ -18,6 +18,7 @@ import type { LaneSession } from '../../../contracts/lane-session/lane-session-c
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { KillResultStub } from '../../../contracts/kill-result/kill-result.stub';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
+import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { RunResultStub } from '../../../contracts/run-result/run-result.stub';
@@ -35,6 +36,18 @@ export const driverHandleRequestBrokerProxy = (): {
   getReleasedRegistry: () => ReturnType<typeof RegistryStub>;
   decodeRunResult: (params: { payload: string }) => ReturnType<typeof RunResultStub>;
   decodeKillResult: (params: { payload: string }) => ReturnType<typeof KillResultStub>;
+  flushCursor: () => {
+    consoleLines: ReadingCount;
+    networkLines: ReadingCount;
+    websocketLines: ReadingCount;
+  };
+  advanceFlushCursor: (params: {
+    consoleLines: ReadingCount;
+    networkLines: ReadingCount;
+    websocketLines: ReadingCount;
+  }) => void;
+  lastShotPath: () => AbsoluteFilePath | null;
+  setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
 } => {
   const runExecuteProxy = runExecuteBrokerProxy();
   const laneTeardownProxy = laneTeardownBrokerProxy();
@@ -42,6 +55,11 @@ export const driverHandleRequestBrokerProxy = (): {
 
   return {
     laneForRun: (): LaneSession => runExecuteProxy.cleanLane(),
+
+    flushCursor: runExecuteProxy.flushCursor,
+    advanceFlushCursor: runExecuteProxy.advanceFlushCursor,
+    lastShotPath: runExecuteProxy.lastShotPath,
+    setLastShotPath: runExecuteProxy.setLastShotPath,
 
     stageRunSucceeds: ({ runId }: { runId: RunId }): void => {
       runExecuteProxy.stagePaths({ runId });

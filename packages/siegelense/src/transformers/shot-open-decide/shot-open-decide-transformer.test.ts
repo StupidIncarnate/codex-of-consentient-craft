@@ -1,5 +1,6 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
+import { PixelChangeStub } from '../../contracts/pixel-change/pixel-change.stub';
 import { ShotListingStub } from '../../contracts/shot-listing/shot-listing.stub';
 import { ShotOpenReasonStub } from '../../contracts/shot-open-reason/shot-open-reason.stub';
 import { StepIndexStub } from '../../contracts/step-index/step-index.stub';
@@ -10,10 +11,14 @@ const rawShot = ({
   step,
   open,
   why,
+  blank = false,
+  pixelChange = null,
 }: {
   step: number;
   open: boolean;
-  why: 'start' | 'end' | 'failed' | null;
+  why: 'blank' | 'failed' | 'start' | 'end' | 'changed' | null;
+  blank?: boolean;
+  pixelChange?: string | null;
 }): ReturnType<typeof ShotListingStub> =>
   ShotListingStub({
     step: StepIndexStub({ value: step }),
@@ -22,6 +27,8 @@ const rawShot = ({
     }),
     open,
     why: why === null ? null : ShotOpenReasonStub({ value: why }),
+    blank,
+    pixelChange: pixelChange === null ? null : PixelChangeStub({ value: pixelChange }),
   });
 
 describe('shotOpenDecideTransformer', () => {
@@ -85,6 +92,88 @@ describe('shotOpenDecideTransformer', () => {
       expect(result).toStrictEqual([
         rawShot({ step: 1, open: true, why: 'failed' }),
         rawShot({ step: 2, open: true, why: 'end' }),
+      ]);
+    });
+
+    it('VALID: {a failing shot that is also the last} => why is failed, not end', () => {
+      const shots = [
+        rawShot({ step: 1, open: false, why: null }),
+        rawShot({ step: 2, open: false, why: null }),
+      ];
+
+      const result = shotOpenDecideTransformer({ shots, failedStep: StepIndexStub({ value: 2 }) });
+
+      expect(result).toStrictEqual([
+        rawShot({ step: 1, open: true, why: 'start' }),
+        rawShot({ step: 2, open: true, why: 'failed' }),
+      ]);
+    });
+  });
+
+  describe('a blank shot outranking every other reason', () => {
+    it('VALID: {a blank shot that is also the failing step} => why is blank, not failed', () => {
+      const shots = [
+        rawShot({ step: 1, open: false, why: null }),
+        rawShot({ step: 2, open: false, why: null, blank: true }),
+        rawShot({ step: 3, open: false, why: null }),
+      ];
+
+      const result = shotOpenDecideTransformer({ shots, failedStep: StepIndexStub({ value: 2 }) });
+
+      expect(result).toStrictEqual([
+        rawShot({ step: 1, open: true, why: 'start' }),
+        rawShot({ step: 2, open: true, why: 'blank', blank: true }),
+        rawShot({ step: 3, open: true, why: 'end' }),
+      ]);
+    });
+  });
+
+  describe('a middle shot judged by pixelChange', () => {
+    it("VALID: {a middle shot at 38%} => open true, why 'changed'", () => {
+      const shots = [
+        rawShot({ step: 1, open: false, why: null }),
+        rawShot({ step: 2, open: false, why: null, pixelChange: '38%' }),
+        rawShot({ step: 3, open: false, why: null }),
+      ];
+
+      const result = shotOpenDecideTransformer({ shots, failedStep: null });
+
+      expect(result).toStrictEqual([
+        rawShot({ step: 1, open: true, why: 'start' }),
+        rawShot({ step: 2, open: true, why: 'changed', pixelChange: '38%' }),
+        rawShot({ step: 3, open: true, why: 'end' }),
+      ]);
+    });
+
+    it('VALID: {a middle shot at 29%} => open false, why null — the threshold boundary', () => {
+      const shots = [
+        rawShot({ step: 1, open: false, why: null }),
+        rawShot({ step: 2, open: false, why: null, pixelChange: '29%' }),
+        rawShot({ step: 3, open: false, why: null }),
+      ];
+
+      const result = shotOpenDecideTransformer({ shots, failedStep: null });
+
+      expect(result).toStrictEqual([
+        rawShot({ step: 1, open: true, why: 'start' }),
+        rawShot({ step: 2, open: false, why: null, pixelChange: '29%' }),
+        rawShot({ step: 3, open: true, why: 'end' }),
+      ]);
+    });
+
+    it('VALID: {a middle shot at 0%} => open false — nothing happened at all is read off the number', () => {
+      const shots = [
+        rawShot({ step: 1, open: false, why: null }),
+        rawShot({ step: 2, open: false, why: null, pixelChange: '0%' }),
+        rawShot({ step: 3, open: false, why: null }),
+      ];
+
+      const result = shotOpenDecideTransformer({ shots, failedStep: null });
+
+      expect(result).toStrictEqual([
+        rawShot({ step: 1, open: true, why: 'start' }),
+        rawShot({ step: 2, open: false, why: null, pixelChange: '0%' }),
+        rawShot({ step: 3, open: true, why: 'end' }),
       ]);
     });
   });

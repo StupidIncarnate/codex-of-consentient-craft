@@ -77,6 +77,34 @@ describe('DriverServeLayerResponder', () => {
     });
   });
 
+  describe('closing the socket', () => {
+    it('VALID: {idle wait resolves killed} => closes the socket server exactly once', async () => {
+      const proxy = DriverServeLayerResponderProxy();
+      proxy.stageIdleWaitResolves({ killed: true });
+
+      await DriverServeLayerResponder({
+        instanceId: InstanceIdStub(),
+        guildId: null,
+        lane: LaneSessionStub(),
+      });
+
+      expect(proxy.getSocketCloseCallCount()).toBe(1);
+    });
+
+    it('VALID: {idle wait resolves NOT killed} => closes the socket server exactly once', async () => {
+      const proxy = DriverServeLayerResponderProxy();
+      proxy.stageIdleWaitResolves({ killed: false });
+
+      await DriverServeLayerResponder({
+        instanceId: InstanceIdStub(),
+        guildId: null,
+        lane: LaneSessionStub(),
+      });
+
+      expect(proxy.getSocketCloseCallCount()).toBe(1);
+    });
+  });
+
   describe('the heartbeat ticker', () => {
     it('VALID: {a tick throws} => reports the failure and the interval keeps ticking', async () => {
       const proxy = DriverServeLayerResponderProxy();

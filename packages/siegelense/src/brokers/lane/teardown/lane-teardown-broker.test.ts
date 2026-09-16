@@ -80,6 +80,29 @@ describe('laneTeardownBroker', () => {
     });
   });
 
+  describe('a process group that exits during the grace window', () => {
+    it('VALID: {group answers alive at the SIGTERM check, gone at the SIGKILL check} => receives SIGTERM but no SIGKILL', async () => {
+      const proxy = laneTeardownBrokerProxy();
+      const instanceId = InstanceIdStub();
+      const pgid = ProcessGroupIdStub({ value: 5501 });
+      proxy.setupGroupThatExitsDuringGrace({ pgid });
+      proxy.setupGraceElapsesInstantly();
+      const { homePath } = LaneSessionStub();
+      proxy.setupHomeRemoved({ homePath });
+      proxy.setupEvidenceResolved();
+      const session = LaneSessionStub({
+        homePath,
+        evidencePath: proxy.getEvidencePath(),
+        browser: null,
+        pgids: [pgid],
+      });
+
+      await laneTeardownBroker({ session, instanceId });
+
+      expect(proxy.getKillCallsFor({ pgid })).toStrictEqual(['SIGTERM']);
+    });
+  });
+
   describe('the throwaway home versus the evidence directory', () => {
     it('VALID: {teardown} => the home is removed and the evidence path is never passed to fsRmAdapter', async () => {
       const proxy = laneTeardownBrokerProxy();

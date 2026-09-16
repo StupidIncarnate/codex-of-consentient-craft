@@ -1,5 +1,5 @@
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
@@ -42,6 +42,7 @@ export const laneTeardownBrokerProxy = (): {
   getExpectedRepoLocalEvidencePath: () => AbsoluteFilePath;
   setupLiveGroup: (params: { pgid: ProcessGroupId }) => void;
   setupAlreadyGoneGroup: (params: { pgid: ProcessGroupId }) => void;
+  setupGroupThatExitsDuringGrace: (params: { pgid: ProcessGroupId }) => void;
   setupGraceElapsesInstantly: () => void;
   setupHomeRemoved: (params: { homePath: AbsoluteFilePath }) => void;
   setupEvidenceResolved: () => void;
@@ -71,6 +72,26 @@ export const laneTeardownBrokerProxy = (): {
 
     setupAlreadyGoneGroup: ({ pgid }: { pgid: ProcessGroupId }): void => {
       aliveProxy.setupGone({ pgid });
+    },
+
+    // `setupLiveGroup`/`setupAlreadyGoneGroup` stage ONE constant answer for the whole test, so
+    // neither can tell "checked once" from "checked twice". This stages the liveness PROBE
+    // (`kill(-pgid, 0)`) to answer `true` on its first call and ESRCH on its second — the SIGTERM
+    // pass sees it alive, the grace window is where it "exits", and a second liveness check right
+    // before SIGKILL must see it gone. `onceFor` records are consumed in registration order (first
+    // staged, first consumed — `mock-staged-best-match-transformer.ts`'s header), so the first real
+    // probe call gets `true` and the second gets the ESRCH throw. SIGKILL is deliberately NOT staged
+    // for this pgid: a broker that still sends it hits an unstaged `kill(-pgid, 'SIGKILL')` call,
+    // which throws loudly instead of silently succeeding.
+    setupGroupThatExitsDuringGrace: ({ pgid }: { pgid: ProcessGroupId }): void => {
+      const killHandle: MockHandle = registerMock({ fn: kill });
+      killHandle.onceFor([-Number(pgid), 0]).implement(() => true);
+      killHandle.onceFor([-Number(pgid), 0]).implement(() => {
+        const error = new Error('kill ESRCH') as NodeJS.ErrnoException;
+        error.code = 'ESRCH';
+        throw error;
+      });
+      killProxy.setupSent({ pgid, signal: 'SIGTERM' });
     },
 
     // Stages Date.now() for the two reads the broker takes bracketing its own SIGTERM loop, the

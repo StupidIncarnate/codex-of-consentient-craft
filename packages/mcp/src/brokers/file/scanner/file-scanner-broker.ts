@@ -39,15 +39,21 @@ export const fileScannerBroker = async ({
   context,
   strict,
   ignorePatterns,
+  rootPath,
 }: {
   glob?: GlobPattern;
   grep?: GrepPattern;
   context?: ContextLines;
   strict?: StrictGrep;
   ignorePatterns?: readonly IgnorePattern[];
+  // The resolved project root to scan from. Every MCP call site resolves this explicitly via
+  // callerRepoRootResolveBroker and always passes it — the `processCwdAdapter()` default below
+  // exists only for standalone/test callers, and relying on it at a real call site silently
+  // reproduces the worktree-blindness bug this parameter exists to fix.
+  rootPath?: PathSegment;
 }): Promise<readonly FileMetadata[]> => {
-  // 1. Resolve glob pattern and scan from cwd + shared package
-  const cwdPath = pathSegmentContract.parse(processCwdAdapter());
+  // 1. Resolve glob pattern and scan from the resolved root + shared package
+  const cwdPath = rootPath ?? pathSegmentContract.parse(processCwdAdapter());
   const globSuffix = globResolveTransformer({ ...(glob && { glob }) });
   const pattern = globPatternContract.parse(`${cwdPath}/${globSuffix}`);
 

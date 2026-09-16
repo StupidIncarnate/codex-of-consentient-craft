@@ -1,6 +1,8 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { LaneSessionStub } from '../../contracts/lane-session/lane-session.stub';
+import { ReadingCountStub } from '../../contracts/reading-count/reading-count.stub';
 import { driverSessionState } from './driver-session-state';
 import { driverSessionStateProxy } from './driver-session-state.proxy';
 
@@ -63,6 +65,79 @@ describe('driverSessionState', () => {
     });
   });
 
+  describe('flushCursor() and advanceFlushCursor()', () => {
+    it('EMPTY: {no advance yet} => the cursor reads all zero', () => {
+      const proxy = driverSessionStateProxy();
+      proxy.setupEmpty();
+
+      expect(driverSessionState.flushCursor()).toStrictEqual({
+        consoleLines: 0,
+        networkLines: 0,
+        websocketLines: 0,
+      });
+    });
+
+    it('VALID: {advance then read} => the cursor carries forward', () => {
+      const proxy = driverSessionStateProxy();
+      proxy.setupEmpty();
+
+      driverSessionState.advanceFlushCursor({
+        consoleLines: ReadingCountStub({ value: 3 }),
+        networkLines: ReadingCountStub({ value: 5 }),
+        websocketLines: ReadingCountStub({ value: 2 }),
+      });
+
+      expect(driverSessionState.flushCursor()).toStrictEqual({
+        consoleLines: 3,
+        networkLines: 5,
+        websocketLines: 2,
+      });
+    });
+
+    it('VALID: {two advances} => the second replaces the first rather than adding to it', () => {
+      const proxy = driverSessionStateProxy();
+      proxy.setupEmpty();
+      driverSessionState.advanceFlushCursor({
+        consoleLines: ReadingCountStub({ value: 3 }),
+        networkLines: ReadingCountStub({ value: 5 }),
+        websocketLines: ReadingCountStub({ value: 2 }),
+      });
+
+      driverSessionState.advanceFlushCursor({
+        consoleLines: ReadingCountStub({ value: 7 }),
+        networkLines: ReadingCountStub({ value: 5 }),
+        websocketLines: ReadingCountStub({ value: 4 }),
+      });
+
+      expect(driverSessionState.flushCursor()).toStrictEqual({
+        consoleLines: 7,
+        networkLines: 5,
+        websocketLines: 4,
+      });
+    });
+  });
+
+  describe('lastShotPath() and setLastShotPath()', () => {
+    it('EDGE: {lastShotPath before any capture} => null', () => {
+      const proxy = driverSessionStateProxy();
+      proxy.setupEmpty();
+
+      expect(driverSessionState.lastShotPath()).toBe(null);
+    });
+
+    it('VALID: {setLastShotPath} => lastShotPath reads that same path', () => {
+      const proxy = driverSessionStateProxy();
+      proxy.setupEmpty();
+      const path = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2/step4.png',
+      });
+
+      driverSessionState.setLastShotPath({ path });
+
+      expect(driverSessionState.lastShotPath()).toBe(path);
+    });
+  });
+
   describe('clear()', () => {
     it('VALID: {clear after set} => lane() reads null again', () => {
       const proxy = driverSessionStateProxy();
@@ -83,6 +158,30 @@ describe('driverSessionState', () => {
       driverSessionState.clear();
 
       expect(driverSessionState.nextRunId()).toBe('run_1');
+    });
+
+    it('VALID: {clear} => the cursor is back to zero and lastShotPath is null', () => {
+      const proxy = driverSessionStateProxy();
+      proxy.setupEmpty();
+      driverSessionState.advanceFlushCursor({
+        consoleLines: ReadingCountStub({ value: 3 }),
+        networkLines: ReadingCountStub({ value: 5 }),
+        websocketLines: ReadingCountStub({ value: 2 }),
+      });
+      driverSessionState.setLastShotPath({
+        path: AbsoluteFilePathStub({
+          value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2/step4.png',
+        }),
+      });
+
+      driverSessionState.clear();
+
+      expect(driverSessionState.flushCursor()).toStrictEqual({
+        consoleLines: 0,
+        networkLines: 0,
+        websocketLines: 0,
+      });
+      expect(driverSessionState.lastShotPath()).toBe(null);
     });
   });
 });
