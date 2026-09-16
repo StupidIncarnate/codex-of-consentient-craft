@@ -76,7 +76,47 @@ typing the command, and on this build that difference has mattered repeatedly.
 | 2 | `start` | **A driver that dies during boot tells the caller nothing.** The driver writes its real cause to `driver.log` and exits; the parent keeps polling a socket that will never answer until the 3-minute boot deadline, then reports the symptom. Driven with no fake CLI set, the driver logged `Lane spec dungeonmaster-web requires a fake agent CLI … Refusing to boot against the real CLI`, and the caller got, three minutes later, `did not become ready: api, web never answered their ready path`. The cause was known in the first 50ms | **OUT** — sonnet |
 | 2 | `start` | **Every failed boot leaks its reservation.** The row stays `alive` with `bootedAtMs: null`, holding a claimed port pair with no process behind it. Nothing retries it and nothing releases it; only `cleanup` reaps it, past the reservation ceiling. Two were sitting in the registry during this stop — `inst_829ad293…` (ports 38991/38993) and `inst_0d6e2f7e…` | **OUT** — sonnet, same agent |
 | 2 | `start` | The fake-CLI gate itself HOLDS, and is worth recording as working: `dungeonmaster-web` refuses to boot against a real Claude CLI, so a driving session cannot spend real API usage by accident | **works as designed** |
+| 2 | `start` | **A lane reaped by its own idle timeout reports a MEMORY death.** Three instances died at exactly 900s — `driverStatics.idle.timeoutMs` — having been booted and left alone. `status --instance` then said `LIKELY CAUSE: rss 622MB at last beat; no profile recorded for spec dungeonmaster-web; kernel OOM kills since boot: 1`, and `driver.log` was empty. The tool turned the lane off on a timer and then produced evidence pointing at memory pressure, which a session is told to bubble up as `rework`. Compounding it: a human driving the UI resets nothing, because `status` and `results` read off DISK and never touch the driver socket — only `run` does | **OUT** — sonnet |
 | — | parked | `CliServeResponder` runs `xdg-open` unconditionally, with no flag, config knob or env var to stop it. Every server launch opens a browser tab | **PARKED** by request |
+
+## The seeding gap: a manual runner cannot make Claude say anything
+
+Not a defect — nothing is broken. It is the largest unbuilt thing the walk has reached, and it decides
+whether a person can drive this tool at all, so it is recorded here rather than dispatched.
+
+**The lane runs a MOCK Claude CLI, and that is correct.** `dungeonmaster-web` refuses to boot without
+`CLAUDE_CLI_PATH` and `WARD_CLI_PATH`, in its own words: *"Refusing to boot against the real CLI — that
+spends real API usage and produces a non-deterministic reading."* Every lane driven during this
+walkthrough ran against `packages/web/test/harnesses/claude-mock/bin/claude`.
+
+**The mock is a QUEUE CONSUMER.** Each spawn pops one JSON file, in counter order:
+
+```
+<home>/claude-queue/__by_cwd__/<guildPath, every non-[A-Za-z0-9._-] byte replaced by _>/0000.json
+                                                                                        0001.json
+                               metadata.json    ← the counter, so ordering is explicit
+```
+
+`<home>` is `/tmp/dm-siege-<instanceId>`, which `start` hands back in its manifest. So the queue IS
+reachable by hand. What does not exist is any way to reach it THROUGH the tool.
+
+| To make the app show a Claude message, you would want | State |
+|---|---|
+| a `seed` step, placeable anywhere in a batch | **not built** |
+| recipes — named functions producing known state | **not built**; `packages/siegelense-recipes` is empty on purpose |
+| a `file` step that writes into the lane | **not built** |
+| any built call that enqueues a response | **none** |
+
+The six built verbs are `goto`, `waitFor`, `click`, `type`, `screenshot` and `eval`. **None of them
+writes a file.** So today a manual runner boots an instance, reads `home` off the manifest, derives the
+guild path, encodes it, hand-writes `0000.json`, and only then clicks the control that spawns Claude.
+
+**Two things make the hand-written route worse than that already sounds.** The queue lives inside the
+THROWAWAY home, so `kill` deletes it and the evidence directory keeps no record of what the lane was
+fed — a walk is reproducible only if whoever repeats it still has the JSON. And `eval` cannot stand in
+for the missing `file` step: it runs in the BROWSER, and the queue is on the driver's disk.
+
+This is Part 6 of `siegelense-tooling.md` and item 3 of its build order, whole and untouched.
 
 ## Ground rules for the walk
 
