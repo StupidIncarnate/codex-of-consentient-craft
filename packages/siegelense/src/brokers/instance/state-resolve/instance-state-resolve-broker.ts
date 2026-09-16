@@ -4,9 +4,14 @@
  * (chunk-03-read-path-and-perception.md §3.C, the registry-row/heartbeat table). A registry row
  * absent from `registry.json` is `unknown`; a stored `pruned` or `killed` row is answered verbatim;
  * a stored `alive` row is checked against `isStaleRegistryEntryGuard` — the heartbeat, not the row's
- * own claim, is what tells an `alive` row apart from one nobody updated after a SIGKILL (`dead`).
- * Reach for this over reading `registryReadBroker` directly wherever a caller needs the RESOLVED
- * state rather than the raw row.
+ * own claim, is what tells an `alive` row apart from one nobody updated after a SIGKILL (`dead`) —
+ * OR, for a row that has never beaten at all, against how long it has sat RESERVED
+ * (`isReservedRegistryEntryGuard` plus `instanceLifecycleStatics.reservation.staleAfterMs`): a
+ * reservation seconds old is a boot in flight and reads `alive`, but one that has outlived every
+ * legitimate reason to still lack a beat reads `dead` rather than the `alive` its own row still
+ * claims — the same ceiling `cleanupRunBroker` uses to decide whether to reap it. Reach for this
+ * over reading `registryReadBroker` directly wherever a caller needs the RESOLVED state rather
+ * than the raw row.
  *
  * USAGE:
  * const { state, entry } = await instanceStateResolveBroker({ instanceId });
@@ -18,7 +23,9 @@ import type { InstanceId } from '../../../contracts/instance-id/instance-id-cont
 import { instanceStateContract } from '../../../contracts/instance-state/instance-state-contract';
 import type { InstanceState } from '../../../contracts/instance-state/instance-state-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
+import { isReservedRegistryEntryGuard } from '../../../guards/is-reserved-registry-entry/is-reserved-registry-entry-guard';
 import { isStaleRegistryEntryGuard } from '../../../guards/is-stale-registry-entry/is-stale-registry-entry-guard';
+import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
 
 export const instanceStateResolveBroker = async ({
@@ -41,7 +48,11 @@ export const instanceStateResolveBroker = async ({
     return { state: instanceStateContract.parse('killed'), entry };
   }
 
-  const isStale = isStaleRegistryEntryGuard({ entry, nowMs: epochMsContract.parse(Date.now()) });
+  const nowMs = epochMsContract.parse(Date.now());
+  const isStale =
+    isStaleRegistryEntryGuard({ entry, nowMs }) ||
+    (isReservedRegistryEntryGuard({ entry }) &&
+      nowMs - entry.reservedAtMs > instanceLifecycleStatics.reservation.staleAfterMs);
 
   return { state: instanceStateContract.parse(isStale ? 'dead' : 'alive'), entry };
 };

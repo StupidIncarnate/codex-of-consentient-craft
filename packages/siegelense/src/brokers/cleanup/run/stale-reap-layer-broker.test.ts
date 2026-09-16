@@ -77,14 +77,29 @@ describe('staleReapLayerBroker', () => {
     });
   });
 
-  describe('a row with no recorded heartbeat', () => {
-    it('EMPTY: {lastBeatMs: null} => throws rather than reaping a row that never beat', async () => {
-      staleReapLayerBrokerProxy();
-      const entry = RegistryEntryStub({ id: INSTANCE_ID, lastBeatMs: null });
+  describe('a reservation that never beat', () => {
+    it('EMPTY: {lastBeatMs: null} => reaps using reservedAtMs, not lastBeatMs, for staleFor', async () => {
+      const proxy = staleReapLayerBrokerProxy();
+      const entry = RegistryEntryStub({
+        id: INSTANCE_ID,
+        socketPath: null,
+        pid: null,
+        lastBeatMs: null,
+        reservedAtMs: EpochMsStub({ value: NOW_MS - 9 * 60 * 60 * 1000 }),
+      });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+      proxy.setupDriverUnreachableNoHeartbeat({
+        socketPath: SOCKET_PATH,
+        heartbeatPath: HEARTBEAT_PATH,
+        homePath: HOME_PATH,
+      });
 
-      await expect(staleReapLayerBroker({ entry, nowMs: NOW_MS })).rejects.toThrow(
-        `Instance ${INSTANCE_ID} has no lastBeatMs and cannot be staleness-reaped`,
-      );
+      const result = await staleReapLayerBroker({ entry, nowMs: NOW_MS });
+
+      expect(result).toStrictEqual({
+        reaped: { id: INSTANCE_ID, staleFor: '9h', killed: [], homeRemoved: true },
+        portsReleased: [entry.ports.api, entry.ports.web],
+      });
     });
   });
 });

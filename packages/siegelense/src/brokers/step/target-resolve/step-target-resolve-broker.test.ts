@@ -90,6 +90,52 @@ describe('stepTargetResolveBroker', () => {
     });
   });
 
+  describe('zero matches, no near misses on the page', () => {
+    it('EMPTY: {zero matches, nearest: []} => throws StepNoMatchError naming that none were found', async () => {
+      const proxy = stepTargetResolveBrokerProxy();
+      const session = proxy.sessionWithNearest({ nearest: [] });
+
+      const error = await stepTargetResolveBroker({
+        session,
+        target: '[data-testid="GUILD_ADD"]',
+      }).then(
+        (): never => {
+          throw new Error('Expected stepTargetResolveBroker to reject');
+        },
+        (caught: unknown): Error => caught as Error,
+      );
+
+      expect({ name: error.name, message: error.message }).toStrictEqual({
+        name: 'StepNoMatchError',
+        message:
+          'NO MATCH: 0 elements match target [data-testid="GUILD_ADD"]. Nearest names on this page: (none found on this page).',
+      });
+    });
+  });
+
+  describe('the near-miss lookup itself fails', () => {
+    it('ERROR: {nearestNames rejects} => propagates the lookup failure, not a StepNoMatchError', async () => {
+      const proxy = stepTargetResolveBrokerProxy();
+      const lookupFailure = new Error('page closed');
+      const session = proxy.sessionWithFailedLookup({ error: lookupFailure });
+
+      const error = await stepTargetResolveBroker({
+        session,
+        target: '[data-testid="GUILD_ADD"]',
+      }).then(
+        (): never => {
+          throw new Error('Expected stepTargetResolveBroker to reject');
+        },
+        (caught: unknown): Error => caught as Error,
+      );
+
+      expect({ name: error.name, message: error.message }).toStrictEqual({
+        name: 'Error',
+        message: 'page closed',
+      });
+    });
+  });
+
   describe('within narrows an ambiguous target to one', () => {
     it('VALID: {within narrows two matches to one} => returns success', async () => {
       const proxy = stepTargetResolveBrokerProxy();

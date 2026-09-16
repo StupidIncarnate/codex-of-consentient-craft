@@ -109,7 +109,12 @@ export const compareReadBrokerProxy = (): {
       runId: RunId;
       result: RunResult;
     }): void => {
-      resultsProxy.setupRuns({ evidencePath, entries: [`${runId}.json`] });
+      // A real run leaves BOTH files — the transcript is what a run writes as it goes, the stored
+      // return only at its closing write. Staging only one describes a run compareReadBroker itself
+      // has already proved exists as something resultsReadBroker's own directory listing does not
+      // recognise — every other `results` fixture in this package lists both suffixes for a run
+      // that is actually there (see resultsReadBrokerProxy.setupRun-style calls elsewhere).
+      resultsProxy.setupRuns({ evidencePath, entries: [`${runId}.jsonl`, `${runId}.json`] });
       resultsProxy.setupStoredReturn({ evidencePath, runId, result });
       // An empty transcript gives `serverWindowReadLayerBroker` no steps to window, so it answers
       // `[]` without ever reading `api-server.log` — the same safe "nothing recorded yet" default

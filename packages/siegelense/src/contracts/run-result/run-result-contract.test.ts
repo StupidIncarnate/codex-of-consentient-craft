@@ -154,7 +154,7 @@ describe('runResultContract', () => {
             network: { exchanges: 0, non2xx: 0 },
           },
           shots: [],
-        } as never),
+        }),
       ).toThrow(/Required/u);
     });
   });

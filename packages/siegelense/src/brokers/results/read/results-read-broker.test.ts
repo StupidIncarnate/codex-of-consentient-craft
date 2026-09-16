@@ -13,10 +13,15 @@ import { ServerLogWindowStub } from '../../../contracts/server-log-window/server
 import { ShotListingStub } from '../../../contracts/shot-listing/shot-listing.stub';
 import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
+import { resultsStatics } from '../../../statics/results/results-statics';
 import { resultsReadBroker } from './results-read-broker';
 import { resultsReadBrokerProxy } from './results-read-broker.proxy';
 
 type RunId = ReturnType<typeof RunIdStub>;
+
+// Every kind `results` accepts, derived from the same static the broker itself reads — so this
+// it.each grows the moment a new kind does, rather than a hand-maintained list silently skipping it.
+const EVERY_KIND = resultsStatics.kinds.all;
 
 const INSTANCE_ID = InstanceIdStub();
 const RUN_1 = RunIdStub({ value: 'run_1' });
@@ -451,6 +456,148 @@ describe('resultsReadBroker', () => {
       returned: 1,
       truncated: false,
       rows: [JSON.stringify(step7)],
+      storedReturn: null,
+    });
+  });
+
+  it('ERROR: {run: run_999 named, alive instance, run never existed} => throws RunMissingError naming the run rather than answering matched: 0', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({
+      id: INSTANCE_ID,
+      state: 'alive',
+      lastBeatMs: EpochMsStub({ value: LAST_BEAT_MS }),
+    });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    proxy.setupNow({ nowMs: LAST_BEAT_MS + 5000 });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    const runNeverExisted = RunIdStub({ value: 'run_999' });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
+    proxy.setupMissingStoredReturn({ evidencePath, runId: runNeverExisted });
+    proxy.setupMissingTranscript({ evidencePath, runId: runNeverExisted });
+
+    await expect(
+      resultsReadBroker({
+        query: ResultsQueryStub({ instanceId: INSTANCE_ID, runId: runNeverExisted }),
+      }),
+    ).rejects.toThrow(
+      /^No stored return for run "run_999" on instance "inst_7f3a9c21" — that run never completed, or its evidence was pruned\.$/u,
+    );
+  });
+
+  it('ERROR: {run: run_999 named, killed instance, run never existed} => throws RunMissingError, matching what compare already does for the identical case', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    const runNeverExisted = RunIdStub({ value: 'run_999' });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
+    proxy.setupMissingStoredReturn({ evidencePath, runId: runNeverExisted });
+    proxy.setupMissingTranscript({ evidencePath, runId: runNeverExisted });
+
+    await expect(
+      resultsReadBroker({
+        query: ResultsQueryStub({ instanceId: INSTANCE_ID, runId: runNeverExisted }),
+      }),
+    ).rejects.toThrow(
+      /^No stored return for run "run_999" on instance "inst_7f3a9c21" — that run never completed, or its evidence was pruned\.$/u,
+    );
+  });
+
+  it.each(EVERY_KIND)(
+    'ERROR: {kind: %s, run: run_999 named, run never existed} => throws RunMissingError rather than answering matched: 0',
+    async (kind) => {
+      const proxy = resultsReadBrokerProxy();
+      const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+      const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+      const runNeverExisted = RunIdStub({ value: 'run_999' });
+      proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
+      // Staged unconditionally for every kind in this list — harmless for the kinds that never read
+      // a buffer, and the safe "nothing recorded yet" empty for the three that do (console/network/
+      // ws), so the buffer read itself never throws before the missing-run probe gets a chance to.
+      proxy.setupBuffer({ evidencePath, kind: 'console', content: '' });
+      proxy.setupBuffer({ evidencePath, kind: 'network', content: '' });
+      proxy.setupBuffer({ evidencePath, kind: 'websocket', content: '' });
+      proxy.setupMissingStoredReturn({ evidencePath, runId: runNeverExisted });
+      proxy.setupMissingTranscript({ evidencePath, runId: runNeverExisted });
+
+      await expect(
+        resultsReadBroker({
+          query: ResultsQueryStub({ instanceId: INSTANCE_ID, runId: runNeverExisted, kind }),
+        }),
+      ).rejects.toThrow(
+        /^No stored return for run "run_999" on instance "inst_7f3a9c21" — that run never completed, or its evidence was pruned\.$/u,
+      );
+    },
+  );
+
+  it('VALID: {kind: console, a real run that logged no console lines} => matched: 0 stays a legitimate empty, not a refusal', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
+    proxy.setupBuffer({ evidencePath, kind: 'console', content: '' });
+    const runResult = RunResultStub({ instanceId: INSTANCE_ID, runId: RUN_2 });
+    proxy.setupStoredReturn({ evidencePath, runId: RUN_2, result: runResult });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({ instanceId: INSTANCE_ID, runId: RUN_2, kind: 'console' }),
+    });
+
+    expect({ matched: result.matched, returned: result.returned, rows: result.rows }).toStrictEqual(
+      { matched: 0, returned: 0, rows: [] },
+    );
+  });
+
+  it('VALID: {kind: server, a real run whose transcript holds no steps} => matched: 0 stays a legitimate empty, not a refusal', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
+    proxy.setupTranscript({ evidencePath, runId: RUN_2, content: '' });
+    const runResult = RunResultStub({ instanceId: INSTANCE_ID, runId: RUN_2 });
+    proxy.setupStoredReturn({ evidencePath, runId: RUN_2, result: runResult });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({ instanceId: INSTANCE_ID, runId: RUN_2, kind: 'server' }),
+    });
+
+    expect({ matched: result.matched, returned: result.returned, rows: result.rows }).toStrictEqual(
+      { matched: 0, returned: 0, rows: [] },
+    );
+  });
+
+  it('EDGE: {alive instance, zero runs recorded, no run given} => still answers empty rather than throwing on a null effective run id', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({
+      id: INSTANCE_ID,
+      state: 'alive',
+      lastBeatMs: EpochMsStub({ value: LAST_BEAT_MS }),
+    });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    proxy.setupNow({ nowMs: LAST_BEAT_MS + 5000 });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({ evidencePath, entries: [] });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({ instanceId: INSTANCE_ID }),
+    });
+
+    expect(result).toStrictEqual({
+      instanceId: INSTANCE_ID,
+      instanceState: 'alive',
+      runId: null,
+      kind: null,
+      step: null,
+      verb: null,
+      prunedAtMs: null,
+      prunedByRule: null,
+      matched: 0,
+      returned: 0,
+      truncated: false,
+      rows: [],
       storedReturn: null,
     });
   });

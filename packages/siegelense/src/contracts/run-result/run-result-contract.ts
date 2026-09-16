@@ -4,9 +4,12 @@
  * StepReading or ShotListing individually: those are queried narrowly through `results` afterwards,
  * while a RunResult is everything a session needs to DECIDE whether to query at all — an index that
  * says what is worth reading, a shot list that already flags which to open, and, on a failure,
- * exactly where the batch stopped. `stoppedAt` is `null` for a `done` run and populated for
- * `timeout` or `failed`; `index` and `shots` are always present, even empty, because "nothing
- * happened" and "nobody looked" are different answers this shape must be able to tell apart.
+ * exactly where the first one landed. `stoppedAt` is `null` for a `done` run and populated for
+ * `timeout` or `failed`, and it names the FIRST failure's location. Under `stopOn: 'error'` that
+ * location is also where the batch halted, but under `stopOn: 'never'` the batch runs every
+ * remaining step regardless — so `stoppedAt` names where the run WOULD have stopped, not where it
+ * did. `index` and `shots` are always present, even empty, because "nothing happened" and "nobody
+ * looked" are different answers this shape must be able to tell apart.
  *
  * USAGE:
  * runResultContract.parse({

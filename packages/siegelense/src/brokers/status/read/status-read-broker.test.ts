@@ -18,7 +18,7 @@ const ROOT_PATH_VALUE = '/home/user/.dungeonmaster/siegelense';
 
 describe('statusReadBroker', () => {
   describe('a fleet listing, no instance named', () => {
-    it('VALID: {no instanceId, three registry rows} => one entry each, every evidence and lastStep null', async () => {
+    it('VALID: {no instanceId, three registry rows, each with a real pgid} => one entry each, orphans stays empty since every row is alive', async () => {
       const proxy = statusReadBrokerProxy();
       const nowMs = 1_700_001_000_000;
       const ids = [
@@ -26,12 +26,12 @@ describe('statusReadBroker', () => {
         InstanceIdStub({ value: 'inst_00000002' }),
         InstanceIdStub({ value: 'inst_00000003' }),
       ];
-      const entries = ids.map((id) =>
+      const entries = ids.map((id, index) =>
         RegistryEntryStub({
           id,
           guildId: null,
           specName: SpecNameStub({ value: 'dungeonmaster-web' }),
-          pgids: [],
+          pgids: [ProcessGroupIdStub({ value: 4_143_212 + index })],
           state: 'alive',
           bootedAtMs: EpochMsStub({ value: nowMs - 60_000 }),
           lastBeatMs: EpochMsStub({ value: nowMs - 1000 }),

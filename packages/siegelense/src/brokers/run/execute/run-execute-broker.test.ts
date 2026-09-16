@@ -114,7 +114,7 @@ describe('runExecuteBroker', () => {
   });
 
   describe('a failing step, stopOn never', () => {
-    it('VALID: {step 3 fails, stopOn never} => status failed, stepsRun 5, and the later steps DO run', async () => {
+    it('VALID: {step 3 fails, stopOn never} => status failed, stepsRun 5, stoppedAt still names step 3 (where it would have stopped), and the later steps DO run', async () => {
       const proxy = runExecuteBrokerProxy();
       const runId = RunIdStub({ value: 'run_1' });
       proxy.stagePaths({ runId });
@@ -135,9 +135,14 @@ describe('runExecuteBroker', () => {
         setLastShotPath: proxy.setLastShotPath,
       });
 
-      expect({ status: result.status, stepsRun: result.stepsRun }).toStrictEqual({
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({
         status: 'failed',
         stepsRun: 5,
+        stoppedAt: { step: 3, verb: 'goto', error: 'boom', candidates: [] },
       });
       expect(gotoCallCount()).toBe(5);
     });
@@ -847,6 +852,67 @@ describe('runExecuteBroker', () => {
         `${String(evidencePath)}/runs/run_1/shot.png`,
         `${String(evidencePath)}/runs/run_2/shot.png`,
       ]);
+    });
+  });
+
+  describe('the repo-local shot path', () => {
+    it('VALID: {a .siegelense symlink at the repo root} => the shot RunResult reports and the path session.capture actually wrote to are the same repo-local address', async () => {
+      const proxy = runExecuteBrokerProxy();
+      proxy.stageRepoLinkPresent();
+      const runId = RunIdStub({ value: 'run_1' });
+      const evidencePath = proxy.homeRootedEvidencePath();
+      proxy.stagePaths({ runId, evidencePath });
+      const { lane, captureCalls } = proxy.laneCapturingShots({ evidencePath });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const expectedShotPath = `${String(proxy.repoLocalEvidencePath())}/runs/run_1/step1.png`;
+
+      // The complete string, not a startsWith on a fragment: packages/siegelense/CLAUDE.md's
+      // "every path handed back is repo-local, through <repoRoot>/.siegelense" is a claim about
+      // the WHOLE path, and a fragment match would still pass if the tail after the repo root
+      // silently drifted from what the write actually used.
+      expect(result.shots.map((shot) => String(shot.path))).toStrictEqual([expectedShotPath]);
+      // The seam: session.capture — the actual write — landed at the SAME repo-local address
+      // RunResult reports. Asserting only result.shots would still pass if the write kept
+      // targeting the real home path while only the report was swapped for the repo-local one.
+      expect(captureCalls().map((path) => String(path))).toStrictEqual([expectedShotPath]);
+    });
+
+    it('VALID: {no .siegelense symlink at the repo root} => the shot path stays the real home-rooted one, unchanged from before this resolution existed', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      const { shotsDir } = proxy.stagePaths({ runId });
+      const lane = proxy.cleanLane();
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const expectedShotPath = locationsShotPathFindBroker({
+        shotsDir,
+        step: StepIndexStub({ value: 1 }),
+      });
+
+      expect(result.shots.map((shot) => shot.path)).toStrictEqual([expectedShotPath]);
     });
   });
 });

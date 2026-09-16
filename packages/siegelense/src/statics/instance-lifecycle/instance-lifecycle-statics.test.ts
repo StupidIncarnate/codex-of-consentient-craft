@@ -20,6 +20,9 @@ describe('instanceLifecycleStatics', () => {
         waitCeilingMs: 120_000,
         pollMs: 1000,
       },
+      reservation: {
+        staleAfterMs: 300_000,
+      },
       ports: {
         claimAttempts: 5,
       },

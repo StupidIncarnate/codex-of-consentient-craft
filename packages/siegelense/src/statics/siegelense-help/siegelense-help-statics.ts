@@ -105,7 +105,10 @@ export const siegelenseHelpStatics = {
           value: 'error|never',
           required: false,
           description:
-            "stop at the first failure, or push through every step regardless. Defaults to 'error'.",
+            "stop at the first failure, or push through every step regardless. Defaults to 'error'. " +
+            "Either way, the RunResult's stoppedAt names the first failure's location — under 'never' " +
+            'the run keeps going past it, so that location is where it would have stopped, not where ' +
+            'it did.',
         },
         JSON_FLAG,
       ],

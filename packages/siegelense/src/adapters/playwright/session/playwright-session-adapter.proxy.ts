@@ -13,6 +13,13 @@ import { listenersLayerAdapterProxy } from './listeners-layer-adapter.proxy';
 // only the mocked RUNTIME value comes from here), so its internal shapes stay untyped by design.
 const FIXED_EPOCH_MS = 1_700_000_000_000;
 
+// The literal substring `describeMatches` and `nearestNames` feed to `page.evaluate` when they
+// self-invoke — how the fake below tells the two staged results apart once neither call passes a
+// second `evaluate()` argument any more (see the note on `evaluate` itself for why that argument is
+// gone).
+const NEAREST_NAMES_MARKER = "querySelectorAll('[data-testid]')";
+const DESCRIBE_MATCHES_MARKER = 'getBoundingClientRect';
+
 export const playwrightSessionAdapterProxy = (): {
   setLocatorCount: (params: { selector: string; count: number }) => void;
   setDescribeMatchesResult: (params: { raw: readonly unknown[] }) => void;
@@ -95,14 +102,29 @@ export const playwrightSessionAdapterProxy = (): {
 
   const page = Object.assign(new EventEmitter(), {
     locator: (selector: string) => buildFakeLocator({ selector }),
-    evaluate: async (_source: unknown, arg?: unknown) => {
-      if (arg === undefined) {
-        return Promise.resolve(state.evaluateSourceResult);
+    // Real Playwright's client tags every `evaluate()` call with `isFunction: typeof pageFunction
+    // === 'function'` (playwright-core lib/client/jsHandle.js), and its browser-side utility script
+    // (lib/generated/utilityScriptSource.js `evaluate()`) applies the second argument ONLY when that
+    // flag is true — handed a STRING it `eval`s the bare expression and never calls the result with
+    // `arg`, so a caller relying on Playwright to thread `arg` into a string source gets back
+    // whatever an un-called function serializes to: `undefined`. A fake that shortcuts straight to
+    // the staged result regardless of this shape can never fail the way the real thing does, so it
+    // is modelled here instead of bypassed.
+    evaluate: async (pageFunction: unknown, arg?: unknown): Promise<unknown> => {
+      if (typeof pageFunction === 'function') {
+        return (pageFunction as (value: unknown) => unknown)(arg);
       }
-      if (arg === null) {
+      if (arg !== undefined) {
+        return undefined;
+      }
+      const source = String(pageFunction);
+      if (source.includes(DESCRIBE_MATCHES_MARKER)) {
+        return Promise.resolve(state.describeMatchesRaw);
+      }
+      if (source.includes(NEAREST_NAMES_MARKER)) {
         return Promise.resolve(state.nearestNamesRaw);
       }
-      return Promise.resolve(state.describeMatchesRaw);
+      return Promise.resolve(state.evaluateSourceResult);
     },
     screenshot: async (options: unknown) => {
       state.screenshotCalls.push(options);

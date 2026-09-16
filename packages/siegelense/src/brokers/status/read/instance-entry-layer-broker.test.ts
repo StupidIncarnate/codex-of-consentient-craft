@@ -77,6 +77,64 @@ describe('instanceEntryLayerBroker', () => {
         }),
       );
     });
+
+    it("VALID: {alive, unnamed, two real pgids} => orphans stays empty — those pgids are the instance's own lane, not a leak", async () => {
+      const proxy = instanceEntryLayerBrokerProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_7f3a9c22' });
+      const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
+      const evidencePath = FilePathStub({
+        value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c22',
+      });
+      const entry = RegistryEntryStub({
+        id: instanceId,
+        guildId: null,
+        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        pgids: [ProcessGroupIdStub({ value: 4_143_212 }), ProcessGroupIdStub({ value: 4_143_213 })],
+        bootedAtMs: EpochMsStub({ value: 1_700_000_160_000 }),
+        lastBeatMs: EpochMsStub({ value: 1_700_000_998_000 }),
+      });
+
+      proxy.setupEvidenceDir({
+        homeDir: HOME_DIR,
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+        evidencePath,
+      });
+      proxy.setupHeartbeatMissing({
+        homeDir: HOME_DIR,
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+        evidencePath,
+      });
+      proxy.setupRunsDirPathJoin({ evidencePath });
+      proxy.setupRunsDirEntries({ evidencePath, entries: [] });
+      proxy.setupProcListing({ pids: [] });
+
+      const result = await instanceEntryLayerBroker({
+        entry,
+        state: InstanceStateStub({ value: 'alive' }),
+        named: false,
+        nowMs,
+        oomKillsSinceBoot: null,
+      });
+
+      expect(result).toStrictEqual(
+        InstanceStatusStub({
+          id: instanceId,
+          state: 'alive',
+          specName: 'dungeonmaster-web',
+          uptime: '14m',
+          lastBeat: '2s',
+          runs: 0,
+          rssMB: 0,
+          rssAtLastBeat: null,
+          lastStep: null,
+          orphans: [],
+          evidence: null,
+          likelyCause: null,
+        }),
+      );
+    });
   });
 
   describe('a dead instance, named, before any run left a transcript', () => {
