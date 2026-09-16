@@ -99,7 +99,7 @@ describe('startArgsParseTransformer', () => {
   describe('unknown flag', () => {
     it('INVALID: {--bogus X} => throws naming the flag and listing the accepted ones', () => {
       expect(() => startArgsParseTransformer({ args: ['--bogus', 'X'] })).toThrow(
-        /^Unknown flag: --bogus\n\nAccepted flags: --spec, --quest, --guild, --json\n\nUsage: dungeonmaster siegelense start --spec <specName> \[--quest <questId>\] \[--guild <guildId>\] \[--json\]$/u,
+        /^Unknown flag: --bogus\n\nAccepted flags: --spec, --quest, --guild, --idle-timeout-ms, --json\n\nUsage: dungeonmaster siegelense start --spec <specName> \[--quest <questId>\] \[--guild <guildId>\] \[--idle-timeout-ms <ms>\] \[--json\]$/u,
       );
     });
   });
@@ -107,8 +107,49 @@ describe('startArgsParseTransformer', () => {
   describe('positional argument', () => {
     it('INVALID: {a bare token} => throws naming it', () => {
       expect(() => startArgsParseTransformer({ args: ['dungeonmaster-web'] })).toThrow(
-        /^Unexpected positional argument: dungeonmaster-web\n\nEvery value must directly follow the flag it belongs to\.\n\nUsage: dungeonmaster siegelense start --spec <specName> \[--quest <questId>\] \[--guild <guildId>\] \[--json\]$/u,
+        /^Unexpected positional argument: dungeonmaster-web\n\nEvery value must directly follow the flag it belongs to\.\n\nUsage: dungeonmaster siegelense start --spec <specName> \[--quest <questId>\] \[--guild <guildId>\] \[--idle-timeout-ms <ms>\] \[--json\]$/u,
       );
+    });
+  });
+
+  describe("--idle-timeout-ms raises the served lane's idle ceiling", () => {
+    it('VALID: {--spec, --idle-timeout-ms 1800000} => returns idleTimeoutMs alongside the rest', () => {
+      const result = startArgsParseTransformer({
+        args: ['--spec', 'dungeonmaster-web', '--idle-timeout-ms', '1800000'],
+      });
+
+      expect(result).toStrictEqual({
+        specName: 'dungeonmaster-web',
+        questId: null,
+        guildId: null,
+        idleTimeoutMs: 1_800_000,
+      });
+    });
+
+    it('VALID: {--spec only, no --idle-timeout-ms} => the key is absent, not null', () => {
+      const result = startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-web'] });
+
+      expect(result).toStrictEqual({
+        specName: 'dungeonmaster-web',
+        questId: null,
+        guildId: null,
+      });
+    });
+
+    it('INVALID: {--idle-timeout-ms not-a-number} => throws naming --idle-timeout-ms', () => {
+      expect(() =>
+        startArgsParseTransformer({
+          args: ['--spec', 'dungeonmaster-web', '--idle-timeout-ms', 'not-a-number'],
+        }),
+      ).toThrow(/^--idle-timeout-ms: Expected number, received nan$/u);
+    });
+
+    it("INVALID: {--idle-timeout-ms -1} => throws naming --idle-timeout-ms and the contract's own message", () => {
+      expect(() =>
+        startArgsParseTransformer({
+          args: ['--spec', 'dungeonmaster-web', '--idle-timeout-ms', '-1'],
+        }),
+      ).toThrow(/^--idle-timeout-ms: Number must be greater than or equal to 0$/u);
     });
   });
 });

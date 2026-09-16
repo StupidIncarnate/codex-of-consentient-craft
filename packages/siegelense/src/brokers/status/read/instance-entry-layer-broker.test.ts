@@ -1,4 +1,4 @@
-import { FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub, FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
@@ -8,6 +8,7 @@ import { InstanceStatusStub } from '../../../contracts/instance-status/instance-
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
+import { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
 
@@ -169,6 +170,8 @@ describe('instanceEntryLayerBroker', () => {
       });
       proxy.setupRunsDirPathJoin({ evidencePath });
       proxy.setupRunsDirEntries({ evidencePath, entries: [] });
+      proxy.setupShutdownReasonPathJoin({ evidencePath });
+      proxy.setupShutdownReasonMissing({ evidencePath });
       proxy.setupProcListing({ pids: [] });
       proxy.setupApiWebLogPathJoins({ evidencePath });
       proxy.setupApiLogAbsent({ evidencePath });
@@ -211,6 +214,94 @@ describe('instanceEntryLayerBroker', () => {
             lastShot: null,
           },
           likelyCause: 'rss unavailable at last beat; kernel OOM events unavailable',
+        }),
+      );
+    });
+
+    it('VALID: {dead, named, a recorded shutdown reason} => likelyCause is the recorded reason, and the RSS/OOM text never enters it', async () => {
+      const proxy = instanceEntryLayerBrokerProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_9b2c0004' });
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
+      const evidencePath = FilePathStub({
+        value:
+          '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0004',
+      });
+      const entry = RegistryEntryStub({
+        id: instanceId,
+        guildId,
+        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        pgids: [],
+        lastBeatMs: EpochMsStub({ value: 1_700_000_760_000 }),
+      });
+      const heartbeat = InstanceHeartbeatStub({ instanceId, pgids: [], rssMB: 622 });
+
+      proxy.setupEvidenceDir({
+        homeDir: HOME_DIR,
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+        evidencePath,
+      });
+      proxy.setupHeartbeatFound({
+        homeDir: HOME_DIR,
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+        evidencePath,
+        heartbeat,
+      });
+      proxy.setupRunsDirPathJoin({ evidencePath });
+      proxy.setupRunsDirEntries({ evidencePath, entries: [] });
+      proxy.setupShutdownReasonPathJoin({ evidencePath });
+      proxy.setupShutdownReasonFound({
+        evidencePath,
+        marker: ShutdownReasonStub({
+          reason: ContentTextStub({
+            value: 'reaped by idle timeout after 900s with no run received',
+          }),
+        }),
+      });
+      proxy.setupProcListing({ pids: [] });
+      proxy.setupApiWebLogPathJoins({ evidencePath });
+      proxy.setupApiLogAbsent({ evidencePath });
+      proxy.setupWebLogAbsent({ evidencePath });
+      proxy.setupRepoLinkResolves({
+        cwdPath: '/repo',
+        linkPath: FilePathStub({ value: '/repo/.siegelense' }),
+        homeDir: HOME_DIR,
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+      });
+
+      const result = await instanceEntryLayerBroker({
+        entry,
+        state: InstanceStateStub({ value: 'dead' }),
+        named: true,
+        nowMs,
+        oomKillsSinceBoot: ReadingCountStub({ value: 1 }),
+      });
+
+      expect(result).toStrictEqual(
+        InstanceStatusStub({
+          id: instanceId,
+          state: 'dead',
+          specName: 'dungeonmaster-web',
+          uptime: null,
+          lastBeat: '4m',
+          runs: 0,
+          rssMB: null,
+          rssAtLastBeat: 622,
+          lastStep: null,
+          orphans: [],
+          evidence: {
+            dir: {
+              path: '/repo/.siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0004',
+              linkPresent: true,
+            },
+            transcript: null,
+            logs: [],
+            lastShot: null,
+          },
+          likelyCause: 'reaped by idle timeout after 900s with no run received',
         }),
       );
     });
@@ -258,6 +349,8 @@ describe('instanceEntryLayerBroker', () => {
         evidencePath,
         entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl'],
       });
+      proxy.setupShutdownReasonPathJoin({ evidencePath });
+      proxy.setupShutdownReasonMissing({ evidencePath });
       proxy.setupProcListing({ pids: ['100'] });
       proxy.setupPidStatPathJoin({ pid: '100' });
       proxy.setupPidStat({ pid: '100', pgrp: 33_812, comm: 'node' });
@@ -358,6 +451,8 @@ describe('instanceEntryLayerBroker', () => {
       });
       proxy.setupRunsDirPathJoin({ evidencePath });
       proxy.setupRunsDirEntries({ evidencePath, entries: ['run_1.jsonl', 'run_1.json'] });
+      proxy.setupShutdownReasonPathJoin({ evidencePath });
+      proxy.setupShutdownReasonMissing({ evidencePath });
       proxy.setupProcListing({ pids: [] });
       proxy.setupApiWebLogPathJoins({ evidencePath });
       proxy.setupApiLogAbsent({ evidencePath });
@@ -445,6 +540,8 @@ describe('instanceEntryLayerBroker', () => {
         evidencePath,
         entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl'],
       });
+      proxy.setupShutdownReasonPathJoin({ evidencePath });
+      proxy.setupShutdownReasonMissing({ evidencePath });
       proxy.setupProcListing({ pids: [] });
       proxy.setupApiWebLogPathJoins({ evidencePath });
       proxy.setupApiLogAbsent({ evidencePath });

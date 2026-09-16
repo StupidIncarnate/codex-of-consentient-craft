@@ -31,6 +31,15 @@
  * await instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null });
  * // Returns an InstanceManifest once the driver answers `ping`, or throws DriverBootFailedError /
  * // LaneBootFailedError after releasing boot.lock and this attempt's reservation
+ *
+ * await instanceStartBroker({
+ *   specName: SpecNameStub(),
+ *   questId: null,
+ *   guildId: null,
+ *   idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+ * });
+ * // Same, but appends `--idle-timeout-ms 1800000` to the spawned driver's own argv, raising the
+ * // ceiling that instance reaps itself against above driverStatics.idle.timeoutMs
  */
 
 import { pathJoinAdapter, processCwdAdapter } from '@dungeonmaster/shared/adapters';
@@ -40,6 +49,7 @@ import {
   type ContentText,
   type GuildId,
   type QuestId,
+  type TimeoutMs,
 } from '@dungeonmaster/shared/contracts';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
@@ -78,10 +88,12 @@ export const instanceStartBroker = async ({
   specName,
   questId,
   guildId,
+  idleTimeoutMs,
 }: {
   specName: SpecName;
   questId: QuestId | null;
   guildId: GuildId | null;
+  idleTimeoutMs?: TimeoutMs;
 }): Promise<InstanceManifest> => {
   const spec = laneSpecFindBroker({ specName });
   const specHash = laneSpecHashBroker({ spec });
@@ -177,6 +189,7 @@ export const instanceStartBroker = async ({
         'driver',
         '--instance',
         reservedEntry.id,
+        ...(idleTimeoutMs === undefined ? [] : ['--idle-timeout-ms', String(idleTimeoutMs)]),
       ],
       cwd: absoluteFilePathContract.parse(repoRoot),
       env: inheritedEnv,

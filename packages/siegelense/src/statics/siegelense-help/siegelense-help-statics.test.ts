@@ -23,7 +23,7 @@ describe('siegelenseHelpStatics', () => {
       summary:
         'siegelense start — boot one instance for a lane spec and block until the driver answers or the boot deadline passes.',
       synopsis:
-        'dungeonmaster siegelense start --spec <specName> [--quest <questId>] [--guild <guildId>] [--json]',
+        'dungeonmaster siegelense start --spec <specName> [--quest <questId>] [--guild <guildId>] [--idle-timeout-ms <ms>] [--json]',
       flags: [
         {
           name: '--spec',
@@ -45,13 +45,22 @@ describe('siegelenseHelpStatics', () => {
           description: 'the guild to file evidence under, when there is no quest.',
         },
         {
+          name: '--idle-timeout-ms',
+          value: '<ms>',
+          required: false,
+          description:
+            "raises this instance's idle ceiling above driverStatics.idle.timeoutMs (900000ms) — the length of think-time between runs the served lane survives before reaping itself with no run received. Omitted, the default applies.",
+        },
+        {
           name: '--json',
           value: null,
           required: false,
           description: 'print the JSON answer — the default; explicit and refused nowhere.',
         },
       ],
-      refusals: [],
+      refusals: [
+        '--idle-timeout-ms only RAISES the ceiling for this one instance — it never disables the idle timeout or makes it infinite. The timeout is the only backstop against an abandoned lane holding a port pair and a browser open forever.',
+      ],
       output:
         'One JSON document on stdout: the manifest — instance id, base URL, and every evidence path this run will want, since there is no lookup call to recover them later.',
       example: 'dungeonmaster siegelense start --spec dungeonmaster-web',

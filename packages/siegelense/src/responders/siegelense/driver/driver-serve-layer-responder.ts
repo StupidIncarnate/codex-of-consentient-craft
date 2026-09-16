@@ -32,23 +32,33 @@
  * never closes its own socket never exits, killed OR idled out. Placed after every teardown step
  * intentionally: a `kill` response is already written to its own still-open connection by the time
  * this line runs, and `close()` cannot un-write it — it only refuses connections that have not
- * arrived yet.
+ * arrived yet. On the IDLE path (never on a `kill`), `shutdownReasonWriteBroker` writes
+ * `shutdown-reason.json` beside the instance's evidence BEFORE `laneTeardownBroker` runs — a
+ * deliberate self-reap the tool scheduled, not a memory-pressure death, and `status`'s
+ * `likelyCauseLayerBroker` reads that recorded reason back instead of inventing an RSS/OOM narrative
+ * for a death nobody forced (siegelense-tooling.md's "the crash a walker must NOT mistake for a
+ * defect"). A `kill` needs no such marker: the CALLER already knows why the lane stopped.
  *
  * USAGE:
  * await DriverServeLayerResponder({ instanceId, guildId: null, lane });
  * // Resolves once the idle deadline passes or a `kill` (socket or OS signal) tears the lane down,
  * // and the socket server is closed — the driver's own OS process can now exit
+ *
+ * await DriverServeLayerResponder({ instanceId, guildId: null, lane, idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }) });
+ * // Same, but reaps itself after 1_800_000ms of no traffic instead of driverStatics.idle.timeoutMs
  */
 
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult, GuildId } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, GuildId, TimeoutMs } from '@dungeonmaster/shared/contracts';
 
 import { netUnixServeAdapter } from '../../../adapters/net/unix-serve/net-unix-serve-adapter';
 import { driverHandleRequestBroker } from '../../../brokers/driver/handle-request/driver-handle-request-broker';
 import { driverHeartbeatTickBroker } from '../../../brokers/driver/heartbeat-tick/driver-heartbeat-tick-broker';
 import { instanceReleaseBroker } from '../../../brokers/instance/release/instance-release-broker';
 import { laneTeardownBroker } from '../../../brokers/lane/teardown/lane-teardown-broker';
+import { locationsInstanceEvidencePathFindBroker } from '../../../brokers/locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { locationsSocketPathFindBroker } from '../../../brokers/locations/socket-path-find/locations-socket-path-find-broker';
+import { shutdownReasonWriteBroker } from '../../../brokers/shutdown-reason/write/shutdown-reason-write-broker';
 import { driverResponseContract } from '../../../contracts/driver-response/driver-response-contract';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
@@ -57,16 +67,20 @@ import { driverStatics } from '../../../statics/driver/driver-statics';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { DriverIdleWaitLayerResponder } from './driver-idle-wait-layer-responder';
 
+const MS_PER_SECOND = 1_000;
+
 export const DriverServeLayerResponder = async ({
   instanceId,
   guildId,
   lane,
+  idleTimeoutMs,
 }: {
   instanceId: InstanceId;
   guildId: GuildId | null;
   lane: LaneSession;
+  idleTimeoutMs?: TimeoutMs;
 }): Promise<AdapterResult> => {
-  driverSessionState.set({ lane });
+  driverSessionState.set(idleTimeoutMs === undefined ? { lane } : { lane, idleTimeoutMs });
 
   let resolveKillSignal: ((killed: true) => void) | null = null;
   const killSignal = new Promise<true>((resolve) => {
@@ -172,6 +186,23 @@ export const DriverServeLayerResponder = async ({
   if (!wasKilled) {
     const finalLane = driverSessionState.lane();
     if (finalLane !== null) {
+      // Written BEFORE teardown, so the fact survives this process exiting with it — a deliberate
+      // self-reap, never a memory-pressure death (see this file's own header). Wrapped so a marker
+      // write failure (a disk full, an unwritable evidence dir) can never block the teardown this
+      // lane is already committed to.
+      try {
+        await shutdownReasonWriteBroker({
+          evidencePath: locationsInstanceEvidencePathFindBroker({ instanceId, guildId }),
+          reason: contentTextContract.parse(
+            `reaped by idle timeout after ${String(driverSessionState.idleTimeoutMs() / MS_PER_SECOND)}s with no run received`,
+          ),
+        });
+      } catch (markerWriteError: unknown) {
+        process.stderr.write(
+          `[driver-serve] writing the shutdown-reason marker for ${instanceId} failed: ${String(markerWriteError)}\n`,
+        );
+      }
+
       await laneTeardownBroker({ session: finalLane, instanceId });
       await instanceReleaseBroker({ instanceId });
       driverSessionState.clear();

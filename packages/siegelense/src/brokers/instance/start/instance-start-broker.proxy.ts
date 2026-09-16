@@ -17,7 +17,7 @@ import {
   NetworkPortStub,
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
-import type { FilePath, NetworkPort } from '@dungeonmaster/shared/contracts';
+import type { FilePath, NetworkPort, TimeoutMs } from '@dungeonmaster/shared/contracts';
 
 import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.proxy';
 import { instanceReserveBrokerProxy } from '../reserve/instance-reserve-broker.proxy';
@@ -108,6 +108,7 @@ export const instanceStartBrokerProxy = (): {
     instanceId: InstanceId;
     evidencePath: FilePath;
     registry: Registry;
+    idleTimeoutMs?: TimeoutMs;
   }) => void;
   setupHappyBootWithQueuedMs: (params: {
     instanceId: InstanceId;
@@ -234,10 +235,12 @@ export const instanceStartBrokerProxy = (): {
     instanceId,
     evidencePath,
     registry,
+    idleTimeoutMs,
   }: {
     instanceId: InstanceId;
     evidencePath: FilePath;
     registry: Registry;
+    idleTimeoutMs?: TimeoutMs;
   }): void => {
     // Drains the onceFor entries boot-lock-acquire-broker.proxy.ts and
     // boot-lock-release-broker.proxy.ts queued unconditionally at construction time (see the note
@@ -267,7 +270,14 @@ export const instanceStartBrokerProxy = (): {
 
     spawnProxy.succeeds({
       command: process.execPath,
-      args: [expectedDriverBinPath, 'siegelense', 'driver', '--instance', instanceId],
+      args: [
+        expectedDriverBinPath,
+        'siegelense',
+        'driver',
+        '--instance',
+        instanceId,
+        ...(idleTimeoutMs === undefined ? [] : ['--idle-timeout-ms', String(idleTimeoutMs)]),
+      ],
       pid: 4821,
     });
   };
@@ -284,8 +294,12 @@ export const instanceStartBrokerProxy = (): {
   };
 
   return {
-    setupHappyBoot: ({ instanceId, evidencePath, registry }): void => {
-      stageBoot({ instanceId, evidencePath, registry });
+    setupHappyBoot: ({ instanceId, evidencePath, registry, idleTimeoutMs }): void => {
+      stageBoot(
+        idleTimeoutMs === undefined
+          ? { instanceId, evidencePath, registry }
+          : { instanceId, evidencePath, registry, idleTimeoutMs },
+      );
 
       const socketPath = AbsoluteFilePathStub({
         value: `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`,

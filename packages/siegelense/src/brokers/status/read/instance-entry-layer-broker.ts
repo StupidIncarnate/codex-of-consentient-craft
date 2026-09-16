@@ -14,6 +14,10 @@
  * actively-managed lane, never a leak, and the spec reserves "orphans" for what a dead one's driver
  * left BEHIND (siegelense-tooling.md:2497-2500, "a dead one carries … its surviving orphan pgids").
  * Reporting an alive instance's own lane under that name reads as a leak that is not there.
+ * `shutdownReasonReadBroker` draws the SAME line as `orphans`/`rssAtLastBeat`: it runs only once
+ * `state` is not `'alive'`, and its result feeds `likelyCauseLayerBroker` so a driver's own recorded
+ * reason for tearing its lane down (an idle-timeout self-reap) reaches `likelyCause` verbatim instead
+ * of the RSS/OOM reading standing in for it.
  *
  * USAGE:
  * await instanceEntryLayerBroker({
@@ -33,6 +37,7 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
+import { shutdownReasonReadBroker } from '../../shutdown-reason/read/shutdown-reason-read-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceEvidenceListingContract } from '../../../contracts/instance-evidence-listing/instance-evidence-listing-contract';
@@ -81,13 +86,16 @@ export const instanceEntryLayerBroker = async ({
     pathJoinAdapter({ paths: [evidenceDir, locationsStatics.siegelense.runsDir] }),
   );
 
-  const [heartbeat, runsDirEntries, orphans, rssMB] = await Promise.all([
+  const [heartbeat, runsDirEntries, orphans, rssMB, shutdownReasonMarker] = await Promise.all([
     heartbeatPromise,
     fsReaddirAdapter({ dirPath: runsDirPath }),
     state === 'alive'
       ? Promise.resolve<readonly OrphanReading[]>([])
       : orphanReadBroker({ pgids: entry.pgids }),
     state === 'alive' ? machineRssByPgidBroker({ pgids: entry.pgids }) : Promise.resolve(null),
+    state === 'alive'
+      ? Promise.resolve(null)
+      : shutdownReasonReadBroker({ evidencePath: evidenceDir }),
   ]);
 
   const {
@@ -113,6 +121,7 @@ export const instanceEntryLayerBroker = async ({
     specName: entry.specName,
     rssAtLastBeat,
     oomKillsSinceBoot,
+    shutdownReason: shutdownReasonMarker === null ? null : shutdownReasonMarker.reason,
   });
 
   if (!named) {

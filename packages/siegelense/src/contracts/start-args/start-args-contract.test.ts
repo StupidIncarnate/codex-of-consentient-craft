@@ -34,6 +34,24 @@ describe('startArgsContract', () => {
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
       });
     });
+
+    it('VALID: {specName, questId: null, guildId: null, idleTimeoutMs: 1_800_000} => the raised ceiling parses', () => {
+      const args = StartArgsStub({
+        specName: 'dungeonmaster-web',
+        questId: null,
+        guildId: null,
+        idleTimeoutMs: 1_800_000,
+      });
+
+      const result = startArgsContract.parse(args);
+
+      expect(result).toStrictEqual({
+        specName: 'dungeonmaster-web',
+        questId: null,
+        guildId: null,
+        idleTimeoutMs: 1_800_000,
+      });
+    });
   });
 
   describe('invalid args', () => {

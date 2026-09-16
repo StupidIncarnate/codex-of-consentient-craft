@@ -1,3 +1,5 @@
+import { TimeoutMsStub } from '@dungeonmaster/shared/contracts';
+
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
@@ -60,6 +62,37 @@ describe('DriverServeLayerResponder', () => {
 
       expect(proxy.getInstanceReleaseCallCount()).toBe(1);
     });
+
+    it('VALID: {default idle ceiling} => writes shutdown-reason.json naming the 900s default, before teardown', async () => {
+      const proxy = DriverServeLayerResponderProxy();
+      proxy.stageIdleWaitResolves({ killed: false });
+      const instanceId = InstanceIdStub();
+
+      await DriverServeLayerResponder({ instanceId, guildId: null, lane: LaneSessionStub() });
+
+      expect(proxy.getShutdownReasonWriteCallArgs()).toStrictEqual({
+        evidencePath: '/tmp/dm-siege-evidence-test/inst-serve-test',
+        reason: 'reaped by idle timeout after 900s with no run received',
+      });
+    });
+
+    it('VALID: {a raised idle ceiling} => writes shutdown-reason.json naming THAT ceiling, not the default', async () => {
+      const proxy = DriverServeLayerResponderProxy();
+      proxy.stageIdleWaitResolves({ killed: false });
+      const instanceId = InstanceIdStub();
+
+      await DriverServeLayerResponder({
+        instanceId,
+        guildId: null,
+        lane: LaneSessionStub(),
+        idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+      });
+
+      expect(proxy.getShutdownReasonWriteCallArgs()).toStrictEqual({
+        evidencePath: '/tmp/dm-siege-evidence-test/inst-serve-test',
+        reason: 'reaped by idle timeout after 1800s with no run received',
+      });
+    });
   });
 
   describe('the idle wait resolves killed', () => {
@@ -74,6 +107,19 @@ describe('DriverServeLayerResponder', () => {
       });
 
       expect(proxy.getLaneTeardownCallCount()).toBe(0);
+    });
+
+    it('VALID: {already killed} => never writes a shutdown-reason marker — the caller already knows why', async () => {
+      const proxy = DriverServeLayerResponderProxy();
+      proxy.stageIdleWaitResolves({ killed: true });
+
+      await DriverServeLayerResponder({
+        instanceId: InstanceIdStub(),
+        guildId: null,
+        lane: LaneSessionStub(),
+      });
+
+      expect(proxy.getShutdownReasonWriteCallArgs()).toBe(undefined);
     });
   });
 

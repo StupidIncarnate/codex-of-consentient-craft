@@ -22,10 +22,13 @@
  * // Boots the registry row's lane, stamps it, releases boot.lock, and blocks for the driver's life
  * // A boot failure writes boot-failure.json, releases boot.lock, and rethrows without stamping the
  * // registry or serving
+ *
+ * await SiegelenseDriverResponder({ instanceId: InstanceIdStub(), idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }) });
+ * // Same, but the served lane reaps itself after 1_800_000ms of no traffic instead of the default
  */
 
 import { contentTextContract, processIdContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, TimeoutMs } from '@dungeonmaster/shared/contracts';
 
 import { bootFailureMarkerWriteBroker } from '../../../brokers/boot-failure-marker/write/boot-failure-marker-write-broker';
 import { bootLockReleaseBroker } from '../../../brokers/boot-lock/release/boot-lock-release-broker';
@@ -43,8 +46,10 @@ import { DriverServeLayerResponder } from './driver-serve-layer-responder';
 
 export const SiegelenseDriverResponder = async ({
   instanceId,
+  idleTimeoutMs,
 }: {
   instanceId: InstanceId;
+  idleTimeoutMs?: TimeoutMs;
 }): Promise<AdapterResult> => {
   const registry = await registryReadBroker();
   const entry = registry.instances.find((row) => row.id === instanceId);
@@ -124,5 +129,9 @@ export const SiegelenseDriverResponder = async ({
 
   await bootLockReleaseBroker({ instanceId });
 
-  return DriverServeLayerResponder({ instanceId, guildId: entry.guildId, lane });
+  return DriverServeLayerResponder(
+    idleTimeoutMs === undefined
+      ? { instanceId, guildId: entry.guildId, lane }
+      : { instanceId, guildId: entry.guildId, lane, idleTimeoutMs },
+  );
 };

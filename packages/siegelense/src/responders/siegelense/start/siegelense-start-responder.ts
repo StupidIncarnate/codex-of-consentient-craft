@@ -10,10 +10,18 @@
  * USAGE:
  * await SiegelenseStartResponder({ specName: SpecNameStub(), questId: null, guildId: null });
  * // Writes the InstanceManifest as one JSON document to stdout
+ *
+ * await SiegelenseStartResponder({
+ *   specName: SpecNameStub(),
+ *   questId: null,
+ *   guildId: null,
+ *   idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+ * });
+ * // Same, but the driver it spawns serves the raised ceiling instead of driverStatics.idle.timeoutMs
  */
 
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult, GuildId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, GuildId, QuestId, TimeoutMs } from '@dungeonmaster/shared/contracts';
 
 import { instanceStartBroker } from '../../../brokers/instance/start/instance-start-broker';
 import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
@@ -23,12 +31,22 @@ export const SiegelenseStartResponder = async ({
   specName,
   questId,
   guildId,
+  idleTimeoutMs,
 }: {
   specName: SpecName;
   questId: QuestId | null;
   guildId: GuildId | null;
+  // `| undefined`, not bare `?:`, because this is called with a whole `StartArgs` object —
+  // `startArgsContract`'s own `.optional()` field infers as `TimeoutMs | undefined`, and
+  // `exactOptionalPropertyTypes` refuses a narrower `idleTimeoutMs?: TimeoutMs` as an incompatible
+  // target for that wider source type.
+  idleTimeoutMs?: TimeoutMs | undefined;
 }): Promise<AdapterResult> => {
-  const manifest = await instanceStartBroker({ specName, questId, guildId });
+  const manifest = await instanceStartBroker(
+    idleTimeoutMs === undefined
+      ? { specName, questId, guildId }
+      : { specName, questId, guildId, idleTimeoutMs },
+  );
   process.stdout.write(
     `${JSON.stringify(manifest, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
   );

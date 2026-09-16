@@ -70,20 +70,47 @@ describe('siegelenseHelpRenderTransformer', () => {
   });
 
   describe('a call whose refusals array is empty', () => {
-    it('EDGE: {call: start, refusals: []} => no REFUSES heading', () => {
+    it('EDGE: {call: kill, refusals: []} => no REFUSES heading', () => {
+      const result = siegelenseHelpRenderTransformer({ call: 'kill' });
+
+      expect(result).toBe(
+        'siegelense kill — stop one running instance.\n' +
+          '\n' +
+          'USAGE\n' +
+          '  dungeonmaster siegelense kill --instance <id> [--json]\n' +
+          '\n' +
+          'FLAGS\n' +
+          '  --instance <id>  required   the instance to stop. Accepts an already-dead instance id too, reaping its orphaned process groups from its heartbeat file when the driver itself is unreachable.\n' +
+          '  --json                      print the JSON answer — the default; explicit and refused nowhere.\n' +
+          '\n' +
+          'OUTPUT\n' +
+          '  One JSON document on stdout: the KillResult.\n' +
+          '\n' +
+          'EXAMPLE\n' +
+          '  dungeonmaster siegelense kill --instance inst_9b2c\n',
+      );
+    });
+  });
+
+  describe('start now carries an idle-timeout-ms flag and a refusal', () => {
+    it('VALID: {call: start} => the exact rendered page, flag and refusal included', () => {
       const result = siegelenseHelpRenderTransformer({ call: 'start' });
 
       expect(result).toBe(
         'siegelense start — boot one instance for a lane spec and block until the driver answers or the boot deadline passes.\n' +
           '\n' +
           'USAGE\n' +
-          '  dungeonmaster siegelense start --spec <specName> [--quest <questId>] [--guild <guildId>] [--json]\n' +
+          '  dungeonmaster siegelense start --spec <specName> [--quest <questId>] [--guild <guildId>] [--idle-timeout-ms <ms>] [--json]\n' +
           '\n' +
           'FLAGS\n' +
-          '  --spec <specName>  required   the lane spec to boot.\n' +
-          "  --quest <questId>             files the instance's evidence under that quest's guild. Omitted, the instance is unowned.\n" +
-          '  --guild <guildId>             the guild to file evidence under, when there is no quest.\n' +
-          '  --json                        print the JSON answer — the default; explicit and refused nowhere.\n' +
+          '  --spec <specName>       required   the lane spec to boot.\n' +
+          "  --quest <questId>                  files the instance's evidence under that quest's guild. Omitted, the instance is unowned.\n" +
+          '  --guild <guildId>                  the guild to file evidence under, when there is no quest.\n' +
+          "  --idle-timeout-ms <ms>             raises this instance's idle ceiling above driverStatics.idle.timeoutMs (900000ms) — the length of think-time between runs the served lane survives before reaping itself with no run received. Omitted, the default applies.\n" +
+          '  --json                             print the JSON answer — the default; explicit and refused nowhere.\n' +
+          '\n' +
+          'REFUSES\n' +
+          '  --idle-timeout-ms only RAISES the ceiling for this one instance — it never disables the idle timeout or makes it infinite. The timeout is the only backstop against an abandoned lane holding a port pair and a browser open forever.\n' +
           '\n' +
           'OUTPUT\n' +
           '  One JSON document on stdout: the manifest — instance id, base URL, and every evidence path this run will want, since there is no lookup call to recover them later.\n' +

@@ -1,11 +1,13 @@
 /**
  * PURPOSE: Holds the ONE lane a driver process owns for its whole life, plus everything about that
  * life that outlives a single run: the two clocks (the per-run counter `run` requests mint off, and
- * the last-activity timestamp the idle-deadline recursion reads), the FLUSH CURSOR marking how far
- * each of the console/network/websocket buffers has already been written to disk, and the path of
- * the LAST screenshot taken anywhere in the instance's life. The cursor lives here rather than on a
- * run because entries arriving between two runs belong to neither (chunk-03-read-path-and-perception
- * .md §3.A); the last-shot path lives here for the same reason `pixelChange` compares a fresh capture
+ * the last-activity timestamp the idle-deadline recursion reads), the IDLE CEILING this lane reaps
+ * itself against (a caller's `--idle-timeout-ms` override at `start` time, or
+ * `driverStatics.idle.timeoutMs` when none was given), the FLUSH CURSOR marking how far each of the
+ * console/network/websocket buffers has already been written to disk, and the path of the LAST
+ * screenshot taken anywhere in the instance's life. The cursor lives here rather than on a run
+ * because entries arriving between two runs belong to neither (chunk-03-read-path-and-perception.md
+ * §3.A); the last-shot path lives here for the same reason `pixelChange` compares a fresh capture
  * against whichever run took the previous one, including a prior run entirely (§3.B).
  * `driverHandleRequestBroker` cannot read this directly — `state/` sits outside a broker's allowed
  * imports — so the responder that owns the socket's request loop reads these accessors fresh per
@@ -15,6 +17,12 @@
  * driverSessionState.set({ lane });
  * driverSessionState.lane();
  * // Returns the LaneSession set above, or null before boot / after a kill
+ * driverSessionState.idleTimeoutMs();
+ * // Returns driverStatics.idle.timeoutMs — `set` was called with no override
+ *
+ * driverSessionState.set({ lane, idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }) });
+ * driverSessionState.idleTimeoutMs();
+ * // Returns 1_800_000 — the caller's raised ceiling, until the next `set` or `clear`
  *
  * driverSessionState.advanceFlushCursor({ consoleLines, networkLines, websocketLines });
  * driverSessionState.flushCursor();
@@ -25,6 +33,9 @@
  * // Returns the path set above, or null before the instance's first capture
  */
 
+import { timeoutMsContract } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, TimeoutMs } from '@dungeonmaster/shared/contracts';
+
 import { epochMsContract } from '../../contracts/epoch-ms/epoch-ms-contract';
 import type { EpochMs } from '../../contracts/epoch-ms/epoch-ms-contract';
 import type { LaneSession } from '../../contracts/lane-session/lane-session-contract';
@@ -32,24 +43,28 @@ import { readingCountContract } from '../../contracts/reading-count/reading-coun
 import type { ReadingCount } from '../../contracts/reading-count/reading-count-contract';
 import { runIdContract } from '../../contracts/run-id/run-id-contract';
 import type { RunId } from '../../contracts/run-id/run-id-contract';
+import { driverStatics } from '../../statics/driver/driver-statics';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 let currentLane: LaneSession | null = null;
 let runCounter = 0;
 let lastActivityAtMs: EpochMs = epochMsContract.parse(0);
+let idleTimeoutMsValue: TimeoutMs = timeoutMsContract.parse(driverStatics.idle.timeoutMs);
 let flushCursorConsoleLines: ReadingCount = readingCountContract.parse(0);
 let flushCursorNetworkLines: ReadingCount = readingCountContract.parse(0);
 let flushCursorWebsocketLines: ReadingCount = readingCountContract.parse(0);
 let lastShotPathValue: AbsoluteFilePath | null = null;
 
 export const driverSessionState = {
-  set: ({ lane }: { lane: LaneSession }): void => {
+  set: ({ lane, idleTimeoutMs }: { lane: LaneSession; idleTimeoutMs?: TimeoutMs }): void => {
     currentLane = lane;
     lastActivityAtMs = epochMsContract.parse(Date.now());
+    idleTimeoutMsValue = idleTimeoutMs ?? timeoutMsContract.parse(driverStatics.idle.timeoutMs);
   },
 
   lane: (): LaneSession | null => currentLane,
+
+  idleTimeoutMs: (): TimeoutMs => idleTimeoutMsValue,
 
   nextRunId: (): RunId => {
     runCounter += 1;
@@ -96,6 +111,7 @@ export const driverSessionState = {
     currentLane = null;
     runCounter = 0;
     lastActivityAtMs = epochMsContract.parse(0);
+    idleTimeoutMsValue = timeoutMsContract.parse(driverStatics.idle.timeoutMs);
     flushCursorConsoleLines = readingCountContract.parse(0);
     flushCursorNetworkLines = readingCountContract.parse(0);
     flushCursorWebsocketLines = readingCountContract.parse(0);

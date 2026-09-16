@@ -1,8 +1,9 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, TimeoutMsStub } from '@dungeonmaster/shared/contracts';
 
 import { LaneSessionStub } from '../../contracts/lane-session/lane-session.stub';
 import { ReadingCountStub } from '../../contracts/reading-count/reading-count.stub';
+import { driverStatics } from '../../statics/driver/driver-statics';
 import { driverSessionState } from './driver-session-state';
 import { driverSessionStateProxy } from './driver-session-state.proxy';
 
@@ -23,6 +24,43 @@ describe('driverSessionState', () => {
       driverSessionState.set({ lane });
 
       expect(driverSessionState.lane()).toBe(lane);
+    });
+  });
+
+  describe('idleTimeoutMs()', () => {
+    it('VALID: {set with no override} => returns driverStatics.idle.timeoutMs', () => {
+      const proxy = driverSessionStateProxy();
+      proxy.setupEmpty();
+
+      driverSessionState.set({ lane: LaneSessionStub() });
+
+      expect(driverSessionState.idleTimeoutMs()).toBe(driverStatics.idle.timeoutMs);
+    });
+
+    it('VALID: {set with an override} => returns the raised ceiling', () => {
+      const proxy = driverSessionStateProxy();
+      proxy.setupEmpty();
+
+      driverSessionState.set({
+        lane: LaneSessionStub(),
+        idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+      });
+
+      expect(driverSessionState.idleTimeoutMs()).toBe(1_800_000);
+    });
+
+    it('VALID: {clear after an override} => the next set with no override reads back the default', () => {
+      const proxy = driverSessionStateProxy();
+      proxy.setupEmpty();
+      driverSessionState.set({
+        lane: LaneSessionStub(),
+        idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+      });
+
+      driverSessionState.clear();
+      driverSessionState.set({ lane: LaneSessionStub() });
+
+      expect(driverSessionState.idleTimeoutMs()).toBe(driverStatics.idle.timeoutMs);
     });
   });
 

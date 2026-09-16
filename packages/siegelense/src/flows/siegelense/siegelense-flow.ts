@@ -2,11 +2,13 @@
  * PURPOSE: Routes `dungeonmaster siegelense`'s calls. `--help`/`-h` is checked BEFORE any parsing —
  * bare, it prints the index; after a built call's name, that call's own page — so a caller piping
  * stdout gets the help it asked for rather than a refusal (siegelense-tooling.md §3.F). `driver
- * --instance <id>` sits outside the thirteen-call surface entirely — internal, spawned by `start`,
- * never typed by a person — and keeps its own `--instance` read, now through the shared
- * `flagValueReadTransformer` rather than a second `indexOf` dance, and its own id parse through
- * `flagContractParseTransformer` so a badly-shaped id answers with the contract's own message under
- * `--instance` rather than a raw ZodError. Every other built call goes
+ * --instance <id> [--idle-timeout-ms <ms>]` sits outside the thirteen-call surface entirely —
+ * internal, spawned by `start`, never typed by a person — and keeps its own `--instance`/
+ * `--idle-timeout-ms` reads, now through the shared `flagValueReadTransformer` rather than a second
+ * `indexOf` dance, and its own value parses through `flagContractParseTransformer` so a badly-shaped
+ * id or ceiling answers with the contract's own message under its own flag rather than a raw
+ * ZodError. `--idle-timeout-ms` is OPTIONAL here exactly as it is on `start` — `start` only carries
+ * it through to this same flag when a caller named one. Every other built call goes
  * through `CALL_ROUTES`, a `Map` keyed by the same seven names `siegelenseHelpStatics.calls` holds:
  * each entry parses its own argv and calls its responder — **except `run`, whose entry hands argv
  * straight to `SiegelenseRunResponder` unparsed.** That is not an inconsistency to "tidy" away:
@@ -36,7 +38,7 @@
  * // Routes to SiegelenseFleetResponder
  */
 
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract, timeoutMsContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { instanceIdContract } from '../../contracts/instance-id/instance-id-contract';
@@ -68,6 +70,7 @@ const HELP_SHORT_FLAG = siegelenseOutputStatics.flags.helpShort;
 const HUMAN_FLAG = siegelenseOutputStatics.flags.human;
 const DRIVER_CALL_NAME = 'driver';
 const INSTANCE_FLAG = '--instance';
+const IDLE_TIMEOUT_MS_FLAG = '--idle-timeout-ms';
 const USAGE =
   'Usage: dungeonmaster siegelense [--help | start | run | results | kill | status | cleanup | compare | driver --instance <instanceId>]';
 
@@ -132,7 +135,19 @@ export const SiegelenseFlow = async ({
       flag: INSTANCE_FLAG,
       parse: () => instanceIdContract.parse(rawInstanceId),
     });
-    return SiegelenseDriverResponder({ instanceId });
+
+    const rawIdleTimeoutMs = flagValueReadTransformer({
+      args: callArgs,
+      flag: IDLE_TIMEOUT_MS_FLAG,
+    });
+    if (rawIdleTimeoutMs === null) {
+      return SiegelenseDriverResponder({ instanceId });
+    }
+    const idleTimeoutMs = flagContractParseTransformer({
+      flag: IDLE_TIMEOUT_MS_FLAG,
+      parse: () => timeoutMsContract.parse(Number(rawIdleTimeoutMs)),
+    });
+    return SiegelenseDriverResponder({ instanceId, idleTimeoutMs });
   }
 
   const call = callName === undefined ? undefined : (callName as SiegelenseCall);

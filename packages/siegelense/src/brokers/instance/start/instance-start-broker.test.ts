@@ -1,4 +1,9 @@
-import { FilePathStub, GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  FilePathStub,
+  GuildIdStub,
+  QuestIdStub,
+  TimeoutMsStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { instanceStartBroker } from './instance-start-broker';
 import { instanceStartBrokerProxy } from './instance-start-broker.proxy';
@@ -41,6 +46,50 @@ describe('instanceStartBroker', () => {
       const bootLockWriteIndex = writeOrder.findIndex((path) => path.includes('boot.lock'));
 
       expect(registryWriteIndex).toBeLessThan(bootLockWriteIndex);
+    });
+  });
+
+  describe('idleTimeoutMs carried to the spawned driver', () => {
+    it('VALID: {idleTimeoutMs given} => boots successfully, proving the driver was spawned with --idle-timeout-ms naming it', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [RegistryEntryStub({ id: instanceId })],
+        }),
+        idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+      });
+
+      const result = await instanceStartBroker({
+        specName: SpecNameStub(),
+        questId: null,
+        guildId: null,
+        idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+      });
+
+      expect(result.instanceId).toBe(instanceId);
+    });
+
+    it('VALID: {idleTimeoutMs omitted} => boots successfully, proving the driver was spawned with no --idle-timeout-ms flag', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [RegistryEntryStub({ id: instanceId })],
+        }),
+      });
+
+      const result = await instanceStartBroker({
+        specName: SpecNameStub(),
+        questId: null,
+        guildId: null,
+      });
+
+      expect(result.instanceId).toBe(instanceId);
     });
   });
 

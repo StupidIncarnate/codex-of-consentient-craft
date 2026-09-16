@@ -208,6 +208,8 @@ describe('statusReadBroker', () => {
         evidencePath,
         entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl'],
       });
+      proxy.setupShutdownReasonPathJoin({ evidencePath });
+      proxy.setupShutdownReasonMissing({ evidencePath });
       proxy.setupProcListing({ pids: ['100'] });
       proxy.setupPidStatPathJoin({ pid: '100' });
       proxy.setupPidStat({ pid: '100', pgrp: 33_812, comm: 'node' });

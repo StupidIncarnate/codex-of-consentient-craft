@@ -79,15 +79,23 @@ export const SiegelenseDriverResponderProxy = (): {
   registryUpdateBrokerProxy();
   bootFailureMarkerWriteBrokerProxy();
 
-  // Drains the exactly 3 one-shot pathJoin entries bootLockReleaseBrokerProxy's constructor just
-  // queued (see this file's own header): one for the homedir join, one for the root-path join, one
-  // for the boot-lock join itself (`boot-lock-path-find-broker.proxy.ts` composing
-  // `locations-root-path-find-broker.proxy.ts`). Three plain calls, not a loop or `.forEach()` —
-  // `enforce-proxy-patterns` scans the constructor's own top-level statements for exactly those
-  // shapes, and a bounded, known-small count reads as clearly as a loop would here anyway.
+  // Drains the exactly 6 one-shot pathJoin entries queued before this line, on the SAME shared
+  // pathJoinAdapter mock: 1 from `DriverServeLayerResponderProxy()`'s own unconditional
+  // `setupSocketPath` (its own socket-path join, for a socket `DriverServeLayerResponder` never
+  // really binds in this proxy's tests — `DriverServeLayerResponder` itself is mocked wholesale
+  // below), 3 more from that SAME constructor's OWN unconditional evidence-path staging (homedir
+  // join + root-path join + evidence-path join — `locations-instance-evidence-path-find-broker
+  // .proxy.ts` composing `locations-root-path-find-broker.proxy.ts`), and 3 from
+  // `bootLockReleaseBrokerProxy`'s own constructor (homedir join + root-path join + boot-lock join).
+  // Six plain calls, not a loop or `.forEach()` — `enforce-proxy-patterns` scans the constructor's
+  // own top-level statements for exactly those shapes, and a bounded, known-small count reads as
+  // clearly as a loop would here anyway.
   join('drain', '0');
   join('drain', '1');
   join('drain', '2');
+  join('drain', '3');
+  join('drain', '4');
+  join('drain', '5');
 
   // These three share one pathJoinAdapter mock, queued one-shot per real call rather than a sticky
   // catch-all — staging every one of them to the SAME path value sidesteps having to track exactly
