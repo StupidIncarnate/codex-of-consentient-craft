@@ -274,32 +274,48 @@ Whether the fix is for the testbed to tear lanes down before deleting the home, 
 a record that outlives the testbed, is not settled. **Do not assume a green teardown suite means no
 lanes leak** — the suite passed sixteen assertions twice on the same day this leak was sitting there.
 
-## Stale sockets accumulate and then break the teardown suite. Reproduced, mechanism unknown.
+## The teardown suite's flake was PROCESS COUNT, never the stale sockets. Fixed.
 
-The driver's control socket lives at a MACHINE-GLOBAL path, `<os.tmpdir()>/dm-siege-sockets/<id>.sock`,
-not scoped per worktree or per run. **A SIGKILLed driver leaves its socket file behind**, because a unix
-socket path is not removed when its process dies, and they pile up across runs.
+Stale socket files are inert. Nothing reads `<os.tmpdir()>/dm-siege-sockets/` by content, and an
+instance id comes from `crypto.randomUUID()`, so two runs cannot collide on a name. **With 8 stale
+socket files present and ambient load normal, the suite passes** — measured three times.
 
-**Measured, twice each way:**
+**What actually moved is the machine's process table**, and leaked lanes raise both numbers at once,
+which is what made the file count look causal.
 
-| `/tmp/dm-siege-sockets/` | `driver-flow.integration.test.ts` |
+`driver-serve-layer-responder` stood up the control socket and wrote the first heartbeat concurrently,
+on the reasoning that a client could not reach the socket before both settled. That reasoning holds
+only while the two cost about the same. They do not:
+
+| | Measured |
 |---|---|
-| holding 8 stale socket files | **FAILS** — the two SIGKILLed-driver orphan-reap assertions, deterministically |
-| removed entirely | **PASSES**, all 6 |
+| unix socket bind | 1.08ms |
+| first heartbeat write, 435 processes on the machine | 56.8ms |
+| first heartbeat write, 3,430 processes | 276.7ms |
 
-The two that fail are `the reaping kill reports the pgids it found and signalled` and `every orphaned
-process group is dead once the reap returns`. Both compare the registry's recorded pgids against what a
-second process reaps from the heartbeat file.
+The first beat calls `heartbeatWriteBroker` → `machineRssByPgidBroker`, which walks every
+`/proc/<pid>` on the machine. Past `driverStatics.boot.readyPollMs` (250ms) that walk outlasts the
+client's poll, so **`ping` answers and the boot reports success before `heartbeat.json` exists**. A
+SIGKILL landing in that window leaves `instanceKillBroker`'s orphan reap nothing to read: it reports
+`reapedPgids: []` against a non-empty `preKillPgids`, and the orphans are never signalled.
 
-**The mechanism is NOT established.** An earlier session looked at this path, concluded the trouble was
-not cross-process contention, and left it machine-global — and it was right that contention was not the
-cause of the bug it was chasing. This is a different failure, and nobody has traced why a stale socket
-FILE changes what the reap finds. Do not repeat the guess; measure it.
+Reproduced deterministically by inflating the process table to ~3,430 with `sleep` processes and no
+socket files at all — the exact two assertions the older note blamed on stale files.
 
-**Until it is fixed, `rm -rf /tmp/dm-siege-sockets` before running the driver suite**, or a red run will
-send you hunting a regression that is not there. The fix is probably to scope the socket directory per
-run the way ward already scopes its port pairs with `netFreePortPairAdapter`, and to unlink a dead
-socket rather than leaving it — but confirm the mechanism first.
+**The fix keeps the bind concurrent** — no boot-latency regression — **and gates the REPLY**: every
+branch of `onRequest` awaits the first beat before returning, so nothing tells a client "ready" until
+the heartbeat is on disk.
+
+**The armed `setTimeout` at `instance-start-boot-poll-layer-broker.ts:48` is a separate leak.** It is
+the client's own poll retry, which always resolves — unless a caller abandons it. The three-way
+`Promise.all` over concurrent boots did exactly that: one sibling rejecting abandoned the others, and
+`driverFleetHarness` only tracks an instance once `boot()` returns, so an abandoned-but-successful
+boot's lane became invisible to the `afterAll` reap. `Promise.allSettled` with explicit rejection
+checks keeps the fail-fast semantics and abandons nothing.
+
+**Verified across eight consecutive runs**, including one with 33 stale socket files present and one
+under 3,453 processes — the condition that broke it every time before the fix. `rm -rf
+/tmp/dm-siege-sockets` is no longer needed.
 
 ## One thing to verify rather than trust
 

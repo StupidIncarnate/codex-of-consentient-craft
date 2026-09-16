@@ -262,11 +262,32 @@ describe('driver teardown', () => {
         process.env.DUNGEONMASTER_HOME = testbed.guildPath;
         fleet.ensureHomeReady({ home: testbed.guildPath });
 
-        const [manifestA, manifestB, manifestC] = await Promise.all([
+        // Promise.allSettled, never Promise.all: three real boots each carry their own
+        // `instanceStartBootPollLayerBroker` retry loop, and Promise.all abandons a still-pending
+        // sibling's loop the instant any ONE of the three rejects — its setTimeout chain (and, if
+        // that sibling's boot goes on to succeed unattended, its whole real lane) then keeps running
+        // with nothing left to track or reap it, invisible to `fleet.afterAll()` because
+        // `trackedInstanceIds` only gains an id once `fleet.boot()` itself returns. allSettled waits
+        // out every promise before this line moves on, so nothing is ever abandoned mid-flight; the
+        // throws below reproduce Promise.all's own fail-fast reporting once every boot has actually
+        // finished.
+        const [resultA, resultB, resultC] = await Promise.allSettled([
           fleet.boot({ specName: HEADLESS_SPEC }),
           fleet.boot({ specName: HEADLESS_SPEC }),
           fleet.boot({ specName: HEADLESS_SPEC }),
         ]);
+        if (resultA.status === 'rejected') {
+          throw resultA.reason;
+        }
+        if (resultB.status === 'rejected') {
+          throw resultB.reason;
+        }
+        if (resultC.status === 'rejected') {
+          throw resultC.reason;
+        }
+        const manifestA = resultA.value;
+        const manifestB = resultB.value;
+        const manifestC = resultC.value;
 
         const [entryA, entryB] = await Promise.all([
           fleet.registryEntry({ instanceId: manifestA.instanceId }),
