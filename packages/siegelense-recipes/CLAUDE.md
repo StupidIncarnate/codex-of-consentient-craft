@@ -39,19 +39,22 @@ enum change either file misses fails a test instead of silently narrowing or wid
 pre-flight (`HydrationTransitionUnreachableError`) still refuses an unreachable status at run time
 too, unchanged, since the pinned list holds the identical runtime set the guard always computed.
 
-**`fields: questFieldsSchemaContract`, not `questFieldsContract` directly, and only because
-`transitions` is declared.** `quest` is the first ingredient in this repo to declare `transitions`,
-and that is what first exercises a real TypeScript/Zod interaction:
-`ingredient-config-contract.ts`'s own header documents that `IngredientConfig['fields']` and
+**Every multi-field ingredient hands `ingredient({fields: ...})` an UPCAST schema, never the raw
+`ZodObject` a `.pick()`/`.omit()`/`.extend()`/`z.object()` chain infers to.**
+`ingredient-config-contract.ts`'s own header documents why: `IngredientConfig['fields']` and
 `IngredientConfigInferenceAnchor['fields']` both type `fields` as the phantom `{ readonly _output:
 TFields }`, and `ingredient()`'s generic signature checks a real value against BOTH sites —
 re-checking one concrete `ZodObject<Shape>` against two independently-inferred phantom-carrier sites
 routes the comparison through `ZodObject`'s own generic methods (`deepPartial()` among them) and
-fails, even though the schema is perfectly valid. `questFieldsSchemaContract`
-(`contracts/quest-fields-schema/`) is `questFieldsContract` upcast to `z.ZodType<QuestFields, …,
-z.input<typeof questFieldsContract>>` — the framework's own documented fix, applied at the
-declaration site. No other ingredient here has hit this, because none of them declares
-`transitions`.
+fails, even though the schema is perfectly valid. This is not specific to a `transitions`-declaring
+ingredient — `session` and `subagent` declare no `transitions` and still need it, so their own
+`session-fields-contract.ts`/`subagent-fields-contract.ts` bake the upcast directly into the field
+contract's own export. `guild`, `quest` and `operation` instead keep their field contract a plain
+`ZodObject` (their ingredient's own `defaults` reads `.shape.<field>` off it, which an upcast export
+would lose) and pair it with a sibling `*-fields-schema-contract.ts` — `questFieldsSchemaContract`,
+`guildFieldsSchemaContract`, `operationFieldsSchemaContract` — that upcasts to
+`z.ZodType<Fields, …, z.input<typeof fieldsContract>>` and is used ONLY in the `fields:` property of
+`ingredient({...})`.
 
 `reach` walks every ordinary hop through `questModifyBroker`, over a shortest path computed by
 `questStatusWalkPathTransformer` off the same `questStatusTransitionsStatics` edge list

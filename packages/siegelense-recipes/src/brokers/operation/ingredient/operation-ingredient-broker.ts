@@ -20,6 +20,13 @@
  * `questOperationsUpdateBroker` itself is unreachable from this package for the same reason
  * `questPersistBroker` is — see `operation-write-route-broker.ts`'s own header.
  *
+ * `fields: operationFieldsSchemaContract`, not `operationFieldsContract` directly — see that file's
+ * own header for why: `ingredient()` checks a concrete `ZodObject` against two independently-
+ * inferred phantom-carrier sites, which fails for any shape holding enum/branded fields unless the
+ * value handed to `fields` is upcast to `z.ZodType<OperationFields>` first. `defaults` below still
+ * reads `operationFieldsContract.shape.<field>` — the upcast export drops `.shape`, so `defaults`
+ * keeps the concrete contract.
+ *
  * USAGE:
  * const dm = registry({ guilds: guildIngredientBroker, quests: questIngredientBroker, operations: operationIngredientBroker });
  * dm.guilds.add(1, (g) => [g[0].quests.add(1, (q) => [q[0].operations.add(1, (o) => [o[0].set({ role: 'ward' })])])]);
@@ -28,6 +35,7 @@ import { operationItemContract } from '@dungeonmaster/shared/contracts';
 
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
 import { operationFieldsContract } from '../../../contracts/operation-fields/operation-fields-contract';
+import { operationFieldsSchemaContract } from '../../../contracts/operation-fields-schema/operation-fields-schema-contract';
 import { operationQueryRouteBroker } from '../query-route/operation-query-route-broker';
 import { operationRemoveRouteBroker } from '../remove-route/operation-remove-route-broker';
 import { operationUpdateRouteBroker } from '../update-route/operation-update-route-broker';
@@ -39,7 +47,7 @@ const { ingredient } = recipesHydrationCreateBroker();
 export const operationIngredientBroker = ingredient({
   name: 'operation',
   description: "one item on a quest's operations ledger, at whatever status you set it to",
-  fields: operationFieldsContract,
+  fields: operationFieldsSchemaContract,
   record: operationItemContract,
   links: [
     { of: 'quest', as: 'questId' },

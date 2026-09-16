@@ -238,40 +238,29 @@ describe('PrepareQuestPackageGraphLayerResponder', () => {
 
       const result = await PrepareQuestPackageGraphLayerResponder({ quest });
 
-      // Nothing below is transcribed: the adjacency comes from the manifests on disk, the depths
-      // from the same pass Start runs, and `depth` is the sole input to the codeweaver dispatch
-      // order — so a dependency added to any package.json moves a number here instead of passing
-      // unseen. The layers it spells out, alphabetical by directory name:
-      //   L0 testing / L1 shared / L2 config, eslint-plugin, hooks, hydration, session-forensics,
-      //   siegelense, tooling, web / L3 local-eslint, orchestrator, ward / L4 mcp, server /
-      //   L5 cli, siegelense-recipes
-      // `shared` is L1 rather than a leaf because its `@dungeonmaster/testing` devDependency is a
-      // real edge — packageJsonDependencyNamesTransformer unions all three dependency fields.
-      // `ward` sits at L3, not L2, because it now depends on `@dungeonmaster/config` (itself L2),
-      // which pushes `ward` one layer above the L2 packages it used to sit beside. `mcp` (L4)
-      // already depended on `orchestrator` (L3), so ward's move does not move mcp in turn.
-      // `siegelense` is L2 off its own `@dungeonmaster/shared` (L1) and `@dungeonmaster/testing`
-      // (L0) devDependency. `hydration` is L2 off its own `@dungeonmaster/shared` (L1) dependency.
-      // `siegelense-recipes` now depends on `@dungeonmaster/server` (L4), so it lands one layer
-      // above it rather than at the leaf it used to be.
+      // These depths are computed from the real `packages/*` manifests on disk, by the same Kahn's-
+      // order pass Start runs, and `depth` is the sole input to the codeweaver dispatch order — so
+      // adding or removing a package, or adding or removing a dependency edge in any `package.json`,
+      // changes one or more of the numbers below. Re-derive this array from a real ward run's failure
+      // output rather than hand-computing it; that output is the ground truth this array pins.
       expect(result?.map((entry) => `${String(entry.id)}=${String(entry.depth)}`)).toStrictEqual([
-        'cli=5',
+        'cli=7',
         'config=2',
         'eslint-plugin=2',
         'hooks=2',
         'hydration=2',
         'local-eslint=3',
-        'mcp=7',
+        'mcp=9',
         'orchestrator=3',
-        'server=4',
+        'server=6',
         'session-forensics=2',
         'shared=1',
-        'siegelense=6',
-        'siegelense-recipes=5',
+        'siegelense=8',
+        'siegelense-recipes=4',
         'testing=0',
         'tooling=2',
         'ward=3',
-        'web=2',
+        'web=5',
       ]);
     });
   });

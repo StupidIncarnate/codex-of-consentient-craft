@@ -9,9 +9,12 @@
  * them) and fails with a `deepPartial()`-incompatibility error for a shape holding branded fields,
  * even though the schema itself is perfectly valid — `ingredient-config-contract.ts`'s own header
  * names this failure and its fix: widen `fields` to `z.ZodType<InferredFields>` at the declaration
- * site so only ONE concrete class ever needs comparing against `_output`. The quest ingredient is
- * the first in this repo to declare `transitions`, which is what first exercises this comparison —
- * no ingredient without `transitions` has needed this widening.
+ * site so only ONE concrete class ever needs comparing against `_output`. Every multi-field
+ * `ZodObject` handed to `ingredient({fields: ...})` needs this widening, regardless of whether that
+ * ingredient declares `transitions` — `session-fields-contract.ts` and `subagent-fields-contract.ts`
+ * carry the identical upcast inline in their own export, and `guild-fields-schema-contract.ts` /
+ * `operation-fields-schema-contract.ts` apply the same fix as a sibling file, for ingredients that
+ * declare no `transitions` either.
  *
  * USAGE:
  * ingredient({ fields: questFieldsSchemaContract, ... });

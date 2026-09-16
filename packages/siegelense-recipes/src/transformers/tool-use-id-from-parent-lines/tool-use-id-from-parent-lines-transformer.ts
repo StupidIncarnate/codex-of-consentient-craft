@@ -9,7 +9,7 @@
  * toolUseIdFromParentLinesTransformer({ parentLines: [line1, line2], agentId: AgentIdStub() });
  * // Returns the correlated ToolUseId if found, else undefined
  */
-import { userToolResultStreamLineContract } from '@dungeonmaster/shared/contracts';
+import { agentIdContract, userToolResultStreamLineContract } from '@dungeonmaster/shared/contracts';
 import type { AgentId } from '@dungeonmaster/shared/contracts';
 
 import { toolUseIdContract } from '../../contracts/tool-use-id/tool-use-id-contract';
@@ -22,9 +22,29 @@ export const toolUseIdFromParentLinesTransformer = ({
   parentLines: readonly string[];
   agentId: AgentId;
 }): ToolUseId | undefined => {
+  // `toolUseResult` is a three-shape union (object-with-agentId / unknown[] / branded error
+  // string) — the same narrowing `chat-line-process-transformer.ts` uses for this exact contract.
+  // Its `agentId` is branded `AgentIdCorrelation`, a different brand than this file's `AgentId`,
+  // so it is re-parsed through `agentIdContract` rather than compared across brands directly.
   const correlated = parentLines
     .map((line) => userToolResultStreamLineContract.safeParse(JSON.parse(line)))
-    .find((parsed) => parsed.success && parsed.data.toolUseResult?.agentId === agentId);
+    .find((parsed) => {
+      if (!parsed.success) {
+        return false;
+      }
+      const { toolUseResult } = parsed.data;
+      if (
+        toolUseResult === undefined ||
+        typeof toolUseResult === 'string' ||
+        Array.isArray(toolUseResult)
+      ) {
+        return false;
+      }
+      return (
+        typeof toolUseResult.agentId === 'string' &&
+        agentIdContract.parse(toolUseResult.agentId) === agentId
+      );
+    });
 
   if (!correlated?.success) {
     return undefined;
@@ -32,7 +52,11 @@ export const toolUseIdFromParentLinesTransformer = ({
 
   const [firstContentItem] = correlated.data.message.content;
 
-  return firstContentItem === undefined
-    ? undefined
-    : toolUseIdContract.parse(firstContentItem.tool_use_id);
+  // `content` items are a `type`-discriminated union (`text` | `tool_result`); only the
+  // `tool_result` arm carries `tool_use_id`.
+  if (firstContentItem === undefined || firstContentItem.type !== 'tool_result') {
+    return undefined;
+  }
+
+  return toolUseIdContract.parse(firstContentItem.tool_use_id);
 };

@@ -14,8 +14,6 @@ import type { ModifyQuestInput, QuestId } from '@dungeonmaster/shared/contracts'
 
 import { modifiableQuestFieldsStatics } from '../../statics/modifiable-quest-fields/modifiable-quest-fields-statics';
 
-const modifiableNames = new Set(modifiableQuestFieldsStatics.names);
-
 export const questFieldsToModifyInputTransformer = ({
   questId,
   fields,
@@ -23,8 +21,14 @@ export const questFieldsToModifyInputTransformer = ({
   questId: QuestId;
   fields: Record<string, unknown>;
 }): ModifyQuestInput => {
+  // `fields` keys are plain `string` (an arbitrary caller-supplied record), narrower than
+  // `modifiableQuestFieldsStatics.names`'s literal union — `.some(...===...)` compares by value
+  // instead of by `Set.has`/`Array.includes`, which both reject a `string` argument against that
+  // narrower parameter type at compile time.
   const modifiable = Object.fromEntries(
-    Object.entries(fields).filter(([key]) => modifiableNames.has(key)),
+    Object.entries(fields).filter(([key]) =>
+      modifiableQuestFieldsStatics.names.some((name) => name === key),
+    ),
   );
 
   return modifyQuestInputContract.parse({

@@ -28,6 +28,13 @@
  * `nameToUrlSlugTransformer`, touching no server — so this ingredient declares `write` (not just
  * `api`), which is what lets a Jest integration test with no base URL seed a guild at all.
  *
+ * `fields: guildFieldsSchemaContract`, not `guildFieldsContract` directly — see that file's own
+ * header for why: `ingredient()` checks a concrete `ZodObject` against two independently-inferred
+ * phantom-carrier sites, which fails for any shape holding branded fields unless the value handed
+ * to `fields` is upcast to `z.ZodType<GuildFields>` first. `defaults` below still reads
+ * `guildFieldsContract.shape.<field>` — the upcast export drops `.shape`, so `defaults` keeps the
+ * concrete contract.
+ *
  * USAGE:
  * const dm = registry({ guilds: guildIngredientBroker, … });
  * dm.guilds.add(1, (g) => [g[0].set({ name: 'My App' })]);
@@ -36,6 +43,7 @@ import { guildContract } from '@dungeonmaster/shared/contracts';
 
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
 import { guildFieldsContract } from '../../../contracts/guild-fields/guild-fields-contract';
+import { guildFieldsSchemaContract } from '../../../contracts/guild-fields-schema/guild-fields-schema-contract';
 import { guildApiRouteBroker } from '../api-route/guild-api-route-broker';
 import { guildQueryRouteBroker } from '../query-route/guild-query-route-broker';
 import { guildRemoveRouteBroker } from '../remove-route/guild-remove-route-broker';
@@ -48,7 +56,7 @@ export const guildIngredientBroker = ingredient({
   name: 'guild',
   description:
     'one guild registered against a directory on disk, with its url slug derived from its name',
-  fields: guildFieldsContract,
+  fields: guildFieldsSchemaContract,
   record: guildContract,
   defaults: (index: number): Partial<GuildFields> => ({
     name: guildFieldsContract.shape.name.parse(`Guild ${index + 1}`),
