@@ -46,6 +46,9 @@ const DEFAULT_SHOT_PNG_CONTENT = PNG.sync.write(defaultPng).toString('latin1');
 export const stepDispatchBrokerProxy = (): {
   browserlessLane: (params: { specName: string }) => LaneSession;
   happyLane: () => { lane: LaneSession; captureCallArgs: () => readonly unknown[] };
+  stagesSeedRecipe: (params: { result: unknown }) => {
+    getSeedRunCallArgs: () => readonly unknown[];
+  };
   happyLaneWithServerLogWindow: (params: { serverLogLengthSequence: readonly number[] }) => {
     lane: LaneSession;
   };
@@ -68,10 +71,12 @@ export const stepDispatchBrokerProxy = (): {
     pixels: Uint8Array;
   }) => void;
 } => {
-  // Constructed for its own default behavior only to satisfy enforce-proxy-child-creation — this
-  // proxy builds its own BrowserSession scenarios directly, so it is never addressed further. Same
-  // pattern as lane-boot-broker.proxy.ts's own unaddressed child proxy constructions.
-  runVerbLayerBrokerProxy();
+  // Constructed for its own default behavior — this proxy builds its own BrowserSession scenarios
+  // directly, so most of runVerbLayerBrokerProxy's own surface is never addressed further. Same
+  // pattern as lane-boot-broker.proxy.ts's own unaddressed child proxy constructions. Kept as a
+  // reference (not a bare call) only because `stagesSeedRecipe` below delegates to its own
+  // `stagesSeedRecipe` — the ONE method this proxy re-exposes.
+  const verbLayerProxy = runVerbLayerBrokerProxy();
   errorIsNativeErrorAdapterProxy();
 
   const dateHandle = registerSpyOn({ object: Date, method: 'now' });
@@ -97,6 +102,13 @@ export const stepDispatchBrokerProxy = (): {
   return {
     browserlessLane: ({ specName }: { specName: string }): LaneSession =>
       LaneSessionStub({ browser: null, specName }),
+
+    stagesSeedRecipe: ({
+      result,
+    }: {
+      result: unknown;
+    }): { getSeedRunCallArgs: () => readonly unknown[] } =>
+      verbLayerProxy.stagesSeedRecipe({ result }),
 
     happyLane: (): { lane: LaneSession; captureCallArgs: () => readonly unknown[] } => {
       const captureMock = jest.fn().mockResolvedValue(undefined);

@@ -76,13 +76,6 @@ export const stepDispatchBroker = async ({
     throw new BrowserStepUnsupportedError({ verb, specName: lane.specName });
   }
 
-  const { browser: session } = lane;
-  if (session === null) {
-    // Every verb this chunk ships is a browser verb (stepStatics.verbs.browser), so the check above
-    // always catches a browserless lane first. This narrows `session` for the call below.
-    throw new BrowserStepUnsupportedError({ verb, specName: lane.specName });
-  }
-
   const startedAtMs = epochMsContract.parse(Date.now());
   const serverLogStartByte = lane.serverLogLength();
 
@@ -90,11 +83,20 @@ export const stepDispatchBroker = async ({
   // below unconditionally overwrites trips no-useless-assignment, so each branch instead builds and
   // returns its own complete StepReading directly.
   try {
-    const reading = await runVerbLayerBroker({ session, step, index, shotPath });
+    const reading = await runVerbLayerBroker({ lane, step, index, shotPath });
     const ok = step.expect !== 'error';
 
     if (shotPath !== null && step.step !== 'screenshot') {
-      await session.capture({ filePath: shotPath });
+      // A non-null shotPath only ever reaches a non-`screenshot` step for one of `verbs.acting`
+      // (all three are browser verbs), so the guard above has already refused a null `lane.browser`
+      // for this call — this is TypeScript's narrowing, not a new runtime possibility.
+      const captureSession = lane.browser;
+      if (captureSession === null) {
+        throw new Error(
+          `step-dispatch-broker: step ${String(index)} needs a browser session to capture a shot, but the lane has none`,
+        );
+      }
+      await captureSession.capture({ filePath: shotPath });
     }
 
     let blankReading: BlankReading | null = null;
@@ -140,7 +142,14 @@ export const stepDispatchBroker = async ({
       // the original error and a `captured` boolean, so `runExecuteStepLayerBroker` reports `shot`
       // honestly rather than hardcoding `null` or guessing from the filesystem.
       if (shotPath !== null && step.step !== 'screenshot') {
-        const captured = await session
+        const captureSession = lane.browser;
+        if (captureSession === null) {
+          throw new Error(
+            `step-dispatch-broker: step ${String(index)} needs a browser session to capture a shot, but the lane has none`,
+            { cause: error },
+          );
+        }
+        const captured = await captureSession
           .capture({ filePath: shotPath })
           .then(() => true)
           .catch((captureError: unknown) => {
@@ -172,7 +181,14 @@ export const stepDispatchBroker = async ({
     );
 
     if (shotPath !== null && step.step !== 'screenshot') {
-      await session.capture({ filePath: shotPath });
+      const captureSession = lane.browser;
+      if (captureSession === null) {
+        throw new Error(
+          `step-dispatch-broker: step ${String(index)} needs a browser session to capture a shot, but the lane has none`,
+          { cause: error },
+        );
+      }
+      await captureSession.capture({ filePath: shotPath });
     }
 
     let blankReading: BlankReading | null = null;

@@ -16,7 +16,8 @@
  *
  * Reading `recipes {}` needs a BUILD first: this file's compiled output is what chunk 8 imports,
  * so `npm run build --workspace=@dungeonmaster/siegelense-recipes` must run before the listing is
- * honest about a just-edited recipe.
+ * honest about a just-edited recipe. The same is true of `recipesSeedRunBroker`: a `seed` step
+ * dynamically imports this same compiled output.
  *
  * No test is colocated with this file: ward's own test discovery is scoped to `src/` and `test/`,
  * so a `.test.ts` sitting beside a root barrel is invisible to it (measured directly — `--only
@@ -26,10 +27,15 @@
  * block — the exact values this array carries.
  *
  * USAGE:
- * import { recipesManifest, recipesListingBuildBroker } from '@dungeonmaster/siegelense-recipes';
+ * import {
+ *   recipesManifest,
+ *   recipesListingBuildBroker,
+ *   recipesSeedRunBroker,
+ * } from '@dungeonmaster/siegelense-recipes';
  * // recipesManifest returns [{ recipeName: 'guild-mid-execution', description: '…' }, …]
  * // recipesListingBuildBroker() returns the recipes {} listing: recipeName, description,
  * // inputKeys, runs, makes
+ * // recipesSeedRunBroker({ recipeName, home }) runs that recipe's plan and returns the saved records
  */
 import { recipeManifestContract } from '@dungeonmaster/hydration/contracts';
 
@@ -50,3 +56,5 @@ export const recipesManifest = recipeManifestContract.parse(
 );
 
 export * from './src/brokers/recipes-listing/build/recipes-listing-build-broker';
+
+export * from './src/brokers/recipes-seed/run/recipes-seed-run-broker';

@@ -2,9 +2,10 @@
  * PURPOSE: Refuses a plan whose SHAPE cannot work, before anything is on disk. Reach for this over a
  * check inside the walk: a plan's shape is known before anything runs and its results are not, and
  * conflating the two is a bug — a refusal that fires partway through leaves half a plan behind.
- * Checks run in a FIXED order — routes, then fromSaved, then links, then the verb a chain call
- * needs, then a `set`'s transition target — so a plan failing more than one reports the same one
- * every time, never whichever a map iterated first to.
+ * Checks run in a FIXED order — routes, then fromSaved (a missing NAME, then an undeclared FIELD on
+ * a name that does resolve), then links, then the verb a chain call needs, then a `set`'s transition
+ * target — so a plan failing more than one reports the same one every time, never whichever a map
+ * iterated first to.
  *
  * USAGE:
  * const routePlan = planPreflightBroker({ plan, target, ingredients });
@@ -24,10 +25,14 @@ import type { RoutePlan } from '../../../contracts/route-plan/route-plan-contrac
 import type { HydrationPlan } from '../../../contracts/hydration-plan/hydration-plan-contract';
 import type { HydrationOp } from '../../../contracts/hydration-op/hydration-op-contract';
 import type { HydrationTarget } from '../../../contracts/hydration-target/hydration-target-contract';
-import type { IngredientConfigData } from '../../../contracts/ingredient-config/ingredient-config-contract';
+import type {
+  IngredientConfigData,
+  AnyZodObjectSchema,
+} from '../../../contracts/ingredient-config/ingredient-config-contract';
 import type { IngredientName } from '../../../contracts/ingredient-name/ingredient-name-contract';
 import type { SavedRecordName } from '../../../contracts/saved-record-name/saved-record-name-contract';
 import { HydrationRouteUnavailableError } from '../../../errors/hydration-route-unavailable/hydration-route-unavailable-error';
+import { HydrationSavedFieldMissingError } from '../../../errors/hydration-saved-field-missing/hydration-saved-field-missing-error';
 import { HydrationSavedRecordMissingError } from '../../../errors/hydration-saved-record-missing/hydration-saved-record-missing-error';
 import { HydrationUnlinkedRowError } from '../../../errors/hydration-unlinked-row/hydration-unlinked-row-error';
 import { HydrationRouteVerbUnavailableError } from '../../../errors/hydration-route-verb-unavailable/hydration-route-verb-unavailable-error';
@@ -80,11 +85,17 @@ export const planPreflightBroker = ({
     }
   }
 
-  // 2. FROMSAVED — a cross-link names a record no op in this plan saves, or one declared LATER.
-  // `availableSavedRecordNames` is the plan's FULL saved-name list regardless of position, which is
-  // what lets the "declared later" case still list the name as available.
+  // 2. FROMSAVED — a cross-link names a record no op in this plan saves, or one declared LATER
+  // (checked by NAME first), then, once the name resolves, a FIELD that saved record's own
+  // producing ingredient never declared on its `record` contract. `availableSavedRecordNames` is
+  // the plan's FULL saved-name list regardless of position, which is what lets the "declared later"
+  // case still list the name as available. `savedRecordIngredients` tracks which ingredient
+  // produced each saved name, populated at the same `saveRecord` op as `savedSoFar` — a field check
+  // only ever runs once the name it depends on is already known, so the two stay in sync by
+  // construction.
   const availableSavedRecordNames = planSavedNamesTransformer({ plan });
   const savedSoFar = new Set<SavedRecordName>();
+  const savedRecordIngredients = new Map<SavedRecordName, IngredientName>();
   const savedRefCheckStack: HydrationOp[] = [...plan.ops].reverse();
   while (savedRefCheckStack.length > 0) {
     const op = savedRefCheckStack.pop();
@@ -108,7 +119,8 @@ export const planPreflightBroker = ({
 
         Object.values(candidateValues).forEach((value) => {
           if (isSavedRefGuard({ value })) {
-            const savedRecordName = savedRefContract.parse(value).name;
+            const savedRef = savedRefContract.parse(value);
+            const savedRecordName = savedRef.name;
             if (!savedSoFar.has(savedRecordName)) {
               throw new HydrationSavedRecordMissingError({
                 recipeName: plan.recipeName,
@@ -117,12 +129,33 @@ export const planPreflightBroker = ({
                 availableSavedRecordNames,
               });
             }
+            if (savedRef.field !== undefined) {
+              const producingIngredientName = savedRecordIngredients.get(savedRecordName);
+              const producingConfig =
+                producingIngredientName === undefined
+                  ? undefined
+                  : configByName.get(producingIngredientName);
+              if (producingConfig !== undefined) {
+                const recordSchema = producingConfig.record as AnyZodObjectSchema;
+                const declaredFieldNames = Object.keys(recordSchema.shape);
+                if (!declaredFieldNames.includes(savedRef.field)) {
+                  throw new HydrationSavedFieldMissingError({
+                    recipeName: plan.recipeName,
+                    ingredientName,
+                    savedRecordName,
+                    fieldName: savedRef.field,
+                    declaredFieldNames,
+                  });
+                }
+              }
+            }
           }
         });
       }
 
       if (op.op === 'saveRecord') {
         savedSoFar.add(op.name);
+        savedRecordIngredients.set(op.name, rowRefIngredientTransformer({ rowRef: op.ref }));
       }
       if (op.op === 'filter') {
         savedRefCheckStack.push(...[...op.ops].reverse());

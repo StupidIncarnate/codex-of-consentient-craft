@@ -124,7 +124,11 @@ carries for `@dungeonmaster/siegelense` to read. `recipesManifest` holds each re
 `Plan` a recipe's builder has already assembled. `recipesListingBuildBroker` is the zero-argument
 function that builds one off `recipeListingProbeStatics` and folds `dmRegistryBroker.listing(plan)`
 into `runs`/`makes` per recipe. `recipesSeedRunBroker` — the entry a `seed` step calls to run a
-recipe's plan against a live instance — has no implementation in this package yet.
+recipe's plan against a live instance — resolves a recipe by name off this package's own three,
+validates `params` through that recipe's own `inputs` schema, points `process.env.DUNGEONMASTER_HOME`
+at the target's `home` for the run's duration (restored in a `finally`, since the driver process that
+runs a seed inherits the OPERATOR's environment, not the lane's), and runs the plan through
+`dmRegistryBroker.run` — never a fresh `recipesHydrationCreateBroker()` call.
 
 `src/siegelense-recipes-exports.integration.test.ts` asserts `index.ts`'s export names against this
 same statics file, so a rename on either side of the boundary goes red here instead of only at run

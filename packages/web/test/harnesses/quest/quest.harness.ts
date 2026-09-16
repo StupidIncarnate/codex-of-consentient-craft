@@ -194,26 +194,6 @@ export const questHarness = ({
   patchQuestStatus: (params: { questId: string; status: string }) => Promise<void>;
   rewindQuestStatus: (params: { questFilePath: string; status: string }) => void;
   questFolderExists: (params: { questFilePath: string }) => boolean;
-  buildQuestJson: (params: {
-    questId: string;
-    questFolder: string;
-    status: string;
-    workItems: {
-      id: string;
-      role: string;
-      sessionId: string;
-      status?: string;
-    }[];
-    operations?: {
-      id: string;
-      role: string;
-      text: string;
-      status: string;
-      locked?: boolean;
-      wardMode?: string;
-      packageNames?: string[];
-    }[];
-  }) => Record<PropertyKey, unknown>;
   seedInProgressWithOperations: (params: {
     questId: string;
     questFolder: string;
@@ -559,90 +539,6 @@ export const questHarness = ({
   const questFolderExists = ({ questFilePath }: { questFilePath: string }): boolean =>
     existsSync(dirname(questFilePath));
 
-  const buildQuestJson = ({
-    questId,
-    questFolder,
-    status,
-    workItems,
-    operations = [],
-  }: {
-    questId: string;
-    questFolder: string;
-    status: string;
-    workItems: {
-      id: string;
-      role: string;
-      sessionId: string;
-      status?: string;
-    }[];
-    operations?: {
-      id: string;
-      role: string;
-      text: string;
-      status: string;
-      locked?: boolean;
-      wardMode?: string;
-      packageNames?: string[];
-    }[];
-  }): Record<PropertyKey, unknown> => ({
-    id: questId,
-    folder: questFolder,
-    title: 'E2E Quest',
-    status,
-    createdAt: new Date().toISOString(),
-    workItems: workItems.map((wi) => ({
-      id: wi.id,
-      role: wi.role,
-      status: wi.status ?? 'complete',
-      spawnerType: 'agent',
-      sessionId: wi.sessionId,
-      createdAt: new Date().toISOString(),
-      relatedDataItems: [],
-      dependsOn: [],
-    })),
-    operations: operations.map((op) => ({
-      id: op.id,
-      role: op.role,
-      text: op.text,
-      status: op.status,
-      locked: op.locked ?? false,
-      packageNames:
-        op.packageNames ?? (op.role === 'codeweaver' ? DEFAULT_CODEWEAVER_PACKAGE_NAMES : []),
-      ...(op.wardMode === undefined ? {} : { wardMode: op.wardMode }),
-    })),
-    userRequest: 'Build the feature',
-    designDecisions: [],
-    steps: [],
-    toolingRequirements: [],
-    contracts: [],
-    flows: [
-      {
-        id: 'harness-flow',
-        name: 'Harness Flow',
-        flowType: 'runtime',
-        entryPoint: 'start',
-        exitPoints: ['end'],
-        nodes: [
-          {
-            id: 'start',
-            label: 'Start',
-            type: 'state',
-            packages: ['auth-service'],
-            observables: [],
-          },
-          {
-            id: 'end',
-            label: 'End',
-            type: 'terminal',
-            packages: ['auth-service'],
-            observables: [],
-          },
-        ],
-        edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
-      },
-    ],
-  });
-
   // Seeds a quest directly to `in_progress` with an operations ledger + ONE work item linked 1:1 to
   // the first operation item (relatedDataItems: ['operations/<op0.id>']) — mirroring a quest whose
   // Start Quest transition already seeded the relay. The first operation item is expected to be
@@ -726,7 +622,6 @@ export const questHarness = ({
     patchQuestStatus,
     rewindQuestStatus,
     questFolderExists,
-    buildQuestJson,
     seedInProgressWithOperations,
   };
 };

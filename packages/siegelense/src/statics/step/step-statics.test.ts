@@ -4,7 +4,7 @@ describe('stepStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
     expect(stepStatics).toStrictEqual({
       verbs: {
-        all: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval'],
+        all: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'seed'],
         acting: ['goto', 'click', 'type'],
         targeting: ['waitFor', 'click', 'type'],
         browser: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval'],
@@ -30,5 +30,16 @@ describe('stepStatics', () => {
     );
 
     expect(isSubsetOfAll).toBe(true);
+  });
+
+  it('VALID: {} => verbs.browser does not hold seed, so a seed step never refuses itself on a browserless lane', () => {
+    expect(stepStatics.verbs.browser).toStrictEqual([
+      'goto',
+      'waitFor',
+      'click',
+      'type',
+      'screenshot',
+      'eval',
+    ]);
   });
 });

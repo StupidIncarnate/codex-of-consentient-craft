@@ -105,6 +105,15 @@ export type IngredientConfigData = z.infer<typeof ingredientConfigContract>;
  */
 export type AnyZodSchema = z.ZodType;
 
+/**
+ * `AnyZodSchema` narrowed to the one shape a `record` contract is always declared as — an
+ * `ingredient()` call passes a `z.object({...})`, never a bare `z.string()` or `z.union()`, so
+ * `.shape` is genuinely there once `ingredientConfigContract.parse` has accepted it. Reach for this
+ * over `AnyZodSchema` wherever a caller outside `contracts/` needs the record's OWN field names —
+ * a bare `z.ZodType` exposes no `.shape` to read them off.
+ */
+export type AnyZodObjectSchema = z.ZodObject<z.ZodRawShape>;
+
 declare const ING: unique symbol;
 
 /** Opaque on purpose — a declared ingredient is a token later chunks pass around, not a record. */

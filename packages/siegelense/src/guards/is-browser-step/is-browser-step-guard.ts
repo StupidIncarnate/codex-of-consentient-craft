@@ -19,5 +19,8 @@ export const isBrowserStepGuard = ({ verb }: { verb?: StepVerb }): boolean => {
     return false;
   }
 
-  return stepStatics.verbs.browser.includes(verb);
+  // `verb` carries the full StepVerb brand, wider than `verbs.browser`'s own literal tuple (it
+  // deliberately excludes 'seed') — `.some(...===...)` compares by value instead of `.includes()`,
+  // which narrows its parameter to the tuple's own union and rejects the wider brand at compile time.
+  return stepStatics.verbs.browser.some((browserVerb) => browserVerb === verb);
 };

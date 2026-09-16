@@ -15,6 +15,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'type', target: SelectorStub(), value: ContentTextStub() }),
   StepStub({ step: 'screenshot', name: FileNameStub({ value: 'step1.png' }) }),
   StepStub({ step: 'eval', source: ContentTextStub() }),
+  StepStub({ step: 'seed' }),
 ];
 
 describe('stepContract', () => {
@@ -28,7 +29,7 @@ describe('stepContract', () => {
     });
   });
 
-  describe('the six members, full shape', () => {
+  describe('every member, full shape', () => {
     it('VALID: {step: goto} => parses the complete goto member', () => {
       const result = stepContract.parse({ step: 'goto', path: '/api/guilds', node: null });
 
@@ -134,6 +135,37 @@ describe('stepContract', () => {
         expect: 'ok',
       });
     });
+
+    it('VALID: {step: seed} => parses the complete seed member with params/as/node null', () => {
+      const result = stepContract.parse({ step: 'seed', recipe: 'guild-mid-execution' });
+
+      expect(result).toStrictEqual({
+        step: 'seed',
+        recipe: 'guild-mid-execution',
+        params: null,
+        as: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: seed, params, as} => parses keeping both', () => {
+      const result = stepContract.parse({
+        step: 'seed',
+        recipe: 'session-with-nested-chain',
+        params: { guildPath: '/repo/.siegelense/guilds/g1' },
+        as: 'g',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'seed',
+        recipe: 'session-with-nested-chain',
+        params: { guildPath: '/repo/.siegelense/guilds/g1' },
+        as: 'g',
+        node: null,
+        expect: 'ok',
+      });
+    });
   });
 
   describe('rejecting a payload shaped like a different member', () => {
@@ -182,6 +214,10 @@ describe('stepContract', () => {
       expect(() =>
         stepContract.parse({ step: 'eval', name: 'step1.png', node: null } as never),
       ).toThrow(/Required/u);
+    });
+
+    it('INVALID: {step: seed, no recipe} => throws for the missing seed field', () => {
+      expect(() => stepContract.parse({ step: 'seed', node: null } as never)).toThrow(/Required/u);
     });
   });
 
@@ -294,10 +330,20 @@ describe('stepContract', () => {
         } as never),
       ).toThrow(/Unrecognized key\(s\) in object: 'taget'/u);
     });
+
+    it('INVALID: {step: seed, +target from click} => throws naming the stray key', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'seed',
+          recipe: 'guild-mid-execution',
+          target: '[data-testid="PIXEL_BTN"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
   });
 
   describe('an unknown discriminator', () => {
-    it('INVALID: {step: "look"} => throws for a verb outside the six-member union', () => {
+    it('INVALID: {step: "look"} => throws for a verb outside the union', () => {
       expect(() =>
         stepContract.parse({ step: 'look', target: '[data-testid="X"]' } as never),
       ).toThrow(/Invalid discriminator/u);

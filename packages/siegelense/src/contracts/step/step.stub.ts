@@ -2,6 +2,7 @@ import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { ContentTextStub, FileNameStub } from '@dungeonmaster/shared/contracts';
 
 import { LocatorStateStub } from '../locator-state/locator-state.stub';
+import { RecipeNameStub } from '../recipe-name/recipe-name.stub';
 import { SelectorStub } from '../selector/selector.stub';
 import { StepExpectationStub } from '../step-expectation/step-expectation.stub';
 import { UrlPathStub } from '../url-path/url-path.stub';
@@ -53,6 +54,14 @@ const STEP_DEFAULTS = {
     node: null,
     expect: StepExpectationStub(),
   },
+  seed: {
+    step: 'seed',
+    recipe: RecipeNameStub(),
+    params: null,
+    as: null,
+    node: null,
+    expect: StepExpectationStub(),
+  },
 } as const satisfies Record<Step['step'], Record<string, unknown>>;
 
 export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
@@ -71,7 +80,9 @@ export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
             ? STEP_DEFAULTS.screenshot
             : stepVerb === 'eval'
               ? STEP_DEFAULTS.eval
-              : STEP_DEFAULTS.click;
+              : stepVerb === 'seed'
+                ? STEP_DEFAULTS.seed
+                : STEP_DEFAULTS.click;
 
   return stepContract.parse({ ...base, ...props });
 };

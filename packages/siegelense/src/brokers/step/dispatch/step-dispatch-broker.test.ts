@@ -11,6 +11,7 @@ import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 import type { StepFailureCaptureError } from '../../../errors/step-failure-capture/step-failure-capture-error';
+import { stepStatics } from '../../../statics/step/step-statics';
 
 import { stepDispatchBroker } from './step-dispatch-broker';
 import { stepDispatchBrokerProxy } from './step-dispatch-broker.proxy';
@@ -324,6 +325,80 @@ describe('stepDispatchBroker', () => {
       });
 
       expect(result.ok).toBe(true);
+    });
+  });
+
+  describe('every browser verb is refused against a browserless lane, by name', () => {
+    it.each(stepStatics.verbs.browser)(
+      'INVALID: {%s against dungeonmaster-headless} => throws BrowserStepUnsupportedError naming that verb',
+      async (verb) => {
+        const proxy = stepDispatchBrokerProxy();
+        const lane = proxy.browserlessLane({ specName: 'dungeonmaster-headless' });
+        const step = StepStub({ step: verb });
+
+        const error = await stepDispatchBroker({
+          lane,
+          step,
+          index: StepIndexStub(),
+          shotPath: null,
+          lastShotPath: proxy.lastShotPath,
+          setLastShotPath: proxy.setLastShotPath,
+        }).then(
+          (): never => {
+            throw new Error('Expected stepDispatchBroker to reject');
+          },
+          (caught: unknown): Error => caught as Error,
+        );
+
+        expect({ name: error.name, message: error.message }).toStrictEqual({
+          name: 'BrowserStepUnsupportedError',
+          message: `Step ${verb} needs a browser, but spec dungeonmaster-headless declares browser: false`,
+        });
+      },
+    );
+  });
+
+  describe('a seed step against a browserless lane', () => {
+    it('VALID: {seed against dungeonmaster-headless} => runs the recipe and returns ok true, proving the browser guard never fires', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const lane = proxy.browserlessLane({ specName: 'dungeonmaster-headless' });
+      proxy.stagesSeedRecipe({ result: { guild: { id: 'g1' } } });
+      const step = StepStub({ step: 'seed' });
+
+      const result = await stepDispatchBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 1 }),
+        shotPath: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({ ok: result.ok, reading: JSON.parse(result.reading) }).toStrictEqual({
+        ok: true,
+        reading: { guild: { id: 'g1' } },
+      });
+    });
+
+    it('VALID: {seed against a lane whose browser is present} => runs the same way, independent of the browser', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const { lane } = proxy.happyLane();
+      proxy.stagesSeedRecipe({ result: { guild: { id: 'g2' } } });
+      const step = StepStub({ step: 'seed' });
+
+      const result = await stepDispatchBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 1 }),
+        shotPath: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({ ok: result.ok, reading: JSON.parse(result.reading) }).toStrictEqual({
+        ok: true,
+        reading: { guild: { id: 'g2' } },
+      });
     });
   });
 

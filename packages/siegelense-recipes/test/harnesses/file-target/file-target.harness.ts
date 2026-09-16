@@ -41,6 +41,11 @@
  * prove a refused delete left a quest's directory untouched, since a thrown error alone never
  * observed the filesystem.
  *
+ * `denyWrites` chmods the target's own root to `0o500` (read/execute, no write), so a route's own
+ * `mkdir`/`writeFile` underneath it fails with a real `EACCES` — the same mechanism
+ * `plan-run-broker.integration.test.ts` uses one package over. `allowWrites` restores `0o700` before
+ * `afterEach`'s own cleanup, which needs write access on this same directory to remove it.
+ *
  * USAGE:
  * describe('...', () => {
  *   const fileTarget = fileTargetHarness();
@@ -76,6 +81,8 @@ export const fileTargetHarness = (): {
     questFolder: QuestFolder;
   }) => QuestOperations;
   questFolderExists: (params: { guildId: GuildId; questFolder: QuestFolder }) => boolean;
+  denyWrites: () => void;
+  allowWrites: () => void;
 } => {
   let testbed: ReturnType<typeof installTestbedCreateBroker> | undefined;
   let savedDungeonmasterHome: typeof process.env.DUNGEONMASTER_HOME;
@@ -155,6 +162,18 @@ export const fileTargetHarness = (): {
         ].join('/'),
       });
       return testbed.listDir({ relativePath }) !== null;
+    },
+    denyWrites: (): void => {
+      if (testbed === undefined) {
+        throw new Error('fileTargetHarness: denyWrites() called outside beforeEach/afterEach');
+      }
+      fs.chmodSync(testbed.guildPath, 0o500);
+    },
+    allowWrites: (): void => {
+      if (testbed === undefined) {
+        throw new Error('fileTargetHarness: allowWrites() called outside beforeEach/afterEach');
+      }
+      fs.chmodSync(testbed.guildPath, 0o700);
     },
   };
 };

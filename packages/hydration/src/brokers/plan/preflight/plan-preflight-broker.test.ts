@@ -12,6 +12,7 @@ import { TransitionSpecStub } from '../../../contracts/transition-spec/transitio
 import { HydrationTargetStub } from '../../../contracts/hydration-target/hydration-target.stub';
 import { SavedRefStub } from '../../../contracts/saved-ref/saved-ref.stub';
 import { HydrationRouteUnavailableError } from '../../../errors/hydration-route-unavailable/hydration-route-unavailable-error';
+import { HydrationSavedFieldMissingError } from '../../../errors/hydration-saved-field-missing/hydration-saved-field-missing-error';
 import { HydrationSavedRecordMissingError } from '../../../errors/hydration-saved-record-missing/hydration-saved-record-missing-error';
 import { HydrationUnlinkedRowError } from '../../../errors/hydration-unlinked-row/hydration-unlinked-row-error';
 import { HydrationRouteVerbUnavailableError } from '../../../errors/hydration-route-verb-unavailable/hydration-route-verb-unavailable-error';
@@ -147,6 +148,85 @@ describe('planPreflightBroker', () => {
         planPreflightBroker({ plan, target: HydrationTargetStub({}), ingredients }),
       ).toThrow(
         /^recipe "guild-mid-execution": ingredient "quest" calls fromSaved\("origin"\), but no op in this plan saves that name\. Names saved by this plan: origin$/u,
+      );
+    });
+  });
+
+  describe('fromSaved field — a cross-link names a field its saved record’s own producing ingredient never declared', () => {
+    it('VALID: {fromSaved("origin", "id"), the saved ingredient’s record declares "id"} => returns the accepted route plan', () => {
+      planPreflightBrokerProxy();
+      const plan = HydrationPlanStub({
+        ops: [
+          OpCreateStub({ ingredient: 'session', ref: 'session[0:0]', index: 0, ancestors: [] }),
+          OpSaveRecordStub({ ref: 'session[0:0]', name: 'origin' }),
+          OpCreateStub({
+            ingredient: 'quest',
+            ref: 'quest[0:0]',
+            index: 0,
+            ancestors: [],
+            fields: { userRequest: SavedRefStub({ name: 'origin', field: 'id' }) },
+          }),
+        ],
+      });
+      const ingredients = [
+        IngredientConfigStub({ name: 'session' }),
+        IngredientConfigStub({ name: 'quest' }),
+      ];
+
+      const result = planPreflightBroker({ plan, target: HydrationTargetStub({}), ingredients });
+
+      expect(result).toStrictEqual({ session: 'write', quest: 'write' });
+    });
+
+    it('INVALID: {fromSaved("origin", "urlSlug"), the saved ingredient’s record never declares "urlSlug"} => throws HydrationSavedFieldMissingError', () => {
+      planPreflightBrokerProxy();
+      const plan = HydrationPlanStub({
+        ops: [
+          OpCreateStub({ ingredient: 'session', ref: 'session[0:0]', index: 0, ancestors: [] }),
+          OpSaveRecordStub({ ref: 'session[0:0]', name: 'origin' }),
+          OpCreateStub({
+            ingredient: 'quest',
+            ref: 'quest[0:0]',
+            index: 0,
+            ancestors: [],
+            fields: { userRequest: SavedRefStub({ name: 'origin', field: 'urlSlug' }) },
+          }),
+        ],
+      });
+      const ingredients = [
+        IngredientConfigStub({ name: 'session' }),
+        IngredientConfigStub({ name: 'quest' }),
+      ];
+
+      expect(() =>
+        planPreflightBroker({ plan, target: HydrationTargetStub({}), ingredients }),
+      ).toThrow(HydrationSavedFieldMissingError);
+    });
+
+    it('INVALID: {fromSaved("origin", "urlSlug"), the saved ingredient’s record never declares "urlSlug"} => names the record, the field, and the fields it does declare', () => {
+      planPreflightBrokerProxy();
+      const plan = HydrationPlanStub({
+        ops: [
+          OpCreateStub({ ingredient: 'session', ref: 'session[0:0]', index: 0, ancestors: [] }),
+          OpSaveRecordStub({ ref: 'session[0:0]', name: 'origin' }),
+          OpCreateStub({
+            ingredient: 'quest',
+            ref: 'quest[0:0]',
+            index: 0,
+            ancestors: [],
+            fields: { userRequest: SavedRefStub({ name: 'origin', field: 'urlSlug' }) },
+          }),
+        ],
+      });
+      const ingredients = [
+        IngredientConfigStub({ name: 'session' }),
+        IngredientConfigStub({ name: 'quest' }),
+      ];
+
+      expect(() =>
+        planPreflightBroker({ plan, target: HydrationTargetStub({}), ingredients }),
+      ).toThrow(
+        /^recipe "guild-mid-execution": ingredient "quest" calls fromSaved\("origin", "urlSlug"\), but the record saved as "origin" never declares that field\. Fields it declares: id, title$/u,
       );
     });
   });

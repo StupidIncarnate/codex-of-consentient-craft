@@ -39,12 +39,9 @@ const recipesListingShape = z.array(
 );
 
 describe('the exports @dungeonmaster/siegelense reads off this package', () => {
-  it('VALID: {} => the module carries exactly the convention names this package currently implements', () => {
+  it('VALID: {} => the module carries exactly the three names the convention declares', () => {
     expect(Object.keys(siegelenseRecipesIndex).sort()).toStrictEqual(
-      [
-        recipesConventionStatics.exports.manifest,
-        recipesConventionStatics.exports.listingBuild,
-      ].sort(),
+      Object.values(recipesConventionStatics.exports).sort(),
     );
   });
 
@@ -53,6 +50,13 @@ describe('the exports @dungeonmaster/siegelense reads off this package', () => {
     const declaredArity = listingExport.length;
 
     expect(declaredArity).toStrictEqual(0);
+  });
+
+  it('VALID: {} => the export named by exports.seedRun takes exactly one argument', () => {
+    const seedRunExport = siegelenseRecipesIndex[recipesConventionStatics.exports.seedRun];
+    const declaredArity = seedRunExport.length;
+
+    expect(declaredArity).toStrictEqual(1);
   });
 
   it('VALID: {} => calling it returns the real listing, matching the shape siegelense parses', () => {

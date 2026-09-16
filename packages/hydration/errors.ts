@@ -12,6 +12,7 @@ export * from './src/errors/hydration-record-shape/hydration-record-shape-error'
 export * from './src/errors/hydration-route-failed/hydration-route-failed-error';
 export * from './src/errors/hydration-route-unavailable/hydration-route-unavailable-error';
 export * from './src/errors/hydration-route-verb-unavailable/hydration-route-verb-unavailable-error';
+export * from './src/errors/hydration-saved-field-missing/hydration-saved-field-missing-error';
 export * from './src/errors/hydration-saved-record-missing/hydration-saved-record-missing-error';
 export * from './src/errors/hydration-transaction-rolled-back/hydration-transaction-rolled-back-error';
 export * from './src/errors/hydration-transition-refused/hydration-transition-refused-error';
