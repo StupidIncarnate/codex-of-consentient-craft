@@ -7,379 +7,208 @@
 
 ---
 
-## Part 1 — The capabilities, and the problem each one solves
+## The prompt that builds this
 
-### The test lives in ONE shared place, and ChaosWhisperer reads it too
+**Send this to a session once `siegelense` itself is finished.** It is the same flow the siegelense
+build ran under, with the two clauses this feature needs that that one did not.
 
-**The author needs this table at SPEC time, not the walker at walk time.** If ChaosWhisperer writes
-"the transition should be smooth" with no flag, three tracks each pay to discover it cannot be automated — and each
-either signs `unconfirmable` or invents a verdict. The user sees neither.
+> We must implement the recipe book described in `scrolls/seigelense/siegelense-recipes.md` in all its
+> nitty gritty detail so that I can manually test everything once without finding holes that are
+> documented as requirements.
+>
+> You must use sub agents for everything including planning, work, ward runs, and manual verification.
+> Commit as you see fit.
+>
+> The general flow you should run is:
+>
+> - sub agent plans features against the doc that makes sense for a chunk. It has to dictate what to
+>   build and in what order; parallelization is good but not required.
+> - send sub agents to work on features as the plan dictates, including unit and int tests. I don't
+>   think yall need e2e tests for this.
+> - send sub agents to review code against plan and look for holes code may have or blindspots.
+> - send sub agent to manually use the tool to make sure it adheres to the requirements of the doc.
+> - send sub agent to review what the plan promised and delivered and mark all sections in the doc that
+>   were delivered properly in the detail specified in the doc so we have a running mark of what
+>   requirements are covered vs not
+> - start over
+>
+> Do this until the planner sub agent has said there's nothing left to implement. Then send a sub agent
+> or more to validate the doc's requirements are all met by manually running the tool.
+>
+> Before committing, always do `ward --uncommitted --committed` until green. You can save a full ward
+> till the feature is completely finished. Agents modifying files should run `ward -- -- {files}` on
+> what they change for quick sanity checks and so they don't collide with other parallel agents.
+>
+> **This is THREE packages**, all of which go in `packages/` and must adhere to our arch that all sub
+> agents should be pulling, as well as testing standards: `@dungeonmaster/hydration` (the framework,
+> ships), `packages/hydration-recipes` (this repo's own ingredients and recipes, must NOT ship), and
+> the changes to `@dungeonmaster/siegelense` that let it list and seed them. Part 5's "Where each part
+> lands in this repo's architecture" is the starting map.
+>
+> **The chainables need a PLANNING SESSION of their own, and Part 5's "The combinatorial planning
+> session" gives it the two tables to work from — what an ingredient must have versus may have, and the
+> rounds A through D. Do not let a session invent that list; it will re-derive the cases already
+> written down and miss the rest. Round D is the sad paths, and NONE of them is implemented or tested
+> today.**
+>
+> **The chainables need manual COMBINATORIAL exercise, not one example each.** Every verb has a worked
+> example in the doc and every one of them compiles; that is not the same as knowing what happens when
+> you compose them. Dedicate whole rounds to driving combinations against a live instance and writing
+> down what breaks — a `filter` inside an `add` whose transition minted the rows it matches; a
+> `saveRecordAs` on a row a later `remove` deletes; a `fromSaved` pointing at a row inside a `filter`;
+> two ingredients whose `links` name the same parent; a transition that mints rows another transition
+> then removes. **The doc cannot have anticipated these, and the round that finds one writes it into
+> the doc rather than working around it.**
+>
+> **Converting the existing suites is part of this work, and it is how the design gets proven.** Part
+> 5's "The migration IS the validation" has the order, and `python3 scrolls/tools/seed-census.py`
+> produces the target file list and the running mark. Its counts: the 17 integration domain-seeders
+> first because that environment is cheap, then the 118 e2e specs in small batches with the suite green
+> between them, then one manual siegelense round for the tool half neither suite crosses. **A converted
+> test keeps its assertions exactly — if it needs a different assertion to pass, the ingredient is
+> wrong, not the test.** A test that cannot be converted is a finding, written into the doc.
+>
+> If hiccups with the flow or blockers happen, send out sub agents sonnet to fix them and unblock.
+>
+> Move to a worktree before you start. Only parallel 3 sub agents at a time. Use opus for planning,
+> sonnet for everything else.
 
-So ChaosWhisperer must be able to mark an observable human-check while authoring it, exactly as it already marks one
-`verifyByReading`. That is the same capability, one route over.
+**`proto/` is a type prototype, not the implementation.** It proves the chain's types compose and it is
+run by `node proto/check.mjs`. Build the real packages beside it and delete it when they exist — a
+prototype left in the tree is read as the thing itself by the next session.
 
-**Two patterns this repo already runs make it cheap:**
+**Part 5's "Known gaps" section is work, not commentary.** Each row is a decision nobody has made. A
+planner reading this doc should schedule them rather than discovering them.
 
-| Pattern                          | What it gives                                                                                                                                                                                                                                                                                  |
-|----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `signoffTrackEligibilityStatics` | already THE shared definition of which units each denominator covers — "the same statics every denominator reader shares, so the ledger cannot mint an item whose work list computes as zero". The human-check route belongs in it, so dropping those units happens once rather than per track |
-| `standardsReviewConcernsStatics` | already a shared prompt BLOCK interpolated into three reviewer prompts rather than copied. The decision table above goes the same way — into ChaosWhisperer's prompt AND siegemaster's, from one source                                                                                        |
+### What this doc asks for, and what it does not
 
-**One statics, three readers: the author, the denominators, and the walker.** The author flags at spec time; the
-denominators drop the unit so no track carries something it can never close; the walker gathers the evidence and routes
-it to the list.
+**Everything left in this document is the build.** The rules that bind SESSIONS at run time —
+siegemaster, its dispatched planner, that planner's sub-agents, a fixer — were moved out to
+`siegelense-recipe-roles.md`, because none of them is code in this feature and all of them land as
+prompt text in `@dungeonmaster/orchestrator`'s statics.
 
-**And the shared-block rule applies with force.** The orchestrator's own prompt-editing rules say a shared block "is a
-contract on every prompt that interpolates it" — an edit is unfinished until every prompt reading it still agrees. A
-table that drifts between the author's copy and the walker's copy produces the worst case available: a criterion
-ChaosWhisperer flagged as human-only that siegemaster believes is testable, so neither settles it and neither reports it
-missing.
+**Do not read the roles document while building, and do not edit orchestrator prompt statics in this
+work.** A prompt describing recipes before the packages exist describes something no session can call.
 
-**The flag is `verifyByHuman: true`**, sitting beside `verifyByReading: true` on
-`flowObservableContract` and reading the same way — one field, one settlement route, named for who settles it.
+| Here | What it is |
+|---|---|
+| Part 3A | the decision index. **Where it differs from Part 5, Part 5 wins** |
+| **Part 5** | **the recipe book — the specification you build from** |
+| Part 6 | the `seed` step and what `recipes {}` prints are yours; the rest is siegelense's own, already built |
 
-**Who may SET it is ChaosWhisperer and BugHunt, matching `verifyByReading`.** A mid-quest role marking its own hard
-units human-check is a cheaper escape than marking them unconfirmable, and the existing rule already closes that door
-for the read-check. Siegemaster may still ADD an observable it discovered — it holds that authority today — but not the
-flag; if it believes a unit needs a person, that is a `questNotes` open-question and a human rules on it.
+**The part numbers are inherited from the document this was split out of**, and other documents cite
+them, so they are left alone rather than renumbered into a tidy 1-2-3. A prompt that describes recipes before the
+packages exist is a prompt describing something no session can call.
 
-**Once the quest reaches `in_progress`, a `verifyByHuman` observable is FILTERED OUT of every work item's view.**
-Codeweaver, flowrider and siegemaster must not see it at all — not in `get-quest`, not in `get-qa-checklist`, not in a
-brief.
+### A suggested spine, for the first planner round
 
-That is stronger than dropping it from a denominator, and the reason is what an agent does with a unit it can see but
-cannot close. It does not skip it. It reaches for the nearest thing it CAN measure — a proxy assertion, a
-change-detector, a `toSettle` naming an action nobody will take — and now the quest carries a test that pins the wrong
-thing plus a session that spent a pass on it. An observable nothing downstream can act on is context that can only
-mislead, so it does not travel.
+**Not a ruling — a starting order, so round one argues with something instead of inventing it.**
 
-It reappears in exactly one place: the list handed to the person at the end.
+| # | Chunk | Why here |
+|---|---|---|
+| 1 | contracts: `IngredientConfig`, `Plan`, `Op`, the manifest, the errors | everything else names them, and nothing else can start |
+| 2 | `createHydration`, `ingredient`, `registry` — declaration only, no running | the types are the risk; get them compiling against two real ingredients before anything executes |
+| 3 | the chain builder: `add`, `set`, `setRaw`, `saveRecordAs`, `remove` producing ops | a plan you can print is the first thing worth looking at |
+| 4 | the runner: depth-first walk, link resolution, routes, **and every pre-flight refusal** | the first chunk that touches disk |
+| 5 | `transitions` and `reach` | needs the runner, and is where the real gates get walked |
+| 6 | `filter`, and `fromSaved` | both need live state, so both need the runner working |
+| 6b | **every row of the sad-path table**, as behaviour with its own tests | Round D DRIVES these; it does not implement them. Unassigned, they are eleven findings a round reports and nobody owns |
+| 7 | `hydration-recipes`: the real ingredients, their tests, the two-route comparison | the first chunk that proves the framework on this repo's own state |
+| 8 | siegelense: discovery, `recipes {}`, the `seed` step's `params` | the tool half, once there is something to list |
+| 9 | convert the integration domain-seeders — `python3 scrolls/tools/seed-census.py` lists them | the cheap environment, where a runner defect costs seconds to find |
+| 10 | convert the e2e specs, in small green-between batches, tracking `--progress` | the expensive environment, once the runner is proven |
+| 11 | one manual siegelense round — `recipes {}`, a `seed` step, params validation | the tool half, which neither suite crosses |
+| 12 | the combinatorial rounds and the sad paths | nothing to combine until 1-11 land |
 
-### The fixer writes the e2e, and the PRELUDE is what makes that possible
-
-**A siege fixer reads code and writes tests — e2e tests, for the defects a walk found.** That is its job and it is the
-only role here that writes product code as well.
-
-**The hard part of writing that e2e was always the setup**, and the recipe book solves it by accident:
-the prelude names recipes, and **a recipe is a plain function an e2e can call directly.**
-`subagentDurationHarness` is pure `fs`; the HTTP-fidelity ones are a `fetch`. So the state a walk ran against and the
-state its regression test runs against come from the SAME recipe, called two different ways.
-
-That is worth naming because the alternative is what happens today: the fixer re-derives the setup in the e2e's own
-idiom, gets it subtly different, and the test passes against a state the walk never saw.
-
-| The walk used                               | The e2e uses                                     | Result                                   |
-|---------------------------------------------|--------------------------------------------------|------------------------------------------|
-| `seed guild-with-three-quests` in a prelude | the same recipe, called in-process from the spec | one seeding vocabulary, no re-derivation |
-
-**The `RED FIRST` discipline is unchanged and now cheaper to satisfy.** A fixer must watch its test fail against
-unchanged source for the right reason. Handed the prelude and the walk's `SAW:` value, it has the assertion and the
-setup; what it has to supply is the fix.
-
----
-
-## Part 2 — Restructuring the pass
-
-### Phase zero: a PLANNER provisions the recipes — not the operator
-
-**The operator cannot do this work, by its own rules.** Siegemaster's tool block says it drives nothing: no browser, no
-`curl`, no CLI run. Proving a recipe means RUNNING it against a live instance and reading the state back. So
-provisioning is dispatched, exactly as the guide already is.
-
-**It is a distinct sub-agent from the guide-writer**, because the mandates conflict. The guide-writer is told "DO NOT
-change any file but the guide · run no test · start no server" — and that constraint is load-bearing, not incidental. A
-planner must write files and start an instance. Widening the guide-writer to cover both is how a bounded job stops being
-bounded.
-
-**What the planner does, WALK BY WALK:**
-
-1. Read the checklist's `## WALK PATHS` — every route through the flow.
-2. For each path, work out the state it needs to be reachable at all.
-3. Match those states against existing recipes. Write a recipe for each gap.
-4. **RUN the whole prelude for that path and confirm it lands where it claims.** Not each recipe alone — the SEQUENCE,
-   end to end, against a throwaway instance.
-5. Record the path's entry, keyed to the path.
-
-**It validates EVERY recipe it plans to use, not only the ones it wrote.** An existing recipe is not trusted on the
-grounds that it worked last quarter. Recipes are `fidelity: direct` more often than not, which means they mimic a shape
-production owns and can drift from it silently — and nothing about that drift touches the feature under test, so nothing
-else would have caught it. The recipe is simply out of date, and the first thing to notice is a walk that cannot start.
-
-**Testing the SEQUENCE is what testing each recipe alone does not give you.** Three recipes that each pass in isolation
-can still fail composed: one leaves state the next does not expect, an id from the first is not what the second wants,
-the order matters and nobody wrote that down. The thing that has to be true is "this path is reachable", not "these
-recipes run".
-
-**And a stale recipe is nastier than a missing one, in the way this doc keeps running into.** A missing recipe fails
-loudly at plan time. A stale one succeeds partially, the walk starts against a state nobody intended, and what it
-reports is a defect that does not exist — a fixer briefed against a symptom, hunting in working code.
-
-**Its cost grows with path count, and not linearly.** Ten paths means ten preludes run once each, but the planner's own
-`start` calls queue behind whatever else holds the pool, so the wall-clock is longer than ten boots and shorter than ten
-serial walks. Against a 20-second boot it is minutes either way — and it buys not losing a whole ROUND to a seed nobody
-checked.
-
-**Step 5 is the one that cannot be skipped, because an unproven recipe does not fail loudly — it manufactures false
-defects.** A recipe that claims two rows and seeds one leaves the verifier looking at a one-row list. The verifier does
-its job correctly and reports a defect. A fixer is briefed against a symptom that does not exist and goes hunting in
-working code. A whole round is spent, and nothing in the record says the seed was the problem.
-
-The quieter version is worse. A recipe seeding ONE of something an assertion must tell apart makes
-"the right one" and "the first one" the same value — so an off-by-index bug passes, the walk comes back clean, and the
-clean result means nothing. That is the guide's own **"TWO of anything an assertion must tell apart"** rule failing one
-level below where it is written down.
-
-**What it produces — a PRELUDE per path, runnable, and already run once:**
-
-```
-PATH 3   entry → guild selected → quest open → row expanded → chain rendered
-  PRELUDE                                    ← reaching the path's entry state
-    seed  guild-with-three-quests                          as: g
-    seed  quest-mid-execution  guild:{g.guildId}           as: q
-    goto  /{g.guildSlug}/quest/{q.questId}
-    click [data-testid="EXECUTION_ROW_0"]                  ← no recipe covers this; it is a step
-  MID-WALK                                   ← seeds that fire PARTWAY, not at the start
-    at node  chain-rendered:
-      seed  subagent-chain-arrives  quest:{q.questId}
-  VERIFIED  run_7 · 2026-09-14 · prelude reached the entry, all produces: asserted
-```
-
-Three things that shape earns:
-
-- **The prelude is a runnable batch, not prose.** It is handed to a walk and submitted, rather than described and
-  re-derived. Anything the guide would have spelled out under `SEEDING` is here as steps.
-- **It mixes recipes and driving steps, because reaching a state does both.** A row that must be expanded before the
-  thing under test exists is not seeding and no recipe should pretend it is.
-- **Mid-walk seeds are keyed to the NODE they fire at**, not appended to the end. That is the live-update shape — seed
-  with the page open, watch the screen react — and a mid-walk seed recorded as part of the prelude would silently become
-  a fresh-render test instead.
-
-**`VERIFIED` names the run that proved it.** Not a claim that it should work: the id of a run where it did, on a date. A
-prelude with no `VERIFIED` line is a path no walk may be sent down.
-
-**And its outputs split along the same line as everything else here:**
-
-| Output                  | Where it lives             | Why                                                                               |
-|-------------------------|----------------------------|-----------------------------------------------------------------------------------|
-| the per-path preludes   | `.quest-plans/`, per quest | they are about THIS flow's routes and are meaningless to the next quest           |
-| **any recipe it wrote** | the committed recipe book  | a state worth creating once is worth creating again. This is the compounding half |
-
-**The operator's job shrinks to what an operator does:** dispatch the planner, read what came back, and refuse to
-dispatch a walk down a path whose recipe is missing or unproven. It never runs one.
-
-**The guide-writer then runs after, and its `SEEDING` heading cites the mapping** rather than deriving commands — the
-same transformation `CONTROLS` undergoes when the key arrives, and `TRAPS` when the oddities file does.
-
-**Nothing is trusted on age.** An existing recipe gets run exactly as a new one does, because the failure this catches
-is a recipe that rotted while nobody was using it. A round that STILL finds one wrong reports it, the same way it
-reports a wrong guide heading — but that is the second line of defence, not the first.
-
-### The planner reads almost no implementation — sub-agents do, for BOTH jobs
-
-**Two jobs, one dispatch shape.** A recipe is either missing or broken, and in both cases the work is reading production
-code to find out what a state really requires. The planner does neither.
-
-| Job                                    | Input the planner supplies                                                                                 | What comes back                                                                                                     |
-|----------------------------------------|------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| **research** — the state has no recipe | the state in the FLOW's own words, the package likely owning it, the recipes already nearby                | whether existing recipes already compose to it; otherwise a new recipe, its test, its `fidelity` and its `mirrors:` |
-| **diagnose** — a recipe ran and failed | the recipe, its `produces:` claim, its `fidelity` and `mirrors`, **and the readings from the failing run** | what changed, the fix, and whether the break is really a finding about the app                                      |
-
-**"Does something existing already compose to this?" is the FIRST question, not the last.** The composition rule says
-the catalogue gets deeper rather than wider, and a researcher that writes a new recipe where two existing ones compose
-has made the book worse while appearing productive.
-
-**The researcher is who fills `mirrors:` correctly**, because it has just read the production writer. Left for later it
-becomes a guess, and a wrong mirror pointer makes the drift test assert against the wrong thing — which is worse than
-having no pointer, since it passes.
-
-**Why the planner must not just do this itself:** it has N paths to get through. Reading the quest contract, the
-work-item shape and the valid statuses to write one recipe would spend the context the remaining paths need. Same lever
-every operator in this system pulls, one level down.
-
-**There is a second reason, and it is the trial's result arriving at a different door.** Arm B read implementation and
-absorbed the answers before it drove anything. A planner that reads deeply is not signing units, but it IS deciding what
-state every walk starts from — and a planner steeped in what the code does will tend to set up the state the code
-produces rather than the state the flow claims. Keeping it at arm's length keeps the setup answerable to the spec.
-
-**Both jobs end the same way: the PLANNER re-runs the prelude.** A sub-agent's claim that its recipe works is not
-evidence, and a research job is no different from a repair in that respect.
-
-**Two at a time over disjoint recipes.** That mirrors a rule that already exists in siegemaster's own prompt — *"Cap two
-fixers, and only over a DISJOINT file set"* — and it is stated here rather than cited loosely, because that rule lives
-in the orchestrator's prompt statics and not in this document. And **depth stops** — the planner is already one level
-below the operator, so neither job dispatches anything.
-
-### What each job is bounded by
-
-**A DIAGNOSIS is bounded, not exploratory, and `fidelity` is what bounds it:**
-
-| The recipe declares | The diagnosis is                                                                                                                                           |
-|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `direct`            | find the production writer whose shape it copies, and diff what that writes NOW against what the recipe writes. The recipe is a copy that stopped matching |
-| `production`        | the real code path it calls changed — a route, a payload contract, a status. Read the handler                                                              |
-| `captured`          | the recording is of a version that no longer exists. Re-capture, do not patch                                                                              |
-
-**So a `direct` recipe must name what it mirrors.** Without it, every diagnosis opens with a hunt for the counterpart.
-The companion plan's own example is exactly this: a web harness "hand-appends the
-`event-outbox.jsonl` line that `questPersistBroker` writes in production" — so that recipe's entry reads
-`mirrors: questPersistBroker`, and a diagnosing agent starts there instead of guessing.
-
-**The brief carries what only the planner has:** the recipe as it stands, its `produces:` claim, its
-`fidelity` and `mirrors`, and **the actual failure — the readings from the run that just failed**. That last part is the
-difference between "this recipe is broken, go look" and a diagnosis that starts from a measured symptom.
-
-**A RESEARCH job is bounded by the flow, not by the code.** Its input is the state in the flow's own words — "a quest
-mid-execution with one running work item" — and its job is to find what that requires. Handed an implementation detail
-to start from instead, it writes a recipe for whatever the code happens to do, which is the thing arm B proved is worth
-avoiding.
-
-**Sometimes the break is the correct alarm.** Three recipes failing at once because production changed what it writes is
-either an intentional migration nobody told the recipe book about, or an unintentional one nobody noticed. The diagnosis
-says which, and the second case is a finding about the app rather than about the recipe — it goes to the quest as an
-observable, not into a recipe patch.
-
-**This is strictly a pre-phase.** If every happy walk dispatches at once, every recipe those walks need is written,
-proven and mapped before the first one goes out.
+**Chunk 2 before chunk 3 is the one ordering that matters.** `proto/` proves the types compose; a build
+that writes the runtime first and the types after will discover the same three failures that prototype
+already recorded, at much greater cost.
 
 ---
 
-## Part 3 — Decisions already taken
+### 3A — The decision index
 
-Two halves. **3A is what the TOOL implements** — it binds whoever builds it, and stays grouped by subject. **3B is what
-each ROLE is bound by** — it binds a session at run time, and is grouped by who. A builder reads 3A; a prompt author
-reads 3B.
+#### Recipes: the three packages, the three tiers, and what holds them
 
-**The vocabulary these rows use is defined in `siegelense-tooling.md` Part 2**, under "Perception: three artifacts" —
-**the shot** (a clean PNG, the only one that is evidence), **the map** (the same frame with numbered boxes on it), **the
-key** (the text tree). Elsewhere: an **instance** is one running stack, a **run** is one submitted batch, a **recipe**
-creates state, a **prelude** is the batch that reaches a path's entry, and the `video` STEP records a screencast —
-distinct from a **round record**, which is the file a walk writes.
-
----
-
-### 3A — What the tool implements
-
-#### Recipes: what one is and what holds it
-
-| Decision                                                                                                                                          | Because                                                                                                                                                                                                                                                       |
-|---------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| A recipe touches STATE, never a screen — held by a local lint rule, not by prose                                                                  | a recipe carrying a DOM handle is a design error, not a stale value: it means the recipe is doing a walk's job. `@dungeonmaster/local-eslint`'s `no-hardcoded-package-names` is the template — and its own blind spot is the caution to copy with it          |
-| The tool is `siegelense`: `packages/siegelense/`, `dungeonmaster siegelense`, MCP tools `siegelense-*`, recipes at `packages/siegelense-recipes/` | the recipe path must be a CONVENTION because the tool enumerates them before anything is seeded. A config key is one more thing to set, get wrong and diverge on; a bare `recipes` could collide with a repo's own package, and the tool's own name cannot    |
-| `packages/siegelense-recipes/` exists in EVERY repo siegelense is installed in, scaffolded by `dungeonmaster init`                                | a convention nothing creates is a convention half the repos will not have. Each package's `StartInstall` already writes what its own package needs; this is the same move                                                                                     |
-| An EMPTY recipes package is a real answer where a MISSING one is not                                                                              | an empty folder says "no recipes yet"; an absent folder can only say "something is wrong", and the tool cannot tell "you have written none" from "you have not installed this". The `count: 0` ambiguity, one layer up again                                  |
-| Recipes are a PACKAGE, not `.dungeonmaster-assets/`, because they are code that must be graded                                                    | being a workspace package is what gets them a ward run, and the ward run is the entire reason a recipe's test fires on the commit that breaks it. A dot-folder gets no ward, no tsconfig, no lint                                                             |
-| Non-code artifacts DO go in `.dungeonmaster-assets/` — the oddities file and `captured` fixtures                                                  | the split is "does this need to compile and be graded". Prose an agent appends to does not                                                                                                                                                                    |
-| `../../packages` assumes a MONOREPO — a known limit, not a settled answer                                                                         | a consumer with a flat `src/` has nowhere to put it. The package NAME is the convention; its LOCATION follows the repo's workspace layout, which dungeonmaster already detects. Staying in `../../packages` for now because the flat case has no consumer yet |
-| A recipe is LISTABLE without being RUN — `produces:`, `fidelity` and `mirrors:` are static data                                                   | the listing is called before anything is seeded. One that had to execute every recipe to describe them would seed a machine just to answer a question                                                                                                         |
-| It is a real workspace package, made with `dungeonmaster create-package`                                                                          | that is what gives it a ward run, which is what makes the colocated recipe tests fire on the commit that breaks them                                                                                                                                          |
-| Every recipe carries a colocated integration test asserting its `produces:`                                                                       | it moves staleness from "discovered months later by whichever planner needed it" to "fails on the commit that caused it, next to the diff". The companion plan argued the same thing from the other side                                                      |
-| The test owns CORRECTNESS; the planner's prelude owns FITNESS for a path                                                                          | a recipe can be perfectly correct and be the wrong recipe for path 3. And three recipes that each pass alone still fail composed. No test can know either                                                                                                     |
-| A `direct` recipe's test asserts against its `mirrors:` output, not a hardcoded snapshot                                                          | a snapshot pins it to a shape somebody typed; a mirror test pins it to what production emits and fails when they diverge — which is the entire risk `direct` exists to declare                                                                                |
-| Production-fidelity recipes share ONE instance for the whole suite                                                                                | one 20-second boot per recipe is a suite nobody runs. `direct` recipes need no instance at all                                                                                                                                                                |
-| A recipe whose claim is about what a URL RENDERS needs a browser to assert it — the most expensive of three test costs                            | files assert with a temp dir, a route asserts with a shared server, a rendering asserts with a full instance. Narrow a claim to the cheapest tier that is still honest                                                                                        |
-| A browser-asserted recipe test is DELIBERATE, because the prelude's `VERIFIED` run already covers rendering                                       | the prelude is proven by running; a recipe test that re-proves the same rendering pays twice for one fact                                                                                                                                                     |
-| Recipes take their dependencies EXPLICITLY — `quest-mid-execution guild:{g.guildId}`                                                              | a recipe that silently requires a prior one is the ordering-folklore that kills a step catalogue. A parameter is the fix, and this is the guard against becoming Cucumber-with-extra-steps                                                                    |
-| `fidelity` bounds the diagnosis, and a `direct` recipe must declare `mirrors:`                                                                    | the counterpart it copied is where the answer is. Without the pointer every diagnosis opens with a hunt for it                                                                                                                                                |
-| A recipe never calls `Date.now()`, `Math.random()` or `randomUUID()` for anything that reaches a screen                                           | three of the four content-determinism rows reduce to this one rule, and a `fidelity: direct` recipe writing a live clock is the exact drift the marker exists to warn about                                                                                   |
-| `seed` is a STEP, placed anywhere in a batch, not a prologue                                                                                      | seeding with a page already open is the only way to exercise a live-update path. A walk that always seeds up front then navigates only ever measures a fresh render                                                                                           |
-| A durable, committed ODDITIES file holds driving knowledge; a round that finds a new one appends                                                  | proxies already do this for unit tests. The guide's `TRAPS` heading is the per-quest version and `.quest-plans/` is wiped, so every oddity is rediscovered at "a wrong command costs a whole round"                                                           |
-| An oddity that is really an app defect gets an OBSERVABLE, not an entry                                                                           | "click the wrapper, not the label" usually means the hit area is wrong, which is a real defect for a real user. A file that only grows is a list of accepted defects                                                                                          |
-
----
-
-### 3B — What each role is bound by
-
-#### The OPERATOR — siegemaster itself
-
-*Dispatches, reads what comes back, decides. Drives nothing.*
-
-| Decision                                                                                                                                      | Because                                                                                                                                                                                                                          |
-|-----------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| A dispatched PLANNER provisions recipes — the operator never does                                                                             | the operator's own tool block forbids driving anything, and proving a recipe means running one. It is a separate sub-agent from the guide-writer, whose "change no file but the guide, start no server" mandate is load-bearing  |
-| The operator's job is to dispatch the planner, read what came back, and refuse to send a walk down a path whose recipe is missing or unproven | that is what an operator does. It never runs one                                                                                                                                                                                 |
-| After any instance death the operator OWNS cleanup: `status`, reap the orphans, re-read `capacity`, re-dispatch                               | it is the only session that knows which instances are legitimately alive, so it is the only one with the standing to kill anything                                                                                               |
-| The operator calls `cleanup` at the START of its pass and again at the END                                                                    | start catches what a PREVIOUS pass left and makes the first `capacity` reading honest; end catches what THIS pass leaked. Two bookends, not supervision — continuous watching is a daemon, and this design has refused one twice |
-| The operator opens by fetching `docs { for: 'operating' }` rather than carrying the tool's rules in its prompt                                | one source for `cleanup`, `capacity` and `status`, and a scope that cannot accidentally teach it to drive                                                                                                                        |
-| NO phase advances while any instance is in an unknown state                                                                                   | stamping the happy phase and launching the antagonists while orphans hold ports and memory hands the attackers a machine already under pressure — and the first thing they measure is that pressure                              |
-| The pass runs in TWO PHASES — every happy walk first, then a STAMP once they are all clean, then every adversarial walk. Never interleaved    | the STAMP is the boundary between the phases, not a phase of its own. This makes a clean baseline structural rather than a special case                                                                                          |
-
-#### The PLANNER — dispatched, provisions the walk
-
-*Maps every path to a prelude and proves each by running it. One level below the operator.*
-
-| Decision                                                                                                                                       | Because                                                                                                                                                                                                                    |
-|------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| The planner RUNS every recipe it plans to use — not only the ones it wrote — and asserts each `produces:` claim before any round depends on it | a `fidelity: direct` recipe mimics a shape production owns and drifts from it silently. The drift touches nothing about the feature under test, so nothing else catches it — the first symptom is a walk that cannot start |
-| The planner DRIVES THE TOOL — it starts and stops instances to prove preludes — so every rule binding a walker binds it too                    | it is easy to read the planner as a paper exercise. It is not: it meets every crash, every capacity limit and every `kill` obligation a walker meets                                                                       |
-| The planner's own starts QUEUE behind whatever else is running                                                                                 | proving ten preludes is ten instances over time, and if a phase is already using the pool it waits like anyone else. Its wall-clock is not linear in paths                                                                 |
-| The planner tests the SEQUENCE per path, not each recipe alone                                                                                 | three recipes that each pass in isolation can fail composed: one leaves state the next does not expect, an id does not match, the order matters and nobody wrote it down. What must be true is "this path is reachable"    |
-| A prelude is a RUNNABLE batch mixing recipes and driving steps, not prose                                                                      | reaching a state does both — a row that must be expanded first is not seeding, and no recipe should pretend it is                                                                                                          |
-| Mid-walk seeds are recorded against the NODE they fire at                                                                                      | appended to the prelude instead, a live-update test silently becomes a fresh-render test                                                                                                                                   |
-| Every prelude carries a `VERIFIED` line naming the run that proved it; a path without one is not walked                                        | not a claim that it should work — the id of a run where it did                                                                                                                                                             |
-| The planner's outputs split: the path→recipe MAPPING is per-quest `.quest-plans/`, any RECIPE it wrote is committed                            | the mapping is about this flow's routes; a state worth creating once is worth creating again. The recipe is the compounding half                                                                                           |
-| The planner dispatches for BOTH jobs — researching a missing recipe and diagnosing a broken one — and reads almost no implementation itself    | it has N paths to get through; reading the quest contract and work-item shape to write one recipe would spend the context the rest need                                                                                    |
-| Both jobs end with the PLANNER re-running the prelude                                                                                          | a sub-agent's claim that its recipe works is not evidence, and a research job is no different from a repair in that respect                                                                                                |
-
-#### The planner's SUB-AGENTS — researcher and diagnoser
-
-*One reads code to write a missing recipe, the other to repair a broken one. The last level; they dispatch nothing.*
-
-| Decision                                                                               | Because                                                                                                                                                                                            |
-|----------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| A researcher's FIRST question is whether existing recipes already compose to the state | the composition rule keeps the catalogue deep rather than wide, and a new recipe where two compose makes the book worse while looking productive                                                   |
-| The researcher fills `mirrors:`, because it has just read the production writer        | left for later it is a guess, and a wrong mirror makes the drift test assert against the wrong thing — worse than no pointer, because it passes                                                    |
-| A research job is briefed in the FLOW's words, never from an implementation detail     | handed the code to start from, it writes a recipe for whatever the code happens to do. That is arm B's failure arriving at a different door: the planner decides what state every walk starts from |
-| The diagnosis brief carries the READINGS from the run that failed                      | otherwise it is "this is broken, go look" rather than a diagnosis starting from a measured symptom                                                                                                 |
-| A break that turns out to be production changing shape is a finding about the APP      | three recipes failing at once is an intentional migration nobody told the recipe book about, or an unintentional one nobody noticed. That becomes an observable, not a recipe patch                |
-
-#### The FIXER — a generic sub-agent the operator briefs
-
-*Reads code, repairs the defect, and writes the e2e that keeps it fixed. The only role here that writes product code.*
-
-| Decision                                                                                      | Because                                                                                                                                                                                                                     |
-|-----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| A fixer RE-RUNS THE PRELUDE on a fresh instance; it never resurrects the dead one             | "restart to check state" is a fresh instance plus a batch already proven to land where it claims. The walker's instance is gone by the time a fixer reads its record                                                        |
-| `results` still answers for a KILLED instance, flagged as gone, and reading it STARTS NOTHING | the evidence lives in the instance's own directory and survives `kill`. Without this a fixer holding a run id finds it resolves to nothing, and the handoff depends on the walker having hand-copied every reading          |
-| A fixer writes the e2e using **the same recipes the prelude named**                           | a recipe is a plain function a spec can call. The state the walk ran against and the state its regression test runs against then come from one source, instead of the fixer re-deriving setup that ends up subtly different |
-| `RED FIRST` is unchanged: watch it fail against unchanged source, for the right reason        | handed the prelude and the walk's `SAW:` value, a fixer already has the setup and the assertion. What it must supply is the fix                                                                                             |
-| A fixer touches no instance it did not start, and starts none to "look around"                | every instance is three processes against a measured pool, and a fixer exploring is a fourth nobody accounted for                                                                                                           |
-| Fixers go out TWO AT A TIME, over a disjoint file set                                         | siegemaster's prompt already says "Cap two fixers, and only over a DISJOINT file set" — two processes appending to one file can silently drop an edit, with neither agent able to tell                                      |
-
----
-
-## Part 4 — The determinism this system depends on
-
-Most of this design works by **comparing two readings and calling the difference a finding**: the element delta on a
-second `look`, `pixelChange` against the previous capture, a `health` reading against a baseline, a `reset` diff, `hold`
-'s frame comparison. Every one of those is only as good as the reproducibility underneath it.
-
-**Where a value varies for a reason nothing in the walk caused, the difference reads as a defect** — and that is the
-most expensive false result there is, because it arrives looking like evidence. A fixer gets briefed, goes hunting in
-working code, and nothing in the record says the tool was the problem.
-
-### What the CONTENT must guarantee
-
-| Must be deterministic                                              | Why                                                                                              | What it breaks as                                                          |
-|--------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| **a recipe's output bytes, for the same inputs**                   | baselines are compared ACROSS instances, which is the whole promotion mechanism                  | a baseline that never matches, so every attack reports "something changed" |
-| **timestamps a recipe writes**                                     | the trial's flow is entirely durations. `4m` only reproduces because BOTH ends were fixed values | a figure that drifts per run, read as a rendering bug                      |
-| **ids that PAINT**                                                 | a runtime uuid on screen breaks byte-identity                                                    | `pixelChange` never reaches 0%, so the "nothing happened" signal is dead   |
-| seeding the same recipes in the same order produces the same state | otherwise a batch is not re-runnable, and step 7's re-walk proves nothing                        | a fix that "worked" against a state the re-walk never reproduced           |
-
-**Recipes must not call `Date.now()`, `Math.random()`, or `crypto.randomUUID()` for anything that reaches a screen.**
-That is the single rule behind three of those four rows, and it is checkable — a
-`fidelity: direct` recipe writing a live clock is the exact drift the marker exists to warn about.
+| Decision | Because |
+|---|---|
+| THREE packages: `@dungeonmaster/siegelense` (the tool), `@dungeonmaster/hydration` (the framework), `packages/hydration-recipes` (this repo's) | a recipe has to import things — a quest ingredient calls `questHydrateBroker`. Folding the framework into the tool makes every recipe file depend on a browser driver it never uses, and makes the tool's dependency graph answerable to whatever a repo's states happen to need |
+| `siegelense` NEVER imports `hydration-recipes` — it walks the path at run time | an import welds this repo's guilds and quests into the published tool |
+| `packages/hydration-recipes` must NOT sit in the root `package.json` `dependencies`, and a colocated test pins its absence | that field is what ships, and `dungeonmaster create-package` writes the entry automatically. Without the test the next scaffold run puts it back and nothing says so |
+| `packages/hydration-recipes/` exists in EVERY repo siegelense is installed in, scaffolded by `dungeonmaster init` | a convention nothing creates is a convention half the repos will not have. Each package's `StartInstall` already writes what its own package needs; this is the same move |
+| An EMPTY recipes package is a real answer where a MISSING one is not | an empty folder says "no recipes yet"; an absent folder can only say "something is wrong", and the tool cannot tell "you have written none" from "you have not installed this". The `count: 0` ambiguity, one layer up again |
+| Recipes are a PACKAGE, not `.dungeonmaster-assets/`, because they are code that must be graded | being a workspace package is what gets them a ward run, and the ward run is the entire reason an ingredient's test fires on the commit that breaks it. A dot-folder gets no ward, no tsconfig, no lint |
+| Non-code artifacts DO go in `.dungeonmaster-assets/` — the oddities file and `recording` fixtures | the split is "does this need to compile and be graded". Prose an agent appends to does not |
+| `../../packages` assumes a MONOREPO — a known limit, not a settled answer | a consumer with a flat `src/` has nowhere to put it. The package NAME is the convention; its LOCATION follows the repo's workspace layout, which dungeonmaster already detects |
+| THREE tiers — structural verbs in the framework, capability verbs an ingredient opts into, extras an ingredient owns | structure generalises and behaviour does not. A shared verb with a per-ingredient implementation is the middle case, and it is most of what a chain does |
+| A capability verb is promoted on the SECOND ingredient that wants it, never the first | vocabulary invented for one user is the Cucumber failure arriving early: a catalogue of verbs nobody else fits into |
+| `add(n, cb)` hands the callback HANDLES to the records it will make, and every other call is made on a handle | a flat chain leaves the affected level implicit. A handle names it, so no call has to be read against what came before it |
+| A literal `n` types the handle list as a fixed-length tuple | `q[3]` after `add(3, …)` is a compile error rather than a run-time throw |
+| Every verb but `add` takes an OBJECT | a scalar names no axis, so an ingredient growing a second lifecycle axis would need a second verb. Options accrue in the same place instead |
+| `saveRecordAs({ name })` retrieves a created row afterwards, and saves the RECORD rather than an id — the batch step's own `as:` is a DIFFERENT thing | the ids come along inside the record, so a second verb for a subset of the same thing would only make callers learn which one carries the slug. And a name inside a recipe is not a name inside a batch |
+| ONE verb sets state: `set()`, and the ingredient WALKS a field named under `transitions` | two verbs taking the same argument shape produce completely different states, and picking wrong fails silently. Seed data is about the END state, which is what one verb expresses |
+| `setRaw()` writes a transition field WITHOUT walking, and its name is the warning | a deliberately inconsistent row is a real need for an attack walk and a rare one. Nobody reaches for it by accident |
+| `transitions.to` may be NARROWER than the field's own type | `blocked` is a real quest status that nothing reaches by asking. Off the list, `set({ status: 'blocked' })` does not compile |
+| `filter()` returns a set with NO index and NO `add`, and a zero match THROWS by default | how many rows a transition minted is a fact about the gates, not about the recipe. And a filter matching nothing means the row you meant to reach was never there |
+| A link names its parent by NAME, never by reference | parent and child referencing each other is an inference cycle; TypeScript answers `TS7022` and every type downstream degrades to `any` |
+| `all` is a second ARGUMENT to `add`'s builder, never a property beside the handles | `Tuple<T, N> & { all: T }` silently loses the out-of-bounds check — measured against four shapes |
+| A child accessor appears on its IMMEDIATE parent only | requiring merely that every link be satisfiable puts `sessions` on `q[0]`, because a quest's ancestors include a guild |
+| AN INGREDIENT declares the routes; a recipe does not | a recipe pinned to one route serves only the callers that offer it. On the ingredient the TARGET picks, which is what lets an integration test with no server into the catalogue at all |
+| A `write` route must declare `copies:` | the counterpart it imitates is where a diagnosis starts. Without the pointer every one opens with a hunt |
+| An ingredient declares `links`, and the RUNNER writes each ancestor's id into the named field | a child row needs a parent id that does not exist when the recipe is written. Declared once per ingredient, it is never passed by hand and never forgotten |
+| A `links` entry no ancestor provides, and a `fromSaved` naming a record declared later, are refused BEFORE the first write | the plan's shape is known before anything runs, so both are caught where they cost nothing instead of becoming ordering folklore. **Nested, the type system catches the first; at TOP LEVEL it does not — the runner must** |
+| A seed step's inputs go in a `params` OBJECT, typed by the `recipe` value | flattened, an input named `as`, `step` or `recipe` shadows the step's own keys, and the collision is silent |
+| An ingredient's `fields` and `record` come from CONTRACTS, never a restated type | a retyped entity drifts silently, and the drift surfaces as a walk that cannot start |
+| The CHAIN owns the index and hands it to `defaults(i)` | determinism stops being a rule each recipe remembers. The only way left to break it is reaching for a clock, which is one lint rule over one folder |
+| An ingredient never calls `Date.now()`, `Math.random()` or `randomUUID()` for anything that reaches a screen | three of the four content-determinism rows reduce to this one rule, and a `write` route writing a live clock is the exact drift `copies:` exists to catch |
+| A recipe returns a PLAN, and the plan is DATA | the listing prints it, so nothing can drift from a hand-written summary. And one plan runs three ways — a walk, an end-to-end spec, an integration test |
+| Every ingredient carries a colocated integration test, and a two-route ingredient compares its OWN routes | it moves staleness from "discovered months later by whichever planner needed it" to "fails on the commit that caused it, next to the diff". A snapshot pins an ingredient to a shape somebody typed; a two-route comparison pins it to what production emits |
+| The test owns CORRECTNESS; the planner's prelude owns FITNESS for a path | an ingredient can be perfectly correct and be the wrong ingredient for path 3. And three ingredients that each pass alone still fail composed. No test can know either |
+| `api` routes share ONE instance for the whole suite | one 20-second boot per ingredient is a suite nobody runs. `write` routes need no instance at all |
+| An ingredient whose claim is about what a URL RENDERS needs a browser to assert it — the most expensive of three test costs | files assert with a temp dir, a route asserts with a shared server, a rendering asserts with a full instance. Narrow a claim to the cheapest tier that is still honest |
+| A browser-asserted ingredient test is DELIBERATE, because the prelude's `VERIFIED` run already covers rendering | the prelude is proven by running; an ingredient test that re-proves the same rendering pays twice for one fact |
+| An ingredient touches STATE, never a screen — held by a lint rule in `@dungeonmaster/eslint-plugin`, which SHIPS | the constraint binds every repo that writes an ingredient, so a `local-eslint` rule would hold it here and nowhere else. `no-hardcoded-package-names` stays the TEMPLATE for the shape, and its own blind spot is the caution to copy with it |
+| The migration is IN SCOPE and is the validation, not cleanup | 118 e2e specs and 17 integration tests seed domain state, and a conversion that cannot reproduce a real test's setup has found a hole no invented example would have |
+| A converted test keeps its assertions EXACTLY; only its setup changes | the assertions are the control — written against what the app really does, by somebody not thinking about this framework. Loosening one to land a conversion hides the finding it just produced |
+| Integration converts BEFORE e2e | files-only runs in seconds, so every runner, link, default and transition defect surfaces where a cycle is cheap |
+| `seed` is a STEP, placed anywhere in a batch, not a prologue | seeding with a page already open is the only way to exercise a live-update path. A walk that always seeds up front then navigates only ever measures a fresh render |
+| A durable, committed ODDITIES file holds driving knowledge; a round that finds a new one appends | proxies already do this for unit tests. The guide's `TRAPS` heading is the per-quest version and `.quest-plans/` is wiped, so every oddity is rediscovered at "a wrong command costs a whole round" |
+| An oddity that is really an app defect gets an OBSERVABLE, not an entry | "click the wrapper, not the label" usually means the hit area is wrong, which is a real defect for a real user. A file that only grows is a list of accepted defects |
 
 ---
 
 ## Part 5 — The recipe book
 
-**Seeding is in scope for this work.** What is out of scope is the full ownership architecture the companion plan argues
-for — seeders living beside the contracts they build, a scenario layer, a
-`fidelity` contract. That is a bigger change and it is not a prerequisite.
+**Seeding is in scope for this work.** What is out of scope is the full ownership architecture its sibling
+document `siege-verification-remainder.md` argues for — seeders living beside the contracts they build, and a scenario layer. That is a bigger change and it is not a
+prerequisite.
 
 What IS a prerequisite is that **a session can put the system into a known state without deriving how every single
-time.**
+time**, and that the SAME known state is reachable from a browser walk, from an end-to-end spec and from an integration
+test.
+
+### Four words this document uses, and two rules that outlive the split
+
+**The vocabulary, because nothing below defines it and the role document is no longer beside you:**
+
+| Word | Means |
+|---|---|
+| an **instance** | one running stack — an API server, a web server and a browser |
+| a **run** | one submitted batch of steps |
+| a **recipe** | a named thing that creates state, and the subject of this document |
+| a **prelude** | the batch that reaches a walk path's entry state. **Markdown in `.quest-plans/`, not a type to implement** |
+
+**Two rules come from how these get USED, and a builder that loses them simplifies the mechanism away:**
+
+**A recipe returns a PLAN a spec can run directly, in process, with no MCP boundary anywhere.** That is
+why `run(plan, target)` is a public export of `@dungeonmaster/hydration` and why `hydration-recipes`
+must be importable from a spec tree. A framework reachable only through a `seed` step would satisfy
+every other line of this document and be useless to the 118 specs in step 2 of the migration.
+
+**One row makes "the right one" and "the first one" the same value.** An off-by-index bug then passes,
+the walk comes back clean, and the clean result means nothing. That is the mechanism behind the
+two-of-anything rule, and it is why `defaults(index)` is not a convenience: without it every row in an
+`add(3, …)` is identical and the count buys nothing.
 
 ### The problem
 
@@ -398,334 +227,1317 @@ The trial hit this directly. Walking one flow needed a guild plus three session 
 script — handed identically to all three arms so seeding stayed a constant rather than a variable. That worked for one
 flow and does not generalise by itself.
 
-### The raw material already exists
+**And the derivation happens in four separate vocabularies, none of which can call another:**
 
-`../../packages/web/test/harnesses` holds 35 harnesses. Counted by what they actually need:
+| Who seeds | With what | Reaches |
+|---|---|---|
+| a Playwright end-to-end spec | `packages/web/test/harnesses/` | a server and a browser |
+| a Jest integration test | hand-rolled `fs` writes under `installTestbedCreateBroker` | files only |
+| an orchestration smoketest | `questHydrateBroker` against `smoketestBlueprintsStatics` | files only |
+| a siege walk | a throwaway script | a server and a browser |
 
-| Group                                                                    | How many | What it means                                                                                                                                                            |
-|--------------------------------------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **already free** — take `guildPath` or nothing, write through `fs`       | 12       | callable from an instance today, unchanged. `session`, `subagent-duration`, `subagent-duration-triple-chain`, `claude-mock`, `ward-mock`, `environment`, `rate-limits`   |
-| **HTTP-only** — take Playwright's `request` and use it as an HTTP client | 5        | `guild`, `quest`, `dispatch`, `dispatch-pause`, `warpgate`. `guildHarness` is literally `POST /api/guilds` — swapping `APIRequestContext` for `fetch` frees it in a line |
-| **page-only** — need a live browser                                      | 10       | these DRIVE or INSPECT rather than seed, and mostly belong on that side                                                                                                  |
-| **page + request**                                                       | 8        | composites that seed, navigate and measure together. The seed half is extractable; the drive half stays                                                                  |
+Four spellings of "make me a guild with some quests", each maintained separately, each going stale on its own schedule.
+The recipe book is one spelling that all four call.
 
-So **roughly half the harness tree is a seeder or one transport swap away from being one.** The recipe book is largely
-already written — it is locked behind a fixture type most of it never uses. The companion plan measured the same thing
-from the other direction: `questHarness` takes Playwright's
-`request` though seven of its nine functions never touch it.
+### Three packages, and what may cross between them
 
-### What a recipe is
+**The tool ships. The framework ships. The recipes never do.**
 
-Not an API. A named, runnable thing with four properties:
+| Package | Holds | Published | May import |
+|---|---|---|---|
+| `@dungeonmaster/siegelense` | the tool — instances, batches, browser driving, the `seed` step | yes | neither of the others |
+| `@dungeonmaster/hydration` | the framework — ingredients, chains, plans, the runner, the types | yes | nothing repo-specific |
+| `packages/hydration-recipes` | THIS repo's ingredients and recipes | **no** | `@dungeonmaster/hydration`, plus orchestrator, shared, server — whatever a state needs. **Not `web`**: it has no `main` and no `exports` and builds through `vite build`, so an import of it resolves to nothing at run time |
 
-| Property                                  | Why                                                                                                                                                     |
-|-------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
-| a **name**                                | so a brief can say `seed session-with-nested-subagent` instead of describing it                                                                         |
-| a **`produces:` sentence**                | what state exists after it runs, in one line, so a session picks without reading the script                                                             |
-| a **fidelity** marker                     | see below — this is the one that stops a fixture lying                                                                                                  |
-| **`mirrors:` where fidelity is `direct`** | the production writer whose shape it copies. It is what makes a later diagnosis bounded instead of a hunt — see the planner's diagnosis route in Part 2 |
-| **returns the ids**                       | guild id, slug, quest id, session ids, URLs. A walk cannot address what it cannot name                                                                  |
+**The framework is a separate package from the tool because a recipe has to import things.** A quest ingredient calls
+`questHydrateBroker`; a session ingredient writes the JSONL shape the orchestrator reads. Putting the recipe types inside
+`siegelense` would make every recipe file depend on a browser driver it never uses, and would make the tool's own
+dependency graph answerable to whatever a repo's states happen to need.
 
-**Fidelity is three values, and it is not decoration:**
+**`siegelense` never imports `hydration-recipes`.** It finds recipes by walking `packages/hydration-recipes/` at run
+time, which is the same convention it already enumerates. An import would weld this repo's guilds and quests into the
+published tool.
 
-| Value        | Means                                                                                            | Risk it declares                                      |
-|--------------|--------------------------------------------------------------------------------------------------|-------------------------------------------------------|
-| `production` | built by calling the real code path — `POST /api/guilds` and the server does what it really does | none; this is the honest one                          |
-| `direct`     | written straight to disk in the shape production *would* have made                               | **it can drift from what production actually writes** |
-| `captured`   | recorded from a real run and replayed                                                            | the only one that cannot lie about shape              |
+**`packages/hydration-recipes` must not appear in the root `package.json` `dependencies`.** That field is what ships —
+`packages/CLAUDE.md` states it — so an entry there installs this repo's recipes into every consumer, alongside the empty
+one `dungeonmaster init` scaffolds for them. `dungeonmaster create-package` adds that entry automatically, so the
+package needs a colocated test pinning its absence; otherwise the next scaffold run puts it back and nothing says so.
 
-`direct` is the one that needs the warning label, and the companion plan has the live example: a web harness
-hand-appends the `event-outbox.jsonl` line that `questPersistBroker` writes in production, so the two can diverge
-silently. A recipe that declares `direct` tells its reader what it is trusting.
+**In a consumer repo the folder is there and the contents are theirs.** The convention travels, the framework travels,
+and the recipes do not. Nobody else has guilds and quests, and nobody else should inherit ours.
 
-**A fabricated fixture fools flowrider and siegemaster identically**, so nothing downstream catches it. That is why the
-marker rides on the recipe rather than living in someone's head.
+### Three tiers, and only the middle one is written per entity
 
-### What makes it a book rather than a pile
+| Tier | Written | Examples |
+|---|---|---|
+| **structural** | once, in the framework, available on every ingredient | `add`, `filter`, `set`, `remove`, `saveRecordAs` |
+| **capability** | the verb once in the framework; an ingredient OPTS IN and gets it typed to its own values | a `transitions` field, reached through `set({ status: … })` |
+| **extra** | by the ingredient, for itself | `withNestedChain({ depth: 2 })` |
 
-**Discovery, the same "ls before the query" pattern this doc uses twice already.** `get-project-map`
-before `discover`; the page key before a selector; a recipe list before a seed. A session asks what recipes exist and
-gets names plus `produces:` lines — it never greps a directory hoping.
+**A capability is a verb more than one ingredient would want, where only the mechanics differ.** Walking a quest to
+`in_progress` runs gates that mean nothing to a session, but both have a lifecycle, so the WALK is shared and its
+implementation is not. An ingredient that declares no lifecycle has no `.to()` on its chain at all, and that is a compile
+error at the call site rather than a throw at run time.
 
-**Composition, so the catalogue gets DEEPER rather than wider.** `guild` → `quest --guild X` →
-`session-with-nested-subagent --guild X`. Recipes that compose stay navigable at fifty entries; recipes that each build
-a whole world do not.
+**Promote a verb to a capability on the SECOND ingredient that wants it, never the first.** Inventing shared vocabulary for
+one user is how a catalogue grows verbs nobody else fits into — which is the Cucumber failure this design spends most of
+its rules avoiding.
 
-**One standing rule, lifted from the guide that already states it: TWO of anything an assertion must tell apart.** With
-one row, "the right one" and "the first one" are the same value, so an off-by-index bug passes and a clean walk means
-nothing.
+**An extra is a verb only one ingredient could ever have.** Structure generalises; behaviour does not.
 
-### What this changes for siegemaster
+### Every property on an ingredient, and what goes in it
 
-The guide's `SEEDING` heading stops being derived prose and becomes recipe NAMES — the same transformation `CONTROLS`
-undergoes when the page key arrives. Both headings exist because a walk needs something it currently has to work out;
-both stop being work once the running system can answer.
+**This is the reference a builder works from.** Every property is listed, whether it is required, what it
+is for, and what a real value looks like.
 
-**Who fills the gaps is a dispatched PLANNER, at phase zero** — see Part 2. Not the operator, which drives nothing by
-its own rules and so cannot prove a recipe by running it. The planner reads every path, works out which states the flow
-needs, writes what is missing, and RUNS each new one against its own `produces:` line before any round is allowed to
-depend on it.
+| Property | Required | What it does |
+|---|---|---|
+| `name` | yes | the ingredient's identity. What a child's `links` points at, and what the runner reports in an error |
+| `description` | yes | one line, present tense, naming the ROW this makes. **`recipes {}` prints it**, so a session picks without reading the code |
+| `fields` | yes | the contract for what a caller may `set`. `set()` takes a `Partial` of it |
+| `record` | yes | the contract for the row AFTER creation, server-assigned fields included. What `saveRecordAs` exposes |
+| `routes` | yes | at least one of `api`, `write`, `recording`. How the row actually gets made |
+| `links` | no | this row's foreign keys, as `{ of: '<parent name>', as: '<field on this row>' }` |
+| `transitions` | no | the one field whose value is reached by WALKING rather than writing |
+| `defaults` | no | `(index) => fields` — per-row values derived from the index, never from a clock |
+| `copies` | only with a `write` route | the production code whose output that route imitates |
+| `extras` | no | verbs only this ingredient could have, each taking one object |
 
-### Constraints a recipe must be held to MECHANICALLY, not by prose
+**`name` and `description`** — the two a listing reads:
 
-**A recipe touches STATE, never a screen.** It writes files and calls APIs. It has no business holding a DOM handle —
-not a ref, not a selector, not a position — and it asserts nothing about what renders. The moment a recipe knows about
-the UI it has become a walk, and a walk that seeds is the thing the companion plan's rule 3 forbids: *"A harness drives
-or inspects a surface and may not seed."*
+```ts
+name: 'quest',
+description: 'one quest under a guild, at whatever status you set it to',
+```
+
+Write the description for the session choosing between recipes, not for the person who wrote the
+ingredient. It says what EXISTS afterwards, not what the code does.
+
+**`fields` and `record` are two different contracts, and collapsing them is a mistake.** `fields` is
+what a caller may supply; `record` is what came back. A guild's id and `urlSlug` are on the record and
+not on the fields, because the server mints them — and that difference is exactly what makes
+`saveRecordAs` worth having.
+
+```ts
+fields: questFieldsContract,     // title, userRequest, status, guildId
+record: questRecordContract,     // id, title, status, guildId, createdAt
+```
+
+Both come from contracts, never a restated type. An ingredient that retypes its entity drifts from it
+silently, and the drift surfaces as a walk that cannot start.
+
+**`routes`** — one function per way of making the row. Each takes the repo's own target:
+
+```ts
+routes: {
+  api: ({ target, fields }) => httpPost({ target, path: '/api/quests', fields }),
+  write: ({ target, fields }) => hydrate({ target, fields }),
+},
+```
+
+**`links`** — the foreign keys, named by parent NAME:
+
+```ts
+links: [
+  { of: 'quest', as: 'questId' },     // `questId` on THIS row points at a quest
+  { of: 'guild', as: 'guildId' },     // and `guildId` at that quest's guild
+],
+```
+
+`of` is the parent's `name`. `as` is the field on THIS row carrying the parent's id. The runner fills
+each one; nothing passes them by hand. Order does not matter.
+
+**`transitions`** — the field that is walked rather than written:
+
+```ts
+transitions: {
+  field: 'status',
+  to: ['created', 'approved', 'in_progress', 'complete'],
+  reach: ({ from, to, target }) => walkQuestStatus({ from, to, target }),
+},
+```
+
+| Key | What it is |
+|---|---|
+| `field` | the one field on `fields` this governs |
+| `to` | the end states a caller may ASK for. May be NARROWER than the field's own type |
+| `reach` | what runs to get from the current value to the asked-for one |
+
+**`to` being narrower is the point.** `blocked` is a real `QuestStatus` that nothing reaches by asking,
+so it is off the list and `set({ status: 'blocked' })` does not compile. Leave a value off whenever
+reaching it means something other than a caller asking.
+
+**`defaults`** — per-row values from the index:
+
+```ts
+defaults: (index) => ({ title: `Quest ${index + 1}` }),
+```
+
+**The index is 0-based and scoped to ITS OWN `add`.** Two separate `add(2, …)` calls both see indexes 0
+and 1. It is the chain's only source of per-row variation, and it is why nothing in an ingredient needs
+a clock or a random value.
+
+**`copies`** — required wherever a `write` route exists:
+
+```ts
+copies: 'questPersistBroker',
+```
+
+The production code whose output that route imitates. It is where a diagnosis starts, and where the
+two-route comparison test points.
+
+**`extras`** — verbs only this ingredient could have:
+
+```ts
+extras: {
+  withNestedChain: nestedChainArgsContract,   // { depth: number }
+  advanceOneStep: advanceArgsContract,
+},
+```
+
+Each becomes a method on that ingredient's rows and on nothing else, taking one object typed by its
+contract. **Reach for an extra only when no second ingredient would ever want the verb** — the moment a
+second one would, it belongs in the framework as a capability instead.
+
+A whole ingredient, every property in use:
+
+```ts
+export const questIngredient = ingredient({
+  name: 'quest',
+  description: 'one quest under a guild, at whatever status you set it to',
+  fields: questFieldsContract,
+  record: questRecordContract,
+  links: [{ of: 'guild', as: 'guildId' }],
+  defaults: (index) => ({ title: `Quest ${index + 1}` }),
+  transitions: {
+    field: 'status',
+    to: ['created', 'approved', 'in_progress', 'complete'],
+    reach: ({ from, to, target }) => walkQuestStatus({ from, to, target }),
+  },
+  routes: {
+    api: ({ target, fields }) => httpPost({ target, path: '/api/quests', fields }),
+    write: ({ target, fields }) => hydrate({ target, fields }),
+  },
+  copies: 'questPersistBroker',
+  extras: { advanceOneStep: advanceArgsContract },
+});
+```
+
+### What a recipe declares
+
+```ts
+export const guildMidExecution = recipe(
+  {
+    name: 'guild-mid-execution',
+    description: 'one guild holding three quests, the first running with its riftcarver item dropped',
+  },
+  () => [ … ],
+);
+```
+
+| Property | Required | What it does |
+|---|---|---|
+| `name` | yes | what a `seed` step names, and the key of its entry in the generated input union |
+| `description` | yes | **what `recipes {}` prints.** One line, saying what EXISTS after this recipe runs |
+| the builder | yes | takes the recipe's typed inputs, if any, and returns the ops |
+
+**A recipe's description is the one a session reads when choosing**, so it describes the END STATE and
+the counts that matter:
+
+- ✅ `one guild holding three quests, the first running with its riftcarver item dropped`
+- ❌ `seeds a guild and some quests` — a session cannot tell whether it can distinguish two rows
+- ❌ `calls questHydrateBroker three times` — that is how, not what
+
+### The listing `recipes {}` prints
+
+Descriptions are what make the listing usable, so it reads them from the declarations rather than from
+prose anyone maintains separately:
+
+```
+recipes {}
+→ guild-mid-execution
+    one guild holding three quests, the first running with its riftcarver item dropped
+    inputs:  none
+    runs:    serverless — every ingredient has a write route
+    makes:   guild ×1, quest ×3, operation (varies)
+
+  session-with-nested-chain
+    one session under an existing guild, holding a nested sub-agent chain
+    inputs:  guildId: GuildId
+    runs:    serverless
+    makes:   session ×1
+```
+
+| Line | Comes from |
+|---|---|
+| the name | the recipe's `name` |
+| the sentence under it | the recipe's `description` |
+| `inputs` | the recipe's input contract — static data, so the listing never runs anything |
+| `runs` | `serverless`, or `needs a server: <ingredient>`. **An ALL over the plan's ingredients, never a union** — a union answers which routes appear anywhere, which is a different and more optimistic question |
+| `makes` | each ingredient's `description`, counted off the plan. `varies` wherever a `filter` or a transition decides the count |
+
+**`runs` on that listing is the line that stops a wasted run.** A Jest integration test reads
+`needs a server: guild` and stops, instead of finding out partway through with half a plan on disk.
+
+### Linking a child to its parent
+
+**A child row needs its parent's id, and the parent does not exist when the recipe is written.** So
+the ingredient declares the link and the RUNNER supplies the value.
+
+**A link names its parent by NAME, never by reference.** That is not a style choice — it was measured.
+An ingredient holding a reference to its parent while the parent holds one to its children is an
+inference cycle, and TypeScript answers it with `TS7022: implicitly has type 'any' because it does not
+have a type annotation and is referenced directly or indirectly in its own initializer`. Every type
+downstream then degrades to `any` and the whole chain stops checking anything. Names point one way —
+child to parent, the direction a foreign key already points — so there is no cycle to have.
+
+**The registry inverts them.** Its KEY is the accessor name a chain uses:
+
+```ts
+export const dm = registry({
+  guilds: guildIngredient,
+  quests: questIngredient,
+  operations: operationIngredient,
+  sessions: sessionIngredient,
+});
+```
+
+`links` names, for each ancestor a row must point at, the FIELD on that row carrying the ancestor's
+id. The runner walks the plan tree depth-first, so every ancestor exists before the child pointing at
+it, and it writes each id into the named field before calling the route. **Neither the recipe author
+nor the route implementation passes one by hand.**
+
+**A child accessor appears on exactly one host: its immediate parent.** Two conditions decide it, and
+both are checked by the type system rather than reported as an error:
+
+1. the host is named in that child's `links`, and
+2. every one of that child's links is satisfied by something already in the ancestor chain.
+
+So `operations` — which links to both `quest` and `guild` — appears on `q[0]` and NOT on `g[0]`, because
+a guild alone cannot supply a `questId`. And `sessions`, which links only to `guild`, appears on `g[0]`
+and NOT on `q[0]`, even though a quest's ancestor chain does contain a guild. **Condition 2 alone gives
+you the second case wrong**, which is measured: dropping it makes `q[0].sessions` compile.
+
+**Siblings share it.** `quests.add(3, …)` under one guild writes the same `guildId` into all three.
+
+**A link to something that is NOT an ancestor is a cross-link, and the tree cannot express one.** Name
+the record and point at it:
+
+```ts
+dm.guilds.add(1, (g) => [
+  g[0].sessions.add(1, (s) => [s[0].saveRecordAs({ name: 'origin' })]),
+  g[0].quests.add(1, (q) => [
+    q[0].set({ userRequest: fromSaved({ name: 'origin', field: 'sessionId' }) as never }),
+  ]),
+]);
+```
+
+**A forward reference is a build error.** Records are created in declaration order, so a `fromSaved`
+naming something declared later cannot resolve — and the builder says so rather than letting the
+ordering become folklore somebody learns from a failure.
+
+**A parent the recipe did NOT create comes from a recipe input**, not from an ancestor —
+`dm.sessions.under({ guildId })`, where `guildId` is declared on the recipe.
+
+### The chain: every call names what it affects
+
+**`add` takes a count and a builder. The builder receives a TUPLE of handles, and `all` as a second
+argument.** That is what removes the ambiguity a flat chain has — there is no implicit "current level",
+because every call is made on something somebody was handed.
+
+```ts
+export const guildMidExecution = recipe(
+  { name: 'guild-mid-execution', description: 'one guild holding three quests, the first running' },
+  () => [
+  dm.guilds.add(1, (g) => [
+    g[0].set({ name: 'Siege' }),
+
+    g[0].quests.add(3, (q, all) => [
+      all.set({ userRequest: 'seeded' }),
+      q[0].set({ status: 'in_progress', title: 'The running one' }),
+      q[0].operations.filter({ where: { role: 'riftcarver' }, expect: 'one' }).remove(),
+      q[1].set({ title: 'The second one' }),
+      q[2].saveRecordAs({ name: 'third' }),
+    ]),
+  ]),
+]);
+```
+
+**`all` is a second ARGUMENT, not a property on the handle list, and that is forced.** A literal count
+types the handles as a fixed-length tuple, so `q[3]` after `add(3, …)` is a compile error — but
+**`Tuple<T, N> & { all: T }` silently loses that check.** Measured across four shapes: the plain
+intersection and a mapped-then-intersected version both let `q[3]` through, while a pure tuple and a
+`{ rows, all }` wrapper both catch it. A second argument keeps the tuple pure and costs nothing.
+
+**The builder hands you HANDLES, not records.** Nothing has been created when it runs, so `q[0]` is a
+reference to the first quest this `add` will make. Reading `q[0].id` inside the builder is not possible
+and must not be made possible: ids resolve at run time and travel through `saveRecordAs`.
+
+### One verb sets state, and the INGREDIENT decides whether that means a walk
+
+**There is no separate transition verb.** `set` is the only way to put a value on a row, and the
+ingredient routes it:
+
+| What you set | What happens |
+|---|---|
+| a plain field | the value is written |
+| a field named under `transitions` | the ingredient WALKS the row there, through the real gates |
+
+```ts
+q[0].set({ status: 'in_progress', title: 'The running one' })
+```
+
+One call, one plain field, one transition. The caller says what it wants to be true; the ingredient
+owns how.
+
+**Splitting them was tried on paper and is worse.** Two verbs taking the same argument shape produce
+completely different states — a written field with no ledger, versus a walked row carrying everything
+the gates made — and picking wrong fails silently, with a walk measuring an empty screen and reporting
+a defect in working code. Typing around that trap is strictly more machinery than not having it.
+**Seed data is about the end state**, which is exactly what one verb expresses.
+
+**`setRaw` is the escape hatch, and its name is the warning.** A deliberately inconsistent row — a
+status the gates would never have produced, for an adversarial walk that wants to see how the UI
+handles one — is a real need and a rare one. `setRaw({ status: 'in_progress' })` writes the field and
+walks nothing. Nobody reaches for it by accident.
+
+**A transition is not free, and the doc should say so where somebody will read it.** `set({ status:
+'in_progress' })` on a quest seeds a relay, which mints operation items and work items. That is usually
+what you want. When it is not, `filter` and `remove` take the extras back out.
+
+### Every verb but `add` takes an object
+
+```ts
+q[0].set({ status: 'in_progress' })
+s.all.withNestedChain({ depth: 2 })
+q[2].saveRecordAs({ name: 'third' })
+```
+
+A scalar names no axis, so an ingredient growing a second transition field would need a second verb;
+an object extends. Options accrue in the same place instead.
+
+**`add(3, cb)` keeps the bare count**, because the count is the only thing `add` could ever mean and
+`add({ count: 3 }, cb)` reads worse for nothing. Anything `add` grows later takes a third argument.
+
+### `filter` selects rows that only exist at RUN time
+
+**`add` knows its count at build time; `filter` cannot.** Transitioning a quest to `in_progress` mints
+operation items, and how many is a fact about the gates, not about the recipe. So `filter` returns a
+set with **no index access and no `add`** — the type says the count is unknown:
+
+```ts
+q[0].operations.filter({ where: { role: 'riftcarver' }, expect: 'one' }).remove()
+```
+
+| Part | Does |
+|---|---|
+| `where` | a match object, typed to that ingredient's fields. Data, never a closure — a predicate cannot cross the MCP wire |
+| `expect` | `'one'` · `'some'` (the default) · `'any'` |
+| what you may then call | `set`, `setRaw`, `saveRecordAs`, `remove`, and that ingredient's extras |
+
+**`expect` reuses the tool's own no-pick rule.** `siegelense` already refuses an ambiguous DOM target
+and throws naming the candidates, and refuses a zero match naming near misses. A filter is the same
+question one layer down, so it answers the same way: **`expect: 'some'` is the default and a zero match
+THROWS**, because a filter matching nothing almost always means the row you meant to reach was never
+there — and silently doing nothing is how that becomes a defect report against working code.
+
+### A recipe takes typed inputs, so it can stack on what an EARLIER STEP made
+
+**Parenting inside one recipe is structural, and parenting across two seed steps is a parameter.**
+Those are different problems and they get different answers.
+
+Inside a recipe, `g[0].quests` says what these quests hang off, and nothing needs passing. But a batch
+that seeds a guild, drives the page, and then seeds a session under that same guild has crossed a step
+boundary — the guild's id did not exist when either recipe was written. So a recipe declares what it
+needs:
+
+```ts
+export const sessionWithNestedChain = recipe(
+  'session-with-nested-chain',
+  ({ guildId }: { guildId: GuildId }) => [
+    dm.sessions.under({ guildId }).add(1, (s) => [
+      s[0].withNestedChain({ depth: 2 }),
+      s[0].saveRecordAs({ name: 'nested' }),
+    ]),
+  ],
+);
+```
+
+and the batch supplies it from an earlier step's output:
+
+```jsonc
+{ step: 'seed', recipe: 'session-with-nested-chain', params: { guildId: '{g.guild.id}' }, as: 's' }
+```
+
+**Inputs go in their own `params` object, never flattened onto the step.** A recipe input named `as`,
+`step` or `recipe` would shadow the step's own keys, and the collision is silent.
+
+**A recipe that silently requires a prior seed step is the ordering folklore that kills a step
+catalogue.** A declared input is the fix, and it keeps the listing honest: `recipes {}` prints what each
+one needs before anything has been seeded, because the input type is static data like everything else
+on a plan.
+
+### Every chainable, with an example
+
+**Every snippet below is copied out of `proto/usage.ts`**, which the type check compiles. None of them
+is an example nobody ran.
+
+**`add(n, build)`** — creates n rows. The builder receives a TUPLE of handles and `all` as a second
+argument.
+
+```ts
+dm.guilds.add(1, (g) => [
+  g[0].quests.add(3, (q, all) => [
+    all.set({ userRequest: 'every one of the three' }),
+    q[0].set({ title: 'only the first' }),
+  ]),
+]);
+```
+
+**`set({ … })`** — writes a plain field. A field named under `transitions` is WALKED instead, through
+the real gates.
+
+```ts
+q[0].set({ title: 'plain field, written' }),
+q[0].set({ status: 'in_progress' }),        // walked: gates run, the relay seeds
+```
+
+**`setRaw({ … })`** — writes the field and walks nothing. For a row the gates would never have
+produced, which an attack walk sometimes wants.
+
+```ts
+q[0].setRaw({ status: 'complete' }),
+```
+
+**`filter({ where, expect })`** — selects rows that exist at RUN time. No index, no `add`.
+
+```ts
+q[0].operations.filter({ where: { role: 'riftcarver' }, expect: 'one' }).remove(),
+q[0].operations.filter({ where: { role: 'ward' }, expect: 'any' }).set({ text: 'noop' }),
+```
+
+**`remove()`** — deletes a row, or every row a filter matched.
+
+```ts
+q[1].remove(),
+q[0].operations.filter({ where: { role: 'ward' } }).remove(),
+```
+
+**`saveRecordAs({ name })`** — that row's WHOLE record joins the plan's output, server-assigned fields
+included.
+
+```ts
+g[0].saveRecordAs({ name: 'guild' }),
+q[0].saveRecordAs({ name: 'target' }),
+// the plan's output then carries `guild` and `target`, each typed to its own record contract
+```
+
+**`fromSaved({ name, field })`** — a cross-link to a row the tree cannot reach.
+
+```ts
+g[0].sessions.add(1, (s) => [s[0].saveRecordAs({ name: 'origin' })]),
+g[0].quests.add(1, (q) => [
+  q[0].set({ userRequest: fromSaved({ name: 'origin', field: 'sessionId' }) as never }),
+]),
+```
+
+**`under({ … })`** — supplies a link from a recipe INPUT rather than from an ancestor.
+
+```ts
+recipe({ name: 'usage-under', description: 'one session under an existing guild' },
+  ({ guildId }: { guildId: GuildId }) => [
+  dm.sessions.under({ guildId }).add(1, (s) => [s[0].saveRecordAs({ name: 'made' })]),
+]);
+```
+
+**An ingredient's own EXTRA** — whatever that ingredient declared, and nothing else has it.
+
+```ts
+g[0].sessions.add(1, (s) => [s[0].withNestedChain({ depth: 2 })]),
+```
+
+**`saveRecordAs` saves the RECORD, not an id.** The record is the row as it exists after creation, so
+the ids come along inside it. One mechanism rather than two: a `saveIdsAs` next to it would be a second
+name for a subset of the same thing, and callers would have to learn which one carries the slug.
+
+Everything together, on one recipe:
+
+```ts
+export const guildMidExecution = recipe(
+  { name: 'guild-mid-execution', description: 'one guild holding three quests, the first running' },
+  () => [
+  dm.guilds.add(1, (g) => [
+    g[0].set({ name: 'Siege' }),
+    g[0].saveRecordAs({ name: 'guild' }),
+
+    g[0].sessions.add(1, (s) => [s[0].saveRecordAs({ name: 'origin' })]),
+
+    g[0].quests.add(3, (q, all) => [
+      all.set({ userRequest: 'seeded' }),
+
+      q[0].set({ status: 'in_progress', title: 'The running one' }),
+      q[0].operations.filter({ where: { role: 'riftcarver' }, expect: 'one' }).remove(),
+
+      q[1].set({ userRequest: fromSaved({ name: 'origin', field: 'sessionId' }) as never }),
+      q[2].setRaw({ status: 'complete' }),        // deliberately inconsistent, for an attack walk
+      q[2].saveRecordAs({ name: 'third' }),
+    ]),
+  ]),
+]);
+```
+
+### A plan is data, and one plan runs three ways
+
+**The chain builds; it does not execute.** Callbacks run at BUILD time, so a recipe call materialises the whole plan as
+data before anything touches disk or opens a socket.
+
+```ts
+const plan = guildMidExecution();      // data — printable, listable, never touches anything
+await run(plan, { home, baseUrl });    // a siege walk, or an end-to-end spec
+await run(plan, { home });             // a Jest integration test — write routes only
+```
+
+| Caller | Hands the runner | Gets |
+|---|---|---|
+| a siege walk | the instance's throwaway home and the lane's base URL | every route |
+| an end-to-end spec | the spec's home and Playwright's `baseURL` | every route |
+| an integration test | `installTestbedCreateBroker`'s temp dir, no base URL | write routes only |
+
+**A caller with no base URL can only run ingredients that declare a write route, and the types say so.** That is what lets
+integration tests into the catalogue at all, and it is why the route lives on the INGREDIENT rather than on the recipe — a
+recipe forced to pick one route can serve only the callers that offer it.
+
+**A plan being data is also what removes the hand-written summary sentence.** The listing prints the plan. There is
+nothing for a description to drift from, because the thing described and the thing run are one object.
+
+### Determinism is structural, not a rule to remember
+
+Most of this design works by comparing two readings and calling the difference a finding, so a value that varies for a
+reason nothing in the walk caused reads as a defect. `siegelense-recipe-roles.md` Part 4 has the full
+table of what must be reproducible and what each one breaks as.
+
+**The chain owns the index and hands it to `defaults(i)`.** An ingredient never sees a clock and never sees a random value, so
+the same plan run twice produces the same bytes — which is what keeps a baseline comparable across instances and keeps
+`pixelChange` able to reach zero.
+
+**An ingredient must not call `Date.now()`, `Math.random()` or `crypto.randomUUID()` for anything that reaches a screen.**
+With the index supplied, the only way to break determinism is to reach for one of those, so the enforcement is one lint
+rule over one folder rather than a convention repeated in every recipe.
+
+### Routes: how an ingredient makes its state
+
+**A route says how the state gets made, and each carries a different risk:**
+
+| Route | Means | Risk |
+|---|---|---|
+| `api` | calls the real code path — `POST /api/guilds`, and the server does what it really does | none; this is the honest one |
+| `write` | writes storage directly, in the shape the app WOULD have made | **it can drift from what the app actually writes** |
+| `recording` | replays something captured from a real run | the only one that cannot lie about shape |
+
+**A `write` route must declare `copies:`** — the production code whose output it imitates. Without the pointer, every
+diagnosis of a broken ingredient opens with a hunt for the counterpart. The live example: a web harness hand-appends the
+`event-outbox.jsonl` line that `questPersistBroker` writes in production, so that ingredient reads
+`copies: 'questPersistBroker'` and a diagnosing agent starts there instead of guessing.
+
+**An ingredient may declare BOTH `api` and `write`, and most should.** The target picks; the caller does not.
+
+#### An ingredient for a FILE, and an ingredient for a DATABASE ROW
+
+**The framework names neither files nor SQL, and a repo instantiates it once with its own TARGET
+type.** Dungeonmaster keeps its state as JSON in a home directory; most repos installing this keep rows
+in a database. Both are proven in `proto/` — `ingredients.ts` is the file-backed repo and `db.ts` is the
+database-backed one, and the chain over them is identical.
+
+```ts
+// a FILE-backed repo: its target is a home directory
+export type DmTarget = { home: string; baseUrl?: string };
+const { ingredient, registry, run } = createHydration<DmTarget>();
+
+// a DATABASE-backed repo: its target is a transaction
+export type SqlTarget = { tx: Transaction; baseUrl?: string };
+const { ingredient, registry, run } = createHydration<SqlTarget>();
+```
+
+**A transaction as the target is what gives a database repo the rollback a throwaway home gives this
+one.** A plan that dies halfway leaves nothing behind either way.
+
+**A quest — state that lives in a file:**
+
+```ts
+export const questIngredient = ingredient({
+  name: 'quest',
+  description: 'one quest under a guild, at whatever status you set it to',
+  links: [{ of: 'guild', as: 'guildId' }],
+  transitions: { field: 'status', to: ['created', 'approved', 'in_progress', 'complete'] },
+  routes: {
+    // through the app: gates run, the relay seeds, work items appear
+    api: ({ target, fields }) => httpPost({ target, path: '/api/quests', fields }),
+    // the same end state, written into the home directory with no server involved
+    write: ({ target, fields }) => hydrate({ target, fields }),
+  },
+  copies: 'questPersistBroker',
+});
+```
+
+**A post — a row with a foreign key:**
+
+```ts
+export const postIngredient = ingredient({
+  name: 'post',
+  description: 'one post owned by a user, at whatever status you set it to',
+  // `links` IS the foreign key: `authorId` is the column, `user` is the referenced row
+  links: [{ of: 'user', as: 'authorId' }],
+  transitions: { field: 'status', to: ['draft', 'scheduled', 'published'] },
+  routes: {
+    // through the app: validation, a slug, a search-index write, an audit row
+    api: ({ target, fields }) => httpPost({ target, path: '/api/posts', fields }),
+    // a straight INSERT: none of that happens. This is the trade `write` exists to name
+    write: ({ target, fields }) => insert({ target, table: 'posts', fields }),
+  },
+  copies: 'PostService.create',
+});
+```
+
+| | the file repo | the database repo |
+|---|---|---|
+| target | a home directory | a transaction |
+| `write` does | writes JSON through the hydrator | one `INSERT` |
+| `api` does | `POST /api/quests` | `POST /api/posts` |
+| `links` means | a field on the written JSON | a FOREIGN KEY column |
+| what `write` skips | the gates, the relay seed, the work items | validation, the slug, the search index, the audit row |
+| rollback | throw the home away | roll the transaction back |
+
+**`links` and a foreign key are the same idea, which is why one mechanism covers both.** A comment
+carries two of them — the post it hangs on and the user who wrote it — so its accessor appears under a
+post and NOT under a user, because a user alone cannot supply a `postId`. That is enforced by the
+types, and a negative case proves it.
+
+```ts
+blog.users.add(2, (u, all) => [
+  all.set({ displayName: 'seeded' }),
+  u[0].posts.add(3, (p, everyPost) => [
+    everyPost.set({ body: 'lorem' }),
+    p[0].set({ status: 'published' }),          // walked
+    p[1].setRaw({ status: 'takendown' }),       // written, no walk
+    p[0].comments.add(1, (cm) => [cm[0].set({ body: 'first' })]),
+  ]),
+]);
+```
+
+#### An ingredient with only one route, and what it costs
+
+**In THIS repo every entity has a write route, and that was checked rather than assumed.**
+`guildAddBroker` mints the id with `crypto.randomUUID()` and the slug with `nameToUrlSlugTransformer`,
+and it touches no server — so the guild ingredient declares `write` with
+`copies: 'guildAddBroker'` exactly as the quest declares it with `copies: 'questPersistBroker'`. **Do
+not write an api-only guild ingredient.** The integration half of the migration needs guilds, and an
+api-only one would shut it out of the cheap environment for no reason.
+
+**But the one-route case is real in general, and the framework must handle it**, because a consumer
+repo will have an entity only its server can mint — anything whose id comes from a database sequence or
+an external service.
+
+**A plan runs without a server only if EVERY ingredient in it declares a `write` route.** That is an
+ALL, not an ANY, and the distinction is the whole point: a plan whose ingredients each declare both
+routes runs serverless, and one containing a single api-only ingredient does not, however many of the
+others are writable.
+
+**So the `routes:` line in a listing reports what the plan REQUIRES, not the union of what its
+ingredients offer.** A union answers "which routes appear anywhere", which is a different question and
+always a more optimistic one. The honest line is one of two values:
+
+| The listing prints | Means |
+|---|---|
+| `runs serverless` | every ingredient in this plan has a `write` route |
+| `needs a server: <ingredient>` | at least one does not, and this is which |
+
+**The runner refuses that mismatch before it seeds anything**, naming the ingredient and the missing
+route — not partway through with half a plan on disk.
+
+**A diagnosis is bounded by which route failed:**
+
+| Failed route | The diagnosis is |
+|---|---|
+| `api` | the real code path changed — a route, a payload contract, a status. Read the handler |
+| `write` | find the `copies:` target and diff what it writes NOW against what the ingredient writes. It is a copy that stopped matching |
+| `recording` | the recording is of a version that no longer exists. Re-capture, do not patch |
+
+### Every ingredient carries a test, and a two-route ingredient tests its routes against each other
+
+**Every ingredient has a colocated integration test that runs it and asserts what it made.** Without one, an ingredient that rots
+is discovered by whichever planner next happens to need it, with a broken ingredient and no idea what broke it. With one, the
+commit that changed `questPersistBroker` fails that ingredient's test in the same ward run, next to the diff that did it.
+
+**An ingredient declaring both routes runs both and compares them.** That is the sharpest form the test can take, and it is
+available for free: the `write` route's whole declared risk is drifting from what the app really writes, and the `api`
+route IS what the app really writes. A snapshot pins the ingredient to a shape somebody typed; a two-route comparison pins it
+to what production emits and fails the moment they diverge.
+
+**Three layers, and each catches something the others cannot:**
+
+| Layer | Asks | Runs |
+|---|---|---|
+| the ingredient's integration test | does this ingredient still do what it claims? | every ward, on the commit that broke it |
+| the planner's prelude run | do these recipes COMPOSE, and does the sequence reach THIS path's entry? | plan time, per path |
+| the walk itself | is the state actually usable for what the path does? | round time |
+
+**The middle layer does not become redundant.** An ingredient test proves the ingredient is correct. It cannot prove that is what
+PATH 3 needs — an ingredient can be perfectly correct and simply be the wrong ingredient for a path — and it cannot prove
+composition, because three ingredients that each pass alone still fail in sequence when one leaves state the next does not
+expect. **The split is correctness versus fitness.** The test owns correctness and owns it continuously. The planner
+owns fitness for a specific walk, which no test can know.
+
+**Cost, or nobody will run it.** A `write` route is pure `fs` and tests cleanly under `installTestbedCreateBroker` with
+its own temp dir. An `api` route needs a server — at a 20-second instance boot, one test per ingredient is 20s times N and
+the suite gets skipped. So the `api` routes share ONE instance for the whole suite: boot once, run each, assert each,
+tear down. The `write` routes need no instance at all.
+
+### What the type prototype proved, and what it changed
+
+**The types were the risk in this design, so they were built and compiled before the doc described
+them.** The prototype is committed at `proto/`, EIGHT files under TypeScript 5.8.3 with `strict` on,
+run by `node proto/check.mjs`. It compiles CLEAN, and 29 of its lines are `@ts-expect-error` — cases
+that MUST fail. An unused directive is itself an error, so a rule that quietly stopped working fails
+that run rather than passing it.
+
+**It covers TWO repos, not one.** `ingredients.ts` is a file-backed repo (dungeonmaster's own guilds,
+quests, operations and sessions); `db.ts` is a database-backed one (users, posts and comments behind
+foreign keys). `usage.ts` exercises every chainable over both, and the doc's examples are copied out of
+it rather than written beside it.
+
+**The harness was mutation-tested**, because a green check that cannot go red proves nothing. Every
+break below was applied and reverted, and each was caught by the test that owns it:
+
+| Break | Caught by |
+|---|---|
+| widen `transitions.to` so `blocked` becomes reachable | the unreachable-transition case |
+| make `Tuple` always degrade to an array | the out-of-bounds case |
+| drop the child accessor's IMMEDIATE-PARENT condition | `q[0].sessions` |
+| drop the child accessor's ALL-LINKS-SATISFIED condition | `u[0].comments` on the database repo |
+| drop `Matched`'s restriction so a filtered set gains `add` | the filter-has-no-add case |
+
+**What the compiler enforces**, each proven by a case that fails without it:
+
+| Rule | Proven by |
+|---|---|
+| `q[3]` after `add(3, …)` | out-of-bounds index |
+| an unknown field in `set` | `set({ nope: 1 })` |
+| a status outside `transitions.to` | `set({ status: 'blocked' })` |
+| a value that is not a status at all | `set({ status: 'nonsense' })` |
+| an extra the ingredient never declared | `withNestedChain` on a quest |
+| a wrongly typed argument to an extra | `withNestedChain({ depth: 'two' })` |
+| a child accessor on the wrong host | `q[0].sessions` |
+| indexing a filtered set | `filter(…)[0]` |
+| `add` on a filtered set | `filter(…).add(…)` |
+| a bad `expect` value | `expect: 'exactly-two'` |
+| an unknown field in `where` | `filter({ where: { nope: 1 } })` |
+| a recipe input of the wrong type | a bare string where a branded `GuildId` is wanted |
+| a recipe called with no input when it needs one | `sessionWithNestedChain()` |
+| a seed step missing its `params` | over the in-process union |
+| a seed step with the wrong `params` shape | over the in-process union |
+| `params` on a recipe that takes none | over the in-process union |
+| a seed step naming an unknown recipe | over the in-process union |
+
+**Four things the design got wrong on paper and the compiler caught:**
+
+| What broke | What it forced |
+|---|---|
+| parent and child each referencing the other | `TS7022` — an inference cycle, and every type downstream degrades to `any`. Links name the parent by NAME, and a registry inverts them |
+| `all` as a property beside the handles | `Tuple<T, N> & { all: T }` silently loses the out-of-bounds check. `all` became `add`'s second builder argument |
+| a child accessor requiring only that its links be satisfiable | that puts `sessions` on `q[0]`, since a quest's ancestors include a guild. The host must also be named in the child's own links |
+| `Target` typed as `{ home, baseUrl }` inside the framework | that is dungeonmaster's shape sitting in a package that SHIPS. A repo now instantiates the framework once — `createHydration<SqlTarget>()` — and the framework names neither files nor SQL |
+
+**A second probe found a whole axis the first one missed.** The chain's negatives guard the CALL SITE.
+Nothing guarded the DECLARATION — an ingredient written wrong, before any recipe touches it. Ten
+malformed declarations were written and **all ten compiled clean**:
+
+| # | The malformed declaration | Caught now? |
+|---|---|---|
+| 1 | `transitions.field` naming no field | yes |
+| 2 | `transitions.to` holding a value that field cannot take | yes |
+| 3 | a `write` route with no `copies:` | yes |
+| 4 | no routes at all | yes |
+| 5 | an extra named `set` | yes |
+| 6 | an extra named `remove` | yes |
+| 7 | `defaults` returning a field that does not exist | yes |
+| 8 | `links.as` naming no field | yes |
+| 9 | `links.of` naming an unregistered ingredient | yes, at `registry()` |
+| 10 | two ingredients sharing a `name` | **no — runtime check** |
+
+**Nine of the ten are now compile errors**, in `declarations.ts`, each mutation-tested. The tenth —
+two ingredients sharing a name inside one registry — is not expressible in the type system and needs a
+runtime check at `registry()`. That is a row in the gaps table below rather than a thing to keep trying.
+
+**One smaller finding: the `const` modifier on `add`'s count is unnecessary.** A type parameter
+constrained `extends number` already infers the literal from a numeric-literal argument — measured by
+dropping it and watching the suite stay green. It is harmless to keep and misleading to cite as the
+reason the tuple works.
+
+### The sad paths, which no type catches
+
+**Two different classes of wrong, and only one of them is a type error.** A malformed declaration and a
+bad call site fail at compile time, and `proto/` covers both. Everything below fails while the plan is
+RUNNING, against a real server and a real disk, and no amount of typing touches any of it.
+
+**Every one of these must fail LOUDLY and name what it was doing.** A seed that fails quietly is the
+worst outcome this design has: the walk starts against a state nobody intended, reports a defect that
+does not exist, and a fixer goes hunting in working code.
+
+| What fails | Where | What must happen |
+|---|---|---|
+| the connection is refused | an `api` route | halt before the next op. Name the ingredient, the route and the URL |
+| the server answers 4xx or 5xx | an `api` route | halt, **and carry the response body verbatim** — that body is usually the real diagnosis |
+| the server answers 2xx with a shape `record` rejects | an `api` route | halt and name the field. A silently wrong record poisons every `fromSaved` and every link after it |
+| the write fails — `EACCES`, `ENOSPC`, a read-only mount | a `write` route | halt. Name the path, not just the errno |
+| the parent directory does not exist | a `write` route | **create it.** A missing parent is the siegelense socket bug one layer over: binding under an absent directory failed as `EACCES`, not `ENOENT`, and three sessions read it as permissions |
+| `reach` throws — the gates refused the transition | a transition | halt. Name `from`, `to`, and what the gate said. "Cannot go to in_progress from created" is a real answer; a stack trace is not |
+| the query fails mid-plan | `filter` | halt, and say so DISTINCTLY from "matched zero rows". One is the app being unreachable, the other is the row not being there |
+| the transaction rolls back | a database repo | the whole plan is undone. Report which op triggered it |
+| two ops race the same file | a file repo | this repo already has the case: `guildHarness` deletes sequentially because "concurrent DELETEs corrupt config.json (race on read-modify-write)". **The runner is serial, and that is a requirement, not an implementation detail** |
+| the recipes package was never built | discovery | say exactly that. **Never report an empty list** — a session cannot tell "you have written none" from "you have not built it" |
+| a recipe's params fail validation | the `seed` step | refuse before seeding anything. Name the bad input and list what that recipe takes |
+
+**A half-run plan is the case that needs a decision, not an apology.** Where the plan runs against
+something throwaway — a fresh instance's home, a database transaction — the answer is easy: discard it,
+nothing is left behind. The framework implements no undo and must not, because half-undoing is worse
+than a dirty tree nobody trusted.
+
+**But `seed` is a STEP, and a mid-batch seed runs against a LIVE instance the walk is already using.**
+There is nothing throwaway about that instance and nothing to roll back to. So:
+
+> **A mid-batch seed that fails HALTS the batch and marks the instance unusable.** The walk does not
+> continue. A partially seeded live instance is exactly the state that manufactures false defects, and
+> letting the remaining steps run against it turns one failure into a round's worth of wrong findings.
+
+**Re-running a failed seed is not safe and the tool should not offer it.** Some ops landed and some did
+not; a second run stacks new rows on top of the first attempt's. Start a fresh instance instead.
+
+### Two kinds of probe, and neither substitutes for the other
+
+| Probe | Catches | Runs | Lives in |
+|---|---|---|---|
+| the type suite | a malformed declaration, a bad call site | every ward, in milliseconds | `proto/`, then the packages' own tests |
+| a sad-path run | a refused connection, a failed write, a gate that says no | only against a real server and a real disk | integration tests, and the combinatorial rounds |
+
+**A green type suite says nothing about any row in the table above**, and it is worth writing that down
+because the type work is visible and thorough and reads like coverage. It is coverage of one axis.
+
+### The combinatorial planning session, and what it works from
+
+**This is its own session, not a step inside a build chunk.** Every verb has a worked example and every
+one compiles; that says nothing about what happens when they compose. The session's job is to find what
+this document did not anticipate, and to write each finding back INTO this document rather than working
+around it.
+
+**It opens from the two tables below, not from a blank page.** A session told "go try combinations"
+tries the ones it thought of first, which are the ones already written down.
+
+#### Table 1 — what an ingredient MUST have, and what it MAY have
+
+| Property | Must / may | If it is absent | If it is wrong |
+|---|---|---|---|
+| `name` | must | the config does not compile | a duplicate name across one registry is **caught by nothing today** — a runtime check at `registry()` |
+| `description` | must | does not compile | a vague one degrades the listing and nothing reports it. **A round should read every description and ask whether a session could choose from it alone** |
+| `fields` | must | does not compile | a contract narrower than the real entity makes a legal `set` impossible; wider makes an illegal one compile |
+| `record` | must | does not compile | a record that omits a server-assigned field makes `saveRecordAs` hand back less than exists, and a later `fromSaved` cannot reach it |
+| `routes` | must, at least one | does not compile | an `api`-only ingredient is unreachable from an integration test, and nothing says so until the run |
+| `links` | may | the row has no parent and appears at the top level | a wrong `as` does not compile; a wrong `of` fails at `registry()` |
+| `transitions` | may | the field is written, never walked | a `to` list missing a state makes that state unreachable by any caller; a `to` list too wide lets a caller ask for something the gates refuse, and that surfaces as a `reach` throw |
+| `defaults` | may | every row gets identical fields — **the "two of anything" rule silently breaks** | a default that varies by anything but the index breaks byte-identity across instances |
+| `copies` | must, with a `write` route | does not compile | a wrong pointer makes the two-route test assert against the wrong thing, and it PASSES |
+| `extras` | may | the ingredient has only the built-in verbs | a name shadowing a built-in does not compile |
+
+#### Table 2 — the rounds, and the question each one asks
+
+**Round A — one property at a time: what if this does not work as intended?**
+
+Take each row of Table 1 and ask it as a live question against a running instance, not as a thought
+experiment. The ones most likely to pay:
+
+- a `defaults` that returns the same value for every index — does anything notice, or does a walk just
+  quietly lose the ability to tell two rows apart?
+- a `record` missing a field the server really returns — where does that first hurt?
+- a `to` list including a state the gates actually refuse — what does the caller see?
+- a `copies` pointing at the wrong broker — does the two-route test still pass? (it should, which is
+  the finding)
+
+**Round B — nesting: what happens if there is a nest here?**
+
+- three levels (guild → quest → operation) is proven at type level. **Four? Five?** Where does the
+  ancestor chain stop resolving, and does it fail loudly or silently?
+- an `add` inside an `add` inside an `add`, each with its own `defaults` — do the indexes stay scoped
+  to their own `add`, as documented?
+- a `filter` inside a nested `add` — does it see only rows under THAT parent, or every row of that
+  ingredient in the instance? **This is not specified anywhere and it is the first thing to pin down.**
+- an ingredient linking to a parent two levels up, skipping one
+
+**Round C — composing the chainables, which is what the doc cannot have anticipated**
+
+Each of these is a pair or a triple, and each has a plausible reading that is wrong:
+
+| Combination | The question |
+|---|---|
+| `filter` over rows a `transition` in the same plan just minted | does the filter see them, and is the ordering guaranteed? |
+| `saveRecordAs` on a row a later `remove` deletes | is the saved record stale, absent, or an error? |
+| `fromSaved` pointing into a filtered SET rather than one row | which row does it mean? |
+| `set` with a transition, then another `set` with a different transition on the same row | two walks, or one? |
+| `setRaw` on a transition field, then `set` on the same field | does the second walk from the raw value, and is that value even a legal `from`? |
+| `remove` on a parent whose children exist | are the children removed, orphaned, or does it fail? |
+| two ingredients whose `links` name the same parent, under one `add` | ordering between them |
+| `under()` with an id that does not exist | a refused plan, or a foreign-key error from the database |
+| a transition whose gates mint rows another transition then removes | the count `makes:` reports |
+
+**Round D — the sad paths from the table above, driven for real.** Stop the server mid-plan. Make the
+home read-only. Hand `under()` a dead id. Each one is a row that must fail loudly and name what it was
+doing, and the round checks that it does.
+
+**What a round produces.** A finding goes back into this document as a rule, next to the verb it
+concerns. A finding that is really a defect in the app gets an observable instead. **A round that
+changes only the recipe to route around a finding has spent itself and recorded nothing.**
+
+### Known gaps, named rather than discovered later
+
+**These are open. None of them blocks building the framework, and each costs more the later it is
+found.**
+
+| Gap | What it needs |
+|---|---|
+| **A plan containing an `api`-only ingredient cannot say so before it runs.** The prototype leaves `baseUrl` optional on each repo's own target and stops there | the plan should carry the routes it requires, so a targetless run is refused at the call rather than partway through, with half a plan on disk |
+| **`fromSaved` is not typed against the field it lands in.** The prototype needed a cast | the saved row's field type has to reach the `set` it is used in, or a cross-link can point at the wrong column and compile |
+| **A recipe cannot call another recipe.** There is `add` and there is `filter`, and no `include` | recipes will duplicate each other's openings within a week of two people writing them. `include(otherRecipe({ … }))` splicing the other plan's ops in, with its saved names namespaced |
+| **The MCP wire has no compile-time check at all** | the tool generates a zod schema per enumerated recipe and validates before seeding. Named here because the in-process union looks like it covers both surfaces and does not |
+| **`recording` is declared and unexercised** | no ingredient in the prototype uses it, so nothing about it has been proven |
+| **Two ingredients may share a `name` inside one registry, and nothing catches it** | not expressible in the type system. A runtime check at `registry()`, throwing with both keys |
+| **A `filter` inside a nested `add` has undefined scope** | does it see only rows under THAT parent, or every row of that ingredient in the instance? Decide it before anyone writes one |
+| **No sad path is implemented or tested** | the table above is a spec, not a report. Nothing has driven a refused connection or a failed write |
+| **A row added at TOP LEVEL whose `links` nothing supplies compiles clean** | `Entry<R>` hands out a collection for every registered ingredient, so `dm.quests.add(1, …)` at top level typechecks with no guild anywhere — measured against the prototype. The RUNNER must refuse it before the first write |
+| **Production code mints uuids and timestamps that reach the screen** | `guild-add-broker.ts:35` and `quest-hydrate-broker.ts:88,131`. No lint rule over the recipes folder can reach them. Each painted value needs an override in production, or it is an observable against the app |
+| **Nothing pins the empty-versus-missing recipes package in a consumer repo** | `siegelense`'s `StartInstall` has to create it, and no test asserts that it does |
+| **`ban-primitives` is off only for `**/@types/**`** | the framework's generic machinery needs `N extends number` and `of: string`, which that rule refuses everywhere else. `@dungeonmaster/hydration` needs its own entry in `eslint.config.js`, and the entry needs a comment saying why, or somebody deletes it |
+
+### Mechanics the framework has to implement
+
+**These are the answers a builder would otherwise invent, each differently.** They are decisions, not
+discoveries, so they are written down rather than left to whoever gets there first.
+
+**A plan is a TREE of ops, and the runner walks it depth-first in declaration order.**
+
+| Op | Holds |
+|---|---|
+| `create` | the ingredient, the resolved fields, the index, the ancestor chain |
+| `set` | the row it targets and the values, split into written fields and a transition |
+| `remove` | the row it targets |
+| `saveRecord` | the row it targets and the name |
+| `filter` | the ingredient, the `where`, the `expect`, and the ops to apply to what it matched |
+
+**Depth-first in declaration order is what makes the ancestor chain and `fromSaved` work at all**, and
+it is the only ordering guarantee. Two sibling `add` calls run in the order they are written.
+
+**The plan never crosses the MCP wire.** A `seed` step names a recipe and its params; siegelense builds
+and runs the plan in its own process. So the plan's shape is an internal contract, and only the recipe
+NAME, its params and its returned records are wire-shaped.
+
+**`filter` reads live state, not the plan.** It queries whatever exists at that moment — rows an earlier
+op created, rows a transition minted, rows that were already there. That is what makes it the answer to
+"drop the riftcarver item the transition just seeded", and it is why the count cannot be known at build
+time.
+
+**A failed plan leaves nothing behind.** The mechanism is the repo's own: a file-backed repo runs
+against a throwaway home the caller discards, and a database-backed repo runs inside the transaction on
+its target. **The framework does not implement undo**, and must not — half-undoing is worse than a
+dirty tree nobody trusted.
+
+**The runner's refusals split into two groups, and conflating them is a bug.** A plan's SHAPE is known
+before anything runs; a plan's RESULTS are not.
+
+**Before the first write** — computed off the plan alone:
+
+| Check | Message names |
+|---|---|
+| an ingredient needs a route this target cannot serve | the ingredient, the routes it has, and what the target lacks |
+| a `fromSaved` names a record no op in this plan saves, or one declared LATER | the name, and the names that are saved |
+| a row whose `links` no ancestor supplies — including one added at TOP LEVEL | the ingredient and the link it cannot fill |
+
+**Mid-run** — they depend on what the app actually did, so no pre-flight can reach them:
+
+| Check | Message names |
+|---|---|
+| a `filter` matched fewer rows than `expect` allows | the ingredient, the `where`, and what WAS there |
+| a route threw | see the sad-path table above |
+
+**A mid-run refusal leaves whatever already landed.** That is why a mid-batch failure halts the batch
+and marks the instance unusable rather than pretending the plan can be unwound.
+
+**Every error is an `errors/` class carrying the ingredient and the recipe name**, because a failure
+inside a five-ingredient plan is unreadable without both.
+
+### How siegelense finds recipes without importing them
+
+**`siegelense` must list every recipe's name, description and inputs, and must not import
+`hydration-recipes`** — an import would weld one repo's states into the published tool.
+
+**The mechanism already exists in this repo.** The CLI discovers each package's install script by
+globbing `packages/*/dist/startup/start-install.js` and dynamically importing it at run time. Recipe
+discovery is the same move, one path over:
+
+1. glob `packages/hydration-recipes/dist/index.js`
+2. dynamically import it
+3. read the manifest it exports — every recipe's `name`, `description`, input contract, and the routes
+   its ingredients declare
+
+**It reads COMPILED output, which means the recipes package must be built before a listing is honest.**
+That is the same rule the install scripts already live under, and it belongs in the package's own
+`CLAUDE.md` where a session editing a recipe will read it.
+
+**An absent directory and an empty one must not report the same thing.** An empty `hydration-recipes`
+returns an empty list, meaning *no recipes yet*. A missing one is an installation problem and says so.
+That is the `count: 0` ambiguity this design keeps running into, and the listing is where it bites a
+session hardest.
+
+### Where each part lands in this repo's architecture
+
+**A starting map, not a ruling.** The planner may move things; what it should not do is invent the
+whole layout from nothing.
+
+| Part | Folder type | Package |
+|---|---|---|
+| `IngredientConfig`, `Plan`, `Op`, `Target`, the recipe manifest | `contracts/` | `hydration` |
+| the chain builder — `add`, `set`, `filter`, and the rest returning ops | `transformers/` | `hydration` |
+| `createHydration`, `ingredient`, `registry`, `recipe` | `brokers/` | `hydration` |
+| the runner that walks a plan against a target | `brokers/` | `hydration` |
+| route helpers — an HTTP post, a file write | `adapters/` | `hydration` |
+| the refusal errors | `errors/` | `hydration` |
+| recipe discovery and the listing | `brokers/` | `siegelense` |
+| the `seed` step and its params validation | `brokers/` | `siegelense` |
+| **scaffolding `packages/hydration-recipes/` in a consumer repo** | `startup/` | **`siegelense`** — it is the package that enumerates the path, so it owns creating it. `hydration` ships no `StartInstall` of its own |
+| each ingredient and each recipe | one folder each | `hydration-recipes` |
+
+**The framework's generic type machinery needs `N extends number` and `of: string`, which
+`ban-primitives` refuses.** That rule is off only for `**/@types/**`, so `hydration` needs its own entry
+in `eslint.config.js` — with a comment saying why, or somebody deletes it.
+
+### The migration IS the validation, not cleanup afterwards
+
+**Converting the existing suites is how this design gets proven, and it is in scope for this work.** A
+synthetic round exercises what somebody thought to write. Two hundred real tests exercise what the app
+actually needs, across the three environments this design claims to serve — and a conversion that
+cannot reproduce a test's setup has found a hole no invented example would have.
+
+**Measured on this branch:**
+
+| | Files | Seed domain state | What they use |
+|---|---|---|---|
+| `*.e2e.ts` | 122, all in `web` | **118** | Playwright harnesses, every one |
+| `*.integration.test.ts` | 121, across 14 packages | **17** | `installTestbedCreateBroker` plus, in 5 cases, the hydrator |
+
+**The other 104 integration tests are not conversion targets.** They take a temp directory from
+`installTestbedCreateBroker` and never build a guild or a quest. Leave them alone; a migration that
+touches them is spending itself on files that have no seeding to replace.
+
+**Every figure above is produced by a script, not quoted from a session.** Run it:
+
+```bash
+python3 scrolls/tools/seed-census.py              # the census, plus the target FILE LIST
+python3 scrolls/tools/seed-census.py --progress   # call sites remaining, for the running mark
+python3 scrolls/tools/seed-census.py --json       # the same, machine-readable
+```
+
+It prints every conversion target by path, separates the excluded test-of-a-`copies:`-target from the
+rest, and counts the call sites each seeding harness still holds. **A figure nobody can re-derive is a
+figure that rots**, which is why the counts in this section are a command rather than a number
+somebody typed.
+
+**`--progress` is the running mark the build prompt asks for.** It reports 916 seeding call sites
+today; zero across all three harnesses is the conversion finished, the number only falls, and a batch
+that does not move it converted nothing.
+
+**Three harnesses are almost the whole job.** Counted by call site across the e2e specs:
+
+| Harness | Call sites | Becomes |
+|---|---|---|
+| `guildHarness` | 510 | the `guild` ingredient |
+| `questHarness` | 259 | the `quest` ingredient |
+| `sessionHarness` | 147 | the `session` ingredient |
+| `navigationHarness` | 268 | **stays** — it drives, it does not seed |
+| `environmentHarness` | 236 | **stays** — configuration, not state |
+
+So the conversion is three ingredients against roughly 900 call sites, not thirty-five separate
+rewrites. The rest of the harness tree keeps doing what it already does.
+
+#### The order, and why each step proves something the last one could not
+
+| Step | Scope | Environment | What it proves |
+|---|---|---|---|
+| 1 | the 17 integration domain-seeders | files only, no server | the **`write` routes**, and that a plan runs with no `baseUrl` at all |
+| 2 | the 118 e2e specs | a real server and a real browser | the **`api` routes**, and that one plan serves a caller with both |
+| 3 | one manual siegelense round | a live instance, driven by hand | the **`seed` step, `recipes {}`, and the params validation** — the tool half, which neither suite touches |
+
+**Integration first, even though it is the smaller half.** It is the cheap environment — no server, no
+browser, seconds per run — so every defect in the runner, the links, the defaults and the transitions
+surfaces there, where a cycle costs seconds instead of minutes. Converting 118 browser specs against an
+unproven runner is how you spend a day watching Playwright find the same bug repeatedly.
+
+**Step 3 is not optional and cannot be folded into step 2.** The e2e suite calls recipes as functions,
+in process. Siegelense calls them by NAME over a step, with params validated at a boundary neither
+suite crosses. A green suite says nothing about whether `recipes {}` lists anything or whether a
+`seed` step resolves a recipe at all.
+
+#### The rule that makes the conversion a proof
+
+> **A converted test keeps its assertions, exactly.** Only its setup changes.
+
+**If a converted test needs a different assertion to pass, the ingredient is wrong — not the test.**
+That is the whole value of converting real tests rather than writing new ones: the assertions were
+written against what the app really does, by somebody who was not thinking about this framework. They
+are the control. Loosening one to make a conversion land destroys the only independent check in the
+exercise and hides the finding it just produced.
+
+**A test that cannot be converted is a finding, and it gets written into this document** — under the
+verb or the property it defeated. It is not a test to leave behind quietly.
+
+**One of the seventeen is a test OF the broker a `write` route calls, and it is NOT a conversion
+target.** `quest-hydrate-broker.integration.test.ts` exercises `questHydrateBroker` directly, and the
+quest ingredient's `write` route IS `questHydrateBroker`. Converting it makes it assert the hydrator
+through the hydrator — a test that cannot fail for the reason it was written.
+
+> **An integration test whose SUBJECT is the production writer an ingredient copies keeps its own
+> setup.** It is the thing the ingredient is measured against, so it cannot be measured through it.
+
+**Four other tests MENTION `questHydrateBroker` and are ordinary targets.** They use it as setup, not
+as subject — `questModifyBroker`, `questPauseBroker`, `preStampInProgressLayerBroker` and
+`smoketestClearPriorQuestsBroker` — and replacing that setup with the quest ingredient is the whole
+point. **Mentioning the broker is not the test; `describe()` naming it is.** So step 1 has sixteen
+targets, not seventeen and not twelve.
+
+The same rule applies in a consumer repo wherever a `copies:` target has its own test.
+
+**Convert in small batches and keep the suite green between them.** 118 specs converted in one pass and
+then run is a red suite with no way to tell which conversion caused which failure.
+
+### An ingredient touches STATE, never a screen
+
+**An ingredient writes files and calls APIs. It has no business holding a DOM handle** — not a ref, not a selector, not a
+position — and it asserts nothing about what renders. The moment an ingredient knows about the UI it has become a walk, and a
+walk that seeds is what the rule above forbids.
 
 **"Never write a ref into a durable thing" cannot be enforced in one place, because refs leak into two different kinds
-of artifact.** Enforcement is layered, and only one of the layers actually protects you:
+of artifact.** Enforcement is layered, and only one layer actually protects you:
 
-| Layer                                                                                                                 | What it stops                                                                                   | Reaches                                          |
-|-----------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|--------------------------------------------------|
-| **runtime** — only the minting INSTANCE holds the handles, and it invalidates them on navigation, `reset` and restart | a ref resolving anywhere it should not. Outside its instance there is nothing to look one up in | everything, including artifacts nothing can lint |
-| **types** — a durable step shape that structurally omits `ref`                                                        | a saved batch being written with one                                                            | anything typed                                   |
-| **lint** — a local rule over recipe files                                                                             | a recipe mentioning a DOM handle at all                                                         | source only                                      |
-| prose — the prompt                                                                                                    | the rest                                                                                        | nothing, reliably                                |
+| Layer | What it stops | Reaches |
+|---|---|---|
+| **runtime** — only the minting INSTANCE holds the handles, and it invalidates them on navigation, `reset` and restart | a ref resolving anywhere it should not | everything, including artifacts nothing can lint |
+| **types** — a durable step shape that structurally omits `ref` | a saved batch being written with one | anything typed |
+| **lint** — a rule over ingredient files | an ingredient mentioning a DOM handle at all | source only |
+| prose — the prompt | the rest | nothing, reliably |
 
-**The runtime guard is the one that matters, and it is the reason the other layers can stay simple.**
-Guides, round records and fixer briefs are markdown agents write DURING a pass into `.quest-plans/`, which no lint rule
-will ever see. It does not need to. **A ref is resolvable only by the instance that minted it, so a ref that travels has
-nowhere to land** — it fails loudly the moment somebody tries it, rather than quietly driving the wrong element. Make
-the constraint self-enforcing at the point of USE and the point of writing stops mattering.
+**The runtime guard is the one that matters, and it is why the other layers can stay simple.** Guides, round records and
+fixer briefs are markdown agents write DURING a pass into `.quest-plans/`, which no lint rule will ever see. It does not
+need to. **A ref resolves only in the instance that minted it, so a ref that travels has nowhere to land** — it fails
+loudly the moment somebody tries it, rather than quietly driving the wrong element.
 
-**The lint rule is worth having anyway, for recipes specifically**, because a recipe carrying a selector is a design
-error rather than a stale value — it says the recipe is doing someone else's job. `@dungeonmaster/local-eslint` is the
-home: repo-only, never shipped, and
-`no-hardcoded-package-names` is the working template — a rule broker plus a statics file holding its watchlist and path
-allowlists, registered in `../../eslint.config.js`.
+**The lint rule is worth having anyway, for ingredients specifically**, because an ingredient carrying a selector is a design error
+rather than a stale value — it says the ingredient is doing someone else's job.
 
-**And that rule carries the caution to copy along with the shape.** Measured this session:
-`siege-lane.ts` passes it while hardcoding `@dungeonmaster/server` and `@dungeonmaster/web`, because
+**That rule belongs in `@dungeonmaster/eslint-plugin`, which ships, NOT in `@dungeonmaster/local-eslint`, which does
+not.** The constraint binds every repo that writes an ingredient, so a repo-only rule would hold it here and nowhere else.
+`no-hardcoded-package-names` in `local-eslint` stays the working TEMPLATE for the shape — a rule broker plus a statics
+file holding its watchlist and path allowlists — but the home is the published plugin.
+
+**And that template carries a caution to copy along with the shape.** `siege-lane.ts` passes
+`no-hardcoded-package-names` while hardcoding `@dungeonmaster/server` and `@dungeonmaster/web`, because
 `packageNameLiteralStatics` only matches a role-bearing name AFTER a workspace directory segment — so the `@scope/name`
 form is waved through by design. **A rule that looks like it covers something and does not is worse than no rule**,
 because people stop checking. Whatever this one's scope is, say it in the rule's own message.
 
-The same mechanism carries the rest of the recipe contract, which is otherwise a convention nobody checks: a recipe
-declares `produces:` and `fidelity`, and returns the ids it created. Those are contract-shaped, so a `satisfies` catches
-a missing one at build time rather than at the moment a walk needs an id that was never returned.
+### Some claims can only be asserted in a BROWSER
 
-### The oddities file — durable driving knowledge, the way proxies hold it for unit tests
+**An ingredient whose claim is about a URL cannot be tested by reading a file.** Most ingredients write state and their test reads
+it back — the sub-agent-duration ingredient writes JSONL, the test asserts the JSONL. But a claim like *"a URL that renders
+the nested chain"* is only true if something renders it, and that needs a page.
 
-**Problem.** Some things about driving an app are true forever and discoverable only by driving it:
+So ingredient tests come in three costs, not two:
 
-> for THIS button, clicking the label does nothing — click the wrapper
-> this panel takes ~2s to mount; asserting before it does reads as a missing element
-> this control needs scrolling into view before a click lands
-> `PIXEL_BTN` appears twice on this screen; the one you want is under `GUILD_SESSION_LIST`
+| The claim is about | Test needs | Cost |
+|---|---|---|
+| files on disk | `installTestbedCreateBroker` and a temp dir | cheap, no instance |
+| a real route's response | a server | one shared instance for the whole suite |
+| **what a URL RENDERS** | a server AND a browser | a full instance, and the slowest of the three |
 
-**Unit tests already have a home for exactly this: the proxy.** `home-content-widget.proxy.tsx`
-encodes "the session-list add button needs `within(GUILD_SESSION_LIST)`" so no test has to rediscover it. That knowledge
-is written once and reused by everything.
+**That third row is where an ingredient starts overlapping a walk**, and the line stays where it was: the ingredient creates the
+state and hands back the ids; the PRELUDE does the `goto`. An ingredient that navigates has taken a walk's job, and "an ingredient
+touches state, never a screen" still holds — what the third row means is only that PROVING its claim needs a screen, not
+that the ingredient drives one.
 
-**A walk has no such home, and the place it currently lands is wiped.** Siegemaster's guide has a
-`TRAPS` heading — "what has bitten here before — timing, a fixture that lies, a control that needs scrolling into
-view" — but a guide is written per quest, by a sub-agent, into `.quest-plans/`, and
-`.quest-plans/` is gone when the quest ends. So every oddity is rediscovered by the next quest, at the cost the prompt
-already names: "a wrong command costs a whole round."
+**The practical effect is that a browser-asserted ingredient test is expensive enough to be deliberate.** Where a claim can be
+narrowed to "this file exists with this shape", narrow it — and let the prelude's own `VERIFIED` run cover whether the
+URL then renders. The prelude is already proven by running, so an ingredient test that re-proves the rendering is paying twice
+for one fact.
 
-**Solution — a committed file of app oddities that every walk reads and every walk can append to.**
+### What this is, in industry terms
 
-| Property                                                                    | Why                                                                                                |
-|-----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
-| **durable and committed**, not `.quest-plans/`                              | the whole point is surviving the quest that found it                                               |
-| keyed by testId or route, not by quest                                      | the reader is a walk on some future flow, not this one                                             |
-| one line per oddity, with what it cost                                      | "click the wrapper, not the label" plus the symptom it produces when you get it wrong              |
-| **a round that hits a NEW oddity appends to it**                            | knowledge compounds instead of being rediscovered. This is the difference between it and the guide |
-| a round that finds an entry WRONG reports it, same as a wrong guide heading | an oddity nobody corrects is worse than none, because every walk after trusts it                   |
+**This is a test-data FACTORY library.** That is the closest established match and the one with the most road-tested
+ideas. The word "hydration" means something else in the industry — turning server-rendered HTML into a live client-side
+app — so it is not the term to search under.
 
-**The guide's `TRAPS` heading becomes a per-quest pointer at this file**, the same way `CONTROLS`
-becomes the key and `SEEDING` becomes recipe names. All three headings exist because a walk needs something it has to
-work out; all three stop being work once something durable answers.
+| Established term | What it means |
+|---|---|
+| **fixture** | a fixed static blob loaded before a test — Rails fixtures, Django `loaddata` |
+| **factory** | a function building an entity from defaults you override — FactoryBot, factory_boy, Fishery |
+| **object mother** | a named canned scenario — `aCustomerWithNoOrders()` |
+| **test data builder** | fluent chaining — `aUser().withOrders(3).build()` |
+| **seed** | populating a database for dev or test — `rails db:seed`, Prisma seed |
 
-**Much of what lands here should be read as a bug report about the app, not just a workaround.** "For this button, click
-the wrapper" usually means the control's hit area is wrong, which is a real defect for a real user with a real mouse. An
-oddity file that only ever grows is a list of accepted defects — so each entry carries whether it is a genuine quirk of
-the platform or something that should be fixed, and the second kind gets an observable rather than an entry.
+**Four ideas taken, all from the factory family:**
 
-### Recipes carry integration tests, and that is a DIFFERENT guarantee from the planner's
+| Idea | What it gives | Where it lands here |
+|---|---|---|
+| **sequence** | per-item values derived from the index rather than a clock or a random source | `defaults(i)`, and the chain owning `i` |
+| **trait** | a named modifier you combine, instead of a new factory per combination | capability verbs and extras, typed per ingredient |
+| **lint** | a command that runs every factory and fails on any that cannot build | the colocated ingredient test, run by ward |
+| **explicit dependencies** | a factory states what it needs rather than assuming a prior call | `links` on the ingredient, and structural nesting in the chain |
 
-**Every recipe has a colocated integration test that runs it and asserts its `produces:` claim.** The companion plan
-already argued for this — "a colocated test that runs it and asserts the state it claims — 'the planner tests its own
-tooling', made structural" — and the case is stronger from this side.
+**Four ideas deliberately refused:**
 
-**It moves staleness detection from months late to the commit that caused it.** Without it, a recipe that rots is
-discovered by whichever planner next happens to need it, with a broken recipe and no idea what broke it. With it, the
-commit that changed `questPersistBroker` fails that recipe's test in the same ward run, next to the diff that did it.
+| Idea | Why not |
+|---|---|
+| **Faker and random data** | standard practice, and actively wrong here — baselines compare bytes across instances, so one random id kills the "nothing happened" signal |
+| **fluent builders as the top-level form** | a prelude is JSON a tool submits, not a method chain a person types. The chain builds the JSON; it is not the interface a walk sees |
+| **static fixtures** | they go stale silently, which is exactly the risk the `write` route exists to label |
+| **object mother's method-per-scenario** | `guild-with-three-quests`, `guild-with-one-quest`, `guild-with-three-quests-one-in-progress` — a catalogue that grows wide instead of deep |
 
-**Three layers, and each catches something the others cannot:**
+**On the resemblance to Cucumber.** It is real and worth naming, because the thing it resembles has a well-known way of
+dying. What was deliberately not taken:
 
-| Layer                         | Asks                                                                     | Runs                                    |
-|-------------------------------|--------------------------------------------------------------------------|-----------------------------------------|
-| the recipe's integration test | does this recipe still do what it CLAIMS?                                | every ward, on the commit that broke it |
-| the planner's prelude run     | do these recipes COMPOSE, and does the sequence reach THIS path's entry? | plan time, per path                     |
-| the walk itself               | is the state actually usable for what the path does?                     | round time                              |
+| Cucumber has | Here |
+|---|---|
+| a natural-language layer, steps matched by regex or expressions | no parsing. A plan is data with typed names |
+| business-readable specs as the selling point | the reader is a MODEL. Readability matters for the same reason, but nobody is pitching this to a stakeholder |
+| a shared mutable `World` object | handles are scoped to the `add` that minted them, and records travel through `saveRecordAs` |
 
-**The middle layer does not become redundant, and this is the part worth being explicit about.** A recipe test proves
-`produces: one guild holding three quests, one in_progress`. It cannot prove that is what PATH 3 needs — and a recipe
-can be perfectly correct and simply be the wrong recipe for a path. Nor can it prove composition: three recipes that
-each pass alone still fail in sequence when one leaves state the next does not expect.
-
-So the split is **correctness versus fitness**. The test owns correctness and owns it continuously. The planner owns
-fitness for a specific walk, which no test can know.
-
-**For a `direct` recipe the test has a sharper form available, and should take it.** A recipe declaring
-`mirrors: questPersistBroker` can assert its output against **what that broker actually writes**, rather than against a
-hardcoded expectation. A snapshot test pins the recipe to a shape somebody typed; a mirror test pins it to the shape
-production emits, and fails the moment the two diverge. Since "it is a copy that can drift silently" is the entire risk
-`fidelity: direct` exists to declare, that is the test that matches the risk.
-
-**Cost, or nobody will run it.** A `direct` recipe is pure `fs` and tests cleanly under
-`installTestbedCreateBroker` with its own temp dir. A `production` recipe calls a real route and needs a server — at a
-20-second instance boot, one test per recipe is 20s × N and the suite gets skipped. So the production-fidelity recipes
-share ONE instance for the whole suite: boot once, run each, assert each, tear down. The `direct` ones need no instance
-at all.
-
-### The tool is `siegelense`, and its recipes live beside it
-
-**Three fixed names, and they are conventions rather than configuration:**
-
-| Thing              | Name                                                                                                                                                         |
-|--------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| the tool's package | `packages/siegelense/`                                                                                                                                       |
-| the command        | `dungeonmaster siegelense`                                                                                                                                   |
-| its MCP tools      | `siegelense-start`, `siegelense-run`, `siegelense-results`, `siegelense-cleanup`, … — **thirteen of them, and `look` is NOT one**: it is a step inside `run` |
-| **its recipes**    | **`packages/siegelense-recipes/`** — this exact path, in every repo it runs in                                                                               |
-
-```
-packages/siegelense-recipes/
-  src/
-    guild-with-three-quests/
-    quest-mid-execution/
-    session-with-nested-subagent/
-```
-
-**`packages/siegelense-recipes/` EXISTS IN EVERY REPO siegelense is installed in.** Not "wherever a repo chooses to put
-one" — that exact path, always, including a repo that has never written a recipe.
-
-**`dungeonmaster init` scaffolds it**, which is what makes that a fact rather than an aspiration. Each package's
-`StartInstall` already writes the config its own package needs; siegelense's creates the recipes package the same way. A
-convention nothing creates is a convention half the repos will not have.
-
-**And an EMPTY recipes package is a real answer where a missing one is not.** `siegelense-recipes {}`
-against an empty folder returns an empty list, which says *no recipes yet*. Against a folder that does not exist it can
-only say *something is wrong*, and the tool cannot tell "you have not written any"
-from "you have not installed this" — the `count: 0` ambiguity this whole design keeps running into, one layer up again.
-
-**The recipe path has to be a convention, because the tool ENUMERATES them.** `siegelense-recipes {}`
-returns every name with its `produces:` and `fidelity`, before anything has been seeded. That only works if the location
-is fixed — a config key is one more thing to set, get wrong, and diverge on between repos.
-
-**Why not just `recipes`:** a repo may plausibly have a package by that name for its own reasons, and a convention that
-collides is one that breaks on somebody's real code. The tool's own name makes that essentially impossible and says who
-owns the folder.
-
-**The existing prototype files keep their names.** `../../packages/web/test/siege-driver/siege-lane.ts` and its siblings
-are what exists today; they are superseded rather than renamed, and `siege-verification-remainder.md` Part 10 lists them
-as scratch. `siegemaster` is unchanged too — that is the ROLE, and the tool is not named after one role any more,
-because the planner, the antagonist and the fixer all drive it.
-
-**Each recipe must be LISTABLE without being RUN.** `produces:`, `fidelity` and `mirrors:` are static data the tool
-reads — never something it learns by executing. A listing that had to run every recipe to describe them would seed a
-machine just to answer a question.
-
-**Both are real workspace packages**, made the way every other one here is — `dungeonmaster
-create-package` — so each gets its own tsconfig pair, its own jest config and its own ward run. That last part is what
-makes the colocated recipe tests fire: they get graded by the command that grades everything else, on the commit that
-breaks them.
-
-**In a consumer repo the folder is there and the contents are theirs.** The convention travels; the recipes do not.
-Nobody else has guilds and quests, and nobody else should inherit ours.
-
-**Why a package and not `.dungeonmaster-assets/`, which is where tooling artifacts otherwise go.**
-Recipes are CODE — TypeScript importing the repo's own packages, with types and colocated integration tests. Being a
-workspace package is what gets them a WARD RUN, and the ward run is the entire reason those tests fire on the commit
-that breaks a recipe. A dot-folder gets no ward run, no tsconfig ownership and no lint; most tooling skips dot-folders
-by default, so you would end up rebuilding package infrastructure by hand inside a directory designed to be ignored.
-There is also a line worth keeping clean: `../../.dungeonmaster` and `../../.dungeonmaster-dev` hold RUNTIME DATA, and
-source sitting beside runtime state blurs it.
-
-**Non-code artifacts do go there**, and the split is "does this need to compile and be graded":
-
-| Artifact                                | Home                                                                      |
-|-----------------------------------------|---------------------------------------------------------------------------|
-| recipes                                 | the workspace package — they compile and are graded                       |
-| the ODDITIES file                       | `.dungeonmaster-assets/` — prose an agent appends to, nothing compiles it |
-| `fidelity: captured` fixtures           | `.dungeonmaster-assets/` — recorded data                                  |
-| profiles, the registry, instance assets | `<home>/siege/` — runtime, not in the repo at all                         |
-
-**`../../packages` assumes a monorepo, and that is a known limit rather than a settled answer.** A consumer with a flat
-`src/` has no `../../packages` to put this in, so "the same path in every repo" is already false for that class. The
-resolution is that the package NAME is the convention and its LOCATION follows whatever workspace layout the repo has —
-which dungeonmaster already detects through
-`workspaceDiscoverBroker` and `get-project-map`. Staying in `../../packages` is the call for now because this repo is a
-monorepo and the flat case has no consumer yet.
-
-### Some recipes' claims can only be asserted in a BROWSER
-
-**A recipe whose `produces:` is about a URL cannot be tested by reading a file.** Most recipes write state and their
-test reads it back — `subagentDurationHarness` writes JSONL, the test asserts the JSONL. But a claim like *"a URL that
-renders the nested chain"* is only true if something renders it, and that needs a page.
-
-So recipe tests come in three costs, not two:
-
-| The claim is about      | Test needs                                  | Cost                                          |
-|-------------------------|---------------------------------------------|-----------------------------------------------|
-| files on disk           | `installTestbedCreateBroker` and a temp dir | cheap, no instance                            |
-| a real route's response | a server                                    | one shared instance for the whole suite       |
-| **what a URL RENDERS**  | a server AND a browser                      | a full instance, and the slowest of the three |
-
-**That third row is where a recipe starts overlapping a walk**, and the line stays where it was: the recipe creates the
-state and hands back the URL; the PRELUDE does the `goto`. A recipe that navigates has taken a walk's job, and the rule
-"a recipe touches state, never a screen" still holds — what the third row means is only that PROVING its claim needs a
-screen, not that the recipe drives one.
-
-**The practical effect is that a browser-asserted recipe test is expensive enough to be deliberate.**
-Where a claim can be narrowed to "this file exists with this shape", narrow it — and let the prelude's own `VERIFIED`
-run cover whether the URL then renders. The prelude is already proven by running, so a recipe test that re-proves the
-rendering is paying twice for one fact.
-
-### On the resemblance to Cucumber
-
-**It is real and worth naming, because the thing it resembles has a well-known way of dying.** Named reusable setup
-steps, a `produces:` sentence per step, a declarative sequence a session composes — that is Given/When/Then with the
-serial numbers filed off.
-
-**What was deliberately not taken:**
-
-| Cucumber has                                                    | Here                                                                                                               |
-|-----------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| a natural-language layer, steps matched by regex or expressions | no parsing. A prelude step is data with a name, and the name is a lookup, not a pattern                            |
-| business-readable specs as the selling point                    | the reader is a MODEL. Readability matters for the same reason, but nobody is pitching this to a stakeholder       |
-| a shared mutable `World` object                                 | recipes return typed ids, and later steps reference them by name — `{g.guildId}`, not a bag everything writes into |
-
-**The failure mode to actually watch for is the one Cucumber suites die of: a catalogue of steps that composes correctly
-only if you know unwritten ordering rules.** Someone writes `given a guild` and
-`given a quest`, and six months later nobody can tell you whether the second assumes the first, because the knowledge
-lives in whichever scenario happened to work.
-
-**Three things here are the guard, and all three already exist for other reasons:**
+**The failure mode to watch for is the one Cucumber suites die of: a catalogue of steps that composes correctly only if
+you know unwritten ordering rules.** Three things here are the guard:
 
 - **A prelude is RUN, not assumed.** `VERIFIED` names the run that proved this sequence lands where it claims. An
   ordering rule nobody wrote down fails at plan time rather than surviving as folklore.
-- **Recipes take their dependencies explicitly.** `quest-mid-execution guild:{g.guildId}` says what it needs. A recipe
-  that silently requires a prior one is the ambiguity, and a parameter is the fix.
-- **`produces:` is data the tool reads, not prose in a feature file.** It cannot drift from the code the way a Gherkin
-  sentence drifts from its step definition, because the listing and the runner read the same declaration.
+- **Parenting is structural.** `g[0].quests.add(3, …)` says what these quests hang off. An ingredient that silently required a
+  prior call is the ambiguity, and nesting is the fix.
+- **The plan is data the tool reads, not prose in a feature file.** It cannot drift from the code the way a Gherkin
+  sentence drifts from its step definition, because the listing and the runner read the same object.
 
 ### Guidance for other repos
 
-**The convention ships; the recipes do not.** Another repo's states are its own — nobody else has guilds and quests.
-What travels is:
+**The framework ships; the recipes do not.** Another repo's states are its own — nobody else has guilds and quests.
+What travels is `@dungeonmaster/hydration`, an empty `packages/hydration-recipes/` that `dungeonmaster init` scaffolds,
+and these rules:
 
-- recipes are discoverable by name, not by grepping a test tree
-- each declares `produces:` and `fidelity`
-- each returns the ids a walk needs to address what it made
-- they compose rather than duplicate
-- two of anything an assertion must distinguish
+- an ingredient is declared once per entity, and its `fields` and `record` come from that repo's own contracts
+- an ingredient declares its routes, and a `write` route declares what it `copies:`
+- counts are `add(n)`, never a name
+- the chain owns the index, so nothing an ingredient writes varies between runs
+- two of anything an assertion must tell apart
 
-That is a convention plus a listing mechanism, not a package abstraction — which is deliberately short of the ownership
-architecture the companion plan wants, and enough to stop every walk re-deriving its own setup.
+That is a framework plus a convention, not a package abstraction — deliberately short of the ownership architecture the
+`siege-verification-remainder.md` wants, and enough to stop every walk, every spec and every integration test re-deriving its own setup.
 
 ---
 
@@ -735,11 +1547,19 @@ architecture the companion plan wants, and enough to stop every walk re-deriving
 sits in
 `../../packages/web/test/siege-driver` today.
 
-### The package needs a `../../CLAUDE.md`, and these are the entries
+### Each package needs a `../../CLAUDE.md`, and these are the entries
 
 `../../packages/orchestrator/CLAUDE.md` and `../../packages/web/CLAUDE.md` are the pattern — package invariants with the
-measurement behind each one. This package needs the same. **The entries below are the rules above this line, compressed
-into the form a session editing the package will actually read**, plus the two that live nowhere else:
+measurement behind each one. **The entries below are the rules above this line, compressed into the form a session
+editing the package will actually read**, plus the two that live nowhere else.
+
+**They split across the three packages, and the split is who breaks if the rule is broken:**
+
+| Package | Gets the entries about |
+|---|---|
+| `siegelense` | driving — commands, readings, refs, the key, `run` versus `results`, killing a lane, `dev:no-watch` |
+| `hydration` | the chain and the ingredient — handles, the object rule, one `set` verb, `filter`, routes, `copies:`, determinism, a plan being data |
+| `hydration-recipes` | this repo's own states — which ingredients exist, what each `copies:`, and the root-`dependencies` rule that keeps the package unpublished |
 
 | Entry                                                                                                 | Why it earns a line                                                                                                                                                                                    |
 |-------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -748,7 +1568,12 @@ into the form a session editing the package will actually read**, plus the two t
 | **A command returns a READING, never a verdict on a unit**                                            | the founding rule from `siege-command.ts`'s own header. Comparing two measured values is a reading; deciding a unit passes is not                                                                      |
 | **The key reads OWN text nodes, never `textContent`**                                                 | recursive text pulled an entire Mantine stylesheet into one reading. This is the single measured reason the old `dom` verb was unusable                                                                |
 | **A ref resolves only in its minting instance and page state**                                        | four boundaries look passable and none are; see the ref rule below                                                                                                                                     |
-| **A recipe touches state, never a screen**                                                            | a recipe holding a DOM handle is doing a walk's job                                                                                                                                                    |
+| **An ingredient touches state, never a screen**                                                             | an ingredient holding a DOM handle is doing a walk's job. The lint rule holding it lives in `@dungeonmaster/eslint-plugin`, which ships, because the constraint binds every repo that writes an ingredient         |
+| **ONE verb sets state, and `setRaw` is the odd one**                                                  | two verbs taking the same argument shape produce completely different states, and the wrong one fails silently                                                                                        |
+| **`all` is an ARGUMENT to `add`'s builder, never a property**                                         | `Tuple<T, N> & { all: T }` silently loses the out-of-bounds check                                                                                                                                      |
+| **A link names its parent by NAME**                                                                   | a reference in both directions is an inference cycle, and every type downstream degrades to `any`                                                                                                     |
+| **A route lives on the INGREDIENT; the target picks which one runs**                                       | a recipe pinned to one route serves only the callers that offer it, which is what shuts integration tests out of the catalogue                                                                         |
+| **`hydration-recipes` is not in the root `package.json` `dependencies`**                             | that field is what ships, and `create-package` writes the entry automatically. A test pins the absence or the next scaffold run puts it back                                                          |
 | **`run` returns a status; `results` returns payloads**                                                | collapsing them walks back into the 50,000-char ceiling the service exists to route around                                                                                                             |
 | **Kill the process GROUP, not the child — and skip the signal for one that already exited**           | `npm run` is a wrapper; the listener is a grandchild via `sh -c`. And signalling a dead child logs `kill ESRCH` on every clean teardown, which reads as a failure in the one log a later session opens |
 | **`kill` removes the throwaway home and never the evidence directory**                                | logs, captures and the transcript are evidence and outlive the instance                                                                                                                                |
@@ -767,12 +1592,21 @@ decision in `siegelense-tooling.md` Part 1.
 
 ```
 recipes {}
-→ session-with-nested-subagent   produces: one session transcript holding an outer sub-agent
-                                 chain with one chain nested inside it, both finished
-                                 fidelity: direct
-  guild-with-three-quests        produces: one guild holding three quests, one in_progress
-                                 fidelity: production
+→ guild-mid-execution
+    one guild holding three quests, the first running with its riftcarver item dropped
+    inputs:  none
+    runs:    serverless — every ingredient has a write route
+    makes:   guild ×1, quest ×3, operation (varies)
+
+  session-with-nested-chain
+    one session under an existing guild, holding a nested sub-agent chain
+    inputs:  guildId: GuildId
+    runs:    serverless
+    makes:   session ×1
 ```
+
+Part 5's "The listing `recipes {}` prints" says where each line comes from. **`runs` is the line that
+stops a wasted run:** a caller with no server reads `needs a server: <ingredient>` and stops there.
 
 **`docs`** — the tool's own instructions. **This is how a session learns to use it, not the prompt.**
 
@@ -793,12 +1627,27 @@ docs { for: 'driving' }      → the same surface for a session no quest dispatc
 
 ### Steps that are new
 
-**`seed`** — runs a recipe against this instance and returns the ids it made.
+**`seed`** — runs a recipe's plan against this instance and returns the ids it made.
 
 ```
-{ step: 'seed', recipe: 'session-with-nested-subagent', as: 'seeded' }
-→ { guildSlug: 'siege-1', sessions: { nested: '/siege-1/session/sess-nested' } }
+{ step: 'seed', recipe: 'session-with-nested-chain', params: { guildId: '{g.guild.id}' }, as: 'seeded' }
+→ { nested: { sessionId: 'sess-nested', url: '/siege-1/session/sess-nested' } }
 ```
+
+**`params` is typed by the `recipe` value.** In-process that is a discriminated union over the enumerated recipe names,
+so a wrong key is a compile error. **Over the MCP wire it is JSON and no compile-time check is available** — so the tool
+builds a schema per recipe from the ones it enumerated and validates BEFORE seeding anything, with an error naming the
+bad input and listing what that recipe takes. A recipe declaring no inputs takes no `params`.
+
+**In-process, a recipe is just a function, and that surface needs none of this.**
+
+```ts
+const ids = await run(sessionWithNestedChain({ guildId }), target);
+// ids.sessions.nested — the value is in hand, no interpolation involved
+```
+
+A batch step cannot hold a value between steps, which is the whole reason `as:` and `{step.row.field}` exist. One recipe,
+two calling conventions, and the in-process one is the simpler of the two.
 
 ---
 
@@ -811,8 +1660,8 @@ run {
   instance: 'inst_7f3a',
   stopOn: 'error',              // 'error' | 'never' — stop at the first failure, or push through
   steps: [
-    { step: 'seed',  recipe: 'session-with-nested-subagent', as: 'seeded' },
-    { step: 'goto',  path: '{seeded.sessions.nested}' },
+    { step: 'seed',  recipe: 'session-with-nested-chain', as: 'seeded' },
+    { step: 'goto',  path: '{seeded.nested.url}' },
     { step: 'until', visible: '[data-testid="SUBAGENT_CHAIN"]', timeoutMs: 20000 },
     { step: 'look',  within: 'SUBAGENT_CHAIN' },
     { step: 'dom',   target: '[data-testid="subagent-chain-duration"]' },
@@ -820,8 +1669,29 @@ run {
 }
 ```
 
-**`as` names a step's output; `{name.field}` reads it back.** A seed mints runtime ids that no file contains, so later
+**`as` names a STEP's output; `{name.field}` reads it back.** A seed mints runtime ids that no file contains, so later
 steps must be able to reference them without a round trip to the model.
+
+**A plan's output is FLAT, and there is exactly one shape.** Every `saveRecordAs({ name })` puts that row's WHOLE
+record on the output under that name. Nothing else appears there — not the registry accessors, not a row nobody saved.
+
+```
+recipe:  g[0].saveRecordAs({ name: 'guild' })  ·  s[0].saveRecordAs({ name: 'nested' })
+output:  { guild: GuildRecord, nested: SessionRecord }
+```
+
+**`as:` and `saveRecordAs` are different levels, and neither is a spelling of the other.** `as:` names what one STEP in a
+batch returned; `saveRecordAs` names one ROW inside a recipe. So a batch reads **`{<step>.<row>.<field>}`** — three
+segments, always:
+
+| Written | Reads as |
+|---|---|
+| `{g.guild.id}` | step `g`, row `guild`, field `id` |
+| `{g.guild.urlSlug}` | the slug off that same record |
+| `{s.nested.sessionId}` | step `s`, row `nested`, field `sessionId` |
+
+**A two-segment reference like `{g.guildId}` is always wrong** and the tool should refuse it, naming the rows that step
+actually saved. It is the single easiest mistake to make against this surface, because it reads fine.
 
 **`stopOn` and the step that is SUPPOSED to fail.** `stopOn: 'error'` is the default and the right one for a walk: seven
 steps after a broken step three are wasted work. But an adversarial step wants failure — sending a hostile payload and
@@ -849,19 +1719,20 @@ run {
   instance: 'inst_7f3a',
   stopOn: 'error',
   steps: [
-    { step: 'seed',  recipe: 'guild-with-three-quests', as: 'g' },
+    { step: 'seed',  recipe: 'guild-mid-execution', as: 'g' },
 
-    { step: 'goto',  path: '/{g.guildSlug}' },
+    { step: 'goto',  path: '/{g.guild.urlSlug}' },
     { step: 'look' },                       // mints the refs the next line uses
     { step: 'click', ref: 18 },             // live-session shortcut; would be a selector if this batch were saved
 
-    { step: 'seed',  recipe: 'session-with-nested-subagent', guild: '{g.guildId}', as: 's' },
-    { step: 'goto',  path: '{s.sessions.nested}' },
+    { step: 'seed',  recipe: 'session-with-nested-chain', params: { guildId: '{g.guild.id}' }, as: 's' },
+    { step: 'goto',  path: '{s.nested.url}' },
   ],
 }
 ```
 
-The second recipe takes `guild: '{g.guildId}'`. That is the composition rule from Part 5 doing its job: a recipe stacks
+The second recipe takes `params: { guildId: '{g.guild.id}' }`, because it crosses a STEP boundary — see "A recipe takes typed
+inputs" in Part 5. That is the composition rule doing its job: a recipe stacks
 onto what an earlier one made rather than building a whole world of its own, which is what keeps the catalogue deep
 instead of wide.
 
@@ -872,9 +1743,9 @@ ask whether the screen reacts:
 
 ```jsonc
 steps: [
-  { step: 'goto',  path: '/{g.guildSlug}/quest/{g.questId}' },
+  { step: 'goto',  path: '/{g.guild.urlSlug}/quest/{g.third.id}' },
   { step: 'look' },                                            // what is on screen now
-  { step: 'seed',  recipe: 'quest-advances-one-step', quest: '{g.questId}' },
+  { step: 'seed',  recipe: 'quest-advances-one-step', params: { questId: '{g.third.id}' } },
   { step: 'until', predicate: 'document.querySelectorAll("[data-testid=EXECUTION_ROW]").length === 4' },
   { step: 'look' },                                            // and what changed
 ]
