@@ -156,4 +156,39 @@ export const smoketestProbeArgsStatics = {
     summary: 'mcp-create-worktree-not-in-mcp-suite',
     note: 'create-worktree carves a REAL git branch and worktree under the guild repo, mirrors node_modules into it and copies every compiled dist across — minutes of filesystem and git mutation the smoketest harness has no way to unwind, and a probe that ran twice would hand back the first run’s tree rather than proving anything new. The worktree lifecycle it belongs to is the orchestration suite’s, through riftcarver.',
   },
+  'siegelense-start': {
+    mode: 'skip-from-suite',
+    summary: 'mcp-siegelense-start-not-in-mcp-suite',
+    note: 'siegelense-start spawns a REAL detached driver process — an api server, a Vite server and, for a browser spec, a Chromium instance — and leaves it running until something calls siegelense-kill. The smoketest probe harness has no lifecycle to tear that down against.',
+  },
+  'siegelense-run': {
+    mode: 'skip-from-suite',
+    summary: 'mcp-siegelense-run-not-in-mcp-suite',
+    note: 'siegelense-run needs a live instance id from a prior siegelense-start — there is no fixed id the probe harness can substitute, and running it against nothing would only prove the unknown-instance error path rather than the tool.',
+  },
+  'siegelense-kill': {
+    mode: 'skip-from-suite',
+    summary: 'mcp-siegelense-kill-not-in-mcp-suite',
+    note: 'siegelense-kill needs a live instance id from a prior siegelense-start, the same reason siegelense-run is skipped here.',
+  },
+  'siegelense-results': {
+    mode: 'skip-from-suite',
+    summary: 'mcp-siegelense-results-not-in-mcp-suite',
+    note: 'siegelense-results needs a real instance id with recorded evidence from a prior siegelense-start/run — there is no fixed id the probe harness can substitute, and calling it against nothing would only prove the unknown-instance path rather than a real read.',
+  },
+  'siegelense-status': {
+    mode: 'call',
+    args: {},
+    summary: 'mcp-siegelense-status-probe-ok',
+  },
+  'siegelense-compare': {
+    mode: 'skip-from-suite',
+    summary: 'mcp-siegelense-compare-not-in-mcp-suite',
+    note: 'siegelense-compare needs two real run ids off one instance from a prior siegelense-start/run — the same reason siegelense-results is skipped here.',
+  },
+  'siegelense-cleanup': {
+    mode: 'call',
+    args: {},
+    summary: 'mcp-siegelense-cleanup-probe-ok',
+  },
 } as const;

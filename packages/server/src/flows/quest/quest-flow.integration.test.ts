@@ -267,6 +267,7 @@ describe('QuestFlow', () => {
           { id: 'tooling-error', notes: [harness.toPlain(toolingErrorNote)] },
           { id: 'out-of-scope', notes: [] },
           { id: 'walk-reset', notes: [] },
+          { id: 'walked', notes: [] },
         ],
       });
     });

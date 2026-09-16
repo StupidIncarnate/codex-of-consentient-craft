@@ -447,6 +447,9 @@ git diff
 Read the whole diff. **Read the diff, not the files** — you are checking what moved, not learning the
 package again.
 
+**Trust the plan for what it intended, verify the code for what is done.** Your flow and your map say
+what this cell was FOR. The diff is the only thing that says what exists.
+
 Four questions, and only you can ask them, because only you hold the whole cell:
 
 1. **Does this match the flow?** Walk your flow's nodes and edges against the diff. Every branch an

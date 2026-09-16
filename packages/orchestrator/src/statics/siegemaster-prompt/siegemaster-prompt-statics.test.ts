@@ -589,6 +589,25 @@ describe('siegemasterPromptStatics', () => {
     });
   });
 
+  // THE SPEC SETTLES INTENT AND THE CODE SETTLES FACT, and a fixer's return is the place that split
+  // is easiest to lose: `CAUSE` and `DEVIATED` describe a repair the fixer believes it made, so a
+  // session reading them instead of the diff grades the fix's own story. The sentence is spelled
+  // identically in the codeweaver and flowrider prompts, nothing typechecks that, and this pin plus
+  // its two siblings are what hold the wording together.
+  it('VALID: served template => splits intent from fact at the step that reads a fixer diff', () => {
+    expect({
+      maxim: hasIn({
+        needle: '**Trust the plan for what it intended, verify the code for what is done.**',
+        text: TEMPLATE,
+      }),
+      namesBothSides: hasIn({
+        needle:
+          "A fixer's `CAUSE` and `DEVIATED` lines say what it meant to change. The diff is the only thing that says what it changed.",
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({ maxim: true, namesBothSides: true });
+  });
+
   // ALL DISPATCHED SUB-AGENTS SHARE ONE DISPATCH SHAPE, so the verifier, the stress tester, the fixer
   // and the reviewer each carry the same `subagent_type`/`model` pair rather than four independent
   // claims.

@@ -902,4 +902,24 @@ export const orphanGuard = (): boolean => true;`,
       });
     });
   });
+
+  describe('rootPath override', () => {
+    it('VALID: {rootPath: a path OTHER than processCwdAdapter()} => scans from rootPath, not the server cwd', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const rootPath = PathSegmentStub({ value: '/repo/worktrees/siegelense' });
+      const filepath = PathSegmentStub({
+        value: '/repo/worktrees/siegelense/src/guards/is-worktree-guard.ts',
+      });
+      const pattern = GlobPatternStub({ value: '**/*' });
+      const contents = FileContentsStub({
+        value: 'export const isWorktreeGuard = (): boolean => true;',
+      });
+
+      proxy.setupFilesAtRoot({ rootPath, files: [{ filepath, contents }], pattern });
+
+      const results = await fileScannerBroker({ rootPath });
+
+      expect(results.map((r) => r.path)).toStrictEqual(['src/guards/is-worktree-guard.ts']);
+    });
+  });
 });

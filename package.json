@@ -62,6 +62,8 @@
     "@dungeonmaster/orchestrator": "*",
     "@dungeonmaster/server": "*",
     "@dungeonmaster/shared": "*",
+    "@dungeonmaster/siegelense": "*",
+    "@dungeonmaster/siegelense-recipes": "*",
     "@dungeonmaster/testing": "*",
     "@dungeonmaster/tooling": "*",
     "@dungeonmaster/ward": "*",

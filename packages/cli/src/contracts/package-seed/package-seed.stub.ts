@@ -21,6 +21,7 @@ export const PackageSeedStub = ({ ...props }: StubArgument<PackageSeed> = {}): P
     jestKind: 'node',
     e2eEligible: false,
     exportsDot: false,
+    needsMswTransform: false,
     files: [
       {
         path: 'src/statics/thing/thing-statics.ts',

@@ -87,3 +87,4 @@ test-results/
 
 # Python bytecode from the sweep tool
 __pycache__/
+.siegelense

@@ -28,6 +28,11 @@ export const fileScannerBrokerProxy = (): {
     }[];
     pattern: GlobPattern;
   }) => void;
+  setupFilesAtRoot: (params: {
+    rootPath: PathSegment;
+    files: readonly { filepath: PathSegment; contents: FileContents }[];
+    pattern: GlobPattern;
+  }) => void;
   getGlobOptionsFor: (params: { pattern: GlobPattern }) => unknown;
 } => {
   processCwdAdapterProxy();
@@ -70,6 +75,24 @@ export const fileScannerBrokerProxy = (): {
         } else if (entry.contents) {
           readFileProxy.returnsFor({ filepath: entry.filepath, contents: entry.contents });
         }
+      }
+    },
+
+    // For a call that passes an explicit `rootPath` — an address independent of the mocked
+    // processCwdAdapter() default, proving the broker scanned from the PASSED root rather than
+    // silently falling back to its own cwd.
+    setupFilesAtRoot: ({
+      rootPath,
+      files,
+      pattern,
+    }: {
+      rootPath: PathSegment;
+      files: readonly { filepath: PathSegment; contents: FileContents }[];
+      pattern: GlobPattern;
+    }): void => {
+      globProxy.returns({ pattern, cwd: rootPath, files: files.map((f) => f.filepath) });
+      for (const { filepath, contents } of files) {
+        readFileProxy.returnsFor({ filepath, contents });
       }
     },
 

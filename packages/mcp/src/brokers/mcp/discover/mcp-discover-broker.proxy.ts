@@ -32,6 +32,12 @@ export const mcpDiscoverBrokerProxy = (): {
     filePaths: readonly PathSegment[];
     pattern: GlobPattern;
   }) => void;
+  setupFileDiscoveryAtRoot: (params: {
+    rootPath: PathSegment;
+    filepath: PathSegment;
+    contents: FileContents;
+    pattern: GlobPattern;
+  }) => void;
 } => {
   processCwdAdapterProxy();
   // The scan root the broker resolves for both the scanner and its own empty-result probes.
@@ -94,6 +100,20 @@ export const mcpDiscoverBrokerProxy = (): {
       // one-shots, in the order the broker issues them, is the only way to tell them apart.
       globProxy.returnsOnce({ pattern, cwd: scanRoot, files: [] });
       globProxy.returnsOnce({ pattern, cwd: scanRoot, files: filePaths });
+    },
+
+    setupFileDiscoveryAtRoot: ({
+      rootPath,
+      filepath,
+      contents,
+      pattern,
+    }: {
+      rootPath: PathSegment;
+      filepath: PathSegment;
+      contents: FileContents;
+      pattern: GlobPattern;
+    }): void => {
+      fileScannerProxy.setupFilesAtRoot({ rootPath, files: [{ filepath, contents }], pattern });
     },
   };
 };

@@ -29,6 +29,17 @@ describe('cwdResolveBroker', () => {
 
       expect(result).toBe('/monorepo');
     });
+
+    it('ERROR: {no .dungeonmaster.json anywhere up the tree, kind: "repo-root"} => rejects with ProjectRootNotFoundError naming the start path', async () => {
+      const proxy = cwdResolveBrokerProxy();
+      const startPath = FilePathStub({ value: '/scratch/no-config-here' });
+
+      proxy.setupRepoRootNotFound({ startPath: '/scratch/no-config-here' });
+
+      await expect(cwdResolveBroker({ startPath, kind: 'repo-root' })).rejects.toThrow(
+        /no-config-here/u,
+      );
+    });
   });
 
   describe('kind: project-root', () => {

@@ -7,6 +7,13 @@
  * The static rules lead the merge and survive it: node_modules and dist must be skipped whether or
  * not a given repo bothers to gitignore them.
  *
+ * KNOWN GAP: this reads `.gitignore` relative to the MCP server's own startup cwd, not a caller's
+ * (there is no `_meta` yet at boot time to resolve against — see callerRepoRootResolveBroker for
+ * the per-call mechanism this predates). A worktree-pinned caller's `discover` therefore scans
+ * with the MAIN checkout's `.gitignore`, not its own worktree's copy. Usually harmless because
+ * `.gitignore` is a single tracked file identical across every worktree of one repo; left as-is
+ * because inventing a per-call cwd for a one-time startup read is a bigger change than the gap.
+ *
  * USAGE:
  * const patterns = await discoverIgnoreInitBroker();
  * // Returns the deduped union, or just the static rules when the repo keeps no .gitignore

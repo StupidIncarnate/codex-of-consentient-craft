@@ -345,6 +345,26 @@ describe('flowriderPromptStatics', () => {
     });
   });
 
+  // THE SPEC SETTLES INTENT AND THE CODE SETTLES FACT, and this role runs on the split: step 6 makes
+  // the observable's own words beat the map's paraphrase, while a brief's IF THIS BRIEF IS WRONG
+  // block makes the implementation beat an ASSERT value it does not return. Read apart those two
+  // rules look like a contradiction, so the sentence that reconciles them sits at the step where the
+  // value is read. It is spelled identically in the codeweaver and siegemaster prompts, nothing
+  // typechecks that, and this pin plus its two siblings are what hold the wording together.
+  it('VALID: served template => splits intent from fact at the step that reads the implementation', () => {
+    expect({
+      maxim: hasIn({
+        needle: '**Trust the plan for what it intended, verify the code for what is done.**',
+        text: TEMPLATE,
+      }),
+      namesBothSides: hasIn({
+        needle:
+          "The unit's own words say what has to be true. The implementation is the only thing that says what value actually comes back.",
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({ maxim: true, namesBothSides: true });
+  });
+
   it('VALID: served template => dispatches a sub-agent with subagent_type general-purpose and model sonnet', () => {
     expect(
       hasIn({

@@ -6,6 +6,7 @@ describe('local-eslint index', () => {
       const result = StartLocalEslint();
 
       expect(Object.keys(result.rules).sort()).toStrictEqual([
+        'ban-locator-pick',
         'ban-quest-status-literals',
         'no-bare-location-literals',
         'no-hardcoded-package-names',
@@ -16,6 +17,7 @@ describe('local-eslint index', () => {
   describe('default export', () => {
     it('VALID: {} => default export is the plugin instance with every repo-local rule', () => {
       expect(Object.keys(plugin.rules).sort()).toStrictEqual([
+        'ban-locator-pick',
         'ban-quest-status-literals',
         'no-bare-location-literals',
         'no-hardcoded-package-names',
