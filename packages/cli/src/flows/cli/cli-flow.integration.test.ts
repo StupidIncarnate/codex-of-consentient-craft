@@ -44,6 +44,39 @@ describe('CliFlow', () => {
     });
   });
 
+  describe('a word that is not a command', () => {
+    // Never asserts the SERVE path by calling it: reaching CliServeResponder binds
+    // `dungeonmaster.port` and opens a browser, so a test proving "it did not serve" by serving is
+    // the bug it is meant to catch. The throw is what proves the fallthrough is closed.
+    it('ERROR: {command: "seigelense"} => refuses by name rather than falling through to the server', async () => {
+      await expect(
+        CliFlow({
+          command: 'seigelense',
+          args: [],
+          context: {
+            targetProjectRoot: FilePathStub({ value: '/repo' }),
+            dungeonmasterRoot: FilePathStub({ value: '/dungeonmaster' }),
+          },
+        }),
+      ).rejects.toThrow(
+        'Unknown command: seigelense. Commands: init, start, statusline-tap, create-package, siegelense.',
+      );
+    });
+
+    it('ERROR: {command: "--help"} => refuses and lists the commands, rather than booting a server', async () => {
+      await expect(
+        CliFlow({
+          command: '--help',
+          args: [],
+          context: {
+            targetProjectRoot: FilePathStub({ value: '/repo' }),
+            dungeonmasterRoot: FilePathStub({ value: '/dungeonmaster' }),
+          },
+        }),
+      ).rejects.toThrow(/^Unknown command: --help\. Commands: /u);
+    });
+  });
+
   describe('command routing - statusline-tap', () => {
     const harness = cliStatuslineHarness();
 
