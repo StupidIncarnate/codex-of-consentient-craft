@@ -75,6 +75,12 @@ build ran under, with the two clauses this feature needs that that one did not.
 > the end touches, and the one coordination left: **chunk 8 edits `packages/siegelense`, which
 > manual-testing rounds still land fixes in. Ask before starting it, and merge either side of it.**
 >
+> **Master is not settled: a full `npm run ward` over the just-merged tree is still running in the
+> other session, and what it finds lands as fixes.** Start chunks 1-6 anyway — they are a new package
+> nothing on master can invalidate. But **check back and merge master again once that run is green,
+> and before any conversion batch**, or chunks 9 and 10 rewrite 900 call sites against a tree that is
+> about to move.
+>
 > Move to a worktree before you start. Only parallel 3 sub agents at a time. Use opus for planning,
 > sonnet for everything else.
 
@@ -170,6 +176,7 @@ manual round is mid-flight, and merge `master` immediately before and after it.
 
 | When | Why then |
 |---|---|
+| **once the pending full ward on master is green** | see below — master is not settled yet, and this is the merge that matters most |
 | before chunk 7 | it is the merge that brought the recipes package; done already if the tree holds it |
 | before and after chunk 8 | the one place both builds write the same package |
 | before each migration batch in chunks 9 and 10 | those convert hundreds of real tests, and converting against a stale tree converts the wrong thing |
@@ -178,6 +185,22 @@ manual round is mid-flight, and merge `master` immediately before and after it.
 **The collision surface is small and known**: root `package.json` `dependencies` and `eslint.config.js`,
 where `hydration` needs its own `ban-primitives` entry. Everything else this branch writes is new files.
 The merge that brought siegelense in landed clean, with no conflicts at all.
+
+**MASTER IS NOT SETTLED YET.** Siegelense merged 19 commits' worth of work into it, and the session
+that did so is running a **full `npm run ward`** over the merged tree. A full run after a merge that
+size usually finds something, and whatever it finds lands as fix commits on master.
+
+**So check master again before trusting it for anything expensive.** Concretely:
+
+| Do this | Not this |
+|---|---|
+| start chunks 1-6 now — they are a new package and a later fix on master cannot invalidate them | hold the whole build waiting for a ward that may take a while |
+| **merge master again once that ward is green**, and before any conversion batch | convert hundreds of real tests against a tree that is about to change under you |
+| ask the siegelense session whether the full run has landed, rather than inferring it from the log | assume a quiet branch means a finished one |
+
+**A conversion batch is the expensive thing to get wrong here.** Chunks 9 and 10 rewrite setup across
+roughly 900 call sites; doing that against a tree that then takes a round of ward fixes means
+re-resolving every one of them.
 
 **Never merge on a red tree.** `npm run ward -- --committed --uncommitted` after each one, before new
 work lands on top.
