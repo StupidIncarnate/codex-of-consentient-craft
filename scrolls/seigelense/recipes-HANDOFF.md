@@ -18,21 +18,16 @@ uncommitted. An agent was still editing the quest status allowlist when it lande
 npm run ward -- --committed --uncommitted
 ```
 
-`timeout: 600000`. **Two known failures, both one line, both in files nobody edited:**
+`timeout: 600000`.
 
-```
-packages/siegelense-recipes/src/brokers/guild/api-route/guild-api-route-broker.proxy.ts
-packages/siegelense-recipes/src/brokers/quest/api-route/quest-api-route-broker.proxy.ts
-  @dungeonmaster/enforce-proxy-child-creation ... dmHttpResponseUnwrapAdapter ...
-```
+**Every failure known at handoff time is fixed.** `packages/siegelense-recipes`'s package-wide lint is
+clean across its whole tree, and `packages/hydration`'s was clean at its last full run. **So a red
+sweep here is news** — treat it as the merge or as something that landed after this was written, not
+as leftover mess.
 
-Both api-route brokers gained a call to the adapter that unwraps an HTTP envelope into the record the
-runner expects, and neither proxy composes that adapter's proxy. **A fix was dispatched and may
-already be on disk — check before repeating it.**
-
-**This is the second time this rule has caught a real gap** that no file-scoped run would show, because
-the breakage lands one file away from its cause. **Run the package-wide lint, not just the files you
-touched.**
+**Run the PACKAGE-WIDE lint, not just the files you touch.** Twice on this build, a proxy composition
+broke one file away from its cause, and no file-scoped run could see it. It is the cheapest check
+that catches that class.
 
 ### The interrupted work, which DID land
 
