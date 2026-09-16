@@ -67,7 +67,7 @@ build ran under, with the two clauses this feature needs that that one did not.
 >
 > Blockers: send sonnet agents to unblock.
 >
-> Siegelense is merged to master and this branch tracks it — no second branch to chase. Part 5's "This
+> Siegelense is merged to master and this branch tracks it — no second branch to chase. "This
 > branch tracks master" says when to merge, what the end rename touches, and the one coordination left:
 > chunk 8 edits `packages/siegelense`, where manual-testing rounds still land fixes. Ask before
 > starting it; merge either side.
@@ -88,7 +88,7 @@ planner reading this doc should schedule them rather than discovering them.
 ### What this doc asks for, and what it does not
 
 **Everything left in this document is the build.** The rules that bind SESSIONS at run time —
-siegemaster, its dispatched planner, that planner's sub-agents, a fixer — were moved out to
+siegemaster, its dispatched planner, that planner's sub-agents, a fixer — live in
 `siegelense-recipe-roles.md`, because none of them is code in this feature and all of them land as
 prompt text in `@dungeonmaster/orchestrator`'s statics.
 
@@ -158,15 +158,11 @@ merge. Nothing is blocked on reaching it any more.
 **Chunks 1 through 7 are unblocked today.** The framework is a new package that touches nothing anyone
 else is in, and chunk 7's recipes package is on disk.
 
-**Chunk 8 is the only one that still wants coordination**, and the reason changed with the merge.
-Siegelense is no longer being BUILT — it is being driven by hand, and a manual round that finds a
-defect lands a fix in `packages/siegelense`. Chunk 8 edits that same package.
+**Chunk 8 is the only one that still wants coordination.** Siegelense is driven by hand, not built, and
+a manual round that finds a defect lands a fix in `packages/siegelense`. Chunk 8 edits that same
+package, so an edit collides only with a fix a round happens to land.
 
-| Then | Now |
-|---|---|
-| a package under active construction; editing it collided with whoever was finishing it | a package under manual testing; edits collide only with a fix a round happens to land |
-
-So chunk 8 no longer waits on a milestone. **It wants a quick word before it starts** — ask whether a
+Chunk 8 waits on no milestone. **It wants a quick word before it starts** — ask whether a
 manual round is mid-flight, and merge `master` immediately before and after it.
 
 #### When to merge
@@ -290,7 +286,8 @@ test.
 
 ### Four words this document uses, and two rules that outlive the split
 
-**The vocabulary, because nothing below defines it and the role document is no longer beside you:**
+**The vocabulary, because nothing below defines it and the role document lives in
+`siegelense-recipe-roles.md`, not here:**
 
 | Word | Means |
 |---|---|
@@ -506,17 +503,31 @@ copies: 'questPersistBroker',
 The production code whose output that route imitates. It is where a diagnosis starts, and where the
 two-route comparison test points.
 
-**`copies:` presumes the imitated writer is in-repo production code, and that presumption fails for a
-shape only an external tool writes.** A Claude session transcript is the case: the Claude CLI writes
-it, not anything in this repo — every in-repo path that touches the shape READS it, and the only
-in-repo artifact that emits it is a test fixture. **Do not invent an answer here.**
+**`copies:` names either an in-repo pointer or an external one, and the two forms are distinguished by
+an explicit prefix.** A bare identifier names production code in this repo — `guildAddBroker`. An
+`external:` prefix names a producer outside the repo — `external:claude-cli`, for a shape only an
+external tool writes. A Claude session transcript is the case: the Claude CLI writes it, not anything
+in this repo — every in-repo path that touches the shape READS it, and the only in-repo artifact that
+emits it is a test fixture. **Neither form may contain a `/`.** A slash means somebody has written a
+file path, and a path into a test folder is exactly the wrong pointer this property exists to prevent.
+`copiesTargetContract` in `packages/hydration` refuses anything else, at module load:
 
-**This has a concrete consequence, found by building this repo's own ingredients: the session and
-sub-agent ingredients are not declared at all.** A `write` route must declare `copies:`, and neither
-has a production writer to name. Every route broker behind them exists and is tested — the query
-route, the remove route, the write route's own file-writing logic — only the ingredient declaration
-itself is blocked on this gap. Those two ingredients back a large share of the conversion's call
-sites.
+> `copies: may not contain '/'. Use a bare identifier naming in-repo production code (e.g. 'guildAddBroker'), or 'external:<name>' naming a producer outside the repo (e.g. 'external:claude-cli').`
+
+**The session and sub-agent ingredients are declared, each naming `external:claude-cli`.** Every route
+broker behind them exists and is tested — the query route, the remove route, the write route's own
+file-writing logic — and the declaration completes the set. Those two ingredients back a large share
+of the conversion's call sites.
+
+**A two-route comparison needs both an `api` route and a `write` route, so an ingredient with only a
+`write` route has no second route to compare against.** The danger Table 1 names — *"a wrong pointer
+makes the two-route test assert against the wrong thing, and it PASSES"* — cannot arise for it: the
+guarantee is not weakened, because in this case there was never a comparison to weaken. `copies:` is
+then the note a human reads when a write route's output looks wrong. For a shape an external tool
+writes, the truthful note names that tool. A pointer into a hand-written test fixture would teach
+nothing — the fixture is written from the same understanding as the write route, and the two agreeing
+proves only that one person guessed consistently twice. An ingredient mimicking an external producer
+gets no two-route comparison, and nothing here claims otherwise.
 
 **A route sometimes cannot call the very code `copies:` names, even from inside the same repo.** A
 package's own `exports` map decides what crosses into another package, and a production broker with no
@@ -606,23 +617,48 @@ recipes {}
 → guild-mid-execution
     one guild holding three quests, the first running with its riftcarver item dropped
     inputs:  none
-    runs:    serverless — every ingredient has a write route
+    runs:    serverless
     makes:   guild ×1, quest ×3, operation (varies)
 
   session-with-nested-chain
     one session under an existing guild, holding a nested sub-agent chain
-    inputs:  guildId: GuildId
+    inputs:  guildPath
     runs:    serverless
     makes:   session ×1
 ```
+
+**`inputs` prints KEY names, never the branded type.** Zod's `.brand<'GuildId'>()` is a type-level phantom — it
+stores nothing at run time, so a schema loaded off a dynamic import carries no trace of the name a brand gave it at
+compile time. Printing one would need a second, hand-maintained string beside the schema, which is exactly what
+reading these lines off the declarations, rather than from prose anyone maintains separately, exists to prevent.
+**And this repo's `session-with-nested-chain` declares `guildPath`, not `guildId`** — the field its `under()` call
+needs is the guild's own `path`, not its id — so the listing above prints what THIS repo's recipe actually
+declares.
 
 | Line | Comes from |
 |---|---|
 | the name | the recipe's `name` |
 | the sentence under it | the recipe's `description` |
-| `inputs` | the recipe's input contract — static data, so the listing never runs anything |
+| `inputs` | the recipe's input contract — static data, so PRINTING the `inputs` line runs nothing. `runs` and `makes`, below, are a different question: both are read off a PLAN, and a plan is what the next paragraph explains |
 | `runs` | `serverless`, or `needs a server: <ingredient>`. **An ALL over the plan's ingredients, never a union** — a union answers which routes appear anywhere, which is a different and more optimistic question |
-| `makes` | each ingredient's `description`, counted off the plan. `varies` wherever a `filter` or a transition decides the count |
+| `makes` | each ingredient's NAME, counted off the plan — not its `description`: the worked example above prints `guild ×1, quest ×3`, and three one-line `description` sentences concatenated on this line would be unreadable. `varies` wherever a `filter` or a transition decides the count |
+
+**`serverless` renders bare; `needs a server: <ingredient>` renders with its reason.** A serverless
+answer tells the caller to go ahead — there is nothing to warn about and nothing to explain, so a
+trailing clause is noise on the line a reader skims past. A needs-a-server answer stops the caller,
+and that is the moment an explanation earns its width: the reader's next question is which
+ingredient, and why, and the answer decides whether they start a server or pick a different recipe.
+
+**A plan only exists once the recipe's builder has run, and a recipe declaring `inputs` cannot run its builder
+without input VALUES.** Two of this repo's three recipes parse their inputs inside the builder —
+`session-with-nested-chain` parses its `guildPath` at build time — so calling the builder with nothing throws, and
+`runs`/`makes` would have nothing to read. **So the recipes package declares a LISTING PROBE per input-taking
+recipe** — a fixed, plausible stand-in value, parsed through that recipe's own `inputs` schema before the builder
+runs, used only to build the plan `runs` and `makes` are read off. The probe never reaches disk, a socket or a
+screen: *"The chain builds; it does not execute"* still holds — a probe only ever builds. The alternative — printing
+`runs` and `makes` only for paramless recipes — was rejected: it guts *"the line that stops a wasted run"* for
+exactly the recipes that compose onto an earlier step, which are the ones most likely to declare inputs and the ones
+a caller is most likely to get wrong.
 
 **A transition's minted rows are invisible to `makes`, not merely their count.** `reach` is an opaque
 function, and nothing in a plan ties a transition to the child ingredient it mints. The worked example
@@ -724,7 +760,7 @@ because every call is made on something somebody was handed.
 
 ```ts
 export const guildMidExecution = recipe(
-  { name: 'guild-mid-execution', description: 'one guild holding three quests, the first running' },
+  { name: 'guild-mid-execution', description: 'one guild holding three quests, the first running with its riftcarver item dropped' },
   () => [
   dm.guilds.add(1, (g) => [
     g[0].set({ name: 'Siege' }),
@@ -857,10 +893,12 @@ export const sessionWithNestedChain = recipe(
   {
     name: 'session-with-nested-chain',
     description: 'one session under an existing guild, holding a nested sub-agent chain',
-    inputs: z.object({ guildId: guildIdContract }),
+    inputs: z.object({ guildPath: guildPathContract }),
   },
-  ({ guildId }) => [
-    dm.sessions.under({ guildId }).add(1, (s) => [
+  ({ guildPath }) => [
+    // the session ingredient links to its guild via `cwd`, not `guildId` — see "This repo's
+    // `session-with-nested-chain` declares `guildPath`" above
+    dm.sessions.under({ cwd: guildPath }).add(1, (s) => [
       s[0].withNestedChain({ depth: 2 }),
       s[0].saveRecordAs({ name: 'nested' }),
     ]),
@@ -876,7 +914,7 @@ A recipe with no `inputs` takes no `params`.
 and the batch supplies it from an earlier step's output:
 
 ```jsonc
-{ step: 'seed', recipe: 'session-with-nested-chain', params: { guildId: '{g.guild.id}' }, as: 's' }
+{ step: 'seed', recipe: 'session-with-nested-chain', params: { guildPath: '{g.guild.path}' }, as: 's' }
 ```
 
 **Inputs go in their own `params` object, never flattened onto the step.** A recipe input named `as`,
@@ -1480,7 +1518,7 @@ tries the ones it thought of first, which are the ones already written down.
 | `links` | may | the row has no parent and appears at the top level | a wrong `as` does not compile; a wrong `of` fails at `registry()` |
 | `transitions` | may | the field is written, never walked | a `to` list missing a state makes that state unreachable by any caller; a `to` list too wide lets a caller ask for something the gates refuse, and that surfaces as a `reach` throw |
 | `defaults` | may | every row gets identical fields — **the "two of anything" rule silently breaks** | a default that varies by anything but the index breaks byte-identity across instances |
-| `copies` | must, with a `write` route | does not compile | a wrong pointer makes the two-route test assert against the wrong thing, and it PASSES |
+| `copies` | must, with a `write` route | does not compile | `copiesTargetContract` refuses a value containing `/` at module load; a wrong pointer makes the two-route test assert against the wrong thing, and it PASSES |
 | `extras` | may | the ingredient has only the built-in verbs | a name shadowing a built-in does not compile |
 
 #### Table 2 — the rounds, and the question each one asks
@@ -1543,9 +1581,9 @@ found.**
 | ~~`fromSaved` is not typed against the field it lands in~~ **CLOSED** | `Settable<I>` types a plain field as `F[K] \| SavedRef`, so `fromSavedRefTransformer`'s result compiles straight into `set` with no cast. Only a TRANSITION field still refuses one — it narrows to the ingredient's own `to` union instead, which a cross-link cannot satisfy by construction |
 | **A typed plan output is scheduled work, not delivered yet.** *"A plan is data, and one plan runs three ways"* requires the plan's output to carry `guild` and `target`, each typed to its own record contract, and today's plan returns an untyped record the caller casts | threading the saved names through every op producer's return type, so `saveRecordAs({ name })` types the plan's output as the chain builds. The requirement stands; only the delivery is pending |
 | **A recipe cannot call another recipe.** There is `add` and there is `filter`, and no `include` | recipes will duplicate each other's openings within a week of two people writing them. `include(otherRecipe({ … }))` splicing the other plan's ops in, with its saved names namespaced |
-| **The CLI wire has no compile-time check at all** | narrower now that a recipe declares its `inputs` as a zod schema: the wire validation parses a `seed` step's `params` through that same schema before seeding, rather than generating one from scratch. What is still open is wiring that parse into the `seed` step itself. Named here because the in-process union looks like it covers both surfaces and does not |
+| ~~**The CLI wire has no compile-time check at all**~~ **CLOSED** | siegelense cannot hold that schema itself — it may import neither `hydration` nor the recipes package — so the wire validation splits: siegelense refuses what the listing already tells it (an unknown recipe name, `params` on a paramless recipe, a missing or unknown-key `params`), and the recipe's own `inputs` schema, run in the recipes package's own process, refuses every value. Both land before the first write. See "Steps that are new" › `seed`, in Part 6 |
 | **`recording` is declared and unexercised** | no ingredient in either real target set uses it, so nothing about it has been proven. **The `runs` line's write-only rule stands regardless**: the check asks only whether a `write` route is absent, so it reports `needs a server: <ingredient>` for ANY ingredient lacking one — not only a `recording`-only ingredient, but equally one declaring both `api` and `recording`. This is the cost of the rule, not a bug in it — named here for whoever first ships a `recording`-only ingredient |
-| **`copies:` has no valid target for a shape only an external tool writes** | a Claude session transcript is the case: the Claude CLI writes it, and the only in-repo artifact producing that shape is a test fixture, not production code. **Built against this repo, the consequence is concrete: the session and sub-agent ingredients are not declared at all**, because a `write` route must declare `copies:` and neither has a production writer to name. Every route broker behind them exists and is tested; only the declaration is blocked, and those two ingredients back a large share of the conversion's call sites |
+| ~~**`copies:` has no valid target for a shape only an external tool writes**~~ **CLOSED** | a bare identifier names in-repo production code; an `external:` prefix names a producer outside the repo — `external:claude-cli` for the Claude CLI, the only writer of a Claude session transcript. `copiesTargetContract` in `packages/hydration` enforces the split, refusing anything containing `/`. The session and sub-agent ingredients are declared, both naming `external:claude-cli`. A two-route comparison needs an `api` route alongside the `write` route, so an ingredient with only the latter is never compared either way — the guarantee stands because there is no comparison to weaken |
 | **Two lint rules Part 5 requires — an ingredient holds no DOM handle, and an ingredient calls no clock or random source — are UNBUILT, and no chunk owns either** | `no-hardcoded-package-names` in `local-eslint` is the template to copy, and its own blind spot is the caution to copy with it. Meanwhile neither constraint is enforced by anything: with the chain supplying the index, reaching for a clock is the only way left to break determinism |
 | ~~Two ingredients may share a `name` inside one registry, and nothing catches it~~ **CLOSED** | not expressible in the type system, so `registryCreateBroker` checks it at runtime instead: `RegistryDuplicateNameError` throws naming both registry keys |
 | ~~A `filter` inside a nested `add` has undefined scope~~ **CLOSED** | it is scoped to its immediate host. The `filter` op carries `scope`, the host's row reference, and the runner matches only rows whose ancestor chain contains it. The alternative — instance-wide — lets a recipe holding two guilds delete rows belonging to a parent it did not create |
@@ -2012,18 +2050,20 @@ recipes {}
 → guild-mid-execution
     one guild holding three quests, the first running with its riftcarver item dropped
     inputs:  none
-    runs:    serverless — every ingredient has a write route
+    runs:    serverless
     makes:   guild ×1, quest ×3, operation (varies)
 
   session-with-nested-chain
     one session under an existing guild, holding a nested sub-agent chain
-    inputs:  guildId: GuildId
+    inputs:  guildPath
     runs:    serverless
     makes:   session ×1
 ```
 
-Part 5's "The listing `recipes {}` prints" says where each line comes from. **`runs` is the line that
-stops a wasted run:** a caller with no server reads `needs a server: <ingredient>` and stops there.
+Part 5's "The listing `recipes {}` prints" says where each line comes from — including why `inputs` reads
+`guildPath` rather than a branded type name, and why an input-taking recipe like this one needs a listing probe
+before `runs` and `makes` can print at all. **`runs` is the line that stops a wasted run:** a caller with no server
+reads `needs a server: <ingredient>` and stops there.
 
 **`docs`** — the tool's own instructions. **This is how a session learns to use it, not the prompt.**
 
@@ -2047,20 +2087,49 @@ docs { for: 'driving' }      → the same surface for a session no quest dispatc
 **`seed`** — runs a recipe's plan against this instance and returns the ids it made.
 
 ```
-{ step: 'seed', recipe: 'session-with-nested-chain', params: { guildId: '{g.guild.id}' }, as: 'seeded' }
-→ { nested: { sessionId: 'sess-nested', url: '/siege-1/session/sess-nested' } }
+{ step: 'seed', recipe: 'session-with-nested-chain', params: { guildPath: '{g.guild.path}' }, as: 'seeded' }
+→ { nested: { sessionId: 'sess-nested', cwd: '/siege-1/guild-1', filePath: '/siege-1/guild-1/.claude/projects/seed-session.jsonl', lineCount: 1 } }
 ```
+
+**The return is that row's WHOLE record, and no more.** This repo's `sessionRecordContract` carries no `url` — a
+route hands back what it produced (`sessionId`, `cwd`, `filePath`, `lineCount`), not a page a UI happens to serve it
+at. A batch that wants a page composes the path itself from what the record DOES carry, the way "Interleaving
+recipes and steps" below does with `/{g.guild.urlSlug}`.
 
 **`params` is typed by the `recipe` value.** In-process that is a discriminated union over the enumerated recipe names,
 so a wrong key is a compile error. **Over the CLI it arrives as JSON — typed inline or read from a `--steps-file` —
-and no compile-time check is available** — so the tool builds a schema per recipe from the ones it enumerated and
-validates BEFORE seeding anything, with an error naming the bad input and listing what that recipe takes. A recipe
-declaring no inputs takes no `params`.
+and no compile-time check is available.**
+
+**Validation still happens BEFORE anything is written; siegelense just cannot be the one holding a schema to do all
+of it.** It may import neither `hydration` nor the recipes package — the three-package table holds it to *"neither
+of the others"* — so it holds no live zod schema for a recipe's inputs. Handing one across the dynamic-import
+boundary would not substitute for one either: an `instanceof z.ZodType` check fails whenever the two sides resolve
+different copies of zod, which npm permits and a consumer's own tree makes likely. So the check splits in two, and
+both land before the first write:
+
+| Refused by | Off what |
+|---|---|
+| siegelense, before it imports anything that writes | an unknown `recipe` name; `params` supplied to a recipe whose `inputs` the listing shows as empty; missing `params` on one whose `inputs` is not; a `params` KEY the listing does not name |
+| the recipe's own `inputs` schema, in the recipes package's process | every VALUE |
+
+The error still names the bad input and lists what that recipe takes. A recipe declaring no inputs takes no
+`params`.
+
+**A `seed` step runs in the CLI's own driver process, which inherits the OPERATOR's environment, not the lane's.**
+Only the lane's spawned API process is handed `DUNGEONMASTER_HOME` pointed at that lane's throwaway home; the driver
+itself is spawned with a snapshot of the caller's own `process.env`. Several of this repo's write routes resolve
+their home off that GLOBAL variable rather than off the target they were handed — the same escape the known-gaps
+table already names for a recipe spanning two routes — so a `seed` step that did nothing about it would register a
+guild into whatever `~/.dungeonmaster` the operator's shell had, while the quest FILES that same plan writes land
+under the lane's home, and the next route then cannot find what the seed just made. **The `seed` step sets
+`DUNGEONMASTER_HOME` to the lane's home for its own duration and restores it in a `finally`, whatever the plan
+does.** *"A route that reaches code resolving its own storage location escapes the target"* — here it is the one
+place in this design that runs outside the lane it is seeding.
 
 **In-process, a recipe is just a function, and that surface needs none of this.**
 
 ```ts
-const ids = await run(sessionWithNestedChain({ guildId }), target);
+const ids = await run(sessionWithNestedChain({ guildPath }), target);
 // ids.sessions.nested — the value is in hand, no interpolation involved
 ```
 
@@ -2071,15 +2140,16 @@ two calling conventions, and the in-process one is the simpler of the two.
 
 ### A worked batch
 
-This is the call a session actually makes. One `run`, five steps, one turn.
+This is the call a session actually makes. One `run`, six steps, one turn.
 
 ```jsonc
 run {
   instance: 'inst_7f3a',
   stopOn: 'error',              // 'error' | 'never' — stop at the first failure, or push through
   steps: [
-    { step: 'seed',  recipe: 'session-with-nested-chain', as: 'seeded' },
-    { step: 'goto',  path: '{seeded.nested.url}' },
+    { step: 'seed',  recipe: 'guild-mid-execution', as: 'g' },
+    { step: 'seed',  recipe: 'session-with-nested-chain', params: { guildPath: '{g.guild.path}' }, as: 'seeded' },
+    { step: 'goto',  path: '/{g.guild.urlSlug}/session/{seeded.nested.sessionId}' },
     { step: 'until', visible: '[data-testid="SUBAGENT_CHAIN"]', timeoutMs: 20000 },
     { step: 'look',  within: 'SUBAGENT_CHAIN' },
     { step: 'dom',   target: '[data-testid="subagent-chain-duration"]' },
@@ -2143,13 +2213,13 @@ run {
     { step: 'look' },                       // mints the refs the next line uses
     { step: 'click', ref: 18 },             // live-session shortcut; would be a selector if this batch were saved
 
-    { step: 'seed',  recipe: 'session-with-nested-chain', params: { guildId: '{g.guild.id}' }, as: 's' },
-    { step: 'goto',  path: '{s.nested.url}' },
+    { step: 'seed',  recipe: 'session-with-nested-chain', params: { guildPath: '{g.guild.path}' }, as: 's' },
+    { step: 'goto',  path: '/{g.guild.urlSlug}/session/{s.nested.sessionId}' },
   ],
 }
 ```
 
-The second recipe takes `params: { guildId: '{g.guild.id}' }`, because it crosses a STEP boundary — see "A recipe takes typed
+The second recipe takes `params: { guildPath: '{g.guild.path}' }`, because it crosses a STEP boundary — see "A recipe takes typed
 inputs" in Part 5. That is the composition rule doing its job: a recipe stacks
 onto what an earlier one made rather than building a whole world of its own, which is what keeps the catalogue deep
 instead of wide.
