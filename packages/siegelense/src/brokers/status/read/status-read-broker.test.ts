@@ -107,6 +107,7 @@ describe('statusReadBroker', () => {
             orphans: [],
             evidence: null,
             likelyCause: null,
+            evidenceComplete: true,
           })),
         }),
       );
@@ -205,7 +206,7 @@ describe('statusReadBroker', () => {
       proxy.setupRunsDirPathJoin({ evidencePath });
       proxy.setupRunsDirEntries({
         evidencePath,
-        entries: ['run_1.jsonl', 'run_2.jsonl'],
+        entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl'],
       });
       proxy.setupProcListing({ pids: ['100'] });
       proxy.setupPidStatPathJoin({ pid: '100' });
@@ -275,6 +276,7 @@ describe('statusReadBroker', () => {
               },
               likelyCause:
                 'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-web; kernel OOM kills since boot: 2',
+              evidenceComplete: false,
             },
           ],
         }),

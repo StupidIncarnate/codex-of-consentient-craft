@@ -63,7 +63,7 @@ describe('resultsReadBroker', () => {
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
-    proxy.setupRuns({ evidencePath, entries: ['run_2.json'] });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
     const runResult = RunResultStub({ instanceId: INSTANCE_ID, runId: RUN_2 });
     proxy.setupStoredReturn({ evidencePath, runId: RUN_2, result: runResult });
 
@@ -93,7 +93,7 @@ describe('resultsReadBroker', () => {
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
-    proxy.setupRuns({ evidencePath, entries: ['run_2.json'] });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
     const step7 = StepReadingStub({ step: StepIndexStub({ value: 7 }), verb: 'click' });
     proxy.setupTranscript({
       evidencePath,
@@ -131,7 +131,7 @@ describe('resultsReadBroker', () => {
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
-    proxy.setupRuns({ evidencePath, entries: ['run_2.json'] });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
     const step6Text = networkText({ method: 'GET', url: '/api/a', status: 200 });
     const step7Text = networkText({ method: 'GET', url: '/api/b', status: 200 });
     const step8Text = networkText({ method: 'GET', url: '/api/c', status: 200 });
@@ -161,7 +161,7 @@ describe('resultsReadBroker', () => {
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
-    proxy.setupRuns({ evidencePath, entries: ['run_2.json'] });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
     const matchingText = networkText({ method: 'POST', url: '/api/quests', status: 201 });
     const otherPathText = networkText({ method: 'POST', url: '/api/guilds', status: 201 });
     const otherMethodText = networkText({ method: 'GET', url: '/api/quests', status: 200 });
@@ -191,7 +191,7 @@ describe('resultsReadBroker', () => {
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
-    proxy.setupRuns({ evidencePath, entries: ['run_2.json'] });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
     const exchangeText = networkText({
       method: 'GET',
       url: '/api/quests',
@@ -223,7 +223,7 @@ describe('resultsReadBroker', () => {
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
-    proxy.setupRuns({ evidencePath, entries: ['run_2.json'] });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
 
     const lineOutside = '20:10:00 ERROR outside-window issue\n';
     const lineStep6 = '20:10:30 INFO step6 boot\n';
@@ -275,7 +275,7 @@ describe('resultsReadBroker', () => {
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
-    proxy.setupRuns({ evidencePath, entries: ['run_2.json'] });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
     const shot = ShotListingStub({ node: 'PIXEL_BTN' });
     const runResult = RunResultStub({ instanceId: INSTANCE_ID, runId: RUN_2, shots: [shot] });
     proxy.setupStoredReturn({ evidencePath, runId: RUN_2, result: runResult });
@@ -292,7 +292,10 @@ describe('resultsReadBroker', () => {
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
-    proxy.setupRuns({ evidencePath, entries: ['run_1.json', 'run_2.json'] });
+    proxy.setupRuns({
+      evidencePath,
+      entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl', 'run_2.json'],
+    });
     const run1Text = ContentTextStub({
       value: '{"at":1,"kind":"console","type":"log","text":"a"}',
     });
@@ -323,11 +326,64 @@ describe('resultsReadBroker', () => {
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
-    proxy.setupRuns({ evidencePath, entries: ['run_1.json', 'run_2.json'] });
+    proxy.setupRuns({
+      evidencePath,
+      entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl', 'run_2.json'],
+    });
 
     await expect(
       resultsReadBroker({ query: ResultsQueryStub({ instanceId: INSTANCE_ID }) }),
     ).rejects.toThrow(/killed with 2 run\(s\) recorded/u);
+  });
+
+  it('ERROR: {no run, instanceState killed, run_2 crashed with no run_2.json} => the count still names 2, matching what status counts off the same .jsonl set', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({ evidencePath, entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl'] });
+
+    await expect(
+      resultsReadBroker({ query: ResultsQueryStub({ instanceId: INSTANCE_ID }) }),
+    ).rejects.toThrow(/killed with 2 run\(s\) recorded/u);
+  });
+
+  it("VALID: {run: run_2 named, run_2 crashed with no run_2.json} => still reads run_2's transcript despite the missing stored return", async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({ evidencePath, entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl'] });
+    const step7 = StepReadingStub({ step: StepIndexStub({ value: 7 }), verb: 'click' });
+    proxy.setupTranscript({
+      evidencePath,
+      runId: RUN_2,
+      content: `${JSON.stringify(step7)}\n`,
+    });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({
+        instanceId: INSTANCE_ID,
+        runId: RUN_2,
+        step: StepIndexStub({ value: 7 }),
+      }),
+    });
+
+    expect(result).toStrictEqual({
+      instanceId: INSTANCE_ID,
+      instanceState: 'killed',
+      runId: RUN_2,
+      kind: null,
+      step: 7,
+      verb: 'click',
+      prunedAtMs: null,
+      prunedByRule: null,
+      matched: 1,
+      returned: 1,
+      truncated: false,
+      rows: [JSON.stringify(step7)],
+      storedReturn: null,
+    });
   });
 
   it('VALID: {no run, instanceState alive} => reads the latest run', async () => {
@@ -340,7 +396,10 @@ describe('resultsReadBroker', () => {
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     proxy.setupNow({ nowMs: LAST_BEAT_MS + 5000 });
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
-    proxy.setupRuns({ evidencePath, entries: ['run_1.json', 'run_2.json'] });
+    proxy.setupRuns({
+      evidencePath,
+      entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl', 'run_2.json'],
+    });
     const runResult = RunResultStub({ instanceId: INSTANCE_ID, runId: RUN_2 });
     proxy.setupStoredReturn({ evidencePath, runId: RUN_2, result: runResult });
 
@@ -427,7 +486,7 @@ describe('resultsReadBroker', () => {
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
-    proxy.setupRuns({ evidencePath, entries: ['run_2.json'] });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
     const rowCount = 901;
     const content = Array.from({ length: rowCount }, (_unused, index) =>
       bufferLine({
@@ -458,7 +517,7 @@ describe('resultsReadBroker', () => {
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
-    proxy.setupRuns({ evidencePath, entries: ['run_2.json'] });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
     const first = StepReadingStub({ step: StepIndexStub({ value: 1 }) });
     const second = StepReadingStub({ step: StepIndexStub({ value: 2 }) });
     const truncatedTail = JSON.stringify(second).slice(0, 20);

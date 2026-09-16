@@ -18,6 +18,7 @@ const ONE_MATCH_COUNT = 1;
 export const runExecuteStepLayerBrokerProxy = (): {
   laneGotoSucceeds: () => LaneSession;
   laneGotoRejects: (params: { error: Error }) => LaneSession;
+  laneGotoRejectsAndCaptureFails: (params: { error: Error; captureError: Error }) => LaneSession;
   laneGotoRejectsWithServerLogWindow: (params: {
     error: Error;
     serverLogLengthSequence: readonly number[];
@@ -41,6 +42,24 @@ export const runExecuteStepLayerBrokerProxy = (): {
     laneGotoRejects: ({ error }: { error: Error }): LaneSession =>
       LaneSessionStub({
         browser: { goto: jest.fn().mockRejectedValue(error) },
+      }),
+
+    // A distinct scenario from laneGotoRejects rather than an extra param on it: laneGotoRejects
+    // leaves `capture` at BrowserSessionStub's own default, which RESOLVES — so it already proves
+    // the capture-succeeds half. This one is the only way to exercise the capture-FAILS half of the
+    // same real failure.
+    laneGotoRejectsAndCaptureFails: ({
+      error,
+      captureError,
+    }: {
+      error: Error;
+      captureError: Error;
+    }): LaneSession =>
+      LaneSessionStub({
+        browser: {
+          goto: jest.fn().mockRejectedValue(error),
+          capture: jest.fn().mockRejectedValue(captureError),
+        },
       }),
 
     // A distinct scenario from laneGotoRejects rather than an extra param on it: this one exists

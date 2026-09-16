@@ -1,10 +1,16 @@
 import {
+  CleanupAnswerStub,
+  CompareAnswerStub,
+  CompareQueryStub,
   InstanceIdStub,
   InstanceManifestStub,
   KillResultStub,
   RegistryEntryStub,
   RegistryStub,
+  ResultsAnswerStub,
+  ResultsQueryStub,
   RunResultStub,
+  StatusAnswerStub,
 } from '@dungeonmaster/siegelense/contracts';
 
 import { SiegelenseHandleResponder } from './siegelense-handle-responder';
@@ -304,6 +310,85 @@ describe('SiegelenseHandleResponder', () => {
           },
         ],
         isError: true,
+      });
+    });
+  });
+
+  // The four read tools delegate to SiegelenseReadLayerResponder via the layerResponders map —
+  // each block here proves the delegation actually returns that layer's answer, rather than only
+  // proving a callback was handed over. Every deeper INVALID/ERROR path for these four is covered
+  // in siegelense-read-layer-responder.test.ts itself.
+  describe('siegelense-results', () => {
+    it('VALID: {instanceId} => delegates to SiegelenseReadLayerResponder and returns its answer', async () => {
+      const proxy = SiegelenseHandleResponderProxy();
+      const instanceId = InstanceIdStub();
+      const query = ResultsQueryStub({ instanceId });
+      const answer = ResultsAnswerStub({ instanceId });
+      proxy.setupResultsReturns({ query, answer });
+
+      const result = await SiegelenseHandleResponder({
+        tool: 'siegelense-results' as never,
+        args: { instanceId },
+      });
+
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: JSON.stringify(answer, null, JSON_INDENT_SPACES) }],
+      });
+    });
+  });
+
+  describe('siegelense-status', () => {
+    it('VALID: {} => delegates to SiegelenseReadLayerResponder and returns the fleet answer', async () => {
+      const proxy = SiegelenseHandleResponderProxy();
+      const answer = StatusAnswerStub();
+      proxy.setupStatusReturns({ instanceId: null, answer });
+
+      const result = await SiegelenseHandleResponder({
+        tool: 'siegelense-status' as never,
+        args: {},
+      });
+
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: JSON.stringify(answer, null, JSON_INDENT_SPACES) }],
+      });
+    });
+  });
+
+  describe('siegelense-compare', () => {
+    it('VALID: {instanceId, runA, runB} => delegates to SiegelenseReadLayerResponder and returns the diff', async () => {
+      const proxy = SiegelenseHandleResponderProxy();
+      const query = CompareQueryStub();
+      const answer = CompareAnswerStub({
+        instanceId: query.instanceId,
+        runA: query.runA,
+        runB: query.runB,
+      });
+      proxy.setupCompareReturns({ query, answer });
+
+      const result = await SiegelenseHandleResponder({
+        tool: 'siegelense-compare' as never,
+        args: { instanceId: query.instanceId, runA: query.runA, runB: query.runB },
+      });
+
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: JSON.stringify(answer, null, JSON_INDENT_SPACES) }],
+      });
+    });
+  });
+
+  describe('siegelense-cleanup', () => {
+    it('VALID: {} => delegates to SiegelenseReadLayerResponder and returns the cleanup answer', async () => {
+      const proxy = SiegelenseHandleResponderProxy();
+      const answer = CleanupAnswerStub();
+      proxy.setupCleanupReturns({ answer });
+
+      const result = await SiegelenseHandleResponder({
+        tool: 'siegelense-cleanup' as never,
+        args: {},
+      });
+
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: JSON.stringify(answer, null, JSON_INDENT_SPACES) }],
       });
     });
   });

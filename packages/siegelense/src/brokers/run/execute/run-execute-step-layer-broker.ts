@@ -14,7 +14,12 @@
  * the call site even when the underlying error carries neither. `serverWindow` is required on every
  * `StepReading`, never nullable, so the uncaught-exception branch reads `lane.serverLogLength()`
  * itself rather than defaulting it — `stepDispatchBroker` never returns a reading on this path, only
- * a rethrown error, so there is no upstream reading to inherit one from. `lastShotPath`/
+ * a rethrown error, so there is no upstream reading to inherit one from. When that rethrow is a
+ * `StepFailureCaptureError` (a real failure whose failure-path capture was actually attempted), this
+ * broker unwraps it FIRST — the message extraction and the `WaitForCeilingHitError` timeout check
+ * both run against `.underlyingError`, never the wrapper — and gates the reading's `shot` on
+ * `.captured`, so a capture that never landed is reported as `null` rather than a path naming a
+ * missing file. `lastShotPath`/
  * `setLastShotPath` are threaded straight through to `stepDispatchBroker` unchanged — a broker's
  * allowed imports do not include `state/`, so this file never reads the INSTANCE's last-capture
  * pointer itself, only carries the caller's accessor one layer further down.
@@ -43,6 +48,7 @@ import type { StepReading } from '../../../contracts/step-reading/step-reading-c
 import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contract';
 import { stoppedAtContract } from '../../../contracts/stopped-at/stopped-at-contract';
 import type { StoppedAt } from '../../../contracts/stopped-at/stopped-at-contract';
+import { StepFailureCaptureError } from '../../../errors/step-failure-capture/step-failure-capture-error';
 import { WaitForCeilingHitError } from '../../../errors/wait-for-ceiling-hit/wait-for-ceiling-hit-error';
 import { stepDispatchBroker } from '../../step/dispatch/step-dispatch-broker';
 
@@ -95,6 +101,14 @@ export const runExecuteStepLayerBroker = async ({
     };
   } catch (error: unknown) {
     const nowMs = epochMsContract.parse(Date.now());
+    // `stepDispatchBroker` wraps a real failure whose failure-path capture was actually attempted
+    // in `StepFailureCaptureError`, carrying whether that specific `session.capture` call landed.
+    // Unwrapped here, before anything else reads `error`, so the message extraction and the
+    // timeout check below see the real rejection either way — whether it arrived wrapped or raw
+    // (no capture was attempted: `shotPath` was null, or the verb was `'screenshot'`).
+    const capturedShot = error instanceof StepFailureCaptureError ? error.captured : false;
+    const underlyingError =
+      error instanceof StepFailureCaptureError ? error.underlyingError : error;
     // The error reaching here can be a raw, unwrapped Playwright rejection re-thrown unchanged by
     // `stepDispatchBroker` (when `step.expect` was not `'error'`) as well as this package's own
     // `WaitForCeilingHitError` or `BrowserStepUnsupportedError`. Playwright raises errors built by
@@ -106,12 +120,12 @@ export const runExecuteStepLayerBroker = async ({
     // what lets the property access typecheck, since the adapter call itself returns a plain
     // boolean and narrows nothing.
     const message = contentTextContract.parse(
-      error !== null &&
-        typeof error === 'object' &&
-        errorIsNativeErrorAdapter({ value: error }) &&
-        'message' in error
-        ? String(error.message)
-        : String(error),
+      underlyingError !== null &&
+        typeof underlyingError === 'object' &&
+        errorIsNativeErrorAdapter({ value: underlyingError }) &&
+        'message' in underlyingError
+        ? String(underlyingError.message)
+        : String(underlyingError),
     );
     const reading = stepReadingContract.parse({
       step: index,
@@ -120,7 +134,7 @@ export const runExecuteStepLayerBroker = async ({
       ok: false,
       expected: step.expect,
       reading: message,
-      shot: null,
+      shot: capturedShot ? shotPath : null,
       pixelChange: null,
       blank: null,
       blankColour: null,
@@ -135,7 +149,7 @@ export const runExecuteStepLayerBroker = async ({
     return {
       reading,
       stoppedAt: stoppedAtContract.parse({ step: index, verb, error: message, candidates: [] }),
-      timedOut: error instanceof WaitForCeilingHitError,
+      timedOut: underlyingError instanceof WaitForCeilingHitError,
     };
   }
 };

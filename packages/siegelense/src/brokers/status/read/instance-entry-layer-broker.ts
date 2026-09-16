@@ -1,13 +1,15 @@
 /**
  * PURPOSE: Assembles one `InstanceStatus` row from a registry row, its resolved state, and its
  * heartbeat file — the post-mortem `status` prints for one instance (siegelense-tooling.md lines
- * 1174-1183). `runs` (a count of run transcripts on disk) and `orphans` are always populated: neither
- * requires already holding this instance's id, so counting or checking liveness is not "browsing".
- * `lastStep` and `evidence` populate ONLY when `named` is true — a `status {}` fleet listing never
- * carries a run or an evidence path for an instance the caller has not already named
- * (chunk-03-read-path-and-perception.md §3.D, spec line 2380). `rssMB` (current) and `rssAtLastBeat`
- * (from the heartbeat file) never both carry a value: the first only while `state` is `'alive'`, the
- * second only once it is not.
+ * 1174-1183). `runs`, `evidenceComplete` and `orphans` are always populated: none requires already
+ * holding this instance's id, so counting, checking completeness or checking liveness is not
+ * "browsing". Both `runs` and `evidenceComplete` come off `runEvidenceComputeTransformer` — the SAME
+ * function `results`' `runListLayerBroker` calls — so the two tools can never disagree about how many
+ * runs an instance holds or whether the latest one finished. `lastStep` and `evidence` populate ONLY
+ * when `named` is true — a `status {}` fleet listing never carries a run or an evidence path for an
+ * instance the caller has not already named (chunk-03-read-path-and-perception.md §3.D, spec line
+ * 2380). `rssMB` (current) and `rssAtLastBeat` (from the heartbeat file) never both carry a value:
+ * the first only while `state` is `'alive'`, the second only once it is not.
  *
  * USAGE:
  * await instanceEntryLayerBroker({
@@ -35,18 +37,15 @@ import type { InstanceStatus } from '../../../contracts/instance-status/instance
 import type { InstanceState } from '../../../contracts/instance-state/instance-state-contract';
 import { lastStepReadingContract } from '../../../contracts/last-step-reading/last-step-reading-contract';
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
-import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
-import { runIdContract } from '../../../contracts/run-id/run-id-contract';
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { stepReadingContract } from '../../../contracts/step-reading/step-reading-contract';
 import { elapsedRenderTransformer } from '../../../transformers/elapsed-render/elapsed-render-transformer';
+import { runEvidenceComputeTransformer } from '../../../transformers/run-evidence-compute/run-evidence-compute-transformer';
 import { heartbeatReadBroker } from '../../heartbeat/read/heartbeat-read-broker';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { locationsRepoLinkPathFindBroker } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker';
 import { machineRssByPgidBroker } from '../../machine/rss-by-pgid/machine-rss-by-pgid-broker';
 import { orphanReadBroker } from '../../orphan/read/orphan-read-broker';
-import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 import { likelyCauseLayerBroker } from './likely-cause-layer-broker';
 
@@ -84,27 +83,11 @@ export const instanceEntryLayerBroker = async ({
     state === 'alive' ? machineRssByPgidBroker({ pgids: entry.pgids }) : Promise.resolve(null),
   ]);
 
-  const transcriptNames = runsDirEntries.filter((name) =>
-    name.endsWith(evidenceFileStatics.extensions.transcript),
-  );
-  const runs = readingCountContract.parse(transcriptNames.length);
-
-  // The highest-numbered run transcript on disk is the most recent one — run ids count upward for
-  // the life of an instance and never repeat, so a numeric max over the stripped `run_N` names is
-  // "the last run" without needing a listing broker of its own.
-  const lastRunId: RunId | null =
-    transcriptNames.length === 0
-      ? null
-      : runIdContract.parse(
-          transcriptNames
-            .map((name) => name.slice(0, -evidenceFileStatics.extensions.transcript.length))
-            .reduce((latest, candidate) =>
-              Number(candidate.slice(instanceLifecycleStatics.ids.runPrefix.length)) >
-              Number(latest.slice(instanceLifecycleStatics.ids.runPrefix.length))
-                ? candidate
-                : latest,
-            ),
-        );
+  const {
+    runCount: runs,
+    latestRunId: lastRunId,
+    evidenceComplete,
+  } = runEvidenceComputeTransformer({ entries: runsDirEntries });
 
   const uptime =
     state === 'alive' && entry.bootedAtMs !== null
@@ -139,6 +122,7 @@ export const instanceEntryLayerBroker = async ({
       orphans,
       evidence: null,
       likelyCause,
+      evidenceComplete,
     });
   }
 
@@ -180,6 +164,7 @@ export const instanceEntryLayerBroker = async ({
         lastShot: null,
       }),
       likelyCause,
+      evidenceComplete,
     });
   }
 
@@ -213,6 +198,7 @@ export const instanceEntryLayerBroker = async ({
         lastShot: null,
       }),
       likelyCause,
+      evidenceComplete,
     });
   }
 
@@ -249,5 +235,6 @@ export const instanceEntryLayerBroker = async ({
       lastShot,
     }),
     likelyCause,
+    evidenceComplete,
   });
 };

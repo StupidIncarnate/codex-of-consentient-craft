@@ -62,4 +62,47 @@ describe('machineReadBroker', () => {
       lastOomAt: null,
     });
   });
+
+  it('VALID: {siegelense directory not yet created on this machine} => still returns a real freeDiskMB reading', async () => {
+    const proxy = machineReadBrokerProxy();
+    proxy.setupSiegelenseDirNotYetCreated({
+      homeDir: HOME_DIR,
+      homePath: HOME_PATH,
+      rootPath: ROOT_PATH,
+      freeMemBytes: 980 * 1_048_576,
+      totalMemBytes: 16_000 * 1_048_576,
+      coreCount: 8,
+      loadAvg: [7.9, 6.2, 4.1],
+      diskBavail: 512_000,
+      diskBsize: 4096,
+      vmstatContent: 'nr_free_pages 100\noom_kill 2\n',
+    });
+
+    const result = await machineReadBroker();
+
+    expect(result).toStrictEqual({
+      freeMemMB: 980,
+      totalMemMB: 16_000,
+      freeDiskMB: 2000,
+      cores: 8,
+      loadAvg: [7.9, 6.2, 4.1],
+      oomKillsSinceBoot: 2,
+      lastOomAt: null,
+    });
+  });
+
+  it('ERROR: {home directory statfs rejects with EACCES} => propagates the permission error rather than reporting a clean machine', async () => {
+    const proxy = machineReadBrokerProxy();
+    proxy.setupHomeStatfsPermissionDenied({
+      homeDir: HOME_DIR,
+      homePath: HOME_PATH,
+      freeMemBytes: 980 * 1_048_576,
+      totalMemBytes: 16_000 * 1_048_576,
+      coreCount: 8,
+      loadAvg: [7.9, 6.2, 4.1],
+      vmstatContent: 'nr_free_pages 100\noom_kill 2\n',
+    });
+
+    await expect(machineReadBroker()).rejects.toThrow(/EACCES/u);
+  });
 });

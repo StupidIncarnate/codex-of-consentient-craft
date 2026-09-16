@@ -4,7 +4,9 @@
  * `registryReadBroker` — at the same reference the responder imports, the same way
  * `orchestratorGetQuestSummaryAdapterProxy` mocks `StartOrchestrator.getQuestSummary` directly rather
  * than through an intermediate adapter: this responder reaches siegelense's brokers with no adapter
- * layer in between, so the boundary this proxy mocks is those broker functions themselves.
+ * layer in between, so the boundary this proxy mocks is those broker functions themselves. Also
+ * composes `SiegelenseReadLayerResponderProxy` and spreads its setup methods in, since
+ * `SiegelenseHandleResponder` delegates its four read tools to that layer.
  *
  * USAGE:
  * const proxy = SiegelenseHandleResponderProxy();
@@ -25,6 +27,8 @@ import {
   registryReadBrokerProxy,
 } from '@dungeonmaster/siegelense/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+
+import { SiegelenseReadLayerResponderProxy } from './siegelense-read-layer-responder.proxy';
 
 type Registry = Awaited<ReturnType<typeof registryReadBroker>>;
 type InstanceManifest = Awaited<ReturnType<typeof instanceStartBroker>>;
@@ -59,7 +63,7 @@ export const SiegelenseHandleResponderProxy = (): {
   }) => void;
   setupKillReturns: (params: { instanceId: string; result: KillResult }) => void;
   setupKillThrows: (params: { instanceId: string; error: Error }) => void;
-} => {
+} & ReturnType<typeof SiegelenseReadLayerResponderProxy> => {
   // Composed to satisfy enforce-proxy-child-creation. This responder calls the four siegelense
   // broker functions directly (no adapter in between — see the responder's own header comment), so
   // the mock boundary this proxy actually stages is those broker functions themselves, below. Each
@@ -71,6 +75,7 @@ export const SiegelenseHandleResponderProxy = (): {
   instanceStartBrokerProxy();
   instanceRunBrokerProxy();
   instanceKillBrokerProxy();
+  const readLayerProxy = SiegelenseReadLayerResponderProxy();
 
   const registryHandle = registerMock({ fn: registryReadBroker });
   const startHandle = registerMock({ fn: instanceStartBroker });
@@ -78,6 +83,7 @@ export const SiegelenseHandleResponderProxy = (): {
   const killHandle = registerMock({ fn: instanceKillBroker });
 
   return {
+    ...readLayerProxy,
     setupRegistry: ({ registry }: { registry: Registry }): void => {
       registryHandle.calledWith([]).resolves(registry);
     },

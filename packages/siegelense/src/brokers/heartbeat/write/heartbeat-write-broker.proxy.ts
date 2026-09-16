@@ -29,6 +29,16 @@ export const heartbeatWriteBrokerProxy = (): {
     pgrp: number;
     residentPages: number;
   }) => void;
+  setupHeartbeatWriteWithRssMeasurementFailure: (params: {
+    homeDir: string;
+    homePath: FilePath;
+    rootPath: FilePath;
+    evidencePath: FilePath;
+    registryJson: string;
+    nowMs: number;
+    pid: string;
+    error: Error;
+  }) => void;
   getWrittenHeartbeatPath: (params: { evidencePath: FilePath }) => unknown;
   getWrittenHeartbeatContent: (params: { evidencePath: FilePath }) => unknown;
   getRegistryWrittenContent: () => unknown;
@@ -118,6 +128,45 @@ export const heartbeatWriteBrokerProxy = (): {
       // would otherwise consume the first two of those instead of computing its own real path.
       rssPathJoinProxy.returns({ result: FilePathStub({ value: `/proc/${pid}/stat` }) });
       rssPathJoinProxy.returns({ result: FilePathStub({ value: `/proc/${pid}/statm` }) });
+
+      registryProxy.setupCurrentRegistry({ json: registryJson });
+      dateHandle.calledWith([]).returns(nowMs);
+    },
+
+    setupHeartbeatWriteWithRssMeasurementFailure: ({
+      homeDir,
+      homePath,
+      rootPath,
+      evidencePath,
+      registryJson,
+      nowMs,
+      pid,
+      error,
+    }: {
+      homeDir: string;
+      homePath: FilePath;
+      rootPath: FilePath;
+      evidencePath: FilePath;
+      registryJson: string;
+      nowMs: number;
+      pid: string;
+      error: Error;
+    }): void => {
+      evidencePathProxy.setupInstanceEvidencePath({ homeDir, homePath, rootPath, evidencePath });
+
+      const heartbeatPathValue = `${evidencePath}/${locationsStatics.siegelense.heartbeat}`;
+      heartbeatPathJoinProxy.returns({ result: FilePathStub({ value: heartbeatPathValue }) });
+      writeProxy.succeeds({ filePath: AbsoluteFilePathStub({ value: heartbeatPathValue }) });
+
+      // machineRssByPgidBroker rejects on the pid's own /proc/<pid>/stat read — the shape of one
+      // unrelated process on the box throwing EACCES, not this instance's own pgids being gone.
+      rssProxy.setupProcListing({ pids: [pid] });
+      rssProxy.setupPidStatFails({ pid, error });
+      // That failing read still makes ONE real path.join call before it rejects. Staged explicitly
+      // here, at this position in the shared queue, so registryProxy.setupCurrentRegistry's own
+      // queued resolutions (below) land on the calls that come after it chronologically — see
+      // setupHeartbeatWriteWithMeasuredRss above for the same rule applied to a successful measurement.
+      rssPathJoinProxy.returns({ result: FilePathStub({ value: `/proc/${pid}/stat` }) });
 
       registryProxy.setupCurrentRegistry({ json: registryJson });
       dateHandle.calledWith([]).returns(nowMs);

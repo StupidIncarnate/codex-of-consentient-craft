@@ -25,12 +25,46 @@ describe('CliSiegelenseResponder', () => {
     });
   });
 
+  describe('status route', () => {
+    it('VALID: {args: [status]} => delegates with those args rather than rejecting it as unknown', async () => {
+      const StartSiegelense = jest.fn().mockResolvedValue({ success: true });
+      const proxy = CliSiegelenseResponderProxy();
+      proxy.setupModule({ StartSiegelense });
+
+      await proxy.callResponder({ args: ['status'] });
+
+      expect(StartSiegelense).toHaveBeenCalledWith({ args: ['status'] });
+    });
+
+    it('VALID: {args: [status, --instance, inst_7f3a]} => delegates with those args', async () => {
+      const StartSiegelense = jest.fn().mockResolvedValue({ success: true });
+      const proxy = CliSiegelenseResponderProxy();
+      proxy.setupModule({ StartSiegelense });
+
+      await proxy.callResponder({ args: ['status', '--instance', 'inst_7f3a'] });
+
+      expect(StartSiegelense).toHaveBeenCalledWith({ args: ['status', '--instance', 'inst_7f3a'] });
+    });
+  });
+
+  describe('cleanup route', () => {
+    it('VALID: {args: [cleanup]} => delegates with those args rather than rejecting it as unknown', async () => {
+      const StartSiegelense = jest.fn().mockResolvedValue({ success: true });
+      const proxy = CliSiegelenseResponderProxy();
+      proxy.setupModule({ StartSiegelense });
+
+      await proxy.callResponder({ args: ['cleanup'] });
+
+      expect(StartSiegelense).toHaveBeenCalledWith({ args: ['cleanup'] });
+    });
+  });
+
   describe('missing --instance', () => {
     it('INVALID: {args: [driver]} => throws naming the --instance flag', async () => {
       const proxy = CliSiegelenseResponderProxy();
 
       await expect(proxy.callResponder({ args: ['driver'] })).rejects.toThrow(
-        /^--instance is required: it cannot be missing, and the value cannot itself start with "--"\.\n\nUsage: dungeonmaster siegelense \[driver --instance <instanceId>\]$/u,
+        /^--instance is required: it cannot be missing, and the value cannot itself start with "--"\.\n\nUsage: dungeonmaster siegelense \[driver --instance <instanceId> \| status \[--instance <instanceId>\] \| cleanup\]$/u,
       );
     });
 
@@ -48,7 +82,7 @@ describe('CliSiegelenseResponder', () => {
       const proxy = CliSiegelenseResponderProxy();
 
       await expect(proxy.callResponder({ args: ['bogus'] })).rejects.toThrow(
-        /^Unknown siegelense subcommand: bogus\n\nUsage: dungeonmaster siegelense \[driver --instance <instanceId>\]$/u,
+        /^Unknown siegelense subcommand: bogus\n\nUsage: dungeonmaster siegelense \[driver --instance <instanceId> \| status \[--instance <instanceId>\] \| cleanup\]$/u,
       );
     });
   });

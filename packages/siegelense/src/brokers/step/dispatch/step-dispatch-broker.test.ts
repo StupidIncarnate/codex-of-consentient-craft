@@ -10,6 +10,7 @@ import { SelectorStub } from '../../../contracts/selector/selector.stub';
 import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
+import type { StepFailureCaptureError } from '../../../errors/step-failure-capture/step-failure-capture-error';
 
 import { stepDispatchBroker } from './step-dispatch-broker';
 import { stepDispatchBrokerProxy } from './step-dispatch-broker.proxy';
@@ -466,7 +467,7 @@ describe('stepDispatchBroker', () => {
   });
 
   describe('a real failure, not the declared expect: error attack', () => {
-    it('ERROR: {click throws for a real reason, shotPath non-null} => captures the failure screenshot before rethrowing', async () => {
+    it('ERROR: {click throws for a real reason, shotPath non-null} => captures the failure screenshot before rethrowing, wrapped with captured: true', async () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane, captureCallArgs } = proxy.laneRejectingClickMatch({
         error: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
@@ -487,10 +488,18 @@ describe('stepDispatchBroker', () => {
         (): never => {
           throw new Error('Expected stepDispatchBroker to reject');
         },
-        (caught: unknown): Error => caught as Error,
+        (caught: unknown): StepFailureCaptureError => caught as StepFailureCaptureError,
       );
 
-      expect(error.message).toBe('AMBIGUOUS: 2 elements match [data-testid="X"]');
+      expect({
+        name: error.name,
+        captured: error.captured,
+        underlyingMessage: (error.underlyingError as Error).message,
+      }).toStrictEqual({
+        name: 'StepFailureCaptureError',
+        captured: true,
+        underlyingMessage: 'AMBIGUOUS: 2 elements match [data-testid="X"]',
+      });
       expect(captureCallArgs()).toStrictEqual([
         [{ filePath: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png' }],
       ]);
@@ -521,7 +530,7 @@ describe('stepDispatchBroker', () => {
       expect(captureCallArgs()).toStrictEqual([]);
     });
 
-    it('ERROR: {click throws, the failure capture itself also throws} => the original click error still propagates, not the capture error', async () => {
+    it('ERROR: {click throws, the failure capture itself also throws} => the original click error still propagates, wrapped with captured: false', async () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane, captureCallArgs } = proxy.laneRejectingClickMatchAndCapture({
         clickError: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
@@ -543,10 +552,18 @@ describe('stepDispatchBroker', () => {
         (): never => {
           throw new Error('Expected stepDispatchBroker to reject');
         },
-        (caught: unknown): Error => caught as Error,
+        (caught: unknown): StepFailureCaptureError => caught as StepFailureCaptureError,
       );
 
-      expect(error.message).toBe('AMBIGUOUS: 2 elements match [data-testid="X"]');
+      expect({
+        name: error.name,
+        captured: error.captured,
+        underlyingMessage: (error.underlyingError as Error).message,
+      }).toStrictEqual({
+        name: 'StepFailureCaptureError',
+        captured: false,
+        underlyingMessage: 'AMBIGUOUS: 2 elements match [data-testid="X"]',
+      });
       expect(captureCallArgs()).toStrictEqual([
         [{ filePath: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png' }],
       ]);

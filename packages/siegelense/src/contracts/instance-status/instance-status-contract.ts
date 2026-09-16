@@ -4,14 +4,19 @@
  * fleet listing, even a dead one — `status {}` never lists runs or evidence (spec line 2380,
  * chunk-03 §3.D's no-browsing rule); they populate only in a `status { instance }` answer for that
  * one id. `rssMB` is null once an instance is dead and `rssAtLastBeat` is null while it is alive —
- * the two never both carry a value. Reach for this over `RegistryEntry` whenever the caller wants
- * the post-mortem shape a person reads, not the on-disk row a broker persists.
+ * the two never both carry a value. `evidenceComplete` is populated in EVERY row, fleet or named,
+ * the same as `runs` — it answers "did the last run's `.json` stored return land", never "does this
+ * row carry evidence paths", so reporting it is not the no-browsing rule's business. It says
+ * something `state` cannot: `state: 'killed'` alone does not distinguish a clean stop from `kill`
+ * catching a run mid-step, and this is the one field that does (spec line 2707). Reach for this over
+ * `RegistryEntry` whenever the caller wants the post-mortem shape a person reads, not the on-disk row
+ * a broker persists.
  *
  * USAGE:
  * instanceStatusContract.parse({
  *   id: 'inst_7f3a', state: 'alive', specName: 'dungeonmaster-web',
  *   uptime: '14m', lastBeat: '2s ago', runs: 3, rssMB: 1840, rssAtLastBeat: null,
- *   lastStep: null, orphans: [], evidence: null, likelyCause: null,
+ *   lastStep: null, orphans: [], evidence: null, likelyCause: null, evidenceComplete: true,
  * });
  * // Returns a validated InstanceStatus
  */
@@ -43,6 +48,7 @@ export const instanceStatusContract = z.object({
   orphans: z.array(orphanReadingContract).readonly(),
   evidence: instanceEvidenceListingContract.nullable(),
   likelyCause: contentTextContract.nullable(),
+  evidenceComplete: z.boolean(),
 });
 
 export type InstanceStatus = z.infer<typeof instanceStatusContract>;

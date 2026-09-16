@@ -370,7 +370,11 @@
       "mcp__dungeonmaster__create-worktree",
       "mcp__dungeonmaster__siegelense-start",
       "mcp__dungeonmaster__siegelense-run",
-      "mcp__dungeonmaster__siegelense-kill"
+      "mcp__dungeonmaster__siegelense-kill",
+      "mcp__dungeonmaster__siegelense-results",
+      "mcp__dungeonmaster__siegelense-status",
+      "mcp__dungeonmaster__siegelense-compare",
+      "mcp__dungeonmaster__siegelense-cleanup"
     ],
     "deny": [
       "Bash(sed:*)"

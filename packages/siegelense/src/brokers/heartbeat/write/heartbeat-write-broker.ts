@@ -12,6 +12,17 @@
  * gone. That measurement happens AFTER both path-resolving calls below, never before: reordering it
  * earlier would race it against the evidence-dir and heartbeat-path resolution in a mocked test.
  *
+ * The measurement is allowed to FAIL without voiding the beat. `machineRssByPgidBroker` walks every
+ * `/proc/<pid>` on the machine looking for pgrp matches, not just this instance's own, so one
+ * unrelated process owned by another user throwing EACCES on its `stat`/`statm` read is enough to
+ * reject it — the right contract for a `status` read (see that broker's own header) but the wrong one
+ * for a beat that runs on a timer regardless of what else is on the box. A rejection here is caught,
+ * reported to stderr the same way the heartbeat ticker reports a failed tick
+ * (`driver-serve-layer-responder.ts`), and degrades `rssMB` to `null` — the branch
+ * `instance-heartbeat-contract.ts` carries `.nullable()` for. Skipping the write instead would starve
+ * both the registry's `lastBeatMs` and the on-disk pgids, and `isStaleRegistryEntryGuard` would then
+ * read a healthy instance as dead over a permissions error on a process this instance does not own.
+ *
  * USAGE:
  * await heartbeatWriteBroker({
  *   instanceId: InstanceIdStub(),
@@ -20,7 +31,7 @@
  *   guildId: null,
  * });
  * // Writes heartbeat.json under the instance's evidence dir, stamps its registry row, and returns
- * // the written InstanceHeartbeat
+ * // the written InstanceHeartbeat — rssMB is null when the measurement failed or /proc is absent
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
@@ -33,6 +44,7 @@ import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceHeartbeatContract } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
 import type { InstanceHeartbeat } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
+import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
 import type { ProcessGroupId } from '../../../contracts/process-group-id/process-group-id-contract';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { machineRssByPgidBroker } from '../../machine/rss-by-pgid/machine-rss-by-pgid-broker';
@@ -54,7 +66,14 @@ export const heartbeatWriteBroker = async ({
     pathJoinAdapter({ paths: [evidenceDir, locationsStatics.siegelense.heartbeat] }),
   );
 
-  const rssMB = await machineRssByPgidBroker({ pgids });
+  let rssMB: Megabytes | null = null;
+  try {
+    rssMB = await machineRssByPgidBroker({ pgids });
+  } catch (error: unknown) {
+    process.stderr.write(
+      `[heartbeat-write] rss measurement failed for ${instanceId}, degrading rssMB to null: ${String(error)}\n`,
+    );
+  }
 
   const heartbeat = instanceHeartbeatContract.parse({
     instanceId,

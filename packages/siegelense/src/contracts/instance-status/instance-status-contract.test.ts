@@ -17,6 +17,7 @@ describe('instanceStatusContract', () => {
         orphans: [],
         evidence: null,
         likelyCause: null,
+        evidenceComplete: true,
       });
 
       const result = instanceStatusContract.parse(status);
@@ -34,6 +35,7 @@ describe('instanceStatusContract', () => {
         orphans: [],
         evidence: null,
         likelyCause: null,
+        evidenceComplete: true,
       });
     });
 
@@ -57,6 +59,7 @@ describe('instanceStatusContract', () => {
         },
         likelyCause:
           'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-web; kernel OOM kills since boot: 2',
+        evidenceComplete: true,
       });
 
       const result = instanceStatusContract.parse(status);
@@ -80,6 +83,7 @@ describe('instanceStatusContract', () => {
         },
         likelyCause:
           'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-web; kernel OOM kills since boot: 2',
+        evidenceComplete: true,
       });
     });
 
@@ -98,6 +102,7 @@ describe('instanceStatusContract', () => {
         evidence: null,
         likelyCause:
           'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-web; kernel OOM kills since boot: 2',
+        evidenceComplete: true,
       });
 
       const result = instanceStatusContract.parse(status);
@@ -116,6 +121,35 @@ describe('instanceStatusContract', () => {
         evidence: null,
         likelyCause:
           'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-web; kernel OOM kills since boot: 2',
+        evidenceComplete: true,
+      });
+    });
+
+    it('VALID: {state: "killed", evidenceComplete: false} => evidenceComplete carries the crash signal even though state alone reads the same as a clean kill', () => {
+      const status = InstanceStatusStub({
+        id: 'inst_9b2c',
+        state: 'killed',
+        runs: 2,
+        lastStep: { run: 'run_2', step: 7, verb: 'click' },
+        evidenceComplete: false,
+      });
+
+      const result = instanceStatusContract.parse(status);
+
+      expect(result).toStrictEqual({
+        id: 'inst_9b2c',
+        state: 'killed',
+        specName: 'dungeonmaster-web',
+        uptime: '14m',
+        lastBeat: '2s ago',
+        runs: 2,
+        rssMB: 1840,
+        rssAtLastBeat: null,
+        lastStep: { run: 'run_2', step: 7, verb: 'click' },
+        orphans: [],
+        evidence: null,
+        likelyCause: null,
+        evidenceComplete: false,
       });
     });
   });
@@ -135,6 +169,7 @@ describe('instanceStatusContract', () => {
           orphans: [],
           evidence: null,
           likelyCause: null,
+          evidenceComplete: true,
         }),
       ).toThrow(/Required/u);
     });
@@ -149,6 +184,26 @@ describe('instanceStatusContract', () => {
           lastBeat: '2s ago',
           runs: 3,
           rssMB: 1840,
+          lastStep: null,
+          orphans: [],
+          evidence: null,
+          likelyCause: null,
+          evidenceComplete: true,
+        }),
+      ).toThrow(/Required/u);
+    });
+
+    it('INVALID: {missing evidenceComplete} => throws Required', () => {
+      expect(() =>
+        instanceStatusContract.parse({
+          id: 'inst_7f3a',
+          state: 'alive',
+          specName: 'dungeonmaster-web',
+          uptime: '14m',
+          lastBeat: '2s ago',
+          runs: 3,
+          rssMB: 1840,
+          rssAtLastBeat: null,
           lastStep: null,
           orphans: [],
           evidence: null,
@@ -172,6 +227,7 @@ describe('instanceStatusContract', () => {
           orphans: [],
           evidence: null,
           likelyCause: null,
+          evidenceComplete: true,
         }),
       ).toThrow(/Invalid enum value/u);
     });

@@ -2,7 +2,7 @@ import { mcpPermissionsCreatorTransformer } from './mcp-permissions-creator-tran
 
 describe('mcpPermissionsCreatorTransformer', () => {
   describe('permission generation', () => {
-    it('VALID: {} => returns all 29 MCP permission strings with correct format', () => {
+    it('VALID: {} => returns all 33 MCP permission strings with correct format', () => {
       const result = mcpPermissionsCreatorTransformer();
 
       expect(result).toStrictEqual([
@@ -35,6 +35,10 @@ describe('mcpPermissionsCreatorTransformer', () => {
         'mcp__dungeonmaster__siegelense-start',
         'mcp__dungeonmaster__siegelense-run',
         'mcp__dungeonmaster__siegelense-kill',
+        'mcp__dungeonmaster__siegelense-results',
+        'mcp__dungeonmaster__siegelense-status',
+        'mcp__dungeonmaster__siegelense-compare',
+        'mcp__dungeonmaster__siegelense-cleanup',
       ]);
     });
   });

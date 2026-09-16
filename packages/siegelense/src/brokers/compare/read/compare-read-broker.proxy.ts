@@ -5,6 +5,7 @@ import type { RegistryEntryStub } from '../../../contracts/registry-entry/regist
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import type { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import type { RunResultStub } from '../../../contracts/run-result/run-result.stub';
+import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { instanceStateResolveBrokerProxy } from '../../instance/state-resolve/instance-state-resolve-broker.proxy';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
@@ -27,7 +28,9 @@ export const compareReadBrokerProxy = (): {
     guildId?: GuildId | null;
   }) => AbsoluteFilePath;
   setupInstance: (params: { entry: RegistryEntry }) => void;
+  setupUnknownInstance: () => void;
   setupRun: (params: { evidencePath: AbsoluteFilePath; runId: RunId; result: RunResult }) => void;
+  setupMissingRun: (params: { evidencePath: AbsoluteFilePath; runId: RunId }) => void;
   stagesShotFrame: (params: {
     path: AbsoluteFilePath;
     width: number;
@@ -35,6 +38,11 @@ export const compareReadBrokerProxy = (): {
     pixels: Uint8Array;
   }) => void;
   setupConsoleLines: (params: {
+    evidencePath: AbsoluteFilePath;
+    runId: RunId;
+    lines: readonly ContentText[];
+  }) => void;
+  setupNetworkLines: (params: {
     evidencePath: AbsoluteFilePath;
     runId: RunId;
     lines: readonly ContentText[];
@@ -53,6 +61,7 @@ export const compareReadBrokerProxy = (): {
   // four must come BEFORE `resultsReadBrokerProxy()`, so its own '/home/user' registration (last in
   // ITS constructor) is the one every evidence-path resolution actually gets.
   fsReadFileAdapterProxy();
+  errorIsNativeErrorAdapterProxy();
   instanceStateResolveBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
   locationsRunPathsFindBrokerProxy();
@@ -61,6 +70,7 @@ export const compareReadBrokerProxy = (): {
   newLinesLayerBrokerProxy();
 
   const consoleLinesByRun = new Map<RunId, readonly ContentText[]>();
+  const networkLinesByRun = new Map<RunId, readonly ContentText[]>();
 
   return {
     evidencePathFor: (params: {
@@ -83,6 +93,13 @@ export const compareReadBrokerProxy = (): {
       resultsProxy.setupBuffer({ evidencePath, kind: 'network', content: '' });
     },
 
+    // A present-but-empty registry — the honest shape of a typo'd or never-existed id, distinct
+    // from a missing registry.json entirely (that path is `registryReadBrokerProxy`'s own
+    // `setupMissingRegistry`, a different broker's concern).
+    setupUnknownInstance: (): void => {
+      resultsProxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
+    },
+
     setupRun: ({
       evidencePath,
       runId,
@@ -98,6 +115,19 @@ export const compareReadBrokerProxy = (): {
       // `[]` without ever reading `api-server.log` — the same safe "nothing recorded yet" default
       // as the two buffers above.
       resultsProxy.setupTranscript({ evidencePath, runId, content: '' });
+    },
+
+    // A KNOWN instance whose named run never stored a return — the run count reads real, the file
+    // does not. `resultsProxy.setupMissingStoredReturn` stages the same ENOENT shape a real crashed
+    // or never-completed run leaves on disk.
+    setupMissingRun: ({
+      evidencePath,
+      runId,
+    }: {
+      evidencePath: AbsoluteFilePath;
+      runId: RunId;
+    }): void => {
+      resultsProxy.setupMissingStoredReturn({ evidencePath, runId });
     },
 
     stagesShotFrame: ({
@@ -137,6 +167,29 @@ export const compareReadBrokerProxy = (): {
         )
         .join('');
       resultsProxy.setupBuffer({ evidencePath, kind: 'console', content });
+    },
+
+    setupNetworkLines: ({
+      evidencePath,
+      runId,
+      lines,
+    }: {
+      evidencePath: AbsoluteFilePath;
+      runId: RunId;
+      lines: readonly ContentText[];
+    }): void => {
+      // network.jsonl is the same shared, append-only, per-instance shape as console.jsonl above —
+      // every call re-stages the FULL accumulated content across every run set up so far.
+      networkLinesByRun.set(runId, lines);
+      const content = [...networkLinesByRun.entries()]
+        .flatMap(([taggedRunId, taggedLines]) =>
+          taggedLines.map(
+            (text) =>
+              `${JSON.stringify({ runId: taggedRunId, step: null, atMs: FIXTURE_AT_MS, text })}\n`,
+          ),
+        )
+        .join('');
+      resultsProxy.setupBuffer({ evidencePath, kind: 'network', content });
     },
   };
 };

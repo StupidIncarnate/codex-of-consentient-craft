@@ -45,6 +45,7 @@ describe('statusAnswerContract', () => {
             orphans: [],
             evidence: null,
             likelyCause: null,
+            evidenceComplete: true,
           },
         ],
       });
@@ -65,6 +66,7 @@ describe('statusAnswerContract', () => {
           orphans: [],
           evidence: null,
           likelyCause: null,
+          evidenceComplete: true,
         },
       ]);
     });

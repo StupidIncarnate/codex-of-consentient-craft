@@ -69,7 +69,7 @@ describe('runExecuteBroker', () => {
     it('VALID: {step 3 fails, stopOn error} => status failed, stepsRun 3, stoppedAt names step 3 and its verb, steps 4 and 5 never dispatched', async () => {
       const proxy = runExecuteBrokerProxy();
       const runId = RunIdStub({ value: 'run_1' });
-      proxy.stagePaths({ runId });
+      const { shotsDir } = proxy.stagePaths({ runId });
       const { lane, gotoCallCount } = proxy.laneFailingOnPath({
         failingPath: '/step-3',
         error: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
@@ -102,6 +102,14 @@ describe('runExecuteBroker', () => {
         },
       });
       expect(gotoCallCount()).toBe(3);
+      // The failing step (3) still captured its evidence, and that shot must reach RunResult.shots —
+      // the whole point of this defect: a screenshot written to disk but filtered out because the
+      // failure reading hardcoded shot: null.
+      expect(result.shots.map((shot) => [shot.step, shot.path])).toStrictEqual([
+        [1, locationsShotPathFindBroker({ shotsDir, step: StepIndexStub({ value: 1 }) })],
+        [2, locationsShotPathFindBroker({ shotsDir, step: StepIndexStub({ value: 2 }) })],
+        [3, locationsShotPathFindBroker({ shotsDir, step: StepIndexStub({ value: 3 }) })],
+      ]);
     });
   });
 

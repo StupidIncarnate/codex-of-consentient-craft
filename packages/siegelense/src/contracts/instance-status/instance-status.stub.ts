@@ -19,5 +19,6 @@ export const InstanceStatusStub = ({
     orphans: [],
     evidence: null,
     likelyCause: null,
+    evidenceComplete: true,
     ...props,
   });

@@ -44,6 +44,10 @@ export const mcpToolsStatics = {
       'siegelense-start',
       'siegelense-run',
       'siegelense-kill',
+      'siegelense-results',
+      'siegelense-status',
+      'siegelense-compare',
+      'siegelense-cleanup',
     ] as const,
   },
 } as const;

@@ -1,3 +1,5 @@
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 import { SelectorStub } from '../../../contracts/selector/selector.stub';
 import { LocatorStateStub } from '../../../contracts/locator-state/locator-state.stub';
@@ -85,6 +87,101 @@ describe('runExecuteStepLayerBroker', () => {
         step,
         index: StepIndexStub({ value: 3 }),
         shotPath: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(outcome).toStrictEqual({
+        reading: {
+          step: 3,
+          verb: 'goto',
+          node: null,
+          ok: false,
+          expected: 'ok',
+          reading: 'page.goto: Timeout 30000ms exceeded.',
+          shot: null,
+          pixelChange: null,
+          blank: null,
+          blankColour: null,
+          serverWindow: { fromByte: 0, toByte: 0 },
+          startedAtMs: FIXED_NOW_MS,
+          endedAtMs: FIXED_NOW_MS,
+        },
+        stoppedAt: {
+          step: 3,
+          verb: 'goto',
+          error: 'page.goto: Timeout 30000ms exceeded.',
+          candidates: [],
+        },
+        timedOut: false,
+      });
+    });
+  });
+
+  describe('a real failure whose failure-path capture succeeds', () => {
+    it('ERROR: {goto rejects for real, shotPath non-null, capture succeeds} => the reading carries the shot path, not null', async () => {
+      const proxy = runExecuteStepLayerBrokerProxy();
+      const lane = proxy.laneGotoRejects({
+        error: new Error('page.goto: Timeout 30000ms exceeded.'),
+      });
+      const step = StepStub({ step: 'goto', path: UrlPathStub({ value: '/guilds' }) });
+      const shotPath = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step3.png',
+      });
+
+      const outcome = await runExecuteStepLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 3 }),
+        shotPath,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(outcome).toStrictEqual({
+        reading: {
+          step: 3,
+          verb: 'goto',
+          node: null,
+          ok: false,
+          expected: 'ok',
+          reading: 'page.goto: Timeout 30000ms exceeded.',
+          shot: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step3.png',
+          pixelChange: null,
+          blank: null,
+          blankColour: null,
+          serverWindow: { fromByte: 0, toByte: 0 },
+          startedAtMs: FIXED_NOW_MS,
+          endedAtMs: FIXED_NOW_MS,
+        },
+        stoppedAt: {
+          step: 3,
+          verb: 'goto',
+          error: 'page.goto: Timeout 30000ms exceeded.',
+          candidates: [],
+        },
+        timedOut: false,
+      });
+    });
+  });
+
+  describe('a real failure whose failure-path capture itself fails', () => {
+    it('ERROR: {goto rejects for real, shotPath non-null, capture rejects} => the reading honestly reports shot: null, never a path naming a missing file', async () => {
+      const proxy = runExecuteStepLayerBrokerProxy();
+      const lane = proxy.laneGotoRejectsAndCaptureFails({
+        error: new Error('page.goto: Timeout 30000ms exceeded.'),
+        captureError: new Error('ENOSPC: no space left on device'),
+      });
+      const step = StepStub({ step: 'goto', path: UrlPathStub({ value: '/guilds' }) });
+      const shotPath = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step3.png',
+      });
+
+      const outcome = await runExecuteStepLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 3 }),
+        shotPath,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
       });

@@ -171,4 +171,24 @@ export const smoketestProbeArgsStatics = {
     summary: 'mcp-siegelense-kill-not-in-mcp-suite',
     note: 'siegelense-kill needs a live instance id from a prior siegelense-start, the same reason siegelense-run is skipped here.',
   },
+  'siegelense-results': {
+    mode: 'skip-from-suite',
+    summary: 'mcp-siegelense-results-not-in-mcp-suite',
+    note: 'siegelense-results needs a real instance id with recorded evidence from a prior siegelense-start/run — there is no fixed id the probe harness can substitute, and calling it against nothing would only prove the unknown-instance path rather than a real read.',
+  },
+  'siegelense-status': {
+    mode: 'call',
+    args: {},
+    summary: 'mcp-siegelense-status-probe-ok',
+  },
+  'siegelense-compare': {
+    mode: 'skip-from-suite',
+    summary: 'mcp-siegelense-compare-not-in-mcp-suite',
+    note: 'siegelense-compare needs two real run ids off one instance from a prior siegelense-start/run — the same reason siegelense-results is skipped here.',
+  },
+  'siegelense-cleanup': {
+    mode: 'call',
+    args: {},
+    summary: 'mcp-siegelense-cleanup-probe-ok',
+  },
 } as const;

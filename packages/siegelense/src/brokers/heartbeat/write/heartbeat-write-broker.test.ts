@@ -182,6 +182,55 @@ describe('heartbeatWriteBroker', () => {
     });
   });
 
+  describe('the rss measurement fails', () => {
+    it('ERROR: {machineRssByPgidBroker rejects} => still writes heartbeat.json with rssMB null and stamps the row', async () => {
+      const proxy = heartbeatWriteBrokerProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
+      const pid = ProcessIdStub({ value: 'proc-12345' });
+      const pgids = [ProcessGroupIdStub({ value: 4821 })];
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const nowMs = 1_700_000_500_000;
+      const evidencePath = FilePathStub({
+        value:
+          '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21',
+      });
+      const row = RegistryEntryStub({ id: instanceId });
+      const registry = RegistryStub({ instances: [row] });
+
+      proxy.setupHeartbeatWriteWithRssMeasurementFailure({
+        homeDir: HOME_DIR,
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+        evidencePath,
+        registryJson: JSON.stringify(registry),
+        nowMs,
+        pid: '999',
+        error: Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' }),
+      });
+
+      const result = await heartbeatWriteBroker({ instanceId, pid, pgids, guildId });
+
+      const expectedHeartbeat = InstanceHeartbeatStub({
+        instanceId,
+        pid,
+        pgids,
+        beatAtMs: EpochMsStub({ value: nowMs }),
+        rssMB: null,
+      });
+
+      expect(result).toStrictEqual(expectedHeartbeat);
+      expect(proxy.getWrittenHeartbeatContent({ evidencePath })).toBe(
+        `${JSON.stringify(expectedHeartbeat)}\n`,
+      );
+
+      const expectedRegistry = RegistryStub({
+        instances: [{ ...row, lastBeatMs: EpochMsStub({ value: nowMs }) }],
+      });
+
+      expect(proxy.getRegistryWrittenContent()).toBe(`${JSON.stringify(expectedRegistry)}\n`);
+    });
+  });
+
   describe('the registry has no row for this instance', () => {
     it('EMPTY: {no matching registry row} => writes heartbeat.json and leaves the registry unchanged', async () => {
       const proxy = heartbeatWriteBrokerProxy();

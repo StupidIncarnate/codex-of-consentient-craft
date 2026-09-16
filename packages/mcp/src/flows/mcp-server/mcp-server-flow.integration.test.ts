@@ -22,6 +22,12 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 import { mcpToolsStatics } from '@dungeonmaster/shared/statics';
+import {
+  CleanupAnswerStub,
+  ResultsAnswerStub,
+  StatusAnswerStub,
+} from '@dungeonmaster/siegelense/contracts';
+import { machineStatics, siegelenseToolsStatics } from '@dungeonmaster/siegelense/statics';
 
 import { JsonRpcRequestStub } from '../../contracts/json-rpc-request/json-rpc-request.stub';
 import { RpcIdStub } from '../../contracts/rpc-id/rpc-id.stub';
@@ -95,6 +101,27 @@ describe('McpServerFlow', () => {
       const toolsWithBadSchema = result.tools.filter((tool) => tool.inputSchema.type !== 'object');
 
       expect(toolsWithBadSchema).toStrictEqual([]);
+    });
+
+    it('VALID: siegelense tools => reports exactly the seven registered so far', async () => {
+      const request = mcp.buildToolListRequest();
+
+      const response = await client.sendRequest(request);
+
+      expect(response.error).toBe(undefined);
+
+      const result = ToolListResultStub(response.result as never);
+
+      const siegelenseToolNames = result.tools
+        .map((tool) => tool.name)
+        .filter((name) => name.startsWith(siegelenseToolsStatics.tools.prefix))
+        .sort();
+
+      expect(siegelenseToolNames).toStrictEqual(
+        ['cleanup', 'compare', 'kill', 'results', 'run', 'start', 'status']
+          .map((name) => `${siegelenseToolsStatics.tools.prefix}${name}`)
+          .sort(),
+      );
     });
   });
 
@@ -1915,6 +1942,115 @@ describe('McpServerFlow', () => {
     });
   });
 
+  // These four drive the REAL stdio server end-to-end for the read tools (registration →
+  // dispatch Map entry → SiegelenseHandleResponder → layerResponders lookup →
+  // SiegelenseReadLayerResponder → contract parse). None starts a driver: every one of the four
+  // resolves off the registry, the machine or a genuinely empty registry.json, so a fresh throwaway
+  // DUNGEONMASTER_HOME answers a real, non-error shape for every one of them — no
+  // skip-from-suite reasoning applies here the way it does to start/run/kill.
+  describe('tools/call with siegelense-results', () => {
+    it('VALID: {instanceId unknown to the registry} => answers with instanceState "unknown" and empty rows', async () => {
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 8104 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'siegelense-results',
+          arguments: { instanceId: 'inst_deadbeef' },
+        },
+      });
+
+      const response = await client.sendRequest(request);
+      const result = ToolCallResultStub(response.result as never);
+      const parsed: unknown = JSON.parse(String(result.content[0]?.text));
+      const answer = ResultsAnswerStub(parsed as never);
+
+      expect(response.error).toBe(undefined);
+      expect(result.isError).toBe(undefined);
+      expect(answer.instanceState).toBe('unknown');
+    });
+  });
+
+  describe('tools/call with siegelense-status', () => {
+    // This harness's throwaway DUNGEONMASTER_HOME has never run `siegelense-start`, so
+    // `<dmHome>/siegelense` was never created. `machineReadBroker` statfs's the dungeonmaster home
+    // path itself rather than that subdirectory (its own header explains why), and the home path is
+    // always this process's own data root, so a fresh machine's first `status` call answers a real
+    // reading, not an ENOENT.
+    it('VALID: {} => a machine that has never run siegelense-start answers a normal status reading, not an error', async () => {
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 8105 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'siegelense-status',
+          arguments: {},
+        },
+      });
+
+      const response = await client.sendRequest(request);
+      const result = ToolCallResultStub(response.result as never);
+      const parsed: unknown = JSON.parse(String(result.content[0]?.text));
+      const answer = StatusAnswerStub(parsed as never);
+
+      expect(response.error).toBe(undefined);
+      expect(result.isError).toBe(undefined);
+      // machine's freeMemMB/totalMemMB/freeDiskMB/cores/loadAvg/oomKillsSinceBoot are genuine host
+      // readings and vary by machine and moment — StatusAnswerStub's contract parse above already
+      // proves they are a validly-shaped MachineReading. What is deterministic on a fresh registry,
+      // and asserted here on the complete object to rule out property bleedthrough, is the fixed
+      // `monitored` vocabulary, an empty `instances` list, and `lastOomAt` staying null (this chunk
+      // never reads the OOM journal — see machine-read-broker's header).
+      expect(answer).toStrictEqual({
+        monitored: machineStatics.monitored,
+        machine: { ...answer.machine, lastOomAt: null },
+        instances: [],
+      });
+    });
+  });
+
+  describe('tools/call with siegelense-compare', () => {
+    it('ERROR: {instanceId unknown to the registry} => returns the JSON error shape with isError, never a verdict', async () => {
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 8106 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'siegelense-compare',
+          arguments: { instanceId: 'inst_deadbeef', runA: 'run_1', runB: 'run_2' },
+        },
+      });
+
+      const response = await client.sendRequest(request);
+      const result = ToolCallResultStub(response.result as never);
+
+      expect(response.error).toBe(undefined);
+      expect(result.isError).toBe(true);
+      expect(String(result.content[0]?.text)).toMatch(
+        /^\{\n {2}"success": false,\n {2}"error": ".+"\n\}$/u,
+      );
+    });
+  });
+
+  describe('tools/call with siegelense-cleanup', () => {
+    it('VALID: {} => reaps a genuinely empty registry and returns leftAlone: []', async () => {
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 8107 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'siegelense-cleanup',
+          arguments: {},
+        },
+      });
+
+      const response = await client.sendRequest(request);
+      const result = ToolCallResultStub(response.result as never);
+      const parsed: unknown = JSON.parse(String(result.content[0]?.text));
+      const answer = CleanupAnswerStub(parsed as never);
+
+      expect(response.error).toBe(undefined);
+      expect(result.isError).toBe(undefined);
+      expect(answer.leftAlone).toStrictEqual([]);
+    });
+  });
+
   describe('content size cap', () => {
     // Tools whose response is NOT bounded by the 50KB cap. When a new tool is
     // added to mcpToolsStatics.tools.names it is automatically size-checked,
@@ -1951,6 +2087,9 @@ describe('McpServerFlow', () => {
       'siegelense-start',
       'siegelense-run',
       'siegelense-kill',
+      // Require args — cannot be invoked with `{}` (both take a required instanceId)
+      'siegelense-results',
+      'siegelense-compare',
     ] as const;
 
     const sizeCappedTools = mcpToolsStatics.tools.names.filter(

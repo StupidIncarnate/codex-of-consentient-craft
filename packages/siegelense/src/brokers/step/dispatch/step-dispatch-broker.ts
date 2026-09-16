@@ -11,7 +11,10 @@
  * (`step.expect !== 'error'`) still captures before rethrowing — "always capture" (line 676) does not
  * stop being true because the step failed for a genuine reason rather than the one it declared; a
  * capture failure there is logged and swallowed rather than thrown, so it can never replace the
- * original error as what the caller sees. When a step DID capture (`shotPath` is non-null, on either
+ * original error as what the caller sees. Whether that swallowed capture actually landed rides
+ * upward on the rethrow anyway: `StepFailureCaptureError` wraps the original error with a `captured`
+ * boolean, so `runExecuteStepLayerBroker` can build the failure `StepReading`'s `shot` from what THIS
+ * call measured rather than a hardcoded `null` or a filesystem guess. When a step DID capture (`shotPath` is non-null, on either
  * the success return or the `expect: 'error'` catch return — chunk 2's own history records a failed
  * step that never captured as a defect, so both branches measure identically), `blank`/`blankColour`
  * come from `shotBlankReadBroker` and `pixelChange` from `shotChangeReadBroker` against
@@ -46,6 +49,7 @@ import { stepReadingContract } from '../../../contracts/step-reading/step-readin
 import type { StepReading } from '../../../contracts/step-reading/step-reading-contract';
 import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contract';
 import { BrowserStepUnsupportedError } from '../../../errors/browser-step-unsupported/browser-step-unsupported-error';
+import { StepFailureCaptureError } from '../../../errors/step-failure-capture/step-failure-capture-error';
 import { isBrowserStepGuard } from '../../../guards/is-browser-step/is-browser-step-guard';
 import { shotBlankReadBroker } from '../../shot/blank-read/shot-blank-read-broker';
 import { shotChangeReadBroker } from '../../shot/change-read/shot-change-read-broker';
@@ -131,13 +135,21 @@ export const stepDispatchBroker = async ({
       // (siegelense-tooling.md line 676) does not stop being true because the failure was
       // unexpected rather than declared. A capture failure here is logged and swallowed, never
       // thrown: replacing the step's own error with a screenshot-adapter error would hide the
-      // defect the walk actually hit.
+      // defect the walk actually hit. Whether it landed is not knowable from outside this swallowed
+      // `.catch`, so it rides upward on the rethrow instead: `StepFailureCaptureError` carries both
+      // the original error and a `captured` boolean, so `runExecuteStepLayerBroker` reports `shot`
+      // honestly rather than hardcoding `null` or guessing from the filesystem.
       if (shotPath !== null && step.step !== 'screenshot') {
-        await session.capture({ filePath: shotPath }).catch((captureError: unknown) => {
-          process.stderr.write(
-            `[step-dispatch] failure screenshot capture failed for step ${String(index)}: ${String(captureError)}\n`,
-          );
-        });
+        const captured = await session
+          .capture({ filePath: shotPath })
+          .then(() => true)
+          .catch((captureError: unknown) => {
+            process.stderr.write(
+              `[step-dispatch] failure screenshot capture failed for step ${String(index)}: ${String(captureError)}\n`,
+            );
+            return false;
+          });
+        throw new StepFailureCaptureError({ underlyingError: error, captured });
       }
       throw error;
     }
