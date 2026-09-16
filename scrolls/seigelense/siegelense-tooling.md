@@ -16,9 +16,11 @@
 
 ### Decision: an INSTANCE service, reached over the CLI
 
-> **Status: PARTIAL (chunk 2)** — three of the thirteen calls built and working end to end — `start`, `run`, `kill` — each tested against the real stdio MCP server (`mcp-server-flow.integration.test.ts`'s `describe('tools/call with siegelense-*')` blocks) and by reading `siegelense-flow.ts`. They are currently reached as MCP tools (`siegelense-start`, `siegelense-run`, `siegelense-kill`) and must be re-pointed at `dungeonmaster siegelense <name>` subcommands · NOT YET: the other ten names (`results`, `capacity`, `profile`, `status`, `cleanup`, `prune`, `compare`, `snapshots`, `recipes`, `docs`) stay pinned and unclaimed
+> **Status: PARTIAL (chunk 2)** — three of the thirteen calls built and working end to end — `start`, `run`, `kill` — each tested against the real stdio MCP server (`mcp-server-flow.integration.test.ts`'s `describe('tools/call with siegelense-*')` blocks) and by reading `siegelense-flow.ts`. They are reached as MCP tools (`siegelense-start`, `siegelense-run`, `siegelense-kill`) · NOT YET: a `dungeonmaster siegelense <name>` subcommand for any of them, and the other ten names (`results`, `capacity`, `profile`, `status`, `cleanup`, `prune`, `compare`, `snapshots`, `recipes`, `docs`), which stay pinned and unclaimed
 
-> **Status: PARTIAL (chunk 3)** — four more calls built and working end to end — `results`, `status`, `compare`, `cleanup` — seven of thirteen total, each tested against the real stdio MCP server (`mcp-server-flow.integration.test.ts`'s `describe('tools/call with siegelense-<name>')` blocks) and by reading `packages/mcp/src/flows/siegelense/siegelense-flow.ts`. They are currently reached as MCP tools (`siegelense-results`, `siegelense-status`, `siegelense-compare`, `siegelense-cleanup`) and must be re-pointed at `dungeonmaster siegelense <name>` subcommands · NOT YET: `capacity`, `profile`, `prune`, `snapshots`, `recipes`, `docs` stay pinned and unclaimed
+> **Status: PARTIAL (chunk 3)** — four more calls built and working end to end — `results`, `status`, `compare`, `cleanup` — seven of thirteen total, each tested against the real stdio MCP server (`mcp-server-flow.integration.test.ts`'s `describe('tools/call with siegelense-<name>')` blocks) and by reading `packages/mcp/src/flows/siegelense/siegelense-flow.ts`. They are reached as MCP tools (`siegelense-results`, `siegelense-status`, `siegelense-compare`, `siegelense-cleanup`) · NOT YET: a `dungeonmaster siegelense <name>` subcommand for any of the seven, and `capacity`, `profile`, `prune`, `snapshots`, `recipes`, `docs`, which stay pinned and unclaimed
+
+> **Status: PARTIAL (chunk 4)** — the CLI half of this decision now holds for real: `SiegelenseFlow`'s route table (`packages/siegelense/src/flows/siegelense/siegelense-flow.ts:71-102`) maps all seven built calls to `dungeonmaster siegelense <name>`, `CliSiegelenseResponder` forwards argv with no allow-list to gate it, and `packages/cli/bin/cli-entry.integration.test.ts`'s `'dungeonmaster siegelense subcommand seam'` block spawns the real binary to prove the gate is open — the only test in the repo that starts above `CliSiegelenseResponder`. The MCP layer is deleted outright: the seven tool registrations, their `.strict()` input contracts, and `mcpToolsStatics`' seven names are gone, confirmed by reading `mcp-server-flow.integration.test.ts:100-114`'s own absence assertion (`no tool name starts with "siegelense-"`). The six unbuilt names (`capacity`, `profile`, `prune`, `snapshots`, `recipes`, `docs`) answer "is a siegelense call but is not built yet" rather than "unknown subcommand" (`siegelense-flow.ts:151-159`) — a reachability improvement, not delivery of those six · NOT YET: those six calls themselves
 
 **This IS a set of CLI subcommands.** Every call — `start`, `run`, `results`, `kill`, `capacity`,
 `profile`, `status`, `cleanup`, `prune`, `compare`, `snapshots`, `recipes`, `docs` — is a `dungeonmaster siegelense
@@ -65,8 +67,11 @@ driver, not in whatever process holds the call.
 
 > **Status: DELIVERED (chunk 3)** — `results` now reads exactly as worded here: query by run id, narrowly, off disk,
 > needing no live instance and no `start` · verified by reading `results-read-broker.ts` and the real stdio
-> `siegelense-results` call in `mcp-server-flow.integration.test.ts`. All four calls in this row now exist. `results`
-> is currently reached as an MCP tool and must be re-pointed at `dungeonmaster siegelense results`
+> `siegelense-results` call in `mcp-server-flow.integration.test.ts`. All four calls in this row now exist
+
+> **Status: DELIVERED (chunk 4)** — all four calls in this row are reachable exactly as worded: `dungeonmaster
+> siegelense start`, `run`, `results` and `kill`, each routed through `SiegelenseFlow`'s `CALL_ROUTES` map ·
+> verified by reading `siegelense-flow.ts:71-102` and its own responders. No MCP tool remains for any of the four
 
 ```
 start    → instance id
@@ -1358,10 +1363,13 @@ setup; what it has to supply is the fix.
 ### What the operator owns after a crash
 
 > **Status: PARTIAL (chunk 3)** — steps 1 and 2 of the four: `status` and `cleanup` both real and callable as
-> `dungeonmaster siegelense status` / `dungeonmaster siegelense cleanup` — the correct surface already — and, for
-> now, also reachable as MCP tools `siegelense-status`/`siegelense-cleanup`, which should be dropped · verified by
+> `dungeonmaster siegelense status` / `dungeonmaster siegelense cleanup` — the correct surface already · verified by
 > reading `siegelense-status-responder.ts`, `siegelense-cleanup-responder.ts` and `siegelense-flow.ts`'s route table
 > · NOT YET: step 3 (`capacity`) and step 4 (re-dispatch, prompt-side)
+
+> **Status: PARTIAL (chunk 4)** — `status` and `cleanup` are now reachable ONLY as `dungeonmaster siegelense
+> status` / `cleanup`; no MCP tool exists for either · NOT YET: step 3 (`capacity`) and step 4 (re-dispatch,
+> prompt-side) — unchanged
 
 **Cleanup and getting the machine back to a known state, before anything else is dispatched:**
 
@@ -1687,11 +1695,16 @@ Elsewhere: an **instance** is one running stack, a **run** is one submitted batc
 > **Status: PARTIAL (chunk 2)** — adds the driver process, `start`/`run`/`kill` as real thin clients over a unix socket, three of the thirteen tools registered, the browserless spec erroring by NAME on a browser step (`BrowserStepUnsupportedError`), run timelines, and `stopOn` · verified by reading `driver-handle-request-broker.ts`, `step-dispatch-broker.ts` and `run-execute-broker.ts` · NOT YET: `docs`, `capacity`, `profile`, `status`, `cleanup` as its own call, append-only PROFILE samples, disk-resolved reads (`results`), `compare`, and settle-based stepping — a per-step timeout ceiling stands in for it today
 
 > **Status: PARTIAL (chunk 3)** — adds four more calls built (`results`, `status`, `compare`, `cleanup` — seven of
-> thirteen total), disk-resolved reads for all four, and `compare`. They are currently reached as MCP tools and must
-> be re-pointed at `dungeonmaster siegelense <name>` subcommands · verified by reading
+> thirteen total), disk-resolved reads for all four, and `compare` · verified by reading
 > `packages/mcp/src/flows/siegelense/siegelense-flow.ts` and the four read brokers · NOT YET: `docs`, `capacity`,
 > `profile`, append-only PROFILE samples, and settle-based stepping — a per-step timeout ceiling still stands in for
 > it
+
+> **Status: PARTIAL (chunk 4)** — all seven built calls are reached only as `dungeonmaster siegelense <name>`
+> subcommands over the socket client; the MCP layer that carried them is deleted outright, including its seven
+> tool registrations and their `.strict()` input contracts · verified by reading `siegelense-flow.ts` and
+> `mcp-server-flow.integration.test.ts:100-114`'s absence assertion · NOT YET: `docs`, `capacity`, `profile`,
+> `prune`, `snapshots`, `recipes`, append-only PROFILE samples, and settle-based stepping
 
 | Decision                                                                                                                                   | Because                                                                                                                                                                                                                                                                  |
 |--------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -1925,9 +1938,17 @@ that one does not.
 > **Status: PARTIAL (chunk 2)** — `dungeonmaster siegelense` now exists in both forms — `driver --instance <id>`
 > (`cli-siegelense-responder.ts`, reached through a runtime dynamic import so Playwright never enters the published
 > binary) and the bare fleet listing (`siegelense-fleet-responder.ts`) — plus three of the thirteen calls (`start`,
-> `run`, `kill`) built and callable, currently reached as MCP tools `siegelense-start`/`siegelense-run`/`siegelense-kill`
-> and still to be re-pointed at `dungeonmaster siegelense <name>` subcommands · verified by reading both responders
-> and `packages/cli/CLAUDE.md`'s own entry for the command · NOT YET: the recipe listing
+> `run`, `kill`) built and callable, reached as MCP tools (`siegelense-start`, `siegelense-run`, `siegelense-kill`) ·
+> verified by reading both responders and `packages/cli/CLAUDE.md`'s own entry for the command · NOT YET: the
+> recipe listing, and a `dungeonmaster siegelense <name>` subcommand for any of the three
+
+> **Status: PARTIAL (chunk 4)** — the subcommand half is complete for every built call: `start`, `run`,
+> `results`, `kill`, `status`, `cleanup` and `compare` are each a real `dungeonmaster siegelense <name>`
+> subcommand, and `CliSiegelenseResponder` validates nothing — `SiegelenseFlow`'s route table is the single
+> source of truth, closing the gap that shipped `status`/`cleanup` untypeable · verified by reading
+> `cli-siegelense-responder.ts` and `siegelense-flow.ts` · NOT YET: the recipe listing, and the six unbuilt call
+> names (`capacity`, `profile`, `prune`, `snapshots`, `recipes`, `docs`), which now refuse by name rather than
+> having no route at all
 
 **Three fixed names, and they are conventions rather than configuration:**
 
@@ -2021,6 +2042,12 @@ monorepo and the flat case has no consumer yet.
 > **Status: PARTIAL (chunk 1)** — item 1 delivered in full; items 2, 2a, 2b, 2c and 16 in part — the registry spine, the evidence path shape, the heartbeat, the tombstone fields and the package `CLAUDE.md` · NOT YET: every other item, and `build-ledger.md` carries the row-by-row state
 
 > **Status: PARTIAL (chunk 2)** — item 2 further in part (the driver, `start`/`run`/`kill`, three tool registrations); item 2b further in part (teardown implemented; its own seven-assertion suite BLOCKED); item 6 in part (capture-always, the shot list, frozen comparison capture; the change number stays open); item 17 in part (the lane spec is DATA with N processes and a content hash; moving it where a consumer repo can use it stays open) · `build-ledger.md` carries the row-by-row state
+
+> **Status: PARTIAL (chunk 4)** — item 2's CLI-surface claim now holds for seven of the thirteen calls: `start`,
+> `run`, `results`, `kill`, `status`, `cleanup` and `compare` are each `dungeonmaster siegelense <name>`, with no
+> tool registration behind any of them. Item 2a's read path (`results`/`status`) is unchanged in logic and now
+> reachable the same way · NOT YET: `capacity`, `profile`, `docs`, and item 2c's retention window — `build-ledger.md`
+> carries the row-by-row state
 
 | #   | Item                                                                                                                                                                                                                                                                                                                                                         | Why here                                                                                                                                                                                                                                                                                                                                                                       |
 |-----|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -2221,13 +2248,24 @@ form a session editing the package will actually read**, plus the two that live 
 > nothing handles one — the surface does not exist yet
 
 > **Status: PARTIAL (chunk 2)** — `start`, `run` and `kill` are real, working calls, each tested against the live
-> stdio MCP server. They are currently reached as MCP tools (`siegelense-start`, `siegelense-run`, `siegelense-kill`)
-> and must be re-pointed at `dungeonmaster siegelense <name>` subcommands · NOT YET: the other ten calls
+> stdio MCP server. They are reached as MCP tools (`siegelense-start`, `siegelense-run`, `siegelense-kill`) ·
+> NOT YET: a `dungeonmaster siegelense <name>` subcommand for any of them, and the other ten calls
 
 > **Status: PARTIAL (chunk 3)** — `results`, `status`, `compare` and `cleanup` join them — seven of thirteen calls
-> real, tested against the live stdio server (`mcp-server-flow.integration.test.ts`). All seven are currently reached
-> as MCP tools and must be re-pointed at `dungeonmaster siegelense <name>` subcommands · NOT YET: `capacity`,
-> `profile`, `prune`, `snapshots`, `recipes`, `docs`
+> real, tested against the live stdio server (`mcp-server-flow.integration.test.ts`). All seven are reached as MCP
+> tools · NOT YET: a `dungeonmaster siegelense <name>` subcommand for any of the seven, and `capacity`, `profile`,
+> `prune`, `snapshots`, `recipes`, `docs`
+
+> **Status: PARTIAL (chunk 4)** — the surface claim in this heading's own words now holds for all seven built
+> calls: `dungeonmaster siegelense start`, `run`, `results`, `kill`, `status`, `cleanup` and `compare`, each routed
+> through `SiegelenseFlow`'s `CALL_ROUTES` map (`siegelense-flow.ts:71-102`), with `--help` at both the index and
+> per-call level and a distinct refusal for the six that are named but not built ("`capacity` is a siegelense call
+> but is not built yet. Built calls: …", `siegelense-flow.ts:151-159`) rather than "unknown subcommand" — verified
+> by reading `siegelense-flow.ts` and `packages/cli/bin/cli-entry.integration.test.ts`'s seam suite, which spawns the
+> real binary above `CliSiegelenseResponder` and proves both branches. The MCP layer is deleted: no
+> `mcp__dungeonmaster__siegelense-*` tool remains, confirmed by `mcp-server-flow.integration.test.ts:100-114`'s own
+> absence assertion. `look` correctly stays absent · NOT YET: `capacity`, `profile`, `prune`, `snapshots`,
+> `recipes`, `docs` themselves — naming them and refusing by name is not building them
 
 **Every call below is `dungeonmaster siegelense <name>`** — `dungeonmaster siegelense start`, `dungeonmaster
 siegelense run`, and so on. The examples below drop to the bare name for readability; there is no bare `start`
