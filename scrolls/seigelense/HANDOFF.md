@@ -246,6 +246,34 @@ event loop stays alive. The idle-timeout backstop (`driver-idle-wait-layer-respo
 which makes this a slow leak rather than a permanent one. Every existing test checks lane pgids, ports, home
 and evidence — never the driver's own process — which is exactly why it slipped through.
 
+## A lane outlived its driver by five hours, holding a port. Found by looking, not by a test.
+
+A sweep at the end of this build found a live `tsx --conditions=source bin/server-entry.ts` with cwd
+`worktrees/siegelense/packages/server`, **five hours old, holding port 42341**, with no driver process
+alive to own it. That is a leaked LANE — the exact failure the teardown section calls "silent, costs
+three processes, and is never noticed by the session that caused it."
+
+**The likely mechanism, and it is worth understanding before trusting teardown.** The registry was
+CLEAN — `~/.dungeonmaster/siegelense/` held no rows and no instance directories. A test's driver runs
+under a testbed `DUNGEONMASTER_HOME` in the OS `/tmp`, and `testbed.cleanup()` deletes that home when the
+suite ends. **The registry row goes with it.** Any lane child that outlived its driver is then
+unreapable, because the only record of its pgids has been deleted — `cleanup` has nothing to find, and
+`kill`'s orphan-reap path has no heartbeat to read.
+
+So a lane leaked by a test is invisible to every recovery path the tool has, by construction.
+
+**Check for this by hand; nothing else will tell you.** A leaked lane holds a port and looks like
+nothing:
+
+```
+ps -eo pid,etime,cmd | grep "bin/server-entry"
+ss -lptn | grep node
+```
+
+Whether the fix is for the testbed to tear lanes down before deleting the home, or for the reap to have
+a record that outlives the testbed, is not settled. **Do not assume a green teardown suite means no
+lanes leak** — the suite passed sixteen assertions twice on the same day this leak was sitting there.
+
 ## Stale sockets accumulate and then break the teardown suite. Reproduced, mechanism unknown.
 
 The driver's control socket lives at a MACHINE-GLOBAL path, `<os.tmpdir()>/dm-siege-sockets/<id>.sock`,
