@@ -485,6 +485,12 @@ defaults: (index) => ({ title: `Quest ${index + 1}` }),
 and 1. It is the chain's only source of per-row variation, and it is why nothing in an ingredient needs
 a clock or a random value.
 
+**An ingredient declaring no `defaults` at all, and one whose `defaults` ignores its own `index`,
+produce the identical op tree: every row in that `add` carries the same `fields`.** Nothing in the
+chain, the pre-flight or the runner tells either shape apart from a correctly varying one — the "two of
+anything" rule breaks with no error and no warning, for as long as an ingredient's `defaults` stays
+absent or constant.
+
 **A reference disambiguates between calls, or two rows would share one identity.** The index above is
 scoped to its own `add` on purpose — `defaults(index)` needs a row's position to reset per call, not
 climb forever. But a row's REFERENCE cannot reuse that same bare index: two sibling `add(2, …)` calls
@@ -502,6 +508,11 @@ copies: 'questPersistBroker',
 
 The production code whose output that route imitates. It is where a diagnosis starts, and where the
 two-route comparison test points.
+
+**Nothing programmatic reads this value.** `ingredientConfigContract`'s `superRefine` checks only that
+`copies` is PRESENT when a `write` route exists; no pre-flight step and no op the runner executes
+inspects what it names. A wrong pointer is caught by nothing the framework runs — only by a human who
+reads the ingredient file and checks the name against the code it claims to imitate.
 
 **`copies:` names either an in-repo pointer or an external one, and the two forms are distinguished by
 an explicit prefix.** A bare identifier names production code in this repo — `guildAddBroker`. An
@@ -606,6 +617,16 @@ the counts that matter:
 - ✅ `one guild holding three quests, the first running with its riftcarver item dropped`
 - ❌ `seeds a guild and some quests` — a session cannot tell whether it can distinguish two rows
 - ❌ `calls questHydrateBroker three times` — that is how, not what
+
+**Read against this repo's own three recipes, two fail this bar.** `quest-advances-one-step`'s
+description — the first item complete and the second running — passes: it names exactly what tells
+the two rows apart, and the ledger the recipe writes matches those two words precisely.
+`guild-mid-execution`'s description says the first quest is running with its riftcarver item dropped
+and stops there — it never says what makes the second row different from the third, even though the
+recipe saves both under distinct names, so a session reading only the words has no way to choose
+between them, the exact failure the ❌ example above names. `session-with-nested-chain`'s description
+says the session holds a nested sub-agent chain and never says how deep, so the one fact that would let
+a session tell a shallow chain from a deep one is missing from the words a session actually reads.
 
 ### The listing `recipes {}` prints
 
@@ -803,6 +824,15 @@ q[0].set({ status: 'in_progress', title: 'The running one' })
 One call, one plain field, one transition. The caller says what it wants to be true; the ingredient
 owns how.
 
+**What decides between the two rows of that table is whether the ingredient declares `transitions` for
+the field being set — nothing at the call site does.** `set({ status })` walks only when `status` is
+the field named in that ingredient's own `transitions.field`. An ingredient that declares no
+`transitions` at all routes every `set` straight through, on every field, with no gate consulted — and
+the written op carries no `transition` key at all, the identical shape `setRaw` produces. **A caller
+cannot tell which happened from the call site, and cannot tell which happened from the result either**,
+since a plain write and a `set` that silently found no `transitions` to route through look the same from
+outside.
+
 **Splitting them was tried on paper and is worse.** Two verbs taking the same argument shape produce
 completely different states — a written field with no ledger, versus a walked row carrying everything
 the gates made — and picking wrong fails silently, with a walk measuring an empty screen and reporting
@@ -877,6 +907,14 @@ there — and silently doing nothing is how that becomes a defect report against
 chain contains it. The alternative — matching every row of that ingredient anywhere in the instance —
 makes a recipe holding two guilds delete rows belonging to a parent it did not create, which is worse
 than the ambiguity it would replace.
+
+**A top-level `filter` — called directly on `dm.<ingredient>`, with no ancestor `add` around it —
+carries no `scope` and matches the WHOLE INSTANCE.** `dm.operations.filter({ where: { role:
+'riftcarver' } }).remove()` removes every matching row of that ingredient in the whole plan, across
+every guild it holds, not only the first. The scope a `filter` carries is its host's row reference, and
+a top-level call has no host — there is nothing to narrow it to, so it stays instance-wide. A plan
+holding two guilds, each with its own riftcarver operation, loses BOTH to a single top-level filter of
+this shape.
 
 ### A recipe takes typed inputs, so it can stack on what an EARLIER STEP made
 
@@ -1401,6 +1439,16 @@ pinned diagnostic disappears, so the very next ward run fails the assertion in t
 | `params` on a recipe that takes none | over the in-process union |
 | a seed step naming an unknown recipe | over the in-process union |
 
+**Two rows above are real refusals whose wording teaches nothing.** An undeclared `extra`
+(`withNestedChain` on a quest) and a child accessor that cannot exist at that position — skipping its
+immediate host, or a leaf ingredient reaching for a level it has no children at — are both enforced by
+the type system alone, and both fire correctly. What a caller actually sees is TypeScript's own
+diagnostic, and it names the symptom rather than the rule: the undeclared extra reads `TS2722: Cannot
+invoke an object which is possibly 'undefined'`, and the impossible accessor reads `TS2532: Object is
+possibly 'undefined'` — neither names the verb, the ingredient, or which rule is being enforced, unlike
+`set({ nope: 1 })`'s `TS2353`, which names the bad field literally. A caller reading either message in
+isolation has no way to tell which call was wrong without opening the file at the reported line.
+
 **Four things the design got wrong on paper and the compiler caught:**
 
 | What broke | What it forced |
@@ -1512,8 +1560,8 @@ tries the ones it thought of first, which are the ones already written down.
 |---|---|---|---|
 | `name` | must | the config does not compile | a duplicate name across one registry is **caught by nothing today** — a runtime check at `registry()` |
 | `description` | must | does not compile | a vague one degrades the listing and nothing reports it. **A round should read every description and ask whether a session could choose from it alone** |
-| `fields` | must | does not compile | a contract narrower than the real entity makes a legal `set` impossible; wider makes an illegal one compile |
-| `record` | must | does not compile | a record that omits a server-assigned field makes `saveRecordAs` hand back less than exists, and a later `fromSaved` cannot reach it |
+| `fields` | must | does not compile | a contract narrower than the real entity makes a legal `set` impossible; wider makes an illegal one compile, and the extra field travels — a `write` route receives it in full and, wherever nothing rejects it, persists it, while the framework's own `record`-parsed result projects the extra away, so the value that comes back hides that it ever arrived |
+| `record` | must | does not compile | a record that omits a field the server really returns is stripped at create with no error — the create route's own parse against the narrowed contract silently drops any key it does not carry — and a later `fromSaved` naming that field is refused at pre-flight, before anything is on disk: `HydrationSavedFieldMissingError` names the saved record, the missing field, and every field its record does declare |
 | `routes` | must, at least one | does not compile | an `api`-only ingredient is unreachable from an integration test, and nothing says so until the run |
 | `links` | may | the row has no parent and appears at the top level | a wrong `as` does not compile; a wrong `of` fails at `registry()` |
 | `transitions` | may | the field is written, never walked | a `to` list missing a state makes that state unreachable by any caller; a `to` list too wide lets a caller ask for something the gates refuse, and that surfaces as a `reach` throw |
@@ -1593,6 +1641,7 @@ found.**
 | ~~Nothing creates the recipes package in a consumer repo~~ **CLOSED** | `InstallRecipesScaffoldResponder` on the `siegelense` branch already does it, tested. It needs the rename, not a rewrite |
 | **`ban-primitives` is off only for `**/@types/**`** | the framework's generic machinery needs `N extends number` and `of: string`, which that rule refuses everywhere else. `@dungeonmaster/hydration` needs its own entry in `eslint.config.js`, and the entry needs a comment saying why, or somebody deletes it |
 | **A recipe composing two of this repo's own routes can span two different stores.** `guildWriteRouteBroker` registers a guild through `@dungeonmaster/orchestrator`'s `StartOrchestrator`, whose own brokers resolve their home off the GLOBAL `process.env.DUNGEONMASTER_HOME` rather than the `target` the route was handed, while `questWriteRouteBroker` writes its file straight to `target.home`. A recipe combining both kinds reads and writes two unrelated stores, and nothing in the pre-flight or the runner checks they agree | **This is an observable against this repo, not a framework rule** — the routes, not the design, disagree. The failure is inconsistent, which is what makes it dangerous: a caller that never sets the env var to match `target.home` gets a loud error in one shape and a silently empty result in the other, and a silently empty result is exactly what manufactures a false defect report against working code. The general rule it implies belongs beside *"Routes: how an ingredient makes its state"*: a route that reaches code resolving its own storage location escapes the target, and the isolation this design promises holds only while every route honours the target it is given |
+| **The guild `write` route makes the guild's own directory before the guild is registered; the guild's own create path never does.** `guild-write-route-broker.ts:33` — `await fsMkdirAdapter({ filepath: filePathContract.parse(path) });` — runs before the call to `guildAddBroker`. `guildAddBroker` itself (`packages/orchestrator/src/brokers/guild/add/guild-add-broker.ts`) never mkdirs the guild's own `path`; its one `fsMkdirAdapter` call (line 41) makes the QUESTS directory under `guildsPath/<id>`, a different path entirely — a guild registered through `POST /api/guilds` is never given a directory at its own `path` at all | A test seeded through the `write` route can run against a guild whose own directory exists only because the seeder made it — a world neither `api` nor production could ever produce, since neither one creates that directory. A test seeded through `api`, and a real guild in production, get no such directory from the create call and must already have one. **The two-route comparison must not assert the directory's existence as a property both routes guarantee** — only `write` does. Whether the mkdir belongs in the route at all is a decision this document does not make |
 | **A package the recipes depend on cannot have its own tests converted by importing them.** `siegelense-recipes` depending on `orchestrator` shuts every orchestrator-owned integration target out of this migration — see *"The migration IS the validation"* | not solved, descoped. Every repo installing this framework will have some package in this position, whichever one its own recipes call into. **Duplicating ingredients into the dependent package to dodge the cycle is rejected outright** — that is the exact duplication the recipes package exists to end |
 
 ### Mechanics the framework has to implement

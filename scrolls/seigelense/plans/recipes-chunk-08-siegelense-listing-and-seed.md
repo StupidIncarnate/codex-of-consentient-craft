@@ -360,8 +360,17 @@ where it is needed.
 
 | | |
 |---|---|
-| Files | `packages/siegelense-recipes/src/brokers/recipes-seed/run/{…-broker.ts, .proxy.ts, .test.ts}` |
+| Files | `packages/siegelense-recipes/src/brokers/recipes-seed/run/{…-broker.ts, .proxy.ts, .integration.test.ts}`, `packages/siegelense-recipes/test/harnesses/instance-stub/instance-stub.harness.ts` |
 | Folder type | `brokers/` |
+
+This broker's own test suffix is `.integration.test.ts`, not `.test.ts`: its job — a real recipe seeded
+against a real target, an env var restored, a route's own real failure — is provable only against a
+real target, matching the three sibling recipe brokers in this package. `recipes-seed-run-broker.proxy.ts`
+exists only to satisfy `enforce-proxy-child-creation` and says so in its own header: there is no I/O
+boundary this broker's own tests stage, because `enforce-project-structure` refuses a
+`.integration.test.ts` importing any `.proxy.ts` at all. `instanceStubHarness` is what a `baseUrl` case
+needs instead — a real, listening loopback HTTP server standing in for the live instance a `baseUrl`
+target points at, so the `api` route's own real `fetch` call has something real to hit.
 
 ```ts
 recipesSeedRunBroker({ recipeName, params, home, baseUrl }) => Promise<Record<string, unknown>>
@@ -405,8 +414,14 @@ Everything repo-specific happens here, because everything repo-specific is unkno
   complete message.
 - `INVALID: {params on a recipe declaring none} => throws naming the recipe and the keys supplied`.
 - `INVALID: {params missing a declared key} => throws naming the missing key and listing the inputs}`.
-- `VALID: {baseUrl supplied} => the target carries it` — asserted through a staged `fetch` call's own
-  URL, so the assertion is on what the route actually requested.
+- `VALID: {recipeName: 'quest-advances-one-step', baseUrl} => the target carries it through to the
+  quest ingredient's api route, which wins over write` — proven with no mocking, since
+  `.integration.test.ts` may import no `.proxy.ts` and this broker's own carries none to stage:
+  `instanceStubHarness` boots a real loopback HTTP server, the seed run posts a real request to it,
+  and the assertion covers both the real request the server received (method, path, and a body
+  holding only `guildId`/`title`/`userRequest` — never the `status`/`operations` the recipe's own
+  `setRaw` set, which only the `write` route would have honored) and the returned quest, which is
+  the stub server's own response verbatim, not what a `write`-route run would have produced.
 
 ---
 
@@ -674,6 +689,11 @@ and list what the recipe takes.
   the import adapter having been called zero times **paired with** the thrown message, so "before"
   is a measured fact.
 - `INVALID: {params carrying a key the listing does not name} => throws naming that key and listing inputKeys`.
+- `INVALID: {a recipe declaring an input key, params omitting it} => throws RecipeParamsRefusedError
+  naming the missing key, before the seed entry is imported` — the same paired assertion as the
+  paramless case: the seed entry's mock is never called, so "before" is measured rather than
+  inferred from the throw alone. Without this check the missing key falls through to the recipe's
+  own zod schema, which answers `Required` and names neither the key nor the recipe.
 
 ---
 

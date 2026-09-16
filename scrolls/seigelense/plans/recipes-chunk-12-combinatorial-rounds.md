@@ -184,7 +184,7 @@ above stay the contract.
 
 | Case | Came from |
 |---|---|
-| **B6**, **B7** — colliding row references from two sibling `add` calls | `src/transformers/row-ref/row-ref-transformer.ts:26` derives a ref from `(ancestors, ingredient, index)` and nothing else |
+| **B6**, **B7** — two sibling or top-level `add` calls of the same ingredient | `packages/hydration/src/transformers/row-ref/row-ref-transformer.ts:41` folds a `callIndex` into every reference alongside the row index, so two `add` calls under one host — or two top-level `add` calls — mint distinct refs, never colliding ones. `collection-chain-transformer.test.ts:55` asserts this by name |
 | **C10** — a `filter`'s placeholder ref colliding with a real row's ref | `recipes-chunk-04-06-runner.md:325-328`, the standing risk §4b names and does not close |
 | **C11**, **C12** — one saved name, many rows | `hydration-run-state-contract.ts:25-27` types `saved` as a `Map<SavedRecordName, unknown>` |
 | **C13** — `expect: 'one'` matching TWO rows | `hydration-filter-expectation-error.ts:17-18` triggers only on *"fewer rows than `expect` requires"* |
@@ -209,8 +209,8 @@ proven the ordering pays — the migration section makes the same argument for t
 | **0 — read only** | nothing. Open the declarations and the tests and read them | seconds, no run | A2's first half, A15's reasoning, A17's existing proof, B8's documentation half, C19's parse half |
 | **1 — the chain only** | `recipe()` returning a plan. **No target, no runner, no disk** | milliseconds | A12, A13, B3, B6, B7, C10, C11, C12, C14, C15, C16 |
 | **2 — the type fixtures** | `typescriptProgramDiagnosticsAdapter` over a fixture tree | seconds | A3, A4, A8, A16, A17, B1, B2, B5, C15 |
-| **3 — the file target** | `fileTargetHarness`, a temp home, `write` routes, **no `baseUrl`** | seconds | A1, A7, A9, A10, A11, A14, B4, B8, C1–C10, C13, C17, C18, D3–D10, D14–D20 |
-| **4 — a real server** | one in-process application object, `api` routes | ~a minute | A4's `api` half, A5, A6, D1, D2 |
+| **3 — the file target** | `fileTargetHarness`, a temp home, `write` routes, **no `baseUrl`** | seconds | A1, A5, A6, A7, A9, A10, A11, A14, B4, B8, C1–C10, C13, C17, C18, D3–D10, D14–D20 |
+| **4 — a real server** | one in-process application object, `api` routes | ~a minute | A4's `api` half, D1, D2 |
 | **5 — a live instance** | siegelense: `recipes {}`, a `seed` step, a browser | minutes | A2's listing half, C2's batch half, C9's `makes` half, D11, D12, D13, D21 |
 
 **A tier-1 defect stops the tier-4 run.** The cases are ordered so that a broken ref, a lost saved name
@@ -504,15 +504,17 @@ defaults: (index) => ({ title: `Quest ${index + 1} at ${Date.now()}` }),
 
 - **Wrong reading** — a clock inside `defaults` only affects a field nobody asserts on.
 - **Expect** — *"a default that varies by anything but the index breaks byte-identity across
-  instances"*, and nothing in the repo stops it: the gaps table records that the determinism lint rule
-  is **unbuilt and unowned**.
-- **Tell by** — run the SAME plan twice against two fresh temp homes and diff the trees byte for byte.
-  A difference is the observable, and it is the only one available until the rule ships. Record which
-  files differed — that is what tells a later session whether the value reached a screen.
-- **Needs** — chunks 4 and 7. **Blocked from being PREVENTED** until the
-  `@dungeonmaster/eslint-plugin` rule lands; this case only detects it. A round that finds one must
-  resist adding the eslint entry itself: `recipes-ledger.md:122` records that an entry naming a rule
-  that does not exist *"crashed lint for every file in the package"*.
+  instances"*. `ban-nondeterminism-in-ingredients` is live, and its own `RuleTester` case proves it
+  catches `Date.now()` inside an ingredient declaration file — the lint rule already prevents this
+  case at the source, not "unbuilt and unowned". What is left to ask is what a RUN-time probe can still
+  catch that the lint rule does not.
+- **Tell by** — **"run the same plan twice" cannot expose this, and that is itself the finding.** A
+  plan is data built ONCE — `defaults()` fires when the chain BUILDS, not when it runs — so running one
+  pre-built op array against two fresh temp homes produces the identical baked-in value both times.
+  Only REBUILDING the plan (calling the chain builder a second time) calls `defaults()` again and lets
+  two builds diverge. Drive it both ways and record which one actually differs.
+- **Needs** — chunks 4 and 7 for the run-time probe. The prevention this case originally waited on
+  already exists — see "Expect" above — so nothing here is blocked on the eslint rule landing.
 
 #### A15 — `copies:` pointing at the wrong production code
 
@@ -545,7 +547,13 @@ s[0].withNestedChain({ depth: 2 })
 - **Expect** — a compile error; *"the ingredient has only the built-in verbs"*.
   `test/type-fixtures/call-site/extra-not-declared.ts` proves it (`withNestedChain` on a quest, graded
   by `typescriptProgramDiagnosticsAdapter`).
-- **Tell by** — the error names the verb. **CONFIRM.**
+- **Tell by** — **the refusal is real; the message claim is not.**
+  `typescript-program-diagnostics-adapter.test.ts`'s `EXTRA_NOT_DECLARED` case is the real diagnostic:
+  `TS2722`, *"Cannot invoke an object which is possibly 'undefined'."* The string `withNestedChain`
+  appears nowhere in it — unlike `UNKNOWN_FIELD`'s message two cases above it, which does name the bad
+  field literally. A session hitting this diagnostic in isolation has no way to tell WHICH call was the
+  undeclared extra without opening the file at the reported line. **CONFIRM the compile refusal; "the
+  error names the verb" does not hold.**
 - **Needs** — chunk 3 and a `call-site/` fixture.
 
 #### A17 — an `extra` named after a built-in
@@ -588,10 +596,14 @@ dm.as.add(1, (a) => [
 - **Tell by** — three separate readings, because they can disagree. (1) Does `d[0]` appear on `c[0]` at
   all, or does the accessor vanish? (2) Does the `create` op carry a full four-segment `ancestors`
   array, or a truncated one? (3) Does `link-values` fill `d`'s link to `a` — three levels up — from the
-  ancestor chain? **A vanished accessor fails loudly; a truncated `ancestors` array fails silently and
-  is the outcome to hunt for.**
-- **Needs** — chunk 3 for (1) and (2), chunk 4 for (3). A synthetic registry in
-  `packages/hydration/test/type-fixtures/`, not this repo's ingredients.
+  ancestor chain? **None of the three failure modes occurs.** `tmp/round-b/depth-fixture.ts`'s `depth4`
+  export compiles with zero diagnostics, so the accessor does not vanish. A real four-level
+  `planRunBroker` run (`tmp/round-b/b1-link-resolution.ts`) carries the full `ancestors` array at every
+  level and resolves `d`'s link to `a` — three levels up — to the real top-level row's id, not
+  `undefined` and not `c`'s id.
+- **Needs** — chunk 3 for (1) and (2), chunk 4 for (3). Driven against a synthetic registry in
+  `tmp/round-b/deep-ingredients.ts`, mirroring `dm-target.ts`'s own wrapper, not this repo's
+  ingredients.
 
 #### B2 — five levels, and where it stops
 
@@ -607,8 +619,13 @@ dm.as.add(1, (a) => [
   `TS2589: Type instantiation is excessively deep` or something that reads like a missing property.
   `rowRefContract`'s pattern has no depth limit — `(?:\/[A-Za-z][A-Za-z0-9-]*\[\d+\])*` — so any limit
   found is in the mapped types, not in the reference. **Record the depth and the exact error text**;
-  a limit nobody wrote down becomes folklore the first time somebody hits it.
-- **Needs** — chunk 3. Tier 2.
+  a limit nobody wrote down becomes folklore the first time somebody hits it. **No stopping point
+  exists within what this round tested.** `depth-fixture.ts`'s `depth5` through `depth8` and `depth12`
+  exports — five through twelve real nested `.add()` calls, each level its own branded ingredient —
+  all compile in the same run, at zero diagnostics apiece. Twelve real levels is as far as this round
+  drove it; nothing in the mechanism (the mapped types, or `rowRefContract`'s unbounded pattern) points
+  at a depth where that would change.
+- **Needs** — chunk 3. Tier 2. Driven against `tmp/round-b/depth-fixture.ts`.
 
 #### B3 — an `add` inside an `add` inside an `add`, each with its own `defaults`
 
@@ -625,7 +642,12 @@ dm.guilds.add(2, (g) => [
   *"The index is 0-based and scoped to ITS OWN `add`."*
 - **Tell by** — the op tree's `create` ops carry `index: 0` and `index: 1` at every level, and their
   `fields` repeat per level. **CONFIRM** — `collection-chain-transformer`'s own test asserts it.
-- **Needs** — chunk 3. Tier 1.
+  Driven against the real `guild`→`quest`→`operation` chain (`tmp/round-b/b3.ts`): every level's
+  `index` restarts at 0/1 independently — `guild[0:0]`/`guild[0:1]`, then
+  `guild[0:0]/quest[0:0]`/`guild[0:0]/quest[0:1]` under the first guild, then
+  `guild[0:0]/quest[0:0]/operation[0:0]`/`…operation[0:1]` under that quest — confirmed against real
+  ingredients, not only the synthetic op-tree test.
+- **Needs** — chunk 3. Tier 1. Driven.
 
 #### B4 — a `filter` inside a nested `add`, and whether the runner honours its scope
 
@@ -645,8 +667,12 @@ dm.guilds.add(2, (g) => [
   host's row reference, and the runner matches only rows whose ancestor chain contains it."*
 - **Tell by** — after the run, `g[1]`'s quest still has its riftcarver operation. **Two guilds is the
   minimum shape**; a one-guild plan cannot catch a scope bug at all, which is exactly why chunk 7's
-  own composition test uses three quests.
+  own composition test uses three quests. Driven against a scratch `task` ingredient with real
+  `query`/`remove` routes (`tmp/round-b/b4.ts` — needed because `dm-target.ts`'s own `operation`
+  ingredient has neither route): two guilds, each with one riftcarver task under its quest, and the run
+  removes only guild 0's task — guild 1's survives on disk afterwards, exactly as decided.
 - **Needs** — chunk 6, and the Q2 route edit that gives `filter` a `query` route to run against at all.
+  Driven.
 
 #### B5 — an ingredient linking two levels up, skipping one
 
@@ -664,15 +690,26 @@ g[0].quests.add(1, (q) => [q[0].skippers.add(1, (s) => [])]);
   something already in the ancestor chain … **Condition 2 alone gives you the second case wrong**,
   which is measured: dropping it makes `q[0].sessions` compile."* So the accessor appears on `g[0]`
   only.
-- **Tell by** — `q[0].skippers` is a compile error and `g[0].skippers` is not.
-- **Needs** — chunk 3. **There is a live lead waiting for this case.**
+- **Tell by** — `q[0].skippers` is a compile error and `g[0].skippers` is not. Driven against the real
+  lead this case names: `typescriptProgramDiagnosticsAdapter` run against the real `dmRegistryBroker`
+  (`tmp/round-b/b5-fixture.ts`, via `tmp/round-b/b5-run.ts`) refuses both `g[0].subagents.add(...)`
+  (skipping `session`, the real immediate host) and `a[0].subagents.add(...)` (a sub-agent reaching for
+  its own sub-agents) — the correct host, `s[0].subagents.add(...)`, produces no diagnostic. **The
+  refusal is real; its wording is not what a caller would guess.** Both refusals read `TS2532: Object
+  is possibly 'undefined'`, not a missing-property error — the same species of gap Round A's A16 found
+  for an undeclared `extra`. A probe forcing an assignment mismatch (`tmp/round-b/b5-probe.ts`) shows
+  the resolved type of `g[0].subagents` is exactly `undefined` — the property resolves rather than
+  vanishing outright, and a caller reading only the diagnostic text would guess a missing null check
+  rather than "this accessor cannot exist here." `session-with-nested-chain-recipe-broker.ts:44` uses
+  the `withNestedChain` extra instead of this chain shape, confirmed load-bearing rather than
+  stylistic.
+- **Needs** — chunk 3. Driven. The live lead this case named is confirmed against real code:
   `scrolls/seigelense/plans/recipes-chunk-07-repo-ingredients.md:287` writes
   `a[0].subagents.add(1, …)` while `:575` gives `subagent` links naming `session` and `guild` and no
-  self-link — so that accessor cannot exist under the immediate-parent rule. Drive B5 against chunk 7's
-  own recipe before writing the general case; a case that reproduces a real declaration beats a
-  synthetic one.
+  self-link — exactly the shape `b5-fixture.ts` reproduces, and exactly why
+  `session-with-nested-chain` reaches for `withNestedChain` instead.
 
-#### B6 — two sibling `add` calls under one host mint COLLIDING references
+#### B6 — two sibling `add` calls under one host, and whether they mint colliding references
 
 ```ts
 dm.guilds.add(1, (g) => [
@@ -683,25 +720,28 @@ dm.guilds.add(1, (g) => [
 
 - **Wrong reading** — per-`add` index scoping is a fact about `defaults`, so two sibling `add` calls
   are just four rows.
-- **Expect** — the document does not say, and the mechanism says they collide. A row's reference is
-  derived from the ancestor path, the ingredient name and the index, and from nothing else:
+- **Expect** — every row's reference folds a `callIndex` into the ancestor path, the ingredient name
+  and the row index, on disk today:
 
   ```ts
-  // packages/hydration/src/transformers/row-ref/row-ref-transformer.ts:26
-  const segments = [...ancestors, `${ingredient}[${index}]`];
+  // packages/hydration/src/transformers/row-ref/row-ref-transformer.ts:41
+  `${ingredient}[${callIndex}${rowRefStatics.slot.separator}${index}]`
   ```
 
-  Both `add` calls see indexes 0 and 1 under the same ancestors, so both mint `guild[0]/quest[0]` and
-  `guild[0]/quest[1]`. The runner's own carrier is a single flat map —
-  `hydration-run-state-contract.ts:25-27` types `records: Map<RowRef, unknown>` — so the second pair
-  overwrites the first.
-- **Tell by** — build the plan and collect every `create` op's `ref`. Four ops, two distinct values, is
-  the observable and it needs no runner. Then run it and read the saved output: does `first-pair` hold
-  the first `add`'s row, or the second's? **Expect the existing test to pass while this is true** —
-  `recipes-chunk-01-03-framework-types.md:904` asserts *"the four refs"*, which four ops with two
-  distinct values satisfies. That is the "nothing notices" shape Table 1 warns about, arriving in
-  Round B.
-- **Needs** — chunk 3 for the op-tree half (tier 1), chunk 4 for the saved-output half.
+  `collectionChainTransformer` draws a fresh `callIndex` per `.add()` call off a per-collection
+  counter, so the two `add(2, …)` calls above mint `quest[0:0]`/`quest[0:1]` and
+  `quest[1:0]`/`quest[1:1]` — four distinct references, not two collisions.
+- **Tell by** — build the plan and collect every `create` op's `ref`. `tmp/round-b/b6.ts` does exactly
+  this against the real `guild`/`quest` ingredients:
+  `["guild[0:0]","guild[0:0]/quest[0:0]","guild[0:0]/quest[0:1]","guild[0:0]/quest[1:0]","guild[0:0]/quest[1:1]"]`
+  — four distinct refs. The saved output needs no separate check once the refs are distinct:
+  `first-pair` and `second-pair` each hold their own `add` call's rows, because nothing collides
+  upstream of the save. `collection-chain-transformer.test.ts:55` asserts this exact shape by name —
+  *"each call starts its own row index at 0 and 1, but mints DISTINCT refs."*
+- **Needs** — chunk 3 for the op-tree half (tier 1). Driven — the mechanism already carries the
+  `callIndex`, so nothing here is blocked. A plan wanting two of anything under one host still writes
+  `add(2)`, not two separate `add(1)` calls, since nothing about either shape is more readable — only
+  the mechanism, not the authoring convention, changed.
 
 #### B7 — two TOP-LEVEL `add` calls of the same ingredient
 
@@ -712,18 +752,21 @@ dm.guilds.add(1, (g) => [g[0].quests.add(1, (q) => [q[0].saveRecordAs({ name: 'b
 
 - **Wrong reading** — two top-level `add` calls are how you write a plan holding two guilds, and the
   specification's own scope discussion assumes exactly that plan.
-- **Expect** — both guilds are `guild[0]`, and every descendant reference collides wholesale:
-  `guild[0]/quest[0]` names two different quests under two different guilds. This is B6's mechanism
-  with no ancestor segment to separate the two.
-- **Tell by** — the op tree again, and then the sharper consequence: a `filter` scoped to
-  `guild[0]/quest[0]` would match rows under BOTH guilds, which is precisely the outcome the scope rule
-  was introduced to prevent — *"lets a recipe holding two guilds delete rows belonging to a parent it
-  did not create"*. Drive the filter half only after the op-tree half is recorded.
-- **Needs** — chunk 3 (tier 1), then chunk 6 for the filter consequence. **If B6 and B7 hold, the
-  finding is one rule and it belongs beside `add`**: two `add` calls of the same ingredient under the
-  same host are indistinguishable, so a plan wanting two of anything writes `add(2)`. Whether the
-  framework should instead make the reference unique is a decision for whoever owns chunk 4, not for
-  this round.
+- **Expect** — each top-level `add` call also draws its own `callIndex`, so the two guilds are
+  `guild[0:0]` and `guild[1:0]`, not both `guild[0]`. This is B6's mechanism, with no ancestor segment
+  needed to separate the two, because the call index alone does it.
+- **Tell by** — the op tree confirms it: `tmp/round-b/b7.ts` (an isolated run, fresh registry) returns
+  `["guild[0:0]","guild[0:0]/quest[0:0]","guild[1:0]","guild[1:0]/quest[0:0]"]` — two distinct guild
+  refs, each with its own quest underneath. **The sharper consequence this case was written to check
+  does not arise**: a `filter` scoped to `guild[0:0]/quest[0:0]` cannot also match
+  `guild[1:0]/quest[0:0]`, since the two refs are textually distinct — the scope rule is not at risk
+  from this shape.
+- **Needs** — chunk 3 (tier 1). Driven — the filter consequence this case worried about does not
+  exist, so chunk 6 owes it nothing. **The rule this case set out to produce still belongs beside
+  `add`, on its true terms**: two `add` calls of the same ingredient under the same host mint distinct
+  rows today, so a plan wanting two of anything may write either `add(2)` or two `add(1)` calls —
+  nothing about either shape is more readable, and only the mechanism, not the authoring convention,
+  changed.
 
 #### B8 — a TOP-LEVEL `filter`, in a plan holding two guilds
 
@@ -737,12 +780,15 @@ dm.operations.filter({ where: { role: 'riftcarver' } }).remove(),
   `recipes-chunk-04-06-runner.md:297-300` (D11) decided it, and the chain implements it:
   `collection-chain-transformer.ts:64` reads
   `const scope = ancestors.length === 0 ? undefined : ancestors[ancestors.length - 1];`.
-- **Tell by** — the `filter` op has no `scope` key, and the run deletes rows under both guilds.
-  **Then check the document.** Part 5's `filter` section says a filter *"is scoped to its immediate
-  host, never the whole instance"* with no top-level exception, and the CLOSED gap row says the same.
-  A decision that lives only in a chunk plan is a rule a recipe author will not find. **The candidate
-  finding is a documentation one: the top-level exception belongs in Part 5 beside the scope rule.**
-- **Needs** — chunk 6 to drive; the documentation half needs nothing and can land from tier 0.
+- **Tell by** — the `filter` op has no `scope` key, and the run deletes rows under both guilds. Driven
+  against the same scratch `task` ingredient as B4 (`tmp/round-b/b8.ts`): two guilds, each holding one
+  riftcarver task, and one top-level `dm.tasks.filter({ where: { role: 'riftcarver' } }).remove()` —
+  `tasksStore BEFORE run: []`, `NO THROW`, `tasksStore AFTER run: []`. Both guilds' tasks are gone,
+  confirming the runtime behavior exactly as decided. **The documentation gap is now closed**:
+  `siegelense-recipes.md`'s `filter` section states the top-level scope in its own paragraph, beside
+  the nested-host rule, rather than only in this plan and in `collection-chain-transformer.ts`'s own
+  `scope` line.
+- **Needs** — chunk 6. Driven.
 
 ---
 

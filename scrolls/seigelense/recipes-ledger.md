@@ -131,3 +131,154 @@ satisfy, so they carry no row above:
 `kill`, `capacity`, `profile`, `status`, `cleanup`, `prune`, `compare`, `snapshots`, `docs`) belong to
 `siegelense-tooling.md` and are tracked in `build-ledger.md`. This ledger only adds the `recipes` call and
 the `seed` step to that surface, both of which have rows above.
+
+---
+
+## Round A — one property at a time (`recipes-chunk-12-combinatorial-rounds.md`, §6)
+
+Every one of A1–A17 is DRIVEN this round — built and run against real code, never read and predicted.
+Outcomes use the plan's own §5 vocabulary (`RULE`, `OBSERVABLE`, `CONFIRMED`, `BLOCKED`) exactly; where a
+label is a candidate for a `RULE` this document itself would carry, that candidate sentence is named but
+not written into `siegelense-recipes.md` — this round records findings, a later pass drafts the rule text.
+Every scratch script lives under `<repoRoot>/tmp/round-a/`, run via
+`npx tsx --conditions=source tmp/round-a/<file>.ts` from the repo root; every quoted line is copied
+verbatim from a real run, not reconstructed from reading source.
+
+| Case | What it asked | Outcome | Evidence |
+|---|---|---|---|
+| **A1** | Two registry keys (`quests`, `tasks`) declaring the same ingredient `name: 'quest'` | **CONFIRMED** | `packages/hydration/src/brokers/registry/create/registry-create-broker.test.ts:134-143` already asserts `registryCreateBroker({quests: ..., tasks: ...})` throws matching `/^registry keys "quests" and "tasks" both declare the ingredient name "quest"$/u` — names BOTH keys, per the decision at `siegelense-recipes.md:1401`. `npm run ward -- --only unit -- packages/hydration/src/brokers/registry/create/registry-create-broker.test.ts` → `PASS 1 files, 110 discovered` |
+| **A2** | Read every recipe/ingredient `description` cold: what exists after it runs, and can an assertion tell two of its rows apart | **OBSERVABLE** (app-level, in `siegelense-recipes` recipes, not the framework) | `quest-advances-one-step` (`packages/siegelense-recipes/src/brokers/quest-advances-one-step/recipe/quest-advances-one-step-recipe-broker.ts:59-60`) passes cleanly: "the first item complete and the second running" matches the real op ledger exactly (`status:'complete'`/`status:'in_progress'` at lines 73/82). Two others fail the rubric. `guild-mid-execution`'s description ("one guild holding three quests, the first running with its riftcarver item dropped", lines 34-35) says nothing about quests 2 and 3 even though the recipe `saveRecordAs`'s BOTH under distinct names (`quest2`, `quest3`, lines 63-64) — reading the description alone gives no way to tell `quest2` apart from `quest3` (both are just "not the first"; the actual code difference is only the auto-generated title from `defaults(index)`). `session-with-nested-chain`'s description ("holding a nested sub-agent chain", line 32) never says how deep — `sessionWithNestedChainStatics.counts.depth` is `2` (`packages/siegelense-recipes/src/statics/session-with-nested-chain/session-with-nested-chain-statics.ts`), so the recipe writes exactly two nested transcript files, a fact invisible from the description text alone |
+| **A3** | `fields` narrower than the real entity (`questFieldsContract.omit({userRequest:true})`), then `set({userRequest: 'seeded'})` at the call site | **CONFIRMED** | `tmp/round-a/a3-fixture.ts` (scratch ingredient reusing `dm-target.ts`'s `questFieldsContract`/`questRecordContract`, links intact) run through the real `typescriptProgramDiagnosticsAdapter` via `tmp/round-a/a3-run.ts` → `[{"file":"tmp/round-a/a3-fixture.ts","line":52,"code":2353,"message":"Object literal may only specify known properties, and 'userRequest' does not exist in type 'FieldValuesFor<{ status: \"queued\" \| \"accepted\" \| \"underway\" \| \"stalled\" \| \"finished\"; title: string & BRAND<\"QuestTitle\">; guildId: string & BRAND<\"GuildId\">; }>'."}]` — the error NAMES the field, matching Table 1's own bar |
+| **A4** | `fields` wider than the real entity (`+priority: z.number()`), `set({title, priority})` against a `write` route | **RULE candidate** (matches Table 1's own prediction; no framework gap) | `tmp/round-a/a4.ts` typechecked via `tmp/round-a/a4-typecheck-run.ts` → `[]` (compiles clean). Run: `write route received fields: {"title":"Quest","priority":99}` then `NO THROW. Result (record contract projects extra field away): {}` — the write route receives and could silently persist the extra field; the framework's own `record`-parsed result hides the drift completely, exactly Table 1's *"a write route that accepts it silently is the finding"* |
+| **A5** | `record` omitting `urlSlug`, a field the write route really returns; then `fromSaved({name:'guild', field:'urlSlug'})` from a sibling quest | **RULE candidate** (behavior is worse than Table 1's own three readings) | `tmp/round-a/a5.ts` (real `planRunBroker`, temp home, no server) → `NO THROW. Result: {"guild":{"id":"g-1","name":"Guild"},"quest":{"id":"q-1","title":"Quest","origin":"MISSING-BUT-NOT-CAUGHT"}}` — `urlSlug` is dropped SILENTLY at create (`packages/hydration/src/brokers/plan/run/op-create-apply-layer-broker.ts:99`, a plain `recordSchema.safeParse` strips unknown-to-the-narrowed-schema keys with no error), and `fromSaved`'s missing-field read resolves to plain `undefined` with no error either — confirmed by direct read of `packages/hydration/src/transformers/saved-ref-resolve/saved-ref-resolve-transformer.ts:33-37`, which returns `undefined` for a field absent from the saved record. Neither of Table 1's "fails at pre-flight" or "fails at run time" readings holds — it fails at NEITHER |
+| **A6** | An `api`-only ingredient (`guild`) placed LAST in a plan whose other ingredients have `write` routes, run against a target with no `baseUrl` | **CONFIRMED**, and drivable at **tier 3**, not tier 4 as §4's own table lists it | `tmp/round-a/a6.ts` (real `planRunBroker`, real temp home) → `THREW: HydrationRouteUnavailableError: recipe "a6-scratch": ingredient "guild" needs a route this target cannot serve. Routes it declares: api. The target lacks a baseUrl, so the api route has nothing to call` then `HOME CONTENTS after run: []` — refused before the first write, nothing on disk. `tmp/round-a/a6-listing.ts` (`planRunsTransformer`, tier 1, no target at all) → `{"serverless":false,"needsServerFor":"guild"}`, the exact line the listing renders. Matches `packages/hydration/src/brokers/plan/preflight/plan-preflight-broker.test.ts:22-34` (unit-level, same assertion) |
+| **A7** | `questIngredient`'s real `links` (`{of:'guild', as:'guildId'}`) added at TOP LEVEL, no guild anywhere in the plan | **CONFIRMED** (plan's own label) | `tmp/round-a/a7.ts` (real `dm-target.ts` questIngredient, real temp home) → `THREW: HydrationUnlinkedRowError: recipe "a7-scratch": ingredient "quest" needs a "guild" ancestor to fill its link, but this row has none — including a row added at the top level, which the type system allows freely` then `HOME CONTENTS after run: []`. Matches `packages/hydration/src/brokers/plan/preflight/plan-preflight-broker.test.ts:172-188` verbatim |
+| **A8** | `links.as` naming no field (`bad-link-field.ts`); `links.of` naming an unregistered ingredient | **CONFIRMED**, both halves | `as` half: `npm run ward -- --only unit -- packages/hydration/src/brokers/ingredient/declare/ingredient-declare-broker.test.ts` → `PASS`; the fixture's own diagnostic (`ingredient-declare-broker.test.ts:275-289`) is `line 13, code 2322, "Type '\"notAField\"' is not assignable to type 'requiredKeys<baseObjectOutputType<{...}>>'."` — names the bad field literally. `of` half: `registry-create-broker.test.ts:159-171` → throws matching `/^ingredient "quest" links to "no-such-ingredient", which this registry does not hold\. Registered ingredient names: quest$/u` — lists what IS registered |
+| **A9** | `transitions` absent entirely, then `set({status: 'in_progress'})` on that field | **RULE candidate** (a real, previously unwritten finding) | `tmp/round-a/a9.ts` — op tree for `set({title, status})` with NO `transitions` declared: `{"op":"set","ref":"quest[0:0]","written":{"title":"Quest","status":"in_progress"}}` — no `transition` key at all, identical shape to a `setRaw`. Run result: `{"quest":{"id":"q-1","status":"in_progress","title":"Quest"}}` — written directly, no `reach` ever invoked (the scratch ingredient declares no `reach` function at all, so a walk attempt would have thrown; it did not). Confirms Table 1's *"the field is written, never walked"* with no way for a caller to tell from the call site |
+| **A10** | `to` list MISSING a state the real field type has (`stalled` off `questIngredient`'s `to`), then `set({status:'stalled'})` | **CONFIRMED** (already-written fixture) | `packages/hydration/src/adapters/typescript/program-diagnostics/typescript-program-diagnostics-adapter.test.ts:193-208` (`UNREACHABLE_TRANSITION`) → real diagnostic `line 11, code 2322, "Type '\"stalled\"' is not assignable to type '\"queued\" \| \"accepted\" \| \"underway\" \| \"finished\"'."` Same test file also re-proves it against the REAL shipped `questIngredientBroker` (`REAL_QUEST_UNREACHABLE_STATUS`, lines 227-242): `line 15, code 2322`, naming the real twelve-member status union. `npm run ward -- --only unit -- packages/hydration/src/adapters/typescript/program-diagnostics/typescript-program-diagnostics-adapter.test.ts` → `PASS 1 files, 110 discovered` |
+| **A11** | `to` list INCLUDING a state (`blocked`) a real `reach` gate refuses at run time | **CONFIRMED** | `tmp/round-a/a11.ts` (`setRaw` to seed `created`, then a real `set({status:'blocked'})` against a `reach` that throws for `blocked`) → `THREW: HydrationTransitionRefusedError: recipe "a11-scratch": ingredient "quest" cannot go to "blocked" from "created": a quest needs at least one session before it can go to blocked` — names `from`, `to`, AND the gate's own sentence verbatim, exactly the bar `op-set-apply-layer-broker.test.ts:145` sets |
+| **A12** | `defaults` absent entirely, `add(3, ...)` — are the three rows identical? | **RULE candidate** | `tmp/round-a/a12-a13.ts` — three `create` ops for `add(3, ...)` with no `defaults`: `fields:{}`, `fields:{}`, `fields:{}` — byte-identical across all three rows, confirming Table 1's *"every row gets identical fields"* with no target needed at all (tier 1) |
+| **A13** | `defaults: () => ({title: 'Quest'})`, ignoring the index — same failure as A12? | **RULE candidate** | Same script — three `create` ops each carry `fields:{"title":"Quest"}`, byte-identical to each other, the identical shape A12 produces (three equal values instead of three distinct ones). Confirms the plan's own prediction: *"any check that catches A12 catches this one for free"* |
+| **A14** | `defaults: (index) => ({title: \`Quest ${index+1} at ${Date.now()}\`})` — does re-running the SAME plan twice against two fresh homes catch the nondeterminism? | **RULE candidate, with a correction to the case's own premise** | `tmp/round-a/a14.ts`, part 1 — the SAME pre-built op array run against two fresh temp homes: `SAME pre-built ops, run A: {"quest":{...,"title":"Quest 1 at 1789598059788",...}}` / `run B:` the IDENTICAL string / `identical? true`. This is because a plan is DATA built ONCE — `defaults()` fires when the chain is built, not when it runs, so "run the same plan twice" as literally read can NEVER surface this class of bug. Part 2 — REBUILDING the ops (calling the chain builder twice, 6ms apart) — `REBUILT ops, call C: ...title":"Quest 1 at 1789598059796"` / `call D: ...":"1789598059802"` / `identical? false` — only rebuilding exposes it. Separately: the case's own text calls the determinism lint rule *"unbuilt and unowned"*; that is now stale — `packages/eslint-plugin/src/brokers/rule/ban-nondeterminism-in-ingredients/rule-ban-nondeterminism-in-ingredients-broker.test.ts:76-84` proves the rule fires on `Date.now()` inside an ingredient declaration file today, and it is registered live (`config-dungeonmaster-broker.ts:142`, already noted elsewhere in this ledger) |
+| **A15** | `copies:` pointing at the wrong production code — does anything check it? | **RULE candidate** | Direct code read (tier 0): `discover({grep:"config.copies", glob:"packages/hydration/src/**"})` returns exactly TWO hits, both the presence check at declare time (`ingredient-declare-broker.ts:74`, `ingredient-config-contract.ts:87` — *"declares a write route and must declare copies"*). `config.copies` is never read anywhere in `plan-preflight-broker.ts`, `plan-run-broker.ts`, or any `op-*-apply-layer-broker.ts`. Confirms Table 1's own finding exactly: *"copies: is unverified by construction"* — a wrong pointer changes nothing any check inspects |
+| **A16** | `extras` absent — `q[0].withNestedChain(...)` on an ingredient with no such extra. Plan marks this **CONFIRM**, expecting *"the error names the verb"* | **CONFIRM case that does NOT hold** — the compile refusal is real, but the message does not name the verb | `typescript-program-diagnostics-adapter.test.ts:244-258` (`EXTRA_NOT_DECLARED`) → real diagnostic: `line 10, code 2722, message: "Cannot invoke an object which is possibly 'undefined'."` The string `withNestedChain` appears NOWHERE in the message — contrast `UNKNOWN_FIELD`'s message two tests above it, which does name `'nope'` literally. A session hitting this diagnostic in isolation has no way to tell WHICH call was the undeclared extra without opening the file at the reported line |
+| **A17** | An extra named `set`/`remove`, shadowing a reserved verb | **CONFIRMED** | `packages/hydration/src/contracts/extra-verb-name/extra-verb-name-contract.test.ts:19-26` and `packages/hydration/src/brokers/ingredient/declare/ingredient-declare-broker.test.ts:110-130` both run `it.each(reservedVerbStatics.verbs)` — DERIVED from the statics list (`packages/hydration/src/statics/reserved-verb/reserved-verb-statics.ts`, `['set','setRaw','remove','saveRecordAs']`), not a hardcoded subset. Runtime message: `` ingredient "quest" declares an extra named '${verb}', which the framework already owns `` — names the verb AND says it is reserved, for every one of the four. Compile-time half (`extra-named-set.ts`/`extra-named-remove.ts`) already graded by `ingredient-declare-broker.test.ts:224-256`, both `PASS` |
+
+### Findings this round adds beyond what Table 1 already predicted
+
+- **A16 is the one CONFIRM case in this round that fails its own stated criterion.** The plan decided *"the error names the verb"* for an undeclared `extra`; the real diagnostic is the generic `TS2722` "Cannot invoke an object which is possibly 'undefined'." with no verb name anywhere in it. This is a live discrepancy between what chunk 12's own plan asserts is already proven and what the compiler actually emits.
+- **A14's own "Needs" text is stale.** It calls the determinism lint rule "unbuilt and unowned"; `ban-nondeterminism-in-ingredients` is built, tested and registered at `'error'` severity today (also noted under this ledger's "Determinism is structural" and "Known gaps" rows above, from an earlier grading pass — this round adds the RuleTester evidence that it specifically catches `Date.now()`).
+- **A6 and A5 are drivable at tier 3 (a temp home, no server), not tier 4 as chunk 12's own §4 table lists them.** Both are pre-flight or create-time behaviors with no `api` route ever invoked.
+- **A9, A12, A13 and A15 are genuinely new findings** — none is written down anywhere in `siegelense-recipes.md` today; each is a `RULE` candidate for the section naming the property it concerns (`transitions`, `defaults`, `copies:` respectively).
+
+No case in A1–A17 is `BLOCKED` — every one of the seventeen was actually driven, at tier 0 (A15's reasoning), tier 1 (A1, A6's listing half, A12, A13), tier 2 (A3, A4's compile half, A8's `as` half, A10, A16, A17's compile half), or tier 3 (A4's write half, A5, A6's run half, A7, A9, A11, A14).
+
+## Round B — nesting (`recipes-chunk-12-combinatorial-rounds.md`, §7)
+
+Every one of B1–B8 is DRIVEN this round. Scratch scripts live under `<repoRoot>/tmp/round-b/`, run via
+`npx tsx --conditions=source tmp/round-b/<file>.ts` from the repo root; every quoted line below is
+copied verbatim from a real run. `tmp/round-b/deep-ingredients.ts` declares a SYNTHETIC twelve-level
+registry (`a`→`b`→…→`l`), each linking only to its immediate parent, mirroring `dm-target.ts`'s own
+`dmIngredient` wrapper so the type machinery under test is the real one, not a loosened stand-in.
+
+| Case | What it asked | Outcome | Evidence |
+|---|---|---|---|
+| **B1** | Four levels: does the accessor vanish, does `ancestors` truncate, does a link three levels up resolve? | **RULE candidate** — none of the three failure modes occurs | `tmp/round-b/depth-fixture.ts`'s `depth4` export compiles with `[]` diagnostics. `tmp/round-b/b1-link-resolution.ts` (a real `planRunBroker` run, `d` linking to BOTH its host `c` and its great-grandparent `a`) → `op ancestors at each level: {"a":[],"b":["a[0:0]"],"c":["a[0:0]","a[0:0]/b[0:0]"],"d":["a[0:0]","a[0:0]/b[0:0]","a[0:0]/b[0:0]/c[0:0]"]}` then `NO THROW. Result: {"d":{"id":"d-1","cId":"c-1","aId":"a-1"}}` — `aId` resolves to the REAL top-level row's id, not `undefined` and not `c`'s id |
+| **B2** | Five levels and beyond: where does the chain stop resolving, loudly or silently? | **RULE candidate** — no stopping point found | `tmp/round-b/depth-fixture.ts`'s `depth5` through `depth8` and `depth12` exports (five through twelve real nested `.add()` calls, each level a distinct branded ingredient) all compile in the SAME run: `[]` / `TOTAL DIAGNOSTICS: 0` |
+| **B3** | An `add` inside an `add` inside an `add`, each with its own `defaults` | **CONFIRMED** | `tmp/round-b/b3.ts` (real `guild`→`quest`→`operation` chain from `dm-target.ts`) → create ops `[{"ingredient":"guild","ref":"guild[0:0]","index":0,"fields":{}},{"ingredient":"guild","ref":"guild[0:1]","index":1,"fields":{}},{"ingredient":"quest","ref":"guild[0:0]/quest[0:0]","index":0,"fields":{"title":"Quest 1"}},{"ingredient":"quest","ref":"guild[0:0]/quest[0:1]","index":1,"fields":{"title":"Quest 2"}},{"ingredient":"operation","ref":"guild[0:0]/quest[0:0]/operation[0:0]","index":0,"fields":{}},{"ingredient":"operation","ref":"guild[0:0]/quest[0:0]/operation[0:1]","index":1,"fields":{}}]` — every level's `index` restarts at 0/1 independently, exactly matching `collection-chain-transformer.test.ts`'s own assertion |
+| **B4** | A `filter` inside a nested `add`: does the runner enforce the immediate-host scope? | **CONFIRMED** | `tmp/round-b/b4.ts` (a scratch `task` ingredient with REAL `query`/`remove` routes over an in-memory array — `dm-target.ts`'s own `operationIngredient` has neither route, so it cannot drive this case) → two guilds, each with one quest holding a riftcarver task; a filter scoped to guild 0's quest removes only that one. `tasksStore BEFORE run: []` → `NO THROW` → `tasksStore AFTER run: [{"id":"task-2","role":"riftcarver","questId":"quest2-2"}]` — guild 1's task (`task-2`) survives; guild 0's (`task-1`) is gone |
+| **B5** | An ingredient linking two levels up, skipping the immediate host | **RULE candidate**, and a live lead confirmed against REAL code | `tmp/round-b/b5-fixture.ts`, run through `typescriptProgramDiagnosticsAdapter` (`b5-run.ts`) against the REAL `dmRegistryBroker` from `packages/siegelense-recipes` → `[{"file":"tmp/round-b/b5-fixture.ts","line":20,"code":2532,"message":"Object is possibly 'undefined'."},{"file":"...","line":24,"code":2532,"message":"Object is possibly 'undefined'."}]`. Line 20 is `g[0].subagents.add(...)` (skipping `session`, subagent's real immediate host); line 24 is `a[0].subagents.add(...)` — the exact nesting `recipes-chunk-07-repo-ingredients.md:308` suggests (`s[0].subagents.add(1, (a) => [a[0].subagents.add(1, …)])`) for a nested sub-agent chain. The baseline `s[0].subagents.add(...)` (line 17, correct host) produces NO diagnostic. `session-with-nested-chain-recipe-broker.ts:44` uses the `withNestedChain` extra instead of this chain shape — confirmed load-bearing, not a stylistic choice |
+| **B6** | Two sibling `add` calls under ONE host — do they mint colliding refs? | **RULE candidate — the plan's own prediction is STALE** | `tmp/round-b/b6.ts` (real `guild`/`quest` from `dm-target.ts`) → `B6 refs (create ops only): ["guild[0:0]","guild[0:0]/quest[0:0]","guild[0:0]/quest[0:1]","guild[0:0]/quest[1:0]","guild[0:0]/quest[1:1]"]` — the two `add(2, …)` calls mint `quest[0:0]`/`quest[0:1]` and `quest[1:0]`/`quest[1:1]`: four DISTINCT refs, no collision |
+| **B7** | Two TOP-LEVEL `add` calls of the same ingredient — same collision? | **RULE candidate — same stale prediction** | `tmp/round-b/b7.ts` (isolated run, fresh registry) → `B7 refs (create ops only): ["guild[0:0]","guild[0:0]/quest[0:0]","guild[1:0]","guild[1:0]/quest[0:0]"]` — the two guilds mint `guild[0:0]` and `guild[1:0]`, not both `guild[0]` |
+| **B8** | A TOP-LEVEL `filter`, in a plan holding two guilds — instance-wide? | **CONFIRMED**, plus a documentation-gap `RULE` candidate | `tmp/round-b/b8.ts` (same scratch `task` ingredient as B4, two guilds each with one riftcarver task, ONE top-level `dm.tasks.filter({where:{role:'riftcarver'}}).remove()`) → `tasksStore BEFORE run: []` → `NO THROW` → `tasksStore AFTER run: []` — both guilds' tasks are gone |
+
+### Where the ancestor chain stops resolving, and whether the failure is loud or silent
+
+**It does not stop, within every depth this round tested.** `depth-fixture.ts` compiles clean through
+twelve real nested `.add()` calls (`depth3` through `depth12`), and `b1-link-resolution.ts` shows the
+runner resolving a link three levels up from the FULL `op.ancestors` array, not a truncated one —
+`op-create-transformer.ts:41` stores the whole `ancestors` array on every `create` op, one entry
+per level, and `link-values-transformer.ts:45-46` (`ancestors.find((ref) =>
+rowRefIngredientTransformer({ rowRef: ref }) === link.of)`) searches the whole array by ingredient
+name, not just its last entry. `rowRefContract`'s own pattern — `row-ref-contract.ts:23`,
+`` `^${ROW_REF_SEGMENT}(?:\\/${ROW_REF_SEGMENT})*$` `` — is a `*`-repeated group with no upper bound,
+so it carries no depth limit either. Three levels is what THIS
+repo's own ingredients reach (`guild`→`quest`→`operation`, `guild`→`session`→`subagent`); nothing in
+the mechanism explains why a fourth, fifth or twelfth would behave differently, and none does.
+
+**When an accessor genuinely cannot exist, the refusal IS loud — a compile error — but its wording is
+not "property does not exist."** B5's skip-one and skip-to-self cases both produce `TS2532: Object is
+possibly 'undefined'`, not `TS2339: Property does not exist`. A probe (`tmp/round-b/b5-probe.ts`,
+forcing an assignment mismatch to print the resolved type) shows `g[0].subagents`'s type is exactly
+`undefined` — the property resolves rather than vanishing outright. `tmp/round-b/b5-synthetic.ts`
+reproduces the identical `TS2532` shape against a plain SINGLE-link ingredient (skip one level, no
+double link, no real `subagent`), so this is a general trait of `ChildAccessors`'s excluded-key
+branch, not something specific to `subagent`'s two links. A caller reading only the diagnostic text
+sees "possibly undefined," which reads like a null-check is missing — not like the accessor cannot
+exist at this position at all — and would need to open `subagent-ingredient-broker.ts`'s own `links`
+to learn why.
+
+### Do indexes stay scoped to their own `add`, as documented — and does nesting multiply Round A's finding?
+
+**Yes to both.** B3 confirms the ROW index (0-based, restart per `add` call) is scoped exactly as
+`siegelense-recipes.md` states, at every nesting level simultaneously — guild indexes 0/1, the quest
+under `guild[0:0]` indexes 0/1, the operation under that quest indexes 0/1, none of them sharing a
+counter. B6 and B7 show the framework ALSO now disambiguates two different `add` CALLS under the same
+ancestors (or at the same top level) — a `callIndex` folded into the ref alongside the row index — a
+mechanism Round A never needed to name because it drove only single `add` calls.
+
+**Round A's `defaults`-blindness finding (A12/A13) multiplies exactly as the task description
+predicted, and B3's own output is the evidence.** In the same three-level plan, `guild` (no
+`defaults`) mints `fields:{}` for BOTH its rows, and `operation` (no `defaults`) mints `fields:{}` for
+BOTH of ITS rows too — two of the three ingredients in one ordinary nested plan carry the identical-
+row defect simultaneously, where Round A demonstrated it for one ingredient in isolation. Nothing new
+notices either occurrence; the same `toStrictEqual`-style op-tree comparison A12 used catches both.
+
+### The plan's own B6/B7 text is stale, and the mechanism it describes has already shipped
+
+**`recipes-chunk-12-combinatorial-rounds.md`'s own §3.6 quotes `row-ref-transformer.ts:26` as**
+`` const segments = [...ancestors, `${ingredient}[${index}]`]; `` **, with no call index.** The file
+on disk today reads differently — `row-ref-transformer.ts:41` is
+`` `${ingredient}[${callIndex}${rowRefStatics.slot.separator}${index}]` ``, and
+`row-ref-contract.ts:21` requires a `callIndex:index` pair inside every bracket
+(`` `(?:\\d+${separator}\\d+|${matchWord})` ``). `collection-chain-transformer.ts:83,97-98` draws a fresh `callIndex`
+per `.add()` call off a per-collection counter (`nextCallIndex`), reset only when
+`buildSequenceMarkTransformer`'s marker shows a NEW top-level build has started
+(`build-sequence-mark-transformer.ts`) — which is exactly what lets two sibling calls in ONE build
+keep counting instead of colliding. A colocated test already asserts this by name:
+`collection-chain-transformer.test.ts:55` — *"VALID: {add(2, ...) called twice on the same
+collection} => each call starts its own row index at 0 and 1, but mints DISTINCT refs"* — asserting
+`quest[0:0]`/`quest[0:1]` against the first call and `quest[1:0]`/`quest[1:1]` against the second,
+byte for byte what `b6.ts` reproduces independently. **B6 and B7 are not open questions the way the
+plan frames them; the fix already shipped and is already tested.** What the plan's own candidate rule
+still gets right is the ACTIONABLE half: a plan wanting two of anything under one host still writes
+`add(2)`, not two separate `add(1)` calls, since nothing about either shape is more readable and only
+the mechanism, not the authoring convention, changed.
+
+### The top-level filter's documentation gap
+
+**B8 confirms the RUNTIME behavior exactly as decided (D11): a top-level filter carries no `scope`
+and matches every row of that ingredient in the instance.** `siegelense-recipes.md:904` states the
+NESTED rule — *"A `filter` inside a nested `add` is scoped to its immediate host, never the whole
+instance"* — and the CLOSED gap-table entry at `siegelense-recipes.md:1619` restates the identical
+sentence. Neither says anything about a filter with NO host. The top-level exception lives only in
+`recipes-chunk-04-06-runner.md`'s D11 and in `collection-chain-transformer.ts:82`'s own
+`ancestors.length === 0 ? undefined : ancestors[ancestors.length - 1]` line — a recipe author reading
+only the specification would not learn that `dm.<ingredient>.filter(...)` at top level is instance-
+wide, not merely "the case with the fewest ancestors."
+
+### Findings this round adds beyond what the plan already predicted
+
+- **B6 and B7's plan text is stale** — the collision it predicts does not occur, and a colocated test
+  already proves the fix. This is the round's most consequential finding: two Table-2 rows framed as
+  open DISCOVER questions are, on disk today, already CLOSED.
+- **B5's compile refusal is real, but its message shape is a second, smaller finding of the same
+  species as Round A's A16** — a real refusal that does not read the way the plan's own "Tell by"
+  text implies (A16: the message does not name the verb; B5: the message reads "possibly undefined,"
+  not "property does not exist").
+- **B1 and B2 together answer the plan's two headline questions with a negative result** — no vanished
+  accessor, no truncated `ancestors`, no depth limit through twelve real levels — which is itself the
+  finding Round B was opened to produce, not the absence of one.
+
+No case in B1–B8 is `BLOCKED` — every one was driven, at tier 1 (B3, B6, B7's op-tree halves), tier 2
+(B1's compile half, B2, B5), or tier 3 (B1's link-resolution half, B4, B8).

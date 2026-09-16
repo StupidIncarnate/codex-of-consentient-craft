@@ -259,6 +259,51 @@ sibling `operation` create reads back its ORIGINAL `operations: []`. **A harness
 record must return one whose fields it actually set**, and anything asserting a ledger reads the file.
 `fileTargetHarness.readQuestFileOperations` is the existing precedent.
 
+### LIVE — G0-h, Playwright resolves the recipes package through `dist`, and nothing has run a spec to prove it
+
+**Ward's `unit` and `integration` checks resolve `@dungeonmaster/*` to TypeScript source by setting
+`NODE_OPTIONS=--conditions=source` around Jest** (`packages/ward/README.md:274-276`); `lint` and
+`typecheck` reach the same source through `tsc`'s own `customConditions: ['source']`, independent of
+that env var. **`checkRunE2eBroker` sets no environment at all** — the same README line names it
+alongside lint and typecheck, but Playwright has no `tsc`-side mechanism standing in for the missing
+env var: a spec's `require`/`import` of a workspace package runs under plain Node resolution once
+Playwright's own transform hands off to it, and Node then reads whichever condition the package's
+`exports` map offers among `import`/`require` — `source` is never one of the active conditions there.
+
+`@dungeonmaster/siegelense-recipes`'s own `exports` map (§3 G0-a) gives every subpath a `source` entry
+alongside `import`/`require` pointing at `./dist/<name>.js`. So a Playwright spec — or a harness a spec
+imports — that reaches for `@dungeonmaster/siegelense-recipes/contracts` gets whatever `dist/contracts.js`
+currently holds, never the source ward's other four check types just graded.
+
+**Two consequences follow, and only the first is a known cost — the second is unproven, not failed:**
+
+1. **A fix landed inside `packages/siegelense-recipes`, `packages/hydration` or `packages/orchestrator`
+   mid-batch is invisible to a Playwright run until that package is rebuilt.** `lint`/`typecheck`/`unit`/
+   `integration` go green off the edited source the moment it is saved; the `e2e` line in that same
+   batch's checklist (§15) keeps exercising whatever `dist` held before the edit. **Rebuild the changed
+   package — `npm run build --workspace=<name>` — before trusting an `e2e` result in any batch that
+   touched one of these three**, and before reading a red `e2e` result as a real regression rather than a
+   stale build.
+2. **Nothing has yet proven Playwright can resolve `@dungeonmaster/siegelense-recipes` at run time at
+   all.** §0.2's own proof ran `lint` and `typecheck` against a real spec — both PASS — and both of those
+   checks reach source through `tsc`'s own resolution, not Node's; that run establishes the import is
+   legal under `enforce-import-dependencies` and under the type checker, and establishes nothing about
+   what Playwright's Node process resolves at its own run time.
+   `packages/web/test/harnesses/dm-target/dm-target.harness.ts` already imports `dmTargetContract` from
+   `@dungeonmaster/siegelense-recipes/contracts` — the exact subpath in question — but no spec calls
+   `dmTargetHarness` yet: the only occurrence of that identifier under `packages/web/**` is the harness's
+   own declaration. The path is written and unexercised.
+
+**How this would fail, if it fails: a module-resolution error, not a red assertion.** Playwright's Node
+process throws `Cannot find module '@dungeonmaster/siegelense-recipes/contracts'` (or resolves a stale
+`dist` silently, wherever a build happens to exist) while loading the spec file that imports the
+harness — before the test body runs and before any `expect(` evaluates. Reading that failure as an
+assertion problem is looking in the wrong place.
+
+**What would settle it:** the first cohort-G spec run once batch 10.1 converts `guildHarness.createGuild`
+through `dm-target.harness.ts` — the harness's first real caller. Check for a resolution error before
+checking any assertion result.
+
 ---
 
 ## 4. The order, and what each step proves
@@ -901,6 +946,11 @@ npm run ward -- --only e2e -- <the cohort's spec files>
 git diff --unified=0 origin/master -- 'packages/web/src/**/*.e2e.ts' | grep -cE '^[+-].*expect\('   # must be 0
 python3 scrolls/tools/seed-census.py --methods                                                      # the third column moved
 ```
+
+**Rebuild before the `--only e2e` line, whenever the batch touched `packages/siegelense-recipes`,
+`packages/hydration` or `packages/orchestrator`** — `npm run build --workspace=<name>`. §3 G0-h: `e2e`
+is the one check type that does not resolve those packages to source, so a green `lint`/`typecheck` from
+the earlier line in this same list proves nothing about what the `e2e` line just exercised.
 
 **Do not edit the repo while an e2e batch runs**, and serialise the verification runs through the
 batch lead — two agents running scoped e2e against overlapping specs is the real risk here.
