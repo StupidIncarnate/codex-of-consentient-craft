@@ -410,15 +410,20 @@ exists to produce.** It gets written into §14, not fixed by putting the re-deri
 
 `packages/web/test/harnesses/session/session.harness.ts`, 1139 lines, 21 returned members.
 
+**These figures match `python3 scrolls/tools/seed-census.py --methods` as it prints today. Re-derive them from
+that command rather than trusting this table by hand** — see Q10-3.
+
 | Method | Calls | Verdict |
 |---|---|---|
-| `createSessionFile` | **22** | CONVERT — `dm.sessions.under({ path }).add(1, …)`, `write` route |
-| `cleanSessionDirectory` / `cleanSessionFiles` | **21** / **3** | teardown → the `dm-target` harness. Signatures unchanged |
-| `createSessionWithAssistantText` | **12** | CONVERT |
+| `createSessionFile` | **139** | CONVERT — `dm.sessions.under({ path }).add(1, …)`, `write` route |
+| `cleanSessionDirectory` / `cleanSessionFiles` | **22** / **3** | teardown → the `dm-target` harness. Signatures unchanged |
+| `createSessionWithAssistantText` | **14** | CONVERT |
 | `createSubagentTailOnly` | **6** | CONVERT — the `subagent` ingredient |
-| `appendSubagentLine` / `appendMainSessionLine` | **2** / 0 | **STAY** — a bare id from outside the plan. Survey finding 2 |
-| `createSubagentSessionFiles`, `createInFlightSubagentSessionFiles`, `createMultiSubagentSessionFiles`, `createSubagentTailMultiEntry`, `createNestedSubagentSessionFiles` | **1 each** | CONVERT — the last is the session extra `withNestedChain` (`session-ingredient-broker.ts:60-63`) |
-| `createMultiEntrySessionFile`, `createSubagentSessionWithInternalTool`, `createBackgroundAgentSession`, `createSessionWithRedactedThinking`, `createAnsweredClarificationSession`, `createSessionFileForQuest` | **0 from specs** | CONVERT last, or leave — a method no spec calls proves nothing either way. **Do not spend a batch on these** |
+| `appendSubagentLine` / `appendMainSessionLine` | **2** / **5** | **STAY** — a bare id from outside the plan. Survey finding 2 |
+| `createSubagentSessionFiles`, `createInFlightSubagentSessionFiles`, `createMultiSubagentSessionFiles`, `createNestedSubagentSessionFiles` | **1 each** | CONVERT — the last is the session extra `withNestedChain` (`session-ingredient-broker.ts:60-63`) |
+| `createSubagentTailMultiEntry` | **2** | CONVERT |
+| `createMultiEntrySessionFile`, `createSubagentSessionWithInternalTool`, `createBackgroundAgentSession`, `createSessionWithRedactedThinking`, `createSessionFileForQuest` | **0 from specs** | CONVERT last, or leave — a method no spec calls proves nothing either way. **Do not spend a batch on these** |
+| `createAnsweredClarificationSession` | **2** | CONVERT — has real call sites, unlike its neighbors above; it does not belong in the zero-call group |
 | `sessionFileExists` | small | **STAYS** — an assertion |
 
 **`session` is the highest-risk cohort and the likeliest to produce a finding**, because its
@@ -731,8 +736,8 @@ then become a real independent control in the classic sense:**
 
 | Case | Why the seam cannot serve it | Batch |
 |---|---|---|
-| a spec needing guild + quest + session as **one plan**, one `run`, one transaction | three harness methods are three separate runs; the whole point of a recipe is the linked instance | one GQS spec, in 10.12 |
-| a spec whose setup wants a **named catalogue recipe** (`guild-mid-execution`, `session-with-nested-chain`) | the catalogue is what `recipes {}` prints and what a siegelense `seed` step names; a harness method hides it | one spec per recipe, in 10.13 |
+| a spec needing guild + quest + session as **one plan**, one `run`, one transaction | three harness methods are three separate runs; the whole point of a recipe is the linked instance | one GQS spec, in 10.13 |
+| a spec whose setup wants a **named catalogue recipe** (`guild-mid-execution`, `session-with-nested-chain`) | the catalogue is what `recipes {}` prints and what a siegelense `seed` step names; a harness method hides it | one spec per recipe, in 10.14 |
 | a spec proving the **two-route comparison** — the same `fields` through `api` and through `write` | neither harness method offers both, by construction | 10.1, as the `api` probe's other half |
 
 **Convert exactly these, and no more.** Q9-6's ruling still holds against a catalogue that grows one
@@ -800,7 +805,7 @@ Under the seam most setups live in a harness method and declare an inline `recip
 
 **Recommendation: inline `recipe()` in the harness method by default; promote to
 `packages/siegelense-recipes/src/brokers/<name>/recipe/` only when a THIRD method or spec wants the
-same shape.** Revisit at the end of 10.13 with the count of shapes that actually repeated.
+same shape.** Revisit at the end of 10.14 with the count of shapes that actually repeated.
 
 ### Q9-7 — the three seeding harnesses, after the conversion — **CLOSED, and promoted**
 
@@ -832,6 +837,20 @@ Converting it swaps one real HTTP call for another that also mints ids and seeds
 and the harness produce byte-identical state, that is the two-route comparison working and it is
 worth recording. If they differ, 176 call sites will say so immediately — which is the cheapest
 possible place to learn it.
+
+### Q10-3 — NEW, CLOSED — §6.3's `sessionHarness` figures, re-measured
+
+`python3 scrolls/tools/seed-census.py --methods` is the authoritative per-method call-site count, and
+§6.3 carries what it prints as of this revision: `createSessionFile` 139, `cleanSessionDirectory` 22,
+`createSessionWithAssistantText` 14, `appendMainSessionLine` 5, `createSubagentTailMultiEntry` 2,
+`createAnsweredClarificationSession` 2. The last of these has real call sites and does not belong
+among the zero-call methods deferred as "CONVERT last, or leave" — every other method in that group
+is genuinely 0 per the census. `createSessionFile`'s weight is why 10.10 and 10.11 (§15) each convert
+one method instead of two.
+
+**Recommendation: re-derive every figure in §6.3 from `--methods` before relying on it, and do not
+carry a count forward by hand** — a hand-copied figure drifts from the tree the moment a spec is
+added or removed, and `--methods` is a five-second command against the live checkout.
 
 ---
 
@@ -867,7 +886,7 @@ the batch was for.
 ## 15. Chunk 10 — the revised batches
 
 **A batch is ONE harness method's body, plus the cohort that verifies it.** Not a set of spec files
-— no spec file is edited except in 10.12 and 10.13.
+— no spec file is edited except in 10.13 and 10.14.
 
 **Why this size.** The repo's 1–3-files-per-agent rule still binds, and a batch here touches one or
 two files: the harness, and occasionally the `dm-target` harness. The *verification* is wide (a whole
@@ -898,11 +917,19 @@ batch lead — two agents running scoped e2e against overlapping specs is the re
 | **10.7** | `writeQuestFile` — the field long tail (`operations`, `flows`, `comments`, `wardResults`, `sessions`, `planningNotes`, `questType`, `steps`, `worktreePath`) | **GQS** execution-panel + ward sub-groups | `workItems` as a FIELD (Q7-1) and `designDecisions`/`toolingRequirements` — survey finding 7, which chunk 7 says *"disappears"* |
 | **10.8** | `writeUnparseableQuestFile` → `corruptToLegacySchema`; `writeWardResultDetail` → `withWardResultDetail` | `home/unreadable-quest-file-reported`, `malformed-quest-file-reported`, `ward-crash-detail`, `ward-discovery-mismatch-detail` | **`extras` outside an ingredient's own test**, for the first time |
 | **10.9** | `questHarness.patchQuestStatus` → `transitions.reach` | **PARTIAL:T** — `quest-approved-modal`, `followup-tab-bar` | §6.7. A gate-walked status change, and that `rewindQuestStatus` stays raw beside it |
-| **10.10** | `sessionHarness.createSessionFile`, `createSessionWithAssistantText` | cohort **GS**, 20 | the `{ of:'guild', as:'cwd', from:'path' }` link — the case `from` exists for |
-| **10.11** | `sessionHarness` sub-agent family; `cleanSessionDirectory`/`cleanSessionFiles` → teardown | **GS** + **GQS** replay/transcript sub-group | the `subagent` ingredient, and `copies: 'claude-mock/bin/claude'` against transcripts the real fake CLI also writes |
-| **10.12** | `createNestedSubagentSessionFiles` → the session extra `withNestedChain`; **one GQS spec converted directly** (§11.4) | **GQS**, 38 | one plan, one `run`, three linked ingredients — the ergonomic sample |
-| **10.13** | **two specs converted directly** to name catalogue recipes (§11.4) | those two | that `recipes {}`'s catalogue entries are reachable by name from a spec. Q9-6's evidence |
-| **10.14** | nothing — **the regression pass** | **PARTIAL:D** (14), **:S** (10), **:W** (5), **:DW** (1), **:R** (2) — all 32 | §6.6: none of these files changes, so this is pure regression. `--methods`' third column must now equal §7's list exactly |
+| **10.10** | `sessionHarness.createSessionFile` → `write` route | cohort **GS**, 20 | the `{ of:'guild', as:'cwd', from:'path' }` link — the case `from` exists for |
+| **10.11** | `sessionHarness.createSessionWithAssistantText` | cohort **GS**, 20 | assistant-text session content over the same link, verified against the same cohort as 10.10 |
+| **10.12** | `sessionHarness` sub-agent family; `cleanSessionDirectory`/`cleanSessionFiles` → teardown | **GS** + **GQS** replay/transcript sub-group | the `subagent` ingredient, and `copies: 'claude-mock/bin/claude'` against transcripts the real fake CLI also writes |
+| **10.13** | `createNestedSubagentSessionFiles` → the session extra `withNestedChain`; **one GQS spec converted directly** (§11.4) | **GQS**, 38 | one plan, one `run`, three linked ingredients — the ergonomic sample |
+| **10.14** | **two specs converted directly** to name catalogue recipes (§11.4) | those two | that `recipes {}`'s catalogue entries are reachable by name from a spec. Q9-6's evidence |
+| **10.15** | nothing — **the regression pass** | **PARTIAL:D** (14), **:S** (10), **:W** (5), **:DW** (1), **:R** (2) — all 32 | §6.6: none of these files changes, so this is pure regression. `--methods`' third column must now equal §7's list exactly |
+
+**`createSessionFile` and `createSessionWithAssistantText` each get their own batch, 10.10 and 10.11.**
+§6.3's `createSessionFile` count is the largest single method converted anywhere in the sessionHarness
+tail — well past `createSessionWithAssistantText` and past the whole sub-agent family combined — so it
+does not bundle with a smaller method, the same way `createQuest`, `writeQuestFile` and `extractUrlSlug`
+each already stand alone. The rest of chunk 10's batches are numbered 10.12 through 10.15, in the order
+shown above.
 
 **10.3 and 10.9 are the two batches most likely to produce a real finding**, and they are the two
 worth giving an opus agent. 10.3 because the production slug rule is genuinely wider than the
@@ -910,6 +937,6 @@ harness's, and 177 assertions have never seen the difference. 10.9 because it is
 anything walks real gates through `reach`, and `in_progress`'s deliberate throw on a write-only
 target is a behaviour no test has exercised.
 
-**10.14 is not a formality.** It is the only batch that proves the 32 partially-converted files still
+**10.15 is not a formality.** It is the only batch that proves the 32 partially-converted files still
 pass with every convertible harness method rewritten underneath them — and it is where a silent
 regression from any earlier batch surfaces.

@@ -301,7 +301,7 @@ test.
 
 **Two rules come from how these get USED, and a builder that loses them simplifies the mechanism away:**
 
-**A recipe returns a PLAN a spec can run directly, in process, with no MCP boundary anywhere.** That is
+**A recipe returns a PLAN a spec can run directly, in process, with no CLI boundary anywhere.** That is
 why `run(plan, target)` is a public export of `@dungeonmaster/hydration` and why `hydration-recipes`
 must be importable from a spec tree. A framework reachable only through a `seed` step would satisfy
 every other line of this document and be useless to the 118 specs in step 2 of the migration.
@@ -815,7 +815,7 @@ q[0].operations.filter({ where: { role: 'riftcarver' }, expect: 'one' }).remove(
 
 | Part | Does |
 |---|---|
-| `where` | a match object, typed to that ingredient's fields. Data, never a closure — a predicate cannot cross the MCP wire |
+| `where` | a match object, typed to that ingredient's fields. Data, never a closure — a predicate cannot cross the wire |
 | `expect` | `'one'` · `'some'` (the default) · `'any'` |
 | what you may then call | `set`, `setRaw`, `saveRecordAs`, `remove`, and that ingredient's extras |
 
@@ -1543,7 +1543,7 @@ found.**
 | ~~`fromSaved` is not typed against the field it lands in~~ **CLOSED** | `Settable<I>` types a plain field as `F[K] \| SavedRef`, so `fromSavedRefTransformer`'s result compiles straight into `set` with no cast. Only a TRANSITION field still refuses one — it narrows to the ingredient's own `to` union instead, which a cross-link cannot satisfy by construction |
 | **A typed plan output is scheduled work, not delivered yet.** *"A plan is data, and one plan runs three ways"* requires the plan's output to carry `guild` and `target`, each typed to its own record contract, and today's plan returns an untyped record the caller casts | threading the saved names through every op producer's return type, so `saveRecordAs({ name })` types the plan's output as the chain builds. The requirement stands; only the delivery is pending |
 | **A recipe cannot call another recipe.** There is `add` and there is `filter`, and no `include` | recipes will duplicate each other's openings within a week of two people writing them. `include(otherRecipe({ … }))` splicing the other plan's ops in, with its saved names namespaced |
-| **The MCP wire has no compile-time check at all** | narrower now that a recipe declares its `inputs` as a zod schema: the wire validation parses a `seed` step's `params` through that same schema before seeding, rather than generating one from scratch. What is still open is wiring that parse into the `seed` step itself. Named here because the in-process union looks like it covers both surfaces and does not |
+| **The CLI wire has no compile-time check at all** | narrower now that a recipe declares its `inputs` as a zod schema: the wire validation parses a `seed` step's `params` through that same schema before seeding, rather than generating one from scratch. What is still open is wiring that parse into the `seed` step itself. Named here because the in-process union looks like it covers both surfaces and does not |
 | **`recording` is declared and unexercised** | no ingredient in either real target set uses it, so nothing about it has been proven. **The `runs` line's write-only rule stands regardless**: the check asks only whether a `write` route is absent, so it reports `needs a server: <ingredient>` for ANY ingredient lacking one — not only a `recording`-only ingredient, but equally one declaring both `api` and `recording`. This is the cost of the rule, not a bug in it — named here for whoever first ships a `recording`-only ingredient |
 | **`copies:` has no valid target for a shape only an external tool writes** | a Claude session transcript is the case: the Claude CLI writes it, and the only in-repo artifact producing that shape is a test fixture, not production code. **Built against this repo, the consequence is concrete: the session and sub-agent ingredients are not declared at all**, because a `write` route must declare `copies:` and neither has a production writer to name. Every route broker behind them exists and is tested; only the declaration is blocked, and those two ingredients back a large share of the conversion's call sites |
 | **Two lint rules Part 5 requires — an ingredient holds no DOM handle, and an ingredient calls no clock or random source — are UNBUILT, and no chunk owns either** | `no-hardcoded-package-names` in `local-eslint` is the template to copy, and its own blind spot is the caution to copy with it. Meanwhile neither constraint is enforced by anything: with the chain supplying the index, reaching for a clock is the only way left to break determinism |
@@ -1581,7 +1581,7 @@ shape that keeps a plan printable and keeps the runner's dispatch a single switc
 **Depth-first in declaration order is what makes the ancestor chain and `fromSaved` work at all**, and
 it is the only ordering guarantee. Two sibling `add` calls run in the order they are written.
 
-**The plan never crosses the MCP wire.** A `seed` step names a recipe and its params; siegelense builds
+**The plan never crosses the CLI wire.** A `seed` step names a recipe and its params; siegelense builds
 and runs the plan in its own process. So the plan's shape is an internal contract, and only the recipe
 NAME, its params and its returned records are wire-shaped.
 
@@ -1999,10 +1999,11 @@ editing the package will actually read**, plus the two that live nowhere else.
 
 ### The calls this document uses
 
-**Every tool below is registered as `siegelense-<name>`** — `siegelense-start`, `siegelense-run`, and so on. The
-examples drop the prefix for readability; there is no bare `start` tool. **Steps are not tools**: `look`, `click`,
-`health` and the rest are values inside `run`'s `steps` array, which is the whole point of the bounded-tool-surface
-decision in `siegelense-tooling.md` Part 1.
+**Every call below is one of the thirteen names `siegelense-call-statics.ts` pins** — `start`, `run`, `results`,
+`kill`, `capacity`, `profile`, `status`, `cleanup`, `prune`, `compare`, `snapshots`, `recipes`, `docs`. There is no
+registration and no prefix on a CLI: the name typed after `dungeonmaster siegelense` IS the call. **Steps are not
+calls**: `look`, `click`, `health` and the rest are values inside `run`'s `steps` array, which is the whole point of
+the bounded-tool-surface decision in `siegelense-tooling.md` Part 1.
 
 **`recipes`** — what states can be created. No instance needed.
 
@@ -2051,9 +2052,10 @@ docs { for: 'driving' }      → the same surface for a session no quest dispatc
 ```
 
 **`params` is typed by the `recipe` value.** In-process that is a discriminated union over the enumerated recipe names,
-so a wrong key is a compile error. **Over the MCP wire it is JSON and no compile-time check is available** — so the tool
-builds a schema per recipe from the ones it enumerated and validates BEFORE seeding anything, with an error naming the
-bad input and listing what that recipe takes. A recipe declaring no inputs takes no `params`.
+so a wrong key is a compile error. **Over the CLI it arrives as JSON — typed inline or read from a `--steps-file` —
+and no compile-time check is available** — so the tool builds a schema per recipe from the ones it enumerated and
+validates BEFORE seeding anything, with an error naming the bad input and listing what that recipe takes. A recipe
+declaring no inputs takes no `params`.
 
 **In-process, a recipe is just a function, and that surface needs none of this.**
 
@@ -2159,10 +2161,10 @@ ask whether the screen reacts:
 
 ```jsonc
 steps: [
-  { step: 'goto',  path: '/{g.guild.urlSlug}/quest/{g.third.id}' },
+  { step: 'goto',  path: '/{g.guild.urlSlug}' },
   { step: 'look' },                                            // what is on screen now
-  { step: 'seed',  recipe: 'quest-advances-one-step', params: { questId: '{g.third.id}' } },
-  { step: 'until', predicate: 'document.querySelectorAll("[data-testid=EXECUTION_ROW]").length === 4' },
+  { step: 'seed',  recipe: 'quest-advances-one-step', params: { guildId: '{g.guild.id}' } },
+  { step: 'until', predicate: 'document.querySelectorAll("[data-testid^=QUEST_ITEM_]").length === 4' },
   { step: 'look' },                                            // and what changed
 ]
 ```
