@@ -1,7 +1,7 @@
 /**
  * Row 1 — an out-of-bounds index into a fixed-length tuple must not compile. `add(3, …)` mints
- * three handles; `q[3]` asks for a fourth. Counterpart: `scrolls/seigelense/proto/negative.ts`'s
- * `outOfBounds`, which marks the same line `@ts-expect-error index 3 of a 3-tuple`.
+ * three handles; `q[3]` asks for a fourth. Counterpart: `scrolls/seigelense/siegelense-recipes.md`'s
+ * mutation table ("Break" / "Caught by"), row "make `Tuple` always degrade to an array".
  */
 import { dm } from './_shared';
 

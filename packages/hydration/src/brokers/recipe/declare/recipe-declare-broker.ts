@@ -4,6 +4,13 @@
  * the description are what `recipes {}` prints, and the input schema is the one declaration that
  * serves the printed line, the in-process input type and a later `seed` step's wire validation.
  *
+ * The returned callable advances `buildSequenceMarkTransformer` before it calls `build` — this is
+ * where a BUILD actually begins. A recipe's own top-level collections (`registry()`'s own return
+ * value) are built once and closed over by every recipe that references them, so without this
+ * marker moving, calling the SAME recipe twice in one process would mint drifting `CallIndex`
+ * values off the very same collection instance instead of the identical ones a byte-for-byte replay
+ * promises.
+ *
  * `build` is bundled into this ONE destructured parameter, alongside `name`/`description`/`inputs`,
  * rather than taken as a second positional argument the way the specification's own `recipe(meta,
  * build)` reads — `enforce-object-destructuring-params` refuses a second, non-destructured
@@ -40,6 +47,7 @@ import { hydrationPlanContract } from '../../../contracts/hydration-plan/hydrati
 import type { Plan } from '../../../contracts/hydration-plan/hydration-plan-contract';
 import type { HydrationOp } from '../../../contracts/hydration-op/hydration-op-contract';
 import type { Op } from '../../../contracts/ingredient-handle/ingredient-handle-contract';
+import { buildSequenceMarkTransformer } from '../../../transformers/build-sequence-mark/build-sequence-mark-transformer';
 
 export const recipeDeclareBroker = <
   TName extends string,
@@ -61,12 +69,11 @@ export const recipeDeclareBroker = <
     ...(inputs === undefined ? {} : { inputs }),
   });
 
-  return Object.assign(
-    (input: RecipeInputOf<TInputSchema>): Plan<Record<string, unknown>> =>
-      hydrationPlanContract.parse({
-        recipeName: identity.recipeName,
-        ops: build(input).flatMap((op) => op as unknown as readonly HydrationOp[]),
-      }) as unknown as Plan<Record<string, unknown>>,
-    identity,
-  ) as unknown as RecipeDef<TName, RecipeInputOf<TInputSchema>>;
+  return Object.assign((input: RecipeInputOf<TInputSchema>): Plan<Record<string, unknown>> => {
+    buildSequenceMarkTransformer({ advance: true });
+    return hydrationPlanContract.parse({
+      recipeName: identity.recipeName,
+      ops: build(input).flatMap((op) => op as unknown as readonly HydrationOp[]),
+    }) as unknown as Plan<Record<string, unknown>>;
+  }, identity) as unknown as RecipeDef<TName, RecipeInputOf<TInputSchema>>;
 };

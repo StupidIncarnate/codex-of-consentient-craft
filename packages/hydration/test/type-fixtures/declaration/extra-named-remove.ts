@@ -1,8 +1,8 @@
 /**
  * D6 — an extra named `remove` must not compile, for the same reason as D5's `set`: a second
  * built-in verb an ingredient's own `extras` may not shadow. Counterpart:
- * `scrolls/seigelense/proto/declarations.ts`'s `extraShadowsVerb`, which declares `set` and
- * `remove` on the SAME fixture — split here because a fixture holds exactly one deliberate error.
+ * `scrolls/seigelense/siegelense-recipes.md`'s "the ten malformed declarations" table, row 6, "an
+ * extra named `remove`".
  */
 import { z } from 'zod';
 import { dmIngredient, sampleFields, sampleRecordContract, write } from './_shared';

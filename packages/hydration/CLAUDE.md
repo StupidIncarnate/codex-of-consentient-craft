@@ -118,10 +118,23 @@ test-only and already sits outside `tsconfig.build.json`'s emit; `fetchPostAdapt
 spec ever imports directly. Adding a `./adapters` subpath later is a decision to make deliberately,
 not a gap to fill by matching what `@dungeonmaster/shared` happens to export.
 
-`hydrationCreateBroker` currently returns `{ ingredient, registry, recipe }`. `run` is a public name
-this package must eventually export — reachable from a spec tree with no MCP boundary — but the
-runner that implements it has not landed yet. Adding it to the returned object is the one planned
-edit to an otherwise finished file, not a sign the barrel is incomplete.
+`hydrationCreateBroker` returns `{ ingredient, registry, recipe, run }`. `run` is the public name a
+spec tree reaches with no MCP boundary, and it calls `planRunBroker` against whichever ingredients
+that same binding's `registry()` call registered — `brokers.ts` also exports `planRunBroker` directly,
+for a caller that builds its own ingredient list instead of going through this broker's binding.
+
+## `HydrationTransactionRolledBackError` has no thrower in this package, by design
+
+Nothing inside this framework throws it — the framework names neither files nor SQL and does not own
+a transaction. The TARGET is the transaction, and it belongs to the repo: a database-backed repo's own
+wrapper around `run()` begins the transaction, catches the runner's per-op rejection, rolls back, and
+throws this naming the op that triggered it. The class stays exported for that wrapper to throw, even
+though no code in this checkout is the wrapper.
+
+Driving this for real would need a real database engine as a dependency, a schema with a real
+constraint, and a consumer's own wrapper that begins a transaction, catches the runner's rejection,
+rolls back and throws this class naming the op. None of that has an honest home in this repo, because
+dungeonmaster's own state is files.
 
 ## `require-zod-on-primitives` still applies inside this package's carve-out
 

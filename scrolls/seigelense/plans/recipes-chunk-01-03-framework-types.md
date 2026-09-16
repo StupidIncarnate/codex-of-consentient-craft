@@ -11,10 +11,10 @@ checkout.
 **The specification is `scrolls/seigelense/siegelense-recipes.md`, Part 5.** Every `delivers` field
 below quotes a Part 5 heading verbatim. Where Part 3A differs from Part 5, Part 5 wins.
 
-**`scrolls/seigelense/proto/` is a TYPE PROTOTYPE, not the implementation.** It proves which type
-machinery composes. Every construct below is re-expressed against this repo's folder rules: one
-export per file, `export const` arrow, one destructured object parameter, explicit branded return
-type, PURPOSE above the imports. Copy the MACHINERY from `proto/`, never the file layout.
+**Every construct below is re-expressed against this repo's folder rules**: one export per file,
+`export const` arrow, one destructured object parameter, explicit branded return type, PURPOSE above
+the imports. The machinery itself now lives in `packages/hydration/src/contracts/**` — copy from
+there, never from a prototype's file layout.
 
 **The package skeleton is another agent's job.** Assume `packages/hydration/` exists with
 `package.json`, `tsconfig.json`, `tsconfig.build.json` and `jest.config.js` written by
@@ -149,7 +149,7 @@ child to its parent"*). One agent, four files, one commit.
 
 ---
 
-## 3. Decisions this plan makes, which `proto/` leaves open
+## 3. Decisions this plan makes, beyond what the type prototype specified
 
 A build agent that disagrees with one of these raises it rather than choosing differently — three
 files choosing differently is the failure this plan exists to prevent.
@@ -177,9 +177,9 @@ means *operations under `q[0]`*, not *every operation in the instance*. Part 5's
 says *"A `filter` inside a nested `add` has undefined scope … Decide it before anyone writes one"* —
 this decides it, in the DATA, so chunk 6's runner has nothing to invent. Raised as **Q2**.
 
-**`add` takes `<N extends number>` with NO `const` modifier.** Part 5, *"What the type prototype
-proved, and what it changed"*: *"the `const` modifier on `add`'s count is unnecessary … It is
-harmless to keep and misleading to cite as the reason the tuple works."*
+**`add` takes `<N extends number>` with NO `const` modifier.** Part 5, *"What the type suite proves,
+and what it changed"*: *"the `const` modifier on `add`'s count is unnecessary … It is harmless to keep
+and misleading to cite as the reason the tuple works."*
 
 **`all` is `add`'s second builder ARGUMENT.** Never a property beside the handles. Part 5 measured
 that `Tuple<T, N> & { all: T }` silently loses the out-of-bounds check.
@@ -257,8 +257,8 @@ packages/hydration/
     typescript-program-diagnostics-adapter.test.ts
   test/type-fixtures/
     expect.ts                    # Equal<A,B> · Expect<T extends true>
-    dm-target.ts                 # the FILE-backed ingredient set  (proto/ingredients.ts)
-    sql-target.ts                # the DATABASE-backed ingredient set (proto/db.ts)
+    dm-target.ts                 # the FILE-backed ingredient set
+    sql-target.ts                # the DATABASE-backed ingredient set
     positive/                    # must compile CLEAN — every verb, both repos, the six shape facts
     declaration/                 # D1–D9, one file per case
     call-site/                   # rows 1–13 and 7b, one file per case
@@ -317,8 +317,8 @@ in `positive/`. `RUN` = a runtime test, because no type reaches it.
 
 Rows 3, 7b and 11 are re-proven on the DATABASE shape as well —
 `call-site/db-unreachable-status.ts`, `call-site/db-comment-needs-a-post.ts`,
-`call-site/db-unknown-column.ts` — because `proto/negative.ts` carries all three and the mutation
-table names `u[0].comments` specifically.
+`call-site/db-unknown-column.ts` — because the mutation table names `u[0].comments` specifically, and
+nothing proves those three rows against a foreign-key shape until these fixtures exist.
 
 #### Part 5 — *"the ten malformed declarations"*
 
@@ -474,8 +474,8 @@ one valid parse and one rejection with the real message.
 - its test: `VALID: {field: 'status', to: ['created','approved']} => returns both`;
   `INVALID: {field: 'status', to: []} => throws` (an empty `to` reaches nothing);
   `INVALID: {to: ['created']} => throws /Required/u`.
-- **Supporting types**: `TransitionSpecFor<TFields>` — the distributive mapped union from
-  `proto/hydration.ts`, `{ [K in keyof TFields]: { field: K; to: readonly TFields[K][] } }[keyof
+- **Supporting types**: `TransitionSpecFor<TFields>` — the distributive mapped union in
+  `transition-spec-contract.ts`, `{ [K in keyof TFields]: { field: K; to: readonly TFields[K][] } }[keyof
   TFields]` — which is what makes D1 and D2 compile errors. `ReachFn<TTarget, TValue>` arrives by
   intersection; `reach` is a function and stays out of the zod half.
 
@@ -489,8 +489,8 @@ one valid parse and one rejection with the real message.
   routes; a recipe does not"*, *"An ingredient with only one route, and what it costs"*.
 - its test: `VALID: {write: fn} => returns the write route`; `VALID: {api: fn, write: fn} => returns
   both`; `INVALID: {} => throws /at least one route/u` — the runtime half of D4.
-- **Supporting types**: `RouteFn<TTarget>`, `RoutesFor<TTarget>` (the three-branch union from
-  `proto/hydration.ts` that forces at least one), and `CopiesFor<R>` — `R extends { write:
+- **Supporting types**: `RouteFn<TTarget>`, `RoutesFor<TTarget>` (the three-branch union in
+  `hydration-routes-contract.ts` that forces at least one), and `CopiesFor<R>` — `R extends { write:
   RouteFn<never> } ? { copies: CopiesTarget } : { copies?: never }`, which is what makes D3 a compile
   error.
 - Functions are validated with `z.custom`, never `z.function()` — the folder detail records that
@@ -506,9 +506,9 @@ one valid parse and one rejection with the real message.
   a server only if EVERY ingredient in it declares a `write` route"*.
 - its test: `VALID: {} => returns an empty target` (a targetless caller is legal);
   `VALID: {baseUrl: 'http://localhost:3737'} => returns the url`.
-- **This constraint is new and deliberate.** `proto/` leaves `baseUrl` optional on each repo's own
-  target and stops there, which is Part 5's first Known gap: *"A plan containing an `api`-only
-  ingredient cannot say so before it runs."* `HydrationTargetBase = { baseUrl?: Url }` plus
+- **This constraint is new and deliberate.** Every real target (`DmTarget`, `SqlTarget`) leaves
+  `baseUrl` optional and stops there, which is Part 5's first Known gap: *"A plan containing an
+  `api`-only ingredient cannot say so before it runs."* `HydrationTargetBase = { baseUrl?: Url }` plus
   `planRunsTransformer` (§7) gives chunk 4 everything it needs to refuse at the call. Raised as **Q6**.
 
 ### A2b — the six op kinds
@@ -551,8 +551,8 @@ discriminated members plus six stubs plus a test outgrows 300 lines.
   `copies`.
 - **Supporting types**: the generic `IngredientConfig<TTarget, TFields, TName extends string>`,
   the opaque `Ingredient<C>` and `AnyIngredient` brands, and the accessors `ConfigOf` · `FieldsOf` ·
-  `RecordOf` · `NameOf` · `LinkNames` · `ExtrasFree<E>` · `Registry`. All copied in machinery from
-  `proto/hydration.ts`.
+  `RecordOf` · `NameOf` · `LinkNames` · `ExtrasFree<E>` · `Registry`, all in
+  `ingredient-config-contract.ts`.
 - **`TName extends string` is the second file the ESLint entry must cover** — `name` must stay a
   literal through `const` inference or D9's registry check degrades to `string extends string`.
 - **`fields` and `record` are two contracts, never one**: *"A guild's id and `urlSlug` are on the
@@ -596,7 +596,7 @@ discriminated members plus six stubs plus a test outgrows 300 lines.
   `INVALID: {description: ''} => throws` — a blank description degrades the listing and Part 5's
   Table 1 says nothing else reports it.
 - **Supporting type**: `RecipeDef<TName extends string, TInput>` — the callable-with-properties shape
-  and the **two overloads in `proto/hydration.ts` order: the NO-INPUT overload FIRST**, because
+  in `recipe-def-contract.ts`, with the **two overloads ordered NO-INPUT FIRST**, because
   `() => Op[]` also satisfies the input form and the input overload would otherwise win and demand an
   argument nobody has.
 - **`TName extends string` — third ESLint-entry file.**
@@ -626,7 +626,7 @@ discriminated members plus six stubs plus a test outgrows 300 lines.
 - its test: the four fixture rows, plus `VALID: {step:'seed', recipe:'guild-mid-execution', as:'g'}
   => returns the step with no params key`.
 - **Supporting types**: `SeedStepFor<TInputs, K extends keyof TInputs & string>` and
-  `SeedStep<TInputs>`, copied from `proto/steps.ts`. The per-repo `RecipeInputs` map is generated
+  `SeedStep<TInputs>`, in `seed-step-contract.ts`. The per-repo `RecipeInputs` map is generated
   from the manifest and belongs to the consumer, not here — the fixture tree supplies a stand-in.
 - **`K extends keyof TInputs & string` — fourth ESLint-entry file.**
 
@@ -651,8 +651,8 @@ transformer needs anyway to build an op — and the verb surface arrives by inte
   list as a fixed-length tuple"*, *"`all` is a second ARGUMENT to `add`'s builder"*, *"Entry points:
   one per registered ingredient"*.
 - its test: rows 1 and 9 of the negative table, and the tuple SHAPE assertions.
-- **Supporting types**: `Tuple<T, N extends number>` (the recursive accumulator from
-  `proto/hydration.ts`, degrading to `T[]` for a widened `number`), `Handles<R, I, N, Anc>`,
+- **Supporting types**: `Tuple<T, N extends number>` (the recursive accumulator in
+  `hydration-collection-contract.ts`, degrading to `T[]` for a widened `number`), `Handles<R, I, N, Anc>`,
   `Collection<R, I, Anc>`, `Entry<R>`, `FilterArgsFor<I>`.
 - **`N extends number` appears twice here — fifth ESLint-entry file**, and the widest one.
 - `add` is `<N extends number>(count: N, build: (rows, all) => Op[]) => Op` — **no `const`
@@ -804,8 +804,8 @@ boundary. Both are chunk 8. Raised as **Q8**.
 - **The generic signature is the subject.** `ingredientDeclareBroker<TTarget, TFields extends object,
   TName extends string, const C extends IngredientConfig<TTarget, TFields, TName>>(config: C &
   { fields: Contract<TFields> } & CopiesFor<C['routes']> & { extras?: ExtrasFree<C['extras']> })`.
-  The intersections are what make D3 and D5/D6 compile errors; copy them from `proto/hydration.ts`.
-  **Sixth ESLint-entry file.**
+  The intersections are what make D3 and D5/D6 compile errors; `ingredient-config-contract.ts` is
+  where they live. **Sixth ESLint-entry file.**
 
 ### Chunk 3 — the chain, bottom up
 
@@ -907,7 +907,7 @@ exactly the kind of option that rule forbids.
     'Quest 2', 'Quest 3'` — the two-of-anything rule, on values.
   - `VALID: {under({guildId})} => the create op carries guildId from the input, not an ancestor`.
   - `VALID: {the whole positive fixture tree} => zero diagnostics` — the positive half of the
-    experiment, standing in for `proto/usage.ts` and `proto/recipes.ts`.
+    experiment, proving every chainable compiles clean over a real ingredient set.
 
 **`src/transformers/entry-chain/entry-chain-transformer.ts`** → `entryChainTransformer`
 
@@ -943,7 +943,7 @@ exactly the kind of option that rule forbids.
   - `INVALID: {an ingredient linking to 'no-such-ingredient'} => throws` naming the link and the
     names the registry holds — the runtime half of D9.
   - the D9 fixture, asserted through the adapter.
-- **The compile-time half of D9 is the phantom-property intersection from `proto/hydration.ts`**:
+- **The compile-time half of D9 is the phantom-property intersection on `registry`'s own parameter**:
   `entries: R & (LinkNames<R[keyof R]> extends NameOf<R[keyof R]> ? unknown : {
   LINK_NAMES_AN_UNREGISTERED_INGREDIENT: LinkNames<R[keyof R]> })`. The property name IS the error
   message a caller reads. **Seventh ESLint-entry file.**
@@ -965,7 +965,7 @@ exactly the kind of option that rule forbids.
   - `VALID: {called twice} => returns two structurally identical plans` — determinism, on values.
   - `VALID: {a builder taking {guildId}} => the ops carry the supplied guildId`.
   - the fixtures for rows 12 and 13.
-- **The two overloads go in `proto/hydration.ts`'s order** — no-input FIRST. A build agent that
+- **The two overloads go no-input FIRST**, matching `recipe-def-contract.ts`. A build agent that
   reverses them gets a recipe that demands an argument nobody has.
 
 **`src/brokers/hydration/create/hydration-create-broker.ts`** → `hydrationCreateBroker`
@@ -1097,14 +1097,14 @@ Re-read against every Part 5 heading. A heading is listed once, against where it
 | *"Every verb but `add` takes an object"* | every verb's signature in `ingredient-handle-contract`; `add` keeps its bare count |
 | *"`filter` selects rows that only exist at RUN time"* | `matched-set-contract` · `filter-args-contract` · `op-filter-transformer` |
 | *"A recipe takes typed inputs, so it can stack on what an EARLIER STEP made"* | `recipe-def-contract` · `seed-step-contract` · `under` on `hydration-collection-contract` |
-| *"Every chainable, with an example"* | the positive fixture tree, which replaces `proto/usage.ts` |
+| *"Every chainable, with an example"* | the positive fixture tree |
 | *"A plan is data, and one plan runs three ways"* | `hydration-plan-contract` · §3's no-I/O rule |
 | *"Determinism is structural, not a rule to remember"* | `row-ref-transformer` · `row-index-contract` |
 | *"Routes: how an ingredient makes its state"* | `hydration-routes-contract` · `copies-target-contract` |
 | *"An ingredient for a FILE, and an ingredient for a DATABASE ROW"* | `hydration-target-contract` · `hydration-create-broker` · both fixture ingredient sets |
 | *"An ingredient with only one route, and what it costs"* | `plan-runs-transformer` · `HydrationRouteUnavailableError` |
 | *"Every ingredient carries a test, and a two-route ingredient tests its routes against each other"* | **chunk 7** — an ingredient's own test needs ingredients |
-| *"What the type prototype proved, and what it changed"* | §4's whole table |
+| *"What the type suite proves, and what it changed"* | §4's whole table |
 | *"The sad paths, which no type catches"* | §6's mid-run errors (defined) · chunk 4 (thrown) |
 | *"Two kinds of probe, and neither substitutes for the other"* | §4's rationale |
 | *"The combinatorial planning session"* | **chunk 12** |
@@ -1194,8 +1194,9 @@ The proof is a fixture that declares something real, which is exactly what the s
 
 **This is the ordering rule earning its place**, and the specification predicted the outcome:
 
-> a build that writes the runtime first and the types after will discover the same three failures that
-> prototype already recorded, at much greater cost.
+> Chunk 2 before chunk 3 is the one ordering that matters: the types must compose before the runtime is
+> written. A contract's own colocated test exercises its runtime zod parse and never its TypeScript
+> generic, so a contract whose value IS its generic ships green while broken.
 
 **Apply it to every remaining group whose files are mostly types.** A green unit test over a runtime
 value says nothing about them.
@@ -1319,17 +1320,12 @@ contradicts it**, and if it does, say so in the commit and rename the suites.
 `packages/eslint-plugin/src/brokers/rule/ban-primitives/rule-ban-primitives-broker.test.ts` runs a
 real ESLint `RuleTester` and is named `.test.ts`. Compiler-spawning suites in this package follow it.
 
-### One scheduled tidy, so it is not lost
+### ~~One scheduled tidy, so it is not lost~~ **DONE**
 
-**The document's snippets are sourced from `proto/usage.ts`, which cannot grow the mechanisms this
-build adds.** Its `under({ … })` example already disagrees with the resolved
-`recipe({ name, description, inputs }, build)` shape, and rewriting it today would misrepresent what
-the prototype actually compiles.
-
-**Group E's positive fixture tree replaces `proto/usage.ts` as the source those snippets are copied
-from.** When it lands, re-source the examples in *"Every chainable, with an example"* from it, and
-delete `scrolls/seigelense/proto/` — the document says a prototype left in the tree is read as the
-thing itself by the next session.
+**Group E's positive fixture tree (`packages/hydration/test/type-fixtures/positive/every-chainable.ts`)
+is the source *"Every chainable, with an example"* copies its snippets from now**, and
+`scrolls/seigelense/proto/` is deleted. The doc's `under({ … })` example matches the resolved
+`recipe({ name, description, inputs }, build)` shape.
 
 ### Two traps that have each cost a round
 
@@ -1406,17 +1402,15 @@ it before anyone writes one."* **Recommendation: the `filter` op carries `scope`
 host's `RowRef`, and the runner matches only rows whose ancestor chain contains it.** Reasons: it is
 the reading `q[0].operations.filter(…)` already suggests; it is the only reading that survives two
 guilds in one plan; and putting it in the DATA means chunk 6 implements a decision rather than making
-one. The alternative — instance-wide — makes `manyQuests` in `proto/recipes.ts` delete ward items
-belonging to quests it did not create.
+one. The alternative — instance-wide — lets a recipe holding two guilds delete ward items belonging to
+a quest it did not create.
 
-**Q3 — `fromSaved` is not typed against the field it lands in**, and `proto/` needed `as never`.
-**Recommendation: widen `Settable<I>` to `{ [K in keyof F]?: F[K] | SavedRef }` so the cast goes
-away**, and leave the second half — typing the SAVED field against the LANDING field — open, because
-it needs the saved names threaded through the plan's output type (Q7). This removes a cast from every
-cross-link in every consumer repo, which is worth doing now.
+**Q3 — `fromSaved` is not typed against the field it lands in. ADOPTED**: `Settable<I>` types a plain
+field as `{ [K in keyof F]?: F[K] | SavedRef }`, so the cast is gone. The second half — typing the
+SAVED field against the LANDING field — stays open, because it needs the saved names threaded through
+the plan's output type (Q7).
 
-**Q4 — the listing must print each recipe's inputs and `proto/` has no runtime carrier for them.**
-**Recommendation: `recipe({ name, description, inputs? }, build)` where `inputs` is a zod schema.**
+**Q4 — the listing must print each recipe's inputs. ADOPTED**: `recipe({ name, description, inputs? }, build)` where `inputs` is a zod schema.
 One declaration, three readers — the printed line, the in-process union via `z.infer`, and chunk 8's
 wire validation. It also closes most of Part 5's gap *"The MCP wire has no compile-time check at
 all"*, because the schema is declared rather than generated. The cost is that `recipe-def` imports
@@ -1430,18 +1424,17 @@ reaches `dist` at all — belt and braces, one more config line; (b) put it in
 `typescript`. **(b) is the right home on the SECOND consumer and the wrong one today** — which is
 this document's own rule for promoting a capability verb, applied to a tool.
 
-**Q6 — should `createHydration` constrain `TTarget`?** `proto/` leaves each repo's target entirely
-its own and the framework then cannot know whether a server is reachable, which is Part 5's first
-Known gap. **Recommendation: `createHydration<TTarget extends HydrationTargetBase>()` where
-`HydrationTargetBase = { baseUrl?: Url }`.** It is one optional property, both prototype targets
-already have it, and it is what lets `planRunsTransformer` and chunk 4's pre-flight refuse a
-targetless run at the call instead of partway through with half a plan on disk.
+**Q6 — should `hydrationCreateBroker` constrain `TTarget`? ADOPTED**:
+`hydrationCreateBroker<TTarget extends HydrationTargetBase>()` where
+`HydrationTargetBase = { baseUrl?: Url }`. It is one optional property, both real targets (`DmTarget`,
+`SqlTarget`) already have it, and it is what lets `planRunsTransformer` and chunk 4's pre-flight refuse
+a targetless run at the call instead of partway through with half a plan on disk.
 
-**Q7 — Part 5 claims a typed plan output and `proto/` does not deliver one.** *"the plan's output
-then carries `guild` and `target`, each typed to its own record contract"*, but `proto/hydration.ts`
-types a recipe as returning `Plan<Record<string, unknown>>`, and `proto/recipes.ts` ends with
-`out as unknown as QuestRecord`. **Recommendation: keep `Record<string, unknown>` in chunks 1–3 and
-log this as a new Known gap.** Threading saved names through the op return type means every verb
+**Q7 — Part 5 claims a typed plan output and none is delivered yet.** *"the plan's output
+then carries `guild` and `target`, each typed to its own record contract"*, but `recipeDeclareBroker`
+still types a recipe as returning `Plan<Record<string, unknown>>` today. **Recommendation, still
+followed: keep `Record<string, unknown>` in chunks 1–3 and log this as a Known gap.** Threading saved
+names through the op return type means every verb
 returns `Op<TSaved>` rather than `Op`, which changes the signature of all seven op producers — too
 large a change to make on the same pass that first gets them compiling. It is worth doing once the
 chain is proven, and it would close Q3's second half at the same time.
@@ -1458,9 +1451,9 @@ a plan whose ingredients are mostly writable, which is the case an ANY gets wron
 moves them, they move whole — the contracts they return move with them.
 
 **Q10 — how expensive is one `ts.createProgram` per owning test?** Seven tests each build their own
-program over their own fixture subdirectory. `proto/check.mjs` compiles eight files with
-`skipLibCheck` and `lib: ['lib.es2022.d.ts']` quickly, but these fixtures additionally pull in the
-package's real contracts and zod's declarations. **Recommendation: the B1 agent measures ONE program
+program over their own fixture subdirectory. A minimal `skipLibCheck`, `lib: ['lib.es2022.d.ts']`
+program compiling a handful of files is quick, but these fixtures additionally pull in the package's
+real contracts and zod's declarations. **Recommendation: the B1 agent measures ONE program
 over one subdirectory and reports the wall time.** Under about a second each, leave the seven split —
 colocation is worth it, and a failure landing next to the diff that caused it is the whole point.
 Over that, collapse them into one suite owned by `collection-chain-transformer.test.ts` and say in

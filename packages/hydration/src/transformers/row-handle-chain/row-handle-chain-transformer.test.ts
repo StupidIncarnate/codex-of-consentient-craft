@@ -4,6 +4,7 @@ import {
   guildFieldsContract,
   questIngredient,
   operationIngredient,
+  operationFieldsContract,
   sessionIngredient,
 } from '../../../test/type-fixtures/dm-target';
 import type { IngredientConfigStub } from '../../contracts/ingredient-config/ingredient-config.stub';
@@ -93,6 +94,84 @@ describe('rowHandleChainTransformer', () => {
       'saveRecordAs',
       'set',
       'setRaw',
+    ]);
+  });
+
+  it('VALID: {q[0] minted under a supplied guildId, then q[0].operations.add(1, () => [])} => the grandchild row carries the cascaded guildId', () => {
+    const handle = rowHandleChainTransformer<
+      typeof questIngredient,
+      {
+        guilds: typeof guildIngredient;
+        quests: typeof questIngredient;
+        operations: typeof operationIngredient;
+        sessions: typeof sessionIngredient;
+      },
+      [typeof guildIngredient]
+    >({
+      registry: {
+        guilds: guildIngredient,
+        quests: questIngredient,
+        operations: operationIngredient,
+        sessions: sessionIngredient,
+      },
+      ingredientConfig: questIngredient as unknown as IngredientConfigData,
+      ref: RowRefStub({ value: 'quest[0:0]' }),
+      ancestors: [],
+      ancestorNames: ['guild'] as never,
+      under: { guildId: 'guild-1' },
+    });
+
+    const result = handle.operations.add(1, () => []) as unknown as HydrationOp[];
+
+    expect(result).toStrictEqual([
+      {
+        op: 'create',
+        ingredient: 'operation',
+        ref: 'quest[0:0]/operation[0:0]',
+        index: 0,
+        ancestors: ['quest[0:0]'],
+        fields: { guildId: 'guild-1' },
+      },
+    ]);
+  });
+
+  it('VALID: {q[0] minted under a supplied guildId, then q[0].operations.under({guildId: other}).add(1, () => [])} => the descendant’s own explicit id wins over the cascaded one', () => {
+    const handle = rowHandleChainTransformer<
+      typeof questIngredient,
+      {
+        guilds: typeof guildIngredient;
+        quests: typeof questIngredient;
+        operations: typeof operationIngredient;
+        sessions: typeof sessionIngredient;
+      },
+      [typeof guildIngredient]
+    >({
+      registry: {
+        guilds: guildIngredient,
+        quests: questIngredient,
+        operations: operationIngredient,
+        sessions: sessionIngredient,
+      },
+      ingredientConfig: questIngredient as unknown as IngredientConfigData,
+      ref: RowRefStub({ value: 'quest[0:0]' }),
+      ancestors: [],
+      ancestorNames: ['guild'] as never,
+      under: { guildId: 'cascaded-guild' },
+    });
+
+    const result = handle.operations
+      .under({ guildId: operationFieldsContract.shape.guildId.parse('explicit-guild') })
+      .add(1, () => []) as unknown as HydrationOp[];
+
+    expect(result).toStrictEqual([
+      {
+        op: 'create',
+        ingredient: 'operation',
+        ref: 'quest[0:0]/operation[0:0]',
+        index: 0,
+        ancestors: ['quest[0:0]'],
+        fields: { guildId: 'explicit-guild' },
+      },
     ]);
   });
 

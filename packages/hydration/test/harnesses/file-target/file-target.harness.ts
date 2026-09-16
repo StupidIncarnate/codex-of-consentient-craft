@@ -10,8 +10,10 @@
  * // harness.beforeEach / harness.afterEach are auto-wired by the ts-jest harness transformer
  * const target = harness.target();                             // { home: AbsoluteFilePath }
  * harness.readJson({ relativePath: 'guilds/g1/quest.json' });   // what a plan wrote, or null
+ * harness.removeDirectory({ relativePath: 'locked' });          // deletes it out from under a denied path
+ * harness.exists({ relativePath: '' });                         // false once the home itself is gone
  */
-import { chmodSync, mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { FileContentStub } from '@dungeonmaster/testing';
 import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
@@ -31,6 +33,8 @@ interface FileTargetHarness {
   read: ({ relativePath }: { relativePath: string }) => FileContent | null;
   readJson: ({ relativePath }: { relativePath: string }) => unknown;
   denyWrites: ({ relativePath }: { relativePath: string }) => void;
+  removeDirectory: ({ relativePath }: { relativePath: string }) => void;
+  exists: ({ relativePath }: { relativePath: string }) => boolean;
 }
 
 export const fileTargetHarness = (): FileTargetHarness => {
@@ -116,6 +120,20 @@ export const fileTargetHarness = (): FileTargetHarness => {
           `fileTargetHarness.denyWrites: chmod 0o500 did not deny writes to "${deniedDir}" (running as root?)`,
         );
       }
+    },
+
+    removeDirectory: ({ relativePath }: { relativePath: string }): void => {
+      if (testbed === null) {
+        throw new Error('fileTargetHarness.removeDirectory: called before beforeEach ran');
+      }
+      rmSync(join(testbed.guildPath, relativePath), { recursive: true, force: true });
+    },
+
+    exists: ({ relativePath }: { relativePath: string }): boolean => {
+      if (testbed === null) {
+        throw new Error('fileTargetHarness.exists: called before beforeEach ran');
+      }
+      return existsSync(join(testbed.guildPath, relativePath));
     },
   };
 };

@@ -8,6 +8,7 @@ describe('ingredientConfigContract', () => {
       const fields = z.object({ title: z.string().brand<'QuestFieldTitle'>() });
       const record = z.object({ id: z.string().brand<'QuestRecordId'>() });
       const write = (): unknown => undefined;
+      const reach = (): unknown => undefined;
       const advanceOneStepArgs = z.object({ steps: z.number().brand<'StepCount'>() });
       const advanceOneStepApply = (): unknown => undefined;
 
@@ -17,7 +18,7 @@ describe('ingredientConfigContract', () => {
         fields,
         record,
         links: [{ of: 'guild', as: 'guildId' }],
-        transitions: { field: 'status', to: ['created', 'approved'] },
+        transitions: { field: 'status', to: ['created', 'approved'], reach },
         routes: { write },
         copies: 'questPersistBroker',
         extras: { advanceOneStep: { args: advanceOneStepArgs, apply: advanceOneStepApply } },
@@ -29,7 +30,7 @@ describe('ingredientConfigContract', () => {
         fields,
         record,
         links: [{ of: 'guild', as: 'guildId' }],
-        transitions: { field: 'status', to: ['created', 'approved'] },
+        transitions: { field: 'status', to: ['created', 'approved'], reach },
         routes: { write },
         copies: 'questPersistBroker',
         extras: { advanceOneStep: { args: advanceOneStepArgs, apply: advanceOneStepApply } },

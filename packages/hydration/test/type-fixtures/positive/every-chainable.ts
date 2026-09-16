@@ -1,10 +1,9 @@
 /**
- * PURPOSE: Every chainable verb, compiling clean — the file `siegelense-recipes.md`'s "Every
- * chainable, with an example" is re-sourced from once this lands. Reach for this over
- * `scrolls/seigelense/proto/usage.ts`: that prototype cannot grow the mechanisms this build added
- * (extras, filter scope, the `Settable` narrowing), and this file is graded by a real compiler run
- * rather than merely read. Carries no deliberate error: `collection-chain-transformer.test.ts`
- * asserts it produces zero diagnostics.
+ * PURPOSE: Every chainable verb, compiling clean. Counterpart: `scrolls/seigelense/siegelense-recipes.md`'s
+ * "Every chainable, with an example" section, which is re-sourced FROM this file — this fixture
+ * grows mechanisms a doc snippet cannot (extras, filter scope, the `Settable` narrowing) and is
+ * graded by a real compiler run rather than merely read. Carries no deliberate error:
+ * `collection-chain-transformer.test.ts` asserts it produces zero diagnostics.
  *
  * USAGE:
  * Nothing here runs — every export is a value the chain BUILDS, never executes.
@@ -16,6 +15,7 @@ import {
   guildFieldsContract,
   questIngredient,
   questFieldsContract,
+  operationIngredient,
   sessionIngredient,
   nestedChainArgsContract,
 } from '../dm-target';
@@ -26,6 +26,7 @@ const dm = entryChainTransformer({
   registry: {
     guilds: guildIngredient,
     quests: questIngredient,
+    operations: operationIngredient,
     sessions: sessionIngredient,
   },
 });
@@ -63,7 +64,9 @@ export const everyChainable = dm.guilds.add(1, (g) => [
   g[0].quests.filter({ where: { status: 'queued' } }).remove(),
 ]);
 
-// under — supplies a link from a recipe input rather than from an ancestor
+// under — supplies a link from a recipe input rather than from an ancestor, and grows the ancestor
+// chain by exactly that link: operations names BOTH quest (the immediate host) and guild (satisfied
+// here by the id under() was given), so its accessor reaches the row under() minted
 export const standaloneQuest = dm.quests
   .under({ guildId: questFieldsContract.shape.guildId.parse('guild-1') })
-  .add(1, () => []);
+  .add(1, (q) => [q[0].operations.filter({ where: { role: 'ward' } }).remove()]);

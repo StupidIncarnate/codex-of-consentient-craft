@@ -2,7 +2,15 @@ import { recipeDeclareBroker } from './recipe-declare-broker';
 import { recipeDeclareBrokerProxy } from './recipe-declare-broker.proxy';
 import { OpRemoveStub } from '../../../contracts/op-remove/op-remove.stub';
 import { OpSetStub } from '../../../contracts/op-set/op-set.stub';
-import { questFieldsContract } from '../../../../test/type-fixtures/dm-target';
+import {
+  questFieldsContract,
+  guildIngredient,
+  questIngredient,
+} from '../../../../test/type-fixtures/dm-target';
+import { entryChainTransformer } from '../../../transformers/entry-chain/entry-chain-transformer';
+import type { HydrationOpStub } from '../../../contracts/hydration-op/hydration-op.stub';
+
+type HydrationOp = ReturnType<typeof HydrationOpStub>;
 
 describe('recipeDeclareBroker', () => {
   it('VALID: {name, description, build returning two ops} => calling it returns {recipeName, ops}', () => {
@@ -56,6 +64,27 @@ describe('recipeDeclareBroker', () => {
     const secondPlan = guildMidExecution();
 
     expect(firstPlan).toStrictEqual(secondPlan);
+  });
+
+  it('VALID: {a real recipe over a real registry, called twice in one process} => both calls mint the identical top-level reference', () => {
+    recipeDeclareBrokerProxy();
+
+    const dm = entryChainTransformer({
+      registry: { guilds: guildIngredient, quests: questIngredient },
+    });
+    const guildMidExecution = recipeDeclareBroker({
+      name: 'guild-mid-execution',
+      description: 'one guild holding three quests, the first running',
+      build: () => [dm.guilds.add(1, (g) => [g[0].saveRecordAs({ name: 'guild' })])],
+    });
+
+    const firstPlan = guildMidExecution();
+    const secondPlan = guildMidExecution();
+
+    expect([firstPlan.ops[0], secondPlan.ops[0]] as unknown as HydrationOp[]).toStrictEqual([
+      { op: 'create', ingredient: 'guild', ref: 'guild[0:0]', index: 0, ancestors: [], fields: {} },
+      { op: 'create', ingredient: 'guild', ref: 'guild[0:0]', index: 0, ancestors: [], fields: {} },
+    ]);
   });
 
   it('VALID: {a builder taking {guildId}} => the ops carry the supplied guildId', () => {

@@ -1197,8 +1197,8 @@ directory over.
 ### Q7-10 — `recording` stays unexercised, and a session is the one that could
 
 A session transcript is literally *"something captured from a real run"*, which is what `recording`
-means, and Part 5's Known gaps says *"no ingredient in the prototype uses it, so nothing about it has
-been proven"*.
+means, and Part 5's Known gaps says *"no ingredient in either real target set uses it, so nothing about
+it has been proven"*.
 
 **Recommendation: leave the gap open.** The existing harnesses build every line from
 `@dungeonmaster/shared/contracts` stubs, which are parsed through the real stream-line contracts, so

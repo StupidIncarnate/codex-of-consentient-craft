@@ -8,6 +8,13 @@
  * and folding `callIndex` in stays safe only because it is scoped to ONE collection instance,
  * never a value that survives between separate builds.
  *
+ * `ancestors` holds one entry PER LEVEL, and each entry is already that level's own COMPOUND ref
+ * (`linkValuesTransformer` walks every entry looking for the one whose OWN last segment names a
+ * given link, which only works if each entry still carries everything above it). So only the LAST
+ * entry is joined onto this row's own new segment — that entry already encodes every entry before
+ * it. Joining the whole array instead double-counts everything above the immediate parent, which is
+ * invisible at two levels (there is only one entry to begin with) and duplicates at three.
+ *
  * USAGE:
  * rowRefTransformer({ ancestors: ['guild[0:0]'], ingredient: 'quest', callIndex: 0, index: 2 });
  * // Returns the branded RowRef 'guild[0:0]/quest[0:2]'
@@ -30,9 +37,8 @@ export const rowRefTransformer = ({
   callIndex: CallIndex;
   index: RowIndex;
 }): RowRef => {
-  const segments = [
-    ...ancestors,
-    `${ingredient}[${callIndex}${rowRefStatics.slot.separator}${index}]`,
-  ];
-  return rowRefContract.parse(segments.join('/'));
+  const immediateParent = ancestors.at(-1);
+  const ownSegment = `${ingredient}[${callIndex}${rowRefStatics.slot.separator}${index}]`;
+  const combined = immediateParent === undefined ? ownSegment : `${immediateParent}/${ownSegment}`;
+  return rowRefContract.parse(combined);
 };

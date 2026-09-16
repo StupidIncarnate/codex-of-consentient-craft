@@ -1,7 +1,7 @@
 /**
  * D1 — a `transitions.field` naming no field on this ingredient's own `fields` must not compile.
- * Counterpart: `scrolls/seigelense/proto/declarations.ts`'s `badTransitionField`, which marks the
- * same line `@ts-expect-error no such field on 'fields'`.
+ * Counterpart: `scrolls/seigelense/siegelense-recipes.md`'s "the ten malformed declarations" table,
+ * row 1, "`transitions.field` naming no field".
  *
  * `reach: walk` — a bare reference, not an inline destructured arrow — is deliberate: once
  * `field: 'nonexistent'` fails every branch of `TransitionSpecWithReachFor`'s distributive union,

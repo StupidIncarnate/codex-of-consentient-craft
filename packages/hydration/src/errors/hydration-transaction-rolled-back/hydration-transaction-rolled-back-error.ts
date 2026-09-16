@@ -14,8 +14,10 @@
  * });
  * // Throws error naming the recipe, the triggering op and the underlying database failure
  *
- * WHEN-TO-USE: From the runner, once a database-backed plan's transaction fails and the driver
- * rolls every op in it back.
+ * WHEN-TO-USE: From the consuming repo's own transaction wrapper around `run()` — never from inside
+ * this framework, which names neither files nor SQL and does not own the transaction. The wrapper
+ * begins the transaction, catches the runner's per-op rejection, rolls back, and throws this naming
+ * the op that triggered it.
  * WHEN-NOT-TO-USE: For a file-backed plan — nothing there is transactional, and a failed op simply
  * halts the batch per the mid-run rule, with no rollback to report.
  */

@@ -3,15 +3,24 @@
  * accessor both are. Each `add` call draws the NEXT `CallIndex` off this one collection instance, in
  * the order those calls run, and folds it into every row that call mints — the axis that keeps two
  * sibling `add` calls, or one top-level ingredient added twice, from minting the same reference. A
- * fresh collection instance (a fresh `entryChainTransformer`, a fresh child hanging off a fresh row)
- * starts that counter back at 0, which is what keeps it from surviving between separate builds. `add`
- * mints `count` rows, hands the builder a tuple of their handles plus `all` as a second argument
+ * TOP-LEVEL collection (the object `registry()` hands back) is built ONCE and reused by every later
+ * call to whichever recipe closes over it, so a fresh JS closure never marks a fresh build the way a
+ * nested child collection's does — instead, every `add` peeks `buildSequenceMarkTransformer`'s own
+ * marker and resets the counter to 0 the moment that marker has moved since this collection's last
+ * `add`, which is what keeps the counter from surviving between separate builds while still letting
+ * two sibling `add` calls inside ONE build share the same marker and keep counting. `add` mints
+ * `count` rows, hands the builder a tuple of their handles plus `all` as a second argument
  * (never a property beside the tuple — that silently loses the out-of-bounds check `add(3, …)`
  * needs), and flattens whatever the builder returns onto the fresh `create` ops. `filter` hands off
  * to `matchedSetChainTransformer` for a set whose size is a run-time fact and needs no `CallIndex`
- * of its own; `under` rebinds a link that has no ancestor to draw from. Reach for
- * `entryChainTransformer` at the top level instead; a collection below that always arrives through a
- * handle's own child accessor.
+ * of its own; `under` rebinds a link that has no ancestor to draw from, and grows the ancestor NAME
+ * chain by exactly the links the supplied ids satisfy — never the ingredient's whole link set — so a
+ * row minted under it exposes the same child accessors the type promises and no others. Those same
+ * supplied VALUES ride along into every row `rowHandleChainTransformer` hangs off THIS row's own
+ * child accessors, unchanged — a guild id supplied here is as true of a grandchild reached through
+ * one of those accessors as it is of this row, and `under()`'s ids-win merge already lets a
+ * descendant's own `under()` call override what rode down. Reach for `entryChainTransformer` at the
+ * top level instead; a collection below that always arrives through a handle's own child accessor.
  *
  * USAGE:
  * collectionChainTransformer({
@@ -37,6 +46,7 @@ import { fieldValuesContract } from '../../contracts/field-values/field-values-c
 import type { FilterExpect } from '../../contracts/filter-expect/filter-expect-contract';
 import { rowIndexContract } from '../../contracts/row-index/row-index-contract';
 import { callIndexContract } from '../../contracts/call-index/call-index-contract';
+import type { BuildSequence } from '../../contracts/build-sequence/build-sequence-contract';
 import type { HydrationOp } from '../../contracts/hydration-op/hydration-op-contract';
 import { savedRecordNameContract } from '../../contracts/saved-record-name/saved-record-name-contract';
 import { extraVerbNameContract } from '../../contracts/extra-verb-name/extra-verb-name-contract';
@@ -49,6 +59,7 @@ import { opSaveRecordTransformer } from '../op-save-record/op-save-record-transf
 import { opExtraTransformer } from '../op-extra/op-extra-transformer';
 import { rowHandleChainTransformer } from '../row-handle-chain/row-handle-chain-transformer';
 import { matchedSetChainTransformer } from '../matched-set-chain/matched-set-chain-transformer';
+import { buildSequenceMarkTransformer } from '../build-sequence-mark/build-sequence-mark-transformer';
 
 export const collectionChainTransformer = <
   I,
@@ -70,6 +81,7 @@ export const collectionChainTransformer = <
   const identity = hydrationCollectionContract.parse({ ingredient: ingredientConfig.name });
   const scope = ancestors.length === 0 ? undefined : ancestors[ancestors.length - 1];
   let nextCallIndex = 0;
+  let lastSeenBuildSequence: BuildSequence | null = null;
 
   return {
     ...identity,
@@ -77,6 +89,11 @@ export const collectionChainTransformer = <
       count: N,
       build: (rows: Handles<R, I, N, Anc>, all: Handle<R, I, Anc>) => Op[],
     ): Op => {
+      const currentBuildSequence = buildSequenceMarkTransformer({ advance: false });
+      if (lastSeenBuildSequence !== currentBuildSequence) {
+        lastSeenBuildSequence = currentBuildSequence;
+        nextCallIndex = 0;
+      }
       const callIndex = callIndexContract.parse(nextCallIndex);
       nextCallIndex += 1;
 
@@ -109,6 +126,7 @@ export const collectionChainTransformer = <
           ref,
           ancestors,
           ancestorNames,
+          ...(underValues === undefined ? {} : { under: underValues }),
         }),
       );
 
@@ -161,13 +179,22 @@ export const collectionChainTransformer = <
         where: args.where,
         ...(args.expect === undefined ? {} : { expect: args.expect }),
       }),
-    under: (ids: Record<string, unknown>): Collection<R, I, Anc> =>
-      collectionChainTransformer<I, R, Anc>({
+    under: (ids: Record<string, unknown>): Collection<R, I, Anc> => {
+      const merged = fieldValuesContract.parse({ ...(underValues ?? {}), ...ids });
+      // Only a link whose OWN `as` field is a key `merged` actually carries counts as satisfied —
+      // matches `SuppliedAncestorNames`'s type-level rule so a row minted here exposes exactly the
+      // child accessors the type promises, never more.
+      const suppliedNames = (ingredientConfig.links ?? [])
+        .filter((link) => Reflect.has(merged, link.as))
+        .map((link) => link.of);
+
+      return collectionChainTransformer<I, R, Anc>({
         registry,
         ingredientConfig,
         ancestors,
-        ancestorNames,
-        under: fieldValuesContract.parse({ ...(underValues ?? {}), ...ids }),
-      }),
+        ancestorNames: [...ancestorNames, ...suppliedNames],
+        under: merged,
+      });
+    },
   } as unknown as Collection<R, I, Anc>;
 };

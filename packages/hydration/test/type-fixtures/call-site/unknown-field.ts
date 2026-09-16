@@ -1,7 +1,7 @@
 /**
  * Row 2 — `set` with a field the ingredient never declared must not compile. Counterpart:
- * `scrolls/seigelense/proto/negative.ts`'s `unknownField`, `@ts-expect-error 'nope' is not a guild
- * field`.
+ * `scrolls/seigelense/siegelense-recipes.md`'s "What the compiler enforces" table, row "an unknown
+ * field in `set`".
  */
 import { dm } from './_shared';
 

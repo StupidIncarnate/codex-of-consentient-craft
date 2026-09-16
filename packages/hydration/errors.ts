@@ -15,6 +15,7 @@ export * from './src/errors/hydration-route-verb-unavailable/hydration-route-ver
 export * from './src/errors/hydration-saved-record-missing/hydration-saved-record-missing-error';
 export * from './src/errors/hydration-transaction-rolled-back/hydration-transaction-rolled-back-error';
 export * from './src/errors/hydration-transition-refused/hydration-transition-refused-error';
+export * from './src/errors/hydration-transition-unreachable/hydration-transition-unreachable-error';
 export * from './src/errors/hydration-unlinked-row/hydration-unlinked-row-error';
 export * from './src/errors/hydration-write-failed/hydration-write-failed-error';
 export * from './src/errors/ingredient-declaration/ingredient-declaration-error';

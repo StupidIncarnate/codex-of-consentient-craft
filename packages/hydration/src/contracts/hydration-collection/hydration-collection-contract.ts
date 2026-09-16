@@ -21,6 +21,7 @@ import type {
   FieldsOf,
   Registry,
   AnyIngredient,
+  UnderAncestor,
 } from '../ingredient-config/ingredient-config-contract';
 import type { Handle, Op } from '../ingredient-handle/ingredient-handle-contract';
 import type { Matched } from '../matched-set/matched-set-contract';
@@ -62,8 +63,16 @@ export interface Collection<R extends Registry, I, Anc extends AnyIngredient[] =
   ) => Op;
   /** No index access and no `add` on what comes back — the count is a RUN-TIME fact. */
   filter: (args: FilterArgsFor<I>) => Matched<I>;
-  /** Supplies a link from a recipe INPUT rather than from an ancestor. */
-  under: (ids: FieldValuesFor<FieldsOf<I>>) => Collection<R, I, Anc>;
+  /**
+   * Supplies a link from a recipe INPUT rather than from an ancestor. The ancestor chain a row minted
+   * here carries forward grows by exactly the links `Ids` satisfies — never every link I declares
+   * regardless of what was passed, which is what would let a child accessor appear where its links
+   * are not really met. `UnderAncestor` is a name only: `under()` created no row, so nothing here
+   * claims one exists.
+   */
+  under: <Ids extends FieldValuesFor<FieldsOf<I>>>(
+    ids: Ids,
+  ) => Collection<R, I, [...Anc, UnderAncestor<I, Ids>]>;
 }
 
 /** Entry points: one per registered ingredient that needs no ancestor. */

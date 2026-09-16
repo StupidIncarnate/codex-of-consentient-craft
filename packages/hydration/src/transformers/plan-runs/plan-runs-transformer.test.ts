@@ -78,6 +78,28 @@ describe('planRunsTransformer', () => {
     });
   });
 
+  // Q10's own guard: re-expressing this on `routeSelectTransformer` must not WIDEN the rule.
+  // `routeSelectTransformer({routes: {recording}, hasBaseUrl: false})` selects `'recording'`
+  // (not `null`), so comparing against "not null" would wrongly call this serverless.
+  describe('a recording-only ingredient — the divergence this transformer must not paper over', () => {
+    it('VALID: {guild recording-only, quest writable} => still returns serverless false naming guild', () => {
+      const plan = HydrationPlanStub({
+        ops: [
+          OpCreateStub({ ingredient: 'guild', ref: 'guild[0:0]', index: 0, ancestors: [] }),
+          OpCreateStub({ ingredient: 'quest', ref: 'quest[0:0]', index: 0, ancestors: [] }),
+        ],
+      });
+      const ingredients = [
+        IngredientConfigStub({ name: 'guild', routes: { recording: (): unknown => undefined } }),
+        IngredientConfigStub({ name: 'quest', routes: { write: (): unknown => undefined } }),
+      ];
+
+      const result = planRunsTransformer({ plan, ingredients });
+
+      expect(result).toStrictEqual({ serverless: false, needsServerFor: 'guild' });
+    });
+  });
+
   describe('an ingredient reached only through a filter, never created', () => {
     it('VALID: {quest writable, a filter targets operation with no create op at all} => still returns serverless true', () => {
       const plan = HydrationPlanStub({

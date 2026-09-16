@@ -17,6 +17,33 @@ describe('isIngredientDeclarationFileGuard', () => {
 
       expect(result).toBe(true);
     });
+
+    it('VALID: {filename: a real *-ingredient-broker.ts path in a *-recipes package} => returns true', () => {
+      const result = isIngredientDeclarationFileGuard({
+        filename:
+          '/repo/packages/siegelense-recipes/src/brokers/quest/ingredient/quest-ingredient-broker.ts',
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {filename: a real *-ingredient-broker.tsx path in a *-recipes package} => returns true', () => {
+      const result = isIngredientDeclarationFileGuard({
+        filename:
+          '/repo/packages/siegelense-recipes/src/brokers/quest/ingredient/quest-ingredient-broker.tsx',
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {filename: the renamed hydration-recipes package} => returns true', () => {
+      const result = isIngredientDeclarationFileGuard({
+        filename:
+          '/repo/packages/hydration-recipes/src/brokers/guild/ingredient/guild-ingredient-broker.ts',
+      });
+
+      expect(result).toBe(true);
+    });
   });
 
   describe('non-matching filenames', () => {
@@ -40,6 +67,32 @@ describe('isIngredientDeclarationFileGuard', () => {
       const result = isIngredientDeclarationFileGuard({
         filename:
           '/repo/packages/hydration-recipes/src/ingredient-notes/ingredient-notes-statics.ts',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {filename: a route broker beside a real ingredient} => returns false', () => {
+      const result = isIngredientDeclarationFileGuard({
+        filename:
+          '/repo/packages/siegelense-recipes/src/brokers/quest/write-route/quest-write-route-broker.ts',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {filename: *-ingredient-broker.ts outside an ingredient/ folder} => returns false', () => {
+      const result = isIngredientDeclarationFileGuard({
+        filename: '/repo/packages/siegelense-recipes/src/brokers/quest/quest-ingredient-broker.ts',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {filename: *-ingredient-broker.ts in an ingredient/ folder outside a *-recipes package} => returns false', () => {
+      const result = isIngredientDeclarationFileGuard({
+        filename:
+          '/repo/packages/hydration/src/brokers/quest/ingredient/quest-ingredient-broker.ts',
       });
 
       expect(result).toBe(false);

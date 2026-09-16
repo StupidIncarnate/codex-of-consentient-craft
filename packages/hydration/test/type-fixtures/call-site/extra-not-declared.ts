@@ -1,7 +1,8 @@
 /**
  * Row 5 — an extra the ingredient never declared must not compile. `withNestedChain` is
  * `sessionIngredient`'s own extra; `questIngredient` declares none. Counterpart:
- * `scrolls/seigelense/proto/negative.ts`'s `extraNotDeclared`.
+ * `scrolls/seigelense/siegelense-recipes.md`'s "What the compiler enforces" table, row "an extra the
+ * ingredient never declared".
  */
 import { dm } from './_shared';
 

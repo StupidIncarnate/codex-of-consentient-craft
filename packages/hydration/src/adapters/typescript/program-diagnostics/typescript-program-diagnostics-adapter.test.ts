@@ -2,6 +2,15 @@ import { typescriptProgramDiagnosticsAdapter } from './typescript-program-diagno
 import { typescriptProgramDiagnosticsAdapterProxy } from './typescript-program-diagnostics-adapter.proxy';
 import { TypeDiagnosticStub } from '../../../contracts/type-diagnostic/type-diagnostic.stub';
 import { RepoRelativePathStub, LineCountStub } from '@dungeonmaster/shared/contracts';
+import {
+  fixedLengthTupleHolds,
+  widenedTupleDegradesHolds,
+  matchedHasNoAddHolds,
+  noSessionsOnQuestHolds,
+  noCommentsOnBareUserHolds,
+  transitionNarrowsToDeclaredStatusesHolds,
+  withNestedChainSurvivesHolds,
+} from '../../../../test/type-fixtures/positive/shape-assertions';
 
 // ONE ts.createProgram for the whole suite — a program per test measured 1.1-1.4s each against
 // ward's 1000ms testWarnMs bar. Both fixtures ride the same program call, since the adapter
@@ -68,6 +77,13 @@ const UNREACHABLE_TRANSITION = RepoRelativePathStub({
 const NOT_A_STATUS = RepoRelativePathStub({
   value: 'packages/hydration/test/type-fixtures/call-site/not-a-status.ts',
 });
+// Row 3, re-proven against the REAL quest ingredient (`@dungeonmaster/siegelense-recipes`) rather
+// than only the `dm-target.ts` stand-in `UNREACHABLE_TRANSITION` above grades — the specification's
+// own headline claim ("`set({ status: 'blocked' })` does not compile") is only proven where it
+// actually matters once this fixture grades the shipped ingredient itself.
+const REAL_QUEST_UNREACHABLE_STATUS = RepoRelativePathStub({
+  value: 'packages/hydration/test/type-fixtures/call-site/real-quest-unreachable-status.ts',
+});
 const EXTRA_NOT_DECLARED = RepoRelativePathStub({
   value: 'packages/hydration/test/type-fixtures/call-site/extra-not-declared.ts',
 });
@@ -79,6 +95,9 @@ const CHILD_WRONG_HOST = RepoRelativePathStub({
 });
 const CHILD_LINKS_UNSATISFIED = RepoRelativePathStub({
   value: 'packages/hydration/test/type-fixtures/call-site/child-links-unsatisfied.ts',
+});
+const UNDER_LINKS_UNSATISFIED = RepoRelativePathStub({
+  value: 'packages/hydration/test/type-fixtures/call-site/under-links-unsatisfied.ts',
 });
 const FILTER_HAS_NO_INDEX = RepoRelativePathStub({
   value: 'packages/hydration/test/type-fixtures/call-site/filter-has-no-index.ts',
@@ -92,8 +111,25 @@ const BAD_EXPECT = RepoRelativePathStub({
 const BAD_WHERE_FIELD = RepoRelativePathStub({
   value: 'packages/hydration/test/type-fixtures/call-site/bad-where-field.ts',
 });
+// Rows 3 and 11, re-proven on the DATABASE shape — §4: "nothing proves those three rows against a
+// foreign-key shape until these fixtures exist." Row 7b's own re-proof needs no separate file: its
+// primary fixture, `child-links-unsatisfied.ts` above, is ALREADY the database shape, since the
+// ALL-LINKS-SATISFIED condition has no file-backed counterpart to prove it against in the first
+// place (`dm-target.ts` has no row with two links).
+const DB_UNREACHABLE_STATUS = RepoRelativePathStub({
+  value: 'packages/hydration/test/type-fixtures/call-site/db-unreachable-status.ts',
+});
+const DB_UNKNOWN_COLUMN = RepoRelativePathStub({
+  value: 'packages/hydration/test/type-fixtures/call-site/db-unknown-column.ts',
+});
 const POSITIVE_EVERY_CHAINABLE = RepoRelativePathStub({
   value: 'packages/hydration/test/type-fixtures/positive/every-chainable.ts',
+});
+const POSITIVE_EVERY_CHAINABLE_DB = RepoRelativePathStub({
+  value: 'packages/hydration/test/type-fixtures/positive/every-chainable-db.ts',
+});
+const POSITIVE_SHAPE_ASSERTIONS = RepoRelativePathStub({
+  value: 'packages/hydration/test/type-fixtures/positive/shape-assertions.ts',
 });
 const callSiteFixtureDiagnostics = typescriptProgramDiagnosticsAdapter({
   files: [
@@ -101,15 +137,21 @@ const callSiteFixtureDiagnostics = typescriptProgramDiagnosticsAdapter({
     UNKNOWN_FIELD,
     UNREACHABLE_TRANSITION,
     NOT_A_STATUS,
+    REAL_QUEST_UNREACHABLE_STATUS,
     EXTRA_NOT_DECLARED,
     EXTRA_ARG_TYPED,
     CHILD_WRONG_HOST,
     CHILD_LINKS_UNSATISFIED,
+    UNDER_LINKS_UNSATISFIED,
     FILTER_HAS_NO_INDEX,
     FILTER_HAS_NO_ADD,
     BAD_EXPECT,
     BAD_WHERE_FIELD,
+    DB_UNREACHABLE_STATUS,
+    DB_UNKNOWN_COLUMN,
     POSITIVE_EVERY_CHAINABLE,
+    POSITIVE_EVERY_CHAINABLE_DB,
+    POSITIVE_SHAPE_ASSERTIONS,
   ],
 });
 
@@ -157,7 +199,7 @@ describe('the malformed call sites that must not compile', () => {
     expect(result).toStrictEqual([
       TypeDiagnosticStub({
         file: UNREACHABLE_TRANSITION,
-        line: LineCountStub({ value: 10 }),
+        line: LineCountStub({ value: 11 }),
         code: 2322,
         message:
           'Type \'"stalled"\' is not assignable to type \'"queued" | "accepted" | "underway" | "finished"\'.',
@@ -174,10 +216,27 @@ describe('the malformed call sites that must not compile', () => {
     expect(result).toStrictEqual([
       TypeDiagnosticStub({
         file: NOT_A_STATUS,
-        line: LineCountStub({ value: 8 }),
+        line: LineCountStub({ value: 9 }),
         code: 2322,
         message:
           'Type \'"nonsense"\' is not assignable to type \'"queued" | "accepted" | "underway" | "finished"\'.',
+      }),
+    ]);
+  });
+
+  it("INVALID: {the REAL quest ingredient's set({status: 'blocked'})} => refuses to compile", () => {
+    typescriptProgramDiagnosticsAdapterProxy();
+    const result = callSiteFixtureDiagnostics.filter(
+      (diagnostic) => diagnostic.file === REAL_QUEST_UNREACHABLE_STATUS,
+    );
+
+    expect(result).toStrictEqual([
+      TypeDiagnosticStub({
+        file: REAL_QUEST_UNREACHABLE_STATUS,
+        line: LineCountStub({ value: 15 }),
+        code: 2322,
+        message:
+          'Type \'"blocked"\' is not assignable to type \'"flows_approved" | "review_flows" | "approved" | "review_observables" | "design_approved" | "review_design" | "explore_flows" | "explore_observables" | "in_progress" | "explore_design" | "complete" | "abandoned"\'.',
       }),
     ]);
   });
@@ -191,7 +250,7 @@ describe('the malformed call sites that must not compile', () => {
     expect(result).toStrictEqual([
       TypeDiagnosticStub({
         file: EXTRA_NOT_DECLARED,
-        line: LineCountStub({ value: 9 }),
+        line: LineCountStub({ value: 10 }),
         code: 2722,
         message: "Cannot invoke an object which is possibly 'undefined'.",
       }),
@@ -207,7 +266,7 @@ describe('the malformed call sites that must not compile', () => {
     expect(result).toStrictEqual([
       TypeDiagnosticStub({
         file: EXTRA_ARG_TYPED,
-        line: LineCountStub({ value: 9 }),
+        line: LineCountStub({ value: 10 }),
         code: 2322,
         message: "Type 'string' is not assignable to type 'number'.",
       }),
@@ -223,7 +282,7 @@ describe('the malformed call sites that must not compile', () => {
     expect(result).toStrictEqual([
       TypeDiagnosticStub({
         file: CHILD_WRONG_HOST,
-        line: LineCountStub({ value: 9 }),
+        line: LineCountStub({ value: 10 }),
         code: 2532,
         message: "Object is possibly 'undefined'.",
       }),
@@ -239,7 +298,23 @@ describe('the malformed call sites that must not compile', () => {
     expect(result).toStrictEqual([
       TypeDiagnosticStub({
         file: CHILD_LINKS_UNSATISFIED,
-        line: LineCountStub({ value: 9 }),
+        line: LineCountStub({ value: 10 }),
+        code: 2532,
+        message: "Object is possibly 'undefined'.",
+      }),
+    ]);
+  });
+
+  it("INVALID: {under({title}).add(...).operations} => refuses to compile, under() named a field that isn't the link", () => {
+    typescriptProgramDiagnosticsAdapterProxy();
+    const result = callSiteFixtureDiagnostics.filter(
+      (diagnostic) => diagnostic.file === UNDER_LINKS_UNSATISFIED,
+    );
+
+    expect(result).toStrictEqual([
+      TypeDiagnosticStub({
+        file: UNDER_LINKS_UNSATISFIED,
+        line: LineCountStub({ value: 13 }),
         code: 2532,
         message: "Object is possibly 'undefined'.",
       }),
@@ -272,7 +347,7 @@ describe('the malformed call sites that must not compile', () => {
     expect(result).toStrictEqual([
       TypeDiagnosticStub({
         file: FILTER_HAS_NO_ADD,
-        line: LineCountStub({ value: 11 }),
+        line: LineCountStub({ value: 12 }),
         code: 2339,
         message:
           'Property \'add\' does not exist on type \'Matched<Ingredient<{ readonly name: "session"; readonly description: "a claude session transcript on disk, addressable by url"; readonly fields: ZodType<{ guildId: string & BRAND<"GuildId">; transcript: string & BRAND<...>; }, ZodTypeDef, { ...; }>; ... 4 more ...; readonly extras: { ...; }; }>>\'.',
@@ -289,7 +364,7 @@ describe('the malformed call sites that must not compile', () => {
     expect(result).toStrictEqual([
       TypeDiagnosticStub({
         file: BAD_EXPECT,
-        line: LineCountStub({ value: 8 }),
+        line: LineCountStub({ value: 9 }),
         code: 2322,
         message: 'Type \'"exactly-two"\' is not assignable to type \'"some" | "one" | "any"\'.',
       }),
@@ -312,15 +387,97 @@ describe('the malformed call sites that must not compile', () => {
       }),
     ]);
   });
+
+  it("INVALID: {db-backed set({status: 'takendown'})} => refuses to compile, re-proving row 3 on the database shape", () => {
+    typescriptProgramDiagnosticsAdapterProxy();
+    const result = callSiteFixtureDiagnostics.filter(
+      (diagnostic) => diagnostic.file === DB_UNREACHABLE_STATUS,
+    );
+
+    expect(result).toStrictEqual([
+      TypeDiagnosticStub({
+        file: DB_UNREACHABLE_STATUS,
+        line: LineCountStub({ value: 12 }),
+        code: 2322,
+        message:
+          'Type \'"takendown"\' is not assignable to type \'"draft" | "scheduled" | "published"\'.',
+      }),
+    ]);
+  });
+
+  it('INVALID: {db-backed where: {nope: 1}} => refuses to compile, re-proving row 11 on the database shape', () => {
+    typescriptProgramDiagnosticsAdapterProxy();
+    const result = callSiteFixtureDiagnostics.filter(
+      (diagnostic) => diagnostic.file === DB_UNKNOWN_COLUMN,
+    );
+
+    expect(result).toStrictEqual([
+      TypeDiagnosticStub({
+        file: DB_UNKNOWN_COLUMN,
+        line: LineCountStub({ value: 11 }),
+        code: 2353,
+        message:
+          'Object literal may only specify known properties, and \'nope\' does not exist in type \'FieldValuesFor<{ status: "draft" | "scheduled" | "published" | "takendown"; title: string & BRAND<"PostTitle">; body: string & BRAND<"PostBody">; authorId: string & BRAND<"UserId">; }>\'.',
+      }),
+    ]);
+  });
 });
 
 describe('the positive fixture tree', () => {
-  it('VALID: {every chainable} => produces zero diagnostics', () => {
+  it('VALID: {every chainable, file-backed} => produces zero diagnostics', () => {
     typescriptProgramDiagnosticsAdapterProxy();
     const result = callSiteFixtureDiagnostics.filter(
       (diagnostic) => diagnostic.file === POSITIVE_EVERY_CHAINABLE,
     );
 
     expect(result).toStrictEqual([]);
+  });
+
+  it('VALID: {every chainable, database-backed} => produces zero diagnostics', () => {
+    typescriptProgramDiagnosticsAdapterProxy();
+    const result = callSiteFixtureDiagnostics.filter(
+      (diagnostic) => diagnostic.file === POSITIVE_EVERY_CHAINABLE_DB,
+    );
+
+    expect(result).toStrictEqual([]);
+  });
+
+  it('VALID: {the six shape assertions} => produce zero diagnostics', () => {
+    typescriptProgramDiagnosticsAdapterProxy();
+    const result = callSiteFixtureDiagnostics.filter(
+      (diagnostic) => diagnostic.file === POSITIVE_SHAPE_ASSERTIONS,
+    );
+
+    expect(result).toStrictEqual([]);
+  });
+});
+
+describe('the six shape assertions', () => {
+  it("VALID: {a literal count} => Handles<…, 3, …>['length'] is 3", () => {
+    expect(fixedLengthTupleHolds).toBe(true);
+  });
+
+  it("VALID: {a widened count} => Handles<…, number, …>['length'] is number", () => {
+    expect(widenedTupleDegradesHolds).toBe(true);
+  });
+
+  it("VALID: {Matched<Session>} => 'add' is not one of its keys", () => {
+    expect(matchedHasNoAddHolds).toBe(true);
+  });
+
+  it("VALID: {Handle<Quest>} => 'sessions' is not one of its keys", () => {
+    expect(noSessionsOnQuestHolds).toBe(true);
+  });
+
+  it("VALID: {Handle<User>, no ancestors} => 'comments' is not one of its keys", () => {
+    expect(noCommentsOnBareUserHolds).toBe(true);
+  });
+
+  it("VALID: {Settable<Quest>['status']} => exactly the declared 'to' union", () => {
+    expect(transitionNarrowsToDeclaredStatusesHolds).toBe(true);
+  });
+
+  it("VALID: {Handle<Session>} => 'withNestedChain' survives as one of its keys", () => {
+    expect(withNestedChainSurvivesHolds).toBe(true);
   });
 });

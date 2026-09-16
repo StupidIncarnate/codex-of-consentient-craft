@@ -234,6 +234,16 @@ module.exports = [
       '@dungeonmaster/forbid-type-reexport': 'off',
     },
   },
+  // The standard type-testing `Equal<A, B>` idiom compares two function types, each generic over a
+  // single unconstrained `T` used exactly once — that single use is the whole mechanism (it is what
+  // makes `unknown` and `any` distinguishable, unlike `A extends B ? B extends A ? ... `). The rule
+  // cannot tell this from an accidentally-unused type parameter; scoped to the one file that needs it.
+  {
+    files: ['packages/hydration/test/type-fixtures/expect.ts'],
+    rules: {
+      '@typescript-eslint/no-unnecessary-type-parameters': 'off',
+    },
+  },
   /**
    * We have to mock outside the function because import()/require() has weird hoisting rules.
    */

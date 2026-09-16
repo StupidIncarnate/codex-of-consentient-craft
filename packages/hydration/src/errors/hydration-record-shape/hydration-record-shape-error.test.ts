@@ -2,10 +2,11 @@ import { HydrationRecordShapeError } from './hydration-record-shape-error';
 
 describe('HydrationRecordShapeError', () => {
   describe('constructor()', () => {
-    it('VALID: {fieldName: "urlSlug", validationMessage: "Required"} => names the ingredient, the field and the validation failure', () => {
+    it('VALID: {route: "api", fieldName: "urlSlug", validationMessage: "Required"} => names the route and says it answered 2xx', () => {
       const error = new HydrationRecordShapeError({
         recipeName: 'guild-mid-execution',
         ingredientName: 'guild',
+        route: 'api',
         fieldName: 'urlSlug',
         validationMessage: 'Required',
       });
@@ -13,7 +14,23 @@ describe('HydrationRecordShapeError', () => {
       expect({ name: error.name, message: error.message }).toStrictEqual({
         name: 'HydrationRecordShapeError',
         message:
-          'recipe "guild-mid-execution": ingredient "guild"\'s route answered 2xx with a record that field "urlSlug" rejects: Required',
+          'recipe "guild-mid-execution": ingredient "guild"\'s "api" route answered 2xx with a record that field "urlSlug" rejects: Required',
+      });
+    });
+
+    it('VALID: {route: "write", fieldName: "urlSlug", validationMessage: "Required"} => names the write route with no status claimed', () => {
+      const error = new HydrationRecordShapeError({
+        recipeName: 'guild-mid-execution',
+        ingredientName: 'guild',
+        route: 'write',
+        fieldName: 'urlSlug',
+        validationMessage: 'Required',
+      });
+
+      expect({ name: error.name, message: error.message }).toStrictEqual({
+        name: 'HydrationRecordShapeError',
+        message:
+          'recipe "guild-mid-execution": ingredient "guild"\'s write route returned a record that field "urlSlug" rejects: Required',
       });
     });
   });
@@ -23,6 +40,7 @@ describe('HydrationRecordShapeError', () => {
       const error = new HydrationRecordShapeError({
         recipeName: 'guild-mid-execution',
         ingredientName: 'guild',
+        route: 'api',
         fieldName: 'urlSlug',
         validationMessage: 'Required',
       });
@@ -34,6 +52,7 @@ describe('HydrationRecordShapeError', () => {
       const error = new HydrationRecordShapeError({
         recipeName: 'guild-mid-execution',
         ingredientName: 'guild',
+        route: 'api',
         fieldName: 'urlSlug',
         validationMessage: 'Required',
       });

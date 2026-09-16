@@ -32,6 +32,10 @@ export const statusLiteralStatics = {
     '/packages/orchestrator/src/transformers/quest-completeness-for-transition/',
     // Per-status hydrate-strategy table; `walkPath` is a `[...] as const` array of every walked status literal.
     '/packages/orchestrator/src/statics/quest-hydrate-strategy/',
+    // The quest ingredient's own pinned reachable-status list (`transitions.to`) — the one home this
+    // rule exempts so that array can be an inline literal tuple and keep its narrow type instead of
+    // widening through `.filter()`. See that folder's own statics file for the full reasoning.
+    '/packages/siegelense-recipes/src/statics/quest-transition-target-statuses/',
   ],
   // Path regex fragments — guard matches filenames ending in these forms.
   allowlistPathRegexSources: [

@@ -4,6 +4,24 @@
   "description": "siegelense-recipes package",
   "private": true,
   "exports": {
+    ".": {
+      "source": "./index.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./brokers": {
+      "source": "./brokers.ts",
+      "import": "./dist/brokers.js",
+      "require": "./dist/brokers.js",
+      "types": "./dist/brokers.d.ts"
+    },
+    "./contracts": {
+      "source": "./contracts.ts",
+      "import": "./dist/contracts.js",
+      "require": "./dist/contracts.js",
+      "types": "./dist/contracts.d.ts"
+    },
     "./statics": {
       "source": "./statics.ts",
       "import": "./dist/statics.js",
@@ -22,7 +40,6 @@
   "dependencies": {
     "@dungeonmaster/hydration": "*",
     "@dungeonmaster/orchestrator": "*",
-    "@dungeonmaster/server": "*",
     "@dungeonmaster/shared": "*",
     "zod": "^3.22.4"
   },

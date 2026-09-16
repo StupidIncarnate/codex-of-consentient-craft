@@ -51,7 +51,7 @@ Each was read, and each changes a file below.
 
 | Found in | What is true |
 |---|---|
-| `transition-spec-contract.ts` | `transitionSpecContract` is `{ field, to }` — **no `reach`**. `ReachFn<TTarget, TValue>` is declared in the same file, exported, and **nothing imports it**. Chunk 5 is what wires it on, through `ingredient-config`'s intersection. And `proto/ingredients.ts` declares `transitions: { field, to }` with no `reach` either, so the prototype never proved that half |
+| `transition-spec-contract.ts` | `transitionSpecContract` is `{ field, to }` — **no `reach`**. `ReachFn<TTarget, TValue>` is declared in the same file, exported, and **nothing imports it**. Chunk 5 is what wires it on, through `ingredient-config`'s intersection. The prototype's own file-backed declaration carried no `reach` either, so it never proved that half at the type level — the real fixtures are what prove it now, once chunk 5 lands |
 | `hydration-routes-contract.ts` | `RouteFn<TTarget>` is `({ target, fields }) => unknown`. The route receives **no record, no row identity, no recipe name** — which is why `set` on an existing row, `remove` and `filter`'s query have nowhere to land. See **Q2** |
 | `op-filter-contract.ts` | `scope` is `rowRefContract.optional()` and `matchedRef` is required. `exactOptionalPropertyTypes` is on, so a top-level filter **omits the `scope` key entirely** rather than setting it `undefined` |
 | `op-create-contract.ts` | `ancestors` is `RowRef[]`, not ingredient names. The runner recovers an ancestor's ingredient from the ref's last segment — hence `rowRefIngredientTransformer` below |
@@ -219,9 +219,9 @@ exists to prevent. The ones that change a shipped contract are **open questions*
 **D1 — the runner reads the registry from `createHydration`'s closure, and `run(plan, target)` keeps
 its two arguments.** An op carries `ingredient: IngredientName` and nothing else; the runner needs
 that ingredient's `routes`, `links`, `record` and `transitions`. A plan must stay printable data, so
-it cannot carry function-valued configs. `proto/ingredients.ts` calls
-`createHydration<DmTarget>()` once and destructures `{ ingredient, registry, run }` from the same
-object, so `registry(entries)` and `run` share a scope and `run` reads what `registry` was handed.
+it cannot carry function-valued configs. `hydrationCreateBroker<DmTarget>()` is called once and
+destructures `{ ingredient, registry, recipe, run }` from the same object, so `registry(entries)` and
+`run` share a scope and `run` reads what `registry` was handed.
 This also makes the lookup **total by construction**: a plan's ops can only come from the accessors
 `registry()` returned — see **Q1** for the hand-built-plan case.
 
@@ -448,8 +448,9 @@ free today and expensive the moment a consumer writes a `reach`. Part 5 finding 
 ### Q5 — which field of a parent record is "its id"?
 
 Part 5: *"the RUNNER writes each ancestor's id into the named field"*. `linkSpec` is `{ of, as }` —
-`as` names the field on the CHILD. Nothing names the field on the PARENT. `GuildRecord` has `id`;
-`SessionRecord` in `proto/ingredients.ts` has `sessionId` and `url` and **no `id` at all**.
+`as` names the field on the CHILD. Nothing names the field on the PARENT. `guildRecordContract` has
+`id`; `sessionRecordContract` (`packages/hydration/test/type-fixtures/dm-target.ts`) has `sessionId`
+and `url` and **no `id` at all**.
 
 **Recommendation: `linkSpecContract` gains an OPTIONAL `from: FieldName`, defaulting to `'id'`.** One
 line, and it makes the mechanism total rather than true-by-coincidence for the two records that
@@ -478,8 +479,8 @@ package that must not name them.
 
 **Recommendation: leave the Known gap where it is.** D2 selects `recording` only when it is the sole
 route, and **no chunk-4, -5 or -6 test asserts anything about it**. Named here so a reviewer does not
-read the silence as coverage — Part 5's own gap says *"no ingredient in the prototype uses it, so
-nothing about it has been proven"*.
+read the silence as coverage — Part 5's own gap says *"no ingredient in either real target set uses
+it, so nothing about it has been proven"*.
 
 ### Q8 — does `HydrationRecordShapeError` cover a `write` route?
 
@@ -979,10 +980,11 @@ also the only way to produce a genuine `ECONNREFUSED`.
 
 ### The database half — `packages/hydration/test/harnesses/sql-target/sql-target.harness.ts`
 
-A fake transaction — `{ tx: { query } }`, matching `proto/db.ts`'s `SqlTarget` — recording every
-statement, able to reject on the Nth call, and issuing `ROLLBACK` in its own wrapper. It proves the
-framework works for **both target kinds**, which is the claim `proto/ingredients.ts` and `proto/db.ts`
-make at type level and which nothing has yet made at run time.
+A fake transaction — `{ tx: { query } }`, matching `sql-target.ts`'s `SqlTarget`
+(`packages/hydration/test/type-fixtures/sql-target.ts`) — recording every statement, able to reject on
+the Nth call, and issuing `ROLLBACK` in its own wrapper. It proves the framework works for **both
+target kinds**, which `dm-target.ts` and `sql-target.ts` already make true at type level and which
+nothing has yet made true at run time.
 
 ---
 

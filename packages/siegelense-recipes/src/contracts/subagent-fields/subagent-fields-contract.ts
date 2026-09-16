@@ -23,6 +23,12 @@
  *   cwd: '/tmp/guilds-under-test/guild-1',
  * });
  * // Returns SubagentFields
+ *
+ * The export is upcast to `z.ZodType<SubagentFields, z.ZodTypeDef, Input>` rather than left as
+ * the concrete `ZodObject` — see `session-fields-contract.ts`'s own header for why: this shape
+ * hits the same `ingredient()` two-site `deepPartial()` inference failure the upcast fixes.
+ * `.shape` is gone from this export as a result; a caller that needs one field's own contract
+ * reaches for the leaf import (`agentIdContract`, `toolUseIdContract`, etc.) instead.
  */
 import { z } from 'zod';
 
@@ -33,15 +39,14 @@ import {
   streamJsonLineContract,
 } from '@dungeonmaster/shared/contracts';
 
+import { taskDescriptionContract } from '../task-description/task-description-contract';
 import { toolUseIdContract } from '../tool-use-id/tool-use-id-contract';
 
-const taskDescriptionContract = z.string().min(1).brand<'TaskDescription'>();
 const taskPromptContract = z.string().min(1).brand<'TaskPrompt'>();
 
-export type TaskDescription = z.infer<typeof taskDescriptionContract>;
 export type TaskPrompt = z.infer<typeof taskPromptContract>;
 
-export const subagentFieldsContract = z.object({
+const subagentFieldsShape = z.object({
   agentId: agentIdContract,
   toolUseId: toolUseIdContract,
   taskDescription: taskDescriptionContract,
@@ -52,4 +57,10 @@ export const subagentFieldsContract = z.object({
   cwd: absoluteFilePathContract,
 });
 
-export type SubagentFields = z.infer<typeof subagentFieldsContract>;
+export type SubagentFields = z.infer<typeof subagentFieldsShape>;
+
+export const subagentFieldsContract: z.ZodType<
+  SubagentFields,
+  z.ZodTypeDef,
+  z.input<typeof subagentFieldsShape>
+> = subagentFieldsShape;

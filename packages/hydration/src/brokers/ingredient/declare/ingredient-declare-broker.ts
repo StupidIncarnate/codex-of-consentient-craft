@@ -1,11 +1,12 @@
 /**
  * PURPOSE: Declares one ingredient — its identity, its two contracts, its routes and whatever it
  * opts into — and is the single place a malformed declaration is refused. Reach for this over
- * building a config object and handing it straight to a registry: nine of the ten malformed
- * declarations are compile errors through this function's own generic signature, and the three a
- * caller could still reach from plain JavaScript (no routes at all, a `write` route with nothing to
- * compare against, an extra shadowing a verb the framework already owns) are refused here by name,
- * so a consumer that skipped the typechecker gets the same refusal TypeScript would have given it.
+ * building a config object and handing it straight to a registry: most malformed declarations are
+ * compile errors through this function's own generic signature, but four of those same rules are
+ * ALSO reachable from plain JavaScript — no routes at all, a `write` route with nothing to compare
+ * against, an extra shadowing a verb the framework already owns, and a `transitions` block with no
+ * `reach` to walk it — so each is refused here by name too, and a consumer that skipped the
+ * typechecker gets the same refusal TypeScript would have given it.
  *
  * USAGE:
  * // Through `hydrationCreateBroker`'s bound `ingredient`, once it exists — see this file's own
@@ -53,10 +54,12 @@ export const ingredientDeclareBroker = <
   // declaration still reads like the spec's own un-annotated examples.
   IngredientConfigInferenceAnchor<TFields, TName> &
   CopiesFor<C['routes']> & { extras?: ExtrasFree<C['extras']> }): Ingredient<C> => {
-  // Runtime backstop for the three rules the type system enforces only when a caller typechecked
-  // at all — D3, D4, D5/D6 in the malformed-declarations table. D1, D2, D7 and D8 have no runtime
-  // counterpart here: this generic layer never sees TFields' concrete keys at run time, only at the
-  // type level, so `transitions.field`, `defaults` and `links.as` are refused by the compiler alone.
+  // Runtime backstop for four rules the type system enforces only when a caller typechecked at
+  // all: D3, D4 and D5/D6 in the malformed-declarations table, plus the `transitions`-with-no-
+  // `reach` rule the chunk 5 Q4 amendment added to `TransitionSpecWithReachFor` after that table
+  // was written. D1, D2, D7 and D8 have no runtime counterpart here: this generic layer never sees
+  // TFields' concrete keys at run time, only at the type level, so `transitions.field`, `defaults`
+  // and `links.as` are refused by the compiler alone.
   const declaresARoute =
     config.routes.api !== undefined ||
     config.routes.write !== undefined ||
@@ -82,6 +85,13 @@ export const ingredientDeclareBroker = <
     throw new IngredientDeclarationError({
       ingredientName: config.name,
       reason: `declares an extra named '${shadowedVerb}', which the framework already owns`,
+    });
+  }
+
+  if (config.transitions !== undefined && !Object.hasOwn(config.transitions, 'reach')) {
+    throw new IngredientDeclarationError({
+      ingredientName: config.name,
+      reason: 'declares transitions with no reach',
     });
   }
 

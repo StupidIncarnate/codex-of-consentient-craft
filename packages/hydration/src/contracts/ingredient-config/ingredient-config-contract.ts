@@ -95,6 +95,16 @@ export const ingredientConfigContract = z
 
 export type IngredientConfigData = z.infer<typeof ingredientConfigContract>;
 
+/**
+ * The real runtime shape behind `record` (and `fields`, and each `extras.*.args`) — stored as
+ * `unknown` on `IngredientConfigData` because `zodSchemaContract` is a bare `z.custom()` with no
+ * type argument (see that const's own comment), but genuinely a `z.ZodType` once
+ * `ingredientConfigContract.parse` has accepted it. Reach for this wherever a caller OUTSIDE
+ * `contracts/` needs to call `.safeParse` on one of those fields — only a `contracts/` file may
+ * import `zod` itself, so this is the one place that shape can be named elsewhere.
+ */
+export type AnyZodSchema = z.ZodType;
+
 declare const ING: unique symbol;
 
 /** Opaque on purpose — a declared ingredient is a token later chunks pass around, not a record. */
@@ -173,6 +183,35 @@ export type FieldsOf<I> = ConfigOf<I> extends { fields: { readonly _output: infe
 export type RecordOf<I> = ConfigOf<I> extends { record: z.ZodType<infer T> } ? T : never;
 export type NameOf<I> = ConfigOf<I> extends { name: infer N } ? N : never;
 export type LinkNames<I> = ConfigOf<I> extends { links: readonly { of: infer N }[] } ? N : never;
+
+/** Every one of I's own declared links, kept as separate objects — `under()` needs to pair each
+ * link's `of` with its own `as` field, which `LinkNames` already collapses into one union. */
+export type LinkSpecsOf<I> = ConfigOf<I> extends { links: readonly (infer L)[] } ? L : never;
+
+/**
+ * Which of `LinkSpecsOf<I>`'s entries has an `as` field that is a key of `Ids` — `L` is a bare
+ * parameter here, unlike `ChildAccessors`'s deliberately non-distributive "every link" check, so
+ * this distributes per link and keeps only the ones `Ids` actually names.
+ */
+export type LinkAncestorName<L, Ids> = L extends { of: infer O; as: infer A }
+  ? A extends keyof Ids
+    ? O
+    : never
+  : never;
+
+/**
+ * The ancestor names `under(ids)` may honestly contribute for THIS ingredient: only a link whose
+ * `as` field `Ids` actually supplies a value for — never every link I declares regardless of what
+ * was passed, which would let one unrelated field unlock a grandchild that field says nothing about.
+ */
+export type SuppliedAncestorNames<I, Ids> = LinkAncestorName<LinkSpecsOf<I>, Ids>;
+
+/**
+ * A phantom ancestor `under()` may add to the chain — real enough for `NameOf` to read a name off
+ * it, and nothing else. `under()` supplies an id, not a row: this carries no `ref` and no created
+ * row, so nothing downstream can mistake it for either.
+ */
+export type UnderAncestor<I, Ids> = Ingredient<{ name: SuppliedAncestorNames<I, Ids> }>;
 
 /** A registry is a map from accessor name to whatever ingredient it inverts. */
 export type Registry = Record<string, AnyIngredient>;

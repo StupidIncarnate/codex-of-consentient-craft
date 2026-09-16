@@ -24,6 +24,18 @@ describe('matchedRefTransformer', () => {
     expect(result).toBe('guild[0:0]/quest[0:0]/operation[match]');
   });
 
+  it('VALID: {ancestors: [guild[0:0], guild[0:0]/quest[0:0]], ingredient: operation} => returns "guild[0:0]/quest[0:0]/operation[match]", not a doubled path', () => {
+    const result = matchedRefTransformer({
+      ancestors: [
+        RowRefStub({ value: 'guild[0:0]' }),
+        RowRefStub({ value: 'guild[0:0]/quest[0:0]' }),
+      ],
+      ingredient: IngredientNameStub({ value: 'operation' }),
+    });
+
+    expect(result).toBe('guild[0:0]/quest[0:0]/operation[match]');
+  });
+
   it('VALID: {two calls sharing an ancestor and an ingredient} => returns the identical placeholder both times', () => {
     const first = matchedRefTransformer({
       ancestors: [RowRefStub({ value: 'guild[0:0]' })],

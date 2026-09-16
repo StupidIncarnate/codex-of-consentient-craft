@@ -189,7 +189,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: DANGLING_LINK,
-          line: LineCountStub({ value: 30 }),
+          line: LineCountStub({ value: 29 }),
           code: 2345,
           message: expect.stringMatching(
             /^Argument of type '\{ orphans: import\(".*"\)\.Ingredient<\{ readonly name: "orphan"; readonly description: "a row linking to an ingredient no registry will ever hold"; readonly fields: impo\.\.\.' is not assignable to parameter of type '\{ orphans: import\(".*"\)\.Ingredient<\{ readonly name: "orphan"; readonly description: "a row linking to an ingredient no registry will ever hold"; readonly fields: impo\.\.\.'\. {3}Property 'LINK_NAMES_AN_UNREGISTERED_INGREDIENT' is missing in type '\{ orphans: Ingredient<\{ readonly name: "orphan"; readonly description: "a row linking to an ingredient no registry will ever hold"; readonly fields: ZodType<\{ status: "queued" \| "accepted" \| "underway" \| "stalled" \| "finished"; title: string & BRAND<\.\.\.>; \}, ZodTypeDef, \{ \.\.\.; \}>; readonly record: ZodObject<\.\.\.>; re\.\.\.' but required in type '\{ LINK_NAMES_AN_UNREGISTERED_INGREDIENT: "no-such-ingredient"; \}'\.$/u,

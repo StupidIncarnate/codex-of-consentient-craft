@@ -385,9 +385,9 @@ dm.quests.add(1, (q) => [q[0].set({ title: 'orphan' })]);
 - **Wrong reading** — the type system catches an unparented row, because it catches a child accessor
   on the wrong host.
 - **Expect** — it COMPILES and the runner refuses it. The gaps table measured this:
-  *"`Entry<R>` hands out a collection for every registered ingredient, so `dm.quests.add(1, …)` at top
-  level typechecks with no guild anywhere — measured against the prototype. The RUNNER must refuse
-  it before the first write."*
+  *"`Entry<R>` hands out a collection for every registered ingredient with an empty ancestor list, so
+  `dm.quests.add(1, …)` at top level typechecks with no guild anywhere. The RUNNER must refuse it
+  before the first write."*
 - **Tell by** — `HydrationUnlinkedRowError` at pre-flight, its message naming both `quest` and the
   link it cannot fill. Assert the temp home is empty afterwards.
 - **Needs** — chunk 4. **CONFIRM** — three tests for this already exist in the chunk-4 plan.
@@ -542,8 +542,9 @@ s[0].withNestedChain({ depth: 2 })
 ```
 
 - **Wrong reading** — an undeclared extra falls through to something generic.
-- **Expect** — a compile error; *"the ingredient has only the built-in verbs"*. The prototype proves
-  it (`withNestedChain` on a quest is one of the compiler's own negative cases).
+- **Expect** — a compile error; *"the ingredient has only the built-in verbs"*.
+  `test/type-fixtures/call-site/extra-not-declared.ts` proves it (`withNestedChain` on a quest, graded
+  by `typescriptProgramDiagnosticsAdapter`).
 - **Tell by** — the error names the verb. **CONFIRM.**
 - **Needs** — chunk 3 and a `call-site/` fixture.
 

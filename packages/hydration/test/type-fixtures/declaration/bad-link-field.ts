@@ -1,7 +1,7 @@
 /**
  * D8 — a link's `as` naming no field on this row must not compile.
- * Counterpart: `scrolls/seigelense/proto/declarations.ts`'s `badLinkField`, which marks the
- * `links` line `@ts-expect-error 'notAField' is not on 'fields'`.
+ * Counterpart: `scrolls/seigelense/siegelense-recipes.md`'s "the ten malformed declarations" table,
+ * row 8, "`links.as` naming no field".
  */
 import { dmIngredient, sampleFields, sampleRecordContract, write } from './_shared';
 

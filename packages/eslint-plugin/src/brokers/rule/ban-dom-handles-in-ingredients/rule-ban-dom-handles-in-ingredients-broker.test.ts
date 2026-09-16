@@ -6,6 +6,19 @@ const ruleTester = eslintRuleTesterAdapter();
 const ingredientFixture = '/repo/packages/hydration-recipes/src/quest/quest-ingredient.ts';
 const ingredientTsxFixture = '/repo/packages/hydration-recipes/src/quest/quest-ingredient.tsx';
 const nonIngredientFixture = '/repo/packages/web/src/flows/quest/quest-flow.e2e.ts';
+// The REAL shape on disk: `enforce-project-structure` refuses a bare `-ingredient.ts` file, so
+// every actual ingredient is named `<name>-ingredient-broker.ts` inside an `ingredient/` folder of
+// a `*-recipes` package — see `packages/siegelense-recipes/src/brokers/quest/ingredient/`.
+const realRepoIngredientFixture =
+  '/repo/packages/siegelense-recipes/src/brokers/quest/ingredient/quest-ingredient-broker.ts';
+// A route broker beside a real ingredient: same `*-recipes` package, but not an `ingredient/`
+// folder and not calling `ingredient({...})` itself — must stay out of scope.
+const recipesRouteBrokerFixture =
+  '/repo/packages/siegelense-recipes/src/brokers/quest/write-route/quest-write-route-broker.ts';
+// Under NEITHER path convention — only the behavioral signal (calling `ingredient({...})`) can
+// catch this one.
+const unconventionallyNamedIngredientFixture =
+  '/repo/packages/some-other-package/src/brokers/random/random-broker.ts';
 
 ruleTester.run('ban-dom-handles-in-ingredients', ruleBanDomHandlesInIngredientsBroker(), {
   valid: [
@@ -27,6 +40,12 @@ ruleTester.run('ban-dom-handles-in-ingredients', ruleBanDomHandlesInIngredientsB
       code: "export const questIngredient = ingredient({ name: 'quest' });",
       filename: ingredientFixture,
     },
+    // === PRODUCTION: the REAL repo path — a `-recipes` package's `ingredient/` folder — doing its
+    // actual job, no UI ===
+    {
+      code: "export const questIngredientBroker = ingredient({ name: 'quest' });",
+      filename: realRepoIngredientFixture,
+    },
     {
       code: "import { ingredient } from '@dungeonmaster/hydration';",
       filename: ingredientFixture,
@@ -39,6 +58,17 @@ ruleTester.run('ban-dom-handles-in-ingredients', ruleBanDomHandlesInIngredientsB
     {
       code: 'const value = someRecord.locator;',
       filename: ingredientFixture,
+    },
+    // === SCOPE: a route broker beside a real ingredient — same `*-recipes` package, but not an
+    // `ingredient/` folder and no `ingredient({...})` call of its own — stays out of scope ===
+    {
+      code: "import React from 'react';",
+      filename: recipesRouteBrokerFixture,
+    },
+    // === SCOPE: a call to a differently-named function is not the framework's declaration call ===
+    {
+      code: "import React from 'react';\nconst broker = dmIngredient({ name: 'quest' });",
+      filename: unconventionallyNamedIngredientFixture,
     },
   ],
 
@@ -104,7 +134,7 @@ ruleTester.run('ban-dom-handles-in-ingredients', ruleBanDomHandlesInIngredientsB
       errors: [
         {
           message:
-            'An ingredient touches STATE, never a screen, so it must not hold a DOM ref (`useRef(...)`). The moment an ingredient knows about the UI it has become a walk. This rule only fires on a file named `<name>-ingredient.ts` or `.tsx`; an ingredient declared under a different filename, or one that reaches a DOM handle through a re-exported wrapper, is invisible to it.',
+            "An ingredient touches STATE, never a screen, so it must not hold a DOM ref (`useRef(...)`). The moment an ingredient knows about the UI it has become a walk. This rule fires on a file named `<name>-ingredient.ts`/`.tsx`, on this repo's `<name>-ingredient-broker.ts`/`.tsx` inside an `ingredient/` folder of a `*-recipes` package, or on any file that calls the framework's `ingredient(...)` declaration function directly — an ingredient reached only through a re-exported wrapper that never itself calls `ingredient(...)`, under none of those names or locations, is invisible to it.",
         },
       ],
     },
@@ -146,6 +176,32 @@ ruleTester.run('ban-dom-handles-in-ingredients', ruleBanDomHandlesInIngredientsB
         {
           messageId: 'domHandleInIngredient',
           data: { detail: 'JSX markup, which renders a screen' },
+        },
+      ],
+    },
+    // === REAL REPO PATH: a `<name>-ingredient-broker.ts` file inside an `ingredient/` folder of a
+    // `*-recipes` package — the exact shape `packages/siegelense-recipes` uses on disk, invisible
+    // to the bare `-ingredient.ts` filename convention alone ===
+    {
+      code: "page.locator('button').click();",
+      filename: realRepoIngredientFixture,
+      errors: [
+        {
+          messageId: 'domHandleInIngredient',
+          data: { detail: 'a DOM selector call (`.locator(...)`)' },
+        },
+      ],
+    },
+    // === BEHAVIORAL: a file under neither path convention, caught only because it calls the
+    // framework's `ingredient({...})` declaration function — and the violation appears BEFORE that
+    // call in source order, proving the deferred-reporting still catches it ===
+    {
+      code: "import React from 'react';\nconst quest = ingredient({ name: 'quest' });",
+      filename: unconventionallyNamedIngredientFixture,
+      errors: [
+        {
+          messageId: 'domHandleInIngredient',
+          data: { detail: 'an import of `react`, a UI-driving package' },
         },
       ],
     },

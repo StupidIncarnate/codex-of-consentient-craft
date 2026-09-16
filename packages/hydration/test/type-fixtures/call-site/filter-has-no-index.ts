@@ -1,7 +1,7 @@
 /**
  * Row 8 — a filtered set has no index: how many rows a `filter` matches is a fact about the gates
- * at RUN time, not about the recipe. Counterpart: `scrolls/seigelense/proto/negative.ts`'s
- * `filterHasNoIndex`.
+ * at RUN time, not about the recipe. Counterpart: `scrolls/seigelense/siegelense-recipes.md`'s
+ * "What the compiler enforces" table, row "indexing a filtered set".
  */
 import { dm } from './_shared';
 import { sessionFieldsContract } from '../dm-target';

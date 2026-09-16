@@ -15,6 +15,8 @@ const allowlistedGuardFixture =
   '/repo/packages/shared/src/guards/is-terminal-quest-status/is-terminal-quest-status-guard.ts';
 const promptStaticsFixture =
   '/repo/packages/orchestrator/src/statics/codeweaver-prompt/codeweaver-prompt-statics.ts';
+const allowlistedTransitionTargetStatusesFixture =
+  '/repo/packages/siegelense-recipes/src/statics/quest-transition-target-statuses/quest-transition-target-statuses-statics.ts';
 
 ruleTester.run('ban-quest-status-literals', ruleBanQuestStatusLiteralsBroker(), {
   valid: [
@@ -37,6 +39,12 @@ ruleTester.run('ban-quest-status-literals', ruleBanQuestStatusLiteralsBroker(), 
     {
       code: "if (quest.status === 'in_progress') { /* ok in test */ }",
       filename: allowlistedTestFixture,
+    },
+    // === ALLOWLIST: the quest ingredient's pinned reachable-status list can hold an inline array
+    // of recognized status literals, so its declaration keeps a narrow literal type ===
+    {
+      code: "export const questTransitionTargetStatusesStatics = { value: ['explore_flows', 'review_flows', 'complete', 'abandoned'] };",
+      filename: allowlistedTransitionTargetStatusesFixture,
     },
 
     // === PRODUCTION: unrelated .status comparison (user.status is not a known holder) ===

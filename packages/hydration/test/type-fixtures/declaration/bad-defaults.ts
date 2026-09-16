@@ -1,7 +1,7 @@
 /**
  * D7 — `defaults` returning a field that does not exist on `fields` must not compile.
- * Counterpart: `scrolls/seigelense/proto/declarations.ts`'s `badDefaults`, which marks the
- * `defaults` line `@ts-expect-error 'notAField' is not on 'fields'`.
+ * Counterpart: `scrolls/seigelense/siegelense-recipes.md`'s "the ten malformed declarations" table,
+ * row 7, "`defaults` returning a field that does not exist".
  */
 import { dmIngredient, sampleFields, sampleRecordContract, write } from './_shared';
 

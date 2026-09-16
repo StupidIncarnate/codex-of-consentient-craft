@@ -32,6 +32,8 @@ import type {
   RecipeInputOf,
 } from '../recipe-def/recipe-def-contract';
 import type { Op } from '../ingredient-handle/ingredient-handle-contract';
+import type { HydrationPlan } from '../hydration-plan/hydration-plan-contract';
+import type { HydrationRunResult } from '../hydration-run-result/hydration-run-result-contract';
 
 const urlContract = z.string().url().brand<'Url'>();
 
@@ -48,7 +50,10 @@ export type HydrationTarget = z.infer<typeof hydrationTargetContract>;
  * a single repo's own target type. `ingredient` is bound to `TTarget` directly; `registry` and
  * `recipe` are target-agnostic (a declared ingredient's target is already erased behind its opaque
  * brand, and a plan's ops carry no target reference either), so both read exactly like their own
- * broker's signature. `run` is chunk 4's own ADDITIVE edit to this interface, not a member yet.
+ * broker's signature. `run` reads the ingredient configs `registry` was called with (D1) and walks
+ * a plan against this one binding's own `TTarget` — it returns the untyped `HydrationRunResult`
+ * per the chunk 1-3 plan's Q11 ruling; threading each `saveRecordAs` call's own record contract
+ * through to a typed return is chunk 3b's own scheduled pass, not a member yet.
  */
 export interface HydrationFor<TTarget extends HydrationTarget> {
   ingredient: <TFields extends object, const C extends IngredientConfig<TTarget, TFields>>(
@@ -66,4 +71,5 @@ export interface HydrationFor<TTarget extends HydrationTarget> {
     meta: { name: TName; description: string; inputs?: TInputSchema },
     build: (input: RecipeInputOf<TInputSchema>) => readonly Op[],
   ) => RecipeDef<TName, RecipeInputOf<TInputSchema>>;
+  run: (plan: HydrationPlan, target: TTarget) => Promise<HydrationRunResult>;
 }

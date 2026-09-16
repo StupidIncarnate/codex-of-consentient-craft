@@ -70,6 +70,20 @@ describe('ingredientDeclareBroker', () => {
       expect(defaults(0)).toStrictEqual({ title: 'Quest 1' });
       expect(defaults(1)).toStrictEqual({ title: 'Quest 2' });
     });
+
+    it('VALID: {transitions: {field, to, reach}} => the returned ingredient carries the same reach function', () => {
+      ingredientDeclareBrokerProxy();
+      const reach = (): unknown => undefined;
+      const config = IngredientConfigStub({
+        transitions: { field: 'title', to: ['a renamed quest'], reach },
+      });
+
+      const result = ingredientDeclareBroker(config as never) as unknown as ReturnType<
+        typeof IngredientConfigStub
+      >;
+
+      expect(result.transitions?.reach).toBe(reach);
+    });
   });
 
   describe('invalid declarations', () => {
@@ -114,6 +128,16 @@ describe('ingredientDeclareBroker', () => {
         );
       },
     );
+
+    it('INVALID: {transitions: {field, to}, no reach} => throws \'ingredient "quest" declares transitions with no reach\'', () => {
+      ingredientDeclareBrokerProxy();
+      const config: Record<string, unknown> = { ...IngredientConfigStub() };
+      config.transitions = { field: 'title', to: ['a renamed quest'] };
+
+      expect(() => ingredientDeclareBroker(config as never)).toThrow(
+        /^ingredient "quest" declares transitions with no reach$/u,
+      );
+    });
   });
 
   // The declaration half of the negative type suite — plan `recipes-chunk-01-03-framework-types.md`
@@ -206,7 +230,7 @@ describe('ingredientDeclareBroker', () => {
       expect(result).toStrictEqual([
         TypeDiagnosticStub({
           file: EXTRA_NAMED_SET,
-          line: LineCountStub({ value: 18 }),
+          line: LineCountStub({ value: 17 }),
           code: 2322,
           message:
             'Type \'{ args: z.ZodObject<{ depth: z.ZodBranded<z.ZodNumber, "ChainDepth">; }, "strip", z.ZodTypeAny, { depth: number & z.BRAND<"ChainDepth">; }, { depth: number; }>; apply: () => unknown; }\' is not assignable to type \'never\'.',

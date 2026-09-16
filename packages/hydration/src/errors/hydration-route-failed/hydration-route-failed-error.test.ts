@@ -38,6 +38,24 @@ describe('HydrationRouteFailedError', () => {
       });
     });
 
+    it('EMPTY: {url: null, cause: connection refused} => names the failure honestly, with no fabricated URL', () => {
+      const error = new HydrationRouteFailedError({
+        recipeName: 'guild-mid-execution',
+        ingredientName: 'guild',
+        route: 'api',
+        url: null,
+        status: null,
+        responseBody: null,
+        cause: new Error('connect ECONNREFUSED 127.0.0.1:3737'),
+      });
+
+      expect({ name: error.name, message: error.message }).toStrictEqual({
+        name: 'HydrationRouteFailedError',
+        message:
+          'recipe "guild-mid-execution": ingredient "guild"\'s "api" route refused the connection with no URL known: Error: connect ECONNREFUSED 127.0.0.1:3737',
+      });
+    });
+
     it('EMPTY: {status: 404, responseBody: null} => names the status with an empty body', () => {
       const error = new HydrationRouteFailedError({
         recipeName: 'guild-mid-execution',

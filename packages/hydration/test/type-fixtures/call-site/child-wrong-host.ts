@@ -1,7 +1,8 @@
 /**
  * Row 7a — the IMMEDIATE-PARENT condition: a child accessor on the wrong host. `sessions` links
  * only to `guild`, so it must not appear on a quest handle even though a guild is in the quest's
- * own ancestor chain. Counterpart: `scrolls/seigelense/proto/negative.ts`'s `childNotDeclared`.
+ * own ancestor chain. Counterpart: `scrolls/seigelense/siegelense-recipes.md`'s mutation table
+ * ("Break" / "Caught by"), row "drop the child accessor's IMMEDIATE-PARENT condition".
  */
 import { dm } from './_shared';
 

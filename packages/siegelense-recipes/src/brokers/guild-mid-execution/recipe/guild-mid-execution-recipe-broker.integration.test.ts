@@ -1,0 +1,105 @@
+import type { GuildStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts';
+
+import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-target.harness';
+import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
+import { guildMidExecutionRecipeBroker } from './guild-mid-execution-recipe-broker';
+
+type Guild = ReturnType<typeof GuildStub>;
+type Quest = ReturnType<typeof QuestStub>;
+
+// `run` MUST come off `dmRegistryBroker`, never a fresh `recipesHydrationCreateBroker()` call —
+// see `dm-registry-broker.ts`'s own header for why a second instance's `run` cannot see the
+// ingredients THIS registry named.
+const { run } = dmRegistryBroker;
+
+const GUILD_NAME = SavedRecordNameStub({ value: 'guild' });
+const QUEST1_NAME = SavedRecordNameStub({ value: 'quest1' });
+const QUEST2_NAME = SavedRecordNameStub({ value: 'quest2' });
+const QUEST3_NAME = SavedRecordNameStub({ value: 'quest3' });
+
+describe('guildMidExecutionRecipeBroker', () => {
+  describe('the manifest identity chunk 8 reads off this same export', () => {
+    it('VALID: {} => carries its verbatim name, description, and no inputs', () => {
+      expect({
+        recipeName: guildMidExecutionRecipeBroker.recipeName,
+        description: guildMidExecutionRecipeBroker.description,
+        inputs: guildMidExecutionRecipeBroker.inputs,
+      }).toStrictEqual({
+        recipeName: 'guild-mid-execution',
+        description:
+          'one guild holding three quests, the first running with its riftcarver item dropped',
+        inputs: undefined,
+      });
+    });
+  });
+
+  describe('run against a real temporary directory', () => {
+    const fileTarget = fileTargetHarness();
+
+    it('VALID: {} => saves exactly guild, quest1, quest2 and quest3', async () => {
+      const result = await run(guildMidExecutionRecipeBroker(), fileTarget.target());
+
+      expect(Object.keys(result).sort()).toStrictEqual(['guild', 'quest1', 'quest2', 'quest3']);
+    });
+
+    it('VALID: {} => the guild record carries the derived name and a real url slug', async () => {
+      const result = await run(guildMidExecutionRecipeBroker(), fileTarget.target());
+      const guild = result[GUILD_NAME] as Guild;
+
+      expect({ name: guild.name, urlSlug: guild.urlSlug }).toStrictEqual({
+        name: 'Guild 1',
+        urlSlug: 'guild-1',
+      });
+    });
+
+    it('VALID: {} => the three quests read back with the titles defaults(index) and set() produced', async () => {
+      const result = await run(guildMidExecutionRecipeBroker(), fileTarget.target());
+      const quest1 = result[QUEST1_NAME] as Quest;
+      const quest2 = result[QUEST2_NAME] as Quest;
+      const quest3 = result[QUEST3_NAME] as Quest;
+
+      expect([quest1.title, quest2.title, quest3.title]).toStrictEqual([
+        'The running one',
+        'Quest 2',
+        'Quest 3',
+      ]);
+    });
+
+    it('VALID: {} => on disk, the first quest is in_progress with the riftcarver operation dropped from its ledger', async () => {
+      const result = await run(guildMidExecutionRecipeBroker(), fileTarget.target());
+      const guild = result[GUILD_NAME] as Guild;
+      const quest1 = result[QUEST1_NAME] as Quest;
+
+      const operationsOnDisk = fileTarget.readQuestFileOperations({
+        guildId: guild.id,
+        questFolder: quest1.folder,
+      });
+      const rolesOnDisk = operationsOnDisk.map((operation) => operation.role);
+
+      expect({ status: quest1.status, rolesOnDisk }).toStrictEqual({
+        status: 'in_progress',
+        rolesOnDisk: ['codeweaver', 'ward', 'flowrider', 'siegemaster'],
+      });
+    });
+
+    it("VALID: {} => on disk, the second and third quests' ledgers stay empty — the scope rule", async () => {
+      const result = await run(guildMidExecutionRecipeBroker(), fileTarget.target());
+      const guild = result[GUILD_NAME] as Guild;
+      const quest2 = result[QUEST2_NAME] as Quest;
+      const quest3 = result[QUEST3_NAME] as Quest;
+
+      const rolesOnDisk2 = fileTarget
+        .readQuestFileOperations({ guildId: guild.id, questFolder: quest2.folder })
+        .map((operation) => operation.role);
+      const rolesOnDisk3 = fileTarget
+        .readQuestFileOperations({ guildId: guild.id, questFolder: quest3.folder })
+        .map((operation) => operation.role);
+
+      expect({ rolesOnDisk2, rolesOnDisk3 }).toStrictEqual({
+        rolesOnDisk2: [],
+        rolesOnDisk3: [],
+      });
+    });
+  });
+});

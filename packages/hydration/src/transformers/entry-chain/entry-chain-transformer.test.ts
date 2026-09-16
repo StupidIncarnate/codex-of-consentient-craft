@@ -194,6 +194,44 @@ describe('entryChainTransformer', () => {
     expect(firstBuild).toStrictEqual(secondBuild);
   });
 
+  it('VALID: {a guild holding a quest holding an operation, three levels deep} => the operation create carries a correctly-built ref and ancestors', () => {
+    const dm = entryChainTransformer({
+      registry: {
+        guilds: guildIngredient,
+        quests: questIngredient,
+        operations: operationIngredient,
+        sessions: sessionIngredient,
+      },
+    });
+
+    const built = dm.guilds.add(1, (g) => [
+      g[0].quests.add(1, (q) => [
+        q[0].operations.add(1, (o) => [o[0].saveRecordAs({ name: 'op' })]),
+      ]),
+    ]) as unknown as HydrationOp[];
+
+    expect(built).toStrictEqual([
+      { op: 'create', ingredient: 'guild', ref: 'guild[0:0]', index: 0, ancestors: [], fields: {} },
+      {
+        op: 'create',
+        ingredient: 'quest',
+        ref: 'guild[0:0]/quest[0:0]',
+        index: 0,
+        ancestors: ['guild[0:0]'],
+        fields: { title: 'Quest 1' },
+      },
+      {
+        op: 'create',
+        ingredient: 'operation',
+        ref: 'guild[0:0]/quest[0:0]/operation[0:0]',
+        index: 0,
+        ancestors: ['guild[0:0]', 'guild[0:0]/quest[0:0]'],
+        fields: {},
+      },
+      { op: 'saveRecord', ref: 'guild[0:0]/quest[0:0]/operation[0:0]', name: 'op' },
+    ]);
+  });
+
   it('VALID: {two top-level add(1, ...) calls of the same ingredient} => mint two guilds with distinct references', () => {
     const dm = entryChainTransformer({
       registry: {

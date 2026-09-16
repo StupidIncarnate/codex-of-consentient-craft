@@ -7,6 +7,11 @@
  * the SAME placeholder here, on purpose — they describe the same live query, not two different
  * ones.
  *
+ * `ancestors` holds one entry per level, and each entry is already that level's own COMPOUND ref
+ * (see `rowRefTransformer`'s own header for why), so only the LAST entry is joined onto this
+ * placeholder's own segment — joining the whole array double-counts everything above the immediate
+ * parent.
+ *
  * USAGE:
  * matchedRefTransformer({ ancestors: ['guild[0:0]/quest[0:0]'], ingredient: 'operation' });
  * // Returns the branded RowRef 'guild[0:0]/quest[0:0]/operation[match]'
@@ -23,6 +28,8 @@ export const matchedRefTransformer = ({
   ancestors: readonly RowRef[];
   ingredient: IngredientName;
 }): RowRef => {
-  const segments = [...ancestors, `${ingredient}[${rowRefStatics.slot.matchWord}]`];
-  return rowRefContract.parse(segments.join('/'));
+  const immediateParent = ancestors.at(-1);
+  const ownSegment = `${ingredient}[${rowRefStatics.slot.matchWord}]`;
+  const combined = immediateParent === undefined ? ownSegment : `${immediateParent}/${ownSegment}`;
+  return rowRefContract.parse(combined);
 };

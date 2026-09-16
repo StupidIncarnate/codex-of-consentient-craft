@@ -11,6 +11,14 @@
  * exported-arrow-function selector, so the two-argument sugar is adapted here instead, calling
  * `recipeDeclareBroker` with `build` folded back onto `meta`.
  *
+ * `registry`'s own inline signature stays loose (`Registry`, not the phantom-property intersection
+ * `registryCreateBroker` itself carries) and its result is cast rather than re-verified: redeclaring
+ * that self-referential conditional type here — on top of capturing `entries` for `run` — produced a
+ * genuine `R & (...)` generic mismatch TypeScript could not resolve. The outer `as unknown as
+ * HydrationFor<TTarget>` is what every caller actually sees, so the full phantom-property check
+ * still applies to `dm.registry(...)` from outside this file; only this file's OWN internal
+ * plumbing is loosely typed.
+ *
  * The returned object is cast through `unknown` to the named `HydrationFor<TTarget>` rather than
  * left to structural inference — `exactOptionalPropertyTypes` refuses two independently-elaborated
  * (but textually identical) generic intersections as reflexively assignable, measured against this
@@ -18,14 +26,16 @@
  * return.
  *
  * USAGE:
- * const { ingredient, registry, recipe } = hydrationCreateBroker<DmTarget>();
+ * const { ingredient, registry, recipe, run } = hydrationCreateBroker<DmTarget>();
  * const quest = ingredient({ name: 'quest', description: '…', fields, record, routes, copies: 'x' });
  * const dm = registry({ quests: quest });
  * const guildMidExecution = recipe({ name: 'guild-mid-execution', description: '…' }, () => [ops]);
+ * await run(guildMidExecution(), { home });
  */
 import { ingredientDeclareBroker } from '../../ingredient/declare/ingredient-declare-broker';
 import { registryCreateBroker } from '../../registry/create/registry-create-broker';
 import { recipeDeclareBroker } from '../../recipe/declare/recipe-declare-broker';
+import { planRunBroker } from '../../plan/run/plan-run-broker';
 import type {
   HydrationTarget,
   HydrationFor,
@@ -35,6 +45,8 @@ import type {
   IngredientConfigInferenceAnchor,
   Ingredient,
   ExtrasFree,
+  Registry,
+  IngredientConfigData,
 } from '../../../contracts/ingredient-config/ingredient-config-contract';
 import type { CopiesFor } from '../../../contracts/hydration-routes/hydration-routes-contract';
 import type {
@@ -44,17 +56,31 @@ import type {
   RecipeInputOf,
 } from '../../../contracts/recipe-def/recipe-def-contract';
 import type { Op } from '../../../contracts/ingredient-handle/ingredient-handle-contract';
+import type { HydrationPlan } from '../../../contracts/hydration-plan/hydration-plan-contract';
+import type { HydrationRunResult } from '../../../contracts/hydration-run-result/hydration-run-result-contract';
 
-export const hydrationCreateBroker = <TTarget extends HydrationTarget>(): HydrationFor<TTarget> =>
-  ({
+export const hydrationCreateBroker = <TTarget extends HydrationTarget>(): HydrationFor<TTarget> => {
+  // D1: `run` reads whatever ingredients THIS binding's own `registry()` call was handed, so the
+  // lookup a plan's ops resolve against is total by construction rather than passed by hand.
+  let registeredIngredients: readonly IngredientConfigData[] = [];
+
+  return {
     ingredient: <TFields extends object, const C extends IngredientConfig<TTarget, TFields>>(
       config: C &
         IngredientConfigInferenceAnchor<TFields> &
         CopiesFor<C['routes']> & { extras?: ExtrasFree<C['extras']> },
     ): Ingredient<C> => ingredientDeclareBroker<TTarget, TFields, C['name'], C>(config),
-    registry: registryCreateBroker,
+    registry: (entries: Registry) => {
+      registeredIngredients = Object.values(entries).map(
+        (token) => token as unknown as IngredientConfigData,
+      );
+      return registryCreateBroker(entries as never);
+    },
     recipe: <TName extends string, TInputSchema extends AnyRecipeInputSchema = NoRecipeInputSchema>(
       meta: { name: TName; description: string; inputs?: TInputSchema },
       build: (input: RecipeInputOf<TInputSchema>) => readonly Op[],
     ): RecipeDef<TName, RecipeInputOf<TInputSchema>> => recipeDeclareBroker({ ...meta, build }),
-  }) as unknown as HydrationFor<TTarget>;
+    run: async (plan: HydrationPlan, target: TTarget): Promise<HydrationRunResult> =>
+      planRunBroker({ plan, target, ingredients: registeredIngredients }),
+  } as unknown as HydrationFor<TTarget>;
+};

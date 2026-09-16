@@ -8,6 +8,15 @@
  * links is satisfied by something already in the ancestor chain — dropping the second condition alone
  * puts a grandchild's accessor on a grandparent, which is measured.
  *
+ * `under` carries forward whatever ids THIS row's own collection was minted under, unchanged, into
+ * every child collection hung off this handle — a supplied id is as true of a grandchild as of the
+ * child, since `under()` never fabricated a row for it to become stale on. A child collection's own
+ * `add` merges it into every row it mints exactly as `under()`'s immediate caller already does, so a
+ * link the grandchild declares for that ancestor is already on the row's own fields by the time the
+ * runner asks — the same precedence `linkValuesTransformer` already gives an explicit field, never a
+ * second one. A child's own `under()` call still overrides it, first-in-loses, same as `under()`'s own
+ * merge.
+ *
  * USAGE:
  * rowHandleChainTransformer({
  *   registry: dmRegistry,
@@ -48,12 +57,14 @@ export const rowHandleChainTransformer = <
   ref,
   ancestors,
   ancestorNames,
+  under,
 }: {
   registry: R;
   ingredientConfig: IngredientConfigData;
   ref: RowRef;
   ancestors: readonly RowRef[];
   ancestorNames: readonly IngredientName[];
+  under?: Record<string, unknown>;
 }): Handle<R, I, Anc> => {
   const identity = ingredientHandleContract.parse({ ingredient: ingredientConfig.name, ref });
   const namesWithMe = [...ancestorNames, ingredientConfig.name];
@@ -86,6 +97,7 @@ export const rowHandleChainTransformer = <
         ingredientConfig: token as unknown as IngredientConfigData,
         ancestors: [...ancestors, ref],
         ancestorNames: namesWithMe,
+        ...(under === undefined ? {} : { under }),
       }),
     ]);
 

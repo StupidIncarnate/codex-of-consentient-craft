@@ -8,5 +8,6 @@ export const TransitionSpecStub = ({
   transitionSpecContract.parse({
     field: 'status',
     to: ['created', 'approved'],
+    reach: (): unknown => undefined,
     ...props,
   });

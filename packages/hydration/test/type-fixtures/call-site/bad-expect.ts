@@ -1,6 +1,7 @@
 /**
  * Row 10 — `expect` takes only `'one' | 'some' | 'any'`; a value outside that set must not compile.
- * Counterpart: `scrolls/seigelense/proto/negative.ts`'s `badExpect`.
+ * Counterpart: `scrolls/seigelense/siegelense-recipes.md`'s "What the compiler enforces" table, row
+ * "a bad `expect` value".
  */
 import { dm } from './_shared';
 

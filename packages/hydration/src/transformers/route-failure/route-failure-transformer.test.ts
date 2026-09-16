@@ -34,13 +34,29 @@ describe('routeFailureTransformer', () => {
     });
   });
 
-  describe('a refused connection', () => {
-    it('VALID: {cause: an ECONNREFUSED Error} => returns {url: null, status: null, responseBody: null}', () => {
+  describe('a refused connection whose thrower attached no url', () => {
+    it('VALID: {cause: a bare ECONNREFUSED Error} => returns {url: null, status: null, responseBody: null}', () => {
       const result = routeFailureTransformer({
         cause: new Error('connect ECONNREFUSED 127.0.0.1:1'),
       });
 
       expect(result).toStrictEqual({ url: null, status: null, responseBody: null });
+    });
+  });
+
+  describe('a refused connection whose thrower attached the url it tried', () => {
+    it('VALID: {cause: an Error carrying url but no status} => returns the url, status null, body null', () => {
+      const result = routeFailureTransformer({
+        cause: Object.assign(new Error('connect ECONNREFUSED 127.0.0.1:1'), {
+          url: 'http://localhost:3737/api/guilds',
+        }),
+      });
+
+      expect(result).toStrictEqual({
+        url: 'http://localhost:3737/api/guilds',
+        status: null,
+        responseBody: null,
+      });
     });
   });
 

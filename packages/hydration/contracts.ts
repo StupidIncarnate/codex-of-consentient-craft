@@ -6,6 +6,9 @@
  * import { ... } from '@dungeonmaster/hydration/contracts';
  */
 
+export * from './src/contracts/build-sequence/build-sequence-contract';
+export * from './src/contracts/build-sequence/build-sequence.stub';
+
 export * from './src/contracts/call-index/call-index-contract';
 export * from './src/contracts/call-index/call-index.stub';
 

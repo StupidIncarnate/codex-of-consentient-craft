@@ -1,8 +1,7 @@
 /**
  * D5 — an extra named `set` must not compile: it shadows a built-in verb `reservedVerbStatics`
- * reserves to the framework. Counterpart: `scrolls/seigelense/proto/declarations.ts`'s
- * `extraShadowsVerb`, which marks its `extras` line `@ts-expect-error 'set' and 'remove' belong to
- * the framework`.
+ * reserves to the framework. Counterpart: `scrolls/seigelense/siegelense-recipes.md`'s "the ten
+ * malformed declarations" table, row 5, "an extra named `set`".
  */
 import { z } from 'zod';
 import { dmIngredient, sampleFields, sampleRecordContract, write } from './_shared';

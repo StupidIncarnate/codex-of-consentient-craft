@@ -2,14 +2,18 @@
  * PURPOSE: Bans `Date.now()`, `Math.random()` and `crypto.randomUUID()` from ingredient
  * declaration files. The recipe-book specification's whole argument for this rule is that the
  * chain already hands each row its own index, so reaching for one of these three global calls is
- * the only way left to break byte-identical output across two runs of the same plan. Scoped to
- * files literally named `<name>-ingredient.ts` or `.tsx`.
+ * the only way left to break byte-identical output across two runs of the same plan. Fires on a
+ * file matching one of three signals, none of them sufficient alone: `isIngredientDeclarationFileGuard`
+ * (a bare `<name>-ingredient.ts(x)` filename, or this repo's real `<name>-ingredient-broker.ts(x)`
+ * inside an `ingredient/` folder of a `*-recipes` package), OR the file itself calling the
+ * framework's `ingredient({...})` declaration function anywhere in its body — checked as the file
+ * is traversed, so a violation appearing before that call is still caught.
  *
  * USAGE:
  * const rule = ruleBanNondeterminismInIngredientsBroker();
  * // Returns an ESLint rule that flags `Date.now()`, `Math.random()` and `crypto.randomUUID()`
- * // inside a `*-ingredient.ts(x)` file, and stays silent on the same calls anywhere else — and on
- * // a destructured import of the same function (`import { randomUUID } from 'node:crypto'`).
+ * // inside an ingredient declaration file — by path, or by calling `ingredient({...})` — and
+ * // stays silent on the same calls elsewhere (a route broker minting a real id is untouched).
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
@@ -17,6 +21,7 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { nondeterministicCallWatchlistStatics } from '../../../statics/nondeterministic-call-watchlist/nondeterministic-call-watchlist-statics';
 import { isIngredientDeclarationFileGuard } from '../../../guards/is-ingredient-declaration-file/is-ingredient-declaration-file-guard';
+import { isIngredientDeclarationCallGuard } from '../../../guards/is-ingredient-declaration-call/is-ingredient-declaration-call-guard';
 
 export const ruleBanNondeterminismInIngredientsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -24,11 +29,11 @@ export const ruleBanNondeterminismInIngredientsBroker = (): EslintRule => ({
       type: 'problem',
       docs: {
         description:
-          'Ban Date.now(), Math.random() and crypto.randomUUID() from ingredient declaration files. The chain hands each row its own index, so nothing else in an ingredient needs to vary. Scoped to files named `<name>-ingredient.ts` or `.tsx`.',
+          "Ban Date.now(), Math.random() and crypto.randomUUID() from ingredient declaration files. The chain hands each row its own index, so nothing else in an ingredient needs to vary. Fires on a `<name>-ingredient.ts(x)` file, this repo's `<name>-ingredient-broker.ts(x)` inside a `*-recipes` package's `ingredient/` folder, or any file that calls `ingredient({...})`.",
       },
       messages: {
         nondeterministicCallInIngredient:
-          "An ingredient must not call `{{objectName}}.{{propertyName}}()` — the chain already hands each row its own index, so this is the only way left to break byte-identical output across two runs of the same plan. This rule only fires on a file named `<name>-ingredient.ts` or `.tsx`, and only on this exact global call — a destructured import (`import { randomUUID } from 'node:crypto'`) or an equivalent call (`new Date()`, `performance.now()`) is invisible to it.",
+          "An ingredient must not call `{{objectName}}.{{propertyName}}()` — the chain already hands each row its own index, so this is the only way left to break byte-identical output across two runs of the same plan. This rule fires on a file named `<name>-ingredient.ts`/`.tsx`, on this repo's `<name>-ingredient-broker.ts`/`.tsx` inside an `ingredient/` folder of a `*-recipes` package, or on any file that calls the framework's `ingredient(...)` declaration function directly — a destructured import (`import { randomUUID } from 'node:crypto'`), an equivalent call (`new Date()`, `performance.now()`), or an ingredient reached only through a re-exported wrapper that never itself calls `ingredient(...)`, is invisible to it.",
       },
       schema: [],
     },
@@ -37,12 +42,18 @@ export const ruleBanNondeterminismInIngredientsBroker = (): EslintRule => ({
     const ctx = context as EslintContext;
     const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
 
-    if (!isIngredientDeclarationFileGuard({ filename: String(filename) })) {
-      return {};
-    }
+    const isKnownIngredientFileByPath = isIngredientDeclarationFileGuard({
+      filename: String(filename),
+    });
+    let isKnownIngredientFileByCall = false;
+    const pendingReports: (() => void)[] = [];
 
     return {
       CallExpression: (node: Tsestree): void => {
+        if (isIngredientDeclarationCallGuard({ node })) {
+          isKnownIngredientFileByCall = true;
+        }
+
         const { callee } = node;
         if (callee?.type !== 'MemberExpression') {
           return;
@@ -58,10 +69,20 @@ export const ruleBanNondeterminismInIngredientsBroker = (): EslintRule => ({
           (call) => call.objectName === objectName && call.propertyName === propertyName,
         );
         if (isBanned) {
-          ctx.report({
-            node,
-            messageId: 'nondeterministicCallInIngredient',
-            data: { objectName: String(objectName), propertyName: String(propertyName) },
+          pendingReports.push(() => {
+            ctx.report({
+              node,
+              messageId: 'nondeterministicCallInIngredient',
+              data: { objectName: String(objectName), propertyName: String(propertyName) },
+            });
+          });
+        }
+      },
+
+      'Program:exit': (): void => {
+        if (isKnownIngredientFileByPath || isKnownIngredientFileByCall) {
+          pendingReports.forEach((report) => {
+            report();
           });
         }
       },

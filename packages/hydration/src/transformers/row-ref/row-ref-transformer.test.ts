@@ -44,6 +44,20 @@ describe('rowRefTransformer', () => {
     expect(first).toBe(second);
   });
 
+  it('VALID: {ancestors: [guild[0:0], guild[0:0]/quest[0:0]], ingredient: operation} => returns "guild[0:0]/quest[0:0]/operation[0:0]", not a doubled path', () => {
+    const result = rowRefTransformer({
+      ancestors: [
+        RowRefStub({ value: 'guild[0:0]' }),
+        RowRefStub({ value: 'guild[0:0]/quest[0:0]' }),
+      ],
+      ingredient: IngredientNameStub({ value: 'operation' }),
+      callIndex: CallIndexStub({ value: 0 }),
+      index: RowIndexStub({ value: 0 }),
+    });
+
+    expect(result).toBe('guild[0:0]/quest[0:0]/operation[0:0]');
+  });
+
   it('VALID: {two calls sharing ancestors, ingredient and index, differing only in callIndex} => returns two distinct refs', () => {
     const fromFirstCall = rowRefTransformer({
       ancestors: [RowRefStub({ value: 'guild[0:0]' })],

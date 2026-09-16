@@ -6,23 +6,36 @@ import { FieldValuesStub } from '../field-values/field-values.stub';
 
 describe('transitionSpecContract', () => {
   describe('valid transition specs', () => {
-    it('VALID: {field: "status", to: ["created", "approved"]} => returns both', () => {
-      expect(TransitionSpecStub({ field: 'status', to: ['created', 'approved'] })).toStrictEqual({
+    it('VALID: {field: "status", to: ["created", "approved"], reach} => returns all three, reach unchanged', () => {
+      const reach = (): unknown => undefined;
+
+      expect(
+        TransitionSpecStub({ field: 'status', to: ['created', 'approved'], reach }),
+      ).toStrictEqual({
         field: 'status',
         to: ['created', 'approved'],
+        reach,
       });
     });
   });
 
   describe('invalid transition specs', () => {
     it('INVALID: {field: "status", to: []} => throws "Array must contain at least 1 element(s)"', () => {
-      expect(() => transitionSpecContract.parse({ field: 'status', to: [] })).toThrow(
-        /Array must contain at least 1 element\(s\)/u,
-      );
+      expect(() =>
+        transitionSpecContract.parse({ field: 'status', to: [], reach: (): unknown => undefined }),
+      ).toThrow(/Array must contain at least 1 element\(s\)/u);
     });
 
     it('INVALID: {to: ["created"]} => throws "Required"', () => {
-      expect(() => transitionSpecContract.parse({ to: ['created'] })).toThrow(/Required/u);
+      expect(() =>
+        transitionSpecContract.parse({ to: ['created'], reach: (): unknown => undefined }),
+      ).toThrow(/Required/u);
+    });
+
+    it('INVALID: {field: "status", to: ["created"], no reach} => throws "Expected a reach function"', () => {
+      expect(() => transitionSpecContract.parse({ field: 'status', to: ['created'] })).toThrow(
+        /Expected a reach function/u,
+      );
     });
   });
 

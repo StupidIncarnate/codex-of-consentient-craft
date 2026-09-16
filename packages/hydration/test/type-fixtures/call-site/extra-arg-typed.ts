@@ -1,7 +1,8 @@
 /**
  * Row 6 — the right verb, the wrong argument type, must not compile. `withNestedChain` takes a
  * branded `ChainDepth` number; this passes a string. Counterpart:
- * `scrolls/seigelense/proto/negative.ts`'s `sessionExtraIsTyped`.
+ * `scrolls/seigelense/siegelense-recipes.md`'s "What the compiler enforces" table, row "a wrongly
+ * typed argument to an extra".
  */
 import { dm } from './_shared';
 

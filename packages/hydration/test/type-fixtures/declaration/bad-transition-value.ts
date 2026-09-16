@@ -1,7 +1,7 @@
 /**
  * D2 — `transitions.to` holding a value that field cannot take must not compile.
- * Counterpart: `scrolls/seigelense/proto/declarations.ts`'s `badTransitionValue`, which marks the
- * same line `@ts-expect-error not a value of 'status'`.
+ * Counterpart: `scrolls/seigelense/siegelense-recipes.md`'s "the ten malformed declarations" table,
+ * row 2, "`transitions.to` holding a value that field cannot take".
  *
  * `reach: walk` — see `bad-transition-field.ts`'s header for why a bare reference, not an inline
  * destructured arrow, keeps this fixture to its one deliberate error.

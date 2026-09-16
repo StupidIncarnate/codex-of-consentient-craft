@@ -5,6 +5,11 @@
  * fires only once a route has actually run; the other fires from the plan's shape before anything
  * runs at all.
  *
+ * `url` is nullable, honestly: a route built on the framework's own `fetchPostAdapter` always knows
+ * it, but an ingredient's bespoke route can throw a bare value carrying no address at all, and
+ * `routeFailureTransformer` then mines `url: null`. Naming a fabricated placeholder in that case
+ * would look like data and carry none, so the message says plainly that no URL is known instead.
+ *
  * USAGE:
  * throw new HydrationRouteFailedError({
  *   recipeName: 'guild-mid-execution',
@@ -35,18 +40,18 @@ export class HydrationRouteFailedError extends Error {
     recipeName: string;
     ingredientName: string;
     route: string;
-    url: string;
+    url: string | null;
     status: number | null;
     responseBody: string | null;
     cause: unknown;
   }) {
     const outcome =
-      status === null
-        ? `refused the connection: ${String(cause)}`
-        : `answered ${String(status)} with body: ${responseBody === null ? '(empty)' : responseBody}`;
-    super(
-      `recipe "${recipeName}": ingredient "${ingredientName}"'s "${route}" route at ${url} ${outcome}`,
-    );
+      url === null
+        ? `refused the connection with no URL known: ${String(cause)}`
+        : status === null
+          ? `at ${url} refused the connection: ${String(cause)}`
+          : `at ${url} answered ${String(status)} with body: ${responseBody === null ? '(empty)' : responseBody}`;
+    super(`recipe "${recipeName}": ingredient "${ingredientName}"'s "${route}" route ${outcome}`);
     this.name = 'HydrationRouteFailedError';
   }
 }

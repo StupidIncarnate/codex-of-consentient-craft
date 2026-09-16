@@ -8,9 +8,8 @@
  * below. `RegistryDanglingLinkError` is the runtime counterpart, for a caller that reaches
  * `registryCreateBroker` from plain JavaScript and never typechecked at all.
  *
- * Counterpart: `scrolls/seigelense/proto/declarations.ts`'s `danglingLink`, which builds the same
- * shape and marks `registry({ orphans: linksNowhere })` `@ts-expect-error nothing in this registry
- * is named 'no-such-ingredient'`.
+ * Counterpart: `scrolls/seigelense/siegelense-recipes.md`'s "the ten malformed declarations" table,
+ * row 9, "`links.of` naming an unregistered ingredient".
  */
 import { dmIngredient, sampleFields, sampleRecordContract, write } from './_shared';
 import { registryCreateBroker } from '../../../src/brokers/registry/create/registry-create-broker';

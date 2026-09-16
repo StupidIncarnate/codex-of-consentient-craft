@@ -77,9 +77,10 @@ build ran under, with the two clauses this feature needs that that one did not.
 > package. Merge master again once that run is green, and before any conversion batch — otherwise
 > chunks 9 and 10 rewrite 900 call sites against a tree about to move.
 
-**`proto/` is a type prototype, not the implementation.** It proves the chain's types compose and it is
-run by `node proto/check.mjs`. Build the real packages beside it and delete it when they exist — a
-prototype left in the tree is read as the thing itself by the next session.
+**The chain's types compose inside `@dungeonmaster/hydration` itself, not in a separate prototype.**
+`packages/hydration/test/type-fixtures/` is what proves it: a positive tree that compiles with zero
+diagnostics, and a negative tree whose every fixture carries exactly one deliberate error — both
+graded by a real TypeScript program in `typescriptProgramDiagnosticsAdapter`'s own tests.
 
 **Part 5's "Known gaps" section is work, not commentary.** Each row is a decision nobody has made. A
 planner reading this doc should schedule them rather than discovering them.
@@ -124,9 +125,12 @@ packages exist is a prompt describing something no session can call.
 | 11 | one manual siegelense round — `recipes {}`, a `seed` step, params validation | the tool half, which neither suite crosses |
 | 12 | the combinatorial rounds and the sad paths | nothing to combine until 1-11 land |
 
-**Chunk 2 before chunk 3 is the one ordering that matters.** `proto/` proves the types compose; a build
-that writes the runtime first and the types after will discover the same three failures that prototype
-already recorded, at much greater cost.
+**Chunk 2 before chunk 3 is the one ordering that matters: the types must compose before the runtime is
+written.** A contract's own colocated test exercises its runtime zod parse and never its TypeScript
+generic, so a contract whose value IS its generic ships green while broken. Measured directly: three
+such breaks — `links` typed against the wrong spec, `copies` typed against the wrong output type, and
+`transitions` missing `reach` entirely — each passed chunk 1's own tests and were caught only once a
+fixture declared something real against them.
 
 ---
 
@@ -467,6 +471,13 @@ transitions: {
 so it is off the list and `set({ status: 'blocked' })` does not compile. Leave a value off whenever
 reaching it means something other than a caller asking.
 
+**Asking for a value off that list is refused in the PRE-FLIGHT, before anything runs, and that is a
+different failure from a gate refusing one that IS on the list.** Both halves of the pre-flight check
+are static — the value a `set` asks for, and the states the ingredient declares — so nothing needs to
+run before refusing it. A gate refusing needs a live row, and only fires once `reach` is actually
+walking it; that is the mid-run failure the sad-path table names under *"`reach` throws"*. One is a
+plan that could never have worked; the other is a live row the gates would not move.
+
 **`defaults`** — per-row values from the index:
 
 ```ts
@@ -498,9 +509,20 @@ two-route comparison test points.
 **`copies:` presumes the imitated writer is in-repo production code, and that presumption fails for a
 shape only an external tool writes.** A Claude session transcript is the case: the Claude CLI writes
 it, not anything in this repo — every in-repo path that touches the shape READS it, and the only
-in-repo artifact that emits it is a test fixture. **Do not invent an answer here.** Until this is
-answered, an ingredient for that shape cannot honestly declare a `write` route at all, and it is the
-ingredient behind a large share of the conversion's call sites.
+in-repo artifact that emits it is a test fixture. **Do not invent an answer here.**
+
+**This has a concrete consequence, found by building this repo's own ingredients: the session and
+sub-agent ingredients are not declared at all.** A `write` route must declare `copies:`, and neither
+has a production writer to name. Every route broker behind them exists and is tested — the query
+route, the remove route, the write route's own file-writing logic — only the ingredient declaration
+itself is blocked on this gap. Those two ingredients back a large share of the conversion's call
+sites.
+
+**A route sometimes cannot call the very code `copies:` names, even from inside the same repo.** A
+package's own `exports` map decides what crosses into another package, and a production broker with no
+export entry is invisible to a route that would otherwise call it directly. The route then imitates
+that code instead of calling it, which is exactly the drift `copies:` exists to name — `copies:` stays
+honest about WHAT is imitated even on the call that cannot reach it.
 
 **`extras`** — verbs only this ingredient could have:
 
@@ -641,6 +663,12 @@ it, reads that ancestor's id off the field its link's `from` names (`'id'` unles
 otherwise), and writes it into the named field before calling the route. **Neither the recipe author
 nor the route implementation passes one by hand.**
 
+**An explicit field beats an ancestor-derived link, and the link is skipped rather than overwritten.**
+When a row's own `fields` already carries the value a link would write, the runner leaves that field
+alone — it fills in only what the row does not already have. This is what makes `under()`'s
+caller-supplied id outrank an ancestor's: `under()` writes into `fields` at build time, before the
+runner ever resolves a single link.
+
 **A child accessor appears on exactly one host: its immediate parent.** Two conditions decide it, and
 both are checked by the type system rather than reported as an error:
 
@@ -682,6 +710,11 @@ foreign key is a PREFIXED STRING inside an ARRAY — `relatedDataItems: ['operat
 inside a collection. `fromSaved` does not rescue it either: it resolves at the top level of a field's
 value, not inside an array element. **So an entity whose foreign key takes that shape cannot be an
 ingredient**, and its rows stay a field on their parent instead, written by that parent's own `set()`.
+
+**Building this repo's own ingredients confirms it, rather than leaving it a hypothetical.** A quest's
+work items are exactly this shape — each one's `relatedDataItems` is a prefixed string inside an array
+— and `workItem` has no ingredient as a result: its rows stay a field on `quest`'s own `fields`,
+written by `quest`'s `set()`.
 
 ### The chain: every call names what it affects
 
@@ -748,6 +781,13 @@ walks nothing. Nobody reaches for it by accident.
 **A transition is not free, and the doc should say so where somebody will read it.** `set({ status:
 'in_progress' })` on a quest seeds a relay, which mints operation items and work items. That is usually
 what you want. When it is not, `filter` and `remove` take the extras back out.
+
+**Setting a transition through a BROADCAST handle multiplies that cost by the row count.** The chain's
+own worked example broadcasts a plain field this way — `all.set({ userRequest: 'seeded' })` — and that
+call is cheap, because a plain field is simply written. `all.set({ status: 'in_progress' })` on a
+transition field looks identical at the call site and is not: it is one full gate walk PER ROW, so
+`all.set` on `add(10, …)` is ten real walks, each seeding whatever the gates seed. Nothing about the
+two calls' shape says which cost a reader is paying.
 
 ### Every verb but `add` takes an object
 
@@ -849,17 +889,32 @@ on a plan.
 
 ### Every chainable, with an example
 
-**Every snippet below is copied out of `proto/usage.ts`**, which the type check compiles. None of them
-is an example nobody ran.
+**Every snippet below is copied out of
+`packages/hydration/test/type-fixtures/positive/every-chainable.ts`.** A real TypeScript program
+compiles it: `typescriptProgramDiagnosticsAdapter`'s "the positive fixture tree" test asserts the file
+produces zero diagnostics. None of them is an example nobody ran.
+
+**Every field value is branded, parsed off the ingredient's own `fields` contract** —
+`questFieldsContract.shape.title.parse('The running one')`, never a bare string. A plain literal does
+not compile against a real ingredient.
+
+```ts
+const dm = registry({ guilds: guildIngredient, quests: questIngredient, sessions: sessionIngredient });
+```
 
 **`add(n, build)`** — creates n rows. The builder receives a TUPLE of handles and `all` as a second
 argument.
 
 ```ts
 dm.guilds.add(1, (g) => [
-  g[0].quests.add(3, (q, all) => [
-    all.set({ userRequest: 'every one of the three' }),
-    q[0].set({ title: 'only the first' }),
+  g[0].quests.add(2, (q, all) => [
+    all.set({
+      userRequest: fromSavedRefTransformer({
+        name: SavedRecordNameStub({ value: 'origin' }),
+        field: FieldNameStub({ value: 'sessionId' }),
+      }),
+    }),
+    q[0].set({ status: 'underway', title: questFieldsContract.shape.title.parse('The running one') }),
   ]),
 ]);
 ```
@@ -868,29 +923,29 @@ dm.guilds.add(1, (g) => [
 the real gates.
 
 ```ts
-q[0].set({ title: 'plain field, written' }),
-q[0].set({ status: 'in_progress' }),        // walked: gates run, the relay seeds
+g[0].set({ name: guildFieldsContract.shape.name.parse('Siege') }),
+q[0].set({ status: 'underway', title: questFieldsContract.shape.title.parse('The running one') }),  // status is walked
 ```
 
 **`setRaw({ … })`** — writes the field and walks nothing. For a row the gates would never have
 produced, which an attack walk sometimes wants.
 
 ```ts
-q[0].setRaw({ status: 'complete' }),
+q[1].setRaw({ status: 'finished' }),
 ```
 
-**`filter({ where, expect })`** — selects rows that exist at RUN time. No index, no `add`.
+**`filter({ where, expect })`** — selects rows that exist at RUN time. No index, no `add`. `expect`
+defaults to `'some'`; the contract also accepts `'one'` and `'any'`.
 
 ```ts
-q[0].operations.filter({ where: { role: 'riftcarver' }, expect: 'one' }).remove(),
-q[0].operations.filter({ where: { role: 'ward' }, expect: 'any' }).set({ text: 'noop' }),
+g[0].quests.filter({ where: { status: 'queued' } }).remove(),
 ```
 
 **`remove()`** — deletes a row, or every row a filter matched.
 
 ```ts
 q[1].remove(),
-q[0].operations.filter({ where: { role: 'ward' } }).remove(),
+g[0].quests.filter({ where: { status: 'queued' } }).remove(),
 ```
 
 **`saveRecordAs({ name })`** — that row's WHOLE record joins the plan's output, server-assigned fields
@@ -898,37 +953,74 @@ included.
 
 ```ts
 g[0].saveRecordAs({ name: 'guild' }),
-q[0].saveRecordAs({ name: 'target' }),
-// the plan's output then carries `guild` and `target`, each typed to its own record contract
+s[0].saveRecordAs({ name: 'origin' }),
 ```
 
-**`fromSaved({ name, field })`** — a cross-link to a row the tree cannot reach.
+**`fromSaved`, as `fromSavedRefTransformer({ name, field })`** — a cross-link to a row the tree cannot
+reach. A plain field's type is `F[K] | SavedRef`, so this compiles with no cast — see *"What the type
+suite proves, and what it changed"* below for the ruling that closed that gap.
 
 ```ts
 g[0].sessions.add(1, (s) => [s[0].saveRecordAs({ name: 'origin' })]),
-g[0].quests.add(1, (q) => [
-  q[0].set({ userRequest: fromSaved({ name: 'origin', field: 'sessionId' }) as never }),
+g[0].quests.add(2, (q, all) => [
+  all.set({
+    userRequest: fromSavedRefTransformer({
+      name: SavedRecordNameStub({ value: 'origin' }),
+      field: FieldNameStub({ value: 'sessionId' }),
+    }),
+  }),
 ]),
 ```
 
-**`under({ … })`** — supplies a link from a recipe INPUT rather than from an ancestor.
+**`under({ … })`** — supplies a link from a recipe INPUT rather than from an ancestor. The fixture
+stands a literal in for that input, since nothing in it runs inside an actual `recipe()` call:
 
 ```ts
-recipe({ name: 'usage-under', description: 'one session under an existing guild' },
-  ({ guildId }: { guildId: GuildId }) => [
-  dm.sessions.under({ guildId }).add(1, (s) => [s[0].saveRecordAs({ name: 'made' })]),
-]);
+dm.quests.under({ guildId: questFieldsContract.shape.guildId.parse('guild-1') }).add(1, () => []);
 ```
+
+A real recipe reads `guildId` off its own typed `inputs` in exactly this spot instead of a literal —
+`recipe`'s `build` argument is `(input) => readonly Op[]`, where `input` is inferred from `inputs`.
+
+**An ingredient's `defaults` are applied AFTER `under()`, and silently overwrite whatever field the two
+share.** `under({ guildId })` puts `guildId` into the row's fields first; `defaults(index)` is spread on
+top of it. So a `defaults` that also names `guildId` wins, and the caller's own input is gone with
+nothing to say so. Give `under()` and `defaults` different fields, or the value the caller supplied is
+not the value the row gets.
 
 **An ingredient's own EXTRA** — whatever that ingredient declared, and nothing else has it.
 
 ```ts
-g[0].sessions.add(1, (s) => [s[0].withNestedChain({ depth: 2 })]),
+g[0].sessions.add(1, (s) => [
+  s[0].withNestedChain({ depth: nestedChainArgsContract.shape.depth.parse(2) }),
+]),
 ```
 
 **`saveRecordAs` saves the RECORD, not an id.** The record is the row as it exists after creation, so
 the ids come along inside it. One mechanism rather than two: a `saveIdsAs` next to it would be a second
 name for a subset of the same thing, and callers would have to learn which one carries the slug.
+
+**The record `saveRecordAs` saves is a snapshot taken at the moment the row is CREATED, not a live view
+of it.** Nothing later updates it: a sibling ingredient appending to the same underlying file, or a
+later `set` on the same row, changes what is on disk without changing what the plan already saved. The
+two diverge from that point on, and nothing about the call site says so.
+
+**The ruling: a snapshot, and this document says so here, for two reasons.** It is what a plan can
+honestly promise without re-reading every saved row at the end — which would demand a query route on
+every ingredient that saves — and a snapshot is predictable, where a live view only raises the same
+question again: as of when?
+
+**The consequence for a recipe author: read a value written after a row was saved back from the target,
+never off the plan's output.** A real recipe already does exactly this, for exactly this reason —
+`quest-advances-one-step`'s own integration test reads its quest's operation ledger off the real file on
+disk rather than off the saved record, because the ledger keeps changing after the row that holds it was
+saved.
+
+**A saved name is a KEY, and the save behind it is last-wins, silently.** Two different rows can land
+under one name — `all.saveRecordAs({ name })` on a broadcast handle saves once per row under that same
+name, and two rows named alike by hand do the same thing. Nothing refuses either at build time or in
+the pre-flight: the plan's output holds exactly one entry per name, and it is whichever row saved LAST.
+Treat a name as a label for the one row you chose to keep, never as a bucket a set of rows can share.
 
 **No chainable reaches a row that already exists.** `add` mints new rows; `filter` matches rows this
 ingredient's target already holds; `fromSaved` names a row `saveRecordAs` saved earlier IN THIS PLAN;
@@ -939,31 +1031,41 @@ rewinding a quest's status by reading, modifying and rewriting a file the real s
 `scrolls/seigelense/plans/recipes-seeding-survey.md` finding 2 for the call sites. This is a hole in
 the chain, not something solved elsewhere in this document.
 
-Everything together, on one recipe:
+Everything together, exactly as `every-chainable.ts` builds it:
 
 ```ts
-export const guildMidExecution = recipe(
-  { name: 'guild-mid-execution', description: 'one guild holding three quests, the first running' },
-  () => [
-  dm.guilds.add(1, (g) => [
-    g[0].set({ name: 'Siege' }),
-    g[0].saveRecordAs({ name: 'guild' }),
+export const everyChainable = dm.guilds.add(1, (g) => [
+  g[0].set({ name: guildFieldsContract.shape.name.parse('Siege') }),
+  g[0].saveRecordAs({ name: 'guild' }),
 
-    g[0].sessions.add(1, (s) => [s[0].saveRecordAs({ name: 'origin' })]),
-
-    g[0].quests.add(3, (q, all) => [
-      all.set({ userRequest: 'seeded' }),
-
-      q[0].set({ status: 'in_progress', title: 'The running one' }),
-      q[0].operations.filter({ where: { role: 'riftcarver' }, expect: 'one' }).remove(),
-
-      q[1].set({ userRequest: fromSaved({ name: 'origin', field: 'sessionId' }) as never }),
-      q[2].setRaw({ status: 'complete' }),        // deliberately inconsistent, for an attack walk
-      q[2].saveRecordAs({ name: 'third' }),
-    ]),
+  g[0].sessions.add(1, (s) => [
+    s[0].saveRecordAs({ name: 'origin' }),
+    s[0].withNestedChain({ depth: nestedChainArgsContract.shape.depth.parse(2) }),
   ]),
+
+  g[0].quests.add(2, (q, all) => [
+    all.set({
+      userRequest: fromSavedRefTransformer({
+        name: SavedRecordNameStub({ value: 'origin' }),
+        field: FieldNameStub({ value: 'sessionId' }),
+      }),
+    }),
+    q[0].set({
+      status: 'underway',
+      title: questFieldsContract.shape.title.parse('The running one'),
+    }),
+    q[1].setRaw({ status: 'finished' }),
+    q[1].remove(),
+  ]),
+
+  g[0].quests.filter({ where: { status: 'queued' } }).remove(),
 ]);
 ```
+
+**A production recipe wraps exactly this builder.** `recipe({ name: 'guild-mid-execution',
+description: '…' }, () => [ …the array above… ])` — `recipe`'s own second argument takes this same
+`(input) => readonly Op[]` shape, so nothing about the chain changes inside a real recipe; only the
+name, the description and the wrapper are added.
 
 ### A plan is data, and one plan runs three ways
 
@@ -1047,17 +1149,17 @@ know it diverges from.
 
 **The framework names neither files nor SQL, and a repo instantiates it once with its own TARGET
 type.** Dungeonmaster keeps its state as JSON in a home directory; most repos installing this keep rows
-in a database. Both are proven in `proto/` — `ingredients.ts` is the file-backed repo and `db.ts` is the
-database-backed one, and the chain over them is identical.
+in a database. `packages/hydration/test/type-fixtures/dm-target.ts` is the file-backed repo and
+`sql-target.ts` is the database-backed one, and the chain over them is identical.
 
 ```ts
 // a FILE-backed repo: its target is a home directory
-export type DmTarget = { home: string; baseUrl?: string };
-const { ingredient, registry, run } = createHydration<DmTarget>();
+export interface DmTarget { home: HomeDirectory; baseUrl?: Url }
+const { ingredient, registry, recipe, run } = hydrationCreateBroker<DmTarget>();
 
 // a DATABASE-backed repo: its target is a transaction
-export type SqlTarget = { tx: Transaction; baseUrl?: string };
-const { ingredient, registry, run } = createHydration<SqlTarget>();
+export interface SqlTarget { tx: { query: (sql: SqlQuery, params: readonly unknown[]) => Promise<SqlQueryResult> }; baseUrl?: Url }
+const { ingredient, registry, recipe, run } = hydrationCreateBroker<SqlTarget>();
 ```
 
 **A transaction as the target is what gives a database repo the rollback a throwaway home gives this
@@ -1069,13 +1171,19 @@ one.** A plan that dies halfway leaves nothing behind either way.
 export const questIngredient = ingredient({
   name: 'quest',
   description: 'one quest under a guild, at whatever status you set it to',
+  fields: questFields,
+  record: questRecordContract,
   links: [{ of: 'guild', as: 'guildId' }],
-  transitions: { field: 'status', to: ['created', 'approved', 'in_progress', 'complete'] },
+  transitions: {
+    field: 'status',
+    to: ['queued', 'accepted', 'underway', 'finished'],       // 'stalled' is deliberately absent
+    reach: ({ from, to, target, record }) => walkQuestStatus({ from, to, target, record }),
+  },
   routes: {
     // through the app: gates run, the relay seeds, work items appear
-    api: ({ target, fields }) => httpPost({ target, path: '/api/quests', fields }),
+    api: async ({ target, fields }) => httpPost({ target, path: '/api/quests', fields }),
     // the same end state, written into the home directory with no server involved
-    write: ({ target, fields }) => hydrate({ target, fields }),
+    write: async ({ target, fields }) => hydrate({ target, fields }),
   },
   copies: 'questPersistBroker',
 });
@@ -1087,14 +1195,20 @@ export const questIngredient = ingredient({
 export const postIngredient = ingredient({
   name: 'post',
   description: 'one post owned by a user, at whatever status you set it to',
+  fields: postFields,
+  record: postRecordContract,
   // `links` IS the foreign key: `authorId` is the column, `user` is the referenced row
   links: [{ of: 'user', as: 'authorId' }],
-  transitions: { field: 'status', to: ['draft', 'scheduled', 'published'] },
+  transitions: {
+    field: 'status',
+    to: ['draft', 'scheduled', 'published'],                  // 'takendown' needs a moderator, not a seed
+    reach: ({ from, to, target, record }) => walkPostStatus({ from, to, target, record }),
+  },
   routes: {
     // through the app: validation, a slug, a search-index write, an audit row
-    api: ({ target, fields }) => httpPost({ target, path: '/api/posts', fields }),
+    api: async ({ target, fields }) => httpPost({ target, path: '/api/posts', fields }),
     // a straight INSERT: none of that happens. This is the trade `write` exists to name
-    write: ({ target, fields }) => insert({ target, table: 'posts', fields }),
+    write: async ({ target, fields }) => insert({ target, table: 'posts', fields }),
   },
   copies: 'PostService.create',
 });
@@ -1197,21 +1311,27 @@ reused within one file's own `beforeAll`. So the `api` routes still share ONE in
 reason is Jest's file boundary, not an instance-boot cost that N separate boots would make slow. The `write` routes
 need no instance at all.
 
-### What the type prototype proved, and what it changed
+### What the type suite proves, and what it changed
 
 **The types were the risk in this design, so they were built and compiled before the doc described
-them.** The prototype is committed at `proto/`, EIGHT files under TypeScript 5.8.3 with `strict` on,
-run by `node proto/check.mjs`. It compiles CLEAN, and 29 of its lines are `@ts-expect-error` — cases
-that MUST fail. An unused directive is itself an error, so a rule that quietly stopped working fails
-that run rather than passing it.
+them.** `packages/hydration/test/type-fixtures/` is where that proof lives now: a `positive/` tree that
+compiles with zero diagnostics, and `declaration/` and `call-site/` trees where every fixture carries
+exactly one deliberate error. Each is graded by a real `ts.createProgram` run inside
+`typescriptProgramDiagnosticsAdapter`, and the grading test asserts the EXACT diagnostic — file, line,
+code and message — so a rule that quietly stopped working does not pass quietly: the expected diagnostic
+vanishes and the assertion fails.
 
-**It covers TWO repos, not one.** `ingredients.ts` is a file-backed repo (dungeonmaster's own guilds,
-quests, operations and sessions); `db.ts` is a database-backed one (users, posts and comments behind
-foreign keys). `usage.ts` exercises every chainable over both, and the doc's examples are copied out of
-it rather than written beside it.
+**It covers TWO repos, not one — but only one is proven through every chainable.** `dm-target.ts` is a
+file-backed repo (dungeonmaster's own guilds, quests, operations and sessions); `sql-target.ts` is a
+database-backed one (users, posts and comments behind foreign keys). `positive/every-chainable.ts`
+exercises every chainable over the FILE-backed repo only, and the doc's examples above are copied out
+of it. **Nothing positively exercises every chainable over the database-backed repo the same way** —
+`sql-target.ts`'s ingredients are used only by the negative fixtures that need its particular shape
+(a grandchild with two links, `u[0].comments`). This is open work, not a decision; see the gaps below.
 
-**The harness was mutation-tested**, because a green check that cannot go red proves nothing. Every
-break below was applied and reverted, and each was caught by the test that owns it:
+**Each rule is proven by a negative fixture whose exact diagnostic is pinned**, which is mutation-tested
+by construction rather than by a one-time pass someone has to remember to re-run: widen the rule and the
+pinned diagnostic disappears, so the very next ward run fails the assertion in that fixture's name.
 
 | Break | Caught by |
 |---|---|
@@ -1250,7 +1370,7 @@ break below was applied and reverted, and each was caught by the test that owns 
 | parent and child each referencing the other | `TS7022` — an inference cycle, and every type downstream degrades to `any`. Links name the parent by NAME, and a registry inverts them |
 | `all` as a property beside the handles | `Tuple<T, N> & { all: T }` silently loses the out-of-bounds check. `all` became `add`'s second builder argument |
 | a child accessor requiring only that its links be satisfiable | that puts `sessions` on `q[0]`, since a quest's ancestors include a guild. The host must also be named in the child's own links |
-| `Target` typed as `{ home, baseUrl }` inside the framework | that is dungeonmaster's shape sitting in a package that SHIPS. A repo now instantiates the framework once — `createHydration<SqlTarget>()` — and the framework names neither files nor SQL |
+| `Target` typed as `{ home, baseUrl }` inside the framework | that is dungeonmaster's shape sitting in a package that SHIPS. A repo now instantiates the framework once — `hydrationCreateBroker<SqlTarget>()` — and the framework names neither files nor SQL |
 
 **A second probe found a whole axis the first one missed.** The chain's negatives guard the CALL SITE.
 Nothing guarded the DECLARATION — an ingredient written wrong, before any recipe touches it. Ten
@@ -1269,9 +1389,11 @@ malformed declarations were written and **all ten compiled clean**:
 | 9 | `links.of` naming an unregistered ingredient | yes, at `registry()` |
 | 10 | two ingredients sharing a `name` | **no — runtime check** |
 
-**Nine of the ten are now compile errors**, in `declarations.ts`, each mutation-tested. The tenth —
-two ingredients sharing a name inside one registry — is not expressible in the type system and needs a
-runtime check at `registry()`. That is a row in the gaps table below rather than a thing to keep trying.
+**Nine of the ten are now compile errors**, one fixture per row under
+`packages/hydration/test/type-fixtures/declaration/`, each pinned to its exact diagnostic. The tenth —
+two ingredients sharing a name inside one registry — is not expressible in the type system and is a
+runtime check instead: `registryCreateBroker` throws `RegistryDuplicateNameError`, naming both keys,
+right beside the `RegistryDanglingLinkError` that catches row 9's dangling `links.of` the same way.
 
 **One smaller finding: the `const` modifier on `add`'s count is unnecessary.** A type parameter
 constrained `extends number` already infers the literal from a numeric-literal argument — measured by
@@ -1281,8 +1403,9 @@ reason the tuple works.
 ### The sad paths, which no type catches
 
 **Two different classes of wrong, and only one of them is a type error.** A malformed declaration and a
-bad call site fail at compile time, and `proto/` covers both. Everything below fails while the plan is
-RUNNING, against a real server and a real disk, and no amount of typing touches any of it.
+bad call site fail at compile time, and the type-fixture suite covers both. Everything below fails
+while the plan is RUNNING, against a real server and a real disk, and no amount of typing touches any
+of it.
 
 **Every one of these must fail LOUDLY and name what it was doing.** A seed that fails quietly is the
 worst outcome this design has: the walk starts against a state nobody intended, reports a defect that
@@ -1303,6 +1426,13 @@ does not exist, and a fixer goes hunting in working code.
 | the recipes package was never built | discovery | say exactly that. **Never report an empty list** — a session cannot tell "you have written none" from "you have not built it" |
 | a recipe's params fail validation | the `seed` step | refuse before seeding anything. Name the bad input and list what that recipe takes |
 
+**Diagnosing what a route threw asks what the thrown value LOOKS like, never what it is an instance
+of.** An error minted by the runtime's own machinery — a refused connection, a filesystem errno — is
+not reliably recognised by `instanceof` across a test boundary, because each test file gets its own
+copy of the built-in constructors. Every classification above reads shape off the caught value instead
+— a `code`, a `path`, a `status` — which is what makes it work whether the error crossed a real socket,
+a real filesystem call, or a test file that built one by hand.
+
 **A half-run plan is the case that needs a decision, not an apology.** Where the plan runs against
 something throwaway — a fresh instance's home, a database transaction — the answer is easy: discard it,
 nothing is left behind. The framework implements no undo and must not, because half-undoing is worse
@@ -1322,7 +1452,7 @@ not; a second run stacks new rows on top of the first attempt's. Start a fresh i
 
 | Probe | Catches | Runs | Lives in |
 |---|---|---|---|
-| the type suite | a malformed declaration, a bad call site | every ward, in milliseconds | `proto/`, then the packages' own tests |
+| the type suite | a malformed declaration, a bad call site | every ward, in milliseconds | `packages/hydration/test/type-fixtures/`, graded by the packages' own tests |
 | a sad-path run | a refused connection, a failed write, a gate that says no | only against a real server and a real disk | integration tests, and the combinatorial rounds |
 
 **A green type suite says nothing about any row in the table above**, and it is worth writing that down
@@ -1409,21 +1539,23 @@ found.**
 
 | Gap | What it needs |
 |---|---|
-| **A plan containing an `api`-only ingredient cannot say so before it runs.** The prototype leaves `baseUrl` optional on each repo's own target and stops there | the plan should carry the routes it requires, so a targetless run is refused at the call rather than partway through, with half a plan on disk |
-| **`fromSaved` is not typed against the field it lands in.** The prototype needed a cast | the saved row's field type has to reach the `set` it is used in, or a cross-link can point at the wrong column and compile |
+| **A plan containing an `api`-only ingredient cannot say so before it runs.** Every real target (`DmTarget`, `SqlTarget`) leaves `baseUrl` optional and stops there | the plan should carry the routes it requires, so a targetless run is refused at the call rather than partway through, with half a plan on disk |
+| ~~`fromSaved` is not typed against the field it lands in~~ **CLOSED** | `Settable<I>` types a plain field as `F[K] \| SavedRef`, so `fromSavedRefTransformer`'s result compiles straight into `set` with no cast. Only a TRANSITION field still refuses one — it narrows to the ingredient's own `to` union instead, which a cross-link cannot satisfy by construction |
 | **A typed plan output is scheduled work, not delivered yet.** *"A plan is data, and one plan runs three ways"* requires the plan's output to carry `guild` and `target`, each typed to its own record contract, and today's plan returns an untyped record the caller casts | threading the saved names through every op producer's return type, so `saveRecordAs({ name })` types the plan's output as the chain builds. The requirement stands; only the delivery is pending |
 | **A recipe cannot call another recipe.** There is `add` and there is `filter`, and no `include` | recipes will duplicate each other's openings within a week of two people writing them. `include(otherRecipe({ … }))` splicing the other plan's ops in, with its saved names namespaced |
 | **The MCP wire has no compile-time check at all** | narrower now that a recipe declares its `inputs` as a zod schema: the wire validation parses a `seed` step's `params` through that same schema before seeding, rather than generating one from scratch. What is still open is wiring that parse into the `seed` step itself. Named here because the in-process union looks like it covers both surfaces and does not |
-| **`recording` is declared and unexercised** | no ingredient in the prototype uses it, so nothing about it has been proven. **The `runs` line's write-only rule stands regardless**: the check asks only whether a `write` route is absent, so it reports `needs a server: <ingredient>` for ANY ingredient lacking one — not only a `recording`-only ingredient, but equally one declaring both `api` and `recording`. This is the cost of the rule, not a bug in it — named here for whoever first ships a `recording`-only ingredient |
-| **`copies:` has no valid target for a shape only an external tool writes** | a Claude session transcript is the case: the Claude CLI writes it, and the only in-repo artifact producing that shape is a test fixture, not production code. Until answered, that ingredient cannot honestly declare a `write` route |
+| **`recording` is declared and unexercised** | no ingredient in either real target set uses it, so nothing about it has been proven. **The `runs` line's write-only rule stands regardless**: the check asks only whether a `write` route is absent, so it reports `needs a server: <ingredient>` for ANY ingredient lacking one — not only a `recording`-only ingredient, but equally one declaring both `api` and `recording`. This is the cost of the rule, not a bug in it — named here for whoever first ships a `recording`-only ingredient |
+| **`copies:` has no valid target for a shape only an external tool writes** | a Claude session transcript is the case: the Claude CLI writes it, and the only in-repo artifact producing that shape is a test fixture, not production code. **Built against this repo, the consequence is concrete: the session and sub-agent ingredients are not declared at all**, because a `write` route must declare `copies:` and neither has a production writer to name. Every route broker behind them exists and is tested; only the declaration is blocked, and those two ingredients back a large share of the conversion's call sites |
 | **Two lint rules Part 5 requires — an ingredient holds no DOM handle, and an ingredient calls no clock or random source — are UNBUILT, and no chunk owns either** | `no-hardcoded-package-names` in `local-eslint` is the template to copy, and its own blind spot is the caution to copy with it. Meanwhile neither constraint is enforced by anything: with the chain supplying the index, reaching for a clock is the only way left to break determinism |
-| **Two ingredients may share a `name` inside one registry, and nothing catches it** | not expressible in the type system. A runtime check at `registry()`, throwing with both keys |
+| ~~Two ingredients may share a `name` inside one registry, and nothing catches it~~ **CLOSED** | not expressible in the type system, so `registryCreateBroker` checks it at runtime instead: `RegistryDuplicateNameError` throws naming both registry keys |
 | ~~A `filter` inside a nested `add` has undefined scope~~ **CLOSED** | it is scoped to its immediate host. The `filter` op carries `scope`, the host's row reference, and the runner matches only rows whose ancestor chain contains it. The alternative — instance-wide — lets a recipe holding two guilds delete rows belonging to a parent it did not create |
-| **No sad path is implemented or tested** | the table above is a spec, not a report. Nothing has driven a refused connection or a failed write |
-| **A row added at TOP LEVEL whose `links` nothing supplies compiles clean** | `Entry<R>` hands out a collection for every registered ingredient, so `dm.quests.add(1, …)` at top level typechecks with no guild anywhere — measured against the prototype. The RUNNER must refuse it before the first write |
+| ~~No sad path is implemented or tested~~ **MOSTLY CLOSED** | most rows of the table above are now driven against real conditions: a genuinely refused socket, a real server answering an error with a real body, a real denied write, a real race on one file. **Two rows cannot be driven in this repo, and both reasons are structural, not neglect.** A gate refusing a transition is ingredient-specific business logic the framework owns no gates for by design, so only the recipes package can drive it for real. A transaction rolling back needs a real database engine, a schema with a real constraint, and a consumer's own wrapper that begins a transaction, catches the rejection, rolls back and throws — dungeonmaster's own state is files, so none of that has an honest home here, and nothing inside the framework throws it, deliberately |
+| **A row added at TOP LEVEL whose `links` nothing supplies compiles clean** | `Entry<R>` (`{ [K in keyof R]: Collection<R, R[K]> }`) hands out a collection for every registered ingredient with an empty ancestor list, so `dm.quests.add(1, …)` at top level typechecks with no guild anywhere. The RUNNER must refuse it before the first write |
 | **Production code mints uuids and timestamps that reach the screen** | `guild-add-broker.ts:35` and `quest-hydrate-broker.ts:88,131`. No lint rule over the recipes folder can reach them. Each painted value needs an override in production, or it is an observable against the app |
 | ~~Nothing creates the recipes package in a consumer repo~~ **CLOSED** | `InstallRecipesScaffoldResponder` on the `siegelense` branch already does it, tested. It needs the rename, not a rewrite |
 | **`ban-primitives` is off only for `**/@types/**`** | the framework's generic machinery needs `N extends number` and `of: string`, which that rule refuses everywhere else. `@dungeonmaster/hydration` needs its own entry in `eslint.config.js`, and the entry needs a comment saying why, or somebody deletes it |
+| **A recipe composing two of this repo's own routes can span two different stores.** `guildWriteRouteBroker` registers a guild through `@dungeonmaster/orchestrator`'s `StartOrchestrator`, whose own brokers resolve their home off the GLOBAL `process.env.DUNGEONMASTER_HOME` rather than the `target` the route was handed, while `questWriteRouteBroker` writes its file straight to `target.home`. A recipe combining both kinds reads and writes two unrelated stores, and nothing in the pre-flight or the runner checks they agree | **This is an observable against this repo, not a framework rule** — the routes, not the design, disagree. The failure is inconsistent, which is what makes it dangerous: a caller that never sets the env var to match `target.home` gets a loud error in one shape and a silently empty result in the other, and a silently empty result is exactly what manufactures a false defect report against working code. The general rule it implies belongs beside *"Routes: how an ingredient makes its state"*: a route that reaches code resolving its own storage location escapes the target, and the isolation this design promises holds only while every route honours the target it is given |
+| **A package the recipes depend on cannot have its own tests converted by importing them.** `siegelense-recipes` depending on `orchestrator` shuts every orchestrator-owned integration target out of this migration — see *"The migration IS the validation"* | not solved, descoped. Every repo installing this framework will have some package in this position, whichever one its own recipes call into. **Duplicating ingredients into the dependent package to dodge the cycle is rejected outright** — that is the exact duplication the recipes package exists to end |
 
 ### Mechanics the framework has to implement
 
@@ -1474,6 +1606,7 @@ before anything runs; a plan's RESULTS are not.
 | a `fromSaved` names a record no op in this plan saves, or one declared LATER | the name, and the names that are saved |
 | a row whose `links` no ancestor supplies — including one added at TOP LEVEL | the ingredient and the link it cannot fill |
 | a chain call needs `query`, `update` or `remove` and the ingredient declares no matching route | the ingredient and the verb it cannot serve |
+| a `set` asks for a transition value the ingredient's `to` never declared | the ingredient, the field, the value asked for, and the values the ingredient does declare |
 
 **Mid-run** — they depend on what the app actually did, so no pre-flight can reach them:
 
@@ -1545,7 +1678,7 @@ cannot reproduce a test's setup has found a hole no invented example would have.
 | | Files | Seed domain state | What they use |
 |---|---|---|---|
 | `*.e2e.ts` | 122, all in `web` | **118** | Playwright harnesses, every one |
-| `*.integration.test.ts` | 129, across 14 packages | **17**, of which **16 are convertible** | `installTestbedCreateBroker`; one is a test OF the hydrator and is excluded below |
+| `*.integration.test.ts` | 129, across 14 packages | **17**, of which **16** seed domain state (one is a test OF the hydrator and is excluded below) | `installTestbedCreateBroker`; **most of the 16 are later descoped by the dependency cycle below — only 1 converts** |
 
 **The other 104 integration tests are not conversion targets.** They take a temp directory from
 `installTestbedCreateBroker` and never build a guild or a quest. Leave them alone; a migration that
@@ -1555,8 +1688,9 @@ touches them is spending itself on files that have no seeding to replace.
 
 ```bash
 python3 scrolls/tools/seed-census.py              # the census, plus the target FILE LIST
-python3 scrolls/tools/seed-census.py --progress   # call sites remaining, for the running mark
-python3 scrolls/tools/seed-census.py --json       # the same, machine-readable
+python3 scrolls/tools/seed-census.py --progress   # harness-identifier occurrences — see below
+python3 scrolls/tools/seed-census.py --methods    # the running mark: per-method call sites, routing, direct writes
+python3 scrolls/tools/seed-census.py --json       # the census, machine-readable
 ```
 
 It prints every conversion target by path, separates the excluded test-of-a-`copies:`-target from the
@@ -1564,9 +1698,20 @@ rest, and counts the call sites each seeding harness still holds. **A figure nob
 figure that rots**, which is why the counts in this section are a command rather than a number
 somebody typed.
 
-**`--progress` is the running mark the build prompt asks for.** It reports 916 seeding call sites
-today; zero across all three harnesses is the conversion finished, the number only falls, and a batch
-that does not move it converted nothing.
+**`--progress` counts harness IDENTIFIERS, not seeding calls, so it cannot be the running mark.** An
+import line, a `guildHarness({...})` construction and a lifecycle hook all match it, and the seeding
+call usually does not — the common two-line form `const guilds = guildHarness({...});` then
+`await guilds.createGuild({...});` counts the construction and is blind to the call beneath it. The
+conversion this document specifies keeps every harness's name and call signature and replaces only a
+method's body, so this count cannot fall as the conversion proceeds — not "will not reach zero," will
+not move at all.
+
+**`python3 scrolls/tools/seed-census.py --methods` is the running mark instead.** For every method on
+the three seeding harnesses it reports the method's call sites, whether its body reaches
+`dmRegistryBroker`, and whether it still calls a filesystem function or an HTTP verb directly. The
+conversion is finished when that last column holds nothing beyond the methods
+`scrolls/seigelense/plans/recipes-chunk-09-10-migration.md` names to stay raw — a row reached by a
+bare id from outside the plan, an assertion, or a domain no ingredient covers.
 
 **Three harnesses are almost the whole job.** Counted by call site across the e2e specs:
 
@@ -1595,7 +1740,7 @@ discover them one file at a time.
 
 | Step | Scope | Environment | What it proves |
 |---|---|---|---|
-| 1 | the 17 integration domain-seeders | files only, no server | the **`write` routes**, and that a plan runs with no `baseUrl` at all |
+| 1 | the 16 non-excluded integration domain-seeders — in practice, the 1 outside `orchestrator` | files only, no server | the **`write` routes**, and that a plan runs with no `baseUrl` at all |
 | 2 | the 118 e2e specs | a real server and a real browser | the **`api` routes**, and that one plan serves a caller with both |
 | 3 | one manual siegelense round | a live instance, driven by hand | the **`seed` step, `recipes {}`, and the params validation** — the tool half, which neither suite touches |
 
@@ -1642,10 +1787,40 @@ as subject — `questModifyBroker`, `questPauseBroker`, `preStampInProgressLayer
 point. **Mentioning the broker is not the test; `describe()` naming it is.** So step 1 has sixteen
 targets, not seventeen and not twelve.
 
+**Sixteen is where the exclusion rule stops, not where the conversion count stops.** The dependency
+cycle below descopes most of those sixteen outright — see "A package the recipes depend on is out of
+reach for this conversion." Only the one target outside `orchestrator` converts.
+
 The same rule applies in a consumer repo wherever a `copies:` target has its own test.
 
 **Convert in small batches and keep the suite green between them.** 118 specs converted in one pass and
 then run is a red suite with no way to tell which conversion caused which failure.
+
+#### A package the recipes depend on is out of reach for this conversion
+
+**A repo cannot convert a test inside a package its own recipes depend on.** `packages/siegelense-recipes`
+depends on `@dungeonmaster/orchestrator`, because several of its routes call through orchestrator rather
+than imitating it. So `orchestrator` cannot depend back on `siegelense-recipes` — that would be a real
+dependency cycle, not a hypothetical one: under Jest's own `--conditions=source` resolution the cycle
+breaks at module-evaluation time, not merely at install time. Every repo installing this framework will
+have some package in that position, whichever one its own recipes call into.
+
+**What that costs here:** most of the cheap half of this migration — the chunk 9 integration conversions
+— sits inside `orchestrator` itself, and every one of those targets is descoped for exactly this reason.
+Only the one integration target inside `server` converts, because `server` sits outside the cycle. The
+chunk 10 browser specs are unaffected — none of them is a file inside `orchestrator` — and they are the
+larger half of this migration.
+
+**The trade behind the cycle is genuine, and every repo choosing between the two pays one side of it:**
+
+| A route that | Gains | Costs |
+|---|---|---|
+| CALLS the production code | it cannot drift — it is the real thing | its package becomes a dependency, and every test inside that package is shut out of the conversion |
+| IMITATES the production code | no dependency, so nothing is shut out | it can drift, which is the whole reason `copies:` exists |
+
+**The ruling: the orchestrator-owned targets are descoped from this conversion, and the limit is
+documented rather than worked around.** Duplicating ingredients into `orchestrator` to dodge the cycle
+is explicitly rejected — that is the exact duplication `siegelense-recipes` exists to end.
 
 ### An ingredient touches STATE, never a screen
 
