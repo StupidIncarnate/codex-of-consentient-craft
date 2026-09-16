@@ -400,7 +400,11 @@ let a person rule on it.
 git diff
 \`\`\`
 
-Read the diff. Two questions:
+Read the diff. **Trust the plan for what it intended, verify the code for what is done.** A fixer's
+\`CAUSE\` and \`DEVIATED\` lines say what it meant to change. The diff is the only thing that says what
+it changed.
+
+Two questions:
 
 1. **Does the change match what a round actually measured?** A fixer that changed the assertion
    instead of the behaviour, or that made the symptom go away without touching the cause, is a fix you
