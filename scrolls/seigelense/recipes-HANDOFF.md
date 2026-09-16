@@ -18,20 +18,45 @@ uncommitted. An agent was still editing the quest status allowlist when it lande
 npm run ward -- --committed --uncommitted
 ```
 
-`timeout: 600000`. Fix whatever it finds. **Expect breakage in `packages/local-eslint`'s
-`status-literal-statics.ts` and its tests, and in `packages/siegelense-recipes`'s quest ingredient** —
-that is the half-finished work, not a mystery.
+`timeout: 600000`. **Two known failures, both one line, both in files nobody edited:**
 
-**What that agent was doing:** restoring a compile-time guarantee. The specification says
-`set({ status: 'blocked' })` must not compile, because `blocked` is off the transition list. A local
-rule (`ban-quest-status-literals`) refuses an inline array of status literals, so the quest
-ingredient derives its `to` list by filtering — which widens the static type back to the whole union
-and loses the refusal. The fix is an allowlist entry for an ingredient's `transitions.to`, narrow
-enough that the rule still catches what it exists for.
+```
+packages/siegelense-recipes/src/brokers/guild/api-route/guild-api-route-broker.proxy.ts
+packages/siegelense-recipes/src/brokers/quest/api-route/quest-api-route-broker.proxy.ts
+  @dungeonmaster/enforce-proxy-child-creation ... dmHttpResponseUnwrapAdapter ...
+```
 
-**It was also asked one question worth re-asking**: the negative fixture asserting that rule grades
-the FIXTURE ingredients, not the real quest ingredient. It is very likely green while the real
-ingredient has lost the property. If so, that applies to every rule in that suite, not just this one.
+Both api-route brokers gained a call to the adapter that unwraps an HTTP envelope into the record the
+runner expects, and neither proxy composes that adapter's proxy. **A fix was dispatched and may
+already be on disk — check before repeating it.**
+
+**This is the second time this rule has caught a real gap** that no file-scoped run would show, because
+the breakage lands one file away from its cause. **Run the package-wide lint, not just the files you
+touched.**
+
+### The interrupted work, which DID land
+
+The quest ingredient's `to` list now reads from a dedicated statics file rather than a filter, so
+`set({ status: 'blocked' })` fails to compile again — the guarantee the specification states outright.
+
+**The narrow route was chosen deliberately.** That lint rule's allowlist is checked once per FILE, so
+allowlisting the ingredient would have disabled it for every line of that file. A statics file whose
+only export is one array keeps the exemption to one declaration.
+
+**And the fixture proving that rule was green for the wrong reason.** It graded a stand-in ingredient
+that already wrote its list inline, so it never exercised the conflict. A new fixture imports the real
+quest ingredient and was proven both ways — the refusal fires now, and with the old filtering restored
+it produced zero diagnostics.
+
+**Re-ask that question of the rest of the suite.** If one fixture graded a stand-in nobody uses,
+others may too, and the negative suite would then prove its rules only for ingredients nobody relies
+on.
+
+**One more conflict to expect:** a `const`-bound array of statuses is exempt from `enforce-magic-arrays`
+only in `statics/`, a stub, a proxy or a test — and `ban-quest-status-literals` had no allowlist entry
+for a statics folder holding an ingredient's own transition list. **Every future ingredient declaring
+`transitions` hits this same dead end** and needs its own narrowly-scoped entry, following the pattern
+now established.
 
 ### 2. Merge master
 
