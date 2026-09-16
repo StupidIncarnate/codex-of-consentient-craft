@@ -17,7 +17,7 @@ describe('sessionIngredientBroker', () => {
   });
 
   describe('routes', () => {
-    it('VALID: {} => declares exactly query, remove and write — no api — with copies pointing at claude-mock/bin/claude', () => {
+    it('VALID: {} => declares exactly query, remove and write — no api — with copies pointing at external:claude-cli', () => {
       sessionIngredientBrokerProxy();
       const config = sessionIngredientBroker as unknown as IngredientConfigData;
 
@@ -26,7 +26,7 @@ describe('sessionIngredientBroker', () => {
         copies: config.copies,
       }).toStrictEqual({
         routeNames: ['query', 'remove', 'write'],
-        copies: 'claude-mock/bin/claude',
+        copies: 'external:claude-cli',
       });
     });
   });

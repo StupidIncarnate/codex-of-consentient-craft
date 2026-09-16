@@ -1,7 +1,10 @@
 /**
  * PURPOSE: The quest ingredient's `query` route — lists every quest under a guild, then narrows
- * to the ones matching `where`. Reach for `questListBroker` directly: it IS exported from
- * `@dungeonmaster/orchestrator`'s `src/index.ts` and returns `Quest[]` — an exact match for this
+ * to the ones matching `where`. Reach for `questListBroker` directly, BY PATH from the
+ * orchestrator's `/brokers` subpath rather than through the main `.` barrel — importing anything
+ * from `.` evaluates `startup/start-orchestrator.ts`, which boots a rate-limits watcher and a
+ * stale-process watchdog at module scope, and this package is a short-lived hydration tool, not
+ * the long-running server those exist for. It returns `Quest[]` — an exact match for this
  * ingredient's own `record` contract, unlike `guildListBroker`'s decorated `GuildListItem`.
  *
  * `where` must carry `guildId`: a quest's parent is its FOLDER, not a field on the record (a
@@ -14,7 +17,7 @@
  * await questQueryRouteBroker({ target, where: { guildId: 'f47ac10b-…', title: 'Quest 2' } });
  * // Returns only the matching quest
  */
-import { questListBroker } from '@dungeonmaster/orchestrator';
+import { questListBroker } from '@dungeonmaster/orchestrator/brokers';
 import { guildIdContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 

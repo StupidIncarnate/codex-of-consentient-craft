@@ -10,7 +10,7 @@
  * ingredient carries, because a sub-agent's transcript directory is encoded the same way its
  * parent session's is.
  *
- * `copies: 'claude-mock/bin/claude'` shares the session ingredient's own finding — see
+ * `copies: 'external:claude-cli'` shares the session ingredient's own finding — see
  * `session-ingredient-broker.ts`'s own header for why this string and not an in-repo broker name.
  *
  * `defaults` mints `agentId`, `toolUseId`, `taskDescription` and `completed: true`. `taskPrompt`,
@@ -58,5 +58,5 @@ export const subagentIngredientBroker = ingredient({
     query: subagentQueryRouteBroker,
     remove: subagentRemoveRouteBroker,
   },
-  copies: 'claude-mock/bin/claude',
+  copies: 'external:claude-cli',
 });

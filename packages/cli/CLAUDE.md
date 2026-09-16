@@ -62,13 +62,15 @@ hand-copied config gets wrong.
 
 ## `dungeonmaster siegelense`
 
-Every call is `dungeonmaster siegelense <call>`. Seven names route to a responder — `start`, `run`,
-`results`, `kill`, `status`, `cleanup`, `compare`; the other six the spec pins in the same closed set
-(`capacity`, `profile`, `prune`, `snapshots`, `recipes`, `docs`) answer "is a siegelense call but is
-not built yet", naming the seven that are, rather than "unknown subcommand" — a caller typing one of
-the six read it in the spec, so the honest answer is "not yet", not "unknown". `dungeonmaster
-siegelense --help` prints the index (one line per built call, then the not-built six); `dungeonmaster
-siegelense <call> --help` prints that call's flags, refusals and example.
+Every call is `dungeonmaster siegelense <call>`. The names that route to a responder are the keys of
+`siegelenseHelpStatics.calls` (`packages/siegelense/src/statics/siegelense-help/siegelense-help-statics.ts`);
+every other name in the closed set `siegelenseCallStatics.calls.names`
+(`packages/siegelense/src/statics/siegelense-call/siegelense-call-statics.ts`) answers "is a
+siegelense call but is not built yet", naming the ones that are, rather than "unknown subcommand" —
+a caller typing one of the not-yet-built names read it in the spec, so the honest answer is "not
+yet", not "unknown". `dungeonmaster siegelense --help` prints the index (one line per built call,
+then the not-built ones); `dungeonmaster siegelense <call> --help` prints that call's flags, refusals
+and example.
 
 **`CliSiegelenseResponder` validates nothing, and must stay that way.** It forwards `args` verbatim
 into a dynamic import of `@dungeonmaster/siegelense/startup`. `SiegelenseFlow`'s route table, keyed by

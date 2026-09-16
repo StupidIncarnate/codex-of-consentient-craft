@@ -10,14 +10,14 @@
  * over: this row's own field is `cwd`, not `guildId`, and the value it reads off the guild is
  * `path`, not `id` — the case the optional `from` exists for.
  *
- * `copies: 'claude-mock/bin/claude'` is this package's answer to Q7-2 of
+ * `copies: 'external:claude-cli'` is this package's answer to Q7-2 of
  * `scrolls/seigelense/plans/recipes-chunk-07-repo-ingredients.md`. Nothing in this repo writes a
  * Claude session transcript in production — the Claude CLI does — so no in-repo broker exists for
- * this route to imitate. `packages/web/test/harnesses/claude-mock/bin/claude` is the one artifact
- * whose job is producing that exact shape, so a diagnosing agent sent there finds the real
- * counterpart. `ingredientConfigContract`'s own rule only demands a non-empty `copies` string; it
- * has no opinion on which string names the counterpart, so this is a repo-level judgment call, not
- * a framework answer.
+ * this route to imitate. `copiesTargetContract` requires the `external:` prefix exactly for this
+ * case — a producer outside the repo — and refuses a slash, so this no longer names a path into
+ * `packages/web/test/harnesses/claude-mock/bin/claude` (the fake CLI that shape used to point at):
+ * a diagnosing agent reads this ingredient's own header instead, which is where that mapping now
+ * lives.
  *
  * `defaults` mints only `sessionId` — `cwd` arrives through the link, and `lines` has no honest
  * default (an empty transcript asserts nothing useful), so a caller supplies it via `set()`.
@@ -55,7 +55,7 @@ export const sessionIngredientBroker = ingredient({
     query: sessionQueryRouteBroker,
     remove: sessionRemoveRouteBroker,
   },
-  copies: 'claude-mock/bin/claude',
+  copies: 'external:claude-cli',
   extras: {
     withNestedChain: {
       args: nestedChainArgsContract,

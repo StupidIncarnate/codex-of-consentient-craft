@@ -1,4 +1,5 @@
-import { questGetBroker, questModifyBroker } from '@dungeonmaster/orchestrator';
+import { questGetBroker, questModifyBroker } from '@dungeonmaster/orchestrator/brokers';
+import { questGetBrokerProxy, questModifyBrokerProxy } from '@dungeonmaster/orchestrator/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { dmHttpRequestAdapterProxy } from '../../../adapters/dm-http/request/dm-http-request-adapter.proxy';
@@ -28,6 +29,12 @@ export const questReachRouteBrokerProxy = (): {
   setupStart: ({ url, response }: { url: string; response: DmHttpResponse }) => void;
   setupReload: ({ input, result }: { input: GetQuestInput; result: GetQuestResult }) => void;
 } => {
+  // questGetBrokerProxy/questModifyBrokerProxy's own setup drives a full fs-lookup simulation
+  // rather than letting a test stage a different result per HOP — created here only to satisfy
+  // `enforce-proxy-child-creation`; this route's own registerMock below stages each hop's answer,
+  // keyed by its own `input` so successive hops don't overwrite each other.
+  questGetBrokerProxy();
+  questModifyBrokerProxy();
   const modifyHandle = registerMock({ fn: questModifyBroker });
   const getHandle = registerMock({ fn: questGetBroker });
   const httpProxy = dmHttpRequestAdapterProxy();

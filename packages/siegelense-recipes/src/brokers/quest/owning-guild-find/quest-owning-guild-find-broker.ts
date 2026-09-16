@@ -1,17 +1,16 @@
 /**
- * PURPOSE: Finds which guild owns a quest by scanning every registered guild's quest list. Reach
- * for this over `questFindQuestPathBroker` (which answers the identical question): that broker is
- * a BARE named export from `@dungeonmaster/orchestrator`, and combining a bare-named-export mock
- * with a `StartOrchestrator.<method>` property mock in one test does not compose reliably —
- * measured directly, the property mock silently falls through to the real implementation. This
- * broker reaches the same answer through `StartOrchestrator` alone, so every caller in this
- * package can mock consistently, one way, everywhere.
+ * PURPOSE: Finds which guild owns a quest by scanning every registered guild's quest list.
+ * `guildListBroker`/`questListBroker` are imported BY PATH from the orchestrator's `/brokers`
+ * subpath rather than through `StartOrchestrator` on the main barrel: importing anything from
+ * that barrel evaluates `startup/start-orchestrator.ts`, which boots a rate-limits watcher and a
+ * stale-process watchdog at module scope, and this package is a short-lived hydration tool, not
+ * the long-running server those exist for.
  *
  * USAGE:
  * await questOwningGuildFindBroker({ questId });
  * // Returns the GuildId of the guild whose quest list contains this questId; throws if none does
  */
-import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { guildListBroker, questListBroker } from '@dungeonmaster/orchestrator/brokers';
 import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 
 export const questOwningGuildFindBroker = async ({
@@ -19,12 +18,12 @@ export const questOwningGuildFindBroker = async ({
 }: {
   questId: QuestId;
 }): Promise<GuildId> => {
-  const guilds = await StartOrchestrator.listGuilds();
+  const guilds = await guildListBroker();
 
   const perGuildQuests = await Promise.all(
     guilds.map(async (guild) => ({
       guildId: guild.id,
-      quests: await StartOrchestrator.listQuests({ guildId: guild.id }),
+      quests: await questListBroker({ guildId: guild.id }),
     })),
   );
 

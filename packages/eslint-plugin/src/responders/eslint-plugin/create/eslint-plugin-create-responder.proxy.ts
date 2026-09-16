@@ -72,6 +72,8 @@ import { ruleRequireValidationOnUntypedPropertyAccessBrokerProxy } from '../../.
 import { ruleEnforceProxyParamBindingBrokerProxy } from '../../../brokers/rule/enforce-proxy-param-binding/rule-enforce-proxy-param-binding-broker.proxy';
 import { ruleBanFlattenedContractParamsBrokerProxy } from '../../../brokers/rule/ban-flattened-contract-params/rule-ban-flattened-contract-params-broker.proxy';
 import { ruleBanAnonymousJsxInMapBrokerProxy } from '../../../brokers/rule/ban-anonymous-jsx-in-map/rule-ban-anonymous-jsx-in-map-broker.proxy';
+import { ruleBanDomHandlesInIngredientsBrokerProxy } from '../../../brokers/rule/ban-dom-handles-in-ingredients/rule-ban-dom-handles-in-ingredients-broker.proxy';
+import { ruleBanNondeterminismInIngredientsBrokerProxy } from '../../../brokers/rule/ban-nondeterminism-in-ingredients/rule-ban-nondeterminism-in-ingredients-broker.proxy';
 import { configDungeonmasterBrokerProxy } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy';
 import { EslintPluginCreateResponder } from './eslint-plugin-create-responder';
 
@@ -138,6 +140,8 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleEnforceProxyParamBindingBrokerProxy();
   ruleBanFlattenedContractParamsBrokerProxy();
   ruleBanAnonymousJsxInMapBrokerProxy();
+  ruleBanDomHandlesInIngredientsBrokerProxy();
+  ruleBanNondeterminismInIngredientsBrokerProxy();
   configDungeonmasterBrokerProxy();
 
   return {

@@ -9,6 +9,7 @@ import { siegelenseHelpStatics } from '@dungeonmaster/siegelense/statics';
 
 import { cliStatuslineHarness } from '../../../test/harnesses/cli-statusline/cli-statusline.harness';
 
+import { CliSiegelenseResponder } from '../../responders/cli/siegelense/cli-siegelense-responder';
 import { CliFlow } from './cli-flow';
 
 type BuiltSiegelenseCall = keyof typeof siegelenseHelpStatics.calls;
@@ -248,6 +249,19 @@ describe('CliFlow', () => {
 
   describe('command routing - siegelense', () => {
     const harness = cliStatuslineHarness();
+
+    // `CliSiegelenseResponder` reaches `@dungeonmaster/siegelense/startup` through a real dynamic
+    // import — never mocked here, see that file's own header for why. ts-jest transpiles that
+    // module's whole graph on first touch, and Jest attributes a lazily-compiled import's cost to
+    // whichever `it` triggers it, not to the suite. `beforeAll` runs outside every `it`'s own
+    // measured window, so paying that one-time cost here — result discarded — keeps it off whichever
+    // test happens to run first, the same fixture-cost pattern `get-testing-patterns` names for a
+    // spawned child or a compiled module graph.
+    beforeAll(async () => {
+      const stdout = harness.captureStdout();
+      await CliSiegelenseResponder({ args: [] });
+      stdout.restore();
+    });
 
     it('VALID: {command: "siegelense", args: []} => routes through the real dynamic import to the fleet responder and reports an empty registry', async () => {
       const testbed = installTestbedCreateBroker({

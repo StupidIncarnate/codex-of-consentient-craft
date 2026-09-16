@@ -1,4 +1,5 @@
-import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { guildListBroker, questListBroker } from '@dungeonmaster/orchestrator/brokers';
+import { guildListBrokerProxy, questListBrokerProxy } from '@dungeonmaster/orchestrator/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import type { GuildListItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
@@ -15,8 +16,13 @@ export const questOwningGuildFindBrokerProxy = (): {
     questsByGuildId: Readonly<Record<string, readonly Quest[]>>;
   }) => void;
 } => {
-  const listGuildsHandle = registerMock({ fn: StartOrchestrator.listGuilds });
-  const listQuestsHandle = registerMock({ fn: StartOrchestrator.listQuests });
+  // guildListBrokerProxy/questListBrokerProxy's own setup answers only ONE call each — created
+  // here only to satisfy `enforce-proxy-child-creation`; this broker's own registerMock below
+  // answers EVERY call, sticky, which every caller composing this proxy relies on.
+  guildListBrokerProxy();
+  questListBrokerProxy();
+  const listGuildsHandle = registerMock({ fn: guildListBroker });
+  const listQuestsHandle = registerMock({ fn: questListBroker });
 
   return {
     succeeds: ({

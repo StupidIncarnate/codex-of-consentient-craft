@@ -9,9 +9,13 @@
  * field and leaving the ledger empty, which is exactly the silent drift
  * `packages/orchestrator/CLAUDE.md` warns `writeQuestFile` produces.
  *
- * `questModifyBroker` and `questGetBroker` both resolve their quest file via the GLOBAL
- * `process.env.DUNGEONMASTER_HOME`, never via `target.home` — the same escape-the-target trap
- * `packages/siegelense-recipes/CLAUDE.md` already documents for `guildWriteRouteBroker` and
+ * `questModifyBroker` and `questGetBroker` are imported BY PATH from the orchestrator's
+ * `/brokers` subpath rather than through the main `.` barrel — importing anything from `.`
+ * evaluates `startup/start-orchestrator.ts`, which boots a rate-limits watcher and a
+ * stale-process watchdog at module scope, and this package is a short-lived hydration tool, not
+ * the long-running server those exist for. Both brokers still resolve their quest file via the
+ * GLOBAL `process.env.DUNGEONMASTER_HOME`, never via `target.home` — the same escape-the-target
+ * trap `packages/siegelense-recipes/CLAUDE.md` already documents for `guildWriteRouteBroker` and
  * `operationWriteRouteBroker`. This route inherits it rather than fixing it: `fileTargetHarness`
  * sets that env var for the duration of a test for exactly this reason.
  *
@@ -19,7 +23,7 @@
  * await questReachRouteBroker({ from: 'created', to: 'explore_flows', target, record: quest });
  * // Returns the reloaded Quest record once every hop between "created" and "explore_flows" lands
  */
-import { questGetBroker, questModifyBroker } from '@dungeonmaster/orchestrator';
+import { questGetBroker, questModifyBroker } from '@dungeonmaster/orchestrator/brokers';
 import {
   getQuestInputContract,
   questContract,

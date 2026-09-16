@@ -1,20 +1,22 @@
 /**
  * PURPOSE: The `--help` text for every `dungeonmaster siegelense <call>` — one entry per built
  * call under `calls`, keyed exactly to `siegelenseCallStatics.calls.names`, plus the index page's
- * headline and its list of the six not-yet-built names. `refusals` carries prose lifted verbatim
- * from the MCP tool description each call is replacing, unchanged except for renaming a JSON field
- * to the flag that now carries it — smoothing that wording is how a refusal stops refusing.
- * `internal.driver` documents the driver process `start` spawns; it sits outside `calls` because
- * nobody types `driver` at a terminal. Reach for this over `siegelenseCallStatics` when you need
- * the prose a caller reads — flags, refusals, an example — rather than just the closed list of
- * call names.
+ * headline and its list of the not-yet-built names. `index.headline` carries only the fixed prose;
+ * `siegelenseHelpRenderTransformer` appends the built-versus-total call count at render time, off
+ * `Object.keys(calls).length` and `siegelenseCallStatics.calls.names.length`, so landing a call here
+ * can never leave a stale tally behind. `refusals` carries prose lifted verbatim from the MCP tool
+ * description each call is replacing, unchanged except for renaming a JSON field to the flag that
+ * now carries it — smoothing that wording is how a refusal stops refusing. `internal.driver`
+ * documents the driver process `start` spawns; it sits outside `calls` because nobody types
+ * `driver` at a terminal. Reach for this over `siegelenseCallStatics` when you need the prose a
+ * caller reads — flags, refusals, an example — rather than just the closed list of call names.
  *
  * USAGE:
  * siegelenseHelpStatics.calls.results.refusals;
  * // Returns the one-element array holding the run-id refusal sentence
  *
  * siegelenseHelpStatics.index.notBuiltYet;
- * // Returns ['capacity', 'profile', 'prune', 'snapshots', 'recipes', 'docs']
+ * // Returns ['capacity', 'profile', 'prune', 'snapshots', 'docs']
  */
 
 import { resultsStatics } from '../results/results-statics';
@@ -31,14 +33,14 @@ const HUMAN_FLAG = {
   name: siegelenseOutputStatics.flags.human,
   value: null,
   required: false,
-  description: 'render the operator table instead of JSON. Only status and cleanup implement this.',
+  description:
+    'render the operator table instead of JSON. Only status, cleanup and recipes implement this.',
 } as const;
 
 export const siegelenseHelpStatics = {
   index: {
-    headline:
-      'dungeonmaster siegelense — every built call reachable without installing anything. Seven of thirteen calls are built.',
-    notBuiltYet: ['capacity', 'profile', 'prune', 'snapshots', 'recipes', 'docs'],
+    headline: 'dungeonmaster siegelense — every built call reachable without installing anything.',
+    notBuiltYet: ['capacity', 'profile', 'prune', 'snapshots', 'docs'],
     footer: "dungeonmaster siegelense <call> --help  for one call's flags and refusals",
   },
   calls: {
@@ -264,6 +266,17 @@ export const siegelenseHelpStatics = {
       output:
         'One JSON document on stdout: the CompareAnswer — console and server error deltas, network non-2xx deltas, and a last-capture pixel change. A READING, never a verdict on whether a unit passes.',
       example: 'dungeonmaster siegelense compare --instance inst_9b2c --run-a run_1 --run-b run_2',
+    },
+    recipes: {
+      summary: 'siegelense recipes — list what states can be created. No instance needed.',
+      synopsis: 'dungeonmaster siegelense recipes [--json] [--human]',
+      flags: [JSON_FLAG, HUMAN_FLAG],
+      refusals: [
+        'Takes no instance. `recipes` lists what states can be created, not what a running instance is doing — no instance is needed to answer it.',
+      ],
+      output:
+        'One JSON document on stdout: the RecipesAnswer — one entry per recipe, naming its description, inputs, whether it runs serverless or needs a server, and what it makes.',
+      example: 'dungeonmaster siegelense recipes',
     },
   },
   internal: {

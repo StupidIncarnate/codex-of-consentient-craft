@@ -1,14 +1,14 @@
 /**
  * PURPOSE: The operation ingredient's `write` route — appends one item onto the linked quest's
  * operations ledger, then persists the whole quest exactly as `questOperationsUpdateBroker` would.
- * Reach for `StartOrchestrator.getQuest` (property-style) rather than the bare `questGetBroker`
- * export: combining a bare named export mock with a `StartOrchestrator.<method>` property mock in
- * one test does not compose reliably (see `quest-owning-guild-find-broker.ts`'s own header for the
- * measurement) — every operation route stays property-only so its proxy composes cleanly with
- * `questFolderPathResolveBroker`, which is property-only too.
+ * Reaches `questGetBroker` BY PATH from the orchestrator's `/brokers` subpath rather than through
+ * `StartOrchestrator` on the main barrel: importing anything from that barrel evaluates
+ * `startup/start-orchestrator.ts`, which boots a rate-limits watcher and a stale-process watchdog
+ * at module scope, and this package is a short-lived hydration tool, not the long-running server
+ * those exist for.
  *
  * `questOperationsUpdateBroker` itself is unreachable from this package (internal to
- * `@dungeonmaster/orchestrator`, absent from its `src/index.ts`) — this reimplements its
+ * `@dungeonmaster/orchestrator`, absent from every export surface) — this reimplements its
  * append-then-persist effect via `questPersistDirectBroker`, the same reimplementation the quest
  * `write` route already carries for the identical reason.
  *
@@ -16,11 +16,12 @@
  * await operationWriteRouteBroker({ target, fields: { text, role, status, questId, guildId } });
  * // Returns the new OperationItem, appended onto the quest's operations array on disk
  */
-import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { questGetBroker } from '@dungeonmaster/orchestrator/brokers';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   fileContentsContract,
   filePathContract,
+  getQuestInputContract,
   operationItemContract,
 } from '@dungeonmaster/shared/contracts';
 import type { OperationItem } from '@dungeonmaster/shared/contracts';
@@ -38,7 +39,7 @@ export const operationWriteRouteBroker = async ({
   fields: Record<string, unknown>;
 }): Promise<OperationItem> => {
   const { questId, ...operationInput } = operationFieldsContract.parse(fields);
-  const getResult = await StartOrchestrator.getQuest({ questId });
+  const getResult = await questGetBroker({ input: getQuestInputContract.parse({ questId }) });
 
   if (!getResult.success || !getResult.quest) {
     throw new Error(`operationWriteRouteBroker: quest ${questId} not found`);

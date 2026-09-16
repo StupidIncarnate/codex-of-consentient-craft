@@ -55,7 +55,7 @@ describe('siegelenseHelpRenderTransformer', () => {
           '\n' +
           'FLAGS\n' +
           '  --json              print the JSON answer — the default; explicit and refused nowhere.\n' +
-          '  --human             render the operator table instead of JSON. Only status and cleanup implement this.\n' +
+          '  --human             render the operator table instead of JSON. Only status, cleanup and recipes implement this.\n' +
           '\n' +
           'REFUSES\n' +
           '  Takes no input. Reaps and releases only — it ages no asset, so a clean baseline capture is never touched by this call.\n' +
@@ -65,6 +65,32 @@ describe('siegelenseHelpRenderTransformer', () => {
           '\n' +
           'EXAMPLE\n' +
           '  dungeonmaster siegelense cleanup\n',
+      );
+    });
+  });
+
+  describe('recipes — the no-instance-needed page', () => {
+    it('VALID: {call: recipes} => the exact rendered page', () => {
+      const result = siegelenseHelpRenderTransformer({ call: 'recipes' });
+
+      expect(result).toBe(
+        'siegelense recipes — list what states can be created. No instance needed.\n' +
+          '\n' +
+          'USAGE\n' +
+          '  dungeonmaster siegelense recipes [--json] [--human]\n' +
+          '\n' +
+          'FLAGS\n' +
+          '  --json              print the JSON answer — the default; explicit and refused nowhere.\n' +
+          '  --human             render the operator table instead of JSON. Only status, cleanup and recipes implement this.\n' +
+          '\n' +
+          'REFUSES\n' +
+          '  Takes no instance. `recipes` lists what states can be created, not what a running instance is doing — no instance is needed to answer it.\n' +
+          '\n' +
+          'OUTPUT\n' +
+          '  One JSON document on stdout: the RecipesAnswer — one entry per recipe, naming its description, inputs, whether it runs serverless or needs a server, and what it makes.\n' +
+          '\n' +
+          'EXAMPLE\n' +
+          '  dungeonmaster siegelense recipes\n',
       );
     });
   });
@@ -95,11 +121,11 @@ describe('siegelenseHelpRenderTransformer', () => {
   });
 
   describe('the index, call: null', () => {
-    it('VALID: {call: null} => the index listing all seven built calls and the six not built', () => {
+    it('VALID: {call: null} => the index listing every built call and the not-built names, with a derived headline count', () => {
       const result = siegelenseHelpRenderTransformer({ call: null });
 
       expect(result).toBe(
-        'dungeonmaster siegelense — every built call reachable without installing anything. Seven of thirteen calls are built.\n' +
+        'dungeonmaster siegelense — every built call reachable without installing anything. 8 of 13 calls are built.\n' +
           '\n' +
           'CALLS\n' +
           '  siegelense start — boot one instance for a lane spec and block until the driver answers or the boot deadline passes.\n' +
@@ -109,13 +135,13 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  siegelense status — report the fleet, or one instance in full.\n' +
           '  siegelense cleanup — reap every stale instance the registry holds.\n' +
           "  siegelense compare — diff two runs of one instance's timeline.\n" +
+          '  siegelense recipes — list what states can be created. No instance needed.\n' +
           '\n' +
           'NOT BUILT YET\n' +
           '  capacity\n' +
           '  profile\n' +
           '  prune\n' +
           '  snapshots\n' +
-          '  recipes\n' +
           '  docs\n' +
           '\n' +
           "dungeonmaster siegelense <call> --help  for one call's flags and refusals\n",

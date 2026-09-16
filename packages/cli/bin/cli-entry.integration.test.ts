@@ -25,9 +25,15 @@ const NOT_BUILT_CALL_NAMES = siegelenseCallStatics.calls.names.filter(
   (name) => !ROUTED_CALL_NAME_SET.has(name),
 );
 const NOT_BUILT_REFUSAL_SUFFIX = `is a siegelense call but is not built yet. Built calls: ${BUILT_CALL_NAMES.join(', ')}.\n`;
+// Same list SiegelenseFlow's own USAGE derives from — a second hand-typed copy here is the exact
+// staleness this seam test exists to catch, not commit.
 const UNKNOWN_SUBCOMMAND_STDERR =
   'Error: Unknown siegelense subcommand: statuss\n\n' +
-  'Usage: dungeonmaster siegelense [--help | start | run | results | kill | status | cleanup | compare | driver --instance <instanceId>]\n';
+  `Usage: dungeonmaster siegelense [--help | ${BUILT_CALL_NAMES.join(' | ')}]\n`;
+// Same two lists and the same arithmetic siegelenseHelpRenderTransformer performs over them, so
+// landing a call updates this alongside the renderer instead of leaving a literal behind for the
+// next one to go stale against.
+const EXPECTED_INDEX_HEADLINE = `${siegelenseHelpStatics.index.headline} ${BUILT_CALL_NAMES.length} of ${siegelenseCallStatics.calls.names.length} calls are built.`;
 // This suite's own beforeAll runs every spawn in parallel (Promise.all), so the wall time it
 // costs is close to ONE spawn's, not the sum of fifteen. Each spawn still carries its own
 // RUN_COMMAND_TIMEOUT_MS kill timer inside the harness; this is the outer jest hook budget.
@@ -163,7 +169,7 @@ describe('dungeonmaster siegelense subcommand seam', () => {
 
   it('VALID: {dungeonmaster siegelense --help} => exits 0 and prints the index page', () => {
     expect(bareHelp.exitCode).toBe(ExitCodeStub({ value: 0 }));
-    expect(bareHelp.stdout.split('\n')[0]).toBe(siegelenseHelpStatics.index.headline);
+    expect(bareHelp.stdout.split('\n')[0]).toBe(EXPECTED_INDEX_HEADLINE);
   });
 
   it('INVALID: {dungeonmaster siegelense statuss} => exits 1 and names the unknown subcommand on stderr', () => {

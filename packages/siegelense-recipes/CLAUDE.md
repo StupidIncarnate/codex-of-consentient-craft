@@ -13,8 +13,8 @@ ingredients and recipes were built from.
 | `guild` (`brokers/guild/ingredient/`) | `api`, `write`, `query`, `remove` | `guildAddBroker` |
 | `quest` (`brokers/quest/ingredient/`) | `api`, `write`, `update`, `query`, `remove` | `questPersistBroker` |
 | `operation` (`brokers/operation/ingredient/`) | `write`, `update`, `query`, `remove` — no `api`: `operations` is off the modify-quest allowlist entirely | `questOperationsUpdateBroker` |
-| `session` (`brokers/session/ingredient/`) | `write`, `query`, `remove` — no `api` | `claude-mock/bin/claude` |
-| `subagent` (`brokers/subagent/ingredient/`) | `write`, `query`, `remove` — no `api` | `claude-mock/bin/claude` |
+| `session` (`brokers/session/ingredient/`) | `write`, `query`, `remove` — no `api` | `external:claude-cli` |
+| `subagent` (`brokers/subagent/ingredient/`) | `write`, `query`, `remove` — no `api` | `external:claude-cli` |
 
 `quest` declares `transitions` on `status`, walked by `quest-reach-route-broker.ts`
 (`brokers/quest/reach-route/`). `set({ status: … })` on a quest is a WALK, never a plain field
@@ -95,10 +95,10 @@ plans ever touched a quest after its create.
 ## `session` and `subagent`'s `copies:` names an EXTERNAL tool, not a broker
 
 Nothing in this repo writes a Claude session transcript in production — the Claude CLI does. So
-`copies: 'claude-mock/bin/claude'` names the one artifact in this repo whose job is producing that
-exact shape (`packages/web/test/harnesses/claude-mock/bin/claude`), not an in-repo broker. This is a
-repo-level judgment call this package makes (`ingredientConfigContract`'s own rule only demands a
-non-empty string), not a framework answer — see each ingredient's own header for the full reasoning.
+`copies: 'external:claude-cli'` names that producer, not an in-repo broker. `copiesTargetContract`
+requires the `external:` prefix for exactly this case and refuses a slash, so this no longer names a
+path into `packages/web/test/harnesses/claude-mock/bin/claude` — see each ingredient's own header for
+the full reasoning.
 
 ## This package is NOT in the root `package.json` `dependencies`, and a test pins it
 
@@ -116,11 +116,41 @@ would say so without this test.
 never source. Run `npm run build --workspace=@dungeonmaster/siegelense-recipes` before trusting the
 listing after editing a recipe.
 
+## The three exports chunk 8 reads, and why they are three, not one
+
+`recipesConventionStatics.exports` (`@dungeonmaster/shared/statics`) names three exports `index.ts`
+carries for `@dungeonmaster/siegelense` to read. `recipesManifest` holds each recipe's `recipeName`,
+`description` and `inputs` schema as data — it cannot answer `runs` or `makes`, which need a real
+`Plan` a recipe's builder has already assembled. `recipesListingBuildBroker` is the zero-argument
+function that builds one off `recipeListingProbeStatics` and folds `dmRegistryBroker.listing(plan)`
+into `runs`/`makes` per recipe. `recipesSeedRunBroker` — the entry a `seed` step calls to run a
+recipe's plan against a live instance — has no implementation in this package yet.
+
+`src/siegelense-recipes-exports.integration.test.ts` asserts `index.ts`'s export names against this
+same statics file, so a rename on either side of the boundary goes red here instead of only at run
+time, in a consumer's repo.
+
+## The listing probe, and what breaks if one drifts
+
+`quest-advances-one-step` and `session-with-nested-chain` both parse their own `inputs` inside their
+build callback, so `recipesListingBuildBroker` cannot assemble either one's `Plan` with no input
+values. `recipeListingProbeStatics` (`src/statics/recipe-listing-probe/`) holds a fixed, plausible
+value for each — an all-zero id, a path under a directory named for exactly this purpose — never
+seeded, since the chain builds and does not execute.
+
+The broker parses each probe through that recipe's own `inputs` contract before calling it. A probe
+that stops satisfying its recipe's contract fails there, naming the recipe and the key that broke,
+rather than reaching the listing with a wrong answer.
+
 ## It may not import `web`
 
 `@dungeonmaster/web` has no `main` and no `exports`, and builds through `vite build` — an import of
 it from here resolves to nothing at run time. Nothing in this package needs it: every route runs
-through `@dungeonmaster/orchestrator`'s `StartOrchestrator` surface or a direct filesystem write.
+through a broker reached BY PATH from `@dungeonmaster/orchestrator`'s `/brokers` subpath, or a
+direct filesystem write. Routes deliberately do NOT import `StartOrchestrator` from the main `.`
+barrel: that barrel evaluates `startup/start-orchestrator.ts` on import, which boots a rate-limits
+watcher and a stale-process watchdog at module scope — fatal for a short-lived command like
+`dungeonmaster siegelense recipes`, which would otherwise never exit.
 
 ## A quest's `write` route appends the outbox line, exactly like `questPersistBroker`
 
@@ -155,10 +185,10 @@ package calls `.run()` off its own local `recipesHydrationCreateBroker()`.
 
 ## A `DmTarget` alone does not isolate a `write` route from the real machine
 
-`guildWriteRouteBroker` and `operationWriteRouteBroker` both route through
-`@dungeonmaster/orchestrator`'s `StartOrchestrator`, whose underlying brokers
-(`dungeonmasterHomeEnsureBroker`, `guildConfigReadBroker`) resolve their home via the GLOBAL
-`process.env.DUNGEONMASTER_HOME`, never via the `target` object a route was handed. A test (or a
+`guildWriteRouteBroker` and `operationWriteRouteBroker` both route through brokers reached BY PATH
+from `@dungeonmaster/orchestrator`'s `/brokers` subpath (`guildAddBroker`, `questGetBroker`), which
+resolve their home via the GLOBAL `process.env.DUNGEONMASTER_HOME`, never via the `target` object a
+route was handed. A test (or a
 future `seed` step caller) that only builds a `DmTarget` and never sets this env var will see a
 guild register into whatever `~/.dungeonmaster` the process defaults to, while the quest and guild
 FILES this package's own routes write land correctly under `target.home` — so a later

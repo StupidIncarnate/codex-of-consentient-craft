@@ -15,6 +15,7 @@
     "test/adapter-fixtures/**",
     "test/type-fixtures/declaration/**",
     "test/type-fixtures/call-site/**",
-    "test/type-fixtures/positive/**"
+    "test/type-fixtures/positive/every-chainable.ts",
+    "test/type-fixtures/positive/every-chainable-db.ts"
   ]
 }

@@ -1,4 +1,5 @@
-import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { questDeleteBroker } from '@dungeonmaster/orchestrator/brokers';
+import { questDeleteBrokerProxy } from '@dungeonmaster/orchestrator/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { questOwningGuildFindBrokerProxy } from '../owning-guild-find/quest-owning-guild-find-broker.proxy';
@@ -11,7 +12,11 @@ export const questRemoveRouteBrokerProxy = (): {
   succeeds: ({ guild, quest }: { guild: GuildListItem; quest: Quest }) => void;
 } => {
   const findGuildProxy = questOwningGuildFindBrokerProxy();
-  const deleteQuestHandle = registerMock({ fn: StartOrchestrator.deleteQuest });
+  // questDeleteBrokerProxy's own setup drives a full fs-rm simulation rather than letting a test
+  // stage a plain resolved value — created here only to satisfy `enforce-proxy-child-creation`;
+  // this route's own registerMock below stages the real answer.
+  questDeleteBrokerProxy();
+  const deleteQuestHandle = registerMock({ fn: questDeleteBroker });
 
   return {
     succeeds: ({ guild, quest }: { guild: GuildListItem; quest: Quest }): void => {
@@ -21,7 +26,7 @@ export const questRemoveRouteBrokerProxy = (): {
       });
       deleteQuestHandle
         .calledWith([{ questId: quest.id, guildId: guild.id }])
-        .resolves({ deleted: true });
+        .resolves({ success: true });
     },
   };
 };

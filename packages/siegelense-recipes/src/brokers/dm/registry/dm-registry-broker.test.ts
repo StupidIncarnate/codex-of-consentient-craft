@@ -1,14 +1,16 @@
-import { dmRegistryBroker } from './dm-registry-broker';
 import { dmRegistryBrokerProxy } from './dm-registry-broker.proxy';
+import { dmRegistryBroker } from './dm-registry-broker';
+import { HydrationPlanStub, OpCreateStub } from '@dungeonmaster/hydration/contracts';
 import type { HydrationCollectionData } from '@dungeonmaster/hydration/contracts';
 
 describe('dmRegistryBroker', () => {
   describe('accessors', () => {
-    it('VALID: {} => carries exactly guilds, operations, quests, run, sessions and subagents', () => {
+    it('VALID: {} => carries exactly guilds, listing, operations, quests, run, sessions and subagents', () => {
       dmRegistryBrokerProxy();
 
       expect(Object.keys(dmRegistryBroker).sort()).toStrictEqual([
         'guilds',
+        'listing',
         'operations',
         'quests',
         'run',
@@ -44,6 +46,36 @@ describe('dmRegistryBroker', () => {
         sessions: 'session',
         subagents: 'subagent',
       });
+    });
+  });
+
+  describe('listing', () => {
+    // Proves listing() reads the closure registry() populated on THIS dm, not a fresh one: every
+    // ingredient this package registers declares a `write` route, so a plan creating any of them
+    // reports {serverless: true}. A `listing` sourced from a fresh, empty
+    // recipesHydrationCreateBroker() call would instead report {serverless: false,
+    // needsServerFor: 'guild'} — that call's own registry never heard of any ingredient.
+    it('VALID: {a plan creating a guild and a quest} => listing().runs is {serverless: true}, reading the real registered ingredients', () => {
+      dmRegistryBrokerProxy();
+      const plan = HydrationPlanStub({
+        ops: [
+          OpCreateStub({ ingredient: 'guild', ref: 'guild[0:0]', index: 0, ancestors: [] }),
+          OpCreateStub({
+            ingredient: 'quest',
+            ref: 'guild[0:0]/quest[0:0]',
+            index: 0,
+            ancestors: ['guild[0:0]'],
+          }),
+        ],
+      });
+
+      const { runs, makes } = dmRegistryBroker.listing(plan);
+
+      expect(runs).toStrictEqual({ serverless: true });
+      expect(makes).toStrictEqual([
+        { ingredient: 'guild', count: 1 },
+        { ingredient: 'quest', count: 1 },
+      ]);
     });
   });
 });

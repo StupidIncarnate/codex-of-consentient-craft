@@ -9,11 +9,11 @@ const CALL_KEYS = Object.keys(
 const CALL_NAME_SET = new Set(siegelenseCallStatics.calls.names);
 
 describe('siegelenseHelpStatics', () => {
-  it('VALID: {index} => toStrictEqual the headline, the six not-built names and the footer', () => {
+  it('VALID: {index} => toStrictEqual the headline, the not-built names and the footer', () => {
     expect(siegelenseHelpStatics.index).toStrictEqual({
       headline:
-        'dungeonmaster siegelense — every built call reachable without installing anything. Seven of thirteen calls are built.',
-      notBuiltYet: ['capacity', 'profile', 'prune', 'snapshots', 'recipes', 'docs'],
+        'dungeonmaster siegelense — every built call reachable without installing anything.',
+      notBuiltYet: ['capacity', 'profile', 'prune', 'snapshots', 'docs'],
       footer: "dungeonmaster siegelense <call> --help  for one call's flags and refusals",
     });
   });
@@ -247,7 +247,7 @@ describe('siegelenseHelpStatics', () => {
           value: null,
           required: false,
           description:
-            'render the operator table instead of JSON. Only status and cleanup implement this.',
+            'render the operator table instead of JSON. Only status, cleanup and recipes implement this.',
         },
       ],
       refusals: ["Never lists another instance's runs or evidence unless you name it."],
@@ -272,7 +272,7 @@ describe('siegelenseHelpStatics', () => {
           value: null,
           required: false,
           description:
-            'render the operator table instead of JSON. Only status and cleanup implement this.',
+            'render the operator table instead of JSON. Only status, cleanup and recipes implement this.',
         },
       ],
       refusals: [
@@ -310,6 +310,34 @@ describe('siegelenseHelpStatics', () => {
       output:
         'One JSON document on stdout: the CompareAnswer — console and server error deltas, network non-2xx deltas, and a last-capture pixel change. A READING, never a verdict on whether a unit passes.',
       example: 'dungeonmaster siegelense compare --instance inst_9b2c --run-a run_1 --run-b run_2',
+    });
+  });
+
+  it('VALID: {calls.recipes} => toStrictEqual its summary, synopsis, flags, refusals, output and example', () => {
+    expect(siegelenseHelpStatics.calls.recipes).toStrictEqual({
+      summary: 'siegelense recipes — list what states can be created. No instance needed.',
+      synopsis: 'dungeonmaster siegelense recipes [--json] [--human]',
+      flags: [
+        {
+          name: '--json',
+          value: null,
+          required: false,
+          description: 'print the JSON answer — the default; explicit and refused nowhere.',
+        },
+        {
+          name: '--human',
+          value: null,
+          required: false,
+          description:
+            'render the operator table instead of JSON. Only status, cleanup and recipes implement this.',
+        },
+      ],
+      refusals: [
+        'Takes no instance. `recipes` lists what states can be created, not what a running instance is doing — no instance is needed to answer it.',
+      ],
+      output:
+        'One JSON document on stdout: the RecipesAnswer — one entry per recipe, naming its description, inputs, whether it runs serverless or needs a server, and what it makes.',
+      example: 'dungeonmaster siegelense recipes',
     });
   });
 

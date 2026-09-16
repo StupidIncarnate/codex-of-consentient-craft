@@ -1,18 +1,17 @@
 /**
  * PURPOSE: The guild ingredient's `write` route — makes the directory the guild is about to
- * register, then registers it through `StartOrchestrator.addGuild`. Reach for
- * `StartOrchestrator` rather than `guildAddBroker` itself: `guildAddBroker` is internal to
- * `@dungeonmaster/orchestrator` (absent from its `src/index.ts` and from its package.json
- * `exports` map, which lists only `.` and `./testing`), so `StartOrchestrator.addGuild` — a
- * thin wrapper over `GuildFlow.add`, which calls the real `guildAddBroker` — is the one path
- * this package can reach it through at all. `copies: 'guildAddBroker'` still names the real
- * code this route's effect traces to.
+ * register, then registers it through `guildAddBroker`. Reach for it via the orchestrator's
+ * `/brokers` subpath rather than `StartOrchestrator.addGuild`: the main
+ * `@dungeonmaster/orchestrator` barrel evaluates `startup/start-orchestrator.ts` on import,
+ * which boots a rate-limits watcher and a stale-process watchdog at module scope — the `/brokers`
+ * subpath re-exports `guildAddBroker` directly from its own file, so importing it pulls in none
+ * of that. `copies: 'guildAddBroker'` still names the real code this route's effect traces to.
  *
  * USAGE:
  * await guildWriteRouteBroker({ target, fields: { name, path } });
  * // Returns a Guild — id, urlSlug and createdAt minted by the real guildAddBroker
  */
-import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { guildAddBroker } from '@dungeonmaster/orchestrator/brokers';
 import { fsMkdirAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { Guild } from '@dungeonmaster/shared/contracts';
@@ -33,5 +32,5 @@ export const guildWriteRouteBroker = async ({
 
   await fsMkdirAdapter({ filepath: filePathContract.parse(path) });
 
-  return StartOrchestrator.addGuild({ name: parsedFields.name, path });
+  return guildAddBroker({ name: parsedFields.name, path });
 };

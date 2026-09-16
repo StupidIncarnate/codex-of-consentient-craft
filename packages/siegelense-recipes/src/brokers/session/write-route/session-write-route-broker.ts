@@ -1,7 +1,7 @@
 /**
  * PURPOSE: The session ingredient's `write` route — encodes the session's directory from its
  * `cwd` and appends its lines to `<sessionId>.jsonl`. See `session-ingredient-broker.ts`'s own
- * header for why the ingredient's `copies` names `claude-mock/bin/claude` rather than an in-repo
+ * header for why the ingredient's `copies` names `external:claude-cli` rather than an in-repo
  * broker.
  *
  * Reach for `target.claudeHome`, never `os.homedir()`: `claudePathSlugEncoderTransformer`

@@ -21,9 +21,10 @@ import { siegelenseHelpStatics } from '../../statics/siegelense-help/siegelense-
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { siegelenseHelpRenderTransformer } from '../../transformers/siegelense-help-render/siegelense-help-render-transformer';
 import { evidenceTreeHarness } from '../../../test/harnesses/evidence-tree/evidence-tree.harness';
+import { recipesRouteOutcomeHarness } from '../../../test/harnesses/recipes-route-outcome/recipes-route-outcome.harness';
 import { SiegelenseFlow } from './siegelense-flow';
 
-// The seven built calls, in the order `siegelenseHelpStatics.calls` declares them — every it.each
+// The built calls, in the order `siegelenseHelpStatics.calls` declares them — every it.each
 // below over "every built call" derives from this rather than a second hardcoded list.
 const BUILT_CALLS = Object.keys(
   siegelenseHelpStatics.calls,
@@ -167,10 +168,146 @@ describe('SiegelenseFlow', () => {
     });
   });
 
+  // `packages/siegelense-recipes/dist/index.js` is compiled output from a sibling package this
+  // chunk does not build, so `recipesLocateBroker` (C2) — real fs I/O against that exact path —
+  // resolves or rejects differently depending on that package's own build state. What holds in
+  // EITHER state, and what these two tests assert: `recipes` always reaches the real recipes
+  // pipeline, never SiegelenseFlow's own refusals (the generic "is a siegelense call but is not
+  // built yet" fall-through, or the named "--human is not implemented" refusal) —
+  // `recipesRouteOutcomeHarness` is the one door this suite has to that distinction, since
+  // jest/no-conditional-in-test refuses the branch it needs inside an `it` body.
+  describe('the recipes route', () => {
+    const recipesRouteOutcome = recipesRouteOutcomeHarness();
+
+    it('VALID: {args: ["recipes"]} => reaches the real recipes pipeline, never the flow\'s own "not built yet" refusal', async () => {
+      const originalWrite = process.stdout.write.bind(process.stdout);
+      process.stdout.write = ((): boolean => true) as unknown as typeof process.stdout.write;
+
+      const [settled] = await Promise.allSettled([SiegelenseFlow({ args: ['recipes'] })]);
+
+      process.stdout.write = originalWrite;
+
+      expect(recipesRouteOutcome.reachedPipeline({ settled })).toBe(true);
+    });
+
+    it('VALID: {args: ["recipes", "--human"]} => --human is accepted for recipes rather than refused by name', async () => {
+      const originalWrite = process.stdout.write.bind(process.stdout);
+      process.stdout.write = ((): boolean => true) as unknown as typeof process.stdout.write;
+
+      const [settled] = await Promise.allSettled([
+        SiegelenseFlow({ args: ['recipes', '--human'] }),
+      ]);
+
+      process.stdout.write = originalWrite;
+
+      expect(recipesRouteOutcome.reachedPipeline({ settled })).toBe(true);
+    });
+
+    it('VALID: {args: ["recipes", "--help"]} => writes the recipes page, first line its summary', async () => {
+      const writes: ReturnType<typeof ContentTextStub>[] = [];
+      const originalWrite = process.stdout.write.bind(process.stdout);
+      process.stdout.write = ((chunk: string): boolean => {
+        writes.push(ContentTextStub({ value: chunk }));
+        return true;
+      }) as unknown as typeof process.stdout.write;
+
+      const result = await SiegelenseFlow({ args: ['recipes', '--help'] });
+
+      process.stdout.write = originalWrite;
+
+      const [wholeOutput] = writes;
+      const [firstLine] = wholeOutput!.split('\n');
+
+      expect(firstLine).toBe(siegelenseHelpStatics.calls.recipes.summary);
+      expect(result).toStrictEqual({ success: true });
+    });
+
+    it('INVALID: {args: ["recipes", "--bogus"]} => rejects the unknown flag before reaching the responder', async () => {
+      await expect(SiegelenseFlow({ args: ['recipes', '--bogus'] })).rejects.toThrow(
+        /^Unknown flag: --bogus\n\n[\s\S]*Accepted flags: --json, --human\n\nUsage: dungeonmaster siegelense recipes \[--json\] \[--human\]$/u,
+      );
+    });
+  });
+
+  describe('the --help index reflects the newly routed recipes call', () => {
+    it('VALID: {args: [--help]} => recipes is listed under CALLS, and NOT BUILT YET holds exactly the remaining five', async () => {
+      const writes: ReturnType<typeof ContentTextStub>[] = [];
+      const originalWrite = process.stdout.write.bind(process.stdout);
+      process.stdout.write = ((chunk: string): boolean => {
+        writes.push(ContentTextStub({ value: chunk }));
+        return true;
+      }) as unknown as typeof process.stdout.write;
+
+      await SiegelenseFlow({ args: ['--help'] });
+
+      process.stdout.write = originalWrite;
+
+      const [wholeOutput] = writes;
+      const [, afterCallsHeading] = wholeOutput!.split('CALLS\n');
+      const [callsSection, afterNotBuiltHeading] = afterCallsHeading!.split('\n\nNOT BUILT YET\n');
+      const [notBuiltSection] = afterNotBuiltHeading!.split('\n\n');
+
+      // Two precise array equalities in one test: if `recipes` were left behind in
+      // NOT BUILT YET after being added to CALLS, the second assertion catches it — the exact
+      // mistake this test exists to catch.
+      expect(callsSection!.split('\n')).toStrictEqual([
+        '  siegelense start — boot one instance for a lane spec and block until the driver answers or the boot deadline passes.',
+        '  siegelense run — submit one batch of steps to a running instance and block until it finishes.',
+        '  siegelense results — read evidence off disk for one instance. Starts nothing.',
+        '  siegelense kill — stop one running instance.',
+        '  siegelense status — report the fleet, or one instance in full.',
+        '  siegelense cleanup — reap every stale instance the registry holds.',
+        "  siegelense compare — diff two runs of one instance's timeline.",
+        '  siegelense recipes — list what states can be created. No instance needed.',
+      ]);
+      expect(notBuiltSection!.split('\n')).toStrictEqual([
+        '  capacity',
+        '  profile',
+        '  prune',
+        '  snapshots',
+        '  docs',
+      ]);
+    });
+
+    it('VALID: {args: [--help]} => the headline names the built count the route table actually holds', async () => {
+      const writes: ReturnType<typeof ContentTextStub>[] = [];
+      const originalWrite = process.stdout.write.bind(process.stdout);
+      process.stdout.write = ((chunk: string): boolean => {
+        writes.push(ContentTextStub({ value: chunk }));
+        return true;
+      }) as unknown as typeof process.stdout.write;
+
+      await SiegelenseFlow({ args: ['--help'] });
+
+      process.stdout.write = originalWrite;
+
+      const [wholeOutput] = writes;
+      const [headlineLine] = wholeOutput!.split('\n');
+
+      expect(headlineLine).toBe(
+        'dungeonmaster siegelense — every built call reachable without installing anything. ' +
+          `${BUILT_CALLS.length} of ${siegelenseCallStatics.calls.names.length} calls are built.`,
+      );
+    });
+  });
+
   describe('an unknown subcommand', () => {
     it('INVALID: {args: [statuss]} => rejects naming the unknown subcommand instead of falling back to the fleet listing', async () => {
       await expect(SiegelenseFlow({ args: ['statuss'] })).rejects.toThrow(
-        /^Unknown siegelense subcommand: statuss\n\nUsage: dungeonmaster siegelense \[--help \| start \| run \| results \| kill \| status \| cleanup \| compare \| driver --instance <instanceId>\]$/u,
+        /^Unknown siegelense subcommand: statuss\n\nUsage: dungeonmaster siegelense \[--help \| start \| run \| results \| kill \| status \| cleanup \| compare \| recipes\]$/u,
+      );
+    });
+
+    // The regression guard for the bug this file's whole change removes: the usage line is built
+    // from BUILT_CALLS (siegelenseHelpStatics.calls's own keys, proven elsewhere in this file to
+    // match SiegelenseFlow's route table) rather than compared against a second hand-typed string,
+    // so a call landing in the route table with no matching edit here still passes.
+    it("VALID: {args: [statuss]} => the usage line names every built call, in the route table's own order", async () => {
+      await expect(SiegelenseFlow({ args: ['statuss'] })).rejects.toThrow(
+        new RegExp(
+          `Usage: dungeonmaster siegelense \\[--help \\| ${BUILT_CALLS.join(' \\| ')}\\]$`,
+          'u',
+        ),
       );
     });
   });
@@ -178,7 +315,7 @@ describe('SiegelenseFlow', () => {
   describe('a name the spec defines but this chunk has not built', () => {
     it('INVALID: {args: [capacity]} => rejects naming it as not built yet, listing the built calls, rather than calling it unknown', async () => {
       await expect(SiegelenseFlow({ args: ['capacity'] })).rejects.toThrow(
-        /^capacity is a siegelense call but is not built yet\. Built calls: start, run, results, kill, status, cleanup, compare\.$/u,
+        /^capacity is a siegelense call but is not built yet\. Built calls: start, run, results, kill, status, cleanup, compare, recipes\.$/u,
       );
     });
   });
@@ -224,9 +361,9 @@ describe('SiegelenseFlow', () => {
   });
 
   describe('the --human refusal', () => {
-    it('INVALID: {args: [results, --human]} => rejects naming status and cleanup as the two that render', async () => {
+    it('INVALID: {args: [results, --human]} => rejects naming status, cleanup and recipes as the calls that render', async () => {
       await expect(SiegelenseFlow({ args: ['results', '--human'] })).rejects.toThrow(
-        /^--human is not implemented for results: only status and cleanup render a human table; every other call answers JSON only\.$/u,
+        /^--human is not implemented for results: only status and cleanup and recipes render a human table; every other call answers JSON only\.$/u,
       );
     });
   });

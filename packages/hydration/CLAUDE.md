@@ -118,10 +118,13 @@ test-only and already sits outside `tsconfig.build.json`'s emit; `fetchPostAdapt
 spec ever imports directly. Adding a `./adapters` subpath later is a decision to make deliberately,
 not a gap to fill by matching what `@dungeonmaster/shared` happens to export.
 
-`hydrationCreateBroker` returns `{ ingredient, registry, recipe, run }`. `run` is the public name a
-spec tree reaches with no MCP boundary, and it calls `planRunBroker` against whichever ingredients
-that same binding's `registry()` call registered — `brokers.ts` also exports `planRunBroker` directly,
-for a caller that builds its own ingredient list instead of going through this broker's binding.
+`hydrationCreateBroker` returns `{ ingredient, registry, recipe, run, listing }`. `run` is the public
+name a spec tree reaches with no MCP boundary, and it calls `planRunBroker` against whichever
+ingredients that same binding's `registry()` call registered — `brokers.ts` also exports
+`planRunBroker` directly, for a caller that builds its own ingredient list instead of going through
+this broker's binding. `listing` reads the SAME `registeredIngredients` closure `run` reads, folding
+`planRunsTransformer` and `planMakesTransformer` over one plan without asking the caller to hand its
+own ingredient list back in.
 
 ## `HydrationTransactionRolledBackError` has no thrower in this package, by design
 

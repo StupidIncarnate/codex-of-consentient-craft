@@ -25,17 +25,25 @@
  * exact shape, so the cast is the mechanism, matching every chain transformer's own `as unknown as`
  * return.
  *
+ * `listing` folds `planRunsTransformer` and `planMakesTransformer` over one plan, reading the same
+ * `registeredIngredients` closure `run` already reads (D1) rather than asking every caller to hand
+ * its own ingredient list back in — a declared ingredient is opaque outside this file, so nothing
+ * else holds that list to pass.
+ *
  * USAGE:
- * const { ingredient, registry, recipe, run } = hydrationCreateBroker<DmTarget>();
+ * const { ingredient, registry, recipe, run, listing } = hydrationCreateBroker<DmTarget>();
  * const quest = ingredient({ name: 'quest', description: '…', fields, record, routes, copies: 'x' });
  * const dm = registry({ quests: quest });
  * const guildMidExecution = recipe({ name: 'guild-mid-execution', description: '…' }, () => [ops]);
  * await run(guildMidExecution(), { home });
+ * const { runs, makes } = listing(guildMidExecution());
  */
 import { ingredientDeclareBroker } from '../../ingredient/declare/ingredient-declare-broker';
 import { registryCreateBroker } from '../../registry/create/registry-create-broker';
 import { recipeDeclareBroker } from '../../recipe/declare/recipe-declare-broker';
 import { planRunBroker } from '../../plan/run/plan-run-broker';
+import { planRunsTransformer } from '../../../transformers/plan-runs/plan-runs-transformer';
+import { planMakesTransformer } from '../../../transformers/plan-makes/plan-makes-transformer';
 import type {
   HydrationTarget,
   HydrationFor,
@@ -58,6 +66,8 @@ import type {
 import type { Op } from '../../../contracts/ingredient-handle/ingredient-handle-contract';
 import type { HydrationPlan } from '../../../contracts/hydration-plan/hydration-plan-contract';
 import type { HydrationRunResult } from '../../../contracts/hydration-run-result/hydration-run-result-contract';
+import type { PlanRunsResult } from '../../../contracts/plan-runs-result/plan-runs-result-contract';
+import type { PlanMakesEntry } from '../../../contracts/plan-makes-entry/plan-makes-entry-contract';
 
 export const hydrationCreateBroker = <TTarget extends HydrationTarget>(): HydrationFor<TTarget> => {
   // D1: `run` reads whatever ingredients THIS binding's own `registry()` call was handed, so the
@@ -82,5 +92,9 @@ export const hydrationCreateBroker = <TTarget extends HydrationTarget>(): Hydrat
     ): RecipeDef<TName, RecipeInputOf<TInputSchema>> => recipeDeclareBroker({ ...meta, build }),
     run: async (plan: HydrationPlan, target: TTarget): Promise<HydrationRunResult> =>
       planRunBroker({ plan, target, ingredients: registeredIngredients }),
+    listing: (plan: HydrationPlan): { runs: PlanRunsResult; makes: readonly PlanMakesEntry[] } => ({
+      runs: planRunsTransformer({ plan, ingredients: registeredIngredients }),
+      makes: planMakesTransformer({ plan }),
+    }),
   } as unknown as HydrationFor<TTarget>;
 };

@@ -34,6 +34,8 @@ import type {
 import type { Op } from '../ingredient-handle/ingredient-handle-contract';
 import type { HydrationPlan } from '../hydration-plan/hydration-plan-contract';
 import type { HydrationRunResult } from '../hydration-run-result/hydration-run-result-contract';
+import type { PlanRunsResult } from '../plan-runs-result/plan-runs-result-contract';
+import type { PlanMakesEntry } from '../plan-makes-entry/plan-makes-entry-contract';
 
 const urlContract = z.string().url().brand<'Url'>();
 
@@ -54,6 +56,10 @@ export type HydrationTarget = z.infer<typeof hydrationTargetContract>;
  * a plan against this one binding's own `TTarget` — it returns the untyped `HydrationRunResult`
  * per the chunk 1-3 plan's Q11 ruling; threading each `saveRecordAs` call's own record contract
  * through to a typed return is chunk 3b's own scheduled pass, not a member yet.
+ *
+ * `listing` reads the SAME `registeredIngredients` closure `run` reads (D1), never a hand-passed
+ * list — so a caller that never called `registry()` sees exactly the failure `run` would give it:
+ * every created ingredient reports `needs a server`, because none has a config to check.
  */
 export interface HydrationFor<TTarget extends HydrationTarget> {
   ingredient: <TFields extends object, const C extends IngredientConfig<TTarget, TFields>>(
@@ -72,4 +78,5 @@ export interface HydrationFor<TTarget extends HydrationTarget> {
     build: (input: RecipeInputOf<TInputSchema>) => readonly Op[],
   ) => RecipeDef<TName, RecipeInputOf<TInputSchema>>;
   run: (plan: HydrationPlan, target: TTarget) => Promise<HydrationRunResult>;
+  listing: (plan: HydrationPlan) => { runs: PlanRunsResult; makes: readonly PlanMakesEntry[] };
 }

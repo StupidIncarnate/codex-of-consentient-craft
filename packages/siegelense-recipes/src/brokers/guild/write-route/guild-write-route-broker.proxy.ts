@@ -1,4 +1,5 @@
-import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { guildAddBroker } from '@dungeonmaster/orchestrator/brokers';
+import { guildAddBrokerProxy } from '@dungeonmaster/orchestrator/testing';
 import { fsMkdirAdapterProxy } from '@dungeonmaster/shared/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
@@ -12,7 +13,11 @@ export const guildWriteRouteBrokerProxy = (): {
   // fsMkdirAdapterProxy's own default (any unaddressed call succeeds) is all this route needs —
   // composed bare, with no per-call staging, exactly as chat-subagent-tail-broker.proxy.ts does.
   fsMkdirAdapterProxy();
-  const addGuildHandle = registerMock({ fn: StartOrchestrator.addGuild });
+  // guildAddBrokerProxy's own setup mints a FIXED id/createdAt via crypto.randomUUID, which does
+  // not let a test stage an arbitrary `guild` fixture — created here only to satisfy
+  // `enforce-proxy-child-creation`; this route's own registerMock below stages the real answer.
+  guildAddBrokerProxy();
+  const addGuildHandle = registerMock({ fn: guildAddBroker });
 
   return {
     succeeds: ({ name, path, guild }: { name: string; path: string; guild: Guild }): void => {

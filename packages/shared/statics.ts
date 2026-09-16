@@ -80,3 +80,7 @@ export * from './src/statics/signoff-tracks/signoff-tracks-statics';
 // paste path, the server's write path and the orchestrator's prompt builder.
 export * from './src/statics/pasted-image/pasted-image-statics';
 export * from './src/statics/usage-accounting/usage-accounting-statics';
+
+// The filesystem and export-name convention siegelense and a repo's own recipes package agree on
+// to find and read each other's compiled output without either importing the other.
+export * from './src/statics/recipes-convention/recipes-convention-statics';

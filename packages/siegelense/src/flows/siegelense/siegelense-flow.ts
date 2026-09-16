@@ -7,7 +7,7 @@
  * `flagValueReadTransformer` rather than a second `indexOf` dance, and its own id parse through
  * `flagContractParseTransformer` so a badly-shaped id answers with the contract's own message under
  * `--instance` rather than a raw ZodError. Every other built call goes
- * through `CALL_ROUTES`, a `Map` keyed by the same seven names `siegelenseHelpStatics.calls` holds:
+ * through `CALL_ROUTES`, a `Map` keyed by the same names `siegelenseHelpStatics.calls` holds:
  * each entry parses its own argv and calls its responder — **except `run`, whose entry hands argv
  * straight to `SiegelenseRunResponder` unparsed.** That is not an inconsistency to "tidy" away:
  * `run` accepts `--steps-file`, the named file has to be read from disk before `runArgsParseTransformer`
@@ -15,12 +15,18 @@
  * `SiegelenseRunResponder` is the one layer that can, and its own header says so. A built call's
  * `--human` is refused by name for every call whose OWN help entry carries no `--human` flag —
  * derived from `siegelenseHelpStatics.calls[call].flags` rather than a second hardcoded list, so
- * `status` and `cleanup` (the only two with a renderer) stay the only two this admits without a
- * second edit anywhere. `args[0]` outside `CALL_ROUTES` falls through a three-way refusal: a name
+ * `status`, `cleanup` and `recipes` stay the only calls this admits without a second edit
+ * anywhere — a fourth needs only its own help entry's `flags` to carry `--human`, nothing here.
+ * `args[0]` outside `CALL_ROUTES` falls through a three-way refusal: a name
  * `siegelenseCallStatics.calls.names` holds with no route answers "not built yet" and lists the
  * built calls, so a caller who read the spec learns the truth rather than being told the spec is
  * wrong; anything else answers "unknown subcommand" with the usage line; absent routes to the bare
- * fleet listing.
+ * fleet listing. That usage line's own call list is `CALL_ROUTES`'s keys, the same array
+ * `BUILT_CALL_NAMES` already reads — never a second hand-typed copy, so a call landing in the route
+ * table can no longer leave the usage line behind. `driver` stays out of that list: it draws the
+ * same line `siegelenseHelpStatics.calls` draws between `calls` and `internal.driver` — spawned by
+ * `start`, never typed by a person, so it has no place in a line meant to correct a mistyped
+ * subcommand.
  *
  * USAGE:
  * await SiegelenseFlow({ args: ['--help'] });
@@ -45,6 +51,7 @@ import { SiegelenseCompareResponder } from '../../responders/siegelense/compare/
 import { SiegelenseDriverResponder } from '../../responders/siegelense/driver/siegelense-driver-responder';
 import { SiegelenseFleetResponder } from '../../responders/siegelense/fleet/siegelense-fleet-responder';
 import { SiegelenseKillResponder } from '../../responders/siegelense/kill/siegelense-kill-responder';
+import { SiegelenseRecipesResponder } from '../../responders/siegelense/recipes/siegelense-recipes-responder';
 import { SiegelenseResultsResponder } from '../../responders/siegelense/results/siegelense-results-responder';
 import { SiegelenseRunResponder } from '../../responders/siegelense/run/siegelense-run-responder';
 import { SiegelenseStartResponder } from '../../responders/siegelense/start/siegelense-start-responder';
@@ -57,6 +64,7 @@ import { compareArgsParseTransformer } from '../../transformers/compare-args-par
 import { flagContractParseTransformer } from '../../transformers/flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../../transformers/flag-value-read/flag-value-read-transformer';
 import { killArgsParseTransformer } from '../../transformers/kill-args-parse/kill-args-parse-transformer';
+import { recipesArgsParseTransformer } from '../../transformers/recipes-args-parse/recipes-args-parse-transformer';
 import { resultsArgsParseTransformer } from '../../transformers/results-args-parse/results-args-parse-transformer';
 import { siegelenseHelpRenderTransformer } from '../../transformers/siegelense-help-render/siegelense-help-render-transformer';
 import type { SiegelenseCall } from '../../transformers/siegelense-help-render/siegelense-help-render-transformer';
@@ -68,8 +76,6 @@ const HELP_SHORT_FLAG = siegelenseOutputStatics.flags.helpShort;
 const HUMAN_FLAG = siegelenseOutputStatics.flags.human;
 const DRIVER_CALL_NAME = 'driver';
 const INSTANCE_FLAG = '--instance';
-const USAGE =
-  'Usage: dungeonmaster siegelense [--help | start | run | results | kill | status | cleanup | compare | driver --instance <instanceId>]';
 
 const CALL_ROUTES = new Map<
   SiegelenseCall,
@@ -102,14 +108,22 @@ const CALL_ROUTES = new Map<
     async (callArgs) =>
       SiegelenseCompareResponder({ query: compareArgsParseTransformer({ args: callArgs }) }),
   ],
+  [
+    'recipes',
+    async (callArgs) => SiegelenseRecipesResponder(recipesArgsParseTransformer({ args: callArgs })),
+  ],
 ]);
 
-// Derived from each call's own help entry — never a second hardcoded ['status', 'cleanup'] —
-// so the ONLY two calls this admits are the ones whose page actually documents a --human flag.
+// Derived from each call's own help entry — never a second hardcoded name list — so the ONLY
+// calls this admits are the ones whose page actually documents a --human flag.
 const BUILT_CALL_NAMES = [...CALL_ROUTES.keys()];
 const HUMAN_RENDERER_CALLS = BUILT_CALL_NAMES.filter((name) =>
   siegelenseHelpStatics.calls[name].flags.some((flag) => flag.name === HUMAN_FLAG),
 );
+
+// Same source, same reason — `driver` is spawned by `start`, never typed by a person, so it stays
+// out of a line meant to correct someone's mistyped subcommand (see this file's header).
+const USAGE = `Usage: dungeonmaster siegelense [--help | ${BUILT_CALL_NAMES.join(' | ')}]`;
 
 export const SiegelenseFlow = async ({
   args,

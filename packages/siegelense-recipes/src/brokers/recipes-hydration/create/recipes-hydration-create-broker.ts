@@ -14,13 +14,13 @@
  * is ordinary, valid TypeScript, and `hydrationCreateBroker` is a pure, deterministic factory (no
  * I/O, no global) with nothing a proxy would ever need to mock.
  *
- * `run` is now real — `hydrationCreateBroker`'s own object carries `{ ingredient, registry,
- * recipe, run }`, confirmed by reading `packages/hydration/src/brokers/hydration/create/
- * hydration-create-broker.ts` directly (it calls the real `planRunBroker`). This broker's return
- * type is the plain `HydrationFor<TTarget>`, unmodified, now that the value matches it.
+ * `hydrationCreateBroker`'s own object carries `{ ingredient, registry, recipe, run, listing }`,
+ * confirmed by reading `packages/hydration/src/brokers/hydration/create/hydration-create-broker.ts`
+ * directly. This broker's return type is the plain `HydrationFor<TTarget>`, matching the value it
+ * returns.
  *
  * USAGE:
- * const { ingredient, registry, recipe, run } = recipesHydrationCreateBroker();
+ * const { ingredient, registry, recipe, run, listing } = recipesHydrationCreateBroker();
  * const guild = ingredient({ name: 'guild', description: '…', fields, record, routes, copies: 'x' });
  */
 import * as hydrationBrokers from '@dungeonmaster/hydration/brokers';

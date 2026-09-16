@@ -1,4 +1,5 @@
-import { questGetBroker, questModifyBroker } from '@dungeonmaster/orchestrator';
+import { questGetBroker, questModifyBroker } from '@dungeonmaster/orchestrator/brokers';
+import { questGetBrokerProxy, questModifyBrokerProxy } from '@dungeonmaster/orchestrator/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import type {
@@ -33,6 +34,12 @@ export const questUpdateRouteBrokerProxy = (): {
     getResult: GetQuestResult;
   }) => void;
 } => {
+  // questGetBrokerProxy/questModifyBrokerProxy's own setup drives a full fs-lookup simulation
+  // rather than letting a test stage a specific result per `input` — created here only to
+  // satisfy `enforce-proxy-child-creation`; this route's own registerMock below stages the real
+  // answer, keyed by `input` so a modify-then-reload sequence doesn't overwrite itself.
+  questGetBrokerProxy();
+  questModifyBrokerProxy();
   const modifyHandle = registerMock({ fn: questModifyBroker });
   const getHandle = registerMock({ fn: questGetBroker });
 

@@ -36,6 +36,11 @@
  * ORIGINAL `operations: []`, not the ledger that exists by the time the plan finishes. Reading
  * the real file is what proves the ledger landed.
  *
+ * `questFolderExists` answers whether a quest's directory is still on disk, via `testbed.listDir`
+ * (which returns `null` for a path that doesn't exist rather than throwing) — reach for it to
+ * prove a refused delete left a quest's directory untouched, since a thrown error alone never
+ * observed the filesystem.
+ *
  * USAGE:
  * describe('...', () => {
  *   const fileTarget = fileTargetHarness();
@@ -70,6 +75,7 @@ export const fileTargetHarness = (): {
     guildId: GuildId;
     questFolder: QuestFolder;
   }) => QuestOperations;
+  questFolderExists: (params: { guildId: GuildId; questFolder: QuestFolder }) => boolean;
 } => {
   let testbed: ReturnType<typeof installTestbedCreateBroker> | undefined;
   let savedDungeonmasterHome: typeof process.env.DUNGEONMASTER_HOME;
@@ -127,6 +133,28 @@ export const fileTargetHarness = (): {
       const parsedJson = JSON.parse(String(contents)) as StubArgument<ReturnType<typeof QuestStub>>;
       const parsed = QuestStub(parsedJson);
       return parsed.operations;
+    },
+    questFolderExists: ({
+      guildId,
+      questFolder,
+    }: {
+      guildId: GuildId;
+      questFolder: QuestFolder;
+    }): boolean => {
+      if (testbed === undefined) {
+        throw new Error(
+          'fileTargetHarness: questFolderExists() called outside beforeEach/afterEach',
+        );
+      }
+      const relativePath = RelativePathStub({
+        value: [
+          dungeonmasterHomeStatics.paths.guildsDir,
+          guildId,
+          dungeonmasterHomeStatics.paths.questsDir,
+          questFolder,
+        ].join('/'),
+      });
+      return testbed.listDir({ relativePath }) !== null;
     },
   };
 };

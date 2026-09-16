@@ -1,4 +1,6 @@
-import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { questGetBroker } from '@dungeonmaster/orchestrator/brokers';
+import { questGetBrokerProxy } from '@dungeonmaster/orchestrator/testing';
+import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { questFolderPathResolveBrokerProxy } from '../../quest/folder-path-resolve/quest-folder-path-resolve-broker.proxy';
@@ -28,7 +30,11 @@ export const operationWriteRouteBrokerProxy = (): {
     mintedId: OperationItemId;
   }) => void;
 } => {
-  const getQuestHandle = registerMock({ fn: StartOrchestrator.getQuest });
+  // questGetBrokerProxy's own setup drives a full fs-lookup simulation rather than letting a
+  // test stage an arbitrary GetQuestResult — created here only to satisfy
+  // `enforce-proxy-child-creation`; this broker's own registerMock below stages the real answer.
+  questGetBrokerProxy();
+  const getQuestHandle = registerMock({ fn: questGetBroker });
   const findGuildProxy = questFolderPathResolveBrokerProxy();
   const persistProxy = questPersistDirectBrokerProxy();
 
@@ -46,7 +52,9 @@ export const operationWriteRouteBrokerProxy = (): {
       outboxPath: string;
       mintedId: OperationItemId;
     }): void => {
-      getQuestHandle.calledWith([{ questId: quest.id }]).resolves({ success: true, quest });
+      getQuestHandle
+        .calledWith([{ input: getQuestInputContract.parse({ questId: quest.id }) }])
+        .resolves({ success: true, quest });
       findGuildProxy.succeeds({ guild, quest });
       persistProxy.succeeds({ questFilePath, outboxPath });
       registerSpyOn({ object: crypto, method: 'randomUUID' })

@@ -7,9 +7,12 @@
  * are UPSERTED rather than overwritten — approximating the outcome by merging `fields` onto
  * `record` locally, the way `operationUpdateRouteBroker` does for a route that writes the whole
  * file itself, would silently diverge from what the broker actually persisted. Reloading is the
- * only honest source. Reach for `questModifyBroker` directly (not through `StartOrchestrator`): it
- * IS exported from `@dungeonmaster/orchestrator`'s `src/index.ts`, unlike
- * `questPersistBroker`/`guildAddBroker`.
+ * only honest source. Reach for `questModifyBroker` directly (not through `StartOrchestrator`),
+ * BY PATH from the orchestrator's `/brokers` subpath: importing anything from the main `.` barrel
+ * evaluates `startup/start-orchestrator.ts`, which boots a rate-limits watcher and a
+ * stale-process watchdog at module scope, and this package is a short-lived hydration tool, not
+ * the long-running server those exist for. `questPersistBroker` stays unreachable from this
+ * package — it is not on the `/brokers` subpath either, since nothing here needs it directly.
  *
  * Both calls THROW on failure rather than handing back their own result envelope — the runner's
  * `opUpdateApplyLayerBroker` already wraps whatever this route throws through
@@ -20,7 +23,7 @@
  * await questUpdateRouteBroker({ target, record: quest, fields: { title: 'renamed' } });
  * // Returns the reloaded Quest record on success; throws naming the failure otherwise
  */
-import { questGetBroker, questModifyBroker } from '@dungeonmaster/orchestrator';
+import { questGetBroker, questModifyBroker } from '@dungeonmaster/orchestrator/brokers';
 import {
   getQuestInputContract,
   questContract,

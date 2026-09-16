@@ -3,7 +3,7 @@ import { recipesHydrationCreateBrokerProxy } from './recipes-hydration-create-br
 
 describe('recipesHydrationCreateBroker', () => {
   describe('the object it returns', () => {
-    it('VALID: {} => returns exactly ingredient, registry, recipe and run, each a function', () => {
+    it('VALID: {} => returns exactly ingredient, registry, recipe, run and listing, each a function', () => {
       recipesHydrationCreateBrokerProxy();
 
       const result = recipesHydrationCreateBroker();
@@ -13,15 +13,22 @@ describe('recipesHydrationCreateBroker', () => {
         registry: expect.any(Function),
         recipe: expect.any(Function),
         run: expect.any(Function),
+        listing: expect.any(Function),
       });
     });
 
-    it('VALID: {} => carries exactly these four keys', () => {
+    it('VALID: {} => carries exactly these five keys', () => {
       recipesHydrationCreateBrokerProxy();
 
       const result = recipesHydrationCreateBroker();
 
-      expect(Object.keys(result).sort()).toStrictEqual(['ingredient', 'recipe', 'registry', 'run']);
+      expect(Object.keys(result).sort()).toStrictEqual([
+        'ingredient',
+        'listing',
+        'recipe',
+        'registry',
+        'run',
+      ]);
     });
   });
 });
