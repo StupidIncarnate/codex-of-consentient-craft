@@ -14,7 +14,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'waitFor', target: SelectorStub(), state: LocatorStateStub() }),
   StepStub({ step: 'click', target: SelectorStub() }),
   StepStub({ step: 'type', target: SelectorStub(), value: ContentTextStub() }),
-  StepStub({ step: 'screenshot', name: FileNameStub() }),
+  StepStub({ step: 'screenshot', name: FileNameStub({ value: 'step1.png' }) }),
   StepStub({ step: 'eval', source: ContentTextStub() }),
 ];
 

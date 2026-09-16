@@ -13,7 +13,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'waitFor', target: SelectorStub(), state: LocatorStateStub() }),
   StepStub({ step: 'click', target: SelectorStub() }),
   StepStub({ step: 'type', target: SelectorStub(), value: ContentTextStub() }),
-  StepStub({ step: 'screenshot', name: FileNameStub() }),
+  StepStub({ step: 'screenshot', name: FileNameStub({ value: 'step1.png' }) }),
   StepStub({ step: 'eval', source: ContentTextStub() }),
 ];
 
@@ -106,6 +106,18 @@ describe('stepContract', () => {
         node: null,
         expect: 'ok',
       });
+    });
+
+    it('INVALID: {step: screenshot, name: "home"} => refuses the extensionless name and says what to type', () => {
+      expect(() => stepContract.parse({ step: 'screenshot', name: 'home', node: null })).toThrow(
+        /a screenshot name must end in .*\.png.* the capture is a PNG/u,
+      );
+    });
+
+    it('INVALID: {step: screenshot, name: "home.jpg"} => refuses a non-PNG extension', () => {
+      expect(() =>
+        stepContract.parse({ step: 'screenshot', name: 'home.jpg', node: null }),
+      ).toThrow(/a screenshot name must end in .*\.png.* the capture is a PNG/u);
     });
 
     it('VALID: {step: eval} => parses the complete eval member', () => {

@@ -4,6 +4,7 @@ import { instanceStartBroker } from './instance-start-broker';
 import { instanceStartBrokerProxy } from './instance-start-broker.proxy';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
+import { InstanceStateStub } from '../../../contracts/instance-state/instance-state.stub';
 import { LaneProcessStub } from '../../../contracts/lane-process/lane-process.stub';
 import { LaneProcessNameStub } from '../../../contracts/lane-process-name/lane-process-name.stub';
 import { LaneSpecStub } from '../../../contracts/lane-spec/lane-spec.stub';
@@ -190,6 +191,32 @@ describe('instanceStartBroker', () => {
       });
 
       expect(result.aheadOfMe).toBe(2);
+    });
+
+    it('VALID: {a killed row that never booted} => counts only the live reservation, not the tombstone', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      const queued = RegistryEntryStub({ id: InstanceIdStub(), bootedAtMs: null });
+      const killedBeforeBoot = RegistryEntryStub({
+        id: InstanceIdStub({ value: 'inst_deadbeef0000400080008000deadbeef' }),
+        bootedAtMs: null,
+        state: InstanceStateStub({ value: 'killed' }),
+      });
+      const bootedEntry = RegistryEntryStub({ id: instanceId, bootedAtMs: EpochMsStub() });
+
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({ instances: [queued, killedBeforeBoot, bootedEntry] }),
+      });
+
+      const result = await instanceStartBroker({
+        specName: SpecNameStub(),
+        questId: null,
+        guildId: null,
+      });
+
+      expect(result.aheadOfMe).toBe(1);
     });
   });
 

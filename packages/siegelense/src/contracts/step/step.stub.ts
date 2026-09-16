@@ -42,7 +42,8 @@ const STEP_DEFAULTS = {
   },
   screenshot: {
     step: 'screenshot',
-    name: FileNameStub(),
+    // `.png` is required by the contract, and `FileNameStub`'s own default is `test-file.txt`.
+    name: FileNameStub({ value: 'step1.png' }),
     node: null,
     expect: StepExpectationStub(),
   },

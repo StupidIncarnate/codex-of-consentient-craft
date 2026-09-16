@@ -47,6 +47,33 @@ describe('childProcessSpawnDetachedAdapter', () => {
     });
   });
 
+  describe('letting the parent exit', () => {
+    it('VALID: {a spawned long-lived child} => unrefs the handle so the parent process can exit', () => {
+      const proxy = childProcessSpawnDetachedAdapterProxy();
+      const command = 'node';
+      const args = ['/repo/packages/cli/dist/bin/dungeonmaster.js', 'siegelense', 'driver'];
+      const cwd = AbsoluteFilePathStub({ value: '/repo' });
+      proxy.succeeds({ command, args, pid: 54_321 });
+
+      childProcessSpawnDetachedAdapter({ command, args, cwd, stdoutFd: 3, stderrFd: 4 });
+
+      expect(proxy.unrefedPids()).toStrictEqual(['54321']);
+    });
+
+    it('ERROR: {spawn produced no pid} => never unrefs, because there is no live child to release', () => {
+      const proxy = childProcessSpawnDetachedAdapterProxy();
+      const command = 'npm';
+      const args = ['run', 'dev'];
+      const cwd = AbsoluteFilePathStub({ value: '/repo' });
+      proxy.succeedsWithNoPid({ command, args });
+
+      expect(() =>
+        childProcessSpawnDetachedAdapter({ command, args, cwd, stdoutFd: 3, stderrFd: 4 }),
+      ).toThrow(/produced no pid/u);
+      expect(proxy.unrefedPids()).toStrictEqual([]);
+    });
+  });
+
   describe('the returned identifiers', () => {
     it('VALID: {child.pid: 54321} => returns pid and pgid both derived from the OS pid', () => {
       const proxy = childProcessSpawnDetachedAdapterProxy();
