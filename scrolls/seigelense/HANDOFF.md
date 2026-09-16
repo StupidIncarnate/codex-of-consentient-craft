@@ -1,396 +1,314 @@
-# Siegelense build — handoff
+# Siegelense — the build
 
-**The work is unfinished and was stopped deliberately, not because it ran out of road.** Three chunks
-of roughly four are built and merged to `master` — but they are built against the WRONG INTERFACE, and
-correcting that is the first job. This file says where the work is, what holds, what does not, and the
-one thing most likely to mislead you.
+**Valid as of `5562b4c1c`, 2026-09-16.** Re-derive the counts below before trusting them; the command for
+each is given beside it. **A count in this file is a claim about a moment, and this file does not update
+itself.**
 
-## Re-issue this instruction to continue
+## The score
 
-Copy everything in the block below into a new session. It is self-contained — it names the worktree and
-tells the session to read this file first.
+| | Built | Total | |
+|---|---|---|---|
+| **Calls** | **7** | 13 | `start` `run` `results` `kill` `status` `cleanup` `compare` |
+| **Step verbs** | **6** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` |
+| **Results kinds** | **6** | 6 | `console` `network` `ws` `server` `screenshots` `steps` |
+| **Build-order items** | **6** | 30 | Part 7 of the spec — plus 6 more in part and 3 that are spec-side, not tooling |
 
-> Work in `worktrees/siegelense` on branch `siegelense`. The worktree already exists — do not carve a new one. Every path below is relative to that worktree root.
->
-> **Read `scrolls/seigelense/HANDOFF.md` before anything else.** It says what is built, what is wrong, and what the first job is.
->
-> We must implement the tooling described in `scrolls/seigelense/siegelense-tooling.md` in all its nitty gritty detail so that I can manually test everything once without finding holes that are documented as requirements.
->
-> **The interface is the CLI.** Every call is `dungeonmaster siegelense <call>`. There are no MCP tools — we should not have to install an MCP server for an LLM to use this. Seven calls are registered as MCP tools by mistake, and moving them is the first job. The handoff has the detail.
->
-> You must use sub agents for everything including planning, work, ward runs, and manual verification. Commit as you see fit.
->
-> The general flow you should run is:
->
-> - sub agent plans features against the doc that makes sense for a chunk. It has to dictate what to build and in what order; parallelization is good but not required.
-> - send sub agents to work on features as the plan dictates, including unit and int tests. I don't think yall need e2e tests for this.
-> - send sub agents to review code against plan and look for holes code may have or blindspots.
-> - send sub agent to manually use the tool to make sure it adheres to the requirements of the doc.
-> - send sub agent to review what the plan promised and delivered and mark all sections in the doc that were delivered properly in the detail specified in the doc so we have a running mark of what requirements are covered vs not
-> - start over
->
-> Do this until the planner sub agent has said there's nothing left to implement. Then send a sub agent or more to validate the doc's requirements are all met by manually running the tool.
->
-> **Manual verification means driving the real CLI**, not a script calling brokers. That is why several of the worst defects in this build were caught at all.
->
-> Before committing, always do `ward --uncommitted --committed` until green. Agents modifying files should run `ward -- -- {files}` on what they change for quick sanity checks and so they don't collide with other parallel agents.
->
-> **When the work is done, run a bare `npm run ward` over the whole repo and get exit code 0.** Not `--uncommitted --committed` — on a clean tree that grades zero files and exits 0 having run nothing, which reads as green.
->
-> This is an actual package in the packages folder so it must adhere to our arch that all sub agents should be pulling, as well as testing standards.
->
-> If hiccups with the flow or blockers happen, send out sub agents sonnet to fix them and unblock.
->
-> Only parallel 5 sub agents at a time. Use opus for planning, sonnet for everything else.
+**Roughly a third of the feature set exists.** The parts that do exist are solid and have been driven by
+hand. The parts that do not include the entire ADDRESSING story and the entire SEEDING story, which
+together are what let a session verify a browser feature at all. Read "What this cannot do yet" before
+promising anyone a walkthrough.
 
-## THE INTERFACE IS THE CLI. The MCP tools are a mistake, and undoing them is the first job.
+---
 
-**Every call is `dungeonmaster siegelense <call>`. There are no MCP tools.** The spec said otherwise for
-three chunks and the spec was wrong; it has been corrected. If you find MCP framing anywhere, it is a
-leftover, not an instruction.
+## The prompt
 
-The reason, in the user's words:
+Copy the block below into a new session. It is self-contained.
 
-> It was always supposed to be cli tooling for this to skip mcp entirely **because we shouldn't have to
-> install it for llms to use.**
+> Work on `master` in `/home/brutus-home/projects/codex-of-consentient-craft`. **Read
+> `scrolls/seigelense/HANDOFF.md` before anything else**, then `scrolls/seigelense/build-ledger.md`. The
+> handoff carries the feature set and the definition of done; the ledger carries the row-by-row state.
+>
+> We are implementing the tooling described in `scrolls/seigelense/siegelense-tooling.md` in all its nitty
+> gritty detail, so that I can manually test everything once without finding holes that are documented as
+> requirements.
+>
+> **The interface is the CLI.** Every call is `dungeonmaster siegelense <call>`. There are no MCP tools and
+> none are wanted — we should not have to install an MCP server for an LLM to use this. If you find MCP
+> framing anywhere it is a leftover, not an instruction.
+>
+> **DONE IS THE FEATURE SET, NOT A GREEN TEST RUN.** The checklist in the handoff is the contract. A ward
+> run cannot fail for code nobody wrote, so ward is a quality gate and never a completeness one. Before you
+> tell me anything is finished, re-count the checklist against the code and paste the counts.
+>
+> You must use sub agents for everything including planning, work, ward runs, and manual verification.
+> Commit as you see fit. Only 5 sub agents in parallel. Opus for planning, sonnet for everything else.
+> **Tell every agent not to dispatch its own sub-agents.**
+>
+> Build in CHUNKS. The loop for each chunk:
+>
+> 1. A planner reads the spec and the ledger and picks the next chunk. It names which checklist rows the
+>    chunk closes, and in what order. Parallelism is good, not required.
+> 2. Sub agents build those rows, with unit and integration tests. No e2e needed for this package.
+> 3. A reviewer reads the code against the plan and hunts for holes and blind spots.
+> 4. A sub agent DRIVES THE REAL CLI against the chunk's requirements — not a script calling brokers.
+> 5. A sub agent updates the ledger, the spec's inline status markers, and **the checklist counts in the
+>    handoff**.
+> 6. Start over.
+>
+> Repeat until every row of the checklist is checked. Then drive the whole surface by hand, once, against
+> the spec.
+>
+> **Manual verification means typing the command.** Several of the worst defects in this build were caught
+> only that way, and two of them had passing tests sitting on top of them.
+>
+> Ward discipline: agents run `npm run ward -- -- <files>` on what they touch. Before a commit, `npm run
+> ward -- --uncommitted`. Check the EXIT CODE — a pipeline's exit code is the last command's, so
+> `ward | tail && git commit` commits on red. A bare repo-wide `npm run ward` before merging to the default
+> branch, and only then; it costs ten minutes.
+>
+> Only the coordinator builds. A build takes no lock and rewrites every package's output, breaking every
+> other agent's checks mid-run.
+>
+> This is a real package in `packages/`, so it follows the repo architecture and testing standards every
+> agent pulls from the MCP tools.
 
-A CLI is reachable by any agent that has Bash — no install, no per-client configuration, and no
-reconnect when it changes. An MCP server needs all three, and during this build the reconnect alone cost
-four round trips.
+---
 
-**What exists, built correctly and pointed at the wrong surface:**
+## Definition of done
 
-| | |
+**Done is this checklist, fully checked.** Not a green ward. Not a planner's opinion that there is nothing
+left. Ward grades code that exists and is structurally blind to code nobody wrote — a repo with 6 of 23
+step verbs goes green exactly as hard as one with 23 of 23.
+
+Re-derive each count from the code before claiming it. The command is given under each table.
+
+### The thirteen calls
+
+Every call is `dungeonmaster siegelense <name>`. Steps are DATA inside `run`, never calls of their own.
+
+| Call | State |
 |---|---|
-| Already CLI subcommands | `status`, `cleanup`, the bare fleet listing, and `driver --instance <id>` (internal — `start` spawns it, nobody types it) |
-| Registered as MCP tools, must move | `start`, `run`, `kill`, `results`, `status`, `compare`, `cleanup` — seven |
-| Still unbuilt on any surface | `capacity`, `profile`, `prune`, `snapshots`, `recipes`, `docs` — six |
+| `start` | **built** |
+| `run` | **built** |
+| `results` | **built** |
+| `kill` | **built** |
+| `status` | **built** |
+| `cleanup` | **built** — minus `assetsAged`, which waits on the citation resolver |
+| `compare` | **built** — minus `elements`, which waits on `look` |
+| `capacity` | not built |
+| `profile` | not built |
+| `prune` | not built |
+| `snapshots` | not built |
+| `recipes` | not built |
+| `docs` | not built |
 
-**The rework is smaller than it sounds, and this is the measurement that says so.** The brokers are
-surface-agnostic and live in `packages/siegelense/src/brokers/**`. The entire MCP surface is TWO files:
-
-- `packages/mcp/src/responders/siegelense/handle/siegelense-handle-responder.ts` — `start`, `run`, `kill`
-- `packages/mcp/src/responders/siegelense/handle/siegelense-read-layer-responder.ts` — `results`,
-  `status`, `compare`, `cleanup`
-
-Both are thin: parse input, call one broker, return JSON. The CLI already calls two of those same brokers
-directly, from `responders/siegelense/{status,cleanup}/`. **So the job is to add five more CLI responders
-following the two that exist, route them in `flows/siegelense/siegelense-flow.ts`, and delete the MCP
-layer with its registration cascade.** No business logic moves.
-
-**Three things to carry across rather than reinvent:**
-
-1. **The tool descriptions carry each call's REFUSAL** — `results` requires a run id against a finished
-   instance, `status` never lists an unnamed instance's detail, `compare` has no cross-instance form,
-   `cleanup` ages nothing. Those sentences exist in the MCP registrations. A CLI needs them in its help
-   text, or a caller learns the rule by getting it wrong.
-2. **A person must be able to type it.** `dungeonmaster siegelense status` and `cleanup` were built, fully
-   tested, and unreachable, because the CLI gate in `packages/cli` only admitted `driver` and nothing
-   spanned the seam. A test that starts below the gate cannot catch a closed gate.
-3. **The MCP result cap does not apply to stdout**, so the 50,000-character argument in the old spec is
-   gone. The narrow-query design still matters: a `results` query with real response bodies is large
-   whatever carries it.
-
-## Where the work is
-
-| | |
-|---|---|
-| Worktree | `worktrees/siegelense` — carved with `mcp__dungeonmaster__create-worktree` |
-| Branch | `siegelense` |
-| Spec | `scrolls/seigelense/siegelense-tooling.md`, 3,015 lines |
-| Coverage ledger | `scrolls/seigelense/build-ledger.md` — one row per spec section |
-| Plans | `plans/chunk-01-registry-spine.md`, `chunk-02-driver-and-batch.md`, `chunk-03-read-path-and-perception.md` |
-
-The spec carries inline status markers under the headings that have been delivered. They read
-`> **Status: DELIVERED (chunk N)** — …` or `PARTIAL` or `BLOCKED`. Match that format exactly when
-you add more, so they stay findable by a search.
-
-## The search tools CAN see this worktree now. This was fixed and merged.
-
-`discover`, `get-project-map` and `get-project-inventory` used to answer `(empty)` for any package that
-exists only on a branch, because the MCP server resolved its root from its own startup directory rather
-than the caller's. **That is fixed and on `master`.** A call now prints the root it resolved:
+The six unbuilt ones refuse BY NAME rather than as an unknown subcommand, which is reachability, not
+delivery. Do not read that refusal as progress.
 
 ```
-[project-root: /home/.../worktrees/siegelense — resolved from the caller's own working directory]
-## siegelense (683 files) — siegelense package
+# the names, pinned so nobody invents a fourteenth or drops one
+packages/siegelense/src/statics/siegelense-call/siegelense-call-statics.ts
+# which of them route
+packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 ```
 
-**The rule it follows, and why the second half matters as much as the first:** walk up from the caller's
-location to the FIRST `.dungeonmaster.json` and stop. The worktrees live inside the main checkout, so a
-resolver that kept climbing would land on the outer config and sweep every worktree at once — thirteen
-branches' versions of the same package in one answer.
+### The twenty-three step verbs
 
-Cost: about 21ms cold, 6.5ms warm, down from 3.66 seconds. The cache holds a byte CURSOR per session
-file rather than a resolved answer, so a session that changes directory mid-run is followed rather than
-served a stale root.
-
-**If a call ever answers `(empty)` for a package you can see on disk, the fix is not live in that
-checkout** — the server loads `packages/mcp/dist/src/index.js` relative to its own startup directory, so
-it needs that checkout built and the MCP reconnected. An empty answer is never evidence of absence.
-
-## What a person can do today
-
-The repo is built, linked and `init`-ed, so these work at a terminal right now:
+| Verb | State | Verb | State |
+|---|---|---|---|
+| `goto` | **built** | `before` | not built |
+| `waitFor` | **built** | `health` | not built |
+| `click` | **built** | `reset` | not built |
+| `type` | **built** | `snapshot` | not built |
+| `screenshot` | **built** | `seed` | not built |
+| `eval` | **built** | `until` | not built |
+| `look` | not built | `hold` | not built |
+| `key` | not built | `video` | not built |
+| `paste` | not built | `request` | not built |
+| `box` | not built | `resize` | not built |
+| `dom` | not built | | |
+| `storage` | not built | | |
+| `file` | not built | | |
 
 ```
-dungeonmaster siegelense                          # prints the fleet; says so when empty
-dungeonmaster siegelense driver --instance <id>   # launches the driver for one instance
+packages/siegelense/src/statics/step/step-statics.ts   → verbs.all
 ```
 
-Three MCP tools are registered: `siegelense-start`, `siegelense-run`, `siegelense-kill`. **Your MCP
-client must reconnect before it can see them** — they were registered after this session's
-connection opened. Until then, drive them by spawning the MCP server over stdio, the way
-`packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts` does.
+**`look` is the one to build first**, and the reason is in "What this cannot do yet" below.
 
-`dungeonmaster init` creates `<repoRoot>/.siegelense`, pointing at the real dungeonmaster home, and
-ignores it in git and in every check glob that already excludes `worktrees`.
+### The build-order items
 
-## What is built
+The spec's Part 7 is the canonical order. **Thirty items. Six are done whole, six more in part, three are
+spec-side — prompt or contract work in other packages rather than tooling here — and fifteen are
+untouched.** Count them yourself from the table; the tally above is a claim about one moment.
 
-Two workspace packages: `packages/siegelense` and `packages/siegelense-recipes`. The second is
-empty on purpose — an empty recipes package is a real answer where a missing one is not.
-
-**Chunk 1, the disk spine.** The registry and its races: a port pair claimed before anything binds
-it, a reservation written before a boot, a boot lock that admits one boot at a time across
-processes, and a short-lived registry lock around every read-mutate-write. The heartbeat file with
-its child process-group ids, which is the only defence against a SIGKILLed driver. Evidence paths
-partitioned by the owning quest's guild, with `unowned/` as a real partition rather than a fallback.
-The `dungeonmaster init` step.
-
-**Chunk 2, the driver and the batch.** A per-instance driver process, separate from the MCP process
-on purpose so an MCP rebuild cannot kill live instances. Lane boot and teardown. Six step verbs and
-a dispatcher. A run executor whose return is an index rather than a payload, whose transcript
-flushes per step, and whose counts cover only its own window. The no-pick rule: an ambiguous target
-throws carrying its candidates, a zero-match throws naming near misses. `start`, `run` and `kill`,
-reachable as three MCP tools and a CLI command.
-
-## What is NOT built
-
-Ten of the thirteen tools are unregistered — `results`, `capacity`, `profile`, `status`, `cleanup`,
-`prune`, `compare`, `snapshots`, `recipes`, `docs`. Their names are pinned in
-`siegelenseToolsStatics` so nobody can invent a fourteenth or drop one; nothing handles them.
-
-No recipes. No evidence read path. No retention or pruning. No `look`, `health`, `hold`, `video`,
-`reset`, `seed`, `until`, `request`, `resize` or `before`. No map. No settle detector. No profiling.
-
-The ledger has the full picture, row by row. Read it before planning — it is the map of what the
-spec contains, and it is current as of this handoff.
-
-## The source-condition bug: SOLVED. Read the mechanism before you spawn anything.
-
-**A driver spawned from inside a Jest worker resolved `@dungeonmaster/shared/contracts` to TypeScript source
-instead of compiled `dist/`.** Three sessions failed on it. It is fixed. The mechanism is worth knowing,
-because the same trap catches any spawn from a Jest worker in this repo.
-
-**The chain, in order:**
-
-1. Ward's unit and integration runners inject `NODE_OPTIONS=--conditions=source` into the Jest process
-   (`packages/ward/README.md` section 5).
-2. `packages/testing/src/jest.setup.js` strips that variable back out of the live `process.env`.
-3. **A child spawned with `env` OMITTED does not read the live object.** Node's "default: inherit
-   `process.env`" resolves against a STALE, PRE-STRIP snapshot taken inside the Jest worker. The strip never
-   reaches the child.
-4. `instance-start-broker.ts` spawned the driver with no `env` field — the one call site relying on that
-   default. So the child ran with `--conditions=source` active, and Node dutifully resolved the package's
-   `source` export condition to `./contracts.ts`.
-
-**The fix:** `instance-start-broker.ts` now builds an explicit env snapshot from live `process.env` and passes
-it as `env:` on the spawn. `laneBootBroker` already did exactly this for its own spawns, which is why the
-"twin" experiment sometimes succeeded — it went through the other path.
-
-**Why three sessions of measurement missed it, which is the reusable lesson.** Every ruled-out row below was
-measured in the PARENT, against the live `process.env` — where the strip HAD worked, so `NODE_OPTIONS` really
-did read as `undefined`. Nobody measured what the CHILD received. The parent and the child disagreed, and only
-one of them was ever asked.
-
-**Do not re-check these. Each was ruled out by live measurement, and none of them was the cause:**
-
-| Ruled out | How |
-|---|---|
-| `NODE_OPTIONS`, `NODE_PATH`, `TS_NODE_PROJECT` | all undefined **in the parent** — the measurement that misled everyone |
-| `process.execArgv` | empty |
-| the resolved binary path | correct |
-| the same spawn outside Jest | succeeds every time — because nothing injects the condition there |
-| worktree hermeticity | the crash's own stack names paths inside the worktree throughout, never the main checkout |
-| `detached: true` | reproduced without it |
-| numeric-fd stdio vs pipe | reproduced with a real `fs.openSync` fd |
-| `spawnSync` vs async `spawn` | reproduced both ways |
-| concurrent process launches | dozens in parallel from Bash and from a plain Node parent, no crash |
-| ward's `--detectOpenHandles` | reproduced under bare `npx jest --runInBand` |
-| a Node 22.17 `require(esm)` race | Node 21.6.0 crashes too, through the old CJS loader. The `ModuleJobSync` frames were a symptom of Node 22's TypeScript support |
-| the twin spawn running alone | crashed twice, identically. The earlier twin SUCCESS was the other spawn path, which already passed an explicit env |
-
-## The teardown suite is GREEN. All fifteen tests pass against real spawned drivers.
-
-`DRIVER_BOOT_BLOCKER` is `''` and the gate is gone. Two independent full runs of
-`packages/siegelense/src/flows/driver/driver-flow.integration.test.ts` pass every test — the single-instance
-clean kill, the SIGKILLed driver's orphans reaped by a second process, and killing one of three parallel
-instances while the other two keep answering ping and keep every one of their own process groups alive.
-
-**The suite paid for itself immediately by catching two real defects**, and the second was invisible until the
-first was fixed.
-
-| Defect | Where | What it was |
+| # | Item | State |
 |---|---|---|
-| The socket directory was never created | `adapters/net/unix-serve/net-unix-serve-adapter.ts` | Nothing ever made `<os.tmpdir()>/dm-siege-sockets`. **Binding a unix socket whose parent directory is absent fails with `EACCES`, not `ENOENT`** — which is why three sessions read it as a permissions or contention problem. The directory only ever existed on this machine as a leftover from an earlier successful run. Fixed with a `mkdirSync(dirname(socketPath), { recursive: true })` before the bind |
-| A driver SIGKILLed inside the first 5 seconds leaked its whole lane | `responders/siegelense/driver/driver-serve-layer-responder.ts` | `instanceKillBroker`'s orphan reap reads `heartbeat.json` for the pgids to signal, but the heartbeat ticker's first tick waits `instanceLifecycleStatics.heartbeat.intervalMs` — 5 seconds. A driver killed in that window left no heartbeat file, so the reap found zero pgids and the lane processes never died. Fixed by writing one beat CONCURRENTLY with standing up the socket, closing the window to effectively zero |
+| 1 | Gate the smoketest HTTP route at registration | **done** |
+| 2 | The instance service — the thirteen calls | part: 7 of 13 |
+| 2a | The evidence read path off the asset tree | **done** |
+| 2b | Teardown and crash recovery, tests red-first | **done** — 16 of 16 green against real processes |
+| 2c | Retention and tombstones | part: the fields exist; no ageing, no refusals, no citation resolver |
+| 3 | The recipe book | **not started** |
+| 3a | Recipe integration tests | **not started** |
+| 3b | The PLANNER role | **not started** — orchestrator prompt work |
+| 4 | A transcript of every step and reading | **done** |
+| 4b | The record's `WALKED` field | spec-side |
+| 5 | `before` — a script ahead of the page's own | **not started** |
+| 6 | Capture on every acting step, frozen, with a change number | **done** |
+| 7 | **The key as a tree — refs, `within`, four columns** | **not started** |
+| 8 | `health` — one reading, one verdict line | **not started** |
+| 9 | `until` — wait on a response, a file, a predicate | **not started** |
+| 10 | Selectable readings — `network` projection, `dom` cap | part: the `network` half only |
+| 11 | `hold` and `video` | **not started** |
+| 11b | The human-check route | spec-side |
+| 11c | The declared-value block and its third reader | spec-side |
+| 11d | `siegemaster-reader` | **not started** — orchestrator |
+| 11e | `siegemaster-operational`, and the surfaces it needs | **not started** — split ownership |
+| 11f | The `(human-check)` panel on the quest | **not started** — web |
+| 11g | A `walked` kind on `questNotes` | part: the contract landed, nothing consumes it |
+| 11h | Print the owning node id in `get-qa-checklist` | **not started** — orchestrator/mcp |
+| 12 | Server-side failure injection | **not started** |
+| 13b | `compare` — the index delta between two runs | **done** minus `elements` |
+| 14 | Three reset levels with named snapshots | **not started** |
+| 15 | `resize`, and a direct `request` step | **not started** |
+| 16 | The two local lint rules | part: `.first()`/`.last()` done, DOM-handle rule open |
+| 17 | The lane spec and N ports, moved where consumers get it | part: it is data; it still names two packages directly |
 
-**Stale sockets were already handled** and still are: the adapter unlinks an existing socket file before
-binding, because a SIGKILLed driver leaves its socket file behind and a unix socket path is not removed when
-its process dies.
+The ledger carries the reasoning per row. **Read it before planning.**
 
-**One leak remains, found while verifying and not covered by any of the fifteen tests.** The driver's own
-top-level process does not exit after a successful `kill` — its socket server is never closed, so the Node
-event loop stays alive. The idle-timeout backstop (`driver-idle-wait-layer-responder.ts`) eventually reaps it,
-which makes this a slow leak rather than a permanent one. Every existing test checks lane pgids, ports, home
-and evidence — never the driver's own process — which is exactly why it slipped through.
+---
 
-## A lane outlived its driver by five hours, holding a port. Found by looking, not by a test.
+## What this cannot do yet
 
-A sweep at the end of this build found a live `tsx --conditions=source bin/server-entry.ts` with cwd
-`worktrees/siegelense/packages/server`, **five hours old, holding port 42341**, with no driver process
-alive to own it. That is a leaked LANE — the exact failure the teardown section calls "silent, costs
-three processes, and is never noticed by the session that caused it."
+Three gaps, and they compound. A session that can drive every built verb still cannot verify a browser
+feature end to end, because of the first one.
 
-**The likely mechanism, and it is worth understanding before trusting teardown.** The registry was
-CLEAN — `~/.dungeonmaster/siegelense/` held no rows and no instance directories. A test's driver runs
-under a testbed `DUNGEONMASTER_HOME` in the OS `/tmp`, and `testbed.cleanup()` deletes that home when the
-suite ends. **The registry row goes with it.** Any lane child that outlived its driver is then
-unreapable, because the only record of its pgids has been deleted — `cleanup` has nothing to find, and
-`kill`'s orphan-reap path has no heartbeat to read.
+### It cannot read a page
 
-So a lane leaked by a test is invisible to every recovery path the tool has, by construction.
+`look` returns the KEY — a tree of every addressable element with element-bound refs — and writes the shot
+beside it. It is the answer to both "what is on this screen" and "how do I address the second of two
+identical controls". Neither `results` nor any built step produces a node tree, and `results` never will:
+it reads evidence off disk, and a tree is a live reading.
 
-**Check for this by hand; nothing else will tell you.** A leaked lane holds a port and looks like
-nothing:
+**Driven, and this is the dead end:**
 
 ```
-ps -eo pid,etime,cmd | grep "bin/server-entry"
-ss -lptn | grep node
+click [data-testid="PIXEL_BTN"]
+→ AMBIGUOUS: 2 elements match.
+    [0] within=[data-testid="MAP_FRAME"] text="BROWSE" rect=(742,433) 66x27
+    [1] within=[data-testid="MAP_FRAME"] text="CREATE" rect=(607,472) 66x27
+  Pick one by narrowing with `within`.
+
+click [data-testid="PIXEL_BTN"] within=[data-testid="MAP_FRAME"]
+→ AMBIGUOUS: 2 elements match … Pick one by narrowing with `within`.
 ```
 
-Whether the fix is for the testbed to tear lanes down before deleting the home, or for the reap to have
-a record that outlives the testbed, is not settled. **Do not assume a green teardown suite means no
-lanes leak** — the suite passed sixteen assertions twice on the same day this leak was sitting there.
+Both candidates carry the SAME `within`, so the instruction the error gives cannot be followed, and it
+repeats itself verbatim. With `look`, the second button is `ref: 26` and the problem disappears. Today the
+only way to discover what is on a page at all is to fail a click on purpose and read the near-miss list
+out of the error message.
 
-## The teardown suite's flake was PROCESS COUNT, never the stale sockets. Fixed.
+### It cannot seed anything
 
-Stale socket files are inert. Nothing reads `<os.tmpdir()>/dm-siege-sockets/` by content, and an
-instance id comes from `crypto.randomUUID()`, so two runs cannot collide on a name. **With 8 stale
-socket files present and ambient load normal, the suite passes** — measured three times.
+The lane runs a MOCK Claude CLI, and that is correct — `dungeonmaster-web` refuses to boot without
+`CLAUDE_CLI_PATH` and `WARD_CLI_PATH`, in its own words *"Refusing to boot against the real CLI — that
+spends real API usage and produces a non-deterministic reading."*
 
-**What actually moved is the machine's process table**, and leaked lanes raise both numbers at once,
-which is what made the file count look causal.
+The mock is a QUEUE CONSUMER. Each spawn pops one JSON file:
 
-`driver-serve-layer-responder` stood up the control socket and wrote the first heartbeat concurrently,
-on the reasoning that a client could not reach the socket before both settled. That reasoning holds
-only while the two cost about the same. They do not:
+```
+<home>/claude-queue/__by_cwd__/<guildPath, every non-[A-Za-z0-9._-] byte replaced by _>/0000.json
+                               metadata.json    ← the counter, so ordering is explicit
+```
 
-| | Measured |
-|---|---|
-| unix socket bind | 1.08ms |
-| first heartbeat write, 435 processes on the machine | 56.8ms |
-| first heartbeat write, 3,430 processes | 276.7ms |
+`<home>` comes back in `start`'s manifest, so the queue is reachable BY HAND and reachable through no built
+call. `seed`, recipes and `file` are all unbuilt, and **none of the six built verbs writes a file**. `eval`
+cannot stand in: it runs in the browser, and the queue is on the driver's disk.
 
-The first beat calls `heartbeatWriteBroker` → `machineRssByPgidBroker`, which walks every
-`/proc/<pid>` on the machine. Past `driverStatics.boot.readyPollMs` (250ms) that walk outlasts the
-client's poll, so **`ping` answers and the boot reports success before `heartbeat.json` exists**. A
-SIGKILL landing in that window leaves `instanceKillBroker`'s orphan reap nothing to read: it reports
-`reapedPgids: []` against a non-empty `preKillPgids`, and the orphans are never signalled.
+Worse, the queue lives inside the throwaway home, which `kill` deletes — so the evidence directory keeps no
+record of what the lane was fed, and a walk is reproducible only if whoever repeats it still has the JSON.
 
-Reproduced deterministically by inflating the process table to ~3,430 with `sleep` processes and no
-socket files at all — the exact two assertions the older note blamed on stale files.
+### It loses the lane under a person
 
-**The fix keeps the bind concurrent** — no boot-latency regression — **and gates the REPLY**: every
-branch of `onRequest` awaits the first beat before returning, so nothing tells a client "ready" until
-the heartbeat is on disk.
+A driver reaps itself after 900s with no `run`. `status` and `results` read off DISK and never touch the
+driver socket, so a human clicking around the UI resets nothing. Measured: three instances booted and left
+alone died at exactly 900s each.
 
-**The armed `setTimeout` at `instance-start-boot-poll-layer-broker.ts:48` is a separate leak.** It is
-the client's own poll retry, which always resolves — unless a caller abandons it. The three-way
-`Promise.all` over concurrent boots did exactly that: one sibling rejecting abandoned the others, and
-`driverFleetHarness` only tracks an instance once `boot()` returns, so an abandoned-but-successful
-boot's lane became invisible to the `afterAll` reap. `Promise.allSettled` with explicit rejection
-checks keeps the fail-fast semantics and abandons nothing.
+---
 
-**Verified across eight consecutive runs**, including one with 33 stale socket files present and one
-under 3,453 processes — the condition that broke it every time before the fix. `rm -rf
-/tmp/dm-siege-sockets` is no longer needed.
+## Findings log
 
-## One thing to verify rather than trust
+Defects the manual walkthrough surfaced, in the order found. A defect goes to a sonnet sub-agent; this
+table is how the walk tracks what is out and what landed.
 
-**`siegelense-start` was proven broken by a real run, then fixed, and the fix has not been
-re-verified by a person.** Its unit tests pass. Drive it yourself early.
+| # | Stop | Defect | State |
+|---|---|---|---|
+| 1 | pre-walk | `start` printed its manifest and never exited — `detached: true` without `unref()` left the parent's event loop holding the driver. Manifest at `bootMs: 4269`, command still alive ten minutes later | **FIXED** `ac3827f8f` |
+| 2 | pre-walk | `aheadOfMe` counted killed tombstones as queued boots, so it climbed by one per failed boot and never came down. Read 3 on an empty fleet | **FIXED** `ac3827f8f` |
+| 3 | pre-walk | A `screenshot` step whose name carried no extension failed with Playwright's `path: unsupported mime type "null"`, naming neither the step nor the field | **FIXED** `ac3827f8f` |
+| 4 | discovery | **Any unrecognized word booted the HTTP server.** `CliFlow` routed five commands and let everything else fall through to `CliServeResponder`, so `dungeonmaster seigelense` — two transposed letters — bound `dungeonmaster.port` and a second attempt died on `EADDRINUSE`. `COMMANDS.start` was declared and never referenced, so `dungeonmaster start` only worked through the same hole | **FIXED** `766d4c175` |
+| 5 | discovery | The fleet table was unreadable — tabs with no padding, raw epoch ms in `LAST BEAT`, a full absolute path repeated per row — and a `killed` row explained nothing | **FIXED** `add570c57` |
+| 6 | discovery | A step that failed for a REAL reason captured its shot and never read it. Two layers dropped the readings, so `blank` — the one field in this design that is a VERDICT — was null on the one shot a fixer opens first | **FIXED** `add570c57` |
+| 7 | `start` | A boot failure took 3m0.724s to report `api, web never answered their ready path`, while the real cause sat in `driver.log` from the first 50ms. Now 1.459s, naming the missing variables | **FIXED** `add570c57` |
+| 8 | `start` | Every failed boot leaked its reservation — an `alive` row with `bootedAtMs: null` holding a claimed port pair with no process | **FIXED** `add570c57` |
+| 9 | `start` | **A lane reaped by its own idle timeout reports a MEMORY death.** `likelyCause` recites RSS and kernel OOM counts for a shutdown the tool scheduled itself, and a session is told to bubble that up as `rework` | **OUT** — sonnet |
+| 10 | `run` | `StepAmbiguousError`'s structured `candidates` array is EMPTY while the human-readable message carries the text and rects. A session parsing the JSON gets nothing | **OPEN** |
+| 11 | `run` | The ambiguity error advises narrowing with `within` when both candidates already share one. The advice cannot be followed and repeats verbatim | **OPEN** — closes with `look` |
+| — | parked | `CliServeResponder` runs `xdg-open` unconditionally, with no flag, config knob or env var. Every server launch opens a browser tab | **PARKED** by request |
 
-## The proxy-mock specifier question, settled
+---
 
-`'process'` and `'node:process'` DO merge into one `jest.mock()` factory, and the fix reaches every
-package. Read the merge at
-`packages/testing/src/transformers/mock-calls-merge-by-module/mock-calls-merge-by-module-transformer.ts:31`,
-not at the collector — `proxy-mock-collector-middleware.ts` normalises relative specifiers only, which
-is why reading that file alone makes the bug look open. The ledger's last row carries the full trace.
+## The other documents, and what each is for
 
-## The lesson this build kept teaching
+| File | What it holds | When to read it |
+|---|---|---|
+| `siegelense-tooling.md` | **the spec**, 3,087 lines, with inline `> **Status:**` markers under delivered headings | living in it while building a chunk |
+| `build-ledger.md` | one row per spec section, with the reasoning behind each verdict | before planning, always |
+| `manual-verification-runbook.md` | how to drive the real binary, and the housekeeping that stops a clean run reading as a failure | before any manual pass |
+| `siegelense-recipes.md` | the recipe book design | when item 3 comes up |
+| `siege-verification-remainder.md` | the ROLE — what a siegemaster is for, the perception trial, the prompts | context, not tooling |
+| `plans/chunk-0*.md` | one plan per chunk, 1 to 5. Chunk 5 is planned and unstarted | picking up chunk 5 |
 
-Eleven defects were found **after** the code went green, and each needed a different kind of check:
+**Keep the markers in the spec matching this file.** They read `> **Status: DELIVERED (chunk N)** — …` or
+`PARTIAL` or `BLOCKED`. Match that format exactly so a search finds them.
 
-| Found by | What only it found |
-|---|---|
-| reading the code | the boot lock's check-then-act race |
-| code review | no cross-process lock on the registry; two locks that could hang forever; a failed step that never captured its shot; a hung `waitFor` that never stopped its batch |
-| **driving the real CLI** | the symlink pointing at the wrong tree; a gitignore entry that never matched a symlink; `start` unable to boot at all |
-| a coverage audit | a lock that never got the fix its sibling already had |
-| a full-repo ward | our own statics breaking lint in ten unrelated packages |
-| an agent auditing itself | a session field its teardown never read |
+---
 
-**Two of those had passing tests sitting on top of them**, and the reason matters more than the
-bugs. The symlink test set both roots to the same value, so the wrong one was indistinguishable from
-the right one. And the shared mock-staging helper re-wrapped cross-realm errors, so a unit test
-could not reproduce the shape production produces — the test infrastructure was guaranteeing a whole
-class of bug reached production. Both are fixed; the habit that catches them is not.
+## Knowledge that cost time to learn
 
-So: a green ward is necessary and nowhere near sufficient. Drive the thing.
+Condensed. The full traces are in the ledger.
 
-## Work found and fixed that the spec never asked for
+**A green ward is necessary and nowhere near sufficient.** Eleven defects were found after the code went
+green, and two had passing tests sitting on top of them — one test set both roots to the same value, so
+the wrong one was indistinguishable from the right one; one mock helper re-wrapped cross-realm errors, so a
+unit test could not reproduce the shape production produces. **Drive the thing.**
 
-- `dungeonmaster create-package` seeded a jest config that could not run an integration test
-  importing `@dungeonmaster/testing`
-- `@dungeonmaster/hooks` failed a fresh-repo install while printing `undefined` as its reason
-- `ward --committed` refused any run whose scope named a deleted file
-- the proxy-mock transformer keyed its dedup on the raw import specifier
-- the shared mock-staging helper re-wrapped cross-realm errors
-- our own `locationsStatics` additions broke lint in ten packages until the generic fragments moved
-  out. **Do not put a bare extension in `locationsStatics`** — a guard in `packages/local-eslint`
-  now refuses it, and its test explains why.
+**A child spawned with `env` omitted does not read the live `process.env`.** From inside a Jest worker it
+resolves against a stale pre-strip snapshot, so `--conditions=source` reaches the child and every
+`@dungeonmaster/*` import resolves to TypeScript. Always pass `env:` explicitly. Three sessions lost time
+to this, all of them measuring the PARENT.
 
-## How to run the flow
+**`detached: true` does not let the parent exit.** It sets the child's process group. The parent's event
+loop still holds a reference until the child dies, and every child here is a long-lived server. Pair it
+with `unref()`.
 
-Plan a chunk with opus against the spec and the ledger; build it with sonnet agents, three at a
-time; review the code against the plan; **drive the real CLI and the real MCP tools**; update the
-ledger and the spec markers; repeat.
+**Binding a unix socket whose parent directory is absent fails with `EACCES`, not `ENOENT`.** Three
+sessions read that as permissions or contention.
 
-**Finish with a bare `npm run ward` over the whole repo, exit code 0.** Do the work, then run it. A
-git-scoped run (`--uncommitted --committed`) grades nothing once the tree is clean, exits 0, and reads
-as green — it is empty, not passing.
+**A raw control byte in a source file is invisible to every text tool.** A `0x00` renders as a space in
+`Read`, in an edit diff and in jest's own printed diff. Sweep with `os.walk` + `'rb'`, never with `Read` or
+grep — those are the tools that cannot see it.
 
-Ward discipline that cost time to learn here:
+**A lane leaked by a test is unreapable by construction.** A test driver runs under a testbed
+`DUNGEONMASTER_HOME`, and `testbed.cleanup()` deletes it with the registry row inside — so the only record
+of the pgids is gone. Sweep by hand: `ps -eo pid,etime,cmd | grep "bin/server-entry"`.
 
-- Scope to files while agents work in parallel: `npm run ward -- -- <files>`.
-- `npm run ward -- --uncommitted --committed` before every commit. Check its **exit code** —
-  a pipeline's exit code is the last command's, so `ward | tail && git commit` will commit on red.
-- Only the coordinator builds. A build with no lock rewrites every package's output and breaks every
-  other agent's checks mid-run.
-- After changing `locationsStatics`, build `@dungeonmaster/shared` before any lint — this repo's own
-  ESLint rules read it compiled.
-- The driver runs **compiled** output. Source changes it executes need
-  `npm run build --workspace=@dungeonmaster/siegelense` to take effect.
+**Stale socket files are inert.** The teardown suite's flake was the machine's PROCESS TABLE, not
+`/tmp/dm-siege-sockets`. Measured: a first heartbeat write costs 56.8ms at 435 processes and 276.7ms at
+3,430, past the 250ms poll — so `ping` could answer before `heartbeat.json` existed. Fixed by gating the
+reply on the first beat.
 
-**Tell every agent not to dispatch its own sub-agents.** Several did, and a fork inherits the
-parent's full context, reads the parent's brief as its own, and races its own parent editing the same
-files. One corrupted a work item that way.
-
-## Two no-op commits
-
-`98064a67f` and its revert `36fdd618a` net to exactly zero content. They exist because an agent built
-a reproduction by committing. A hook blocks rewriting history while other sessions share the
-checkout, so they were left in place.
+**Do not put a bare extension in `locationsStatics`.** That file's ban is repo-wide, so a fragment like
+`.json` claims every other package's unrelated use of the string. A guard in `packages/local-eslint` now
+refuses it.
