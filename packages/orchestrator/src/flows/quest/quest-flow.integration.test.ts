@@ -193,6 +193,7 @@ describe('QuestFlow', () => {
           },
           { id: 'out-of-scope', notes: [] },
           { id: 'walk-reset', notes: [] },
+          { id: 'walked', notes: [] },
         ],
       });
     }, 30_000);

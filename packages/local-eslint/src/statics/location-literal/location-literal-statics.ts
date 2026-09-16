@@ -16,8 +16,11 @@ export const locationLiteralStatics = {
   // length filter but carry a second, non-path meaning that the rule cannot distinguish from a
   // path: 'node_modules' is the `folderConfigStatics.allowedImports` sentinel for "this folder
   // type may import external packages", a tsconfig/glob `exclude` entry, and the substring ward
-  // tests tsc output lines against — none of which resolve a directory.
-  excludedLiterals: ['node_modules'],
+  // tests tsc output lines against — none of which resolve a directory. 'siegelense' is the CLI
+  // command name (`dungeonmaster siegelense`) that CliFlow's own COMMANDS dispatch table carries —
+  // it shares a spelling with `locationsStatics.siegelense.dir` only because both derive from the
+  // tool's own name, not because the command dispatches a path.
+  excludedLiterals: ['node_modules', 'siegelense'],
   // Path substrings whose files may contain raw location literals (the canonical readers).
   allowlistPathSubstrings: [
     // The statics module that owns the literals.

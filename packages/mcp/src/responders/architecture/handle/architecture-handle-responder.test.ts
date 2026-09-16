@@ -211,6 +211,62 @@ describe('ArchitectureHandleResponder', () => {
     });
   });
 
+  describe('get-project-inventory', () => {
+    it('VALID: {tool: get-project-inventory, packageName} => returns inventory text prefixed by the project-root banner', async () => {
+      const proxy = ArchitectureHandleResponderProxy();
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-project-inventory' }),
+        args: { packageName: 'shared' },
+      });
+
+      const text = String(result.content[0]!.text);
+
+      expect(text.split('\n')[0]).toBe(
+        "[project-root: /default/cwd — WARNING: could not resolve the caller's own working directory (no matching Claude Code session JSONL within the scan budget); falling back to the MCP server's own startup directory. If the caller is working in a worktree, this result may describe the WRONG tree.]",
+      );
+    });
+  });
+
+  describe('project-root resolution banner', () => {
+    it('EDGE: {no meta} => banner reports the server-cwd fallback, by name', async () => {
+      const proxy = ArchitectureHandleResponderProxy();
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-project-inventory' }),
+        args: { packageName: 'shared' },
+      });
+
+      const text = String(result.content[0]!.text);
+
+      expect(text.split('\n')[0]).toBe(
+        "[project-root: /default/cwd — WARNING: could not resolve the caller's own working directory (no matching Claude Code session JSONL within the scan budget); falling back to the MCP server's own startup directory. If the caller is working in a worktree, this result may describe the WRONG tree.]",
+      );
+    });
+
+    it('VALID: {meta resolves a caller cwd inside a worktree} => banner names the WORKTREE root, not the server cwd', async () => {
+      const proxy = ArchitectureHandleResponderProxy();
+      proxy.setupCallerCwdRoot({
+        toolUseId: 'toolu_01K6qfGEd8bFzkPvY8nHt1Ts',
+        homedir: '/home/tester',
+        sessionId: 'aaaaaaaa-1111-4222-9333-444444444444',
+        repoRoot: '/repo/worktrees/siegelense',
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-project-inventory' }),
+        args: { packageName: 'shared' },
+        meta: { 'claudecode/toolUseId': 'toolu_01K6qfGEd8bFzkPvY8nHt1Ts' },
+      });
+
+      const text = String(result.content[0]!.text);
+
+      expect(text.split('\n')[0]).toBe(
+        "[project-root: /repo/worktrees/siegelense — resolved from the caller's own working directory]",
+      );
+    });
+  });
+
   describe('unknown tool', () => {
     it('ERROR: {tool: unknown-tool} => throws unknown tool error', async () => {
       const proxy = ArchitectureHandleResponderProxy();

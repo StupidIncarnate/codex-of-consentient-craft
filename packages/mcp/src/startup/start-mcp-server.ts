@@ -13,8 +13,14 @@ import { ArchitectureFlow } from '../flows/architecture/architecture-flow';
 import { QuestFlow } from '../flows/quest/quest-flow';
 import { InteractionFlow } from '../flows/interaction/interaction-flow';
 import { McpServerFlow } from '../flows/mcp-server/mcp-server-flow';
+import { SiegelenseFlow } from '../flows/siegelense/siegelense-flow';
 
 export const StartMcpServer = async (): Promise<AdapterResult> =>
   McpServerFlow({
-    registrations: [...ArchitectureFlow(), ...QuestFlow(), ...InteractionFlow()],
+    registrations: [
+      ...ArchitectureFlow(),
+      ...QuestFlow(),
+      ...InteractionFlow(),
+      ...SiegelenseFlow(),
+    ],
   });

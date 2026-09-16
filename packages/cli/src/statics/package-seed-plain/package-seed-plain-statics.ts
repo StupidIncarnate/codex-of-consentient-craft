@@ -23,6 +23,7 @@ export const packageSeedPlainStatics = {
     jestKind: 'node',
     e2eEligible: false,
     exportsDot: false,
+    needsMswTransform: false,
     files: [
       {
         path: 'src/statics/__NAME__/__NAME__-statics.ts',
@@ -68,6 +69,7 @@ describe('__CAMEL__Statics', () => {
     jestKind: 'node',
     e2eEligible: false,
     exportsDot: false,
+    needsMswTransform: true,
     files: [
       {
         path: 'src/state/__NAME__/__NAME__-state.ts',
@@ -321,6 +323,7 @@ describe('Start__PASCAL__', () => {
     jestKind: 'node',
     e2eEligible: false,
     exportsDot: true,
+    needsMswTransform: false,
     files: [
       {
         path: 'src/brokers/rule/__NAME__/rule-__NAME__-broker.ts',
@@ -477,6 +480,7 @@ describe('index', () => {
     jestKind: 'node',
     e2eEligible: false,
     exportsDot: false,
+    needsMswTransform: false,
     files: [
       {
         path: 'src/responders/hook/pre-tool-use/hook-pre-tool-use-responder.ts',

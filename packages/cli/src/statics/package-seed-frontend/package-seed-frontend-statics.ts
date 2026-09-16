@@ -29,6 +29,7 @@ export const packageSeedFrontendStatics = {
     jestKind: 'tsx-jsdom',
     e2eEligible: true,
     exportsDot: false,
+    needsMswTransform: false,
     files: [
       {
         path: 'src/widgets/__NAME__-panel/__NAME__-panel-widget.tsx',
@@ -91,6 +92,7 @@ describe('__PASCAL__PanelWidget', () => {
     jestKind: 'tsx-node',
     e2eEligible: true,
     exportsDot: false,
+    needsMswTransform: false,
     files: [
       {
         path: 'src/adapters/ink/render/ink-render-adapter.ts',

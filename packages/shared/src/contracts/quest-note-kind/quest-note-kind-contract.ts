@@ -1,16 +1,18 @@
 /**
- * PURPOSE: Defines the four kinds of durable side-channel note a role can append to
+ * PURPOSE: Defines the five kinds of durable side-channel note a role can append to
  * `quest.planningNotes.questNotes`
  *
  * USAGE:
  * questNoteKindContract.parse('open-question');
  * // Returns: QuestNoteKind enum value
  *
- * The four kinds cover what a role learns that does not belong in a verdict:
+ * The five kinds cover what a role learns that does not belong in a verdict:
  * - `open-question` — a question raised during the work that nobody answered
  * - `tooling-error` — a tool or infrastructure failure that blocked real work from happening
  * - `out-of-scope` — an observation deliberately left out of scope, recorded so it is not re-found
  * - `walk-reset` — a record that a Siegemaster walk was reset for a flow
+ * - `walked` — proof that a siegelense path or attack was actually driven, carrying the
+ *   `instanceId`/`runId` a `prune`/`cleanup` resolver matches a citation against
  *
  * Keeping these OUT of the sign-off verdicts is the point: a note never closes a unit, so a role
  * cannot discharge a verification obligation by writing prose about it.
@@ -23,6 +25,7 @@ export const questNoteKindContract = z.enum([
   'tooling-error',
   'out-of-scope',
   'walk-reset',
+  'walked',
 ]);
 
 export type QuestNoteKind = z.infer<typeof questNoteKindContract>;

@@ -3,12 +3,13 @@ import { QuestNoteKindStub } from './quest-note-kind.stub';
 
 describe('questNoteKindContract', () => {
   describe('enum membership', () => {
-    it('VALID: {options} => exposes exactly the four side-channel note kinds', () => {
+    it('VALID: {options} => exposes exactly the five side-channel note kinds', () => {
       expect(questNoteKindContract.options).toStrictEqual([
         'open-question',
         'tooling-error',
         'out-of-scope',
         'walk-reset',
+        'walked',
       ]);
     });
 

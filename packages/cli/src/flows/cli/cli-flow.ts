@@ -12,6 +12,7 @@ import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { CliCreatePackageResponder } from '../../responders/cli/create-package/cli-create-package-responder';
 import { CliInitResponder } from '../../responders/cli/init/cli-init-responder';
 import { CliServeResponder } from '../../responders/cli/serve/cli-serve-responder';
+import { CliSiegelenseResponder } from '../../responders/cli/siegelense/cli-siegelense-responder';
 import { CliStatuslineTapResponder } from '../../responders/cli/statusline-tap/cli-statusline-tap-responder';
 
 const COMMANDS = {
@@ -19,6 +20,7 @@ const COMMANDS = {
   start: 'start',
   statuslineTap: 'statusline-tap',
   createPackage: 'create-package',
+  siegelense: 'siegelense',
 } as const;
 
 export const CliFlow = async ({
@@ -42,6 +44,10 @@ export const CliFlow = async ({
 
   if (command === COMMANDS.createPackage) {
     return CliCreatePackageResponder({ context, args });
+  }
+
+  if (command === COMMANDS.siegelense) {
+    return CliSiegelenseResponder({ args });
   }
 
   await CliServeResponder();

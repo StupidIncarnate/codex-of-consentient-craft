@@ -52,6 +52,7 @@ module.exports = [
       '.git/**',
       'v1/**',
       'worktrees/**',
+      '.siegelense/**',
       'scripts/**',
       '**/*.d.ts',
       '*.md',
@@ -97,6 +98,7 @@ module.exports = [
       '@dungeonmaster-local/ban-quest-status-literals': 'error',
       '@dungeonmaster-local/no-bare-location-literals': 'error',
       '@dungeonmaster-local/no-hardcoded-package-names': 'error',
+      '@dungeonmaster-local/ban-locator-pick': 'error',
       // 'eslint-comments/no-unlimited-disable': 'error',
       // 'eslint-comments/no-use': ['error', { allow: [] }],
     },
@@ -140,6 +142,7 @@ module.exports = [
       '@dungeonmaster-local/ban-quest-status-literals': 'error',
       '@dungeonmaster-local/no-bare-location-literals': 'error',
       '@dungeonmaster-local/no-hardcoded-package-names': 'error',
+      '@dungeonmaster-local/ban-locator-pick': 'error',
     },
   },
   // Test file-specific overrides (from dungeonmaster test config)

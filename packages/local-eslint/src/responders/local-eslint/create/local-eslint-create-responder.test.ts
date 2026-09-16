@@ -7,6 +7,7 @@ describe('LocalEslintCreateResponder', () => {
       const plugin = proxy.callResponder();
 
       expect(Object.keys(plugin.rules).sort()).toStrictEqual([
+        'ban-locator-pick',
         'ban-quest-status-literals',
         'no-bare-location-literals',
         'no-hardcoded-package-names',
@@ -53,6 +54,20 @@ describe('LocalEslintCreateResponder', () => {
       const plugin = proxy.callResponder();
 
       expect(plugin.rules['no-hardcoded-package-names'].create).toStrictEqual(expect.any(Function));
+    });
+
+    it('VALID: {} => returns ban-locator-pick rule with problem type', () => {
+      const proxy = LocalEslintCreateResponderProxy();
+      const plugin = proxy.callResponder();
+
+      expect(plugin.rules['ban-locator-pick'].meta.type).toBe('problem');
+    });
+
+    it('VALID: {} => returns ban-locator-pick rule with create function', () => {
+      const proxy = LocalEslintCreateResponderProxy();
+      const plugin = proxy.callResponder();
+
+      expect(plugin.rules['ban-locator-pick'].create).toStrictEqual(expect.any(Function));
     });
   });
 });

@@ -165,7 +165,9 @@ export const packageScaffoldFilesTransformer = ({
 
   const jestTemplate =
     seed.jestKind === 'node'
-      ? packageScaffoldConfigStatics.jestConfigNode
+      ? seed.needsMswTransform
+        ? packageScaffoldConfigStatics.jestConfigNodeIntegration
+        : packageScaffoldConfigStatics.jestConfigNode
       : packageScaffoldConfigStatics.jestConfigTsx;
   const jestRootsValue = binHasEntries
     ? `${packageScaffoldConfigStatics.jestRootSrc}, ${packageScaffoldConfigStatics.jestRootBin}`

@@ -7,6 +7,8 @@ The CLI package provides the `dungeonmaster` binary:
 - `dungeonmaster init` - Discovers all packages and runs their `StartInstall` functions to set up devDependencies
 - `dungeonmaster create-package` - Scaffolds a new workspace package (see below)
 - `dungeonmaster statusline-tap` - Reads Claude Code's statusline payload on stdin, records rate limits, echoes it back
+- `dungeonmaster siegelense driver --instance <id>` - Launches the siegelense driver process for one instance;
+  `dungeonmaster siegelense` bare prints the fleet registry as a table for a person at a terminal
 - `dungeonmaster` (default) - Launches the HTTP server and opens the web UI in a browser
 
 ## Key Files

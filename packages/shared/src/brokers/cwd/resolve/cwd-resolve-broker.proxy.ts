@@ -6,6 +6,7 @@ import { guildPathWalkUpLayerBrokerProxy } from './guild-path-walk-up-layer-brok
 export const cwdResolveBrokerProxy = (): {
   setupRepoRootFoundAtStart: (params: { startPath: string }) => void;
   setupRepoRootFoundInParent: (params: { startPath: string; repoRoot: string }) => void;
+  setupRepoRootNotFound: (params: { startPath: string }) => void;
   setupProjectRootFoundAtStart: (params: { startPath: string }) => void;
   setupProjectRootFoundInParent: (params: {
     startPath: string;
@@ -37,6 +38,10 @@ export const cwdResolveBrokerProxy = (): {
       repoRoot: string;
     }): void => {
       configRootProxy.setupConfigRootFoundInParent({ startPath, configRootPath: repoRoot });
+    },
+
+    setupRepoRootNotFound: ({ startPath }: { startPath: string }): void => {
+      configRootProxy.setupConfigRootNotFound({ startPath });
     },
 
     setupProjectRootFoundAtStart: ({ startPath }: { startPath: string }): void => {

@@ -18,7 +18,7 @@ import { treeOutputContract } from '../../../contracts/tree-output/tree-output-c
 import type { TreeOutput } from '../../../contracts/tree-output/tree-output-contract';
 import { globFindAdapter } from '../../../adapters/glob/find/glob-find-adapter';
 import { globPatternContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
-import type { GlobPattern } from '@dungeonmaster/shared/contracts';
+import type { GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
 import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
 import { globResolveTransformer } from '../../../transformers/glob-resolve/glob-resolve-transformer';
@@ -29,9 +29,14 @@ import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 export const mcpDiscoverBroker = async ({
   input,
   ignorePatterns,
+  rootPath,
 }: {
   input: DiscoverInput;
   ignorePatterns?: readonly GlobPattern[];
+  // The resolved project root to scan from — see fileScannerBroker's own rootPath for why the
+  // processCwdAdapter() fallback below exists only for standalone/test callers, never for the
+  // real MCP call site (architectureHandleResponder always passes this explicitly).
+  rootPath?: PathSegment;
 }): Promise<{
   results: DiscoverResultItem[] | TreeOutput;
   count: ResultCount;
@@ -46,6 +51,7 @@ export const mcpDiscoverBroker = async ({
     ...(validated.context !== undefined && { context: validated.context }),
     ...(validated.strict !== undefined && { strict: validated.strict }),
     ...(ignorePatterns !== undefined && { ignorePatterns }),
+    ...(rootPath !== undefined && { rootPath }),
   });
 
   // Map FileMetadata to DiscoverResultItem format (fileType -> type, signature.raw -> signature)
@@ -83,7 +89,7 @@ export const mcpDiscoverBroker = async ({
 
   // Empty-result hint: distinguish between "glob found no files" vs "grep filtered everything".
   if (fileResults.length === 0 && validated.glob) {
-    const cwdPath = pathSegmentContract.parse(processCwdAdapter());
+    const cwdPath = rootPath ?? pathSegmentContract.parse(processCwdAdapter());
     const globSuffix = globResolveTransformer({ glob: validated.glob });
     const pattern = globPatternContract.parse(`${cwdPath}/${globSuffix}`);
 

@@ -15,6 +15,7 @@ describe('packageSeedPlainStatics', () => {
         jestKind: library.jestKind,
         e2eEligible: library.e2eEligible,
         exportsDot: library.exportsDot,
+        needsMswTransform: library.needsMswTransform,
       }).toStrictEqual({
         barrel: {
           fileName: 'statics.ts',
@@ -28,6 +29,7 @@ describe('packageSeedPlainStatics', () => {
         jestKind: 'node',
         e2eEligible: false,
         exportsDot: false,
+        needsMswTransform: false,
       });
     });
 
@@ -55,6 +57,7 @@ describe('packageSeedPlainStatics', () => {
         jestKind: programmaticService.jestKind,
         e2eEligible: programmaticService.e2eEligible,
         exportsDot: programmaticService.exportsDot,
+        needsMswTransform: programmaticService.needsMswTransform,
       }).toStrictEqual({
         barrel: {
           fileName: 'flows.ts',
@@ -68,6 +71,7 @@ describe('packageSeedPlainStatics', () => {
         jestKind: 'node',
         e2eEligible: false,
         exportsDot: false,
+        needsMswTransform: true,
       });
     });
 
@@ -122,6 +126,7 @@ describe('packageSeedPlainStatics', () => {
         jestKind: eslintPlugin.jestKind,
         e2eEligible: eslintPlugin.e2eEligible,
         exportsDot: eslintPlugin.exportsDot,
+        needsMswTransform: eslintPlugin.needsMswTransform,
       }).toStrictEqual({
         barrel: null,
         dependencies: { '__SCOPE__/shared': '*' },
@@ -132,6 +137,7 @@ describe('packageSeedPlainStatics', () => {
         jestKind: 'node',
         e2eEligible: false,
         exportsDot: true,
+        needsMswTransform: false,
       });
     });
 
@@ -179,6 +185,7 @@ describe('packageSeedPlainStatics', () => {
         jestKind: hookHandlers.jestKind,
         e2eEligible: hookHandlers.e2eEligible,
         exportsDot: hookHandlers.exportsDot,
+        needsMswTransform: hookHandlers.needsMswTransform,
       }).toStrictEqual({
         barrel: null,
         dependencies: { '__SCOPE__/shared': '*' },
@@ -192,6 +199,7 @@ describe('packageSeedPlainStatics', () => {
         jestKind: 'node',
         e2eEligible: false,
         exportsDot: false,
+        needsMswTransform: false,
       });
     });
 

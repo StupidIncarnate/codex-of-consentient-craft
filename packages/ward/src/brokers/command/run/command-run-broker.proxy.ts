@@ -34,6 +34,8 @@ export const commandRunBrokerProxy = (): {
   setupUncommittedWithCleanTree: () => void;
   setupCommittedWithNothingCommitted: () => void;
   setupUncommittedWithOneEditedFile: () => void;
+  setupUncommittedWithSurvivingAndDeletedFile: () => void;
+  setupUncommittedWithOnlyDeletedFile: () => void;
   setupExistingPath: ({ filePath }: { filePath: FilePath }) => void;
   setupMissingPath: ({ filePath }: { filePath: FilePath }) => void;
   setupMultiPackagePass: (params: { packageCount: number; subResultContent: string }) => void;
@@ -106,6 +108,27 @@ export const commandRunBrokerProxy = (): {
       gitScopeProxy.setupUncommittedFiles({ trackedOutput: 'src/index.ts\n', untrackedOutput: '' });
       pathCheckProxy.setupExistingPath({
         filePath: filePathContract.parse('/project/src/index.ts'),
+      });
+    },
+    // The tracked half names one file still on disk and one this branch's commits touched but a
+    // later, uncommitted `rm` removed — the shape `--committed` produces for a file it can only see
+    // through history, blind to the working tree that has since deleted it.
+    setupUncommittedWithSurvivingAndDeletedFile: (): void => {
+      gitScopeProxy.setupUncommittedFiles({
+        trackedOutput: 'src/index.ts\nsrc/gone.ts\n',
+        untrackedOutput: '',
+      });
+      pathCheckProxy.setupExistingPath({
+        filePath: filePathContract.parse('/project/src/index.ts'),
+      });
+      pathCheckProxy.setupMissingPath({
+        filePath: filePathContract.parse('/project/src/gone.ts'),
+      });
+    },
+    setupUncommittedWithOnlyDeletedFile: (): void => {
+      gitScopeProxy.setupUncommittedFiles({ trackedOutput: 'src/gone.ts\n', untrackedOutput: '' });
+      pathCheckProxy.setupMissingPath({
+        filePath: filePathContract.parse('/project/src/gone.ts'),
       });
     },
     // Address the ABSOLUTE path — `rootPath` joined to the repo-relative arg — because that is what

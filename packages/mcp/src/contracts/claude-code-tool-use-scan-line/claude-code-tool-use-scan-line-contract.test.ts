@@ -47,4 +47,21 @@ describe('claudeCodeToolUseScanLineContract', () => {
 
     expect(parsed.success).toBe(false);
   });
+
+  it('VALID: {top-level cwd field} => parses and keeps the value readable', () => {
+    const parsed = claudeCodeToolUseScanLineContract.parse({
+      cwd: '/home/user/repo/worktrees/siegelense',
+      message: { role: 'assistant', content: [] },
+    });
+
+    expect(parsed.cwd).toBe('/home/user/repo/worktrees/siegelense');
+  });
+
+  it('VALID: {no cwd field} => parses with cwd undefined', () => {
+    const parsed = claudeCodeToolUseScanLineContract.parse({
+      message: { role: 'assistant', content: [] },
+    });
+
+    expect(parsed.cwd).toBe(undefined);
+  });
 });

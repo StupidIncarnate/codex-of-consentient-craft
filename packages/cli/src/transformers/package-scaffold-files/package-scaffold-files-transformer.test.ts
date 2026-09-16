@@ -484,6 +484,57 @@ describe('packageScaffoldFilesTransformer', () => {
 
       expect(jestConfigFile!.contents).toMatch(/^ {2}testEnvironment: 'node',$/mu);
     });
+
+    // These three types ship a flows/ or startup/ file plus its .integration.test.ts companion,
+    // the only seeded files that ever import `@dungeonmaster/testing`'s root barrel
+    // (`installTestbedCreateBroker`) — which pulls in msw's ESM. Without both the widened
+    // `transform` and the `transformIgnorePatterns` un-ignore, that import throws
+    // "SyntaxError: Unexpected token 'export'" from `until-async`/`msw` (verified directly against
+    // a real jest run: dropping either half alone still throws).
+    const NEEDS_MSW_TRANSFORM_TYPES = ['programmatic-service', 'mcp-server', 'cli-tool'] as const;
+
+    it.each(NEEDS_MSW_TRANSFORM_TYPES)(
+      'VALID: {packageType: %s} => jest config un-ignores msw/until-async so it is eligible for transform',
+      (packageType) => {
+        const files = packageScaffoldFilesTransformer({
+          request: CreatePackageRequestStub({ packageType }),
+        });
+        const jestConfigFile = files.find((file) => file.relativePath === 'jest.config.js');
+
+        expect(jestConfigFile!.contents).toMatch(
+          /^ {2}transformIgnorePatterns: \['\/dist\/', '\/node_modules\/\(\?!\(msw\|@mswjs\|until-async\|outvariant\)\/\)'\],$/mu,
+        );
+      },
+    );
+
+    it.each(NEEDS_MSW_TRANSFORM_TYPES)(
+      'VALID: {packageType: %s} => jest config requires the dungeonmasterTransformers module, which only rides along with an explicit transform block',
+      (packageType) => {
+        const files = packageScaffoldFilesTransformer({
+          request: CreatePackageRequestStub({ packageType }),
+        });
+        const jestConfigFile = files.find((file) => file.relativePath === 'jest.config.js');
+
+        expect(jestConfigFile!.contents).toMatch(
+          /^const dungeonmasterTransformers = require\('\.\.\/\.\.\/packages\/testing\/ts-jest\/transformers\.js'\);$/mu,
+        );
+      },
+    );
+
+    it('VALID: {packageType: "library"} => jest config body is exactly the bare node template, carrying no msw transform pair', () => {
+      const files = packageScaffoldFilesTransformer({ request: CreatePackageRequestStub() });
+      const jestConfigFile = files.find((file) => file.relativePath === 'jest.config.js');
+
+      expect(jestConfigFile!.contents)
+        .toBe(`const baseConfig = require('../../jest.config.base.js');
+
+module.exports = {
+  ...baseConfig,
+  roots: ['<rootDir>/src'],
+  setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
+};
+`);
+    });
   });
 
   describe('placeholder substitution', () => {

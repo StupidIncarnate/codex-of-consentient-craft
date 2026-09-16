@@ -237,4 +237,33 @@ describe('CliFlow', () => {
       expect(packagesDir).toBe(null);
     });
   });
+
+  describe('command routing - siegelense', () => {
+    const harness = cliStatuslineHarness();
+
+    it('VALID: {command: "siegelense", args: []} => routes through the real dynamic import to the fleet responder and reports an empty registry', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'cli-flow-siegelense-bare' }),
+      });
+      const env = harness.setupHome({ tempDir: testbed.guildPath });
+      const stdout = harness.captureStdout();
+
+      await CliFlow({
+        command: 'siegelense',
+        args: [],
+        context: {
+          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
+        },
+      });
+
+      stdout.restore();
+      const stdoutOutput = stdout.getOutput();
+
+      env.restore();
+      testbed.cleanup();
+
+      expect(stdoutOutput).toStrictEqual(['No siegelense instances running.\n']);
+    });
+  });
 });

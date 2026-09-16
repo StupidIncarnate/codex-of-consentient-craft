@@ -12,6 +12,16 @@
  * `customExportConditions: ['source', ...]`, which is what makes a suite read a sibling package's
  * edited TypeScript instead of its last build — so it goes green over stale code and says nothing.
  *
+ * A fourth: `jestConfigNode` alone leaves a scaffolded package unable to run an integration test
+ * importing `@dungeonmaster/testing` — its root barrel pulls in msw's ESM, and jest's default
+ * `transformIgnorePatterns` skips all of `node_modules` while the base `transform` matches only
+ * `.ts`. Verified directly (three scratch jest runs against the same test file): setting only
+ * `transformIgnorePatterns` still throws `SyntaxError: Unexpected token 'export'` from
+ * `until-async`/`msw`, and so does setting only the widened `transform` — both fields are
+ * independently required. `jestConfigNodeIntegration` carries the pair every real package on disk
+ * that imports `@dungeonmaster/testing`'s root barrel already hand-carries; the transformer picks
+ * it over `jestConfigNode` for a seed whose `needsMswTransform` is true.
+ *
  * USAGE:
  * packageScaffoldConfigStatics.buildCompilerOptions;
  * // Returns the compilerOptions block for a package's tsconfig.build.json
@@ -87,6 +97,39 @@ module.exports = {
   ...baseConfig,
   roots: [__ROOTS__],
   setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
+};
+`,
+
+  // The node-environment variant for a seed whose files import '@dungeonmaster/testing' — its
+  // root barrel pulls in msw (ESM). `transformIgnorePatterns` alone does nothing here: the base
+  // `transform` matches only '.ts', so an un-ignored '.js' file under node_modules/msw still reaches
+  // jest untransformed and throws "SyntaxError: Unexpected token 'export'". The widened `transform`
+  // below is what actually converts it; both fields are required together, matching every real
+  // package on disk that carries this pair (packages/cli, packages/orchestrator, and others).
+  jestConfigNodeIntegration: `const baseConfig = require('../../jest.config.base.js');
+const dungeonmasterTransformers = require('../../packages/testing/ts-jest/transformers.js');
+
+module.exports = {
+  ...baseConfig,
+  roots: [__ROOTS__],
+  setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
+  transformIgnorePatterns: ['/dist/', '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)'],
+  transform: {
+    '^.+\\\\.[jt]s$': [
+      'ts-jest',
+      {
+        tsconfig: {
+          allowJs: true,
+          esModuleInterop: true,
+          skipLibCheck: true,
+          isolatedModules: true,
+        },
+        astTransformers: {
+          before: dungeonmasterTransformers,
+        },
+      },
+    ],
+  },
 };
 `,
 
