@@ -45,8 +45,8 @@ export default function globalSetup(): void {
   }
 
   mkdirSync(TEST_HOME, { recursive: true });
-  mkdirSync(path.join(TEST_HOME, 'claude-queue'), { recursive: true });
-  mkdirSync(path.join(TEST_HOME, 'ward-queue'), { recursive: true });
+  mkdirSync(path.join(TEST_HOME, locationsStatics.siegelense.claudeQueueDir), { recursive: true });
+  mkdirSync(path.join(TEST_HOME, locationsStatics.siegelense.wardQueueDir), { recursive: true });
 
   // An empty ledger stamped NOW, so the first guardrail poll after boot finds a measurement inside
   // `usageAccountingStatics.scan.minIntervalMs` and `usageLedgerScanBroker` hands this file
