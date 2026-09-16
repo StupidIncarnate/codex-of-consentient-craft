@@ -55,6 +55,20 @@ if the reader's own file tools reach it. The symlink points at the real dungeonm
 to avoid — a batch's real response bodies do not belong in the value that tells you the batch
 finished.
 
+## Findings log
+
+Every defect the walk surfaces, in the order it was found. A defect goes to a sonnet sub-agent to fix
+so the walk keeps moving; this table is how the walk keeps track of what is out and what landed.
+
+| # | Stop | Defect | State |
+|---|---|---|---|
+| 0 | pre-walk | `start` printed its manifest and never exited — `detached: true` without `unref()` left the parent's event loop holding the driver. Measured: manifest at `bootMs: 4269`, command still alive ten minutes later | **FIXED** `ac3827f8f` |
+| 0 | pre-walk | `aheadOfMe` counted killed tombstones as queued boots, so it climbed by one per failed boot and never came down. Read 3 on an empty fleet | **FIXED** `ac3827f8f` |
+| 0 | pre-walk | a `screenshot` step whose name carried no extension failed with Playwright's `path: unsupported mime type "null"`, naming neither the step nor the field | **FIXED** `ac3827f8f` |
+| 1 | Discovery | **Any unrecognized word booted the HTTP server.** `CliFlow` routed five commands and let everything else fall through to `CliServeResponder`, so `dungeonmaster seigelense` — two transposed letters — bound `dungeonmaster.port`, and a second attempt died on `EADDRINUSE`. The caller reads a port stack trace for a spelling mistake. `COMMANDS.start` was declared and never referenced, so `dungeonmaster start` only worked through the same hole | **FIXED** `766d4c175` |
+| 1 | Discovery | The fleet listing shows `killed` rows with no explanation. A reader cannot tell a tombstone from a leak, and nothing on screen says the row is kept on purpose or that no built call removes it | **OUT** — sonnet |
+| — | parked | `CliServeResponder` runs `xdg-open` unconditionally, with no flag, config knob or env var to stop it. Every server launch opens a browser tab | **PARKED** by request |
+
 ## Ground rules for the walk
 
 - Read the real stdout. A summary of a run is worth nothing; three of this build's worst defects were
