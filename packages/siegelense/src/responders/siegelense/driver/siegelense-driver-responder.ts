@@ -12,17 +12,22 @@
  * and this process is about to exit either way, so `boot.lock` is released on that path too rather
  * than only on success — otherwise it stays held until the TTL expires on top of the calling
  * `instanceStartBroker` already burning its own full poll deadline against a socket this process
- * never opens (spec line 1501).
+ * never opens (spec line 1501). That same catch also writes `boot-failure.json` beside the evidence
+ * before rethrowing — the failure marker `instanceStartBootPollLayerBroker` checks on every failed
+ * ping from the OTHER process, so that caller learns THIS error's own message within one poll
+ * interval instead of only after its full deadline elapses.
  *
  * USAGE:
  * await SiegelenseDriverResponder({ instanceId: InstanceIdStub() });
  * // Boots the registry row's lane, stamps it, releases boot.lock, and blocks for the driver's life
- * // A boot failure releases boot.lock and rethrows without stamping the registry or serving
+ * // A boot failure writes boot-failure.json, releases boot.lock, and rethrows without stamping the
+ * // registry or serving
  */
 
-import { processIdContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, processIdContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
+import { bootFailureMarkerWriteBroker } from '../../../brokers/boot-failure-marker/write/boot-failure-marker-write-broker';
 import { bootLockReleaseBroker } from '../../../brokers/boot-lock/release/boot-lock-release-broker';
 import { laneBootBroker } from '../../../brokers/lane/boot/lane-boot-broker';
 import { laneSpecFindBroker } from '../../../brokers/lane-spec/find/lane-spec-find-broker';
@@ -75,6 +80,26 @@ export const SiegelenseDriverResponder = async ({
       });
     } catch (bootError) {
       await bootLockReleaseBroker({ instanceId });
+
+      // Written BEFORE this process exits, so a caller polling this instance's socket from a
+      // DIFFERENT process — `instanceStartBootPollLayerBroker`, burning the boot deadline against a
+      // connection this process never opens — has a machine-readable place to learn WHY, rather
+      // than reading a bare refused connection as "still launching" for the full timeout. Wrapped so
+      // a throw HERE (a disk full, an unwritable evidence dir) can never replace `bootError` — the
+      // boot failure is what the caller needs to see, whether or not the marker write itself lands.
+      try {
+        await bootFailureMarkerWriteBroker({
+          evidencePath,
+          message: contentTextContract.parse(
+            bootError instanceof Error ? bootError.message : String(bootError),
+          ),
+        });
+      } catch (markerWriteError: unknown) {
+        process.stderr.write(
+          `SiegelenseDriverResponder: writing the boot-failure marker for ${instanceId} failed: ${String(markerWriteError)}\n`,
+        );
+      }
+
       throw bootError;
     }
   })();

@@ -14,6 +14,7 @@ import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-en
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
+import { DriverBootFailedError } from '../../../errors/driver-boot-failed/driver-boot-failed-error';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
 
 const UNOWNED_EVIDENCE_PATH_VALUE =
@@ -67,6 +68,134 @@ describe('instanceStartBroker', () => {
       expect(proxy.getBootLockReleasedPaths()).toStrictEqual([
         '/home/user/.dungeonmaster/siegelense/boot.lock',
       ]);
+    });
+  });
+
+  describe('the driver reports its own boot failure via a marker', () => {
+    it('ERROR: {boot-failure.json appears on the first failed ping} => throws DriverBootFailedError naming the driver message, not a generic ready-path timeout', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      const specName = SpecNameStub({ value: 'test-driver-reports-failure' });
+      const driverMessage =
+        'Lane spec dungeonmaster-web requires a fake agent CLI, and the environment supplies none of it: set CLAUDE_CLI_PATH to a stub Claude CLI binary.';
+      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
+      proxy.setupBootFailureMarkerAppears({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [RegistryEntryStub({ id: instanceId })],
+        }),
+        driverMessage,
+      });
+
+      const thrownError = await instanceStartBroker({
+        specName,
+        questId: null,
+        guildId: null,
+      }).catch((error: unknown) => error);
+
+      expect(thrownError instanceof DriverBootFailedError).toBe(true);
+      expect(String(thrownError)).toBe(
+        `DriverBootFailedError: Lane ${specName} for instance ${instanceId} failed to boot: ${driverMessage} Driver log: ${UNOWNED_EVIDENCE_PATH_VALUE}/driver.log`,
+      );
+      expect(proxy.getBootLockReleasedPaths()).toStrictEqual([
+        '/home/user/.dungeonmaster/siegelense/boot.lock',
+      ]);
+    });
+  });
+
+  describe('a failed boot releases its reservation', () => {
+    it('ERROR: {driver reports a boot failure} => releases the reservation instead of leaving it alive with no boot time', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      const specName = SpecNameStub({ value: 'test-release-on-marker-failure' });
+      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
+      proxy.setupBootFailureMarkerAppears({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [RegistryEntryStub({ id: instanceId })],
+        }),
+        driverMessage: 'CLAUDE_CLI_PATH is required',
+      });
+
+      await instanceStartBroker({ specName, questId: null, guildId: null }).catch(
+        (error: unknown) => error,
+      );
+
+      const expectedRegistry = RegistryStub({
+        instances: [
+          RegistryEntryStub({
+            id: instanceId,
+            state: 'killed',
+            pid: null,
+            pgids: [],
+            socketPath: null,
+          }),
+        ],
+      });
+
+      expect(proxy.getLastRegistryWriteContent()).toStrictEqual(expectedRegistry);
+    });
+
+    it('ERROR: {driver never answers ping, timeout path} => also releases the reservation', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      const nowMs = 1_700_000_000_000;
+      const specName = SpecNameStub({ value: 'test-release-on-timeout' });
+      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
+      proxy.stageProcessUnreachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
+      proxy.setupBootNeverAnswers({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [RegistryEntryStub({ id: instanceId })],
+        }),
+        nowMs,
+      });
+
+      await instanceStartBroker({ specName, questId: null, guildId: null }).catch(
+        (error: unknown) => error,
+      );
+
+      const expectedRegistry = RegistryStub({
+        instances: [
+          RegistryEntryStub({
+            id: instanceId,
+            state: 'killed',
+            pid: null,
+            pgids: [],
+            socketPath: null,
+          }),
+        ],
+      });
+
+      expect(proxy.getLastRegistryWriteContent()).toStrictEqual(expectedRegistry);
+    });
+
+    it('ERROR: {releasing the reservation itself throws} => still rejects with the original boot error', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      const nowMs = 1_700_000_000_000;
+      const specName = SpecNameStub({ value: 'test-release-throws' });
+      const releaseError = Object.assign(new Error('EACCES: permission denied'), {
+        code: 'EACCES',
+      });
+      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
+      proxy.stageProcessUnreachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
+      proxy.setupBootNeverAnswers({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [RegistryEntryStub({ id: instanceId })],
+        }),
+        nowMs,
+      });
+      proxy.stageInstanceReleaseWriteFails({ error: releaseError });
+
+      await expect(instanceStartBroker({ specName, questId: null, guildId: null })).rejects.toThrow(
+        LaneBootFailedError,
+      );
     });
   });
 

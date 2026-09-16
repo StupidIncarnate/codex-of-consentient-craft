@@ -16,14 +16,21 @@
  * convention every other siegelense OS-tmp path in this package already follows (see
  * `locationsSocketPathFindBroker`). The manifest's `baseUrl` is `null` for a spec whose processes
  * never claim the `web` portRole — a `dungeonmaster-headless` boot has nothing listening there —
- * rather than a URL built unconditionally off a port nothing binds. When the driver's ping never
- * answers, `LaneBootFailedError.unready` names only the processes THIS broker can confirm are
- * still not answering their own readyPath, probed directly rather than assumed to be every
- * process the spec declares.
+ * rather than a URL built unconditionally off a port nothing binds. The boot poll's outcome decides
+ * which of two errors reaches the caller: a `'failed'` status means the driver caught its own error
+ * and left a `boot-failure.json` marker before exiting, so `DriverBootFailedError` carries that
+ * message straight through; a `'timeout'` status means the poll ran out its deadline with no such
+ * report, so `LaneBootFailedError.unready` names only the processes THIS broker can confirm are
+ * still not answering their own readyPath, probed directly rather than assumed to be every process
+ * the spec declares. Either throw releases the reservation `instanceReserveBroker` minted for this
+ * attempt (via `instanceReleaseBroker`, tombstoning the row rather than deleting it) alongside
+ * `boot.lock` — a failed boot must leave the registry as it found it, not holding a port pair with
+ * no process behind it forever.
  *
  * USAGE:
  * await instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null });
- * // Returns an InstanceManifest once the driver answers `ping`, or throws LaneBootFailedError
+ * // Returns an InstanceManifest once the driver answers `ping`, or throws DriverBootFailedError /
+ * // LaneBootFailedError after releasing boot.lock and this attempt's reservation
  */
 
 import { pathJoinAdapter, processCwdAdapter } from '@dungeonmaster/shared/adapters';
@@ -51,6 +58,7 @@ import { laneReadyWaitBroker } from '../../lane/ready-wait/lane-ready-wait-broke
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { locationsRepoLinkPathFindBroker } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker';
 import { locationsSocketPathFindBroker } from '../../locations/socket-path-find/locations-socket-path-find-broker';
+import { instanceReleaseBroker } from '../release/instance-release-broker';
 import { instanceReserveBroker } from '../reserve/instance-reserve-broker';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -62,6 +70,7 @@ import { laneSpecHashBroker } from '../../lane-spec/hash/lane-spec-hash-broker';
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
+import { DriverBootFailedError } from '../../../errors/driver-boot-failed/driver-boot-failed-error';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
 import { laneProcessPortResolveTransformer } from '../../../transformers/lane-process-port-resolve/lane-process-port-resolve-transformer';
 
@@ -181,12 +190,25 @@ export const instanceStartBroker = async ({
       bootStartedAtMs + driverStatics.boot.defaultTimeoutMs,
     );
 
-    const bootAnswered = await instanceStartBootPollLayerBroker({
+    const pollOutcome = await instanceStartBootPollLayerBroker({
       socketPath,
       deadlineMs: bootDeadlineMs,
+      evidencePath,
     });
 
-    if (!bootAnswered) {
+    if (pollOutcome.status === 'failed') {
+      // The driver caught its own error and wrote it beside the evidence before exiting — that
+      // report IS the cause, so it is what reaches the caller rather than the generic "never
+      // answered its ready path" a bare connection refusal would otherwise read as.
+      throw new DriverBootFailedError({
+        specName: spec.name,
+        instanceId: reservedEntry.id,
+        driverMessage: pollOutcome.message,
+        driverLogPath,
+      });
+    }
+
+    if (pollOutcome.status === 'timeout') {
       // The driver's own control socket never answered, which says nothing by itself about
       // WHICH of the spec's processes stalled — a process with no readyPath is never a boot-
       // readiness candidate at all (lane-boot-broker never checks it), and a process that DOES
@@ -291,6 +313,21 @@ export const instanceStartBroker = async ({
     });
   } catch (bootError) {
     await bootLockReleaseBroker({ instanceId: reservedEntry.id });
+
+    // A reservation `instanceReserveBroker` minted for THIS attempt must not outlive a boot that
+    // never happened — an unreleased row stays `state: 'alive'` with `bootedAtMs: null` forever,
+    // holding its port pair with no process behind it. Released, never deleted: instanceReleaseBroker's
+    // own tombstone rule is what keeps a fixer's later `results` from answering "unknown instance"
+    // for evidence already sitting on disk. Wrapped so a throw HERE can never replace `bootError` —
+    // the boot failure is what a caller needs to see, whether or not the cleanup after it succeeds.
+    try {
+      await instanceReleaseBroker({ instanceId: reservedEntry.id });
+    } catch (releaseError: unknown) {
+      process.stderr.write(
+        `instanceStartBroker: releasing the reservation for ${reservedEntry.id} after a failed boot failed: ${String(releaseError)}\n`,
+      );
+    }
+
     throw bootError;
   }
 };

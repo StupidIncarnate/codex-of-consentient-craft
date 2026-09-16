@@ -10,7 +10,7 @@
  * for and renders the two apart: a fleet query gets the plain empty-fleet sentence, a named query
  * that resolved nothing gets a sentence naming the id as unknown. Without that parameter, a typo'd
  * `--instance` would read exactly like an empty fleet, which is the whole reason this file exists.
- * Pure, so this text is provable without stdout, the same split `registryEntryRowFormatTransformer`
+ * Pure, so this text is provable without stdout, the same split `fleetTableRenderTransformer`
  * already uses for the bare fleet listing.
  *
  * USAGE:

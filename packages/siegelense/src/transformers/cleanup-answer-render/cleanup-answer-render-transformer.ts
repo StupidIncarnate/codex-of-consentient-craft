@@ -3,7 +3,7 @@
  * reaped, what ports and locks came back, and what was left alone and why. `LEFT ALONE` is printed
  * even when empty: a cleanup that only ever shows what it removed cannot be told from one that
  * removed the wrong thing (siegelense-tooling.md line 1365). Pure, so this text is provable without
- * stdout, the same split `registryEntryRowFormatTransformer` already uses for the fleet listing.
+ * stdout, the same split `fleetTableRenderTransformer` already uses for the fleet listing.
  *
  * USAGE:
  * cleanupAnswerRenderTransformer({ answer: CleanupAnswerStub() });

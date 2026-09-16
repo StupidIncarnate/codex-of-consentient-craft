@@ -148,7 +148,7 @@ describe('runExecuteStepLayerBroker', () => {
           reading: 'page.goto: Timeout 30000ms exceeded.',
           shot: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step3.png',
           pixelChange: null,
-          blank: null,
+          blank: false,
           blankColour: null,
           serverWindow: { fromByte: 0, toByte: 0 },
           startedAtMs: FIXED_NOW_MS,

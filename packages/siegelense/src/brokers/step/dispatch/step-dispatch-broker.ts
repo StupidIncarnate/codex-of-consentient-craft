@@ -14,16 +14,23 @@
  * original error as what the caller sees. Whether that swallowed capture actually landed rides
  * upward on the rethrow anyway: `StepFailureCaptureError` wraps the original error with a `captured`
  * boolean, so `runExecuteStepLayerBroker` can build the failure `StepReading`'s `shot` from what THIS
- * call measured rather than a hardcoded `null` or a filesystem guess. When a step DID capture (`shotPath` is non-null, on either
- * the success return or the `expect: 'error'` catch return — chunk 2's own history records a failed
- * step that never captured as a defect, so both branches measure identically), `blank`/`blankColour`
- * come from `shotBlankReadBroker` and `pixelChange` from `shotChangeReadBroker` against
- * `lastShotPath()` — the caller's accessor onto the INSTANCE's last capture, never this package's own
- * `state/` (a broker's allowed imports do not include it; see `driver-handle-request-broker.ts`'s own
- * header for the identical constraint). `setLastShotPath` then advances that pointer to THIS shot, so
- * the next capture — this step, a later one, or the first of the next run — compares against it. A
- * step with no shot (`shotPath` is `null`) leaves all three `null` and never touches either accessor.
- * `serverWindow` is real, read off `lane.serverLogLength()` before and after the verb runs.
+ * call measured rather than a hardcoded `null` or a filesystem guess. When a step DID capture
+ * (`shotPath` is non-null, on the success return, the `expect: 'error'` catch return, or a REAL
+ * failure's catch return once ITS OWN capture lands — three branches now measure identically, since
+ * `blank` is the one field in this design that is a VERDICT rather than a reading and a step failing
+ * BECAUSE the page went white must say so on the single shot a fixer is most likely to open),
+ * `blank`/`blankColour` come from `shotBlankReadBroker` and `pixelChange` from `shotChangeReadBroker`
+ * against `lastShotPath()` — the caller's accessor onto the INSTANCE's last capture, never this
+ * package's own `state/` (a broker's allowed imports do not include it; see
+ * `driver-handle-request-broker.ts`'s own header for the identical constraint). `setLastShotPath` then
+ * advances that pointer to THIS shot, so the next capture — this step, a later one, or the first of
+ * the next run — compares against it. A step with no shot (`shotPath` is `null`), or a REAL failure
+ * whose own capture never landed (`captured: false` — there is no file to measure or point at), leaves
+ * all three `null` and never touches either accessor. On the REAL-failure branch a measurement failure
+ * (a corrupt read, a dimension mismatch against `lastShotPath()`) degrades the same way rather than
+ * throwing: an evidence read must never replace the step's own real error, the rule the swallowed
+ * capture above already follows. `serverWindow` is real, read off `lane.serverLogLength()` before and
+ * after the verb runs.
  *
  * USAGE:
  * await stepDispatchBroker({
@@ -149,7 +156,40 @@ export const stepDispatchBroker = async ({
             );
             return false;
           });
-        throw new StepFailureCaptureError({ underlyingError: error, captured });
+
+        // Nothing to measure when the capture above never landed — mirrors the top-of-file
+        // invariant that a step with no shot leaves all three readings null. When it DID land, this
+        // measures exactly like the success path (same Promise.all, same blank/blankColour
+        // derivation, same lastShotPath advance) so `blank` — the one VERDICT field in this design —
+        // is never silently dropped on the single shot a fixer is most likely to open. A read
+        // failure here (a corrupt PNG, a dimension mismatch against `lastShotPath()`) degrades to
+        // `null` and is logged rather than thrown: it must never replace the step's own real error,
+        // the same rule the capture above already follows.
+        let blankReading: BlankReading | null = null;
+        let pixelChange: PixelChange | null = null;
+        if (captured) {
+          try {
+            const [measuredBlank, measuredChange] = await Promise.all([
+              shotBlankReadBroker({ shotPath }),
+              shotChangeReadBroker({ previousPath: lastShotPath(), currentPath: shotPath }),
+            ]);
+            blankReading = measuredBlank;
+            pixelChange = measuredChange;
+            setLastShotPath({ path: shotPath });
+          } catch (readError: unknown) {
+            process.stderr.write(
+              `[step-dispatch] failure screenshot measurement failed for step ${String(index)}: ${String(readError)}\n`,
+            );
+          }
+        }
+
+        throw new StepFailureCaptureError({
+          underlyingError: error,
+          captured,
+          blank: blankReading === null ? null : blankReading.blank,
+          blankColour: blankReading === null ? null : blankReading.colour,
+          pixelChange,
+        });
       }
       throw error;
     }

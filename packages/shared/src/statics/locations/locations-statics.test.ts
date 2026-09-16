@@ -81,6 +81,7 @@ describe('locationsStatics', () => {
         runsDir: 'runs',
         socketsDirName: 'dm-siege-sockets',
         driverLog: 'driver.log',
+        bootFailure: 'boot-failure.json',
         claudeQueueDir: 'claude-queue',
         wardQueueDir: 'ward-queue',
         consoleLog: 'console.jsonl',

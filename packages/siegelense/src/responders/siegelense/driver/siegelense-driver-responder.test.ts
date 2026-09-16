@@ -4,6 +4,7 @@ import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub'
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
+import { FakeAgentCliRequiredError } from '../../../errors/fake-agent-cli-required/fake-agent-cli-required-error';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
 
 import { SiegelenseDriverResponder } from './siegelense-driver-responder';
@@ -68,6 +69,46 @@ describe('SiegelenseDriverResponder', () => {
       expect(proxy.getBootLockReleaseCallArgs()).toStrictEqual({ instanceId });
       expect(proxy.getRegistryUpdateCallCount()).toStrictEqual(ReadingCountStub({ value: 0 }));
       expect(proxy.getServeCallArgs()).toBe(undefined);
+    });
+
+    it('ERROR: {laneBootBroker rejects} => writes the boot-failure marker carrying that same error message', async () => {
+      const proxy = SiegelenseDriverResponderProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_bad60071' });
+      const entry = RegistryEntryStub({ id: instanceId });
+      const bootError = new FakeAgentCliRequiredError({
+        specName: entry.specName,
+        missing: [{ name: 'CLAUDE_CLI_PATH', hint: 'a stub Claude CLI binary' }],
+      });
+      proxy.stageRegistryRow({ entry });
+      proxy.stageBootFails({ error: bootError });
+
+      await expect(SiegelenseDriverResponder({ instanceId })).rejects.toThrow(bootError);
+
+      expect(proxy.getBootFailureMarkerWriteCallArgs()).toStrictEqual({
+        evidencePath: proxy.getExpectedEvidencePath(),
+        message: bootError.message,
+      });
+    });
+
+    it('ERROR: {laneBootBroker rejects, and writing the marker also throws} => still rethrows the original boot error', async () => {
+      const proxy = SiegelenseDriverResponderProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_bad60071' });
+      const entry = RegistryEntryStub({ id: instanceId });
+      const bootError = new LaneBootFailedError({
+        specName: entry.specName,
+        instanceId,
+        unready: ['api'],
+        logPaths: ['/repo/.siegelense/guilds/g1/instances/inst_bad60071/api.log'],
+      });
+      proxy.stageRegistryRow({ entry });
+      proxy.stageBootFailsAndMarkerWriteFails({
+        error: bootError,
+        markerWriteError: Object.assign(new Error('ENOSPC: no space left on device'), {
+          code: 'ENOSPC',
+        }),
+      });
+
+      await expect(SiegelenseDriverResponder({ instanceId })).rejects.toThrow(bootError);
     });
   });
 

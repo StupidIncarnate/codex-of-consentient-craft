@@ -568,6 +568,141 @@ describe('stepDispatchBroker', () => {
         [{ filePath: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png' }],
       ]);
     });
+
+    it('ERROR: {click throws for a real reason, the failure capture succeeds} => the wrapped error carries the measured blank, blankColour and pixelChange, not null', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const { lane: firstLane } = proxy.happyLane();
+      const firstShotPath = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+      });
+      const backgroundPixel = [0x0d, 0x09, 0x07, 255];
+      const backgroundPixels = new Uint8Array(
+        Array.from({ length: 8 }, () => backgroundPixel).flat(),
+      );
+      proxy.stagesShotFrame({
+        shotPath: firstShotPath,
+        width: 4,
+        height: 2,
+        pixels: backgroundPixels,
+      });
+
+      await stepDispatchBroker({
+        lane: firstLane,
+        step: StepStub({ step: 'click', target: SelectorStub() }),
+        index: StepIndexStub({ value: 1 }),
+        shotPath: firstShotPath,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const { lane: failingLane } = proxy.laneRejectingClickMatch({
+        error: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
+      });
+      const secondShotPath = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step2.png',
+      });
+      const whitePixel = [0xff, 0xff, 0xff, 255];
+      const whitePixels = new Uint8Array(Array.from({ length: 8 }, () => whitePixel).flat());
+      proxy.stagesShotFrame({ shotPath: secondShotPath, width: 4, height: 2, pixels: whitePixels });
+
+      const error = await stepDispatchBroker({
+        lane: failingLane,
+        step: StepStub({ step: 'click', target: SelectorStub() }),
+        index: StepIndexStub({ value: 2 }),
+        shotPath: secondShotPath,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      }).then(
+        (): never => {
+          throw new Error('Expected stepDispatchBroker to reject');
+        },
+        (caught: unknown): StepFailureCaptureError => caught as StepFailureCaptureError,
+      );
+
+      expect({
+        captured: error.captured,
+        blank: error.blank,
+        blankColour: error.blankColour,
+        pixelChange: error.pixelChange,
+      }).toStrictEqual({
+        captured: true,
+        blank: true,
+        blankColour: '#ffffff',
+        pixelChange: '100%',
+      });
+    });
+
+    it('ERROR: {click throws for a real reason, the failure capture succeeds but measuring it throws} => the readings stay null and the original click error still propagates', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const { lane: firstLane } = proxy.happyLane();
+      const firstShotPath = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+      });
+      const backgroundPixel = [0x0d, 0x09, 0x07, 255];
+      const backgroundPixels = new Uint8Array(
+        Array.from({ length: 8 }, () => backgroundPixel).flat(),
+      );
+      proxy.stagesShotFrame({
+        shotPath: firstShotPath,
+        width: 4,
+        height: 2,
+        pixels: backgroundPixels,
+      });
+
+      await stepDispatchBroker({
+        lane: firstLane,
+        step: StepStub({ step: 'click', target: SelectorStub() }),
+        index: StepIndexStub({ value: 1 }),
+        shotPath: firstShotPath,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const { lane: failingLane } = proxy.laneRejectingClickMatch({
+        error: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
+      });
+      const secondShotPath = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step2.png',
+      });
+      // A dimension mismatch against firstShotPath is a REAL throw from shotChangeReadBroker — not a
+      // mocked rejection — so this proves an evidence-read failure degrades gracefully instead of
+      // masking the step's own error.
+      const mismatchedPixel = [0xff, 0xff, 0xff, 255];
+      proxy.stagesShotFrame({
+        shotPath: secondShotPath,
+        width: 2,
+        height: 2,
+        pixels: new Uint8Array(Array.from({ length: 4 }, () => mismatchedPixel).flat()),
+      });
+
+      const error = await stepDispatchBroker({
+        lane: failingLane,
+        step: StepStub({ step: 'click', target: SelectorStub() }),
+        index: StepIndexStub({ value: 2 }),
+        shotPath: secondShotPath,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      }).then(
+        (): never => {
+          throw new Error('Expected stepDispatchBroker to reject');
+        },
+        (caught: unknown): StepFailureCaptureError => caught as StepFailureCaptureError,
+      );
+
+      expect({
+        captured: error.captured,
+        blank: error.blank,
+        blankColour: error.blankColour,
+        pixelChange: error.pixelChange,
+        underlyingMessage: (error.underlyingError as Error).message,
+      }).toStrictEqual({
+        captured: true,
+        blank: null,
+        blankColour: null,
+        pixelChange: null,
+        underlyingMessage: 'AMBIGUOUS: 2 elements match [data-testid="X"]',
+      });
+    });
   });
 
   describe('a node label', () => {

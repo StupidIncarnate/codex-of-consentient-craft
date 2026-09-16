@@ -19,7 +19,11 @@
  * broker unwraps it FIRST — the message extraction and the `WaitForCeilingHitError` timeout check
  * both run against `.underlyingError`, never the wrapper — and gates the reading's `shot` on
  * `.captured`, so a capture that never landed is reported as `null` rather than a path naming a
- * missing file. `lastShotPath`/
+ * missing file. `blank`, `blankColour` and `pixelChange` ride the same gate: `stepDispatchBroker`
+ * already measured them against the SAME capture `.captured` reports on, so this broker reads
+ * `.blank`/`.blankColour`/`.pixelChange` straight off the wrapper rather than re-deriving or
+ * hardcoding them — a REAL failure whose capture landed must carry the same evidence a success would
+ * have, since `blank` is the one VERDICT field in this design. `lastShotPath`/
  * `setLastShotPath` are threaded straight through to `stepDispatchBroker` unchanged — a broker's
  * allowed imports do not include `state/`, so this file never reads the INSTANCE's last-capture
  * pointer itself, only carries the caller's accessor one layer further down.
@@ -107,6 +111,9 @@ export const runExecuteStepLayerBroker = async ({
     // timeout check below see the real rejection either way — whether it arrived wrapped or raw
     // (no capture was attempted: `shotPath` was null, or the verb was `'screenshot'`).
     const capturedShot = error instanceof StepFailureCaptureError ? error.captured : false;
+    const capturedBlank = error instanceof StepFailureCaptureError ? error.blank : null;
+    const capturedBlankColour = error instanceof StepFailureCaptureError ? error.blankColour : null;
+    const capturedPixelChange = error instanceof StepFailureCaptureError ? error.pixelChange : null;
     const underlyingError =
       error instanceof StepFailureCaptureError ? error.underlyingError : error;
     // The error reaching here can be a raw, unwrapped Playwright rejection re-thrown unchanged by
@@ -135,9 +142,9 @@ export const runExecuteStepLayerBroker = async ({
       expected: step.expect,
       reading: message,
       shot: capturedShot ? shotPath : null,
-      pixelChange: null,
-      blank: null,
-      blankColour: null,
+      pixelChange: capturedPixelChange,
+      blank: capturedBlank,
+      blankColour: capturedBlankColour,
       serverWindow: serverLogWindowContract.parse({
         fromByte: serverLogStartByte,
         toByte: lane.serverLogLength(),

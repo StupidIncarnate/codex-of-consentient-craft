@@ -19,7 +19,9 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { FilePath, NetworkPort } from '@dungeonmaster/shared/contracts';
 
+import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.proxy';
 import { instanceReserveBrokerProxy } from '../reserve/instance-reserve-broker.proxy';
+import { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/boot-failure-marker.stub';
 import { instanceKillBrokerProxy } from '../kill/instance-kill-broker.proxy';
 import { bootLockAcquireBrokerProxy } from '../../boot-lock/acquire/boot-lock-acquire-broker.proxy';
 import { bootLockReleaseBrokerProxy } from '../../boot-lock/release/boot-lock-release-broker.proxy';
@@ -120,8 +122,16 @@ export const instanceStartBrokerProxy = (): {
     registry: Registry;
     nowMs: number;
   }) => void;
+  setupBootFailureMarkerAppears: (params: {
+    instanceId: InstanceId;
+    evidencePath: FilePath;
+    registry: Registry;
+    driverMessage: string;
+  }) => void;
+  stageInstanceReleaseWriteFails: (params: { error: Error }) => void;
   getWriteOrder: () => readonly FilePath[];
   getBootLockReleasedPaths: () => unknown[];
+  getLastRegistryWriteContent: () => unknown;
   getStderrMessages: () => readonly ReturnType<typeof ContentTextStub>[];
   mintInstanceId: () => InstanceId;
   setupStaleReap: (params: { staleInstanceId: InstanceId }) => void;
@@ -133,6 +143,11 @@ export const instanceStartBrokerProxy = (): {
   // are never called, since every path here resolves through the REAL pathJoin passthrough (see
   // the note above) rather than through a one-shot stub any of these would queue.
   instanceReserveBrokerProxy();
+  // instanceReleaseBroker (called on every failed-boot path, defect 2) composes real
+  // registryUpdateBroker underneath — the SAME generic writeFile/readFile mocks staged below
+  // already satisfy it, matching how instanceReserveBroker's own registryUpdateBroker call runs
+  // real against these identical mocks.
+  instanceReleaseBrokerProxy();
   registryReadBrokerProxy();
   bootLockAcquireBrokerProxy();
   bootLockReleaseBrokerProxy();
@@ -329,8 +344,10 @@ export const instanceStartBrokerProxy = (): {
       const socketPath = AbsoluteFilePathStub({
         value: `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`,
       });
+      const evidencePathAbs = AbsoluteFilePathStub({ value: String(evidencePath) });
       pollProxy.setupNeverAnswers({
         socketPath,
+        evidencePath: evidencePathAbs,
         nowMs,
         deadlineMs: nowMs + driverStatics.boot.defaultTimeoutMs,
       });
@@ -347,11 +364,58 @@ export const instanceStartBrokerProxy = (): {
       // cares about.
     },
 
+    setupBootFailureMarkerAppears: ({
+      instanceId,
+      evidencePath,
+      registry,
+      driverMessage,
+    }: {
+      instanceId: InstanceId;
+      evidencePath: FilePath;
+      registry: Registry;
+      driverMessage: string;
+    }): void => {
+      stageBoot({ instanceId, evidencePath, registry });
+
+      const socketPath = AbsoluteFilePathStub({
+        value: `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`,
+      });
+      const evidencePathAbs = AbsoluteFilePathStub({ value: String(evidencePath) });
+      pollProxy.setupFailureMarkerAppears({
+        socketPath,
+        evidencePath: evidencePathAbs,
+        marker: BootFailureMarkerStub({ message: ContentTextStub({ value: driverMessage }) }),
+      });
+
+      // The driver never got as far as writing a boot lock in this scenario either — it dies
+      // before laneBootBroker's own success path stamps anything — so releasing boot.lock reads
+      // the same acquired-by-this-instance shape the timeout path above stages.
+      readHandle
+        .calledWith([BOOT_LOCK_PATH_ABS])
+        .resolves(JSON.stringify({ heldBy: instanceId, heldByPid: '4821', acquiredAtMs: 0 }));
+      unlinkHandle.calledWith([BOOT_LOCK_PATH_ABS]).resolves(undefined);
+    },
+
+    // Reserve's own write (state: 'alive') always lands first and must keep succeeding — only the
+    // SECOND write to registry.json.tmp (instanceReleaseBroker's, after the boot fails) is made to
+    // fail, via a queued pair of one-shots on the SAME shared writeFile mock every registry broker
+    // in this file shares.
+    stageInstanceReleaseWriteFails: ({ error }: { error: Error }): void => {
+      writeHandle.onceFor([REGISTRY_TMP_PATH_ABS]).resolves(undefined);
+      writeHandle.onceFor([REGISTRY_TMP_PATH_ABS]).rejects(error);
+    },
+
     getWriteOrder: (): readonly FilePath[] =>
       writeHandle.callsMatching([]).map((call) => filePathContract.parse(String(call[0]))),
 
     getBootLockReleasedPaths: (): unknown[] =>
       unlinkHandle.callsMatching([BOOT_LOCK_PATH_ABS]).map((call) => call[0]),
+
+    getLastRegistryWriteContent: (): unknown => {
+      const calls = writeHandle.callsMatching([REGISTRY_TMP_PATH_ABS]);
+      const lastCall = calls[calls.length - 1];
+      return lastCall === undefined ? undefined : JSON.parse(String(lastCall[1]));
+    },
 
     getStderrMessages: (): readonly ReturnType<typeof ContentTextStub>[] =>
       stderrHandle.callsMatching([]).map((call) => ContentTextStub({ value: String(call[0]) })),
