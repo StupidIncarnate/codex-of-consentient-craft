@@ -58,6 +58,10 @@ module.exports = [
       '*.md',
       '**/*.md',
       '**/ts-jest/**',
+      // typescriptProgramDiagnosticsAdapter's own test fixtures carry a deliberate compiler
+      // error so its test can assert on a real diagnostic — the adapter grades them directly,
+      // so lint must skip them the same way it will skip the chunk-3 negative fixture tree.
+      'packages/hydration/test/adapter-fixtures/**',
     ],
   },
   // Configuration for TypeScript files
@@ -196,6 +200,18 @@ module.exports = [
   },
   {
     files: ['**/@types/*', '**/@types/**'],
+    rules: {
+      '@dungeonmaster/ban-primitives': 'off',
+    },
+  },
+  // The hydration framework's generic type machinery declares things like `N extends number` and
+  // `of: string` — bare primitives in type position, which this rule refuses everywhere it is on.
+  // Scoped to the whole package, not to a handful of folders: contracts/ and transformers/ carry
+  // that machinery, and so do the brokers that declare it against a caller's own generics
+  // (ingredient-declare, registry-create, recipe-declare, hydration-create) — narrowing the glob
+  // to today's folders only means the next file that needs it fails lint on arrival.
+  {
+    files: ['packages/hydration/src/**'],
     rules: {
       '@dungeonmaster/ban-primitives': 'off',
     },

@@ -2,6 +2,7 @@
   "name": "@dungeonmaster/siegelense-recipes",
   "version": "0.1.0",
   "description": "siegelense-recipes package",
+  "private": true,
   "exports": {
     "./statics": {
       "source": "./statics.ts",
@@ -10,9 +11,6 @@
       "types": "./dist/statics.d.ts"
     }
   },
-  "files": [
-    "dist/**/*"
-  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "build:clean": "rm -rf dist .ward/build.tsbuildinfo && npm run build",
@@ -21,11 +19,16 @@
     "lint": "dungeonmaster-ward --only lint",
     "ward": "dungeonmaster-ward"
   },
+  "dependencies": {
+    "@dungeonmaster/hydration": "*",
+    "@dungeonmaster/orchestrator": "*",
+    "@dungeonmaster/server": "*",
+    "@dungeonmaster/shared": "*",
+    "zod": "^3.22.4"
+  },
   "devDependencies": {
+    "@dungeonmaster/testing": "*",
     "@types/node": "^20.11.0",
     "typescript": "^5.3.3"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }

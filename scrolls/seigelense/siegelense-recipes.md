@@ -12,77 +12,70 @@
 **Send this to a session once `siegelense` itself is finished.** It is the same flow the siegelense
 build ran under, with the two clauses this feature needs that that one did not.
 
-> We must implement the recipe book described in `scrolls/seigelense/siegelense-recipes.md` in all its
-> nitty gritty detail so that I can manually test everything once without finding holes that are
-> documented as requirements.
+> Move to the worktree `recipes-doc` before you start and do all this work there. It is already
+> carved; create no new one.
 >
-> You must use sub agents for everything including planning, work, ward runs, and manual verification.
-> Commit as you see fit.
+> Implement the recipe book in `scrolls/seigelense/siegelense-recipes.md` in every detail, so one
+> manual test pass finds no holes the doc documents as requirements.
 >
-> The general flow you should run is:
+> Use sub agents for everything: planning, work, ward runs, verification. Only 3 in parallel. Opus
+> plans, sonnet the rest. Commit as you like.
 >
-> - sub agent plans features against the doc that makes sense for a chunk. It has to dictate what to
->   build and in what order; parallelization is good but not required.
-> - send sub agents to work on features as the plan dictates, including unit and int tests. I don't
->   think yall need e2e tests for this.
-> - send sub agents to review code against plan and look for holes code may have or blindspots.
-> - send sub agent to manually use the tool to make sure it adheres to the requirements of the doc.
-> - send sub agent to review what the plan promised and delivered and mark all sections in the doc that
->   were delivered properly in the detail specified in the doc so we have a running mark of what
->   requirements are covered vs not
-> - start over
+> The loop:
 >
-> Do this until the planner sub agent has said there's nothing left to implement. Then send a sub agent
-> or more to validate the doc's requirements are all met by manually running the tool.
+> - A sub agent plans features against the doc for a chunk — what to build, in what order. Parallelize
+>   where it helps.
+> - Sub agents build them, with unit and integration tests. No e2e needed.
+> - Sub agents review the code against the plan for holes and blindspots.
+> - A sub agent manually uses the tool against the doc's requirements.
+> - A sub agent compares promised to delivered and marks each doc section delivered to the detail
+>   specified — a running mark of covered vs not.
+> - Start over.
 >
-> Before committing, always do `ward --uncommitted --committed` until green. You can save a full ward
-> till the feature is completely finished. Agents modifying files should run `ward -- -- {files}` on
-> what they change for quick sanity checks and so they don't collide with other parallel agents.
+> Repeat until the planner says nothing is left, then send sub agents to validate every doc requirement
+> by manually running the tool.
 >
-> **This is THREE packages**, all of which go in `packages/` and must adhere to our arch that all sub
-> agents should be pulling, as well as testing standards: `@dungeonmaster/hydration` (the framework,
-> ships), `packages/hydration-recipes` (this repo's own ingredients and recipes, must NOT ship), and
-> the changes to `@dungeonmaster/siegelense` that let it list and seed them. Part 5's "Where each part
-> lands in this repo's architecture" is the starting map.
+> Before every commit, run `ward --uncommitted --committed` until green; save the full ward for when
+> the feature is done. Agents run `ward -- -- {files}` on files they change — quick sanity, no
+> collisions.
 >
-> **The chainables need a PLANNING SESSION of their own, and Part 5's "The combinatorial planning
-> session" gives it the two tables to work from — what an ingredient must have versus may have, and the
-> rounds A through D. Do not let a session invent that list; it will re-derive the cases already
-> written down and miss the rest. Round D is the sad paths, and NONE of them is implemented or tested
-> today.**
+> **Three packages** under `packages/`, bound by our arch and testing standards, which every sub agent
+> pulls: `@dungeonmaster/hydration` (the framework, ships), `packages/hydration-recipes` (this repo's
+> own ingredients and recipes, must NOT ship), and the `@dungeonmaster/siegelense` changes that list
+> and seed them. Part 5's "Where each part lands in this repo's architecture" is the map.
 >
-> **The chainables need manual COMBINATORIAL exercise, not one example each.** Every verb has a worked
-> example in the doc and every one of them compiles; that is not the same as knowing what happens when
-> you compose them. Dedicate whole rounds to driving combinations against a live instance and writing
-> down what breaks — a `filter` inside an `add` whose transition minted the rows it matches; a
-> `saveRecordAs` on a row a later `remove` deletes; a `fromSaved` pointing at a row inside a `filter`;
-> two ingredients whose `links` name the same parent; a transition that mints rows another transition
-> then removes. **The doc cannot have anticipated these, and the round that finds one writes it into
-> the doc rather than working around it.**
+> The chainables get their own PLANNING SESSION. Part 5's "The combinatorial planning session" hands it
+> two tables — what an ingredient must versus may have — and rounds A through D. Do not let a session
+> invent that list; it will re-derive written-down cases and miss the rest. Round D is the sad paths,
+> none implemented or tested today.
 >
-> **Converting the existing suites is part of this work, and it is how the design gets proven.** Part
-> 5's "The migration IS the validation" has the order, and `python3 scrolls/tools/seed-census.py`
-> produces the target file list and the running mark. Its counts: the 17 integration domain-seeders
-> first because that environment is cheap, then the 118 e2e specs in small batches with the suite green
-> between them, then one manual siegelense round for the tool half neither suite crosses. **A converted
-> test keeps its assertions exactly — if it needs a different assertion to pass, the ingredient is
-> wrong, not the test.** A test that cannot be converted is a finding, written into the doc.
+> The chainables need manual COMBINATORIAL exercise, not one example each. Every verb's example
+> compiles; that is not knowing what composing them does. Drive whole rounds of combinations against a
+> live instance and write down what breaks — a `filter` inside an `add` whose transition minted the
+> rows it matches; a `saveRecordAs` on a row a later `remove` deletes; a `fromSaved` pointing at a row
+> inside a `filter`; two ingredients whose `links` name the same parent; a transition that mints rows
+> another transition removes. The doc could not anticipate these; the round that finds one writes it
+> into the doc rather than working around it.
 >
-> If hiccups with the flow or blockers happen, send out sub agents sonnet to fix them and unblock.
+> Converting the existing suites is part of this work, and proves the design. Part 5's "The migration
+> IS the validation" has the order; `python3 scrolls/tools/seed-census.py` produces the target file
+> list and running mark. Its counts: 17 integration domain-seeders first (cheap environment), then 118
+> e2e specs in small batches, suite green between them, then one manual siegelense round for the tool
+> half neither suite crosses. A converted test keeps its assertions exactly — if it needs a different
+> assertion to pass, the ingredient is wrong, not the test. A test that will not convert is a finding,
+> written into the doc.
 >
-> **Siegelense is already merged to master, and this branch tracks master — there is no second
-> branch to chase.** Part 5's "This branch tracks master" says when to merge, what the rename at
-> the end touches, and the one coordination left: **chunk 8 edits `packages/siegelense`, which
-> manual-testing rounds still land fixes in. Ask before starting it, and merge either side of it.**
+> Blockers: send sonnet agents to unblock.
 >
-> **Master is not settled: a full `npm run ward` over the just-merged tree is still running in the
-> other session, and what it finds lands as fixes.** Start chunks 1-6 anyway — they are a new package
-> nothing on master can invalidate. But **check back and merge master again once that run is green,
-> and before any conversion batch**, or chunks 9 and 10 rewrite 900 call sites against a tree that is
-> about to move.
+> Siegelense is merged to master and this branch tracks it — no second branch to chase. Part 5's "This
+> branch tracks master" says when to merge, what the end rename touches, and the one coordination left:
+> chunk 8 edits `packages/siegelense`, where manual-testing rounds still land fixes. Ask before
+> starting it; merge either side.
 >
-> Move to a worktree before you start. Only parallel 3 sub agents at a time. Use opus for planning,
-> sonnet for everything else.
+> Master is not settled — a full `npm run ward` over the just-merged tree is still running in another
+> session; its findings land as fixes. Start chunks 1-6 anyway; nothing on master can invalidate a new
+> package. Merge master again once that run is green, and before any conversion batch — otherwise
+> chunks 9 and 10 rewrite 900 call sites against a tree about to move.
 
 **`proto/` is a type prototype, not the implementation.** It proves the chain's types compose and it is
 run by `node proto/check.mjs`. Build the real packages beside it and delete it when they exist — a
@@ -400,12 +393,12 @@ is for, and what a real value looks like.
 | `description` | yes | one line, present tense, naming the ROW this makes. **`recipes {}` prints it**, so a session picks without reading the code |
 | `fields` | yes | the contract for what a caller may `set`. `set()` takes a `Partial` of it |
 | `record` | yes | the contract for the row AFTER creation, server-assigned fields included. What `saveRecordAs` exposes |
-| `routes` | yes | at least one of `api`, `write`, `recording`. How the row actually gets made |
-| `links` | no | this row's foreign keys, as `{ of: '<parent name>', as: '<field on this row>' }` |
+| `routes` | yes | at least one of `api`, `write`, `recording` — how the row gets MADE. Optionally `query`, `update` and `remove` — how the chain reaches a row that already exists. A chain call whose verb the ingredient does not declare a route for is refused before the first write |
+| `links` | no | this row's foreign keys, as `{ of: '<parent name>', as: '<field on this row>', from: '<field on the parent, defaults to id>' }` |
 | `transitions` | no | the one field whose value is reached by WALKING rather than writing |
 | `defaults` | no | `(index) => fields` — per-row values derived from the index, never from a clock |
 | `copies` | only with a `write` route | the production code whose output that route imitates |
-| `extras` | no | verbs only this ingredient could have, each taking one object |
+| `extras` | no | verbs only this ingredient could have, each declared as `{ args, apply }` — the args contract and the body the runner calls |
 
 **`name` and `description`** — the two a listing reads:
 
@@ -443,13 +436,16 @@ routes: {
 
 ```ts
 links: [
-  { of: 'quest', as: 'questId' },     // `questId` on THIS row points at a quest
-  { of: 'guild', as: 'guildId' },     // and `guildId` at that quest's guild
+  { of: 'quest', as: 'questId' },                        // `questId` on THIS row points at a quest's `id`
+  { of: 'guild', as: 'guildId' },                         // and `guildId` at that quest's guild's `id`
+  { of: 'session', as: 'sessionId', from: 'sessionId' },  // the session record's own id field is `sessionId`, not `id`
 ],
 ```
 
-`of` is the parent's `name`. `as` is the field on THIS row carrying the parent's id. The runner fills
-each one; nothing passes them by hand. Order does not matter.
+`of` is the parent's `name`. `as` is the field on THIS row carrying the parent's id. `from` names the
+field on the PARENT record that id comes from, and defaults to `'id'`. **`from` is what makes the
+mechanism work for a parent whose own id field is not called `id`** — the session record above has no
+`id` at all. The runner fills each one; nothing passes them by hand. Order does not matter.
 
 **`transitions`** — the field that is walked rather than written:
 
@@ -457,7 +453,7 @@ each one; nothing passes them by hand. Order does not matter.
 transitions: {
   field: 'status',
   to: ['created', 'approved', 'in_progress', 'complete'],
-  reach: ({ from, to, target }) => walkQuestStatus({ from, to, target }),
+  reach: ({ from, to, target, record }) => walkQuestStatus({ from, to, target, record }),
 },
 ```
 
@@ -465,7 +461,7 @@ transitions: {
 |---|---|
 | `field` | the one field on `fields` this governs |
 | `to` | the end states a caller may ASK for. May be NARROWER than the field's own type |
-| `reach` | what runs to get from the current value to the asked-for one |
+| `reach` | what runs to get from the current value to the asked-for one. Receives the `record` being walked — without it, `add(3, …)` gives `reach` no way to know which of the three rows to walk |
 
 **`to` being narrower is the point.** `blocked` is a real `QuestStatus` that nothing reaches by asking,
 so it is off the list and `set({ status: 'blocked' })` does not compile. Leave a value off whenever
@@ -494,14 +490,21 @@ two-route comparison test points.
 
 ```ts
 extras: {
-  withNestedChain: nestedChainArgsContract,   // { depth: number }
-  advanceOneStep: advanceArgsContract,
+  withNestedChain: {
+    args: nestedChainArgsContract,   // { depth: number }
+    apply: ({ target, record, args }) => nestChain({ target, record, args }),
+  },
+  advanceOneStep: { args: advanceArgsContract, apply: ({ target, record, args }) => advance({ target, record, args }) },
 },
 ```
 
+**An extra is ONE object, `{ args, apply }`, never a bare contract.** `args` types what the caller
+passes; `apply` is the body the runner calls to do it. A contract with no `apply` types a verb with
+nothing to run, so the two are declared together or not at all.
+
 Each becomes a method on that ingredient's rows and on nothing else, taking one object typed by its
-contract. **Reach for an extra only when no second ingredient would ever want the verb** — the moment a
-second one would, it belongs in the framework as a capability instead.
+`args` contract. **Reach for an extra only when no second ingredient would ever want the verb** — the
+moment a second one would, it belongs in the framework as a capability instead.
 
 A whole ingredient, every property in use:
 
@@ -516,14 +519,16 @@ export const questIngredient = ingredient({
   transitions: {
     field: 'status',
     to: ['created', 'approved', 'in_progress', 'complete'],
-    reach: ({ from, to, target }) => walkQuestStatus({ from, to, target }),
+    reach: ({ from, to, target, record }) => walkQuestStatus({ from, to, target, record }),
   },
   routes: {
     api: ({ target, fields }) => httpPost({ target, path: '/api/quests', fields }),
     write: ({ target, fields }) => hydrate({ target, fields }),
   },
   copies: 'questPersistBroker',
-  extras: { advanceOneStep: advanceArgsContract },
+  extras: {
+    advanceOneStep: { args: advanceArgsContract, apply: ({ target, record, args }) => advance({ target, record, args }) },
+  },
 });
 ```
 
@@ -543,6 +548,7 @@ export const guildMidExecution = recipe(
 |---|---|---|
 | `name` | yes | what a `seed` step names, and the key of its entry in the generated input union |
 | `description` | yes | **what `recipes {}` prints.** One line, saying what EXISTS after this recipe runs |
+| `inputs` | no | a zod schema describing what this recipe needs from an earlier step. One declaration, three readers: the `inputs` line `recipes {}` prints, the in-process type the builder receives, and the schema a `seed` step's `params` are validated against before seeding |
 | the builder | yes | takes the recipe's typed inputs, if any, and returns the ops |
 
 **A recipe's description is the one a session reads when choosing**, so it describes the END STATE and
@@ -608,7 +614,8 @@ export const dm = registry({
 
 `links` names, for each ancestor a row must point at, the FIELD on that row carrying the ancestor's
 id. The runner walks the plan tree depth-first, so every ancestor exists before the child pointing at
-it, and it writes each id into the named field before calling the route. **Neither the recipe author
+it, reads that ancestor's id off the field its link's `from` names (`'id'` unless the link says
+otherwise), and writes it into the named field before calling the route. **Neither the recipe author
 nor the route implementation passes one by hand.**
 
 **A child accessor appears on exactly one host: its immediate parent.** Two conditions decide it, and
@@ -636,9 +643,12 @@ dm.guilds.add(1, (g) => [
 ]);
 ```
 
-**A forward reference is a build error.** Records are created in declaration order, so a `fromSaved`
-naming something declared later cannot resolve — and the builder says so rather than letting the
-ordering become folklore somebody learns from a failure.
+**A forward reference is caught by the PRE-FLIGHT, not while the chain builds.** Records are created
+in declaration order, so a `fromSaved` naming something declared later cannot resolve. The chain
+builds one op at a time and has not seen the whole plan when that `fromSaved` is written, so it cannot
+be the thing that catches this — the pre-flight can, because it walks the finished op tree before
+anything runs. Nothing is lost: the refusal still lands before the first write, which is the property
+that matters, and the ordering still cannot become folklore somebody learns from a failure.
 
 **A parent the recipe did NOT create comes from a recipe input**, not from an ancestor —
 `dm.sessions.under({ guildId })`, where `guildId` is declared on the recipe.
@@ -745,6 +755,13 @@ question one layer down, so it answers the same way: **`expect: 'some'` is the d
 THROWS**, because a filter matching nothing almost always means the row you meant to reach was never
 there — and silently doing nothing is how that becomes a defect report against working code.
 
+**A `filter` inside a nested `add` is scoped to its immediate host, never the whole instance.**
+`q[0].operations.filter({ where: { role: 'riftcarver' } })` matches only operations under `q[0]`. The
+`filter` op carries `scope`, the host's row reference, and the runner matches only rows whose ancestor
+chain contains it. The alternative — matching every row of that ingredient anywhere in the instance —
+makes a recipe holding two guilds delete rows belonging to a parent it did not create, which is worse
+than the ambiguity it would replace.
+
 ### A recipe takes typed inputs, so it can stack on what an EARLIER STEP made
 
 **Parenting inside one recipe is structural, and parenting across two seed steps is a parameter.**
@@ -757,8 +774,12 @@ needs:
 
 ```ts
 export const sessionWithNestedChain = recipe(
-  'session-with-nested-chain',
-  ({ guildId }: { guildId: GuildId }) => [
+  {
+    name: 'session-with-nested-chain',
+    description: 'one session under an existing guild, holding a nested sub-agent chain',
+    inputs: z.object({ guildId: guildIdContract }),
+  },
+  ({ guildId }) => [
     dm.sessions.under({ guildId }).add(1, (s) => [
       s[0].withNestedChain({ depth: 2 }),
       s[0].saveRecordAs({ name: 'nested' }),
@@ -766,6 +787,11 @@ export const sessionWithNestedChain = recipe(
   ],
 );
 ```
+
+**A recipe declares its inputs as a zod schema, under `inputs`.** One declaration serves three
+readers: `recipes {}` prints the line off it, the builder's parameter type infers from it with
+`z.infer`, and a `seed` step's `params` are parsed through the same schema before anything is seeded.
+A recipe with no `inputs` takes no `params`.
 
 and the batch supplies it from an earlier step's output:
 
@@ -864,6 +890,15 @@ g[0].sessions.add(1, (s) => [s[0].withNestedChain({ depth: 2 })]),
 the ids come along inside it. One mechanism rather than two: a `saveIdsAs` next to it would be a second
 name for a subset of the same thing, and callers would have to learn which one carries the slug.
 
+**No chainable reaches a row that already exists.** `add` mints new rows; `filter` matches rows this
+ingredient's target already holds; `fromSaved` names a row `saveRecordAs` saved earlier IN THIS PLAN;
+`under` supplies a link for a row being CREATED, from a recipe input. None of the eight reaches a row
+a caller already holds an id for — including an id the live application minted, not this recipe. Real
+callers need exactly that: appending a line to a session a dispatched agent is already driving, or
+rewinding a quest's status by reading, modifying and rewriting a file the real server wrote. See
+`scrolls/seigelense/plans/recipes-seeding-survey.md` finding 2 for the call sites. This is a hole in
+the chain, not something solved elsewhere in this document.
+
 Everything together, on one recipe:
 
 ```ts
@@ -944,6 +979,29 @@ diagnosis of a broken ingredient opens with a hunt for the counterpart. The live
 `copies: 'questPersistBroker'` and a diagnosing agent starts there instead of guessing.
 
 **An ingredient may declare BOTH `api` and `write`, and most should.** The target picks; the caller does not.
+
+**Four chain verbs reach a row that already exists, and the table above names only how a row gets
+MADE.** `q[1].remove()` and `filter(…).remove()` need a DELETE; `filter({ where, expect })` needs a
+QUERY — *"the query fails mid-plan"* is already a sad-path row below, so the framework certainly
+queries; `filter(…).set({ text: 'noop' })` needs an UPDATE on a row the create route did not just
+make, and so does a `set` that cannot be folded into the create call.
+
+**The resolution: `routes` gains three optional entries — `query`, `update` and `remove`.** A plan
+calling a verb whose ingredient does not declare the matching route is refused in the PRE-FLIGHT,
+naming the ingredient and the verb, and a dedicated error class carries that refusal.
+
+**Two alternatives lose.** Re-calling the create route with the merged fields is honest for a `write`
+route and wrong for an `api` one, where a second `POST` makes a second row instead of updating the
+first one. Refusing `remove`, `filter` and a non-foldable `set` outright would delete a worked example
+this document already shows, under *"Every chainable, with an example"*.
+
+**Two existing seeders already disagree about a `write` route's side effects, and the ingredient must
+pick one.** `scrolls/seigelense/plans/recipes-seeding-survey.md` finding 8 has a Playwright-side quest
+seeder that appends the `event-outbox.jsonl` line the way `questPersistBroker` does in production, and
+a Jest-side one that writes the quest file and appends nothing. A quest ingredient has ONE `write`
+route, so it commits to one of the two — and the choice is exactly the drift `copies:` exists to name:
+whichever behavior the ingredient does NOT choose becomes the counterpart a diagnosing agent needs to
+know it diverges from.
 
 #### An ingredient for a FILE, and an ingredient for a DATABASE ROW
 
@@ -1192,11 +1250,12 @@ does not exist, and a fixer goes hunting in working code.
 | the connection is refused | an `api` route | halt before the next op. Name the ingredient, the route and the URL |
 | the server answers 4xx or 5xx | an `api` route | halt, **and carry the response body verbatim** — that body is usually the real diagnosis |
 | the server answers 2xx with a shape `record` rejects | an `api` route | halt and name the field. A silently wrong record poisons every `fromSaved` and every link after it |
+| the route answers with a shape `record` rejects | a `write` route | halt and name the field, exactly as an `api` route's bad shape does — a `write` route's bad record poisons every saved record and every link the same way |
 | the write fails — `EACCES`, `ENOSPC`, a read-only mount | a `write` route | halt. Name the path, not just the errno |
 | the parent directory does not exist | a `write` route | **create it.** A missing parent is the siegelense socket bug one layer over: binding under an absent directory failed as `EACCES`, not `ENOENT`, and three sessions read it as permissions |
 | `reach` throws — the gates refused the transition | a transition | halt. Name `from`, `to`, and what the gate said. "Cannot go to in_progress from created" is a real answer; a stack trace is not |
 | the query fails mid-plan | `filter` | halt, and say so DISTINCTLY from "matched zero rows". One is the app being unreachable, the other is the row not being there |
-| the transaction rolls back | a database repo | the whole plan is undone. Report which op triggered it |
+| the transaction rolls back | a database repo | the whole plan is undone. Report which op triggered it. **Nothing inside the framework throws this** — the framework names neither files nor SQL and does not own the transaction. The target IS the transaction, so the repo's own wrapper around `run()` throws it |
 | two ops race the same file | a file repo | this repo already has the case: `guildHarness` deletes sequentially because "concurrent DELETEs corrupt config.json (race on read-modify-write)". **The runner is serial, and that is a requirement, not an implementation detail** |
 | the recipes package was never built | discovery | say exactly that. **Never report an empty list** — a session cannot tell "you have written none" from "you have not built it" |
 | a recipe's params fail validation | the `seed` step | refuse before seeding anything. Name the bad input and list what that recipe takes |
@@ -1271,8 +1330,9 @@ experiment. The ones most likely to pay:
   ancestor chain stop resolving, and does it fail loudly or silently?
 - an `add` inside an `add` inside an `add`, each with its own `defaults` — do the indexes stay scoped
   to their own `add`, as documented?
-- a `filter` inside a nested `add` — does it see only rows under THAT parent, or every row of that
-  ingredient in the instance? **This is not specified anywhere and it is the first thing to pin down.**
+- a `filter` inside a nested `add` — decided: it sees only rows under its immediate host, never every
+  row of that ingredient in the instance (see *"`filter` selects rows that only exist at RUN time"*). A
+  round should confirm the runner actually enforces the scope it was given, not re-open the question
 - an ingredient linking to a parent two levels up, skipping one
 
 **Round C — composing the chainables, which is what the doc cannot have anticipated**
@@ -1308,11 +1368,12 @@ found.**
 |---|---|
 | **A plan containing an `api`-only ingredient cannot say so before it runs.** The prototype leaves `baseUrl` optional on each repo's own target and stops there | the plan should carry the routes it requires, so a targetless run is refused at the call rather than partway through, with half a plan on disk |
 | **`fromSaved` is not typed against the field it lands in.** The prototype needed a cast | the saved row's field type has to reach the `set` it is used in, or a cross-link can point at the wrong column and compile |
+| **A typed plan output is scheduled work, not delivered yet.** *"A plan is data, and one plan runs three ways"* requires the plan's output to carry `guild` and `target`, each typed to its own record contract, and today's plan returns an untyped record the caller casts | threading the saved names through every op producer's return type, so `saveRecordAs({ name })` types the plan's output as the chain builds. The requirement stands; only the delivery is pending |
 | **A recipe cannot call another recipe.** There is `add` and there is `filter`, and no `include` | recipes will duplicate each other's openings within a week of two people writing them. `include(otherRecipe({ … }))` splicing the other plan's ops in, with its saved names namespaced |
-| **The MCP wire has no compile-time check at all** | the tool generates a zod schema per enumerated recipe and validates before seeding. Named here because the in-process union looks like it covers both surfaces and does not |
+| **The MCP wire has no compile-time check at all** | narrower now that a recipe declares its `inputs` as a zod schema: the wire validation parses a `seed` step's `params` through that same schema before seeding, rather than generating one from scratch. What is still open is wiring that parse into the `seed` step itself. Named here because the in-process union looks like it covers both surfaces and does not |
 | **`recording` is declared and unexercised** | no ingredient in the prototype uses it, so nothing about it has been proven |
 | **Two ingredients may share a `name` inside one registry, and nothing catches it** | not expressible in the type system. A runtime check at `registry()`, throwing with both keys |
-| **A `filter` inside a nested `add` has undefined scope** | does it see only rows under THAT parent, or every row of that ingredient in the instance? Decide it before anyone writes one |
+| ~~A `filter` inside a nested `add` has undefined scope~~ **CLOSED** | it is scoped to its immediate host. The `filter` op carries `scope`, the host's row reference, and the runner matches only rows whose ancestor chain contains it. The alternative — instance-wide — lets a recipe holding two guilds delete rows belonging to a parent it did not create |
 | **No sad path is implemented or tested** | the table above is a spec, not a report. Nothing has driven a refused connection or a failed write |
 | **A row added at TOP LEVEL whose `links` nothing supplies compiles clean** | `Entry<R>` hands out a collection for every registered ingredient, so `dm.quests.add(1, …)` at top level typechecks with no guild anywhere — measured against the prototype. The RUNNER must refuse it before the first write |
 | **Production code mints uuids and timestamps that reach the screen** | `guild-add-broker.ts:35` and `quest-hydrate-broker.ts:88,131`. No lint rule over the recipes folder can reach them. Each painted value needs an override in production, or it is an observable against the app |
@@ -1333,6 +1394,12 @@ discoveries, so they are written down rather than left to whoever gets there fir
 | `remove` | the row it targets |
 | `saveRecord` | the row it targets and the name |
 | `filter` | the ingredient, the `where`, the `expect`, and the ops to apply to what it matched |
+| `extra` | the row it targets, the verb name, and its args |
+
+**An `extra` needs its own op kind, because it is a verb like any other.** *"Each becomes a method on
+that ingredient's rows and on nothing else, taking one object typed by its contract"* — the same
+requirement `set` and `remove` meet with an op of their own. `{ ref, verb, args }` is the smallest
+shape that keeps a plan printable and keeps the runner's dispatch a single switch over `op`.
 
 **Depth-first in declaration order is what makes the ancestor chain and `fromSaved` work at all**, and
 it is the only ordering guarantee. Two sibling `add` calls run in the order they are written.
@@ -1361,6 +1428,7 @@ before anything runs; a plan's RESULTS are not.
 | an ingredient needs a route this target cannot serve | the ingredient, the routes it has, and what the target lacks |
 | a `fromSaved` names a record no op in this plan saves, or one declared LATER | the name, and the names that are saved |
 | a row whose `links` no ancestor supplies — including one added at TOP LEVEL | the ingredient and the link it cannot fill |
+| a chain call needs `query`, `update` or `remove` and the ingredient declares no matching route | the ingredient and the verb it cannot serve |
 
 **Mid-run** — they depend on what the app actually did, so no pre-flight can reach them:
 
@@ -1467,6 +1535,16 @@ that does not move it converted nothing.
 
 So the conversion is three ingredients against roughly 900 call sites, not thirty-five separate
 rewrites. The rest of the harness tree keeps doing what it already does.
+
+**Some conversion targets seed state no ingredient above covers, and at least one seeds no persisted
+row at all.** `scrolls/seigelense/plans/recipes-seeding-survey.md` findings 4, 5, 6 and 9 name real git
+worktree and branch state (a `git init`, a `worktree add`, real commits) behind several integration
+targets; mock subprocess response queues behind the dispatch harness, which arms future answers rather
+than making a row; a rate-limit harness writing files with no guild, quest or session shape at all; and
+an MCP protocol driver that persists no row whatsoever, so no `write` or `api` route has anything to
+produce. None of these has an ingredient today. **A test that cannot be converted is a finding, and it
+gets written into this document** — these are that finding, named here so the conversion chunks do not
+discover them one file at a time.
 
 #### The order, and why each step proves something the last one could not
 

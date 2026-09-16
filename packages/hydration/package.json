@@ -1,0 +1,35 @@
+{
+  "name": "@dungeonmaster/hydration",
+  "version": "0.1.0",
+  "description": "Hydration utilities for Dungeonmaster",
+  "exports": {
+    "./statics": {
+      "source": "./statics.ts",
+      "import": "./dist/statics.js",
+      "require": "./dist/statics.js",
+      "types": "./dist/statics.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "dependencies": {
+    "@dungeonmaster/shared": "*",
+    "zod": "^3.25.76"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:clean": "rm -rf dist .ward/build.tsbuildinfo && npm run build",
+    "test": "dungeonmaster-ward --only test",
+    "typecheck": "dungeonmaster-ward --only typecheck",
+    "lint": "dungeonmaster-ward --only lint",
+    "ward": "dungeonmaster-ward"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
