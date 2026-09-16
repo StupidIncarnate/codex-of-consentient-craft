@@ -70,6 +70,12 @@ build ran under, with the two clauses this feature needs that that one did not.
 >
 > If hiccups with the flow or blockers happen, send out sub agents sonnet to fix them and unblock.
 >
+> **Siegelense is still being finished on its own branch while you work.** Part 5's "Building this
+> while siegelense is still being finished" says which chunks need it (7 onward) and which do not
+> (1-6, start those immediately), when to merge `siegelense` in, and what the rename at the end
+> actually touches. **Chunk 8 edits the package that session is still building — hold it until they
+> report done.**
+>
 > Move to a worktree before you start. Only parallel 3 sub agents at a time. Use opus for planning,
 > sonnet for everything else.
 
@@ -125,6 +131,94 @@ that writes the runtime first and the types after will discover the same three f
 already recorded, at much greater cost.
 
 ---
+
+### Building this while siegelense is still being finished
+
+**This build starts before siegelense is done, and the orchestrator has to schedule around that rather
+than discover it.** The two are on different branches, and most of this work does not touch siegelense
+at all — which is what makes the overlap safe.
+
+| Branch | Holds | State |
+|---|---|---|
+| `siegelense` | `packages/siegelense`, `packages/siegelense-recipes`, and edits across shared, testing, mcp, server, ward, cli | being finished |
+| this branch | the specification, `proto/`, `scrolls/tools/seed-census.py` | ready |
+
+**`packages/siegelense-recipes` exists ONLY on the `siegelense` branch.** Seven files, an empty
+scaffold. It is not on `master` and not here.
+
+#### What can start immediately, and what has to wait
+
+| Chunks | Needs siegelense? | Why |
+|---|---|---|
+| 1-6 — contracts, the factory, the chain, the runner, transitions, `filter` | **no** | `@dungeonmaster/hydration` is a brand-new package that touches nothing siegelense touches. Start it today, off this branch |
+| 7 — this repo's real ingredients and their tests | **yes** | they live in the recipes package, which only exists over there |
+| 8 — discovery, `recipes {}`, the `seed` step's params | **yes, and last** | it edits `packages/siegelense`, the package still being built. Editing it mid-build collides with whoever is finishing it |
+| 9-12 — the migration, the manual round, the combinatorial rounds | **yes** | all of them need 7 and 8 |
+
+**So roughly half this build is independent, and the orchestrator should spend the overlap window
+there.** A planner told "wait for siegelense" idles through chunks that never needed it.
+
+#### Merging, and in which direction
+
+**Merge `siegelense` INTO this branch, repeatedly, and never the other way.** That branch is being
+actively worked by another session; a merge landing in it would arrive mid-chunk in someone else's
+tree.
+
+```bash
+git merge siegelense      # in this worktree, at each interval below
+```
+
+| When | Why then |
+|---|---|
+| before chunk 7 starts | the first merge that matters — it is what brings the recipes package into reach |
+| at each of siegelense's own chunk boundaries | its ledger records them; merging at a boundary lands a tree that session already made green |
+| once more when siegelense reports finished | the merge the rename and chunk 8 are written against |
+
+**The collision surface is small and known.** Both branches add to root `package.json` `dependencies`
+and both touch `eslint.config.js` — siegelense already adds three lines there, and `hydration` needs
+its own `ban-primitives` entry. Everything else this branch writes is new files. Expect to resolve
+those two by hand each time and nothing else.
+
+**Never merge on a red tree.** `npm run ward -- --committed --uncommitted` after each merge, before any
+new work lands on top; a merge that broke something is far cheaper to find on its own than underneath a
+chunk.
+
+#### The rename is its own step, and it is bigger than the folder
+
+**`siegelense-recipes` becomes `hydration-recipes`, near the end, after the last merge.** Doing it
+early means re-doing it on every merge that follows.
+
+The surface, measured on the `siegelense` branch:
+
+| What | Detail |
+|---|---|
+| the package folder | `packages/siegelense-recipes/` → `packages/hydration-recipes/` |
+| the nested statics folder and file | `src/statics/siegelense-recipes/siegelense-recipes-statics.ts` → `hydration-recipes/hydration-recipes-statics.ts`, and its `.test.ts` |
+| the package name | `@dungeonmaster/siegelense-recipes` → `@dungeonmaster/hydration-recipes`, in its `package.json` |
+| root `package.json` | **remove it from `dependencies` entirely** — that field is what ships, and this package must not |
+| `package-lock.json` | regenerate; do not hand-edit |
+| the scaffolder | `packages/siegelense/src/responders/install/recipes-scaffold/` — `RECIPES_PACKAGE_DIRNAME`, plus its proxy and test |
+| the install flow | `packages/siegelense/src/flows/install/install-flow.ts` and its integration test |
+| `start-install.integration.test.ts` | asserts the scaffolded path |
+| `packages/local-eslint` | `locator-pick-statics.ts` and `is-locator-pick-scope-file-guard.ts` carry the path in an allowlist |
+| `packages/orchestrator` | `prepare-quest-package-graph-layer-responder.test.ts` names it |
+| the scrolls docs | this document and its siblings |
+
+**The scaffolder already exists and already does the right thing.** `InstallRecipesScaffoldResponder`
+creates the package when absent, leaves an existing one untouched, and its header already carries the
+empty-versus-missing reasoning. **It needs the rename and nothing else** — do not write a second one.
+
+#### What "siegelense is done" means for this build
+
+Not its ledger reaching the bottom. Three things this build actually depends on:
+
+1. `packages/siegelense`'s tool surface stops changing, so chunk 8 edits a stable package
+2. the `seed` step's place in the batch contract is settled
+3. a full `npm run ward` on `siegelense` is green, so a merge brings a tree that was whole
+
+**Chunk 8 is the one to hold back hardest.** Everything before it writes new files; chunk 8 edits the
+package another session is finishing, and that is the only place the two builds can genuinely corrupt
+each other's work.
 
 ### 3A — The decision index
 
@@ -1212,7 +1306,7 @@ found.**
 | **No sad path is implemented or tested** | the table above is a spec, not a report. Nothing has driven a refused connection or a failed write |
 | **A row added at TOP LEVEL whose `links` nothing supplies compiles clean** | `Entry<R>` hands out a collection for every registered ingredient, so `dm.quests.add(1, …)` at top level typechecks with no guild anywhere — measured against the prototype. The RUNNER must refuse it before the first write |
 | **Production code mints uuids and timestamps that reach the screen** | `guild-add-broker.ts:35` and `quest-hydrate-broker.ts:88,131`. No lint rule over the recipes folder can reach them. Each painted value needs an override in production, or it is an observable against the app |
-| **Nothing pins the empty-versus-missing recipes package in a consumer repo** | `siegelense`'s `StartInstall` has to create it, and no test asserts that it does |
+| ~~Nothing creates the recipes package in a consumer repo~~ **CLOSED** | `InstallRecipesScaffoldResponder` on the `siegelense` branch already does it, tested. It needs the rename, not a rewrite |
 | **`ban-primitives` is off only for `**/@types/**`** | the framework's generic machinery needs `N extends number` and `of: string`, which that rule refuses everywhere else. `@dungeonmaster/hydration` needs its own entry in `eslint.config.js`, and the entry needs a comment saying why, or somebody deletes it |
 
 ### Mechanics the framework has to implement
@@ -1309,7 +1403,7 @@ whole layout from nothing.
 | the refusal errors | `errors/` | `hydration` |
 | recipe discovery and the listing | `brokers/` | `siegelense` |
 | the `seed` step and its params validation | `brokers/` | `siegelense` |
-| **scaffolding `packages/hydration-recipes/` in a consumer repo** | `startup/` | **`siegelense`** — it is the package that enumerates the path, so it owns creating it. `hydration` ships no `StartInstall` of its own |
+| scaffolding `packages/hydration-recipes/` in a consumer repo | `responders/install/recipes-scaffold/` | **`siegelense` — ALREADY BUILT** on that branch as `InstallRecipesScaffoldResponder`. Rename it; do not write a second one |
 | each ingredient and each recipe | one folder each | `hydration-recipes` |
 
 **The framework's generic type machinery needs `N extends number` and `of: string`, which
