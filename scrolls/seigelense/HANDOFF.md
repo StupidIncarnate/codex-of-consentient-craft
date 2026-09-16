@@ -1,56 +1,95 @@
 # Siegelense build — handoff
 
-**The work is unfinished and was stopped deliberately, not because it ran out of road.** Two chunks
-of roughly four are delivered. This file says where the work is, what holds, what does not, and the
+**The work is unfinished and was stopped deliberately, not because it ran out of road.** Three chunks
+of roughly four are built and merged to `master` — but they are built against the WRONG INTERFACE, and
+correcting that is the first job. This file says where the work is, what holds, what does not, and the
 one thing most likely to mislead you.
 
 ## Re-issue this instruction to continue
 
-Give a new session the text below. It is the instruction this build ran under, verbatim.
+Copy everything in the block below into a new session. It is self-contained — it names the worktree and
+tells the session to read this file first.
 
-> We must implement the tooling described in `scrolls/seigelense/siegelense-tooling.md` in all its
-> nitty gritty detail so that I can manually test everything once without finding holes that are
-> documented as requirements.
+> Work in `worktrees/siegelense` on branch `siegelense`. The worktree already exists — do not carve a new one. Every path below is relative to that worktree root.
 >
-> You must use sub agents for everything including planning, work, ward runs, and manual
-> verification. Commit as you see fit.
+> **Read `scrolls/seigelense/HANDOFF.md` before anything else.** It says what is built, what is wrong, and what the first job is.
+>
+> We must implement the tooling described in `scrolls/seigelense/siegelense-tooling.md` in all its nitty gritty detail so that I can manually test everything once without finding holes that are documented as requirements.
+>
+> **The interface is the CLI.** Every call is `dungeonmaster siegelense <call>`. There are no MCP tools — we should not have to install an MCP server for an LLM to use this. Seven calls are registered as MCP tools by mistake, and moving them is the first job. The handoff has the detail.
+>
+> You must use sub agents for everything including planning, work, ward runs, and manual verification. Commit as you see fit.
 >
 > The general flow you should run is:
 >
-> - sub agent plans features against the doc that makes sense for a chunk. It has to dictate what to
->   build and in what order; parallelization is good but not required.
-> - send sub agents to work on features as the plan dictates, including unit and int tests. I don't
->   think yall need e2e tests for this.
+> - sub agent plans features against the doc that makes sense for a chunk. It has to dictate what to build and in what order; parallelization is good but not required.
+> - send sub agents to work on features as the plan dictates, including unit and int tests. I don't think yall need e2e tests for this.
 > - send sub agents to review code against plan and look for holes code may have or blindspots.
 > - send sub agent to manually use the tool to make sure it adheres to the requirements of the doc.
-> - send sub agent to review what the plan promised and delivered and mark all sections in the doc
->   that were delivered properly in the detail specified in the doc so we have a running mark of
->   what requirements are covered vs not
+> - send sub agent to review what the plan promised and delivered and mark all sections in the doc that were delivered properly in the detail specified in the doc so we have a running mark of what requirements are covered vs not
 > - start over
 >
-> Do this until the planner sub agent has said there's nothing left to implement. Then send a sub
-> agent or more to validate the doc's requirements are all met by manually running the tool.
+> Do this until the planner sub agent has said there's nothing left to implement. Then send a sub agent or more to validate the doc's requirements are all met by manually running the tool.
 >
-> Before committing, always do `ward --uncommitted --committed` until green. You can save a full ward
-> till the feature is completely finished. Agents modifying files should run `ward -- -- {files}` on
-> what they change for quick sanity checks and so they don't collide with other parallel agents.
+> **Manual verification means driving the real CLI**, not a script calling brokers. That is why several of the worst defects in this build were caught at all.
 >
-> This is an actual package to be put in packages folder so it must adhere to our arch that all sub
-> agents should be pulling as well as testing standards.
+> Before committing, always do `ward --uncommitted --committed` until green. Agents modifying files should run `ward -- -- {files}` on what they change for quick sanity checks and so they don't collide with other parallel agents.
+>
+> **When the work is done, run a bare `npm run ward` over the whole repo and get exit code 0.** Not `--uncommitted --committed` — on a clean tree that grades zero files and exits 0 having run nothing, which reads as green.
+>
+> This is an actual package in the packages folder so it must adhere to our arch that all sub agents should be pulling, as well as testing standards.
 >
 > If hiccups with the flow or blockers happen, send out sub agents sonnet to fix them and unblock.
 >
-> Move to a worktree before you start. Only parallel 3 sub agents at a time. Use opus for planning,
-> sonnet for everything else.
+> Only parallel 5 sub agents at a time. Use opus for planning, sonnet for everything else.
 
-**The worktree already exists** — do not carve a new one. Use `worktrees/siegelense`, branch
-`siegelense`. Everything below is relative to that worktree root.
+## THE INTERFACE IS THE CLI. The MCP tools are a mistake, and undoing them is the first job.
 
-**Manual verification means driving the real CLI and the real web UI**, not a script calling brokers.
-That clarification came mid-build and is the reason several of the worst defects were caught.
+**Every call is `dungeonmaster siegelense <call>`. There are no MCP tools.** The spec said otherwise for
+three chunks and the spec was wrong; it has been corrected. If you find MCP framing anywhere, it is a
+leftover, not an instruction.
 
-**Your first act should be chunk 3's plan**, with opus, against the spec and the ledger. The ledger
-is current; trust it for what the spec contains, and verify the code yourself for what is done.
+The reason, in the user's words:
+
+> It was always supposed to be cli tooling for this to skip mcp entirely **because we shouldn't have to
+> install it for llms to use.**
+
+A CLI is reachable by any agent that has Bash — no install, no per-client configuration, and no
+reconnect when it changes. An MCP server needs all three, and during this build the reconnect alone cost
+four round trips.
+
+**What exists, built correctly and pointed at the wrong surface:**
+
+| | |
+|---|---|
+| Already CLI subcommands | `status`, `cleanup`, the bare fleet listing, and `driver --instance <id>` (internal — `start` spawns it, nobody types it) |
+| Registered as MCP tools, must move | `start`, `run`, `kill`, `results`, `status`, `compare`, `cleanup` — seven |
+| Still unbuilt on any surface | `capacity`, `profile`, `prune`, `snapshots`, `recipes`, `docs` — six |
+
+**The rework is smaller than it sounds, and this is the measurement that says so.** The brokers are
+surface-agnostic and live in `packages/siegelense/src/brokers/**`. The entire MCP surface is TWO files:
+
+- `packages/mcp/src/responders/siegelense/handle/siegelense-handle-responder.ts` — `start`, `run`, `kill`
+- `packages/mcp/src/responders/siegelense/handle/siegelense-read-layer-responder.ts` — `results`,
+  `status`, `compare`, `cleanup`
+
+Both are thin: parse input, call one broker, return JSON. The CLI already calls two of those same brokers
+directly, from `responders/siegelense/{status,cleanup}/`. **So the job is to add five more CLI responders
+following the two that exist, route them in `flows/siegelense/siegelense-flow.ts`, and delete the MCP
+layer with its registration cascade.** No business logic moves.
+
+**Three things to carry across rather than reinvent:**
+
+1. **The tool descriptions carry each call's REFUSAL** — `results` requires a run id against a finished
+   instance, `status` never lists an unnamed instance's detail, `compare` has no cross-instance form,
+   `cleanup` ages nothing. Those sentences exist in the MCP registrations. A CLI needs them in its help
+   text, or a caller learns the rule by getting it wrong.
+2. **A person must be able to type it.** `dungeonmaster siegelense status` and `cleanup` were built, fully
+   tested, and unreachable, because the CLI gate in `packages/cli` only admitted `driver` and nothing
+   spanned the seam. A test that starts below the gate cannot catch a closed gate.
+3. **The MCP result cap does not apply to stdout**, so the 50,000-character argument in the old spec is
+   gone. The narrow-query design still matters: a `results` query with real response bodies is large
+   whatever carries it.
 
 ## Where the work is
 
@@ -58,35 +97,37 @@ is current; trust it for what the spec contains, and verify the code yourself fo
 |---|---|
 | Worktree | `worktrees/siegelense` — carved with `mcp__dungeonmaster__create-worktree` |
 | Branch | `siegelense` |
-| Spec | `scrolls/seigelense/siegelense-tooling.md`, 2,898 lines |
+| Spec | `scrolls/seigelense/siegelense-tooling.md`, 3,015 lines |
 | Coverage ledger | `scrolls/seigelense/build-ledger.md` — one row per spec section |
-| Plans | `scrolls/seigelense/plans/chunk-01-registry-spine.md`, `chunk-02-driver-and-batch.md` |
+| Plans | `plans/chunk-01-registry-spine.md`, `chunk-02-driver-and-batch.md`, `chunk-03-read-path-and-perception.md` |
 
 The spec carries inline status markers under the headings that have been delivered. They read
 `> **Status: DELIVERED (chunk N)** — …` or `PARTIAL` or `BLOCKED`. Match that format exactly when
 you add more, so they stay findable by a search.
 
-## The search tools cannot see this worktree. Read this before dispatching anyone.
+## The search tools CAN see this worktree now. This was fixed and merged.
 
-**`discover`, `get-project-map` and `get-project-inventory` are blind to `packages/siegelense`, and stale for
-every other package on this branch.** The MCP server is rooted at the main checkout, which sits on `master`,
-and `packages/siegelense` has never existed on `master`. Measured:
+`discover`, `get-project-map` and `get-project-inventory` used to answer `(empty)` for any package that
+exists only on a branch, because the MCP server resolved its root from its own startup directory rather
+than the caller's. **That is fixed and on `master`.** A call now prints the root it resolved:
 
-| Call | Answers | Truth |
-|---|---|---|
-| `get-project-inventory({ packageName: 'siegelense' })` | `## siegelense (0 files) (empty)` | the package holds a full tree |
-| `discover({ glob: 'packages/siegelense/src/brokers/step/**' })` | `count: 0` | eight broker folders |
+```
+[project-root: /home/.../worktrees/siegelense — resolved from the caller's own working directory]
+## siegelense (683 files) — siegelense package
+```
 
-No rebuild fixes it. The tools point at a different tree.
+**The rule it follows, and why the second half matters as much as the first:** walk up from the caller's
+location to the FIRST `.dungeonmaster.json` and stop. The worktrees live inside the main checkout, so a
+resolver that kept climbing would land on the outer config and sweep every worktree at once — thirteen
+branches' versions of the same package in one answer.
 
-**An empty answer reads exactly like a package with nothing in it**, which is the documented path to deciding
-code is missing and writing a second copy of it. The blindness also reaches past this package:
-`git diff master...siegelense` spans 75 files in `shared`, `testing`, `mcp`, `server`, `ward` and `cli`, so
-for those the tools serve `master`'s version rather than this branch's.
+Cost: about 21ms cold, 6.5ms warm, down from 3.66 seconds. The cache holds a byte CURSOR per session
+file rather than a resolved answer, so a session that changes directory mid-run is followed rather than
+served a stale root.
 
-Search here with `Read` for contents, `ls -R` for structure, and a `python3 -c` one-liner over `os.walk` plus
-a regex. Put this in every agent brief; an agent told to `discover` first will otherwise report a true thing
-absent.
+**If a call ever answers `(empty)` for a package you can see on disk, the fix is not live in that
+checkout** — the server loads `packages/mcp/dist/src/index.js` relative to its own startup directory, so
+it needs that checkout built and the MCP reconnected. An empty answer is never evidence of absence.
 
 ## What a person can do today
 
@@ -205,6 +246,33 @@ event loop stays alive. The idle-timeout backstop (`driver-idle-wait-layer-respo
 which makes this a slow leak rather than a permanent one. Every existing test checks lane pgids, ports, home
 and evidence — never the driver's own process — which is exactly why it slipped through.
 
+## Stale sockets accumulate and then break the teardown suite. Reproduced, mechanism unknown.
+
+The driver's control socket lives at a MACHINE-GLOBAL path, `<os.tmpdir()>/dm-siege-sockets/<id>.sock`,
+not scoped per worktree or per run. **A SIGKILLed driver leaves its socket file behind**, because a unix
+socket path is not removed when its process dies, and they pile up across runs.
+
+**Measured, twice each way:**
+
+| `/tmp/dm-siege-sockets/` | `driver-flow.integration.test.ts` |
+|---|---|
+| holding 8 stale socket files | **FAILS** — the two SIGKILLed-driver orphan-reap assertions, deterministically |
+| removed entirely | **PASSES**, all 6 |
+
+The two that fail are `the reaping kill reports the pgids it found and signalled` and `every orphaned
+process group is dead once the reap returns`. Both compare the registry's recorded pgids against what a
+second process reaps from the heartbeat file.
+
+**The mechanism is NOT established.** An earlier session looked at this path, concluded the trouble was
+not cross-process contention, and left it machine-global — and it was right that contention was not the
+cause of the bug it was chasing. This is a different failure, and nobody has traced why a stale socket
+FILE changes what the reap finds. Do not repeat the guess; measure it.
+
+**Until it is fixed, `rm -rf /tmp/dm-siege-sockets` before running the driver suite**, or a red run will
+send you hunting a regression that is not there. The fix is probably to scope the socket directory per
+run the way ward already scopes its port pairs with `netFreePortPairAdapter`, and to unlink a dead
+socket rather than leaving it — but confirm the mechanism first.
+
 ## One thing to verify rather than trust
 
 **`siegelense-start` was proven broken by a real run, then fixed, and the fix has not been
@@ -256,6 +324,10 @@ So: a green ward is necessary and nowhere near sufficient. Drive the thing.
 Plan a chunk with opus against the spec and the ledger; build it with sonnet agents, three at a
 time; review the code against the plan; **drive the real CLI and the real MCP tools**; update the
 ledger and the spec markers; repeat.
+
+**Finish with a bare `npm run ward` over the whole repo, exit code 0.** Do the work, then run it. A
+git-scoped run (`--uncommitted --committed`) grades nothing once the tree is clean, exits 0, and reads
+as green — it is empty, not passing.
 
 Ward discipline that cost time to learn here:
 

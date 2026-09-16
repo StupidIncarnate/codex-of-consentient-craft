@@ -14,31 +14,40 @@
 
 ## Part 1 — The architecture
 
-### Decision: an INSTANCE service, reached over MCP
+### Decision: an INSTANCE service, reached over the CLI
 
-> **Status: PARTIAL (chunk 2)** — three of the thirteen tools registered and working end to end — `siegelense-start`, `siegelense-run`, `siegelense-kill` — each verified against the real stdio MCP server (`mcp-server-flow.integration.test.ts`'s `describe('tools/call with siegelense-*')` blocks) and by reading `siegelense-flow.ts` · NOT YET: the other ten names (`results`, `capacity`, `profile`, `status`, `cleanup`, `prune`, `compare`, `snapshots`, `recipes`, `docs`) stay pinned and unclaimed
+> **Status: PARTIAL (chunk 2)** — three of the thirteen calls built and working end to end — `start`, `run`, `kill` — each tested against the real stdio MCP server (`mcp-server-flow.integration.test.ts`'s `describe('tools/call with siegelense-*')` blocks) and by reading `siegelense-flow.ts`. They are currently reached as MCP tools (`siegelense-start`, `siegelense-run`, `siegelense-kill`) and must be re-pointed at `dungeonmaster siegelense <name>` subcommands · NOT YET: the other ten names (`results`, `capacity`, `profile`, `status`, `cleanup`, `prune`, `compare`, `snapshots`, `recipes`, `docs`) stay pinned and unclaimed
 
-> **Status: PARTIAL (chunk 3)** — four more tools registered and working end to end — `siegelense-results`, `siegelense-status`, `siegelense-compare`, `siegelense-cleanup` — seven of thirteen total, each verified against the real stdio MCP server (`mcp-server-flow.integration.test.ts`'s `describe('tools/call with siegelense-<name>')` blocks) and by reading `packages/mcp/src/flows/siegelense/siegelense-flow.ts` · NOT YET: `capacity`, `profile`, `prune`, `snapshots`, `recipes`, `docs` stay pinned and unclaimed
+> **Status: PARTIAL (chunk 3)** — four more calls built and working end to end — `results`, `status`, `compare`, `cleanup` — seven of thirteen total, each tested against the real stdio MCP server (`mcp-server-flow.integration.test.ts`'s `describe('tools/call with siegelense-<name>')` blocks) and by reading `packages/mcp/src/flows/siegelense/siegelense-flow.ts`. They are currently reached as MCP tools (`siegelense-results`, `siegelense-status`, `siegelense-compare`, `siegelense-cleanup`) and must be re-pointed at `dungeonmaster siegelense <name>` subcommands · NOT YET: `capacity`, `profile`, `prune`, `snapshots`, `recipes`, `docs` stay pinned and unclaimed
 
-**This IS a set of MCP tools.** Every call — `start`, `run`, `results`, `kill`, `capacity`,
-`profile`, `status`, `cleanup`, `prune`, `compare`, `snapshots`, `recipes`, `docs` — is one. What was rejected is not
-MCP; it is making each STEP its own tool. **Three of the thirteen need a running instance** — `start`, `run`, `kill` —
-and the other ten read disk, the registry or the machine.
+**This IS a set of CLI subcommands.** Every call — `start`, `run`, `results`, `kill`, `capacity`,
+`profile`, `status`, `cleanup`, `prune`, `compare`, `snapshots`, `recipes`, `docs` — is a `dungeonmaster siegelense
+<call>` subcommand. What was rejected is making each STEP its own call, not the fixed set of thirteen. **Three of the
+thirteen need a running instance** — `start`, `run`, `kill` — and the other ten read disk, the registry or the
+machine.
+
+**It is a CLI, and not MCP, because an LLM should not need to install anything to use it.** An MCP server has to be
+installed, configured per client, and reconnected whenever it changes. A CLI subcommand is reachable by any agent
+that already has a shell — no setup, no client-specific config, no server to keep in sync with the code. That is the
+whole reason the surface is `dungeonmaster siegelense <call>` rather than a tool registered with an MCP client.
 
 Three shapes were considered.
 
-| Shape                                                                    | Verdict                                                                                                                                                                                                                                                                                                                                             |
-|--------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **File drop** (what exists)                                              | the agent writes a command file, polls for a result file, reads it, splits on a blank line, parses. **~3 tool calls per command** — arm A spent 82 calls on roughly 20 commands. The result files are `.txt` because the payload is only sometimes JSON, which makes every read pay a split                                                         |
-| **One MCP tool per STEP** — a `goto` tool, a `click` tool, a `look` tool | fixes the call count and breaks two other ways. The tool surface grows with every verb added, and each call returns its own payload, so a `network` reading with real response bodies walks into `mcpToolResultStatics.maxVerbatimChars` (50,000), spills to a file and hands back an error stub — the exact failure the prompts already warn about |
-| **An instance service over MCP** ✅                                      | a SMALL FIXED set of tools; the steps are DATA inside `run`. Submit returns a status, results are queried separately and narrowly                                                                                                                                                                                                                   |
+| Shape                                                                    | Verdict                                                                                                                                                                                                                                                                                                                                                          |
+|--------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **File drop** (what exists)                                              | the agent writes a command file, polls for a result file, reads it, splits on a blank line, parses. **~3 tool calls per command** — arm A spent 82 calls on roughly 20 commands. The result files are `.txt` because the payload is only sometimes JSON, which makes every read pay a split                                                                  |
+| **One call per STEP** — a `goto` call, a `click` call, a `look` call     | fixes the call count and breaks two other ways. The call surface grows with every verb added, and each call returns its own payload immediately — a `network` reading with real response bodies is large on its own, and forcing it back on every step rather than into `results`, queried narrowly after the batch, is what makes the surface unusable — the exact failure the prompts already warn about |
+| **An instance service, reached over the CLI** ✅                         | a SMALL FIXED set of subcommands; the steps are DATA inside `run`. Submit returns a status, results are queried separately and narrowly                                                                                                                                                                                                                        |
 
-**The principle is that the TOOL surface is bounded and the STEP surface is open.** Thirteen tools, and they stop
+**The principle is that the CALL surface is bounded and the STEP surface is open.** Thirteen calls, and they stop
 growing. Twenty-three steps today and more coming — every one of those arrives as a value in a batch rather than as
-another entry in a tool list nobody can hold in their head.
+another entry in a call list nobody can hold in their head.
 
-That is also what dissolves the size cap: a step's reading lands in the instance's own buffers, and
-`results` fetches only what the index points at. Nothing is forced through a tool result just because it was produced.
+That is also what keeps a reading from flooding a session's context: a step's reading lands in the instance's own
+buffers, and `results` fetches only what the index points at. Nothing is dumped back just because it was produced. A
+CLI has no per-call size ceiling the way an MCP tool result does — output is stdout — but a `results` query with real
+response bodies is still large on its own, and the narrow, queried-after-the-fact design is what keeps it readable,
+not a ceiling enforcing it.
 
 The file-drop design justified itself like this:
 
@@ -46,14 +55,18 @@ The file-drop design justified itself like this:
 > but cannot hold a socket between turns
 
 That argues the **driver must be a persistent process** — true, a browser has to outlive a turn. It does **not** argue
-the transport must be files. Those two got welded together and only the first is load-bearing. An MCP server is itself a
-long-lived process that sub-agents already call.
+the transport must be files. Those two got welded together and only the first is load-bearing. A CLI subcommand is a
+short-lived process that talks over a local socket to a driver that outlives it — the persistence lives in the
+driver, not in whatever process holds the call.
 
 ### The shape
 
 > **Status: PARTIAL (chunk 2)** — `start`, `run` and `kill` read exactly as worded here · verified by reading `instance-start-broker.ts`, `run-execute-broker.ts` and `instance-kill-broker.ts` · NOT YET: `results`
 
-> **Status: DELIVERED (chunk 3)** — `results` now reads exactly as worded here: query by run id, narrowly, off disk, needing no live instance and no `start` · verified by reading `results-read-broker.ts` and the real stdio `siegelense-results` call in `mcp-server-flow.integration.test.ts`. All four calls in this row now exist
+> **Status: DELIVERED (chunk 3)** — `results` now reads exactly as worded here: query by run id, narrowly, off disk,
+> needing no live instance and no `start` · verified by reading `results-read-broker.ts` and the real stdio
+> `siegelense-results` call in `mcp-server-flow.integration.test.ts`. All four calls in this row now exist. `results`
+> is currently reached as an MCP tool and must be re-pointed at `dungeonmaster siegelense results`
 
 ```
 start    → instance id
@@ -121,11 +134,11 @@ step in run 2 is measured against the last capture in run 1 rather than against 
 
 **Blocking is fine and there is precedent.** `run-ward` and `run-riftcarver` already block through MCP for minutes.
 
-**The tools are MCP; the DRIVER behind them is a separate process.** That split is about lifetime, not transport. Build
-discipline says editing the MCP package means rebuild plus reconnect — so if the MCP process owned the browsers, any MCP
-change mid-pass would kill every live instance. The MCP tools are thin clients over a local socket to a driver that
-outlives them. The instance also already closes itself on an idle timeout, which is the right ownership and should not
-move.
+**The calls are CLI subcommands; the DRIVER behind them is a separate process.** That split is about lifetime, not
+transport. Each `dungeonmaster siegelense <call>` invocation is a short-lived process that exits once it returns — if
+it owned the browsers directly, exiting would tear them down with it. The CLI subcommands are thin clients over a
+local socket to a driver that outlives them. The instance also already closes itself on an idle timeout, which is the
+right ownership and should not move.
 
 **The instance id replaces lane-name allocation.** Siegemaster's prompt currently spends a whole section on allocating
 two names per round, distinct from each other and from every earlier round, never reused. Every rule there exists
@@ -142,7 +155,7 @@ be answered, not left to whoever builds it.
 **It is not a master/slave setup and there is no daemon.** A daemon owning every instance is a single point of failure
 for N unrelated sessions, and a lifecycle problem nobody wants: who starts it, who restarts it, and what happens to
 every live browser when it dies. The existing design already refuses this shape once, for the same reason, by keeping
-the driver out of the MCP process.
+the driver out of the process that serves each call.
 
 **Coordination is a SHARED REGISTRY ON DISK, and this repo already does exactly that.** Dispatch exclusivity between the
 MCP server and the Node loop is file-backed at
@@ -1153,7 +1166,7 @@ what it handles and what it cannot.
 
 **SIGKILL cannot be caught.** If the OOM killer takes the driver, no handler fires, nothing is cleaned, nothing is
 reported. What is left is three orphaned processes holding a port pair, a throwaway home, a pile of snapshots, and a
-socket the next MCP call will fail against with a bare connection error — which tells a session nothing about whether
+socket the next call will fail against with a bare connection error — which tells a session nothing about whether
 the instance crashed, was killed, or never started.
 
 **Four failures, and only one of them is un-handleable:**
@@ -1344,7 +1357,11 @@ setup; what it has to supply is the fix.
 
 ### What the operator owns after a crash
 
-> **Status: PARTIAL (chunk 3)** — steps 1 and 2 of the four: `status` (`dungeonmaster siegelense status`, `siegelense-status`) and `cleanup` (`dungeonmaster siegelense cleanup`, `siegelense-cleanup`) both real and callable · verified by reading `siegelense-status-responder.ts`, `siegelense-cleanup-responder.ts` and `siegelense-flow.ts`'s route table · NOT YET: step 3 (`capacity`) and step 4 (re-dispatch, prompt-side)
+> **Status: PARTIAL (chunk 3)** — steps 1 and 2 of the four: `status` and `cleanup` both real and callable as
+> `dungeonmaster siegelense status` / `dungeonmaster siegelense cleanup` — the correct surface already — and, for
+> now, also reachable as MCP tools `siegelense-status`/`siegelense-cleanup`, which should be dropped · verified by
+> reading `siegelense-status-responder.ts`, `siegelense-cleanup-responder.ts` and `siegelense-flow.ts`'s route table
+> · NOT YET: step 3 (`capacity`) and step 4 (re-dispatch, prompt-side)
 
 **Cleanup and getting the machine back to a known state, before anything else is dispatched:**
 
@@ -1669,17 +1686,22 @@ Elsewhere: an **instance** is one running stack, a **run** is one submitted batc
 
 > **Status: PARTIAL (chunk 2)** — adds the driver process, `start`/`run`/`kill` as real thin clients over a unix socket, three of the thirteen tools registered, the browserless spec erroring by NAME on a browser step (`BrowserStepUnsupportedError`), run timelines, and `stopOn` · verified by reading `driver-handle-request-broker.ts`, `step-dispatch-broker.ts` and `run-execute-broker.ts` · NOT YET: `docs`, `capacity`, `profile`, `status`, `cleanup` as its own call, append-only PROFILE samples, disk-resolved reads (`results`), `compare`, and settle-based stepping — a per-step timeout ceiling stands in for it today
 
-> **Status: PARTIAL (chunk 3)** — adds four more registered tools (`results`, `status`, `compare`, `cleanup` — seven of thirteen total), disk-resolved reads for all four, and `compare` · verified by reading `packages/mcp/src/flows/siegelense/siegelense-flow.ts` and the four read brokers · NOT YET: `docs`, `capacity`, `profile`, append-only PROFILE samples, and settle-based stepping — a per-step timeout ceiling still stands in for it
+> **Status: PARTIAL (chunk 3)** — adds four more calls built (`results`, `status`, `compare`, `cleanup` — seven of
+> thirteen total), disk-resolved reads for all four, and `compare`. They are currently reached as MCP tools and must
+> be re-pointed at `dungeonmaster siegelense <name>` subcommands · verified by reading
+> `packages/mcp/src/flows/siegelense/siegelense-flow.ts` and the four read brokers · NOT YET: `docs`, `capacity`,
+> `profile`, append-only PROFILE samples, and settle-based stepping — a per-step timeout ceiling still stands in for
+> it
 
 | Decision                                                                                                                                   | Because                                                                                                                                                                                                                                                                  |
 |--------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| The service IS a set of MCP tools — THIRTEEN of them. What was rejected is one tool per STEP, not MCP                                      | a file drop costs ~3 calls per command; a tool per step grows the tool surface with every verb AND forces each reading through a 50,000-char result ceiling. Steps are DATA inside `run` instead: the tool surface is bounded, the step surface is open                  |
+| The service IS a set of CLI subcommands — THIRTEEN of them. What was rejected is one call per STEP                                          | a file drop costs ~3 calls per command; a call per step grows the call surface with every verb AND forces every reading back immediately instead of into a narrow, later query. Steps are DATA inside `run` instead: the call surface is bounded, the step surface is open |
 | The tool's instructions are served by a `docs` CALL, never stored in a role prompt                                                         | any session can then be told "drive it with this instead of the browser extension" and go read how; one source instead of a contract on three prompts; and a full manual inside a prompt spends the 50,000-char ceiling a call serves for free                           |
 | `docs { for: … }` has ONE SCOPE PER TOOL-USING ROLE — `operating`, `planning`, `walking`, `attacking`, `fixing`, `driving`, `operational`  | a stress tester reading the naming ladder in full is context spent on something it barely touches — the same reasoning as filtering `verifyByHuman` units                                                                                                                |
 | **A BROWSERLESS lane spec is a first-class spec, and the browser steps error against it BY NAME**                                          | an operational flow has no screen, and a spec is keyed by content hash, so the cheaper spec profiles itself and `capacity` allows more of them. A `look` answering an empty key instead of an error is `count: 0` where a walk cannot recover from it                    |
 | **`driving` serves a session NO QUEST DISPATCHED**, and covers the machine it shares, its own `kill`, and where its evidence went          | the case for a `docs` call at all was that any session can be told to drive this instead of the browser extension. Every other scope is written for a quest role and reads as a brief the session does not have, with a record it is not writing                         |
 | The `operating` scope contains NO STEP VERBS                                                                                               | the operator never submits a batch. Its whole surface is fleet management — `cleanup`, `capacity`, `status` — plus reading what a minion brings back. Handing it the driving verbs hands it the one thing its own rules forbid                                           |
-| The MCP tools are thin clients over a local socket; the DRIVER holding the browsers is a separate process                                  | about lifetime, not transport: an MCP rebuild-and-reconnect would otherwise kill every live instance mid-pass                                                                                                                                                            |
+| The CLI subcommands are thin clients over a local socket; the DRIVER holding the browsers is a separate process                             | about lifetime, not transport: each invocation is a short-lived process that exits once it returns, so the browsers must outlive it rather than live inside it                                                                                                           |
 | Many sessions share ONE MACHINE through a disk REGISTRY — no daemon, no master, one driver per instance                                    | a daemon owning every instance is a single point of failure for N unrelated sessions and a lifecycle problem nobody wants. This repo already answers the same question the same way: dispatch exclusivity is file-backed BECAUSE the MCP server is a separate OS process |
 | Ports are CLAIMED in the registry before they are bound                                                                                    | two sessions asking the OS for a free pair in the same moment can overlap, and two instances on one port reads as a walk measuring another walk's state                                                                                                                  |
 | An instance is RESERVED in the registry before it boots, and `capacity` counts reservations                                                | otherwise three sessions each divide free memory by peak, each concludes it can start two, and six boot                                                                                                                                                                  |
@@ -1779,7 +1801,7 @@ Elsewhere: an **instance** is one running stack, a **run** is one submitted batc
 | Decision                                                                                                                                          | Because                                                                                                                                                                                                                                                       |
 |---------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | A recipe touches STATE, never a screen — held by a local lint rule, not by prose                                                                  | a recipe carrying a DOM handle is a design error, not a stale value: it means the recipe is doing a walk's job. `@dungeonmaster/local-eslint`'s `no-hardcoded-package-names` is the template — and its own blind spot is the caution to copy with it          |
-| The tool is `siegelense`: `packages/siegelense/`, `dungeonmaster siegelense`, MCP tools `siegelense-*`, recipes at `packages/siegelense-recipes/` | the recipe path must be a CONVENTION because the tool enumerates them before anything is seeded. A config key is one more thing to set, get wrong and diverge on; a bare `recipes` could collide with a repo's own package, and the tool's own name cannot    |
+| The tool is `siegelense`: `packages/siegelense/`, `dungeonmaster siegelense`, subcommands `dungeonmaster siegelense <name>`, recipes at `packages/siegelense-recipes/` | the recipe path must be a CONVENTION because the tool enumerates them before anything is seeded. A config key is one more thing to set, get wrong and diverge on; a bare `recipes` could collide with a repo's own package, and the tool's own name cannot    |
 | `packages/siegelense-recipes/` exists in EVERY repo siegelense is installed in, scaffolded by `dungeonmaster init`                                | a convention nothing creates is a convention half the repos will not have. Each package's `StartInstall` already writes what its own package needs; this is the same move                                                                                     |
 | An EMPTY recipes package is a real answer where a MISSING one is not                                                                              | an empty folder says "no recipes yet"; an absent folder can only say "something is wrong", and the tool cannot tell "you have written none" from "you have not installed this". The `count: 0` ambiguity, one layer up again                                  |
 | Recipes are a PACKAGE, not `.dungeonmaster-assets/`, because they are code that must be graded                                                    | being a workspace package is what gets them a ward run, and the ward run is the entire reason a recipe's test fires on the commit that breaks it. A dot-folder gets no ward, no tsconfig, no lint                                                             |
@@ -1898,9 +1920,14 @@ that one does not.
 
 ### The tool is `siegelense`, and its recipes live beside it
 
-> **Status: PARTIAL (chunk 1)** — both real workspace packages at their exact paths, subpath-importable barrels measured msw-free, `init` scaffolding `packages/siegelense-recipes/`, and an empty one being a real answer · NOT YET: the `dungeonmaster siegelense` command, the `siegelense-*` tool registrations and the recipe listing
+> **Status: PARTIAL (chunk 1)** — both real workspace packages at their exact paths, subpath-importable barrels measured msw-free, `init` scaffolding `packages/siegelense-recipes/`, and an empty one being a real answer · NOT YET: the `dungeonmaster siegelense` command, the `siegelense <name>` subcommands and the recipe listing
 
-> **Status: PARTIAL (chunk 2)** — `dungeonmaster siegelense` now exists in both forms — `driver --instance <id>` (`cli-siegelense-responder.ts`, reached through a runtime dynamic import so Playwright never enters the published binary) and the bare fleet listing (`siegelense-fleet-responder.ts`) — plus three of the thirteen `siegelense-*` tools, registered and callable · verified by reading both responders and `packages/cli/CLAUDE.md`'s own entry for the command · NOT YET: the recipe listing
+> **Status: PARTIAL (chunk 2)** — `dungeonmaster siegelense` now exists in both forms — `driver --instance <id>`
+> (`cli-siegelense-responder.ts`, reached through a runtime dynamic import so Playwright never enters the published
+> binary) and the bare fleet listing (`siegelense-fleet-responder.ts`) — plus three of the thirteen calls (`start`,
+> `run`, `kill`) built and callable, currently reached as MCP tools `siegelense-start`/`siegelense-run`/`siegelense-kill`
+> and still to be re-pointed at `dungeonmaster siegelense <name>` subcommands · verified by reading both responders
+> and `packages/cli/CLAUDE.md`'s own entry for the command · NOT YET: the recipe listing
 
 **Three fixed names, and they are conventions rather than configuration:**
 
@@ -1908,7 +1935,7 @@ that one does not.
 |--------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | the tool's package | `packages/siegelense/`                                                                                                                                       |
 | the command        | `dungeonmaster siegelense`                                                                                                                                   |
-| its MCP tools      | `siegelense-start`, `siegelense-run`, `siegelense-results`, `siegelense-cleanup`, … — **thirteen of them, and `look` is NOT one**: it is a step inside `run` |
+| its calls          | `dungeonmaster siegelense start`, `dungeonmaster siegelense run`, `dungeonmaster siegelense results`, `dungeonmaster siegelense cleanup`, … — **thirteen of them, and `look` is NOT one**: it is a step inside `run` |
 | **its recipes**    | **`packages/siegelense-recipes/`** — this exact path, in every repo it runs in                                                                               |
 
 ```
@@ -1926,12 +1953,12 @@ one" — that exact path, always, including a repo that has never written a reci
 `StartInstall` already writes the config its own package needs; siegelense's creates the recipes package the same way. A
 convention nothing creates is a convention half the repos will not have.
 
-**And an EMPTY recipes package is a real answer where a missing one is not.** `siegelense-recipes {}`
+**And an EMPTY recipes package is a real answer where a missing one is not.** `dungeonmaster siegelense recipes`
 against an empty folder returns an empty list, which says *no recipes yet*. Against a folder that does not exist it can
 only say *something is wrong*, and the tool cannot tell "you have not written any"
 from "you have not installed this" — the `count: 0` ambiguity this whole design keeps running into, one layer up again.
 
-**The recipe path has to be a convention, because the tool ENUMERATES them.** `siegelense-recipes {}`
+**The recipe path has to be a convention, because the tool ENUMERATES them.** `dungeonmaster siegelense recipes`
 returns every name with its `produces:` and `fidelity`, before anything has been seeded. That only works if the location
 is fixed — a config key is one more thing to set, get wrong, and diverge on between repos.
 
@@ -2178,7 +2205,7 @@ form a session editing the package will actually read**, plus the two that live 
 | **The key reads OWN text nodes, never `textContent`**                                                                         | recursive text pulled an entire Mantine stylesheet into one reading. This is the single measured reason the old `dom` verb was unusable                                                                |
 | **A ref resolves only in its minting instance and page state**                                                                | four boundaries look passable and none are; see the ref rule below                                                                                                                                     |
 | **A recipe touches state, never a screen**                                                                                    | a recipe holding a DOM handle is doing a walk's job                                                                                                                                                    |
-| **`run` returns a status; `results` returns payloads**                                                                        | collapsing them walks back into the 50,000-char ceiling the service exists to route around                                                                                                             |
+| **`run` returns a status; `results` returns payloads**                                                                        | collapsing them means every step's full payload rides back on every call instead of being queried narrowly after the batch — the blob problem this split exists to avoid                                                                                             |
 | **Kill the process GROUP, not the child — and skip the signal for one that already exited**                                   | `npm run` is a wrapper; the listener is a grandchild via `sh -c`. And signalling a dead child logs `kill ESRCH` on every clean teardown, which reads as a failure in the one log a later session opens |
 | **`kill` removes the throwaway home and never the evidence directory**                                                        | logs, captures and the transcript are evidence and outlive the instance                                                                                                                                |
 | **Evidence reads go to DISK, never down the driver socket — `start`, `run` and `kill` are the only calls that need a driver** | a killed instance has no driver, and a fixer reading one is the normal case rather than the edge. Routing a read at the socket answers a bare connection error, which cannot be told from a crash      |
@@ -2189,16 +2216,23 @@ form a session editing the package will actually read**, plus the two that live 
 
 ### The thirteen calls
 
-> **Status: PARTIAL (chunk 1)** — the thirteen names and the `siegelense-` prefix pinned in `siegelenseToolsStatics`, with `look` deliberately absent, plus the seven `docs` scopes · NOT YET: no name is registered in `mcpToolsStatics` and nothing handles one — the surface does not exist yet
+> **Status: PARTIAL (chunk 1)** — the thirteen names pinned in `siegelenseToolsStatics`, with `look` deliberately
+> absent, plus the seven `docs` scopes · NOT YET: no name is wired to a `dungeonmaster siegelense` subcommand and
+> nothing handles one — the surface does not exist yet
 
-> **Status: PARTIAL (chunk 2)** — `siegelense-start`, `siegelense-run` and `siegelense-kill` are real, registered, working tools, each verified against the live stdio MCP server · NOT YET: the other ten calls
+> **Status: PARTIAL (chunk 2)** — `start`, `run` and `kill` are real, working calls, each tested against the live
+> stdio MCP server. They are currently reached as MCP tools (`siegelense-start`, `siegelense-run`, `siegelense-kill`)
+> and must be re-pointed at `dungeonmaster siegelense <name>` subcommands · NOT YET: the other ten calls
 
-> **Status: PARTIAL (chunk 3)** — `siegelense-results`, `siegelense-status`, `siegelense-compare` and `siegelense-cleanup` join them — seven of thirteen calls real, registered and verified against the live stdio server (`mcp-server-flow.integration.test.ts`) · NOT YET: `capacity`, `profile`, `prune`, `snapshots`, `recipes`, `docs`
+> **Status: PARTIAL (chunk 3)** — `results`, `status`, `compare` and `cleanup` join them — seven of thirteen calls
+> real, tested against the live stdio server (`mcp-server-flow.integration.test.ts`). All seven are currently reached
+> as MCP tools and must be re-pointed at `dungeonmaster siegelense <name>` subcommands · NOT YET: `capacity`,
+> `profile`, `prune`, `snapshots`, `recipes`, `docs`
 
-**Every tool below is registered as `siegelense-<name>`** — `siegelense-start`, `siegelense-run`, and so on. The
-examples drop the prefix for readability; there is no bare `start` tool. **Steps are not tools**: `look`, `click`,
-`health` and the rest are values inside `run`'s `steps` array, which is the whole point of the bounded-tool-surface
-decision in Part 1.
+**Every call below is `dungeonmaster siegelense <name>`** — `dungeonmaster siegelense start`, `dungeonmaster
+siegelense run`, and so on. The examples below drop to the bare name for readability; there is no bare `start`
+command outside that form. **Steps are not calls**: `look`, `click`, `health` and the rest are values inside `run`'s
+`steps` array, which is the whole point of the bounded-call-surface decision in Part 1.
 
 **Only `start`, `run` and `kill` need a live instance.** The other ten read the asset tree, the registry or the machine,
 so a session that only wants to read a finished walk starts nothing and holds no pool slot. Part 1 has the table.
