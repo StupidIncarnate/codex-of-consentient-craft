@@ -7,7 +7,10 @@
  * (chunk-03-read-path-and-perception.md §3.D, spec line 2380 — the no-browsing rule). Naming an id
  * that is not in the registry answers `instances: []` rather than inventing a row or throwing: an
  * unrecognised id is exactly `instanceStateResolveBroker`'s `'unknown'` case, which carries no entry
- * to build a row from.
+ * to build a row from. That row-less case is exactly what would make a named query byte-identical to
+ * an empty fleet's own `instances: []` — `queriedInstanceState` on the returned answer is the fix:
+ * the resolved state of the NAMED id (`'unknown'` included) for a named query, `null` for a fleet
+ * listing where no single id was asked about (siegelense-tooling.md:2317, 2319-2321).
  *
  * USAGE:
  * await statusReadBroker({ instanceId: null });
@@ -19,6 +22,7 @@
 
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
+import { instanceStateContract } from '../../../contracts/instance-state/instance-state-contract';
 import type { InstanceState } from '../../../contracts/instance-state/instance-state-contract';
 import { monitoredMetricContract } from '../../../contracts/monitored-metric/monitored-metric-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
@@ -53,6 +57,17 @@ export const statusReadBroker = async ({
             : [{ entry: resolved.entry, state: resolved.state }],
         );
 
+  // A named query's entryStatePairs is empty ONLY when instanceStateResolveBroker found no
+  // registry entry — its own first check pins that exact case to 'unknown'
+  // (instance-state-resolve-broker.ts) — so the pair's own state covers every other named
+  // resolution (alive/dead/killed/pruned), and the fallback covers the one state that leaves no
+  // pair. null for a fleet listing: no single id was named, so there is no "state of the id you
+  // asked about" to report.
+  const queriedInstanceState: InstanceState | null =
+    instanceId === null
+      ? null
+      : (entryStatePairs[0]?.state ?? instanceStateContract.parse('unknown'));
+
   const machine = await machineReadBroker();
   const nowMs = epochMsContract.parse(Date.now());
 
@@ -72,5 +87,6 @@ export const statusReadBroker = async ({
     monitored: machineStatics.monitored.map((metric) => monitoredMetricContract.parse(metric)),
     machine,
     instances,
+    queriedInstanceState,
   });
 };

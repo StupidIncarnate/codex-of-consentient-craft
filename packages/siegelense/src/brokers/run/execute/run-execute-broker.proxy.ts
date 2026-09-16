@@ -1,7 +1,16 @@
+import { existsSync } from 'fs';
+import { access, realpath } from 'fs/promises';
 import { z } from 'zod';
 import { fsMkdirAdapterProxy } from '@dungeonmaster/shared/testing';
-import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import {
+  absoluteFilePathContract,
+  AbsoluteFilePathStub,
+  ContentTextStub,
+  FilePathStub,
+} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ContentText, FilePath } from '@dungeonmaster/shared/contracts';
 
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
@@ -11,6 +20,7 @@ import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { bufferAppendBrokerProxy } from '../../buffer/append/buffer-append-broker.proxy';
 import { locationsBufferPathsFindBroker } from '../../locations/buffer-paths-find/locations-buffer-paths-find-broker';
 import { locationsBufferPathsFindBrokerProxy } from '../../locations/buffer-paths-find/locations-buffer-paths-find-broker.proxy';
+import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker.proxy';
 import { locationsRunPathsFindBroker } from '../../locations/run-paths-find/locations-run-paths-find-broker';
 import { locationsRunPathsFindBrokerProxy } from '../../locations/run-paths-find/locations-run-paths-find-broker.proxy';
 import { locationsShotPathFindBrokerProxy } from '../../locations/shot-path-find/locations-shot-path-find-broker.proxy';
@@ -30,13 +40,50 @@ const EVIDENCE_PATH = AbsoluteFilePathStub({
   value: '/repo/.siegelense/guilds/g1/instances/inst_1',
 });
 
+// `CWD_PATH_VALUE` is `processCwdAdapterProxy`'s OWN sticky default, reused rather than staged, so
+// the repo-root walk below is the ONLY thing about `locationsRepoLinkPathFindBroker`'s call this
+// file ever addresses. Every stage in this file keys on the EXACT argument — a full path, or `[]`
+// for a global taking none — rather than composing `locationsRepoLinkPathFindBrokerProxy`'s own
+// `setupLinkAbsent`/`setupLinkResolvesToRoot`/`setupRootPath` scenario methods: those stage
+// `pathJoinAdapter` with a ONE-SHOT, non-discriminating address (`onceFor([])`, matching ANY join
+// call whatsoever), and `runExecuteBroker` itself makes several OTHER real `pathJoinAdapter` calls
+// (locationsRunPathsFindBroker's three joins, run first) before it ever reaches this one — so a
+// one-shot queued ahead of time is silently consumed by the wrong call, and this broker's own join
+// answers with a stale value nobody asked for. A `calledWith`-keyed stage cannot collide with
+// another caller's join, because the arguments differ.
+const CWD_PATH_VALUE = '/default/cwd';
+const CONFIG_FILE_PATH = FilePathStub({ value: `${CWD_PATH_VALUE}/.dungeonmaster.json` });
+// A REAL `path.join(CWD_PATH_VALUE, '.siegelense')` — matches what the broker's own unstaged
+// `pathJoinAdapter` call computes, so this address is exactly what a real run would check.
+const LINK_PATH = FilePathStub({ value: `${CWD_PATH_VALUE}/.siegelense` });
+
+// `/home/default` is `osHomedirAdapterProxy`'s OWN sticky default — `stageRepoLinkPresent` below
+// only has to clear `DUNGEONMASTER_HOME` (a prior test, or the real environment, could have it
+// set) to let that default govern `dungeonmasterHomeFindBroker`. A different instance id
+// ('inst_2') from EVIDENCE_PATH's own ('inst_1') so neither constant is ever mistaken for the
+// other — this pair exists only for the one test proving the repo-local conversion itself.
+// `locationsRepoLinkPathFindBroker` builds its answer with `homePath.replace(rootPath, linkPath)`,
+// so `HOME_ROOTED_EVIDENCE_PATH` has to sit under `SIEGELENSE_ROOT_VALUE` for that substitution to
+// mean anything.
+const HOME_DIR_VALUE = '/home/default';
+const SIEGELENSE_ROOT_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster/siegelense`;
+const HOME_ROOTED_EVIDENCE_PATH = AbsoluteFilePathStub({
+  value: `${SIEGELENSE_ROOT_VALUE}/guilds/g1/instances/inst_2`,
+});
+const REPO_LOCAL_EVIDENCE_PATH = AbsoluteFilePathStub({
+  value: `${CWD_PATH_VALUE}/.siegelense/guilds/g1/instances/inst_2`,
+});
+
 export const runExecuteBrokerProxy = (): {
   evidencePath: () => AbsoluteFilePath;
-  stagePaths: (params: { runId: RunId }) => {
+  stagePaths: (params: { runId: RunId; evidencePath?: AbsoluteFilePath }) => {
     transcript: AbsoluteFilePath;
     storedReturn: AbsoluteFilePath;
     shotsDir: AbsoluteFilePath;
   };
+  stageRepoLinkPresent: () => void;
+  homeRootedEvidencePath: () => AbsoluteFilePath;
+  repoLocalEvidencePath: () => AbsoluteFilePath;
   cleanLane: () => LaneSession;
   laneFailingOnPath: (params: { failingPath: string; error: Error }) => {
     lane: LaneSession;
@@ -55,6 +102,10 @@ export const runExecuteBrokerProxy = (): {
   laneWithGrowingConsoleBuffer: () => {
     lane: LaneSession;
     pushConsoleLine: (params: { text: ContentText }) => void;
+  };
+  laneCapturingShots: (params?: { evidencePath?: AbsoluteFilePath }) => {
+    lane: LaneSession;
+    captureCalls: () => readonly AbsoluteFilePath[];
   };
   headlessLane: () => LaneSession;
   laneRecordingTranscriptGrowth: (params: { transcriptPath: AbsoluteFilePath }) => {
@@ -86,6 +137,23 @@ export const runExecuteBrokerProxy = (): {
   const transcriptProxy = runTranscriptAppendBrokerProxy();
   const returnWriteProxy = runReturnWriteBrokerProxy();
   const stepLayerProxy = runExecuteStepLayerBrokerProxy(); // also stages Date.now via its own child.
+
+  // Satisfies enforce-proxy-child-creation for locationsRepoLinkPathFindBroker. Not composed as
+  // fsAccessAdapterProxy/fsExistsSyncAdapterProxy/fsRealpathAdapterProxy — this implementation
+  // never imports any of those directly, locationsRepoLinkPathFindBroker uses them transitively —
+  // so the underlying node primitives are mocked here instead, the same convention
+  // instance-kill-broker.proxy.ts uses for the identical broker.
+  locationsRepoLinkPathFindBrokerProxy();
+  const accessHandle: MockHandle = registerMock({ fn: access });
+  const existsHandle: MockHandle = registerMock({ fn: existsSync });
+  const realpathHandle: MockHandle = registerMock({ fn: realpath });
+  // The repo-root walk `cwdResolveBroker` performs inside `locationsRepoLinkPathFindBroker`:
+  // finds `.dungeonmaster.json` at CWD_PATH_VALUE itself, so the walk never has to climb a parent
+  // directory this file never stages.
+  accessHandle.calledWith([CONFIG_FILE_PATH]).resolves({ success: true as const });
+  // No `.siegelense` anywhere, by default — every test below gets `linkPresent: false` and the
+  // real `shotsDir` it was given, unchanged, unless it calls `stageRepoLinkPresent` below.
+  existsHandle.calledWith([]).returns(false);
 
   // The three real buffer paths for EVIDENCE_PATH, computed with the REAL (pure, deterministic)
   // resolver — the same convention run-execute-broker.proxy.ts already uses for
@@ -122,18 +190,33 @@ export const runExecuteBrokerProxy = (): {
 
     stagePaths: ({
       runId,
+      evidencePath = EVIDENCE_PATH,
     }: {
       runId: RunId;
+      evidencePath?: AbsoluteFilePath;
     }): {
       transcript: AbsoluteFilePath;
       storedReturn: AbsoluteFilePath;
       shotsDir: AbsoluteFilePath;
     } => {
-      const paths = locationsRunPathsFindBroker({ evidencePath: EVIDENCE_PATH, runId });
+      const paths = locationsRunPathsFindBroker({ evidencePath, runId });
       transcriptProxy.succeeds({ transcriptPath: paths.transcript });
       returnWriteProxy.succeeds({ storedReturnPath: paths.storedReturn });
       return paths;
     },
+
+    // A `.siegelense` symlink at CWD_PATH_VALUE, resolving to SIEGELENSE_ROOT_VALUE. Every stage
+    // here is keyed on its EXACT argument (a path, or `[]` for homedir's own no-args call), so it
+    // is safe regardless of how many other real `pathJoinAdapter` calls happen before or after it
+    // — see this file's header comment on CWD_PATH_VALUE for why that matters.
+    stageRepoLinkPresent: (): void => {
+      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      existsHandle.calledWith([LINK_PATH]).returns(true);
+      realpathHandle.calledWith([LINK_PATH]).resolves(SIEGELENSE_ROOT_VALUE);
+    },
+
+    homeRootedEvidencePath: (): AbsoluteFilePath => HOME_ROOTED_EVIDENCE_PATH,
+    repoLocalEvidencePath: (): AbsoluteFilePath => REPO_LOCAL_EVIDENCE_PATH,
 
     cleanLane: (): LaneSession =>
       LaneSessionStub({
@@ -254,6 +337,29 @@ export const runExecuteBrokerProxy = (): {
         pushConsoleLine: ({ text }: { text: ContentText }): void => {
           consoleBuffer.push(text);
         },
+      };
+    },
+
+    // Records every `session.capture` call's `filePath`, in order — the acting steps' own unasked
+    // capture and a `screenshot` step's explicit one land in the same log, so a test can assert the
+    // FULL sequence of paths a batch actually wrote to, not just what `RunResult.shots` reports back.
+    laneCapturingShots: ({
+      evidencePath = EVIDENCE_PATH,
+    }: { evidencePath?: AbsoluteFilePath } = {}): {
+      lane: LaneSession;
+      captureCalls: () => readonly AbsoluteFilePath[];
+    } => {
+      const captureMock = jest.fn().mockResolvedValue(undefined);
+      const lane = LaneSessionStub({
+        evidencePath,
+        browser: { goto: jest.fn().mockResolvedValue(undefined), capture: captureMock },
+      });
+      return {
+        lane,
+        captureCalls: (): readonly AbsoluteFilePath[] =>
+          (captureMock.mock.calls as [{ filePath: FilePath }][]).map(([{ filePath }]) =>
+            absoluteFilePathContract.parse(filePath),
+          ),
       };
     },
 

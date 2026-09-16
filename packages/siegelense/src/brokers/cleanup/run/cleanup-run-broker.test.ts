@@ -17,6 +17,7 @@ const NOW_MS = EpochMsStub();
 const LIVE_ID = InstanceIdStub({ value: 'inst_7f3a' });
 const STALE_ID = InstanceIdStub({ value: 'inst_9b2c' });
 const RESERVED_ID = InstanceIdStub({ value: 'inst_1d09' });
+const ABANDONED_RESERVATION_ID = InstanceIdStub({ value: 'inst_65f30f20' });
 
 const STALE_SOCKET_PATH = AbsoluteFilePathStub({ value: `/tmp/dm-siege-sockets/${STALE_ID}.sock` });
 const STALE_EVIDENCE_PATH = AbsoluteFilePathStub({
@@ -25,6 +26,19 @@ const STALE_EVIDENCE_PATH = AbsoluteFilePathStub({
 const STALE_HOME_PATH = AbsoluteFilePathStub({ value: `/tmp/dm-siege-${STALE_ID}` });
 const STALE_HEARTBEAT_PATH = AbsoluteFilePathStub({
   value: `${String(STALE_EVIDENCE_PATH)}/heartbeat.json`,
+});
+
+const ABANDONED_RESERVATION_SOCKET_PATH = AbsoluteFilePathStub({
+  value: `/tmp/dm-siege-sockets/${ABANDONED_RESERVATION_ID}.sock`,
+});
+const ABANDONED_RESERVATION_EVIDENCE_PATH = AbsoluteFilePathStub({
+  value: `/home/user/.dungeonmaster/siegelense/unowned/instances/${ABANDONED_RESERVATION_ID}`,
+});
+const ABANDONED_RESERVATION_HOME_PATH = AbsoluteFilePathStub({
+  value: `/tmp/dm-siege-${ABANDONED_RESERVATION_ID}`,
+});
+const ABANDONED_RESERVATION_HEARTBEAT_PATH = AbsoluteFilePathStub({
+  value: `${String(ABANDONED_RESERVATION_EVIDENCE_PATH)}/heartbeat.json`,
 });
 
 describe('cleanupRunBroker', () => {
@@ -74,6 +88,67 @@ describe('cleanupRunBroker', () => {
           { id: RESERVED_ID, why: 'reserved — booting, no beat yet' },
         ],
       });
+    });
+  });
+
+  describe('an abandoned reservation', () => {
+    it('VALID: {pid: null, no beat, reservedAtMs well past the ceiling} => reaped and its ports are released', async () => {
+      const proxy = cleanupRunBrokerProxy();
+
+      const abandonedEntry = RegistryEntryStub({
+        id: ABANDONED_RESERVATION_ID,
+        pid: null,
+        socketPath: null,
+        bootedAtMs: null,
+        lastBeatMs: null,
+        // 10 minutes ago — past instanceLifecycleStatics.reservation.staleAfterMs (300_000ms / 5m),
+        // the ceiling built from bootLock.waitCeilingMs + driverStatics.boot.defaultTimeoutMs.
+        reservedAtMs: EpochMsStub({ value: NOW_MS - 600_000 }),
+      });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [abandonedEntry] }) });
+      proxy.setupDriverUnreachableNoHeartbeat({
+        socketPath: ABANDONED_RESERVATION_SOCKET_PATH,
+        heartbeatPath: ABANDONED_RESERVATION_HEARTBEAT_PATH,
+        homePath: ABANDONED_RESERVATION_HOME_PATH,
+      });
+      proxy.setupNoLocks();
+
+      const result = await cleanupRunBroker();
+
+      expect(result).toStrictEqual({
+        reaped: [{ id: ABANDONED_RESERVATION_ID, staleFor: '10m', killed: [], homeRemoved: true }],
+        portsReleased: [abandonedEntry.ports.api, abandonedEntry.ports.web],
+        lockReleased: false,
+        leftAlone: [],
+      });
+    });
+  });
+
+  describe('a reservation still inside its boot window', () => {
+    it('VALID: {reservedAtMs seconds ago, no beat yet} => stays in leftAlone, is NOT reaped', async () => {
+      const proxy = cleanupRunBrokerProxy();
+
+      const freshReservation = RegistryEntryStub({
+        id: RESERVED_ID,
+        bootedAtMs: null,
+        lastBeatMs: null,
+        // Seconds old — nowhere near instanceLifecycleStatics.reservation.staleAfterMs (5m). A
+        // real boot in flight looks exactly like this, and reaping it here would kill it.
+        reservedAtMs: EpochMsStub({ value: NOW_MS - 5000 }),
+      });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [freshReservation] }) });
+      proxy.setupNoLocks();
+
+      const result = await cleanupRunBroker();
+
+      expect(result).toStrictEqual({
+        reaped: [],
+        portsReleased: [],
+        lockReleased: false,
+        leftAlone: [{ id: RESERVED_ID, why: 'reserved — booting, no beat yet' }],
+      });
+      // The registry write path is only reachable through a reap, and nothing was reaped here.
+      expect(proxy.getReleasedRegistry()).toBe(undefined);
     });
   });
 

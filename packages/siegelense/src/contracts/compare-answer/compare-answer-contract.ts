@@ -5,16 +5,20 @@
  * (`'+0 -3 under GUILD_LIST'`) needs the selector key chunk 4 introduces, which does not exist in
  * this package yet. `.strict()` is what makes a later `elements: '...'` a parse error instead of a
  * silently accepted extra key. `pixels` is `.nullable()`, never always a string, because one of the
- * two runs may never have taken a shot. Reach for this over building `console`/`server`/`network` ad
- * hoc at a call site — this is the one shape both `siegelense-compare` and
- * `dungeonmaster siegelense compare` render from.
+ * two runs may never have taken a shot. `network.errors` counts exactly what `network.new` lists — a
+ * 4xx/5xx status or no response at all — the same relationship `console.errors`/`server.errors` each
+ * have with their own `new:` list. It is a narrower, DIFFERENT reading than `run`'s own persisted
+ * `RunIndex.network.non2xx`, which counts every deviation from the [200, 300) range, an ordinary 3xx
+ * redirect included. Reach for this over building `console`/`server`/`network` ad hoc at a call
+ * site — this is the one shape both `siegelense-compare` and `dungeonmaster siegelense compare` render
+ * from.
  *
  * USAGE:
  * compareAnswerContract.parse({
  *   instanceId: 'inst_7f3a9c21', runA: 'run_4', runB: 'run_5',
  *   console: { errors: '+2', new: ['Cannot read properties of null'] },
  *   server: { errors: '+0', new: [] },
- *   network: { non2xx: '+1', new: ['POST /api/guilds 500'] },
+ *   network: { errors: '+1', new: ['POST /api/guilds 500'] },
  *   pixels: 'last capture differs 12%',
  * });
  * // Returns a validated CompareAnswer
@@ -42,7 +46,7 @@ export const compareAnswerContract = z
       new: z.array(contentTextContract).readonly(),
     }),
     network: z.object({
-      non2xx: countDeltaContract,
+      errors: countDeltaContract,
       new: z.array(contentTextContract).readonly(),
     }),
     pixels: contentTextContract.nullable(),

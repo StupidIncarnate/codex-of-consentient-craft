@@ -13,7 +13,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'waitFor', target: SelectorStub(), state: LocatorStateStub() }),
   StepStub({ step: 'click', target: SelectorStub() }),
   StepStub({ step: 'type', target: SelectorStub(), value: ContentTextStub() }),
-  StepStub({ step: 'screenshot', name: FileNameStub() }),
+  StepStub({ step: 'screenshot', name: FileNameStub({ value: 'step1.png' }) }),
   StepStub({ step: 'eval', source: ContentTextStub() }),
 ];
 
@@ -106,6 +106,18 @@ describe('stepContract', () => {
         node: null,
         expect: 'ok',
       });
+    });
+
+    it('INVALID: {step: screenshot, name: "home"} => refuses the extensionless name and says what to type', () => {
+      expect(() => stepContract.parse({ step: 'screenshot', name: 'home', node: null })).toThrow(
+        /a screenshot name must end in .*\.png.* the capture is a PNG/u,
+      );
+    });
+
+    it('INVALID: {step: screenshot, name: "home.jpg"} => refuses a non-PNG extension', () => {
+      expect(() =>
+        stepContract.parse({ step: 'screenshot', name: 'home.jpg', node: null }),
+      ).toThrow(/a screenshot name must end in .*\.png.* the capture is a PNG/u);
     });
 
     it('VALID: {step: eval} => parses the complete eval member', () => {
@@ -314,6 +326,36 @@ describe('stepContract', () => {
       const result = stepContract.parse({ step: 'goto', path: '/api/guilds', node: null });
 
       expect(result.expect).toBe('ok');
+    });
+  });
+
+  describe('the node/within/timeoutMs defaults', () => {
+    it('EDGE: {step: goto, path: "/", node omitted} => parses to the complete member with node null', () => {
+      const result = stepContract.parse({ step: 'goto', path: '/' });
+
+      expect(result).toStrictEqual({ step: 'goto', path: '/', node: null, expect: 'ok' });
+    });
+
+    it('EDGE: {step: click, target, within/timeoutMs/node omitted} => parses to the complete member with all three null', () => {
+      const result = stepContract.parse({
+        step: 'click',
+        target: '[data-testid="GUILD_ADD"]',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'click',
+        target: '[data-testid="GUILD_ADD"]',
+        within: null,
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: goto, path: "/", node: null explicit} => still parses to node null', () => {
+      const result = stepContract.parse({ step: 'goto', path: '/', node: null });
+
+      expect(result).toStrictEqual({ step: 'goto', path: '/', node: null, expect: 'ok' });
     });
   });
 

@@ -9,19 +9,21 @@ describe('CliSiegelenseResponder', () => {
 
       await proxy.callResponder({ args: ['driver', '--instance', 'inst_7f3a'] });
 
-      expect(StartSiegelense).toHaveBeenCalledWith({ args: ['driver', '--instance', 'inst_7f3a'] });
+      expect(StartSiegelense.mock.calls).toStrictEqual([
+        [{ args: ['driver', '--instance', 'inst_7f3a'] }],
+      ]);
     });
   });
 
   describe('bare fleet route', () => {
-    it('VALID: {args: []} => delegates with an empty list', async () => {
+    it('VALID: {args: []} => forwards as an empty array', async () => {
       const StartSiegelense = jest.fn().mockResolvedValue({ success: true });
       const proxy = CliSiegelenseResponderProxy();
       proxy.setupModule({ StartSiegelense });
 
       await proxy.callResponder({ args: [] });
 
-      expect(StartSiegelense).toHaveBeenCalledWith({ args: [] });
+      expect(StartSiegelense.mock.calls).toStrictEqual([[{ args: [] }]]);
     });
   });
 
@@ -33,17 +35,19 @@ describe('CliSiegelenseResponder', () => {
 
       await proxy.callResponder({ args: ['status'] });
 
-      expect(StartSiegelense).toHaveBeenCalledWith({ args: ['status'] });
+      expect(StartSiegelense.mock.calls).toStrictEqual([[{ args: ['status'] }]]);
     });
 
-    it('VALID: {args: [status, --instance, inst_7f3a]} => delegates with those args', async () => {
+    it('VALID: {args: [status, --instance, inst_7f3a]} => StartSiegelense receives exactly those args', async () => {
       const StartSiegelense = jest.fn().mockResolvedValue({ success: true });
       const proxy = CliSiegelenseResponderProxy();
       proxy.setupModule({ StartSiegelense });
 
       await proxy.callResponder({ args: ['status', '--instance', 'inst_7f3a'] });
 
-      expect(StartSiegelense).toHaveBeenCalledWith({ args: ['status', '--instance', 'inst_7f3a'] });
+      expect(StartSiegelense.mock.calls).toStrictEqual([
+        [{ args: ['status', '--instance', 'inst_7f3a'] }],
+      ]);
     });
   });
 
@@ -55,35 +59,33 @@ describe('CliSiegelenseResponder', () => {
 
       await proxy.callResponder({ args: ['cleanup'] });
 
-      expect(StartSiegelense).toHaveBeenCalledWith({ args: ['cleanup'] });
+      expect(StartSiegelense.mock.calls).toStrictEqual([[{ args: ['cleanup'] }]]);
     });
   });
 
-  describe('missing --instance', () => {
-    it('INVALID: {args: [driver]} => throws naming the --instance flag', async () => {
+  describe('no CLI-side subcommand or flag validation', () => {
+    // SiegelenseFlow is the single source of truth for which subcommand exists and what its
+    // flags are. This layer forwards verbatim, so a name it has never heard of — capacity is a
+    // real siegelense call that is simply not built yet — passes straight through rather than
+    // being refused here. The refusal, if any, belongs one layer down.
+    it('VALID: {args: [capacity]} => forwards verbatim rather than refusing an unrecognised subcommand', async () => {
+      const StartSiegelense = jest.fn().mockResolvedValue({ success: true });
       const proxy = CliSiegelenseResponderProxy();
+      proxy.setupModule({ StartSiegelense });
 
-      await expect(proxy.callResponder({ args: ['driver'] })).rejects.toThrow(
-        /^--instance is required: it cannot be missing, and the value cannot itself start with "--"\.\n\nUsage: dungeonmaster siegelense \[driver --instance <instanceId> \| status \[--instance <instanceId>\] \| cleanup\]$/u,
-      );
+      await proxy.callResponder({ args: ['capacity'] });
+
+      expect(StartSiegelense.mock.calls).toStrictEqual([[{ args: ['capacity'] }]]);
     });
 
-    it('INVALID: {args: [driver, --instance]} => throws naming the --instance flag when the flag is the last argument', async () => {
+    it('VALID: {args: [driver]} => forwards verbatim with no --instance pre-check', async () => {
+      const StartSiegelense = jest.fn().mockResolvedValue({ success: true });
       const proxy = CliSiegelenseResponderProxy();
+      proxy.setupModule({ StartSiegelense });
 
-      await expect(proxy.callResponder({ args: ['driver', '--instance'] })).rejects.toThrow(
-        /^--instance is required/u,
-      );
-    });
-  });
+      await proxy.callResponder({ args: ['driver'] });
 
-  describe('unknown subcommand', () => {
-    it('INVALID: {args: [bogus]} => throws naming the unknown subcommand', async () => {
-      const proxy = CliSiegelenseResponderProxy();
-
-      await expect(proxy.callResponder({ args: ['bogus'] })).rejects.toThrow(
-        /^Unknown siegelense subcommand: bogus\n\nUsage: dungeonmaster siegelense \[driver --instance <instanceId> \| status \[--instance <instanceId>\] \| cleanup\]$/u,
-      );
+      expect(StartSiegelense.mock.calls).toStrictEqual([[{ args: ['driver'] }]]);
     });
   });
 

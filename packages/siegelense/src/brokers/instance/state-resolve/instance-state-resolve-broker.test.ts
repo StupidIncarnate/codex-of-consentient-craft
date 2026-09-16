@@ -79,4 +79,45 @@ describe('instanceStateResolveBroker', () => {
 
     expect(result).toStrictEqual({ state: 'dead', entry });
   });
+
+  it('VALID: {registry row state: alive, reserved seconds ago, no beat} => returns alive with the row', async () => {
+    const proxy = instanceStateResolveBrokerProxy();
+    const reservedAtMs = LAST_BEAT_MS;
+    const entry = RegistryEntryStub({
+      id: INSTANCE_ID,
+      state: 'alive',
+      bootedAtMs: null,
+      lastBeatMs: null,
+      reservedAtMs: EpochMsStub({ value: reservedAtMs }),
+    });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    // 5000ms since the reservation was written — a boot still comfortably in flight, nowhere
+    // near instanceLifecycleStatics.reservation.staleAfterMs (300_000ms).
+    proxy.setupNow({ nowMs: reservedAtMs + 5000 });
+
+    const result = await instanceStateResolveBroker({ instanceId: INSTANCE_ID });
+
+    expect(result).toStrictEqual({ state: 'alive', entry });
+  });
+
+  it('VALID: {registry row state: alive, reserved past the ceiling, no beat} => returns dead with the row', async () => {
+    const proxy = instanceStateResolveBrokerProxy();
+    const reservedAtMs = LAST_BEAT_MS;
+    const entry = RegistryEntryStub({
+      id: INSTANCE_ID,
+      state: 'alive',
+      bootedAtMs: null,
+      lastBeatMs: null,
+      reservedAtMs: EpochMsStub({ value: reservedAtMs }),
+    });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    // 600_000ms (10m) since the reservation was written — past the 300_000ms (5m) ceiling, so a
+    // reservation nobody ever booted resolves as dead rather than the alive the row itself still
+    // claims.
+    proxy.setupNow({ nowMs: reservedAtMs + 600_000 });
+
+    const result = await instanceStateResolveBroker({ instanceId: INSTANCE_ID });
+
+    expect(result).toStrictEqual({ state: 'dead', entry });
+  });
 });

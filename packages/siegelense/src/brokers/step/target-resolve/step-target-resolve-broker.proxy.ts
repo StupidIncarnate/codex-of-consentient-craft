@@ -14,6 +14,7 @@ export const stepTargetResolveBrokerProxy = (): {
   sessionWithOneMatch: () => BrowserSession;
   sessionWithCandidates: (params: { candidates: readonly StepCandidate[] }) => BrowserSession;
   sessionWithNearest: (params: { nearest: readonly ContentText[] }) => BrowserSession;
+  sessionWithFailedLookup: (params: { error: Error }) => BrowserSession;
   sessionNarrowingWithin: (params: {
     unscopedCandidates: readonly StepCandidate[];
   }) => BrowserSession;
@@ -37,6 +38,16 @@ export const stepTargetResolveBrokerProxy = (): {
     BrowserSessionStub({
       countMatches: jest.fn().mockResolvedValue(matchCountContract.parse(0)),
       nearestNames: jest.fn().mockResolvedValue(nearest),
+    }),
+
+  // A genuine lookup failure (the near-miss read itself rejects) is distinct from a zero-match
+  // page with no near misses — the caller must be able to tell "nothing similar" apart from
+  // "could not find out". `nearestNames` rejecting must surface as itself, never wrapped as a
+  // StepNoMatchError the failure never actually computed.
+  sessionWithFailedLookup: ({ error }: { error: Error }): BrowserSession =>
+    BrowserSessionStub({
+      countMatches: jest.fn().mockResolvedValue(matchCountContract.parse(0)),
+      nearestNames: jest.fn().mockRejectedValue(error),
     }),
 
   sessionNarrowingWithin: ({

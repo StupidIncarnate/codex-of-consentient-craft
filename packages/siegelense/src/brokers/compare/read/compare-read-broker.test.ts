@@ -62,10 +62,6 @@ describe('compareReadBroker', () => {
               warnings: ReadingCountStub({ value: 0 }),
             },
             server: { errors: ReadingCountStub({ value: 0 }) },
-            network: {
-              exchanges: ReadingCountStub({ value: 5 }),
-              non2xx: ReadingCountStub({ value: 0 }),
-            },
           }),
           shots: [],
         }),
@@ -82,10 +78,6 @@ describe('compareReadBroker', () => {
               warnings: ReadingCountStub({ value: 0 }),
             },
             server: { errors: ReadingCountStub({ value: 0 }) },
-            network: {
-              exchanges: ReadingCountStub({ value: 6 }),
-              non2xx: ReadingCountStub({ value: 1 }),
-            },
           }),
           shots: [],
         }),
@@ -102,7 +94,7 @@ describe('compareReadBroker', () => {
         runB,
         console: { errors: '+2', new: [firstError, secondError] },
         server: { errors: '+0', new: [] },
-        network: { non2xx: '+1', new: [] },
+        network: { errors: '+0', new: [] },
         pixels: null,
       });
     });
@@ -229,10 +221,6 @@ describe('compareReadBroker', () => {
               warnings: ReadingCountStub({ value: 1 }),
             },
             server: { errors: ReadingCountStub({ value: 2 }) },
-            network: {
-              exchanges: ReadingCountStub({ value: 7 }),
-              non2xx: ReadingCountStub({ value: 1 }),
-            },
           }),
           shots: [ShotListingStub({ path: shotPath })],
         }),
@@ -249,7 +237,7 @@ describe('compareReadBroker', () => {
         runB: runId,
         console: { errors: '+0', new: [] },
         server: { errors: '+0', new: [] },
-        network: { non2xx: '+0', new: [] },
+        network: { errors: '+0', new: [] },
         pixels: 'last capture differs 0%',
       });
     });
@@ -454,7 +442,7 @@ describe('compareReadBroker', () => {
         query: CompareQueryStub({ instanceId, runA, runB }),
       });
 
-      expect(result.network.new).toStrictEqual([newNon2xxLine]);
+      expect(result.network).toStrictEqual({ errors: '+1', new: [newNon2xxLine] });
     });
 
     it('VALID: {runB adds a new non-2xx exchange and a new 2xx exchange} => network.new carries only the non-2xx exchange', async () => {
@@ -510,7 +498,256 @@ describe('compareReadBroker', () => {
         query: CompareQueryStub({ instanceId, runA, runB }),
       });
 
-      expect(result.network.new).toStrictEqual([newNon2xxLine]);
+      expect(result.network).toStrictEqual({ errors: '+1', new: [newNon2xxLine] });
+    });
+
+    it('VALID: {runB adds a real 500 alongside a batch of ordinary 304 cache revalidations} => network.errors and network.new agree: one delta, one line', async () => {
+      const proxy = compareReadBrokerProxy();
+      const instanceId = InstanceIdStub();
+      const guildId = GuildIdStub();
+      const runA = RunIdStub({ value: 'run_1' });
+      const runB = RunIdStub({ value: 'run_2' });
+      const cacheRevalidationLines = [1, 2, 3].map((at) =>
+        ContentTextStub({
+          value: JSON.stringify({
+            at,
+            method: 'GET',
+            url: '/@vite/client',
+            resourceType: 'script',
+            status: 304,
+            requestBody: null,
+            responseBody: null,
+          }),
+        }),
+      );
+      const realFailureLine = ContentTextStub({
+        value: JSON.stringify({
+          at: 4,
+          method: 'POST',
+          url: '/api/guilds',
+          resourceType: 'fetch',
+          status: 500,
+          requestBody: null,
+          responseBody: null,
+        }),
+      });
+
+      proxy.setupInstance({
+        entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
+      });
+      const evidencePath = proxy.evidencePathFor({ instanceId, guildId });
+      proxy.setupRun({
+        evidencePath,
+        runId: runA,
+        result: RunResultStub({
+          instanceId,
+          runId: runA,
+          index: RunIndexStub({
+            console: {
+              errors: ReadingCountStub({ value: 0 }),
+              warnings: ReadingCountStub({ value: 0 }),
+            },
+            server: { errors: ReadingCountStub({ value: 0 }) },
+          }),
+          shots: [],
+        }),
+      });
+      proxy.setupRun({
+        evidencePath,
+        runId: runB,
+        result: RunResultStub({
+          instanceId,
+          runId: runB,
+          index: RunIndexStub({
+            console: {
+              errors: ReadingCountStub({ value: 0 }),
+              warnings: ReadingCountStub({ value: 0 }),
+            },
+            server: { errors: ReadingCountStub({ value: 0 }) },
+          }),
+          shots: [],
+        }),
+      });
+      proxy.setupNetworkLines({
+        evidencePath,
+        runId: runB,
+        lines: [...cacheRevalidationLines, realFailureLine],
+      });
+
+      const result = await compareReadBroker({
+        query: CompareQueryStub({ instanceId, runA, runB }),
+      });
+
+      // The real-world repro this guards: hundreds of ordinary 304s plus one genuine failure once
+      // produced `non2xx: '+402'` beside a `new:` list naming only the failure — a count and a list
+      // describing different sets under one name. Here the count agrees with the list: both see only
+      // the 500 among the batch of cache revalidations.
+      expect(result).toStrictEqual({
+        instanceId,
+        runA,
+        runB,
+        console: { errors: '+0', new: [] },
+        server: { errors: '+0', new: [] },
+        network: { errors: '+1', new: [realFailureLine] },
+        pixels: null,
+      });
+    });
+
+    it('VALID: {runB adds a 301 and a 302 redirect} => network.new stays empty, redirects are normal traffic', async () => {
+      const proxy = compareReadBrokerProxy();
+      const instanceId = InstanceIdStub();
+      const guildId = GuildIdStub();
+      const runA = RunIdStub({ value: 'run_4' });
+      const runB = RunIdStub({ value: 'run_5' });
+      const movedPermanentlyLine = ContentTextStub({
+        value: JSON.stringify({
+          at: 1,
+          method: 'GET',
+          url: '/old-path',
+          resourceType: 'document',
+          status: 301,
+          requestBody: null,
+          responseBody: null,
+        }),
+      });
+      const foundLine = ContentTextStub({
+        value: JSON.stringify({
+          at: 2,
+          method: 'GET',
+          url: '/redirected',
+          resourceType: 'document',
+          status: 302,
+          requestBody: null,
+          responseBody: null,
+        }),
+      });
+
+      proxy.setupInstance({
+        entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
+      });
+      const evidencePath = proxy.evidencePathFor({ instanceId, guildId });
+      proxy.setupRun({
+        evidencePath,
+        runId: runA,
+        result: RunResultStub({ instanceId, runId: runA, shots: [] }),
+      });
+      proxy.setupRun({
+        evidencePath,
+        runId: runB,
+        result: RunResultStub({ instanceId, runId: runB, shots: [] }),
+      });
+      proxy.setupNetworkLines({
+        evidencePath,
+        runId: runB,
+        lines: [movedPermanentlyLine, foundLine],
+      });
+
+      const result = await compareReadBroker({
+        query: CompareQueryStub({ instanceId, runA, runB }),
+      });
+
+      expect(result.network).toStrictEqual({ errors: '+0', new: [] });
+    });
+
+    it('EDGE: {runB adds a 399 and a 400} => network.new carries only the 400, the floor of what attention flags', async () => {
+      const proxy = compareReadBrokerProxy();
+      const instanceId = InstanceIdStub();
+      const guildId = GuildIdStub();
+      const runA = RunIdStub({ value: 'run_4' });
+      const runB = RunIdStub({ value: 'run_5' });
+      const status399Line = ContentTextStub({
+        value: JSON.stringify({
+          at: 1,
+          method: 'GET',
+          url: '/x',
+          resourceType: 'fetch',
+          status: 399,
+          requestBody: null,
+          responseBody: null,
+        }),
+      });
+      const status400Line = ContentTextStub({
+        value: JSON.stringify({
+          at: 2,
+          method: 'GET',
+          url: '/y',
+          resourceType: 'fetch',
+          status: 400,
+          requestBody: null,
+          responseBody: null,
+        }),
+      });
+
+      proxy.setupInstance({
+        entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
+      });
+      const evidencePath = proxy.evidencePathFor({ instanceId, guildId });
+      proxy.setupRun({
+        evidencePath,
+        runId: runA,
+        result: RunResultStub({ instanceId, runId: runA, shots: [] }),
+      });
+      proxy.setupRun({
+        evidencePath,
+        runId: runB,
+        result: RunResultStub({ instanceId, runId: runB, shots: [] }),
+      });
+      proxy.setupNetworkLines({
+        evidencePath,
+        runId: runB,
+        lines: [status399Line, status400Line],
+      });
+
+      const result = await compareReadBroker({
+        query: CompareQueryStub({ instanceId, runA, runB }),
+      });
+
+      expect(result.network).toStrictEqual({ errors: '+1', new: [status400Line] });
+    });
+
+    it('EDGE: {runB adds a network line with status null, a request that never got a response} => network.new carries that line', async () => {
+      const proxy = compareReadBrokerProxy();
+      const instanceId = InstanceIdStub();
+      const guildId = GuildIdStub();
+      const runA = RunIdStub({ value: 'run_4' });
+      const runB = RunIdStub({ value: 'run_5' });
+      const noResponseLine = ContentTextStub({
+        value: JSON.stringify({
+          at: 1,
+          method: 'GET',
+          url: '/never-answered',
+          resourceType: 'fetch',
+          status: null,
+          requestBody: null,
+          responseBody: null,
+        }),
+      });
+
+      proxy.setupInstance({
+        entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
+      });
+      const evidencePath = proxy.evidencePathFor({ instanceId, guildId });
+      proxy.setupRun({
+        evidencePath,
+        runId: runA,
+        result: RunResultStub({ instanceId, runId: runA, shots: [] }),
+      });
+      proxy.setupRun({
+        evidencePath,
+        runId: runB,
+        result: RunResultStub({ instanceId, runId: runB, shots: [] }),
+      });
+      proxy.setupNetworkLines({
+        evidencePath,
+        runId: runB,
+        lines: [noResponseLine],
+      });
+
+      const result = await compareReadBroker({
+        query: CompareQueryStub({ instanceId, runA, runB }),
+      });
+
+      expect(result.network).toStrictEqual({ errors: '+1', new: [noResponseLine] });
     });
   });
 

@@ -1,7 +1,7 @@
 import * as os from 'os';
 import * as path from 'path';
 import { defineConfig, devices } from '@playwright/test';
-import { environmentStatics } from '@dungeonmaster/shared/statics';
+import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 
 // CI keeps one retry to absorb shared-runner infrastructure noise.
 const CI_RETRIES = 1;
@@ -19,8 +19,8 @@ const TEST_HOME = process.env.E2E_TEST_HOME ?? path.join(os.tmpdir(), `dm-e2e-${
 // `npm run build --workspace=@dungeonmaster/web` — ward never reads or writes that path.
 const BUNDLE_DIR = process.env.DUNGEONMASTER_WEB_BUNDLE_DIR ?? path.resolve(__dirname, 'dist');
 const FAKE_CLAUDE_CLI = path.resolve(__dirname, 'test/harnesses/claude-mock/bin/claude');
-const FAKE_CLAUDE_QUEUE_DIR = path.join(TEST_HOME, 'claude-queue');
-const FAKE_WARD_QUEUE_DIR = path.join(TEST_HOME, 'ward-queue');
+const FAKE_CLAUDE_QUEUE_DIR = path.join(TEST_HOME, locationsStatics.siegelense.claudeQueueDir);
+const FAKE_WARD_QUEUE_DIR = path.join(TEST_HOME, locationsStatics.siegelense.wardQueueDir);
 const FAKE_WARD_CLI = path.resolve(
   __dirname,
   '../orchestrator/test-fixtures/fake-ward-bin/dungeonmaster-ward',

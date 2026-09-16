@@ -247,7 +247,17 @@ export const playwrightSessionAdapter = async ({
       target: string;
       within?: string;
     }): Promise<readonly StepCandidate[]> => {
-      const raw = await page.evaluate(DESCRIBE_MATCHES_SOURCE, { target, within: within ?? null });
+      // `page.evaluate(source, arg)` only threads `arg` into a REAL function reference — Playwright's
+      // client tags the call with `isFunction: typeof pageFunction === 'function'`
+      // (playwright-core lib/client/jsHandle.js), and its browser-side utility script
+      // (lib/generated/utilityScriptSource.js `evaluate()`) applies an argument ONLY when that flag
+      // is true. `DESCRIBE_MATCHES_SOURCE` is a STRING (this package's tsconfig carries no "dom" lib,
+      // so it cannot be a typed function literal), so Playwright `eval`s it as a bare expression and
+      // never calls the result with `arg` at all — an un-called function then fails to serialize and
+      // comes back `undefined`. Embedding the params as JSON into a self-invoking call instead makes
+      // the whole expression BE the call, so Playwright hands back its already-computed result.
+      const params = JSON.stringify({ target, within: within ?? null });
+      const raw = await page.evaluate(`(${DESCRIBE_MATCHES_SOURCE})(${params})`);
       return z.array(stepCandidateContract).parse(raw);
     },
 
@@ -258,7 +268,9 @@ export const playwrightSessionAdapter = async ({
     }: {
       target: string;
     }): Promise<readonly ContentText[]> => {
-      const raw = await page.evaluate(NEAREST_NAMES_SOURCE, null);
+      // Self-invoked for the same reason describeMatches is, above — a bare `() => ...` source
+      // string is never called by Playwright at all, so it takes no `arg` to begin with.
+      const raw = await page.evaluate(`(${NEAREST_NAMES_SOURCE})()`);
       const parsed = z.array(contentTextContract).parse(raw);
       const unique = Array.from(new Set(parsed)).sort();
       return unique.slice(0, NEAREST_NAMES_LIMIT);

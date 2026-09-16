@@ -42,14 +42,64 @@ describe('machineRssByPgidBroker', () => {
     expect(result).toBe(0);
   });
 
-  it('EDGE: {a pid exits between the readdir and the stat read} => returns 0 rather than throwing', async () => {
+  it('EDGE: {a pid exits between the readdir and the stat read, ENOENT} => returns 0 rather than throwing', async () => {
     const proxy = machineRssByPgidBrokerProxy();
     proxy.setupProcListing({ pids: ['105'] });
-    proxy.setupPidStatVanished({ pid: '105' });
+    proxy.setupPidStatVanished({ pid: '105', code: 'ENOENT' });
 
     const result = await machineRssByPgidBroker({ pgids: [ProcessGroupIdStub({ value: 300 })] });
 
     expect(result).toBe(0);
+  });
+
+  it('EDGE: {a pid exits between the stat open and the stat read, ESRCH} => returns 0 rather than throwing', async () => {
+    const proxy = machineRssByPgidBrokerProxy();
+    proxy.setupProcListing({ pids: ['106'] });
+    proxy.setupPidStatVanished({ pid: '106', code: 'ESRCH' });
+
+    const result = await machineRssByPgidBroker({ pgids: [ProcessGroupIdStub({ value: 300 })] });
+
+    expect(result).toBe(0);
+  });
+
+  it('EDGE: {a pid exits between the stat read and the statm read, ENOENT} => returns 0 rather than throwing', async () => {
+    const proxy = machineRssByPgidBrokerProxy();
+    proxy.setupProcListing({ pids: ['108'] });
+    proxy.setupPidStat({ pid: '108', pgrp: 300 });
+    proxy.setupPidStatmVanished({ pid: '108', code: 'ENOENT' });
+
+    const result = await machineRssByPgidBroker({ pgids: [ProcessGroupIdStub({ value: 300 })] });
+
+    expect(result).toBe(0);
+  });
+
+  it('EDGE: {a pid exits between the statm open and the statm read, ESRCH} => returns 0 rather than throwing', async () => {
+    const proxy = machineRssByPgidBrokerProxy();
+    proxy.setupProcListing({ pids: ['109'] });
+    proxy.setupPidStat({ pid: '109', pgrp: 300 });
+    proxy.setupPidStatmVanished({ pid: '109', code: 'ESRCH' });
+
+    const result = await machineRssByPgidBroker({ pgids: [ProcessGroupIdStub({ value: 300 })] });
+
+    expect(result).toBe(0);
+  });
+
+  it('VALID: {one pid vanishes at the stat read, one vanishes at the statm read, one survives} => sums only the survivor’s real RSS', async () => {
+    const proxy = machineRssByPgidBrokerProxy();
+    proxy.setupProcListing({ pids: ['200', '201', '202'] });
+    // Survivor: both reads succeed with real numbers.
+    proxy.setupPidStat({ pid: '200', pgrp: 500, comm: 'node' });
+    proxy.setupPidStatm({ pid: '200', residentPages: 3072 });
+    // Vanishes before its pgrp is even known — an ESRCH read races the stat call itself.
+    proxy.setupPidStatVanished({ pid: '201', code: 'ESRCH' });
+    // Matches the target pgid, then vanishes before its statm read completes.
+    proxy.setupPidStat({ pid: '202', pgrp: 500, comm: 'node' });
+    proxy.setupPidStatmVanished({ pid: '202', code: 'ENOENT' });
+
+    const result = await machineRssByPgidBroker({ pgids: [ProcessGroupIdStub({ value: 500 })] });
+
+    // 3072 pages * 4096 bytes/page / 1_048_576 bytes/MB = 12 MB exactly — the survivor alone.
+    expect(result).toBe(12);
   });
 
   it('ERROR: {stat read fails for a reason other than absence} => rejects rather than treating it as vanished', async () => {

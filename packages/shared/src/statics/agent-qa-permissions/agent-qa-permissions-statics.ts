@@ -25,6 +25,17 @@
  * started — so it carries none of the reach that keeps `stash` / `reset` / `rebase` denied in
  * `agentGitPermissionsStatics`.
  *
+ * `Bash(dungeonmaster siegelense:*)` is the CLI surface itself. Every siege call — `start`, `run`,
+ * `results`, `kill`, `status`, `cleanup`, `compare` — is a `dungeonmaster siegelense <call>`
+ * subcommand with no MCP tool behind it, where the seven tools it replaced each carried their own
+ * `mcp__dungeonmaster__siegelense-*` grant. Without this entry the same denial this header opens
+ * with reaches every one of those calls: a dispatched agent has no interactive approver, so
+ * `dungeonmaster siegelense results --instance …` is refused outright before the process even
+ * loads, for the exact reader the CLI exists to serve. The prefix stops at `siegelense`
+ * deliberately — `init` rewrites config, `create-package` writes a package, `start` boots a
+ * server, and none of those is a siege call, so `Bash(dungeonmaster:*)` would hand a dispatched
+ * agent all three along with the one this entry is for.
+ *
  * `kill` / `lsof` / `ps` are the PROCESS half of the same job, and two verification surfaces are
  * defined in terms of them: `qaOffMapProbeStatics.byFamily.interruption` is "kill the process
  * mid-action", and `qaCheckSurfaceStatics.byOutcomeType['process-state']` is "the real OS process —
@@ -45,5 +56,12 @@
  */
 
 export const agentQaPermissionsStatics = {
-  allow: ['Bash(curl:*)', 'Bash(kill:*)', 'Bash(lsof:*)', 'Bash(ps:*)', 'Bash(python3:*)'],
+  allow: [
+    'Bash(curl:*)',
+    'Bash(dungeonmaster siegelense:*)',
+    'Bash(kill:*)',
+    'Bash(lsof:*)',
+    'Bash(ps:*)',
+    'Bash(python3:*)',
+  ],
 } as const;

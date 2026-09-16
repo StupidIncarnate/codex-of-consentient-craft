@@ -4,7 +4,14 @@ describe('agentQaPermissionsStatics', () => {
   describe('allow', () => {
     it('VALID: {agentQaPermissionsStatics} => exposes exactly the probe and process-control grants', () => {
       expect(agentQaPermissionsStatics).toStrictEqual({
-        allow: ['Bash(curl:*)', 'Bash(kill:*)', 'Bash(lsof:*)', 'Bash(ps:*)', 'Bash(python3:*)'],
+        allow: [
+          'Bash(curl:*)',
+          'Bash(dungeonmaster siegelense:*)',
+          'Bash(kill:*)',
+          'Bash(lsof:*)',
+          'Bash(ps:*)',
+          'Bash(python3:*)',
+        ],
       });
     });
 

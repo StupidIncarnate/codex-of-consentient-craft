@@ -44,6 +44,7 @@ import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
 import { instanceStartBootPollLayerBroker } from './instance-start-boot-poll-layer-broker';
 import { bootLockAcquireBroker } from '../../boot-lock/acquire/boot-lock-acquire-broker';
 import { bootLockReleaseBroker } from '../../boot-lock/release/boot-lock-release-broker';
+import { isReservedRegistryEntryGuard } from '../../../guards/is-reserved-registry-entry/is-reserved-registry-entry-guard';
 import { isStaleRegistryEntryGuard } from '../../../guards/is-stale-registry-entry/is-stale-registry-entry-guard';
 import { instanceKillBroker } from '../kill/instance-kill-broker';
 import { laneReadyWaitBroker } from '../../lane/ready-wait/lane-ready-wait-broker';
@@ -77,8 +78,18 @@ export const instanceStartBroker = async ({
   const specHash = laneSpecHashBroker({ spec });
 
   const registryBeforeReserve = await registryReadBroker();
+  // `state === 'alive'` is load-bearing, not belt-and-braces: a boot that died before it finished
+  // leaves a `killed` row whose `bootedAtMs` stays null forever, and a tombstone is never deleted
+  // (spec line 219 — assets outlive their instance). Counting on `bootedAtMs` alone therefore
+  // makes `aheadOfMe` climb by one per failed boot and never come down — measured at 3 on a
+  // machine whose fleet was empty, against three killed rows that never booted. Both other
+  // readers of this guard (`cleanupRunBroker`, `instanceStateResolveBroker`) filter the same way
+  // first, which is the shape the guard's own docstring assumes.
   const aheadOfMe = readingCountContract.parse(
-    registryBeforeReserve.instances.filter((candidate) => candidate.bootedAtMs === null).length,
+    registryBeforeReserve.instances.filter(
+      (candidate) =>
+        candidate.state === 'alive' && isReservedRegistryEntryGuard({ entry: candidate }),
+    ).length,
   );
 
   // Opportunistic reap: any instance whose heartbeat has gone cold is presumed dead (spec line

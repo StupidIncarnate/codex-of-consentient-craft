@@ -8,9 +8,12 @@
  * the same as `runs` — it answers "did the last run's `.json` stored return land", never "does this
  * row carry evidence paths", so reporting it is not the no-browsing rule's business. It says
  * something `state` cannot: `state: 'killed'` alone does not distinguish a clean stop from `kill`
- * catching a run mid-step, and this is the one field that does (spec line 2707). Reach for this over
- * `RegistryEntry` whenever the caller wants the post-mortem shape a person reads, not the on-disk row
- * a broker persists.
+ * catching a run mid-step, and this is the one field that does (spec line 2707). `orphans` is `[]`
+ * while `state` is `'alive'` — those pgids are the instance's own actively-managed lane, never a
+ * leak — and carries real entries only once `state` is not `'alive'`, matching the spec's own
+ * reservation of the word for what a dead instance's driver left behind (siegelense-tooling.md:2497-
+ * 2500). Reach for this over `RegistryEntry` whenever the caller wants the post-mortem shape a
+ * person reads, not the on-disk row a broker persists.
  *
  * USAGE:
  * instanceStatusContract.parse({

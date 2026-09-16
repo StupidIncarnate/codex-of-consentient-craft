@@ -1,10 +1,13 @@
 /**
  * PURPOSE: Reaps ONE registry row `cleanupRunBroker` has already proven stale — signals its
  * recorded pgids and removes its throwaway home by calling `instanceKillBroker`, reusing the
- * orphan-reap path a driver that went silent already falls into, rather than re-implementing the
- * SIGTERM-then-SIGKILL escalation `laneTeardownBroker` owns. Only `entry.id` and `entry.lastBeatMs`
- * drive this broker; `entry.lastBeatMs` is required non-null because `isStaleRegistryEntryGuard`
- * — the caller's own gate — never calls this on a row that has not beaten at least once.
+ * orphan-reap path a driver that went silent (or one that never started) already falls into,
+ * rather than re-implementing the SIGTERM-then-SIGKILL escalation `laneTeardownBroker` owns.
+ * `instanceKillBroker` already handles a row with no heartbeat file at all — a reservation whose
+ * driver never got far enough to write one — by finding zero pgids to signal and releasing the row
+ * anyway, so this broker never special-cases that itself. `staleFor` measures from
+ * `entry.lastBeatMs` when one exists; a beat-less row has never advanced any clock but
+ * `entry.reservedAtMs`, so that is the fallback.
  *
  * USAGE:
  * await staleReapLayerBroker({
@@ -31,14 +34,12 @@ export const staleReapLayerBroker = async ({
   entry: RegistryEntry;
   nowMs: EpochMs;
 }): Promise<{ reaped: ReapedInstance; portsReleased: readonly NetworkPort[] }> => {
-  if (entry.lastBeatMs === null) {
-    throw new Error(`Instance ${entry.id} has no lastBeatMs and cannot be staleness-reaped`);
-  }
+  const staleSinceMs = entry.lastBeatMs ?? entry.reservedAtMs;
 
   const killResult = await instanceKillBroker({ instanceId: entry.id });
 
   const staleFor = elapsedRenderTransformer({
-    elapsedMs: epochMsContract.parse(nowMs - entry.lastBeatMs),
+    elapsedMs: epochMsContract.parse(nowMs - staleSinceMs),
   });
 
   return {

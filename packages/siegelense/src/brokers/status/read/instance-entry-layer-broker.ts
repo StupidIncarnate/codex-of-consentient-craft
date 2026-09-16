@@ -1,15 +1,19 @@
 /**
  * PURPOSE: Assembles one `InstanceStatus` row from a registry row, its resolved state, and its
  * heartbeat file — the post-mortem `status` prints for one instance (siegelense-tooling.md lines
- * 1174-1183). `runs`, `evidenceComplete` and `orphans` are always populated: none requires already
- * holding this instance's id, so counting, checking completeness or checking liveness is not
- * "browsing". Both `runs` and `evidenceComplete` come off `runEvidenceComputeTransformer` — the SAME
- * function `results`' `runListLayerBroker` calls — so the two tools can never disagree about how many
- * runs an instance holds or whether the latest one finished. `lastStep` and `evidence` populate ONLY
- * when `named` is true — a `status {}` fleet listing never carries a run or an evidence path for an
- * instance the caller has not already named (chunk-03-read-path-and-perception.md §3.D, spec line
- * 2380). `rssMB` (current) and `rssAtLastBeat` (from the heartbeat file) never both carry a value:
- * the first only while `state` is `'alive'`, the second only once it is not.
+ * 1174-1183). `runs` and `evidenceComplete` are always populated: neither requires already holding
+ * this instance's id, so counting or checking completeness is not "browsing". Both come off
+ * `runEvidenceComputeTransformer` — the SAME function `results`' `runListLayerBroker` calls — so the
+ * two tools can never disagree about how many runs an instance holds or whether the latest one
+ * finished. `lastStep` and `evidence` populate ONLY when `named` is true — a `status {}` fleet
+ * listing never carries a run or an evidence path for an instance the caller has not already named
+ * (chunk-03-read-path-and-perception.md §3.D, spec line 2380). `rssMB` (current) and `rssAtLastBeat`
+ * (from the heartbeat file) never both carry a value: the first only while `state` is `'alive'`, the
+ * second only once it is not. `orphans` draws the SAME line: it is `[]` while `state` is `'alive'`,
+ * and `orphanReadBroker` runs at all only once it is not — a live instance's own pgids are its
+ * actively-managed lane, never a leak, and the spec reserves "orphans" for what a dead one's driver
+ * left BEHIND (siegelense-tooling.md:2497-2500, "a dead one carries … its surviving orphan pgids").
+ * Reporting an alive instance's own lane under that name reads as a leak that is not there.
  *
  * USAGE:
  * await instanceEntryLayerBroker({
@@ -36,6 +40,7 @@ import { instanceStatusContract } from '../../../contracts/instance-status/insta
 import type { InstanceStatus } from '../../../contracts/instance-status/instance-status-contract';
 import type { InstanceState } from '../../../contracts/instance-state/instance-state-contract';
 import { lastStepReadingContract } from '../../../contracts/last-step-reading/last-step-reading-contract';
+import type { OrphanReading } from '../../../contracts/orphan-reading/orphan-reading-contract';
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { stepReadingContract } from '../../../contracts/step-reading/step-reading-contract';
@@ -79,7 +84,9 @@ export const instanceEntryLayerBroker = async ({
   const [heartbeat, runsDirEntries, orphans, rssMB] = await Promise.all([
     heartbeatPromise,
     fsReaddirAdapter({ dirPath: runsDirPath }),
-    orphanReadBroker({ pgids: entry.pgids }),
+    state === 'alive'
+      ? Promise.resolve<readonly OrphanReading[]>([])
+      : orphanReadBroker({ pgids: entry.pgids }),
     state === 'alive' ? machineRssByPgidBroker({ pgids: entry.pgids }) : Promise.resolve(null),
   ]);
 

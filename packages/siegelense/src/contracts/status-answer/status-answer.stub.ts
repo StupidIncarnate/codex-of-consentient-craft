@@ -22,5 +22,6 @@ export const StatusAnswerStub = ({ ...props }: StubArgument<StatusAnswer> = {}):
       lastOomAt: '20:11:04',
     },
     instances: [],
+    queriedInstanceState: null,
     ...props,
   });

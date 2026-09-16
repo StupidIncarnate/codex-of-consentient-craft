@@ -61,6 +61,15 @@ export const childProcessSpawnDetachedAdapter = ({
     );
   }
 
+  // `detached: true` sets the child's process GROUP; on its own it does not let the parent exit.
+  // The ChildProcess handle keeps a reference on the parent's event loop until the child dies, and
+  // every child spawned here is a long-lived server. Measured without this line: `dungeonmaster
+  // siegelense start` printed its manifest at `bootMs: 4269` and the command then sat for over ten
+  // minutes, because the driver it had just spawned was still running. Nothing reads the handle
+  // after this point — only `pid` and `pgid` leave this adapter, and a failed spawn is caught by
+  // the caller's own boot poll rather than by a listener on this object.
+  child.unref();
+
   return {
     pid: processIdContract.parse(String(pid)),
     pgid: processGroupIdContract.parse(pid),

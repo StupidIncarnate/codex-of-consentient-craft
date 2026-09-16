@@ -4,7 +4,10 @@
  * blocks; returns a STATUS, never a payload"). Records the instance's continuous browser/server
  * buffers as THIS run's own window before anything dispatches (line 90: "a run's index counts its
  * OWN window, never the running total"), restarts step numbering at 1 inside a run-namespaced shots
- * directory (line 1630), flushes the transcript after every step rather than buffering it (line
+ * directory (line 1630) — every acting step's unasked capture resolves there by index, and a
+ * `screenshot` step resolves by its own `name` (line 2516) instead, still inside that same
+ * run-namespaced directory so two runs never collide on one caller-chosen filename — flushes the
+ * transcript after every step rather than buffering it (line
  * 1676), and stops on the first failing step unless the caller set `stopOn: 'never'` (line 1638).
  * `runExecuteStepLayerBroker` is what turns BOTH an uncaught exception and the dispatcher's own
  * `expect: 'error'`-but-succeeded finding into the same `ok: false` reading, so the loop below only
@@ -25,7 +28,12 @@
  * PARAMETERS rather than read from `driverSessionState` directly — a broker's allowed imports do not
  * include `state/` (see `driver-handle-request-broker.ts`'s own header for the identical constraint)
  * — so the responder that owns the socket's request loop reads these accessors fresh per request and
- * hands them down explicitly, the same way `mintRunId` already does.
+ * hands them down explicitly, the same way `mintRunId` already does. Every step's own shot joins
+ * under `locationsRepoLinkPathFindBroker`'s repo-local alias of `shotsDir`, never the raw `shotsDir`
+ * itself (packages/siegelense/CLAUDE.md: "every path handed back is repo-local, through
+ * <repoRoot>/.siegelense") — the same address is both what the step actually captures to and what
+ * `RunResult.shots`/the transcript report, so a later `results` read of this run's own evidence never
+ * disagrees with what this run just returned.
  *
  * USAGE:
  * await runExecuteBroker({
@@ -65,6 +73,7 @@ import { runIndexComputeTransformer } from '../../../transformers/run-index-comp
 import { shotOpenDecideTransformer } from '../../../transformers/shot-open-decide/shot-open-decide-transformer';
 import { bufferAppendBroker } from '../../buffer/append/buffer-append-broker';
 import { locationsBufferPathsFindBroker } from '../../locations/buffer-paths-find/locations-buffer-paths-find-broker';
+import { locationsRepoLinkPathFindBroker } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker';
 import { locationsRunPathsFindBroker } from '../../locations/run-paths-find/locations-run-paths-find-broker';
 import { locationsShotPathFindBroker } from '../../locations/shot-path-find/locations-shot-path-find-broker';
 import { runReturnWriteBroker } from '../return-write/run-return-write-broker';
@@ -108,6 +117,19 @@ export const runExecuteBroker = async ({
     runId,
   });
   await fsMkdirAdapter({ filepath: filePathContract.parse(shotsDir) });
+
+  // packages/siegelense/CLAUDE.md: "every path handed back is repo-local, through
+  // <repoRoot>/.siegelense" — `start`, `status` and `kill` already resolve their evidence path
+  // through `locationsRepoLinkPathFindBroker` before returning; this broker skipped it, so a run's
+  // own shots (and, via the transcript and the stored return this run persists, every later
+  // `results` read of them) reported the real home path instead. `shotsDir` above stays real — the
+  // mkdir needs a path guaranteed to exist whether or not `dungeonmaster init` ever ran here — but
+  // every step's own shot joins under this repo-local alias instead, so the address a step actually
+  // captures to and the address RunResult/the transcript report are the SAME string: writing
+  // through a valid directory symlink reaches the identical file. `linkPresent: false` falls the
+  // alias back to this same real `shotsDir`, so a repo that never ran `dungeonmaster init` writes
+  // and reports exactly as it did before this resolution existed.
+  const { path: reportedShotsDir } = await locationsRepoLinkPathFindBroker({ homePath: shotsDir });
 
   const bufferPaths = locationsBufferPathsFindBroker({ evidencePath: lane.evidencePath });
 
@@ -183,8 +205,10 @@ export const runExecuteBroker = async ({
 
     const index = stepIndexContract.parse(position + instanceLifecycleStatics.numbering.firstStep);
     const shotPath = stepStatics.verbs.acting.some((verb) => verb === step.step)
-      ? locationsShotPathFindBroker({ shotsDir, step: index })
-      : null;
+      ? locationsShotPathFindBroker({ shotsDir: reportedShotsDir, step: index })
+      : step.step === 'screenshot'
+        ? locationsShotPathFindBroker({ shotsDir: reportedShotsDir, step: index, name: step.name })
+        : null;
 
     const outcome = await runExecuteStepLayerBroker({
       lane,

@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub, FileNameStub } from '@dungeonmaster/shared/contracts';
 
 import { BufferEntryStub } from '../../../contracts/buffer-entry/buffer-entry.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -114,7 +114,7 @@ describe('runExecuteBroker', () => {
   });
 
   describe('a failing step, stopOn never', () => {
-    it('VALID: {step 3 fails, stopOn never} => status failed, stepsRun 5, and the later steps DO run', async () => {
+    it('VALID: {step 3 fails, stopOn never} => status failed, stepsRun 5, stoppedAt still names step 3 (where it would have stopped), and the later steps DO run', async () => {
       const proxy = runExecuteBrokerProxy();
       const runId = RunIdStub({ value: 'run_1' });
       proxy.stagePaths({ runId });
@@ -135,9 +135,14 @@ describe('runExecuteBroker', () => {
         setLastShotPath: proxy.setLastShotPath,
       });
 
-      expect({ status: result.status, stepsRun: result.stepsRun }).toStrictEqual({
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({
         status: 'failed',
         stepsRun: 5,
+        stoppedAt: { step: 3, verb: 'goto', error: 'boom', candidates: [] },
       });
       expect(gotoCallCount()).toBe(5);
     });
@@ -736,6 +741,178 @@ describe('runExecuteBroker', () => {
         { step: 1, path: firstShotPath, pixelChange: null, blank: false },
         { step: 2, path: secondShotPath, pixelChange: '0%', blank: false },
       ]);
+    });
+  });
+
+  describe('a screenshot step', () => {
+    it('VALID: {goto then screenshot with a caller name} => the shot writes at the caller-supplied name inside the run directory, and the acting step still captures unasked at its own step-indexed name', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const evidencePath = proxy.evidencePath();
+      const { lane, captureCalls } = proxy.laneCapturingShots();
+      const shotName = FileNameStub({ value: 'after-create.png' });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
+          StepStub({ step: 'screenshot', name: shotName }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const expectedActingShotPath = `${String(evidencePath)}/runs/run_1/step1.png`;
+      const expectedNamedShotPath = `${String(evidencePath)}/runs/run_1/after-create.png`;
+
+      expect({ status: result.status, stepsRun: result.stepsRun }).toStrictEqual({
+        status: 'done',
+        stepsRun: 2,
+      });
+      expect(result.shots.map((shot) => [shot.step, String(shot.path)])).toStrictEqual([
+        [1, expectedActingShotPath],
+        [2, expectedNamedShotPath],
+      ]);
+      // The seam: `session.capture` — the actual write — received the SAME two paths RunResult
+      // reports, in the same order. Asserting only `result.shots` would still pass if the dispatcher
+      // captured to one path but reported another.
+      expect(captureCalls().map((path) => String(path))).toStrictEqual([
+        expectedActingShotPath,
+        expectedNamedShotPath,
+      ]);
+    });
+
+    it('VALID: {a batch of only a screenshot step} => never throws for a missing shotPath, the defect this fix removes', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane } = proxy.laneCapturingShots();
+      const shotName = FileNameStub({ value: 'lone-shot.png' });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [StepStub({ step: 'screenshot', name: shotName })],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({ status: result.status, stoppedAt: result.stoppedAt }).toStrictEqual({
+        status: 'done',
+        stoppedAt: null,
+      });
+    });
+
+    it('VALID: {the same caller-supplied name in run_1 and run_2} => each run keeps its own shot under its own run directory', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const firstRunId = RunIdStub({ value: 'run_1' });
+      const secondRunId = RunIdStub({ value: 'run_2' });
+      proxy.stagePaths({ runId: firstRunId });
+      proxy.stagePaths({ runId: secondRunId });
+      const evidencePath = proxy.evidencePath();
+      const shotName = FileNameStub({ value: 'shot.png' });
+
+      const firstResult = await runExecuteBroker({
+        lane: proxy.laneCapturingShots().lane,
+        instanceId: InstanceIdStub(),
+        runId: firstRunId,
+        steps: [StepStub({ step: 'screenshot', name: shotName })],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+      const secondResult = await runExecuteBroker({
+        lane: proxy.laneCapturingShots().lane,
+        instanceId: InstanceIdStub(),
+        runId: secondRunId,
+        steps: [StepStub({ step: 'screenshot', name: shotName })],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect([
+        String(firstResult.shots[0]?.path),
+        String(secondResult.shots[0]?.path),
+      ]).toStrictEqual([
+        `${String(evidencePath)}/runs/run_1/shot.png`,
+        `${String(evidencePath)}/runs/run_2/shot.png`,
+      ]);
+    });
+  });
+
+  describe('the repo-local shot path', () => {
+    it('VALID: {a .siegelense symlink at the repo root} => the shot RunResult reports and the path session.capture actually wrote to are the same repo-local address', async () => {
+      const proxy = runExecuteBrokerProxy();
+      proxy.stageRepoLinkPresent();
+      const runId = RunIdStub({ value: 'run_1' });
+      const evidencePath = proxy.homeRootedEvidencePath();
+      proxy.stagePaths({ runId, evidencePath });
+      const { lane, captureCalls } = proxy.laneCapturingShots({ evidencePath });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const expectedShotPath = `${String(proxy.repoLocalEvidencePath())}/runs/run_1/step1.png`;
+
+      // The complete string, not a startsWith on a fragment: packages/siegelense/CLAUDE.md's
+      // "every path handed back is repo-local, through <repoRoot>/.siegelense" is a claim about
+      // the WHOLE path, and a fragment match would still pass if the tail after the repo root
+      // silently drifted from what the write actually used.
+      expect(result.shots.map((shot) => String(shot.path))).toStrictEqual([expectedShotPath]);
+      // The seam: session.capture — the actual write — landed at the SAME repo-local address
+      // RunResult reports. Asserting only result.shots would still pass if the write kept
+      // targeting the real home path while only the report was swapped for the repo-local one.
+      expect(captureCalls().map((path) => String(path))).toStrictEqual([expectedShotPath]);
+    });
+
+    it('VALID: {no .siegelense symlink at the repo root} => the shot path stays the real home-rooted one, unchanged from before this resolution existed', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      const { shotsDir } = proxy.stagePaths({ runId });
+      const lane = proxy.cleanLane();
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const expectedShotPath = locationsShotPathFindBroker({
+        shotsDir,
+        step: StepIndexStub({ value: 1 }),
+      });
+
+      expect(result.shots.map((shot) => shot.path)).toStrictEqual([expectedShotPath]);
     });
   });
 });

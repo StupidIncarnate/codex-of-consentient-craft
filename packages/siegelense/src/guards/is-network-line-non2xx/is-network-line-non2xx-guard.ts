@@ -1,12 +1,16 @@
 /**
- * PURPOSE: True when one network buffer line falls outside the [200, 300) success range — the SAME
- * boundary `runIndexComputeTransformer` counts into `network.non2xx`, and the one `compareReadBroker`
- * scopes `network.new` by, so a line can never read as non-2xx in one place and 2xx in the other. A
- * line with no numeric status (`"status":null`, a request that never got a response) counts as
- * non-2xx alongside anything outside the range, matching `runIndexComputeTransformer`'s treatment of
- * `requestfailed`. Built on `resultsStatics.patterns.networkStatus` rather than a locally declared
- * pattern, for the same reason `bufferReadLayerBroker`'s `where.level` filter reuses
- * `consoleError`/`consoleWarning` from that same static.
+ * PURPOSE: True when one network buffer line falls outside the [200, 300) success range — the
+ * boundary `runIndexComputeTransformer` counts into the persisted `RunIndex.network.non2xx`, the
+ * literal HTTP-range total `run` and `results` report. `compare`'s own `network.errors` is a
+ * different, narrower reading over the same lines — a 4xx/5xx status or no response at all — computed
+ * independently in `compareReadBroker`, because routing a reader's attention and tallying every
+ * deviation from 2xx are different jobs (siegelense-tooling.md:724-726, on `pixelChange`: "it routes
+ * attention; it measures nothing"). A line with no numeric status (`"status":null`, a request that
+ * never got a response) counts as non-2xx alongside anything outside the range, matching
+ * `runIndexComputeTransformer`'s treatment of `requestfailed`. Built on
+ * `resultsStatics.patterns.networkStatus` rather than a locally declared pattern, for the same reason
+ * `bufferReadLayerBroker`'s `where.level` filter reuses `consoleError`/`consoleWarning` from that same
+ * static.
  *
  * USAGE:
  * isNetworkLineNon2xxGuard({ line: ContentTextStub({ value: '{"status":500}' }) });

@@ -3,8 +3,6 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, GuildId } from '@dungeonmaster/shared/contracts';
 
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
@@ -15,6 +13,7 @@ import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/in
 import { locationsRunPathsFindBrokerProxy } from '../../locations/run-paths-find/locations-run-paths-find-broker.proxy';
 import { bufferReadLayerBrokerProxy } from './buffer-read-layer-broker.proxy';
 import { runListLayerBrokerProxy } from './run-list-layer-broker.proxy';
+import { runMissingCheckLayerBrokerProxy } from './run-missing-check-layer-broker.proxy';
 import { serverWindowReadLayerBrokerProxy } from './server-window-read-layer-broker.proxy';
 import { transcriptReadLayerBrokerProxy } from './transcript-read-layer-broker.proxy';
 
@@ -62,7 +61,6 @@ export const resultsReadBrokerProxy = (): {
   setupServerLog: (params: { evidencePath: AbsoluteFilePath; content: string }) => void;
 } => {
   const instanceStateProxy = instanceStateResolveBrokerProxy();
-  errorIsNativeErrorAdapterProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
   locationsRunPathsFindBrokerProxy();
   locationsBufferPathsFindBrokerProxy();
@@ -70,7 +68,10 @@ export const resultsReadBrokerProxy = (): {
   const transcriptProxy = transcriptReadLayerBrokerProxy();
   const bufferProxy = bufferReadLayerBrokerProxy();
   const serverWindowProxy = serverWindowReadLayerBrokerProxy();
-  const storedReturnReadProxy = fsReadFileAdapterProxy();
+  // The stored-return read is now the SAME `readFile` mock runMissingCheckLayerBroker probes, so
+  // this composes THAT child proxy rather than fsReadFileAdapterProxy directly — matching
+  // results-read-broker.ts's own import list, which enforce-proxy-child-creation checks.
+  const storedReturnReadProxy = runMissingCheckLayerBrokerProxy();
 
   // Registered LAST, so it is the most recent `calledWith([])` registration on the shared
   // `homedir` mock and wins over whatever default any composed child proxy's own constructor
@@ -150,8 +151,8 @@ export const resultsReadBrokerProxy = (): {
       const storedReturnPath = AbsoluteFilePathStub({
         value: `${evidencePath}/runs/${runId}.json`,
       });
-      storedReturnReadProxy.resolves({
-        filePath: storedReturnPath,
+      storedReturnReadProxy.setupStoredReturn({
+        storedReturnPath,
         content: JSON.stringify(result),
       });
     },
@@ -166,10 +167,7 @@ export const resultsReadBrokerProxy = (): {
       const storedReturnPath = AbsoluteFilePathStub({
         value: `${evidencePath}/runs/${runId}.json`,
       });
-      storedReturnReadProxy.rejects({
-        filePath: storedReturnPath,
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
+      storedReturnReadProxy.setupMissingStoredReturn({ storedReturnPath });
     },
 
     setupBuffer: ({

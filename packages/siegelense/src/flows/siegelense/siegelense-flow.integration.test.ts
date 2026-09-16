@@ -6,6 +6,7 @@ import {
 } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
+import { CleanupAnswerStub } from '../../contracts/cleanup-answer/cleanup-answer.stub';
 import { CompareQueryStub } from '../../contracts/compare-query/compare-query.stub';
 import { ResultsQueryStub } from '../../contracts/results-query/results-query.stub';
 import { ResultWhereStub } from '../../contracts/result-where/result-where.stub';
@@ -13,8 +14,41 @@ import { StepIndexStub } from '../../contracts/step-index/step-index.stub';
 import { InstanceUnknownError } from '../../errors/instance-unknown/instance-unknown-error';
 import { RunIdRequiredError } from '../../errors/run-id-required/run-id-required-error';
 import { RunMissingError } from '../../errors/run-missing/run-missing-error';
+import { SiegelenseStatusResponder } from '../../responders/siegelense/status/siegelense-status-responder';
+import { machineStatics } from '../../statics/machine/machine-statics';
+import { siegelenseCallStatics } from '../../statics/siegelense-call/siegelense-call-statics';
+import { siegelenseHelpStatics } from '../../statics/siegelense-help/siegelense-help-statics';
+import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
+import { siegelenseHelpRenderTransformer } from '../../transformers/siegelense-help-render/siegelense-help-render-transformer';
 import { evidenceTreeHarness } from '../../../test/harnesses/evidence-tree/evidence-tree.harness';
 import { SiegelenseFlow } from './siegelense-flow';
+
+// The seven built calls, in the order `siegelenseHelpStatics.calls` declares them — every it.each
+// below over "every built call" derives from this rather than a second hardcoded list.
+const BUILT_CALLS = Object.keys(
+  siegelenseHelpStatics.calls,
+) as (keyof typeof siegelenseHelpStatics.calls)[];
+
+// `statusReadBroker` always calls `machineReadBroker` (a live statfs/loadavg read), for a fleet
+// query and a named one alike, so the one deterministic shape an empty-instances StatusAnswer's
+// JSON can be compared against omits `machine` entirely rather than guessing its live values.
+// `queriedInstanceState: null` is the fleet-listing case — no single id was named, so there is
+// nothing for the field to report.
+const EMPTY_FLEET_STATUS_JSON = `${JSON.stringify(
+  { monitored: machineStatics.monitored, instances: [], queriedInstanceState: null },
+  null,
+  siegelenseOutputStatics.json.indentSpaces,
+)}\n`;
+
+// The same shape, but for a NAMED query that resolved to no registry row — the defect this file's
+// own `status --instance <id never held>` tests guard: without `queriedInstanceState`, this JSON
+// was byte-identical to `EMPTY_FLEET_STATUS_JSON` above, and only `--human` could tell the two
+// apart (siegelense-tooling.md:2317, 2319-2321 — "unknown" is a real answer, not an empty result).
+const UNKNOWN_NAMED_STATUS_JSON = `${JSON.stringify(
+  { monitored: machineStatics.monitored, instances: [], queriedInstanceState: 'unknown' },
+  null,
+  siegelenseOutputStatics.json.indentSpaces,
+)}\n`;
 
 describe('SiegelenseFlow', () => {
   const testbed = installTestbedCreateBroker({
@@ -57,10 +91,18 @@ describe('SiegelenseFlow', () => {
         SiegelenseFlow({ args: ['driver', '--instance', 'inst_dead0000'] }),
       ).rejects.toThrow(/inst_dead0000 not found in the registry/u);
     });
+
+    it('ERROR: {args: driver --instance <badly-shaped id>} => rejects the id shape naming --instance rather than a raw ZodError', async () => {
+      await expect(
+        SiegelenseFlow({ args: ['driver', '--instance', 'not-a-valid-id'] }),
+      ).rejects.toThrow(
+        /^--instance: Instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u,
+      );
+    });
   });
 
   describe('the status route', () => {
-    it('VALID: {args: ["status"]} => routes to the status responder and reports an empty fleet', async () => {
+    it('VALID: {args: ["status"]} => routes to the status responder and reports an empty fleet as one JSON document', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -72,24 +114,35 @@ describe('SiegelenseFlow', () => {
 
       process.stdout.write = originalWrite;
 
-      expect(writes).toStrictEqual(['No siegelense instances running.\n']);
+      const [wholeOutput] = writes;
+      const withoutLiveMachineBlock = wholeOutput!.replace(
+        / {2}"machine": \{[\s\S]*?\n {2}\},\n/u,
+        '',
+      );
+
+      expect(withoutLiveMachineBlock).toBe(EMPTY_FLEET_STATUS_JSON);
     });
 
-    it('ERROR: {args: status --instance <badly-shaped id>} => routes to the status responder, which rejects the id shape', async () => {
+    it('ERROR: {args: status --instance <badly-shaped id>} => routes to the status responder, which rejects the id shape naming --instance rather than a raw ZodError', async () => {
       await expect(
         SiegelenseFlow({ args: ['status', '--instance', 'not-a-valid-id'] }),
-      ).rejects.toThrow(/Instance id must look like/u);
+      ).rejects.toThrow(
+        /^--instance: Instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u,
+      );
     });
 
     it('INVALID: {args: status --instance} => rejects naming the flag instead of silently printing the whole fleet', async () => {
+      // The check moved to `statusArgsParseTransformer`, which delegates to
+      // `flagValueReadTransformer` and carries none of the flow's own USAGE suffix — this is the
+      // real message that transformer throws, captured by running it rather than guessed.
       await expect(SiegelenseFlow({ args: ['status', '--instance'] })).rejects.toThrow(
-        /^--instance is required: it cannot be missing, and the value cannot itself start with "--"\.\n\nUsage: dungeonmaster siegelense \[driver --instance <instanceId> \| status \[--instance <instanceId>\] \| cleanup\]$/u,
+        /^--instance is required: it cannot be missing, and the value cannot itself start with "--"\.$/u,
       );
     });
   });
 
   describe('the cleanup route', () => {
-    it('VALID: {args: ["cleanup"]} => routes to the cleanup responder and reports nothing reaped or left alone', async () => {
+    it('VALID: {args: ["cleanup"]} => routes to the cleanup responder and reports nothing reaped or left alone as one JSON document', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -101,8 +154,15 @@ describe('SiegelenseFlow', () => {
 
       process.stdout.write = originalWrite;
 
+      const expectedAnswer = CleanupAnswerStub({
+        reaped: [],
+        portsReleased: [],
+        lockReleased: false,
+        leftAlone: [],
+      });
+
       expect(writes).toStrictEqual([
-        'REAPED: none\nPORTS RELEASED: none\nLOCK RELEASED: no\nLEFT ALONE: none\n',
+        `${JSON.stringify(expectedAnswer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
     });
   });
@@ -110,8 +170,83 @@ describe('SiegelenseFlow', () => {
   describe('an unknown subcommand', () => {
     it('INVALID: {args: [statuss]} => rejects naming the unknown subcommand instead of falling back to the fleet listing', async () => {
       await expect(SiegelenseFlow({ args: ['statuss'] })).rejects.toThrow(
-        /^Unknown siegelense subcommand: statuss\n\nUsage: dungeonmaster siegelense \[driver --instance <instanceId> \| status \[--instance <instanceId>\] \| cleanup\]$/u,
+        /^Unknown siegelense subcommand: statuss\n\nUsage: dungeonmaster siegelense \[--help \| start \| run \| results \| kill \| status \| cleanup \| compare \| driver --instance <instanceId>\]$/u,
       );
+    });
+  });
+
+  describe('a name the spec defines but this chunk has not built', () => {
+    it('INVALID: {args: [capacity]} => rejects naming it as not built yet, listing the built calls, rather than calling it unknown', async () => {
+      await expect(SiegelenseFlow({ args: ['capacity'] })).rejects.toThrow(
+        /^capacity is a siegelense call but is not built yet\. Built calls: start, run, results, kill, status, cleanup, compare\.$/u,
+      );
+    });
+  });
+
+  describe('the --help surface', () => {
+    it('VALID: {args: [--help]} => writes the index page to stdout and returns success', async () => {
+      const writes: ReturnType<typeof ContentTextStub>[] = [];
+      const originalWrite = process.stdout.write.bind(process.stdout);
+      process.stdout.write = ((chunk: string): boolean => {
+        writes.push(ContentTextStub({ value: chunk }));
+        return true;
+      }) as unknown as typeof process.stdout.write;
+
+      const result = await SiegelenseFlow({ args: ['--help'] });
+
+      process.stdout.write = originalWrite;
+
+      expect(writes).toStrictEqual([siegelenseHelpRenderTransformer({ call: null })]);
+      expect(result).toStrictEqual({ success: true });
+    });
+
+    it.each(BUILT_CALLS)(
+      'VALID: {args: [%s, --help]} => writes that call help page, first line its summary',
+      async (call) => {
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        const result = await SiegelenseFlow({ args: [call, '--help'] });
+
+        process.stdout.write = originalWrite;
+
+        const [wholeOutput] = writes;
+        const [firstLine] = wholeOutput!.split('\n');
+
+        expect(firstLine).toBe(siegelenseHelpStatics.calls[call].summary);
+        expect(result).toStrictEqual({ success: true });
+      },
+    );
+  });
+
+  describe('the --human refusal', () => {
+    it('INVALID: {args: [results, --human]} => rejects naming status and cleanup as the two that render', async () => {
+      await expect(SiegelenseFlow({ args: ['results', '--human'] })).rejects.toThrow(
+        /^--human is not implemented for results: only status and cleanup render a human table; every other call answers JSON only\.$/u,
+      );
+    });
+  });
+
+  describe('the route table matches the help statics — the gate that cannot close again', () => {
+    it('VALID: {--help for every name the spec defines} => exactly the built calls resolve, matching siegelenseHelpStatics.calls', async () => {
+      const settled = await Promise.allSettled(
+        siegelenseCallStatics.calls.names.map(async (name) =>
+          SiegelenseFlow({ args: [name, '--help'] }),
+        ),
+      );
+      const namesWithStatus = siegelenseCallStatics.calls.names.map((name, index) => ({
+        name,
+        status: settled[index]?.status,
+      }));
+      const resolvedNames = namesWithStatus
+        .filter((entry) => entry.status === 'fulfilled')
+        .map((entry) => entry.name);
+
+      expect(resolvedNames).toStrictEqual(BUILT_CALLS);
     });
   });
 
@@ -354,7 +489,7 @@ describe('SiegelenseFlow', () => {
           runB: tree.runTwo(),
           console: { errors: '+1', new: tree.consoleRun2ErrorRows() },
           server: { errors: '-1', new: tree.serverRun2ErrorRows() },
-          network: { non2xx: '+1', new: tree.networkRun2NonSuccessRows() },
+          network: { errors: '+1', new: tree.networkRun2NonSuccessRows() },
           pixels: 'last capture differs 50%',
         });
       });
@@ -387,7 +522,7 @@ describe('SiegelenseFlow', () => {
     });
 
     describe('status', () => {
-      it('VALID: {status, no instance} => both rows, no evidence, no lastStep', async () => {
+      it('VALID: {status, no instance} => both rows, no evidence, no lastStep, queriedInstanceState null', async () => {
         const answer = await tree.readStatus({ instanceId: null });
 
         expect(answer.instances.map((entry) => entry.id)).toStrictEqual([
@@ -396,6 +531,9 @@ describe('SiegelenseFlow', () => {
         ]);
         expect(answer.instances.map((entry) => entry.evidence)).toStrictEqual([null, null]);
         expect(answer.instances.map((entry) => entry.lastStep)).toStrictEqual([null, null]);
+        // A fleet listing names no single id, so there is no "state of the id you asked about" to
+        // report.
+        expect(answer.queriedInstanceState).toBe(null);
       });
 
       it('VALID: {status, the killed instance named} => its evidence dir, transcript, last shot and last step, all off the real tree', async () => {
@@ -413,6 +551,10 @@ describe('SiegelenseFlow', () => {
         expect(entry?.rssAtLastBeat).toBe(1_840);
         expect(entry?.runs).toBe(2);
         expect(entry?.evidenceComplete).toBe(true);
+        // The tombstone rule (siegelense-tooling.md:2455): a reaped/killed entry survives with its
+        // evidence for as long as that evidence does, and is answered as `killed`, never `unknown` —
+        // this is what a fixer's first call after `cleanup` reaps a stale row must still see.
+        expect(answer.queriedInstanceState).toBe('killed');
       });
 
       it('VALID: {status, the killed instance after its run crashed} => evidenceComplete is false', async () => {
@@ -426,7 +568,7 @@ describe('SiegelenseFlow', () => {
         expect(entry?.evidence?.transcript).toBe('run_2.jsonl');
       });
 
-      it('VALID: {status --instance, an id the registry never held} => distinguishes "unknown" from an empty fleet', async () => {
+      it('VALID: {status --instance, an id the registry never held} => the default JSON now names it "unknown", distinct from an empty fleet', async () => {
         const writes: ReturnType<typeof ContentTextStub>[] = [];
         const originalWrite = process.stdout.write.bind(process.stdout);
         process.stdout.write = ((chunk: string): boolean => {
@@ -438,12 +580,40 @@ describe('SiegelenseFlow', () => {
 
         process.stdout.write = originalWrite;
 
+        const [wholeOutput] = writes;
+        const withoutLiveMachineBlock = wholeOutput!.replace(
+          / {2}"machine": \{[\s\S]*?\n {2}\},\n/u,
+          '',
+        );
+
+        // Pinned to its own exact literal (`queriedInstanceState: 'unknown'`), which reads
+        // byte-for-byte different from `EMPTY_FLEET_STATUS_JSON` above (`queriedInstanceState:
+        // null`) — the regression guard for the whole defect: a named id the registry never held no
+        // longer answers the same JSON as an empty fleet.
+        expect(withoutLiveMachineBlock).toBe(UNKNOWN_NAMED_STATUS_JSON);
+      });
+
+      it('VALID: {--human, an id the registry never held} => names the id as unknown, never existed — the one thing the default JSON cannot say', async () => {
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        // SiegelenseFlow does not parse --human yet — that wiring is SiegelenseFlow's own route
+        // table, a later work item — so this calls the responder it would route to directly, with
+        // the same instanceId the test above asked SiegelenseFlow for.
+        await SiegelenseStatusResponder({ instanceId: tree.unknownInstanceId(), human: true });
+
+        process.stdout.write = originalWrite;
+
         expect(writes).toStrictEqual([
           `No instance by the id "${tree.unknownInstanceId()}" — unknown, never existed.\n`,
         ]);
       });
 
-      it('VALID: {dungeonmaster siegelense status through SiegelenseFlow} => the rendered text', async () => {
+      it('VALID: {dungeonmaster siegelense status through SiegelenseFlow} => the fleet as one JSON document, killed then live', async () => {
         const writes: ReturnType<typeof ContentTextStub>[] = [];
         const originalWrite = process.stdout.write.bind(process.stdout);
         process.stdout.write = ((chunk: string): boolean => {
@@ -458,7 +628,43 @@ describe('SiegelenseFlow', () => {
         // A single SiegelenseFlow({args: ['status']}) call makes exactly one
         // process.stdout.write (SiegelenseStatusResponder's own header comment says so) — proven
         // here by the non-null assertion below actually resolving rather than throwing, since an
-        // empty `writes` would make `wholeOutput` undefined and `.split` throw.
+        // empty `writes` would make `wholeOutput` undefined and the match below throw.
+        // `machine`, and a LIVE instance's own `lastBeat`/`rssMB`, are live reads that change
+        // between runs, so this anchors the whole document's shape (one instances array, exactly
+        // two entries, killed before live, `queriedInstanceState` null for this fleet listing) while
+        // leaving those two live subtrees as wildcards — the JSON analogue of the machine-block
+        // strip above.
+        const [wholeOutput] = writes;
+        const fleetJsonPattern = new RegExp(
+          `^\\{\\n` +
+            `  "monitored": \\[[\\s\\S]*?\\],\\n` +
+            `  "machine": \\{[\\s\\S]*?\\n {2}\\},\\n` +
+            `  "instances": \\[\\n` +
+            `    \\{\\n[\\s\\S]*?"id": "${tree.killedInstanceId()}"[\\s\\S]*?\\n {4}\\},\\n` +
+            `    \\{\\n[\\s\\S]*?"id": "${tree.liveInstanceId()}"[\\s\\S]*?\\n {4}\\}\\n` +
+            `  \\],\\n` +
+            `  "queriedInstanceState": null\\n` +
+            `\\}\\n$`,
+          'u',
+        );
+
+        expect(wholeOutput).toMatch(fleetJsonPattern);
+      });
+
+      it('VALID: {--human, dungeonmaster siegelense status} => the rendered table, killed then live', async () => {
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        // SiegelenseFlow does not parse --human yet — that wiring is SiegelenseFlow's own route
+        // table, a later work item — so this calls the responder it would route to directly.
+        await SiegelenseStatusResponder({ instanceId: null, human: true });
+
+        process.stdout.write = originalWrite;
+
         const [wholeOutput] = writes;
         const lines = wholeOutput!.split('\n');
 
@@ -509,6 +715,332 @@ describe('SiegelenseFlow', () => {
         expect(staleRowAfter?.socketPath).toBe(null);
         expect(liveRowAfter?.state).toBe('alive');
         expect(killedRowAfter?.state).toBe('killed');
+      });
+    });
+  });
+
+  // The read path above proves resultsReadBroker/statusReadBroker/compareReadBroker/
+  // cleanupRunBroker are correct by calling them directly. This block drives the SAME evidence
+  // tree through SiegelenseFlow({ args }) instead — the parse, the route, the responder, the
+  // output format and the refusal are all new with chunk 4, and none of them is exercised by a
+  // direct broker call (chunk-04-cli-surface.md, W17).
+  //
+  // `start`, `run` and `kill` get NO integration test here. They need a live driver and this
+  // suite deliberately has none — no port pair, no spawned process. Their coverage is
+  // `siegelense-start-responder.test.ts`, `siegelense-run-responder.test.ts` and
+  // `siegelense-kill-responder.test.ts` (each colocated under its own
+  // `responders/siegelense/<call>/`, argv already parsed into typed params) plus the manual
+  // drive in `scrolls/seigelense/plans/chunk-04-cli-surface.md` §8 for the argv-and-driver slice
+  // this suite cannot reach.
+  describe('the seven calls, through argv — SiegelenseFlow rather than the brokers (chunk 4)', () => {
+    const argvTree = evidenceTreeHarness();
+
+    describe('results', () => {
+      it('VALID: {args: results --instance <killed> --run run_1} => the stored RunResult, byte-identical to what the broker itself returns', async () => {
+        const expectedAnswer = await argvTree.readResults({
+          query: ResultsQueryStub({
+            instanceId: argvTree.killedInstanceId(),
+            runId: argvTree.runOne(),
+          }),
+        });
+
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        await SiegelenseFlow({
+          args: ['results', '--instance', argvTree.killedInstanceId(), '--run', argvTree.runOne()],
+        });
+
+        process.stdout.write = originalWrite;
+
+        const [wholeOutput] = writes;
+
+        expect(wholeOutput).toBe(
+          `${JSON.stringify(expectedAnswer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+        );
+      });
+
+      it('VALID: {args: results --instance <killed> --run run_1 --kind console --step 2} => only step 2 entries, matching the broker', async () => {
+        const expectedAnswer = await argvTree.readResults({
+          query: ResultsQueryStub({
+            instanceId: argvTree.killedInstanceId(),
+            runId: argvTree.runOne(),
+            kind: 'console',
+            step: StepIndexStub({ value: 2 }),
+          }),
+        });
+
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        await SiegelenseFlow({
+          args: [
+            'results',
+            '--instance',
+            argvTree.killedInstanceId(),
+            '--run',
+            argvTree.runOne(),
+            '--kind',
+            'console',
+            '--step',
+            '2',
+          ],
+        });
+
+        process.stdout.write = originalWrite;
+
+        const [wholeOutput] = writes;
+
+        expect(JSON.parse(wholeOutput!)).toStrictEqual(expectedAnswer);
+      });
+
+      it('VALID: {args: results --instance <killed> --run run_1 --kind screenshots} => the shot row matches the broker, and its path is absolute', async () => {
+        const expectedAnswer = await argvTree.readResults({
+          query: ResultsQueryStub({
+            instanceId: argvTree.killedInstanceId(),
+            runId: argvTree.runOne(),
+            kind: 'screenshots',
+          }),
+        });
+
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        await SiegelenseFlow({
+          args: [
+            'results',
+            '--instance',
+            argvTree.killedInstanceId(),
+            '--run',
+            argvTree.runOne(),
+            '--kind',
+            'screenshots',
+          ],
+        });
+
+        process.stdout.write = originalWrite;
+
+        const [wholeOutput] = writes;
+
+        expect(JSON.parse(wholeOutput!)).toStrictEqual(expectedAnswer);
+
+        // The absolute-path invariant, repeated on the argv-driven answer: a shot path a reader's
+        // `Read` cannot reach hands back nothing. Decoded whole (never a single `.path` access on
+        // an unvalidated JSON.parse result) and compared against the harness's own accessor, which
+        // is itself an absolute path under the testbed's temp dir.
+        expect(expectedAnswer.rows.map((row) => JSON.parse(row))).toStrictEqual([
+          {
+            step: 1,
+            path: argvTree.run1Shot1Path(),
+            open: true,
+            why: 'blank',
+            node: null,
+            pixelChange: null,
+            blank: true,
+            blankColour: '#0d0907',
+          },
+        ]);
+        expect(argvTree.run1Shot1Path().startsWith('/')).toBe(true);
+      });
+
+      it('ERROR: {args: results --instance <killed>, no --run and no --since} => rejects carrying RunIdRequiredError and its exact message, and never writes to stdout', async () => {
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        await expect(
+          SiegelenseFlow({ args: ['results', '--instance', argvTree.killedInstanceId()] }),
+        ).rejects.toThrow(RunIdRequiredError);
+        await expect(
+          SiegelenseFlow({ args: ['results', '--instance', argvTree.killedInstanceId()] }),
+        ).rejects.toThrow(
+          new RunIdRequiredError({
+            instanceId: argvTree.killedInstanceId(),
+            instanceState: 'killed',
+            runCount: 2,
+          }),
+        );
+
+        process.stdout.write = originalWrite;
+
+        expect(writes).toStrictEqual([]);
+      });
+
+      it('ERROR: {args: results --instance <killed> --since boot, no --kind} => refuses naming the sinceBoot-eligible kinds, and never writes to stdout', async () => {
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        await expect(
+          SiegelenseFlow({
+            args: ['results', '--instance', argvTree.killedInstanceId(), '--since', 'boot'],
+          }),
+        ).rejects.toThrow(
+          new RegExp(
+            `^results against instance ${argvTree.killedInstanceId()} with since: 'boot' and no ` +
+              `kind cannot answer: boot spans every run, and only console, network, ws hold lines ` +
+              `for the whole timeline\\. Name one with --kind <kind>, or drop --since boot to read ` +
+              `a single run's steps, server or screenshots\\.$`,
+            'u',
+          ),
+        );
+
+        process.stdout.write = originalWrite;
+
+        expect(writes).toStrictEqual([]);
+      });
+    });
+
+    describe('compare', () => {
+      it('VALID: {args: compare --instance <killed> --run-a run_1 --run-b run_2} => the CompareAnswer, matching what the broker itself returns', async () => {
+        const expectedAnswer = await argvTree.readCompare({
+          query: CompareQueryStub({
+            instanceId: argvTree.killedInstanceId(),
+            runA: argvTree.runOne(),
+            runB: argvTree.runTwo(),
+          }),
+        });
+
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        await SiegelenseFlow({
+          args: [
+            'compare',
+            '--instance',
+            argvTree.killedInstanceId(),
+            '--run-a',
+            argvTree.runOne(),
+            '--run-b',
+            argvTree.runTwo(),
+          ],
+        });
+
+        process.stdout.write = originalWrite;
+
+        const [wholeOutput] = writes;
+
+        expect(JSON.parse(wholeOutput!)).toStrictEqual(expectedAnswer);
+      });
+
+      it('INVALID: {args: compare --instance-a X --instance-b Y} => rejects naming both flags and stating there is no cross-instance form', async () => {
+        await expect(
+          SiegelenseFlow({
+            args: [
+              'compare',
+              '--instance-a',
+              argvTree.killedInstanceId(),
+              '--instance-b',
+              argvTree.liveInstanceId(),
+            ],
+          }),
+        ).rejects.toThrow(
+          /^--instance-a and --instance-b are not accepted: there is no cross-instance form\. Name one --instance and two runs \(--run-a, --run-b\) inside its own timeline — two different instances share nothing but a spec\.$/u,
+        );
+      });
+    });
+
+    describe('status', () => {
+      it('VALID: {args: status --instance <an id the registry never held>} => the default JSON names it "unknown", byte-identical to the read path\'s own answer for the same id', async () => {
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        await SiegelenseFlow({ args: ['status', '--instance', argvTree.unknownInstanceId()] });
+
+        process.stdout.write = originalWrite;
+
+        const [wholeOutput] = writes;
+        const withoutLiveMachineBlock = wholeOutput!.replace(
+          / {2}"machine": \{[\s\S]*?\n {2}\},\n/u,
+          '',
+        );
+
+        expect(withoutLiveMachineBlock).toBe(UNKNOWN_NAMED_STATUS_JSON);
+      });
+
+      it('VALID: {args: status --human} => the rendered table, killed then live', async () => {
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        await SiegelenseFlow({ args: ['status', '--human'] });
+
+        process.stdout.write = originalWrite;
+
+        const [wholeOutput] = writes;
+        const lines = wholeOutput!.split('\n');
+
+        expect(lines.slice(2, 4)).toStrictEqual([
+          'ID\tSTATE\tSPEC\tUPTIME\tLAST BEAT\tRUNS\tRSS\tORPHANS',
+          `${argvTree.killedInstanceId()}\tkilled\tdungeonmaster-web\t-\t-\t2\t1840MB\t0`,
+        ]);
+      });
+    });
+
+    describe('cleanup', () => {
+      it('VALID: {args: cleanup} => a real stale registry row reaped, a real live row left alone', async () => {
+        const staleId = await argvTree.addStaleAliveEntry();
+
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        await SiegelenseFlow({ args: ['cleanup'] });
+
+        process.stdout.write = originalWrite;
+
+        const [wholeOutput] = writes;
+
+        expect(JSON.parse(wholeOutput!)).toStrictEqual({
+          reaped: [
+            {
+              id: staleId,
+              staleFor: expect.stringMatching(/^\d+m$/u),
+              killed: [argvTree.fakePgid()],
+              homeRemoved: true,
+            },
+          ],
+          portsReleased: [40_021, 40_022],
+          lockReleased: false,
+          leftAlone: [
+            {
+              id: argvTree.liveInstanceId(),
+              why: expect.stringMatching(/^live — last beat \d+s ago$/u),
+            },
+          ],
+        });
       });
     });
   });

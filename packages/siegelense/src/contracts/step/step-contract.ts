@@ -26,6 +26,7 @@ import {
 import { locatorStateContract } from '../locator-state/locator-state-contract';
 import { nodeLabelContract } from '../node-label/node-label-contract';
 import { selectorContract } from '../selector/selector-contract';
+import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-statics';
 import { stepExpectationContract } from '../step-expectation/step-expectation-contract';
 import { stepStatics } from '../../statics/step/step-statics';
 import { urlPathContract } from '../url-path/url-path-contract';
@@ -35,7 +36,7 @@ export const stepContract = z.discriminatedUnion('step', [
     .object({
       step: z.literal('goto'),
       path: urlPathContract,
-      node: nodeLabelContract.nullable(),
+      node: nodeLabelContract.nullable().default(null),
       expect: stepExpectationContract.default(stepStatics.defaults.expect),
     })
     .strict(),
@@ -43,10 +44,10 @@ export const stepContract = z.discriminatedUnion('step', [
     .object({
       step: z.literal('waitFor'),
       target: selectorContract,
-      within: selectorContract.nullable(),
+      within: selectorContract.nullable().default(null),
       state: locatorStateContract,
-      timeoutMs: timeoutMsContract.nullable(),
-      node: nodeLabelContract.nullable(),
+      timeoutMs: timeoutMsContract.nullable().default(null),
+      node: nodeLabelContract.nullable().default(null),
       expect: stepExpectationContract.default(stepStatics.defaults.expect),
     })
     .strict(),
@@ -54,9 +55,9 @@ export const stepContract = z.discriminatedUnion('step', [
     .object({
       step: z.literal('click'),
       target: selectorContract,
-      within: selectorContract.nullable(),
-      timeoutMs: timeoutMsContract.nullable(),
-      node: nodeLabelContract.nullable(),
+      within: selectorContract.nullable().default(null),
+      timeoutMs: timeoutMsContract.nullable().default(null),
+      node: nodeLabelContract.nullable().default(null),
       expect: stepExpectationContract.default(stepStatics.defaults.expect),
     })
     .strict(),
@@ -64,18 +65,29 @@ export const stepContract = z.discriminatedUnion('step', [
     .object({
       step: z.literal('type'),
       target: selectorContract,
-      within: selectorContract.nullable(),
+      within: selectorContract.nullable().default(null),
       value: contentTextContract,
-      timeoutMs: timeoutMsContract.nullable(),
-      node: nodeLabelContract.nullable(),
+      timeoutMs: timeoutMsContract.nullable().default(null),
+      node: nodeLabelContract.nullable().default(null),
       expect: stepExpectationContract.default(stepStatics.defaults.expect),
     })
     .strict(),
   z
     .object({
       step: z.literal('screenshot'),
-      name: fileNameContract,
-      node: nodeLabelContract.nullable(),
+      // Playwright picks the image format off the path's extension and refuses a path carrying
+      // none, with `path: unsupported mime type "null"` — a message naming neither the step nor
+      // the field the caller typed. The extension is a real constraint rather than a formatting
+      // preference: every reader of this tree decodes PNG (`shotBlankReadBroker`,
+      // `shotChangeReadBroker`, and `compare`'s pixel path), so refusing here is what keeps a
+      // capture readable by the calls that exist to read it.
+      name: fileNameContract.refine(
+        (candidate) => candidate.endsWith(evidenceFileStatics.extensions.shot),
+        {
+          message: `a screenshot name must end in "${evidenceFileStatics.extensions.shot}" — the capture is a PNG and every call that reads one decodes it as such. Try { "step": "screenshot", "name": "after-create${evidenceFileStatics.extensions.shot}" }`,
+        },
+      ),
+      node: nodeLabelContract.nullable().default(null),
       expect: stepExpectationContract.default(stepStatics.defaults.expect),
     })
     .strict(),
@@ -83,7 +95,7 @@ export const stepContract = z.discriminatedUnion('step', [
     .object({
       step: z.literal('eval'),
       source: contentTextContract,
-      node: nodeLabelContract.nullable(),
+      node: nodeLabelContract.nullable().default(null),
       expect: stepExpectationContract.default(stepStatics.defaults.expect),
     })
     .strict(),

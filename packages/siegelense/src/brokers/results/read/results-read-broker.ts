@@ -6,9 +6,26 @@
  * answers. `instanceState` rides on every answer, and `pruned`/`unknown` return `rows: []` with the
  * state saying why rather than an error or a silent empty list. Against a `killed`/`dead` instance
  * with no `runId` and no `since: 'boot'`, `RunIdRequiredError` names the state and the run count —
- * never the run ids. Reach for this over calling `transcriptReadLayerBroker`/`bufferReadLayerBroker`
- * directly: this is the ONE place that resolves which run "no run named" actually means, so two
- * callers can never disagree about it.
+ * never the run ids. `since: 'boot'` with no `kind` refuses outright, naming
+ * `resultsStatics.kinds.sinceBootEligible`, rather than falling through to an unresolved run and
+ * answering `matched: 0, rows: []` for evidence that is genuinely on disk — the false-empty result
+ * siegelense-tooling.md:2357-2359 names as the one a fixer must never be handed. Reach for this over
+ * calling `transcriptReadLayerBroker`/`bufferReadLayerBroker` directly: this is the ONE place that
+ * resolves which run "no run named" actually means, so two callers can never disagree about it.
+ *
+ * An explicit run id that answers zero rows for a kind is ambiguous by itself — a mistyped id reads
+ * back identical to a run that genuinely logged nothing of that kind. Every kind branch below runs
+ * `runMissingCheckLayerBroker` before trusting that zero: it re-probes the stored return and, only
+ * if that is ALSO absent, the transcript, and throws `RunMissingError` — the same error
+ * `compareReadBroker` throws for a run with no stored return — only once BOTH are missing. Either
+ * file present means the run is real, so the zero already computed stands as a legitimate empty.
+ * `kind: null`/`kind: 'screenshots'` already need the stored return for their own data, so their
+ * probe runs unconditionally, first, and a run that crashed before its closing `.json` write still
+ * answers off its transcript alone. `console`/`network`/`ws`/`steps`/`server` run the SAME probe
+ * only once their own read comes back empty, so a run that legitimately holds rows never pays for
+ * the extra read. `compareReadBroker` drives this same broker through console/server/network for
+ * runs its OWN read already proved exist, so that lazy probe there finds a file already present on
+ * the first try and never re-litigates a question compare already answered.
  *
  * USAGE:
  * await resultsReadBroker({
@@ -19,8 +36,6 @@
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import { resultKindContract } from '../../../contracts/result-kind/result-kind-contract';
 import { resultsAnswerContract } from '../../../contracts/results-answer/results-answer-contract';
@@ -38,6 +53,7 @@ import { locationsInstanceEvidencePathFindBroker } from '../../locations/instanc
 import { locationsRunPathsFindBroker } from '../../locations/run-paths-find/locations-run-paths-find-broker';
 import { bufferReadLayerBroker } from './buffer-read-layer-broker';
 import { runListLayerBroker } from './run-list-layer-broker';
+import { runMissingCheckLayerBroker } from './run-missing-check-layer-broker';
 import { serverWindowReadLayerBroker } from './server-window-read-layer-broker';
 import { transcriptReadLayerBroker } from './transcript-read-layer-broker';
 
@@ -92,14 +108,23 @@ export const resultsReadBroker = async ({
     });
   }
 
+  const sinceBoot = query.since !== null;
+
+  if (sinceBoot && query.kind === null) {
+    throw new Error(
+      `results against instance ${query.instanceId} with since: 'boot' and no kind cannot ` +
+        `answer: boot spans every run, and only ${resultsStatics.kinds.sinceBootEligible.join(', ')} ` +
+        `hold lines for the whole timeline. Name one with --kind <kind>, or drop --since boot to ` +
+        `read a single run's steps, server or screenshots.`,
+    );
+  }
+
   const evidencePath = locationsInstanceEvidencePathFindBroker({
     instanceId: query.instanceId,
     guildId: entry?.guildId ?? null,
   });
 
   const { runCount, latestRunId } = await runListLayerBroker({ evidencePath });
-
-  const sinceBoot = query.since !== null;
 
   if (query.runId === null && !sinceBoot && state !== 'alive') {
     throw new RunIdRequiredError({ instanceId: query.instanceId, instanceState: state, runCount });
@@ -124,6 +149,19 @@ export const resultsReadBroker = async ({
       step: query.step,
       where: query.where,
     });
+
+    if (matchedRows.length === 0 && !sinceBoot && effectiveRunId !== null) {
+      const { transcript, storedReturn: storedReturnPath } = locationsRunPathsFindBroker({
+        evidencePath,
+        runId: effectiveRunId,
+      });
+      await runMissingCheckLayerBroker({
+        instanceId: query.instanceId,
+        runId: effectiveRunId,
+        storedReturnPath,
+        transcriptPath: transcript,
+      });
+    }
 
     const capped = matchedRows.slice(0, resultsStatics.limits.maxRows);
     const projectedRows = capped.map((row) =>
@@ -171,24 +209,13 @@ export const resultsReadBroker = async ({
   });
 
   if ((query.kind === null && query.step === null) || query.kind === 'screenshots') {
-    const storedReturnContent = await fsReadFileAdapter({ filePath: storedReturnPath }).catch(
-      (error: unknown) => {
-        if (
-          error !== null &&
-          typeof error === 'object' &&
-          errorIsNativeErrorAdapter({ value: error }) &&
-          'cause' in error &&
-          error.cause !== null &&
-          typeof error.cause === 'object' &&
-          errorIsNativeErrorAdapter({ value: error.cause }) &&
-          'code' in error.cause &&
-          error.cause.code === 'ENOENT'
-        ) {
-          return null;
-        }
-        throw error;
-      },
-    );
+    const { storedReturnContent } = await runMissingCheckLayerBroker({
+      instanceId: query.instanceId,
+      runId: effectiveRunId,
+      storedReturnPath,
+      transcriptPath: transcript,
+    });
+
     const storedReturn =
       storedReturnContent === null
         ? null
@@ -247,6 +274,16 @@ export const resultsReadBroker = async ({
       query.step === null ? readings : readings.filter((reading) => reading.step === query.step);
     const verb = query.step === null ? null : (filtered.at(0)?.verb ?? null);
     const rows = filtered.map((reading) => contentTextContract.parse(JSON.stringify(reading)));
+
+    if (rows.length === 0) {
+      await runMissingCheckLayerBroker({
+        instanceId: query.instanceId,
+        runId: effectiveRunId,
+        storedReturnPath,
+        transcriptPath: transcript,
+      });
+    }
+
     const capped = rows.slice(0, resultsStatics.limits.maxRows);
     const projectedRows = capped.map((row) =>
       resultRowProjectTransformer({ row, fields: query.fields }),
@@ -277,6 +314,16 @@ export const resultsReadBroker = async ({
       step: query.step,
       where: query.where,
     });
+
+    if (rows.length === 0) {
+      await runMissingCheckLayerBroker({
+        instanceId: query.instanceId,
+        runId: effectiveRunId,
+        storedReturnPath,
+        transcriptPath: transcript,
+      });
+    }
+
     const capped = rows.slice(0, resultsStatics.limits.maxRows);
     const projectedRows = capped.map((row) =>
       resultRowProjectTransformer({ row, fields: query.fields }),
