@@ -8,7 +8,13 @@
  * or `killArgsParseTransformer`: those close over one or three flags; this one is the call whose
  * `--help` page has to print an accepted-value list per flag, so `--kind`'s vocabulary is checked
  * through `resultKindContract` (derived from `resultsStatics.kinds.all`) rather than retyped, and a
- * seventh kind arriving later costs one edit.
+ * seventh kind arriving later costs one edit. Every OTHER branded parse (`--instance`, `--run`,
+ * `--step`, the four `--where-*` flags that carry a contract, `--since`) goes through
+ * `flagContractParseTransformer`, so a bad value answers with the contract's own message under its
+ * own flag's name rather than a raw ZodError; `--kind` does not need it because the hand-written
+ * check above it already refuses an invalid value before this point, and `--where-path`/`--fields`
+ * do not need it because `contentTextContract`/`resultFieldContract` cannot reject a non-empty
+ * string.
  *
  * USAGE:
  * resultsArgsParseTransformer({
@@ -36,6 +42,7 @@ import { stepIndexContract } from '../../contracts/step-index/step-index-contrac
 import { stepRangeContract } from '../../contracts/step-range/step-range-contract';
 import { resultsStatics } from '../../statics/results/results-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
+import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
 
 const INSTANCE_FLAG = '--instance';
@@ -131,17 +138,56 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
     whereStepsValue !== null;
 
   return resultsArgsContract.parse({
-    instanceId: instanceIdContract.parse(instanceValue),
-    runId: runValue === null ? null : runIdContract.parse(runValue),
-    step: stepValue === null ? null : stepIndexContract.parse(Number(stepValue)),
+    instanceId: flagContractParseTransformer({
+      flag: INSTANCE_FLAG,
+      parse: () => instanceIdContract.parse(instanceValue),
+    }),
+    runId:
+      runValue === null
+        ? null
+        : flagContractParseTransformer({
+            flag: RUN_FLAG,
+            parse: () => runIdContract.parse(runValue),
+          }),
+    step:
+      stepValue === null
+        ? null
+        : flagContractParseTransformer({
+            flag: STEP_FLAG,
+            parse: () => stepIndexContract.parse(Number(stepValue)),
+          }),
     kind: kindValue === null ? null : resultKindContract.parse(kindValue),
     where: hasWhere
       ? resultWhereContract.parse({
           path: wherePathValue === null ? null : contentTextContract.parse(wherePathValue),
-          method: whereMethodValue === null ? null : httpMethodContract.parse(whereMethodValue),
-          nth: whereNthValue === null ? null : arrayIndexContract.parse(Number(whereNthValue)),
-          level: whereLevelValue === null ? null : logLevelContract.parse(whereLevelValue),
-          steps: whereStepsValue === null ? null : stepRangeContract.parse(whereStepsValue),
+          method:
+            whereMethodValue === null
+              ? null
+              : flagContractParseTransformer({
+                  flag: WHERE_METHOD_FLAG,
+                  parse: () => httpMethodContract.parse(whereMethodValue),
+                }),
+          nth:
+            whereNthValue === null
+              ? null
+              : flagContractParseTransformer({
+                  flag: WHERE_NTH_FLAG,
+                  parse: () => arrayIndexContract.parse(Number(whereNthValue)),
+                }),
+          level:
+            whereLevelValue === null
+              ? null
+              : flagContractParseTransformer({
+                  flag: WHERE_LEVEL_FLAG,
+                  parse: () => logLevelContract.parse(whereLevelValue),
+                }),
+          steps:
+            whereStepsValue === null
+              ? null
+              : flagContractParseTransformer({
+                  flag: WHERE_STEPS_FLAG,
+                  parse: () => stepRangeContract.parse(whereStepsValue),
+                }),
         })
       : null,
     fields:
@@ -156,6 +202,12 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
             }
             return resultFieldContract.parse(token);
           }),
-    since: sinceValue === null ? null : sinceMarkerContract.parse(sinceValue),
+    since:
+      sinceValue === null
+        ? null
+        : flagContractParseTransformer({
+            flag: SINCE_FLAG,
+            parse: () => sinceMarkerContract.parse(sinceValue),
+          }),
   });
 };

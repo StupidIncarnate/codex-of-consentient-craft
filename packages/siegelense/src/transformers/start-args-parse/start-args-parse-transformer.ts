@@ -4,8 +4,10 @@
  * unowned case (siegelense-tooling.md line 2251), never a defect this throws on. `--json` is also
  * accepted and contributes no field, the same no-op affirmation of the default every other siegelense
  * call takes. Delegates every flag's own value-reading refusal (missing value, a value that starts
- * with "--", a repeated flag) to `flagValueReadTransformer`, so this file owns only the vocabulary —
- * which flags exist, which one is required, and what an unrecognised token means.
+ * with "--", a repeated flag) to `flagValueReadTransformer`, and every flag's own contract-parse
+ * refusal (a bad spec name, quest id or guild id) to `flagContractParseTransformer`, so this file
+ * owns only the vocabulary — which flags exist, which one is required, and what an unrecognised
+ * token means.
  *
  * USAGE:
  * startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-web'] });
@@ -18,6 +20,7 @@ import { specNameContract } from '../../contracts/spec-name/spec-name-contract';
 import { startArgsContract } from '../../contracts/start-args/start-args-contract';
 import type { StartArgs } from '../../contracts/start-args/start-args-contract';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
+import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
 
 const SPEC_FLAG = '--spec';
@@ -68,8 +71,23 @@ export const startArgsParseTransformer = ({ args }: { args: readonly string[] })
   const guildValue = flagValueReadTransformer({ args, flag: GUILD_FLAG });
 
   return startArgsContract.parse({
-    specName: specNameContract.parse(specValue),
-    questId: questValue === null ? null : questIdContract.parse(questValue),
-    guildId: guildValue === null ? null : guildIdContract.parse(guildValue),
+    specName: flagContractParseTransformer({
+      flag: SPEC_FLAG,
+      parse: () => specNameContract.parse(specValue),
+    }),
+    questId:
+      questValue === null
+        ? null
+        : flagContractParseTransformer({
+            flag: QUEST_FLAG,
+            parse: () => questIdContract.parse(questValue),
+          }),
+    guildId:
+      guildValue === null
+        ? null
+        : flagContractParseTransformer({
+            flag: GUILD_FLAG,
+            parse: () => guildIdContract.parse(guildValue),
+          }),
   });
 };

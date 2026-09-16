@@ -70,6 +70,32 @@ describe('startArgsParseTransformer', () => {
     });
   });
 
+  describe('an empty --spec', () => {
+    it('INVALID: {--spec ""} => throws naming --spec and specNameContract\'s own message', () => {
+      expect(() => startArgsParseTransformer({ args: ['--spec', ''] })).toThrow(
+        /^--spec: String must contain at least 1 character\(s\)$/u,
+      );
+    });
+  });
+
+  describe('an empty --quest', () => {
+    it('INVALID: {--quest ""} => throws naming --quest and questIdContract\'s own message', () => {
+      expect(() =>
+        startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-web', '--quest', ''] }),
+      ).toThrow(/^--quest: String must contain at least 1 character\(s\)$/u);
+    });
+  });
+
+  describe('a badly-shaped --guild', () => {
+    it("INVALID: {--guild not-a-uuid} => throws naming --guild and guildIdContract's own message", () => {
+      expect(() =>
+        startArgsParseTransformer({
+          args: ['--spec', 'dungeonmaster-web', '--guild', 'not-a-uuid'],
+        }),
+      ).toThrow(/^--guild: Invalid uuid$/u);
+    });
+  });
+
   describe('unknown flag', () => {
     it('INVALID: {--bogus X} => throws naming the flag and listing the accepted ones', () => {
       expect(() => startArgsParseTransformer({ args: ['--bogus', 'X'] })).toThrow(

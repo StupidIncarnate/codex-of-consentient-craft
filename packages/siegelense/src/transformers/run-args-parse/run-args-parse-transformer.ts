@@ -6,7 +6,11 @@
  * `@dungeonmaster/enforce-import-dependencies` rule refuses the write before it lands — so the
  * CALLER reads that file first and hands its text back as `stepsFileContent`; `null` whenever
  * `--steps-file` was never named. Exactly one of the two flags is required: naming both, or naming
- * neither, refuses by naming both flags, never a silent preference for one.
+ * neither, refuses by naming both flags, never a silent preference for one. Every branded parse —
+ * `--instance`, `--stop-on`, and the final `runArgsContract.parse` that validates `steps` against
+ * `stepContract` — goes through `flagContractParseTransformer` so a bad value answers with the
+ * contract's own message under its flag's name, attributing the composite parse's own failures
+ * (a malformed step) to whichever of `--steps`/`--steps-file` supplied the raw JSON.
  *
  * USAGE:
  * runArgsParseTransformer({
@@ -24,6 +28,7 @@ import type { RunArgs } from '../../contracts/run-args/run-args-contract';
 import { stopOnContract } from '../../contracts/stop-on/stop-on-contract';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { stepStatics } from '../../statics/step/step-statics';
+import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
 
 const INSTANCE_FLAG = '--instance';
@@ -115,9 +120,21 @@ export const runArgsParseTransformer = ({
 
   const stopOnValue = flagValueReadTransformer({ args, flag: STOP_ON_FLAG });
 
-  return runArgsContract.parse({
-    instanceId: instanceIdContract.parse(instanceValue),
-    steps: parsedSteps,
-    stopOn: stopOnValue === null ? stepStatics.defaults.stopOn : stopOnContract.parse(stopOnValue),
+  const instanceId = flagContractParseTransformer({
+    flag: INSTANCE_FLAG,
+    parse: () => instanceIdContract.parse(instanceValue),
+  });
+
+  const stopOn =
+    stopOnValue === null
+      ? stepStatics.defaults.stopOn
+      : flagContractParseTransformer({
+          flag: STOP_ON_FLAG,
+          parse: () => stopOnContract.parse(stopOnValue),
+        });
+
+  return flagContractParseTransformer({
+    flag: sourceFlag,
+    parse: () => runArgsContract.parse({ instanceId, steps: parsedSteps, stopOn }),
   });
 };

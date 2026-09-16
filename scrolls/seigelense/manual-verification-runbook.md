@@ -47,6 +47,29 @@ npm run build --workspace=@dungeonmaster/cli
 **Only the coordinator builds.** A build takes no lock and rewrites every package's output, so a build
 in flight breaks every other agent's checks. If you need one, say so and stop.
 
+## `start` refuses to boot without a fake CLI, and that is a safety gate
+
+The `dungeonmaster-web` spec refuses to boot against a real Claude CLI, so a driving session cannot
+spend real API usage by accident. Reach it without the two variables set and you get
+`FakeAgentCliRequiredError`, which names both:
+
+```bash
+CLAUDE_CLI_PATH=packages/web/test/harnesses/claude-mock/bin/claude \
+WARD_CLI_PATH=packages/orchestrator/test-fixtures/fake-ward-bin/dungeonmaster-ward \
+node packages/cli/dist/bin/dungeonmaster.js siegelense start --spec dungeonmaster-web
+```
+
+Both fixtures are committed in this repo. With them set, a real boot measured `bootMs: 4264` and
+returned a full manifest.
+
+**This refusal is not the manifest defect.** That one answered
+`Cannot find module '.../@dungeonmaster/cli/dist/index.js'` — `packages/cli/package.json` named an
+entry file the build never emits, so `start` could not resolve the binary it spawns the driver with.
+Ward sets `--conditions=source` on every check, which resolves to the `.ts` file instead and passes,
+so no test could see it. `workspace-manifest-entries-verify-broker` now stats every package's
+declared entry against disk, without going through module resolution at all — the only way to catch
+this class.
+
 ## Two pieces of housekeeping before a driver run
 
 **Clear the stale sockets.** The driver's control socket lives at a machine-global path,

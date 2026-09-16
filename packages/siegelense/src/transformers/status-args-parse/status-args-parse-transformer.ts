@@ -3,7 +3,9 @@
  * OPTIONAL here, unlike `killArgsParseTransformer`'s required one: the bare form lists the whole
  * fleet (siegelense-tooling.md line 2443), so an absent flag parses to `instanceId: null` rather
  * than a refusal. `--human` is one of the two calls with its own renderer (spec §3.A); every other
- * built call refuses that flag rather than silently answering JSON anyway.
+ * built call refuses that flag rather than silently answering JSON anyway. A named id parses through
+ * `flagContractParseTransformer`, so a badly-shaped `--instance` answers with the contract's own
+ * message under `--instance` rather than a raw ZodError.
  *
  * USAGE:
  * statusArgsParseTransformer({ args: [] });
@@ -16,6 +18,7 @@ import {
   type StatusArgs,
 } from '../../contracts/status-args/status-args-contract';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
+import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
 
 const INSTANCE_FLAG = '--instance';
@@ -57,7 +60,13 @@ export const statusArgsParseTransformer = ({ args }: { args: readonly string[] }
   }
 
   const rawInstanceId = flagValueReadTransformer({ args, flag: INSTANCE_FLAG });
-  const instanceId = rawInstanceId === null ? null : instanceIdContract.parse(rawInstanceId);
+  const instanceId =
+    rawInstanceId === null
+      ? null
+      : flagContractParseTransformer({
+          flag: INSTANCE_FLAG,
+          parse: () => instanceIdContract.parse(rawInstanceId),
+        });
   const human = args.includes(siegelenseOutputStatics.flags.human);
 
   return statusArgsContract.parse({ instanceId, human });

@@ -164,6 +164,82 @@ describe('resultsArgsParseTransformer', () => {
     });
   });
 
+  describe('a badly-shaped --instance', () => {
+    it("INVALID: {--instance not-a-valid-id} => throws naming --instance and the contract's own message", () => {
+      expect(() => resultsArgsParseTransformer({ args: ['--instance', 'not-a-valid-id'] })).toThrow(
+        /^--instance: Instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u,
+      );
+    });
+  });
+
+  describe('a badly-shaped --run', () => {
+    it("INVALID: {--run bogus} => throws naming --run and runIdContract's own message", () => {
+      expect(() =>
+        resultsArgsParseTransformer({ args: ['--instance', 'inst_7f3a9c21', '--run', 'bogus'] }),
+      ).toThrow(/^--run: Invalid$/u);
+    });
+  });
+
+  describe('a non-numeric --step', () => {
+    it("INVALID: {--step abc} => throws naming --step and stepIndexContract's own message", () => {
+      expect(() =>
+        resultsArgsParseTransformer({ args: ['--instance', 'inst_7f3a9c21', '--step', 'abc'] }),
+      ).toThrow(/^--step: Expected number, received nan$/u);
+    });
+  });
+
+  describe('a badly-shaped --where-method', () => {
+    it("INVALID: {--where-method WOOF} => throws naming --where-method and httpMethodContract's own message", () => {
+      expect(() =>
+        resultsArgsParseTransformer({
+          args: ['--instance', 'inst_7f3a9c21', '--where-method', 'WOOF'],
+        }),
+      ).toThrow(
+        /^--where-method: Invalid enum value\. Expected 'GET' \| 'POST' \| 'PUT' \| 'PATCH' \| 'DELETE' \| 'HEAD' \| 'OPTIONS', received 'WOOF'$/u,
+      );
+    });
+  });
+
+  describe('a negative --where-nth', () => {
+    it("INVALID: {--where-nth -1} => throws naming --where-nth and arrayIndexContract's own message", () => {
+      expect(() =>
+        resultsArgsParseTransformer({
+          args: ['--instance', 'inst_7f3a9c21', '--where-nth', '-1'],
+        }),
+      ).toThrow(/^--where-nth: Number must be greater than or equal to 0$/u);
+    });
+  });
+
+  describe('a badly-shaped --where-level', () => {
+    it("INVALID: {--where-level fatal} => throws naming --where-level and logLevelContract's own message", () => {
+      expect(() =>
+        resultsArgsParseTransformer({
+          args: ['--instance', 'inst_7f3a9c21', '--where-level', 'fatal'],
+        }),
+      ).toThrow(
+        /^--where-level: Invalid enum value\. Expected 'error' \| 'warn' \| 'info', received 'fatal'$/u,
+      );
+    });
+  });
+
+  describe('a badly-shaped --where-steps', () => {
+    it("INVALID: {--where-steps abc} => throws naming --where-steps and stepRangeContract's own message", () => {
+      expect(() =>
+        resultsArgsParseTransformer({
+          args: ['--instance', 'inst_7f3a9c21', '--where-steps', 'abc'],
+        }),
+      ).toThrow(/^--where-steps: Invalid$/u);
+    });
+  });
+
+  describe('a badly-shaped --since', () => {
+    it("INVALID: {--since now} => throws naming --since and sinceMarkerContract's own message", () => {
+      expect(() =>
+        resultsArgsParseTransformer({ args: ['--instance', 'inst_7f3a9c21', '--since', 'now'] }),
+      ).toThrow(/^--since: Invalid literal value, expected "boot"$/u);
+    });
+  });
+
   describe('an unknown flag', () => {
     it('INVALID: {--bogus X} => throws naming the flag and listing the accepted ones', () => {
       expect(() =>

@@ -1,11 +1,14 @@
 /**
  * PURPOSE: Reads `dungeonmaster siegelense compare`'s argv into a `CompareArgs` — `--instance`,
  * `--run-a` and `--run-b` all required, `--json` accepted and contributing no field, the same no-op
- * affirmation of the default every other siegelense call takes. Carries forward, verbatim in rule,
- * the refusal the deleted `siegelense-compare` MCP tool description used to state: `compare` has no
- * cross-instance form, so `--instance-a` / `--instance-b` are refused BY NAME with that reason rather
- * than falling through to a generic "unknown flag" — a caller reaching for those two spellings is
- * reaching for a form that does not exist, and a generic refusal would teach it nothing about why.
+ * affirmation of the default every other siegelense call takes. `compare` has no cross-instance
+ * form — two runs are only comparable inside one instance's own timeline — so `--instance-a` /
+ * `--instance-b` are refused BY NAME with that reason rather than falling through to a generic
+ * "unknown flag": a caller reaching for those two spellings is reaching for a form that does not
+ * exist, and a generic refusal would teach it nothing about why.
+ * `--instance`, `--run-a` and `--run-b` each parse through `flagContractParseTransformer`, so a
+ * badly-shaped id answers with the contract's own message under its flag's name rather than a raw
+ * ZodError.
  *
  * USAGE:
  * compareArgsParseTransformer({ args: ['--instance', 'inst_7f3a9c21', '--run-a', 'run_4', '--run-b', 'run_5'] });
@@ -17,6 +20,7 @@ import type { CompareArgs } from '../../contracts/compare-args/compare-args-cont
 import { instanceIdContract } from '../../contracts/instance-id/instance-id-contract';
 import { runIdContract } from '../../contracts/run-id/run-id-contract';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
+import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
 
 const INSTANCE_FLAG = '--instance';
@@ -86,8 +90,17 @@ export const compareArgsParseTransformer = ({ args }: { args: readonly string[] 
   }
 
   return compareArgsContract.parse({
-    instanceId: instanceIdContract.parse(instanceValue),
-    runA: runIdContract.parse(runAValue),
-    runB: runIdContract.parse(runBValue),
+    instanceId: flagContractParseTransformer({
+      flag: INSTANCE_FLAG,
+      parse: () => instanceIdContract.parse(instanceValue),
+    }),
+    runA: flagContractParseTransformer({
+      flag: RUN_A_FLAG,
+      parse: () => runIdContract.parse(runAValue),
+    }),
+    runB: flagContractParseTransformer({
+      flag: RUN_B_FLAG,
+      parse: () => runIdContract.parse(runBValue),
+    }),
   });
 };

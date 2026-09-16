@@ -4,7 +4,9 @@
  * stdout gets the help it asked for rather than a refusal (siegelense-tooling.md §3.F). `driver
  * --instance <id>` sits outside the thirteen-call surface entirely — internal, spawned by `start`,
  * never typed by a person — and keeps its own `--instance` read, now through the shared
- * `flagValueReadTransformer` rather than a second `indexOf` dance. Every other built call goes
+ * `flagValueReadTransformer` rather than a second `indexOf` dance, and its own id parse through
+ * `flagContractParseTransformer` so a badly-shaped id answers with the contract's own message under
+ * `--instance` rather than a raw ZodError. Every other built call goes
  * through `CALL_ROUTES`, a `Map` keyed by the same seven names `siegelenseHelpStatics.calls` holds:
  * each entry parses its own argv and calls its responder — **except `run`, whose entry hands argv
  * straight to `SiegelenseRunResponder` unparsed.** That is not an inconsistency to "tidy" away:
@@ -52,6 +54,7 @@ import { siegelenseHelpStatics } from '../../statics/siegelense-help/siegelense-
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { cleanupArgsParseTransformer } from '../../transformers/cleanup-args-parse/cleanup-args-parse-transformer';
 import { compareArgsParseTransformer } from '../../transformers/compare-args-parse/compare-args-parse-transformer';
+import { flagContractParseTransformer } from '../../transformers/flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../../transformers/flag-value-read/flag-value-read-transformer';
 import { killArgsParseTransformer } from '../../transformers/kill-args-parse/kill-args-parse-transformer';
 import { resultsArgsParseTransformer } from '../../transformers/results-args-parse/results-args-parse-transformer';
@@ -125,7 +128,10 @@ export const SiegelenseFlow = async ({
     if (rawInstanceId === null) {
       throw new Error(`${INSTANCE_FLAG} is required: name the instance to drive.`);
     }
-    const instanceId = instanceIdContract.parse(rawInstanceId);
+    const instanceId = flagContractParseTransformer({
+      flag: INSTANCE_FLAG,
+      parse: () => instanceIdContract.parse(rawInstanceId),
+    });
     return SiegelenseDriverResponder({ instanceId });
   }
 

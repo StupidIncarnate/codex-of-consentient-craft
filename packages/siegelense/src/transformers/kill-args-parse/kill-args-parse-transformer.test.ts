@@ -19,6 +19,14 @@ describe('killArgsParseTransformer', () => {
     });
   });
 
+  describe('a badly-shaped --instance', () => {
+    it("INVALID: {args: [--instance, not-a-valid-id]} => throws naming --instance and the contract's own message", () => {
+      expect(() => killArgsParseTransformer({ args: ['--instance', 'not-a-valid-id'] })).toThrow(
+        /^--instance: Instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u,
+      );
+    });
+  });
+
   describe('an unknown flag', () => {
     it('INVALID: {args: [--bogus]} => throws naming the flag and listing the accepted ones', () => {
       expect(() => killArgsParseTransformer({ args: ['--bogus'] })).toThrow(

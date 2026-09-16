@@ -10,7 +10,7 @@ describe('compareAnswerContract', () => {
         runB: 'run_5',
         console: { errors: '+2', new: ['Cannot read properties of null'] },
         server: { errors: '+0', new: [] },
-        network: { non2xx: '+1', new: ['POST /api/guilds 500'] },
+        network: { errors: '+1', new: ['POST /api/guilds 500'] },
         pixels: 'last capture differs 12%',
       });
 
@@ -22,7 +22,7 @@ describe('compareAnswerContract', () => {
         runB: 'run_5',
         console: { errors: '+2', new: ['Cannot read properties of null'] },
         server: { errors: '+0', new: [] },
-        network: { non2xx: '+1', new: ['POST /api/guilds 500'] },
+        network: { errors: '+1', new: ['POST /api/guilds 500'] },
         pixels: 'last capture differs 12%',
       });
     });
@@ -45,7 +45,7 @@ describe('compareAnswerContract', () => {
           runB: 'run_5',
           console: { errors: '+2', new: [] },
           server: { errors: '+0', new: [] },
-          network: { non2xx: '+1', new: [] },
+          network: { errors: '+1', new: [] },
           pixels: null,
           elements: '+0 -3 under GUILD_LIST',
         } as never),
@@ -61,7 +61,7 @@ describe('compareAnswerContract', () => {
           runA: 'run_4',
           console: { errors: '+2', new: [] },
           server: { errors: '+0', new: [] },
-          network: { non2xx: '+1', new: [] },
+          network: { errors: '+1', new: [] },
           pixels: null,
         }),
       ).toThrow(/Required/u);

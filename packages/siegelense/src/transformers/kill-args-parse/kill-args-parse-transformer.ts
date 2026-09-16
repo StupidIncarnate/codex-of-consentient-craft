@@ -2,7 +2,9 @@
  * PURPOSE: Reads `dungeonmaster siegelense kill`'s argv into a `KillArgs`, refusing any flag but
  * `--instance` and `--json` and any bare token that is not that flag's own value. `--instance` is
  * REQUIRED here — unlike `statusArgsParseTransformer`'s optional one — because `kill` has no bare
- * fleet-listing form: there is no instance to tear down without naming one.
+ * fleet-listing form: there is no instance to tear down without naming one. The id parses through
+ * `flagContractParseTransformer`, so a badly-shaped `--instance` answers with the contract's own
+ * message under `--instance` rather than a raw ZodError.
  *
  * USAGE:
  * killArgsParseTransformer({ args: ['--instance', 'inst_7f3a9c21'] });
@@ -12,6 +14,7 @@
 import { instanceIdContract } from '../../contracts/instance-id/instance-id-contract';
 import { killArgsContract, type KillArgs } from '../../contracts/kill-args/kill-args-contract';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
+import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
 
 const INSTANCE_FLAG = '--instance';
@@ -55,5 +58,10 @@ export const killArgsParseTransformer = ({ args }: { args: readonly string[] }):
     );
   }
 
-  return killArgsContract.parse({ instanceId: instanceIdContract.parse(rawInstanceId) });
+  return killArgsContract.parse({
+    instanceId: flagContractParseTransformer({
+      flag: INSTANCE_FLAG,
+      parse: () => instanceIdContract.parse(rawInstanceId),
+    }),
+  });
 };

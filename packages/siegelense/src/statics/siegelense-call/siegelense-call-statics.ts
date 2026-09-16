@@ -1,8 +1,9 @@
 /**
  * PURPOSE: The closed set of `dungeonmaster siegelense <call>` names — no `prefix`, because there
  * is no registration and no prefix on a CLI: the name typed after `dungeonmaster siegelense` IS
- * the call. Reach for this over `siegelenseToolsStatics`, which survives only because four files
- * under `packages/mcp` still import it until the MCP layer is deleted with them.
+ * the call. This is the single source for that name list and for the `docs { for }` scopes; any
+ * caller naming a siegelense call or a docs scope reaches for this rather than retyping either
+ * list.
  *
  * USAGE:
  * siegelenseCallStatics.calls.names;

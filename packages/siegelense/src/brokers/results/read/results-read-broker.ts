@@ -6,9 +6,12 @@
  * answers. `instanceState` rides on every answer, and `pruned`/`unknown` return `rows: []` with the
  * state saying why rather than an error or a silent empty list. Against a `killed`/`dead` instance
  * with no `runId` and no `since: 'boot'`, `RunIdRequiredError` names the state and the run count —
- * never the run ids. Reach for this over calling `transcriptReadLayerBroker`/`bufferReadLayerBroker`
- * directly: this is the ONE place that resolves which run "no run named" actually means, so two
- * callers can never disagree about it.
+ * never the run ids. `since: 'boot'` with no `kind` refuses outright, naming
+ * `resultsStatics.kinds.sinceBootEligible`, rather than falling through to an unresolved run and
+ * answering `matched: 0, rows: []` for evidence that is genuinely on disk — the false-empty result
+ * siegelense-tooling.md:2357-2359 names as the one a fixer must never be handed. Reach for this over
+ * calling `transcriptReadLayerBroker`/`bufferReadLayerBroker` directly: this is the ONE place that
+ * resolves which run "no run named" actually means, so two callers can never disagree about it.
  *
  * USAGE:
  * await resultsReadBroker({
@@ -92,14 +95,23 @@ export const resultsReadBroker = async ({
     });
   }
 
+  const sinceBoot = query.since !== null;
+
+  if (sinceBoot && query.kind === null) {
+    throw new Error(
+      `results against instance ${query.instanceId} with since: 'boot' and no kind cannot ` +
+        `answer: boot spans every run, and only ${resultsStatics.kinds.sinceBootEligible.join(', ')} ` +
+        `hold lines for the whole timeline. Name one with --kind <kind>, or drop --since boot to ` +
+        `read a single run's steps, server or screenshots.`,
+    );
+  }
+
   const evidencePath = locationsInstanceEvidencePathFindBroker({
     instanceId: query.instanceId,
     guildId: entry?.guildId ?? null,
   });
 
   const { runCount, latestRunId } = await runListLayerBroker({ evidencePath });
-
-  const sinceBoot = query.since !== null;
 
   if (query.runId === null && !sinceBoot && state !== 'alive') {
     throw new RunIdRequiredError({ instanceId: query.instanceId, instanceState: state, runCount });

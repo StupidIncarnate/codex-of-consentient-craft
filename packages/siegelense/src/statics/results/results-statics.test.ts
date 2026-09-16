@@ -12,6 +12,10 @@ describe('resultsStatics', () => {
         'steps',
       ]);
     });
+
+    it('VALID: {kinds.sinceBootEligible} => is exactly the three buffer kinds a boot-wide read can answer', () => {
+      expect(resultsStatics.kinds.sinceBootEligible).toStrictEqual(['console', 'network', 'ws']);
+    });
   });
 
   describe('patterns.consoleError', () => {

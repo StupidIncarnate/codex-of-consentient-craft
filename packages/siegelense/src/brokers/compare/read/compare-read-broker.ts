@@ -1,29 +1,37 @@
 /**
  * PURPOSE: `compare` itself — the index delta between two runs of ONE instance, a READING never a
- * verdict (siegelense-tooling.md line 2350). Reads both runs' stored `RunResult` returns off disk
- * for the signed count deltas and the last-shot pixel diff; `elements` stays absent on purpose
- * (chunk-03 §3.F) and `compareAnswerContract` is `.strict()`, so adding it back is a parse error, not
- * a design choice this file can make. `console.new` / `server.new` / `network.new` carry only the
- * lines `newLinesLayerBroker` finds unique to run B **in the same category as the paired count field**
- * (spec lines 2857-2859: `errors` pairs with new ERRORS, `non2xx` pairs with new NON-2XX exchanges) —
- * fed by `resultsReadBroker`, called once per run per kind, rather than
- * `bufferReadLayerBroker`/`transcriptReadLayerBroker`/`serverWindowReadLayerBroker` directly: those
- * are LAYER files inside `brokers/results/read/`, and `enforce-project-structure` refuses a
- * cross-domain import of any of them. `resultsReadBroker`, the `results` domain's own entry file, is
- * the one door in. Console and server scope AT THE QUERY, via `where: { level: 'error' }` — the same
- * narrowing `results { where: { level } }` already offers a caller, so this reuses tested plumbing
- * rather than re-filtering rows here. Network has no such lever: `resultWhereContract` carries no
- * status-code field, and `where.level` filtering (in `bufferReadLayerBroker`) only ever tests a
- * line against the CONSOLE error/warning patterns regardless of `kind`, so passing `level` for a
- * `network` query would silently match nothing. Network rows are therefore fetched unscoped, same as
- * before, and filtered to non-2xx AFTER the read via `isNetworkLineNon2xxGuard` — the same
- * classification `runIndexComputeTransformer` counts `network.non2xx` with, so the two can never
- * disagree about what "non-2xx" means. An id with no registry row at all —
- * `instanceStateResolveBroker`'s own `'unknown'` state — throws `InstanceUnknownError` before any
- * file is touched, rather than letting `fsReadFileAdapter` bubble a raw ENOENT with a filesystem path
- * in its message; a KNOWN instance whose named run never stored a return (never completed, or its
- * evidence was pruned) throws `RunMissingError` naming that run instead. The two read differently on
- * purpose — only the first means the id was never real.
+ * verdict (siegelense-tooling.md:2458). Reads both runs' stored `RunResult` returns off disk for the
+ * signed count deltas and the last-shot pixel diff; `elements` stays absent on purpose (chunk-03 §3.F)
+ * and `compareAnswerContract` is `.strict()`, so adding it back is a parse error, not a design choice
+ * this file can make. `console.new` / `server.new` scope AT THE QUERY, via `where: { level: 'error' }`
+ * — the same narrowing `results { where: { level } }` already offers a caller, so this reuses tested
+ * plumbing rather than re-filtering rows here. Network has no such lever: `resultWhereContract` carries
+ * no status-code field, so network rows are fetched unscoped and narrowed here, after the read.
+ *
+ * `network.errors` and `network.new` both come from the SAME filtered row set — a 4xx/5xx status, or
+ * no status at all (a request that never got a response) — so the count and the list can never
+ * describe different things. A 3xx — a redirect, a 304 cache revalidation on an ordinary page reload —
+ * is normal traffic and counts toward neither. siegelense-tooling.md:724-726, on `pixelChange`, states
+ * the principle this filter applies here: "it routes attention; it measures nothing."
+ * `console.errors`/`server.errors` already had this property — each counts the SAME category its own
+ * `new:` list surfaces — and `network.errors` matches that pattern instead of being the one field that
+ * didn't.
+ *
+ * `resultA.index.network.non2xx` / `resultB.index.network.non2xx` — the literal HTTP-range tally
+ * `runIndexComputeTransformer` persists on every `RunResult`, and what `run` and `results` still show
+ * — is deliberately NOT read here. Reusing it for `network.errors` would put back the exact
+ * contradiction this field exists to avoid: a name promising "what's worth a look" computed from a set
+ * that includes ordinary 3xx traffic. `run`'s own reading is unaffected by this file and keeps its
+ * wider meaning; `compare` computes its own narrower one independently, over the same rows
+ * `network.new` already filters. `isNetworkLineNon2xxGuard` stays out of both: its [200, 300) boundary
+ * is wider than the 4xx/5xx-or-no-response floor this file applies, and reusing it here would move
+ * `RunIndex.network.non2xx` too.
+ *
+ * An id with no registry row at all — `instanceStateResolveBroker`'s own `'unknown'` state — throws
+ * `InstanceUnknownError` before any file is touched, rather than letting `fsReadFileAdapter` bubble a
+ * raw ENOENT with a filesystem path in its message; a KNOWN instance whose named run never stored a
+ * return (never completed, or its evidence was pruned) throws `RunMissingError` naming that run
+ * instead. The two read differently on purpose — only the first means the id was never real.
  *
  * USAGE:
  * await compareReadBroker({ query: CompareQueryStub({ runA: 'run_4', runB: 'run_5' }) });
@@ -46,7 +54,8 @@ import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-err
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { RunMissingError } from '../../../errors/run-missing/run-missing-error';
-import { isNetworkLineNon2xxGuard } from '../../../guards/is-network-line-non2xx/is-network-line-non2xx-guard';
+import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
+import { resultsStatics } from '../../../statics/results/results-statics';
 import { instanceStateResolveBroker } from '../../instance/state-resolve/instance-state-resolve-broker';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { locationsRunPathsFindBroker } from '../../locations/run-paths-find/locations-run-paths-find-broker';
@@ -64,6 +73,16 @@ const ERROR_WHERE = resultWhereContract.parse({
   level: 'error',
   steps: null,
 });
+
+// The same status extraction `isNetworkLineNon2xxGuard` runs, reused here for a DIFFERENT boundary:
+// that guard's [200, 300) floor/ceiling feeds the persisted `RunIndex.network.non2xx` `run` shows, a
+// reading this file leaves untouched. `NETWORK_ATTENTION_FLOOR` decides BOTH `network.errors` and
+// `network.new` below — one floor, so the count and the list can never disagree.
+const NETWORK_STATUS_PATTERN = new RegExp(
+  resultsStatics.patterns.networkStatus.source,
+  resultsStatics.patterns.networkStatus.flags,
+);
+const NETWORK_ATTENTION_FLOOR = 400;
 
 export const compareReadBroker = async ({
   query,
@@ -213,14 +232,22 @@ export const compareReadBroker = async ({
   const pixels =
     pixelChange === null ? null : contentTextContract.parse(`last capture differs ${pixelChange}`);
 
-  // Network has no query-level lever for non-2xx (see the header comment), so both runs' FULL row
-  // sets are narrowed here, after the read, to the same category `network.non2xx` counts.
-  const networkNon2xxRowsA = networkAnswerA.rows.filter((line) =>
-    isNetworkLineNon2xxGuard({ line }),
-  );
-  const networkNon2xxRowsB = networkAnswerB.rows.filter((line) =>
-    isNetworkLineNon2xxGuard({ line }),
-  );
+  // Network has no query-level lever for status (see the header comment), so both runs' FULL row
+  // sets are narrowed here, after the read, to what `network.errors` counts and `network.new` lists:
+  // a 4xx/5xx status, or no status at all (a request that never got a response). A 3xx never reaches
+  // either — a redirect or a 304 cache revalidation is ordinary traffic on any page reload.
+  const networkFailureRowsA = networkAnswerA.rows.filter((line) => {
+    const match = NETWORK_STATUS_PATTERN.exec(line);
+    return (
+      match?.[1] === undefined || match[1] === 'null' || Number(match[1]) >= NETWORK_ATTENTION_FLOOR
+    );
+  });
+  const networkFailureRowsB = networkAnswerB.rows.filter((line) => {
+    const match = NETWORK_STATUS_PATTERN.exec(line);
+    return (
+      match?.[1] === undefined || match[1] === 'null' || Number(match[1]) >= NETWORK_ATTENTION_FLOOR
+    );
+  });
 
   return compareAnswerContract.parse({
     instanceId,
@@ -241,11 +268,11 @@ export const compareReadBroker = async ({
       new: newLinesLayerBroker({ linesA: serverAnswerA.rows, linesB: serverAnswerB.rows }),
     },
     network: {
-      non2xx: countDeltaRenderTransformer({
-        before: resultA.index.network.non2xx,
-        after: resultB.index.network.non2xx,
+      errors: countDeltaRenderTransformer({
+        before: readingCountContract.parse(networkFailureRowsA.length),
+        after: readingCountContract.parse(networkFailureRowsB.length),
       }),
-      new: newLinesLayerBroker({ linesA: networkNon2xxRowsA, linesB: networkNon2xxRowsB }),
+      new: newLinesLayerBroker({ linesA: networkFailureRowsA, linesB: networkFailureRowsB }),
     },
     pixels,
   });

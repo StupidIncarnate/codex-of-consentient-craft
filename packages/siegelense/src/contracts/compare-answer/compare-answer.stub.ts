@@ -21,7 +21,7 @@ export const CompareAnswerStub = ({ ...props }: StubArgument<CompareAnswer> = {}
       new: [],
     },
     network: {
-      non2xx: CountDeltaStub({ value: '+1' }),
+      errors: CountDeltaStub({ value: '+1' }),
       new: [ContentTextStub({ value: 'POST /api/guilds 500' })],
     },
     pixels: ContentTextStub({ value: 'last capture differs 12%' }),

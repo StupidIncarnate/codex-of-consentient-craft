@@ -91,6 +91,14 @@ describe('SiegelenseFlow', () => {
         SiegelenseFlow({ args: ['driver', '--instance', 'inst_dead0000'] }),
       ).rejects.toThrow(/inst_dead0000 not found in the registry/u);
     });
+
+    it('ERROR: {args: driver --instance <badly-shaped id>} => rejects the id shape naming --instance rather than a raw ZodError', async () => {
+      await expect(
+        SiegelenseFlow({ args: ['driver', '--instance', 'not-a-valid-id'] }),
+      ).rejects.toThrow(
+        /^--instance: Instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u,
+      );
+    });
   });
 
   describe('the status route', () => {
@@ -115,10 +123,12 @@ describe('SiegelenseFlow', () => {
       expect(withoutLiveMachineBlock).toBe(EMPTY_FLEET_STATUS_JSON);
     });
 
-    it('ERROR: {args: status --instance <badly-shaped id>} => routes to the status responder, which rejects the id shape', async () => {
+    it('ERROR: {args: status --instance <badly-shaped id>} => routes to the status responder, which rejects the id shape naming --instance rather than a raw ZodError', async () => {
       await expect(
         SiegelenseFlow({ args: ['status', '--instance', 'not-a-valid-id'] }),
-      ).rejects.toThrow(/Instance id must look like/u);
+      ).rejects.toThrow(
+        /^--instance: Instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u,
+      );
     });
 
     it('INVALID: {args: status --instance} => rejects naming the flag instead of silently printing the whole fleet', async () => {
@@ -479,7 +489,7 @@ describe('SiegelenseFlow', () => {
           runB: tree.runTwo(),
           console: { errors: '+1', new: tree.consoleRun2ErrorRows() },
           server: { errors: '-1', new: tree.serverRun2ErrorRows() },
-          network: { non2xx: '+1', new: tree.networkRun2NonSuccessRows() },
+          network: { errors: '+1', new: tree.networkRun2NonSuccessRows() },
           pixels: 'last capture differs 50%',
         });
       });
@@ -864,6 +874,33 @@ describe('SiegelenseFlow', () => {
             instanceState: 'killed',
             runCount: 2,
           }),
+        );
+
+        process.stdout.write = originalWrite;
+
+        expect(writes).toStrictEqual([]);
+      });
+
+      it('ERROR: {args: results --instance <killed> --since boot, no --kind} => refuses naming the sinceBoot-eligible kinds, and never writes to stdout', async () => {
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        await expect(
+          SiegelenseFlow({
+            args: ['results', '--instance', argvTree.killedInstanceId(), '--since', 'boot'],
+          }),
+        ).rejects.toThrow(
+          new RegExp(
+            `^results against instance ${argvTree.killedInstanceId()} with since: 'boot' and no ` +
+              `kind cannot answer: boot spans every run, and only console, network, ws hold lines ` +
+              `for the whole timeline\\. Name one with --kind <kind>, or drop --since boot to read ` +
+              `a single run's steps, server or screenshots\\.$`,
+            'u',
+          ),
         );
 
         process.stdout.write = originalWrite;

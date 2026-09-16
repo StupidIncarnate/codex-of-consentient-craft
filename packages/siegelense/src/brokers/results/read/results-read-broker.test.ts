@@ -321,6 +321,75 @@ describe('resultsReadBroker', () => {
     expect(result.rows).toStrictEqual([run1Text, betweenRunsText, run2Text]);
   });
 
+  it('VALID: {kind: network, since: boot} => entries from run_1 AND run_2, with real matched/returned counts', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({
+      evidencePath,
+      entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl', 'run_2.json'],
+    });
+    const run1Text = networkText({ method: 'GET', url: '/api/a', status: 200 });
+    const run2Text = networkText({ method: 'POST', url: '/api/b', status: 500 });
+    proxy.setupBuffer({
+      evidencePath,
+      kind: 'network',
+      content:
+        bufferLine({ runId: RUN_1, step: null, text: run1Text }) +
+        bufferLine({ runId: RUN_2, step: null, text: run2Text }),
+    });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({ instanceId: INSTANCE_ID, kind: 'network', since: 'boot' }),
+    });
+
+    expect({ matched: result.matched, returned: result.returned, rows: result.rows }).toStrictEqual(
+      { matched: 2, returned: 2, rows: [run1Text, run2Text] },
+    );
+  });
+
+  it('ERROR: {killed instance holding console/network/ws evidence, since: boot, no kind} => refuses by name rather than answering matched: 0 for evidence genuinely on disk', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
+    proxy.setupBuffer({
+      evidencePath,
+      kind: 'console',
+      content: bufferLine({
+        runId: RUN_2,
+        step: null,
+        text: ContentTextStub({ value: '{"at":1,"kind":"console","type":"log","text":"a"}' }),
+      }),
+    });
+    proxy.setupBuffer({
+      evidencePath,
+      kind: 'network',
+      content: bufferLine({
+        runId: RUN_2,
+        step: null,
+        text: networkText({ method: 'GET', url: '/api/quests', status: 200 }),
+      }),
+    });
+    proxy.setupBuffer({
+      evidencePath,
+      kind: 'websocket',
+      content: bufferLine({
+        runId: RUN_2,
+        step: null,
+        text: ContentTextStub({ value: '{"at":1,"direction":"send","payload":"ping"}' }),
+      }),
+    });
+
+    await expect(
+      resultsReadBroker({ query: ResultsQueryStub({ instanceId: INSTANCE_ID, since: 'boot' }) }),
+    ).rejects.toThrow(
+      /^results against instance inst_7f3a9c21 with since: 'boot' and no kind cannot answer: boot spans every run, and only console, network, ws hold lines for the whole timeline\. Name one with --kind <kind>, or drop --since boot to read a single run's steps, server or screenshots\.$/u,
+    );
+  });
+
   it('ERROR: {no run, instanceState killed} => throws RunIdRequiredError naming the state and the count', async () => {
     const proxy = resultsReadBrokerProxy();
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });

@@ -6,13 +6,17 @@
  * Each console line is the JSON `listenersLayerAdapter` builds — `"kind":"pageerror"` for an uncaught
  * exception, `"kind":"console","type":"error"|"warning"` for a console message — and JSON.stringify's
  * fixed key order (`at`, `kind`, `type`, ...) is what makes a plain substring match safe rather than a
- * full parse. Network lines are classified by `isNetworkLineNon2xxGuard` — the one place that decides
- * what counts as non-2xx, so this count and `compareReadBroker`'s `network.new` scoping can never
- * disagree. Every console/server pattern is built from `resultsStatics.patterns` rather than a
- * locally declared regex, so this count and a `results { where: { level } }` query can never classify
- * the same line differently (chunk-03-read-path-and-perception.md §3.A: "One error pattern, one
- * place"). Reach for this over reading the buffers directly inside `runExecuteBroker`: keeping the
- * counting pure and separate is what lets it run with no browser and no server process at all.
+ * full parse. Network lines are classified by `isNetworkLineNon2xxGuard` — the literal [200, 300)
+ * HTTP-range boundary this run's own index reports as `network.non2xx`. `compareReadBroker`'s
+ * `network.errors` does NOT read this count: it derives its own, narrower reading (a 4xx/5xx status,
+ * or no response at all) from the same rows independently, because a run's index and a compare
+ * reading answer different questions — this one "how much non-2xx traffic did this run see," that one
+ * "what in here is worth a look." Every console/server pattern is built from `resultsStatics.patterns`
+ * rather than a locally declared regex, so this count and a `results { where: { level } }` query can
+ * never classify the same line differently (chunk-03-read-path-and-perception.md §3.A: "One error
+ * pattern, one place"). Reach for this over reading the buffers directly inside `runExecuteBroker`:
+ * keeping the counting pure and separate is what lets it run with no browser and no server process at
+ * all.
  *
  * USAGE:
  * runIndexComputeTransformer({

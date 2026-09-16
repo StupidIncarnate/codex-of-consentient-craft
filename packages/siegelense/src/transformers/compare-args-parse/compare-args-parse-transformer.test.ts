@@ -75,6 +75,38 @@ describe('compareArgsParseTransformer', () => {
     });
   });
 
+  describe('a badly-shaped --instance', () => {
+    it("INVALID: {--instance not-a-valid-id} => throws naming --instance and the contract's own message", () => {
+      expect(() =>
+        compareArgsParseTransformer({
+          args: ['--instance', 'not-a-valid-id', '--run-a', 'run_4', '--run-b', 'run_5'],
+        }),
+      ).toThrow(
+        /^--instance: Instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u,
+      );
+    });
+  });
+
+  describe('a badly-shaped --run-a', () => {
+    it("INVALID: {--run-a bogus} => throws naming --run-a and runIdContract's own message", () => {
+      expect(() =>
+        compareArgsParseTransformer({
+          args: ['--instance', 'inst_7f3a9c21', '--run-a', 'bogus', '--run-b', 'run_5'],
+        }),
+      ).toThrow(/^--run-a: Invalid$/u);
+    });
+  });
+
+  describe('a badly-shaped --run-b', () => {
+    it("INVALID: {--run-b bogus} => throws naming --run-b and runIdContract's own message", () => {
+      expect(() =>
+        compareArgsParseTransformer({
+          args: ['--instance', 'inst_7f3a9c21', '--run-a', 'run_4', '--run-b', 'bogus'],
+        }),
+      ).toThrow(/^--run-b: Invalid$/u);
+    });
+  });
+
   describe('a value-flag immediately followed by another known flag', () => {
     it('INVALID: {--run-a --run-b run_5} => throws naming --run-a as the flag whose value is missing', () => {
       expect(() =>

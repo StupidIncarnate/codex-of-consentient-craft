@@ -108,7 +108,7 @@ describe('runArgsParseTransformer', () => {
   });
 
   describe('rejecting a step that fails stepContract', () => {
-    it('INVALID: {a step with an unknown key} => throws naming the key, proving .strict() survives', () => {
+    it('INVALID: {a step with an unknown key} => throws naming --steps, the path and the message, never the raw issue array', () => {
       expect(() =>
         runArgsParseTransformer({
           args: [
@@ -119,8 +119,51 @@ describe('runArgsParseTransformer', () => {
           ],
           stepsFileContent: null,
         }),
+      ).toThrow(/^--steps: steps\.0: Unrecognized key\(s\) in object: 'bogus'$/u);
+    });
+  });
+
+  describe('an --instance value that fails instanceIdContract', () => {
+    it("INVALID: {--instance not-a-valid-id} => throws naming --instance and the contract's own message", () => {
+      expect(() =>
+        runArgsParseTransformer({
+          args: ['--instance', 'not-a-valid-id', '--steps', '[]'],
+          stepsFileContent: null,
+        }),
       ).toThrow(
-        /^\[\n {2}\{\n {4}"code": "unrecognized_keys",\n {4}"keys": \[\n {6}"bogus"\n {4}\],\n {4}"path": \[\n {6}"steps",\n {6}0\n {4}\],\n {4}"message": "Unrecognized key\(s\) in object: 'bogus'"\n {2}\}\n\]$/u,
+        /^--instance: Instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u,
+      );
+    });
+  });
+
+  describe('a --stop-on value that fails stopOnContract', () => {
+    it("INVALID: {--stop-on maybe} => throws naming --stop-on and the contract's own message", () => {
+      expect(() =>
+        runArgsParseTransformer({
+          args: ['--instance', 'inst_7f3a9c21', '--steps', '[]', '--stop-on', 'maybe'],
+          stepsFileContent: null,
+        }),
+      ).toThrow(/^--stop-on: Invalid enum value\. Expected 'error' \| 'never', received 'maybe'$/u);
+    });
+  });
+
+  describe('two steps that each fail stepContract', () => {
+    it('INVALID: {two steps, each with a different unknown key} => throws naming --steps and BOTH issues, joined by "; "', () => {
+      expect(() =>
+        runArgsParseTransformer({
+          args: [
+            '--instance',
+            'inst_7f3a9c21',
+            '--steps',
+            JSON.stringify([
+              { step: 'goto', path: '/', bogus: true },
+              { step: 'goto', path: '/', evil: true },
+            ]),
+          ],
+          stepsFileContent: null,
+        }),
+      ).toThrow(
+        /^--steps: steps\.0: Unrecognized key\(s\) in object: 'bogus'; steps\.1: Unrecognized key\(s\) in object: 'evil'$/u,
       );
     });
   });
