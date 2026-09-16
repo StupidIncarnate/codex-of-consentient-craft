@@ -138,6 +138,8 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/enforce-proxy-param-binding': 'error',
     '@dungeonmaster/ban-flattened-contract-params': 'error',
     '@dungeonmaster/ban-anonymous-jsx-in-map': 'error',
+    '@dungeonmaster/ban-dom-handles-in-ingredients': 'error',
+    '@dungeonmaster/ban-nondeterminism-in-ingredients': 'error',
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
     '@typescript-eslint/no-require-imports': 'off',
     /**

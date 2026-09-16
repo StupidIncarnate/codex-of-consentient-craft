@@ -5,10 +5,10 @@ const REQUIRED_FIELDS = ['ref', 'name'] as const;
 
 describe('opSaveRecordContract', () => {
   describe('valid saveRecord ops', () => {
-    it('VALID: {ref: "guild[0]/quest[2]", name: "third"} => returns the whole op', () => {
-      expect(OpSaveRecordStub({ ref: 'guild[0]/quest[2]', name: 'third' })).toStrictEqual({
+    it('VALID: {ref: "guild[0:0]/quest[0:2]", name: "third"} => returns the whole op', () => {
+      expect(OpSaveRecordStub({ ref: 'guild[0:0]/quest[0:2]', name: 'third' })).toStrictEqual({
         op: 'saveRecord',
-        ref: 'guild[0]/quest[2]',
+        ref: 'guild[0:0]/quest[0:2]',
         name: 'third',
       });
     });
@@ -26,7 +26,7 @@ describe('opSaveRecordContract', () => {
       expect(() =>
         opSaveRecordContract.parse({
           op: 'nope' as never,
-          ref: 'guild[0]/quest[2]',
+          ref: 'guild[0:0]/quest[0:2]',
           name: 'third',
         }),
       ).toThrow(/Invalid literal value/u);

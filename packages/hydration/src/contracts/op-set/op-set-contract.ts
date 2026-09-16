@@ -7,10 +7,10 @@
  * one op kind with two producers instead of a seventh.
  *
  * USAGE:
- * opSetContract.parse({ op: 'set', ref: 'guild[0]/quest[2]', written: { title: 'The running one' } });
+ * opSetContract.parse({ op: 'set', ref: 'guild[0:0]/quest[0:2]', written: { title: 'The running one' } });
  * opSetContract.parse({
  *   op: 'set',
- *   ref: 'guild[0]/quest[2]',
+ *   ref: 'guild[0:0]/quest[0:2]',
  *   written: {},
  *   transition: { field: 'status', to: 'in_progress' },
  * });

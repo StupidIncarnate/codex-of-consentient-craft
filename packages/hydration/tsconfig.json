@@ -12,6 +12,9 @@
     "*.ts"
   ],
   "exclude": [
-    "test/adapter-fixtures/**"
+    "test/adapter-fixtures/**",
+    "test/type-fixtures/declaration/**",
+    "test/type-fixtures/call-site/**",
+    "test/type-fixtures/positive/**"
   ]
 }

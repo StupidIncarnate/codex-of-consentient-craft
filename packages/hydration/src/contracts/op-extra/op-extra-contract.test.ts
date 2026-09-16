@@ -5,12 +5,12 @@ const REQUIRED_FIELDS = ['ref', 'verb', 'args'] as const;
 
 describe('opExtraContract', () => {
   describe('valid extra ops', () => {
-    it('VALID: {ref: "session[0]", verb: "withNestedChain", args: {depth: 2}} => returns the whole op', () => {
+    it('VALID: {ref: "session[0:0]", verb: "withNestedChain", args: {depth: 2}} => returns the whole op', () => {
       expect(
-        OpExtraStub({ ref: 'session[0]', verb: 'withNestedChain', args: { depth: 2 } }),
+        OpExtraStub({ ref: 'session[0:0]', verb: 'withNestedChain', args: { depth: 2 } }),
       ).toStrictEqual({
         op: 'extra',
-        ref: 'session[0]',
+        ref: 'session[0:0]',
         verb: 'withNestedChain',
         args: { depth: 2 },
       });
@@ -19,7 +19,7 @@ describe('opExtraContract', () => {
     it('VALID: {args: {}} => an extra with no declared args is legal', () => {
       expect(OpExtraStub({ args: {} })).toStrictEqual({
         op: 'extra',
-        ref: 'session[0]',
+        ref: 'session[0:0]',
         verb: 'withNestedChain',
         args: {},
       });
@@ -36,7 +36,7 @@ describe('opExtraContract', () => {
 
     it('INVALID: {verb: "set"} => throws naming the reserved verb', () => {
       expect(() =>
-        opExtraContract.parse({ op: 'extra', ref: 'session[0]', verb: 'set', args: {} }),
+        opExtraContract.parse({ op: 'extra', ref: 'session[0:0]', verb: 'set', args: {} }),
       ).toThrow(/reserved verb/u);
     });
 
@@ -44,7 +44,7 @@ describe('opExtraContract', () => {
       expect(() =>
         opExtraContract.parse({
           op: 'nope' as never,
-          ref: 'session[0]',
+          ref: 'session[0:0]',
           verb: 'withNestedChain',
           args: {},
         }),

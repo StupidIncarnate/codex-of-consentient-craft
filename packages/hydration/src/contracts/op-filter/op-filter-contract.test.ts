@@ -12,47 +12,53 @@ describe('opFilterContract', () => {
           ingredient: 'operation',
           where: { role: 'riftcarver' },
           expect: 'one',
-          matchedRef: 'operation[0]',
-          ops: [OpRemoveStub({ ref: 'operation[0]' })],
+          matchedRef: 'operation[match]',
+          ops: [OpRemoveStub({ ref: 'operation[match]' })],
         }),
       ).toStrictEqual({
         op: 'filter',
         ingredient: 'operation',
         where: { role: 'riftcarver' },
         expect: 'one',
-        matchedRef: 'operation[0]',
-        ops: [{ op: 'remove', ref: 'operation[0]' }],
+        matchedRef: 'operation[match]',
+        ops: [{ op: 'remove', ref: 'operation[match]' }],
       });
     });
 
-    it('VALID: {scope: "guild[0]/quest[0]"} => returns the scoped op', () => {
-      expect(OpFilterStub({ scope: 'guild[0]/quest[0]', ingredient: 'operation' })).toStrictEqual({
+    it('VALID: {scope: "guild[0:0]/quest[0:0]"} => returns the scoped op', () => {
+      expect(
+        OpFilterStub({ scope: 'guild[0:0]/quest[0:0]', ingredient: 'operation' }),
+      ).toStrictEqual({
         op: 'filter',
         ingredient: 'operation',
-        scope: 'guild[0]/quest[0]',
+        scope: 'guild[0:0]/quest[0:0]',
         where: { role: 'riftcarver' },
         expect: 'one',
-        matchedRef: 'operation[0]',
+        matchedRef: 'operation[match]',
         ops: [],
       });
     });
 
     it('VALID: {ops: [a nested filter]} => a filter may nest another filter', () => {
-      const nested = OpFilterStub({ ingredient: 'workItem', matchedRef: 'workItem[0]', ops: [] });
+      const nested = OpFilterStub({
+        ingredient: 'workItem',
+        matchedRef: 'workItem[match]',
+        ops: [],
+      });
 
       expect(OpFilterStub({ ops: [nested] })).toStrictEqual({
         op: 'filter',
         ingredient: 'operation',
         where: { role: 'riftcarver' },
         expect: 'one',
-        matchedRef: 'operation[0]',
+        matchedRef: 'operation[match]',
         ops: [
           {
             op: 'filter',
             ingredient: 'workItem',
             where: { role: 'riftcarver' },
             expect: 'one',
-            matchedRef: 'workItem[0]',
+            matchedRef: 'workItem[match]',
             ops: [],
           },
         ],
@@ -75,7 +81,7 @@ describe('opFilterContract', () => {
           ingredient: 'operation',
           where: {},
           expect: 'one',
-          matchedRef: 'operation[0]',
+          matchedRef: 'operation[match]',
           ops: [{ op: 'nope' }],
         }),
       ).toThrow(/invalid_union/u);
@@ -88,7 +94,7 @@ describe('opFilterContract', () => {
           ingredient: 'operation',
           where: {},
           expect: 'one',
-          matchedRef: 'operation[0]',
+          matchedRef: 'operation[match]',
           ops: [],
         }),
       ).toThrow(/Invalid literal value/u);

@@ -9,7 +9,7 @@
  * throw new HydrationTransactionRolledBackError({
  *   recipeName: 'seed-users-and-posts',
  *   ingredientName: 'comment',
- *   opDescription: 'create comment[2]',
+ *   opDescription: 'create comment[0:2]',
  *   cause: new Error('foreign key violation on post_id'),
  * });
  * // Throws error naming the recipe, the triggering op and the underlying database failure

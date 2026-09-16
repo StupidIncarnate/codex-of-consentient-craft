@@ -17,7 +17,6 @@
  */
 import { z } from 'zod';
 import { hydrationRouteContract } from '../hydration-route/hydration-route-contract';
-import type { CopiesTarget } from '../copies-target/copies-target-contract';
 
 export type RouteFn<TTarget> = (args: {
   target: TTarget;
@@ -103,7 +102,10 @@ export type RoutesFor<TTarget> = (
   ExistingRowRoutes<TTarget>;
 
 /** `copies:` is required exactly where a `write` route exists — never for an `api`-only or
- * `recording`-only ingredient, which have nothing to imitate. */
+ * `recording`-only ingredient, which have nothing to imitate. Bare `string`, not the branded
+ * `CopiesTarget`: a caller writes a plain literal here, and `ingredientConfigContract.parse` is
+ * what brands it — same reasoning as `IngredientConfig.copies`, which this type is intersected
+ * alongside at every `ingredientDeclareBroker` call site. */
 export type CopiesFor<R> = R extends { write: RouteFn<never> }
-  ? { copies: CopiesTarget }
+  ? { copies: string }
   : { copies?: never };

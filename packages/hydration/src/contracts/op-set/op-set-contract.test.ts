@@ -7,10 +7,10 @@ describe('opSetContract', () => {
   describe('valid set ops', () => {
     it('VALID: {ref, written: {title}} => returns the op with no transition key', () => {
       expect(
-        OpSetStub({ ref: 'guild[0]/quest[2]', written: { title: 'The running one' } }),
+        OpSetStub({ ref: 'guild[0:0]/quest[0:2]', written: { title: 'The running one' } }),
       ).toStrictEqual({
         op: 'set',
-        ref: 'guild[0]/quest[2]',
+        ref: 'guild[0:0]/quest[0:2]',
         written: { title: 'The running one' },
       });
     });
@@ -18,13 +18,13 @@ describe('opSetContract', () => {
     it('VALID: {ref, written: {}, transition: {field: "status", to: "in_progress"}} => returns both halves', () => {
       expect(
         OpSetStub({
-          ref: 'guild[0]/quest[2]',
+          ref: 'guild[0:0]/quest[0:2]',
           written: {},
           transition: { field: 'status', to: 'in_progress' },
         }),
       ).toStrictEqual({
         op: 'set',
-        ref: 'guild[0]/quest[2]',
+        ref: 'guild[0:0]/quest[0:2]',
         written: {},
         transition: { field: 'status', to: 'in_progress' },
       });
@@ -43,7 +43,7 @@ describe('opSetContract', () => {
       expect(() =>
         opSetContract.parse({
           op: 'nope' as never,
-          ref: 'guild[0]/quest[2]',
+          ref: 'guild[0:0]/quest[0:2]',
           written: {},
         }),
       ).toThrow(/Invalid literal value/u);

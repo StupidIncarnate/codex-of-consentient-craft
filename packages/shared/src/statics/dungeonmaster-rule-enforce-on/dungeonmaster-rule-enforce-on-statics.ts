@@ -80,6 +80,8 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/enforce-proxy-param-binding': 'pre-edit',
   '@dungeonmaster/ban-flattened-contract-params': 'pre-edit',
   '@dungeonmaster/ban-anonymous-jsx-in-map': 'pre-edit',
+  '@dungeonmaster/ban-dom-handles-in-ingredients': 'pre-edit',
+  '@dungeonmaster/ban-nondeterminism-in-ingredients': 'pre-edit',
 
   // @dungeonmaster - POST-EDIT (4 rules)
   '@dungeonmaster/enforce-proxy-patterns': 'post-edit',

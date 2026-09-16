@@ -5,7 +5,7 @@
  * `op-filter` hands the nested ops it runs once per row it finds.
  *
  * USAGE:
- * opRemoveContract.parse({ op: 'remove', ref: 'guild[0]/quest[1]' });
+ * opRemoveContract.parse({ op: 'remove', ref: 'guild[0:0]/quest[0:1]' });
  * // Returns an OpRemove
  */
 import { z } from 'zod';

@@ -4,7 +4,7 @@
  * only the name `saveRecordAs` was given, because saving a row and writing to it are different acts.
  *
  * USAGE:
- * opSaveRecordContract.parse({ op: 'saveRecord', ref: 'guild[0]/quest[2]', name: 'third' });
+ * opSaveRecordContract.parse({ op: 'saveRecord', ref: 'guild[0:0]/quest[0:2]', name: 'third' });
  * // Returns an OpSaveRecord
  */
 import { z } from 'zod';

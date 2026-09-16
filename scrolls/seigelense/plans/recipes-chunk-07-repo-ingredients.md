@@ -95,26 +95,47 @@ section is what shipped.
 | a test can parse a contract inline | **It cannot.** A test file imports stubs, never contracts, and may not call another package's brokers or adapters without a proxy. The logic lives in a broker and a guard this package owns |
 | — | **The package now also declares `"private": true`**, so npm refuses to publish it even if the root entry returns. That is a second, independent guard on the same rule, and both halves are proven able to fail |
 
-### Two lint rules the specification requires, which nothing owns
+### The two lint rules now EXIST, and they only fire on a filename
 
-**Neither exists, and no chunk is assigned either one.** Both belong in `@dungeonmaster/eslint-plugin`,
-which SHIPS — the specification is explicit that a repo-only rule would hold the constraint here and
-nowhere else, and the constraint binds every repo that writes an ingredient.
+**Both rules ship in `@dungeonmaster/eslint-plugin`, are registered, and were proven firing against
+real ESLint.** One bans a DOM handle in an ingredient; one bans a clock or a random source.
 
-| Rule | What the specification says it holds |
+**They scope by FILENAME: a file ending `-ingredient.ts` or `-ingredient.tsx`.** There is no
+ingredient folder type in the architecture, and no real ingredient existed when the rules were
+written — so that convention is a bet, and this plan is what makes it true.
+
+> **Every ingredient this chunk writes is named `<name>-ingredient.ts`.** An ingredient under any
+> other name is invisible to both rules, and the determinism guarantee silently stops being enforced
+> for it.
+
+**What each rule does NOT catch**, so nobody reads a clean lint as proof:
+
+| Rule | Blind to |
+|---|---|
+| the DOM-handle rule | a namespaced ref call rather than a bare one; a handle reached through a wrapper file; bare property access with no call; a UI toolkit outside its watchlist |
+| the determinism rule | a destructured import of the same function called bare; other sources of variation the specification does not name; **a helper in another file that calls one of the three** |
+
+**Both rules read ONE file's own syntax and never its call graph.** That is the template's own admitted
+blind spot, carried across deliberately. **An ingredient stays deterministic because its author meant
+it to**, and the rule catches the careless case rather than the determined one.
+
+**One thing left open:** the pre-edit hook may read a compiled snapshot rather than source, so these
+two rules may not block an edit until `@dungeonmaster/hooks` is rebuilt. Ward's own lint does fire
+them from source. Confirm it when an ingredient first exists.
+
+### What each rule holds, in the specification's own words
+
+Both live in `@dungeonmaster/eslint-plugin`, which SHIPS. The specification is explicit that a
+repo-only rule would hold the constraint here and nowhere else, and the constraint binds every repo
+that writes an ingredient.
+
+| Rule | What it holds |
 |---|---|
 | an ingredient holds no DOM handle | *"An ingredient touches STATE, never a screen"* — an ingredient carrying a selector is a design error, not a stale value: it says the ingredient is doing a walk's job |
 | an ingredient calls no clock and no random source | *"the enforcement is one lint rule over one folder rather than a convention repeated in every recipe"*. With the index supplied by the chain, reaching for one of those is the ONLY way left to break determinism |
 
-**`no-hardcoded-package-names` in `local-eslint` is the working template** — a rule broker plus a
-statics file holding its watchlist and path allowlists. **Copy the caution with the shape**: that rule
-passes a file hardcoding two package names, because its own matcher only fires after a workspace
-directory segment. The specification's words for it are *"A rule that looks like it covers something
-and does not is worse than no rule"*, and its instruction is to **say the rule's real scope in the
-rule's own message.**
-
-**Until these ship, the determinism claim is held by nothing.** That is a gap to schedule, not a line
-to add to a config — an entry naming an unregistered rule takes the whole package's lint down.
+**A config entry names a rule only once that rule is registered.** An entry naming an unregistered
+rule is a FATAL config error that takes down linting for the whole package, not a harmless no-op.
 
 ### The session ingredient's `copies:` has no valid target, and that is a finding
 

@@ -12,8 +12,8 @@
  *   ingredient: 'operation',
  *   where: { role: 'riftcarver' },
  *   expect: 'one',
- *   matchedRef: 'operation[0]',
- *   ops: [{ op: 'remove', ref: 'operation[0]' }],
+ *   matchedRef: 'operation[match]',
+ *   ops: [{ op: 'remove', ref: 'operation[match]' }],
  * });
  * // Returns an OpFilter
  */

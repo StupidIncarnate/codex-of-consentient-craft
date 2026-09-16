@@ -6,14 +6,14 @@ describe('HydrationTransactionRolledBackError', () => {
       const error = new HydrationTransactionRolledBackError({
         recipeName: 'seed-users-and-posts',
         ingredientName: 'comment',
-        opDescription: 'create comment[2]',
+        opDescription: 'create comment[0:2]',
         cause: new Error('foreign key violation on post_id'),
       });
 
       expect({ name: error.name, message: error.message }).toStrictEqual({
         name: 'HydrationTransactionRolledBackError',
         message:
-          'recipe "seed-users-and-posts": the transaction rolled back, undoing the whole plan — triggered by create comment[2] on ingredient "comment": Error: foreign key violation on post_id',
+          'recipe "seed-users-and-posts": the transaction rolled back, undoing the whole plan — triggered by create comment[0:2] on ingredient "comment": Error: foreign key violation on post_id',
       });
     });
   });
@@ -23,7 +23,7 @@ describe('HydrationTransactionRolledBackError', () => {
       const error = new HydrationTransactionRolledBackError({
         recipeName: 'seed-users-and-posts',
         ingredientName: 'comment',
-        opDescription: 'create comment[2]',
+        opDescription: 'create comment[0:2]',
         cause: new Error('x'),
       });
 
@@ -34,7 +34,7 @@ describe('HydrationTransactionRolledBackError', () => {
       const error = new HydrationTransactionRolledBackError({
         recipeName: 'seed-users-and-posts',
         ingredientName: 'comment',
-        opDescription: 'create comment[2]',
+        opDescription: 'create comment[0:2]',
         cause: new Error('x'),
       });
 

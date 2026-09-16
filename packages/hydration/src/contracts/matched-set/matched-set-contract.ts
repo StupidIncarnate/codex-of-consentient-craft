@@ -6,7 +6,7 @@
  * `setRaw`, `saveRecordAs`, `remove` and the ingredient's own extras arrive by intersection.
  *
  * USAGE:
- * matchedSetContract.parse({ ingredient: 'operation', matchedRef: 'operation[0]' });
+ * matchedSetContract.parse({ ingredient: 'operation', matchedRef: 'operation[match]' });
  * // Returns MatchedSetData
  */
 import { z } from 'zod';

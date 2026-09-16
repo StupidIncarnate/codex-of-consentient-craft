@@ -261,7 +261,7 @@ empty-versus-missing reasoning. **It needs the rename and nothing else** — do 
 | A recipe returns a PLAN, and the plan is DATA | the listing prints it, so nothing can drift from a hand-written summary. And one plan runs three ways — a walk, an end-to-end spec, an integration test |
 | Every ingredient carries a colocated integration test, and a two-route ingredient compares its OWN routes | it moves staleness from "discovered months later by whichever planner needed it" to "fails on the commit that caused it, next to the diff". A snapshot pins an ingredient to a shape somebody typed; a two-route comparison pins it to what production emits |
 | The test owns CORRECTNESS; the planner's prelude owns FITNESS for a path | an ingredient can be perfectly correct and be the wrong ingredient for path 3. And three ingredients that each pass alone still fail composed. No test can know either |
-| `api` routes share ONE instance for the whole suite | one 20-second boot per ingredient is a suite nobody runs. `write` routes need no instance at all |
+| `api` routes share ONE instance for the whole suite | **not a 20-second boot** — a server built as an in-process application object has no port to open, so measure the real cost before designing around one that may not exist. The real reason to share is Jest's own file boundary: nothing crosses test files, so one `beforeAll` per file is the only reuse there is. `write` routes need no instance at all |
 | An ingredient whose claim is about what a URL RENDERS needs a browser to assert it — the most expensive of three test costs | files assert with a temp dir, a route asserts with a shared server, a rendering asserts with a full instance. Narrow a claim to the cheapest tier that is still honest |
 | A browser-asserted ingredient test is DELIBERATE, because the prelude's `VERIFIED` run already covers rendering | the prelude is proven by running; an ingredient test that re-proves the same rendering pays twice for one fact |
 | An ingredient touches STATE, never a screen — held by a lint rule in `@dungeonmaster/eslint-plugin`, which SHIPS | the constraint binds every repo that writes an ingredient, so a `local-eslint` rule would hold it here and nowhere else. `no-hardcoded-package-names` stays the TEMPLATE for the shape, and its own blind spot is the caution to copy with it |
@@ -477,6 +477,15 @@ defaults: (index) => ({ title: `Quest ${index + 1}` }),
 and 1. It is the chain's only source of per-row variation, and it is why nothing in an ingredient needs
 a clock or a random value.
 
+**A reference disambiguates between calls, or two rows would share one identity.** The index above is
+scoped to its own `add` on purpose — `defaults(index)` needs a row's position to reset per call, not
+climb forever. But a row's REFERENCE cannot reuse that same bare index: two sibling `add(2, …)` calls
+on one collection, or the same top-level ingredient added twice, would then mint the identical ref for
+different rows, and a later op targeting one silently lands on the other. So a reference folds in a
+SECOND number alongside the index — which `add` call, in the order those calls ran on that one
+collection — deterministic because it is scoped to one collection instance, reset to zero the moment a
+fresh collection exists, and never a counter that survives between separate builds of the same recipe.
+
 **`copies`** — required wherever a `write` route exists:
 
 ```ts
@@ -485,6 +494,13 @@ copies: 'questPersistBroker',
 
 The production code whose output that route imitates. It is where a diagnosis starts, and where the
 two-route comparison test points.
+
+**`copies:` presumes the imitated writer is in-repo production code, and that presumption fails for a
+shape only an external tool writes.** A Claude session transcript is the case: the Claude CLI writes
+it, not anything in this repo — every in-repo path that touches the shape READS it, and the only
+in-repo artifact that emits it is a test fixture. **Do not invent an answer here.** Until this is
+answered, an ingredient for that shape cannot honestly declare a `write` route at all, and it is the
+ingredient behind a large share of the conversion's call sites.
 
 **`extras`** — verbs only this ingredient could have:
 
@@ -586,6 +602,13 @@ recipes {}
 | `runs` | `serverless`, or `needs a server: <ingredient>`. **An ALL over the plan's ingredients, never a union** — a union answers which routes appear anywhere, which is a different and more optimistic question |
 | `makes` | each ingredient's `description`, counted off the plan. `varies` wherever a `filter` or a transition decides the count |
 
+**A transition's minted rows are invisible to `makes`, not merely their count.** `reach` is an opaque
+function, and nothing in a plan ties a transition to the child ingredient it mints. The worked example
+above prints `operation (varies)` only because its own `filter` names `operation`; the same transition
+with no filter naming that ingredient does not appear in `makes` at all — not even as `varies`. So the
+limit is not that the count cannot be known at build time. **The INGREDIENT cannot be known either,
+wherever nothing else in the plan names it.**
+
 **`runs` on that listing is the line that stops a wasted run.** A Jest integration test reads
 `needs a server: guild` and stops, instead of finding out partway through with half a plan on disk.
 
@@ -652,6 +675,13 @@ that matters, and the ordering still cannot become folklore somebody learns from
 
 **A parent the recipe did NOT create comes from a recipe input**, not from an ancestor —
 `dm.sessions.under({ guildId })`, where `guildId` is declared on the recipe.
+
+**The mechanism covers a foreign key on the CHILD's own fields, and nothing narrower.** A work item's
+foreign key is a PREFIXED STRING inside an ARRAY — `relatedDataItems: ['operations/<id>']` — and no
+`links` entry can write into an array slot, because `as` names one field on the child, not a position
+inside a collection. `fromSaved` does not rescue it either: it resolves at the top level of a field's
+value, not inside an array element. **So an entity whose foreign key takes that shape cannot be an
+ingredient**, and its rows stay a field on their parent instead, written by that parent's own `set()`.
 
 ### The chain: every call names what it affects
 
@@ -748,6 +778,16 @@ q[0].operations.filter({ where: { role: 'riftcarver' }, expect: 'one' }).remove(
 | `where` | a match object, typed to that ingredient's fields. Data, never a closure — a predicate cannot cross the MCP wire |
 | `expect` | `'one'` · `'some'` (the default) · `'any'` |
 | what you may then call | `set`, `setRaw`, `saveRecordAs`, `remove`, and that ingredient's extras |
+
+**A filter's placeholder reference stays distinguishable from a real row's, because it uses a
+disambiguator no real row can produce.** An `add`-created row's reference carries a pair of numbers —
+which call minted it, and its index within that call. A `filter` has neither: it knows its ancestor
+path and its ingredient, never a call count or a row count, since how many rows it matches is a
+run-time fact the gates decide. So its placeholder's slot is a fixed WORD instead of a number pair,
+and two separate `filter` calls sharing an ingredient and a scope derive the identical placeholder on
+purpose — they describe the same live query, not two different ones. That word can never equal a real
+row's number pair, which is what keeps an added row and a same-scope filter's placeholder apart even
+when nothing else about them differs.
 
 **`expect` reuses the tool's own no-pick rule.** `siegelense` already refuses an ambiguous DOM target
 and throws naming the candidates, and refuses a zero match naming near misses. A filter is the same
@@ -1150,9 +1190,12 @@ expect. **The split is correctness versus fitness.** The test owns correctness a
 owns fitness for a specific walk, which no test can know.
 
 **Cost, or nobody will run it.** A `write` route is pure `fs` and tests cleanly under `installTestbedCreateBroker` with
-its own temp dir. An `api` route needs a server — at a 20-second instance boot, one test per ingredient is 20s times N and
-the suite gets skipped. So the `api` routes share ONE instance for the whole suite: boot once, run each, assert each,
-tear down. The `write` routes need no instance at all.
+its own temp dir. **An `api` route's real cost is not a slow boot** — a server built as an in-process application
+object, with no port and no socket, boots in milliseconds. The cost that is real is Jest's own boundary: there is no
+setup shared across test files, each file gets its own worker and module registry, and a booted app can only be
+reused within one file's own `beforeAll`. So the `api` routes still share ONE instance for the whole suite, but the
+reason is Jest's file boundary, not an instance-boot cost that N separate boots would make slow. The `write` routes
+need no instance at all.
 
 ### What the type prototype proved, and what it changed
 
@@ -1371,7 +1414,9 @@ found.**
 | **A typed plan output is scheduled work, not delivered yet.** *"A plan is data, and one plan runs three ways"* requires the plan's output to carry `guild` and `target`, each typed to its own record contract, and today's plan returns an untyped record the caller casts | threading the saved names through every op producer's return type, so `saveRecordAs({ name })` types the plan's output as the chain builds. The requirement stands; only the delivery is pending |
 | **A recipe cannot call another recipe.** There is `add` and there is `filter`, and no `include` | recipes will duplicate each other's openings within a week of two people writing them. `include(otherRecipe({ … }))` splicing the other plan's ops in, with its saved names namespaced |
 | **The MCP wire has no compile-time check at all** | narrower now that a recipe declares its `inputs` as a zod schema: the wire validation parses a `seed` step's `params` through that same schema before seeding, rather than generating one from scratch. What is still open is wiring that parse into the `seed` step itself. Named here because the in-process union looks like it covers both surfaces and does not |
-| **`recording` is declared and unexercised** | no ingredient in the prototype uses it, so nothing about it has been proven |
+| **`recording` is declared and unexercised** | no ingredient in the prototype uses it, so nothing about it has been proven. **The `runs` line's write-only rule stands regardless**: the check asks only whether a `write` route is absent, so it reports `needs a server: <ingredient>` for ANY ingredient lacking one — not only a `recording`-only ingredient, but equally one declaring both `api` and `recording`. This is the cost of the rule, not a bug in it — named here for whoever first ships a `recording`-only ingredient |
+| **`copies:` has no valid target for a shape only an external tool writes** | a Claude session transcript is the case: the Claude CLI writes it, and the only in-repo artifact producing that shape is a test fixture, not production code. Until answered, that ingredient cannot honestly declare a `write` route |
+| **Two lint rules Part 5 requires — an ingredient holds no DOM handle, and an ingredient calls no clock or random source — are UNBUILT, and no chunk owns either** | `no-hardcoded-package-names` in `local-eslint` is the template to copy, and its own blind spot is the caution to copy with it. Meanwhile neither constraint is enforced by anything: with the chain supplying the index, reaching for a clock is the only way left to break determinism |
 | **Two ingredients may share a `name` inside one registry, and nothing catches it** | not expressible in the type system. A runtime check at `registry()`, throwing with both keys |
 | ~~A `filter` inside a nested `add` has undefined scope~~ **CLOSED** | it is scoped to its immediate host. The `filter` op carries `scope`, the host's row reference, and the runner matches only rows whose ancestor chain contains it. The alternative — instance-wide — lets a recipe holding two guilds delete rows belonging to a parent it did not create |
 | **No sad path is implemented or tested** | the table above is a spec, not a report. Nothing has driven a refused connection or a failed write |
@@ -1577,13 +1622,19 @@ exercise and hides the finding it just produced.
 **A test that cannot be converted is a finding, and it gets written into this document** — under the
 verb or the property it defeated. It is not a test to leave behind quietly.
 
-**One of the seventeen is a test OF the broker a `write` route calls, and it is NOT a conversion
-target.** `quest-hydrate-broker.integration.test.ts` exercises `questHydrateBroker` directly, and the
-quest ingredient's `write` route IS `questHydrateBroker`. Converting it makes it assert the hydrator
-through the hydrator — a test that cannot fail for the reason it was written.
+**One of the seventeen is a test OF a broker the quest ingredient calls directly, and it is NOT a
+conversion target.** `quest-hydrate-broker.integration.test.ts` exercises `questHydrateBroker`
+directly. **The quest ingredient's `write` route is `questPersistBroker`, not `questHydrateBroker`** —
+`questBlueprintContract` carries no `workItems` key and no `status` key at all, so `questHydrateBroker`
+cannot accept what the 259 `writeQuestFile` call sites supply and cannot be the `write` route. What the
+quest ingredient calls `questHydrateBroker` FOR is its `reach`: it is the only in-process path that
+seeds the relay when a caller asks for `in_progress` on a `write` target. That is what excludes this
+test, not a resemblance between its name and a route — converting it would make it assert the hydrator
+through the hydrator, a test that cannot fail for the reason it was written.
 
-> **An integration test whose SUBJECT is the production writer an ingredient copies keeps its own
-> setup.** It is the thing the ingredient is measured against, so it cannot be measured through it.
+> **An integration test whose SUBJECT is production code an ingredient calls directly — its `write`
+> route, its `reach`, an extra — keeps its own setup.** It is the thing the ingredient is measured
+> against, so it cannot be measured through it.
 
 **Four other tests MENTION `questHydrateBroker` and are ordinary targets.** They use it as setup, not
 as subject — `questModifyBroker`, `questPauseBroker`, `preStampInProgressLayerBroker` and
@@ -1630,6 +1681,14 @@ file holding its watchlist and path allowlists — but the home is the published
 `packageNameLiteralStatics` only matches a role-bearing name AFTER a workspace directory segment — so the `@scope/name`
 form is waved through by design. **A rule that looks like it covers something and does not is worse than no rule**,
 because people stop checking. Whatever this one's scope is, say it in the rule's own message.
+
+**Neither this rule nor the determinism rule beside it exists today, and no chunk owns either — see
+Known gaps.** Until one ships, an ingredient carrying a DOM handle is caught by nothing but review, and
+with the chain supplying the index, reaching for a clock or a random source is the only way left to
+break determinism, and nothing stops it either. **One caution to carry into whichever chunk ships
+them, learned the hard way: an eslint config entry naming a rule that does not exist is a FATAL config
+error, not a harmless no-op — it takes down linting for every file in the package it targets.** The
+config entry lands WITH the rule, never before it.
 
 ### Some claims can only be asserted in a BROWSER
 

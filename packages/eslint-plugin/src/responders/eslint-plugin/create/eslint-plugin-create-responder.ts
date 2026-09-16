@@ -65,6 +65,8 @@ import { ruleRequireValidationOnUntypedPropertyAccessBroker } from '../../../bro
 import { ruleEnforceProxyParamBindingBroker } from '../../../brokers/rule/enforce-proxy-param-binding/rule-enforce-proxy-param-binding-broker';
 import { ruleBanFlattenedContractParamsBroker } from '../../../brokers/rule/ban-flattened-contract-params/rule-ban-flattened-contract-params-broker';
 import { ruleBanAnonymousJsxInMapBroker } from '../../../brokers/rule/ban-anonymous-jsx-in-map/rule-ban-anonymous-jsx-in-map-broker';
+import { ruleBanDomHandlesInIngredientsBroker } from '../../../brokers/rule/ban-dom-handles-in-ingredients/rule-ban-dom-handles-in-ingredients-broker';
+import { ruleBanNondeterminismInIngredientsBroker } from '../../../brokers/rule/ban-nondeterminism-in-ingredients/rule-ban-nondeterminism-in-ingredients-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 
@@ -130,6 +132,8 @@ export const EslintPluginCreateResponder = (): {
     readonly 'enforce-proxy-param-binding': EslintRule;
     readonly 'ban-flattened-contract-params': EslintRule;
     readonly 'ban-anonymous-jsx-in-map': EslintRule;
+    readonly 'ban-dom-handles-in-ingredients': EslintRule;
+    readonly 'ban-nondeterminism-in-ingredients': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
@@ -200,6 +204,8 @@ export const EslintPluginCreateResponder = (): {
       'enforce-proxy-param-binding': ruleEnforceProxyParamBindingBroker(),
       'ban-flattened-contract-params': ruleBanFlattenedContractParamsBroker(),
       'ban-anonymous-jsx-in-map': ruleBanAnonymousJsxInMapBroker(),
+      'ban-dom-handles-in-ingredients': ruleBanDomHandlesInIngredientsBroker(),
+      'ban-nondeterminism-in-ingredients': ruleBanNondeterminismInIngredientsBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),

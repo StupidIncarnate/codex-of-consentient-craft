@@ -309,6 +309,56 @@ walk.
 
 ---
 
+## 4b. Two facts about a matched reference, established by review
+
+**Two filters sharing an ingredient and a scope receive the SAME `matchedRef`.** It is derived from
+the ingredient and the scope with a fixed placeholder index, so the collision is guaranteed rather
+than possible. Measured: both filters in the specification's own worked example — a quest's operations
+filtered by one role and then another — come back as `guild[0]/quest[0]/operation[0]`.
+
+**That collision is harmless, and the reason is structural.** A filter's nested ops are a subtree
+hanging off that filter's own node, so a nested op's reference is only ever matched against the
+`matchedRef` of the node it sits inside. **Nothing resolves a row reference globally.** `fromSaved`
+reaches a row by SAVED RECORD NAME, a different namespace, so even a `saveRecordAs` nested inside a
+filter cannot leak the collision outward.
+
+**So the runner's correctness here rests on a discipline, not on a type.** A placeholder reference is
+textually indistinguishable from a real row's reference at the same scope, ingredient and index. Keep
+the per-node scoping; nothing in the type system will catch it if a later change resolves a matched
+reference by string across the tree.
+
+### The harness leak test does not run, and chunk 6b owns moving it
+
+**`packages/hydration/test/harnesses/file-target/file-target.harness.integration.test.ts` exists, is
+correct, and ward never executes it.** This package's jest config scopes `roots` to `src` alone, so a
+test file under `test/` is not discovered — it does not fail, it is simply never run. The suite was
+proven red-then-green by hand, against a real `ENOENT`, using a throwaway config.
+
+**What it guards is real**: a permission restore that throws must not skip the cleanup that discards
+the throwaway home, because discarding that home is the framework's entire rollback story for a
+file-backed target.
+
+**Chunk 6b's fault-injection work is where this lands for good.** That group extends this harness and
+its own suite lives under `src/`, so it is the first consumer that ward actually runs. **Move the leak
+assertion into it**, and delete the orphan — a test nobody runs is worse than no test, because it
+reads as coverage.
+
+**The general rule, which has now cost two groups time:** a suite lives under `src/`, beside the thing
+it proves. Fixtures and harnesses live under `test/`. A test file written anywhere else is silently
+skipped.
+
+### The test chunk 6 owes
+
+**Nothing anywhere exercises two sibling filters sharing a scope and an ingredient**, and that is the
+specification's own worked example. **Chunk 6 adds it when the filter-apply layer lands**: two filters
+over one parent, different `where` clauses, each with its own nested op, asserting that each op reached
+only the rows ITS filter matched.
+
+It is the one test that would fail if someone later resolved a matched reference globally, and it does
+not exist today.
+
+---
+
 ## 5. Open questions — none picked silently
 
 **The orchestrator rules on each. A build agent follows the ruling; until there is one, it follows the

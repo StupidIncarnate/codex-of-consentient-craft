@@ -6,7 +6,7 @@
  * can never collide.
  *
  * USAGE:
- * opExtraContract.parse({ op: 'extra', ref: 'session[0]', verb: 'withNestedChain', args: { depth: 2 } });
+ * opExtraContract.parse({ op: 'extra', ref: 'session[0:0]', verb: 'withNestedChain', args: { depth: 2 } });
  * // Returns an OpExtra
  */
 import { z } from 'zod';

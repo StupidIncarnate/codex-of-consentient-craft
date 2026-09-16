@@ -8,7 +8,7 @@ export const OpFilterStub = ({ ...props }: StubArgument<OpFilter> = {}): OpFilte
     ingredient: 'operation',
     where: { role: 'riftcarver' },
     expect: 'one',
-    matchedRef: 'operation[0]',
+    matchedRef: 'operation[match]',
     ops: [],
     ...props,
   });

@@ -7,6 +7,6 @@ export const IngredientHandleStub = ({
 }: StubArgument<IngredientHandleData> = {}): IngredientHandleData =>
   ingredientHandleContract.parse({
     ingredient: 'quest',
-    ref: 'guild[0]/quest[0]',
+    ref: 'guild[0:0]/quest[0:0]',
     ...props,
   });

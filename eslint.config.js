@@ -62,6 +62,18 @@ module.exports = [
       // error so its test can assert on a real diagnostic — the adapter grades them directly,
       // so lint must skip them the same way it will skip the chunk-3 negative fixture tree.
       'packages/hydration/test/adapter-fixtures/**',
+      // The declaration half of the negative type suite: each fixture holds exactly one
+      // deliberate compile error (a malformed ingredient declaration), graded directly by
+      // `typescriptProgramDiagnosticsAdapter`, never by this package's own lint or typecheck.
+      'packages/hydration/test/type-fixtures/declaration/**',
+      // The call-site half of the negative type suite: each fixture holds exactly one
+      // deliberate compile error (a wrong chain call), graded directly by
+      // `typescriptProgramDiagnosticsAdapter`, never by this package's own lint or typecheck.
+      'packages/hydration/test/type-fixtures/call-site/**',
+      // The positive fixture tree must compile clean under the adapter's own real tsc run;
+      // it carries no deliberate error, but it is excluded the same way as its case-group
+      // siblings so only that one mechanism ever grades it.
+      'packages/hydration/test/type-fixtures/positive/**',
     ],
   },
   // Configuration for TypeScript files

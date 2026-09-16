@@ -5,7 +5,7 @@ import type { OpSaveRecord } from './op-save-record-contract';
 export const OpSaveRecordStub = ({ ...props }: StubArgument<OpSaveRecord> = {}): OpSaveRecord =>
   opSaveRecordContract.parse({
     op: 'saveRecord',
-    ref: 'guild[0]/quest[2]',
+    ref: 'guild[0:0]/quest[0:2]',
     name: 'third',
     ...props,
   });

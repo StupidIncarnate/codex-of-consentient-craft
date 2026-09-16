@@ -44,9 +44,9 @@ describe('hydrationOpContract', () => {
     });
 
     it('VALID: {op: "remove"} => creates a remove op', () => {
-      const result = HydrationOpStub({ op: 'remove', ref: 'guild[0]/quest[1]' });
+      const result = HydrationOpStub({ op: 'remove', ref: 'guild[0:0]/quest[0:1]' });
 
-      expect(result).toStrictEqual(OpRemoveStub({ ref: 'guild[0]/quest[1]' }));
+      expect(result).toStrictEqual(OpRemoveStub({ ref: 'guild[0:0]/quest[0:1]' }));
     });
   });
 

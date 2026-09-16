@@ -44,3 +44,18 @@ export type ReachFn<TTarget, TValue> = (args: {
   target: TTarget;
   record: Record<string, unknown>;
 }) => unknown;
+
+/**
+ * `TransitionSpecFor<TFields>` alone has no `reach` key — a function has no shape a parse can
+ * compare, so it stays out of the zod-facing type. `ingredientConfigContract` needs the walked
+ * field, its reachable values AND the function that walks it declared together, so this is the
+ * distributive form `ingredient-config-contract.ts` intersects `reach` onto at the same key `to`
+ * was checked against.
+ */
+export type TransitionSpecWithReachFor<TTarget, TFields> = {
+  [K in keyof TFields]: {
+    field: K;
+    to: readonly TFields[K][];
+    reach: ReachFn<TTarget, TFields[K]>;
+  };
+}[keyof TFields];

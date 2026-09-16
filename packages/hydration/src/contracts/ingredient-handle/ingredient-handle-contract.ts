@@ -13,7 +13,7 @@
  * opaque rather than typing it against any one op shape.
  *
  * USAGE:
- * ingredientHandleContract.parse({ ingredient: 'quest', ref: 'guild[0]/quest[2]' });
+ * ingredientHandleContract.parse({ ingredient: 'quest', ref: 'guild[0:0]/quest[0:2]' });
  * // Returns IngredientHandleData
  */
 import { z } from 'zod';

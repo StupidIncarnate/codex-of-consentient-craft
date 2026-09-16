@@ -5,6 +5,6 @@ import type { MatchedSetData } from './matched-set-contract';
 export const MatchedSetStub = ({ ...props }: StubArgument<MatchedSetData> = {}): MatchedSetData =>
   matchedSetContract.parse({
     ingredient: 'operation',
-    matchedRef: 'operation[0]',
+    matchedRef: 'operation[match]',
     ...props,
   });

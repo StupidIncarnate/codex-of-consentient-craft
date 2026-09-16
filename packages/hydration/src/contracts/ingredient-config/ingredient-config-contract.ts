@@ -25,11 +25,10 @@
 import { z } from 'zod';
 import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 import { copiesTargetContract } from '../copies-target/copies-target-contract';
-import type { CopiesTarget } from '../copies-target/copies-target-contract';
 import { linkSpecContract } from '../link-spec/link-spec-contract';
-import type { LinkSpec } from '../link-spec/link-spec-contract';
+import type { LinkSpecFor } from '../link-spec/link-spec-contract';
 import { transitionSpecContract } from '../transition-spec/transition-spec-contract';
-import type { TransitionSpecFor } from '../transition-spec/transition-spec-contract';
+import type { TransitionSpecWithReachFor } from '../transition-spec/transition-spec-contract';
 import { hydrationRoutesContract } from '../hydration-routes/hydration-routes-contract';
 import type { RoutesFor } from '../hydration-routes/hydration-routes-contract';
 import { extraVerbNameContract } from '../extra-verb-name/extra-verb-name-contract';
@@ -111,23 +110,66 @@ export interface AnyIngredient {
  * The raw shape a caller writes to `ingredient({...})`, before `ingredientDeclareBroker` parses it
  * through `ingredientConfigContract`. `TName` stays a bare literal-preserving parameter — branding
  * it would widen every `const C extends IngredientConfig<...>` capture back to `string`, and D9's
- * registry check would degrade to `string extends string`.
+ * registry check would degrade to `string extends string`. The default lets a caller reference this
+ * interface with only `TTarget`/`TFields` filled in (a target-bound helper that has no reason to
+ * name its own placeholder `TName`) — `const C` still captures each ARGUMENT's own literal `name`,
+ * because the default only widens the CONSTRAINT, never the inferred value checked against it.
  */
-export interface IngredientConfig<TTarget, TFields extends object, TName extends string> {
+export interface IngredientConfig<TTarget, TFields extends object, TName extends string = string> {
   name: TName;
   description: string;
-  fields: z.ZodType<TFields>;
+  // Zod's OWN `_output` phantom carrier, never `z.ZodType<TFields>` directly — see
+  // `IngredientConfigInferenceAnchor`'s own comment. `C extends IngredientConfig<...>` is a real
+  // assignability CHECK, not just an inference site, so this interface needs the same fix its
+  // anchor does: a real `z.object({...})` value's assignability to `z.ZodType<T>` routes through
+  // `ZodObject`'s OWN methods — `deepPartial()` among them — and fails for a shape holding branded
+  // fields even though the schema is perfectly valid.
+  fields: { readonly _output: TFields };
   record: z.ZodType<object>;
   routes: RoutesFor<TTarget>;
-  links?: readonly LinkSpec[];
-  transitions?: TransitionSpecFor<TFields>;
+  // `TParentName` is bare `string` at declare time — nothing has registered this ingredient's
+  // parents yet. `registryCreateBroker` narrows `of` against real registered names later (D9);
+  // narrowing it here as well would make every ingredient depend on its parents' names existing
+  // before it does, which is the reference cycle links are named (never held) to avoid.
+  links?: readonly LinkSpecFor<TFields, string>[];
+  transitions?: TransitionSpecWithReachFor<TTarget, TFields>;
   defaults?: (index: number) => Partial<TFields>;
-  copies?: CopiesTarget;
+  // Bare `string`, not the branded `CopiesTarget` — a caller writes a plain literal
+  // (`copies: 'questPersistBroker'`) here, and `ingredientConfigContract.parse` is what brands it.
+  copies?: string;
   extras?: Record<string, { args: z.ZodType<object>; apply: ExtraApplyFn<TTarget> }>;
 }
 
+/**
+ * Gives a generic broker a direct inference site for `TFields`/`TName`. Both appear only inside
+ * ANOTHER type parameter's constraint in `ingredientDeclareBroker`'s own signature (`const C
+ * extends IngredientConfig<TTarget, TFields, TName>`), which is too deep for the compiler to solve
+ * from — intersecting this onto the parameter type gives each one a top-level property to infer
+ * from directly.
+ *
+ * `fields` is typed by zod's OWN `_output` phantom carrier, never `IngredientConfig['fields']`
+ * directly — even though that field now uses the SAME `_output` carrier (see its own comment), a
+ * caller's `fields` value is a concrete `ZodObject<Shape>`, and re-checking that concrete class
+ * against TWO independently-inferred `{ readonly _output: TFields }` sites (this one and `C`'s own
+ * constraint) reintroduces the `deepPartial()` method-comparison failure `_output` exists to avoid.
+ * A caller widens `fields` to `z.ZodType<InferredFields>` at the declaration site — an upcast along
+ * zod's own class hierarchy, not a brand mismatch — so only ONE concrete class ever needs comparing
+ * against `_output`. `TTarget` has no site here: it is a union across three route shapes the
+ * compiler cannot invert from a concrete object, so a caller of this broker directly supplies it as
+ * an explicit type argument instead.
+ */
+export interface IngredientConfigInferenceAnchor<
+  TFields extends object,
+  TName extends string = string,
+> {
+  name: TName;
+  fields: { readonly _output: TFields };
+}
+
 export type ConfigOf<I> = I extends Ingredient<infer C> ? C : never;
-export type FieldsOf<I> = ConfigOf<I> extends { fields: z.ZodType<infer T> } ? T : never;
+// Matches the phantom `_output` shape `IngredientConfig.fields` itself now carries, not a full
+// `z.ZodType<T>` — see that field's own comment for why.
+export type FieldsOf<I> = ConfigOf<I> extends { fields: { readonly _output: infer T } } ? T : never;
 export type RecordOf<I> = ConfigOf<I> extends { record: z.ZodType<infer T> } ? T : never;
 export type NameOf<I> = ConfigOf<I> extends { name: infer N } ? N : never;
 export type LinkNames<I> = ConfigOf<I> extends { links: readonly { of: infer N }[] } ? N : never;

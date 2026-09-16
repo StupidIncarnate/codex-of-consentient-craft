@@ -1171,6 +1171,78 @@ costs one agent; the same defect worked around quietly costs every agent after.
 | A2c | one PascalCase name per composite | **Each composite needs TWO**: a concrete `z.infer` shape for stubs and tests, and a generic for declaration-time typing. They ship as `IngredientConfigData` / `IngredientConfig<…>`, and so on — the split this package already uses for `HydrationRoutes` and `RoutesFor<TTarget>` |
 | A2c | nothing about stub arguments and zod-valued fields | **A `z.custom<z.ZodTypeAny>()` field breaks `StubArgument`**, which tries to expand a schema's own methods as properties. Leave the `z.custom` generic unset so it infers `unknown` |
 
+### Why chunk 2 comes before chunk 3, proven on this build
+
+**Three bugs shipped in chunk 1's committed `IngredientConfig`, and every one made a real ingredient
+declaration impossible.** They were found by the first agent that tried to declare one.
+
+| The bug | What it broke |
+|---|---|
+| `links` typed against the CONCRETE branded spec rather than the generic one | the specification's own `links: [{ of: 'guild', as: 'guildId' }]` did not compile |
+| `copies` typed against the branded OUTPUT type | the specification's own `copies: 'questPersistBroker'` did not compile |
+| `transitions` carried no `reach` key at all | contradicted the amendment that `reach` receives the record, and the specification's own transitions example |
+
+**All three passed chunk 1's own tests and shipped green.** The reason is the lesson:
+
+> **A contract's test exercised its runtime zod parse and never its TypeScript generic.** The half that
+> is hard was never run.
+
+**So a contract whose value is its GENERIC is unproven until a real call site compiles against it.**
+Its own colocated test cannot do that — a runtime parse walks the schema, not the type parameters.
+The proof is a fixture that declares something real, which is exactly what the specification means by
+*"get them compiling against two real ingredients before anything executes"*.
+
+**This is the ordering rule earning its place**, and the specification predicted the outcome:
+
+> a build that writes the runtime first and the types after will discover the same three failures that
+> prototype already recorded, at much greater cost.
+
+**Apply it to every remaining group whose files are mostly types.** A green unit test over a runtime
+value says nothing about them.
+
+### The negative suite's shape, now settled by measurement
+
+**A suite computes ONE compiler program at MODULE scope and every test reads it.** Measured on the
+declaration suite: slowest test 11ms, against a whole-file cost of 1891ms paid outside any test's
+timer. Ward's per-test bar never sees the compiler. **The six remaining suites follow this shape.**
+
+**A test file must live under `src/`.** `packages/hydration/jest.config.js` sets `roots` to `src`
+alone, so **a `.test.ts` anywhere under `test/` is never discovered by ward at all** — it does not
+fail, it simply never runs. The fixtures live under `test/`; the suite that grades them is colocated
+in `src/`, beside the thing it proves.
+
+**A fixture holds exactly ONE diagnostic, and that takes care.** An inline callback whose contextual
+type collapses once the surrounding declaration fails emits several collateral errors, and a test
+keyed to one of them is keyed to an accident. Reference a pre-typed function instead of an inline
+arrow wherever a fixture's error would otherwise cascade.
+
+### Where the negative suites actually live, and why not where section 4 says
+
+**Section 4 names the chain's own contract suites as the owners of the call-site cases. They cannot be.**
+`enforce-import-dependencies` refuses a `contracts/` file importing `adapters/`, test files included,
+and the compiler-diagnostics adapter is an adapter. The folders permitted to import one are exactly
+the folders that group was forbidden to touch.
+
+| Half | Fixtures | The suite grading them |
+|---|---|---|
+| declaration | `test/type-fixtures/declaration/` | beside `ingredientDeclareBroker`, under `src/brokers/` |
+| call-site and positive | `test/type-fixtures/call-site/`, `.../positive/` | beside the diagnostics adapter, under `src/adapters/` |
+
+**A same-folder import is always allowed**, which is why each suite sits beside something that may
+already reach the adapter. Section 4's ownership table is wrong and this is the correction.
+
+### An error's CODE depends on whether the ingredient declares any extras
+
+**For an ingredient with no `extras`, the type that adds extra verbs is a blanket index signature.**
+Under `noUncheckedIndexedAccess` that turns every property probe into *possibly undefined* rather than
+*does not exist* — so a wrong call on such an ingredient reports one code, and the same wrong call on
+an ingredient that declares an extra reports another.
+
+**The rule still holds either way**: both are compile errors and the bad call is refused. What changes
+is the message a reader gets, and which code a fixture must assert. **A fixture asserting the wrong
+one of the two passes or fails for a reason unrelated to the rule it names**, so pick the host
+deliberately and say which shape you chose.
+
 ### A coverage hole in this plan, now scheduled
 
 **Negative-fixture rows 12 through 17 have no owner.** Section 4 attributes them to the recipe-def and

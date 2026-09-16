@@ -5,32 +5,32 @@ const REQUIRED_FIELDS = ['ingredient', 'ref', 'index', 'ancestors', 'fields'] as
 
 describe('opCreateContract', () => {
   describe('valid create ops', () => {
-    it('VALID: {ingredient: "quest", ref: "guild[0]/quest[2]", index: 2, ancestors: ["guild[0]"], fields: {title: "The running one"}} => returns the whole op', () => {
+    it('VALID: {ingredient: "quest", ref: "guild[0:0]/quest[0:2]", index: 2, ancestors: ["guild[0:0]"], fields: {title: "The running one"}} => returns the whole op', () => {
       expect(
         OpCreateStub({
           ingredient: 'quest',
-          ref: 'guild[0]/quest[2]',
+          ref: 'guild[0:0]/quest[0:2]',
           index: 2,
-          ancestors: ['guild[0]'],
+          ancestors: ['guild[0:0]'],
           fields: { title: 'The running one' },
         }),
       ).toStrictEqual({
         op: 'create',
         ingredient: 'quest',
-        ref: 'guild[0]/quest[2]',
+        ref: 'guild[0:0]/quest[0:2]',
         index: 2,
-        ancestors: ['guild[0]'],
+        ancestors: ['guild[0:0]'],
         fields: { title: 'The running one' },
       });
     });
 
     it('VALID: {ancestors: []} => a top-level row has no ancestors', () => {
       expect(
-        OpCreateStub({ ingredient: 'guild', ref: 'guild[0]', index: 0, ancestors: [] }),
+        OpCreateStub({ ingredient: 'guild', ref: 'guild[0:0]', index: 0, ancestors: [] }),
       ).toStrictEqual({
         op: 'create',
         ingredient: 'guild',
-        ref: 'guild[0]',
+        ref: 'guild[0:0]',
         index: 0,
         ancestors: [],
         fields: { title: 'The running one' },
@@ -51,9 +51,9 @@ describe('opCreateContract', () => {
         opCreateContract.parse({
           op: 'nope' as never,
           ingredient: 'quest',
-          ref: 'guild[0]/quest[2]',
+          ref: 'guild[0:0]/quest[0:2]',
           index: 2,
-          ancestors: ['guild[0]'],
+          ancestors: ['guild[0:0]'],
           fields: {},
         }),
       ).toThrow(/Invalid literal value/u);
