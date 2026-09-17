@@ -1,25 +1,21 @@
 /**
  * PURPOSE: Sets up Antigravity configuration files (.agents/hooks.json, skills.json,
- * rules/dungeonmaster-rules.md, and AGENTS.md symlink) in the target project
+ * plugins/dungeonmaster/rules/AGENTS.md, and AGENTS.md) in the target project
  *
  * USAGE:
  * await installAgentsSetupBroker({ targetProjectRoot });
- * // Writes .agents files and symlinks AGENTS.md -> CLAUDE.md if CLAUDE.md exists
+ * // Writes .agents files and AGENTS.md if CLAUDE.md exists
  */
 
-import {
-  type AdapterResult,
-  fileContentsContract,
-  pathSegmentContract,
-} from '@dungeonmaster/shared/contracts';
-import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { type AdapterResult, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { fsEnsureWriteAdapter } from '../../../adapters/fs/ensure-write/fs-ensure-write-adapter';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
-import { fsSymlinkAdapter } from '../../../adapters/fs/symlink/fs-symlink-adapter';
 import { agentsHooksCreatorTransformer } from '../../../transformers/agents-hooks-creator/agents-hooks-creator-transformer';
 import { agentsSkillsCreatorTransformer } from '../../../transformers/agents-skills-creator/agents-skills-creator-transformer';
 import { agentsRulesCreatorTransformer } from '../../../transformers/agents-rules-creator/agents-rules-creator-transformer';
+import { agentsMdCreatorTransformer } from '../../../transformers/agents-md-creator/agents-md-creator-transformer';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 const JSON_INDENT_SPACES = 2;
@@ -57,13 +53,15 @@ export const installAgentsSetupBroker = async ({
     contents: fileContentsContract.parse(JSON.stringify(skillsConfig, null, JSON_INDENT_SPACES)),
   });
 
-  // 3. .agents/rules/dungeonmaster-rules.md
+  // 3. .agents/plugins/dungeonmaster/rules/AGENTS.md
   const rulesPath = pathJoinAdapter({
     paths: [
       targetProjectRoot,
       locationsStatics.repoRoot.agents.dir,
+      locationsStatics.repoRoot.agents.pluginsDir,
+      mcpToolsStatics.server.name,
       locationsStatics.repoRoot.agents.rulesDir,
-      locationsStatics.repoRoot.agents.dungeonmasterRulesMd,
+      locationsStatics.repoRoot.agentsMd,
     ],
   });
   const rulesContent = agentsRulesCreatorTransformer();
@@ -72,7 +70,7 @@ export const installAgentsSetupBroker = async ({
     contents: rulesContent,
   });
 
-  // 4. AGENTS.md -> CLAUDE.md symlink
+  // 4. AGENTS.md
   const claudeMdPath = pathJoinAdapter({
     paths: [targetProjectRoot, locationsStatics.repoRoot.claudeMd],
   });
@@ -84,9 +82,10 @@ export const installAgentsSetupBroker = async ({
   const agentsMdExists = fsExistsSyncAdapter({ filePath: agentsMdPath });
 
   if (claudeMdExists && !agentsMdExists) {
-    await fsSymlinkAdapter({
-      target: pathSegmentContract.parse(locationsStatics.repoRoot.claudeMd),
-      linkPath: agentsMdPath,
+    const agentsMdContent = agentsMdCreatorTransformer();
+    await fsEnsureWriteAdapter({
+      filepath: agentsMdPath,
+      contents: agentsMdContent,
     });
   }
 

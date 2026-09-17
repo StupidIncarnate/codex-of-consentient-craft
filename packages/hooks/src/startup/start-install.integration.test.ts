@@ -793,7 +793,7 @@ describe('start-install integration', () => {
     });
 
     describe('Antigravity setup', () => {
-      it('VALID: creates .agents/hooks.json, skills.json, rules/dungeonmaster-rules.md and symlinks AGENTS.md -> CLAUDE.md', async () => {
+      it('VALID: creates .agents/hooks.json, skills.json, plugins/dungeonmaster/rules/AGENTS.md and writes AGENTS.md', async () => {
         const testbed = installTestbedCreateBroker({
           baseName: BaseNameStub({ value: 'agents-setup' }),
         });
@@ -819,7 +819,9 @@ describe('start-install integration', () => {
           relativePath: RelativePathStub({ value: '.agents/skills.json' }),
         });
         const rulesContent = testbed.readFile({
-          relativePath: RelativePathStub({ value: '.agents/rules/dungeonmaster-rules.md' }),
+          relativePath: RelativePathStub({
+            value: '.agents/plugins/dungeonmaster/rules/AGENTS.md',
+          }),
         });
         const agentsMdContent = testbed.readFile({
           relativePath: RelativePathStub({ value: 'AGENTS.md' }),
@@ -848,7 +850,9 @@ describe('start-install integration', () => {
         });
 
         expect(rulesContent!.startsWith('# Dungeonmaster Operating Rules\n\n')).toBe(true);
-        expect(agentsMdContent).toBe('# Claude guidelines\n');
+        expect(agentsMdContent).toBe(
+          '# Agent Guidelines\n\nGo read [CLAUDE.md](file://./CLAUDE.md) to get context on the project and repo before doing any other exploratory work.\n',
+        );
       });
     });
   });

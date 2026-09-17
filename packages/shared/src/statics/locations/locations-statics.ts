@@ -40,7 +40,6 @@ export const locationsStatics = {
       pluginsDir: 'plugins',
       pluginJson: 'plugin.json',
       mcpConfigJson: 'mcp_config.json',
-      dungeonmasterRulesMd: 'dungeonmaster-rules.md',
     },
     agentsMd: 'AGENTS.md',
     claudeMd: 'CLAUDE.md',
