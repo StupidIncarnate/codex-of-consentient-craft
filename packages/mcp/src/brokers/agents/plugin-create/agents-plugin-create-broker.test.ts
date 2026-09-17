@@ -1,4 +1,5 @@
 import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts';
+import { mcpServerStatics } from '../../../statics/mcp-server/mcp-server-statics';
 import { agentsPluginCreateBrokerProxy } from './agents-plugin-create-broker.proxy';
 
 describe('agentsPluginCreateBroker', () => {
@@ -28,7 +29,7 @@ describe('agentsPluginCreateBroker', () => {
       mcpServers: {
         dungeonmaster: {
           command: 'node',
-          args: ['node_modules/@dungeonmaster/mcp/dist/src/index.js'],
+          args: ['-e', mcpServerStatics.resolveScript],
         },
       },
     });

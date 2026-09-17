@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * PURPOSE: Entry point that starts the MCP server and handles initialization errors
  *

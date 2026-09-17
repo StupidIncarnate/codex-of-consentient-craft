@@ -6,6 +6,7 @@
  */
 
 import { FilePathStub, FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { dungeonmasterConfigCreatorTransformer } from '../../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 import { InstallConfigCreateResponderProxy } from './install-config-create-responder.proxy';
 
 describe('InstallConfigCreateResponder', () => {
@@ -35,13 +36,7 @@ describe('InstallConfigCreateResponder', () => {
       expect(writtenConfig).toBe(
         JSON.stringify(
           {
-            mcpServers: {
-              dungeonmaster: {
-                type: 'stdio',
-                command: 'node',
-                args: ['node_modules/@dungeonmaster/mcp/dist/src/index.js'],
-              },
-            },
+            mcpServers: dungeonmasterConfigCreatorTransformer(),
           },
           null,
           2,
@@ -63,7 +58,7 @@ describe('InstallConfigCreateResponder', () => {
               dungeonmaster: {
                 type: 'stdio',
                 command: 'node',
-                args: ['node_modules/@dungeonmaster/mcp/dist/src/index.js'],
+                args: ['-e', "require('@dungeonmaster/mcp')"],
               },
             },
           }),
@@ -131,11 +126,7 @@ describe('InstallConfigCreateResponder', () => {
                 command: 'node',
                 args: ['server.js'],
               },
-              dungeonmaster: {
-                type: 'stdio',
-                command: 'node',
-                args: ['node_modules/@dungeonmaster/mcp/dist/src/index.js'],
-              },
+              ...dungeonmasterConfigCreatorTransformer(),
             },
           },
           null,
@@ -174,13 +165,7 @@ describe('InstallConfigCreateResponder', () => {
       expect(writtenConfig).toBe(
         JSON.stringify(
           {
-            mcpServers: {
-              dungeonmaster: {
-                type: 'stdio',
-                command: 'node',
-                args: ['node_modules/@dungeonmaster/mcp/dist/src/index.js'],
-              },
-            },
+            mcpServers: dungeonmasterConfigCreatorTransformer(),
           },
           null,
           2,

@@ -3,7 +3,8 @@
     "dungeonmaster": {
       "command": "node",
       "args": [
-        "node_modules/@dungeonmaster/mcp/dist/src/index.js"
+        "-e",
+        "require('@dungeonmaster/mcp')"
       ]
     }
   }
