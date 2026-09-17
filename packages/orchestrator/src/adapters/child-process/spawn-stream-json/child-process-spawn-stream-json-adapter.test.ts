@@ -447,7 +447,7 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
       const contents = await readFile(settingsPath, 'utf8');
 
       const matched = [...contents.matchAll(/dungeonmaster-session-snippet ([A-Za-z]+)/gu)].map(
-        (match) => match[1] as string,
+        (match) => match[1]!,
       );
       const registeredKeys = [...new Set(matched)].sort((a, b) => a.localeCompare(b));
 

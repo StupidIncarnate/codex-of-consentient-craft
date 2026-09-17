@@ -12,7 +12,6 @@
  * // Returns FilePath branded type, e.g. '/home/user/project'
  */
 
-import { cwd } from 'process';
 import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 
-export const processCwdAdapter = (): FilePath => filePathContract.parse(cwd());
+export const processCwdAdapter = (): FilePath => filePathContract.parse(process.cwd());

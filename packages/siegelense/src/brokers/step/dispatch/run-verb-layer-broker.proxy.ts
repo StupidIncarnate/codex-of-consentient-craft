@@ -14,6 +14,7 @@ import { stepScreenshotBrokerProxy } from '../screenshot/step-screenshot-broker.
 import { stepSeedBrokerProxy } from '../seed/step-seed-broker.proxy';
 import { stepTargetResolveBrokerProxy } from '../target-resolve/step-target-resolve-broker.proxy';
 import { stepTypeBrokerProxy } from '../type/step-type-broker.proxy';
+import { stepUntilBrokerProxy } from '../until/step-until-broker.proxy';
 import { stepWaitForBrokerProxy } from '../wait-for/step-wait-for-broker.proxy';
 
 // browserSessionContract carries no MatchCount export of its own (contracts/ exposes only the
@@ -47,6 +48,7 @@ export const runVerbLayerBrokerProxy = (): {
   stepScreenshotBrokerProxy();
   stepTargetResolveBrokerProxy();
   stepTypeBrokerProxy();
+  stepUntilBrokerProxy();
   stepWaitForBrokerProxy();
   // Assigned, unlike the rest: `seed` is the one verb whose broker a caller stages through this
   // layer, so a batch test can prove a binding resolved against ids a REAL recipe returned.

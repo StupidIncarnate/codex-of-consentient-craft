@@ -791,5 +791,65 @@ describe('start-install integration', () => {
         },
       });
     });
+
+    describe('Antigravity setup', () => {
+      it('VALID: creates .agents/hooks.json, skills.json, rules/dungeonmaster-rules.md and symlinks AGENTS.md -> CLAUDE.md', async () => {
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'agents-setup' }),
+        });
+
+        testbed.writeFile({
+          relativePath: RelativePathStub({ value: 'CLAUDE.md' }),
+          content: FileContentStub({ value: '# Claude guidelines\n' }),
+        });
+
+        const result = await StartInstall({
+          context: {
+            targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
+            dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
+          },
+        });
+
+        expect(result.success).toBe(true);
+
+        const hooksContent = testbed.readFile({
+          relativePath: RelativePathStub({ value: '.agents/hooks.json' }),
+        });
+        const skillsContent = testbed.readFile({
+          relativePath: RelativePathStub({ value: '.agents/skills.json' }),
+        });
+        const rulesContent = testbed.readFile({
+          relativePath: RelativePathStub({ value: '.agents/rules/dungeonmaster-rules.md' }),
+        });
+        const agentsMdContent = testbed.readFile({
+          relativePath: RelativePathStub({ value: 'AGENTS.md' }),
+        });
+
+        testbed.cleanup();
+
+        const parsedHooks = JSON.parse(hooksContent!) as Record<PropertyKey, unknown>;
+
+        expect(parsedHooks).toStrictEqual({
+          'dungeonmaster-guard': {
+            PreToolUse: [
+              {
+                matcher: 'run_command|replace_file_content|write_to_file|grep_search|find_by_name',
+                hooks: [{ type: 'command', command: 'dungeonmaster-agy-pre-tool' }],
+              },
+            ],
+            Stop: [{ type: 'command', command: 'dungeonmaster-agy-stop' }],
+          },
+        });
+
+        const parsedSkills = JSON.parse(skillsContent!) as Record<PropertyKey, unknown>;
+
+        expect(parsedSkills).toStrictEqual({
+          entries: [{ path: '.claude/skills' }],
+        });
+
+        expect(rulesContent!.startsWith('# Dungeonmaster Operating Rules\n\n')).toBe(true);
+        expect(agentsMdContent).toBe('# Claude guidelines\n');
+      });
+    });
   });
 });

@@ -32,6 +32,18 @@ export const locationsStatics = {
       settings: 'settings.json',
       settingsLocal: 'settings.local.json',
     },
+    agents: {
+      dir: '.agents',
+      rulesDir: 'rules',
+      skillsJson: 'skills.json',
+      hooksJson: 'hooks.json',
+      pluginsDir: 'plugins',
+      pluginJson: 'plugin.json',
+      mcpConfigJson: 'mcp_config.json',
+      dungeonmasterRulesMd: 'dungeonmaster-rules.md',
+    },
+    agentsMd: 'AGENTS.md',
+    claudeMd: 'CLAUDE.md',
     tsconfig: 'tsconfig.json',
     eslintConfig: [
       'eslint.config.ts',
