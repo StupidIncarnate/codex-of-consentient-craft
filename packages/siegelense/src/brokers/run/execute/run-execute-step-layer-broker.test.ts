@@ -29,6 +29,7 @@ describe('runExecuteStepLayerBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
         bindings: NO_BINDINGS,
@@ -74,6 +75,7 @@ describe('runExecuteStepLayerBroker', () => {
         step,
         index: StepIndexStub({ value: 3 }),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
         bindings: NO_BINDINGS,
@@ -97,6 +99,7 @@ describe('runExecuteStepLayerBroker', () => {
         step,
         index: StepIndexStub({ value: 3 }),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
         bindings: NO_BINDINGS,
@@ -146,6 +149,7 @@ describe('runExecuteStepLayerBroker', () => {
         step,
         index: StepIndexStub({ value: 3 }),
         shotPath,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
         bindings: NO_BINDINGS,
@@ -196,6 +200,7 @@ describe('runExecuteStepLayerBroker', () => {
         step,
         index: StepIndexStub({ value: 3 }),
         shotPath,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
         bindings: NO_BINDINGS,
@@ -246,6 +251,7 @@ describe('runExecuteStepLayerBroker', () => {
         step,
         index: StepIndexStub({ value: 2 }),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
         bindings: NO_BINDINGS,
@@ -281,6 +287,94 @@ describe('runExecuteStepLayerBroker', () => {
     });
   });
 
+  describe('an until that hits its ceiling — R9 end to end', () => {
+    it('ERROR: {until visible never resolves, expect ok} => an ok:false reading, a stoppedAt, and timedOut true', async () => {
+      const proxy = runExecuteStepLayerBrokerProxy();
+      // `name`, not just the message: `stepUntilBroker` folds a rejection into a ceiling only when
+      // it is Playwright's own TimeoutError, so a plainly-named Error staged here would be
+      // rethrown instead and this test would grade the wrong path.
+      const ceilingError = new Error('Timeout 30000ms exceeded');
+      ceilingError.name = 'TimeoutError';
+      const lane = proxy.laneUntilHitsCeiling({ error: ceilingError });
+      const step = StepStub({
+        step: 'until',
+        visible: SelectorStub({ value: '[data-testid="SUBAGENT_CHAIN"]' }),
+        timeoutMs: 20000,
+      });
+
+      const outcome = await runExecuteStepLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 5 }),
+        shotPath: null,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        bindings: NO_BINDINGS,
+        recordBinding: NOOP,
+      });
+
+      expect(outcome).toStrictEqual({
+        reading: {
+          step: 5,
+          verb: 'until',
+          node: null,
+          ok: false,
+          expected: 'ok',
+          reading: 'visible [data-testid="SUBAGENT_CHAIN"] never resolved in 20000ms',
+          shot: null,
+          pixelChange: null,
+          blank: null,
+          blankColour: null,
+          serverWindow: { fromByte: 0, toByte: 0 },
+          startedAtMs: FIXED_NOW_MS,
+          endedAtMs: FIXED_NOW_MS,
+        },
+        stoppedAt: {
+          step: 5,
+          verb: 'until',
+          error: 'visible [data-testid="SUBAGENT_CHAIN"] never resolved in 20000ms',
+          candidates: [],
+        },
+        // This is R9: a hung `until` reports `timedOut: true`, which is what makes
+        // `runExecuteBroker` return `status: 'timeout'` rather than `status: 'failed'`.
+        timedOut: true,
+      });
+    });
+
+    it('ERROR: {until visible matches two elements} => timedOut false, so the run answers failed and the message names both', async () => {
+      const proxy = runExecuteStepLayerBrokerProxy();
+      const ambiguityMessage =
+        'strict mode violation: locator(\'[data-testid="PIXEL_BTN"]\') resolved to 2 elements';
+      const lane = proxy.laneUntilHitsCeiling({ error: new Error(ambiguityMessage) });
+      const step = StepStub({
+        step: 'until',
+        visible: SelectorStub({ value: '[data-testid="PIXEL_BTN"]' }),
+        timeoutMs: 20000,
+      });
+
+      const outcome = await runExecuteStepLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 5 }),
+        shotPath: null,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        bindings: NO_BINDINGS,
+        recordBinding: NOOP,
+      });
+
+      // The other half of R9. A ceiling is the only thing that may answer `timeout`; an ambiguity
+      // reaching this branch as `timedOut: true` would tell a walker to wait longer for an element
+      // already on the screen twice, and would bury Playwright's own message naming both.
+      expect({ timedOut: outcome.timedOut, reading: outcome.reading.reading }).toStrictEqual({
+        timedOut: false,
+        reading: ambiguityMessage,
+      });
+    });
+  });
+
   describe('an expect: error step that throws as intended', () => {
     it('VALID: {goto rejects, expect error} => an ok:true reading and no stoppedAt', async () => {
       const proxy = runExecuteStepLayerBrokerProxy();
@@ -296,6 +390,7 @@ describe('runExecuteStepLayerBroker', () => {
         step,
         index: StepIndexStub({ value: 2 }),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
         bindings: NO_BINDINGS,
@@ -339,6 +434,7 @@ describe('runExecuteStepLayerBroker', () => {
         step,
         index: StepIndexStub({ value: 4 }),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
         bindings: NO_BINDINGS,

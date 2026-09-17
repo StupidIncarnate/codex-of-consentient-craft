@@ -49,5 +49,13 @@ describe('browserSessionContract', () => {
 
       expect(mockClose).toHaveBeenCalledTimes(1);
     });
+
+    it('VALID: {} => waitForPredicate resolves by default', async () => {
+      const session = BrowserSessionStub();
+
+      await expect(session.waitForPredicate({ source: 'true', timeoutMs: 1000 })).resolves.toBe(
+        undefined,
+      );
+    });
   });
 });

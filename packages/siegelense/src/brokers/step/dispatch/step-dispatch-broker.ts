@@ -11,7 +11,10 @@
  * (`step.expect !== 'error'`) still captures before rethrowing — "always capture" (line 676) does not
  * stop being true because the step failed for a genuine reason rather than the one it declared; a
  * capture failure there is logged and swallowed rather than thrown, so it can never replace the
- * original error as what the caller sees. Whether that swallowed capture actually landed rides
+ * original error as what the caller sees. `browserWindowStart` passes straight through to
+ * `runVerbLayerBroker` unchanged — this file never reads it itself, only carries `runExecuteBroker`'s
+ * own run-start buffer lengths one layer further down, to the one verb (`until`) whose `console`/
+ * `response` forms consult it. Whether that swallowed capture actually landed rides
  * upward on the rethrow anyway: `StepFailureCaptureError` wraps the original error with a `captured`
  * boolean, so `runExecuteStepLayerBroker` can build the failure `StepReading`'s `shot` from what THIS
  * call measured rather than a hardcoded `null` or a filesystem guess. When a step DID capture
@@ -36,6 +39,7 @@
  * await stepDispatchBroker({
  *   lane, step: StepStub({ step: 'click', target: SelectorStub() }),
  *   index: StepIndexStub({ value: 3 }), shotPath: AbsoluteFilePathStub({ value: '/repo/.../step3.png' }),
+ *   browserWindowStart: null,
  *   lastShotPath: driverSessionState.lastShotPath, setLastShotPath: driverSessionState.setLastShotPath,
  * });
  * // Resolves the target, clicks it, captures to shotPath, measures it, and returns the stamped StepReading
@@ -47,6 +51,7 @@ import type { RecipeResult } from '@dungeonmaster/siegelense-recipes/contracts';
 
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import type { BlankReading } from '../../../contracts/blank-reading/blank-reading-contract';
+import type { BufferLengths } from '../../../contracts/browser-session/browser-session-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { SeedBindingName } from '../../../contracts/seed-binding-name/seed-binding-name-contract';
@@ -69,6 +74,7 @@ export const stepDispatchBroker = async ({
   step,
   index,
   shotPath,
+  browserWindowStart,
   lastShotPath,
   setLastShotPath,
   recordBinding,
@@ -77,6 +83,7 @@ export const stepDispatchBroker = async ({
   step: Step;
   index: StepIndex;
   shotPath: AbsoluteFilePath | null;
+  browserWindowStart: BufferLengths | null;
   lastShotPath: () => AbsoluteFilePath | null;
   setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
   recordBinding: (params: { name: SeedBindingName; result: RecipeResult }) => void;
@@ -100,7 +107,14 @@ export const stepDispatchBroker = async ({
   // below unconditionally overwrites trips no-useless-assignment, so each branch instead builds and
   // returns its own complete StepReading directly.
   try {
-    const reading = await runVerbLayerBroker({ lane, step, index, shotPath, recordBinding });
+    const reading = await runVerbLayerBroker({
+      lane,
+      step,
+      index,
+      shotPath,
+      browserWindowStart,
+      recordBinding,
+    });
     const ok = step.expect !== 'error';
 
     if (shotPath !== null && session !== null && step.step !== 'screenshot') {

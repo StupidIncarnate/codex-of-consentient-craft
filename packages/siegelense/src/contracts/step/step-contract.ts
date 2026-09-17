@@ -26,6 +26,9 @@
  *
  * stepContract.parse({ step: 'seed', recipe: 'session-with-nested-subagent', guild: '{g.guildId}', as: 's' });
  * // Returns the 'seed' member, with the recipe's own parameters kept as top-level keys
+ *
+ * stepContract.parse({ step: 'until', visible: '[data-testid="SUBAGENT_CHAIN"]', timeoutMs: 20000 });
+ * // Returns the 'until' member, waiting on the ONE condition field the caller set
  */
 
 import { z } from 'zod';
@@ -46,9 +49,15 @@ import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-s
 import { stepExpectationContract } from '../step-expectation/step-expectation-contract';
 import { stepStatics } from '../../statics/step/step-statics';
 import { stepPathContract } from '../step-path/step-path-contract';
+import { untilConsolePatternContract } from '../until-console-pattern/until-console-pattern-contract';
+import { untilFilePathContract } from '../until-file-path/until-file-path-contract';
+import { untilResponseContract } from '../until-response/until-response-contract';
 
 const HANDLE_MESSAGE =
   'a driving step takes exactly one handle: a `target` selector — durable, meaning the same element on the next run, so it is what belongs in a saved batch — or a `ref`, which one `look` minted against this instance and this page state and which is for driving right now. Try { "step": "click", "target": "[data-testid=PIXEL_BTN]", "within": "[data-testid=GUILD_LIST]" } or { "step": "click", "ref": 23 }';
+
+const UNTIL_CONDITION_MESSAGE =
+  'an `until` step waits on exactly one condition, never zero and never two: `visible` — a selector that has not rendered yet, { "step": "until", "visible": "[data-testid=SUBAGENT_CHAIN]", "timeoutMs": 20000 }; `predicate` — a page expression that must become truthy, { "step": "until", "predicate": "document.querySelectorAll(\'[data-testid=QUEST_ROW]\').length === 3" }; `console` — a regex SOURCE string matched against a console line\'s text, { "step": "until", "console": "hydrated" }; `response` — a network exchange by method and a path substring, { "step": "until", "response": { "method": "POST", "path": "/api/quests" }, "timeoutMs": 15000 }; or `file` — a path resolved against the lane\'s home, { "step": "until", "file": "guilds/<id>/quests/<id>/quest.json", "timeoutMs": 10000 }';
 
 export const stepContract = z
   .discriminatedUnion('step', [
@@ -158,17 +167,57 @@ export const stepContract = z
       // named recipe's own declared `parameters` and refuses a missing or unknown one BY NAME.
       // Zod cannot do that check, because only the manifest knows what a given recipe takes.
       .catchall(contentTextContract),
+    z
+      .object({
+        step: z.literal('until'),
+        // Exactly one of these five is non-null — enforced below on the union's own
+        // `.superRefine`, next to the handle rule, for the same reason: a `.refine()` returns a
+        // ZodEffects and `z.discriminatedUnion` accepts only ZodObjects.
+        visible: selectorContract.nullable().default(null),
+        response: untilResponseContract.nullable().default(null),
+        file: untilFilePathContract.nullable().default(null),
+        predicate: contentTextContract.nullable().default(null),
+        console: untilConsolePatternContract.nullable().default(null),
+        timeoutMs: timeoutMsContract.nullable().default(null),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
   ])
   // `.refine()` returns a ZodEffects and `z.discriminatedUnion` accepts only ZodObjects, so the
   // cross-field handle rule rides the UNION rather than the two members it governs. It reads the
   // discriminator itself to stay narrow: `goto` carries neither field and must never be graded
-  // against a rule about handles.
+  // against a rule about handles. `until`'s own exactly-one-condition rule rides the same union
+  // for the identical reason.
   .superRefine((step, context) => {
-    if (step.step !== 'click' && step.step !== 'type') {
+    if (step.step === 'click' || step.step === 'type') {
+      if ((step.target === null) === (step.ref === null)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: HANDLE_MESSAGE,
+          path: ['target'],
+        });
+      }
       return;
     }
-    if ((step.target === null) === (step.ref === null)) {
-      context.addIssue({ code: z.ZodIssueCode.custom, message: HANDLE_MESSAGE, path: ['target'] });
+
+    if (step.step !== 'until') {
+      return;
+    }
+
+    const conditionCount = [
+      step.visible,
+      step.response,
+      step.file,
+      step.predicate,
+      step.console,
+    ].filter((value) => value !== null).length;
+    if (conditionCount !== 1) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: UNTIL_CONDITION_MESSAGE,
+        path: ['visible'],
+      });
     }
   });
 

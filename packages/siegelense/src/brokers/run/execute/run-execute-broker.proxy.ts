@@ -118,6 +118,7 @@ export const runExecuteBrokerProxy = (): {
     lane: LaneSession;
     pushConsoleLine: (params: { text: ContentText }) => void;
   };
+  laneClickTriggersNetworkLine: () => { lane: LaneSession };
   laneCapturingShots: (params?: { evidencePath?: AbsoluteFilePath }) => {
     lane: LaneSession;
     captureCalls: () => readonly AbsoluteFilePath[];
@@ -415,6 +416,45 @@ export const runExecuteBrokerProxy = (): {
           consoleBuffer.push(text);
         },
       };
+    },
+
+    // A `click` that pushes one network line into a REAL (stateful) array on every call — the
+    // repro for the defect a real drive found: `until { response }` reading `fromIndex` off a fresh
+    // `session.bufferLengths()` at the STEP's own start, rather than off `browserWindowStart` (the
+    // RUN's own start), missed a POST an earlier step of the SAME run already fired. `bufferLengths`
+    // and `readNetworkSince` read the SAME array, so calling `runExecuteBroker` twice against this
+    // one lane (two runs sharing one session, exactly as a real driver's lane persists across `run`
+    // calls) is what lets a test prove a match from an earlier RUN still sits before the SECOND
+    // run's own window.
+    laneClickTriggersNetworkLine: (): { lane: LaneSession } => {
+      const networkBuffer: ContentText[] = [];
+      const clickMock = jest.fn().mockImplementation(async () => {
+        networkBuffer.push(
+          ContentTextStub({
+            value: JSON.stringify({ method: 'POST', url: '/api/guilds', status: 201 }),
+          }),
+        );
+        return Promise.resolve(undefined);
+      });
+      const lane = LaneSessionStub({
+        evidencePath: EVIDENCE_PATH,
+        browser: {
+          countMatches: jest.fn().mockResolvedValue(matchCountContract.parse(ONE_MATCH_COUNT)),
+          clickMatch: clickMock,
+          capture: jest.fn().mockResolvedValue(undefined),
+          bufferLengths: jest.fn().mockImplementation(() => ({
+            consoleLines: bufferLineCountContract.parse(0),
+            networkLines: bufferLineCountContract.parse(networkBuffer.length),
+            websocketLines: bufferLineCountContract.parse(0),
+          })),
+          readNetworkSince: jest
+            .fn()
+            .mockImplementation(({ fromIndex }: { fromIndex: number }) =>
+              networkBuffer.slice(fromIndex),
+            ),
+        },
+      });
+      return { lane };
     },
 
     // Records every `session.capture` call's `filePath`, in order — the acting steps' own unasked

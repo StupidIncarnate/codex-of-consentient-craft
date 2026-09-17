@@ -29,6 +29,22 @@ describe('BrowserStepUnsupportedError', () => {
     });
   });
 
+  describe('the form parameter, used only by until', () => {
+    it('VALID: {verb: "until", form: "visible"} => names the spec, the form written, and the file form that works there', () => {
+      const error = new BrowserStepUnsupportedError({
+        verb: 'until',
+        specName: 'dungeonmaster-headless',
+        form: 'visible',
+      });
+
+      expect({ name: error.name, message: error.message }).toStrictEqual({
+        name: 'BrowserStepUnsupportedError',
+        message:
+          'Step until { visible } needs a browser, but spec dungeonmaster-headless declares browser: false — until { file } is the form that runs on a lane with no screen',
+      });
+    });
+  });
+
   describe('error inheritance', () => {
     it('VALID: error instanceof BrowserStepUnsupportedError => returns true', () => {
       const error = new BrowserStepUnsupportedError({

@@ -118,9 +118,9 @@ describe('docsStatics', () => {
       );
     });
 
-    it('VALID: {planning} => names the eight built verbs and marks every other one', () => {
+    it('VALID: {planning} => names the nine built verbs and marks every other one', () => {
       expect(docsStatics.scopes.planning.sections[5].lines[0]).toBe(
-        'Eight step verbs exist: goto, waitFor, click, type, screenshot, eval, look and seed. Every other verb in the design is NOT BUILT YET.',
+        'Nine step verbs exist: goto, waitFor, click, type, screenshot, eval, look, seed and until. Every other verb in the design is NOT BUILT YET.',
       );
     });
 
@@ -130,15 +130,15 @@ describe('docsStatics', () => {
       );
     });
 
-    it('VALID: {operational} => says browser steps error by name on a browserless lane, and that half is built', () => {
+    it('VALID: {operational} => says browser steps error by name on a browserless lane, naming the shape rather than a count', () => {
       expect(docsStatics.scopes.operational.sections[1].lines[2]).toBe(
-        'Browser steps go missing LOUDLY. A browser step submitted against a browserless instance is an error naming the spec, never an empty reading — a reading that quietly returns nothing is the count: 0 problem arriving at the one place a walk cannot recover from it. This half is BUILT: all six verbs error by name here.',
+        'Browser steps go missing LOUDLY. A browser step submitted against a browserless instance is an error naming the spec, never an empty reading — a reading that quietly returns nothing is the count: 0 problem arriving at the one place a walk cannot recover from it. This half is BUILT: every browser verb errors by name here — goto, waitFor, click, type, screenshot, eval and look.',
       );
     });
 
-    it('VALID: {operational} => closes by saying every step it names is unbuilt', () => {
+    it('VALID: {operational} => closes by naming which steps are still unbuilt, and that until { file } is the only until form here', () => {
       expect(docsStatics.scopes.operational.sections[4].lines[0]).toBe(
-        'Every step this scope names is NOT BUILT YET. What works today on a browserless lane is: boot it, close it, and read its server log and its network window off disk.',
+        '`request`, `file` and `storage` are still NOT BUILT YET; `until { file }` is BUILT and is the only until form this scope gets — its browser siblings (`visible`/`predicate`/`console`/`response`) all refuse here by name. What works today on a browserless lane is: boot it, close it, read its server log off disk, and wait on a file appearing with `until { file }`.',
       );
     });
   });

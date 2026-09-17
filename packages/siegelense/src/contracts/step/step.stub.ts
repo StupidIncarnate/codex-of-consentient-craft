@@ -69,6 +69,17 @@ const STEP_DEFAULTS = {
     node: null,
     expect: StepExpectationStub(),
   },
+  until: {
+    step: 'until',
+    visible: SelectorStub(),
+    response: null,
+    file: null,
+    predicate: null,
+    console: null,
+    timeoutMs: null,
+    node: null,
+    expect: StepExpectationStub(),
+  },
 } as const satisfies Record<Step['step'], Record<string, unknown>>;
 
 export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
@@ -91,7 +102,9 @@ export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
                 ? STEP_DEFAULTS.look
                 : stepVerb === 'seed'
                   ? STEP_DEFAULTS.seed
-                  : STEP_DEFAULTS.click;
+                  : stepVerb === 'until'
+                    ? STEP_DEFAULTS.until
+                    : STEP_DEFAULTS.click;
 
   // A `ref` override without a `target` override would otherwise carry click's default target in
   // beside it, and the handle rule rejects a step holding both. The stub's job is to build a VALID
@@ -99,5 +112,13 @@ export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
   const handleOverridden = 'ref' in props && props.ref !== null;
   const withoutTarget = handleOverridden ? { target: null } : {};
 
-  return stepContract.parse({ ...base, ...withoutTarget, ...props });
+  // `until`'s default condition is `visible`. Overriding a DIFFERENT condition field without this
+  // would leave both set — the default `visible` beside the caller's own choice — and the
+  // exactly-one-condition rule rejects that, the same way a `ref` override needs `target` cleared.
+  const conditionOverridden =
+    stepVerb === 'until' &&
+    ('response' in props || 'file' in props || 'predicate' in props || 'console' in props);
+  const withoutVisible = conditionOverridden ? { visible: null } : {};
+
+  return stepContract.parse({ ...base, ...withoutTarget, ...withoutVisible, ...props });
 };

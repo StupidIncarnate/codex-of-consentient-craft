@@ -1,26 +1,26 @@
 # Siegelense — the build
 
-**Valid as of `370392a65`, 2026-09-17.** Re-derive the counts below before trusting them; the command for
-each is given beside it. **A count in this file is a claim about a moment, and this file does not update
-itself.**
+**Valid as of the `until` commit, 2026-09-17.** Re-derive the counts below before trusting them; the
+command for each is given beside it. **A count in this file is a claim about a moment, and this file does
+not update itself.**
 
 ## The score
 
 | | Built | Total | |
 |---|---|---|---|
 | **Calls** | **13** | 13 | every name in the closed set routes; `notBuiltYet` is empty |
-| **Step verbs** | **8** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` `seed` |
+| **Step verbs** | **9** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` `seed` `until` |
 | **Results kinds** | **6** | 6 | `console` `network` `ws` `server` `screenshots` `steps` |
 | **Build-order items** | see the table | 30 | Part 7 of the spec. Count the rows yourself; the tally is what rots |
 
 **The CALL surface is complete and the STEP surface is not**, and that split is the whole state of this
-build. Every call is reachable, driven by hand and tested. **Both stories the last handoff called
-blocking are now done**: `look` reads a page and mints element-bound refs, and `seed` runs a recipe, so
-a session can create a state and then look at it. That was the pair this tool existed for.
+build. Every call is reachable, driven by hand and tested. `look` reads a page and mints element-bound
+refs, `seed` runs a recipe, and `until` waits on something other than a locator state — so a session can
+create a state, wait for the app to react to it, and then look at it. **That is the first round where a
+whole browser feature can be verified end to end without racing or sleeping.**
 
-What is left is the rest of the step vocabulary, and the gap that bites hardest now is TIME: `waitFor`
-watches a locator, and nothing waits on a response, a file or a predicate. Read "What this cannot do
-yet" before promising anyone a walkthrough.
+What is left is the rest of the step vocabulary. Read "What this cannot do yet" before promising anyone a
+walkthrough.
 
 ---
 
@@ -86,8 +86,8 @@ Re-derive this before trusting it — it is a judgement about a moment, and the 
 
 | Candidate | Why it might be next | Why it might not |
 |---|---|---|
-| **`until`** — wait on a response, a file, a predicate (Part 7 item 9) | **The strongest case today.** `waitFor` watches a locator and nothing else. An app that writes a file or answers a request has no way to be waited on, so a walk either races or sleeps. Flakiness here poisons every other verb | It is three waits wearing one name; scope it deliberately |
-| **`box` and `dom`** — rungs 3 and 4 of the reading ladder (item 10) | `look` shipped rungs 1 and 2. A walker that needs one element's geometry, or a question the key does not carry, has no rung to step to | `look` covers most readings, so the pressure is lower than it looks |
+| **`box` and `dom`** — rungs 3 and 4 of the reading ladder (item 10) | `look` shipped rungs 1 and 2. A walker that needs one element's geometry, or a question the key does not carry, has no rung to step to. **Strongest case now that `until` has landed** | `look` covers most readings, so the pressure is lower than it looks |
+| **A capture on `until`'s TIMEOUT path** | A timed-out `until` is the case a fixer opens first and it currently carries no picture. Finding 6 in the log below was this exact shape on another verb. `stepDispatchBroker` already has the machinery | It needs a decision about what `shots[]` means once a non-acting verb can appear in it. The argument both ways is in `plans/step-until.md` §4 |
 | **`health`** — one reading, one verdict line (item 8) | The stress-testing role has no counterpart to the key. Nothing takes a one-shot reading two runs can be held against | Serves one role, where `until` serves every walk |
 | **`reset` + the `snapshot` verb** (item 14) | `snapshots` is a built call that can only ever return automatic rows. Closest thing to rule 1 above | Three reset levels is a big piece; `page` needs a browser-storage surface that does not exist |
 | **Item 17** — the lane spec still names this repo's own server and web packages | Rule 4. A consumer installs `dungeonmaster` and gets a tool that cannot boot their app | Not a verification feature, so it competes on a different axis |
@@ -126,6 +126,18 @@ Re-derive this before trusting it — it is a judgement about a moment, and the 
 Two had passing tests sitting on top of them — one test set both roots to the same value, so the wrong
 one was indistinguishable from the right one; one mock helper re-wrapped cross-realm errors, so a unit
 test could not reproduce the shape production produces.
+
+**A header that CLAIMS the rule is not the rule. Read the code under it.** `stepUntilBroker` shipped with
+a header saying "a real error underneath propagates unchanged" above a `catch` that folded every error
+into a ceiling. Ward was green, the tests asserted real message strings, and the two disagreed silently
+because no test staged a failure that was not a timeout. The header is the thing a later reader trusts,
+so a header the code contradicts is worse than no header.
+
+**A test whose staged value cannot be told from the wrong one proves nothing.** The same fix needed the
+`until` proxy to stage a DECOY `bufferLengths()` return, so that a regression back to reading the buffer
+at step start produces a timeout rather than a silently-green test. Without the decoy, the right source
+and the wrong source both answered the same rows. This is the third time this exact shape has bitten:
+see the teardown SIGKILL row and the two-roots row.
 
 **Never trust a sub-agent's "swept clean" claim — run the sweep yourself.** A `seed` agent reported both
 its instances killed and the process table clear. A driver was still alive, reparented to systemd, with
@@ -201,7 +213,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 | `click` | **built** | `reset` | not built |
 | `type` | **built** | `snapshot` | not built |
 | `screenshot` | **built** | `seed` | **built** |
-| `eval` | **built** | `until` | not built |
+| `eval` | **built** | `until` | **built** |
 | `look` | **built** | `hold` | not built |
 | `key` | not built | `video` | not built |
 | `paste` | not built | `request` | not built |
@@ -214,7 +226,8 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 packages/siegelense/src/statics/step/step-statics.ts   → verbs.all
 ```
 
-**`look` is built.** `seed` is the one to build next, and the reason is in "What this cannot do yet" below.
+**`look`, `seed` and `until` are built.** What is next is in "How to pick the next piece" — re-derive it
+rather than trusting a shortlist written before this round.
 
 ### The build-order items
 
@@ -238,7 +251,7 @@ yourself from the table rather than trusting a tally; a tally is the first thing
 | 6 | Capture on every acting step, frozen, with a change number | **done** |
 | 7 | **The key as a tree — refs, `within`, four columns** | **done** minus the numbered map, which the spec itself defers — `look` plus `look { within }`, and ref driving on `click` and `type` |
 | 8 | `health` — one reading, one verdict line | **not started** |
-| 9 | `until` — wait on a response, a file, a predicate | **not started** |
+| 9 | `until` — wait on a response, a file, a predicate | **done** — all five forms, each driven against a real lane |
 | 10 | Selectable readings — `network` projection, `dom` cap | part: the `network` half only |
 | 11 | `hold` and `video` | **not started** |
 | 11b | The human-check route | spec-side |
@@ -261,8 +274,65 @@ The ledger carries the reasoning per row. **Read it before planning.**
 
 ## What this cannot do yet
 
-Three gaps, and they compound. A session that can drive every built verb still cannot verify a browser
-feature end to end, because of the first one.
+### It CAN wait now — the TIME gap the last round called the worst is closed
+
+`until` waits on something other than a locator state, in five forms. Every one was driven against a real
+lane:
+
+| Form | Driven reading |
+|---|---|
+| `visible` | `[data-testid="CHAT_MESSAGE_TEXT"] became visible after 10ms` |
+| `predicate` | `predicate became true after 14ms` |
+| `console` | `console line matching /connected/ arrived after 0ms — "[vite] connected."` |
+| `response` | `POST /api/guilds answered 201 after 0ms` |
+| `file` | `guilds/<id>/quests/<id>/quest.json appeared after 0ms` |
+
+**`waitFor` cannot do what `visible` does, and that is by design rather than by omission.** `waitFor` is
+a member of `verbs.targeting`, so `runVerbLayerBroker` sends it through `stepTargetResolveBroker` before
+the wait, and a count of zero throws `StepNoMatchError`. An element that has not rendered yet is a
+no-match, so `waitFor` fails instantly where a wait is what you wanted. `until { visible }` skips that
+pre-resolve. That is the whole difference between them.
+
+**Only a CEILING answers `status: 'timeout'`.** Skipping the pre-resolve means Playwright's strict
+locator is what meets an ambiguous selector, so `until { visible }` discriminates and rethrows anything
+that is not a `TimeoutError`. Driven against the spec's own example selector, which matches twice on a
+nested-subagent page:
+
+```
+status: "failed"
+strict mode violation: locator('[data-testid="SUBAGENT_CHAIN"]') resolved to 2 elements:
+    1) … aka getByText('▾ SUB-AGENT"Outer chain" (2 entries, 0 context)…')
+    2) … aka getByText('▾ SUB-AGENT"Nested chain" (1 entries, 0 context)…')
+```
+
+Before that discrimination existed it printed `never resolved in 20000ms` — telling a walker to wait
+longer for an element already on the screen twice. The same rule covers a `predicate` whose source
+cannot evaluate: a broken predicate and a false one would otherwise read identically.
+
+**`console` and `response` scan THIS RUN's window**, not this step's. A `click`'s own POST resolves for
+an `until` later in the same batch; a match from an earlier run does not, and the timeout says which:
+
+```
+console matching /connected/ never resolved in 3000ms — 0 of 0 console lines since this step
+began matched. A match DID arrive earlier in this instance's buffer, 2 lines before this run's
+own window began — it belongs to an earlier run, not this one: read it back with
+`results --kind console --since boot`.
+```
+
+**Three things to know before you rely on it:**
+
+| What | Consequence |
+|---|---|
+| `console` takes a regex SOURCE STRING, not `/hydrated/` | A batch arrives as JSON over argv and JSON carries no regex literal. A slash-wrapped value is refused by name |
+| `file` is HOME-RELATIVE and a leading `/` is refused | The path joins onto the lane's throwaway home. The refusal names that home rather than silently waiting on a file outside the lane |
+| `until` takes NO capture, on success or on timeout | It is absent from `verbs.capturing` deliberately — the spec's capture rule covers acting steps and `look`, and names neither. A capture on the TIMEOUT path only is the shape worth considering next, and `stepDispatchBroker` already has the machinery; it needs a decision about what `shots[]` then means. The argument both ways is in `plans/step-until.md` §4 |
+
+Only `file` runs on a browserless lane. The other four refuse by name and say so:
+
+```
+Step until { response } needs a browser, but spec dungeonmaster-headless declares browser: false
+— until { file } is the form that runs on a lane with no screen
+```
 
 ### It CAN read a page now — this gap is closed
 
@@ -401,6 +471,9 @@ table is how the walk tracks what is out and what landed.
 | 16 | `cleanup` | Its help refusal said "it ages no asset, so a clean baseline capture is never touched by this call" — false the moment `assetsAged` landed. The same sentence was duplicated in `cleanupArgsParseTransformer`, which is how it went stale in two places at once | **FIXED** `09ce4a9eb` |
 | 17 | `seed` drive | **A sub-agent reported "both instances killed, ps sweep clean" while a driver was still alive**, reparented to systemd with its servers up. It had run nearly twelve hours across a date boundary, so its own leftovers read as fresh rather than stale. Its home was gone, so the registry that held the pgids was gone with it and no siegelense call could reap it — killed by hand via the process group | **FIXED** by hand; the LESSON is in "Rules this build paid for" |
 | 18 | spec | `siegelense-tooling.md:2917`'s worked batch does `goto /{g.guildSlug}`, and no such route exists. Driven: `blank: true` on both shots. A session copying the spec's own example lands on a white screen and blames the tool | **OPEN** — the spec's error, not the tool's |
+| 19 | `until` build | **The two Playwright-owned forms reported EVERY failure as a ceiling.** `visible` and `predicate` wrapped whatever came back into `UntilCeilingHitError`, which is what `timedOut` reads — so an ambiguous selector answered `status: 'timeout'` and advised waiting longer for an element already on screen twice, and a predicate whose source threw read as one that was merely false. `waitFor` is protected from this by accident, through its pre-resolve; `until { visible }` skips that pre-resolve on purpose, so it had no protection at all. The broker's header CLAIMED the correct behaviour while the code did the opposite. Found by reading the code against the plan, before any drive | **FIXED** — `isPlaywrightTimeoutErrorGuard`; confirmed against a real strict locator |
+| 20 | `until` drive | **A `click` followed by an `until { response }` in ONE batch always timed out.** The click's POST landed during the click step, so it sat behind a scan index taken at the start of the `until` step. The verifier needed two concurrent CLI processes to get a real match — not something a walker should have to discover. Found only by driving | **FIXED** — the two buffer forms now scan the RUN's own window, the unit spec line 90 already names |
+| 21 | `docs` | **`docs --for operational` claimed `until { response }` runs on a browserless lane.** It refuses — the network buffer lives on the browser session. Two more false lines sat beside it, both pre-existing: "all six verbs error by name here" when there are seven, and "network works the same way on a browserless lane" when no network line is ever written without a browser. Found by typing `docs --for operational --human`, which is the second time this exact method has caught a docs lie | **FIXED** — all three, plus a fourth in `walking` that announced five forms and listed four |
 | — | parked | `CliServeResponder` runs `xdg-open` unconditionally, with no flag, config knob or env var. Every server launch opens a browser tab | **PARKED** by request |
 
 ---
@@ -416,6 +489,7 @@ table is how the walk tracks what is out and what landed.
 | `siege-verification-remainder.md` | the ROLE — what a siegemaster is for, the perception trial, the prompts | context, not tooling |
 | `plans/chunk-0*.md` | one plan per chunk, 1 to 5. Chunk 5 is planned and unstarted | picking up chunk 5 |
 | `plans/call-*.md` | one plan per call built in the six-call pass — `capacity`, `docs`, `profile`, `prune`, `recipes`, `snapshots`. Each opens with a numbered requirements table citing spec lines, and grades itself against it | before changing any of those six |
+| `plans/step-*.md` | one plan per step verb built one at a time — `look`, `seed`, `until`. Same shape: a numbered requirements table citing spec lines. `step-until.md` also carries a §4 naming what was deliberately left out and why | before changing any of those three |
 
 **Keep the markers in the spec matching this file.** They read `> **Status: DELIVERED (chunk N)** — …` or
 `PARTIAL` or `BLOCKED`. Match that format exactly so a search finds them.

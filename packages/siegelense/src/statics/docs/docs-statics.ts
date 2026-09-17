@@ -155,7 +155,7 @@ export const docsStatics = {
         {
           heading: 'WHAT A PLAN CAN PROMISE TODAY',
           lines: [
-            `Eight step verbs exist: goto, waitFor, click, type, screenshot, eval, look and seed. Every other verb in the design is ${NOT_BUILT}.`,
+            `Nine step verbs exist: goto, waitFor, click, type, screenshot, eval, look, seed and until. Every other verb in the design is ${NOT_BUILT}.`,
             'look returns the key — every addressable element, its name, its text and a ref for each — so a prelude can discover a testId rather than only address one it was told about.',
             "seed runs a recipe against the instance and returns the ids it made, so a prelude CAN create its own starting state. dungeonmaster siegelense recipes lists every recipe with its produces: claim; name one in a { step: 'seed' } and read its ids back with {binding.field}.",
           ],
@@ -233,6 +233,9 @@ export const docsStatics = {
             'A screenshot name must carry a file extension. Without one the capture fails on an unsupported mime type, naming neither the step nor the field.',
             'goto, click and type are the acting steps, and each captures a shot unasked. look captures too — the key is the text and the shot is the picture, and they answer different questions. Every capture carries a pixel-change figure and a blank verdict.',
             'All seven are browser steps, so all seven error BY NAME against a browserless spec rather than answering an empty reading.',
+            `until waits on something OTHER than a locator state, in one of five forms: { step: 'until', visible: '[data-testid="SUBAGENT_CHAIN"]', timeoutMs: 20000 }, { step: 'until', predicate: 'document.querySelectorAll("[data-testid=QUEST_ROW]").length === 3' }, { step: 'until', console: 'hydrated' }, { step: 'until', response: { method: 'POST', path: '/api/quests' } }, or { step: 'until', file: 'guilds/<id>/quests/<id>/quest.json' }.`,
+            "Exactly one of those five condition fields, never zero and never two. Four of them read the page or its buffers, so they need a browser like every other browser verb. file reads the lane's own throwaway home instead, so it runs here AND on a lane with no screen — reach for it when the thing you are waiting on is something the app WROTE rather than something it drew.",
+            "console and response scan this RUN's own window. A match a step earlier in the same batch produced — a click's own POST — resolves; one from an earlier run does not, and the timeout says so rather than leaving you a bare ceiling.",
           ],
         },
         {
@@ -456,7 +459,7 @@ export const docsStatics = {
         {
           heading: 'THE READING STEPS, AND WHAT YOU CANNOT DO YET',
           lines: [
-            "Eight step verbs exist: goto, waitFor, click, type, screenshot, eval, look and seed. They are values inside run's steps array, never commands of their own.",
+            "Nine step verbs exist: goto, waitFor, click, type, screenshot, eval, look, seed and until. They are values inside run's steps array, never commands of their own.",
             'look reads the page and returns the key — every addressable element with a ref per row — so you can ask what is on a screen rather than only address a testId you already knew.',
             "seed puts the app into a state: { step: 'seed', recipe: '<name>', as: 'g' } runs a recipe and returns the ids it made, and a later step reads them back as {g.guildSlug}. dungeonmaster siegelense recipes lists what states exist.",
             'Ambiguity is an ERROR, never a silent pick. Two matches come back as AMBIGUOUS carrying both candidates; narrow with a within scope.',
@@ -483,7 +486,7 @@ export const docsStatics = {
           lines: [
             'dungeonmaster siegelense start --spec dungeonmaster-headless — the servers, and no Chromium. A browserless spec is just another spec.',
             'Because a profile is keyed by the spec\'s content hash, a browserless spec measures its own steady and peak, and capacity allows more of them in a pool. Nothing special is needed for this: it is the "I added a second server" case running in the other direction.',
-            'Browser steps go missing LOUDLY. A browser step submitted against a browserless instance is an error naming the spec, never an empty reading — a reading that quietly returns nothing is the count: 0 problem arriving at the one place a walk cannot recover from it. This half is BUILT: all six verbs error by name here.',
+            'Browser steps go missing LOUDLY. A browser step submitted against a browserless instance is an error naming the spec, never an empty reading — a reading that quietly returns nothing is the count: 0 problem arriving at the one place a walk cannot recover from it. This half is BUILT: every browser verb errors by name here — goto, waitFor, click, type, screenshot, eval and look.',
             'A browserless boot still needs the fake agent CLI, because it still runs the API process that dispatches through the agent and the ward binary.',
             `The shipped specs still name this repo's own server and web packages directly, so a consumer repo gets a tool that cannot boot its own app. ${NOT_BUILT}.`,
           ],
@@ -493,8 +496,8 @@ export const docsStatics = {
           lines: [
             `{ step: 'request', method: 'POST', path: '/api/guilds', body: { name: 'x', path: '/tmp/x' } } — the curl surface, inside the evidence trail. ${NOT_BUILT}.`,
             `{ step: 'file', path: 'guilds/<id>/quests/<id>/quest.json' } — read a file the flow wrote. ${NOT_BUILT}.`,
-            `{ step: 'until', file: 'guilds/<id>/quests/<id>/quest.json', timeoutMs: 10000 } — wait on a file appearing, rather than on a locator state. ${NOT_BUILT}.`,
-            `{ step: 'until', response: { method: 'POST', path: '/api/quests' }, timeoutMs: 15000 } — wait on an exchange instead. ${NOT_BUILT}.`,
+            "{ step: 'until', file: 'guilds/<id>/quests/<id>/quest.json', timeoutMs: 10000 } — wait on a file appearing, rather than on a locator state. BUILT, and the one until form that runs here: an operational flow has no screen and still writes files.",
+            "{ step: 'until', response: { method: 'POST', path: '/api/quests' } } needs a browser and refuses here by name — until { file } above is the only until form this scope gets, since there is no page to poll a network buffer against.",
             `{ step: 'storage', prefix: 'dm-' } — browser storage, which a browserless lane does not have. It is named here because the design names it; on a lane with no screen the durable state is read with file. ${NOT_BUILT}.`,
           ],
         },
@@ -505,13 +508,13 @@ export const docsStatics = {
             'The lane already opens the api and web server logs in its own directory, and nothing else tells anyone they are there.',
             'console is browser-only, so on a flow with no screen it answers nothing and the server log is the whole reading.',
             'Every server entry carries the step it fell inside, so "what did the server say during steps 4 to 9" is one query.',
-            'network works the same way on a browserless lane: the exchanges the flow itself made are in the window, narrowable with --where-path and --where-method and projectable with --fields.',
+            'network is browser-only too, so on a flow with no screen it answers nothing as well — the server log above is the whole reading the wire gives you here.',
           ],
         },
         {
           heading: 'WHAT IS MISSING BEFORE THIS SCOPE IS USABLE',
           lines: [
-            `Every step this scope names is ${NOT_BUILT}. What works today on a browserless lane is: boot it, close it, and read its server log and its network window off disk.`,
+            `\`request\`, \`file\` and \`storage\` are still ${NOT_BUILT}; \`until { file }\` is BUILT and is the only until form this scope gets — its browser siblings (\`visible\`/\`predicate\`/\`console\`/\`response\`) all refuse here by name. What works today on a browserless lane is: boot it, close it, read its server log off disk, and wait on a file appearing with \`until { file }\`.`,
             'Driving one is not yet possible. If you were sent here to verify an operational flow, say that in your return rather than reaching for a browser lane and driving the UI instead — the screenless flow is the thing under test, and a browser walk is a different test.',
           ],
         },

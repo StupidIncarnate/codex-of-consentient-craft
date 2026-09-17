@@ -2606,6 +2606,8 @@ results queries now. `end` becomes the instance-level `kill`.
 
 ### Steps that are new
 
+> **Status: PARTIAL** — three of the eleven ship: `look`, `seed` and `until`. `until` carries all five forms — `visible`, `predicate`, `console`, `response` and `file` — with `file` the one that runs on a browserless lane; a ceiling answers `status: 'timeout'` and anything else answers `failed`, so an ambiguous `visible` reports Playwright's strict-mode violation naming both elements rather than advising a longer wait · verified by reading `brokers/step/until/` and by driving every form against a real lane · NOT YET: `before`, `health`, `reset`, `snapshot`, `hold`, `video`, `request`, `resize`
+
 **`look`** — addressing. Returns the KEY inline and writes the SHOT, returning its path. **The MAP is optional and ships
 later** — `look { map: true }` requests it once it exists, and until then the field is simply absent rather than empty.
 Part 7 defers it deliberately: the one trial arm that had a map rendered three and opened none.

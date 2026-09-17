@@ -413,6 +413,16 @@ export const playwrightSessionAdapter = async ({
         .waitFor({ state: locatorStateContract.parse(state), timeout: timeoutMs });
     },
 
+    waitForPredicate: async ({
+      source,
+      timeoutMs,
+    }: {
+      source: string;
+      timeoutMs: number;
+    }): Promise<void> => {
+      await page.waitForFunction(source, undefined, { timeout: timeoutMs });
+    },
+
     capture: async ({ filePath }: { filePath: string }): Promise<void> => {
       await page.screenshot({ path: filePath, animations: 'disabled', caret: 'hide' });
     },

@@ -9,11 +9,15 @@
  * It takes the whole `LaneSession` rather than its `BrowserSession` because `seed` is the first
  * verb that needs no page — it reads the lane's own api port and throwaway home and touches no
  * screen — so the narrowing to a live browser happens BELOW that route rather than above it.
+ * `until` routes here too, for the same reason: its `file` form also touches no page, so the
+ * per-form browser narrowing for its other four forms lives inside `stepUntilBroker` itself.
+ * `browserWindowStart` passes straight through to that one call and nowhere else — every other verb
+ * below ignores it, since only `until`'s `console`/`response` forms scan a buffer at all.
  *
  * USAGE:
  * await runVerbLayerBroker({
  *   lane, step: StepStub({ step: 'click', target: SelectorStub() }),
- *   index: StepIndexStub({ value: 3 }), shotPath: null, recordBinding,
+ *   index: StepIndexStub({ value: 3 }), shotPath: null, browserWindowStart: null, recordBinding,
  * });
  * // Resolves the target, clicks it, and returns the reading — or throws
  */
@@ -22,6 +26,7 @@ import type { ContentText } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { RecipeResult } from '@dungeonmaster/siegelense-recipes/contracts';
 
+import type { BufferLengths } from '../../../contracts/browser-session/browser-session-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { SeedBindingName } from '../../../contracts/seed-binding-name/seed-binding-name-contract';
 import type { Step } from '../../../contracts/step/step-contract';
@@ -37,6 +42,7 @@ import { stepLookBroker } from '../look/step-look-broker';
 import { stepScreenshotBroker } from '../screenshot/step-screenshot-broker';
 import { stepTargetResolveBroker } from '../target-resolve/step-target-resolve-broker';
 import { stepTypeBroker } from '../type/step-type-broker';
+import { stepUntilBroker } from '../until/step-until-broker';
 import { stepWaitForBroker } from '../wait-for/step-wait-for-broker';
 
 export const runVerbLayerBroker = async ({
@@ -44,12 +50,14 @@ export const runVerbLayerBroker = async ({
   step,
   index,
   shotPath,
+  browserWindowStart,
   recordBinding,
 }: {
   lane: LaneSession;
   step: Step;
   index: StepIndex;
   shotPath: AbsoluteFilePath | null;
+  browserWindowStart: BufferLengths | null;
   recordBinding: (params: { name: SeedBindingName; result: RecipeResult }) => void;
 }): Promise<ContentText> => {
   // `seed` is routed FIRST, before the browser is narrowed, because it is the first verb that
@@ -63,6 +71,22 @@ export const runVerbLayerBroker = async ({
     // the verb is already known, and `node`/`expect` belong to the dispatcher above.
     const { step: _verb, recipe, as, node: _node, expect: _expect, ...parameters } = step;
     return stepSeedBroker({ lane, recipe, parameters, as, recordBinding });
+  }
+
+  // `until` routes here for the same reason `seed` does: its `file` form touches disk and never
+  // a page (R13), so `stepUntilBroker` takes the whole lane and narrows to a live browser itself,
+  // per form, once it knows which of the five condition fields the step actually carries.
+  if (step.step === 'until') {
+    return stepUntilBroker({
+      lane,
+      visible: step.visible,
+      response: step.response,
+      file: step.file,
+      predicate: step.predicate,
+      console: step.console,
+      timeoutMs: step.timeoutMs,
+      browserWindowStart,
+    });
   }
 
   const { browser: session } = lane;

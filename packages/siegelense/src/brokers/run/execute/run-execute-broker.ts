@@ -3,7 +3,11 @@
  * STATUS rather than a payload (siegelense-tooling.md line 49: "run → submit a BATCH of steps;
  * blocks; returns a STATUS, never a payload"). Records the instance's continuous browser/server
  * buffers as THIS run's own window before anything dispatches (line 90: "a run's index counts its
- * OWN window, never the running total"), restarts step numbering at 1 inside a run-namespaced shots
+ * OWN window, never the running total"), and hands that same `browserWindowStart` down to
+ * `runExecuteStepLayerBroker` unchanged for every step — `until`'s `console`/`response` forms are the
+ * one thing below that reads it, so a match that landed during an EARLIER STEP of this same run still
+ * resolves, rather than the ceiling being measured from whatever the buffer happens to hold at the
+ * moment that one step starts. Restarts step numbering at 1 inside a run-namespaced shots
  * directory (line 1630) — every acting step's unasked capture resolves there by index, and a
  * `screenshot` step resolves by its own `name` (line 2516) instead, still inside that same
  * run-namespaced directory so two runs never collide on one caller-chosen filename — flushes the
@@ -12,9 +16,9 @@
  * `runExecuteStepLayerBroker` is what turns BOTH an uncaught exception and the dispatcher's own
  * `expect: 'error'`-but-succeeded finding into the same `ok: false` reading, so the loop below only
  * ever has ONE stop condition to check. `status` reads whether the run's first stop carries
- * `timedOut` — set only when the underlying step threw `WaitForCeilingHitError` — rather than
- * sniffing `stoppedAt.error` text for the word "timeout", so a driver rewording its own message
- * never flips the run's own verdict. Each shot listing carries the SAME `pixelChange`, `blank` and
+ * `timedOut` — set only when the underlying step threw `WaitForCeilingHitError` or its `until`
+ * counterpart `UntilCeilingHitError` — rather than sniffing `stoppedAt.error` text for the word
+ * "timeout", so a driver rewording its own message never flips the run's own verdict. Each shot listing carries the SAME `pixelChange`, `blank` and
  * `blankColour` its source `StepReading` carries, rather than re-deriving them — a `ShotListing` is a
  * projection of the step that captured it, and the two must never disagree about whether that
  * capture was blank. At run start the console/network/websocket lines that arrived SINCE the last
@@ -253,6 +257,7 @@ export const runExecuteBroker = async ({
       step,
       index,
       shotPath,
+      browserWindowStart,
       lastShotPath,
       setLastShotPath,
       bindings: () => bindingsState.values,

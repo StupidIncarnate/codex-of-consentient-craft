@@ -103,6 +103,10 @@ export type BrowserSession = z.infer<typeof browserSessionContract> & {
     state: string;
     timeoutMs: number;
   }) => Promise<void>;
+  // `until { predicate }` — a page EXPRESSION rather than a locator state, backed by
+  // `page.waitForFunction`. No `within`: a predicate is arbitrary JS, not a selector, so scoping it
+  // to a region is the expression's own job, not this call's.
+  waitForPredicate: ({ source, timeoutMs }: { source: string; timeoutMs: number }) => Promise<void>;
   capture: ({ filePath }: { filePath: string }) => Promise<void>;
   evaluateSource: ({ source }: { source: string }) => Promise<ContentText>;
   // Armed once at boot and never cleared (siegelense-tooling.md line 1635) — a run records where it

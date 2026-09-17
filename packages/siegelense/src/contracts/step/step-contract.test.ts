@@ -16,6 +16,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'screenshot', name: FileNameStub({ value: 'step1.png' }) }),
   StepStub({ step: 'eval', source: ContentTextStub() }),
   StepStub({ step: 'look' }),
+  StepStub({ step: 'until', visible: SelectorStub() }),
 ];
 
 describe('stepContract', () => {
@@ -181,6 +182,148 @@ describe('stepContract', () => {
         expect: 'ok',
       });
     });
+
+    it('VALID: {step: until, visible} => parses the visible form, the other four conditions null', () => {
+      const result = stepContract.parse({
+        step: 'until',
+        visible: '[data-testid="SUBAGENT_CHAIN"]',
+        timeoutMs: 20000,
+        node: null,
+      });
+
+      expect(result).toStrictEqual({
+        step: 'until',
+        visible: '[data-testid="SUBAGENT_CHAIN"]',
+        response: null,
+        file: null,
+        predicate: null,
+        console: null,
+        timeoutMs: 20000,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: until, predicate} => parses the predicate form', () => {
+      const result = stepContract.parse({
+        step: 'until',
+        predicate: 'document.querySelectorAll("[data-testid=QUEST_ROW]").length === 3',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'until',
+        visible: null,
+        response: null,
+        file: null,
+        predicate: 'document.querySelectorAll("[data-testid=QUEST_ROW]").length === 3',
+        console: null,
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: until, console} => parses the console form, the pattern UNWRAPPED', () => {
+      const result = stepContract.parse({ step: 'until', console: 'hydrated' });
+
+      expect(result).toStrictEqual({
+        step: 'until',
+        visible: null,
+        response: null,
+        file: null,
+        predicate: null,
+        console: 'hydrated',
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: until, response} => parses the response form', () => {
+      const result = stepContract.parse({
+        step: 'until',
+        response: { method: 'POST', path: '/api/quests' },
+        timeoutMs: 15000,
+      });
+
+      expect(result).toStrictEqual({
+        step: 'until',
+        visible: null,
+        response: { method: 'POST', path: '/api/quests' },
+        file: null,
+        predicate: null,
+        console: null,
+        timeoutMs: 15000,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: until, file} => parses the file form, the one that runs on a browserless lane', () => {
+      const result = stepContract.parse({
+        step: 'until',
+        file: 'guilds/g1/quests/q1/quest.json',
+        timeoutMs: 10000,
+      });
+
+      expect(result).toStrictEqual({
+        step: 'until',
+        visible: null,
+        response: null,
+        file: 'guilds/g1/quests/q1/quest.json',
+        predicate: null,
+        console: null,
+        timeoutMs: 10000,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: until, console: "/hydrated/"} => throws naming the unwrapped form', () => {
+      expect(() => stepContract.parse({ step: 'until', console: '/hydrated/' })).toThrow(
+        /a regex SOURCE string, not a regex literal/u,
+      );
+    });
+
+    it('INVALID: {step: until, file: "/etc/passwd"} => throws naming the lane home', () => {
+      expect(() => stepContract.parse({ step: 'until', file: '/etc/passwd' })).toThrow(
+        /resolved against the lane's own throwaway home/u,
+      );
+    });
+  });
+
+  describe('the until step: exactly one condition, never zero and never two', () => {
+    it('INVALID: {step: until, no condition} => rejected, naming all five forms', () => {
+      expect(() => stepContract.parse({ step: 'until' })).toThrow(
+        /an `until` step waits on exactly one condition/u,
+      );
+    });
+
+    it('INVALID: {step: until, visible AND predicate} => rejected', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'until',
+          visible: '[data-testid="X"]',
+          predicate: 'true',
+        }),
+      ).toThrow(/an `until` step waits on exactly one condition/u);
+    });
+
+    it('INVALID: {step: until, console AND response} => rejected', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'until',
+          console: 'hydrated',
+          response: { method: 'GET', path: '/x' },
+        }),
+      ).toThrow(/an `until` step waits on exactly one condition/u);
+    });
+
+    it('VALID: {step: until, file only} => never graded against the handle rule, which governs click/type only', () => {
+      const result = stepContract.parse({ step: 'until', file: 'a.json' });
+
+      expect(result.step).toBe('until');
+    });
   });
 
   describe('rejecting a payload shaped like a different member', () => {
@@ -329,6 +472,16 @@ describe('stepContract', () => {
       );
     });
 
+    it('INVALID: {step: until, +path from goto} => throws naming the stray key', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'until',
+          visible: '[data-testid="X"]',
+          path: '/api/guilds',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'path'/u);
+    });
+
     it('INVALID: {step: waitFor, misspelled "taget"} => throws naming the misspelled key', () => {
       expect(() =>
         stepContract.parse({
@@ -448,6 +601,22 @@ describe('stepContract', () => {
 
       expect(result).toStrictEqual({ step: 'goto', path: '/', node: null, expect: 'ok' });
     });
+
+    it('EDGE: {step: until, visible, timeoutMs omitted} => defaults timeoutMs to null, resolved later by driverStatics', () => {
+      const result = stepContract.parse({ step: 'until', visible: '[data-testid="X"]' });
+
+      expect(result).toStrictEqual({
+        step: 'until',
+        visible: '[data-testid="X"]',
+        response: null,
+        file: null,
+        predicate: null,
+        console: null,
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
   });
 
   describe('stub', () => {
@@ -485,6 +654,38 @@ describe('stepContract', () => {
       expect(result).toStrictEqual({
         step: 'look',
         within: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: until} => defaults to the visible form', () => {
+      const result = StepStub({ step: 'until' });
+
+      expect(result).toStrictEqual({
+        step: 'until',
+        visible: '[data-testid="GUILD_ADD"]',
+        response: null,
+        file: null,
+        predicate: null,
+        console: null,
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: until, predicate override} => drops the default visible, so naming a different condition names that one alone', () => {
+      const result = StepStub({ step: 'until', predicate: 'true' });
+
+      expect(result).toStrictEqual({
+        step: 'until',
+        visible: null,
+        response: null,
+        file: null,
+        predicate: 'true',
+        console: null,
+        timeoutMs: null,
         node: null,
         expect: 'ok',
       });

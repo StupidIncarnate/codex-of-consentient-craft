@@ -85,5 +85,10 @@ export const driverStatics = {
     // would out of the box, and the session adapter never has to invent a second number the two
     // could silently disagree on.
     defaultStepTimeoutMs: 30_000,
+    // `until`'s own poll interval, for the two forms that poll rather than delegate to a
+    // Playwright-owned wait (the console/response buffer scans, the file stat). A buffer read is
+    // an in-process array slice and a file probe is one `stat` call, so the cost of the interval
+    // is nothing; 100ms is well under the smallest gap a walk can meaningfully observe.
+    untilPollMs: 100,
   },
 } as const;

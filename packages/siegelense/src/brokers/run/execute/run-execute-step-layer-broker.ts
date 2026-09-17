@@ -7,9 +7,10 @@
  * crash the batch: "a step's failure is CAUGHT and recorded as a reading, which is different from
  * swallowing" — the exception becomes an `ok: false` reading exactly like the dispatcher's own
  * `expect: 'error'`-but-succeeded finding, so the parent's `stopOn` check never has to know which of
- * the two produced it. `timedOut` reads `error instanceof WaitForCeilingHitError` rather than the
- * rendered message, so `runExecuteBroker` can tell `status: 'timeout'` apart from `status: 'failed'`
- * without parsing prose the underlying driver could reword out from under it. "A timeout must NAME
+ * the two produced it. `timedOut` reads `error instanceof WaitForCeilingHitError` (or its `until`
+ * counterpart, `UntilCeilingHitError`) rather than the rendered message, so `runExecuteBroker` can
+ * tell `status: 'timeout'` apart from `status: 'failed'` without parsing prose the underlying
+ * driver could reword out from under it. "A timeout must NAME
  * the step" (siegelense-tooling.md line 101) is satisfied here, since `step` and `verb` are known at
  * the call site even when the underlying error carries neither. `serverWindow` is required on every
  * `StepReading`, never nullable, so the uncaught-exception branch reads `lane.serverLogLength()`
@@ -26,7 +27,10 @@
  * have, since `blank` is the one VERDICT field in this design. `lastShotPath`/
  * `setLastShotPath` are threaded straight through to `stepDispatchBroker` unchanged — a broker's
  * allowed imports do not include `state/`, so this file never reads the INSTANCE's last-capture
- * pointer itself, only carries the caller's accessor one layer further down.
+ * pointer itself, only carries the caller's accessor one layer further down. `browserWindowStart`
+ * rides the same way, straight through unchanged: `runExecuteBroker` computes it once, before the
+ * whole step loop, so every step's `until { console }`/`until { response }` scans from THIS RUN's
+ * own window rather than a fresh `bufferLengths()` read at whatever moment that one step starts.
  *
  * It is also where a step's `{binding.field}` placeholders are SUBSTITUTED, immediately inside the
  * try. That placement is the point: an unresolvable binding throws, and this is the one place a
@@ -37,7 +41,7 @@
  * USAGE:
  * await runExecuteStepLayerBroker({
  *   lane, step: StepStub({ step: 'goto', path: UrlPathStub() }),
- *   index: StepIndexStub({ value: 3 }), shotPath: null,
+ *   index: StepIndexStub({ value: 3 }), shotPath: null, browserWindowStart: null,
  *   lastShotPath: driverSessionState.lastShotPath, setLastShotPath: driverSessionState.setLastShotPath,
  * });
  * // Returns { reading, stoppedAt: null, timedOut: false } on success, or
@@ -49,6 +53,7 @@ import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { RecipeResult } from '@dungeonmaster/siegelense-recipes/contracts';
 
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
+import type { BufferLengths } from '../../../contracts/browser-session/browser-session-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { SeedBindings } from '../../../contracts/seed-bindings/seed-bindings-contract';
 import type { SeedBindingName } from '../../../contracts/seed-binding-name/seed-binding-name-contract';
@@ -64,6 +69,7 @@ import type { StoppedAt } from '../../../contracts/stopped-at/stopped-at-contrac
 import { stepCandidateContract } from '../../../contracts/step-candidate/step-candidate-contract';
 import { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
 import { StepFailureCaptureError } from '../../../errors/step-failure-capture/step-failure-capture-error';
+import { UntilCeilingHitError } from '../../../errors/until-ceiling-hit/until-ceiling-hit-error';
 import { WaitForCeilingHitError } from '../../../errors/wait-for-ceiling-hit/wait-for-ceiling-hit-error';
 import { stepInterpolateTransformer } from '../../../transformers/step-interpolate/step-interpolate-transformer';
 import { stepDispatchBroker } from '../../step/dispatch/step-dispatch-broker';
@@ -73,6 +79,7 @@ export const runExecuteStepLayerBroker = async ({
   step,
   index,
   shotPath,
+  browserWindowStart,
   lastShotPath,
   setLastShotPath,
   bindings,
@@ -82,6 +89,7 @@ export const runExecuteStepLayerBroker = async ({
   step: Step;
   index: StepIndex;
   shotPath: AbsoluteFilePath | null;
+  browserWindowStart: BufferLengths | null;
   lastShotPath: () => AbsoluteFilePath | null;
   setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
   bindings: () => SeedBindings;
@@ -99,6 +107,7 @@ export const runExecuteStepLayerBroker = async ({
       step: stepInterpolateTransformer({ step, bindings: bindings() }),
       index,
       shotPath,
+      browserWindowStart,
       lastShotPath,
       setLastShotPath,
       recordBinding,
@@ -191,7 +200,9 @@ export const runExecuteStepLayerBroker = async ({
         error: message,
         candidates: ambiguousCandidates,
       }),
-      timedOut: underlyingError instanceof WaitForCeilingHitError,
+      timedOut:
+        underlyingError instanceof WaitForCeilingHitError ||
+        underlyingError instanceof UntilCeilingHitError,
     };
   }
 };

@@ -10,6 +10,7 @@ import { StepExpectationStub } from '../../../contracts/step-expectation/step-ex
 import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 import { StopOnStub } from '../../../contracts/stop-on/stop-on.stub';
+import { UntilResponseStub } from '../../../contracts/until-response/until-response.stub';
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 import { locationsShotPathFindBroker } from '../../locations/shot-path-find/locations-shot-path-find-broker';
 
@@ -391,6 +392,113 @@ describe('runExecuteBroker', () => {
         stoppedAt: null,
       });
       expect(gotoCallCount()).toBe(2);
+    });
+  });
+
+  describe('until { response } after a click in the SAME run', () => {
+    // The real drive's own repro: `[{ click }, { until: response POST /api/guilds }]` never
+    // observed the response, because `stepUntilBroker` read `fromIndex` off a fresh
+    // `session.bufferLengths()` at the `until` step's own start — by then the click's own POST was
+    // already in the buffer, so the scan started AFTER it. `browserWindowStart` is computed ONCE,
+    // before the whole step loop, so this proves the fix without a live browser: the click's POST
+    // must still resolve the very next step.
+    it('VALID: {click fires the POST, until { response } is the next step} => resolves rather than timing out', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane } = proxy.laneClickTriggersNetworkLine();
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'click', target: SelectorStub() }),
+          StepStub({
+            step: 'until',
+            response: UntilResponseStub({ method: 'POST', path: '/api/guilds' }),
+            timeoutMs: 1000,
+          }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({
+        status: 'done',
+        stepsRun: 2,
+        stoppedAt: null,
+      });
+    });
+  });
+
+  describe('until { response } against a match from a PREVIOUS run', () => {
+    // The other half of the fix: reading from the RUN's own window, not the step's, must never
+    // let a match from an EARLIER run satisfy an `until` in THIS run. Run 1's click fires the same
+    // POST; run 2 asks `until { response }` alone, against the SAME lane (one browser session,
+    // exactly as a real driver's lane persists across `run` calls) — the match sits before run 2's
+    // own window, so it still times out, and the note now names it as belonging to an earlier run.
+    // `timeoutMs: 0` — never a real poll wait — because every proxy composed through
+    // `runExecuteBrokerProxy()` shares ONE `Date.now` mock, pinned by `stepDispatchBrokerProxy`'s
+    // own constructor to a fixed value for the whole file; a positive timeout would poll forever
+    // against a clock that never advances, since the ceiling check (`Date.now() < deadlineAtMs`)
+    // never becomes false. `deadlineAtMs = startedAtMs + 0` equals `startedAtMs` under that same
+    // pinned clock, so the ceiling is hit on the FIRST synchronous check, with no wait at all.
+    it('ERROR: {run 1 fires the POST, run 2 alone asks until { response }} => still times out, the note naming an earlier run', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const firstRunId = RunIdStub({ value: 'run_1' });
+      const secondRunId = RunIdStub({ value: 'run_2' });
+      proxy.stagePaths({ runId: firstRunId });
+      proxy.stagePaths({ runId: secondRunId });
+      const { lane } = proxy.laneClickTriggersNetworkLine();
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId: firstRunId,
+        steps: [StepStub({ step: 'click', target: SelectorStub() })],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId: secondRunId,
+        steps: [
+          StepStub({
+            step: 'until',
+            response: UntilResponseStub({ method: 'POST', path: '/api/guilds' }),
+            timeoutMs: 0,
+          }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({ status: result.status, stoppedAt: result.stoppedAt }).toStrictEqual({
+        status: 'timeout',
+        stoppedAt: {
+          step: 1,
+          verb: 'until',
+          error:
+            "response POST /api/guilds never resolved in 0ms — 0 of 0 network lines since this step began matched. A match DID arrive earlier in this instance's buffer, 1 line before this run's own window began — it belongs to an earlier run, not this one: read it back with `results --kind network --since boot`.",
+          candidates: [],
+        },
+      });
     });
   });
 

@@ -200,6 +200,41 @@ describe('playwrightSessionAdapter', () => {
     });
   });
 
+  describe('waitForPredicate()', () => {
+    it('VALID: {source, timeoutMs} => calls page.waitForFunction with the source and the timeout', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.waitForPredicate({
+        source: 'document.querySelectorAll("[data-testid=QUEST_ROW]").length === 3',
+        timeoutMs: driverStatics.run.defaultStepTimeoutMs,
+      });
+
+      expect(proxy.getWaitForFunctionCalls()).toStrictEqual([
+        {
+          source: 'document.querySelectorAll("[data-testid=QUEST_ROW]").length === 3',
+          options: { timeout: driverStatics.run.defaultStepTimeoutMs },
+        },
+      ]);
+    });
+
+    it('ERROR: {predicate never becomes true} => rejects with the underlying timeout', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setWaitForFunctionRejects();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await expect(session.waitForPredicate({ source: 'false', timeoutMs: 5000 })).rejects.toThrow(
+        /Timeout 30000ms exceeded/u,
+      );
+    });
+  });
+
   describe('describeMatches()', () => {
     it('VALID: {two matches} => returns both candidates with their real content', async () => {
       const proxy = playwrightSessionAdapterProxy();

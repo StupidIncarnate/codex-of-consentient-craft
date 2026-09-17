@@ -24,6 +24,7 @@ export const runExecuteStepLayerBrokerProxy = (): {
     serverLogLengthSequence: readonly number[];
   }) => LaneSession;
   laneWaitForHitsCeiling: (params: { error: Error }) => LaneSession;
+  laneUntilHitsCeiling: (params: { error: Error }) => LaneSession;
   seedBookPresentAt: (params: { packagePath: string }) => void;
   seedLaneAnswers: (params: {
     apiBaseUrl: ContentText;
@@ -93,6 +94,15 @@ export const runExecuteStepLayerBrokerProxy = (): {
           countMatches: jest.fn().mockResolvedValue(matchCountContract.parse(ONE_MATCH_COUNT)),
           waitForMatch: jest.fn().mockRejectedValue(error),
         },
+      }),
+
+    // No `countMatches` staged, unlike `laneWaitForHitsCeiling` above: `until { visible }` never
+    // goes through `stepTargetResolveBroker` at all — pre-resolving is the whole reason `waitFor`
+    // cannot wait for an element to appear, and `runVerbLayerBroker` routes `until` to
+    // `session.waitForMatch` directly.
+    laneUntilHitsCeiling: ({ error }: { error: Error }): LaneSession =>
+      LaneSessionStub({
+        browser: { waitForMatch: jest.fn().mockRejectedValue(error) },
       }),
   };
 };

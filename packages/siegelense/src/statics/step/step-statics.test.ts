@@ -4,7 +4,7 @@ describe('stepStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
     expect(stepStatics).toStrictEqual({
       verbs: {
-        all: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look', 'seed'],
+        all: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look', 'seed', 'until'],
         acting: ['goto', 'click', 'type'],
         capturing: ['goto', 'click', 'type', 'look'],
         targeting: ['waitFor', 'click', 'type'],
@@ -90,7 +90,27 @@ describe('stepStatics', () => {
     expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type']);
   });
 
-  it('VALID: {verbs.all} => ends with seed, the eighth verb', () => {
+  // `until` is the second verb in `all` that is in NONE of the four subsets, for a DIFFERENT
+  // reason than `seed`: it carries no `target` at all, and only one of its five forms (`file`)
+  // needs no browser while the other four do — a split `stepStatics.verbs.browser` cannot express
+  // per-member, so it happens inside `stepUntilBroker` itself instead.
+  it('VALID: {verbs.browser} => omits until, whose forms split per-call rather than by this list', () => {
+    expect(stepStatics.verbs.browser).toStrictEqual([
+      'goto',
+      'waitFor',
+      'click',
+      'type',
+      'screenshot',
+      'eval',
+      'look',
+    ]);
+  });
+
+  it('VALID: {verbs.targeting} => omits until, which carries no target field at all', () => {
+    expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type']);
+  });
+
+  it('VALID: {verbs.all} => ends with until, the ninth verb', () => {
     expect(stepStatics.verbs.all).toStrictEqual([
       'goto',
       'waitFor',
@@ -100,6 +120,7 @@ describe('stepStatics', () => {
       'eval',
       'look',
       'seed',
+      'until',
     ]);
   });
 });

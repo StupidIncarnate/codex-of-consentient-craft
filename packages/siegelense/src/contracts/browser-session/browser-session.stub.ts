@@ -29,6 +29,7 @@ export const BrowserSessionStub = ({
     fillRef,
     fillMatch,
     waitForMatch,
+    waitForPredicate,
     capture,
     evaluateSource,
     readConsoleSince,
@@ -57,6 +58,7 @@ export const BrowserSessionStub = ({
     fillRef: fillRef ?? (async (): Promise<void> => Promise.resolve()),
     fillMatch: fillMatch ?? (async (): Promise<void> => Promise.resolve()),
     waitForMatch: waitForMatch ?? (async (): Promise<void> => Promise.resolve()),
+    waitForPredicate: waitForPredicate ?? (async (): Promise<void> => Promise.resolve()),
     capture: capture ?? (async (): Promise<void> => Promise.resolve()),
     evaluateSource:
       evaluateSource ??

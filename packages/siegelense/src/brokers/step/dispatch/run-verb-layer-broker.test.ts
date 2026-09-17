@@ -24,6 +24,7 @@ describe('runVerbLayerBroker', () => {
         step,
         index: StepIndexStub(),
         shotPath: null,
+        browserWindowStart: null,
         recordBinding: NOOP,
       });
 
@@ -40,6 +41,7 @@ describe('runVerbLayerBroker', () => {
         step,
         index: StepIndexStub(),
         shotPath: null,
+        browserWindowStart: null,
         recordBinding: NOOP,
       });
 
@@ -56,6 +58,7 @@ describe('runVerbLayerBroker', () => {
         step,
         index: StepIndexStub(),
         shotPath: null,
+        browserWindowStart: null,
         recordBinding: NOOP,
       });
 
@@ -74,6 +77,7 @@ describe('runVerbLayerBroker', () => {
         step,
         index: StepIndexStub(),
         shotPath: null,
+        browserWindowStart: null,
         recordBinding: NOOP,
       }).then(
         (): never => {
@@ -99,6 +103,7 @@ describe('runVerbLayerBroker', () => {
         step,
         index: StepIndexStub(),
         shotPath: null,
+        browserWindowStart: null,
         recordBinding: NOOP,
       });
 
@@ -118,6 +123,7 @@ describe('runVerbLayerBroker', () => {
         step,
         index: StepIndexStub(),
         shotPath: null,
+        browserWindowStart: null,
         recordBinding: NOOP,
       }).then(
         (): never => {
@@ -142,6 +148,7 @@ describe('runVerbLayerBroker', () => {
         step,
         index,
         shotPath: null,
+        browserWindowStart: null,
         recordBinding: NOOP,
       }).then(
         (): never => {

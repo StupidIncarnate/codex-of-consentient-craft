@@ -42,6 +42,8 @@ export const playwrightSessionAdapterProxy = (): {
   getClickCalls: () => readonly unknown[];
   getFillCalls: () => readonly unknown[];
   getWaitForCalls: () => readonly unknown[];
+  getWaitForFunctionCalls: () => readonly unknown[];
+  setWaitForFunctionRejects: () => void;
   setResponseTextThrows: () => void;
   emitConsoleMessage: (params: { type: string; text: string; url: string; line: number }) => void;
   emitPageError: (params: { name: string; message: string; stack: string | undefined }) => void;
@@ -89,6 +91,8 @@ export const playwrightSessionAdapterProxy = (): {
     clickCalls: [] as unknown[],
     fillCalls: [] as unknown[],
     waitForCalls: [] as unknown[],
+    waitForFunctionCalls: [] as unknown[],
+    waitForFunctionRejects: false,
   };
 
   // Keyed on the selector string `page.locator(...)` actually received — the same string
@@ -160,6 +164,13 @@ export const playwrightSessionAdapterProxy = (): {
       }
       return Promise.resolve(state.evaluateSourceResult);
     },
+    waitForFunction: async (source: unknown, _arg: unknown, options: unknown): Promise<unknown> => {
+      state.waitForFunctionCalls.push({ source, options });
+      if (state.waitForFunctionRejects) {
+        return Promise.reject(new Error('Timeout 30000ms exceeded'));
+      }
+      return Promise.resolve(true);
+    },
     addInitScript: async (script: unknown) => {
       state.initScripts.push(script);
       return Promise.resolve(undefined);
@@ -219,6 +230,10 @@ export const playwrightSessionAdapterProxy = (): {
     getClickCalls: (): readonly unknown[] => state.clickCalls,
     getFillCalls: (): readonly unknown[] => state.fillCalls,
     getWaitForCalls: (): readonly unknown[] => state.waitForCalls,
+    getWaitForFunctionCalls: (): readonly unknown[] => state.waitForFunctionCalls,
+    setWaitForFunctionRejects: (): void => {
+      state.waitForFunctionRejects = true;
+    },
     setResponseTextThrows: (): void => {
       state.responseTextThrows = true;
     },
