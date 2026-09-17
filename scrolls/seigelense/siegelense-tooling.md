@@ -2256,6 +2256,18 @@ form a session editing the package will actually read**, plus the two that live 
 > tools · NOT YET: a `dungeonmaster siegelense <name>` subcommand for any of the seven, and `capacity`, `profile`,
 > `prune`, `snapshots`, `recipes`, `docs`
 
+> **Status: DELIVERED** — all THIRTEEN calls route. `capacity`, `profile`, `prune`, `snapshots`, `recipes` and
+> `docs` join the seven, each built against this section's own words and driven at a terminal;
+> `siegelenseHelpStatics.index.notBuiltYet` is now empty and the index omits that block entirely rather than
+> printing a bare heading. `cleanup` gained `assetsAged` through the same reclaim path `prune` uses, and
+> `start` gained the hard refusal this section promises — it throws when `capacity` answers `suggested: 0`,
+> before minting a reservation, so a refused boot leaves no registry row and no claimed port pair · NOT YET,
+> and stated here because reachability is not depth: `prune` cannot check the `open-issue` citation kind (no
+> record in this repo carries an instance or run id, so it is declared a permanent gap and named in
+> `unresolved[]` on every answer); `snapshots` returns only automatic rows until the `snapshot` STEP VERB
+> exists; `recipes` declares states nothing can create until `seed` exists; `compare` still lacks `elements`,
+> which waits on `look`
+
 > **Status: PARTIAL (chunk 4)** — the surface claim in this heading's own words now holds for all seven built
 > calls: `dungeonmaster siegelense start`, `run`, `results`, `kill`, `status`, `cleanup` and `compare`, each routed
 > through `SiegelenseFlow`'s `CALL_ROUTES` map (`siegelense-flow.ts:71-102`), with `--help` at both the index and

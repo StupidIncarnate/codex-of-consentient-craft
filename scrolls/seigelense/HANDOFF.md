@@ -1,6 +1,6 @@
 # Siegelense — the build
 
-**Valid as of `5562b4c1c`, 2026-09-16.** Re-derive the counts below before trusting them; the command for
+**Valid as of `09ce4a9eb`, 2026-09-16.** Re-derive the counts below before trusting them; the command for
 each is given beside it. **A count in this file is a claim about a moment, and this file does not update
 itself.**
 
@@ -8,15 +8,16 @@ itself.**
 
 | | Built | Total | |
 |---|---|---|---|
-| **Calls** | **7** | 13 | `start` `run` `results` `kill` `status` `cleanup` `compare` |
+| **Calls** | **13** | 13 | every name in the closed set routes; `notBuiltYet` is empty |
 | **Step verbs** | **6** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` |
 | **Results kinds** | **6** | 6 | `console` `network` `ws` `server` `screenshots` `steps` |
-| **Build-order items** | **6** | 30 | Part 7 of the spec — plus 6 more in part and 3 that are spec-side, not tooling |
+| **Build-order items** | see the table | 30 | Part 7 of the spec. Count the rows yourself; the tally is what rots |
 
-**Roughly a third of the feature set exists.** The parts that do exist are solid and have been driven by
-hand. The parts that do not include the entire ADDRESSING story and the entire SEEDING story, which
-together are what let a session verify a browser feature at all. Read "What this cannot do yet" before
-promising anyone a walkthrough.
+**The CALL surface is complete and the STEP surface is not**, and that split is the whole state of this
+build. Every call is reachable, driven by hand and tested. Six of twenty-three step verbs exist, and the
+missing ones include the entire ADDRESSING story — nothing reads a page — and the seeding VERB, without
+which the recipes that now exist cannot be run. Read "What this cannot do yet" before promising anyone a
+walkthrough.
 
 ---
 
@@ -31,6 +32,12 @@ Copy the block below into a new session. It is self-contained.
 > We are implementing the tooling described in `scrolls/seigelense/siegelense-tooling.md` in all its nitty
 > gritty detail, so that I can manually test everything once without finding holes that are documented as
 > requirements.
+>
+> **The thirteen CALLS are done. The remaining work is the STEP VERBS**, 6 of 23, and `look` is the one to
+> build first — nothing reads a page today, which is what blocks verifying a browser feature end to end.
+> Three built calls are waiting on step verbs to become useful rather than merely correct: `snapshots`
+> returns only automatic rows until `snapshot` exists, `recipes` declares states nothing can create until
+> `seed` exists, and `compare` has no `elements` until `look` exists.
 >
 > **The interface is the CLI.** Every call is `dungeonmaster siegelense <call>`. There are no MCP tools and
 > none are wanted — we should not have to install an MCP server for an LLM to use this. If you find MCP
@@ -88,22 +95,24 @@ Every call is `dungeonmaster siegelense <name>`. Steps are DATA inside `run`, ne
 
 | Call | State |
 |---|---|
-| `start` | **built** |
+| `start` | **built** — and now refuses outright when `capacity` answers 0, before minting a reservation |
 | `run` | **built** |
 | `results` | **built** |
 | `kill` | **built** |
+| `capacity` | **built** |
+| `profile` | **built** — reads what was measured; the measurement path is new too |
 | `status` | **built** |
-| `cleanup` | **built** — minus `assetsAged`, which waits on the citation resolver |
+| `cleanup` | **built** — including `assetsAged`, through the same reclaim path `prune` uses |
+| `prune` | **built** — minus the `open-issue` citation kind, which cannot be built (see below) |
 | `compare` | **built** — minus `elements`, which waits on `look` |
-| `capacity` | not built |
-| `profile` | not built |
-| `prune` | not built |
-| `snapshots` | not built |
-| `recipes` | not built |
-| `docs` | not built |
+| `snapshots` | **built** — every row reports `manual: false` until the `snapshot` VERB lands |
+| `recipes` | **built** — recipes are declared and listable, not runnable |
+| `docs` | **built** — seven scopes |
 
-The six unbuilt ones refuse BY NAME rather than as an unknown subcommand, which is reachability, not
-delivery. Do not read that refusal as progress.
+**Reachability is no longer the question; depth is.** Three of these are complete calls sitting on an
+incomplete substrate, and each says so in its own output rather than in this file only: `snapshots` can
+only ever return automatic rows, `recipes` lists states nothing can create, and `prune` names its
+unchecked citation kind in `unresolved[]` on every answer.
 
 ```
 # the names, pinned so nobody invents a fourteenth or drops one
@@ -138,18 +147,18 @@ packages/siegelense/src/statics/step/step-statics.ts   → verbs.all
 
 ### The build-order items
 
-The spec's Part 7 is the canonical order. **Thirty items. Six are done whole, six more in part, three are
-spec-side — prompt or contract work in other packages rather than tooling here — and fifteen are
-untouched.** Count them yourself from the table; the tally above is a claim about one moment.
+The spec's Part 7 is the canonical order, and the table below is the state of each row. Three rows are
+spec-side — prompt or contract work in other packages rather than tooling here. **Count the rest
+yourself from the table rather than trusting a tally; a tally is the first thing to rot.**
 
 | # | Item | State |
 |---|---|---|
 | 1 | Gate the smoketest HTTP route at registration | **done** |
-| 2 | The instance service — the thirteen calls | part: 7 of 13 |
+| 2 | The instance service — the thirteen calls | **done** — 13 of 13 route, driven by hand |
 | 2a | The evidence read path off the asset tree | **done** |
 | 2b | Teardown and crash recovery, tests red-first | **done** — 16 of 16 green against real processes |
-| 2c | Retention and tombstones | part: the fields exist; no ageing, no refusals, no citation resolver |
-| 3 | The recipe book | **not started** |
+| 2c | Retention and tombstones | **done** minus one citation kind — ageing, refusals and the resolver all real; `open-issue` is unbuildable, see below |
+| 3 | The recipe book | part: two recipes declared and listable; nothing RUNS one — that needs `seed` |
 | 3a | Recipe integration tests | **not started** |
 | 3b | The PLANNER role | **not started** — orchestrator prompt work |
 | 4 | A transcript of every step and reading | **done** |
@@ -170,7 +179,7 @@ untouched.** Count them yourself from the table; the tally above is a claim abou
 | 11h | Print the owning node id in `get-qa-checklist` | **not started** — orchestrator/mcp |
 | 12 | Server-side failure injection | **not started** |
 | 13b | `compare` — the index delta between two runs | **done** minus `elements` |
-| 14 | Three reset levels with named snapshots | **not started** |
+| 14 | Three reset levels with named snapshots | part: the `snapshots` call and the automatic `run_N:start`/`run_N:end` pair are real copies; no `reset`, no manual `snapshot` verb |
 | 15 | `resize`, and a direct `request` step | **not started** |
 | 16 | The two local lint rules | part: `.first()`/`.last()` done, DOM-handle rule open |
 | 17 | The lane spec and N ports, moved where consumers get it | part: it is data; it still names two packages directly |
@@ -209,7 +218,11 @@ repeats itself verbatim. With `look`, the second button is `ref: 26` and the pro
 only way to discover what is on a page at all is to fail a click on purpose and read the near-miss list
 out of the error message.
 
-### It cannot seed anything
+### It cannot seed anything — and now it can DESCRIBE what it cannot seed
+
+`recipes` lists two recipes with their `produces:` claim and their fidelity. **Nothing runs one.** The
+`seed` step verb does not exist, and `start` takes no `--seed`, so the book is a typed declaration that
+`seed` will one day code against rather than a way to reach a state. The gap below is unchanged by it.
 
 The lane runs a MOCK Claude CLI, and that is correct — `dungeonmaster-web` refuses to boot without
 `CLAUDE_CLI_PATH` and `WARD_CLI_PATH`, in its own words *"Refusing to boot against the real CLI — that
@@ -228,6 +241,22 @@ cannot stand in: it runs in the browser, and the queue is on the driver's disk.
 
 Worse, the queue lives inside the throwaway home, which `kill` deletes — so the evidence directory keeps no
 record of what the lane was fed, and a walk is reproducible only if whoever repeats it still has the JSON.
+
+**What `seed` needs, file by file, is in `scrolls/seigelense/plans/call-recipes.md`.** The lookup half is
+already built: a `seed` step resolves a recipe through `recipeBookReadBroker`, the same call the listing
+makes, so the listing and the runner cannot drift.
+
+### `prune` cannot check one of its three citation kinds, and never will as things stand
+
+A `VERIFIED` prelude and an open quest's `WALKED` note both resolve, and a refusal names the citing file
+and the run id. **An open issue record does not, because no such record exists anywhere in this repo.**
+`signoffContract` carries no instance or run id; `questNoteKindContract` has no `issue` member; no issue
+contract folder exists in any package. A walker's defect becomes a failing test on disk or prose in a
+note, neither of which a resolver can match an instance against.
+
+It is declared in code as a permanent gap and rides `unresolved[]` on every `prune` and every `cleanup`
+answer, **so an empty `refused` can never be read as "nothing cites any of this"**. It needs the
+treatment item 11g gave `walked`: a typed record carrying `instanceId` and `runId`.
 
 ### It loses the lane under a person
 
@@ -256,6 +285,10 @@ table is how the walk tracks what is out and what landed.
 | 12 | test infra | **Composing two proxies that mock the same raw builtin steals one-shots, and this is the FOURTH agent to hit it.** Adding one real `pathJoinAdapter` call to a write path forced a hand-counted drain in `siegelense-driver-responder.proxy.ts` from 3 entries to 6 — a magic number that must be recomputed by hand every time anything upstream stages differently. The ledger names the real fix: scope one-shots to the proxy that staged them. Until then every change near a locations resolver pays this tax | **OPEN** — `@dungeonmaster/testing` |
 | 10 | `run` | `StepAmbiguousError`'s structured `candidates` array is EMPTY while the human-readable message carries the text and rects. A session parsing the JSON gets nothing | **OPEN** |
 | 11 | `run` | The ambiguity error advises narrowing with `within` when both candidates already share one. The advice cannot be followed and repeats verbatim | **OPEN** — closes with `look` |
+| 13 | `docs` | **The manual told an operator that `capacity` was not built and to read `status` instead.** It was written from the spec while `capacity` was being built in a parallel lane, which is correct procedure — but five passages shipped describing calls that had landed by the time they were read. Found by typing `docs --for operating --human`, not by any test | **FIXED** `09ce4a9eb` |
+| 14 | `--human` | `HUMAN_RENDERER_CALLS.join(' and ')` read as a sentence at two names and broke at three: "only status and cleanup and recipes render a human table". Found by typing a refused `--human` | **FIXED** `09ce4a9eb` |
+| 15 | `--help` | With every call built, the index printed a bare `NOT BUILT YET` heading over an empty list — a finished tool reading as a truncated page. The renderer now omits an empty block heading and all, the rule it already applied to `REFUSES` | **FIXED** `09ce4a9eb` |
+| 16 | `cleanup` | Its help refusal said "it ages no asset, so a clean baseline capture is never touched by this call" — false the moment `assetsAged` landed. The same sentence was duplicated in `cleanupArgsParseTransformer`, which is how it went stale in two places at once | **FIXED** `09ce4a9eb` |
 | — | parked | `CliServeResponder` runs `xdg-open` unconditionally, with no flag, config knob or env var. Every server launch opens a browser tab | **PARKED** by request |
 
 ---
@@ -270,6 +303,7 @@ table is how the walk tracks what is out and what landed.
 | `siegelense-recipes.md` | the recipe book design | when item 3 comes up |
 | `siege-verification-remainder.md` | the ROLE — what a siegemaster is for, the perception trial, the prompts | context, not tooling |
 | `plans/chunk-0*.md` | one plan per chunk, 1 to 5. Chunk 5 is planned and unstarted | picking up chunk 5 |
+| `plans/call-*.md` | one plan per call built in the six-call pass — `capacity`, `docs`, `profile`, `prune`, `recipes`, `snapshots`. Each opens with a numbered requirements table citing spec lines, and grades itself against it | before changing any of those six |
 
 **Keep the markers in the spec matching this file.** They read `> **Status: DELIVERED (chunk N)** — …` or
 `PARTIAL` or `BLOCKED`. Match that format exactly so a search finds them.
