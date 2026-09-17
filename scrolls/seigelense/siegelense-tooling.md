@@ -1941,6 +1941,18 @@ that one does not.
 
 ## Part 6 — The recipe book
 
+> **Status: DELIVERED** — both recipes execute. `guild-with-three-quests` is `production` fidelity and
+> earns the word: it POSTs a guild, POSTs three quests and walks seven PATCHes along
+> `questStatusTransitionsStatics`, the same walk `questHydrateBroker` performs, deliberately avoiding
+> `POST /:id/start` because that also spawns the orchestration loop and would leave the fixture moving.
+> `session-with-nested-subagent` is `direct`, writes the transcript shape into the mock CLI's queue, and
+> declares what it mirrors. `seed` runs one from inside a batch and binds its ids under `as:`, which later
+> steps read back; an unresolvable binding stops the batch and names itself rather than interpolating a
+> literal. `start --seed` fills the manifest's `seeded`. A recipe is handed `{ apiBaseUrl, homePath }`,
+> strict, so it has no field a DOM handle could live in · NOT YET: the `production` recipe has no
+> shared-instance integration suite (Part 7 item 3a), and it is not repeatable inside one instance — its
+> guild path is fixed, which is what keeps it deterministic
+
 ### The tool is `siegelense`, and its recipes live beside it
 
 > **Status: PARTIAL (chunk 1)** — both real workspace packages at their exact paths, subpath-importable barrels measured msw-free, `init` scaffolding `packages/siegelense-recipes/`, and an empty one being a real answer · NOT YET: the `dungeonmaster siegelense` command, the `siegelense <name>` subcommands and the recipe listing

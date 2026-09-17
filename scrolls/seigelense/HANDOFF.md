@@ -1,6 +1,6 @@
 # Siegelense — the build
 
-**Valid as of `1d985f8f2`, 2026-09-16.** Re-derive the counts below before trusting them; the command for
+**Valid as of `370392a65`, 2026-09-17.** Re-derive the counts below before trusting them; the command for
 each is given beside it. **A count in this file is a claim about a moment, and this file does not update
 itself.**
 
@@ -9,15 +9,18 @@ itself.**
 | | Built | Total | |
 |---|---|---|---|
 | **Calls** | **13** | 13 | every name in the closed set routes; `notBuiltYet` is empty |
-| **Step verbs** | **7** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` |
+| **Step verbs** | **8** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` `seed` |
 | **Results kinds** | **6** | 6 | `console` `network` `ws` `server` `screenshots` `steps` |
 | **Build-order items** | see the table | 30 | Part 7 of the spec. Count the rows yourself; the tally is what rots |
 
 **The CALL surface is complete and the STEP surface is not**, and that split is the whole state of this
-build. Every call is reachable, driven by hand and tested. **The ADDRESSING story is now done** — `look`
-reads a page, mints element-bound refs, and the ambiguity dead end is closed. **The SEEDING story is
-not**, and it is now the single largest gap: recipes are declared and listable, and nothing can run one.
-Read "What this cannot do yet" before promising anyone a walkthrough.
+build. Every call is reachable, driven by hand and tested. **Both stories the last handoff called
+blocking are now done**: `look` reads a page and mints element-bound refs, and `seed` runs a recipe, so
+a session can create a state and then look at it. That was the pair this tool existed for.
+
+What is left is the rest of the step vocabulary, and the gap that bites hardest now is TIME: `waitFor`
+watches a locator, and nothing waits on a response, a file or a predicate. Read "What this cannot do
+yet" before promising anyone a walkthrough.
 
 ---
 
@@ -33,53 +36,121 @@ Copy the block below into a new session. It is self-contained.
 > gritty detail, so that I can manually test everything once without finding holes that are documented as
 > requirements.
 >
-> **The thirteen CALLS are done, and so is ADDRESSING.** The remaining work is the STEP VERBS, 7 of 23.
-> `look` reads a page and mints refs; `seed` is the one to build next, because a walk that can now SEE a
-> screen still cannot put the app into the state worth looking at. Two built calls are still waiting on a
-> verb to become useful rather than merely correct: `snapshots` returns only automatic rows until
-> `snapshot` exists, and `recipes` declares states nothing can create until `seed` exists.
+> **ONE PIECE AT A TIME. No parallel agents, ever.** Pick one piece, finish it completely — built, tested,
+> warded, DRIVEN, documented, committed — then stop and tell me what you did. Do not start the next piece
+> in the same turn. I would rather have one finished thing I can read than three half-done ones I have to
+> untangle.
+>
+> Dispatch at most ONE sub-agent, for the build itself, and tell it not to dispatch its own. You do the
+> picking, the wiring, the ward, the driving and the commit yourself — those are the steps where a
+> hand-off loses information. Doing the whole piece yourself is also fine and often faster.
 >
 > **The interface is the CLI.** Every call is `dungeonmaster siegelense <call>`. There are no MCP tools and
 > none are wanted — we should not have to install an MCP server for an LLM to use this. If you find MCP
 > framing anywhere it is a leftover, not an instruction.
 >
-> **DONE IS THE FEATURE SET, NOT A GREEN TEST RUN.** The checklist in the handoff is the contract. A ward
-> run cannot fail for code nobody wrote, so ward is a quality gate and never a completeness one. Before you
-> tell me anything is finished, re-count the checklist against the code and paste the counts.
+> **DONE IS THE FEATURE SET, NOT A GREEN TEST RUN.** A ward run cannot fail for code nobody wrote, so ward
+> is a quality gate and never a completeness one. Re-derive the counts from the code before claiming
+> anything; the command for each is in the handoff.
 >
-> You must use sub agents for everything including planning, work, ward runs, and manual verification.
-> Commit as you see fit. Only 5 sub agents in parallel. Opus for planning, sonnet for everything else.
-> **Tell every agent not to dispatch its own sub-agents.**
->
-> Build in CHUNKS. The loop for each chunk:
->
-> 1. A planner reads the spec and the ledger and picks the next chunk. It names which checklist rows the
->    chunk closes, and in what order. Parallelism is good, not required.
-> 2. Sub agents build those rows, with unit and integration tests. No e2e needed for this package.
-> 3. A reviewer reads the code against the plan and hunts for holes and blind spots.
-> 4. A sub agent DRIVES THE REAL CLI against the chunk's requirements — not a script calling brokers.
-> 5. A sub agent updates the ledger, the spec's inline status markers, and **the checklist counts in the
->    handoff**.
-> 6. Start over.
->
-> Repeat until every row of the checklist is checked. Then drive the whole surface by hand, once, against
-> the spec.
->
-> **Manual verification means typing the command.** Several of the worst defects in this build were caught
-> only that way, and two of them had passing tests sitting on top of them.
->
-> Ward discipline: agents run `npm run ward -- -- <files>` on what they touch. Before a commit, `npm run
-> ward -- --uncommitted`. Check the EXIT CODE — a pipeline's exit code is the last command's, so
-> `ward | tail && git commit` commits on red. A bare repo-wide `npm run ward` before merging to the default
-> branch, and only then; it costs ten minutes.
->
-> Only the coordinator builds. A build takes no lock and rewrites every package's output, breaking every
-> other agent's checks mid-run.
->
-> This is a real package in `packages/`, so it follows the repo architecture and testing standards every
-> agent pulls from the MCP tools.
+> **Manual verification means typing the command.** Every round of this build has found defects that way
+> and only that way, and several had passing tests sitting on top of them. A piece is not done until you
+> have driven it.
 
 ---
+
+## How to pick the next piece
+
+**Read this before choosing.** The score table tells you what is missing; it does not tell you what is
+worth doing next, and the two are not the same.
+
+### The rule, in order
+
+1. **Does a BUILT thing currently lie, or half-work?** Fix that first. A call that ships and misleads
+   costs more than a call that does not exist, because a reader trusts it. Nothing is in this state right
+   now — but check, because each round has added one.
+2. **What blocks a session from verifying a browser feature end to end?** That is this tool's whole
+   purpose. Rank by how many walks are impossible without it, not by how interesting it is.
+3. **What unblocks the most other rows?** Part 7's order is a good guide but not a law; it was written
+   before `look` and `seed` existed.
+4. **What would a consumer hit first?** This is a published npm package. A thing that works here and
+   breaks in a consumer's repo is worse than a missing feature, because it fails after they have
+   committed to using it.
+
+**Tie-break toward the smaller piece.** A finished small thing beats a stalled big one, and this build's
+evidence is that pieces sized to one sitting get driven properly and pieces larger than that do not.
+
+### The shortlist, as it stands
+
+Re-derive this before trusting it — it is a judgement about a moment, and the moment has passed.
+
+| Candidate | Why it might be next | Why it might not |
+|---|---|---|
+| **`until`** — wait on a response, a file, a predicate (Part 7 item 9) | **The strongest case today.** `waitFor` watches a locator and nothing else. An app that writes a file or answers a request has no way to be waited on, so a walk either races or sleeps. Flakiness here poisons every other verb | It is three waits wearing one name; scope it deliberately |
+| **`box` and `dom`** — rungs 3 and 4 of the reading ladder (item 10) | `look` shipped rungs 1 and 2. A walker that needs one element's geometry, or a question the key does not carry, has no rung to step to | `look` covers most readings, so the pressure is lower than it looks |
+| **`health`** — one reading, one verdict line (item 8) | The stress-testing role has no counterpart to the key. Nothing takes a one-shot reading two runs can be held against | Serves one role, where `until` serves every walk |
+| **`reset` + the `snapshot` verb** (item 14) | `snapshots` is a built call that can only ever return automatic rows. Closest thing to rule 1 above | Three reset levels is a big piece; `page` needs a browser-storage surface that does not exist |
+| **Item 17** — the lane spec still names this repo's own server and web packages | Rule 4. A consumer installs `dungeonmaster` and gets a tool that cannot boot their app | Not a verification feature, so it competes on a different axis |
+| **Item 3a** — the `production` recipe has no shared-instance suite | Its only proof today is one manual drive | Newly unblocked; the drive did pass |
+
+### What NOT to pick
+
+- **Anything marked spec-side** in the build-order table — items 4b, 11b, 11c. Those are prompt or
+  contract work in other packages, not tooling here.
+- **The orchestrator and web rows** — 3b, 11d, 11e, 11f, 11h. They need a decision about roles that this
+  build has not taken.
+
+---
+
+## The loop for one piece
+
+1. **Pick**, using the rule above. Say out loud which row it closes and why it beat the others.
+2. **Notarize** — read the spec range for it and write a numbered requirements table, one row per thing
+   the spec says, each citing its line. **Re-derive the line numbers**; every status marker added to the
+   spec shifts everything below it, and the ledger's numbers go stale the moment one lands.
+3. **Plan** to `scrolls/seigelense/plans/<piece>.md` before writing code.
+4. **Build**, with unit and integration tests. No e2e in this package.
+5. **Ward** it: `npm run ward -- --only lint,typecheck,unit,integration -- <files>`, `timeout: 600000`.
+   Check the EXIT CODE — a pipeline's exit code is the last command's, so `ward | tail && git commit`
+   commits on red.
+6. **DRIVE IT.** Build first (the CLI runs compiled output), then boot a real lane and type the command.
+   `manual-verification-runbook.md` has the housekeeping. **Kill your instance and sweep afterwards.**
+7. **Update the docs** — this handoff, the ledger row, and the spec's inline status marker.
+8. **Commit**, and stop. Report what you did and what you found.
+
+---
+
+## Rules this build paid for
+
+**A green ward is necessary and nowhere near sufficient.** Every round has found defects only by driving.
+Two had passing tests sitting on top of them — one test set both roots to the same value, so the wrong
+one was indistinguishable from the right one; one mock helper re-wrapped cross-realm errors, so a unit
+test could not reproduce the shape production produces.
+
+**Never trust a sub-agent's "swept clean" claim — run the sweep yourself.** A `seed` agent reported both
+its instances killed and the process table clear. A driver was still alive, reparented to systemd, with
+its servers up. It had run nearly twelve hours and crossed a date boundary, so its own leftovers looked
+fresh rather than stale when it checked.
+
+```bash
+ps -eo pid,etime,cmd | grep -E "siegelense driver|bin/server-entry" | grep -v grep
+ls -d /tmp/dm-siege-inst_* ; ls /tmp/dm-siege-sockets/
+```
+
+**A leaked lane whose home is gone cannot be reaped by the tool.** The registry lives inside the home, so
+deleting the home destroys the only record of the pgids. Recovery is by hand:
+`kill -TERM -<pgid>`, then `-KILL`, then clear the socket and the home.
+
+**Re-derive every spec line number you are handed.** Each status marker shifts everything below it. Numbers
+in the ledger were true when written and are the first thing to rot.
+
+**Do not hand a sub-agent a fact you have not checked.** One prompt told an agent the spec's `driving`
+table had four rows; it had five. The agent checked and corrected it — which is the behaviour to want, and
+also the reason not to rely on it.
+
+**A doc written while a parallel lane builds the thing it describes will be wrong.** The `docs` manual
+shipped telling an operator `capacity` was unbuilt, because `capacity` was being built in the next lane
+while it was written. This is one of the reasons the working model is now one piece at a time.
 
 ## Definition of done
 
@@ -129,7 +200,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 | `waitFor` | **built** | `health` | not built |
 | `click` | **built** | `reset` | not built |
 | `type` | **built** | `snapshot` | not built |
-| `screenshot` | **built** | `seed` | not built |
+| `screenshot` | **built** | `seed` | **built** |
 | `eval` | **built** | `until` | not built |
 | `look` | **built** | `hold` | not built |
 | `key` | not built | `video` | not built |
@@ -158,8 +229,8 @@ yourself from the table rather than trusting a tally; a tally is the first thing
 | 2a | The evidence read path off the asset tree | **done** |
 | 2b | Teardown and crash recovery, tests red-first | **done** — 16 of 16 green against real processes |
 | 2c | Retention and tombstones | **done** minus one citation kind — ageing, refusals and the resolver all real; `open-issue` is unbuildable, see below |
-| 3 | The recipe book | part: two recipes declared and listable; nothing RUNS one — that needs `seed` |
-| 3a | Recipe integration tests | **not started** |
+| 3 | The recipe book | **done** — both recipes execute; `guild-with-three-quests` goes through the app's own API, `session-with-nested-subagent` writes the transcript shape and declares what it mirrors |
+| 3a | Recipe integration tests | part: the `direct` recipe has a real-filesystem suite; the `production` one has no shared-instance suite and its proof today is the manual drive |
 | 3b | The PLANNER role | **not started** — orchestrator prompt work |
 | 4 | A transcript of every step and reading | **done** |
 | 4b | The record's `WALKED` field | spec-side |
@@ -238,33 +309,52 @@ element, drive a locator against it, and unstamp in a `finally`. That is what le
 mode do the no-pick work for a ref; the `ElementHandle` route needs a cast this package's tsconfig
 cannot make. The reasoning is in `refRegistryLayerAdapter`'s own header.
 
-### It cannot seed anything — THE largest remaining gap, now that addressing is done
+### It CAN seed now — this gap is closed too
 
-`recipes` lists two recipes with their `produces:` claim and their fidelity. **Nothing runs one.** The
-`seed` step verb does not exist, and `start` takes no `--seed`, so the book is a typed declaration that
-`seed` will one day code against rather than a way to reach a state. The gap below is unchanged by it.
-
-The lane runs a MOCK Claude CLI, and that is correct — `dungeonmaster-web` refuses to boot without
-`CLAUDE_CLI_PATH` and `WARD_CLI_PATH`, in its own words *"Refusing to boot against the real CLI — that
-spends real API usage and produces a non-deterministic reading."*
-
-The mock is a QUEUE CONSUMER. Each spawn pops one JSON file:
+`seed` runs a recipe against a live instance and returns the ids it made. `as:` names a binding that
+later steps in the same batch read back. Driven, two recipes composed in one batch:
 
 ```
-<home>/claude-queue/__by_cwd__/<guildPath, every non-[A-Za-z0-9._-] byte replaced by _>/0000.json
-                               metadata.json    ← the counter, so ordering is explicit
+{ step: 'seed', recipe: 'guild-with-three-quests', as: 'g' }
+  → {"guildId":"aa45f61c-…","guildSlug":"siege-guild","questId":"d278ce4e-…"}
+{ step: 'seed', recipe: 'session-with-nested-subagent', guild: '{g.guildId}', as: 's' }
+  → {"sessionId":"a1b2c3d4-…","sessions.outer":"/siege-guild/session/…","sessions.nested":"…"}
 ```
 
-`<home>` comes back in `start`'s manifest, so the queue is reachable BY HAND and reachable through no built
-call. `seed`, recipes and `file` are all unbuilt, and **none of the six built verbs writes a file**. `eval`
-cannot stand in: it runs in the browser, and the queue is on the driver's disk.
+**`production` fidelity is honoured, not approximated.** `guild-with-three-quests` POSTs a guild, POSTs
+three quests, then walks seven PATCHes along `questStatusTransitionsStatics` — the same walk
+`questHydrateBroker` performs. It deliberately avoids `POST /:id/start`, which would also spawn the
+orchestration loop and leave the fixture still moving. That choice caught a defect: the app refused a
+`changeType: 'edit'` shape a hand-written `quest.json` would have accepted.
 
-Worse, the queue lives inside the throwaway home, which `kill` deletes — so the evidence directory keeps no
-record of what the lane was fed, and a walk is reproducible only if whoever repeats it still has the JSON.
+**A recipe is handed `{ apiBaseUrl, homePath }`, strict.** No field a DOM handle could live in, so "a
+recipe touches state, never a screen" is held by a shape rather than by a comment.
 
-**What `seed` needs, file by file, is in `scrolls/seigelense/plans/call-recipes.md`.** The lookup half is
-already built: a `seed` step resolves a recipe through `recipeBookReadBroker`, the same call the listing
-makes, so the listing and the runner cannot drift.
+**A bad binding stops the batch and names itself**, rather than interpolating a literal:
+
+```
+UNKNOWN BINDING: {g.guildId} cannot be resolved — no `seed` step in this batch has bound anything
+yet … Nothing is interpolated as a literal: a placeholder that survived would become a URL nobody
+meant.
+```
+
+**Three things to know before you rely on it:**
+
+| What | Consequence |
+|---|---|
+| `guild-with-three-quests` is not repeatable inside ONE instance — the guild path is fixed, which is what keeps it deterministic | A second seed of it in the same lane answers a raw 500 body naming the path. Actionable, but it is the app's error surfacing, not a siegelense refusal naming the recipe |
+| `sessions.outer` and `sessions.nested` resolve to the SAME url | One page renders both chains. The two names are kept because the spec's worked batch reads `{s.sessions.nested}` back |
+| The seed reading is a FLAT map (`{"sessions.nested": "…"}`) | The spec prints a nested object. Flat is what the manifest declares its return names in and what a placeholder resolves against |
+
+### The spec's own worked example uses a route that does not exist
+
+`siegelense-tooling.md:2917` writes `goto /{g.guildSlug}`. **There is no such route.** Driven, it answers
+`blank: true` on both shots and a one-row key. `AppFlow` has `/`, `/queue`, `/:guildSlug/quest/:questId`
+and `/:guildSlug/session/:sessionId`.
+
+A session copying that batch out of the spec lands on a white screen and will reasonably suspect the
+tool. **This is the spec's error, not the tool's**, and it is recorded here rather than fixed because
+changing the spec's worked example is a decision about the spec.
 
 ### `prune` cannot check one of its three citation kinds, and never will as things stand
 
@@ -309,6 +399,8 @@ table is how the walk tracks what is out and what landed.
 | 14 | `--human` | `HUMAN_RENDERER_CALLS.join(' and ')` read as a sentence at two names and broke at three: "only status and cleanup and recipes render a human table". Found by typing a refused `--human` | **FIXED** `09ce4a9eb` |
 | 15 | `--help` | With every call built, the index printed a bare `NOT BUILT YET` heading over an empty list — a finished tool reading as a truncated page. The renderer now omits an empty block heading and all, the rule it already applied to `REFUSES` | **FIXED** `09ce4a9eb` |
 | 16 | `cleanup` | Its help refusal said "it ages no asset, so a clean baseline capture is never touched by this call" — false the moment `assetsAged` landed. The same sentence was duplicated in `cleanupArgsParseTransformer`, which is how it went stale in two places at once | **FIXED** `09ce4a9eb` |
+| 17 | `seed` drive | **A sub-agent reported "both instances killed, ps sweep clean" while a driver was still alive**, reparented to systemd with its servers up. It had run nearly twelve hours across a date boundary, so its own leftovers read as fresh rather than stale. Its home was gone, so the registry that held the pgids was gone with it and no siegelense call could reap it — killed by hand via the process group | **FIXED** by hand; the LESSON is in "Rules this build paid for" |
+| 18 | spec | `siegelense-tooling.md:2917`'s worked batch does `goto /{g.guildSlug}`, and no such route exists. Driven: `blank: true` on both shots. A session copying the spec's own example lands on a white screen and blames the tool | **OPEN** — the spec's error, not the tool's |
 | — | parked | `CliServeResponder` runs `xdg-open` unconditionally, with no flag, config knob or env var. Every server launch opens a browser tab | **PARKED** by request |
 
 ---
@@ -332,12 +424,8 @@ table is how the walk tracks what is out and what landed.
 
 ## Knowledge that cost time to learn
 
-Condensed. The full traces are in the ledger.
-
-**A green ward is necessary and nowhere near sufficient.** Eleven defects were found after the code went
-green, and two had passing tests sitting on top of them — one test set both roots to the same value, so
-the wrong one was indistinguishable from the right one; one mock helper re-wrapped cross-realm errors, so a
-unit test could not reproduce the shape production produces. **Drive the thing.**
+Condensed, and none of it guessed. The full traces are in the ledger. The rules ABOVE are the ones about
+how to work; these are the ones about this machine and this code.
 
 **A child spawned with `env` omitted does not read the live `process.env`.** From inside a Jest worker it
 resolves against a stale pre-strip snapshot, so `--conditions=source` reaches the child and every
