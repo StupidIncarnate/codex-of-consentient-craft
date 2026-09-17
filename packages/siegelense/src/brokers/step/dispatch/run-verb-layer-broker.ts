@@ -1,10 +1,10 @@
 /**
- * PURPOSE: Routes one already browser-checked `Step` to its own verb broker, resolving a targeting
- * step's `target` to exactly one element first (siegelense-tooling.md line 1963: "Nothing ever
- * silently picks a match. Ambiguity is an ERROR"). Split out of `step-dispatch-broker.ts` because a
- * nested function there is forbidden — this layer is the whole "call the verb's broker" half of the
- * dispatcher, leaving the parent to own the browser guard and the `expect` inversion around this
- * call.
+ * PURPOSE: Routes one already browser-checked `Step` to its own verb broker, resolving a driving
+ * step's handle — a `target` to exactly one element, or a `ref` to a live one — before it acts
+ * (siegelense-tooling.md line 2109: "Nothing ever silently picks a match. Ambiguity is an ERROR").
+ * Split out of `step-dispatch-broker.ts` because a nested function there is forbidden — this layer
+ * is the whole "call the verb's broker" half of the dispatcher, leaving the parent to own the
+ * browser guard and the `expect` inversion around this call.
  *
  * USAGE:
  * await runVerbLayerBroker({
@@ -24,6 +24,7 @@ import { isTargetingStepGuard } from '../../../guards/is-targeting-step/is-targe
 import { stepClickBroker } from '../click/step-click-broker';
 import { stepEvalSourceBroker } from '../eval-source/step-eval-source-broker';
 import { stepGotoBroker } from '../goto/step-goto-broker';
+import { stepLookBroker } from '../look/step-look-broker';
 import { stepScreenshotBroker } from '../screenshot/step-screenshot-broker';
 import { stepTargetResolveBroker } from '../target-resolve/step-target-resolve-broker';
 import { stepTypeBroker } from '../type/step-type-broker';
@@ -44,15 +45,22 @@ export const runVerbLayerBroker = async ({
     isTargetingStepGuard({ step }) &&
     (step.step === 'waitFor' || step.step === 'click' || step.step === 'type')
   ) {
-    const targetParams =
-      step.within === null
-        ? { session, target: step.target }
-        : { session, target: step.target, within: step.within };
-    await stepTargetResolveBroker(targetParams);
+    // `waitFor` takes no `ref`: `ElementHandle.waitForElementState` has no `attached`/`detached`,
+    // which `locatorStateContract` carries, and a ref you already looked at is a poor subject for
+    // "wait until this exists" anyway.
+    await stepTargetResolveBroker({
+      session,
+      target: step.target,
+      within: step.within,
+      ref: step.step === 'waitFor' ? null : step.ref,
+    });
   }
 
   if (step.step === 'goto') {
     return stepGotoBroker({ session, path: step.path });
+  }
+  if (step.step === 'look') {
+    return stepLookBroker({ session, within: step.within });
   }
   if (step.step === 'waitFor') {
     return stepWaitForBroker({
@@ -68,6 +76,7 @@ export const runVerbLayerBroker = async ({
       session,
       target: step.target,
       within: step.within,
+      ref: step.ref,
       timeoutMs: step.timeoutMs,
     });
   }
@@ -76,6 +85,7 @@ export const runVerbLayerBroker = async ({
       session,
       target: step.target,
       within: step.within,
+      ref: step.ref,
       value: step.value,
       timeoutMs: step.timeoutMs,
     });

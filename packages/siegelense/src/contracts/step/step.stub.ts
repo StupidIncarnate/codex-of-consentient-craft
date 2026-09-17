@@ -27,6 +27,7 @@ const STEP_DEFAULTS = {
     step: 'click',
     target: SelectorStub(),
     within: null,
+    ref: null,
     timeoutMs: null,
     node: null,
     expect: StepExpectationStub(),
@@ -35,6 +36,7 @@ const STEP_DEFAULTS = {
     step: 'type',
     target: SelectorStub(),
     within: null,
+    ref: null,
     value: ContentTextStub(),
     timeoutMs: null,
     node: null,
@@ -50,6 +52,12 @@ const STEP_DEFAULTS = {
   eval: {
     step: 'eval',
     source: ContentTextStub(),
+    node: null,
+    expect: StepExpectationStub(),
+  },
+  look: {
+    step: 'look',
+    within: null,
     node: null,
     expect: StepExpectationStub(),
   },
@@ -71,7 +79,15 @@ export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
             ? STEP_DEFAULTS.screenshot
             : stepVerb === 'eval'
               ? STEP_DEFAULTS.eval
-              : STEP_DEFAULTS.click;
+              : stepVerb === 'look'
+                ? STEP_DEFAULTS.look
+                : STEP_DEFAULTS.click;
 
-  return stepContract.parse({ ...base, ...props });
+  // A `ref` override without a `target` override would otherwise carry click's default target in
+  // beside it, and the handle rule rejects a step holding both. The stub's job is to build a VALID
+  // member from a partial description, so naming a ref means naming that handle and no other.
+  const handleOverridden = 'ref' in props && props.ref !== null;
+  const withoutTarget = handleOverridden ? { target: null } : {};
+
+  return stepContract.parse({ ...base, ...withoutTarget, ...props });
 };

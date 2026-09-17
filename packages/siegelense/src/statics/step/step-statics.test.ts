@@ -4,10 +4,11 @@ describe('stepStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
     expect(stepStatics).toStrictEqual({
       verbs: {
-        all: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval'],
+        all: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look'],
         acting: ['goto', 'click', 'type'],
+        capturing: ['goto', 'click', 'type', 'look'],
         targeting: ['waitFor', 'click', 'type'],
-        browser: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval'],
+        browser: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look'],
       },
       defaults: {
         stopOn: 'error',
@@ -24,11 +25,46 @@ describe('stepStatics', () => {
     expect(isSubsetOfAll).toBe(true);
   });
 
+  it('VALID: {verbs.capturing} => every member is also a member of verbs.all', () => {
+    const isSubsetOfAll = stepStatics.verbs.capturing.every((verb) =>
+      stepStatics.verbs.all.includes(verb),
+    );
+
+    expect(isSubsetOfAll).toBe(true);
+  });
+
   it('VALID: {verbs.targeting} => every member is also a member of verbs.all', () => {
     const isSubsetOfAll = stepStatics.verbs.targeting.every((verb) =>
       stepStatics.verbs.all.includes(verb),
     );
 
     expect(isSubsetOfAll).toBe(true);
+  });
+
+  it('VALID: {verbs.browser} => every member is also a member of verbs.all', () => {
+    const isSubsetOfAll = stepStatics.verbs.browser.every((verb) =>
+      stepStatics.verbs.all.includes(verb),
+    );
+
+    expect(isSubsetOfAll).toBe(true);
+  });
+
+  it('VALID: {verbs.acting} => every member also captures, since a step that changed the page always has a picture worth keeping', () => {
+    const actingThatDoesNotCapture = stepStatics.verbs.acting.filter(
+      (verb) => !stepStatics.verbs.capturing.includes(verb),
+    );
+
+    expect(actingThatDoesNotCapture).toStrictEqual([]);
+  });
+
+  // Asserted as whole tuples rather than by filtering for `look`. `verbs.acting` is typed narrowly
+  // enough that `verb === 'look'` can never be true, so a filter reads as a passing test while
+  // proving nothing the type did not already prove — tsc refuses the comparison outright.
+  it('VALID: {verbs.capturing} => holds look, which writes the shot beside the key', () => {
+    expect(stepStatics.verbs.capturing).toStrictEqual(['goto', 'click', 'type', 'look']);
+  });
+
+  it('VALID: {verbs.acting} => omits look, which reads the page and never changes it', () => {
+    expect(stepStatics.verbs.acting).toStrictEqual(['goto', 'click', 'type']);
   });
 });

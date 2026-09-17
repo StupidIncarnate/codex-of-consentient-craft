@@ -23,6 +23,8 @@ import { z } from 'zod';
 
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
+import type { KeyListing } from '../key-listing/key-listing-contract';
+import type { RefResolution } from '../ref-resolution/ref-resolution-contract';
 import type { StepCandidate } from '../step-candidate/step-candidate-contract';
 
 export const browserSessionContract = z.object({});
@@ -41,6 +43,14 @@ export interface BufferLengths {
 
 export type BrowserSession = z.infer<typeof browserSessionContract> & {
   goto: ({ url }: { url: string }) => Promise<void>;
+  // The KEY — a listing rather than a selector, and the only operation here that answers "what is
+  // on this screen" rather than "is this one thing where I said it was". `within` scopes it to one
+  // region, which is rung 2 of the ladder (siegelense-tooling.md line 623).
+  look: ({ within }: { within: string | null }) => Promise<KeyListing>;
+  // Whether one ref still reaches an element, and which boundary it crossed when it does not.
+  // Reports a STATE rather than throwing, because `errors/` is outside what an adapter may import —
+  // `stepTargetResolveBroker` is what raises `RefStaleError` / `RefUnknownError` from this.
+  refState: ({ ref }: { ref: number }) => Promise<RefResolution>;
   countMatches: ({ target, within }: { target: string; within?: string }) => Promise<MatchCount>;
   describeMatches: ({
     target,
@@ -57,6 +67,18 @@ export type BrowserSession = z.infer<typeof browserSessionContract> & {
   }: {
     target: string;
     within?: string;
+    timeoutMs: number;
+  }) => Promise<void>;
+  // The ref halves of the two driving operations. A ref can never be ambiguous — it binds to one
+  // element — so neither takes a `within`, and neither has an ambiguity outcome to report.
+  clickRef: ({ ref, timeoutMs }: { ref: number; timeoutMs: number }) => Promise<void>;
+  fillRef: ({
+    ref,
+    value,
+    timeoutMs,
+  }: {
+    ref: number;
+    value: string;
     timeoutMs: number;
   }) => Promise<void>;
   fillMatch: ({

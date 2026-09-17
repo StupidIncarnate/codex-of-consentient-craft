@@ -231,7 +231,10 @@ export const runExecuteBroker = async ({
     }
 
     const index = stepIndexContract.parse(position + instanceLifecycleStatics.numbering.firstStep);
-    const shotPath = stepStatics.verbs.acting.some((verb) => verb === step.step)
+    // `verbs.capturing`, not `verbs.acting`: `look` captures without acting, because it "returns
+    // the KEY inline and writes the SHOT" (siegelense-tooling.md line 2587) while changing nothing
+    // on the page.
+    const shotPath = stepStatics.verbs.capturing.some((verb) => verb === step.step)
       ? locationsShotPathFindBroker({ shotsDir: reportedShotsDir, step: index })
       : step.step === 'screenshot'
         ? locationsShotPathFindBroker({ shotsDir: reportedShotsDir, step: index, name: step.name })

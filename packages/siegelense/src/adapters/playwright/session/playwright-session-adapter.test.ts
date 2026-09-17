@@ -205,9 +205,16 @@ describe('playwrightSessionAdapter', () => {
       const proxy = playwrightSessionAdapterProxy();
       proxy.setDescribeMatchesResult({
         raw: [
-          { index: 0, within: '[data-testid="GUILD_LIST"]', text: '+', rect: '(444,348) 27x25' },
+          {
+            index: 0,
+            ref: 16,
+            within: '[data-testid="GUILD_LIST"]',
+            text: '+',
+            rect: '(444,348) 27x25',
+          },
           {
             index: 1,
+            ref: 23,
             within: '[data-testid="GUILD_SESSION_LIST"]',
             text: '+',
             rect: '(965,348) 27x25',
@@ -224,16 +231,194 @@ describe('playwrightSessionAdapter', () => {
       expect(result).toStrictEqual([
         StepCandidateStub({
           index: 0,
+          ref: 16,
           within: '[data-testid="GUILD_LIST"]',
           text: '+',
           rect: '(444,348) 27x25',
         }),
         StepCandidateStub({
           index: 1,
+          ref: 23,
           within: '[data-testid="GUILD_SESSION_LIST"]',
           text: '+',
           rect: '(965,348) 27x25',
         }),
+      ]);
+    });
+
+    it('VALID: {a described candidate} => its ref becomes drivable, because describing mints one exactly as a look does', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setDescribeMatchesResult({
+        raw: [
+          {
+            index: 0,
+            ref: 16,
+            within: '[data-testid="GUILD_LIST"]',
+            text: '+',
+            rect: '(444,348) 27x25',
+          },
+        ],
+      });
+      proxy.setRefState({ state: 'out-of-range' });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+      await session.describeMatches({ target: TARGET });
+
+      const result = await session.refState({ ref: 16 });
+
+      expect(result).toStrictEqual({ state: 'stale', boundary: 'navigation', highestMinted: 16 });
+    });
+  });
+
+  describe('look()', () => {
+    it('VALID: {a page reading} => returns the whole listing, rendered', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setKeyReadResult({
+        raw: {
+          rows: [
+            {
+              ref: 1,
+              depth: 0,
+              parentRef: null,
+              testId: 'MAP_FRAME',
+              tag: 'div',
+              role: null,
+              domId: null,
+              text: null,
+              value: null,
+              placeholder: null,
+              attributes: [],
+              flags: [],
+              flagDetail: {},
+            },
+          ],
+          highestRef: 1,
+          skipped: [],
+        },
+      });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.look({ within: null });
+
+      expect(result.rendered).toBe(
+        [
+          'key: 1 rows',
+          'ref  element          text / value  attrs  flags',
+          '---  ---------------  ------------  -----  -----',
+          '  1  MAP_FRAME <div>',
+        ].join('\n'),
+      );
+    });
+
+    it('VALID: {a within scope} => the scope rides the listing', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setKeyReadResult({ raw: { rows: [], highestRef: 0, skipped: [] } });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.look({ within: WITHIN });
+
+      expect(result.within).toBe(WITHIN);
+    });
+  });
+
+  describe('the ref registry', () => {
+    it('VALID: {a session} => the init script is added once, before any navigation', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      await playwrightSessionAdapter({ baseUrl: BASE_URL, evidencePath: EVIDENCE_PATH });
+
+      expect(proxy.getInitScripts()).toStrictEqual([
+        [
+          '(() => {',
+          '  const existing = window.__siege;',
+          '  if (existing === undefined) {',
+          '    window.__siege = { refs: [] };',
+          '    return;',
+          '  }',
+          '  if (Array.isArray(existing.refs) === false) {',
+          '    existing.refs = [];',
+          '  }',
+          '})()',
+        ].join('\n'),
+      ]);
+    });
+
+    it('VALID: {a ref nothing ever minted} => answers unknown rather than resolving to something else', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setRefState({ state: 'out-of-range' });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.refState({ ref: 99 });
+
+      expect(result).toStrictEqual({ state: 'unknown', boundary: null, highestMinted: 0 });
+    });
+
+    it('VALID: {a look, then a ref inside what it minted, gone} => answers stale naming the navigation', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setKeyReadResult({ raw: { rows: [], highestRef: 41, skipped: [] } });
+      proxy.setRefState({ state: 'out-of-range' });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+      await session.look({ within: null });
+
+      const result = await session.refState({ ref: 23 });
+
+      expect(result).toStrictEqual({ state: 'stale', boundary: 'navigation', highestMinted: 41 });
+    });
+  });
+
+  describe('clickRef()', () => {
+    it('VALID: {ref} => stamps, clicks the stamp through the strict locator, then unstamps', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.clickRef({ ref: 26, timeoutMs: 5000 });
+
+      expect(proxy.getClickCalls()).toStrictEqual([
+        { selector: '[siege-target]', options: { timeout: 5000 } },
+      ]);
+    });
+
+    it('VALID: {ref} => the stamp is removed afterwards, so the mutation never outlives the step', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.clickRef({ ref: 26, timeoutMs: 5000 });
+
+      expect(proxy.getStampCalls()).toStrictEqual(['stamp', 'unstamp']);
+    });
+  });
+
+  describe('fillRef()', () => {
+    it('VALID: {ref, value} => fills the stamp through the strict locator', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.fillRef({ ref: 14, value: 'guild-alpha', timeoutMs: 5000 });
+
+      expect(proxy.getFillCalls()).toStrictEqual([
+        { selector: '[siege-target]', value: 'guild-alpha', options: { timeout: 5000 } },
       ]);
     });
   });

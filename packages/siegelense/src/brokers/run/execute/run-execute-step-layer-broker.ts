@@ -52,6 +52,8 @@ import type { StepReading } from '../../../contracts/step-reading/step-reading-c
 import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contract';
 import { stoppedAtContract } from '../../../contracts/stopped-at/stopped-at-contract';
 import type { StoppedAt } from '../../../contracts/stopped-at/stopped-at-contract';
+import { stepCandidateContract } from '../../../contracts/step-candidate/step-candidate-contract';
+import { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
 import { StepFailureCaptureError } from '../../../errors/step-failure-capture/step-failure-capture-error';
 import { WaitForCeilingHitError } from '../../../errors/wait-for-ceiling-hit/wait-for-ceiling-hit-error';
 import { stepDispatchBroker } from '../../step/dispatch/step-dispatch-broker';
@@ -134,6 +136,16 @@ export const runExecuteStepLayerBroker = async ({
         ? String(underlyingError.message)
         : String(underlyingError),
     );
+    // The STRUCTURED half of an ambiguity. The message already carries every candidate, but a
+    // session parsing the JSON got an empty array — `StoppedAt.candidates` was hardcoded `[]` on
+    // every failure, so the one failure with a machine-readable recovery reported none of it
+    // (scrolls/seigelense/HANDOFF.md findings-log row 10). Read off the UNWRAPPED error: a real
+    // failure that captured arrives inside `StepFailureCaptureError`, so an `instanceof` against
+    // the raw `error` would miss every ambiguity on an acting step — which is all of them.
+    const ambiguousCandidates =
+      underlyingError instanceof StepAmbiguousError
+        ? underlyingError.candidates.map((candidate) => stepCandidateContract.parse(candidate))
+        : [];
     const reading = stepReadingContract.parse({
       step: index,
       verb,
@@ -155,7 +167,12 @@ export const runExecuteStepLayerBroker = async ({
 
     return {
       reading,
-      stoppedAt: stoppedAtContract.parse({ step: index, verb, error: message, candidates: [] }),
+      stoppedAt: stoppedAtContract.parse({
+        step: index,
+        verb,
+        error: message,
+        candidates: ambiguousCandidates,
+      }),
       timedOut: underlyingError instanceof WaitForCeilingHitError,
     };
   }

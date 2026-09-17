@@ -5,6 +5,10 @@ import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { browserSessionContract } from './browser-session-contract';
 import type { BrowserSession, BufferLengths, MatchCount } from './browser-session-contract';
+import { KeyListingStub } from '../key-listing/key-listing.stub';
+import type { KeyListing } from '../key-listing/key-listing-contract';
+import { RefResolutionStub } from '../ref-resolution/ref-resolution.stub';
+import type { RefResolution } from '../ref-resolution/ref-resolution-contract';
 import type { StepCandidate } from '../step-candidate/step-candidate-contract';
 
 const matchCountContract = z.number().int().nonnegative().brand<'MatchCount'>();
@@ -15,10 +19,14 @@ export const BrowserSessionStub = ({
 }: StubArgument<BrowserSession> = {}): BrowserSession => {
   const {
     goto,
+    look,
+    refState,
     countMatches,
     describeMatches,
     nearestNames,
     clickMatch,
+    clickRef,
+    fillRef,
     fillMatch,
     waitForMatch,
     capture,
@@ -34,6 +42,9 @@ export const BrowserSessionStub = ({
   return {
     ...browserSessionContract.parse({ ...dataProps }),
     goto: goto ?? (async (): Promise<void> => Promise.resolve()),
+    look: look ?? (async (): Promise<KeyListing> => Promise.resolve(KeyListingStub())),
+    refState:
+      refState ?? (async (): Promise<RefResolution> => Promise.resolve(RefResolutionStub())),
     countMatches:
       countMatches ??
       (async (): Promise<MatchCount> => Promise.resolve(matchCountContract.parse(0))),
@@ -42,6 +53,8 @@ export const BrowserSessionStub = ({
     nearestNames:
       nearestNames ?? (async (): Promise<readonly ContentText[]> => Promise.resolve([])),
     clickMatch: clickMatch ?? (async (): Promise<void> => Promise.resolve()),
+    clickRef: clickRef ?? (async (): Promise<void> => Promise.resolve()),
+    fillRef: fillRef ?? (async (): Promise<void> => Promise.resolve()),
     fillMatch: fillMatch ?? (async (): Promise<void> => Promise.resolve()),
     waitForMatch: waitForMatch ?? (async (): Promise<void> => Promise.resolve()),
     capture: capture ?? (async (): Promise<void> => Promise.resolve()),

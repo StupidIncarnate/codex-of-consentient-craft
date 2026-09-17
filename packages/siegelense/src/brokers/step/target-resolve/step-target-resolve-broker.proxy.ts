@@ -3,6 +3,7 @@ import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
+import { RefResolutionStub } from '../../../contracts/ref-resolution/ref-resolution.stub';
 import type { StepCandidate } from '../../../contracts/step-candidate/step-candidate-contract';
 
 // browserSessionContract carries no MatchCount export of its own (contracts/ exposes only the
@@ -18,6 +19,9 @@ export const stepTargetResolveBrokerProxy = (): {
   sessionNarrowingWithin: (params: {
     unscopedCandidates: readonly StepCandidate[];
   }) => BrowserSession;
+  sessionWithLiveRef: () => BrowserSession;
+  sessionWithStaleRef: (params: { boundary: string }) => BrowserSession;
+  sessionWithUnknownRef: (params: { highestMinted: number }) => BrowserSession;
 } => ({
   sessionWithOneMatch: (): BrowserSession =>
     BrowserSessionStub({
@@ -64,5 +68,26 @@ export const stepTargetResolveBrokerProxy = (): {
           ),
         ),
       describeMatches: jest.fn().mockResolvedValue(unscopedCandidates),
+    }),
+
+  sessionWithLiveRef: (): BrowserSession =>
+    BrowserSessionStub({
+      refState: jest
+        .fn()
+        .mockResolvedValue(RefResolutionStub({ state: 'live', boundary: null, highestMinted: 41 })),
+    }),
+
+  sessionWithStaleRef: ({ boundary }: { boundary: string }): BrowserSession =>
+    BrowserSessionStub({
+      refState: jest
+        .fn()
+        .mockResolvedValue(RefResolutionStub({ state: 'stale', boundary, highestMinted: 41 })),
+    }),
+
+  sessionWithUnknownRef: ({ highestMinted }: { highestMinted: number }): BrowserSession =>
+    BrowserSessionStub({
+      refState: jest
+        .fn()
+        .mockResolvedValue(RefResolutionStub({ state: 'unknown', boundary: null, highestMinted })),
     }),
 });

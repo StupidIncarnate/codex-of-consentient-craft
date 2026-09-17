@@ -7,6 +7,7 @@ import type { BrowserSession } from '../../../contracts/browser-session/browser-
 import { stepClickBrokerProxy } from '../click/step-click-broker.proxy';
 import { stepEvalSourceBrokerProxy } from '../eval-source/step-eval-source-broker.proxy';
 import { stepGotoBrokerProxy } from '../goto/step-goto-broker.proxy';
+import { stepLookBrokerProxy } from '../look/step-look-broker.proxy';
 import { stepScreenshotBrokerProxy } from '../screenshot/step-screenshot-broker.proxy';
 import { stepTargetResolveBrokerProxy } from '../target-resolve/step-target-resolve-broker.proxy';
 import { stepTypeBrokerProxy } from '../type/step-type-broker.proxy';
@@ -31,6 +32,7 @@ export const runVerbLayerBrokerProxy = (): {
   stepClickBrokerProxy();
   stepEvalSourceBrokerProxy();
   stepGotoBrokerProxy();
+  stepLookBrokerProxy();
   stepScreenshotBrokerProxy();
   stepTargetResolveBrokerProxy();
   stepTypeBrokerProxy();

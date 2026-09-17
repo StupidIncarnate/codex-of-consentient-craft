@@ -15,6 +15,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'type', target: SelectorStub(), value: ContentTextStub() }),
   StepStub({ step: 'screenshot', name: FileNameStub({ value: 'step1.png' }) }),
   StepStub({ step: 'eval', source: ContentTextStub() }),
+  StepStub({ step: 'look' }),
 ];
 
 describe('stepContract', () => {
@@ -28,7 +29,7 @@ describe('stepContract', () => {
     });
   });
 
-  describe('the six members, full shape', () => {
+  describe('every member, full shape', () => {
     it('VALID: {step: goto} => parses the complete goto member', () => {
       const result = stepContract.parse({ step: 'goto', path: '/api/guilds', node: null });
 
@@ -61,6 +62,7 @@ describe('stepContract', () => {
         step: 'click',
         target: '[data-testid="PIXEL_BTN"]',
         within: '[data-testid="GUILD_LIST"]',
+        ref: null,
         timeoutMs: null,
         node: null,
       });
@@ -69,6 +71,21 @@ describe('stepContract', () => {
         step: 'click',
         target: '[data-testid="PIXEL_BTN"]',
         within: '[data-testid="GUILD_LIST"]',
+        ref: null,
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: click, ref} => parses the ref half of the handle rule', () => {
+      const result = stepContract.parse({ step: 'click', ref: 26 });
+
+      expect(result).toStrictEqual({
+        step: 'click',
+        target: null,
+        within: null,
+        ref: 26,
         timeoutMs: null,
         node: null,
         expect: 'ok',
@@ -80,6 +97,7 @@ describe('stepContract', () => {
         step: 'type',
         target: '[data-testid="CHAT_INPUT"]',
         within: null,
+        ref: null,
         value: '<script>alert(1)</script>',
         timeoutMs: null,
         node: null,
@@ -90,11 +108,40 @@ describe('stepContract', () => {
         step: 'type',
         target: '[data-testid="CHAT_INPUT"]',
         within: null,
+        ref: null,
         value: '<script>alert(1)</script>',
         timeoutMs: null,
         node: null,
         expect: 'error',
       });
+    });
+
+    it('VALID: {step: look} => parses the whole-page reading with no scope', () => {
+      const result = stepContract.parse({ step: 'look' });
+
+      expect(result).toStrictEqual({
+        step: 'look',
+        within: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: look, within} => parses the scoped reading, rung 2 of the ladder', () => {
+      const result = stepContract.parse({ step: 'look', within: 'SUBAGENT_CHAIN' });
+
+      expect(result).toStrictEqual({
+        step: 'look',
+        within: 'SUBAGENT_CHAIN',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: look, +target} => throws naming the stray key, because look reads and never targets', () => {
+      expect(() =>
+        stepContract.parse({ step: 'look', target: '[data-testid="X"]' } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
     });
 
     it('VALID: {step: screenshot} => parses the complete screenshot member', () => {
@@ -154,10 +201,10 @@ describe('stepContract', () => {
       ).toThrow(/Required/u);
     });
 
-    it('INVALID: {step: click, path, no target} => throws for the missing click field', () => {
+    it("INVALID: {step: click, path, no target} => throws naming goto's field as the stray key", () => {
       expect(() =>
         stepContract.parse({ step: 'click', path: '/api/guilds', node: null } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/Unrecognized key\(s\) in object: 'path'/u);
     });
 
     it('INVALID: {step: type, target, no value} => throws for the missing type field', () => {
@@ -297,16 +344,16 @@ describe('stepContract', () => {
   });
 
   describe('an unknown discriminator', () => {
-    it('INVALID: {step: "look"} => throws for a verb outside the six-member union', () => {
+    it('INVALID: {step: "teleport"} => throws for a verb outside the union', () => {
       expect(() =>
-        stepContract.parse({ step: 'look', target: '[data-testid="X"]' } as never),
+        stepContract.parse({ step: 'teleport', target: '[data-testid="X"]' } as never),
       ).toThrow(/Invalid discriminator/u);
     });
 
-    it('INVALID: {step: "look", every field of every member} => discriminator error wins over any unknown-key error', () => {
+    it('INVALID: {step: "teleport", every field of every member} => discriminator error wins over any unknown-key error', () => {
       expect(() =>
         stepContract.parse({
-          step: 'look',
+          step: 'teleport',
           path: '/api/guilds',
           target: '[data-testid="X"]',
           within: null,
@@ -318,6 +365,49 @@ describe('stepContract', () => {
           node: null,
         } as never),
       ).toThrow(/Invalid discriminator/u);
+    });
+  });
+
+  describe('the handle rule: a target OR a ref, never both and never neither', () => {
+    it('INVALID: {step: click with both a target and a ref} => rejected, naming both kinds of handle', () => {
+      expect(() =>
+        stepContract.parse({ step: 'click', target: '[data-testid="PIXEL_BTN"]', ref: 26 }),
+      ).toThrow(/a driving step takes exactly one handle/u);
+    });
+
+    it('INVALID: {step: click with neither} => rejected, naming both kinds of handle', () => {
+      expect(() => stepContract.parse({ step: 'click' })).toThrow(
+        /a driving step takes exactly one handle/u,
+      );
+    });
+
+    it('INVALID: {step: type with both} => rejected', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'type',
+          target: '[data-testid="CHAT_INPUT"]',
+          ref: 14,
+          value: 'x',
+        }),
+      ).toThrow(/a driving step takes exactly one handle/u);
+    });
+
+    it('INVALID: {step: type with neither} => rejected', () => {
+      expect(() => stepContract.parse({ step: 'type', value: 'x' })).toThrow(
+        /a driving step takes exactly one handle/u,
+      );
+    });
+
+    it('VALID: {step: goto} => never graded against the handle rule, because it carries no handle at all', () => {
+      const result = stepContract.parse({ step: 'goto', path: '/' });
+
+      expect(result).toStrictEqual({ step: 'goto', path: '/', node: null, expect: 'ok' });
+    });
+
+    it('VALID: {step: look} => never graded against the handle rule either', () => {
+      const result = stepContract.parse({ step: 'look' });
+
+      expect(result).toStrictEqual({ step: 'look', within: null, node: null, expect: 'ok' });
     });
   });
 
@@ -346,6 +436,7 @@ describe('stepContract', () => {
         step: 'click',
         target: '[data-testid="GUILD_ADD"]',
         within: null,
+        ref: null,
         timeoutMs: null,
         node: null,
         expect: 'ok',
@@ -367,7 +458,33 @@ describe('stepContract', () => {
         step: 'click',
         target: '[data-testid="GUILD_ADD"]',
         within: null,
+        ref: null,
         timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {ref override} => drops the default target, so naming a ref names that handle and no other', () => {
+      const result = StepStub({ step: 'click', ref: 26 });
+
+      expect(result).toStrictEqual({
+        step: 'click',
+        target: null,
+        within: null,
+        ref: 26,
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: look} => creates the whole-page reading', () => {
+      const result = StepStub({ step: 'look' });
+
+      expect(result).toStrictEqual({
+        step: 'look',
+        within: null,
         node: null,
         expect: 'ok',
       });

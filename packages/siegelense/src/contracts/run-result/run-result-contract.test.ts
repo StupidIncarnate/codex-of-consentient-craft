@@ -84,9 +84,16 @@ describe('runResultContract', () => {
       });
 
       expect(result.stoppedAt?.candidates).toStrictEqual([
-        { index: 0, within: '[data-testid="GUILD_LIST"]', text: '+', rect: '(444,348) 27x25' },
+        {
+          index: 0,
+          ref: null,
+          within: '[data-testid="GUILD_LIST"]',
+          text: '+',
+          rect: '(444,348) 27x25',
+        },
         {
           index: 1,
+          ref: null,
           within: '[data-testid="GUILD_SESSION_LIST"]',
           text: '+',
           rect: '(612,348) 27x25',

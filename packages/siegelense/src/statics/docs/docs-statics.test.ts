@@ -60,18 +60,18 @@ describe('docsStatics', () => {
         heading: 'THE LADDER',
         lines: [
           'The rule: reach for the key first. dom is the hatch — last, and always with a narrow target.',
-          'Rung 1, look — the default. What is here, what is it called, what is wrong with it. About 243 tokens for a whole page. NOT BUILT YET.',
-          'Rung 2, look { within } — the same reading scoped to one region, when the region is crowded or the page holds a long transcript. Cheaper. NOT BUILT YET.',
+          'Rung 1, look — the default. What is here, what is it called, what is wrong with it. About 243 tokens for a whole page. Built.',
+          'Rung 2, look { within } — the same reading scoped to one region, when the region is crowded or the page holds a long transcript. Cheaper. Built. `within` takes a bare testId or the full [data-testid="..."] form; both reach the same element.',
           "Rung 3, box { ref } — one element's geometry, exactly. A few lines. NOT BUILT YET.",
           'Rung 4, dom { target } — the hatch. A named selector, and a question the key does not carry. Unbounded without care. NOT BUILT YET.',
-          'Rung 5, eval — a question no step shapes at all. It is a DIFFERENT hatch carrying a different risk: dom is expensive, while eval is cheap and can quietly break the founding rule by computing a verdict inside the page and handing it back as a value. Built, and the one rung you can stand on today.',
+          'Rung 5, eval — a question no step shapes at all. It is a DIFFERENT hatch carrying a different risk: dom is expensive, while eval is cheap and can quietly break the founding rule by computing a verdict inside the page and handing it back as a value.',
         ],
       });
     });
 
-    it('VALID: {walking} => opens by saying the tool cannot read a page, before any verb is taught', () => {
+    it('VALID: {walking} => opens by teaching the key, before any verb is taught', () => {
       expect(docsStatics.scopes.walking.sections[0].lines[0]).toBe(
-        'The reading step that returns the KEY is NOT BUILT YET. Nothing in this tool produces a tree of what is on a screen, so you cannot discover an element — you can only address one you were told about.',
+        'look returns the KEY: a tree of every addressable element on the page, one line each, with a ref you can drive. It answers both "what is on this screen" and "how do I address the second of two identical controls". Take one before you plan a click.',
       );
     });
 

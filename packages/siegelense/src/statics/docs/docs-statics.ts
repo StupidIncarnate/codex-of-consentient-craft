@@ -165,25 +165,27 @@ export const docsStatics = {
       audience:
         'the walker — the session driving a browser against one instance and recording what it reads.',
       summary:
-        'The verbs, the reading rules and the ladder. Read the first section before you plan anything: this tool cannot read a page yet.',
+        'The verbs, the reading rules and the ladder. Read the first section before you plan anything: look is how you discover what is on a screen.',
       sections: [
         {
           heading: 'READ THIS FIRST',
           lines: [
-            `The reading step that returns the KEY is ${NOT_BUILT}. Nothing in this tool produces a tree of what is on a screen, so you cannot discover an element — you can only address one you were told about.`,
-            'Plan the walk around the testIds in your brief. Where the brief names none, say so in your return rather than hunting for it.',
-            'The only discovery route that exists today is the near-miss list inside a NO MATCH error. That is a real technique and a poor one, and it exists because the reading step does not.',
+            'look returns the KEY: a tree of every addressable element on the page, one line each, with a ref you can drive. It answers both "what is on this screen" and "how do I address the second of two identical controls". Take one before you plan a click.',
+            'Every row carries four columns beyond the ref and the indentation: the element (its testId, its TAG even when a testId exists, its role, a DOM id, and [n/m] where siblings share a name), the text or the input value and placeholder, the attrs it DECLARES, and the flags — the conditions it is in. Most rows carry no attrs and no flags, which is what keeps the key short.',
+            'A flag is a finding you did not have to ask for: disabled, aria-disabled, focused, busy, invalid, live, aria-hidden, invisible-opacity-0, offscreen, scrollable, covered, clipped-x, cut-no-ellipsis, low-contrast, collapsed-ancestor, empty, not-tabbable, broken-image. Read them; a control flagged disabled is why your click did nothing.',
+            'Under the key, two more lines fire unasked. A duplicate line names a testId appearing under two DIFFERENT parents, which is a real defect nothing warns about. A truncation line names what a scope or a depth limit left out, so the key never quietly stops.',
+            'The key reads OWN text nodes, never textContent. A row showing no text means that element paints no words of its own — its children may well paint plenty.',
           ],
         },
         {
           heading: 'THE LADDER',
           lines: [
             'The rule: reach for the key first. dom is the hatch — last, and always with a narrow target.',
-            `Rung 1, look — the default. What is here, what is it called, what is wrong with it. About 243 tokens for a whole page. ${NOT_BUILT}.`,
-            `Rung 2, look { within } — the same reading scoped to one region, when the region is crowded or the page holds a long transcript. Cheaper. ${NOT_BUILT}.`,
+            'Rung 1, look — the default. What is here, what is it called, what is wrong with it. About 243 tokens for a whole page. Built.',
+            'Rung 2, look { within } — the same reading scoped to one region, when the region is crowded or the page holds a long transcript. Cheaper. Built. `within` takes a bare testId or the full [data-testid="..."] form; both reach the same element.',
             `Rung 3, box { ref } — one element's geometry, exactly. A few lines. ${NOT_BUILT}.`,
             `Rung 4, dom { target } — the hatch. A named selector, and a question the key does not carry. Unbounded without care. ${NOT_BUILT}.`,
-            'Rung 5, eval — a question no step shapes at all. It is a DIFFERENT hatch carrying a different risk: dom is expensive, while eval is cheap and can quietly break the founding rule by computing a verdict inside the page and handing it back as a value. Built, and the one rung you can stand on today.',
+            'Rung 5, eval — a question no step shapes at all. It is a DIFFERENT hatch carrying a different risk: dom is expensive, while eval is cheap and can quietly break the founding rule by computing a verdict inside the page and handing it back as a value.',
           ],
         },
         {
@@ -202,7 +204,7 @@ export const docsStatics = {
             'Every targeting step has exactly three outcomes. One match proceeds. More than one is an ERROR. Zero is an ERROR. Ambiguity is never resolved by taking the first.',
             'AMBIGUOUS carries its own disambiguation: every candidate, with the within scope that would narrow it. Recovery is one step rather than a hunt.',
             'NO MATCH names the near misses — the testIds nearest to what you asked for — because a misremembered testId is the common case.',
-            'A known dead end: both candidates in an AMBIGUOUS error can carry the SAME within, in which case the advice it gives cannot be followed and the error repeats verbatim. That is the tool, not you. Record it and move on; it closes when the reading step lands.',
+            'Two candidates can share a within, and then narrowing cannot separate them. Each candidate carries a ref for exactly that case: re-issue the step as { "step": "click", "ref": N }. The candidates also ride the structured answer, not only the message, so a batch return can be read rather than parsed out of prose.',
           ],
         },
         {
@@ -212,23 +214,24 @@ export const docsStatics = {
             'A ref is not durable. It comes from one reading against one page state, on one instance, and it is for driving right now, in this session.',
             'A position or an nth index is neither durable nor sturdy. Last resort, and never saved.',
             "Never put a ref in: a saved batch, a re-walk, a guide, a brief to another session, a round record, a fixer's SYMPTOM block, a sign-off's evidence, a promoted baseline, or a recipe.",
-            'A ref binds to an ELEMENT, not to a row number, and navigation, a reset and an instance restart all invalidate every one. A ref used after any of those answers stale — never a different element.',
-            `Refs do not exist yet, because the reading step that mints them is ${NOT_BUILT}. Write targets today; the rule above is what stops you storing refs the day they arrive.`,
+            'A ref binds to an ELEMENT, not to a row number, and navigation, a reset and an instance restart all invalidate every one. A ref used after any of those answers stale — never a different element. A ref that was never minted on this instance answers unknown, which is what a ref carried in from somewhere else looks like.',
+            'A click or a type takes exactly one handle: a target, or a ref. Both is refused, and neither is refused, because a step carrying two handles that disagree would make the tool pick — which is the no-pick rule broken one layer down.',
           ],
         },
         {
           heading: 'THE VERBS YOU CAN SUBMIT TODAY',
           lines: [
-            'Six, and every one is a value inside a batch, never a call of its own:',
+            'Seven, and every one is a value inside a batch, never a call of its own:',
             `{ step: 'goto', path: '/siege-1/session/sess-nested' }`,
+            `{ step: 'look' }  or  { step: 'look', within: 'SUBAGENT_CHAIN' }`,
             `{ step: 'waitFor', target: '[data-testid="SUBAGENT_CHAIN"]', state: 'visible' }`,
-            `{ step: 'click', target: '[data-testid="EXECUTION_ROW_0"]' }`,
-            `{ step: 'type', target: '[data-testid="CHAT_INPUT"]', value: 'guild-alpha' }`,
+            `{ step: 'click', target: '[data-testid="EXECUTION_ROW_0"]' }  or  { step: 'click', ref: 26 }`,
+            `{ step: 'type', target: '[data-testid="CHAT_INPUT"]', value: 'guild-alpha' }  or  { step: 'type', ref: 14, value: 'guild-alpha' }`,
             `{ step: 'screenshot', name: 'after-create.png' }`,
             `{ step: 'eval', source: 'document.querySelectorAll("[data-testid=QUEST_ROW]").length' }`,
             'A screenshot name must carry a file extension. Without one the capture fails on an unsupported mime type, naming neither the step nor the field.',
-            'goto, click and type are the acting steps, and each captures a shot unasked. Every capture carries a pixel-change figure and a blank verdict.',
-            'All six are browser steps, so all six error BY NAME against a browserless spec rather than answering an empty reading.',
+            'goto, click and type are the acting steps, and each captures a shot unasked. look captures too — the key is the text and the shot is the picture, and they answer different questions. Every capture carries a pixel-change figure and a blank verdict.',
+            'All seven are browser steps, so all seven error BY NAME against a browserless spec rather than answering an empty reading.',
           ],
         },
         {

@@ -3,7 +3,9 @@ import { EventEmitter } from 'events';
 import { chromium } from '@playwright/test';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
+import { keyReadLayerAdapterProxy } from './key-read-layer-adapter.proxy';
 import { listenersLayerAdapterProxy } from './listeners-layer-adapter.proxy';
+import { refRegistryLayerAdapterProxy } from './ref-registry-layer-adapter.proxy';
 
 // The one thing this proxy mocks over the npm boundary: `chromium.launch`, staged on its launch
 // options object. Everything hanging off the fake `Browser`/`BrowserContext`/`Page` it resolves to
@@ -19,12 +21,23 @@ const FIXED_EPOCH_MS = 1_700_000_000_000;
 // gone).
 const NEAREST_NAMES_MARKER = "querySelectorAll('[data-testid]')";
 const DESCRIBE_MATCHES_MARKER = 'getBoundingClientRect';
+// The key reader's source ALSO calls getBoundingClientRect, so it is matched first and on a phrase
+// only it carries. Order is load-bearing here: swap the two and every `look` would be answered with
+// the staged describeMatches rows.
+const KEY_READ_MARKER = 'hasContentDescendant';
+const REF_STATE_MARKER = 'isConnected === true ?';
+const STAMP_MARKER = "setAttribute('siege-target'";
+const UNSTAMP_MARKER = "removeAttribute('siege-target')";
 
 export const playwrightSessionAdapterProxy = (): {
   setLocatorCount: (params: { selector: string; count: number }) => void;
   setDescribeMatchesResult: (params: { raw: readonly unknown[] }) => void;
   setNearestNamesResult: (params: { raw: readonly unknown[] }) => void;
+  setKeyReadResult: (params: { raw: unknown }) => void;
+  setRefState: (params: { state: string }) => void;
   setEvaluateSourceResult: (params: { result: unknown }) => void;
+  getInitScripts: () => readonly unknown[];
+  getStampCalls: () => readonly unknown[];
   getScreenshotCalls: () => readonly unknown[];
   getClickCalls: () => readonly unknown[];
   getFillCalls: () => readonly unknown[];
@@ -53,9 +66,12 @@ export const playwrightSessionAdapterProxy = (): {
     close: () => void;
   };
 } => {
-  // listenersLayerAdapter is pure (no npm boundary of its own), so its proxy is empty — called
-  // here only to satisfy enforce-proxy-child-creation, since this file's implementation imports it.
+  // Each of these three layer adapters is pure (no npm boundary of its own), so its proxy is empty
+  // — called here only to satisfy enforce-proxy-child-creation, since this file's implementation
+  // imports all three.
   listenersLayerAdapterProxy();
+  keyReadLayerAdapterProxy();
+  refRegistryLayerAdapterProxy();
 
   registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(FIXED_EPOCH_MS);
 
@@ -63,8 +79,12 @@ export const playwrightSessionAdapterProxy = (): {
     locatorCounts: new Map<unknown, unknown>(),
     describeMatchesRaw: [] as unknown,
     nearestNamesRaw: [] as unknown,
+    keyReadRaw: { rows: [], highestRef: 0, skipped: [] } as unknown,
+    refState: 'live',
     evaluateSourceResult: undefined as unknown,
     responseTextThrows: false,
+    initScripts: [] as unknown[],
+    stampCalls: [] as unknown[],
     screenshotCalls: [] as unknown[],
     clickCalls: [] as unknown[],
     fillCalls: [] as unknown[],
@@ -118,6 +138,20 @@ export const playwrightSessionAdapterProxy = (): {
         return undefined;
       }
       const source = String(pageFunction);
+      if (source.includes(KEY_READ_MARKER)) {
+        return Promise.resolve(state.keyReadRaw);
+      }
+      if (source.includes(REF_STATE_MARKER)) {
+        return Promise.resolve(state.refState);
+      }
+      if (source.includes(STAMP_MARKER)) {
+        state.stampCalls.push('stamp');
+        return Promise.resolve(true);
+      }
+      if (source.includes(UNSTAMP_MARKER)) {
+        state.stampCalls.push('unstamp');
+        return Promise.resolve(true);
+      }
       if (source.includes(DESCRIBE_MATCHES_MARKER)) {
         return Promise.resolve(state.describeMatchesRaw);
       }
@@ -125,6 +159,10 @@ export const playwrightSessionAdapterProxy = (): {
         return Promise.resolve(state.nearestNamesRaw);
       }
       return Promise.resolve(state.evaluateSourceResult);
+    },
+    addInitScript: async (script: unknown) => {
+      state.initScripts.push(script);
+      return Promise.resolve(undefined);
     },
     screenshot: async (options: unknown) => {
       state.screenshotCalls.push(options);
@@ -166,9 +204,17 @@ export const playwrightSessionAdapterProxy = (): {
     setNearestNamesResult: ({ raw }): void => {
       state.nearestNamesRaw = raw;
     },
+    setKeyReadResult: ({ raw }): void => {
+      state.keyReadRaw = raw;
+    },
+    setRefState: ({ state: refState }): void => {
+      state.refState = refState;
+    },
     setEvaluateSourceResult: ({ result }): void => {
       state.evaluateSourceResult = result;
     },
+    getInitScripts: (): readonly unknown[] => state.initScripts,
+    getStampCalls: (): readonly unknown[] => state.stampCalls,
     getScreenshotCalls: (): readonly unknown[] => state.screenshotCalls,
     getClickCalls: (): readonly unknown[] => state.clickCalls,
     getFillCalls: (): readonly unknown[] => state.fillCalls,

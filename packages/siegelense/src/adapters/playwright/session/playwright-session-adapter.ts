@@ -8,11 +8,21 @@
  * methods (`countMatches`, `clickMatch`, `fillMatch`, `waitForMatch`) never call `.first()`/`.last()`
  * — `within` and `target` compose into ONE CSS descendant selector Playwright resolves in strict
  * mode, which is what leaves the ambiguity decision to the caller instead of silently picking a
- * match.
+ * match. **Driving by REF goes through that same strict locator**, by stamping the element and
+ * resolving the stamp, so a ref inherits the no-pick guarantee rather than sitting beside it.
+ *
+ * `mintState.highest` is the only piece of ref state Node keeps, and it exists because the page
+ * cannot answer one question about itself: after a navigation the registry comes back EMPTY, so a
+ * ref this instance minted and a ref carried in from a DIFFERENT instance both read as "past the
+ * end" — two failures whose recovery is different. The counter survives navigation and dies with the
+ * instance, which is exactly the lifetime a ref has. It is a HOLDER whose field mutates rather than
+ * a reassigned `let`, matching `run-execute-broker.ts`'s `cursorState`, so a read before an await
+ * and a write after it never give `require-atomic-updates` cause to flag it.
  *
  * USAGE:
  * const session = await playwrightSessionAdapter({ baseUrl: 'http://localhost:5173', evidencePath });
- * const count = await session.countMatches({ target: '[data-testid="PIXEL_BTN"]' });
+ * const key = await session.look({ within: null });
+ * await session.clickRef({ ref: 23, timeoutMs: 30000 });
  * await session.close();
  */
 
@@ -25,7 +35,10 @@ import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
+import type { KeyListing } from '../../../contracts/key-listing/key-listing-contract';
 import { locatorStateContract } from '../../../contracts/locator-state/locator-state-contract';
+import type { RefResolution } from '../../../contracts/ref-resolution/ref-resolution-contract';
+import { selectorContract } from '../../../contracts/selector/selector-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { stepCandidateContract } from '../../../contracts/step-candidate/step-candidate-contract';
 import type { StepCandidate } from '../../../contracts/step-candidate/step-candidate-contract';
@@ -34,7 +47,9 @@ import type {
   BufferLengths,
   MatchCount,
 } from '../../../contracts/browser-session/browser-session-contract';
+import { keyReadLayerAdapter } from './key-read-layer-adapter';
 import { listenersLayerAdapter } from './listeners-layer-adapter';
+import { refRegistryLayerAdapter } from './ref-registry-layer-adapter';
 
 // Re-declared locally rather than imported: `browser-session-contract.ts` keeps its own parsing
 // contracts private (leading underscore, no export) because the facade's data half is `{}` — a
@@ -51,7 +66,14 @@ const NEAREST_NAMES_LIMIT = 50;
 // rect as `(x,y) WxH`, matching `stepCandidateContract`'s own example. `querySelectorAll` only, on
 // both the `within` scope and the `target` — a bare `querySelector` silently returns match one,
 // which is `.first()` again wearing a different name.
+//
+// Each candidate also MINTS A REF, through the same mint-or-reuse the key uses, and that is what
+// makes the ambiguity error's advice followable: two candidates sharing a `within` cannot be told
+// apart by narrowing, which is the measured dead end at `scrolls/seigelense/HANDOFF.md` lines
+// 206-214, and a ref separates them because it binds to one element.
 const DESCRIBE_MATCHES_SOURCE = `(params) => {
+  if (window.__siege === undefined) { window.__siege = { refs: [] }; }
+  const registry = window.__siege.refs;
   const roots = params.within === null
     ? [document]
     : Array.from(document.querySelectorAll(params.within));
@@ -76,11 +98,14 @@ const DESCRIBE_MATCHES_SOURCE = `(params) => {
     let text = '';
     element.childNodes.forEach((node) => {
       if (node.nodeType === 3) {
-        text += node.textContent || '';
+        text += node.nodeValue || '';
       }
     });
+    let registryIndex = registry.indexOf(element);
+    if (registryIndex === -1) { registry.push(element); registryIndex = registry.length - 1; }
     return {
       index,
+      ref: registryIndex + 1,
       within: nearest,
       text,
       rect: '(' + Math.round(rect.x) + ',' + Math.round(rect.y) + ') ' + Math.round(rect.width) + 'x' + Math.round(rect.height),
@@ -113,6 +138,14 @@ export const playwrightSessionAdapter = async ({
   const networkLines: ContentText[] = [];
   const websocketLines: ContentText[] = [];
   const linesBuild = listenersLayerAdapter();
+  const refRegistry = refRegistryLayerAdapter();
+  const keyReader = keyReadLayerAdapter();
+  // See the header: a HOLDER, not a reassigned `let`, and the one piece of ref state Node keeps.
+  const mintState = { highest: 0 };
+
+  // Installed before the page's own script on EVERY document, so a navigation empties the registry
+  // by construction rather than by anyone remembering to clear it.
+  await page.addInitScript(refRegistry.initScriptSource());
 
   // Every listener below is armed HERE, once, before the page has navigated anywhere. A listener
   // attached when a read is asked for has already missed every message that read was asked about.
@@ -228,6 +261,18 @@ export const playwrightSessionAdapter = async ({
       });
     },
 
+    look: async ({ within }: { within: string | null }): Promise<KeyListing> => {
+      const scope = within === null ? null : selectorContract.parse(within);
+      const raw: unknown = await page.evaluate(keyReader.readSource({ within: scope }));
+      mintState.highest = Math.max(mintState.highest, keyReader.highestRefOf({ raw }));
+      return keyReader.toListing({ raw, within: scope });
+    },
+
+    refState: async ({ ref }: { ref: number }): Promise<RefResolution> => {
+      const raw: unknown = await page.evaluate(refRegistry.refStateSource({ ref }));
+      return refRegistry.toResolution({ raw, ref, highestMinted: mintState.highest });
+    },
+
     countMatches: async ({
       target,
       within,
@@ -257,8 +302,16 @@ export const playwrightSessionAdapter = async ({
       // comes back `undefined`. Embedding the params as JSON into a self-invoking call instead makes
       // the whole expression BE the call, so Playwright hands back its already-computed result.
       const params = JSON.stringify({ target, within: within ?? null });
-      const raw = await page.evaluate(`(${DESCRIBE_MATCHES_SOURCE})(${params})`);
-      return z.array(stepCandidateContract).parse(raw);
+      const raw: unknown = await page.evaluate(`(${DESCRIBE_MATCHES_SOURCE})(${params})`);
+      const candidates = z.array(stepCandidateContract).parse(raw);
+      // Describing candidates mints refs, exactly as `look` does, so the counter has to advance
+      // here too — otherwise a ref handed out by an ambiguity error would read as "never minted by
+      // this instance" the moment anyone tried to drive it.
+      mintState.highest = Math.max(
+        mintState.highest,
+        ...candidates.map((candidate) => candidate.ref ?? 0),
+      );
+      return candidates;
     },
 
     nearestNames: async ({
@@ -287,6 +340,45 @@ export const playwrightSessionAdapter = async ({
     }): Promise<void> => {
       const scoped = within === undefined ? target : `${within} ${target}`;
       await page.locator(scoped).click({ timeout: timeoutMs });
+    },
+
+    // Stamp, drive the stamp through the strict locator, unstamp — see `refRegistryLayerAdapter`'s
+    // own header for why a ref does not take the ElementHandle route here. The unstamp runs in a
+    // `finally` so a failed click still leaves the page as it found it; its own failure is logged
+    // rather than thrown, because replacing the step's real error with a cleanup error would hide
+    // the defect the walk actually hit.
+    clickRef: async ({ ref, timeoutMs }: { ref: number; timeoutMs: number }): Promise<void> => {
+      await page.evaluate(refRegistry.stampSource({ ref }));
+      try {
+        await page.locator(refRegistry.targetSelector()).click({ timeout: timeoutMs });
+      } finally {
+        await page.evaluate(refRegistry.unstampSource()).catch((error: unknown) => {
+          process.stderr.write(
+            `[playwright-session-adapter] unstamp after clickRef failed: ${String(error)}\n`,
+          );
+        });
+      }
+    },
+
+    fillRef: async ({
+      ref,
+      value,
+      timeoutMs,
+    }: {
+      ref: number;
+      value: string;
+      timeoutMs: number;
+    }): Promise<void> => {
+      await page.evaluate(refRegistry.stampSource({ ref }));
+      try {
+        await page.locator(refRegistry.targetSelector()).fill(value, { timeout: timeoutMs });
+      } finally {
+        await page.evaluate(refRegistry.unstampSource()).catch((error: unknown) => {
+          process.stderr.write(
+            `[playwright-session-adapter] unstamp after fillRef failed: ${String(error)}\n`,
+          );
+        });
+      }
     },
 
     fillMatch: async ({
