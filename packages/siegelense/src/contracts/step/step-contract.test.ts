@@ -36,6 +36,23 @@ describe('stepContract', () => {
       expect(result).toStrictEqual({ step: 'goto', path: '/api/guilds', node: null, expect: 'ok' });
     });
 
+    it('VALID: {step: goto, path: "{s.nested.url}"} => parses, keeping the reference intact', () => {
+      const result = stepContract.parse({ step: 'goto', path: '{s.nested.url}', node: null });
+
+      expect(result).toStrictEqual({
+        step: 'goto',
+        path: { step: 's', row: 'nested', field: 'url' },
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: goto, path: "guilds"} => still throws — neither a path nor a reference', () => {
+      expect(() => stepContract.parse({ step: 'goto', path: 'guilds', node: null })).toThrow(
+        /must start with/u,
+      );
+    });
+
     it('VALID: {step: waitFor} => parses the complete waitFor member', () => {
       const result = stepContract.parse({
         step: 'waitFor',

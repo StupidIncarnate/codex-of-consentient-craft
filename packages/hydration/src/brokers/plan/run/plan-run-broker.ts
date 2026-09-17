@@ -115,7 +115,7 @@ export const planRunBroker = async ({
     // rather than a runtime throw.
     const config = configByName.get(op.ingredient);
     if (config !== undefined) {
-      await opFilterApplyLayerBroker({ op, target, config, state });
+      await opFilterApplyLayerBroker({ op, target, config, ingredients, state });
     }
   }, Promise.resolve());
 

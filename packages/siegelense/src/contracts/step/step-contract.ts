@@ -29,6 +29,7 @@ import { recipeInputKeyContract } from '../recipe-input-key/recipe-input-key-con
 import { recipeNameContract } from '../recipe-name/recipe-name-contract';
 import { selectorContract } from '../selector/selector-contract';
 import { stepOutputNameContract } from '../step-output-name/step-output-name-contract';
+import { stepRefContract } from '../step-ref/step-ref-contract';
 import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-statics';
 import { stepExpectationContract } from '../step-expectation/step-expectation-contract';
 import { stepStatics } from '../../statics/step/step-statics';
@@ -38,7 +39,11 @@ export const stepContract = z.discriminatedUnion('step', [
   z
     .object({
       step: z.literal('goto'),
-      path: urlPathContract,
+      // A reference is admitted alongside a literal path because a seed mints ids no file
+      // contains (siegelense-recipes.md:2090-2091) — `{s.nested.url}` does not start with `/`, so
+      // `urlPathContract` alone would refuse it. Resolving the reference into a real path is a run's
+      // job (holding earlier steps' outputs), not this contract's.
+      path: urlPathContract.or(stepRefContract),
       node: nodeLabelContract.nullable().default(null),
       expect: stepExpectationContract.default(stepStatics.defaults.expect),
     })

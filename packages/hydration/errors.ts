@@ -7,6 +7,7 @@
  */
 
 export * from './src/errors/hydration-filter-expectation/hydration-filter-expectation-error';
+export * from './src/errors/hydration-nested-ingredient-unregistered/hydration-nested-ingredient-unregistered-error';
 export * from './src/errors/hydration-query-failed/hydration-query-failed-error';
 export * from './src/errors/hydration-record-shape/hydration-record-shape-error';
 export * from './src/errors/hydration-route-failed/hydration-route-failed-error';

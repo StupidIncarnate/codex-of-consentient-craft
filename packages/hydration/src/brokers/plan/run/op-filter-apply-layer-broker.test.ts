@@ -2,6 +2,7 @@ import { opFilterApplyLayerBroker } from './op-filter-apply-layer-broker';
 import { opFilterApplyLayerBrokerProxy } from './op-filter-apply-layer-broker.proxy';
 import { opSetApplyLayerBroker } from './op-set-apply-layer-broker';
 import { OpFilterStub } from '../../../contracts/op-filter/op-filter.stub';
+import { OpCreateStub } from '../../../contracts/op-create/op-create.stub';
 import { OpSetStub } from '../../../contracts/op-set/op-set.stub';
 import { OpRemoveStub } from '../../../contracts/op-remove/op-remove.stub';
 import { OpSaveRecordStub } from '../../../contracts/op-save-record/op-save-record.stub';
@@ -13,6 +14,7 @@ import { HydrationRunStateStub } from '../../../contracts/hydration-run-state/hy
 import { RowRefStub } from '../../../contracts/row-ref/row-ref.stub';
 import { HydrationQueryFailedError } from '../../../errors/hydration-query-failed/hydration-query-failed-error';
 import { HydrationFilterExpectationError } from '../../../errors/hydration-filter-expectation/hydration-filter-expectation-error';
+import { HydrationNestedIngredientUnregisteredError } from '../../../errors/hydration-nested-ingredient-unregistered/hydration-nested-ingredient-unregistered-error';
 
 describe('opFilterApplyLayerBroker', () => {
   describe('the query fails mid-plan, distinct from matching zero rows — sad-path row 7', () => {
@@ -240,6 +242,114 @@ describe('opFilterApplyLayerBroker', () => {
       await opFilterApplyLayerBroker({ op: filterOp, target, config: operationConfig, state });
 
       expect(queryRoute({ where: { role: 'riftcarver' } })).toStrictEqual([]);
+    });
+  });
+
+  describe('a create nested in a filter over a DIFFERENT ingredient', () => {
+    it('VALID: {filter over quest, nested create of operation} => the operation route ran and its own real record was saved, not the quest route’s', async () => {
+      opFilterApplyLayerBrokerProxy();
+      const operationWrites: Record<string, unknown>[] = [];
+      const questConfig = IngredientConfigStub({
+        name: 'quest',
+        routes: {
+          write: (): unknown => ({ id: 'WRONG-quest-route-ran', title: 'Quest' }),
+          query: (): unknown => [{ id: 'q-1', title: 'Quest 1' }],
+        },
+      });
+      const operationConfig = IngredientConfigStub({
+        name: 'operation',
+        routes: {
+          write: ({ fields }: { fields: Record<string, unknown> }): unknown => {
+            const title = String(fields.title);
+            operationWrites.push({ id: 'op-1', title });
+            return { id: 'op-1', title };
+          },
+        },
+      });
+      const target = HydrationTargetStub({});
+      const state = HydrationRunStateStub({});
+      const filterOp = OpFilterStub({
+        ingredient: 'quest',
+        where: {},
+        expect: 'one',
+        matchedRef: 'quest[match]',
+        ops: [
+          OpCreateStub({
+            ingredient: 'operation',
+            ref: 'quest[match]/operation[0:0]',
+            index: 0,
+            ancestors: ['quest[match]'],
+            fields: { title: 'Ward Operation' },
+          }),
+          OpSaveRecordStub({ ref: 'quest[match]/operation[0:0]', name: 'nestedCreateResult' }),
+        ],
+      });
+
+      await opFilterApplyLayerBroker({
+        op: filterOp,
+        target,
+        config: questConfig,
+        ingredients: [questConfig, operationConfig],
+        state,
+      });
+
+      expect(operationWrites).toStrictEqual([{ id: 'op-1', title: 'Ward Operation' }]);
+      expect(state.saved.get('nestedCreateResult' as never)).toStrictEqual({
+        id: 'op-1',
+        title: 'Ward Operation',
+      });
+    });
+  });
+
+  describe('a nested op names an ingredient no config here registers', () => {
+    it('ERROR: {nested create names an unregistered ingredient} => throws HydrationNestedIngredientUnregisteredError', async () => {
+      opFilterApplyLayerBrokerProxy();
+      const questConfig = IngredientConfigStub({
+        name: 'quest',
+        routes: {
+          write: (): unknown => ({ id: 'q-1', title: 'Quest' }),
+          query: (): unknown => [{ id: 'q-1', title: 'Quest 1' }],
+        },
+      });
+      const target = HydrationTargetStub({});
+      const state = HydrationRunStateStub({});
+      const filterOp = OpFilterStub({
+        ingredient: 'quest',
+        where: {},
+        expect: 'one',
+        matchedRef: 'quest[match]',
+        ops: [
+          OpCreateStub({
+            ingredient: 'operation',
+            ref: 'quest[match]/operation[0:0]',
+            index: 0,
+            ancestors: ['quest[match]'],
+            fields: {},
+          }),
+        ],
+      });
+
+      await expect(
+        opFilterApplyLayerBroker({
+          op: filterOp,
+          target,
+          config: questConfig,
+          ingredients: [questConfig],
+          state,
+        }),
+      ).rejects.toThrow(HydrationNestedIngredientUnregisteredError);
+
+      await expect(
+        opFilterApplyLayerBroker({
+          op: filterOp,
+          target,
+          config: questConfig,
+          ingredients: [questConfig],
+          state,
+        }),
+      ).rejects.toThrow(
+        /^recipe "guild-mid-execution": a nested op inside a filter names ingredient "operation", which this run's ingredients do not include\. Registered ingredient names: quest$/u,
+      );
     });
   });
 });

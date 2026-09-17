@@ -19,6 +19,7 @@ import { fieldValuesResolveTransformer } from '../../../transformers/field-value
 import { filterScopeWhereTransformer } from '../../../transformers/filter-scope-where/filter-scope-where-transformer';
 import { matchedRowRebindTransformer } from '../../../transformers/matched-row-rebind/matched-row-rebind-transformer';
 import { routeSelectTransformer } from '../../../transformers/route-select/route-select-transformer';
+import { rowRefIngredientTransformer } from '../../../transformers/row-ref-ingredient/row-ref-ingredient-transformer';
 import { isFilterExpectSatisfiedGuard } from '../../../guards/is-filter-expect-satisfied/is-filter-expect-satisfied-guard';
 import { opCreateApplyLayerBroker } from './op-create-apply-layer-broker';
 import { opSetApplyLayerBroker } from './op-set-apply-layer-broker';
@@ -28,22 +29,32 @@ import { opSaveRecordApplyLayerBroker } from './op-save-record-apply-layer-broke
 import { opExtraApplyLayerBroker } from './op-extra-apply-layer-broker';
 import { HydrationQueryFailedError } from '../../../errors/hydration-query-failed/hydration-query-failed-error';
 import { HydrationFilterExpectationError } from '../../../errors/hydration-filter-expectation/hydration-filter-expectation-error';
+import { HydrationNestedIngredientUnregisteredError } from '../../../errors/hydration-nested-ingredient-unregistered/hydration-nested-ingredient-unregistered-error';
 import type { OpFilter, OpFilterNestedOp } from '../../../contracts/op-filter/op-filter-contract';
 import type { HydrationTarget } from '../../../contracts/hydration-target/hydration-target-contract';
 import type { IngredientConfigData } from '../../../contracts/ingredient-config/ingredient-config-contract';
+import type { IngredientName } from '../../../contracts/ingredient-name/ingredient-name-contract';
 import type { HydrationRunState } from '../../../contracts/hydration-run-state/hydration-run-state-contract';
 
 export const opFilterApplyLayerBroker = async ({
   op,
   target,
   config,
+  ingredients,
   state,
 }: {
   op: OpFilter;
   target: HydrationTarget;
   config: IngredientConfigData;
+  ingredients?: readonly IngredientConfigData[];
   state: HydrationRunState;
 }): Promise<HydrationRunState> => {
+  // Defaults to just this filter's own ingredient when no broader list is supplied, so a caller
+  // naming only `config` still resolves a same-named nested op and refuses any other.
+  const configByName = new Map<IngredientName, IngredientConfigData>(
+    (ingredients ?? [config]).map((candidate) => [candidate.name, candidate] as const),
+  );
+
   const resolvedWhere = fieldValuesResolveTransformer({ values: op.where, saved: state.saved });
   const narrowedWhere = filterScopeWhereTransformer({
     where: resolvedWhere,
@@ -87,12 +98,33 @@ export const opFilterApplyLayerBroker = async ({
       async (previousOp, nestedOp: OpFilterNestedOp) => {
         const currentState = await previousOp;
 
+        if (nestedOp.op === 'saveRecord') {
+          return opSaveRecordApplyLayerBroker({ op: nestedOp, state: currentState });
+        }
+
+        // Resolved from the NESTED op's OWN declared ingredient — `ingredient` for `create`/
+        // `filter`, `ref` for the rest — never from this filter's own `config`. Reusing the
+        // enclosing config here is exactly how a nested `create` for a different ingredient would
+        // silently run someone else's write route and hand its output back as its own.
+        const nestedIngredientName: IngredientName =
+          nestedOp.op === 'create' || nestedOp.op === 'filter'
+            ? nestedOp.ingredient
+            : rowRefIngredientTransformer({ rowRef: nestedOp.ref });
+        const nestedConfig = configByName.get(nestedIngredientName);
+        if (nestedConfig === undefined) {
+          throw new HydrationNestedIngredientUnregisteredError({
+            recipeName: state.recipeName,
+            ingredientName: nestedIngredientName,
+            registeredIngredientNames: [...configByName.keys()],
+          });
+        }
+
         if (nestedOp.op === 'create') {
           // `Matched<I>` exposes no `add`, so the real chain never produces this branch — kept
           // because `OpFilterNestedOp` shares all six branches with `HydrationOp` for parsing
           // symmetry (see `op-filter-contract.ts`), and a hand-built plan may still carry one.
           const route = routeSelectTransformer({
-            routes: config.routes,
+            routes: nestedConfig.routes,
             hasBaseUrl: target.baseUrl !== undefined,
           });
           if (route === null) {
@@ -101,32 +133,55 @@ export const opFilterApplyLayerBroker = async ({
           return opCreateApplyLayerBroker({
             op: nestedOp,
             target,
-            config,
+            config: nestedConfig,
             route,
             state: currentState,
           });
         }
         if (nestedOp.op === 'set') {
           if (Object.keys(nestedOp.written).length > 0) {
-            return opUpdateApplyLayerBroker({ op: nestedOp, target, config, state: currentState });
+            return opUpdateApplyLayerBroker({
+              op: nestedOp,
+              target,
+              config: nestedConfig,
+              state: currentState,
+            });
           }
           if (nestedOp.transition === undefined) {
             return currentState;
           }
-          return opSetApplyLayerBroker({ op: nestedOp, target, config, state: currentState });
+          return opSetApplyLayerBroker({
+            op: nestedOp,
+            target,
+            config: nestedConfig,
+            state: currentState,
+          });
         }
         if (nestedOp.op === 'remove') {
-          return opRemoveApplyLayerBroker({ op: nestedOp, target, config, state: currentState });
-        }
-        if (nestedOp.op === 'saveRecord') {
-          return opSaveRecordApplyLayerBroker({ op: nestedOp, state: currentState });
+          return opRemoveApplyLayerBroker({
+            op: nestedOp,
+            target,
+            config: nestedConfig,
+            state: currentState,
+          });
         }
         if (nestedOp.op === 'extra') {
-          return opExtraApplyLayerBroker({ op: nestedOp, target, config, state: currentState });
+          return opExtraApplyLayerBroker({
+            op: nestedOp,
+            target,
+            config: nestedConfig,
+            state: currentState,
+          });
         }
         // A nested `filter`: `Matched<I>` exposes no child collection either, so this is equally
         // unreachable via the real chain — kept for the same parsing-symmetry reason as `create`.
-        return opFilterApplyLayerBroker({ op: nestedOp, target, config, state: currentState });
+        return opFilterApplyLayerBroker({
+          op: nestedOp,
+          target,
+          config: nestedConfig,
+          ingredients: [...configByName.values()],
+          state: currentState,
+        });
       },
       Promise.resolve(rowState),
     );

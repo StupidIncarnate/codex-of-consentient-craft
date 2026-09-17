@@ -67,6 +67,11 @@ export const runVerbLayerBroker = async ({
   }
 
   if (step.step === 'goto') {
+    if (typeof step.path !== 'string') {
+      throw new Error(
+        `run-verb-layer-broker: a 'goto' step (step ${String(index)}) reached with an unresolved {step.row.field} reference — run-execute-broker must resolve every reference before a step dispatches`,
+      );
+    }
     return stepGotoBroker({ session, path: step.path });
   }
   if (step.step === 'waitFor') {
