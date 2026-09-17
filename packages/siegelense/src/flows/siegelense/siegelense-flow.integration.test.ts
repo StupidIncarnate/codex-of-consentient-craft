@@ -158,6 +158,7 @@ describe('SiegelenseFlow', () => {
         reaped: [],
         portsReleased: [],
         lockReleased: false,
+        assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [],
       });
 
@@ -170,16 +171,30 @@ describe('SiegelenseFlow', () => {
   describe('an unknown subcommand', () => {
     it('INVALID: {args: [statuss]} => rejects naming the unknown subcommand instead of falling back to the fleet listing', async () => {
       await expect(SiegelenseFlow({ args: ['statuss'] })).rejects.toThrow(
-        /^Unknown siegelense subcommand: statuss\n\nUsage: dungeonmaster siegelense \[--help \| start \| run \| results \| kill \| status \| cleanup \| compare \| profile \| snapshots \| recipes \| driver --instance <instanceId>\]$/u,
+        /^Unknown siegelense subcommand: statuss\n\nUsage: dungeonmaster siegelense \[--help \| start \| run \| results \| kill \| capacity \| status \| cleanup \| prune \| compare \| profile \| snapshots \| recipes \| docs \| driver --instance <instanceId>\]$/u,
       );
     });
   });
 
-  describe('a name the spec defines but this chunk has not built', () => {
-    it('INVALID: {args: [capacity]} => rejects naming it as not built yet, listing the built calls, rather than calling it unknown', async () => {
-      await expect(SiegelenseFlow({ args: ['capacity'] })).rejects.toThrow(
-        /^capacity is a siegelense call but is not built yet\. Built calls: start, run, results, kill, profile, status, cleanup, compare, snapshots, recipes\.$/u,
+  describe('the not-built-yet branch, now unreachable', () => {
+    // The branch itself stays, as the guard for a fourteenth name added to the closed set with no
+    // route. These two assertions prove no CURRENT name reaches it — they replace the old
+    // `capacity refuses by name` case, which could only pass while capacity was unbuilt.
+    it('VALID: {every name siegelenseCallStatics defines} => has a route, so none answers "not built yet"', async () => {
+      const outcomes = await Promise.all(
+        siegelenseCallStatics.calls.names.map(async (name) =>
+          SiegelenseFlow({ args: [name, '--help'] }).then(
+            () => null,
+            () => name,
+          ),
+        ),
       );
+
+      expect(outcomes.filter((name) => name !== null)).toStrictEqual([]);
+    });
+
+    it('VALID: {index.notBuiltYet} => empty, matching the route table it is graded against', () => {
+      expect(siegelenseHelpStatics.index.notBuiltYet).toStrictEqual([]);
     });
   });
 
@@ -226,7 +241,7 @@ describe('SiegelenseFlow', () => {
   describe('the --human refusal', () => {
     it('INVALID: {args: [results, --human]} => rejects naming the calls that do render a table', async () => {
       await expect(SiegelenseFlow({ args: ['results', '--human'] })).rejects.toThrow(
-        /^--human is not implemented for results: only status, cleanup and recipes render a human table; every other call answers JSON only\.$/u,
+        /^--human is not implemented for results: only status, cleanup, prune, recipes and docs render a human table; every other call answers JSON only\.$/u,
       );
     });
   });
@@ -692,6 +707,7 @@ describe('SiegelenseFlow', () => {
           ],
           portsReleased: [40_021, 40_022],
           lockReleased: false,
+          assetsAged: { instances: 0, freedMB: 0 },
           leftAlone: [
             {
               id: tree.liveInstanceId(),
@@ -1034,6 +1050,7 @@ describe('SiegelenseFlow', () => {
           ],
           portsReleased: [40_021, 40_022],
           lockReleased: false,
+          assetsAged: { instances: 0, freedMB: 0 },
           leftAlone: [
             {
               id: argvTree.liveInstanceId(),

@@ -514,4 +514,68 @@ describe('instanceStartBroker', () => {
       });
     });
   });
+
+  describe("capacity's one hard refusal", () => {
+    it('ERROR: {capacity suggests 0 for want of memory} => throws before any reservation is written, carrying the why verbatim', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
+      });
+      proxy.setupCapacityRefusal({
+        specName: SpecNameStub(),
+        why: 'no room for one more: 2599MB available is under the 2600MB this spec peaks at',
+      });
+
+      await expect(
+        instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null }),
+      ).rejects.toThrow(
+        /^Refusing to start dungeonmaster-web: this machine cannot hold another instance right now — no room for one more: 2599MB available is under the 2600MB this spec peaks at\. Run/u,
+      );
+
+      expect(proxy.getWriteOrder()).toStrictEqual([]);
+    });
+
+    it('ERROR: {capacity suggests 0 because the pool is full} => the same refusal carries the policy reason instead', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
+      });
+      proxy.setupCapacityRefusal({
+        specName: SpecNameStub(),
+        why: 'the policy pool of 3 is full',
+      });
+
+      await expect(
+        instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null }),
+      ).rejects.toThrow(
+        /^Refusing to start dungeonmaster-web: this machine cannot hold another instance right now — the policy pool of 3 is full\. Run/u,
+      );
+
+      expect(proxy.getWriteOrder()).toStrictEqual([]);
+    });
+
+    it('VALID: {capacity suggests more than zero} => the reservation is written and the boot proceeds', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
+      });
+
+      const result = await instanceStartBroker({
+        specName: SpecNameStub(),
+        questId: null,
+        guildId: null,
+      });
+
+      expect(result.instanceId).toBe(instanceId);
+    });
+  });
 });

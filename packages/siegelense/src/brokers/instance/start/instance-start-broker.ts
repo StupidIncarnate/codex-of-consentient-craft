@@ -1,8 +1,10 @@
 /**
  * PURPOSE: The thin client half of `start` — opportunistically reaps any instance whose heartbeat
  * has gone cold (spec line 1673: the only recovery path there is, and a silent reap reads as a
- * bug, so each one is reported on stderr), reserves a NEW instance BEFORE anything boots (spec
- * line 1619: otherwise three sessions each divide free memory by peak and six boot), acquires
+ * bug, so each one is reported on stderr), REFUSES outright when `capacity` answers `suggested: 0`
+ * (spec lines 1588-1590 — the one hard edge in an otherwise advisory reading, because the
+ * alternative is the OS killing something at random), reserves a NEW instance BEFORE anything boots
+ * (spec line 1619: otherwise three sessions each divide free memory by peak and six boot), acquires
  * `boot.lock` so at most one boot runs at a time across every process on the machine, spawns the
  * driver process detached, and polls its socket until it answers or the boot deadline passes. The
  * driver releases `boot.lock` itself once its OWN boot finishes (line 1620 — the lock covers the
@@ -65,6 +67,8 @@ import { fsOpenFdAdapter } from '../../../adapters/fs/open-fd/fs-open-fd-adapter
 import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
 import { instanceStartBootPollLayerBroker } from './instance-start-boot-poll-layer-broker';
 import { bootLockAcquireBroker } from '../../boot-lock/acquire/boot-lock-acquire-broker';
+import { capacityReadBroker } from '../../capacity/read/capacity-read-broker';
+import { CapacityRefusedError } from '../../../errors/capacity-refused/capacity-refused-error';
 import { bootLockReleaseBroker } from '../../boot-lock/release/boot-lock-release-broker';
 import { isReservedRegistryEntryGuard } from '../../../guards/is-reserved-registry-entry/is-reserved-registry-entry-guard';
 import { isStaleRegistryEntryGuard } from '../../../guards/is-stale-registry-entry/is-stale-registry-entry-guard';
@@ -141,6 +145,20 @@ export const instanceStartBroker = async ({
       );
     }),
   );
+
+  // `capacity` is advisory everywhere except here (spec lines 1588-1590): starting an instance the
+  // machine plainly cannot hold ends with the OS killing something at random, which is worse than a
+  // refusal. Read AFTER the opportunistic reap above, so a fleet of cold lanes is cleared before it
+  // is counted, and BEFORE instanceReserveBroker, so a refusal leaves no reservation and no claimed
+  // port pair behind. `suggested: 0` is both refusals the spec asks for — no room in memory for one
+  // more, and the pool size already full (line 1540, the chunk-2 marker's own NOT YET) — and the
+  // `why` sentence carried into the error says which of the two fired. `poolSize: null` takes
+  // capacity's own default, the most CONTENDED group the profile holds: a refusal should err toward
+  // refusing rather than toward an OOM.
+  const capacity = await capacityReadBroker({ specName, poolSize: null });
+  if (capacity.suggested === 0) {
+    throw new CapacityRefusedError({ specName, why: capacity.why });
+  }
 
   const reservedEntry = await instanceReserveBroker({ specName, specHash, questId, guildId });
 

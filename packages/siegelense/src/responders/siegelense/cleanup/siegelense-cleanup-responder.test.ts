@@ -39,6 +39,7 @@ describe('SiegelenseCleanupResponder', () => {
         'REAPED: inst_9b2c (stale 9h, killed 33812, 33840, home removed)\n' +
           'PORTS RELEASED: 41345, 34173\n' +
           'LOCK RELEASED: yes\n' +
+          'ASSETS AGED: 3 instances, 1840MB\n' +
           'LEFT ALONE: none\n',
       ]);
     });
@@ -78,6 +79,7 @@ describe('SiegelenseCleanupResponder', () => {
         'REAPED: none\n' +
           'PORTS RELEASED: none\n' +
           'LOCK RELEASED: no\n' +
+          'ASSETS AGED: 3 instances, 1840MB\n' +
           'LEFT ALONE: inst_7f3a (live — last beat 2s ago)\n',
       ]);
     });

@@ -43,8 +43,8 @@ describe('siegelenseHelpRenderTransformer', () => {
     });
   });
 
-  describe('cleanup — the ages-nothing refusal', () => {
-    it('VALID: {call: cleanup} => the page carries the ages-nothing sentence', () => {
+  describe('cleanup — the ages-assets refusal', () => {
+    it('VALID: {call: cleanup} => the page carries the ages-assets sentence', () => {
       const result = siegelenseHelpRenderTransformer({ call: 'cleanup' });
 
       expect(result).toBe(
@@ -55,10 +55,10 @@ describe('siegelenseHelpRenderTransformer', () => {
           '\n' +
           'FLAGS\n' +
           '  --json              print the JSON answer — the default; explicit and refused nowhere.\n' +
-          '  --human             render the operator table instead of JSON. Only status, cleanup and recipes implement this.\n' +
+          '  --human             render the operator table instead of JSON. Only status, cleanup, prune, recipes and docs implement this.\n' +
           '\n' +
           'REFUSES\n' +
-          '  Takes no input. Reaps and releases only — it ages no asset, so a clean baseline capture is never touched by this call.\n' +
+          "  Takes no input. Reaps, releases, and ages assets out on their own windows — video first on a shorter one. It refuses exactly what prune refuses, so a capture a VERIFIED prelude or an open quest's WALKED line still cites is never touched, and the instance it belongs to says so in leftAlone.\n" +
           '\n' +
           'OUTPUT\n' +
           '  One JSON document on stdout: the CleanupAnswer.\n' +
@@ -126,24 +126,22 @@ describe('siegelenseHelpRenderTransformer', () => {
       const result = siegelenseHelpRenderTransformer({ call: null });
 
       expect(result).toBe(
-        'dungeonmaster siegelense — every built call reachable without installing anything. Ten of thirteen calls are built.\n' +
+        'dungeonmaster siegelense — every built call reachable without installing anything. All thirteen calls are built.\n' +
           '\n' +
           'CALLS\n' +
           '  siegelense start — boot one instance for a lane spec and block until the driver answers or the boot deadline passes.\n' +
           '  siegelense run — submit one batch of steps to a running instance and block until it finishes.\n' +
           '  siegelense results — read evidence off disk for one instance. Starts nothing.\n' +
           '  siegelense kill — stop one running instance.\n' +
+          '  siegelense capacity — how many instances this machine can take right now. Ask before opening a pool. Starts nothing.\n' +
           '  siegelense profile — what one instance of a lane spec costs, measured. Starts nothing.\n' +
           '  siegelense status — report the fleet, or one instance in full.\n' +
           '  siegelense cleanup — reap every stale instance the registry holds.\n' +
+          '  siegelense prune — reclaim asset space deliberately, rather than waiting for the age-out window.\n' +
           "  siegelense compare — diff two runs of one instance's timeline.\n" +
           '  siegelense snapshots — list the points `reset level: state` can return to for one instance. Starts nothing.\n' +
           '  siegelense recipes — list every recipe: the state each one creates, and how honestly it creates it. Starts nothing.\n' +
-          '\n' +
-          'NOT BUILT YET\n' +
-          '  capacity\n' +
-          '  prune\n' +
-          '  docs\n' +
+          "  siegelense docs — this tool's own instructions, scoped to one role. Starts nothing.\n" +
           '\n' +
           "dungeonmaster siegelense <call> --help  for one call's flags and refusals\n",
       );

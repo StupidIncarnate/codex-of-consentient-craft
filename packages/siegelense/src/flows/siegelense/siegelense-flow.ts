@@ -42,12 +42,15 @@ import { adapterResultContract, timeoutMsContract } from '@dungeonmaster/shared/
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { instanceIdContract } from '../../contracts/instance-id/instance-id-contract';
+import { SiegelenseCapacityResponder } from '../../responders/siegelense/capacity/siegelense-capacity-responder';
 import { SiegelenseCleanupResponder } from '../../responders/siegelense/cleanup/siegelense-cleanup-responder';
 import { SiegelenseCompareResponder } from '../../responders/siegelense/compare/siegelense-compare-responder';
+import { SiegelenseDocsResponder } from '../../responders/siegelense/docs/siegelense-docs-responder';
 import { SiegelenseDriverResponder } from '../../responders/siegelense/driver/siegelense-driver-responder';
 import { SiegelenseFleetResponder } from '../../responders/siegelense/fleet/siegelense-fleet-responder';
 import { SiegelenseKillResponder } from '../../responders/siegelense/kill/siegelense-kill-responder';
 import { SiegelenseProfileResponder } from '../../responders/siegelense/profile/siegelense-profile-responder';
+import { SiegelensePruneResponder } from '../../responders/siegelense/prune/siegelense-prune-responder';
 import { SiegelenseRecipesResponder } from '../../responders/siegelense/recipes/siegelense-recipes-responder';
 import { SiegelenseResultsResponder } from '../../responders/siegelense/results/siegelense-results-responder';
 import { SiegelenseRunResponder } from '../../responders/siegelense/run/siegelense-run-responder';
@@ -57,12 +60,15 @@ import { SiegelenseStatusResponder } from '../../responders/siegelense/status/si
 import { siegelenseCallStatics } from '../../statics/siegelense-call/siegelense-call-statics';
 import { siegelenseHelpStatics } from '../../statics/siegelense-help/siegelense-help-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
+import { capacityArgsParseTransformer } from '../../transformers/capacity-args-parse/capacity-args-parse-transformer';
 import { cleanupArgsParseTransformer } from '../../transformers/cleanup-args-parse/cleanup-args-parse-transformer';
 import { compareArgsParseTransformer } from '../../transformers/compare-args-parse/compare-args-parse-transformer';
+import { docsArgsParseTransformer } from '../../transformers/docs-args-parse/docs-args-parse-transformer';
 import { flagContractParseTransformer } from '../../transformers/flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../../transformers/flag-value-read/flag-value-read-transformer';
 import { killArgsParseTransformer } from '../../transformers/kill-args-parse/kill-args-parse-transformer';
 import { profileArgsParseTransformer } from '../../transformers/profile-args-parse/profile-args-parse-transformer';
+import { pruneArgsParseTransformer } from '../../transformers/prune-args-parse/prune-args-parse-transformer';
 import { recipesArgsParseTransformer } from '../../transformers/recipes-args-parse/recipes-args-parse-transformer';
 import { resultsArgsParseTransformer } from '../../transformers/results-args-parse/results-args-parse-transformer';
 import { siegelenseHelpRenderTransformer } from '../../transformers/siegelense-help-render/siegelense-help-render-transformer';
@@ -78,8 +84,8 @@ const DRIVER_CALL_NAME = 'driver';
 const INSTANCE_FLAG = '--instance';
 const IDLE_TIMEOUT_MS_FLAG = '--idle-timeout-ms';
 const USAGE =
-  'Usage: dungeonmaster siegelense [--help | start | run | results | kill | status | cleanup | ' +
-  'compare | profile | snapshots | recipes | driver --instance <instanceId>]';
+  'Usage: dungeonmaster siegelense [--help | start | run | results | kill | capacity | status | ' +
+  'cleanup | prune | compare | profile | snapshots | recipes | docs | driver --instance <instanceId>]';
 
 const CALL_ROUTES = new Map<
   SiegelenseCall,
@@ -100,6 +106,11 @@ const CALL_ROUTES = new Map<
     async (callArgs) => SiegelenseKillResponder(killArgsParseTransformer({ args: callArgs })),
   ],
   [
+    'capacity',
+    async (callArgs) =>
+      SiegelenseCapacityResponder(capacityArgsParseTransformer({ args: callArgs })),
+  ],
+  [
     'profile',
     async (callArgs) =>
       SiegelenseProfileResponder({ specName: profileArgsParseTransformer({ args: callArgs }) }),
@@ -111,6 +122,10 @@ const CALL_ROUTES = new Map<
   [
     'cleanup',
     async (callArgs) => SiegelenseCleanupResponder(cleanupArgsParseTransformer({ args: callArgs })),
+  ],
+  [
+    'prune',
+    async (callArgs) => SiegelensePruneResponder(pruneArgsParseTransformer({ args: callArgs })),
   ],
   [
     'compare',
@@ -125,6 +140,10 @@ const CALL_ROUTES = new Map<
   [
     'recipes',
     async (callArgs) => SiegelenseRecipesResponder(recipesArgsParseTransformer({ args: callArgs })),
+  ],
+  [
+    'docs',
+    async (callArgs) => SiegelenseDocsResponder(docsArgsParseTransformer({ args: callArgs })),
   ],
 ]);
 

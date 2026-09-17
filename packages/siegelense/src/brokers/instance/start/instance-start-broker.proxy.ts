@@ -19,6 +19,9 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { FilePath, NetworkPort, TimeoutMs } from '@dungeonmaster/shared/contracts';
 
+import { capacityReadBroker } from '../../capacity/read/capacity-read-broker';
+import { capacityReadBrokerProxy } from '../../capacity/read/capacity-read-broker.proxy';
+import { CapacityAnswerStub } from '../../../contracts/capacity-answer/capacity-answer.stub';
 import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.proxy';
 import { instanceReserveBrokerProxy } from '../reserve/instance-reserve-broker.proxy';
 import { profileBootRecordBrokerProxy } from '../../profile/boot-record/profile-boot-record-broker.proxy';
@@ -141,6 +144,7 @@ export const instanceStartBrokerProxy = (): {
   stageLaneSpec: (params: { specName: SpecName; spec: LaneSpec }) => void;
   stageProcessReachable: (params: { url: string }) => void;
   stageProcessUnreachable: (params: { url: string }) => void;
+  setupCapacityRefusal: (params: { specName: SpecName; why: string }) => void;
 } => {
   // Created to satisfy enforce-proxy-child-creation; their onceFor-based semantic setup methods
   // are never called, since every path here resolves through the REAL pathJoin passthrough (see
@@ -152,6 +156,10 @@ export const instanceStartBrokerProxy = (): {
   // real against these identical mocks.
   instanceReleaseBrokerProxy();
   registryReadBrokerProxy();
+  // Constructed for enforce-proxy-child-creation only. capacityReadBroker itself is staged directly
+  // below, so none of the three reads this proxy composes ever runs; anything its own construction
+  // queues onto the shared pathJoin mock is absorbed by stageBoot's drain.
+  capacityReadBrokerProxy();
   bootLockAcquireBrokerProxy();
   bootLockReleaseBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
@@ -190,6 +198,16 @@ export const instanceStartBrokerProxy = (): {
   const renameHandle: MockHandle = registerMock({ fn: rename });
   const accessHandle: MockHandle = registerMock({ fn: access });
   const createServerHandle: MockHandle = registerMock({ fn: createServer });
+
+  // instanceStartBroker asks `capacity` whether the machine can hold another instance before it
+  // reserves one. It is staged DIRECTLY rather than composed: capacityReadBroker's own reads
+  // (registry, host, profile tree) would each queue onto the shared pathJoin and fs mocks this file
+  // already hand-counts, and what every test here needs from it is a single number. The
+  // constructor-level catch-all is the permissive answer — every scenario in this file is a machine
+  // with room — so only the refusal cases below describe a call of their own, at a strictly more
+  // specific address.
+  const capacityHandle: MockHandle = registerMock({ fn: capacityReadBroker });
+  capacityHandle.calledWith([]).resolves(CapacityAnswerStub());
 
   registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(MINTED_UUID_VALUE);
   const dateNowHandle = registerSpyOn({ object: Date, method: 'now' });
@@ -462,6 +480,16 @@ export const instanceStartBrokerProxy = (): {
 
     stageProcessUnreachable: ({ url }: { url: string }): void => {
       readyWaitProxy.setupUnreachable({ url });
+    },
+
+    // Addressed by the spec name the broker really passes, which outranks the permissive catch-all
+    // staged in the constructor. `suggested: 0` is the one condition instanceStartBroker refuses on,
+    // and `why` is carried into CapacityRefusedError verbatim, so a test asserts the sentence it
+    // staged here rather than a message this proxy wrote.
+    setupCapacityRefusal: ({ specName, why }: { specName: SpecName; why: string }): void => {
+      capacityHandle
+        .calledWith([{ specName }])
+        .resolves(CapacityAnswerStub({ suggested: 0, why, profile: null }));
     },
 
     setupStaleReap: ({ staleInstanceId }: { staleInstanceId: InstanceId }): void => {

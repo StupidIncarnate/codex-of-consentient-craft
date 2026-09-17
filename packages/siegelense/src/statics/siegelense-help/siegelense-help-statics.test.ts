@@ -12,8 +12,8 @@ describe('siegelenseHelpStatics', () => {
   it('VALID: {index} => toStrictEqual the headline, the not-built names and the footer', () => {
     expect(siegelenseHelpStatics.index).toStrictEqual({
       headline:
-        'dungeonmaster siegelense — every built call reachable without installing anything. Ten of thirteen calls are built.',
-      notBuiltYet: ['capacity', 'prune', 'docs'],
+        'dungeonmaster siegelense — every built call reachable without installing anything. All thirteen calls are built.',
+      notBuiltYet: [],
       footer: "dungeonmaster siegelense <call> --help  for one call's flags and refusals",
     });
   });
@@ -256,7 +256,7 @@ describe('siegelenseHelpStatics', () => {
           value: null,
           required: false,
           description:
-            'render the operator table instead of JSON. Only status, cleanup and recipes implement this.',
+            'render the operator table instead of JSON. Only status, cleanup, prune, recipes and docs implement this.',
         },
       ],
       refusals: ["Never lists another instance's runs or evidence unless you name it."],
@@ -281,11 +281,11 @@ describe('siegelenseHelpStatics', () => {
           value: null,
           required: false,
           description:
-            'render the operator table instead of JSON. Only status, cleanup and recipes implement this.',
+            'render the operator table instead of JSON. Only status, cleanup, prune, recipes and docs implement this.',
         },
       ],
       refusals: [
-        'Takes no input. Reaps and releases only — it ages no asset, so a clean baseline capture is never touched by this call.',
+        "Takes no input. Reaps, releases, and ages assets out on their own windows — video first on a shorter one. It refuses exactly what prune refuses, so a capture a VERIFIED prelude or an open quest's WALKED line still cites is never touched, and the instance it belongs to says so in leftAlone.",
       ],
       output: 'One JSON document on stdout: the CleanupAnswer.',
       example: 'dungeonmaster siegelense cleanup',
@@ -399,7 +399,7 @@ describe('siegelenseHelpStatics', () => {
           value: null,
           required: false,
           description:
-            'render the operator table instead of JSON. Only status, cleanup and recipes implement this.',
+            'render the operator table instead of JSON. Only status, cleanup, prune, recipes and docs implement this.',
         },
       ],
       refusals: [
@@ -409,6 +409,134 @@ describe('siegelenseHelpStatics', () => {
       output:
         'One JSON document on stdout: the RecipesAnswer — every declared recipe with its produces: claim, its fidelity, its mirrors: pointer, and the parameters and ids it names. An EMPTY list is a real answer and means "no recipes yet"; an absent packages/siegelense-recipes/ is a refusal instead, so the two never read alike.',
       example: 'dungeonmaster siegelense recipes --human',
+    });
+  });
+
+  it('VALID: {calls.capacity} => toStrictEqual its summary, synopsis, flags, refusals, output and example', () => {
+    expect(siegelenseHelpStatics.calls.capacity).toStrictEqual({
+      summary:
+        'siegelense capacity — how many instances this machine can take right now. Ask before opening a pool. Starts nothing.',
+      synopsis: 'dungeonmaster siegelense capacity [--spec <specName>] [--pool <n>] [--json]',
+      flags: [
+        {
+          name: '--spec',
+          value: '<specName>',
+          required: false,
+          description:
+            'the lane spec to price. Omitted, the browsered dungeonmaster-web spec is assumed — the more expensive of the two built-ins, so a bare call answers conservatively. The why sentence names whichever spec was read.',
+        },
+        {
+          name: '--pool',
+          value: '<n>',
+          required: false,
+          description:
+            'the size of the pool you are about to open. Decides WHICH measured sample group the division uses. Omitted, the policy ceiling is assumed, so the most contended group the profile holds is the one read.',
+        },
+        {
+          name: '--json',
+          value: null,
+          required: false,
+          description: 'print the JSON answer — the default; explicit and refused nowhere.',
+        },
+      ],
+      refusals: [
+        'Advisory, with one exception: `start` refuses outright when this answers suggested: 0 — either no room in memory for one more instance, or the policy pool already full. Everywhere else the caller decides.',
+        'Samples are never averaged across pool sizes. One group is selected — the largest measured at or below --pool, or the smallest there is when every group measured a bigger pool — and the answer reports which, so the arithmetic is checkable.',
+        'Counts instances this session did not start, reservations included: a parallel agent’s lanes, a ward e2e run holding a port pair, a developer’s own browser. It never reaps anything — a row whose heartbeat has gone cold is excluded from the count, and `cleanup` is what clears it.',
+      ],
+      output:
+        'One JSON document on stdout: the CapacityAnswer — suggested, ceiling, a why sentence naming every figure it reasoned from, the measured host block, and the one profile group it divided by (null for a spec nothing has run).',
+      example: 'dungeonmaster siegelense capacity --spec dungeonmaster-web --pool 3',
+    });
+  });
+
+  it('VALID: {calls.prune} => toStrictEqual its summary, synopsis, flags, refusals, output and example', () => {
+    expect(siegelenseHelpStatics.calls.prune).toStrictEqual({
+      summary:
+        'siegelense prune — reclaim asset space deliberately, rather than waiting for the age-out window.',
+      synopsis:
+        'dungeonmaster siegelense prune [--instance <id>] [--kind <kind>] [--older-than <window>] [--json] [--human]',
+      flags: [
+        {
+          name: '--instance',
+          value: '<id>',
+          required: false,
+          description: "one instance's assets, instead of every instance's.",
+        },
+        {
+          name: '--kind',
+          value: '<kind>',
+          required: false,
+          description:
+            'one class of file: video, shot, transcript or log. Combines with --older-than. Nothing writes a video yet, so --kind video matches nothing today and says so by freeing 0.',
+        },
+        {
+          name: '--older-than',
+          value: '<window>',
+          required: false,
+          description:
+            'how old an asset must be to go — a whole number and one of d, h, m, s. Defaults to 7d; this call deletes, so it never defaults to taking everything.',
+        },
+        {
+          name: '--json',
+          value: null,
+          required: false,
+          description: 'print the JSON answer — the default; explicit and refused nowhere.',
+        },
+        {
+          name: '--human',
+          value: null,
+          required: false,
+          description:
+            'render the operator table instead of JSON. Only status, cleanup, prune, recipes and docs implement this.',
+        },
+      ],
+      refusals: [
+        'It refuses rather than warns: anything a VERIFIED prelude or an open quest WALKED note still cites stays, and the refusal names the citing file and the run id so a caller can open it.',
+        'A live instance is refused whoever started it, whatever the window says.',
+        'An instance whose quest record cannot be read is refused rather than treated as uncited — deleting is the irreversible move.',
+        'The third citation kind, an open issue record, is NOT CHECKED: nothing in this repo stores an issue carrying a typed instanceId/runId. Every answer names it under `unresolved`, so an empty `refused` never reads as "nothing cites any of this".',
+      ],
+      output:
+        'One JSON document on stdout: the PruneAnswer — freedMB and freedBytes, removed[] (with the tombstone flag), refused[] (each with the citing file), and unresolved[] naming every citation kind that went unchecked.',
+      example: 'dungeonmaster siegelense prune --kind video --older-than 2d',
+    });
+  });
+
+  it('VALID: {calls.docs} => toStrictEqual its summary, synopsis, flags, refusals, output and example', () => {
+    expect(siegelenseHelpStatics.calls.docs).toStrictEqual({
+      summary:
+        "siegelense docs — this tool's own instructions, scoped to one role. Starts nothing.",
+      synopsis: 'dungeonmaster siegelense docs [--for <scope>] [--json] [--human]',
+      flags: [
+        {
+          name: '--for',
+          value: '<scope>',
+          required: false,
+          description:
+            "serve one role's page instead of the whole surface: operating, planning, walking, attacking, fixing, driving, operational. Omitted, every scope is served.",
+        },
+        {
+          name: '--json',
+          value: null,
+          required: false,
+          description: 'print the JSON answer — the default; explicit and refused nowhere.',
+        },
+        {
+          name: '--human',
+          value: null,
+          required: false,
+          description:
+            'render the operator table instead of JSON. Only status, cleanup, prune, recipes and docs implement this.',
+        },
+      ],
+      refusals: [
+        'An unrecognised --for value is refused BY NAME and lists the scopes that exist. It never answers an empty document, because "this role has no instructions" is the one answer this call must not give.',
+        'There is no scope for a code-reading role, and that absence is deliberate: a session that opens source files and calls nothing here would be handed the vocabulary for driving a browser.',
+      ],
+      output:
+        'One JSON document on stdout: the DocsAnswer — an about preamble, and one document per scope served, each a headed list of lines. --human renders the same document as indented text.',
+      example: 'dungeonmaster siegelense docs --for walking --human',
     });
   });
 

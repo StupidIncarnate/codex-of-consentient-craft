@@ -1,10 +1,11 @@
 /**
  * PURPOSE: Reads `dungeonmaster siegelense cleanup`'s argv into a `CleanupArgs`. Every flag but
- * `--json` and `--human` refuses, carrying the call's own refusal sentence verbatim from the MCP
- * registration this call replaces — cleanup "takes no input" (siegelense-tooling.md line 2409) —
- * AND the canonical positional-argument sentence its six siblings all carry, so a stray positional
- * argument here states both why nothing was expected and the general rule every other call states
- * for the identical mistake.
+ * `--json` and `--human` refuses, carrying the reason nothing can be selected — cleanup "takes no
+ * input" (siegelense-tooling.md line 2409) — AND the canonical positional-argument sentence its
+ * siblings all carry, so a stray positional argument here states both why nothing was expected and
+ * the general rule every other call states for the identical mistake. The sentence here is a
+ * SHORTER one than `siegelenseHelpStatics.calls.cleanup.refusals[0]` on purpose, and the two are
+ * allowed to differ in length but never in fact.
  *
  * USAGE:
  * cleanupArgsParseTransformer({ args: [] });
@@ -21,8 +22,11 @@ const KNOWN_FLAGS = [
   siegelenseOutputStatics.flags.json,
   siegelenseOutputStatics.flags.human,
 ] as const;
+// Deliberately shorter than the help page's own refusal: an argv mistake needs the half that says
+// nothing can be selected, not the whole retention story. What it must NOT say is that cleanup
+// ages no asset — it does, on its own windows, and that sentence was true only before prune landed.
 const CLEANUP_TAKES_NO_INPUT =
-  'Takes no input. Reaps and releases only — it ages no asset, so a clean baseline capture is never touched by this call.';
+  'Takes no input: it reaps stale instances and ages assets on their own windows, with nothing to select.';
 const USAGE = 'Usage: dungeonmaster siegelense cleanup [--json] [--human]';
 
 export const cleanupArgsParseTransformer = ({ args }: { args: readonly string[] }): CleanupArgs => {

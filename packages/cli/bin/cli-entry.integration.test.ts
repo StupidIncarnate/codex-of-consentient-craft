@@ -24,11 +24,10 @@ const ROUTED_CALL_NAME_SET = new Set(Object.keys(siegelenseHelpStatics.calls));
 const NOT_BUILT_CALL_NAMES = siegelenseCallStatics.calls.names.filter(
   (name) => !ROUTED_CALL_NAME_SET.has(name),
 );
-const NOT_BUILT_REFUSAL_SUFFIX = `is a siegelense call but is not built yet. Built calls: ${BUILT_CALL_NAMES.join(', ')}.\n`;
 const UNKNOWN_SUBCOMMAND_STDERR =
   'Error: Unknown siegelense subcommand: statuss\n\n' +
-  'Usage: dungeonmaster siegelense [--help | start | run | results | kill | status | cleanup | ' +
-  'compare | profile | snapshots | recipes | driver --instance <instanceId>]\n';
+  'Usage: dungeonmaster siegelense [--help | start | run | results | kill | capacity | status | ' +
+  'cleanup | prune | compare | profile | snapshots | recipes | docs | driver --instance <instanceId>]\n';
 // This suite's own beforeAll runs every spawn in parallel (Promise.all), so the wall time it
 // costs is close to ONE spawn's, not the sum of fifteen. Each spawn still carries its own
 // RUN_COMMAND_TIMEOUT_MS kill timer inside the harness; this is the outer jest hook budget.
@@ -151,16 +150,13 @@ describe('dungeonmaster siegelense subcommand seam', () => {
     },
   );
 
-  it.each(NOT_BUILT_CALL_NAMES)(
-    'INVALID: {dungeonmaster siegelense %s} => exits 1 and stderr names it as not built yet',
-    (name) => {
-      expect(notBuiltResults[name]).toStrictEqual({
-        exitCode: ExitCodeStub({ value: 1 }),
-        stdout: '',
-        stderr: `Error: ${name} ${NOT_BUILT_REFUSAL_SUFFIX}`,
-      });
-    },
-  );
+  // `it.each` throws on an empty array, so the not-built seam is asserted as one case rather than
+  // one per name. What it proves is the same thing from the other side: the closed set and the
+  // route table now agree, so no name reaches the refusal at all.
+  it('VALID: {every name the spec defines} => routed, so none refuses as not built yet', () => {
+    expect(NOT_BUILT_CALL_NAMES).toStrictEqual([]);
+    expect(notBuiltResults).toStrictEqual({});
+  });
 
   it('VALID: {dungeonmaster siegelense --help} => exits 0 and prints the index page', () => {
     expect(bareHelp.exitCode).toBe(ExitCodeStub({ value: 0 }));

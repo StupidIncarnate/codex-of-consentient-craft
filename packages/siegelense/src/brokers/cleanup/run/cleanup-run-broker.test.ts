@@ -83,6 +83,7 @@ describe('cleanupRunBroker', () => {
         reaped: [{ id: STALE_ID, staleFor: '9h', killed: [pgidOne, pgidTwo], homeRemoved: true }],
         portsReleased: [staleEntry.ports.api, staleEntry.ports.web],
         lockReleased: false,
+        assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [
           { id: LIVE_ID, why: 'live — last beat 2s ago' },
           { id: RESERVED_ID, why: 'reserved — booting, no beat yet' },
@@ -119,6 +120,7 @@ describe('cleanupRunBroker', () => {
         reaped: [{ id: ABANDONED_RESERVATION_ID, staleFor: '10m', killed: [], homeRemoved: true }],
         portsReleased: [abandonedEntry.ports.api, abandonedEntry.ports.web],
         lockReleased: false,
+        assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [],
       });
     });
@@ -145,6 +147,7 @@ describe('cleanupRunBroker', () => {
         reaped: [],
         portsReleased: [],
         lockReleased: false,
+        assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [{ id: RESERVED_ID, why: 'reserved — booting, no beat yet' }],
       });
       // The registry write path is only reachable through a reap, and nothing was reaped here.
@@ -208,6 +211,7 @@ describe('cleanupRunBroker', () => {
         reaped: [],
         portsReleased: [],
         lockReleased: false,
+        assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [{ id: LIVE_ID, why: 'live — last beat 2s ago' }],
       });
       // The registry write path is only reachable through a reap, and nothing was reaped here —
@@ -230,6 +234,7 @@ describe('cleanupRunBroker', () => {
         reaped: [],
         portsReleased: [],
         lockReleased: false,
+        assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [],
       });
     });
@@ -248,6 +253,7 @@ describe('cleanupRunBroker', () => {
         reaped: [],
         portsReleased: [],
         lockReleased: true,
+        assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [],
       });
     });
