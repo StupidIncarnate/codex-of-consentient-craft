@@ -73,6 +73,8 @@ const SIEGELENSE_ROOT_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster/siegelense`;
 const HOME_ROOTED_EVIDENCE_PATH = AbsoluteFilePathStub({
   value: `${SIEGELENSE_ROOT_VALUE}/guilds/g1/instances/inst_2`,
 });
+const SEED_HOME_PATH = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_seed' });
+
 const REPO_LOCAL_EVIDENCE_PATH = AbsoluteFilePathStub({
   value: `${CWD_PATH_VALUE}/.siegelense/guilds/g1/instances/inst_2`,
 });
@@ -88,6 +90,16 @@ export const runExecuteBrokerProxy = (): {
   homeRootedEvidencePath: () => AbsoluteFilePath;
   repoLocalEvidencePath: () => AbsoluteFilePath;
   cleanLane: () => LaneSession;
+  laneRecordingGotoPaths: (params: { apiPort: number }) => {
+    lane: LaneSession;
+    gotoPaths: () => readonly unknown[];
+  };
+  seedBookPresent: () => void;
+  seedLaneAnswers: (params: {
+    apiBaseUrl: ContentText;
+    guild: unknown;
+    questIds: readonly ContentText[];
+  }) => void;
   laneFailingOnPath: (params: { failingPath: string; error: Error }) => {
     lane: LaneSession;
     gotoCallCount: () => ReadingCount;
@@ -245,6 +257,52 @@ export const runExecuteBrokerProxy = (): {
           capture: jest.fn().mockResolvedValue(undefined),
         },
       }),
+
+    // A lane that records the URL of every goto it is asked for — what a test asserts a
+    // `{g.guildSlug}` actually resolved to, since a placeholder that failed to substitute would
+    // reach the browser as its own literal text.
+    laneRecordingGotoPaths: ({
+      apiPort,
+    }: {
+      apiPort: number;
+    }): { lane: LaneSession; gotoPaths: () => readonly unknown[] } => {
+      const gotoMock = jest.fn().mockResolvedValue(undefined);
+      const lane = LaneSessionStub({
+        evidencePath: EVIDENCE_PATH,
+        homePath: SEED_HOME_PATH,
+        ports: { api: apiPort, web: apiPort + 1 },
+        browser: { goto: gotoMock, capture: jest.fn().mockResolvedValue(undefined) },
+      });
+      return {
+        lane,
+        gotoPaths: (): readonly unknown[] =>
+          gotoMock.mock.calls.map((call: readonly unknown[]) => {
+            const [first] = call;
+            return first !== null && typeof first === 'object' && 'url' in first ? first.url : null;
+          }),
+      };
+    },
+
+    // Addressed at the path the REAL cwd and path-join resolution produce under this proxy's own
+    // staging, rather than through `bookPresent()` — that one claims `process.cwd` and `path.join`
+    // as one-shots, and this proxy is already using both for the run's own evidence paths.
+    seedBookPresent: (): void => {
+      stepLayerProxy.seedBookPresentAt({
+        packagePath: '/default/cwd/packages/siegelense-recipes',
+      });
+    },
+
+    seedLaneAnswers: ({
+      apiBaseUrl,
+      guild,
+      questIds,
+    }: {
+      apiBaseUrl: ContentText;
+      guild: unknown;
+      questIds: readonly ContentText[];
+    }): void => {
+      stepLayerProxy.seedLaneAnswers({ apiBaseUrl, guild, questIds });
+    },
 
     laneFailingOnPath: ({
       failingPath,

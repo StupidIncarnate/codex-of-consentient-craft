@@ -6,22 +6,31 @@
  * is the whole "call the verb's broker" half of the dispatcher, leaving the parent to own the
  * browser guard and the `expect` inversion around this call.
  *
+ * It takes the whole `LaneSession` rather than its `BrowserSession` because `seed` is the first
+ * verb that needs no page — it reads the lane's own api port and throwaway home and touches no
+ * screen — so the narrowing to a live browser happens BELOW that route rather than above it.
+ *
  * USAGE:
  * await runVerbLayerBroker({
- *   session, step: StepStub({ step: 'click', target: SelectorStub() }),
- *   index: StepIndexStub({ value: 3 }), shotPath: null,
+ *   lane, step: StepStub({ step: 'click', target: SelectorStub() }),
+ *   index: StepIndexStub({ value: 3 }), shotPath: null, recordBinding,
  * });
  * // Resolves the target, clicks it, and returns the reading — or throws
  */
 
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { RecipeResult } from '@dungeonmaster/siegelense-recipes/contracts';
 
-import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
+import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
+import type { SeedBindingName } from '../../../contracts/seed-binding-name/seed-binding-name-contract';
 import type { Step } from '../../../contracts/step/step-contract';
 import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
+import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contract';
+import { BrowserStepUnsupportedError } from '../../../errors/browser-step-unsupported/browser-step-unsupported-error';
 import { isTargetingStepGuard } from '../../../guards/is-targeting-step/is-targeting-step-guard';
 import { stepClickBroker } from '../click/step-click-broker';
+import { stepSeedBroker } from '../seed/step-seed-broker';
 import { stepEvalSourceBroker } from '../eval-source/step-eval-source-broker';
 import { stepGotoBroker } from '../goto/step-goto-broker';
 import { stepLookBroker } from '../look/step-look-broker';
@@ -31,16 +40,42 @@ import { stepTypeBroker } from '../type/step-type-broker';
 import { stepWaitForBroker } from '../wait-for/step-wait-for-broker';
 
 export const runVerbLayerBroker = async ({
-  session,
+  lane,
   step,
   index,
   shotPath,
+  recordBinding,
 }: {
-  session: BrowserSession;
+  lane: LaneSession;
   step: Step;
   index: StepIndex;
   shotPath: AbsoluteFilePath | null;
+  recordBinding: (params: { name: SeedBindingName; result: RecipeResult }) => void;
 }): Promise<ContentText> => {
+  // `seed` is routed FIRST, before the browser is narrowed, because it is the first verb that
+  // touches no page: a recipe writes files and calls the lane's own API, so it runs identically
+  // against `dungeonmaster-headless`. Its parameters are the step's own extra keys — the `seed`
+  // member of `stepContract` is `.catchall()` rather than `.strict()` for exactly that — and
+  // `recipeSeedRunBroker` is what grades them against the named recipe's manifest.
+  if (step.step === 'seed') {
+    // The known keys are peeled off so `parameters` holds exactly the recipe's own — the catchall
+    // keys and nothing else. Each is named with a leading underscore because none is READ here:
+    // the verb is already known, and `node`/`expect` belong to the dispatcher above.
+    const { step: _verb, recipe, as, node: _node, expect: _expect, ...parameters } = step;
+    return stepSeedBroker({ lane, recipe, parameters, as, recordBinding });
+  }
+
+  const { browser: session } = lane;
+  if (session === null) {
+    // Every verb below drives or reads a live page. `stepDispatchBroker`'s own browser check has
+    // already refused a browser verb against a browserless lane by name, so this narrows `session`
+    // for the calls below and answers identically if that check is ever bypassed.
+    throw new BrowserStepUnsupportedError({
+      verb: stepVerbContract.parse(step.step),
+      specName: lane.specName,
+    });
+  }
+
   if (
     isTargetingStepGuard({ step }) &&
     (step.step === 'waitFor' || step.step === 'click' || step.step === 'type')

@@ -28,6 +28,12 @@
  * allowed imports do not include `state/`, so this file never reads the INSTANCE's last-capture
  * pointer itself, only carries the caller's accessor one layer further down.
  *
+ * It is also where a step's `{binding.field}` placeholders are SUBSTITUTED, immediately inside the
+ * try. That placement is the point: an unresolvable binding throws, and this is the one place a
+ * throw becomes an `ok: false` reading plus a `StoppedAt` naming the step and the verb — so a
+ * misspelled `as:` stops the batch, lands in the transcript, and reads back through `results` like
+ * any other failure, instead of crashing the whole run.
+ *
  * USAGE:
  * await runExecuteStepLayerBroker({
  *   lane, step: StepStub({ step: 'goto', path: UrlPathStub() }),
@@ -40,9 +46,12 @@
 
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
+import type { RecipeResult } from '@dungeonmaster/siegelense-recipes/contracts';
 
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
+import type { SeedBindings } from '../../../contracts/seed-bindings/seed-bindings-contract';
+import type { SeedBindingName } from '../../../contracts/seed-binding-name/seed-binding-name-contract';
 import { serverLogWindowContract } from '../../../contracts/server-log-window/server-log-window-contract';
 import type { Step } from '../../../contracts/step/step-contract';
 import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
@@ -56,6 +65,7 @@ import { stepCandidateContract } from '../../../contracts/step-candidate/step-ca
 import { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
 import { StepFailureCaptureError } from '../../../errors/step-failure-capture/step-failure-capture-error';
 import { WaitForCeilingHitError } from '../../../errors/wait-for-ceiling-hit/wait-for-ceiling-hit-error';
+import { stepInterpolateTransformer } from '../../../transformers/step-interpolate/step-interpolate-transformer';
 import { stepDispatchBroker } from '../../step/dispatch/step-dispatch-broker';
 
 export const runExecuteStepLayerBroker = async ({
@@ -65,6 +75,8 @@ export const runExecuteStepLayerBroker = async ({
   shotPath,
   lastShotPath,
   setLastShotPath,
+  bindings,
+  recordBinding,
 }: {
   lane: LaneSession;
   step: Step;
@@ -72,18 +84,24 @@ export const runExecuteStepLayerBroker = async ({
   shotPath: AbsoluteFilePath | null;
   lastShotPath: () => AbsoluteFilePath | null;
   setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
+  bindings: () => SeedBindings;
+  recordBinding: (params: { name: SeedBindingName; result: RecipeResult }) => void;
 }): Promise<{ reading: StepReading; stoppedAt: StoppedAt | null; timedOut: boolean }> => {
   const verb = stepVerbContract.parse(step.step);
   const serverLogStartByte = lane.serverLogLength();
 
   try {
+    // Inside the try, and this is the one place it can be: an unresolvable `{g.guildSlug}` throws,
+    // and only here does a throw become an `ok: false` reading plus a `StoppedAt` naming the step.
+    // Interpolating in the parent's loop instead would crash the batch rather than record it.
     const reading = await stepDispatchBroker({
       lane,
-      step,
+      step: stepInterpolateTransformer({ step, bindings: bindings() }),
       index,
       shotPath,
       lastShotPath,
       setLastShotPath,
+      recordBinding,
     });
 
     if (reading.ok) {

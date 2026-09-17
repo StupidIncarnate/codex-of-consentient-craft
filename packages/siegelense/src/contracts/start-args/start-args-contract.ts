@@ -12,16 +12,17 @@
  * validates argv the transformer has already normalised.
  *
  * USAGE:
- * startArgsContract.parse({ specName: 'dungeonmaster-web', questId: null, guildId: null });
- * // Returns a validated StartArgs for the unowned case, with the default idle ceiling
+ * startArgsContract.parse({ specName: 'dungeonmaster-web', questId: null, guildId: null, seed: null });
+ * // Returns a validated StartArgs for the unowned, unseeded case, with the default idle ceiling
  *
  * startArgsContract.parse({
  *   specName: 'dungeonmaster-web',
  *   questId: null,
  *   guildId: null,
+ *   seed: 'guild-with-three-quests',
  *   idleTimeoutMs: 1_800_000,
  * });
- * // Returns a validated StartArgs carrying a raised idle ceiling
+ * // Returns a validated StartArgs that seeds at boot and carries a raised idle ceiling
  */
 
 import { z } from 'zod';
@@ -31,6 +32,7 @@ import {
   questIdContract,
   timeoutMsContract,
 } from '@dungeonmaster/shared/contracts';
+import { recipeNameContract } from '@dungeonmaster/siegelense-recipes/contracts';
 
 import { specNameContract } from '../spec-name/spec-name-contract';
 
@@ -39,6 +41,11 @@ export const startArgsContract = z
     specName: specNameContract,
     questId: questIdContract.nullable(),
     guildId: guildIdContract.nullable(),
+    // The recipe to run against the new lane once it is up, filling the manifest's `seeded`
+    // (siegelense-tooling.md line 2303). `.nullable()` for the same reason questId and guildId
+    // are: the parser always decides a value, so no reader ever has "was this left unset" as a
+    // live question.
+    seed: recipeNameContract.nullable(),
     idleTimeoutMs: timeoutMsContract.optional(),
   })
   .strict();

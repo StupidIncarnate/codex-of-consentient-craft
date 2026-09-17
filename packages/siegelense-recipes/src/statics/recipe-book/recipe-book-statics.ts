@@ -19,10 +19,19 @@
  * // Returns every declared recipe, each with its produces:, fidelity, mirrors:, parameters and returns
  */
 
+// The lookup keys, declared once. `recipeRunBroker` routes on these and the entries below carry
+// them, so a listing and a runner cannot disagree about what a recipe is called — which is the
+// whole of "the listing and the runner read the same declaration" (siegelense-recipes.md line 713).
+const NAMES = {
+  guildWithThreeQuests: 'guild-with-three-quests',
+  sessionWithNestedSubagent: 'session-with-nested-subagent',
+} as const;
+
 export const recipeBookStatics = {
+  names: NAMES,
   recipes: [
     {
-      name: 'guild-with-three-quests',
+      name: NAMES.guildWithThreeQuests,
       // siegelense-tooling.md line 2321-2322, verbatim.
       produces: 'one guild holding three quests, one in_progress',
       fidelity: 'production',
@@ -48,13 +57,17 @@ export const recipeBookStatics = {
       ],
     },
     {
-      name: 'session-with-nested-subagent',
+      name: NAMES.sessionWithNestedSubagent,
       // siegelense-tooling.md line 2318-2319, verbatim.
       produces:
         'one session transcript holding an outer sub-agent chain with one chain nested inside it, both finished',
       fidelity: 'direct',
+      // Three pointers, because a diagnosis needs all three: where it writes, what it writes, and
+      // the READER a drift shows up against. The first two were here already and making the recipe
+      // executable confirmed both; the third is what the author flagged as the uncertain half, and
+      // it is the one a failing recipe test actually points at.
       mirrors:
-        'the Claude CLI session transcript writer — its on-disk location is claudePathSlugEncoderTransformer, its line shapes are the stream-line stubs in @dungeonmaster/shared/contracts',
+        'the Claude CLI session transcript writer — its on-disk location is claudePathSlugEncoderTransformer (the same transformer the server resolves a session through), its line shapes are the stream-line contracts and stubs in @dungeonmaster/shared/contracts, and the reader a drift shows up against is the orchestrator chat replay, which pairs a sub-agent file to its Task by toolUseResult.agentId',
       parameters: [
         {
           name: 'guild',

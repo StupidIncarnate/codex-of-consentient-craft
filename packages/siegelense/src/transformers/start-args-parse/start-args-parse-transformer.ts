@@ -14,10 +14,10 @@
  *
  * USAGE:
  * startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-web'] });
- * // Returns StartArgs { specName: 'dungeonmaster-web', questId: null, guildId: null }
+ * // Returns StartArgs { specName: 'dungeonmaster-web', questId: null, guildId: null, seed: null }
  *
- * startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-web', '--idle-timeout-ms', '1800000'] });
- * // Returns StartArgs { specName: 'dungeonmaster-web', questId: null, guildId: null, idleTimeoutMs: 1_800_000 }
+ * startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-web', '--seed', 'guild-with-three-quests'] });
+ * // Returns StartArgs whose `seed` names the recipe to run once the lane is up
  */
 
 import {
@@ -25,6 +25,7 @@ import {
   questIdContract,
   timeoutMsContract,
 } from '@dungeonmaster/shared/contracts';
+import { recipeNameContract } from '@dungeonmaster/siegelense-recipes/contracts';
 
 import { specNameContract } from '../../contracts/spec-name/spec-name-contract';
 import { startArgsContract } from '../../contracts/start-args/start-args-contract';
@@ -37,11 +38,12 @@ const SPEC_FLAG = '--spec';
 const QUEST_FLAG = '--quest';
 const GUILD_FLAG = '--guild';
 const IDLE_TIMEOUT_MS_FLAG = '--idle-timeout-ms';
+const SEED_FLAG = '--seed';
 
-const VALUE_FLAGS = [SPEC_FLAG, QUEST_FLAG, GUILD_FLAG, IDLE_TIMEOUT_MS_FLAG];
+const VALUE_FLAGS = [SPEC_FLAG, QUEST_FLAG, GUILD_FLAG, IDLE_TIMEOUT_MS_FLAG, SEED_FLAG];
 const KNOWN_FLAGS = [...VALUE_FLAGS, siegelenseOutputStatics.flags.json];
 const USAGE =
-  'Usage: dungeonmaster siegelense start --spec <specName> [--quest <questId>] [--guild <guildId>] [--idle-timeout-ms <ms>] [--json]';
+  'Usage: dungeonmaster siegelense start --spec <specName> [--quest <questId>] [--guild <guildId>] [--seed <recipeName>] [--idle-timeout-ms <ms>] [--json]';
 
 export const startArgsParseTransformer = ({ args }: { args: readonly string[] }): StartArgs => {
   for (let i = 0; i < args.length; i++) {
@@ -81,6 +83,7 @@ export const startArgsParseTransformer = ({ args }: { args: readonly string[] })
   const questValue = flagValueReadTransformer({ args, flag: QUEST_FLAG });
   const guildValue = flagValueReadTransformer({ args, flag: GUILD_FLAG });
   const idleTimeoutValue = flagValueReadTransformer({ args, flag: IDLE_TIMEOUT_MS_FLAG });
+  const seedValue = flagValueReadTransformer({ args, flag: SEED_FLAG });
 
   return startArgsContract.parse({
     specName: flagContractParseTransformer({
@@ -100,6 +103,15 @@ export const startArgsParseTransformer = ({ args }: { args: readonly string[] })
         : flagContractParseTransformer({
             flag: GUILD_FLAG,
             parse: () => guildIdContract.parse(guildValue),
+          }),
+    // `null` rather than omitted, unlike --idle-timeout-ms below: an absent --seed is a decision
+    // the parser MAKES (this instance seeds nothing), not a key whose absence changes a default.
+    seed:
+      seedValue === null
+        ? null
+        : flagContractParseTransformer({
+            flag: SEED_FLAG,
+            parse: () => recipeNameContract.parse(seedValue),
           }),
     // Omitted entirely, never set to null, when absent — startArgsContract's own header says why
     // the KEY'S absence is what leaves the served lane's idle ceiling at driverStatics.idle.timeoutMs.

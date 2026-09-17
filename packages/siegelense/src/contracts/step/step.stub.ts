@@ -1,5 +1,6 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { ContentTextStub, FileNameStub } from '@dungeonmaster/shared/contracts';
+import { RecipeNameStub } from '@dungeonmaster/siegelense-recipes/contracts';
 
 import { LocatorStateStub } from '../locator-state/locator-state.stub';
 import { SelectorStub } from '../selector/selector.stub';
@@ -61,6 +62,13 @@ const STEP_DEFAULTS = {
     node: null,
     expect: StepExpectationStub(),
   },
+  seed: {
+    step: 'seed',
+    recipe: RecipeNameStub(),
+    as: null,
+    node: null,
+    expect: StepExpectationStub(),
+  },
 } as const satisfies Record<Step['step'], Record<string, unknown>>;
 
 export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
@@ -81,7 +89,9 @@ export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
               ? STEP_DEFAULTS.eval
               : stepVerb === 'look'
                 ? STEP_DEFAULTS.look
-                : STEP_DEFAULTS.click;
+                : stepVerb === 'seed'
+                  ? STEP_DEFAULTS.seed
+                  : STEP_DEFAULTS.click;
 
   // A `ref` override without a `target` override would otherwise carry click's default target in
   // beside it, and the handle rule rejects a step holding both. The stub's job is to build a VALID

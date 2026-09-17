@@ -17,7 +17,7 @@ describe('SiegelenseStartResponder', () => {
       const manifest = InstanceManifestStub({ specName });
       proxy.stageManifest({ manifest });
 
-      await SiegelenseStartResponder({ specName, questId, guildId });
+      await SiegelenseStartResponder({ specName, questId, guildId, seed: null });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(manifest, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
@@ -32,11 +32,11 @@ describe('SiegelenseStartResponder', () => {
       const manifest = InstanceManifestStub({ specName });
       proxy.stageManifest({ manifest });
 
-      await SiegelenseStartResponder({ specName, questId: null, guildId: null });
+      await SiegelenseStartResponder({ specName, questId: null, guildId: null, seed: null });
 
-      expect(proxy.getStartCallsMatching({ specName, questId: null, guildId: null })).toStrictEqual(
-        [[{ specName, questId: null, guildId: null }]],
-      );
+      expect(
+        proxy.getStartCallsMatching({ specName, questId: null, guildId: null, seed: null }),
+      ).toStrictEqual([[{ specName, questId: null, guildId: null, seed: null }]]);
     });
   });
 
@@ -48,7 +48,7 @@ describe('SiegelenseStartResponder', () => {
       proxy.stageError({ error: thrown });
 
       await expect(
-        SiegelenseStartResponder({ specName, questId: null, guildId: null }),
+        SiegelenseStartResponder({ specName, questId: null, guildId: null, seed: null }),
       ).rejects.toStrictEqual(thrown);
       expect(proxy.getStdoutWrites()).toStrictEqual([]);
     });

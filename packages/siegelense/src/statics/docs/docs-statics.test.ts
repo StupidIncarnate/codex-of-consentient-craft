@@ -118,9 +118,15 @@ describe('docsStatics', () => {
       );
     });
 
-    it('VALID: {planning} => names the six built verbs and marks every other one', () => {
+    it('VALID: {planning} => names the eight built verbs and marks every other one', () => {
       expect(docsStatics.scopes.planning.sections[5].lines[0]).toBe(
-        'Six step verbs exist: goto, waitFor, click, type, screenshot and eval. Every other verb in the design is NOT BUILT YET.',
+        'Eight step verbs exist: goto, waitFor, click, type, screenshot, eval, look and seed. Every other verb in the design is NOT BUILT YET.',
+      );
+    });
+
+    it('VALID: {planning} => says a prelude CAN create its own starting state, now that seed runs a recipe', () => {
+      expect(docsStatics.scopes.planning.sections[5].lines[2]).toBe(
+        "seed runs a recipe against the instance and returns the ids it made, so a prelude CAN create its own starting state. dungeonmaster siegelense recipes lists every recipe with its produces: claim; name one in a { step: 'seed' } and read its ids back with {binding.field}.",
       );
     });
 

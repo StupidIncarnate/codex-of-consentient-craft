@@ -19,5 +19,8 @@ export const isBrowserStepGuard = ({ verb }: { verb?: StepVerb }): boolean => {
     return false;
   }
 
-  return stepStatics.verbs.browser.includes(verb);
+  // `.some` rather than `.includes`: `verbs.browser` is a narrower tuple than `verbs.all` now that
+  // `seed` is in one and not the other, and `.includes` types its argument against the ARRAY's
+  // member union — so a StepVerb that is legitimately absent from this list would not typecheck.
+  return stepStatics.verbs.browser.some((candidate) => candidate === verb);
 };

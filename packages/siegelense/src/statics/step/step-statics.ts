@@ -8,7 +8,7 @@
  *
  * USAGE:
  * stepStatics.verbs.all;
- * // Returns ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look']
+ * // Returns ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look', 'seed']
  *
  * stepStatics.defaults.stopOn;
  * // Returns 'error' — a batch stops on its first failing step unless the caller says 'never'
@@ -19,7 +19,7 @@ export const stepStatics = {
     // siegelense-tooling.md line 2557's "Steps that exist today and are kept" table, narrowed to
     // the verbs built so far — `key`, `paste`, `box`, `dom`, `storage` and `file`, and the eleven
     // new ones at line 2585, are what Part 7 still defers.
-    all: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look'],
+    all: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look', 'seed'],
     // goto, click and type CHANGE the page. `look` does not, which is why it is not here — but it
     // still captures, through `capturing` below.
     acting: ['goto', 'click', 'type'],
@@ -35,9 +35,11 @@ export const stepStatics = {
     // binds to one element — but it resolves through the same door, which is what keeps one place
     // deciding whether a step may act at all.
     targeting: ['waitFor', 'click', 'type'],
-    // Every verb built so far acts on or reads a live Playwright page, so each errors by NAME
-    // against a browserless spec rather than answering an empty key (siegelense-tooling.md lines
-    // 1613, 2128-2130).
+    // Which verbs act on or read a live Playwright page, so each errors by NAME against a
+    // browserless spec rather than answering an empty key (siegelense-tooling.md lines 1613,
+    // 2128-2130). `seed` is the first verb that is NOT one: it touches disk and HTTP and never a
+    // screen — "a recipe touches STATE, never a screen" (siegelense-recipes.md line 471) — so it
+    // runs against `dungeonmaster-headless` exactly as it runs against a browsered lane.
     browser: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look'],
   },
   defaults: {

@@ -23,6 +23,9 @@
  *
  * stepContract.parse({ step: 'look', within: 'SUBAGENT_CHAIN' });
  * // Returns the 'look' member, scoped to one region — rung 2 of the reading ladder
+ *
+ * stepContract.parse({ step: 'seed', recipe: 'session-with-nested-subagent', guild: '{g.guildId}', as: 's' });
+ * // Returns the 'seed' member, with the recipe's own parameters kept as top-level keys
  */
 
 import { z } from 'zod';
@@ -32,15 +35,17 @@ import {
   fileNameContract,
   timeoutMsContract,
 } from '@dungeonmaster/shared/contracts';
+import { recipeNameContract } from '@dungeonmaster/siegelense-recipes/contracts';
 
 import { locatorStateContract } from '../locator-state/locator-state-contract';
+import { seedBindingNameContract } from '../seed-binding-name/seed-binding-name-contract';
 import { nodeLabelContract } from '../node-label/node-label-contract';
 import { refContract } from '../ref/ref-contract';
 import { selectorContract } from '../selector/selector-contract';
 import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-statics';
 import { stepExpectationContract } from '../step-expectation/step-expectation-contract';
 import { stepStatics } from '../../statics/step/step-statics';
-import { urlPathContract } from '../url-path/url-path-contract';
+import { stepPathContract } from '../step-path/step-path-contract';
 
 const HANDLE_MESSAGE =
   'a driving step takes exactly one handle: a `target` selector — durable, meaning the same element on the next run, so it is what belongs in a saved batch — or a `ref`, which one `look` minted against this instance and this page state and which is for driving right now. Try { "step": "click", "target": "[data-testid=PIXEL_BTN]", "within": "[data-testid=GUILD_LIST]" } or { "step": "click", "ref": 23 }';
@@ -50,7 +55,12 @@ export const stepContract = z
     z
       .object({
         step: z.literal('goto'),
-        path: urlPathContract,
+        // `stepPathContract`, not `urlPathContract`: the spec's own worked batches write a goto
+        // whose WHOLE path is a `{s.sessions.nested}` placeholder (lines 2793, 2922), and that
+        // value cannot start with `/` at the moment the batch is parsed — the recipe minting it
+        // has not run. A step is parsed again after substitution, where the `/` rule is the only
+        // branch left.
+        path: stepPathContract,
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })
@@ -130,6 +140,24 @@ export const stepContract = z
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })
       .strict(),
+    z
+      .object({
+        step: z.literal('seed'),
+        recipe: recipeNameContract,
+        // The name later steps read this run's ids back by — `{g.guildSlug}`. `null` when the
+        // caller wants the state and not the ids (siegelense-tooling.md line 2801).
+        as: seedBindingNameContract.nullable().default(null),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      // `.catchall()`, and this is the ONE member that is not `.strict()`. A recipe's parameters
+      // ride the step as TOP-LEVEL keys — `{ step: 'seed', recipe: 'session-with-nested-subagent',
+      // guild: '{g.guildId}', as: 's' }` — which is the form every worked batch in the spec writes
+      // (lines 2792, 2915-2922, 2941). The loudness the other members get from `.strict()` is
+      // supplied one layer up and better: `recipeSeedRunBroker` grades every extra key against the
+      // named recipe's own declared `parameters` and refuses a missing or unknown one BY NAME.
+      // Zod cannot do that check, because only the manifest knows what a given recipe takes.
+      .catchall(contentTextContract),
   ])
   // `.refine()` returns a ZodEffects and `z.discriminatedUnion` accepts only ZodObjects, so the
   // cross-field handle rule rides the UNION rather than the two members it governs. It reads the

@@ -4,7 +4,7 @@ describe('stepStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
     expect(stepStatics).toStrictEqual({
       verbs: {
-        all: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look'],
+        all: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look', 'seed'],
         acting: ['goto', 'click', 'type'],
         capturing: ['goto', 'click', 'type', 'look'],
         targeting: ['waitFor', 'click', 'type'],
@@ -66,5 +66,40 @@ describe('stepStatics', () => {
 
   it('VALID: {verbs.acting} => omits look, which reads the page and never changes it', () => {
     expect(stepStatics.verbs.acting).toStrictEqual(['goto', 'click', 'type']);
+  });
+
+  // `seed` is the first verb that is in `all` and in NONE of the four subsets. It touches disk and
+  // HTTP and never a screen, so it neither acts, captures, targets nor needs a browser — and a
+  // regression putting it in `browser` would make it refuse against `dungeonmaster-headless`.
+  // Asserted as whole tuples rather than by filtering for `seed`, for the same reason the `look`
+  // cases above are: each subset is typed narrowly enough that `verb === 'seed'` cannot be true,
+  // so tsc refuses the comparison outright and a filter would prove nothing.
+  it('VALID: {verbs.browser} => omits seed, which touches disk and HTTP and never a screen', () => {
+    expect(stepStatics.verbs.browser).toStrictEqual([
+      'goto',
+      'waitFor',
+      'click',
+      'type',
+      'screenshot',
+      'eval',
+      'look',
+    ]);
+  });
+
+  it('VALID: {verbs.targeting} => omits seed, which resolves no element', () => {
+    expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type']);
+  });
+
+  it('VALID: {verbs.all} => ends with seed, the eighth verb', () => {
+    expect(stepStatics.verbs.all).toStrictEqual([
+      'goto',
+      'waitFor',
+      'click',
+      'type',
+      'screenshot',
+      'eval',
+      'look',
+      'seed',
+    ]);
   });
 });

@@ -43,11 +43,13 @@
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { RecipeResult } from '@dungeonmaster/siegelense-recipes/contracts';
 
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import type { BlankReading } from '../../../contracts/blank-reading/blank-reading-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
+import type { SeedBindingName } from '../../../contracts/seed-binding-name/seed-binding-name-contract';
 import type { PixelChange } from '../../../contracts/pixel-change/pixel-change-contract';
 import { serverLogWindowContract } from '../../../contracts/server-log-window/server-log-window-contract';
 import type { Step } from '../../../contracts/step/step-contract';
@@ -69,6 +71,7 @@ export const stepDispatchBroker = async ({
   shotPath,
   lastShotPath,
   setLastShotPath,
+  recordBinding,
 }: {
   lane: LaneSession;
   step: Step;
@@ -76,6 +79,7 @@ export const stepDispatchBroker = async ({
   shotPath: AbsoluteFilePath | null;
   lastShotPath: () => AbsoluteFilePath | null;
   setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
+  recordBinding: (params: { name: SeedBindingName; result: RecipeResult }) => void;
 }): Promise<StepReading> => {
   const verb = stepVerbContract.parse(step.step);
 
@@ -83,12 +87,11 @@ export const stepDispatchBroker = async ({
     throw new BrowserStepUnsupportedError({ verb, specName: lane.specName });
   }
 
+  // NOT narrowed to a non-null browser here: `seed` is the first verb that touches no page, so a
+  // browserless lane reaches `runVerbLayerBroker` and is refused THERE, below the seed route. Every
+  // capture below is gated on this being non-null as well as on `shotPath`, which only a
+  // `verbs.capturing` member ever gets — and every member of that list is a browser verb.
   const { browser: session } = lane;
-  if (session === null) {
-    // Every verb this chunk ships is a browser verb (stepStatics.verbs.browser), so the check above
-    // always catches a browserless lane first. This narrows `session` for the call below.
-    throw new BrowserStepUnsupportedError({ verb, specName: lane.specName });
-  }
 
   const startedAtMs = epochMsContract.parse(Date.now());
   const serverLogStartByte = lane.serverLogLength();
@@ -97,10 +100,10 @@ export const stepDispatchBroker = async ({
   // below unconditionally overwrites trips no-useless-assignment, so each branch instead builds and
   // returns its own complete StepReading directly.
   try {
-    const reading = await runVerbLayerBroker({ session, step, index, shotPath });
+    const reading = await runVerbLayerBroker({ lane, step, index, shotPath, recordBinding });
     const ok = step.expect !== 'error';
 
-    if (shotPath !== null && step.step !== 'screenshot') {
+    if (shotPath !== null && session !== null && step.step !== 'screenshot') {
       await session.capture({ filePath: shotPath });
     }
 
@@ -146,7 +149,7 @@ export const stepDispatchBroker = async ({
       // `.catch`, so it rides upward on the rethrow instead: `StepFailureCaptureError` carries both
       // the original error and a `captured` boolean, so `runExecuteStepLayerBroker` reports `shot`
       // honestly rather than hardcoding `null` or guessing from the filesystem.
-      if (shotPath !== null && step.step !== 'screenshot') {
+      if (shotPath !== null && session !== null && step.step !== 'screenshot') {
         const captured = await session
           .capture({ filePath: shotPath })
           .then(() => true)
@@ -211,7 +214,7 @@ export const stepDispatchBroker = async ({
         : String(error),
     );
 
-    if (shotPath !== null && step.step !== 'screenshot') {
+    if (shotPath !== null && session !== null && step.step !== 'screenshot') {
       await session.capture({ filePath: shotPath });
     }
 

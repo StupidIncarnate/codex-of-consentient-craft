@@ -138,7 +138,8 @@ export const docsStatics = {
           lines: [
             'dungeonmaster siegelense recipes — every recipe with its produces: claim, its fidelity, and what it takes and returns. It starts nothing and holds no pool slot.',
             'An EMPTY list is a real answer and means there are no recipes yet. An absent recipes package is a refusal instead, so the two never read alike.',
-            `The book holds recipes and you can read them, but the seed step that would RUN one inside a batch is ${NOT_BUILT}. So a prelude still cannot create its own starting state: it has to reach that state by driving the page.`,
+            "The seed step RUNS one inside a batch and returns the ids it made: { step: 'seed', recipe: '<name>', as: 'g' }, and a later step reads them back as {g.guildSlug}. start --seed <name> does the same at boot and puts the ids on the manifest's seeded.",
+            "A recipe takes its dependencies explicitly, as named parameters written on the step itself: { step: 'seed', recipe: 'session-with-nested-subagent', guild: '{g.guildId}', as: 's' }. Recipes compose — one recipe's returned ids are another's parameters.",
             "A recipe touches state, never a screen. A recipe holding a DOM handle is doing a walk's job.",
           ],
         },
@@ -154,9 +155,9 @@ export const docsStatics = {
         {
           heading: 'WHAT A PLAN CAN PROMISE TODAY',
           lines: [
-            `Six step verbs exist: goto, waitFor, click, type, screenshot and eval. Every other verb in the design is ${NOT_BUILT}.`,
-            `The gap that bites a plan hardest is that nothing reads a page. The reading step that returns the key — every addressable element, its name, its text and a ref for each — is ${NOT_BUILT}, so a prelude can only address testIds it was told about and cannot discover one.`,
-            "Nothing writes a file either. No built verb seeds state, and the lane's fake-agent queue sits on the driver's disk where no browser step can reach it. Plan the walk to reach its state through the page, or not at all.",
+            `Eight step verbs exist: goto, waitFor, click, type, screenshot, eval, look and seed. Every other verb in the design is ${NOT_BUILT}.`,
+            'look returns the key — every addressable element, its name, its text and a ref for each — so a prelude can discover a testId rather than only address one it was told about.',
+            "seed runs a recipe against the instance and returns the ids it made, so a prelude CAN create its own starting state. dungeonmaster siegelense recipes lists every recipe with its produces: claim; name one in a { step: 'seed' } and read its ids back with {binding.field}.",
           ],
         },
       ],
@@ -403,7 +404,7 @@ export const docsStatics = {
           heading: 'STEP 6 — WRITE THE E2E WITH THE SAME RECIPES THE PRELUDE NAMED',
           lines: [
             'Called in-process from the spec, so the regression test and the walk exercise one seeding vocabulary rather than two.',
-            `${NOT_BUILT}. Recipes are declared and listable, but no step runs one, so a regression test seeds by its own means today and the two vocabularies stay apart. Say so in your return rather than inventing a third.`,
+            'A recipe is a plain broker the spec can call, and the seed step calls the same one, so the state the walk ran against and the state its regression test runs against come from one source.',
           ],
         },
         {
@@ -455,9 +456,9 @@ export const docsStatics = {
         {
           heading: 'THE READING STEPS, AND WHAT YOU CANNOT DO YET',
           lines: [
-            "Six step verbs exist: goto, waitFor, click, type, screenshot and eval. They are values inside run's steps array, never commands of their own.",
-            `Nothing reads a page. The reading step that returns the key is ${NOT_BUILT}, so you cannot ask what is on a screen: you address testIds you already know, and a wrong one comes back as a NO MATCH error listing near misses.`,
-            'Nothing seeds state. No built verb writes a file and no recipe exists, so whatever state your walk needs you have to create through the page.',
+            "Eight step verbs exist: goto, waitFor, click, type, screenshot, eval, look and seed. They are values inside run's steps array, never commands of their own.",
+            'look reads the page and returns the key — every addressable element with a ref per row — so you can ask what is on a screen rather than only address a testId you already knew.',
+            "seed puts the app into a state: { step: 'seed', recipe: '<name>', as: 'g' } runs a recipe and returns the ids it made, and a later step reads them back as {g.guildSlug}. dungeonmaster siegelense recipes lists what states exist.",
             'Ambiguity is an ERROR, never a silent pick. Two matches come back as AMBIGUOUS carrying both candidates; narrow with a within scope.',
             "Read what a step did with results. A step's own reading is results --run <runId> --step <n> with no --kind; the six kinds are console, network, ws, server, screenshots and steps.",
           ],

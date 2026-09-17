@@ -23,7 +23,7 @@ describe('siegelenseHelpStatics', () => {
       summary:
         'siegelense start — boot one instance for a lane spec and block until the driver answers or the boot deadline passes.',
       synopsis:
-        'dungeonmaster siegelense start --spec <specName> [--quest <questId>] [--guild <guildId>] [--idle-timeout-ms <ms>] [--json]',
+        'dungeonmaster siegelense start --spec <specName> [--quest <questId>] [--guild <guildId>] [--seed <recipeName>] [--idle-timeout-ms <ms>] [--json]',
       flags: [
         {
           name: '--spec',
@@ -45,6 +45,13 @@ describe('siegelenseHelpStatics', () => {
           description: 'the guild to file evidence under, when there is no quest.',
         },
         {
+          name: '--seed',
+          value: '<recipeName>',
+          required: false,
+          description:
+            "runs that recipe against the lane once it is up, and returns the ids it made on the manifest's `seeded`. `dungeonmaster siegelense recipes` lists every name with its produces: line. Omitted, the instance starts empty and `seeded` is null.",
+        },
+        {
           name: '--idle-timeout-ms',
           value: '<ms>',
           required: false,
@@ -59,6 +66,7 @@ describe('siegelenseHelpStatics', () => {
         },
       ],
       refusals: [
+        'A --seed that FAILS tears the instance down and reports the failure, rather than handing back a lane whose state is not what you asked for. `seeded: null` means no --seed was given, never that one was given and produced nothing.',
         '--idle-timeout-ms only RAISES the ceiling for this one instance — it never disables the idle timeout or makes it infinite. The timeout is the only backstop against an abandoned lane holding a port pair and a browser open forever.',
       ],
       output:

@@ -39,6 +39,7 @@ import { z } from 'zod';
 import { recipeFidelityStatics } from '../../statics/recipe-fidelity/recipe-fidelity-statics';
 import { recipeFidelityContract } from '../recipe-fidelity/recipe-fidelity-contract';
 import { recipeNameContract } from '../recipe-name/recipe-name-contract';
+import { recipeReturnNameContract } from '../recipe-return-name/recipe-return-name-contract';
 
 export const recipeManifestContract = z
   .object({
@@ -58,7 +59,11 @@ export const recipeManifestContract = z
     returns: z.array(
       z
         .object({
-          name: z.string().min(1).brand<'RecipeReturnName'>(),
+          // The same brand `recipeResultContract` keys on, so the names a manifest PROMISES and
+          // the names a recipe RETURNS are graded by one schema — which is what lets
+          // `recipeSeedRunBroker` compare the two sets and refuse a recipe that made something it
+          // never declared.
+          name: recipeReturnNameContract,
           description: z.string().min(1).brand<'RecipeReturnDescription'>(),
         })
         .strict(),

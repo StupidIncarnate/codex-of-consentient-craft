@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
@@ -24,6 +24,12 @@ export const runExecuteStepLayerBrokerProxy = (): {
     serverLogLengthSequence: readonly number[];
   }) => LaneSession;
   laneWaitForHitsCeiling: (params: { error: Error }) => LaneSession;
+  seedBookPresentAt: (params: { packagePath: string }) => void;
+  seedLaneAnswers: (params: {
+    apiBaseUrl: ContentText;
+    guild: unknown;
+    questIds: readonly ContentText[];
+  }) => void;
   lastShotPath: () => AbsoluteFilePath | null;
   setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
 } => {
@@ -33,6 +39,8 @@ export const runExecuteStepLayerBrokerProxy = (): {
   return {
     lastShotPath: dispatchProxy.lastShotPath,
     setLastShotPath: dispatchProxy.setLastShotPath,
+    seedBookPresentAt: dispatchProxy.seedBookPresentAt,
+    seedLaneAnswers: dispatchProxy.seedLaneAnswers,
 
     laneGotoSucceeds: (): LaneSession =>
       LaneSessionStub({

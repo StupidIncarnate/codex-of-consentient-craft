@@ -25,6 +25,7 @@ import { CapacityAnswerStub } from '../../../contracts/capacity-answer/capacity-
 import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.proxy';
 import { instanceReserveBrokerProxy } from '../reserve/instance-reserve-broker.proxy';
 import { profileBootRecordBrokerProxy } from '../../profile/boot-record/profile-boot-record-broker.proxy';
+import { recipeSeedRunBrokerProxy } from '../../recipe/seed-run/recipe-seed-run-broker.proxy';
 import { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/boot-failure-marker.stub';
 import { instanceKillBrokerProxy } from '../kill/instance-kill-broker.proxy';
 import { bootLockAcquireBrokerProxy } from '../../boot-lock/acquire/boot-lock-acquire-broker.proxy';
@@ -173,6 +174,10 @@ export const instanceStartBrokerProxy = (): {
   // boot record's path is keyed by the spec's REAL content hash, which no test in this file names,
   // so the write below is addressed by a predicate on the boots directory instead.
   profileBootRecordBrokerProxy();
+  // Constructed for enforce-proxy-child-creation. `--seed` is `null` in every case in this file,
+  // so `recipeSeedRunBroker` is never reached; a case that seeds would stage this proxy's own
+  // book and lane answers instead.
+  recipeSeedRunBrokerProxy();
   // instanceStartBroker's opportunistic stale-reap calls instanceKillBroker directly (chunk-2
   // plan: "cleanup will call the same broker" — kill IS the reap primitive), so its proxy is a
   // real child-proxy composition, not a phantom one, and its OWN setupDriverUnreachableNoHeartbeat

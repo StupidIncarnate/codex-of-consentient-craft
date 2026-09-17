@@ -9,6 +9,7 @@ describe('startArgsParseTransformer', () => {
         specName: 'dungeonmaster-web',
         questId: null,
         guildId: null,
+        seed: null,
       });
     });
   });
@@ -30,6 +31,7 @@ describe('startArgsParseTransformer', () => {
         specName: 'dungeonmaster-web',
         questId: 'add-auth',
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        seed: null,
       });
     });
   });
@@ -52,6 +54,7 @@ describe('startArgsParseTransformer', () => {
         specName: 'dungeonmaster-web',
         questId: 'add-auth',
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        seed: null,
       });
     });
   });
@@ -99,7 +102,7 @@ describe('startArgsParseTransformer', () => {
   describe('unknown flag', () => {
     it('INVALID: {--bogus X} => throws naming the flag and listing the accepted ones', () => {
       expect(() => startArgsParseTransformer({ args: ['--bogus', 'X'] })).toThrow(
-        /^Unknown flag: --bogus\n\nAccepted flags: --spec, --quest, --guild, --idle-timeout-ms, --json\n\nUsage: dungeonmaster siegelense start --spec <specName> \[--quest <questId>\] \[--guild <guildId>\] \[--idle-timeout-ms <ms>\] \[--json\]$/u,
+        /^Unknown flag: --bogus\n\nAccepted flags: --spec, --quest, --guild, --idle-timeout-ms, --seed, --json\n\nUsage: dungeonmaster siegelense start --spec <specName> \[--quest <questId>\] \[--guild <guildId>\] \[--seed <recipeName>\] \[--idle-timeout-ms <ms>\] \[--json\]$/u,
       );
     });
   });
@@ -107,7 +110,7 @@ describe('startArgsParseTransformer', () => {
   describe('positional argument', () => {
     it('INVALID: {a bare token} => throws naming it', () => {
       expect(() => startArgsParseTransformer({ args: ['dungeonmaster-web'] })).toThrow(
-        /^Unexpected positional argument: dungeonmaster-web\n\nEvery value must directly follow the flag it belongs to\.\n\nUsage: dungeonmaster siegelense start --spec <specName> \[--quest <questId>\] \[--guild <guildId>\] \[--idle-timeout-ms <ms>\] \[--json\]$/u,
+        /^Unexpected positional argument: dungeonmaster-web\n\nEvery value must directly follow the flag it belongs to\.\n\nUsage: dungeonmaster siegelense start --spec <specName> \[--quest <questId>\] \[--guild <guildId>\] \[--seed <recipeName>\] \[--idle-timeout-ms <ms>\] \[--json\]$/u,
       );
     });
   });
@@ -122,6 +125,7 @@ describe('startArgsParseTransformer', () => {
         specName: 'dungeonmaster-web',
         questId: null,
         guildId: null,
+        seed: null,
         idleTimeoutMs: 1_800_000,
       });
     });
@@ -133,6 +137,7 @@ describe('startArgsParseTransformer', () => {
         specName: 'dungeonmaster-web',
         questId: null,
         guildId: null,
+        seed: null,
       });
     });
 
@@ -150,6 +155,29 @@ describe('startArgsParseTransformer', () => {
           args: ['--spec', 'dungeonmaster-web', '--idle-timeout-ms', '-1'],
         }),
       ).toThrow(/^--idle-timeout-ms: Number must be greater than or equal to 0$/u);
+    });
+  });
+
+  describe('--seed names a recipe to run once the lane is up', () => {
+    it('VALID: {--spec, --seed guild-with-three-quests} => returns that recipe name', () => {
+      const result = startArgsParseTransformer({
+        args: ['--spec', 'dungeonmaster-web', '--seed', 'guild-with-three-quests'],
+      });
+
+      expect(result).toStrictEqual({
+        specName: 'dungeonmaster-web',
+        questId: null,
+        guildId: null,
+        seed: 'guild-with-three-quests',
+      });
+    });
+
+    it("INVALID: {--seed 'Not Kebab'} => throws naming the flag and the kebab rule", () => {
+      expect(() =>
+        startArgsParseTransformer({
+          args: ['--spec', 'dungeonmaster-web', '--seed', 'Not Kebab'],
+        }),
+      ).toThrow(/^--seed: Recipe name must be kebab-case/u);
     });
   });
 });

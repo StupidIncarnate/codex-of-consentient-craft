@@ -39,7 +39,12 @@ describe('instanceStartBroker', () => {
         }),
       });
 
-      await instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null });
+      await instanceStartBroker({
+        specName: SpecNameStub(),
+        questId: null,
+        guildId: null,
+        seed: null,
+      });
 
       const writeOrder = proxy.getWriteOrder();
       const registryWriteIndex = writeOrder.findIndex((path) => path.includes('registry.json.tmp'));
@@ -66,6 +71,7 @@ describe('instanceStartBroker', () => {
         specName: SpecNameStub(),
         questId: null,
         guildId: null,
+        seed: null,
         idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
       });
 
@@ -87,6 +93,7 @@ describe('instanceStartBroker', () => {
         specName: SpecNameStub(),
         questId: null,
         guildId: null,
+        seed: null,
       });
 
       expect(result.instanceId).toBe(instanceId);
@@ -110,9 +117,9 @@ describe('instanceStartBroker', () => {
         nowMs,
       });
 
-      await expect(instanceStartBroker({ specName, questId: null, guildId: null })).rejects.toThrow(
-        LaneBootFailedError,
-      );
+      await expect(
+        instanceStartBroker({ specName, questId: null, guildId: null, seed: null }),
+      ).rejects.toThrow(LaneBootFailedError);
 
       expect(proxy.getBootLockReleasedPaths()).toStrictEqual([
         '/home/user/.dungeonmaster/siegelense/boot.lock',
@@ -141,6 +148,7 @@ describe('instanceStartBroker', () => {
         specName,
         questId: null,
         guildId: null,
+        seed: null,
       }).catch((error: unknown) => error);
 
       expect(thrownError instanceof DriverBootFailedError).toBe(true);
@@ -168,7 +176,7 @@ describe('instanceStartBroker', () => {
         driverMessage: 'CLAUDE_CLI_PATH is required',
       });
 
-      await instanceStartBroker({ specName, questId: null, guildId: null }).catch(
+      await instanceStartBroker({ specName, questId: null, guildId: null, seed: null }).catch(
         (error: unknown) => error,
       );
 
@@ -203,7 +211,7 @@ describe('instanceStartBroker', () => {
         nowMs,
       });
 
-      await instanceStartBroker({ specName, questId: null, guildId: null }).catch(
+      await instanceStartBroker({ specName, questId: null, guildId: null, seed: null }).catch(
         (error: unknown) => error,
       );
 
@@ -242,9 +250,9 @@ describe('instanceStartBroker', () => {
       });
       proxy.stageInstanceReleaseWriteFails({ error: releaseError });
 
-      await expect(instanceStartBroker({ specName, questId: null, guildId: null })).rejects.toThrow(
-        LaneBootFailedError,
-      );
+      await expect(
+        instanceStartBroker({ specName, questId: null, guildId: null, seed: null }),
+      ).rejects.toThrow(LaneBootFailedError);
     });
   });
 
@@ -284,6 +292,7 @@ describe('instanceStartBroker', () => {
         specName,
         questId: null,
         guildId: null,
+        seed: null,
       }).catch((error: unknown) => error);
 
       expect(String(thrownError)).toBe(
@@ -304,7 +313,12 @@ describe('instanceStartBroker', () => {
         registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId, specName })] }),
       });
 
-      const result = await instanceStartBroker({ specName, questId: null, guildId: null });
+      const result = await instanceStartBroker({
+        specName,
+        questId: null,
+        guildId: null,
+        seed: null,
+      });
 
       expect(result.baseUrl).toBe(null);
     });
@@ -342,7 +356,12 @@ describe('instanceStartBroker', () => {
         }),
       });
 
-      const result = await instanceStartBroker({ specName, questId: null, guildId: null });
+      const result = await instanceStartBroker({
+        specName,
+        questId: null,
+        guildId: null,
+        seed: null,
+      });
 
       expect(result.baseUrl).toBe('http://dungeonmaster.localhost:40501');
     });
@@ -366,6 +385,7 @@ describe('instanceStartBroker', () => {
         specName: SpecNameStub(),
         questId: null,
         guildId: null,
+        seed: null,
       });
 
       expect(result.aheadOfMe).toBe(2);
@@ -392,6 +412,7 @@ describe('instanceStartBroker', () => {
         specName: SpecNameStub(),
         questId: null,
         guildId: null,
+        seed: null,
       });
 
       expect(result.aheadOfMe).toBe(1);
@@ -414,6 +435,7 @@ describe('instanceStartBroker', () => {
         specName: SpecNameStub(),
         questId: null,
         guildId: null,
+        seed: null,
       });
 
       expect(result.queuedMs).toBe(34_000);
@@ -439,7 +461,12 @@ describe('instanceStartBroker', () => {
       });
       proxy.setupStaleReap({ staleInstanceId });
 
-      await instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null });
+      await instanceStartBroker({
+        specName: SpecNameStub(),
+        questId: null,
+        guildId: null,
+        seed: null,
+      });
 
       expect(proxy.getStderrMessages()).toStrictEqual([
         `instanceStartBroker: reaped stale instance ${staleInstanceId} — heartbeat gone cold, signalled pgids []\n`,
@@ -461,6 +488,7 @@ describe('instanceStartBroker', () => {
         specName: SpecNameStub(),
         questId: null,
         guildId: null,
+        seed: null,
       });
 
       expect(result.evidence.path).toBe(
@@ -484,7 +512,12 @@ describe('instanceStartBroker', () => {
         }),
       });
 
-      const result = await instanceStartBroker({ specName: SpecNameStub(), questId, guildId });
+      const result = await instanceStartBroker({
+        specName: SpecNameStub(),
+        questId,
+        guildId,
+        seed: null,
+      });
 
       expect(result.evidence.path).toBe(
         `/default/cwd/.siegelense/guilds/${guildId}/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479`,
@@ -506,6 +539,7 @@ describe('instanceStartBroker', () => {
         specName: SpecNameStub(),
         questId: null,
         guildId: null,
+        seed: null,
       });
 
       expect(result.evidence).toStrictEqual({
@@ -530,7 +564,7 @@ describe('instanceStartBroker', () => {
       });
 
       await expect(
-        instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null }),
+        instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null, seed: null }),
       ).rejects.toThrow(
         /^Refusing to start dungeonmaster-web: this machine cannot hold another instance right now — no room for one more: 2599MB available is under the 2600MB this spec peaks at\. Run/u,
       );
@@ -552,7 +586,7 @@ describe('instanceStartBroker', () => {
       });
 
       await expect(
-        instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null }),
+        instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null, seed: null }),
       ).rejects.toThrow(
         /^Refusing to start dungeonmaster-web: this machine cannot hold another instance right now — the policy pool of 3 is full\. Run/u,
       );
@@ -573,6 +607,7 @@ describe('instanceStartBroker', () => {
         specName: SpecNameStub(),
         questId: null,
         guildId: null,
+        seed: null,
       });
 
       expect(result.instanceId).toBe(instanceId);

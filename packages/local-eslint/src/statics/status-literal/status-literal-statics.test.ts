@@ -62,6 +62,7 @@ describe('statusLiteralStatics', () => {
         '/packages/shared/src/statics/quest-status-transitions/',
         '/packages/orchestrator/src/transformers/quest-completeness-for-transition/',
         '/packages/orchestrator/src/statics/quest-hydrate-strategy/',
+        '/packages/siegelense-recipes/src/statics/seed-fixture/',
       ]);
     });
   });

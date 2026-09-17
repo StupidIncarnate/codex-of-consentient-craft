@@ -64,6 +64,7 @@ import type { ReadingCount } from '../../../contracts/reading-count/reading-coun
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { runResultContract } from '../../../contracts/run-result/run-result-contract';
 import type { RunResult } from '../../../contracts/run-result/run-result-contract';
+import type { SeedBindings } from '../../../contracts/seed-bindings/seed-bindings-contract';
 import { snapshotBoundaryContract } from '../../../contracts/snapshot-boundary/snapshot-boundary-contract';
 import { runStatusContract } from '../../../contracts/run-status/run-status-contract';
 import type { RunStatus } from '../../../contracts/run-status/run-status-contract';
@@ -216,6 +217,13 @@ export const runExecuteBroker = async ({
   const readings: StepReading[] = [];
   const stopCandidates: { stoppedAt: StoppedAt; timedOut: boolean }[] = [];
 
+  // Every `as:` binding this BATCH has made, in a HOLDER whose field mutates rather than a
+  // reassigned `let` — the same shape, and the same `require-atomic-updates` reason, as
+  // `cursorState` above. Scoped to one run on purpose: a binding names the ids THIS batch made,
+  // and carrying one across runs would mean surviving a `reset`. An unresolvable binding failing
+  // loudly by name is a better answer than a stale id resolving quietly.
+  const bindingsState: { values: SeedBindings } = { values: {} };
+
   // A sequential reduce chain, not a for-of with await: each step's dispatch depends on the page
   // state the PREVIOUS step left behind, and the transcript must flush in that same order, so
   // `no-await-in-loop` (error, repo-wide) forbids the loop-statement form of this same sequencing —
@@ -247,6 +255,10 @@ export const runExecuteBroker = async ({
       shotPath,
       lastShotPath,
       setLastShotPath,
+      bindings: () => bindingsState.values,
+      recordBinding: ({ name, result }) => {
+        bindingsState.values = { ...bindingsState.values, [name]: result };
+      },
     });
     readings.push(outcome.reading);
     await runTranscriptAppendBroker({ transcriptPath: transcript, reading: outcome.reading });

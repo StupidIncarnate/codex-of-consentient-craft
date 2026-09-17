@@ -100,16 +100,18 @@ describe('siegelenseHelpRenderTransformer', () => {
         'siegelense start — boot one instance for a lane spec and block until the driver answers or the boot deadline passes.\n' +
           '\n' +
           'USAGE\n' +
-          '  dungeonmaster siegelense start --spec <specName> [--quest <questId>] [--guild <guildId>] [--idle-timeout-ms <ms>] [--json]\n' +
+          '  dungeonmaster siegelense start --spec <specName> [--quest <questId>] [--guild <guildId>] [--seed <recipeName>] [--idle-timeout-ms <ms>] [--json]\n' +
           '\n' +
           'FLAGS\n' +
           '  --spec <specName>       required   the lane spec to boot.\n' +
           "  --quest <questId>                  files the instance's evidence under that quest's guild. Omitted, the instance is unowned.\n" +
           '  --guild <guildId>                  the guild to file evidence under, when there is no quest.\n' +
+          "  --seed <recipeName>                runs that recipe against the lane once it is up, and returns the ids it made on the manifest's `seeded`. `dungeonmaster siegelense recipes` lists every name with its produces: line. Omitted, the instance starts empty and `seeded` is null.\n" +
           "  --idle-timeout-ms <ms>             raises this instance's idle ceiling above driverStatics.idle.timeoutMs (900000ms) — the length of think-time between runs the served lane survives before reaping itself with no run received. Omitted, the default applies.\n" +
           '  --json                             print the JSON answer — the default; explicit and refused nowhere.\n' +
           '\n' +
           'REFUSES\n' +
+          '  A --seed that FAILS tears the instance down and reports the failure, rather than handing back a lane whose state is not what you asked for. `seeded: null` means no --seed was given, never that one was given and produced nothing.\n' +
           '  --idle-timeout-ms only RAISES the ceiling for this one instance — it never disables the idle timeout or makes it infinite. The timeout is the only backstop against an abandoned lane holding a port pair and a browser open forever.\n' +
           '\n' +
           'OUTPUT\n' +

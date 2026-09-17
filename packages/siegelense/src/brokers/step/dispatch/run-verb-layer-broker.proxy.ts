@@ -4,11 +4,14 @@ import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
+import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
+import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { stepClickBrokerProxy } from '../click/step-click-broker.proxy';
 import { stepEvalSourceBrokerProxy } from '../eval-source/step-eval-source-broker.proxy';
 import { stepGotoBrokerProxy } from '../goto/step-goto-broker.proxy';
 import { stepLookBrokerProxy } from '../look/step-look-broker.proxy';
 import { stepScreenshotBrokerProxy } from '../screenshot/step-screenshot-broker.proxy';
+import { stepSeedBrokerProxy } from '../seed/step-seed-broker.proxy';
 import { stepTargetResolveBrokerProxy } from '../target-resolve/step-target-resolve-broker.proxy';
 import { stepTypeBrokerProxy } from '../type/step-type-broker.proxy';
 import { stepWaitForBrokerProxy } from '../wait-for/step-wait-for-broker.proxy';
@@ -20,10 +23,18 @@ const TWO_MATCHES_COUNT = 2;
 
 export const runVerbLayerBrokerProxy = (): {
   sessionWithOneMatch: () => {
+    lane: LaneSession;
     session: BrowserSession;
     callOrder: () => readonly ContentText[];
   };
-  sessionWithTwoMatches: () => { session: BrowserSession };
+  sessionWithTwoMatches: () => { lane: LaneSession; session: BrowserSession };
+  browserlessLane: () => { lane: LaneSession };
+  seedBookPresentAt: (params: { packagePath: string }) => void;
+  seedLaneAnswers: (params: {
+    apiBaseUrl: ContentText;
+    guild: unknown;
+    questIds: readonly ContentText[];
+  }) => void;
 } => {
   // Constructed for their own default behavior only to satisfy enforce-proxy-child-creation — this
   // proxy builds its own BrowserSession scenarios directly (the real boundary every child broker
@@ -37,9 +48,13 @@ export const runVerbLayerBrokerProxy = (): {
   stepTargetResolveBrokerProxy();
   stepTypeBrokerProxy();
   stepWaitForBrokerProxy();
+  // Assigned, unlike the rest: `seed` is the one verb whose broker a caller stages through this
+  // layer, so a batch test can prove a binding resolved against ids a REAL recipe returned.
+  const seedProxy = stepSeedBrokerProxy();
 
   return {
     sessionWithOneMatch: (): {
+      lane: LaneSession;
       session: BrowserSession;
       callOrder: () => readonly ContentText[];
     } => {
@@ -62,15 +77,42 @@ export const runVerbLayerBrokerProxy = (): {
           return Promise.resolve();
         }),
       });
-      return { session, callOrder: (): readonly ContentText[] => order };
+      // The LANE wrapping that session — `runVerbLayerBroker` takes the whole lane now, because
+      // `seed` needs the api port and the throwaway home and no page at all.
+      return {
+        lane: LaneSessionStub({ browser: session }),
+        session,
+        callOrder: (): readonly ContentText[] => order,
+      };
     },
 
-    sessionWithTwoMatches: (): { session: BrowserSession } => ({
-      session: BrowserSessionStub({
+    sessionWithTwoMatches: (): { lane: LaneSession; session: BrowserSession } => {
+      const session = BrowserSessionStub({
         countMatches: jest.fn().mockResolvedValue(matchCountContract.parse(TWO_MATCHES_COUNT)),
         describeMatches: jest.fn().mockResolvedValue([]),
         clickMatch: jest.fn().mockResolvedValue(undefined),
-      }),
+      });
+      return { lane: LaneSessionStub({ browser: session }), session };
+    },
+
+    browserlessLane: (): { lane: LaneSession } => ({
+      lane: LaneSessionStub({ browser: null }),
     }),
+
+    seedBookPresentAt: ({ packagePath }: { packagePath: string }): void => {
+      seedProxy.bookPresentAt({ packagePath });
+    },
+
+    seedLaneAnswers: ({
+      apiBaseUrl,
+      guild,
+      questIds,
+    }: {
+      apiBaseUrl: ContentText;
+      guild: unknown;
+      questIds: readonly ContentText[];
+    }): void => {
+      seedProxy.guildLaneAnswers({ apiBaseUrl, guild, questIds });
+    },
   };
 };

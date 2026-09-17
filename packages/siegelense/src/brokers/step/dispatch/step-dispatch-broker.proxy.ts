@@ -1,6 +1,7 @@
 import { PNG } from 'pngjs';
 import { z } from 'zod';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
@@ -59,6 +60,12 @@ export const stepDispatchBrokerProxy = (): {
     captureCallArgs: () => readonly unknown[];
   };
   laneRejectingWaitForMatch: (params: { error: Error }) => { lane: LaneSession };
+  seedBookPresentAt: (params: { packagePath: string }) => void;
+  seedLaneAnswers: (params: {
+    apiBaseUrl: ContentText;
+    guild: unknown;
+    questIds: readonly ContentText[];
+  }) => void;
   lastShotPath: () => AbsoluteFilePath | null;
   setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
   stagesShotFrame: (params: {
@@ -68,10 +75,10 @@ export const stepDispatchBrokerProxy = (): {
     pixels: Uint8Array;
   }) => void;
 } => {
-  // Constructed for its own default behavior only to satisfy enforce-proxy-child-creation — this
-  // proxy builds its own BrowserSession scenarios directly, so it is never addressed further. Same
-  // pattern as lane-boot-broker.proxy.ts's own unaddressed child proxy constructions.
-  runVerbLayerBrokerProxy();
+  // This proxy builds its own BrowserSession scenarios directly, so only the SEED half of the verb
+  // layer's own proxy is ever addressed: a `seed` step drives no page and so has no BrowserSession
+  // scenario a lane stub could carry.
+  const verbLayerProxy = runVerbLayerBrokerProxy();
   errorIsNativeErrorAdapterProxy();
 
   const dateHandle = registerSpyOn({ object: Date, method: 'now' });
@@ -222,6 +229,21 @@ export const stepDispatchBrokerProxy = (): {
     }): void => {
       blankReadProxy.stagesShot({ shotPath, width, height, pixels });
       changeReadProxy.stagesShot({ path: shotPath, width, height, pixels });
+    },
+    seedBookPresentAt: ({ packagePath }: { packagePath: string }): void => {
+      verbLayerProxy.seedBookPresentAt({ packagePath });
+    },
+
+    seedLaneAnswers: ({
+      apiBaseUrl,
+      guild,
+      questIds,
+    }: {
+      apiBaseUrl: ContentText;
+      guild: unknown;
+      questIds: readonly ContentText[];
+    }): void => {
+      verbLayerProxy.seedLaneAnswers({ apiBaseUrl, guild, questIds });
     },
   };
 };

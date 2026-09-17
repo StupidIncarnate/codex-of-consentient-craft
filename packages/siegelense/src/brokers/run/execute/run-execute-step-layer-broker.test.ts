@@ -11,6 +11,12 @@ import { runExecuteStepLayerBrokerProxy } from './run-execute-step-layer-broker.
 
 const FIXED_NOW_MS = 1_700_000_000_000;
 
+// Every case below drives a browser verb with no placeholder, so the binding store is empty and
+// nothing is ever recorded. Interpolation and recording have their own coverage in
+// step-interpolate-transformer.test.ts and run-execute-broker.test.ts.
+const NO_BINDINGS = (): Record<PropertyKey, never> => ({});
+const NOOP = (): void => undefined;
+
 describe('runExecuteStepLayerBroker', () => {
   describe('a step that succeeds, expecting ok', () => {
     it('VALID: {goto succeeds} => returns an ok reading and no stoppedAt', async () => {
@@ -25,6 +31,8 @@ describe('runExecuteStepLayerBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        bindings: NO_BINDINGS,
+        recordBinding: NOOP,
       });
 
       expect(outcome).toStrictEqual({
@@ -68,6 +76,8 @@ describe('runExecuteStepLayerBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        bindings: NO_BINDINGS,
+        recordBinding: NOOP,
       });
 
       expect(outcome.reading.serverWindow).toStrictEqual({ fromByte: 100, toByte: 999 });
@@ -89,6 +99,8 @@ describe('runExecuteStepLayerBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        bindings: NO_BINDINGS,
+        recordBinding: NOOP,
       });
 
       expect(outcome).toStrictEqual({
@@ -136,6 +148,8 @@ describe('runExecuteStepLayerBroker', () => {
         shotPath,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        bindings: NO_BINDINGS,
+        recordBinding: NOOP,
       });
 
       expect(outcome).toStrictEqual({
@@ -184,6 +198,8 @@ describe('runExecuteStepLayerBroker', () => {
         shotPath,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        bindings: NO_BINDINGS,
+        recordBinding: NOOP,
       });
 
       expect(outcome).toStrictEqual({
@@ -232,6 +248,8 @@ describe('runExecuteStepLayerBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        bindings: NO_BINDINGS,
+        recordBinding: NOOP,
       });
 
       expect(outcome).toStrictEqual({
@@ -280,6 +298,8 @@ describe('runExecuteStepLayerBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        bindings: NO_BINDINGS,
+        recordBinding: NOOP,
       });
 
       expect(outcome).toStrictEqual({
@@ -321,6 +341,8 @@ describe('runExecuteStepLayerBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        bindings: NO_BINDINGS,
+        recordBinding: NOOP,
       });
 
       expect(outcome).toStrictEqual({

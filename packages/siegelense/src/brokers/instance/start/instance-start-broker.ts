@@ -13,6 +13,12 @@
  * `ping`, including the ping timing out. A lock left held by a boot that threw wedges every other
  * session until the TTL expires.
  *
+ * `seed` runs a recipe against the lane once it answers, and its returned ids ride back on the
+ * manifest's `seeded` field. It runs from this side rather than down the driver socket because this
+ * side already holds the booted lane's api port and the deterministic home; a seed that throws
+ * takes the same teardown path every other boot failure takes, because a lane whose state is not
+ * what the caller asked for is not a lane the caller should be handed.
+ *
  * A successful boot also RECORDS what it cost, through `profileBootRecordBroker` — this is the only
  * side that watches a boot from its first moment, so nothing else can measure `bootMs` (spec line
  * 1483). That write is caught and reported rather than awaited bare: a profile is a convenience
@@ -35,7 +41,7 @@
  * no process behind it forever.
  *
  * USAGE:
- * await instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null });
+ * await instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null, seed: null });
  * // Returns an InstanceManifest once the driver answers `ping`, or throws DriverBootFailedError /
  * // LaneBootFailedError after releasing boot.lock and this attempt's reservation
  *
@@ -43,6 +49,7 @@
  *   specName: SpecNameStub(),
  *   questId: null,
  *   guildId: null,
+ *   seed: RecipeNameStub({ value: 'guild-with-three-quests' }),
  *   idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
  * });
  * // Same, but appends `--idle-timeout-ms 1800000` to the spawned driver's own argv, raising the
@@ -60,6 +67,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import type { RecipeName } from '@dungeonmaster/siegelense-recipes/contracts';
 
 import { childProcessSpawnDetachedAdapter } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter';
 import { cliPackageBinResolveAdapter } from '../../../adapters/cli-package/bin-resolve/cli-package-bin-resolve-adapter';
@@ -80,6 +88,7 @@ import { locationsSocketPathFindBroker } from '../../locations/socket-path-find/
 import { instanceReleaseBroker } from '../release/instance-release-broker';
 import { instanceReserveBroker } from '../reserve/instance-reserve-broker';
 import { profileBootRecordBroker } from '../../profile/boot-record/profile-boot-record-broker';
+import { recipeSeedRunBroker } from '../../recipe/seed-run/recipe-seed-run-broker';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceManifestContract } from '../../../contracts/instance-manifest/instance-manifest-contract';
@@ -98,11 +107,13 @@ export const instanceStartBroker = async ({
   specName,
   questId,
   guildId,
+  seed,
   idleTimeoutMs,
 }: {
   specName: SpecName;
   questId: QuestId | null;
   guildId: GuildId | null;
+  seed: RecipeName | null;
   idleTimeoutMs?: TimeoutMs;
 }): Promise<InstanceManifest> => {
   const spec = laneSpecFindBroker({ specName });
@@ -348,6 +359,27 @@ export const instanceStartBroker = async ({
         }) === bootedEntry.ports.web,
     );
 
+    // `--seed` runs from THIS side rather than down the driver socket: the client half already
+    // holds the booted lane's api port and the deterministic home, so building a RecipeContext
+    // costs nothing, and routing it through `run` instead would burn a run id and write a
+    // transcript entry for something that is not a step.
+    //
+    // A seed that fails tears the instance down and rethrows, through the same catch every other
+    // boot failure takes. A lane whose seed failed is a lane whose state is not what the caller
+    // asked for, and handing back a manifest with `seeded: null` would make it indistinguishable
+    // from one nobody asked to seed.
+    const seeded =
+      seed === null
+        ? null
+        : await recipeSeedRunBroker({
+            recipe: seed,
+            apiBaseUrl: contentTextContract.parse(
+              `http://${environmentStatics.hostname}:${String(bootedEntry.ports.api)}`,
+            ),
+            homePath,
+            parameters: {},
+          });
+
     return instanceManifestContract.parse({
       instanceId: reservedEntry.id,
       specName,
@@ -359,6 +391,10 @@ export const instanceStartBroker = async ({
       home: homePath,
       evidence: evidenceRepoLocal,
       logs: { api: apiLogRepoLocal, web: webLogRepoLocal },
+      // The SEEDED guild, never the partition one — `evidence` above is still filed under the
+      // guild that owns `quest` (siegelense-tooling.md line 2328). Keying assets by a seeded id
+      // would file every instance under a partition of its own and defeat the point.
+      seeded,
       queuedMs,
       aheadOfMe,
       bootMs,

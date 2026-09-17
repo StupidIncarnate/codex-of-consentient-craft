@@ -32,7 +32,7 @@ describe('recipeBookStatics', () => {
             'one session transcript holding an outer sub-agent chain with one chain nested inside it, both finished',
           fidelity: 'direct',
           mirrors:
-            'the Claude CLI session transcript writer — its on-disk location is claudePathSlugEncoderTransformer, its line shapes are the stream-line stubs in @dungeonmaster/shared/contracts',
+            'the Claude CLI session transcript writer — its on-disk location is claudePathSlugEncoderTransformer (the same transformer the server resolves a session through), its line shapes are the stream-line contracts and stubs in @dungeonmaster/shared/contracts, and the reader a drift shows up against is the orchestrator chat replay, which pairs a sub-agent file to its Task by toolUseResult.agentId',
           parameters: [
             {
               name: 'guild',
@@ -63,6 +63,16 @@ describe('recipeBookStatics', () => {
       const names = recipeBookStatics.recipes.map((recipe) => recipe.name);
 
       expect(names).toStrictEqual([...new Set(names)]);
+    });
+
+    it('VALID: {recipeBookStatics.names} => holds exactly the names the entries carry, so the runner and the listing cannot drift', () => {
+      expect(recipeBookStatics.names).toStrictEqual({
+        guildWithThreeQuests: 'guild-with-three-quests',
+        sessionWithNestedSubagent: 'session-with-nested-subagent',
+      });
+      expect(Object.values(recipeBookStatics.names)).toStrictEqual(
+        recipeBookStatics.recipes.map((recipe) => recipe.name),
+      );
     });
   });
 });

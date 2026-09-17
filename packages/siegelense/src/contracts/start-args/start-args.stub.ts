@@ -9,5 +9,6 @@ export const StartArgsStub = ({ ...props }: StubArgument<StartArgs> = {}): Start
     specName: SpecNameStub(),
     questId: null,
     guildId: null,
+    seed: null,
     ...props,
   });

@@ -17,6 +17,10 @@ import { stepDispatchBrokerProxy } from './step-dispatch-broker.proxy';
 
 const FIXED_NOW_MS = 1_700_000_000_000;
 
+// Every case below drives a browser verb; `recordBinding` only ever fires for `seed`, which has
+// its own coverage in step-seed-broker.test.ts.
+const NOOP = (): void => undefined;
+
 describe('stepDispatchBroker', () => {
   describe('a targeting step against one match', () => {
     it('VALID: {click on a single match} => returns a reading with ok true and the shot path', async () => {
@@ -44,6 +48,7 @@ describe('stepDispatchBroker', () => {
         shotPath,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result).toStrictEqual({
@@ -86,6 +91,7 @@ describe('stepDispatchBroker', () => {
         shotPath,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result).toStrictEqual({
@@ -122,6 +128,7 @@ describe('stepDispatchBroker', () => {
         shotPath,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.pixelChange).toBe(null);
@@ -169,6 +176,7 @@ describe('stepDispatchBroker', () => {
         shotPath: firstShotPath,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       const result = await stepDispatchBroker({
@@ -178,6 +186,7 @@ describe('stepDispatchBroker', () => {
         shotPath: secondShotPath,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.pixelChange).toBe('2%');
@@ -204,6 +213,7 @@ describe('stepDispatchBroker', () => {
         shotPath,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result).toStrictEqual({
@@ -242,6 +252,7 @@ describe('stepDispatchBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect({
@@ -273,6 +284,7 @@ describe('stepDispatchBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.serverWindow).toStrictEqual({ fromByte: 120, toByte: 450 });
@@ -292,6 +304,7 @@ describe('stepDispatchBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       }).then(
         (): never => {
           throw new Error('Expected stepDispatchBroker to reject');
@@ -321,6 +334,7 @@ describe('stepDispatchBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.ok).toBe(true);
@@ -340,6 +354,7 @@ describe('stepDispatchBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result).toStrictEqual({
@@ -371,6 +386,7 @@ describe('stepDispatchBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result).toStrictEqual({
@@ -409,6 +425,7 @@ describe('stepDispatchBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result).toStrictEqual({
@@ -446,6 +463,7 @@ describe('stepDispatchBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result).toStrictEqual({
@@ -484,6 +502,7 @@ describe('stepDispatchBroker', () => {
         shotPath,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       }).then(
         (): never => {
           throw new Error('Expected stepDispatchBroker to reject');
@@ -519,6 +538,7 @@ describe('stepDispatchBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       }).then(
         (): never => {
           throw new Error('Expected stepDispatchBroker to reject');
@@ -548,6 +568,7 @@ describe('stepDispatchBroker', () => {
         shotPath,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       }).then(
         (): never => {
           throw new Error('Expected stepDispatchBroker to reject');
@@ -593,6 +614,7 @@ describe('stepDispatchBroker', () => {
         shotPath: firstShotPath,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       const { lane: failingLane } = proxy.laneRejectingClickMatch({
@@ -612,6 +634,7 @@ describe('stepDispatchBroker', () => {
         shotPath: secondShotPath,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       }).then(
         (): never => {
           throw new Error('Expected stepDispatchBroker to reject');
@@ -656,6 +679,7 @@ describe('stepDispatchBroker', () => {
         shotPath: firstShotPath,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       const { lane: failingLane } = proxy.laneRejectingClickMatch({
@@ -682,6 +706,7 @@ describe('stepDispatchBroker', () => {
         shotPath: secondShotPath,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       }).then(
         (): never => {
           throw new Error('Expected stepDispatchBroker to reject');
@@ -722,6 +747,7 @@ describe('stepDispatchBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.node).toBe('open-guild-modal');
@@ -744,6 +770,7 @@ describe('stepDispatchBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.shot).toBe(null);
@@ -763,6 +790,7 @@ describe('stepDispatchBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       }).then(
         (): never => {
           throw new Error('Expected stepDispatchBroker to reject');
@@ -788,6 +816,7 @@ describe('stepDispatchBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.reading).toBe('/api/guilds');
@@ -809,6 +838,7 @@ describe('stepDispatchBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.reading).toBe('[data-testid="GUILD_ADD"] reached state "visible"');
@@ -830,6 +860,7 @@ describe('stepDispatchBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.reading).toBe('typed "siege-1" into [data-testid="GUILD_ADD"]');
@@ -853,6 +884,7 @@ describe('stepDispatchBroker', () => {
         shotPath,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.reading).toBe(
@@ -878,6 +910,7 @@ describe('stepDispatchBroker', () => {
         shotPath: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.reading).toBe('"Guild Hall"');
