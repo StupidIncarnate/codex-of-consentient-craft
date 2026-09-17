@@ -9,7 +9,7 @@
  * id or ceiling answers with the contract's own message under its own flag rather than a raw
  * ZodError. `--idle-timeout-ms` is OPTIONAL here exactly as it is on `start` — `start` only carries
  * it through to this same flag when a caller named one. Every other built call goes
- * through `CALL_ROUTES`, a `Map` keyed by the same seven names `siegelenseHelpStatics.calls` holds:
+ * through `CALL_ROUTES`, a `Map` keyed by the same names `siegelenseHelpStatics.calls` holds:
  * each entry parses its own argv and calls its responder — **except `run`, whose entry hands argv
  * straight to `SiegelenseRunResponder` unparsed.** That is not an inconsistency to "tidy" away:
  * `run` accepts `--steps-file`, the named file has to be read from disk before `runArgsParseTransformer`
@@ -17,8 +17,8 @@
  * `SiegelenseRunResponder` is the one layer that can, and its own header says so. A built call's
  * `--human` is refused by name for every call whose OWN help entry carries no `--human` flag —
  * derived from `siegelenseHelpStatics.calls[call].flags` rather than a second hardcoded list, so
- * `status` and `cleanup` (the only two with a renderer) stay the only two this admits without a
- * second edit anywhere. `args[0]` outside `CALL_ROUTES` falls through a three-way refusal: a name
+ * the calls that ship a table renderer stay the only ones this admits without a second edit
+ * anywhere. `args[0]` outside `CALL_ROUTES` falls through a three-way refusal: a name
  * `siegelenseCallStatics.calls.names` holds with no route answers "not built yet" and lists the
  * built calls, so a caller who read the spec learns the truth rather than being told the spec is
  * wrong; anything else answers "unknown subcommand" with the usage line; absent routes to the bare
@@ -47,8 +47,11 @@ import { SiegelenseCompareResponder } from '../../responders/siegelense/compare/
 import { SiegelenseDriverResponder } from '../../responders/siegelense/driver/siegelense-driver-responder';
 import { SiegelenseFleetResponder } from '../../responders/siegelense/fleet/siegelense-fleet-responder';
 import { SiegelenseKillResponder } from '../../responders/siegelense/kill/siegelense-kill-responder';
+import { SiegelenseProfileResponder } from '../../responders/siegelense/profile/siegelense-profile-responder';
+import { SiegelenseRecipesResponder } from '../../responders/siegelense/recipes/siegelense-recipes-responder';
 import { SiegelenseResultsResponder } from '../../responders/siegelense/results/siegelense-results-responder';
 import { SiegelenseRunResponder } from '../../responders/siegelense/run/siegelense-run-responder';
+import { SiegelenseSnapshotsResponder } from '../../responders/siegelense/snapshots/siegelense-snapshots-responder';
 import { SiegelenseStartResponder } from '../../responders/siegelense/start/siegelense-start-responder';
 import { SiegelenseStatusResponder } from '../../responders/siegelense/status/siegelense-status-responder';
 import { siegelenseCallStatics } from '../../statics/siegelense-call/siegelense-call-statics';
@@ -59,9 +62,12 @@ import { compareArgsParseTransformer } from '../../transformers/compare-args-par
 import { flagContractParseTransformer } from '../../transformers/flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../../transformers/flag-value-read/flag-value-read-transformer';
 import { killArgsParseTransformer } from '../../transformers/kill-args-parse/kill-args-parse-transformer';
+import { profileArgsParseTransformer } from '../../transformers/profile-args-parse/profile-args-parse-transformer';
+import { recipesArgsParseTransformer } from '../../transformers/recipes-args-parse/recipes-args-parse-transformer';
 import { resultsArgsParseTransformer } from '../../transformers/results-args-parse/results-args-parse-transformer';
 import { siegelenseHelpRenderTransformer } from '../../transformers/siegelense-help-render/siegelense-help-render-transformer';
 import type { SiegelenseCall } from '../../transformers/siegelense-help-render/siegelense-help-render-transformer';
+import { snapshotsArgsParseTransformer } from '../../transformers/snapshots-args-parse/snapshots-args-parse-transformer';
 import { startArgsParseTransformer } from '../../transformers/start-args-parse/start-args-parse-transformer';
 import { statusArgsParseTransformer } from '../../transformers/status-args-parse/status-args-parse-transformer';
 
@@ -72,7 +78,8 @@ const DRIVER_CALL_NAME = 'driver';
 const INSTANCE_FLAG = '--instance';
 const IDLE_TIMEOUT_MS_FLAG = '--idle-timeout-ms';
 const USAGE =
-  'Usage: dungeonmaster siegelense [--help | start | run | results | kill | status | cleanup | compare | driver --instance <instanceId>]';
+  'Usage: dungeonmaster siegelense [--help | start | run | results | kill | status | cleanup | ' +
+  'compare | profile | snapshots | recipes | driver --instance <instanceId>]';
 
 const CALL_ROUTES = new Map<
   SiegelenseCall,
@@ -93,6 +100,11 @@ const CALL_ROUTES = new Map<
     async (callArgs) => SiegelenseKillResponder(killArgsParseTransformer({ args: callArgs })),
   ],
   [
+    'profile',
+    async (callArgs) =>
+      SiegelenseProfileResponder({ specName: profileArgsParseTransformer({ args: callArgs }) }),
+  ],
+  [
     'status',
     async (callArgs) => SiegelenseStatusResponder(statusArgsParseTransformer({ args: callArgs })),
   ],
@@ -105,6 +117,15 @@ const CALL_ROUTES = new Map<
     async (callArgs) =>
       SiegelenseCompareResponder({ query: compareArgsParseTransformer({ args: callArgs }) }),
   ],
+  [
+    'snapshots',
+    async (callArgs) =>
+      SiegelenseSnapshotsResponder(snapshotsArgsParseTransformer({ args: callArgs })),
+  ],
+  [
+    'recipes',
+    async (callArgs) => SiegelenseRecipesResponder(recipesArgsParseTransformer({ args: callArgs })),
+  ],
 ]);
 
 // Derived from each call's own help entry — never a second hardcoded ['status', 'cleanup'] —
@@ -113,6 +134,15 @@ const BUILT_CALL_NAMES = [...CALL_ROUTES.keys()];
 const HUMAN_RENDERER_CALLS = BUILT_CALL_NAMES.filter((name) =>
   siegelenseHelpStatics.calls[name].flags.some((flag) => flag.name === HUMAN_FLAG),
 );
+
+// A bare `join(' and ')` reads as a sentence at two names and breaks at three
+// ("status and cleanup and recipes"). This stays readable however many calls grow a renderer.
+const HUMAN_RENDERER_SENTENCE = [
+  HUMAN_RENDERER_CALLS.slice(0, -1).join(', '),
+  HUMAN_RENDERER_CALLS.slice(-1).join(''),
+]
+  .filter((part) => part !== '')
+  .join(' and ');
 
 export const SiegelenseFlow = async ({
   args,
@@ -161,7 +191,7 @@ export const SiegelenseFlow = async ({
 
     if (callArgs.includes(HUMAN_FLAG) && !HUMAN_RENDERER_CALLS.includes(call)) {
       throw new Error(
-        `${HUMAN_FLAG} is not implemented for ${call}: only ${HUMAN_RENDERER_CALLS.join(' and ')} ` +
+        `${HUMAN_FLAG} is not implemented for ${call}: only ${HUMAN_RENDERER_SENTENCE} ` +
           `render a human table; every other call answers JSON only.`,
       );
     }

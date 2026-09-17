@@ -915,4 +915,144 @@ describe('runExecuteBroker', () => {
       expect(result.shots.map((shot) => shot.path)).toStrictEqual([expectedShotPath]);
     });
   });
+
+  describe('the automatic snapshot pair', () => {
+    it('VALID: {one run} => captures run_1:start before the batch and run_1:end after it, both manual false', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const lane = proxy.cleanLane();
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 2 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(proxy.capturedSnapshotCalls()).toStrictEqual([
+        { homePath: '/tmp/dm-siege-stub', name: 'run_1:start', manual: false },
+        { homePath: '/tmp/dm-siege-stub', name: 'run_1:end', manual: false },
+      ]);
+    });
+
+    it('VALID: {two runs on one instance} => four automatic captures, run_1:start, run_1:end, run_2:start, run_2:end', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const instanceId = InstanceIdStub();
+      const firstRunId = RunIdStub({ value: 'run_1' });
+      const secondRunId = RunIdStub({ value: 'run_2' });
+      proxy.stagePaths({ runId: firstRunId });
+      proxy.stagePaths({ runId: secondRunId });
+      const lane = proxy.cleanLane();
+
+      await runExecuteBroker({
+        lane,
+        instanceId,
+        runId: firstRunId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+      await runExecuteBroker({
+        lane,
+        instanceId,
+        runId: secondRunId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(proxy.capturedSnapshotCalls()).toStrictEqual([
+        { homePath: '/tmp/dm-siege-stub', name: 'run_1:start', manual: false },
+        { homePath: '/tmp/dm-siege-stub', name: 'run_1:end', manual: false },
+        { homePath: '/tmp/dm-siege-stub', name: 'run_2:start', manual: false },
+        { homePath: '/tmp/dm-siege-stub', name: 'run_2:end', manual: false },
+      ]);
+    });
+
+    it('VALID: {three steps} => the start half has already landed when step 1 dispatches, and no second capture lands until the batch is over', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane, snapshotCountAtEachStep } = proxy.laneRecordingSnapshotGrowth();
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 3 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(snapshotCountAtEachStep()).toStrictEqual([1, 1, 1]);
+    });
+
+    it('VALID: {a failing batch} => still captures the end half, so a failed run is a point you can return to', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_3' });
+      proxy.stagePaths({ runId });
+      const { lane } = proxy.laneFailingOnPath({
+        failingPath: '/step-3',
+        error: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
+      });
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 5 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(proxy.capturedSnapshotCalls()).toStrictEqual([
+        { homePath: '/tmp/dm-siege-stub', name: 'run_3:start', manual: false },
+        { homePath: '/tmp/dm-siege-stub', name: 'run_3:end', manual: false },
+      ]);
+    });
+
+    it('ERROR: {a capture that fails} => the batch still reports done with every step run', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      proxy.failSnapshotCapture({ error: new Error('ENOSPC: no space left on device') });
+      const lane = proxy.cleanLane();
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 3 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({ status: 'done', stepsRun: 3, stoppedAt: null });
+    });
+  });
 });

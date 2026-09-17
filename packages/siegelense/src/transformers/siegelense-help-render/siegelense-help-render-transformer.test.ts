@@ -55,7 +55,7 @@ describe('siegelenseHelpRenderTransformer', () => {
           '\n' +
           'FLAGS\n' +
           '  --json              print the JSON answer — the default; explicit and refused nowhere.\n' +
-          '  --human             render the operator table instead of JSON. Only status and cleanup implement this.\n' +
+          '  --human             render the operator table instead of JSON. Only status, cleanup and recipes implement this.\n' +
           '\n' +
           'REFUSES\n' +
           '  Takes no input. Reaps and releases only — it ages no asset, so a clean baseline capture is never touched by this call.\n' +
@@ -122,27 +122,27 @@ describe('siegelenseHelpRenderTransformer', () => {
   });
 
   describe('the index, call: null', () => {
-    it('VALID: {call: null} => the index listing all seven built calls and the six not built', () => {
+    it('VALID: {call: null} => the index listing every built call and the ones not built', () => {
       const result = siegelenseHelpRenderTransformer({ call: null });
 
       expect(result).toBe(
-        'dungeonmaster siegelense — every built call reachable without installing anything. Seven of thirteen calls are built.\n' +
+        'dungeonmaster siegelense — every built call reachable without installing anything. Ten of thirteen calls are built.\n' +
           '\n' +
           'CALLS\n' +
           '  siegelense start — boot one instance for a lane spec and block until the driver answers or the boot deadline passes.\n' +
           '  siegelense run — submit one batch of steps to a running instance and block until it finishes.\n' +
           '  siegelense results — read evidence off disk for one instance. Starts nothing.\n' +
           '  siegelense kill — stop one running instance.\n' +
+          '  siegelense profile — what one instance of a lane spec costs, measured. Starts nothing.\n' +
           '  siegelense status — report the fleet, or one instance in full.\n' +
           '  siegelense cleanup — reap every stale instance the registry holds.\n' +
           "  siegelense compare — diff two runs of one instance's timeline.\n" +
+          '  siegelense snapshots — list the points `reset level: state` can return to for one instance. Starts nothing.\n' +
+          '  siegelense recipes — list every recipe: the state each one creates, and how honestly it creates it. Starts nothing.\n' +
           '\n' +
           'NOT BUILT YET\n' +
           '  capacity\n' +
-          '  profile\n' +
           '  prune\n' +
-          '  snapshots\n' +
-          '  recipes\n' +
           '  docs\n' +
           '\n' +
           "dungeonmaster siegelense <call> --help  for one call's flags and refusals\n",

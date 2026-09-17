@@ -17,7 +17,10 @@ import type { LaneSession } from '../../../contracts/lane-session/lane-session-c
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
+import { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-record.stub';
 import { bufferAppendBrokerProxy } from '../../buffer/append/buffer-append-broker.proxy';
+import { snapshotCaptureBroker } from '../../snapshot/capture/snapshot-capture-broker';
+import { snapshotCaptureBrokerProxy } from '../../snapshot/capture/snapshot-capture-broker.proxy';
 import { locationsBufferPathsFindBroker } from '../../locations/buffer-paths-find/locations-buffer-paths-find-broker';
 import { locationsBufferPathsFindBrokerProxy } from '../../locations/buffer-paths-find/locations-buffer-paths-find-broker.proxy';
 import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker.proxy';
@@ -128,15 +131,31 @@ export const runExecuteBrokerProxy = (): {
   setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
   writtenBufferEntriesFor: (params: { kind: BufferKind }) => unknown[];
   bufferAppendCallCountFor: (params: { kind: BufferKind }) => ReturnType<typeof ReadingCountStub>;
+  capturedSnapshotCalls: () => unknown[];
+  laneRecordingSnapshotGrowth: () => {
+    lane: LaneSession;
+    snapshotCountAtEachStep: () => readonly ReadingCount[];
+  };
+  failSnapshotCapture: (params: { error: Error }) => void;
 } => {
   // Satisfies enforce-proxy-child-creation for every broker/adapter run-execute-broker.ts imports.
   locationsRunPathsFindBrokerProxy();
   locationsShotPathFindBrokerProxy();
   locationsBufferPathsFindBrokerProxy();
   fsMkdirAdapterProxy(); // its own constructor already resolves ANY filepath — nothing to address.
+  // Constructed for enforce-proxy-child-creation only; `snapshotCaptureBroker` is staged directly
+  // below because it carries its own suite. Deliberately BEFORE the step-layer proxy: this one
+  // registers `Date.now` without staging it, so whatever the step layer stages afterwards is what
+  // every StepReading's timestamps still come from.
+  snapshotCaptureBrokerProxy();
   const transcriptProxy = runTranscriptAppendBrokerProxy();
   const returnWriteProxy = runReturnWriteBrokerProxy();
   const stepLayerProxy = runExecuteStepLayerBrokerProxy(); // also stages Date.now via its own child.
+
+  // The two automatic captures a run makes at its own boundaries. Answered for ANY arguments, since
+  // the interesting value is WHICH names were asked for, read back through the two methods below.
+  const snapshotCaptureHandle: MockHandle = registerMock({ fn: snapshotCaptureBroker });
+  snapshotCaptureHandle.calledWith([]).resolves(SnapshotRecordStub());
 
   // Satisfies enforce-proxy-child-creation for locationsRepoLinkPathFindBroker. Not composed as
   // fsAccessAdapterProxy/fsExistsSyncAdapterProxy/fsRealpathAdapterProxy — this implementation
@@ -425,5 +444,34 @@ export const runExecuteBrokerProxy = (): {
       ReadingCountStub({
         value: bufferAppendProxy.appendCallsFor({ bufferPath: bufferPaths[kind] }).length,
       }),
+
+    // The WHOLE argument object of every automatic capture this run made, in order — so a test
+    // asserts the home, the name and the manual flag together rather than picking one field out.
+    capturedSnapshotCalls: (): unknown[] =>
+      snapshotCaptureHandle.callsMatching([]).map((call) => call[0]),
+
+    // A lane whose every `goto` records how many snapshots had been captured BY THEN — the only way
+    // to prove the start half lands before the first step rather than merely being first in the list.
+    laneRecordingSnapshotGrowth: (): {
+      lane: LaneSession;
+      snapshotCountAtEachStep: () => readonly ReadingCount[];
+    } => {
+      const counts: ReadingCount[] = [];
+      const gotoMock = jest.fn().mockImplementation(async () => {
+        counts.push(ReadingCountStub({ value: snapshotCaptureHandle.callsMatching([]).length }));
+        return Promise.resolve(undefined);
+      });
+      const lane = LaneSessionStub({
+        evidencePath: EVIDENCE_PATH,
+        browser: { goto: gotoMock, capture: jest.fn().mockResolvedValue(undefined) },
+      });
+      return { lane, snapshotCountAtEachStep: (): readonly ReadingCount[] => counts };
+    },
+
+    // Overrides the constructor's catch-all, since a later registration at the same specificity
+    // wins — the run must survive a capture that cannot be taken.
+    failSnapshotCapture: ({ error }: { error: Error }): void => {
+      snapshotCaptureHandle.calledWith([]).rejects(error);
+    },
   };
 };

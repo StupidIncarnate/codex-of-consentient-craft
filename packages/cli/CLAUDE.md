@@ -62,13 +62,13 @@ hand-copied config gets wrong.
 
 ## `dungeonmaster siegelense`
 
-Every call is `dungeonmaster siegelense <call>`. Seven names route to a responder — `start`, `run`,
-`results`, `kill`, `status`, `cleanup`, `compare`; the other six the spec pins in the same closed set
-(`capacity`, `profile`, `prune`, `snapshots`, `recipes`, `docs`) answer "is a siegelense call but is
-not built yet", naming the seven that are, rather than "unknown subcommand" — a caller typing one of
-the six read it in the spec, so the honest answer is "not yet", not "unknown". `dungeonmaster
-siegelense --help` prints the index (one line per built call, then the not-built six); `dungeonmaster
-siegelense <call> --help` prints that call's flags, refusals and example.
+Every call is `dungeonmaster siegelense <call>`. Most names route to a responder — `start`, `run`,
+`results`, `kill`, `profile`, `status`, `cleanup`, `compare`, `snapshots`, `recipes`; the rest the
+spec pins in the same closed set (`capacity`, `prune`, `docs`) answer "is a siegelense call but is
+not built yet", naming the ones that are, rather than "unknown subcommand" — a caller typing one of
+them read it in the spec, so the honest answer is "not yet", not "unknown". `dungeonmaster
+siegelense --help` prints the index (one line per built call, then the not-built ones);
+`dungeonmaster siegelense <call> --help` prints that call's flags, refusals and example.
 
 **`CliSiegelenseResponder` validates nothing, and must stay that way.** It forwards `args` verbatim
 into a dynamic import of `@dungeonmaster/siegelense/startup`. `SiegelenseFlow`'s route table, keyed by
@@ -82,8 +82,11 @@ The import is dynamic, never static: a static import would pull Playwright — a
 siegelense call.
 
 Every built call writes one JSON document to stdout by default. `--human` renders an operator table
-instead, and only `status` and `cleanup` implement it; every other call refuses `--human` by name
-rather than falling through to JSON silently. A refusal writes nothing to stdout and exits 1.
+instead, and only the calls that ship a renderer — `status`, `cleanup`, `recipes` — implement it;
+every other call refuses `--human` by name rather than falling through to JSON silently. A refusal
+writes nothing to stdout and exits 1. The refusal names those calls as a sentence the flow builds
+from the help statics, so a bare `join(' and ')` is wrong here: it reads correctly at two and
+breaks at three.
 
 `packages/cli/bin/cli-entry.integration.test.ts` is the seam test, spawning the real binary through
 `cliBinHarness` — every other siegelense test in the repo starts at `SiegelenseFlow` or below, so only

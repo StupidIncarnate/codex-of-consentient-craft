@@ -9,11 +9,11 @@ const CALL_KEYS = Object.keys(
 const CALL_NAME_SET = new Set(siegelenseCallStatics.calls.names);
 
 describe('siegelenseHelpStatics', () => {
-  it('VALID: {index} => toStrictEqual the headline, the six not-built names and the footer', () => {
+  it('VALID: {index} => toStrictEqual the headline, the not-built names and the footer', () => {
     expect(siegelenseHelpStatics.index).toStrictEqual({
       headline:
-        'dungeonmaster siegelense — every built call reachable without installing anything. Seven of thirteen calls are built.',
-      notBuiltYet: ['capacity', 'profile', 'prune', 'snapshots', 'recipes', 'docs'],
+        'dungeonmaster siegelense — every built call reachable without installing anything. Ten of thirteen calls are built.',
+      notBuiltYet: ['capacity', 'prune', 'docs'],
       footer: "dungeonmaster siegelense <call> --help  for one call's flags and refusals",
     });
   });
@@ -256,7 +256,7 @@ describe('siegelenseHelpStatics', () => {
           value: null,
           required: false,
           description:
-            'render the operator table instead of JSON. Only status and cleanup implement this.',
+            'render the operator table instead of JSON. Only status, cleanup and recipes implement this.',
         },
       ],
       refusals: ["Never lists another instance's runs or evidence unless you name it."],
@@ -281,7 +281,7 @@ describe('siegelenseHelpStatics', () => {
           value: null,
           required: false,
           description:
-            'render the operator table instead of JSON. Only status and cleanup implement this.',
+            'render the operator table instead of JSON. Only status, cleanup and recipes implement this.',
         },
       ],
       refusals: [
@@ -319,6 +319,96 @@ describe('siegelenseHelpStatics', () => {
       output:
         'One JSON document on stdout: the CompareAnswer — console and server error deltas, network non-2xx deltas, and a last-capture pixel change. A READING, never a verdict on whether a unit passes.',
       example: 'dungeonmaster siegelense compare --instance inst_9b2c --run-a run_1 --run-b run_2',
+    });
+  });
+
+  it('VALID: {calls.profile} => toStrictEqual its summary, synopsis, flags, refusals, output and example', () => {
+    expect(siegelenseHelpStatics.calls.profile).toStrictEqual({
+      summary:
+        'siegelense profile — what one instance of a lane spec costs, measured. Starts nothing.',
+      synopsis: 'dungeonmaster siegelense profile --spec <specName> [--json]',
+      flags: [
+        {
+          name: '--spec',
+          value: '<specName>',
+          required: true,
+          description:
+            "the lane spec to report on. A profile is keyed by that spec's content hash, so there is no fleet-wide form.",
+        },
+        {
+          name: '--json',
+          value: null,
+          required: false,
+          description: 'print the JSON answer — the default; explicit and refused nowhere.',
+        },
+      ],
+      refusals: [
+        'Reads what was measured and never measures on demand — a spec nothing has run yet answers samples: [] and bootMs: null rather than booting an instance to find out.',
+        'Samples are grouped by pool size and never averaged across them: a solo reading and a contended one describe different worlds, so read the group matching the pool you are about to open.',
+      ],
+      output:
+        "One JSON document on stdout: the SpecProfile — processes, the spec's content hash, measuredAt, fromRuns, bootMs, and one sample group per pool size.",
+      example: 'dungeonmaster siegelense profile --spec dungeonmaster-web',
+    });
+  });
+
+  it('VALID: {calls.snapshots} => toStrictEqual its summary, synopsis, flags, refusals, output and example', () => {
+    expect(siegelenseHelpStatics.calls.snapshots).toStrictEqual({
+      summary:
+        'siegelense snapshots — list the points `reset level: state` can return to for one instance. Starts nothing.',
+      synopsis: 'dungeonmaster siegelense snapshots --instance <id> [--json]',
+      flags: [
+        {
+          name: '--instance',
+          value: '<id>',
+          required: true,
+          description:
+            "the instance whose restore points to list. There is no fleet-wide form: a snapshot lives inside one instance's own throwaway home.",
+        },
+        {
+          name: '--json',
+          value: null,
+          required: false,
+          description: 'print the JSON answer — the default; explicit and refused nowhere.',
+        },
+      ],
+      refusals: [
+        'Snapshots die with the instance. `kill` removes the throwaway home the store lives inside, so a killed or pruned instance answers an empty list — the instanceState on the answer is what tells that apart from a live instance that has captured nothing yet.',
+        'Every run mints its own `run_N:start` and `run_N:end`; a name ending in either suffix is refused at capture, so the automatic namespace can never be taken by a typed name.',
+      ],
+      output:
+        'One JSON document on stdout: the SnapshotsAnswer — instanceId, instanceState, and one row per restore point with its name, atMs and manual flag, oldest first.',
+      example: 'dungeonmaster siegelense snapshots --instance inst_9b2c',
+    });
+  });
+
+  it('VALID: {calls.recipes} => toStrictEqual its summary, synopsis, flags, refusals, output and example', () => {
+    expect(siegelenseHelpStatics.calls.recipes).toStrictEqual({
+      summary:
+        'siegelense recipes — list every recipe: the state each one creates, and how honestly it creates it. Starts nothing.',
+      synopsis: 'dungeonmaster siegelense recipes [--json] [--human]',
+      flags: [
+        {
+          name: '--json',
+          value: null,
+          required: false,
+          description: 'print the JSON answer — the default; explicit and refused nowhere.',
+        },
+        {
+          name: '--human',
+          value: null,
+          required: false,
+          description:
+            'render the operator table instead of JSON. Only status, cleanup and recipes implement this.',
+        },
+      ],
+      refusals: [
+        'Takes no selector — no --instance, no name, no fidelity filter. It lists every recipe, because narrowing a catalogue you have not read yet is the query-everything a listing exists to prevent.',
+        'Needs no instance and holds no pool slot. produces:, fidelity and mirrors: are static data the tool reads, never something it learns by running a recipe.',
+      ],
+      output:
+        'One JSON document on stdout: the RecipesAnswer — every declared recipe with its produces: claim, its fidelity, its mirrors: pointer, and the parameters and ids it names. An EMPTY list is a real answer and means "no recipes yet"; an absent packages/siegelense-recipes/ is a refusal instead, so the two never read alike.',
+      example: 'dungeonmaster siegelense recipes --human',
     });
   });
 

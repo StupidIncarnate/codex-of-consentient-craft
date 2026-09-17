@@ -27,7 +27,8 @@ const NOT_BUILT_CALL_NAMES = siegelenseCallStatics.calls.names.filter(
 const NOT_BUILT_REFUSAL_SUFFIX = `is a siegelense call but is not built yet. Built calls: ${BUILT_CALL_NAMES.join(', ')}.\n`;
 const UNKNOWN_SUBCOMMAND_STDERR =
   'Error: Unknown siegelense subcommand: statuss\n\n' +
-  'Usage: dungeonmaster siegelense [--help | start | run | results | kill | status | cleanup | compare | driver --instance <instanceId>]\n';
+  'Usage: dungeonmaster siegelense [--help | start | run | results | kill | status | cleanup | ' +
+  'compare | profile | snapshots | recipes | driver --instance <instanceId>]\n';
 // This suite's own beforeAll runs every spawn in parallel (Promise.all), so the wall time it
 // costs is close to ONE spawn's, not the sum of fifteen. Each spawn still carries its own
 // RUN_COMMAND_TIMEOUT_MS kill timer inside the harness; this is the outer jest hook budget.

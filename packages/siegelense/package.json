@@ -78,6 +78,7 @@
   "dependencies": {
     "@dungeonmaster/cli": "*",
     "@dungeonmaster/shared": "*",
+    "@dungeonmaster/siegelense-recipes": "*",
     "pixelmatch": "^5.3.0",
     "pngjs": "^6.0.0",
     "zod": "^3.25.76"

@@ -11,6 +11,11 @@
  * `ping`, including the ping timing out. A lock left held by a boot that threw wedges every other
  * session until the TTL expires.
  *
+ * A successful boot also RECORDS what it cost, through `profileBootRecordBroker` — this is the only
+ * side that watches a boot from its first moment, so nothing else can measure `bootMs` (spec line
+ * 1483). That write is caught and reported rather than awaited bare: a profile is a convenience
+ * `capacity` reads, and a failed profile write must never tear down an instance that booted fine.
+ *
  * `home` is never written to the registry (the driver computes it privately when it boots the
  * lane), so this broker derives the SAME deterministic value from `instanceId` alone — the
  * convention every other siegelense OS-tmp path in this package already follows (see
@@ -70,6 +75,7 @@ import { locationsRepoLinkPathFindBroker } from '../../locations/repo-link-path-
 import { locationsSocketPathFindBroker } from '../../locations/socket-path-find/locations-socket-path-find-broker';
 import { instanceReleaseBroker } from '../release/instance-release-broker';
 import { instanceReserveBroker } from '../reserve/instance-reserve-broker';
+import { profileBootRecordBroker } from '../../profile/boot-record/profile-boot-record-broker';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceManifestContract } from '../../../contracts/instance-manifest/instance-manifest-contract';
@@ -268,6 +274,21 @@ export const instanceStartBroker = async ({
 
     const bootEndedAtMs = epochMsContract.parse(Date.now());
     const bootMs = epochMsContract.parse(bootEndedAtMs - bootStartedAtMs);
+
+    // This is the only side that sees a boot begin, so it is the only side that can measure one —
+    // `bootMs` is the one figure in a profile that is genuinely measured rather than illustrative
+    // (spec line 1483). Caught rather than awaited bare: a profile is a convenience `capacity`
+    // reads, and letting its write throw here would land in the catch below and tear down an
+    // instance that booted perfectly well.
+    await profileBootRecordBroker({
+      instanceId: reservedEntry.id,
+      specHash,
+      bootMs,
+    }).catch((error: unknown) => {
+      process.stderr.write(
+        `instanceStartBroker: recording the boot profile for ${reservedEntry.id} failed, the instance is up regardless: ${String(error)}\n`,
+      );
+    });
 
     const registryAfterBoot = await registryReadBroker();
     const bootedEntry = registryAfterBoot.instances.find(

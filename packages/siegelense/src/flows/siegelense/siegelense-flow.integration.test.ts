@@ -23,7 +23,7 @@ import { siegelenseHelpRenderTransformer } from '../../transformers/siegelense-h
 import { evidenceTreeHarness } from '../../../test/harnesses/evidence-tree/evidence-tree.harness';
 import { SiegelenseFlow } from './siegelense-flow';
 
-// The seven built calls, in the order `siegelenseHelpStatics.calls` declares them — every it.each
+// Every built call, in the order `siegelenseHelpStatics.calls` declares them — every it.each
 // below over "every built call" derives from this rather than a second hardcoded list.
 const BUILT_CALLS = Object.keys(
   siegelenseHelpStatics.calls,
@@ -170,7 +170,7 @@ describe('SiegelenseFlow', () => {
   describe('an unknown subcommand', () => {
     it('INVALID: {args: [statuss]} => rejects naming the unknown subcommand instead of falling back to the fleet listing', async () => {
       await expect(SiegelenseFlow({ args: ['statuss'] })).rejects.toThrow(
-        /^Unknown siegelense subcommand: statuss\n\nUsage: dungeonmaster siegelense \[--help \| start \| run \| results \| kill \| status \| cleanup \| compare \| driver --instance <instanceId>\]$/u,
+        /^Unknown siegelense subcommand: statuss\n\nUsage: dungeonmaster siegelense \[--help \| start \| run \| results \| kill \| status \| cleanup \| compare \| profile \| snapshots \| recipes \| driver --instance <instanceId>\]$/u,
       );
     });
   });
@@ -178,7 +178,7 @@ describe('SiegelenseFlow', () => {
   describe('a name the spec defines but this chunk has not built', () => {
     it('INVALID: {args: [capacity]} => rejects naming it as not built yet, listing the built calls, rather than calling it unknown', async () => {
       await expect(SiegelenseFlow({ args: ['capacity'] })).rejects.toThrow(
-        /^capacity is a siegelense call but is not built yet\. Built calls: start, run, results, kill, status, cleanup, compare\.$/u,
+        /^capacity is a siegelense call but is not built yet\. Built calls: start, run, results, kill, profile, status, cleanup, compare, snapshots, recipes\.$/u,
       );
     });
   });
@@ -224,9 +224,9 @@ describe('SiegelenseFlow', () => {
   });
 
   describe('the --human refusal', () => {
-    it('INVALID: {args: [results, --human]} => rejects naming status and cleanup as the two that render', async () => {
+    it('INVALID: {args: [results, --human]} => rejects naming the calls that do render a table', async () => {
       await expect(SiegelenseFlow({ args: ['results', '--human'] })).rejects.toThrow(
-        /^--human is not implemented for results: only status and cleanup render a human table; every other call answers JSON only\.$/u,
+        /^--human is not implemented for results: only status, cleanup and recipes render a human table; every other call answers JSON only\.$/u,
       );
     });
   });
@@ -732,7 +732,7 @@ describe('SiegelenseFlow', () => {
   // `responders/siegelense/<call>/`, argv already parsed into typed params) plus the manual
   // drive in `scrolls/seigelense/plans/chunk-04-cli-surface.md` §8 for the argv-and-driver slice
   // this suite cannot reach.
-  describe('the seven calls, through argv — SiegelenseFlow rather than the brokers (chunk 4)', () => {
+  describe('every built call, through argv — SiegelenseFlow rather than the brokers', () => {
     const argvTree = evidenceTreeHarness();
 
     describe('results', () => {
@@ -1041,6 +1041,194 @@ describe('SiegelenseFlow', () => {
             },
           ],
         });
+      });
+    });
+
+    describe('profile', () => {
+      it('VALID: {args: profile --spec dungeonmaster-headless} => a measured-nothing profile, having booted no instance', async () => {
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        await SiegelenseFlow({ args: ['profile', '--spec', 'dungeonmaster-headless'] });
+
+        process.stdout.write = originalWrite;
+
+        const [wholeOutput] = writes;
+
+        // A browserless spec is one process, not three — and samples: [] with bootMs: null is the
+        // "nothing measured yet" answer, never a boot taken to find out.
+        expect(JSON.parse(wholeOutput!)).toStrictEqual({
+          specName: 'dungeonmaster-headless',
+          processes: 1,
+          hash: expect.stringMatching(/^[0-9a-f]{64}$/u),
+          measuredAt: null,
+          fromRuns: 0,
+          bootMs: null,
+          samples: [],
+        });
+      });
+
+      it('INVALID: {args: [profile]} => rejects naming --spec rather than profiling every spec it can find', async () => {
+        await expect(SiegelenseFlow({ args: ['profile'] })).rejects.toThrow(
+          /^--spec is required: name the lane spec to profile\./u,
+        );
+      });
+
+      it('INVALID: {args: profile --spec <a spec no lane declares>} => rejects naming it and listing the specs that exist', async () => {
+        await expect(
+          SiegelenseFlow({ args: ['profile', '--spec', 'no-such-spec'] }),
+        ).rejects.toThrow(/^Unknown lane spec "no-such-spec"\. Known specs: /u);
+      });
+    });
+
+    describe('snapshots', () => {
+      it('VALID: {args: snapshots --instance <the killed instance>} => an empty list under instanceState killed, never a throw', async () => {
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        await SiegelenseFlow({ args: ['snapshots', '--instance', argvTree.killedInstanceId()] });
+
+        process.stdout.write = originalWrite;
+
+        const [wholeOutput] = writes;
+
+        expect(JSON.parse(wholeOutput!)).toStrictEqual({
+          instanceId: argvTree.killedInstanceId(),
+          instanceState: 'killed',
+          snapshots: [],
+        });
+      });
+
+      it("VALID: {args: snapshots --instance <an id the registry never held>} => instanceState 'unknown', which is a real answer rather than an error", async () => {
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        await SiegelenseFlow({ args: ['snapshots', '--instance', argvTree.unknownInstanceId()] });
+
+        process.stdout.write = originalWrite;
+
+        const [wholeOutput] = writes;
+
+        expect(JSON.parse(wholeOutput!)).toStrictEqual({
+          instanceId: argvTree.unknownInstanceId(),
+          instanceState: 'unknown',
+          snapshots: [],
+        });
+      });
+
+      it('INVALID: {args: [snapshots]} => rejects naming --instance, there being no fleet-wide form', async () => {
+        await expect(SiegelenseFlow({ args: ['snapshots'] })).rejects.toThrow(
+          /^--instance is required: /u,
+        );
+      });
+    });
+
+    describe('recipes', () => {
+      it('VALID: {args: [recipes]} => both recipes whole — produces:, fidelity, mirrors:, parameters and returns', async () => {
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        await SiegelenseFlow({ args: ['recipes'] });
+
+        process.stdout.write = originalWrite;
+
+        const [wholeOutput] = writes;
+
+        // The whole document, not the row count — a listing whose rows carry the wrong produces:
+        // text or the wrong fidelity passes any length assertion.
+        expect(JSON.parse(wholeOutput!)).toStrictEqual({
+          recipes: [
+            {
+              name: 'guild-with-three-quests',
+              produces: 'one guild holding three quests, one in_progress',
+              fidelity: 'production',
+              mirrors: null,
+              parameters: [],
+              returns: [
+                {
+                  name: 'guildId',
+                  description: 'the seeded guild, for a later recipe that stacks onto it',
+                },
+                { name: 'guildSlug', description: "the guild's own route segment" },
+                {
+                  name: 'questId',
+                  description:
+                    'the one quest left in_progress, the one an assertion must tell from the other two',
+                },
+              ],
+            },
+            {
+              name: 'session-with-nested-subagent',
+              produces:
+                'one session transcript holding an outer sub-agent chain with one chain nested inside it, both finished',
+              fidelity: 'direct',
+              mirrors:
+                'the Claude CLI session transcript writer — its on-disk location is claudePathSlugEncoderTransformer, its line shapes are the stream-line stubs in @dungeonmaster/shared/contracts',
+              parameters: [
+                {
+                  name: 'guild',
+                  description:
+                    "the guild the transcript is filed under — an earlier recipe's guildId, passed explicitly",
+                  required: true,
+                },
+              ],
+              returns: [
+                { name: 'sessionId', description: 'the session the outer chain was written as' },
+                {
+                  name: 'sessions.outer',
+                  description: 'the route that renders the outer sub-agent chain',
+                },
+                {
+                  name: 'sessions.nested',
+                  description: 'the route that renders the chain nested inside it',
+                },
+              ],
+            },
+          ],
+        });
+      });
+
+      it("VALID: {args: recipes --human} => the operator block, naming each fidelity's own risk", async () => {
+        const writes: ReturnType<typeof ContentTextStub>[] = [];
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string): boolean => {
+          writes.push(ContentTextStub({ value: chunk }));
+          return true;
+        }) as unknown as typeof process.stdout.write;
+
+        await SiegelenseFlow({ args: ['recipes', '--human'] });
+
+        process.stdout.write = originalWrite;
+
+        const [wholeOutput] = writes;
+
+        expect(wholeOutput!.split('\n').slice(0, 3)).toStrictEqual([
+          'guild-with-three-quests',
+          '  produces: one guild holding three quests, one in_progress',
+          '  fidelity: production — none; this is the honest one',
+        ]);
+      });
+
+      it('INVALID: {args: recipes --instance <id>} => rejects the selector, a catalogue having nothing to narrow by', async () => {
+        await expect(
+          SiegelenseFlow({ args: ['recipes', '--instance', argvTree.killedInstanceId()] }),
+        ).rejects.toThrow(/^Unknown flag: --instance/u);
       });
     });
   });

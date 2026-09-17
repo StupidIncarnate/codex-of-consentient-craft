@@ -21,6 +21,7 @@ import type { FilePath, NetworkPort, TimeoutMs } from '@dungeonmaster/shared/con
 
 import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.proxy';
 import { instanceReserveBrokerProxy } from '../reserve/instance-reserve-broker.proxy';
+import { profileBootRecordBrokerProxy } from '../../profile/boot-record/profile-boot-record-broker.proxy';
 import { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/boot-failure-marker.stub';
 import { instanceKillBrokerProxy } from '../kill/instance-kill-broker.proxy';
 import { bootLockAcquireBrokerProxy } from '../../boot-lock/acquire/boot-lock-acquire-broker.proxy';
@@ -45,6 +46,7 @@ import type { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { laneSpecStatics } from '../../../statics/lane-spec/lane-spec-statics';
+import { profileStatics } from '../../../statics/profile/profile-statics';
 
 type InstanceId = ReturnType<typeof InstanceIdStub>;
 type Registry = ReturnType<typeof RegistryStub>;
@@ -159,6 +161,10 @@ export const instanceStartBrokerProxy = (): {
   laneSpecHashBrokerProxy();
   cwdResolveBrokerProxy();
   pathJoinAdapterProxy();
+  // Constructed for enforce-proxy-child-creation. Its own setup methods are never called here: the
+  // boot record's path is keyed by the spec's REAL content hash, which no test in this file names,
+  // so the write below is addressed by a predicate on the boots directory instead.
+  profileBootRecordBrokerProxy();
   // instanceStartBroker's opportunistic stale-reap calls instanceKillBroker directly (chunk-2
   // plan: "cleanup will call the same broker" — kill IS the reap primitive), so its proxy is a
   // real child-proxy composition, not a phantom one, and its OWN setupDriverUnreachableNoHeartbeat
@@ -204,6 +210,15 @@ export const instanceStartBrokerProxy = (): {
   writeHandle.calledWith([REGISTRY_TMP_PATH_ABS]).resolves(undefined);
   writeHandle.calledWith([REGISTRY_LOCK_PATH_ABS]).resolves(undefined);
   writeHandle.calledWith([BOOT_LOCK_PATH_ABS]).resolves(undefined);
+  // The boot profile record a successful boot writes. Addressed by a predicate rather than a
+  // literal path because its directory is the spec's real sha256 content hash — a value no test
+  // here names, and one that changes the moment a lane spec does. A literal `calledWith([path])`
+  // staged elsewhere still outranks this, so it shadows nothing.
+  writeHandle
+    .calledWith([
+      (candidate: unknown): boolean => String(candidate).includes(profileStatics.dirs.boots),
+    ])
+    .resolves(undefined);
   // registryLockReleaseBroker unlinks unconditionally once registryUpdateBroker's write finishes
   // (no heldBy check, unlike boot.lock's release) — staged sticky for every happy-path reserve.
   unlinkHandle.calledWith([REGISTRY_LOCK_PATH_ABS]).resolves(undefined);

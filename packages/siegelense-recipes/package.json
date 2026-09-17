@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "description": "siegelense-recipes package",
   "exports": {
+    "./contracts": {
+      "source": "./contracts.ts",
+      "import": "./dist/contracts.js",
+      "require": "./dist/contracts.js",
+      "types": "./dist/contracts.d.ts"
+    },
     "./statics": {
       "source": "./statics.ts",
       "import": "./dist/statics.js",
@@ -21,7 +27,12 @@
     "lint": "dungeonmaster-ward --only lint",
     "ward": "dungeonmaster-ward"
   },
+  "dependencies": {
+    "@dungeonmaster/shared": "*",
+    "zod": "^3.25.76"
+  },
   "devDependencies": {
+    "@dungeonmaster/testing": "*",
     "@types/node": "^20.11.0",
     "typescript": "^5.3.3"
   },
