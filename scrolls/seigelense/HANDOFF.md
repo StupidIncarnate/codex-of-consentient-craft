@@ -1,6 +1,6 @@
 # Siegelense — the build
 
-**Valid as of `09ce4a9eb`, 2026-09-16.** Re-derive the counts below before trusting them; the command for
+**Valid as of `1d985f8f2`, 2026-09-16.** Re-derive the counts below before trusting them; the command for
 each is given beside it. **A count in this file is a claim about a moment, and this file does not update
 itself.**
 
@@ -9,15 +9,15 @@ itself.**
 | | Built | Total | |
 |---|---|---|---|
 | **Calls** | **13** | 13 | every name in the closed set routes; `notBuiltYet` is empty |
-| **Step verbs** | **6** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` |
+| **Step verbs** | **7** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` |
 | **Results kinds** | **6** | 6 | `console` `network` `ws` `server` `screenshots` `steps` |
 | **Build-order items** | see the table | 30 | Part 7 of the spec. Count the rows yourself; the tally is what rots |
 
 **The CALL surface is complete and the STEP surface is not**, and that split is the whole state of this
-build. Every call is reachable, driven by hand and tested. Six of twenty-three step verbs exist, and the
-missing ones include the entire ADDRESSING story — nothing reads a page — and the seeding VERB, without
-which the recipes that now exist cannot be run. Read "What this cannot do yet" before promising anyone a
-walkthrough.
+build. Every call is reachable, driven by hand and tested. **The ADDRESSING story is now done** — `look`
+reads a page, mints element-bound refs, and the ambiguity dead end is closed. **The SEEDING story is
+not**, and it is now the single largest gap: recipes are declared and listable, and nothing can run one.
+Read "What this cannot do yet" before promising anyone a walkthrough.
 
 ---
 
@@ -33,11 +33,11 @@ Copy the block below into a new session. It is self-contained.
 > gritty detail, so that I can manually test everything once without finding holes that are documented as
 > requirements.
 >
-> **The thirteen CALLS are done. The remaining work is the STEP VERBS**, 6 of 23, and `look` is the one to
-> build first — nothing reads a page today, which is what blocks verifying a browser feature end to end.
-> Three built calls are waiting on step verbs to become useful rather than merely correct: `snapshots`
-> returns only automatic rows until `snapshot` exists, `recipes` declares states nothing can create until
-> `seed` exists, and `compare` has no `elements` until `look` exists.
+> **The thirteen CALLS are done, and so is ADDRESSING.** The remaining work is the STEP VERBS, 7 of 23.
+> `look` reads a page and mints refs; `seed` is the one to build next, because a walk that can now SEE a
+> screen still cannot put the app into the state worth looking at. Two built calls are still waiting on a
+> verb to become useful rather than merely correct: `snapshots` returns only automatic rows until
+> `snapshot` exists, and `recipes` declares states nothing can create until `seed` exists.
 >
 > **The interface is the CLI.** Every call is `dungeonmaster siegelense <call>`. There are no MCP tools and
 > none are wanted — we should not have to install an MCP server for an LLM to use this. If you find MCP
@@ -131,7 +131,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 | `type` | **built** | `snapshot` | not built |
 | `screenshot` | **built** | `seed` | not built |
 | `eval` | **built** | `until` | not built |
-| `look` | not built | `hold` | not built |
+| `look` | **built** | `hold` | not built |
 | `key` | not built | `video` | not built |
 | `paste` | not built | `request` | not built |
 | `box` | not built | `resize` | not built |
@@ -143,7 +143,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 packages/siegelense/src/statics/step/step-statics.ts   → verbs.all
 ```
 
-**`look` is the one to build first**, and the reason is in "What this cannot do yet" below.
+**`look` is built.** `seed` is the one to build next, and the reason is in "What this cannot do yet" below.
 
 ### The build-order items
 
@@ -165,7 +165,7 @@ yourself from the table rather than trusting a tally; a tally is the first thing
 | 4b | The record's `WALKED` field | spec-side |
 | 5 | `before` — a script ahead of the page's own | **not started** |
 | 6 | Capture on every acting step, frozen, with a change number | **done** |
-| 7 | **The key as a tree — refs, `within`, four columns** | **not started** |
+| 7 | **The key as a tree — refs, `within`, four columns** | **done** minus the numbered map, which the spec itself defers — `look` plus `look { within }`, and ref driving on `click` and `type` |
 | 8 | `health` — one reading, one verdict line | **not started** |
 | 9 | `until` — wait on a response, a file, a predicate | **not started** |
 | 10 | Selectable readings — `network` projection, `dom` cap | part: the `network` half only |
@@ -193,32 +193,52 @@ The ledger carries the reasoning per row. **Read it before planning.**
 Three gaps, and they compound. A session that can drive every built verb still cannot verify a browser
 feature end to end, because of the first one.
 
-### It cannot read a page
+### It CAN read a page now — this gap is closed
 
-`look` returns the KEY — a tree of every addressable element with element-bound refs — and writes the shot
-beside it. It is the answer to both "what is on this screen" and "how do I address the second of two
-identical controls". Neither `results` nor any built step produces a node tree, and `results` never will:
-it reads evidence off disk, and a tree is a live reading.
+`look` returns the KEY: a tree of every addressable element with an element-bound `ref` per row, and it
+writes the shot beside it. `look { within }` scopes the same reading to one region. `click` and `type`
+take a `ref`, because a key full of refs nothing can act on closes nothing.
 
-**Driven, and this is the dead end:**
+**The dead end this replaced**, driven before and after against the same page — same rects both times:
 
 ```
-click [data-testid="PIXEL_BTN"]
-→ AMBIGUOUS: 2 elements match.
-    [0] within=[data-testid="MAP_FRAME"] text="BROWSE" rect=(742,433) 66x27
-    [1] within=[data-testid="MAP_FRAME"] text="CREATE" rect=(607,472) 66x27
-  Pick one by narrowing with `within`.
-
 click [data-testid="PIXEL_BTN"] within=[data-testid="MAP_FRAME"]
-→ AMBIGUOUS: 2 elements match … Pick one by narrowing with `within`.
+
+BEFORE → AMBIGUOUS: 2 elements match … Pick one by narrowing with `within`.
+         (both candidates already carried that same `within`, so the advice could not be
+          followed, and it repeated verbatim)
+
+AFTER  → AMBIGUOUS: 2 elements match target [data-testid="PIXEL_BTN"] within=[...MAP_FRAME].
+           [0] ref=19 within=[data-testid="MAP_FRAME"] text="BROWSE" rect=(742,433) 66x27
+           [1] ref=20 within=[data-testid="MAP_FRAME"] text="CREATE" rect=(607,472) 66x27
+         Pick one by ref — { "step": "click", "ref": N } — or narrow with `within`.
 ```
 
-Both candidates carry the SAME `within`, so the instruction the error gives cannot be followed, and it
-repeats itself verbatim. With `look`, the second button is `ref: 26` and the problem disappears. Today the
-only way to discover what is on a page at all is to fail a click on purpose and read the near-miss list
-out of the error message.
+Following it works: `click ref 20` resolves and acts.
 
-### It cannot seed anything — and now it can DESCRIBE what it cannot seed
+**A ref binds to an ELEMENT, never to a row number**, and fails loudly at all four boundaries rather
+than resolving to the wrong thing. Driven across a navigation:
+
+```
+STALE REF: ref 20 no longer reaches an element — boundary crossed: navigation. A ref binds to an
+ELEMENT and never to a row number, so this is never a different element. Run `look` again for the
+current key.
+```
+
+**Still missing from the ladder**: `box { ref }` is rung 3, `dom { target }` is rung 4, and neither is
+built. The numbered map is absent by the spec's own deferral, not by omission. `compare`'s `elements`
+delta still waits on a threaded last-listing accessor.
+
+**Three flags are unit-shaped but not field-proven** — `low-contrast`, `covered` and `scrollable` never
+fired on the screens the build drove. `empty`, `not-tabbable`, `[n/m]`, the duplicate-testId line and
+the attrs column all fired on real pages.
+
+**Ref driving briefly mutates the DOM.** `clickRef`/`fillRef` stamp a non-`data-` attribute on the
+element, drive a locator against it, and unstamp in a `finally`. That is what lets Playwright's strict
+mode do the no-pick work for a ref; the `ElementHandle` route needs a cast this package's tsconfig
+cannot make. The reasoning is in `refRegistryLayerAdapter`'s own header.
+
+### It cannot seed anything — THE largest remaining gap, now that addressing is done
 
 `recipes` lists two recipes with their `produces:` claim and their fidelity. **Nothing runs one.** The
 `seed` step verb does not exist, and `start` takes no `--seed`, so the book is a typed declaration that
@@ -283,8 +303,8 @@ table is how the walk tracks what is out and what landed.
 | 8 | `start` | Every failed boot leaked its reservation — an `alive` row with `bootedAtMs: null` holding a claimed port pair with no process | **FIXED** `add570c57` |
 | 9 | `start` | **A lane reaped by its own idle timeout reported a MEMORY death.** `likelyCause` recited RSS and kernel OOM counts for a shutdown the tool scheduled itself, and a session is told to bubble that up as `rework`. The driver now writes a shutdown reason before teardown, and `start` takes `--idle-timeout-ms` to raise the ceiling for a person driving a browser. Driven: a 15s ceiling reaped on time and reported `reaped by idle timeout after 15s with no run received`, with no RSS text; an instance with no recorded reason still reports the old sentence unchanged | **FIXED** |
 | 12 | test infra | **Composing two proxies that mock the same raw builtin steals one-shots, and this is the FOURTH agent to hit it.** Adding one real `pathJoinAdapter` call to a write path forced a hand-counted drain in `siegelense-driver-responder.proxy.ts` from 3 entries to 6 — a magic number that must be recomputed by hand every time anything upstream stages differently. The ledger names the real fix: scope one-shots to the proxy that staged them. Until then every change near a locations resolver pays this tax | **OPEN** — `@dungeonmaster/testing` |
-| 10 | `run` | `StepAmbiguousError`'s structured `candidates` array is EMPTY while the human-readable message carries the text and rects. A session parsing the JSON gets nothing | **OPEN** |
-| 11 | `run` | The ambiguity error advises narrowing with `within` when both candidates already share one. The advice cannot be followed and repeats verbatim | **OPEN** — closes with `look` |
+| 10 | `run` | `StepAmbiguousError`'s structured `candidates` array is EMPTY while the human-readable message carries the text and rects. A session parsing the JSON gets nothing. Root cause: the run layer hardcoded `candidates: []` on every failure. **The trap in fixing it — on an acting step the ambiguity arrives wrapped in `StepFailureCaptureError`, so the `instanceof` must run against the UNWRAPPED error, or it misses every ambiguity on a click, which is all of them** | **FIXED** `1d985f8f2` |
+| 11 | `run` | The ambiguity error advises narrowing with `within` when both candidates already share one. The advice cannot be followed and repeats verbatim | **FIXED** `1d985f8f2` — closed with `look`, as predicted |
 | 13 | `docs` | **The manual told an operator that `capacity` was not built and to read `status` instead.** It was written from the spec while `capacity` was being built in a parallel lane, which is correct procedure — but five passages shipped describing calls that had landed by the time they were read. Found by typing `docs --for operating --human`, not by any test | **FIXED** `09ce4a9eb` |
 | 14 | `--human` | `HUMAN_RENDERER_CALLS.join(' and ')` read as a sentence at two names and broke at three: "only status and cleanup and recipes render a human table". Found by typing a refused `--human` | **FIXED** `09ce4a9eb` |
 | 15 | `--help` | With every call built, the index printed a bare `NOT BUILT YET` heading over an empty list — a finished tool reading as a truncated page. The renderer now omits an empty block heading and all, the rule it already applied to `REFUSES` | **FIXED** `09ce4a9eb` |

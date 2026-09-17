@@ -349,6 +349,16 @@ the bad case; small batches cover the rest. Say this out loud rather than discov
 
 ### Addressing: a listing, not a selector
 
+> **Status: DELIVERED** — `look` returns the key as a tree: indentation is scope, every row carries an
+> element-bound ref, and the four columns land with the flag vocabulary, the `[n/m]` duplicate marker and
+> the duplicate-testId line. Own text nodes only, never `textContent`. `look { within }` is rung 2, and
+> ref driving on `click` and `type` ships with it. Driven against a real lane: the ambiguous-click dead
+> end reproduces byte-identically and now carries a ref on each candidate, in the message AND in the
+> structured `candidates` array; following it (`click ref 20`) resolves and acts; a ref used after a
+> navigation answers `STALE REF … boundary crossed: navigation` rather than resolving to the wrong
+> element · NOT YET: `box { ref }` (rung 3), `dom { target }` (rung 4), the numbered map (deferred by this
+> spec's own words, and ABSENT rather than null), `compare`'s `elements` delta, and `waitFor { ref }`
+
 **Problem.** A selector is a guess and a wrong guess is invisible: `count: 0` reads exactly like "the element is
 missing", which is itself a defect. So a wrong selector either manufactures a false finding or gets shrugged past. This
 repo already solved the identical problem for code search —
