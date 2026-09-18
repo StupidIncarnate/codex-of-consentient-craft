@@ -24,3 +24,4 @@ export * from './src/statics/paste/paste-statics';
 export * from './src/statics/step/step-statics';
 export * from './src/statics/hold/hold-statics';
 export * from './src/statics/video/video-statics';
+export * from './src/statics/snapshot/snapshot-statics';

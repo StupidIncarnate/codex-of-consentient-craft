@@ -28,6 +28,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'paste', target: SelectorStub(), value: ContentTextStub() }),
   StepStub({ step: 'hold' }),
   StepStub({ step: 'video', action: 'start' }),
+  StepStub({ step: 'snapshot' }),
 ];
 
 describe('stepContract', () => {
@@ -1376,6 +1377,77 @@ describe('stepContract', () => {
         stepContract.parse({
           step: 'video',
           action: 'start',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+  });
+
+  describe('the snapshot step', () => {
+    it('VALID: {step: snapshot, as: "clean"} => parses valid snapshot step with defaults', () => {
+      const result = stepContract.parse({
+        step: 'snapshot',
+        as: 'clean',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'snapshot',
+        as: 'clean',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: snapshot, as: "after-cycle-1", node, expect} => parses valid snapshot step with explicit node and expect', () => {
+      const result = stepContract.parse({
+        step: 'snapshot',
+        as: 'after-cycle-1',
+        node: 'baseline-saved',
+        expect: 'error',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'snapshot',
+        as: 'after-cycle-1',
+        node: 'baseline-saved',
+        expect: 'error',
+      });
+    });
+
+    it('VALID: {step: snapshot} => StepStub builds valid snapshot default member', () => {
+      const result = StepStub({ step: 'snapshot' });
+
+      expect(result).toStrictEqual({
+        step: 'snapshot',
+        as: 'clean',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: snapshot, as: ""} => throws on empty snapshot name', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'snapshot',
+          as: '',
+        } as never),
+      ).toThrow(/String must contain at least 1 character/u);
+    });
+
+    it('INVALID: {step: snapshot, as: "invalid name!"} => throws on invalid characters in name', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'snapshot',
+          as: 'invalid name!',
+        } as never),
+      ).toThrow(/Invalid/u);
+    });
+
+    it('INVALID: {step: snapshot, +target} => throws naming stray key because snapshot is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'snapshot',
+          as: 'clean',
           target: '[data-testid="X"]',
         } as never),
       ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);

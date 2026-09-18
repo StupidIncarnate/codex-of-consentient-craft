@@ -473,4 +473,25 @@ describe('runVerbLayerBroker', () => {
       expect(reading).toBe('video recording stopped — saved to evidence/video');
     });
   });
+
+  describe('a snapshot step', () => {
+    it('VALID: {snapshot, as: "clean"} => routes to stepSnapshotBroker and returns recorded reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      proxy.setupSnapshotEmptyStore({ homePath: lane.homePath });
+      const step = StepStub({ step: 'snapshot', as: 'clean' });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('snapshot "clean" recorded');
+    });
+  });
 });

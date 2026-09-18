@@ -65,3 +65,4 @@ export * from './src/brokers/step/storage/step-storage-broker';
 export * from './src/brokers/step/paste/step-paste-broker';
 export * from './src/brokers/step/hold/step-hold-broker';
 export * from './src/brokers/step/video/step-video-broker';
+export * from './src/brokers/step/snapshot/step-snapshot-broker';

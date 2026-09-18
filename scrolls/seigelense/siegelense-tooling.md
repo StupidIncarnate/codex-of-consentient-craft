@@ -2667,6 +2667,8 @@ every measurement after it is against a state nobody intended.
 **`snapshot`** — marks a point `reset` can return to. NAMED, because a cycle makes several, and placeable anywhere in a
 batch.
 
+> **Status: DELIVERED** — captures named state snapshots via `snapshotCaptureBroker` (`{ step: 'snapshot', as: '<name>' }`), saving payload into instance snapshot store and indexing with `manual: true`. Driven on a real web instance with disk verification via `dungeonmaster siegelense snapshots`, tested for reserved suffix rejection (`:start`/`:end`), and verified to run browserless on headless.
+
 ```
 { step: 'snapshot', as: 'clean' }
 { step: 'snapshot', as: 'after-cycle-1' }

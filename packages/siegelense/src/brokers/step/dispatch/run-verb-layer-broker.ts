@@ -49,6 +49,7 @@ import { stepResizeBroker } from '../resize/step-resize-broker';
 import { stepRequestBroker } from '../request/step-request-broker';
 import { stepScreenshotBroker } from '../screenshot/step-screenshot-broker';
 import { stepSeedBroker } from '../seed/step-seed-broker';
+import { stepSnapshotBroker } from '../snapshot/step-snapshot-broker';
 import { stepStorageBroker } from '../storage/step-storage-broker';
 import { stepPasteBroker } from '../paste/step-paste-broker';
 import { stepTargetResolveBroker } from '../target-resolve/step-target-resolve-broker';
@@ -113,6 +114,12 @@ export const runVerbLayerBroker = async ({
   // browserless instances.
   if (step.step === 'file') {
     return stepFileBroker({ lane, path: step.path });
+  }
+
+  // `snapshot` routes here for the same reason: it captures disk state in `lane.homePath`
+  // and touches no page at all, so it runs identically against browserless instances.
+  if (step.step === 'snapshot') {
+    return stepSnapshotBroker({ lane, as: step.as });
   }
 
   const { browser: session } = lane;

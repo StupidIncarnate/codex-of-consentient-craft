@@ -48,4 +48,5 @@ export const snapshotStatics = {
     // so the value a future reaper enforces has one home rather than being invented at the call site.
     keepAutomatic: 40,
   },
+  template: 'snapshot "{name}" recorded',
 } as const;

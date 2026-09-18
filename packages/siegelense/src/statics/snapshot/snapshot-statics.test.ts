@@ -21,6 +21,7 @@ describe('snapshotStatics', () => {
         retention: {
           keepAutomatic: 40,
         },
+        template: 'snapshot "{name}" recorded',
       });
     });
   });

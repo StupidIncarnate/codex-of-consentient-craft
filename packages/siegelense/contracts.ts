@@ -227,3 +227,15 @@ export * from './src/contracts/video-action/video-action.stub';
 
 export * from './src/contracts/video-result/video-result-contract';
 export * from './src/contracts/video-result/video-result.stub';
+
+export * from './src/contracts/snapshot-name/snapshot-name-contract';
+export * from './src/contracts/snapshot-name/snapshot-name.stub';
+
+export * from './src/contracts/snapshot-record/snapshot-record-contract';
+export * from './src/contracts/snapshot-record/snapshot-record.stub';
+
+export * from './src/contracts/snapshots-answer/snapshots-answer-contract';
+export * from './src/contracts/snapshots-answer/snapshots-answer.stub';
+
+export * from './src/contracts/snapshots-args/snapshots-args-contract';
+export * from './src/contracts/snapshots-args/snapshots-args.stub';

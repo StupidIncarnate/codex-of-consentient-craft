@@ -24,6 +24,7 @@ import { stepRequestBrokerProxy } from '../request/step-request-broker.proxy';
 import { stepResizeBrokerProxy } from '../resize/step-resize-broker.proxy';
 import { stepScreenshotBrokerProxy } from '../screenshot/step-screenshot-broker.proxy';
 import { stepSeedBrokerProxy } from '../seed/step-seed-broker.proxy';
+import { stepSnapshotBrokerProxy } from '../snapshot/step-snapshot-broker.proxy';
 import { stepStorageBrokerProxy } from '../storage/step-storage-broker.proxy';
 import { stepPasteBrokerProxy } from '../paste/step-paste-broker.proxy';
 import { stepTargetResolveBrokerProxy } from '../target-resolve/step-target-resolve-broker.proxy';
@@ -60,6 +61,7 @@ export const runVerbLayerBrokerProxy = (): {
   }) => void;
   setupFileExists: (params: { filePath: AbsoluteFilePath; content: string }) => void;
   setupFileNotFound: (params: { filePath: AbsoluteFilePath }) => void;
+  setupSnapshotEmptyStore: (params: { homePath: AbsoluteFilePath }) => void;
 } => {
   // Constructed for their own default behavior only to satisfy enforce-proxy-child-creation — this
   // proxy builds its own BrowserSession scenarios directly (the real boundary every child broker
@@ -87,6 +89,7 @@ export const runVerbLayerBrokerProxy = (): {
   stepUntilBrokerProxy();
   stepVideoBrokerProxy();
   stepWaitForBrokerProxy();
+  const snapshotProxy = stepSnapshotBrokerProxy();
   // Assigned, unlike the rest: `seed` is the one verb whose broker a caller stages through this
   // layer, so a batch test can prove a binding resolved against ids a REAL recipe returned.
   const seedProxy = stepSeedBrokerProxy();
@@ -208,6 +211,10 @@ export const runVerbLayerBrokerProxy = (): {
 
     setupFileNotFound: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
       fileProxy.setupFileNotFound({ filePath });
+    },
+
+    setupSnapshotEmptyStore: ({ homePath }: { homePath: AbsoluteFilePath }): void => {
+      snapshotProxy.setupEmptyStore({ homePath });
     },
   };
 };

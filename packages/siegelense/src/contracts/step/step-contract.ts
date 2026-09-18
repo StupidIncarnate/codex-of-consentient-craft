@@ -58,6 +58,7 @@ import { stepPathContract } from '../step-path/step-path-contract';
 import { untilConsolePatternContract } from '../until-console-pattern/until-console-pattern-contract';
 import { untilFilePathContract } from '../until-file-path/until-file-path-contract';
 import { untilResponseContract } from '../until-response/until-response-contract';
+import { snapshotNameContract } from '../snapshot-name/snapshot-name-contract';
 import { videoActionContract } from '../video-action/video-action-contract';
 
 const HANDLE_MESSAGE =
@@ -306,6 +307,14 @@ export const stepContract = z
       .object({
         step: z.literal('video'),
         action: videoActionContract,
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('snapshot'),
+        as: snapshotNameContract,
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })

@@ -6,6 +6,7 @@ import { HttpMethodStub } from '../http-method/http-method.stub';
 import { LocatorStateStub } from '../locator-state/locator-state.stub';
 import { RefStub } from '../ref/ref.stub';
 import { SelectorStub } from '../selector/selector.stub';
+import { SnapshotNameStub } from '../snapshot-name/snapshot-name.stub';
 import { StepExpectationStub } from '../step-expectation/step-expectation.stub';
 import { StepFilePathStub } from '../step-file-path/step-file-path.stub';
 import { UrlPathStub } from '../url-path/url-path.stub';
@@ -165,6 +166,12 @@ const STEP_DEFAULTS = {
     node: null,
     expect: StepExpectationStub(),
   },
+  snapshot: {
+    step: 'snapshot',
+    as: SnapshotNameStub(),
+    node: null,
+    expect: StepExpectationStub(),
+  },
 } as const satisfies Record<Step['step'], Record<string, unknown>>;
 
 export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
@@ -213,7 +220,9 @@ export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
                                           ? STEP_DEFAULTS.hold
                                           : stepVerb === 'video'
                                             ? STEP_DEFAULTS.video
-                                            : STEP_DEFAULTS.click;
+                                            : stepVerb === 'snapshot'
+                                              ? STEP_DEFAULTS.snapshot
+                                              : STEP_DEFAULTS.click;
 
   // A `ref` override without a `target` override would otherwise carry click's default target in
   // beside it, and the handle rule rejects a step holding both. The stub's job is to build a VALID

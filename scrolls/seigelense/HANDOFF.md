@@ -216,7 +216,7 @@ Every call is `dungeonmaster siegelense <name>`. Steps are DATA inside `run`, ne
 | `cleanup` | **built** — including `assetsAged`, through the same reclaim path `prune` uses |
 | `prune` | **built** — minus the `open-issue` citation kind, which cannot be built (see below) |
 | `compare` | **built** — minus `elements`, which waits on `look` |
-| `snapshots` | **built** — every row reports `manual: false` until the `snapshot` VERB lands |
+| `snapshots` | **built** — supports both automatic and manual snapshot restore points |
 | `recipes` | **built** — recipes are declared and listable, not runnable |
 | `docs` | **built** — seven scopes |
 
@@ -239,7 +239,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 | `goto` | **built** | `before` | **built** |
 | `waitFor` | **built** | `health` | **built** |
 | `click` | **built** | `reset` | not built |
-| `type` | **built** | `snapshot` | not built |
+| `type` | **built** | `snapshot` | **built** |
 | `screenshot` | **built** | `seed` | **built** |
 | `eval` | **built** | `until` | **built** |
 | `look` | **built** | `hold` | **built** |
@@ -254,7 +254,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 packages/siegelense/src/statics/step/step-statics.ts   → verbs.all
 ```
 
-**`look`, `box`, `dom`, `seed`, `until`, `key`, `health`, `resize`, `request`, `before`, `file`, `storage`, `paste`, `hold` and `video` are built.** What is next is in "How to pick the next piece" — re-derive it
+**`look`, `box`, `dom`, `seed`, `until`, `key`, `health`, `resize`, `request`, `before`, `file`, `storage`, `paste`, `hold`, `video` and `snapshot` are built.** What is next is in "How to pick the next piece" — re-derive it
 rather than trusting a shortlist written before this round.
 
 ### The build-order items
