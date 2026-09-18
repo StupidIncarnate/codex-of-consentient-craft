@@ -616,6 +616,8 @@ also the untested mitigation for a page holding a long transcript: read it a reg
 
 ### `dom` is the ESCAPE HATCH, and the ladder above it has four rungs
 
+> **Status: DELIVERED** — all four rungs of the reading ladder are built and driven: 1) `look`, 2) `look { within }`, 3) `box { ref }`, 4) `dom { target, fields, text }`. `dom` defaults to own text (`text: 'own'`), supports `text: 'full'`, field projections (`count`, `rect`, `text`, `attrs`, etc.), pure count projection, and a self-reporting cap (100).
+
 **The hatch has to exist.** A key is a shaped reading, and a shaped reading always leaves something out — an attribute
 nobody anticipated, a value the key truncated, the exact text of a message a unit quotes word for word. Without a way
 down to the raw nodes, a session meeting one of those either guesses or invents a workaround, and the workarounds are
@@ -2606,7 +2608,7 @@ results queries now. `end` becomes the instance-level `kill`.
 
 ### Steps that are new
 
-> **Status: PARTIAL** — three of the eleven ship: `look`, `seed` and `until`. `until` carries all five forms — `visible`, `predicate`, `console`, `response` and `file` — with `file` the one that runs on a browserless lane; a ceiling answers `status: 'timeout'` and anything else answers `failed`, so an ambiguous `visible` reports Playwright's strict-mode violation naming both elements rather than advising a longer wait · verified by reading `brokers/step/until/` and by driving every form against a real lane · NOT YET: `before`, `health`, `reset`, `snapshot`, `hold`, `video`, `request`, `resize`
+> **Status: PARTIAL** — five of the step verbs ship: `look`, `box`, `dom`, `seed` and `until`. `until` carries all five forms — `visible`, `predicate`, `console`, `response` and `file` — with `file` the one that runs on a browserless lane; a ceiling answers `status: 'timeout'` and anything else answers `failed`, so an ambiguous `visible` reports Playwright's strict-mode violation naming both elements rather than advising a longer wait · `box` reports exact geometry off element-bound refs · `dom` provides selectable node readings with field projection, own-text default and a 100-element self-reporting cap · verified by reading `brokers/step/` and by driving against a real lane · NOT YET: `before`, `health`, `reset`, `snapshot`, `hold`, `video`, `request`, `resize`
 
 **`look`** — addressing. Returns the KEY inline and writes the SHOT, returning its path. **The MAP is optional and ships
 later** — `look { map: true }` requests it once it exists, and until then the field is simply absent rather than empty.

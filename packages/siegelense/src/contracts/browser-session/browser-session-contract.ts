@@ -24,6 +24,9 @@ import { z } from 'zod';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BoxReading } from '../box-reading/box-reading-contract';
+import type { DomField } from '../dom-field/dom-field-contract';
+import type { DomReading } from '../dom-reading/dom-reading-contract';
+import type { DomTextMode } from '../dom-text-mode/dom-text-mode-contract';
 import type { KeyListing } from '../key-listing/key-listing-contract';
 import type { RefResolution } from '../ref-resolution/ref-resolution-contract';
 import type { StepCandidate } from '../step-candidate/step-candidate-contract';
@@ -117,6 +120,15 @@ export type BrowserSession = z.infer<typeof browserSessionContract> & {
   readConsoleSince: ({ fromIndex }: { fromIndex: number }) => readonly ContentText[];
   readNetworkSince: ({ fromIndex }: { fromIndex: number }) => readonly ContentText[];
   readWebsocketSince: ({ fromIndex }: { fromIndex: number }) => readonly ContentText[];
+  readDom: ({
+    target,
+    fields,
+    text,
+  }: {
+    target: string;
+    fields: readonly DomField[] | null;
+    text: DomTextMode | null;
+  }) => Promise<DomReading>;
   bufferLengths: () => BufferLengths;
   close: () => Promise<void>;
 };

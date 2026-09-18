@@ -69,6 +69,14 @@ const STEP_DEFAULTS = {
     node: null,
     expect: StepExpectationStub(),
   },
+  dom: {
+    step: 'dom',
+    target: SelectorStub(),
+    fields: null,
+    text: null,
+    node: null,
+    expect: StepExpectationStub(),
+  },
   seed: {
     step: 'seed',
     recipe: RecipeNameStub(),
@@ -109,11 +117,13 @@ export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
                 ? STEP_DEFAULTS.look
                 : stepVerb === 'box'
                   ? STEP_DEFAULTS.box
-                  : stepVerb === 'seed'
-                    ? STEP_DEFAULTS.seed
-                    : stepVerb === 'until'
-                      ? STEP_DEFAULTS.until
-                      : STEP_DEFAULTS.click;
+                  : stepVerb === 'dom'
+                    ? STEP_DEFAULTS.dom
+                    : stepVerb === 'seed'
+                      ? STEP_DEFAULTS.seed
+                      : stepVerb === 'until'
+                        ? STEP_DEFAULTS.until
+                        : STEP_DEFAULTS.click;
 
   // A `ref` override without a `target` override would otherwise carry click's default target in
   // beside it, and the handle rule rejects a step holding both. The stub's job is to build a VALID

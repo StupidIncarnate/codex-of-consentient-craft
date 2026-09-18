@@ -19,7 +19,19 @@ export const stepStatics = {
     // siegelense-tooling.md line 2557's "Steps that exist today and are kept" table, narrowed to
     // the verbs built so far — `key`, `paste`, `box`, `dom`, `storage` and `file`, and the other
     // new ones at line 2585, are what Part 7 still defers.
-    all: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look', 'box', 'seed', 'until'],
+    all: [
+      'goto',
+      'waitFor',
+      'click',
+      'type',
+      'screenshot',
+      'eval',
+      'look',
+      'box',
+      'dom',
+      'seed',
+      'until',
+    ],
     // goto, click and type CHANGE the page. `look` does not, which is why it is not here — but it
     // still captures, through `capturing` below.
     acting: ['goto', 'click', 'type'],
@@ -44,7 +56,7 @@ export const stepStatics = {
     // while its `visible`/`predicate`/`console`/`response` forms do — that split happens PER FORM
     // inside `stepUntilBroker` itself, not here, so this list stays "every member needs a browser
     // for every form" rather than "sometimes".
-    browser: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look', 'box'],
+    browser: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look', 'box', 'dom'],
   },
   defaults: {
     // A batch stops on its first failing step unless the caller sets `stopOn: 'never'`

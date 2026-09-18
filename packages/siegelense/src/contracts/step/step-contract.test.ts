@@ -167,6 +167,51 @@ describe('stepContract', () => {
       ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
     });
 
+    it('VALID: {step: dom} => parses the complete dom member with target, defaults for fields and text', () => {
+      const result = stepContract.parse({ step: 'dom', target: '[data-testid="QUEST_ROW"]' });
+
+      expect(result).toStrictEqual({
+        step: 'dom',
+        target: '[data-testid="QUEST_ROW"]',
+        fields: null,
+        text: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: dom, fields, text} => parses with fields projection and explicit text mode', () => {
+      const result = stepContract.parse({
+        step: 'dom',
+        target: '[data-testid="TOAST"]',
+        fields: ['text', 'rect'],
+        text: 'full',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'dom',
+        target: '[data-testid="TOAST"]',
+        fields: ['text', 'rect'],
+        text: 'full',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: dom, no target} => throws for missing target', () => {
+      expect(() => stepContract.parse({ step: 'dom' } as never)).toThrow(/Required/u);
+    });
+
+    it('INVALID: {step: dom, +ref} => throws naming the stray key, because dom takes target only', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'dom',
+          target: '[data-testid="X"]',
+          ref: 26,
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'ref'/u);
+    });
+
     it('VALID: {step: screenshot} => parses the complete screenshot member', () => {
       const result = stepContract.parse({ step: 'screenshot', name: 'step1.png', node: null });
 
@@ -687,6 +732,19 @@ describe('stepContract', () => {
       expect(result).toStrictEqual({
         step: 'box',
         ref: 26,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: dom} => creates the dom reading step with default target', () => {
+      const result = StepStub({ step: 'dom' });
+
+      expect(result).toStrictEqual({
+        step: 'dom',
+        target: '[data-testid="GUILD_ADD"]',
+        fields: null,
+        text: null,
         node: null,
         expect: 'ok',
       });

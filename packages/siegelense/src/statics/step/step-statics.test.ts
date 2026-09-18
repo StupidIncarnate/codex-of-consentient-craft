@@ -13,13 +13,14 @@ describe('stepStatics', () => {
           'eval',
           'look',
           'box',
+          'dom',
           'seed',
           'until',
         ],
         acting: ['goto', 'click', 'type'],
         capturing: ['goto', 'click', 'type', 'look'],
         targeting: ['waitFor', 'click', 'type'],
-        browser: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look', 'box'],
+        browser: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look', 'box', 'dom'],
       },
       defaults: {
         stopOn: 'error',
@@ -95,6 +96,7 @@ describe('stepStatics', () => {
       'eval',
       'look',
       'box',
+      'dom',
     ]);
   });
 
@@ -116,6 +118,7 @@ describe('stepStatics', () => {
       'eval',
       'look',
       'box',
+      'dom',
     ]);
   });
 
@@ -123,7 +126,7 @@ describe('stepStatics', () => {
     expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type']);
   });
 
-  it('VALID: {verbs.all} => ends with until, the tenth verb', () => {
+  it('VALID: {verbs.all} => ends with until, the eleventh verb', () => {
     expect(stepStatics.verbs.all).toStrictEqual([
       'goto',
       'waitFor',
@@ -133,6 +136,7 @@ describe('stepStatics', () => {
       'eval',
       'look',
       'box',
+      'dom',
       'seed',
       'until',
     ]);

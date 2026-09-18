@@ -40,6 +40,8 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { recipeNameContract } from '@dungeonmaster/siegelense-recipes/contracts';
 
+import { domFieldContract } from '../dom-field/dom-field-contract';
+import { domTextModeContract } from '../dom-text-mode/dom-text-mode-contract';
 import { locatorStateContract } from '../locator-state/locator-state-contract';
 import { seedBindingNameContract } from '../seed-binding-name/seed-binding-name-contract';
 import { nodeLabelContract } from '../node-label/node-label-contract';
@@ -153,6 +155,16 @@ export const stepContract = z
       .object({
         step: z.literal('box'),
         ref: refContract,
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('dom'),
+        target: selectorContract,
+        fields: z.array(domFieldContract).readonly().nullable().default(null),
+        text: domTextModeContract.nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })

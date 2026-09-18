@@ -44,11 +44,15 @@ import { selectorContract } from '../../../contracts/selector/selector-contract'
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { stepCandidateContract } from '../../../contracts/step-candidate/step-candidate-contract';
 import type { StepCandidate } from '../../../contracts/step-candidate/step-candidate-contract';
+import type { DomField } from '../../../contracts/dom-field/dom-field-contract';
+import type { DomReading } from '../../../contracts/dom-reading/dom-reading-contract';
+import type { DomTextMode } from '../../../contracts/dom-text-mode/dom-text-mode-contract';
 import type {
   BrowserSession,
   BufferLengths,
   MatchCount,
 } from '../../../contracts/browser-session/browser-session-contract';
+import { domReadLayerAdapter } from './dom-read-layer-adapter';
 import { keyReadLayerAdapter } from './key-read-layer-adapter';
 import { listenersLayerAdapter } from './listeners-layer-adapter';
 import { refRegistryLayerAdapter } from './ref-registry-layer-adapter';
@@ -142,6 +146,7 @@ export const playwrightSessionAdapter = async ({
   const linesBuild = listenersLayerAdapter();
   const refRegistry = refRegistryLayerAdapter();
   const keyReader = keyReadLayerAdapter();
+  const domReader = domReadLayerAdapter();
   // See the header: a HOLDER, not a reassigned `let`, and the one piece of ref state Node keeps.
   const mintState = { highest: 0 };
 
@@ -448,6 +453,19 @@ export const playwrightSessionAdapter = async ({
       networkLines.slice(fromIndex),
     readWebsocketSince: ({ fromIndex }: { fromIndex: number }): readonly ContentText[] =>
       websocketLines.slice(fromIndex),
+
+    readDom: async ({
+      target,
+      fields,
+      text,
+    }: {
+      target: string;
+      fields: readonly DomField[] | null;
+      text: DomTextMode | null;
+    }): Promise<DomReading> => {
+      const raw: unknown = await page.evaluate(domReader.readSource({ target, text }));
+      return domReader.toReading({ raw, fields });
+    },
 
     bufferLengths: (): BufferLengths => ({
       consoleLines: bufferLineCountContract.parse(consoleLines.length),

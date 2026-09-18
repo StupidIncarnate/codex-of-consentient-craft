@@ -1,6 +1,6 @@
 # Siegelense — the build
 
-**Valid as of the `box` commit, 2026-09-17.** Re-derive the counts below before trusting them; the
+**Valid as of the `dom` commit, 2026-09-17.** Re-derive the counts below before trusting them; the
 command for each is given beside it. **A count in this file is a claim about a moment, and this file does
 not update itself.**
 
@@ -9,7 +9,7 @@ not update itself.**
 | | Built | Total | |
 |---|---|---|---|
 | **Calls** | **13** | 13 | every name in the closed set routes; `notBuiltYet` is empty |
-| **Step verbs** | **10** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` `box` `seed` `until` |
+| **Step verbs** | **11** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` `box` `seed` `until` `dom` |
 | **Results kinds** | **6** | 6 | `console` `network` `ws` `server` `screenshots` `steps` |
 | **Build-order items** | see the table | 30 | Part 7 of the spec. Count the rows yourself; the tally is what rots |
 
@@ -36,14 +36,16 @@ Copy the block below into a new session. It is self-contained.
 > gritty detail, so that I can manually test everything once without finding holes that are documented as
 > requirements.
 >
-> **ONE PIECE AT A TIME. No parallel agents, ever.** Pick one piece, finish it completely — built, tested,
+> **ONE PIECE AT A TIME.** Pick one piece, finish it completely — built, tested,
 > warded, DRIVEN, documented, committed — then stop and tell me what you did. Do not start the next piece
 > in the same turn. I would rather have one finished thing I can read than three half-done ones I have to
 > untangle.
 >
-> Dispatch at most ONE sub-agent, for the build itself, and tell it not to dispatch its own. You do the
-> picking, the wiring, the ward, the driving and the commit yourself — those are the steps where a
-> hand-off loses information. Doing the whole piece yourself is also fine and often faster.
+> **SUB-AGENT DISPATCH FOR IMPLEMENTATION AND REVIEW:**
+> Launch sub-agents to do the work and review:
+> 1. Dispatch ONE sub-agent to do the coding and implementation of the piece (contracts, statics, adapters, brokers, transformers, and unit tests). Tell it not to dispatch its own sub-agents.
+> 2. Once built and warded, dispatch ONE sub-agent to manually test / drive the CLI against a real running instance (following `manual-verification-runbook.md`: boot, submit batches, query step results, kill cleanly, verify process table), review the behavior, and fix any issues found during driving.
+> 3. The parent agent handles the picking, coordinates the sub-agents, verifies the documentation updates, and commits directly to `master`.
 >
 > **The interface is the CLI.** Every call is `dungeonmaster siegelense <call>`. There are no MCP tools and
 > none are wanted — we should not have to install an MCP server for an LLM to use this. If you find MCP
@@ -86,10 +88,10 @@ Re-derive this before trusting it — it is a judgement about a moment, and the 
 
 | Candidate | Why it might be next | Why it might not |
 |---|---|---|
-| **`box` and `dom`** — rungs 3 and 4 of the reading ladder (item 10) | `look` shipped rungs 1 and 2. A walker that needs one element's geometry, or a question the key does not carry, has no rung to step to. **Strongest case now that `until` has landed** | `look` covers most readings, so the pressure is lower than it looks |
 | **A capture on `until`'s TIMEOUT path** | A timed-out `until` is the case a fixer opens first and it currently carries no picture. Finding 6 in the log below was this exact shape on another verb. `stepDispatchBroker` already has the machinery | It needs a decision about what `shots[]` means once a non-acting verb can appear in it. The argument both ways is in `plans/step-until.md` §4 |
 | **`health`** — one reading, one verdict line (item 8) | The stress-testing role has no counterpart to the key. Nothing takes a one-shot reading two runs can be held against | Serves one role, where `until` serves every walk |
 | **`reset` + the `snapshot` verb** (item 14) | `snapshots` is a built call that can only ever return automatic rows. Closest thing to rule 1 above | Three reset levels is a big piece; `page` needs a browser-storage surface that does not exist |
+| **`hold` and `video`** (item 11) | The stuck-loader and non-settlement classes; human-verifiable artifact | Neither judges motion automatically |
 | **Item 17** — the lane spec still names this repo's own server and web packages | Rule 4. A consumer installs `dungeonmaster` and gets a tool that cannot boot their app | Not a verification feature, so it competes on a different axis |
 | **Item 3a** — the `production` recipe has no shared-instance suite | Its only proof today is one manual drive | Newly unblocked; the drive did pass |
 
@@ -109,12 +111,11 @@ Re-derive this before trusting it — it is a judgement about a moment, and the 
    the spec says, each citing its line. **Re-derive the line numbers**; every status marker added to the
    spec shifts everything below it, and the ledger's numbers go stale the moment one lands.
 3. **Plan** to `scrolls/seigelense/plans/<piece>.md` before writing code.
-4. **Build**, with unit and integration tests. No e2e in this package.
+4. **Build (Coding sub-agent)** — dispatch ONE sub-agent for the build itself (contracts, statics, adapters, brokers, transformers, and tests). Tell it not to dispatch its own.
 5. **Ward** it: `npm run ward -- --only lint,typecheck,unit,integration -- <files>`, `timeout: 600000`.
    Check the EXIT CODE — a pipeline's exit code is the last command's, so `ward | tail && git commit`
    commits on red.
-6. **DRIVE IT.** Build first (the CLI runs compiled output), then boot a real lane and type the command.
-   `manual-verification-runbook.md` has the housekeeping. **Kill your instance and sweep afterwards.**
+6. **DRIVE IT (Review & test sub-agent).** Build first (the CLI runs compiled output), then dispatch ONE sub-agent to boot a real lane, type the commands per `manual-verification-runbook.md`, verify behaviors, and fix any issues found. **Kill your instance and sweep afterwards.**
 7. **Update the docs** — this handoff, the ledger row, and the spec's inline status marker.
 8. **Commit**, and stop. Report what you did and what you found.
 
@@ -218,7 +219,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 | `key` | not built | `video` | not built |
 | `paste` | not built | `request` | not built |
 | `box` | **built** | `resize` | not built |
-| `dom` | not built | | |
+| `dom` | **built** | | |
 | `storage` | not built | | |
 | `file` | not built | | |
 
@@ -226,7 +227,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 packages/siegelense/src/statics/step/step-statics.ts   → verbs.all
 ```
 
-**`look`, `box`, `seed` and `until` are built.** What is next is in "How to pick the next piece" — re-derive it
+**`look`, `box`, `dom`, `seed` and `until` are built.** What is next is in "How to pick the next piece" — re-derive it
 rather than trusting a shortlist written before this round.
 
 ### The build-order items
@@ -252,7 +253,7 @@ yourself from the table rather than trusting a tally; a tally is the first thing
 | 7 | **The key as a tree — refs, `within`, four columns** | **done** minus the numbered map, which the spec itself defers — `look` plus `look { within }`, and ref driving on `click` and `type` |
 | 8 | `health` — one reading, one verdict line | **not started** |
 | 9 | `until` — wait on a response, a file, a predicate | **done** — all five forms, each driven against a real lane |
-| 10 | Selectable readings — `network` projection, `box`, `dom` cap | part: `network` projection and `box` geometry built |
+| 10 | Selectable readings — `network` projection, `box`, `dom` cap | **done** — network projection, box geometry, and dom projection with self-reporting cap built |
 | 11 | `hold` and `video` | **not started** |
 | 11b | The human-check route | spec-side |
 | 11c | The declared-value block and its third reader | spec-side |

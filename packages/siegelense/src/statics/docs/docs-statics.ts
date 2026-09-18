@@ -155,7 +155,7 @@ export const docsStatics = {
         {
           heading: 'WHAT A PLAN CAN PROMISE TODAY',
           lines: [
-            `Ten step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed and until. Every other verb in the design is ${NOT_BUILT}.`,
+            `Eleven step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until and dom. Every other verb in the design is ${NOT_BUILT}.`,
             'look returns the key — every addressable element, its name, its text and a ref for each — so a prelude can discover a testId rather than only address one it was told about.',
             "seed runs a recipe against the instance and returns the ids it made, so a prelude CAN create its own starting state. dungeonmaster siegelense recipes lists every recipe with its produces: claim; name one in a { step: 'seed' } and read its ids back with {binding.field}.",
           ],
@@ -185,7 +185,7 @@ export const docsStatics = {
             'Rung 1, look — the default. What is here, what is it called, what is wrong with it. About 243 tokens for a whole page. Built.',
             'Rung 2, look { within } — the same reading scoped to one region, when the region is crowded or the page holds a long transcript. Cheaper. Built. `within` takes a bare testId or the full [data-testid="..."] form; both reach the same element.',
             "Rung 3, box { ref } — one element's geometry, exactly. A few lines. Built.",
-            `Rung 4, dom { target } — the hatch. A named selector, and a question the key does not carry. Unbounded without care. ${NOT_BUILT}.`,
+            'Rung 4, dom { target } — the hatch. A named selector, and a question the key does not carry. Unbounded without care. Built.',
             'Rung 5, eval — a question no step shapes at all. It is a DIFFERENT hatch carrying a different risk: dom is expensive, while eval is cheap and can quietly break the founding rule by computing a verdict inside the page and handing it back as a value.',
           ],
         },
@@ -222,10 +222,11 @@ export const docsStatics = {
         {
           heading: 'THE VERBS YOU CAN SUBMIT TODAY',
           lines: [
-            'Eight, and every one is a value inside a batch, never a call of its own:',
+            'Nine, and every one is a value inside a batch, never a call of its own:',
             `{ step: 'goto', path: '/siege-1/session/sess-nested' }`,
             `{ step: 'look' }  or  { step: 'look', within: 'SUBAGENT_CHAIN' }`,
             `{ step: 'box', ref: 26 }`,
+            `{ step: 'dom', target: '[data-testid="subagent-chain-duration"]', fields: ['text', 'rect'] }`,
             `{ step: 'waitFor', target: '[data-testid="SUBAGENT_CHAIN"]', state: 'visible' }`,
             `{ step: 'click', target: '[data-testid="EXECUTION_ROW_0"]' }  or  { step: 'click', ref: 26 }`,
             `{ step: 'type', target: '[data-testid="CHAT_INPUT"]', value: 'guild-alpha' }  or  { step: 'type', ref: 14, value: 'guild-alpha' }`,
@@ -233,7 +234,7 @@ export const docsStatics = {
             `{ step: 'eval', source: 'document.querySelectorAll("[data-testid=QUEST_ROW]").length' }`,
             'A screenshot name must carry a file extension. Without one the capture fails on an unsupported mime type, naming neither the step nor the field.',
             'goto, click and type are the acting steps, and each captures a shot unasked. look captures too — the key is the text and the shot is the picture, and they answer different questions. Every capture carries a pixel-change figure and a blank verdict.',
-            'All eight are browser steps, so all eight error BY NAME against a browserless spec rather than answering an empty reading.',
+            'All nine are browser steps, so all nine error BY NAME against a browserless spec rather than answering an empty reading.',
             `until waits on something OTHER than a locator state, in one of five forms: { step: 'until', visible: '[data-testid="SUBAGENT_CHAIN"]', timeoutMs: 20000 }, { step: 'until', predicate: 'document.querySelectorAll("[data-testid=QUEST_ROW]").length === 3' }, { step: 'until', console: 'hydrated' }, { step: 'until', response: { method: 'POST', path: '/api/quests' } }, or { step: 'until', file: 'guilds/<id>/quests/<id>/quest.json' }.`,
             "Exactly one of those five condition fields, never zero and never two. Four of them read the page or its buffers, so they need a browser like every other browser verb. file reads the lane's own throwaway home instead, so it runs here AND on a lane with no screen — reach for it when the thing you are waiting on is something the app WROTE rather than something it drew.",
             "console and response scan this RUN's own window. A match a step earlier in the same batch produced — a click's own POST — resolves; one from an earlier run does not, and the timeout says so rather than leaving you a bare ceiling.",
@@ -460,7 +461,7 @@ export const docsStatics = {
         {
           heading: 'THE READING STEPS, AND WHAT YOU CANNOT DO YET',
           lines: [
-            "Ten step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed and until. They are values inside run's steps array, never commands of their own.",
+            "Eleven step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until and dom. They are values inside run's steps array, never commands of their own.",
             'look reads the page and returns the key — every addressable element with a ref per row — so you can ask what is on a screen rather than only address a testId you already knew.',
             "seed puts the app into a state: { step: 'seed', recipe: '<name>', as: 'g' } runs a recipe and returns the ids it made, and a later step reads them back as {g.guildSlug}. dungeonmaster siegelense recipes lists what states exist.",
             'Ambiguity is an ERROR, never a silent pick. Two matches come back as AMBIGUOUS carrying both candidates; narrow with a within scope.',
@@ -487,7 +488,7 @@ export const docsStatics = {
           lines: [
             'dungeonmaster siegelense start --spec dungeonmaster-headless — the servers, and no Chromium. A browserless spec is just another spec.',
             'Because a profile is keyed by the spec\'s content hash, a browserless spec measures its own steady and peak, and capacity allows more of them in a pool. Nothing special is needed for this: it is the "I added a second server" case running in the other direction.',
-            'Browser steps go missing LOUDLY. A browser step submitted against a browserless instance is an error naming the spec, never an empty reading — a reading that quietly returns nothing is the count: 0 problem arriving at the one place a walk cannot recover from it. This half is BUILT: every browser verb errors by name here — goto, waitFor, click, type, screenshot, eval, look and box.',
+            'Browser steps go missing LOUDLY. A browser step submitted against a browserless instance is an error naming the spec, never an empty reading — a reading that quietly returns nothing is the count: 0 problem arriving at the one place a walk cannot recover from it. This half is BUILT: every browser verb errors by name here — goto, waitFor, click, type, screenshot, eval, look, box and dom.',
             'A browserless boot still needs the fake agent CLI, because it still runs the API process that dispatches through the agent and the ward binary.',
             `The shipped specs still name this repo's own server and web packages directly, so a consumer repo gets a tool that cannot boot its own app. ${NOT_BUILT}.`,
           ],

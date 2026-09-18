@@ -1,5 +1,7 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
+import { DomReadingStub } from '../../../contracts/dom-reading/dom-reading.stub';
+import { RawDomReadingStub } from '../../../contracts/raw-dom-reading/raw-dom-reading.stub';
 import { StepCandidateStub } from '../../../contracts/step-candidate/step-candidate.stub';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { playwrightSessionAdapter } from './playwright-session-adapter';
@@ -674,6 +676,27 @@ describe('playwrightSessionAdapter', () => {
       const result = await session.evaluateSource({ source: '({ ok: true })' });
 
       expect(result).toBe('{"ok":true}');
+    });
+  });
+
+  describe('readDom()', () => {
+    it('VALID: {target, fields: null, text: null} => returns DomReading from page evaluate and domReadLayerAdapter', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setDomReadResult({
+        raw: RawDomReadingStub(),
+      });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.readDom({
+        target: 'button',
+        fields: null,
+        text: null,
+      });
+
+      expect(result).toStrictEqual(DomReadingStub());
     });
   });
 });

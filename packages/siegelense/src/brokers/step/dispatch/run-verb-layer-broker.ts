@@ -36,6 +36,7 @@ import { BrowserStepUnsupportedError } from '../../../errors/browser-step-unsupp
 import { isTargetingStepGuard } from '../../../guards/is-targeting-step/is-targeting-step-guard';
 import { stepBoxBroker } from '../box/step-box-broker';
 import { stepClickBroker } from '../click/step-click-broker';
+import { stepDomBroker } from '../dom/step-dom-broker';
 import { stepSeedBroker } from '../seed/step-seed-broker';
 import { stepEvalSourceBroker } from '../eval-source/step-eval-source-broker';
 import { stepGotoBroker } from '../goto/step-goto-broker';
@@ -166,6 +167,14 @@ export const runVerbLayerBroker = async ({
       ref: step.ref,
     });
     return stepBoxBroker({ session, ref: step.ref });
+  }
+  if (step.step === 'dom') {
+    return stepDomBroker({
+      session,
+      target: step.target,
+      fields: step.fields,
+      text: step.text,
+    });
   }
 
   return stepEvalSourceBroker({ session, source: step.source });

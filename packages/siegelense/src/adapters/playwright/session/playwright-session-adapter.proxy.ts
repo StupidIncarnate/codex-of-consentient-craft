@@ -3,9 +3,11 @@ import { EventEmitter } from 'events';
 import { chromium } from '@playwright/test';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
+import { domReadLayerAdapterProxy } from './dom-read-layer-adapter.proxy';
 import { keyReadLayerAdapterProxy } from './key-read-layer-adapter.proxy';
 import { listenersLayerAdapterProxy } from './listeners-layer-adapter.proxy';
 import { refRegistryLayerAdapterProxy } from './ref-registry-layer-adapter.proxy';
+import { RawDomReadingStub } from '../../../contracts/raw-dom-reading/raw-dom-reading.stub';
 
 // The one thing this proxy mocks over the npm boundary: `chromium.launch`, staged on its launch
 // options object. Everything hanging off the fake `Browser`/`BrowserContext`/`Page` it resolves to
@@ -25,6 +27,7 @@ const DESCRIBE_MATCHES_MARKER = 'getBoundingClientRect';
 // only it carries. Order is load-bearing here: swap the two and every `look` would be answered with
 // the staged describeMatches rows.
 const KEY_READ_MARKER = 'hasContentDescendant';
+const DOM_READ_MARKER = 'childElementCount';
 const REF_STATE_MARKER = 'isConnected === true ?';
 const STAMP_MARKER = "setAttribute('siege-target'";
 const UNSTAMP_MARKER = "removeAttribute('siege-target')";
@@ -35,6 +38,7 @@ export const playwrightSessionAdapterProxy = (): {
   setDescribeMatchesResult: (params: { raw: readonly unknown[] }) => void;
   setNearestNamesResult: (params: { raw: readonly unknown[] }) => void;
   setKeyReadResult: (params: { raw: unknown }) => void;
+  setDomReadResult: (params: { raw: unknown }) => void;
   setRefState: (params: { state: string }) => void;
   setBoxResult: (params: { raw: unknown }) => void;
   setEvaluateSourceResult: (params: { result: unknown }) => void;
@@ -76,6 +80,7 @@ export const playwrightSessionAdapterProxy = (): {
   listenersLayerAdapterProxy();
   keyReadLayerAdapterProxy();
   refRegistryLayerAdapterProxy();
+  domReadLayerAdapterProxy();
 
   registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(FIXED_EPOCH_MS);
 
@@ -84,6 +89,7 @@ export const playwrightSessionAdapterProxy = (): {
     describeMatchesRaw: [] as unknown,
     nearestNamesRaw: [] as unknown,
     keyReadRaw: { rows: [], highestRef: 0, skipped: [] } as unknown,
+    domReadRaw: RawDomReadingStub() as unknown,
     refState: 'live',
     boxRaw: {
       ref: 26,
@@ -154,6 +160,9 @@ export const playwrightSessionAdapterProxy = (): {
         return undefined;
       }
       const source = String(pageFunction);
+      if (source.includes(DOM_READ_MARKER)) {
+        return Promise.resolve(state.domReadRaw);
+      }
       if (source.includes(KEY_READ_MARKER)) {
         return Promise.resolve(state.keyReadRaw);
       }
@@ -232,6 +241,9 @@ export const playwrightSessionAdapterProxy = (): {
     },
     setKeyReadResult: ({ raw }): void => {
       state.keyReadRaw = raw;
+    },
+    setDomReadResult: ({ raw }): void => {
+      state.domReadRaw = raw;
     },
     setRefState: ({ state: refState }): void => {
       state.refState = refState;

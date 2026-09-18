@@ -14,7 +14,7 @@
 import type { Step } from '../../contracts/step/step-contract';
 
 export const isTargetingStepGuard = ({ step }: { step?: Step }): boolean => {
-  if (!step) {
+  if (!step || step.step === 'dom') {
     return false;
   }
 

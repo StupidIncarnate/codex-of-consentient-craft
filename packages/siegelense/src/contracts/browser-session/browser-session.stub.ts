@@ -7,6 +7,8 @@ import { browserSessionContract } from './browser-session-contract';
 import type { BrowserSession, BufferLengths, MatchCount } from './browser-session-contract';
 import { BoxReadingStub } from '../box-reading/box-reading.stub';
 import type { BoxReading } from '../box-reading/box-reading-contract';
+import { DomReadingStub } from '../dom-reading/dom-reading.stub';
+import type { DomReading } from '../dom-reading/dom-reading-contract';
 import { KeyListingStub } from '../key-listing/key-listing.stub';
 import type { KeyListing } from '../key-listing/key-listing-contract';
 import { RefResolutionStub } from '../ref-resolution/ref-resolution.stub';
@@ -38,6 +40,7 @@ export const BrowserSessionStub = ({
     readConsoleSince,
     readNetworkSince,
     readWebsocketSince,
+    readDom,
     bufferLengths,
     close,
     ...dataProps
@@ -70,6 +73,7 @@ export const BrowserSessionStub = ({
     readConsoleSince: readConsoleSince ?? ((): readonly ContentText[] => []),
     readNetworkSince: readNetworkSince ?? ((): readonly ContentText[] => []),
     readWebsocketSince: readWebsocketSince ?? ((): readonly ContentText[] => []),
+    readDom: readDom ?? (async (): Promise<DomReading> => Promise.resolve(DomReadingStub())),
     bufferLengths:
       bufferLengths ??
       ((): BufferLengths => ({
