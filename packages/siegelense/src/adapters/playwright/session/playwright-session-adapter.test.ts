@@ -848,6 +848,20 @@ describe('playwrightSessionAdapter', () => {
     });
   });
 
+  describe('clearStorage()', () => {
+    it('VALID: clears localStorage and sessionStorage via evaluate', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.clearStorage();
+
+      expect(proxy.getClearStorageCalls()).toStrictEqual([true]);
+    });
+  });
+
   describe('pasteMatch()', () => {
     it('VALID: {target: "[data-testid=\\"INPUT\\"]", value: "test"} => focuses locator, writes clipboard, and presses ControlOrMeta+V', async () => {
       const proxy = playwrightSessionAdapterProxy();

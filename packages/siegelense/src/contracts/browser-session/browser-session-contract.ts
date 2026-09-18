@@ -152,6 +152,7 @@ export type BrowserSession = z.infer<typeof browserSessionContract> & {
   setViewport: (params: { width: number; height: number }) => Promise<void>;
   addInitScript: (params: { source: string }) => Promise<void>;
   readStorage: ({ prefix }: { prefix: string }) => Promise<StorageReading>;
+  clearStorage: () => Promise<void>;
   videoAction: ({ action }: { action: VideoAction }) => Promise<VideoResult>;
   bufferLengths: () => BufferLengths;
   close: () => Promise<void>;

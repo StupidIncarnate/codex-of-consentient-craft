@@ -53,6 +53,7 @@ export const playwrightSessionAdapterProxy = (): {
   setFocusedResult: (params: { raw: unknown }) => void;
   setRootPresent: (params: { present: boolean }) => void;
   setStorageResult: (params: { raw: unknown }) => void;
+  getClearStorageCalls: () => readonly unknown[];
   getNewContextCalls: () => readonly unknown[];
   setHasVideo: (params: { hasVideo: boolean }) => void;
   setVideoPath: (params: { videoPath: unknown }) => void;
@@ -117,6 +118,7 @@ export const playwrightSessionAdapterProxy = (): {
     focusedRaw: null as unknown,
     rootPresent: true,
     storageReadingRaw: undefined as unknown,
+    clearStorageCalls: [] as unknown[],
     keyboardPressCalls: [] as unknown[],
     refState: 'live',
     boxRaw: {
@@ -199,6 +201,10 @@ export const playwrightSessionAdapterProxy = (): {
     // is modelled here instead of bypassed.
     evaluate: async (pageFunction: unknown, arg?: unknown): Promise<unknown> => {
       if (typeof pageFunction === 'function') {
+        if (String(pageFunction).includes('localStorage.clear()')) {
+          state.clearStorageCalls.push(true);
+          return Promise.resolve(undefined);
+        }
         if (String(pageFunction).includes('localStorage')) {
           return Promise.resolve(
             state.storageReadingRaw ?? {
@@ -336,6 +342,7 @@ export const playwrightSessionAdapterProxy = (): {
     setStorageResult: ({ raw }: { raw: unknown }): void => {
       state.storageReadingRaw = raw;
     },
+    getClearStorageCalls: (): readonly unknown[] => state.clearStorageCalls,
     getNewContextCalls: (): readonly unknown[] => state.newContextCalls,
     setHasVideo: ({ hasVideo }: { hasVideo: boolean }): void => {
       state.hasVideo = hasVideo;

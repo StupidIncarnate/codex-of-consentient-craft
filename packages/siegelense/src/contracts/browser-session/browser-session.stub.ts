@@ -58,6 +58,7 @@ export const BrowserSessionStub = ({
     setViewport,
     addInitScript,
     readStorage,
+    clearStorage,
     videoAction,
     bufferLengths,
     close,
@@ -101,6 +102,7 @@ export const BrowserSessionStub = ({
     addInitScript: addInitScript ?? (async (): Promise<void> => Promise.resolve()),
     readStorage:
       readStorage ?? (async (): Promise<StorageReading> => Promise.resolve(StorageReadingStub())),
+    clearStorage: clearStorage ?? (async (): Promise<void> => Promise.resolve()),
     videoAction:
       videoAction ??
       (async ({ action }: { action: VideoAction }): Promise<VideoResult> =>

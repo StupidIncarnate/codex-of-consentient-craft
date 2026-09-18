@@ -494,4 +494,26 @@ describe('runVerbLayerBroker', () => {
       expect(reading).toBe('snapshot "clean" recorded');
     });
   });
+
+  describe('a reset step', () => {
+    it('VALID: {reset, level: "page"} => routes to stepResetBroker and returns reset reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'reset', level: 'page', to: null });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe(
+        '{"restored":"page","undid":{"files":0,"added":0,"modified":0,"removed":0},"NOT_cleared":["disk","server memory"]}',
+      );
+    });
+  });
 });

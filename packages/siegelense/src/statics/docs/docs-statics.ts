@@ -155,7 +155,7 @@ export const docsStatics = {
         {
           heading: 'WHAT A PLAN CAN PROMISE TODAY',
           lines: [
-            `Twenty-two step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request, before, file, storage, paste, hold, video and snapshot. Every other verb in the design is ${NOT_BUILT}.`,
+            `Twenty-three step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request, before, file, storage, paste, hold, video, snapshot and reset. Every other verb in the design is ${NOT_BUILT}.`,
             'look returns the key — every addressable element, its name, its text and a ref for each — so a prelude can discover a testId rather than only address one it was told about.',
             "seed runs a recipe against the instance and returns the ids it made, so a prelude CAN create its own starting state. dungeonmaster siegelense recipes lists every recipe with its produces: claim; name one in a { step: 'seed' } and read its ids back with {binding.field}.",
           ],
@@ -282,7 +282,7 @@ export const docsStatics = {
         {
           heading: 'READ THIS FIRST',
           lines: [
-            `snapshot is BUILT; reset is ${NOT_BUILT}. Nothing returns an instance to a known starting point. health is BUILT.`,
+            'reset and snapshot are both BUILT. health is BUILT.',
             "So an attack that changes state needs its own instance today: boot it, attack once, read the evidence, close it. A second attack against the same instance measures the first attack's leftovers.",
             'The rules below are still the rules. They describe how state behaves rather than how a step behaves, and they are true whether or not the step that acts on them exists.',
           ],

@@ -508,6 +508,13 @@ export const playwrightSessionAdapter = async ({
     readStorage: async ({ prefix }: { prefix: string }): Promise<StorageReading> =>
       storageReadLayerAdapter({ page, prefix }),
 
+    clearStorage: async (): Promise<void> => {
+      await page.evaluate(() => {
+        window.localStorage.clear();
+        window.sessionStorage.clear();
+      });
+    },
+
     pasteMatch: async ({
       target,
       within,

@@ -50,6 +50,7 @@ import { stepRequestBroker } from '../request/step-request-broker';
 import { stepScreenshotBroker } from '../screenshot/step-screenshot-broker';
 import { stepSeedBroker } from '../seed/step-seed-broker';
 import { stepSnapshotBroker } from '../snapshot/step-snapshot-broker';
+import { stepResetBroker } from '../reset/step-reset-broker';
 import { stepStorageBroker } from '../storage/step-storage-broker';
 import { stepPasteBroker } from '../paste/step-paste-broker';
 import { stepTargetResolveBroker } from '../target-resolve/step-target-resolve-broker';
@@ -120,6 +121,18 @@ export const runVerbLayerBroker = async ({
   // and touches no page at all, so it runs identically against browserless instances.
   if (step.step === 'snapshot') {
     return stepSnapshotBroker({ lane, as: step.as });
+  }
+
+  // `reset` routes here for the same reason: its `state` and `instance` levels operate on disk
+  // and process state and touch no page, so `stepResetBroker` takes the whole lane and narrows
+  // to a live browser itself only when `level === 'page'`.
+  if (step.step === 'reset') {
+    return stepResetBroker({
+      lane,
+      level: step.level,
+      to: step.to,
+      reseed: step.reseed,
+    });
   }
 
   const { browser: session } = lane;

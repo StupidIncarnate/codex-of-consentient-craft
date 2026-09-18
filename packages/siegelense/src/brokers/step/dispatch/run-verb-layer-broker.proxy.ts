@@ -25,6 +25,7 @@ import { stepResizeBrokerProxy } from '../resize/step-resize-broker.proxy';
 import { stepScreenshotBrokerProxy } from '../screenshot/step-screenshot-broker.proxy';
 import { stepSeedBrokerProxy } from '../seed/step-seed-broker.proxy';
 import { stepSnapshotBrokerProxy } from '../snapshot/step-snapshot-broker.proxy';
+import { stepResetBrokerProxy } from '../reset/step-reset-broker.proxy';
 import { stepStorageBrokerProxy } from '../storage/step-storage-broker.proxy';
 import { stepPasteBrokerProxy } from '../paste/step-paste-broker.proxy';
 import { stepTargetResolveBrokerProxy } from '../target-resolve/step-target-resolve-broker.proxy';
@@ -90,6 +91,7 @@ export const runVerbLayerBrokerProxy = (): {
   stepVideoBrokerProxy();
   stepWaitForBrokerProxy();
   const snapshotProxy = stepSnapshotBrokerProxy();
+  stepResetBrokerProxy();
   // Assigned, unlike the rest: `seed` is the one verb whose broker a caller stages through this
   // layer, so a batch test can prove a binding resolved against ids a REAL recipe returned.
   const seedProxy = stepSeedBrokerProxy();

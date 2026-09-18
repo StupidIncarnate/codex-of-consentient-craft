@@ -27,6 +27,7 @@ describe('stepStatics', () => {
           'hold',
           'video',
           'snapshot',
+          'reset',
         ],
         acting: ['goto', 'click', 'type', 'key', 'resize', 'paste'],
         capturing: ['goto', 'click', 'type', 'look', 'key', 'health', 'resize', 'paste', 'hold'],
@@ -188,7 +189,7 @@ describe('stepStatics', () => {
     expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type', 'paste']);
   });
 
-  it('VALID: {verbs.all} => ends with snapshot, the twenty-second verb', () => {
+  it('VALID: {verbs.all} => ends with reset, the twenty-third verb', () => {
     expect(stepStatics.verbs.all).toStrictEqual([
       'goto',
       'waitFor',
@@ -212,6 +213,7 @@ describe('stepStatics', () => {
       'hold',
       'video',
       'snapshot',
+      'reset',
     ]);
   });
 });

@@ -1036,6 +1036,8 @@ ROLE half of this section.
 
 ### Resetting: three layers, and a reset must say which one it touched
 
+> **Status: DELIVERED**
+
 **Problem.** A stress tester runs many attacks against one instance. Attack 1 corrupts something; attack 2 then starts
 from corrupted state and measures nothing. So every attack needs a known starting point — and "reset" is currently one
 word covering three different things.
@@ -2651,6 +2653,8 @@ Blankness appears here AND on every capture's `blank` field, deliberately: this 
 unasked.
 
 **`reset`** — takes a level, reports the diff it undid.
+ 
+> **Status: DELIVERED** — delivers three reset levels ('page', 'state', 'instance'): 'page' clears browser localStorage/sessionStorage and refuses on headless; 'state' rewinds instance throwaway home files to a named snapshot and reports diff undid ({ files, added, modified, removed }) while preserving evidence/logs and clearing browser storage; 'instance' clears state and optionally reseeds via recipe. Driven on real web and headless instances with disk verification.
 
 ```
 { step: 'reset', level: 'page' }

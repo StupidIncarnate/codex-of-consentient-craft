@@ -29,6 +29,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'hold' }),
   StepStub({ step: 'video', action: 'start' }),
   StepStub({ step: 'snapshot' }),
+  StepStub({ step: 'reset' }),
 ];
 
 describe('stepContract', () => {
@@ -1448,6 +1449,74 @@ describe('stepContract', () => {
         stepContract.parse({
           step: 'snapshot',
           as: 'clean',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+
+    it('VALID: {step: reset, to: "clean"} => parses valid reset step with state level and to snapshot', () => {
+      const result = stepContract.parse({
+        step: 'reset',
+        level: 'state',
+        to: 'clean',
+        node: 'after-reset',
+        expect: 'ok',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'reset',
+        level: 'state',
+        to: 'clean',
+        reseed: null,
+        node: 'after-reset',
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: reset, level: "page"} => parses page level reset with default to null', () => {
+      const result = stepContract.parse({
+        step: 'reset',
+        level: 'page',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'reset',
+        level: 'page',
+        to: null,
+        reseed: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: reset} => StepStub builds valid reset default member', () => {
+      const result = StepStub({ step: 'reset' });
+
+      expect(result).toStrictEqual({
+        step: 'reset',
+        level: 'state',
+        to: 'clean',
+        reseed: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: reset, level: "state", to: null} => throws when state reset lacks to snapshot', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'reset',
+          level: 'state',
+          to: null,
+        } as never),
+      ).toThrow(/requires an explicit.*to.*snapshot name/u);
+    });
+
+    it('INVALID: {step: reset, +target} => throws naming stray key because reset is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'reset',
+          level: 'page',
           target: '[data-testid="X"]',
         } as never),
       ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);

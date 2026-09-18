@@ -1,6 +1,6 @@
 # Siegelense — the build
 
-**Valid as of the `paste` commit, 2026-09-18.** Re-derive the counts below before trusting them; the
+**Valid as of the `reset` commit, 2026-09-18.** Re-derive the counts below before trusting them; the
 command for each is given beside it. **A count in this file is a claim about a moment, and this file does
 not update itself.**
 
@@ -9,18 +9,14 @@ not update itself.**
 | | Built | Total | |
 |---|---|---|---|
 | **Calls** | **13** | 13 | every name in the closed set routes; `notBuiltYet` is empty |
-| **Step verbs** | **19** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` `box` `seed` `until` `dom` `key` `health` `resize` `request` `before` `file` `storage` `paste` |
+| **Step verbs** | **23** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` `box` `seed` `until` `dom` `key` `health` `resize` `request` `before` `file` `storage` `paste` `hold` `video` `snapshot` `reset` (100% COMPLETE) |
 | **Results kinds** | **6** | 6 | `console` `network` `ws` `server` `screenshots` `steps` |
 | **Build-order items** | see the table | 30 | Part 7 of the spec. Count the rows yourself; the tally is what rots |
 
-**The CALL surface is complete and the STEP surface is not**, and that split is the whole state of this
-build. Every call is reachable, driven by hand and tested. `look` reads a page and mints element-bound
-refs, `seed` runs a recipe, and `until` waits on something other than a locator state — so a session can
-create a state, wait for the app to react to it, and then look at it. **That is the first round where a
-whole browser feature can be verified end to end without racing or sleeping.**
-
-What is left is the rest of the step vocabulary. Read "What this cannot do yet" before promising anyone a
-walkthrough.
+**The CALL surface and the STEP vocabulary are BOTH COMPLETE.** Every call and all 23 closed step verbs
+are built, tested, warded, and driven by hand. Every call routes, `look` reads a page and mints element-bound
+refs, `seed` runs a recipe, `until` waits on asynchronous reactions, and `snapshot` / `reset` provide
+deterministic state restore points. A session can verify every browser and browserless feature end-to-end.
 
 ---
 

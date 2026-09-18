@@ -19,7 +19,6 @@
  */
 
 import { cp, readdir } from 'fs/promises';
-import { join } from 'path';
 import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
 
 export const fsCpAdapter = async ({
@@ -37,7 +36,7 @@ export const fsCpAdapter = async ({
     entries
       .filter((entry) => entry !== excludeName)
       .map(async (entry) =>
-        cp(join(sourcePath, entry), join(destinationPath, entry), {
+        cp(`${String(sourcePath)}/${entry}`, `${String(destinationPath)}/${entry}`, {
           recursive: true,
           force: true,
         }),

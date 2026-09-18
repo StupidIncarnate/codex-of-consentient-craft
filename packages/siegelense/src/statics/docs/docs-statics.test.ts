@@ -114,9 +114,9 @@ describe('docsStatics', () => {
       ]);
     });
 
-    it('VALID: {attacking} => marks health and snapshot as built while reset remains unbuilt', () => {
+    it('VALID: {attacking} => marks health, reset and snapshot as built', () => {
       expect(docsStatics.scopes.attacking.sections[0].lines[0]).toBe(
-        'snapshot is BUILT; reset is NOT BUILT YET. Nothing returns an instance to a known starting point. health is BUILT.',
+        'reset and snapshot are both BUILT. health is BUILT.',
       );
     });
 
@@ -126,9 +126,9 @@ describe('docsStatics', () => {
       );
     });
 
-    it('VALID: {planning} => names the twenty-two built verbs and marks every other one', () => {
+    it('VALID: {planning} => names the twenty-three built verbs and marks every other one', () => {
       expect(docsStatics.scopes.planning.sections[5].lines[0]).toBe(
-        'Twenty-two step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request, before, file, storage, paste, hold, video and snapshot. Every other verb in the design is NOT BUILT YET.',
+        'Twenty-three step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request, before, file, storage, paste, hold, video, snapshot and reset. Every other verb in the design is NOT BUILT YET.',
       );
     });
 

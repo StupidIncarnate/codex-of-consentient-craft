@@ -142,6 +142,21 @@ describe('browserSessionContract', () => {
       expect(mockReadStorage).toHaveBeenCalledWith({ prefix: 'dm-' });
     });
 
+    it('VALID: {} => clearStorage resolves by default', async () => {
+      const session = BrowserSessionStub();
+
+      await expect(session.clearStorage()).resolves.toBe(undefined);
+    });
+
+    it('VALID: {clearStorage: mock} => clearStorage uses the handed-in implementation', async () => {
+      const mockClearStorage = jest.fn().mockResolvedValue(undefined);
+      const session = BrowserSessionStub({ clearStorage: mockClearStorage });
+
+      await session.clearStorage();
+
+      expect(mockClearStorage).toHaveBeenCalledTimes(1);
+    });
+
     it('VALID: {} => pasteMatch resolves by default', async () => {
       const session = BrowserSessionStub();
 

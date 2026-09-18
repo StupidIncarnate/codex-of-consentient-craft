@@ -59,6 +59,7 @@ import { untilConsolePatternContract } from '../until-console-pattern/until-cons
 import { untilFilePathContract } from '../until-file-path/until-file-path-contract';
 import { untilResponseContract } from '../until-response/until-response-contract';
 import { snapshotNameContract } from '../snapshot-name/snapshot-name-contract';
+import { resetLevelContract } from '../reset-level/reset-level-contract';
 import { videoActionContract } from '../video-action/video-action-contract';
 
 const HANDLE_MESSAGE =
@@ -319,6 +320,16 @@ export const stepContract = z
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })
       .strict(),
+    z
+      .object({
+        step: z.literal('reset'),
+        level: resetLevelContract.default('state'),
+        to: snapshotNameContract.nullable().default(null),
+        reseed: contentTextContract.nullable().default(null),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
   ])
   // `.refine()` returns a ZodEffects and `z.discriminatedUnion` accepts only ZodObjects, so the
   // cross-field handle rule rides the UNION rather than the two members it governs. It reads the
@@ -326,6 +337,17 @@ export const stepContract = z
   // against a rule about handles. `until`'s own exactly-one-condition rule rides the same union
   // for the identical reason.
   .superRefine((step, context) => {
+    if (step.step === 'reset') {
+      if (step.level === 'state' && step.to === null) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'a reset step with level "state" requires an explicit "to" snapshot name',
+          path: ['to'],
+        });
+      }
+      return;
+    }
+
     if (step.step === 'click' || step.step === 'type') {
       if ((step.target === null) === (step.ref === null)) {
         context.addIssue({
