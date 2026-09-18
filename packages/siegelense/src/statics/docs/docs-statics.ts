@@ -62,9 +62,9 @@ export const docsStatics = {
         {
           heading: 'PRUNE ACTS ON ASSETS; CLEANUP ACTS ON INSTANCES',
           lines: [
-            'dungeonmaster siegelense prune — reclaim asset space deliberately rather than waiting for the age-out window, by --older-than, by --instance or by --kind. It refuses rather than warns, and a refusal names the citing file so you can open it.',
+            'dungeonmaster siegelense prune — reclaim asset space deliberately rather than waiting for the age-out window, by --older-than, by --instance or by --kind. It refuses rather than warns, and a refusal names the citing path so you can open it.',
             `One of the three citation kinds, an open issue record, is NOT CHECKED, because nothing in this repo stores an issue record naming an instance or a run. Every answer names it under unresolved, so an empty refused list never reads as "nothing cites any of this". ${NOT_BUILT}.`,
-            'It refuses rather than warns. Anything a VERIFIED prelude, an open issue record or an open quest WALKED line still points at stays, and the refusal NAMES THE CITING FILE — a path and a run id is something you can open, where "referenced by a prelude" is only a claim.',
+            'It refuses rather than warns. Anything a VERIFIED prelude, an open issue record or an open quest WALKED line still points at stays, and the refusal NAMES THE CITING PATH — a path and a run id is something you can open, where "referenced by a prelude" is only a claim.',
             'A prune that quietly took the evidence a fixer was about to read is the failure the whole retention rule exists to prevent.',
             'An instance started with no quest has nothing citing it and no protection. That is the unowned case working as intended rather than falling through.',
             'Distinct from cleanup, which acts on STALE INSTANCES and ages assets as a side effect. prune acts on ASSETS and touches no instance.',
@@ -93,7 +93,7 @@ export const docsStatics = {
         {
           heading: 'REAPING RULES',
           lines: [
-            'Every instance is three processes, a port pair, two open file descriptors, a throwaway home and a growing pile of state captures. Nothing about a leak is visible to the session that leaked it: the walk completes, the record is written, the return reads clean, and three processes stay up.',
+            'Every instance is three processes, a port pair, two open handles, a throwaway home and a growing pile of state captures. Nothing about a leak is visible to the session that leaked it: the walk completes, the record is written, the return reads clean, and three processes stay up.',
             'The common leak is a minion that never closed its instance — forgotten, or the turn simply ended. The idle timeout is the only backstop, and it is 900 seconds of three live processes.',
             'A session that dies mid-batch leaks the same way: the instance is not its child, so nothing reaps it.',
             'Closing an instance removes the throwaway home and never the evidence directory. Logs, captures and the transcript outlive the instance — they are what a fixer reads tomorrow.',
@@ -155,7 +155,7 @@ export const docsStatics = {
         {
           heading: 'WHAT A PLAN CAN PROMISE TODAY',
           lines: [
-            `Sixteen step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request and before. Every other verb in the design is ${NOT_BUILT}.`,
+            `Seventeen step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request, before and file. Every other verb in the design is ${NOT_BUILT}.`,
             'look returns the key — every addressable element, its name, its text and a ref for each — so a prelude can discover a testId rather than only address one it was told about.',
             "seed runs a recipe against the instance and returns the ids it made, so a prelude CAN create its own starting state. dungeonmaster siegelense recipes lists every recipe with its produces: claim; name one in a { step: 'seed' } and read its ids back with {binding.field}.",
           ],

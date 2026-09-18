@@ -60,3 +60,4 @@ export * from './src/brokers/status/read/status-read-broker';
 
 export * from './src/brokers/step/request/step-request-broker';
 export * from './src/brokers/step/before/step-before-broker';
+export * from './src/brokers/step/file/step-file-broker';

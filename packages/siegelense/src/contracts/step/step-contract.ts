@@ -50,6 +50,7 @@ import { refContract } from '../ref/ref-contract';
 import { selectorContract } from '../selector/selector-contract';
 import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-statics';
 import { stepExpectationContract } from '../step-expectation/step-expectation-contract';
+import { stepFilePathContract } from '../step-file-path/step-file-path-contract';
 import { stepStatics } from '../../statics/step/step-statics';
 import { stepPathContract } from '../step-path/step-path-contract';
 import { untilConsolePatternContract } from '../until-console-pattern/until-console-pattern-contract';
@@ -243,6 +244,14 @@ export const stepContract = z
       .object({
         step: z.literal('before'),
         source: contentTextContract,
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('file'),
+        path: stepFilePathContract,
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })

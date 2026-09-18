@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
 import { BoxReadingStub } from '../../../contracts/box-reading/box-reading.stub';
 import { DomReadingStub } from '../../../contracts/dom-reading/dom-reading.stub';
@@ -14,6 +14,7 @@ import { stepBeforeBrokerProxy } from '../before/step-before-broker.proxy';
 import { stepClickBrokerProxy } from '../click/step-click-broker.proxy';
 import { stepDomBrokerProxy } from '../dom/step-dom-broker.proxy';
 import { stepEvalSourceBrokerProxy } from '../eval-source/step-eval-source-broker.proxy';
+import { stepFileBrokerProxy } from '../file/step-file-broker.proxy';
 import { stepGotoBrokerProxy } from '../goto/step-goto-broker.proxy';
 import { stepHealthBrokerProxy } from '../health/step-health-broker.proxy';
 import { stepKeyBrokerProxy } from '../key/step-key-broker.proxy';
@@ -53,6 +54,8 @@ export const runVerbLayerBrokerProxy = (): {
     headers?: Record<PropertyKey, unknown>;
     body?: unknown;
   }) => void;
+  setupFileExists: (params: { filePath: AbsoluteFilePath; content: string }) => void;
+  setupFileNotFound: (params: { filePath: AbsoluteFilePath }) => void;
 } => {
   // Constructed for their own default behavior only to satisfy enforce-proxy-child-creation — this
   // proxy builds its own BrowserSession scenarios directly (the real boundary every child broker
@@ -70,6 +73,7 @@ export const runVerbLayerBrokerProxy = (): {
   stepLookBrokerProxy();
   stepResizeBrokerProxy();
   const requestProxy = stepRequestBrokerProxy();
+  const fileProxy = stepFileBrokerProxy();
   stepScreenshotBrokerProxy();
   stepTargetResolveBrokerProxy();
   stepTypeBrokerProxy();
@@ -177,6 +181,20 @@ export const runVerbLayerBrokerProxy = (): {
         ...(headers === undefined ? {} : { headers }),
         ...(body === undefined ? {} : { body }),
       });
+    },
+
+    setupFileExists: ({
+      filePath,
+      content,
+    }: {
+      filePath: AbsoluteFilePath;
+      content: string;
+    }): void => {
+      fileProxy.setupFileExists({ filePath, content });
+    },
+
+    setupFileNotFound: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+      fileProxy.setupFileNotFound({ filePath });
     },
   };
 };

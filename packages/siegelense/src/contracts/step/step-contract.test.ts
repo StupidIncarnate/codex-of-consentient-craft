@@ -23,6 +23,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'resize', width: 1280, height: 720 }),
   StepStub({ step: 'request', path: '/api/guilds' }),
   StepStub({ step: 'before', source: ContentTextStub() }),
+  StepStub({ step: 'file' }),
 ];
 
 describe('stepContract', () => {
@@ -1041,6 +1042,64 @@ describe('stepContract', () => {
         stepContract.parse({
           step: 'before',
           source: 'window.__injected = true;',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+  });
+
+  describe('file member', () => {
+    it('VALID: {step: file, path: "..."} => parses with null node and ok expect', () => {
+      const result = stepContract.parse({ step: 'file', path: 'guilds/g1/quests/q1/quest.json' });
+
+      expect(result).toStrictEqual({
+        step: 'file',
+        path: 'guilds/g1/quests/q1/quest.json',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: file, full options} => parses with custom node and expect', () => {
+      const result = stepContract.parse({
+        step: 'file',
+        path: 'guilds/g1/quests/q1/quest.json',
+        node: 'quest-file',
+        expect: 'error',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'file',
+        path: 'guilds/g1/quests/q1/quest.json',
+        node: 'quest-file',
+        expect: 'error',
+      });
+    });
+
+    it('VALID: {step: file} => StepStub builds valid file default member', () => {
+      const result = StepStub({ step: 'file' });
+
+      expect(result).toStrictEqual({
+        step: 'file',
+        path: 'guilds/g1/quests/q1/quest.json',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: file, missing path} => throws for missing path', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'file',
+        } as never),
+      ).toThrow(/Required/u);
+    });
+
+    it('INVALID: {step: file, +target} => throws naming the stray key, because file is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'file',
+          path: 'guilds/g1/quests/q1/quest.json',
           target: '[data-testid="X"]',
         } as never),
       ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);

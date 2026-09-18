@@ -21,6 +21,7 @@ describe('stepStatics', () => {
           'resize',
           'request',
           'before',
+          'file',
         ],
         acting: ['goto', 'click', 'type', 'key', 'resize'],
         capturing: ['goto', 'click', 'type', 'look', 'key', 'health', 'resize'],
@@ -161,7 +162,7 @@ describe('stepStatics', () => {
     expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type']);
   });
 
-  it('VALID: {verbs.all} => ends with before, the sixteenth verb', () => {
+  it('VALID: {verbs.all} => ends with file, the seventeenth verb', () => {
     expect(stepStatics.verbs.all).toStrictEqual([
       'goto',
       'waitFor',
@@ -179,6 +180,7 @@ describe('stepStatics', () => {
       'resize',
       'request',
       'before',
+      'file',
     ]);
   });
 });

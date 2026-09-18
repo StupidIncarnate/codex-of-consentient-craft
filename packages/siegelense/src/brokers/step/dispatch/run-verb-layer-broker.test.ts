@@ -1,6 +1,7 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 import { SelectorStub } from '../../../contracts/selector/selector.stub';
+import { StepFilePathStub } from '../../../contracts/step-file-path/step-file-path.stub';
 import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
@@ -314,6 +315,34 @@ describe('runVerbLayerBroker', () => {
       });
 
       expect(reading).toBe('installed init script (15 chars)');
+    });
+  });
+
+  describe('a file step', () => {
+    it('VALID: {file, browserless lane} => routes to stepFileBroker and returns file content', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.browserlessLane();
+      const step = StepStub({
+        step: 'file',
+        path: StepFilePathStub({ value: 'api-server.log' }),
+      });
+      const index = StepIndexStub({ value: 1 });
+
+      proxy.setupFileExists({
+        filePath: AbsoluteFilePathStub({ value: `${lane.homePath}/api-server.log` }),
+        content: 'server listening on port 3000',
+      });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('server listening on port 3000');
     });
   });
 });

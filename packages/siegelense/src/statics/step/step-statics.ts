@@ -36,6 +36,7 @@ export const stepStatics = {
       'resize',
       'request',
       'before',
+      'file',
     ],
     // goto, click, type, key and resize CHANGE the page. `look` does not, which is why it is not here — but it
     // still captures, through `capturing` below.

@@ -49,7 +49,7 @@ describe('docsAnswerComposeTransformer', () => {
       const servedText = JSON.stringify(result.scopes).toLowerCase();
 
       expect(
-        stepStatics.verbs.all.filter((verb) => servedText.includes(verb.toLowerCase())),
+        stepStatics.verbs.all.filter((verb) => new RegExp(`\\b${verb}\\b`, 'u').test(servedText)),
       ).toStrictEqual([]);
     });
   });

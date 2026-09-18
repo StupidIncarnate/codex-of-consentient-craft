@@ -39,6 +39,7 @@ import { stepBeforeBroker } from '../before/step-before-broker';
 import { stepClickBroker } from '../click/step-click-broker';
 import { stepDomBroker } from '../dom/step-dom-broker';
 import { stepEvalSourceBroker } from '../eval-source/step-eval-source-broker';
+import { stepFileBroker } from '../file/step-file-broker';
 import { stepGotoBroker } from '../goto/step-goto-broker';
 import { stepHealthBroker } from '../health/step-health-broker';
 import { stepKeyBroker } from '../key/step-key-broker';
@@ -101,6 +102,13 @@ export const runVerbLayerBroker = async ({
   // identically against browserless instances.
   if (step.step === 'request') {
     return stepRequestBroker({ lane, step });
+  }
+
+  // `file` routes here for the same reason `seed` and `request` do: it inspects or reads files
+  // on disk in `lane.homePath` and touches no page at all, so it runs identically against
+  // browserless instances.
+  if (step.step === 'file') {
+    return stepFileBroker({ lane, path: step.path });
   }
 
   const { browser: session } = lane;

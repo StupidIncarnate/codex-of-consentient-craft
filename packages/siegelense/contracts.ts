@@ -212,3 +212,6 @@ export * from './src/contracts/http-method/http-method.stub';
 
 export * from './src/contracts/http-request-reading/http-request-reading-contract';
 export * from './src/contracts/http-request-reading/http-request-reading.stub';
+
+export * from './src/contracts/step-file-path/step-file-path-contract';
+export * from './src/contracts/step-file-path/step-file-path.stub';

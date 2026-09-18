@@ -2577,7 +2577,7 @@ kill { instance: 'inst_7f3a' }
 
 ### Steps that exist today and are kept
 
-> **Status: PARTIAL** — nine of the thirteen ship: `goto`, `waitFor`, `click`, `type`, `screenshot`, `eval`, `box`, `dom`, `key` — confirmed exhaustively in `step-statics.ts`'s `verbs.all` (12 verbs total with `look`, `seed`, `until`); ambiguity throws; `end` is gone, replaced by the instance-level `kill`; `box { ref }` delivers exact element geometry and viewport visibility off element-bound refs; `dom` delivers structured element projection with row/text caps; `key` delivers keyboard input via `page.keyboard.press` and focus tracking (`document.activeElement`) · NOT YET: `paste`, `storage`, `file`
+> **Status: PARTIAL** — ten of the thirteen ship: `goto`, `waitFor`, `click`, `type`, `screenshot`, `eval`, `box`, `dom`, `key`, `file` — confirmed exhaustively in `step-statics.ts`'s `verbs.all` (13 kept verbs with `file`, 17 verbs total with `look`, `seed`, `until`, `health`, `resize`, `request`, `before`); ambiguity throws; `end` is gone, replaced by the instance-level `kill`; `box { ref }` delivers exact element geometry and viewport visibility off element-bound refs; `dom` delivers structured element projection with row/text caps; `key` delivers keyboard input via `page.keyboard.press` and focus tracking (`document.activeElement`); `file` reads a home-relative path from the lane's throwaway home or evidence directory with path traversal guard and `StepFileNotFoundError` on missing files · NOT YET: `paste`, `storage`
 
 All keep their behaviour except that ambiguity now throws.
 

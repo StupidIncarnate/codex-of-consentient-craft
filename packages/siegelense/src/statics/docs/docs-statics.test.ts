@@ -29,7 +29,9 @@ describe('docsStatics', () => {
       const operatingText = JSON.stringify(docsStatics.scopes.operating).toLowerCase();
 
       expect(
-        stepStatics.verbs.all.filter((verb) => operatingText.includes(verb.toLowerCase())),
+        stepStatics.verbs.all.filter((verb) =>
+          new RegExp(`\\b${verb}\\b`, 'u').test(operatingText),
+        ),
       ).toStrictEqual([]);
     });
 
@@ -124,9 +126,9 @@ describe('docsStatics', () => {
       );
     });
 
-    it('VALID: {planning} => names the sixteen built verbs and marks every other one', () => {
+    it('VALID: {planning} => names the seventeen built verbs and marks every other one', () => {
       expect(docsStatics.scopes.planning.sections[5].lines[0]).toBe(
-        'Sixteen step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request and before. Every other verb in the design is NOT BUILT YET.',
+        'Seventeen step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request, before and file. Every other verb in the design is NOT BUILT YET.',
       );
     });
 
