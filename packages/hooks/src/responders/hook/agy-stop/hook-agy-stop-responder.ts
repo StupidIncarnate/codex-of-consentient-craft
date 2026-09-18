@@ -1,6 +1,7 @@
 /**
- * PURPOSE: Responds to Antigravity Stop hook events by verifying no background tasks are running
- * and work-item agents have called signal-back before stopping
+ * PURPOSE: Responds to Antigravity Stop hook events by verifying work-item agents have called
+ * signal-back, and refusing stops when uncompleted background tasks remain unless the agent
+ * is waiting on child subagents
  *
  * USAGE:
  * const result = await HookAgyStopResponder({ hookInput: parsedStdin });
@@ -28,18 +29,16 @@ export const HookAgyStopResponder = async ({
     return agyStopDecisionContract.parse({ decision: 'stop' });
   }
 
-  const { fullyIdle, transcriptPath } = parseResult.data;
+  const { fullyIdle, transcriptPath, executionNum } = parseResult.data;
 
-  // If there are still background tasks running, block stop and instruct agent to wait or shut down
-  if (fullyIdle === false) {
-    return agyStopDecisionContract.parse({
-      decision: 'continue',
-      reason: subagentStopBlockMessageStatics.backgroundTaskMessage,
-    });
-  }
-
-  // If no transcript path, allow stop
+  // If no transcript path, allow stop if idle, or continue if background tasks running
   if (!transcriptPath) {
+    if (fullyIdle === false) {
+      return agyStopDecisionContract.parse({
+        decision: 'continue',
+        reason: subagentStopBlockMessageStatics.backgroundTaskMessage,
+      });
+    }
     return agyStopDecisionContract.parse({ decision: 'stop' });
   }
 
@@ -48,16 +47,34 @@ export const HookAgyStopResponder = async ({
   }).catch(() => null);
 
   if (transcript === null) {
+    if (fullyIdle === false) {
+      return agyStopDecisionContract.parse({
+        decision: 'continue',
+        reason: subagentStopBlockMessageStatics.backgroundTaskMessage,
+      });
+    }
     return agyStopDecisionContract.parse({ decision: 'stop' });
   }
 
   const invocations = agyTranscriptToolInvocationsExtractTransformer({ transcript });
-  const needsBlock = subagentStopNeedsBlockGuard({ invocations });
+  const stopHookActive = typeof executionNum === 'number' && executionNum > 1;
+  const needsBlock = subagentStopNeedsBlockGuard({ invocations, stopHookActive });
 
   if (needsBlock) {
     return agyStopDecisionContract.parse({
       decision: 'continue',
       reason: subagentStopBlockMessageStatics.blockMessage,
+    });
+  }
+
+  // If fullyIdle is false, block stop ONLY when the agent is NOT waiting on child subagents.
+  // Child subagents run asynchronously in the background, and the parent agent must end
+  // its turn to await reactive message delivery.
+  const hasSubagents = invocations.some((invocation) => invocation.name === 'invoke_subagent');
+  if (fullyIdle === false && !hasSubagents) {
+    return agyStopDecisionContract.parse({
+      decision: 'continue',
+      reason: subagentStopBlockMessageStatics.backgroundTaskMessage,
     });
   }
 
