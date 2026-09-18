@@ -49,6 +49,23 @@ describe('runVerbLayerBroker', () => {
       expect(callOrder()).toStrictEqual(['countMatches', 'fillMatch']);
     });
 
+    it('VALID: {paste, one match} => calls countMatches before pasteMatch', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane, callOrder } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'paste', target: SelectorStub(), value: ContentTextStub() });
+
+      await runVerbLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub(),
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(callOrder()).toStrictEqual(['countMatches', 'pasteMatch']);
+    });
+
     it('VALID: {waitFor, one match} => calls countMatches before waitForMatch', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane, callOrder } = proxy.sessionWithOneMatch();
@@ -366,6 +383,30 @@ describe('runVerbLayerBroker', () => {
       });
 
       expect(reading).toBe('{"origin":"http://localhost:3000","local":{},"session":{}}');
+    });
+  });
+
+  describe('a paste step', () => {
+    it('VALID: {paste} => routes to stepPasteBroker and returns paste reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({
+        step: 'paste',
+        target: SelectorStub({ value: '[data-testid="INPUT"]' }),
+        value: ContentTextStub({ value: 'hello' }),
+      });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('pasted "hello" into [data-testid="INPUT"]');
     });
   });
 });

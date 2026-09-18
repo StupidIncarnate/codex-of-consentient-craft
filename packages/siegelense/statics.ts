@@ -20,4 +20,5 @@ export * from './src/statics/request/request-statics';
 export * from './src/statics/before/before-statics';
 export * from './src/statics/file/file-statics';
 export * from './src/statics/storage/storage-statics';
+export * from './src/statics/paste/paste-statics';
 export * from './src/statics/step/step-statics';

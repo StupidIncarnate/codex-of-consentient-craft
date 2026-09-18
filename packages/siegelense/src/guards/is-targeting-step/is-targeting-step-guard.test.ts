@@ -22,6 +22,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'health' }),
   StepStub({ step: 'resize', width: 1280, height: 720 }),
   StepStub({ step: 'storage' }),
+  StepStub({ step: 'paste', target: SelectorStub(), value: ContentTextStub() }),
 ];
 
 type StepVerbLiteral = ReturnType<typeof StepStub>['step'];

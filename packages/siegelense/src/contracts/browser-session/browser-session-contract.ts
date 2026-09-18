@@ -111,6 +111,19 @@ export type BrowserSession = z.infer<typeof browserSessionContract> & {
     state: string;
     timeoutMs: number;
   }) => Promise<void>;
+  pasteMatch: (params: {
+    target: string;
+    within?: string;
+    filePath: string | null;
+    value: string | null;
+    timeoutMs: number;
+  }) => Promise<void>;
+  pasteRef: (params: {
+    ref: number;
+    filePath: string | null;
+    value: string | null;
+    timeoutMs: number;
+  }) => Promise<void>;
   // `until { predicate }` — a page EXPRESSION rather than a locator state, backed by
   // `page.waitForFunction`. No `within`: a predicate is arbitrary JS, not a selector, so scoping it
   // to a region is the expression's own job, not this call's.

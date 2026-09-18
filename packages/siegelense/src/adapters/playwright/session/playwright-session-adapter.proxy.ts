@@ -12,6 +12,7 @@ import { rootCheckLayerAdapterProxy } from './root-check-layer-adapter.proxy';
 import { viewportSetLayerAdapterProxy } from './viewport-set-layer-adapter.proxy';
 import { initScriptAddLayerAdapterProxy } from './init-script-add-layer-adapter.proxy';
 import { storageReadLayerAdapterProxy } from './storage-read-layer-adapter.proxy';
+import { pasteLayerAdapterProxy } from './paste-layer-adapter.proxy';
 import { RawDomReadingStub } from '../../../contracts/raw-dom-reading/raw-dom-reading.stub';
 
 // The one thing this proxy mocks over the npm boundary: `chromium.launch`, staged on its launch
@@ -57,8 +58,10 @@ export const playwrightSessionAdapterProxy = (): {
   getScreenshotCalls: () => readonly unknown[];
   getSetViewportSizeCalls: () => readonly unknown[];
   getClickCalls: () => readonly unknown[];
+  getFocusCalls: () => readonly unknown[];
   getFillCalls: () => readonly unknown[];
   getKeyboardPressCalls: () => readonly unknown[];
+  getClipboardWrites: () => readonly unknown[];
   getWaitForCalls: () => readonly unknown[];
   getWaitForFunctionCalls: () => readonly unknown[];
   setWaitForFunctionRejects: () => void;
@@ -98,6 +101,7 @@ export const playwrightSessionAdapterProxy = (): {
   viewportSetLayerAdapterProxy();
   initScriptAddLayerAdapterProxy();
   storageReadLayerAdapterProxy();
+  pasteLayerAdapterProxy();
 
   registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(FIXED_EPOCH_MS);
 
@@ -129,7 +133,9 @@ export const playwrightSessionAdapterProxy = (): {
     screenshotCalls: [] as unknown[],
     setViewportSizeCalls: [] as unknown[],
     clickCalls: [] as unknown[],
+    focusCalls: [] as unknown[],
     fillCalls: [] as unknown[],
+    clipboardWrites: [] as unknown[],
     waitForCalls: [] as unknown[],
     waitForFunctionCalls: [] as unknown[],
     waitForFunctionRejects: false,
@@ -146,12 +152,17 @@ export const playwrightSessionAdapterProxy = (): {
   }): {
     count: () => Promise<unknown>;
     click: (options: unknown) => Promise<undefined>;
+    focus: (options: unknown) => Promise<undefined>;
     fill: (value: unknown, options: unknown) => Promise<undefined>;
     waitFor: (options: unknown) => Promise<undefined>;
   } => ({
     count: async (): Promise<unknown> => Promise.resolve(state.locatorCounts.get(selector) ?? 0),
     click: async (options: unknown): Promise<undefined> => {
       state.clickCalls.push({ selector, options });
+      return Promise.resolve(undefined);
+    },
+    focus: async (options: unknown): Promise<undefined> => {
+      state.focusCalls.push({ selector, options });
       return Promise.resolve(undefined);
     },
     fill: async (value: unknown, options: unknown): Promise<undefined> => {
@@ -190,6 +201,10 @@ export const playwrightSessionAdapterProxy = (): {
               session: {},
             },
           );
+        }
+        if (String(pageFunction).includes('clipboard')) {
+          state.clipboardWrites.push(arg);
+          return Promise.resolve(undefined);
         }
         return (pageFunction as (value: unknown) => unknown)(arg);
       }
@@ -315,8 +330,10 @@ export const playwrightSessionAdapterProxy = (): {
     getScreenshotCalls: (): readonly unknown[] => state.screenshotCalls,
     getSetViewportSizeCalls: (): readonly unknown[] => state.setViewportSizeCalls,
     getClickCalls: (): readonly unknown[] => state.clickCalls,
+    getFocusCalls: (): readonly unknown[] => state.focusCalls,
     getFillCalls: (): readonly unknown[] => state.fillCalls,
     getKeyboardPressCalls: (): readonly unknown[] => state.keyboardPressCalls,
+    getClipboardWrites: (): readonly unknown[] => state.clipboardWrites,
     getWaitForCalls: (): readonly unknown[] => state.waitForCalls,
     getWaitForFunctionCalls: (): readonly unknown[] => state.waitForFunctionCalls,
     setWaitForFunctionRejects: (): void => {

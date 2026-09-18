@@ -38,22 +38,23 @@ export const stepStatics = {
       'before',
       'file',
       'storage',
+      'paste',
     ],
-    // goto, click, type, key and resize CHANGE the page. `look` does not, which is why it is not here — but it
+    // goto, click, type, key, resize and paste CHANGE the page. `look` does not, which is why it is not here — but it
     // still captures, through `capturing` below.
-    acting: ['goto', 'click', 'type', 'key', 'resize'],
+    acting: ['goto', 'click', 'type', 'key', 'resize', 'paste'],
     // Which verbs resolve a shot path, and therefore capture. `acting` plus `look`: "Returns the
     // KEY inline and writes the SHOT, returning its path" (siegelense-tooling.md line 2587). Kept
     // apart from `acting` rather than folded into it, because `acting` also answers "did this step
     // change the page", and a reading step that answered yes to that would be a lie in every place
     // that asks.
-    capturing: ['goto', 'click', 'type', 'look', 'key', 'health', 'resize'],
+    capturing: ['goto', 'click', 'type', 'look', 'key', 'health', 'resize', 'paste'],
     // The members whose step carries a `target` selector or a `ref`, so each is subject to the
     // ambiguity rule: one match proceeds, AMBIGUOUS throws carrying the candidates, NO MATCH throws
     // naming the near misses (siegelense-tooling.md line 2109). A `ref` can never be ambiguous — it
     // binds to one element — but it resolves through the same door, which is what keeps one place
     // deciding whether a step may act at all.
-    targeting: ['waitFor', 'click', 'type'],
+    targeting: ['waitFor', 'click', 'type', 'paste'],
     // Which verbs act on or read a live Playwright page, so each errors by NAME against a
     // browserless spec rather than answering an empty key (siegelense-tooling.md lines 1613,
     // 2128-2130). `seed` is the first verb that is NOT one: it touches disk and HTTP and never a
@@ -78,6 +79,7 @@ export const stepStatics = {
       'resize',
       'before',
       'storage',
+      'paste',
     ],
   },
   defaults: {

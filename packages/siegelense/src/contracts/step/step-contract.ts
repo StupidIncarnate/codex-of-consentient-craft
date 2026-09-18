@@ -268,6 +268,19 @@ export const stepContract = z
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })
       .strict(),
+    z
+      .object({
+        step: z.literal('paste'),
+        target: selectorContract.nullable().default(null),
+        within: selectorContract.nullable().default(null),
+        ref: refContract.nullable().default(null),
+        filePath: z.string().brand<'PasteFilePath'>().nullable().default(null),
+        value: contentTextContract.nullable().default(null),
+        timeoutMs: timeoutMsContract.nullable().default(null),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
   ])
   // `.refine()` returns a ZodEffects and `z.discriminatedUnion` accepts only ZodObjects, so the
   // cross-field handle rule rides the UNION rather than the two members it governs. It reads the
@@ -281,6 +294,24 @@ export const stepContract = z
           code: z.ZodIssueCode.custom,
           message: HANDLE_MESSAGE,
           path: ['target'],
+        });
+      }
+      return;
+    }
+
+    if (step.step === 'paste') {
+      if (step.target === null && step.ref === null) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'a paste step requires at least one target handle: target or ref',
+          path: ['target'],
+        });
+      }
+      if (step.filePath === null && step.value === null) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'a paste step requires at least one payload: filePath or value',
+          path: ['value'],
         });
       }
       return;

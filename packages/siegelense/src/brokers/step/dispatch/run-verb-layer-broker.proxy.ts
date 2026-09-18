@@ -24,6 +24,7 @@ import { stepResizeBrokerProxy } from '../resize/step-resize-broker.proxy';
 import { stepScreenshotBrokerProxy } from '../screenshot/step-screenshot-broker.proxy';
 import { stepSeedBrokerProxy } from '../seed/step-seed-broker.proxy';
 import { stepStorageBrokerProxy } from '../storage/step-storage-broker.proxy';
+import { stepPasteBrokerProxy } from '../paste/step-paste-broker.proxy';
 import { stepTargetResolveBrokerProxy } from '../target-resolve/step-target-resolve-broker.proxy';
 import { stepTypeBrokerProxy } from '../type/step-type-broker.proxy';
 import { stepUntilBrokerProxy } from '../until/step-until-broker.proxy';
@@ -77,6 +78,7 @@ export const runVerbLayerBrokerProxy = (): {
   const fileProxy = stepFileBrokerProxy();
   stepScreenshotBrokerProxy();
   stepStorageBrokerProxy();
+  stepPasteBrokerProxy();
   stepTargetResolveBrokerProxy();
   stepTypeBrokerProxy();
   stepUntilBrokerProxy();
@@ -103,6 +105,10 @@ export const runVerbLayerBrokerProxy = (): {
         }),
         fillMatch: jest.fn().mockImplementation(async () => {
           order.push(contentTextContract.parse('fillMatch'));
+          return Promise.resolve();
+        }),
+        pasteMatch: jest.fn().mockImplementation(async () => {
+          order.push(contentTextContract.parse('pasteMatch'));
           return Promise.resolve();
         }),
         waitForMatch: jest.fn().mockImplementation(async () => {
@@ -136,6 +142,7 @@ export const runVerbLayerBrokerProxy = (): {
         countMatches: jest.fn().mockResolvedValue(matchCountContract.parse(TWO_MATCHES_COUNT)),
         describeMatches: jest.fn().mockResolvedValue([]),
         clickMatch: jest.fn().mockResolvedValue(undefined),
+        pasteMatch: jest.fn().mockResolvedValue(undefined),
       });
       return { lane: LaneSessionStub({ browser: session }), session };
     },

@@ -49,6 +49,7 @@ import { stepRequestBroker } from '../request/step-request-broker';
 import { stepScreenshotBroker } from '../screenshot/step-screenshot-broker';
 import { stepSeedBroker } from '../seed/step-seed-broker';
 import { stepStorageBroker } from '../storage/step-storage-broker';
+import { stepPasteBroker } from '../paste/step-paste-broker';
 import { stepTargetResolveBroker } from '../target-resolve/step-target-resolve-broker';
 import { stepTypeBroker } from '../type/step-type-broker';
 import { stepUntilBroker } from '../until/step-until-broker';
@@ -125,7 +126,10 @@ export const runVerbLayerBroker = async ({
 
   if (
     isTargetingStepGuard({ step }) &&
-    (step.step === 'waitFor' || step.step === 'click' || step.step === 'type')
+    (step.step === 'waitFor' ||
+      step.step === 'click' ||
+      step.step === 'type' ||
+      step.step === 'paste')
   ) {
     // `waitFor` takes no `ref`: `ElementHandle.waitForElementState` has no `attached`/`detached`,
     // which `locatorStateContract` carries, and a ref you already looked at is a poor subject for
@@ -168,6 +172,17 @@ export const runVerbLayerBroker = async ({
       target: step.target,
       within: step.within,
       ref: step.ref,
+      value: step.value,
+      timeoutMs: step.timeoutMs,
+    });
+  }
+  if (step.step === 'paste') {
+    return stepPasteBroker({
+      session,
+      target: step.target,
+      within: step.within,
+      ref: step.ref,
+      filePath: step.filePath,
       value: step.value,
       timeoutMs: step.timeoutMs,
     });

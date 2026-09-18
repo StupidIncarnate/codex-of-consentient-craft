@@ -63,6 +63,7 @@ import { rootCheckLayerAdapter } from './root-check-layer-adapter';
 import { viewportSetLayerAdapter } from './viewport-set-layer-adapter';
 import { initScriptAddLayerAdapter } from './init-script-add-layer-adapter';
 import { storageReadLayerAdapter } from './storage-read-layer-adapter';
+import { pasteLayerAdapter } from './paste-layer-adapter';
 
 // Re-declared locally rather than imported: `browser-session-contract.ts` keeps its own parsing
 // contracts private (leading underscore, no export) because the facade's data half is `{}` — a
@@ -497,6 +498,49 @@ export const playwrightSessionAdapter = async ({
 
     readStorage: async ({ prefix }: { prefix: string }): Promise<StorageReading> =>
       storageReadLayerAdapter({ page, prefix }),
+
+    pasteMatch: async ({
+      target,
+      within,
+      filePath,
+      value,
+      timeoutMs,
+    }: {
+      target: string;
+      within?: string;
+      filePath: string | null;
+      value: string | null;
+      timeoutMs: number;
+    }): Promise<void> => {
+      await pasteLayerAdapter({
+        page,
+        target,
+        within: within ?? null,
+        filePath,
+        value,
+        timeoutMs,
+      });
+    },
+
+    pasteRef: async ({
+      ref,
+      filePath,
+      value,
+      timeoutMs,
+    }: {
+      ref: number;
+      filePath: string | null;
+      value: string | null;
+      timeoutMs: number;
+    }): Promise<void> => {
+      await pasteLayerAdapter({
+        page,
+        ref,
+        filePath,
+        value,
+        timeoutMs,
+      });
+    },
 
     bufferLengths: (): BufferLengths => ({
       consoleLines: bufferLineCountContract.parse(consoleLines.length),

@@ -23,10 +23,11 @@ describe('stepStatics', () => {
           'before',
           'file',
           'storage',
+          'paste',
         ],
-        acting: ['goto', 'click', 'type', 'key', 'resize'],
-        capturing: ['goto', 'click', 'type', 'look', 'key', 'health', 'resize'],
-        targeting: ['waitFor', 'click', 'type'],
+        acting: ['goto', 'click', 'type', 'key', 'resize', 'paste'],
+        capturing: ['goto', 'click', 'type', 'look', 'key', 'health', 'resize', 'paste'],
+        targeting: ['waitFor', 'click', 'type', 'paste'],
         browser: [
           'goto',
           'waitFor',
@@ -42,6 +43,7 @@ describe('stepStatics', () => {
           'resize',
           'before',
           'storage',
+          'paste',
         ],
       },
       defaults: {
@@ -103,11 +105,19 @@ describe('stepStatics', () => {
       'key',
       'health',
       'resize',
+      'paste',
     ]);
   });
 
   it('VALID: {verbs.acting} => omits look, which reads the page and never changes it', () => {
-    expect(stepStatics.verbs.acting).toStrictEqual(['goto', 'click', 'type', 'key', 'resize']);
+    expect(stepStatics.verbs.acting).toStrictEqual([
+      'goto',
+      'click',
+      'type',
+      'key',
+      'resize',
+      'paste',
+    ]);
   });
 
   // `seed` is the first verb that is in `all` and in NONE of the four subsets. It touches disk and
@@ -132,11 +142,12 @@ describe('stepStatics', () => {
       'resize',
       'before',
       'storage',
+      'paste',
     ]);
   });
 
   it('VALID: {verbs.targeting} => omits seed, which resolves no element', () => {
-    expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type']);
+    expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type', 'paste']);
   });
 
   // `until` is the second verb in `all` that is in NONE of the four subsets, for a DIFFERENT
@@ -159,14 +170,15 @@ describe('stepStatics', () => {
       'resize',
       'before',
       'storage',
+      'paste',
     ]);
   });
 
   it('VALID: {verbs.targeting} => omits until, which carries no target field at all', () => {
-    expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type']);
+    expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type', 'paste']);
   });
 
-  it('VALID: {verbs.all} => ends with storage, the eighteenth verb', () => {
+  it('VALID: {verbs.all} => ends with paste, the nineteenth verb', () => {
     expect(stepStatics.verbs.all).toStrictEqual([
       'goto',
       'waitFor',
@@ -186,6 +198,7 @@ describe('stepStatics', () => {
       'before',
       'file',
       'storage',
+      'paste',
     ]);
   });
 });

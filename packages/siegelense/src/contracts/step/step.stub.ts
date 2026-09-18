@@ -140,6 +140,17 @@ const STEP_DEFAULTS = {
     node: null,
     expect: StepExpectationStub(),
   },
+  paste: {
+    step: 'paste',
+    target: SelectorStub(),
+    within: null,
+    ref: null,
+    filePath: null,
+    value: ContentTextStub(),
+    timeoutMs: null,
+    node: null,
+    expect: StepExpectationStub(),
+  },
 } as const satisfies Record<Step['step'], Record<string, unknown>>;
 
 export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
@@ -182,13 +193,17 @@ export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
                                     ? STEP_DEFAULTS.file
                                     : stepVerb === 'storage'
                                       ? STEP_DEFAULTS.storage
-                                      : STEP_DEFAULTS.click;
+                                      : stepVerb === 'paste'
+                                        ? STEP_DEFAULTS.paste
+                                        : STEP_DEFAULTS.click;
 
   // A `ref` override without a `target` override would otherwise carry click's default target in
   // beside it, and the handle rule rejects a step holding both. The stub's job is to build a VALID
   // member from a partial description, so naming a ref means naming that handle and no other.
   const handleOverridden =
-    (stepVerb === 'click' || stepVerb === 'type') && 'ref' in props && props.ref !== null;
+    (stepVerb === 'click' || stepVerb === 'type' || stepVerb === 'paste') &&
+    'ref' in props &&
+    props.ref !== null;
   const withoutTarget = handleOverridden ? { target: null } : {};
 
   // `until`'s default condition is `visible`. Overriding a DIFFERENT condition field without this
@@ -199,5 +214,15 @@ export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
     ('response' in props || 'file' in props || 'predicate' in props || 'console' in props);
   const withoutVisible = conditionOverridden ? { visible: null } : {};
 
-  return stepContract.parse({ ...base, ...withoutTarget, ...withoutVisible, ...props });
+  const payloadOverridden =
+    stepVerb === 'paste' && 'filePath' in props && props.filePath !== null && !('value' in props);
+  const withoutValue = payloadOverridden ? { value: null } : {};
+
+  return stepContract.parse({
+    ...base,
+    ...withoutTarget,
+    ...withoutVisible,
+    ...withoutValue,
+    ...props,
+  });
 };

@@ -39,6 +39,8 @@ export const BrowserSessionStub = ({
     pressKey,
     fillMatch,
     waitForMatch,
+    pasteMatch,
+    pasteRef,
     waitForPredicate,
     capture,
     evaluateSource,
@@ -75,6 +77,8 @@ export const BrowserSessionStub = ({
     pressKey: pressKey ?? (async (): Promise<KeyReading> => Promise.resolve(KeyReadingStub())),
     fillMatch: fillMatch ?? (async (): Promise<void> => Promise.resolve()),
     waitForMatch: waitForMatch ?? (async (): Promise<void> => Promise.resolve()),
+    pasteMatch: pasteMatch ?? (async (): Promise<void> => Promise.resolve()),
+    pasteRef: pasteRef ?? (async (): Promise<void> => Promise.resolve()),
     waitForPredicate: waitForPredicate ?? (async (): Promise<void> => Promise.resolve()),
     capture: capture ?? (async (): Promise<void> => Promise.resolve()),
     evaluateSource:

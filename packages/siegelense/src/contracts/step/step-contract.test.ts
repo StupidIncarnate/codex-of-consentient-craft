@@ -25,6 +25,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'before', source: ContentTextStub() }),
   StepStub({ step: 'file' }),
   StepStub({ step: 'storage' }),
+  StepStub({ step: 'paste', target: SelectorStub(), value: ContentTextStub() }),
 ];
 
 describe('stepContract', () => {
@@ -506,10 +507,86 @@ describe('stepContract', () => {
       ).toThrow(/Required/u);
     });
 
-    it('INVALID: {step: eval, name, no source} => throws for the missing eval field', () => {
+    it('VALID: {step: paste, target, value} => parses the complete paste member with value', () => {
+      const result = stepContract.parse({
+        step: 'paste',
+        target: '[data-testid="CHAT_INPUT"]',
+        value: 'test message',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'paste',
+        target: '[data-testid="CHAT_INPUT"]',
+        within: null,
+        ref: null,
+        filePath: null,
+        value: 'test message',
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: paste, ref, filePath} => parses the paste member with filePath and ref', () => {
+      const result = stepContract.parse({
+        step: 'paste',
+        ref: 14,
+        filePath: '/tmp/fixture.png',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'paste',
+        target: null,
+        within: null,
+        ref: 14,
+        filePath: '/tmp/fixture.png',
+        value: null,
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: paste, target, within, filePath, timeoutMs, node, expect} => parses full paste member', () => {
+      const result = stepContract.parse({
+        step: 'paste',
+        target: '[data-testid="CHAT_INPUT"]',
+        within: '[data-testid="PANEL"]',
+        filePath: '/tmp/image.png',
+        timeoutMs: 15000,
+        node: 'paste-node',
+        expect: 'error',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'paste',
+        target: '[data-testid="CHAT_INPUT"]',
+        within: '[data-testid="PANEL"]',
+        ref: null,
+        filePath: '/tmp/image.png',
+        value: null,
+        timeoutMs: 15000,
+        node: 'paste-node',
+        expect: 'error',
+      });
+    });
+
+    it('INVALID: {step: paste, no target and no ref} => throws validation error for missing handle', () => {
       expect(() =>
-        stepContract.parse({ step: 'eval', name: 'step1.png', node: null } as never),
-      ).toThrow(/Required/u);
+        stepContract.parse({
+          step: 'paste',
+          value: 'test message',
+        }),
+      ).toThrow(/a paste step requires at least one target handle/u);
+    });
+
+    it('INVALID: {step: paste, no filePath and no value} => throws validation error for missing payload', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'paste',
+          target: '[data-testid="CHAT_INPUT"]',
+        }),
+      ).toThrow(/a paste step requires at least one payload/u);
     });
   });
 

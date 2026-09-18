@@ -126,9 +126,9 @@ describe('docsStatics', () => {
       );
     });
 
-    it('VALID: {planning} => names the eighteen built verbs and marks every other one', () => {
+    it('VALID: {planning} => names the nineteen built verbs and marks every other one', () => {
       expect(docsStatics.scopes.planning.sections[5].lines[0]).toBe(
-        'Eighteen step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request, before, file and storage. Every other verb in the design is NOT BUILT YET.',
+        'Nineteen step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request, before, file, storage and paste. Every other verb in the design is NOT BUILT YET.',
       );
     });
 

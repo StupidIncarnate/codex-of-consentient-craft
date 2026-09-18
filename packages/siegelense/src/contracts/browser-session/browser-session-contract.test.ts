@@ -139,5 +139,73 @@ describe('browserSessionContract', () => {
       expect(mockReadStorage).toHaveBeenCalledTimes(1);
       expect(mockReadStorage).toHaveBeenCalledWith({ prefix: 'dm-' });
     });
+
+    it('VALID: {} => pasteMatch resolves by default', async () => {
+      const session = BrowserSessionStub();
+
+      await expect(
+        session.pasteMatch({
+          target: '[data-testid="INPUT"]',
+          filePath: null,
+          value: 'test',
+          timeoutMs: 1000,
+        }),
+      ).resolves.toBe(undefined);
+    });
+
+    it('VALID: {pasteMatch: mock} => pasteMatch uses the handed-in implementation', async () => {
+      const mockPasteMatch = jest.fn().mockResolvedValue(undefined);
+      const session = BrowserSessionStub({ pasteMatch: mockPasteMatch });
+
+      await session.pasteMatch({
+        target: '[data-testid="INPUT"]',
+        within: '[data-testid="PANEL"]',
+        filePath: '/tmp/f.png',
+        value: null,
+        timeoutMs: 5000,
+      });
+
+      expect(mockPasteMatch).toHaveBeenCalledTimes(1);
+      expect(mockPasteMatch).toHaveBeenCalledWith({
+        target: '[data-testid="INPUT"]',
+        within: '[data-testid="PANEL"]',
+        filePath: '/tmp/f.png',
+        value: null,
+        timeoutMs: 5000,
+      });
+    });
+
+    it('VALID: {} => pasteRef resolves by default', async () => {
+      const session = BrowserSessionStub();
+
+      await expect(
+        session.pasteRef({
+          ref: 14,
+          filePath: null,
+          value: 'test',
+          timeoutMs: 1000,
+        }),
+      ).resolves.toBe(undefined);
+    });
+
+    it('VALID: {pasteRef: mock} => pasteRef uses the handed-in implementation', async () => {
+      const mockPasteRef = jest.fn().mockResolvedValue(undefined);
+      const session = BrowserSessionStub({ pasteRef: mockPasteRef });
+
+      await session.pasteRef({
+        ref: 14,
+        filePath: '/tmp/f.png',
+        value: null,
+        timeoutMs: 5000,
+      });
+
+      expect(mockPasteRef).toHaveBeenCalledTimes(1);
+      expect(mockPasteRef).toHaveBeenCalledWith({
+        ref: 14,
+        filePath: '/tmp/f.png',
+        value: null,
+        timeoutMs: 5000,
+      });
+    });
   });
 });

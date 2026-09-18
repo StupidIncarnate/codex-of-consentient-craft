@@ -830,4 +830,51 @@ describe('playwrightSessionAdapter', () => {
       });
     });
   });
+
+  describe('pasteMatch()', () => {
+    it('VALID: {target: "[data-testid=\\"INPUT\\"]", value: "test"} => focuses locator, writes clipboard, and presses ControlOrMeta+V', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.pasteMatch({
+        target: '[data-testid="INPUT"]',
+        filePath: null,
+        value: 'test',
+        timeoutMs: 5000,
+      });
+
+      expect(proxy.getFocusCalls()).toStrictEqual([
+        { selector: '[data-testid="INPUT"]', options: { timeout: 5000 } },
+      ]);
+      expect(proxy.getKeyboardPressCalls()).toStrictEqual(['ControlOrMeta+V']);
+      expect(proxy.getClipboardWrites()).toStrictEqual(['test']);
+    });
+  });
+
+  describe('pasteRef()', () => {
+    it('VALID: {ref: 7, value: "test"} => stamps ref, focuses locator, unstamps, writes clipboard, and presses ControlOrMeta+V', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.pasteRef({
+        ref: 7,
+        filePath: null,
+        value: 'test',
+        timeoutMs: 4000,
+      });
+
+      expect(proxy.getFocusCalls()).toStrictEqual([
+        { selector: '[siege-target]', options: { timeout: 4000 } },
+      ]);
+      expect(proxy.getStampCalls()).toStrictEqual(['stamp', 'unstamp']);
+      expect(proxy.getKeyboardPressCalls()).toStrictEqual(['ControlOrMeta+V']);
+      expect(proxy.getClipboardWrites()).toStrictEqual(['test']);
+    });
+  });
 });
