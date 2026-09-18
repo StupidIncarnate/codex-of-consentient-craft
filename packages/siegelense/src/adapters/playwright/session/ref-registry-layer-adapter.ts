@@ -79,6 +79,7 @@ export const refRegistryLayerAdapter = (): {
   stampSource: (params: { ref: number }) => ContentText;
   unstampSource: () => ContentText;
   targetSelector: () => ContentText;
+  boxSource: (params: { ref: number }) => ContentText;
   toResolution: (params: { raw: unknown; ref: number; highestMinted: number }) => RefResolution;
 } => ({
   initScriptSource: (): ContentText => contentTextContract.parse(INIT_SCRIPT_SOURCE),
@@ -120,6 +121,39 @@ export const refRegistryLayerAdapter = (): {
 })()`),
 
   targetSelector: (): ContentText => contentTextContract.parse(`[${ATTRIBUTE}]`),
+
+  boxSource: ({ ref }: { ref: number }): ContentText =>
+    contentTextContract.parse(`(() => {
+  const registry = window.${GLOBAL} === undefined ? null : window.${GLOBAL}.${ARRAY};
+  if (registry === null || registry === undefined) { return null; }
+  const element = registry[${String(ref - 1)}];
+  if (element === undefined || element === null || element.isConnected !== true) { return null; }
+  const rect = element.getBoundingClientRect();
+  const style = window.getComputedStyle(element);
+  const visible =
+    style.display !== 'none' &&
+    style.visibility !== 'hidden' &&
+    parseFloat(style.opacity) > 0 &&
+    (rect.width > 0 || rect.height > 0);
+  const inViewport =
+    rect.right > 0 &&
+    rect.bottom > 0 &&
+    rect.left < window.innerWidth &&
+    rect.top < window.innerHeight;
+  return {
+    ref: ${String(ref)},
+    x: Math.round(rect.x),
+    y: Math.round(rect.y),
+    width: Math.max(0, Math.round(rect.width)),
+    height: Math.max(0, Math.round(rect.height)),
+    viewport: {
+      width: Math.max(0, Math.round(window.innerWidth)),
+      height: Math.max(0, Math.round(window.innerHeight)),
+    },
+    visible,
+    inViewport,
+  };
+})()`),
 
   toResolution: ({
     raw,

@@ -4,11 +4,22 @@ describe('stepStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
     expect(stepStatics).toStrictEqual({
       verbs: {
-        all: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look', 'seed', 'until'],
+        all: [
+          'goto',
+          'waitFor',
+          'click',
+          'type',
+          'screenshot',
+          'eval',
+          'look',
+          'box',
+          'seed',
+          'until',
+        ],
         acting: ['goto', 'click', 'type'],
         capturing: ['goto', 'click', 'type', 'look'],
         targeting: ['waitFor', 'click', 'type'],
-        browser: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look'],
+        browser: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look', 'box'],
       },
       defaults: {
         stopOn: 'error',
@@ -83,6 +94,7 @@ describe('stepStatics', () => {
       'screenshot',
       'eval',
       'look',
+      'box',
     ]);
   });
 
@@ -103,6 +115,7 @@ describe('stepStatics', () => {
       'screenshot',
       'eval',
       'look',
+      'box',
     ]);
   });
 
@@ -110,7 +123,7 @@ describe('stepStatics', () => {
     expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type']);
   });
 
-  it('VALID: {verbs.all} => ends with until, the ninth verb', () => {
+  it('VALID: {verbs.all} => ends with until, the tenth verb', () => {
     expect(stepStatics.verbs.all).toStrictEqual([
       'goto',
       'waitFor',
@@ -119,6 +132,7 @@ describe('stepStatics', () => {
       'screenshot',
       'eval',
       'look',
+      'box',
       'seed',
       'until',
     ]);

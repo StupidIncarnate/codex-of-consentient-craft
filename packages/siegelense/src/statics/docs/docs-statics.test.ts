@@ -62,7 +62,7 @@ describe('docsStatics', () => {
           'The rule: reach for the key first. dom is the hatch — last, and always with a narrow target.',
           'Rung 1, look — the default. What is here, what is it called, what is wrong with it. About 243 tokens for a whole page. Built.',
           'Rung 2, look { within } — the same reading scoped to one region, when the region is crowded or the page holds a long transcript. Cheaper. Built. `within` takes a bare testId or the full [data-testid="..."] form; both reach the same element.',
-          "Rung 3, box { ref } — one element's geometry, exactly. A few lines. NOT BUILT YET.",
+          "Rung 3, box { ref } — one element's geometry, exactly. A few lines. Built.",
           'Rung 4, dom { target } — the hatch. A named selector, and a question the key does not carry. Unbounded without care. NOT BUILT YET.',
           'Rung 5, eval — a question no step shapes at all. It is a DIFFERENT hatch carrying a different risk: dom is expensive, while eval is cheap and can quietly break the founding rule by computing a verdict inside the page and handing it back as a value.',
         ],
@@ -118,9 +118,9 @@ describe('docsStatics', () => {
       );
     });
 
-    it('VALID: {planning} => names the nine built verbs and marks every other one', () => {
+    it('VALID: {planning} => names the ten built verbs and marks every other one', () => {
       expect(docsStatics.scopes.planning.sections[5].lines[0]).toBe(
-        'Nine step verbs exist: goto, waitFor, click, type, screenshot, eval, look, seed and until. Every other verb in the design is NOT BUILT YET.',
+        'Ten step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed and until. Every other verb in the design is NOT BUILT YET.',
       );
     });
 
@@ -132,7 +132,7 @@ describe('docsStatics', () => {
 
     it('VALID: {operational} => says browser steps error by name on a browserless lane, naming the shape rather than a count', () => {
       expect(docsStatics.scopes.operational.sections[1].lines[2]).toBe(
-        'Browser steps go missing LOUDLY. A browser step submitted against a browserless instance is an error naming the spec, never an empty reading — a reading that quietly returns nothing is the count: 0 problem arriving at the one place a walk cannot recover from it. This half is BUILT: every browser verb errors by name here — goto, waitFor, click, type, screenshot, eval and look.',
+        'Browser steps go missing LOUDLY. A browser step submitted against a browserless instance is an error naming the spec, never an empty reading — a reading that quietly returns nothing is the count: 0 problem arriving at the one place a walk cannot recover from it. This half is BUILT: every browser verb errors by name here — goto, waitFor, click, type, screenshot, eval, look and box.',
       );
     });
 

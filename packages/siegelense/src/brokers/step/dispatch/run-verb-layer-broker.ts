@@ -34,6 +34,7 @@ import type { StepIndex } from '../../../contracts/step-index/step-index-contrac
 import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contract';
 import { BrowserStepUnsupportedError } from '../../../errors/browser-step-unsupported/browser-step-unsupported-error';
 import { isTargetingStepGuard } from '../../../guards/is-targeting-step/is-targeting-step-guard';
+import { stepBoxBroker } from '../box/step-box-broker';
 import { stepClickBroker } from '../click/step-click-broker';
 import { stepSeedBroker } from '../seed/step-seed-broker';
 import { stepEvalSourceBroker } from '../eval-source/step-eval-source-broker';
@@ -156,6 +157,15 @@ export const runVerbLayerBroker = async ({
       );
     }
     return stepScreenshotBroker({ session, filePath: shotPath });
+  }
+  if (step.step === 'box') {
+    await stepTargetResolveBroker({
+      session,
+      target: null,
+      within: null,
+      ref: step.ref,
+    });
+    return stepBoxBroker({ session, ref: step.ref });
   }
 
   return stepEvalSourceBroker({ session, source: step.source });

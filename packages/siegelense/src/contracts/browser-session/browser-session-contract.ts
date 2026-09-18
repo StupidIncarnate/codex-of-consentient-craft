@@ -23,6 +23,7 @@ import { z } from 'zod';
 
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
+import type { BoxReading } from '../box-reading/box-reading-contract';
 import type { KeyListing } from '../key-listing/key-listing-contract';
 import type { RefResolution } from '../ref-resolution/ref-resolution-contract';
 import type { StepCandidate } from '../step-candidate/step-candidate-contract';
@@ -81,6 +82,7 @@ export type BrowserSession = z.infer<typeof browserSessionContract> & {
     value: string;
     timeoutMs: number;
   }) => Promise<void>;
+  boxRef: ({ ref }: { ref: number }) => Promise<BoxReading>;
   fillMatch: ({
     target,
     within,

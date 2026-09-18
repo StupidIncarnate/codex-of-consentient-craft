@@ -34,6 +34,8 @@ import { z } from 'zod';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
+import { boxReadingContract } from '../../../contracts/box-reading/box-reading-contract';
+import type { BoxReading } from '../../../contracts/box-reading/box-reading-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { KeyListing } from '../../../contracts/key-listing/key-listing-contract';
 import { locatorStateContract } from '../../../contracts/locator-state/locator-state-contract';
@@ -379,6 +381,11 @@ export const playwrightSessionAdapter = async ({
           );
         });
       }
+    },
+
+    boxRef: async ({ ref }: { ref: number }): Promise<BoxReading> => {
+      const raw: unknown = await page.evaluate(refRegistry.boxSource({ ref }));
+      return boxReadingContract.parse(raw);
     },
 
     fillMatch: async ({

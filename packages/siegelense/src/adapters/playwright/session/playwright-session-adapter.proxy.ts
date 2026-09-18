@@ -28,6 +28,7 @@ const KEY_READ_MARKER = 'hasContentDescendant';
 const REF_STATE_MARKER = 'isConnected === true ?';
 const STAMP_MARKER = "setAttribute('siege-target'";
 const UNSTAMP_MARKER = "removeAttribute('siege-target')";
+const BOX_MARKER = 'getComputedStyle';
 
 export const playwrightSessionAdapterProxy = (): {
   setLocatorCount: (params: { selector: string; count: number }) => void;
@@ -35,6 +36,7 @@ export const playwrightSessionAdapterProxy = (): {
   setNearestNamesResult: (params: { raw: readonly unknown[] }) => void;
   setKeyReadResult: (params: { raw: unknown }) => void;
   setRefState: (params: { state: string }) => void;
+  setBoxResult: (params: { raw: unknown }) => void;
   setEvaluateSourceResult: (params: { result: unknown }) => void;
   getInitScripts: () => readonly unknown[];
   getStampCalls: () => readonly unknown[];
@@ -83,6 +85,16 @@ export const playwrightSessionAdapterProxy = (): {
     nearestNamesRaw: [] as unknown,
     keyReadRaw: { rows: [], highestRef: 0, skipped: [] } as unknown,
     refState: 'live',
+    boxRaw: {
+      ref: 26,
+      x: 607,
+      y: 472,
+      width: 66,
+      height: 27,
+      viewport: { width: 1280, height: 720 },
+      visible: true,
+      inViewport: true,
+    } as unknown,
     evaluateSourceResult: undefined as unknown,
     responseTextThrows: false,
     initScripts: [] as unknown[],
@@ -147,6 +159,9 @@ export const playwrightSessionAdapterProxy = (): {
       }
       if (source.includes(REF_STATE_MARKER)) {
         return Promise.resolve(state.refState);
+      }
+      if (source.includes(BOX_MARKER)) {
+        return Promise.resolve(state.boxRaw);
       }
       if (source.includes(STAMP_MARKER)) {
         state.stampCalls.push('stamp');
@@ -220,6 +235,9 @@ export const playwrightSessionAdapterProxy = (): {
     },
     setRefState: ({ state: refState }): void => {
       state.refState = refState;
+    },
+    setBoxResult: ({ raw }): void => {
+      state.boxRaw = raw;
     },
     setEvaluateSourceResult: ({ result }): void => {
       state.evaluateSourceResult = result;

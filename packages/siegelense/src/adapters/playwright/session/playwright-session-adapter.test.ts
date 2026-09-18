@@ -458,6 +458,41 @@ describe('playwrightSessionAdapter', () => {
     });
   });
 
+  describe('boxRef()', () => {
+    it('VALID: {ref} => reads the geometry of the ref from the page', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setBoxResult({
+        raw: {
+          ref: 26,
+          x: 607,
+          y: 472,
+          width: 66,
+          height: 27,
+          viewport: { width: 1280, height: 720 },
+          visible: true,
+          inViewport: true,
+        },
+      });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.boxRef({ ref: 26 });
+
+      expect(result).toStrictEqual({
+        ref: 26,
+        x: 607,
+        y: 472,
+        width: 66,
+        height: 27,
+        viewport: { width: 1280, height: 720 },
+        visible: true,
+        inViewport: true,
+      });
+    });
+  });
+
   describe('capture()', () => {
     it('VALID: {filePath} => calls screenshot with animations disabled and the caret hidden', async () => {
       const proxy = playwrightSessionAdapterProxy();

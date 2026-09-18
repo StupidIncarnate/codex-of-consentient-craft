@@ -2,10 +2,13 @@ import { z } from 'zod';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
+import { BoxReadingStub } from '../../../contracts/box-reading/box-reading.stub';
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
+import { RefResolutionStub } from '../../../contracts/ref-resolution/ref-resolution.stub';
+import { stepBoxBrokerProxy } from '../box/step-box-broker.proxy';
 import { stepClickBrokerProxy } from '../click/step-click-broker.proxy';
 import { stepEvalSourceBrokerProxy } from '../eval-source/step-eval-source-broker.proxy';
 import { stepGotoBrokerProxy } from '../goto/step-goto-broker.proxy';
@@ -41,6 +44,8 @@ export const runVerbLayerBrokerProxy = (): {
   // proxy builds its own BrowserSession scenarios directly (the real boundary every child broker
   // ultimately drives), so none of these is addressed further. Same pattern as
   // lane-boot-broker.proxy.ts's own unaddressed child proxy constructions.
+  // Construction matches lane-boot-broker.proxy.ts pattern
+  stepBoxBrokerProxy();
   stepClickBrokerProxy();
   stepEvalSourceBrokerProxy();
   stepGotoBrokerProxy();
@@ -77,6 +82,14 @@ export const runVerbLayerBrokerProxy = (): {
         waitForMatch: jest.fn().mockImplementation(async () => {
           order.push(contentTextContract.parse('waitForMatch'));
           return Promise.resolve();
+        }),
+        refState: jest.fn().mockImplementation(async () => {
+          order.push(contentTextContract.parse('refState'));
+          return Promise.resolve(RefResolutionStub({ state: 'live' }));
+        }),
+        boxRef: jest.fn().mockImplementation(async () => {
+          order.push(contentTextContract.parse('boxRef'));
+          return Promise.resolve(BoxReadingStub());
         }),
       });
       // The LANE wrapping that session — `runVerbLayerBroker` takes the whole lane now, because

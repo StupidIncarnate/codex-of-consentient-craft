@@ -5,6 +5,8 @@ import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { browserSessionContract } from './browser-session-contract';
 import type { BrowserSession, BufferLengths, MatchCount } from './browser-session-contract';
+import { BoxReadingStub } from '../box-reading/box-reading.stub';
+import type { BoxReading } from '../box-reading/box-reading-contract';
 import { KeyListingStub } from '../key-listing/key-listing.stub';
 import type { KeyListing } from '../key-listing/key-listing-contract';
 import { RefResolutionStub } from '../ref-resolution/ref-resolution.stub';
@@ -27,6 +29,7 @@ export const BrowserSessionStub = ({
     clickMatch,
     clickRef,
     fillRef,
+    boxRef,
     fillMatch,
     waitForMatch,
     waitForPredicate,
@@ -56,6 +59,7 @@ export const BrowserSessionStub = ({
     clickMatch: clickMatch ?? (async (): Promise<void> => Promise.resolve()),
     clickRef: clickRef ?? (async (): Promise<void> => Promise.resolve()),
     fillRef: fillRef ?? (async (): Promise<void> => Promise.resolve()),
+    boxRef: boxRef ?? (async (): Promise<BoxReading> => Promise.resolve(BoxReadingStub())),
     fillMatch: fillMatch ?? (async (): Promise<void> => Promise.resolve()),
     waitForMatch: waitForMatch ?? (async (): Promise<void> => Promise.resolve()),
     waitForPredicate: waitForPredicate ?? (async (): Promise<void> => Promise.resolve()),

@@ -151,6 +151,14 @@ export const stepContract = z
       .strict(),
     z
       .object({
+        step: z.literal('box'),
+        ref: refContract,
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
         step: z.literal('seed'),
         recipe: recipeNameContract,
         // The name later steps read this run's ids back by — `{g.guildSlug}`. `null` when the

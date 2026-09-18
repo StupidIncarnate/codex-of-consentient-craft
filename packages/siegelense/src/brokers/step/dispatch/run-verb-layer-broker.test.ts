@@ -64,6 +64,26 @@ describe('runVerbLayerBroker', () => {
 
       expect(callOrder()).toStrictEqual(['countMatches', 'waitForMatch']);
     });
+
+    it('VALID: {box, live ref} => resolves refState then calls boxRef', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane, callOrder } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'box', ref: 26 });
+
+      const result = await runVerbLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub(),
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(callOrder()).toStrictEqual(['refState', 'boxRef']);
+      expect(result).toBe(
+        '{"ref":26,"x":607,"y":472,"width":66,"height":27,"viewport":{"width":1280,"height":720},"visible":true,"inViewport":true}',
+      );
+    });
   });
 
   describe('an ambiguous target', () => {

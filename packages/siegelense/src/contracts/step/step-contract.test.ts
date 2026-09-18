@@ -16,6 +16,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'screenshot', name: FileNameStub({ value: 'step1.png' }) }),
   StepStub({ step: 'eval', source: ContentTextStub() }),
   StepStub({ step: 'look' }),
+  StepStub({ step: 'box' }),
   StepStub({ step: 'until', visible: SelectorStub() }),
 ];
 
@@ -142,6 +143,27 @@ describe('stepContract', () => {
     it('INVALID: {step: look, +target} => throws naming the stray key, because look reads and never targets', () => {
       expect(() =>
         stepContract.parse({ step: 'look', target: '[data-testid="X"]' } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+
+    it('VALID: {step: box} => parses the complete box member', () => {
+      const result = stepContract.parse({ step: 'box', ref: 26, node: 'target-box' });
+
+      expect(result).toStrictEqual({
+        step: 'box',
+        ref: 26,
+        node: 'target-box',
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: box, no ref} => throws for the missing ref', () => {
+      expect(() => stepContract.parse({ step: 'box' } as never)).toThrow(/Required/u);
+    });
+
+    it('INVALID: {step: box, +target} => throws naming the stray key, because box takes ref only', () => {
+      expect(() =>
+        stepContract.parse({ step: 'box', ref: 26, target: '[data-testid="X"]' } as never),
       ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
     });
 
@@ -654,6 +676,17 @@ describe('stepContract', () => {
       expect(result).toStrictEqual({
         step: 'look',
         within: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: box} => creates the box reading step with default ref', () => {
+      const result = StepStub({ step: 'box' });
+
+      expect(result).toStrictEqual({
+        step: 'box',
+        ref: 26,
         node: null,
         expect: 'ok',
       });

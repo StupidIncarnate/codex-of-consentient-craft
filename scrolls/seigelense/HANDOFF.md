@@ -1,6 +1,6 @@
 # Siegelense — the build
 
-**Valid as of the `until` commit, 2026-09-17.** Re-derive the counts below before trusting them; the
+**Valid as of the `box` commit, 2026-09-17.** Re-derive the counts below before trusting them; the
 command for each is given beside it. **A count in this file is a claim about a moment, and this file does
 not update itself.**
 
@@ -9,7 +9,7 @@ not update itself.**
 | | Built | Total | |
 |---|---|---|---|
 | **Calls** | **13** | 13 | every name in the closed set routes; `notBuiltYet` is empty |
-| **Step verbs** | **9** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` `seed` `until` |
+| **Step verbs** | **10** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` `box` `seed` `until` |
 | **Results kinds** | **6** | 6 | `console` `network` `ws` `server` `screenshots` `steps` |
 | **Build-order items** | see the table | 30 | Part 7 of the spec. Count the rows yourself; the tally is what rots |
 
@@ -217,7 +217,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 | `look` | **built** | `hold` | not built |
 | `key` | not built | `video` | not built |
 | `paste` | not built | `request` | not built |
-| `box` | not built | `resize` | not built |
+| `box` | **built** | `resize` | not built |
 | `dom` | not built | | |
 | `storage` | not built | | |
 | `file` | not built | | |
@@ -226,7 +226,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 packages/siegelense/src/statics/step/step-statics.ts   → verbs.all
 ```
 
-**`look`, `seed` and `until` are built.** What is next is in "How to pick the next piece" — re-derive it
+**`look`, `box`, `seed` and `until` are built.** What is next is in "How to pick the next piece" — re-derive it
 rather than trusting a shortlist written before this round.
 
 ### The build-order items
@@ -252,7 +252,7 @@ yourself from the table rather than trusting a tally; a tally is the first thing
 | 7 | **The key as a tree — refs, `within`, four columns** | **done** minus the numbered map, which the spec itself defers — `look` plus `look { within }`, and ref driving on `click` and `type` |
 | 8 | `health` — one reading, one verdict line | **not started** |
 | 9 | `until` — wait on a response, a file, a predicate | **done** — all five forms, each driven against a real lane |
-| 10 | Selectable readings — `network` projection, `dom` cap | part: the `network` half only |
+| 10 | Selectable readings — `network` projection, `box`, `dom` cap | part: `network` projection and `box` geometry built |
 | 11 | `hold` and `video` | **not started** |
 | 11b | The human-check route | spec-side |
 | 11c | The declared-value block and its third reader | spec-side |

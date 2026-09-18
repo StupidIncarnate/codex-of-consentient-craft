@@ -117,6 +117,51 @@ describe('refRegistryLayerAdapter', () => {
     });
   });
 
+  describe('boxSource()', () => {
+    it('VALID: {ref: 26} => reads index 25 and returns the self-invoking geometry read source', () => {
+      refRegistryLayerAdapterProxy();
+      const registry = refRegistryLayerAdapter();
+
+      const source = registry.boxSource({ ref: 26 });
+
+      expect(source).toBe(
+        [
+          '(() => {',
+          '  const registry = window.__siege === undefined ? null : window.__siege.refs;',
+          '  if (registry === null || registry === undefined) { return null; }',
+          '  const element = registry[25];',
+          '  if (element === undefined || element === null || element.isConnected !== true) { return null; }',
+          '  const rect = element.getBoundingClientRect();',
+          '  const style = window.getComputedStyle(element);',
+          '  const visible =',
+          "    style.display !== 'none' &&",
+          "    style.visibility !== 'hidden' &&",
+          '    parseFloat(style.opacity) > 0 &&',
+          '    (rect.width > 0 || rect.height > 0);',
+          '  const inViewport =',
+          '    rect.right > 0 &&',
+          '    rect.bottom > 0 &&',
+          '    rect.left < window.innerWidth &&',
+          '    rect.top < window.innerHeight;',
+          '  return {',
+          '    ref: 26,',
+          '    x: Math.round(rect.x),',
+          '    y: Math.round(rect.y),',
+          '    width: Math.max(0, Math.round(rect.width)),',
+          '    height: Math.max(0, Math.round(rect.height)),',
+          '    viewport: {',
+          '      width: Math.max(0, Math.round(window.innerWidth)),',
+          '      height: Math.max(0, Math.round(window.innerHeight)),',
+          '    },',
+          '    visible,',
+          '    inViewport,',
+          '  };',
+          '})()',
+        ].join('\n'),
+      );
+    });
+  });
+
   describe('toResolution()', () => {
     it("VALID: {raw: 'live'} => resolves, with no boundary crossed", () => {
       refRegistryLayerAdapterProxy();
