@@ -8,6 +8,14 @@
  */
 import { StartMcpServer } from './startup/start-mcp-server.js';
 
+process.on('SIGTERM', () => {
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  process.exit(0);
+});
+
 StartMcpServer().catch((error: unknown) => {
   const errorMessage = error instanceof Error ? error.message : String(error);
   process.stderr.write(`MCP server error: ${errorMessage}\n`);
