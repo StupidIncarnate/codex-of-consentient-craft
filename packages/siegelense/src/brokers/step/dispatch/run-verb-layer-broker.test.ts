@@ -262,4 +262,35 @@ describe('runVerbLayerBroker', () => {
       expect(reading).toBe('resized to 1280x720');
     });
   });
+
+  describe('a request step', () => {
+    it('VALID: {request, browserless lane} => routes to stepRequestBroker and returns reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.browserlessLane();
+      const step = StepStub({
+        step: 'request',
+        method: 'GET',
+        path: '/api/guilds',
+      });
+      const index = StepIndexStub({ value: 1 });
+
+      proxy.setupRequestResponse({
+        url: 'http://127.0.0.1:34172/api/guilds',
+        status: 200,
+        statusText: 'OK',
+        body: [{ id: 'guild-1' }],
+      });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('200 OK — [{"id":"guild-1"}]');
+    });
+  });
 });

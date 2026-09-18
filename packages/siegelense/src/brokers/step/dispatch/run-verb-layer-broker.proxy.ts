@@ -17,6 +17,7 @@ import { stepGotoBrokerProxy } from '../goto/step-goto-broker.proxy';
 import { stepHealthBrokerProxy } from '../health/step-health-broker.proxy';
 import { stepKeyBrokerProxy } from '../key/step-key-broker.proxy';
 import { stepLookBrokerProxy } from '../look/step-look-broker.proxy';
+import { stepRequestBrokerProxy } from '../request/step-request-broker.proxy';
 import { stepResizeBrokerProxy } from '../resize/step-resize-broker.proxy';
 import { stepScreenshotBrokerProxy } from '../screenshot/step-screenshot-broker.proxy';
 import { stepSeedBrokerProxy } from '../seed/step-seed-broker.proxy';
@@ -37,12 +38,19 @@ export const runVerbLayerBrokerProxy = (): {
     callOrder: () => readonly ContentText[];
   };
   sessionWithTwoMatches: () => { lane: LaneSession; session: BrowserSession };
-  browserlessLane: () => { lane: LaneSession };
+  browserlessLane: (params?: { apiBaseUrl?: ContentText }) => { lane: LaneSession };
   seedBookPresentAt: (params: { packagePath: string }) => void;
   seedLaneAnswers: (params: {
     apiBaseUrl: ContentText;
     guild: unknown;
     questIds: readonly ContentText[];
+  }) => void;
+  setupRequestResponse: (params: {
+    url: string;
+    status?: number;
+    statusText?: string;
+    headers?: Record<PropertyKey, unknown>;
+    body?: unknown;
   }) => void;
 } => {
   // Constructed for their own default behavior only to satisfy enforce-proxy-child-creation — this
@@ -59,6 +67,7 @@ export const runVerbLayerBrokerProxy = (): {
   stepKeyBrokerProxy();
   stepLookBrokerProxy();
   stepResizeBrokerProxy();
+  const requestProxy = stepRequestBrokerProxy();
   stepScreenshotBrokerProxy();
   stepTargetResolveBrokerProxy();
   stepTypeBrokerProxy();
@@ -123,8 +132,11 @@ export const runVerbLayerBrokerProxy = (): {
       return { lane: LaneSessionStub({ browser: session }), session };
     },
 
-    browserlessLane: (): { lane: LaneSession } => ({
-      lane: LaneSessionStub({ browser: null }),
+    browserlessLane: (params?: { apiBaseUrl?: ContentText }): { lane: LaneSession } => ({
+      lane: LaneSessionStub({
+        browser: null,
+        apiBaseUrl: params?.apiBaseUrl ?? contentTextContract.parse('http://127.0.0.1:34172'),
+      }),
     }),
 
     seedBookPresentAt: ({ packagePath }: { packagePath: string }): void => {
@@ -141,6 +153,28 @@ export const runVerbLayerBrokerProxy = (): {
       questIds: readonly ContentText[];
     }): void => {
       seedProxy.guildLaneAnswers({ apiBaseUrl, guild, questIds });
+    },
+
+    setupRequestResponse: ({
+      url,
+      status,
+      statusText,
+      headers,
+      body,
+    }: {
+      url: string;
+      status?: number;
+      statusText?: string;
+      headers?: Record<PropertyKey, unknown>;
+      body?: unknown;
+    }): void => {
+      requestProxy.setupResponse({
+        url,
+        ...(status === undefined ? {} : { status }),
+        ...(statusText === undefined ? {} : { statusText }),
+        ...(headers === undefined ? {} : { headers }),
+        ...(body === undefined ? {} : { body }),
+      });
     },
   };
 };

@@ -12,3 +12,4 @@ export * from './src/errors/port-claim-exhausted/port-claim-exhausted-error';
 export * from './src/errors/shot-dimension-mismatch/shot-dimension-mismatch-error';
 export * from './src/errors/run-id-required/run-id-required-error';
 export * from './src/errors/unknown-result-kind/unknown-result-kind-error';
+export * from './src/errors/http-request-failed/http-request-failed-error';

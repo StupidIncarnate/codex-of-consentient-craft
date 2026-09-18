@@ -250,6 +250,9 @@ export const laneBootBroker = async ({
     baseUrl: contentTextContract.parse(
       `http://${environmentStatics.hostname}:${String(ports.api)}`,
     ),
+    apiBaseUrl: contentTextContract.parse(
+      `http://${environmentStatics.hostname}:${String(ports.api)}`,
+    ),
     pgids: booted.map((entry) => entry.pgid),
     browser,
     logFds: booted.map((entry) => entry.fd),

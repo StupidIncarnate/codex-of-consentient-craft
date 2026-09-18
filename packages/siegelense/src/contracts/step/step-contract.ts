@@ -42,6 +42,7 @@ import { recipeNameContract } from '@dungeonmaster/siegelense-recipes/contracts'
 
 import { domFieldContract } from '../dom-field/dom-field-contract';
 import { domTextModeContract } from '../dom-text-mode/dom-text-mode-contract';
+import { httpMethodContract } from '../http-method/http-method-contract';
 import { locatorStateContract } from '../locator-state/locator-state-contract';
 import { seedBindingNameContract } from '../seed-binding-name/seed-binding-name-contract';
 import { nodeLabelContract } from '../node-label/node-label-contract';
@@ -223,6 +224,17 @@ export const stepContract = z
         step: z.literal('resize'),
         width: z.number().int().positive().brand<'PositiveNumber'>(),
         height: z.number().int().positive().brand<'PositiveNumber'>(),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('request'),
+        method: httpMethodContract.default('GET'),
+        path: z.string().brand<'HttpRequestPath'>(),
+        body: z.unknown().optional(),
+        headers: z.record(z.string().brand<'HttpHeaderValue'>()).optional(),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })

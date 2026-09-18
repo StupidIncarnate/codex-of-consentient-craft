@@ -206,3 +206,9 @@ export * from './src/contracts/health-verdict/health-verdict.stub';
 
 export * from './src/contracts/health-reading/health-reading-contract';
 export * from './src/contracts/health-reading/health-reading.stub';
+
+export * from './src/contracts/http-method/http-method-contract';
+export * from './src/contracts/http-method/http-method.stub';
+
+export * from './src/contracts/http-request-reading/http-request-reading-contract';
+export * from './src/contracts/http-request-reading/http-request-reading.stub';

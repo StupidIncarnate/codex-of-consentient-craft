@@ -43,6 +43,7 @@ import { stepHealthBroker } from '../health/step-health-broker';
 import { stepKeyBroker } from '../key/step-key-broker';
 import { stepLookBroker } from '../look/step-look-broker';
 import { stepResizeBroker } from '../resize/step-resize-broker';
+import { stepRequestBroker } from '../request/step-request-broker';
 import { stepScreenshotBroker } from '../screenshot/step-screenshot-broker';
 import { stepSeedBroker } from '../seed/step-seed-broker';
 import { stepTargetResolveBroker } from '../target-resolve/step-target-resolve-broker';
@@ -92,6 +93,13 @@ export const runVerbLayerBroker = async ({
       timeoutMs: step.timeoutMs,
       browserWindowStart,
     });
+  }
+
+  // `request` routes here for the same reason `seed` does: it executes an HTTP request using
+  // `fetchHttpRequestAdapter` against `lane.apiBaseUrl` and touches no page at all, so it runs
+  // identically against browserless instances.
+  if (step.step === 'request') {
+    return stepRequestBroker({ lane, step });
   }
 
   const { browser: session } = lane;

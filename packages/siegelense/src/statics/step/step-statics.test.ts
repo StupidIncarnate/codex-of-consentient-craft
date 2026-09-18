@@ -19,6 +19,7 @@ describe('stepStatics', () => {
           'key',
           'health',
           'resize',
+          'request',
         ],
         acting: ['goto', 'click', 'type', 'key', 'resize'],
         capturing: ['goto', 'click', 'type', 'look', 'key', 'health', 'resize'],
@@ -156,7 +157,7 @@ describe('stepStatics', () => {
     expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type']);
   });
 
-  it('VALID: {verbs.all} => ends with resize, the fourteenth verb', () => {
+  it('VALID: {verbs.all} => ends with request, the fifteenth verb', () => {
     expect(stepStatics.verbs.all).toStrictEqual([
       'goto',
       'waitFor',
@@ -172,6 +173,7 @@ describe('stepStatics', () => {
       'key',
       'health',
       'resize',
+      'request',
     ]);
   });
 });

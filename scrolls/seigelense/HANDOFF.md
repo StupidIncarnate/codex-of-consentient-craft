@@ -1,6 +1,6 @@
 # Siegelense — the build
 
-**Valid as of the `resize` commit, 2026-09-18.** Re-derive the counts below before trusting them; the
+**Valid as of the `request` commit, 2026-09-18.** Re-derive the counts below before trusting them; the
 command for each is given beside it. **A count in this file is a claim about a moment, and this file does
 not update itself.**
 
@@ -9,7 +9,7 @@ not update itself.**
 | | Built | Total | |
 |---|---|---|---|
 | **Calls** | **13** | 13 | every name in the closed set routes; `notBuiltYet` is empty |
-| **Step verbs** | **14** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` `box` `seed` `until` `dom` `key` `health` `resize` |
+| **Step verbs** | **15** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` `box` `seed` `until` `dom` `key` `health` `resize` `request` |
 | **Results kinds** | **6** | 6 | `console` `network` `ws` `server` `screenshots` `steps` |
 | **Build-order items** | see the table | 30 | Part 7 of the spec. Count the rows yourself; the tally is what rots |
 
@@ -244,8 +244,8 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 | `eval` | **built** | `until` | **built** |
 | `look` | **built** | `hold` | not built |
 | `key` | **built** | `video` | not built |
-| `paste` | not built | `request` | not built |
-| `box` | **built** | `resize` | not built |
+| `paste` | not built | `request` | **built** |
+| `box` | **built** | `resize` | **built** |
 | `dom` | **built** | | |
 | `storage` | not built | | |
 | `file` | not built | | |
@@ -254,7 +254,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 packages/siegelense/src/statics/step/step-statics.ts   → verbs.all
 ```
 
-**`look`, `box`, `dom`, `seed`, `until`, `key` and `health` are built.** What is next is in "How to pick the next piece" — re-derive it
+**`look`, `box`, `dom`, `seed`, `until`, `key`, `health`, `resize` and `request` are built.** What is next is in "How to pick the next piece" — re-derive it
 rather than trusting a shortlist written before this round.
 
 ### The build-order items

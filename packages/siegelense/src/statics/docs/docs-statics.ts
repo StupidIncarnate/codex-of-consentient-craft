@@ -155,7 +155,7 @@ export const docsStatics = {
         {
           heading: 'WHAT A PLAN CAN PROMISE TODAY',
           lines: [
-            `Fourteen step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health and resize. Every other verb in the design is ${NOT_BUILT}.`,
+            `Fifteen step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize and request. Every other verb in the design is ${NOT_BUILT}.`,
             'look returns the key — every addressable element, its name, its text and a ref for each — so a prelude can discover a testId rather than only address one it was told about.',
             "seed runs a recipe against the instance and returns the ids it made, so a prelude CAN create its own starting state. dungeonmaster siegelense recipes lists every recipe with its produces: claim; name one in a { step: 'seed' } and read its ids back with {binding.field}.",
           ],
@@ -462,7 +462,7 @@ export const docsStatics = {
         {
           heading: 'THE READING STEPS, AND WHAT YOU CANNOT DO YET',
           lines: [
-            "Fourteen step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health and resize. They are values inside run's steps array, never commands of their own.",
+            "Fifteen step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize and request. They are values inside run's steps array, never commands of their own.",
             'look reads the page and returns the key — every addressable element with a ref per row — so you can ask what is on a screen rather than only address a testId you already knew.',
             "seed puts the app into a state: { step: 'seed', recipe: '<name>', as: 'g' } runs a recipe and returns the ids it made, and a later step reads them back as {g.guildSlug}. dungeonmaster siegelense recipes lists what states exist.",
             'Ambiguity is an ERROR, never a silent pick. Two matches come back as AMBIGUOUS carrying both candidates; narrow with a within scope.',

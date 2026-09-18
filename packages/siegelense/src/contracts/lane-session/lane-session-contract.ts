@@ -42,6 +42,7 @@ export type LaneSession = z.infer<typeof laneSessionContract> & {
   homePath: AbsoluteFilePath;
   evidencePath: AbsoluteFilePath;
   baseUrl: ContentText;
+  apiBaseUrl: ContentText;
   pgids: readonly ProcessGroupId[];
   browser: BrowserSession | null;
   logFds: readonly FileDescriptor[];

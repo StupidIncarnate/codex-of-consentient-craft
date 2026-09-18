@@ -16,4 +16,5 @@ export * from './src/statics/siegelense-help/siegelense-help-statics';
 export * from './src/statics/siegelense-output/siegelense-output-statics';
 export * from './src/statics/health/health-statics';
 export * from './src/statics/resize/resize-statics';
+export * from './src/statics/request/request-statics';
 export * from './src/statics/step/step-statics';

@@ -21,6 +21,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'key', press: ContentTextStub({ value: 'Enter' }) }),
   StepStub({ step: 'health' }),
   StepStub({ step: 'resize', width: 1280, height: 720 }),
+  StepStub({ step: 'request', path: '/api/guilds' }),
 ];
 
 describe('stepContract', () => {
@@ -917,6 +918,70 @@ describe('stepContract', () => {
           step: 'resize',
           width: 1280,
           height: 720,
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+  });
+
+  describe('request member', () => {
+    it('VALID: {step: request, path: "/api/guilds"} => parses with default GET method, null node, and ok expect', () => {
+      const result = stepContract.parse({ step: 'request', path: '/api/guilds' });
+
+      expect(result).toStrictEqual({
+        step: 'request',
+        method: 'GET',
+        path: '/api/guilds',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: request, full options} => parses with custom method, body, headers, node, and expect', () => {
+      const result = stepContract.parse({
+        step: 'request',
+        method: 'POST',
+        path: '/api/guilds',
+        body: { name: 'guild-1' },
+        headers: { 'x-custom': 'val' },
+        node: 'create-node',
+        expect: 'error',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'request',
+        method: 'POST',
+        path: '/api/guilds',
+        body: { name: 'guild-1' },
+        headers: { 'x-custom': 'val' },
+        node: 'create-node',
+        expect: 'error',
+      });
+    });
+
+    it('INVALID: {step: request, missing path} => throws for missing path', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'request',
+        } as never),
+      ).toThrow(/Required/u);
+    });
+
+    it('INVALID: {step: request, invalid method} => throws for unlisted method', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'request',
+          path: '/api/guilds',
+          method: 'INVALID_METHOD',
+        } as never),
+      ).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: {step: request, +target} => throws naming the stray key, because request is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'request',
+          path: '/api/guilds',
           target: '[data-testid="X"]',
         } as never),
       ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
