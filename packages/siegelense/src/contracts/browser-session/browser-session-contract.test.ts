@@ -91,5 +91,21 @@ describe('browserSessionContract', () => {
       expect(mockSetViewport).toHaveBeenCalledTimes(1);
       expect(mockSetViewport).toHaveBeenCalledWith({ width: 1280, height: 720 });
     });
+
+    it('VALID: {} => addInitScript resolves by default', async () => {
+      const session = BrowserSessionStub();
+
+      await expect(session.addInitScript({ source: 'console.log(1);' })).resolves.toBe(undefined);
+    });
+
+    it('VALID: {addInitScript: mock} => addInitScript uses the handed-in implementation', async () => {
+      const mockAddInitScript = jest.fn().mockResolvedValue(undefined);
+      const session = BrowserSessionStub({ addInitScript: mockAddInitScript });
+
+      await session.addInitScript({ source: 'console.log(1);' });
+
+      expect(mockAddInitScript).toHaveBeenCalledTimes(1);
+      expect(mockAddInitScript).toHaveBeenCalledWith({ source: 'console.log(1);' });
+    });
   });
 });

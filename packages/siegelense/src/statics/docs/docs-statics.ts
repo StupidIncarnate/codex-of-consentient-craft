@@ -40,9 +40,9 @@ export const docsStatics = {
         'Fleet management, at both ends of a pass. You never drive a page, so this scope carries none of that vocabulary: no batch is yours to submit, and handing you the driving verbs would be handing you the one thing your own rules forbid.',
       sections: [
         {
-          heading: 'BEFORE YOU OPEN A POOL',
+          heading: 'PRIOR TO OPENING A POOL',
           lines: [
-            'dungeonmaster siegelense capacity — what this machine can take right now. Ask before opening a pool.',
+            'dungeonmaster siegelense capacity — what this machine can take right now. Ask prior to opening a pool.',
             'It answers a suggested pool size, a hard ceiling, a why sentence naming every figure it reasoned from, the measurements behind both, and the profile group it divided by.',
             'suggested comes from a MEASURED profile of what one instance of this spec costs, never a number somebody wrote down. With no profile yet it answers 2, and that pair profiles itself.',
             'It counts instances this session did not start. It is advisory, with one hard floor: start refuses outright when the machine plainly cannot hold another.',
@@ -97,7 +97,7 @@ export const docsStatics = {
             'The common leak is a minion that never closed its instance — forgotten, or the turn simply ended. The idle timeout is the only backstop, and it is 900 seconds of three live processes.',
             'A session that dies mid-batch leaks the same way: the instance is not its child, so nothing reaps it.',
             'Closing an instance removes the throwaway home and never the evidence directory. Logs, captures and the transcript outlive the instance — they are what a fixer reads tomorrow.',
-            "Ports not released before the next allocation put two instances on one port, which reads as a walk measuring another walk's state. cleanup releases them; nothing else will.",
+            "Ports not released prior to the next allocation put two instances on one port, which reads as a walk measuring another walk's state. cleanup releases them; nothing else will.",
           ],
         },
       ],
@@ -155,7 +155,7 @@ export const docsStatics = {
         {
           heading: 'WHAT A PLAN CAN PROMISE TODAY',
           lines: [
-            `Fifteen step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize and request. Every other verb in the design is ${NOT_BUILT}.`,
+            `Sixteen step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request and before. Every other verb in the design is ${NOT_BUILT}.`,
             'look returns the key — every addressable element, its name, its text and a ref for each — so a prelude can discover a testId rather than only address one it was told about.',
             "seed runs a recipe against the instance and returns the ids it made, so a prelude CAN create its own starting state. dungeonmaster siegelense recipes lists every recipe with its produces: claim; name one in a { step: 'seed' } and read its ids back with {binding.field}.",
           ],

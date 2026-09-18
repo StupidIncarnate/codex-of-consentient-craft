@@ -22,6 +22,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'health' }),
   StepStub({ step: 'resize', width: 1280, height: 720 }),
   StepStub({ step: 'request', path: '/api/guilds' }),
+  StepStub({ step: 'before', source: ContentTextStub() }),
 ];
 
 describe('stepContract', () => {
@@ -982,6 +983,64 @@ describe('stepContract', () => {
         stepContract.parse({
           step: 'request',
           path: '/api/guilds',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+  });
+
+  describe('before member', () => {
+    it('VALID: {step: before, source: "..."} => parses with null node and ok expect', () => {
+      const result = stepContract.parse({ step: 'before', source: 'window.__injected = true;' });
+
+      expect(result).toStrictEqual({
+        step: 'before',
+        source: 'window.__injected = true;',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: before, full options} => parses with custom node and expect', () => {
+      const result = stepContract.parse({
+        step: 'before',
+        source: 'window.__injected = true;',
+        node: 'init-script',
+        expect: 'error',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'before',
+        source: 'window.__injected = true;',
+        node: 'init-script',
+        expect: 'error',
+      });
+    });
+
+    it('VALID: {step: before} => StepStub builds valid before default member', () => {
+      const result = StepStub({ step: 'before' });
+
+      expect(result).toStrictEqual({
+        step: 'before',
+        source: 'window.__injected = true;',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: before, missing source} => throws for missing source', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'before',
+        } as never),
+      ).toThrow(/Required/u);
+    });
+
+    it('INVALID: {step: before, +target} => throws naming the stray key, because before is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'before',
+          source: 'window.__injected = true;',
           target: '[data-testid="X"]',
         } as never),
       ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);

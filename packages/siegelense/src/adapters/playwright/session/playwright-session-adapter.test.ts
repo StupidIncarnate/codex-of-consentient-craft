@@ -791,4 +791,18 @@ describe('playwrightSessionAdapter', () => {
       expect(proxy.getSetViewportSizeCalls()).toStrictEqual([{ width: 1280, height: 720 }]);
     });
   });
+
+  describe('addInitScript()', () => {
+    it('VALID: {source: "window.__test = 1;"} => delegates to initScriptAddLayerAdapter', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.addInitScript({ source: 'window.__test = 1;' });
+
+      expect(proxy.getInitScripts().slice(1)).toStrictEqual([{ content: 'window.__test = 1;' }]);
+    });
+  });
 });

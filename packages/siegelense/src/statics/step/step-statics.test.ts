@@ -20,6 +20,7 @@ describe('stepStatics', () => {
           'health',
           'resize',
           'request',
+          'before',
         ],
         acting: ['goto', 'click', 'type', 'key', 'resize'],
         capturing: ['goto', 'click', 'type', 'look', 'key', 'health', 'resize'],
@@ -37,6 +38,7 @@ describe('stepStatics', () => {
           'key',
           'health',
           'resize',
+          'before',
         ],
       },
       defaults: {
@@ -125,6 +127,7 @@ describe('stepStatics', () => {
       'key',
       'health',
       'resize',
+      'before',
     ]);
   });
 
@@ -150,6 +153,7 @@ describe('stepStatics', () => {
       'key',
       'health',
       'resize',
+      'before',
     ]);
   });
 
@@ -157,7 +161,7 @@ describe('stepStatics', () => {
     expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type']);
   });
 
-  it('VALID: {verbs.all} => ends with request, the fifteenth verb', () => {
+  it('VALID: {verbs.all} => ends with before, the sixteenth verb', () => {
     expect(stepStatics.verbs.all).toStrictEqual([
       'goto',
       'waitFor',
@@ -174,6 +178,7 @@ describe('stepStatics', () => {
       'health',
       'resize',
       'request',
+      'before',
     ]);
   });
 });

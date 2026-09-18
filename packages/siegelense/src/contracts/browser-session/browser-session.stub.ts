@@ -46,6 +46,7 @@ export const BrowserSessionStub = ({
     readDom,
     checkRootPresent,
     setViewport,
+    addInitScript,
     bufferLengths,
     close,
     ...dataProps
@@ -82,6 +83,7 @@ export const BrowserSessionStub = ({
     readDom: readDom ?? (async (): Promise<DomReading> => Promise.resolve(DomReadingStub())),
     checkRootPresent: checkRootPresent ?? (async (): Promise<boolean> => Promise.resolve(true)),
     setViewport: setViewport ?? (async (): Promise<void> => Promise.resolve()),
+    addInitScript: addInitScript ?? (async (): Promise<void> => Promise.resolve()),
     bufferLengths:
       bufferLengths ??
       ((): BufferLengths => ({

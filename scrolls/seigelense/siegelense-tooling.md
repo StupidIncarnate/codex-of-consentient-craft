@@ -2611,7 +2611,7 @@ results queries now. `end` becomes the instance-level `kill`.
 
 ### Steps that are new
 
-> **Status: PARTIAL** — seven of the step verbs ship: `look`, `box`, `dom`, `seed`, `until`, `health`, and `resize`. `resize` delivers dynamic viewport sizing via `session.setViewport` (`setViewportSize`), ContentText reading `resized to <width>x<height>`, capturing unasked with 100% layout shift recorded on dimension changes and refusing on headless · `health` delivers one reading with one verdict line (`HEALTHY`, `DEGRADED`, `DOWN`) inspecting root presence (`#root`), page blankness, console errors, 5xx network responses, and server log errors, capturing a shot and stamping blank/pixelChange · `until` carries all five forms — `visible`, `predicate`, `console`, `response` and `file` · `box` reports exact geometry off element-bound refs · `dom` provides selectable node readings with field projection, own-text default and a 100-element self-reporting cap · verified by reading `brokers/step/` and by driving against a real lane · NOT YET: `before`, `reset`, `snapshot`, `hold`, `video`, `request`
+> **Status: PARTIAL** — nine of the step verbs ship: `look`, `box`, `dom`, `seed`, `until`, `health`, `resize`, `request`, and `before`. `before` delivers init script execution ahead of page scripts via Playwright `addInitScript` · `request` delivers direct HTTP client against lane.apiBaseUrl with status/error handling and headless support · `resize` delivers dynamic viewport sizing via `session.setViewport` (`setViewportSize`), ContentText reading `resized to <width>x<height>`, capturing unasked with 100% layout shift recorded on dimension changes and refusing on headless · `health` delivers one reading with one verdict line (`HEALTHY`, `DEGRADED`, `DOWN`) inspecting root presence (`#root`), page blankness, console errors, 5xx network responses, and server log errors, capturing a shot and stamping blank/pixelChange · `until` carries all five forms — `visible`, `predicate`, `console`, `response` and `file` · `box` reports exact geometry off element-bound refs · `dom` provides selectable node readings with field projection, own-text default and a 100-element self-reporting cap · verified by reading `brokers/step/` and by driving against a real lane · NOT YET: `reset`, `snapshot`, `hold`, `video`
 
 **`look`** — addressing. Returns the KEY inline and writes the SHOT, returning its path. **The MAP is optional and ships
 later** — `look { map: true }` requests it once it exists, and until then the field is simply absent rather than empty.
@@ -2629,6 +2629,8 @@ Part 7 defers it deliberately: the one trial arm that had a map rendered three a
 ```
 
 **`before`** — runs a script ahead of the page's own. The substrate for every other injection.
+
+> **Status: DELIVERED** — runs a script ahead of the page's own via Playwright's `addInitScript`. The script persists across subsequent navigations within the session. Refuses by name on browserless specs (`dungeonmaster-headless`) with `BrowserStepUnsupportedError`. Driven and disk-verified across multiple navigations.
 
 ```
 { step: 'before', source: 'window.__intervals=[];const o=setInterval;setInterval=(...a)=>{window.__intervals.push(a[1]);return o(...a)}' }

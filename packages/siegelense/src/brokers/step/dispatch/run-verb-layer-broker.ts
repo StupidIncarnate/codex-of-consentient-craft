@@ -35,6 +35,7 @@ import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contrac
 import { BrowserStepUnsupportedError } from '../../../errors/browser-step-unsupported/browser-step-unsupported-error';
 import { isTargetingStepGuard } from '../../../guards/is-targeting-step/is-targeting-step-guard';
 import { stepBoxBroker } from '../box/step-box-broker';
+import { stepBeforeBroker } from '../before/step-before-broker';
 import { stepClickBroker } from '../click/step-click-broker';
 import { stepDomBroker } from '../dom/step-dom-broker';
 import { stepEvalSourceBroker } from '../eval-source/step-eval-source-broker';
@@ -200,6 +201,9 @@ export const runVerbLayerBroker = async ({
   }
   if (step.step === 'resize') {
     return stepResizeBroker({ session, width: step.width, height: step.height });
+  }
+  if (step.step === 'before') {
+    return stepBeforeBroker({ session, source: step.source });
   }
 
   return stepEvalSourceBroker({ session, source: step.source });

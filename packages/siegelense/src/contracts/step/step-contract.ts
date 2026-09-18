@@ -239,6 +239,14 @@ export const stepContract = z
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })
       .strict(),
+    z
+      .object({
+        step: z.literal('before'),
+        source: contentTextContract,
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
   ])
   // `.refine()` returns a ZodEffects and `z.discriminatedUnion` accepts only ZodObjects, so the
   // cross-field handle rule rides the UNION rather than the two members it governs. It reads the

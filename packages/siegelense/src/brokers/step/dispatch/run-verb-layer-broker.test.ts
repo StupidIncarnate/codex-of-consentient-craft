@@ -293,4 +293,27 @@ describe('runVerbLayerBroker', () => {
       expect(reading).toBe('200 OK — [{"id":"guild-1"}]');
     });
   });
+
+  describe('a before step', () => {
+    it('VALID: {before} => routes to stepBeforeBroker and returns before reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({
+        step: 'before',
+        source: ContentTextStub({ value: 'window.__x = 1;' }),
+      });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('installed init script (15 chars)');
+    });
+  });
 });

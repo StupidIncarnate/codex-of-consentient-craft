@@ -10,6 +10,7 @@ import { listenersLayerAdapterProxy } from './listeners-layer-adapter.proxy';
 import { refRegistryLayerAdapterProxy } from './ref-registry-layer-adapter.proxy';
 import { rootCheckLayerAdapterProxy } from './root-check-layer-adapter.proxy';
 import { viewportSetLayerAdapterProxy } from './viewport-set-layer-adapter.proxy';
+import { initScriptAddLayerAdapterProxy } from './init-script-add-layer-adapter.proxy';
 import { RawDomReadingStub } from '../../../contracts/raw-dom-reading/raw-dom-reading.stub';
 
 // The one thing this proxy mocks over the npm boundary: `chromium.launch`, staged on its launch
@@ -93,6 +94,7 @@ export const playwrightSessionAdapterProxy = (): {
   domReadLayerAdapterProxy();
   rootCheckLayerAdapterProxy();
   viewportSetLayerAdapterProxy();
+  initScriptAddLayerAdapterProxy();
 
   registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(FIXED_EPOCH_MS);
 

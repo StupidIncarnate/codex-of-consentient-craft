@@ -10,6 +10,7 @@ import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.st
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { RefResolutionStub } from '../../../contracts/ref-resolution/ref-resolution.stub';
 import { stepBoxBrokerProxy } from '../box/step-box-broker.proxy';
+import { stepBeforeBrokerProxy } from '../before/step-before-broker.proxy';
 import { stepClickBrokerProxy } from '../click/step-click-broker.proxy';
 import { stepDomBrokerProxy } from '../dom/step-dom-broker.proxy';
 import { stepEvalSourceBrokerProxy } from '../eval-source/step-eval-source-broker.proxy';
@@ -59,6 +60,7 @@ export const runVerbLayerBrokerProxy = (): {
   // lane-boot-broker.proxy.ts's own unaddressed child proxy constructions.
   // Construction matches lane-boot-broker.proxy.ts pattern
   stepBoxBrokerProxy();
+  stepBeforeBrokerProxy();
   stepClickBrokerProxy();
   stepDomBrokerProxy();
   stepEvalSourceBrokerProxy();

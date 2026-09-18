@@ -1,6 +1,6 @@
 # Siegelense — the build
 
-**Valid as of the `request` commit, 2026-09-18.** Re-derive the counts below before trusting them; the
+**Valid as of the `before` commit, 2026-09-18.** Re-derive the counts below before trusting them; the
 command for each is given beside it. **A count in this file is a claim about a moment, and this file does
 not update itself.**
 
@@ -9,7 +9,7 @@ not update itself.**
 | | Built | Total | |
 |---|---|---|---|
 | **Calls** | **13** | 13 | every name in the closed set routes; `notBuiltYet` is empty |
-| **Step verbs** | **15** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` `box` `seed` `until` `dom` `key` `health` `resize` `request` |
+| **Step verbs** | **16** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` `box` `seed` `until` `dom` `key` `health` `resize` `request` `before` |
 | **Results kinds** | **6** | 6 | `console` `network` `ws` `server` `screenshots` `steps` |
 | **Build-order items** | see the table | 30 | Part 7 of the spec. Count the rows yourself; the tally is what rots |
 
@@ -236,7 +236,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 
 | Verb | State | Verb | State |
 |---|---|---|---|
-| `goto` | **built** | `before` | not built |
+| `goto` | **built** | `before` | **built** |
 | `waitFor` | **built** | `health` | **built** |
 | `click` | **built** | `reset` | not built |
 | `type` | **built** | `snapshot` | not built |
@@ -254,7 +254,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 packages/siegelense/src/statics/step/step-statics.ts   → verbs.all
 ```
 
-**`look`, `box`, `dom`, `seed`, `until`, `key`, `health`, `resize` and `request` are built.** What is next is in "How to pick the next piece" — re-derive it
+**`look`, `box`, `dom`, `seed`, `until`, `key`, `health`, `resize`, `request` and `before` are built.** What is next is in "How to pick the next piece" — re-derive it
 rather than trusting a shortlist written before this round.
 
 ### The build-order items
@@ -275,7 +275,7 @@ yourself from the table rather than trusting a tally; a tally is the first thing
 | 3b | The PLANNER role | **not started** — orchestrator prompt work |
 | 4 | A transcript of every step and reading | **done** |
 | 4b | The record's `WALKED` field | spec-side |
-| 5 | `before` — a script ahead of the page's own | **not started** |
+| 5 | `before` — a script ahead of the page's own | **done** — Playwright `addInitScript` via `initScriptAddLayerAdapter`, persists across navigations, reading `installed init script (N chars)`, refuses on headless; driven on real lane |
 | 6 | Capture on every acting step, frozen, with a change number | **done** |
 | 7 | **The key as a tree — refs, `within`, four columns** | **done** minus the numbered map, which the spec itself defers — `look` plus `look { within }`, and ref driving on `click` and `type` |
 | 8 | `health` — one reading, one verdict line | **done** — root presence, page blankness, console errors, 5xx, server log errors, shot capture; driven on real lane across HEALTHY, DEGRADED, DOWN |

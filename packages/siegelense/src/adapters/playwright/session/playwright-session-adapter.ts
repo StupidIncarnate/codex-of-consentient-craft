@@ -60,6 +60,7 @@ import { listenersLayerAdapter } from './listeners-layer-adapter';
 import { refRegistryLayerAdapter } from './ref-registry-layer-adapter';
 import { rootCheckLayerAdapter } from './root-check-layer-adapter';
 import { viewportSetLayerAdapter } from './viewport-set-layer-adapter';
+import { initScriptAddLayerAdapter } from './init-script-add-layer-adapter';
 
 // Re-declared locally rather than imported: `browser-session-contract.ts` keeps its own parsing
 // contracts private (leading underscore, no export) because the facade's data half is `{}` — a
@@ -486,6 +487,10 @@ export const playwrightSessionAdapter = async ({
 
     setViewport: async ({ width, height }: { width: number; height: number }): Promise<void> => {
       await viewportSetLayerAdapter({ page, width, height });
+    },
+
+    addInitScript: async ({ source }: { source: string }): Promise<void> => {
+      await initScriptAddLayerAdapter({ page, source });
     },
 
     bufferLengths: (): BufferLengths => ({
