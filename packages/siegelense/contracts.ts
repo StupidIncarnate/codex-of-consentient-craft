@@ -215,3 +215,6 @@ export * from './src/contracts/http-request-reading/http-request-reading.stub';
 
 export * from './src/contracts/step-file-path/step-file-path-contract';
 export * from './src/contracts/step-file-path/step-file-path.stub';
+
+export * from './src/contracts/storage-reading/storage-reading-contract';
+export * from './src/contracts/storage-reading/storage-reading.stub';

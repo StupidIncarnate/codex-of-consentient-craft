@@ -22,6 +22,7 @@ describe('stepStatics', () => {
           'request',
           'before',
           'file',
+          'storage',
         ],
         acting: ['goto', 'click', 'type', 'key', 'resize'],
         capturing: ['goto', 'click', 'type', 'look', 'key', 'health', 'resize'],
@@ -40,6 +41,7 @@ describe('stepStatics', () => {
           'health',
           'resize',
           'before',
+          'storage',
         ],
       },
       defaults: {
@@ -129,6 +131,7 @@ describe('stepStatics', () => {
       'health',
       'resize',
       'before',
+      'storage',
     ]);
   });
 
@@ -155,6 +158,7 @@ describe('stepStatics', () => {
       'health',
       'resize',
       'before',
+      'storage',
     ]);
   });
 
@@ -162,7 +166,7 @@ describe('stepStatics', () => {
     expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type']);
   });
 
-  it('VALID: {verbs.all} => ends with file, the seventeenth verb', () => {
+  it('VALID: {verbs.all} => ends with storage, the eighteenth verb', () => {
     expect(stepStatics.verbs.all).toStrictEqual([
       'goto',
       'waitFor',
@@ -181,6 +185,7 @@ describe('stepStatics', () => {
       'request',
       'before',
       'file',
+      'storage',
     ]);
   });
 });

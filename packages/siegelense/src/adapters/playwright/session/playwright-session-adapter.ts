@@ -53,6 +53,7 @@ import type {
   MatchCount,
 } from '../../../contracts/browser-session/browser-session-contract';
 import type { KeyReading } from '../../../contracts/key-reading/key-reading-contract';
+import type { StorageReading } from '../../../contracts/storage-reading/storage-reading-contract';
 import { domReadLayerAdapter } from './dom-read-layer-adapter';
 import { keyPressLayerAdapter } from './key-press-layer-adapter';
 import { keyReadLayerAdapter } from './key-read-layer-adapter';
@@ -61,6 +62,7 @@ import { refRegistryLayerAdapter } from './ref-registry-layer-adapter';
 import { rootCheckLayerAdapter } from './root-check-layer-adapter';
 import { viewportSetLayerAdapter } from './viewport-set-layer-adapter';
 import { initScriptAddLayerAdapter } from './init-script-add-layer-adapter';
+import { storageReadLayerAdapter } from './storage-read-layer-adapter';
 
 // Re-declared locally rather than imported: `browser-session-contract.ts` keeps its own parsing
 // contracts private (leading underscore, no export) because the facade's data half is `{}` — a
@@ -492,6 +494,9 @@ export const playwrightSessionAdapter = async ({
     addInitScript: async ({ source }: { source: string }): Promise<void> => {
       await initScriptAddLayerAdapter({ page, source });
     },
+
+    readStorage: async ({ prefix }: { prefix: string }): Promise<StorageReading> =>
+      storageReadLayerAdapter({ page, prefix }),
 
     bufferLengths: (): BufferLengths => ({
       consoleLines: bufferLineCountContract.parse(consoleLines.length),

@@ -11,6 +11,7 @@ import { refRegistryLayerAdapterProxy } from './ref-registry-layer-adapter.proxy
 import { rootCheckLayerAdapterProxy } from './root-check-layer-adapter.proxy';
 import { viewportSetLayerAdapterProxy } from './viewport-set-layer-adapter.proxy';
 import { initScriptAddLayerAdapterProxy } from './init-script-add-layer-adapter.proxy';
+import { storageReadLayerAdapterProxy } from './storage-read-layer-adapter.proxy';
 import { RawDomReadingStub } from '../../../contracts/raw-dom-reading/raw-dom-reading.stub';
 
 // The one thing this proxy mocks over the npm boundary: `chromium.launch`, staged on its launch
@@ -50,6 +51,7 @@ export const playwrightSessionAdapterProxy = (): {
   setEvaluateSourceResult: (params: { result: unknown }) => void;
   setFocusedResult: (params: { raw: unknown }) => void;
   setRootPresent: (params: { present: boolean }) => void;
+  setStorageResult: (params: { raw: unknown }) => void;
   getInitScripts: () => readonly unknown[];
   getStampCalls: () => readonly unknown[];
   getScreenshotCalls: () => readonly unknown[];
@@ -95,6 +97,7 @@ export const playwrightSessionAdapterProxy = (): {
   rootCheckLayerAdapterProxy();
   viewportSetLayerAdapterProxy();
   initScriptAddLayerAdapterProxy();
+  storageReadLayerAdapterProxy();
 
   registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(FIXED_EPOCH_MS);
 
@@ -106,6 +109,7 @@ export const playwrightSessionAdapterProxy = (): {
     domReadRaw: RawDomReadingStub() as unknown,
     focusedRaw: null as unknown,
     rootPresent: true,
+    storageReadingRaw: undefined as unknown,
     keyboardPressCalls: [] as unknown[],
     refState: 'live',
     boxRaw: {
@@ -178,6 +182,15 @@ export const playwrightSessionAdapterProxy = (): {
     // is modelled here instead of bypassed.
     evaluate: async (pageFunction: unknown, arg?: unknown): Promise<unknown> => {
       if (typeof pageFunction === 'function') {
+        if (String(pageFunction).includes('localStorage')) {
+          return Promise.resolve(
+            state.storageReadingRaw ?? {
+              origin: 'http://localhost:5173',
+              local: {},
+              session: {},
+            },
+          );
+        }
         return (pageFunction as (value: unknown) => unknown)(arg);
       }
       if (arg !== undefined) {
@@ -293,6 +306,9 @@ export const playwrightSessionAdapterProxy = (): {
     },
     setRootPresent: ({ present }: { present: boolean }): void => {
       state.rootPresent = present;
+    },
+    setStorageResult: ({ raw }: { raw: unknown }): void => {
+      state.storageReadingRaw = raw;
     },
     getInitScripts: (): readonly unknown[] => state.initScripts,
     getStampCalls: (): readonly unknown[] => state.stampCalls,

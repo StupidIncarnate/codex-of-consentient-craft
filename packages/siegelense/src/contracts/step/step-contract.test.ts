@@ -24,6 +24,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'request', path: '/api/guilds' }),
   StepStub({ step: 'before', source: ContentTextStub() }),
   StepStub({ step: 'file' }),
+  StepStub({ step: 'storage' }),
 ];
 
 describe('stepContract', () => {
@@ -1100,6 +1101,69 @@ describe('stepContract', () => {
         stepContract.parse({
           step: 'file',
           path: 'guilds/g1/quests/q1/quest.json',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+  });
+
+  describe('storage member', () => {
+    it('VALID: {step: storage} => parses with default prefix, null node, and ok expect', () => {
+      const result = stepContract.parse({ step: 'storage' });
+
+      expect(result).toStrictEqual({
+        step: 'storage',
+        prefix: '',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: storage, prefix: "dm-"} => parses with custom prefix', () => {
+      const result = stepContract.parse({
+        step: 'storage',
+        prefix: 'dm-',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'storage',
+        prefix: 'dm-',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: storage, full options} => parses with custom node and expect', () => {
+      const result = stepContract.parse({
+        step: 'storage',
+        prefix: 'dm-',
+        node: 'storage-check',
+        expect: 'error',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'storage',
+        prefix: 'dm-',
+        node: 'storage-check',
+        expect: 'error',
+      });
+    });
+
+    it('VALID: {step: storage} => StepStub builds valid storage default member', () => {
+      const result = StepStub({ step: 'storage' });
+
+      expect(result).toStrictEqual({
+        step: 'storage',
+        prefix: '',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: storage, +target} => throws naming the stray key, because storage is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'storage',
           target: '[data-testid="X"]',
         } as never),
       ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);

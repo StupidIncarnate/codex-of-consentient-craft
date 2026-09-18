@@ -345,4 +345,27 @@ describe('runVerbLayerBroker', () => {
       expect(reading).toBe('server listening on port 3000');
     });
   });
+
+  describe('a storage step', () => {
+    it('VALID: {storage} => routes to stepStorageBroker and returns storage reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({
+        step: 'storage',
+        prefix: 'dm-',
+      });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('{"origin":"http://localhost:3000","local":{},"session":{}}');
+    });
+  });
 });

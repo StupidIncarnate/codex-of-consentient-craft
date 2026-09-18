@@ -52,6 +52,7 @@ import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-s
 import { stepExpectationContract } from '../step-expectation/step-expectation-contract';
 import { stepFilePathContract } from '../step-file-path/step-file-path-contract';
 import { stepStatics } from '../../statics/step/step-statics';
+import { storageStatics } from '../../statics/storage/storage-statics';
 import { stepPathContract } from '../step-path/step-path-contract';
 import { untilConsolePatternContract } from '../until-console-pattern/until-console-pattern-contract';
 import { untilFilePathContract } from '../until-file-path/until-file-path-contract';
@@ -252,6 +253,17 @@ export const stepContract = z
       .object({
         step: z.literal('file'),
         path: stepFilePathContract,
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('storage'),
+        prefix: z
+          .string()
+          .brand<'StoragePrefix'>()
+          .default(storageStatics.defaults.prefix as never),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })

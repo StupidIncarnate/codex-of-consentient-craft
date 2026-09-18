@@ -805,4 +805,29 @@ describe('playwrightSessionAdapter', () => {
       expect(proxy.getInitScripts().slice(1)).toStrictEqual([{ content: 'window.__test = 1;' }]);
     });
   });
+
+  describe('readStorage()', () => {
+    it('VALID: {prefix: "dm-"} => delegates to storageReadLayerAdapter and returns StorageReading', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setStorageResult({
+        raw: {
+          origin: 'http://localhost:5173',
+          local: { 'dm-theme': 'dark' },
+          session: {},
+        },
+      });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.readStorage({ prefix: 'dm-' });
+
+      expect(result).toStrictEqual({
+        origin: 'http://localhost:5173',
+        local: { 'dm-theme': 'dark' },
+        session: {},
+      });
+    });
+  });
 });

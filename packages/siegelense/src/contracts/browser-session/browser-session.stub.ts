@@ -16,6 +16,8 @@ import type { KeyReading } from '../key-reading/key-reading-contract';
 import { RefResolutionStub } from '../ref-resolution/ref-resolution.stub';
 import type { RefResolution } from '../ref-resolution/ref-resolution-contract';
 import type { StepCandidate } from '../step-candidate/step-candidate-contract';
+import { StorageReadingStub } from '../storage-reading/storage-reading.stub';
+import type { StorageReading } from '../storage-reading/storage-reading-contract';
 
 const matchCountContract = z.number().int().nonnegative().brand<'MatchCount'>();
 const bufferLineCountContract = z.number().int().nonnegative().brand<'BufferLineCount'>();
@@ -47,6 +49,7 @@ export const BrowserSessionStub = ({
     checkRootPresent,
     setViewport,
     addInitScript,
+    readStorage,
     bufferLengths,
     close,
     ...dataProps
@@ -84,6 +87,8 @@ export const BrowserSessionStub = ({
     checkRootPresent: checkRootPresent ?? (async (): Promise<boolean> => Promise.resolve(true)),
     setViewport: setViewport ?? (async (): Promise<void> => Promise.resolve()),
     addInitScript: addInitScript ?? (async (): Promise<void> => Promise.resolve()),
+    readStorage:
+      readStorage ?? (async (): Promise<StorageReading> => Promise.resolve(StorageReadingStub())),
     bufferLengths:
       bufferLengths ??
       ((): BufferLengths => ({

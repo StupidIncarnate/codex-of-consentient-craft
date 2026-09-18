@@ -48,6 +48,7 @@ import { stepResizeBroker } from '../resize/step-resize-broker';
 import { stepRequestBroker } from '../request/step-request-broker';
 import { stepScreenshotBroker } from '../screenshot/step-screenshot-broker';
 import { stepSeedBroker } from '../seed/step-seed-broker';
+import { stepStorageBroker } from '../storage/step-storage-broker';
 import { stepTargetResolveBroker } from '../target-resolve/step-target-resolve-broker';
 import { stepTypeBroker } from '../type/step-type-broker';
 import { stepUntilBroker } from '../until/step-until-broker';
@@ -212,6 +213,9 @@ export const runVerbLayerBroker = async ({
   }
   if (step.step === 'before') {
     return stepBeforeBroker({ session, source: step.source });
+  }
+  if (step.step === 'storage') {
+    return stepStorageBroker({ session, prefix: step.prefix });
   }
 
   return stepEvalSourceBroker({ session, source: step.source });

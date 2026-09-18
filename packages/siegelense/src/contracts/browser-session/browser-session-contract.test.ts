@@ -1,5 +1,6 @@
 import { browserSessionContract } from './browser-session-contract';
 import { BrowserSessionStub } from './browser-session.stub';
+import { StorageReadingStub } from '../storage-reading/storage-reading.stub';
 
 describe('browserSessionContract', () => {
   it('VALID: {} => the data half parses to an empty object', () => {
@@ -106,6 +107,37 @@ describe('browserSessionContract', () => {
 
       expect(mockAddInitScript).toHaveBeenCalledTimes(1);
       expect(mockAddInitScript).toHaveBeenCalledWith({ source: 'console.log(1);' });
+    });
+
+    it('VALID: {} => readStorage resolves to default StorageReading', async () => {
+      const session = BrowserSessionStub();
+
+      const reading = await session.readStorage({ prefix: '' });
+
+      expect(reading).toStrictEqual({
+        origin: 'http://localhost:3000',
+        local: {},
+        session: {},
+      });
+    });
+
+    it('VALID: {readStorage: mock} => readStorage uses the handed-in implementation', async () => {
+      const customReading = StorageReadingStub({
+        origin: 'https://example.com',
+        local: { 'dm-a': '1' },
+      });
+      const mockReadStorage = jest.fn().mockResolvedValue(customReading);
+      const session = BrowserSessionStub({ readStorage: mockReadStorage });
+
+      const reading = await session.readStorage({ prefix: 'dm-' });
+
+      expect(reading).toStrictEqual({
+        origin: 'https://example.com',
+        local: { 'dm-a': '1' },
+        session: {},
+      });
+      expect(mockReadStorage).toHaveBeenCalledTimes(1);
+      expect(mockReadStorage).toHaveBeenCalledWith({ prefix: 'dm-' });
     });
   });
 });
