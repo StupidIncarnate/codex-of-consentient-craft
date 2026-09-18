@@ -19,6 +19,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'box' }),
   StepStub({ step: 'until', visible: SelectorStub() }),
   StepStub({ step: 'key', press: ContentTextStub({ value: 'Enter' }) }),
+  StepStub({ step: 'health' }),
 ];
 
 describe('stepContract', () => {
@@ -275,6 +276,41 @@ describe('stepContract', () => {
         stepContract.parse({
           step: 'key',
           press: 'Enter',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+
+    it('VALID: {step: health} => parses the complete health member', () => {
+      const result = stepContract.parse({
+        step: 'health',
+        node: 'baseline-health',
+        expect: 'ok',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'health',
+        node: 'baseline-health',
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: health, defaults} => fills default node and expect', () => {
+      const result = stepContract.parse({
+        step: 'health',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'health',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: health, +target} => throws naming the stray key, because health takes no target', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'health',
           target: '[data-testid="X"]',
         } as never),
       ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);

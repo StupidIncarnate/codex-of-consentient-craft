@@ -57,5 +57,23 @@ describe('browserSessionContract', () => {
         undefined,
       );
     });
+
+    it('VALID: {} => checkRootPresent resolves to true by default', async () => {
+      const session = BrowserSessionStub();
+
+      const result = await session.checkRootPresent();
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {checkRootPresent: mock} => checkRootPresent uses the handed-in implementation', async () => {
+      const mockCheck = jest.fn().mockResolvedValue(false);
+      const session = BrowserSessionStub({ checkRootPresent: mockCheck });
+
+      const result = await session.checkRootPresent();
+
+      expect(result).toBe(false);
+      expect(mockCheck).toHaveBeenCalledTimes(1);
+    });
   });
 });

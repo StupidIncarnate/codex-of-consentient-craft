@@ -200,3 +200,9 @@ export * from './src/contracts/focused-element/focused-element.stub';
 
 export * from './src/contracts/key-reading/key-reading-contract';
 export * from './src/contracts/key-reading/key-reading.stub';
+
+export * from './src/contracts/health-verdict/health-verdict-contract';
+export * from './src/contracts/health-verdict/health-verdict.stub';
+
+export * from './src/contracts/health-reading/health-reading-contract';
+export * from './src/contracts/health-reading/health-reading.stub';

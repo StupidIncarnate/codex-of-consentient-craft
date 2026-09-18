@@ -14,4 +14,5 @@ export * from './src/statics/results/results-statics';
 export * from './src/statics/siegelense-call/siegelense-call-statics';
 export * from './src/statics/siegelense-help/siegelense-help-statics';
 export * from './src/statics/siegelense-output/siegelense-output-statics';
+export * from './src/statics/health/health-statics';
 export * from './src/statics/step/step-statics';

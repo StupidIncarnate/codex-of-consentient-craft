@@ -923,6 +923,36 @@ describe('stepDispatchBroker', () => {
       ]);
     });
 
+    it('VALID: {health} => the reading is the rendered health line, captured exactly once', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const { lane, captureCallArgs } = proxy.happyLane();
+      const step = StepStub({ step: 'health' });
+      const shotPath = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+      });
+      const backgroundPixel = [0x0d, 0x09, 0x07, 255];
+      const pixels = new Uint8Array(Array.from({ length: 8 }, () => backgroundPixel).flat());
+      proxy.stagesShotFrame({ shotPath, width: 4, height: 2, pixels });
+
+      const result = await stepDispatchBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 1 }),
+        shotPath,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
+      });
+
+      expect(result.reading).toBe(
+        'DOWN      root present · page blank (#0d0907) · console clean · no 5xx · server log clean',
+      );
+      expect(captureCallArgs()).toStrictEqual([
+        [{ filePath: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png' }],
+      ]);
+    });
+
     it('VALID: {eval} => the reading is the stringified evaluated value', async () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane } = proxy.happyLane();

@@ -58,6 +58,7 @@ import { keyPressLayerAdapter } from './key-press-layer-adapter';
 import { keyReadLayerAdapter } from './key-read-layer-adapter';
 import { listenersLayerAdapter } from './listeners-layer-adapter';
 import { refRegistryLayerAdapter } from './ref-registry-layer-adapter';
+import { rootCheckLayerAdapter } from './root-check-layer-adapter';
 
 // Re-declared locally rather than imported: `browser-session-contract.ts` keeps its own parsing
 // contracts private (leading underscore, no export) because the facade's data half is `{}` — a
@@ -150,6 +151,7 @@ export const playwrightSessionAdapter = async ({
   const keyReader = keyReadLayerAdapter();
   const domReader = domReadLayerAdapter();
   const keyPress = keyPressLayerAdapter();
+  const rootChecker = rootCheckLayerAdapter();
   // See the header: a HOLDER, not a reassigned `let`, and the one piece of ref state Node keeps.
   const mintState = { highest: 0 };
 
@@ -474,6 +476,11 @@ export const playwrightSessionAdapter = async ({
     }): Promise<DomReading> => {
       const raw: unknown = await page.evaluate(domReader.readSource({ target, text }));
       return domReader.toReading({ raw, fields });
+    },
+
+    checkRootPresent: async (): Promise<boolean> => {
+      const raw: unknown = await page.evaluate(rootChecker.checkSource());
+      return rootChecker.toResult({ raw });
     },
 
     bufferLengths: (): BufferLengths => ({

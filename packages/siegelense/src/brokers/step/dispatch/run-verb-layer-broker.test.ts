@@ -220,4 +220,26 @@ describe('runVerbLayerBroker', () => {
       );
     });
   });
+
+  describe('a health step', () => {
+    it('VALID: {health} => routes to stepHealthBroker and returns health reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'health' });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe(
+        'HEALTHY   root present · not blank · console clean · no 5xx · server log clean',
+      );
+    });
+  });
 });

@@ -35,6 +35,15 @@ const computeVersion = () => {
     const hash = crypto.createHash('md5');
 
     hash.update(fs.readFileSync(barrelPath, 'utf-8'));
+    hash.update(
+      fs.readFileSync(
+        path.resolve(
+          __dirname,
+          '../src/adapters/typescript/mock-calls-to-statements/typescript-mock-calls-to-statements-adapter.ts',
+        ),
+        'utf-8',
+      ),
+    );
 
     const proxyFiles = globSync('*/src/**/*.proxy.ts', { cwd: packagesRoot }).sort();
     for (const proxyFile of proxyFiles) {

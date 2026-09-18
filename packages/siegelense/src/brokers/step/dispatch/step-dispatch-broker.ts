@@ -4,9 +4,9 @@
  * delegates the resolve-then-act work to `run-verb-layer-broker.ts`, then inverts `ok` around
  * `expect` exactly once so no verb broker has to know the difference between an unexpected failure
  * and an attack that landed (chunk-02-driver-and-batch.md, W14: "That inversion belongs in the
- * dispatcher, once, not in six brokers"). `screenshot` is the one verb whose own broker already
- * performs its capture with the caller-resolved `shotPath` as its `filePath`
- * (`run-verb-layer-broker.ts`), so this dispatcher's own unasked-capture step is skipped for it —
+ * dispatcher, once, not in six brokers"). `screenshot` and `health` are the verbs whose own brokers
+ * already perform their capture with the caller-resolved `shotPath` as their `filePath`
+ * (`run-verb-layer-broker.ts`), so this dispatcher's own unasked-capture step is skipped for them —
  * capturing again to the same path would be a second write of the same picture. A REAL failure
  * (`step.expect !== 'error'`) still captures before rethrowing — "always capture" (line 676) does not
  * stop being true because the step failed for a genuine reason rather than the one it declared; a
@@ -117,7 +117,12 @@ export const stepDispatchBroker = async ({
     });
     const ok = step.expect !== 'error';
 
-    if (shotPath !== null && session !== null && step.step !== 'screenshot') {
+    if (
+      shotPath !== null &&
+      session !== null &&
+      step.step !== 'screenshot' &&
+      step.step !== 'health'
+    ) {
       await session.capture({ filePath: shotPath });
     }
 
@@ -163,7 +168,12 @@ export const stepDispatchBroker = async ({
       // `.catch`, so it rides upward on the rethrow instead: `StepFailureCaptureError` carries both
       // the original error and a `captured` boolean, so `runExecuteStepLayerBroker` reports `shot`
       // honestly rather than hardcoding `null` or guessing from the filesystem.
-      if (shotPath !== null && session !== null && step.step !== 'screenshot') {
+      if (
+        shotPath !== null &&
+        session !== null &&
+        step.step !== 'screenshot' &&
+        step.step !== 'health'
+      ) {
         const captured = await session
           .capture({ filePath: shotPath })
           .then(() => true)
@@ -228,7 +238,12 @@ export const stepDispatchBroker = async ({
         : String(error),
     );
 
-    if (shotPath !== null && session !== null && step.step !== 'screenshot') {
+    if (
+      shotPath !== null &&
+      session !== null &&
+      step.step !== 'screenshot' &&
+      step.step !== 'health'
+    ) {
       await session.capture({ filePath: shotPath });
     }
 

@@ -37,12 +37,13 @@ import { isTargetingStepGuard } from '../../../guards/is-targeting-step/is-targe
 import { stepBoxBroker } from '../box/step-box-broker';
 import { stepClickBroker } from '../click/step-click-broker';
 import { stepDomBroker } from '../dom/step-dom-broker';
-import { stepSeedBroker } from '../seed/step-seed-broker';
 import { stepEvalSourceBroker } from '../eval-source/step-eval-source-broker';
 import { stepGotoBroker } from '../goto/step-goto-broker';
+import { stepHealthBroker } from '../health/step-health-broker';
 import { stepKeyBroker } from '../key/step-key-broker';
 import { stepLookBroker } from '../look/step-look-broker';
 import { stepScreenshotBroker } from '../screenshot/step-screenshot-broker';
+import { stepSeedBroker } from '../seed/step-seed-broker';
 import { stepTargetResolveBroker } from '../target-resolve/step-target-resolve-broker';
 import { stepTypeBroker } from '../type/step-type-broker';
 import { stepUntilBroker } from '../until/step-until-broker';
@@ -179,6 +180,14 @@ export const runVerbLayerBroker = async ({
   }
   if (step.step === 'key') {
     return stepKeyBroker({ session, press: step.press });
+  }
+  if (step.step === 'health') {
+    return stepHealthBroker({
+      lane,
+      session,
+      shotPath,
+      browserWindowStart,
+    });
   }
 
   return stepEvalSourceBroker({ session, source: step.source });

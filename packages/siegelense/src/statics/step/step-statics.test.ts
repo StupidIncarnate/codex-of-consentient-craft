@@ -17,9 +17,10 @@ describe('stepStatics', () => {
           'seed',
           'until',
           'key',
+          'health',
         ],
         acting: ['goto', 'click', 'type', 'key'],
-        capturing: ['goto', 'click', 'type', 'look', 'key'],
+        capturing: ['goto', 'click', 'type', 'look', 'key', 'health'],
         targeting: ['waitFor', 'click', 'type'],
         browser: [
           'goto',
@@ -32,6 +33,7 @@ describe('stepStatics', () => {
           'box',
           'dom',
           'key',
+          'health',
         ],
       },
       defaults: {
@@ -85,7 +87,14 @@ describe('stepStatics', () => {
   // enough that `verb === 'look'` can never be true, so a filter reads as a passing test while
   // proving nothing the type did not already prove — tsc refuses the comparison outright.
   it('VALID: {verbs.capturing} => holds look, which writes the shot beside the key', () => {
-    expect(stepStatics.verbs.capturing).toStrictEqual(['goto', 'click', 'type', 'look', 'key']);
+    expect(stepStatics.verbs.capturing).toStrictEqual([
+      'goto',
+      'click',
+      'type',
+      'look',
+      'key',
+      'health',
+    ]);
   });
 
   it('VALID: {verbs.acting} => omits look, which reads the page and never changes it', () => {
@@ -110,6 +119,7 @@ describe('stepStatics', () => {
       'box',
       'dom',
       'key',
+      'health',
     ]);
   });
 
@@ -133,6 +143,7 @@ describe('stepStatics', () => {
       'box',
       'dom',
       'key',
+      'health',
     ]);
   });
 
@@ -140,7 +151,7 @@ describe('stepStatics', () => {
     expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type']);
   });
 
-  it('VALID: {verbs.all} => ends with key, the twelfth verb', () => {
+  it('VALID: {verbs.all} => ends with health, the thirteenth verb', () => {
     expect(stepStatics.verbs.all).toStrictEqual([
       'goto',
       'waitFor',
@@ -154,6 +165,7 @@ describe('stepStatics', () => {
       'seed',
       'until',
       'key',
+      'health',
     ]);
   });
 });

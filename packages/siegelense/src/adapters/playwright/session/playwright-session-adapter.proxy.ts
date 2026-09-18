@@ -8,6 +8,7 @@ import { keyPressLayerAdapterProxy } from './key-press-layer-adapter.proxy';
 import { keyReadLayerAdapterProxy } from './key-read-layer-adapter.proxy';
 import { listenersLayerAdapterProxy } from './listeners-layer-adapter.proxy';
 import { refRegistryLayerAdapterProxy } from './ref-registry-layer-adapter.proxy';
+import { rootCheckLayerAdapterProxy } from './root-check-layer-adapter.proxy';
 import { RawDomReadingStub } from '../../../contracts/raw-dom-reading/raw-dom-reading.stub';
 
 // The one thing this proxy mocks over the npm boundary: `chromium.launch`, staged on its launch
@@ -34,6 +35,7 @@ const REF_STATE_MARKER = 'isConnected === true ?';
 const STAMP_MARKER = "setAttribute('siege-target'";
 const UNSTAMP_MARKER = "removeAttribute('siege-target')";
 const BOX_MARKER = 'getComputedStyle';
+const ROOT_CHECK_MARKER = 'document.querySelector("#root")';
 
 export const playwrightSessionAdapterProxy = (): {
   setLocatorCount: (params: { selector: string; count: number }) => void;
@@ -45,6 +47,7 @@ export const playwrightSessionAdapterProxy = (): {
   setBoxResult: (params: { raw: unknown }) => void;
   setEvaluateSourceResult: (params: { result: unknown }) => void;
   setFocusedResult: (params: { raw: unknown }) => void;
+  setRootPresent: (params: { present: boolean }) => void;
   getInitScripts: () => readonly unknown[];
   getStampCalls: () => readonly unknown[];
   getScreenshotCalls: () => readonly unknown[];
@@ -86,6 +89,7 @@ export const playwrightSessionAdapterProxy = (): {
   keyReadLayerAdapterProxy();
   refRegistryLayerAdapterProxy();
   domReadLayerAdapterProxy();
+  rootCheckLayerAdapterProxy();
 
   registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(FIXED_EPOCH_MS);
 
@@ -96,6 +100,7 @@ export const playwrightSessionAdapterProxy = (): {
     keyReadRaw: { rows: [], highestRef: 0, skipped: [] } as unknown,
     domReadRaw: RawDomReadingStub() as unknown,
     focusedRaw: null as unknown,
+    rootPresent: true,
     keyboardPressCalls: [] as unknown[],
     refState: 'live',
     boxRaw: {
@@ -202,6 +207,9 @@ export const playwrightSessionAdapterProxy = (): {
       if (source.includes(NEAREST_NAMES_MARKER)) {
         return Promise.resolve(state.nearestNamesRaw);
       }
+      if (source.includes(ROOT_CHECK_MARKER)) {
+        return Promise.resolve(state.rootPresent);
+      }
       return Promise.resolve(state.evaluateSourceResult);
     },
     waitForFunction: async (source: unknown, _arg: unknown, options: unknown): Promise<unknown> => {
@@ -272,6 +280,9 @@ export const playwrightSessionAdapterProxy = (): {
     },
     setFocusedResult: ({ raw }): void => {
       state.focusedRaw = raw;
+    },
+    setRootPresent: ({ present }: { present: boolean }): void => {
+      state.rootPresent = present;
     },
     getInitScripts: (): readonly unknown[] => state.initScripts,
     getStampCalls: (): readonly unknown[] => state.stampCalls,

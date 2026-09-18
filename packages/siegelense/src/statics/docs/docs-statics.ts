@@ -155,7 +155,7 @@ export const docsStatics = {
         {
           heading: 'WHAT A PLAN CAN PROMISE TODAY',
           lines: [
-            `Twelve step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom and key. Every other verb in the design is ${NOT_BUILT}.`,
+            `Thirteen step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key and health. Every other verb in the design is ${NOT_BUILT}.`,
             'look returns the key — every addressable element, its name, its text and a ref for each — so a prelude can discover a testId rather than only address one it was told about.',
             "seed runs a recipe against the instance and returns the ids it made, so a prelude CAN create its own starting state. dungeonmaster siegelense recipes lists every recipe with its produces: claim; name one in a { step: 'seed' } and read its ids back with {binding.field}.",
           ],
@@ -282,7 +282,7 @@ export const docsStatics = {
         {
           heading: 'READ THIS FIRST',
           lines: [
-            `health, reset and snapshot are all ${NOT_BUILT}. Nothing returns an instance to a known starting point, and nothing takes the one-shot verdict reading.`,
+            `reset and snapshot are both ${NOT_BUILT}. Nothing returns an instance to a known starting point. health is BUILT.`,
             "So an attack that changes state needs its own instance today: boot it, attack once, read the evidence, close it. A second attack against the same instance measures the first attack's leftovers.",
             'The rules below are still the rules. They describe how state behaves rather than how a step behaves, and they are true whether or not the step that acts on them exists.',
           ],
@@ -290,7 +290,7 @@ export const docsStatics = {
         {
           heading: 'HEALTH — ONE READING, ONE VERDICT LINE',
           lines: [
-            `health takes one reading in a fixed shape so two readings can be held against each other. It is your counterpart to the key. ${NOT_BUILT}.`,
+            'health takes one reading in a fixed shape so two readings can be held against each other. It is your counterpart to the key.',
             'Its three answers: HEALTHY — root present, not blank, console clean, no 5xx, server log clean. DEGRADED — root present, console: 1 error. DOWN — root absent, page blank, server log: 3 errors since step 4.',
             "Blankness appears in health AND on every capture's blank field, deliberately: this is the asked-for reading, and that one fires unasked.",
             'Take the same reading by hand today, and every part of it is already callable: results --kind console for errors, --kind network for non-2xx, --kind server --where-steps a-b --where-level error for the server log, and the blank field on the capture the acting step already took.',
@@ -462,7 +462,7 @@ export const docsStatics = {
         {
           heading: 'THE READING STEPS, AND WHAT YOU CANNOT DO YET',
           lines: [
-            "Twelve step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom and key. They are values inside run's steps array, never commands of their own.",
+            "Thirteen step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key and health. They are values inside run's steps array, never commands of their own.",
             'look reads the page and returns the key — every addressable element with a ref per row — so you can ask what is on a screen rather than only address a testId you already knew.',
             "seed puts the app into a state: { step: 'seed', recipe: '<name>', as: 'g' } runs a recipe and returns the ids it made, and a later step reads them back as {g.guildSlug}. dungeonmaster siegelense recipes lists what states exist.",
             'Ambiguity is an ERROR, never a silent pick. Two matches come back as AMBIGUOUS carrying both candidates; narrow with a within scope.',
@@ -489,7 +489,7 @@ export const docsStatics = {
           lines: [
             'dungeonmaster siegelense start --spec dungeonmaster-headless — the servers, and no Chromium. A browserless spec is just another spec.',
             'Because a profile is keyed by the spec\'s content hash, a browserless spec measures its own steady and peak, and capacity allows more of them in a pool. Nothing special is needed for this: it is the "I added a second server" case running in the other direction.',
-            'Browser steps go missing LOUDLY. A browser step submitted against a browserless instance is an error naming the spec, never an empty reading — a reading that quietly returns nothing is the count: 0 problem arriving at the one place a walk cannot recover from it. This half is BUILT: every browser verb errors by name here — goto, waitFor, click, type, screenshot, eval, look, box, dom and key.',
+            'Browser steps go missing LOUDLY. A browser step submitted against a browserless instance is an error naming the spec, never an empty reading — a reading that quietly returns nothing is the count: 0 problem arriving at the one place a walk cannot recover from it. This half is BUILT: every browser verb errors by name here — goto, waitFor, click, type, screenshot, eval, look, box, dom, key and health.',
             'A browserless boot still needs the fake agent CLI, because it still runs the API process that dispatches through the agent and the ward binary.',
             `The shipped specs still name this repo's own server and web packages directly, so a consumer repo gets a tool that cannot boot its own app. ${NOT_BUILT}.`,
           ],

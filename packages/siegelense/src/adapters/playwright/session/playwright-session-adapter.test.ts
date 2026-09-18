@@ -749,4 +749,32 @@ describe('playwrightSessionAdapter', () => {
       });
     });
   });
+
+  describe('checkRootPresent()', () => {
+    it('VALID: {root is present} => returns true', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setRootPresent({ present: true });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.checkRootPresent();
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {root is absent} => returns false', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setRootPresent({ present: false });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.checkRootPresent();
+
+      expect(result).toBe(false);
+    });
+  });
 });

@@ -990,6 +990,9 @@ It reappears in exactly one place: the list handed to the person at the end.
 
 ### Survival: what a stress tester needs and the verifier does not
 
+> **Status: DELIVERED** — `health` step verb delivered: one reading with one verdict line (`HEALTHY`, `DEGRADED`, `DOWN`) composing root presence (`#root`), page blankness from screenshot, console error count, 5xx network count, and server log errors, plus a capture shot with stamped blank/pixelChange. Driven on a real web instance across HEALTHY, DEGRADED, and DOWN states, and verified to refuse loudly on headless.
+
+
 **Problem.** The two minions claim different things:
 
 |               | Claims                                    | Needs a pair around            |
@@ -2608,7 +2611,7 @@ results queries now. `end` becomes the instance-level `kill`.
 
 ### Steps that are new
 
-> **Status: PARTIAL** — five of the step verbs ship: `look`, `box`, `dom`, `seed` and `until`. `until` carries all five forms — `visible`, `predicate`, `console`, `response` and `file` — with `file` the one that runs on a browserless lane; a ceiling answers `status: 'timeout'` and anything else answers `failed`, so an ambiguous `visible` reports Playwright's strict-mode violation naming both elements rather than advising a longer wait · `box` reports exact geometry off element-bound refs · `dom` provides selectable node readings with field projection, own-text default and a 100-element self-reporting cap · verified by reading `brokers/step/` and by driving against a real lane · NOT YET: `before`, `health`, `reset`, `snapshot`, `hold`, `video`, `request`, `resize`
+> **Status: PARTIAL** — six of the step verbs ship: `look`, `box`, `dom`, `seed`, `until`, and `health`. `health` delivers one reading with one verdict line (`HEALTHY`, `DEGRADED`, `DOWN`) inspecting root presence (`#root`), page blankness, console errors, 5xx network responses, and server log errors, capturing a shot and stamping blank/pixelChange · `until` carries all five forms — `visible`, `predicate`, `console`, `response` and `file` · `box` reports exact geometry off element-bound refs · `dom` provides selectable node readings with field projection, own-text default and a 100-element self-reporting cap · verified by reading `brokers/step/` and by driving against a real lane · NOT YET: `before`, `reset`, `snapshot`, `hold`, `video`, `request`, `resize`
 
 **`look`** — addressing. Returns the KEY inline and writes the SHOT, returning its path. **The MAP is optional and ships
 later** — `look { map: true }` requests it once it exists, and until then the field is simply absent rather than empty.
@@ -2632,6 +2635,8 @@ Part 7 defers it deliberately: the one trial arm that had a map rendered three a
 ```
 
 **`health`** — one reading, one verdict line. The stress tester's counterpart to the key.
+
+> **Status: DELIVERED** — delivers one reading with one verdict line (`HEALTHY`, `DEGRADED`, `DOWN`) composing root presence (`#root`), page blankness from screenshot, console error count, 5xx network count, and server log errors, plus a capture shot with stamped blank/pixelChange. Driven on a real web instance across HEALTHY, DEGRADED, and DOWN states, and verified to refuse loudly on headless.
 
 ```
 { step: 'health' }

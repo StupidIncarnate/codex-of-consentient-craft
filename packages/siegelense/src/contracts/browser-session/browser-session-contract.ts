@@ -131,6 +131,7 @@ export type BrowserSession = z.infer<typeof browserSessionContract> & {
     fields: readonly DomField[] | null;
     text: DomTextMode | null;
   }) => Promise<DomReading>;
+  checkRootPresent: () => Promise<boolean>;
   bufferLengths: () => BufferLengths;
   close: () => Promise<void>;
 };

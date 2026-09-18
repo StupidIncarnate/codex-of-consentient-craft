@@ -112,15 +112,21 @@ describe('docsStatics', () => {
       ]);
     });
 
+    it('VALID: {attacking} => marks health as built while reset and snapshot remain unbuilt', () => {
+      expect(docsStatics.scopes.attacking.sections[0].lines[0]).toBe(
+        'reset and snapshot are both NOT BUILT YET. Nothing returns an instance to a known starting point. health is BUILT.',
+      );
+    });
+
     it('VALID: {attacking} => gives the callable stand-in for the unbuilt health reading', () => {
       expect(docsStatics.scopes.attacking.sections[1].lines[3]).toBe(
         'Take the same reading by hand today, and every part of it is already callable: results --kind console for errors, --kind network for non-2xx, --kind server --where-steps a-b --where-level error for the server log, and the blank field on the capture the acting step already took.',
       );
     });
 
-    it('VALID: {planning} => names the twelve built verbs and marks every other one', () => {
+    it('VALID: {planning} => names the thirteen built verbs and marks every other one', () => {
       expect(docsStatics.scopes.planning.sections[5].lines[0]).toBe(
-        'Twelve step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom and key. Every other verb in the design is NOT BUILT YET.',
+        'Thirteen step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key and health. Every other verb in the design is NOT BUILT YET.',
       );
     });
 
@@ -132,7 +138,7 @@ describe('docsStatics', () => {
 
     it('VALID: {operational} => says browser steps error by name on a browserless lane, naming the shape rather than a count', () => {
       expect(docsStatics.scopes.operational.sections[1].lines[2]).toBe(
-        'Browser steps go missing LOUDLY. A browser step submitted against a browserless instance is an error naming the spec, never an empty reading — a reading that quietly returns nothing is the count: 0 problem arriving at the one place a walk cannot recover from it. This half is BUILT: every browser verb errors by name here — goto, waitFor, click, type, screenshot, eval, look, box, dom and key.',
+        'Browser steps go missing LOUDLY. A browser step submitted against a browserless instance is an error naming the spec, never an empty reading — a reading that quietly returns nothing is the count: 0 problem arriving at the one place a walk cannot recover from it. This half is BUILT: every browser verb errors by name here — goto, waitFor, click, type, screenshot, eval, look, box, dom, key and health.',
       );
     });
 
