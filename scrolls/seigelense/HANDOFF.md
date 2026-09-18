@@ -1,6 +1,6 @@
 # Siegelense — the build
 
-**Valid as of the `dom` commit, 2026-09-17.** Re-derive the counts below before trusting them; the
+**Valid as of the `key` commit, 2026-09-17.** Re-derive the counts below before trusting them; the
 command for each is given beside it. **A count in this file is a claim about a moment, and this file does
 not update itself.**
 
@@ -9,7 +9,7 @@ not update itself.**
 | | Built | Total | |
 |---|---|---|---|
 | **Calls** | **13** | 13 | every name in the closed set routes; `notBuiltYet` is empty |
-| **Step verbs** | **11** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` `box` `seed` `until` `dom` |
+| **Step verbs** | **12** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` `box` `seed` `until` `dom` `key` |
 | **Results kinds** | **6** | 6 | `console` `network` `ws` `server` `screenshots` `steps` |
 | **Build-order items** | see the table | 30 | Part 7 of the spec. Count the rows yourself; the tally is what rots |
 
@@ -42,10 +42,34 @@ Copy the block below into a new session. It is self-contained.
 > untangle.
 >
 > **SUB-AGENT DISPATCH FOR IMPLEMENTATION AND REVIEW:**
-> Launch sub-agents to do the work and review:
-> 1. Dispatch ONE sub-agent to do the coding and implementation of the piece (contracts, statics, adapters, brokers, transformers, and unit tests). Tell it not to dispatch its own sub-agents.
-> 2. Once built and warded, dispatch ONE sub-agent to manually test / drive the CLI against a real running instance (following `manual-verification-runbook.md`: boot, submit batches, query step results, kill cleanly, verify process table), review the behavior, and fix any issues found during driving.
-> 3. The parent agent handles the picking, coordinates the sub-agents, verifies the documentation updates, and commits directly to `master`.
+> Launch sub-agents in sequence to do the build and verification:
+>
+> 1. **Coding sub-agent (The Builder):**
+>    - Reads architecture (`get-architecture`, `get-testing-patterns`, `get-folder-detail`).
+>    - Reads the piece requirements from `siegelense-tooling.md` and the piece's plan.
+>    - Implements all source code across architectural layers: statics, contracts & stubs, adapters (impl, proxy, unit test), brokers (impl, proxy, unit test), transformers, and guards.
+>    - Writes comprehensive unit tests following testing patterns (proxy pattern, strict assertions, branded Zod contracts).
+>    - Runs scoped ward on touched files until 100% green (`npm run ward -- --only lint,typecheck,unit -- <files>`).
+>    - Does not boot real background server processes or leave running instances.
+>    - Reports back to parent with touched files, test results, and implementation notes.
+>
+> 2. **Manual verification & review sub-agent (The Driver & Fixer):**
+>    - Reads `scrolls/seigelense/manual-verification-runbook.md` before driving.
+>    - Builds compiled output (`npm run build --workspace=@dungeonmaster/siegelense && npm run build --workspace=@dungeonmaster/cli`).
+>    - Cleans up stale sockets (`rm -rf /tmp/dm-siege-sockets`).
+>    - Boots a real instance (`CLAUDE_CLI_PATH=... WARD_CLI_PATH=... node packages/cli/dist/bin/dungeonmaster.js siegelense start --spec dungeonmaster-web`).
+>    - Drives the new verb via the CLI (`dungeonmaster siegelense run`), covering happy paths, edge cases, error conditions, invalid arguments, and projections.
+>    - Queries real step results off disk (`dungeonmaster siegelense results --instance <id> --run <runId> --step <N>`).
+>    - Inspects real stdout/JSON for compliance with `siegelense-tooling.md`.
+>    - If any defects, omissions, or surprises are found: fixes the code directly, re-builds, and re-tests until solid.
+>    - Tears down instance (`dungeonmaster siegelense kill`) and verifies process table and socket directories are swept clean.
+>    - Reports real command invocations, verbatim stdout/JSON outputs, and verification evidence back to parent.
+>
+> 3. **Parent agent (The Coordinator):**
+>    - Selects the piece, creates the plan document in `scrolls/seigelense/plans/<piece>.md`.
+>    - Dispatches the coding sub-agent, then dispatches the manual verification sub-agent once coding is done.
+>    - Verifies documentation updates (`HANDOFF.md`, `build-ledger.md`, `siegelense-tooling.md`).
+>    - Runs final ward check and commits directly to `master`.
 >
 > **The interface is the CLI.** Every call is `dungeonmaster siegelense <call>`. There are no MCP tools and
 > none are wanted — we should not have to install an MCP server for an LLM to use this. If you find MCP
@@ -216,7 +240,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 | `screenshot` | **built** | `seed` | **built** |
 | `eval` | **built** | `until` | **built** |
 | `look` | **built** | `hold` | not built |
-| `key` | not built | `video` | not built |
+| `key` | **built** | `video` | not built |
 | `paste` | not built | `request` | not built |
 | `box` | **built** | `resize` | not built |
 | `dom` | **built** | | |
@@ -227,7 +251,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 packages/siegelense/src/statics/step/step-statics.ts   → verbs.all
 ```
 
-**`look`, `box`, `dom`, `seed` and `until` are built.** What is next is in "How to pick the next piece" — re-derive it
+**`look`, `box`, `dom`, `seed`, `until` and `key` are built.** What is next is in "How to pick the next piece" — re-derive it
 rather than trusting a shortlist written before this round.
 
 ### The build-order items

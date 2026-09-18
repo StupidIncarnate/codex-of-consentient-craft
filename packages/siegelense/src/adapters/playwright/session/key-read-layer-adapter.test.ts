@@ -1,4 +1,4 @@
-import { KeyReadingStub } from '../../../contracts/key-reading/key-reading.stub';
+import { RawKeyReadingStub } from '../../../contracts/raw-key-reading/raw-key-reading.stub';
 import { SelectorStub } from '../../../contracts/selector/selector.stub';
 import { keyReadLayerAdapter } from './key-read-layer-adapter';
 import { keyReadLayerAdapterProxy } from './key-read-layer-adapter.proxy';
@@ -69,7 +69,7 @@ describe('keyReadLayerAdapter', () => {
       keyReadLayerAdapterProxy();
       const key = keyReadLayerAdapter();
 
-      const result = key.highestRefOf({ raw: KeyReadingStub({ highestRef: 41 }) });
+      const result = key.highestRefOf({ raw: RawKeyReadingStub({ highestRef: 41 }) });
 
       expect(result).toBe(41);
     });
@@ -81,7 +81,7 @@ describe('keyReadLayerAdapter', () => {
       const key = keyReadLayerAdapter();
 
       const result = key.toListing({
-        raw: KeyReadingStub({
+        raw: RawKeyReadingStub({
           rows: [
             {
               ref: 1,
@@ -172,7 +172,7 @@ describe('keyReadLayerAdapter', () => {
       const key = keyReadLayerAdapter();
 
       const result = key.toListing({
-        raw: KeyReadingStub({
+        raw: RawKeyReadingStub({
           rows: [
             {
               ref: 1,
@@ -233,7 +233,7 @@ describe('keyReadLayerAdapter', () => {
       const key = keyReadLayerAdapter();
 
       const result = key.toListing({
-        raw: KeyReadingStub({
+        raw: RawKeyReadingStub({
           rows: [
             {
               ref: 1,
@@ -311,7 +311,7 @@ describe('keyReadLayerAdapter', () => {
       const key = keyReadLayerAdapter();
 
       const result = key.toListing({
-        raw: KeyReadingStub({
+        raw: RawKeyReadingStub({
           rows: [
             {
               ref: 1,
@@ -342,7 +342,7 @@ describe('keyReadLayerAdapter', () => {
       const key = keyReadLayerAdapter();
 
       const result = key.toListing({
-        raw: KeyReadingStub({
+        raw: RawKeyReadingStub({
           rows: [
             {
               ref: 1,
@@ -373,7 +373,7 @@ describe('keyReadLayerAdapter', () => {
       const key = keyReadLayerAdapter();
 
       const result = key.toListing({
-        raw: KeyReadingStub({ skipped: [{ under: 'CHAT_MESSAGES_AREA', count: 12 }] }),
+        raw: RawKeyReadingStub({ skipped: [{ under: 'CHAT_MESSAGES_AREA', count: 12 }] }),
         within: null,
       });
 
@@ -385,7 +385,7 @@ describe('keyReadLayerAdapter', () => {
       const key = keyReadLayerAdapter();
 
       const result = key.toListing({
-        raw: KeyReadingStub(),
+        raw: RawKeyReadingStub(),
         within: SelectorStub({ value: '[data-testid="MAP_FRAME"]' }),
       });
 
@@ -396,7 +396,7 @@ describe('keyReadLayerAdapter', () => {
       keyReadLayerAdapterProxy();
       const key = keyReadLayerAdapter();
 
-      const result = key.toListing({ raw: KeyReadingStub(), within: null });
+      const result = key.toListing({ raw: RawKeyReadingStub(), within: null });
 
       expect(result.rendered).toBe(
         [

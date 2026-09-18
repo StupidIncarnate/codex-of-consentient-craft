@@ -16,11 +16,23 @@ describe('stepStatics', () => {
           'dom',
           'seed',
           'until',
+          'key',
         ],
-        acting: ['goto', 'click', 'type'],
-        capturing: ['goto', 'click', 'type', 'look'],
+        acting: ['goto', 'click', 'type', 'key'],
+        capturing: ['goto', 'click', 'type', 'look', 'key'],
         targeting: ['waitFor', 'click', 'type'],
-        browser: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look', 'box', 'dom'],
+        browser: [
+          'goto',
+          'waitFor',
+          'click',
+          'type',
+          'screenshot',
+          'eval',
+          'look',
+          'box',
+          'dom',
+          'key',
+        ],
       },
       defaults: {
         stopOn: 'error',
@@ -73,11 +85,11 @@ describe('stepStatics', () => {
   // enough that `verb === 'look'` can never be true, so a filter reads as a passing test while
   // proving nothing the type did not already prove — tsc refuses the comparison outright.
   it('VALID: {verbs.capturing} => holds look, which writes the shot beside the key', () => {
-    expect(stepStatics.verbs.capturing).toStrictEqual(['goto', 'click', 'type', 'look']);
+    expect(stepStatics.verbs.capturing).toStrictEqual(['goto', 'click', 'type', 'look', 'key']);
   });
 
   it('VALID: {verbs.acting} => omits look, which reads the page and never changes it', () => {
-    expect(stepStatics.verbs.acting).toStrictEqual(['goto', 'click', 'type']);
+    expect(stepStatics.verbs.acting).toStrictEqual(['goto', 'click', 'type', 'key']);
   });
 
   // `seed` is the first verb that is in `all` and in NONE of the four subsets. It touches disk and
@@ -97,6 +109,7 @@ describe('stepStatics', () => {
       'look',
       'box',
       'dom',
+      'key',
     ]);
   });
 
@@ -119,6 +132,7 @@ describe('stepStatics', () => {
       'look',
       'box',
       'dom',
+      'key',
     ]);
   });
 
@@ -126,7 +140,7 @@ describe('stepStatics', () => {
     expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type']);
   });
 
-  it('VALID: {verbs.all} => ends with until, the eleventh verb', () => {
+  it('VALID: {verbs.all} => ends with key, the twelfth verb', () => {
     expect(stepStatics.verbs.all).toStrictEqual([
       'goto',
       'waitFor',
@@ -139,6 +153,7 @@ describe('stepStatics', () => {
       'dom',
       'seed',
       'until',
+      'key',
     ]);
   });
 });

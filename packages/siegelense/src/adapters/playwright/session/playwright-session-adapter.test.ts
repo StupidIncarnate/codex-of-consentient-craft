@@ -1,6 +1,7 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { DomReadingStub } from '../../../contracts/dom-reading/dom-reading.stub';
+import { FocusedElementStub } from '../../../contracts/focused-element/focused-element.stub';
 import { RawDomReadingStub } from '../../../contracts/raw-dom-reading/raw-dom-reading.stub';
 import { StepCandidateStub } from '../../../contracts/step-candidate/step-candidate.stub';
 import { driverStatics } from '../../../statics/driver/driver-statics';
@@ -697,6 +698,55 @@ describe('playwrightSessionAdapter', () => {
       });
 
       expect(result).toStrictEqual(DomReadingStub());
+    });
+  });
+
+  describe('pressKey()', () => {
+    it('VALID: {press: "Enter", nothing focused} => calls page.keyboard.press and returns KeyReading with focused: null', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setFocusedResult({ raw: null });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const reading = await session.pressKey({ press: 'Enter' });
+
+      expect(proxy.getKeyboardPressCalls()).toStrictEqual(['Enter']);
+      expect(reading).toStrictEqual({
+        press: 'Enter',
+        focused: null,
+      });
+    });
+
+    it('VALID: {press: "Tab", active element focused} => calls page.keyboard.press and returns KeyReading with focused element', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const raw = FocusedElementStub({
+        tag: 'input',
+        testId: 'NAME_INPUT',
+        text: 'alice',
+        ref: 14,
+      });
+      proxy.setFocusedResult({ raw });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const reading = await session.pressKey({ press: 'Tab' });
+
+      expect(proxy.getKeyboardPressCalls()).toStrictEqual(['Tab']);
+      expect(reading).toStrictEqual({
+        press: 'Tab',
+        focused: {
+          tag: 'input',
+          testId: 'NAME_INPUT',
+          role: null,
+          domId: null,
+          text: 'alice',
+          ref: 14,
+        },
+      });
     });
   });
 });

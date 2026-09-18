@@ -2574,7 +2574,7 @@ kill { instance: 'inst_7f3a' }
 
 ### Steps that exist today and are kept
 
-> **Status: PARTIAL (chunk 2)** — seven of the thirteen ship: `goto`, `waitFor`, `click`, `type`, `screenshot`, `eval`, `box` — confirmed exhaustively in `step-statics.ts`'s `verbs.all`; ambiguity throws; `end` is gone, replaced by the instance-level `kill`; `box { ref }` delivers exact element geometry and viewport visibility off element-bound refs · NOT YET: `key`, `paste`, `dom`, `storage`, `file`
+> **Status: PARTIAL** — nine of the thirteen ship: `goto`, `waitFor`, `click`, `type`, `screenshot`, `eval`, `box`, `dom`, `key` — confirmed exhaustively in `step-statics.ts`'s `verbs.all` (12 verbs total with `look`, `seed`, `until`); ambiguity throws; `end` is gone, replaced by the instance-level `kill`; `box { ref }` delivers exact element geometry and viewport visibility off element-bound refs; `dom` delivers structured element projection with row/text caps; `key` delivers keyboard input via `page.keyboard.press` and focus tracking (`document.activeElement`) · NOT YET: `paste`, `storage`, `file`
 
 All keep their behaviour except that ambiguity now throws.
 

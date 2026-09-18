@@ -42,8 +42,8 @@ import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { keyListingContract } from '../../../contracts/key-listing/key-listing-contract';
 import type { KeyListing } from '../../../contracts/key-listing/key-listing-contract';
-import { keyReadingContract } from '../../../contracts/key-reading/key-reading-contract';
 import { keyRowContract } from '../../../contracts/key-row/key-row-contract';
+import { rawKeyReadingContract } from '../../../contracts/raw-key-reading/raw-key-reading-contract';
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import type { Selector } from '../../../contracts/selector/selector-contract';
 import { keyStatics } from '../../../statics/key/key-statics';
@@ -301,10 +301,10 @@ export const keyReadLayerAdapter = (): {
   },
 
   highestRefOf: ({ raw }: { raw: unknown }): ReadingCount =>
-    keyReadingContract.parse(raw).highestRef,
+    rawKeyReadingContract.parse(raw).highestRef,
 
   toListing: ({ raw, within }: { raw: unknown; within: Selector | null }): KeyListing => {
-    const reading = keyReadingContract.parse(raw);
+    const reading = rawKeyReadingContract.parse(raw);
     // The determinism guard, on the element column this time. Measured on this app: Mantine mints
     // `mantine-gwrqe5vg6-label` per mount, so a key carrying it differs between two readings of the
     // same state — the element-delta churn the attrs guard exists to prevent, arriving through a

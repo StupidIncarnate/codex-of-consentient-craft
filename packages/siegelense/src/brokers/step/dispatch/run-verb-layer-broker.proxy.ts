@@ -14,6 +14,7 @@ import { stepClickBrokerProxy } from '../click/step-click-broker.proxy';
 import { stepDomBrokerProxy } from '../dom/step-dom-broker.proxy';
 import { stepEvalSourceBrokerProxy } from '../eval-source/step-eval-source-broker.proxy';
 import { stepGotoBrokerProxy } from '../goto/step-goto-broker.proxy';
+import { stepKeyBrokerProxy } from '../key/step-key-broker.proxy';
 import { stepLookBrokerProxy } from '../look/step-look-broker.proxy';
 import { stepScreenshotBrokerProxy } from '../screenshot/step-screenshot-broker.proxy';
 import { stepSeedBrokerProxy } from '../seed/step-seed-broker.proxy';
@@ -52,6 +53,7 @@ export const runVerbLayerBrokerProxy = (): {
   stepDomBrokerProxy();
   stepEvalSourceBrokerProxy();
   stepGotoBrokerProxy();
+  stepKeyBrokerProxy();
   stepLookBrokerProxy();
   stepScreenshotBrokerProxy();
   stepTargetResolveBrokerProxy();

@@ -28,6 +28,7 @@ import type { DomField } from '../dom-field/dom-field-contract';
 import type { DomReading } from '../dom-reading/dom-reading-contract';
 import type { DomTextMode } from '../dom-text-mode/dom-text-mode-contract';
 import type { KeyListing } from '../key-listing/key-listing-contract';
+import type { KeyReading } from '../key-reading/key-reading-contract';
 import type { RefResolution } from '../ref-resolution/ref-resolution-contract';
 import type { StepCandidate } from '../step-candidate/step-candidate-contract';
 
@@ -86,6 +87,7 @@ export type BrowserSession = z.infer<typeof browserSessionContract> & {
     timeoutMs: number;
   }) => Promise<void>;
   boxRef: ({ ref }: { ref: number }) => Promise<BoxReading>;
+  pressKey: ({ press }: { press: string }) => Promise<KeyReading>;
   fillMatch: ({
     target,
     within,

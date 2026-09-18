@@ -40,6 +40,7 @@ import { stepDomBroker } from '../dom/step-dom-broker';
 import { stepSeedBroker } from '../seed/step-seed-broker';
 import { stepEvalSourceBroker } from '../eval-source/step-eval-source-broker';
 import { stepGotoBroker } from '../goto/step-goto-broker';
+import { stepKeyBroker } from '../key/step-key-broker';
 import { stepLookBroker } from '../look/step-look-broker';
 import { stepScreenshotBroker } from '../screenshot/step-screenshot-broker';
 import { stepTargetResolveBroker } from '../target-resolve/step-target-resolve-broker';
@@ -175,6 +176,9 @@ export const runVerbLayerBroker = async ({
       fields: step.fields,
       text: step.text,
     });
+  }
+  if (step.step === 'key') {
+    return stepKeyBroker({ session, press: step.press });
   }
 
   return stepEvalSourceBroker({ session, source: step.source });

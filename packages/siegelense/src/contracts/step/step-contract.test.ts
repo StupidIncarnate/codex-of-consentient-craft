@@ -18,6 +18,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'look' }),
   StepStub({ step: 'box' }),
   StepStub({ step: 'until', visible: SelectorStub() }),
+  StepStub({ step: 'key', press: ContentTextStub({ value: 'Enter' }) }),
 ];
 
 describe('stepContract', () => {
@@ -248,6 +249,35 @@ describe('stepContract', () => {
         node: null,
         expect: 'ok',
       });
+    });
+
+    it('VALID: {step: key} => parses the complete key member', () => {
+      const result = stepContract.parse({
+        step: 'key',
+        press: 'Enter',
+        node: 'confirm',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'key',
+        press: 'Enter',
+        node: 'confirm',
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: key, missing press} => throws for missing press', () => {
+      expect(() => stepContract.parse({ step: 'key' } as never)).toThrow(/Required/u);
+    });
+
+    it('INVALID: {step: key, +target} => throws naming the stray key, because key takes press only', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'key',
+          press: 'Enter',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
     });
 
     it('VALID: {step: until, visible} => parses the visible form, the other four conditions null', () => {

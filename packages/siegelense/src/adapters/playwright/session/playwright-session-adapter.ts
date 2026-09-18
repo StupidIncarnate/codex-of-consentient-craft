@@ -52,7 +52,9 @@ import type {
   BufferLengths,
   MatchCount,
 } from '../../../contracts/browser-session/browser-session-contract';
+import type { KeyReading } from '../../../contracts/key-reading/key-reading-contract';
 import { domReadLayerAdapter } from './dom-read-layer-adapter';
+import { keyPressLayerAdapter } from './key-press-layer-adapter';
 import { keyReadLayerAdapter } from './key-read-layer-adapter';
 import { listenersLayerAdapter } from './listeners-layer-adapter';
 import { refRegistryLayerAdapter } from './ref-registry-layer-adapter';
@@ -147,6 +149,7 @@ export const playwrightSessionAdapter = async ({
   const refRegistry = refRegistryLayerAdapter();
   const keyReader = keyReadLayerAdapter();
   const domReader = domReadLayerAdapter();
+  const keyPress = keyPressLayerAdapter();
   // See the header: a HOLDER, not a reassigned `let`, and the one piece of ref state Node keeps.
   const mintState = { highest: 0 };
 
@@ -391,6 +394,12 @@ export const playwrightSessionAdapter = async ({
     boxRef: async ({ ref }: { ref: number }): Promise<BoxReading> => {
       const raw: unknown = await page.evaluate(refRegistry.boxSource({ ref }));
       return boxReadingContract.parse(raw);
+    },
+
+    pressKey: async ({ press }: { press: string }): Promise<KeyReading> => {
+      await page.keyboard.press(press);
+      const raw: unknown = await page.evaluate(keyPress.focusReadSource());
+      return keyPress.toReading({ press, rawFocused: raw });
     },
 
     fillMatch: async ({

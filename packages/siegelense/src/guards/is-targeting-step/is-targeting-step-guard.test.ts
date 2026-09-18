@@ -18,6 +18,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'eval', source: ContentTextStub() }),
   StepStub({ step: 'dom', target: SelectorStub() }),
   StepStub({ step: 'until', visible: SelectorStub() }),
+  StepStub({ step: 'key', press: ContentTextStub({ value: 'Enter' }) }),
 ];
 
 type StepVerbLiteral = ReturnType<typeof StepStub>['step'];

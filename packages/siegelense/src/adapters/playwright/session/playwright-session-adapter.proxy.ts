@@ -4,6 +4,7 @@ import { chromium } from '@playwright/test';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { domReadLayerAdapterProxy } from './dom-read-layer-adapter.proxy';
+import { keyPressLayerAdapterProxy } from './key-press-layer-adapter.proxy';
 import { keyReadLayerAdapterProxy } from './key-read-layer-adapter.proxy';
 import { listenersLayerAdapterProxy } from './listeners-layer-adapter.proxy';
 import { refRegistryLayerAdapterProxy } from './ref-registry-layer-adapter.proxy';
@@ -28,6 +29,7 @@ const DESCRIBE_MATCHES_MARKER = 'getBoundingClientRect';
 // the staged describeMatches rows.
 const KEY_READ_MARKER = 'hasContentDescendant';
 const DOM_READ_MARKER = 'childElementCount';
+const KEY_PRESS_MARKER = 'document.activeElement';
 const REF_STATE_MARKER = 'isConnected === true ?';
 const STAMP_MARKER = "setAttribute('siege-target'";
 const UNSTAMP_MARKER = "removeAttribute('siege-target')";
@@ -42,11 +44,13 @@ export const playwrightSessionAdapterProxy = (): {
   setRefState: (params: { state: string }) => void;
   setBoxResult: (params: { raw: unknown }) => void;
   setEvaluateSourceResult: (params: { result: unknown }) => void;
+  setFocusedResult: (params: { raw: unknown }) => void;
   getInitScripts: () => readonly unknown[];
   getStampCalls: () => readonly unknown[];
   getScreenshotCalls: () => readonly unknown[];
   getClickCalls: () => readonly unknown[];
   getFillCalls: () => readonly unknown[];
+  getKeyboardPressCalls: () => readonly unknown[];
   getWaitForCalls: () => readonly unknown[];
   getWaitForFunctionCalls: () => readonly unknown[];
   setWaitForFunctionRejects: () => void;
@@ -78,6 +82,7 @@ export const playwrightSessionAdapterProxy = (): {
   // — called here only to satisfy enforce-proxy-child-creation, since this file's implementation
   // imports all three.
   listenersLayerAdapterProxy();
+  keyPressLayerAdapterProxy();
   keyReadLayerAdapterProxy();
   refRegistryLayerAdapterProxy();
   domReadLayerAdapterProxy();
@@ -90,6 +95,8 @@ export const playwrightSessionAdapterProxy = (): {
     nearestNamesRaw: [] as unknown,
     keyReadRaw: { rows: [], highestRef: 0, skipped: [] } as unknown,
     domReadRaw: RawDomReadingStub() as unknown,
+    focusedRaw: null as unknown,
+    keyboardPressCalls: [] as unknown[],
     refState: 'live',
     boxRaw: {
       ref: 26,
@@ -144,6 +151,12 @@ export const playwrightSessionAdapterProxy = (): {
 
   const page = Object.assign(new EventEmitter(), {
     locator: (selector: string) => buildFakeLocator({ selector }),
+    keyboard: {
+      press: async (key: string): Promise<void> => {
+        state.keyboardPressCalls.push(key);
+        return Promise.resolve(undefined);
+      },
+    },
     // Real Playwright's client tags every `evaluate()` call with `isFunction: typeof pageFunction
     // === 'function'` (playwright-core lib/client/jsHandle.js), and its browser-side utility script
     // (lib/generated/utilityScriptSource.js `evaluate()`) applies the second argument ONLY when that
@@ -165,6 +178,9 @@ export const playwrightSessionAdapterProxy = (): {
       }
       if (source.includes(KEY_READ_MARKER)) {
         return Promise.resolve(state.keyReadRaw);
+      }
+      if (source.includes(KEY_PRESS_MARKER)) {
+        return Promise.resolve(state.focusedRaw);
       }
       if (source.includes(REF_STATE_MARKER)) {
         return Promise.resolve(state.refState);
@@ -254,11 +270,15 @@ export const playwrightSessionAdapterProxy = (): {
     setEvaluateSourceResult: ({ result }): void => {
       state.evaluateSourceResult = result;
     },
+    setFocusedResult: ({ raw }): void => {
+      state.focusedRaw = raw;
+    },
     getInitScripts: (): readonly unknown[] => state.initScripts,
     getStampCalls: (): readonly unknown[] => state.stampCalls,
     getScreenshotCalls: (): readonly unknown[] => state.screenshotCalls,
     getClickCalls: (): readonly unknown[] => state.clickCalls,
     getFillCalls: (): readonly unknown[] => state.fillCalls,
+    getKeyboardPressCalls: (): readonly unknown[] => state.keyboardPressCalls,
     getWaitForCalls: (): readonly unknown[] => state.waitForCalls,
     getWaitForFunctionCalls: (): readonly unknown[] => state.waitForFunctionCalls,
     setWaitForFunctionRejects: (): void => {

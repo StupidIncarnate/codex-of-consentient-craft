@@ -11,6 +11,8 @@ import { DomReadingStub } from '../dom-reading/dom-reading.stub';
 import type { DomReading } from '../dom-reading/dom-reading-contract';
 import { KeyListingStub } from '../key-listing/key-listing.stub';
 import type { KeyListing } from '../key-listing/key-listing-contract';
+import { KeyReadingStub } from '../key-reading/key-reading.stub';
+import type { KeyReading } from '../key-reading/key-reading-contract';
 import { RefResolutionStub } from '../ref-resolution/ref-resolution.stub';
 import type { RefResolution } from '../ref-resolution/ref-resolution-contract';
 import type { StepCandidate } from '../step-candidate/step-candidate-contract';
@@ -32,6 +34,7 @@ export const BrowserSessionStub = ({
     clickRef,
     fillRef,
     boxRef,
+    pressKey,
     fillMatch,
     waitForMatch,
     waitForPredicate,
@@ -63,6 +66,7 @@ export const BrowserSessionStub = ({
     clickRef: clickRef ?? (async (): Promise<void> => Promise.resolve()),
     fillRef: fillRef ?? (async (): Promise<void> => Promise.resolve()),
     boxRef: boxRef ?? (async (): Promise<BoxReading> => Promise.resolve(BoxReadingStub())),
+    pressKey: pressKey ?? (async (): Promise<KeyReading> => Promise.resolve(KeyReadingStub())),
     fillMatch: fillMatch ?? (async (): Promise<void> => Promise.resolve()),
     waitForMatch: waitForMatch ?? (async (): Promise<void> => Promise.resolve()),
     waitForPredicate: waitForPredicate ?? (async (): Promise<void> => Promise.resolve()),

@@ -150,6 +150,24 @@ describe('runVerbLayerBroker', () => {
         '{"count":1,"showing":1,"capped":false,"note":null,"nodes":[{"tagName":"button","testId":"SUBMIT_BTN","className":"btn primary","childCount":0,"display":"inline-block","visibility":"visible","opacity":"1","rect":{"x":10,"y":20,"width":100,"height":50},"text":"Submit","attrs":[],"value":null}]}',
       );
     });
+
+    it('VALID: {key} => calls pressKey and returns rendered key result', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane, callOrder } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'key', press: ContentTextStub({ value: 'Enter' }) });
+
+      const result = await runVerbLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub(),
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(callOrder()).toStrictEqual([]);
+      expect(result).toBe('pressed "Enter" — nothing focused');
+    });
   });
 
   describe('a browser verb against a browserless lane', () => {

@@ -194,3 +194,9 @@ export * from './src/contracts/run-args/run-args.stub';
 
 export * from './src/contracts/results-args/results-args-contract';
 export * from './src/contracts/results-args/results-args.stub';
+
+export * from './src/contracts/focused-element/focused-element-contract';
+export * from './src/contracts/focused-element/focused-element.stub';
+
+export * from './src/contracts/key-reading/key-reading-contract';
+export * from './src/contracts/key-reading/key-reading.stub';

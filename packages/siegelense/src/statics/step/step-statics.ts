@@ -31,16 +31,17 @@ export const stepStatics = {
       'dom',
       'seed',
       'until',
+      'key',
     ],
-    // goto, click and type CHANGE the page. `look` does not, which is why it is not here — but it
+    // goto, click, type and key CHANGE the page. `look` does not, which is why it is not here — but it
     // still captures, through `capturing` below.
-    acting: ['goto', 'click', 'type'],
+    acting: ['goto', 'click', 'type', 'key'],
     // Which verbs resolve a shot path, and therefore capture. `acting` plus `look`: "Returns the
     // KEY inline and writes the SHOT, returning its path" (siegelense-tooling.md line 2587). Kept
     // apart from `acting` rather than folded into it, because `acting` also answers "did this step
     // change the page", and a reading step that answered yes to that would be a lie in every place
     // that asks.
-    capturing: ['goto', 'click', 'type', 'look'],
+    capturing: ['goto', 'click', 'type', 'look', 'key'],
     // The members whose step carries a `target` selector or a `ref`, so each is subject to the
     // ambiguity rule: one match proceeds, AMBIGUOUS throws carrying the candidates, NO MATCH throws
     // naming the near misses (siegelense-tooling.md line 2109). A `ref` can never be ambiguous — it
@@ -56,7 +57,18 @@ export const stepStatics = {
     // while its `visible`/`predicate`/`console`/`response` forms do — that split happens PER FORM
     // inside `stepUntilBroker` itself, not here, so this list stays "every member needs a browser
     // for every form" rather than "sometimes".
-    browser: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'look', 'box', 'dom'],
+    browser: [
+      'goto',
+      'waitFor',
+      'click',
+      'type',
+      'screenshot',
+      'eval',
+      'look',
+      'box',
+      'dom',
+      'key',
+    ],
   },
   defaults: {
     // A batch stops on its first failing step unless the caller sets `stopOn: 'never'`
