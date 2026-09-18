@@ -74,6 +74,7 @@ export const stepDispatchBrokerProxy = (): {
     height: number;
     pixels: Uint8Array;
   }) => void;
+  stagesShotReadError: (params: { shotPath: AbsoluteFilePath; error: Error }) => void;
 } => {
   // This proxy builds its own BrowserSession scenarios directly, so only the SEED half of the verb
   // layer's own proxy is ever addressed: a `seed` step drives no page and so has no BrowserSession
@@ -229,6 +230,15 @@ export const stepDispatchBrokerProxy = (): {
     }): void => {
       blankReadProxy.stagesShot({ shotPath, width, height, pixels });
       changeReadProxy.stagesShot({ path: shotPath, width, height, pixels });
+    },
+    stagesShotReadError: ({
+      shotPath,
+      error,
+    }: {
+      shotPath: AbsoluteFilePath;
+      error: Error;
+    }): void => {
+      blankReadProxy.stagesShotReadError({ shotPath, error });
     },
     seedBookPresentAt: ({ packagePath }: { packagePath: string }): void => {
       verbLayerProxy.seedBookPresentAt({ packagePath });

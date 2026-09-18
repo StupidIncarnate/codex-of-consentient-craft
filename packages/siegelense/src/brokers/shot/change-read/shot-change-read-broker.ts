@@ -4,9 +4,9 @@
  * was taken"). `previousPath` arrives already resolved by the caller (the instance's own
  * `driverSessionState.lastShotPath()`, `null` before the instance's first capture), and this
  * broker answers `null` right back rather than manufacturing a `0%` no-change finding (line 708).
- * Two frames of differing dimensions THROW `ShotDimensionMismatchError` naming both paths and
- * both sizes — the error names real shot paths, which only this broker holds, so it cannot be
- * raised by `pixelmatchCompareAdapter` itself (`adapters/` cannot import `errors/`).
+ * Two frames of differing dimensions answer '100%' — changing viewport dimensions via `resize`
+ * changes every coordinate on the canvas, so 100% of pixels differ (chunk-03-read-path-and-perception.md
+ * line 310: "When resize lands... it gets the answer it needs").
  *
  * USAGE:
  * await shotChangeReadBroker({ previousPath: null, currentPath });
@@ -21,7 +21,6 @@ import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { pixelmatchCompareAdapter } from '../../../adapters/pixelmatch/compare/pixelmatch-compare-adapter';
 import { pngjsDecodeAdapter } from '../../../adapters/pngjs/decode/pngjs-decode-adapter';
-import { ShotDimensionMismatchError } from '../../../errors/shot-dimension-mismatch/shot-dimension-mismatch-error';
 import { pixelChangeContract } from '../../../contracts/pixel-change/pixel-change-contract';
 import type { PixelChange } from '../../../contracts/pixel-change/pixel-change-contract';
 
@@ -47,12 +46,7 @@ export const shotChangeReadBroker = async ({
   const currentFrame = pngjsDecodeAdapter({ bytes: currentBytes });
 
   if (previousFrame.width !== currentFrame.width || previousFrame.height !== currentFrame.height) {
-    throw new ShotDimensionMismatchError({
-      previousPath,
-      currentPath,
-      previousSize: `${String(previousFrame.width)}x${String(previousFrame.height)}`,
-      currentSize: `${String(currentFrame.width)}x${String(currentFrame.height)}`,
-    });
+    return pixelChangeContract.parse('100%');
   }
 
   const totalPixels = previousFrame.width * previousFrame.height;

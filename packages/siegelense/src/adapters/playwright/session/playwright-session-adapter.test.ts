@@ -777,4 +777,18 @@ describe('playwrightSessionAdapter', () => {
       expect(result).toBe(false);
     });
   });
+
+  describe('setViewport()', () => {
+    it('VALID: {width: 1280, height: 720} => calls page.setViewportSize with width and height', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.setViewport({ width: 1280, height: 720 });
+
+      expect(proxy.getSetViewportSizeCalls()).toStrictEqual([{ width: 1280, height: 720 }]);
+    });
+  });
 });

@@ -708,15 +708,11 @@ describe('stepDispatchBroker', () => {
       const secondShotPath = AbsoluteFilePathStub({
         value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step2.png',
       });
-      // A dimension mismatch against firstShotPath is a REAL throw from shotChangeReadBroker — not a
-      // mocked rejection — so this proves an evidence-read failure degrades gracefully instead of
-      // masking the step's own error.
-      const mismatchedPixel = [0xff, 0xff, 0xff, 255];
-      proxy.stagesShotFrame({
+      // An evidence read failure proves measurement failures degrade gracefully instead of masking
+      // the step's own error.
+      proxy.stagesShotReadError({
         shotPath: secondShotPath,
-        width: 2,
-        height: 2,
-        pixels: new Uint8Array(Array.from({ length: 4 }, () => mismatchedPixel).flat()),
+        error: new Error('EACCES: permission denied, read'),
       });
 
       const error = await stepDispatchBroker({

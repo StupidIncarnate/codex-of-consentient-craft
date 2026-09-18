@@ -132,6 +132,7 @@ export type BrowserSession = z.infer<typeof browserSessionContract> & {
     text: DomTextMode | null;
   }) => Promise<DomReading>;
   checkRootPresent: () => Promise<boolean>;
+  setViewport: (params: { width: number; height: number }) => Promise<void>;
   bufferLengths: () => BufferLengths;
   close: () => Promise<void>;
 };

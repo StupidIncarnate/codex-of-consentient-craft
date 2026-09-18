@@ -20,6 +20,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'until', visible: SelectorStub() }),
   StepStub({ step: 'key', press: ContentTextStub({ value: 'Enter' }) }),
   StepStub({ step: 'health' }),
+  StepStub({ step: 'resize', width: 1280, height: 720 }),
 ];
 
 describe('stepContract', () => {
@@ -846,6 +847,79 @@ describe('stepContract', () => {
         node: null,
         expect: 'ok',
       });
+    });
+
+    it('VALID: {step: resize} => StepStub builds valid resize default member', () => {
+      const result = StepStub({ step: 'resize' });
+
+      expect(result).toStrictEqual({
+        step: 'resize',
+        width: 1280,
+        height: 720,
+        node: null,
+        expect: 'ok',
+      });
+    });
+  });
+
+  describe('resize member validation', () => {
+    it('VALID: {step: resize, width, height} => parses the complete resize member', () => {
+      const result = stepContract.parse({
+        step: 'resize',
+        width: 1920,
+        height: 1080,
+        node: 'desktop-hd',
+        expect: 'ok',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'resize',
+        width: 1920,
+        height: 1080,
+        node: 'desktop-hd',
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: resize, width: 0} => throws for non-positive width', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'resize',
+          width: 0,
+          height: 720,
+        } as never),
+      ).toThrow(/Number must be greater than 0/u);
+    });
+
+    it('INVALID: {step: resize, width: 1280.5} => throws for non-integer width', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'resize',
+          width: 1280.5,
+          height: 720,
+        } as never),
+      ).toThrow(/Expected integer/u);
+    });
+
+    it('INVALID: {step: resize, height: -10} => throws for negative height', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'resize',
+          width: 1280,
+          height: -10,
+        } as never),
+      ).toThrow(/Number must be greater than 0/u);
+    });
+
+    it('INVALID: {step: resize, +target} => throws naming the stray key, because resize is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'resize',
+          width: 1280,
+          height: 720,
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
     });
   });
 });

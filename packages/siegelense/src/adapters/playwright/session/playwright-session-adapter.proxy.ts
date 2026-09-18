@@ -9,6 +9,7 @@ import { keyReadLayerAdapterProxy } from './key-read-layer-adapter.proxy';
 import { listenersLayerAdapterProxy } from './listeners-layer-adapter.proxy';
 import { refRegistryLayerAdapterProxy } from './ref-registry-layer-adapter.proxy';
 import { rootCheckLayerAdapterProxy } from './root-check-layer-adapter.proxy';
+import { viewportSetLayerAdapterProxy } from './viewport-set-layer-adapter.proxy';
 import { RawDomReadingStub } from '../../../contracts/raw-dom-reading/raw-dom-reading.stub';
 
 // The one thing this proxy mocks over the npm boundary: `chromium.launch`, staged on its launch
@@ -51,6 +52,7 @@ export const playwrightSessionAdapterProxy = (): {
   getInitScripts: () => readonly unknown[];
   getStampCalls: () => readonly unknown[];
   getScreenshotCalls: () => readonly unknown[];
+  getSetViewportSizeCalls: () => readonly unknown[];
   getClickCalls: () => readonly unknown[];
   getFillCalls: () => readonly unknown[];
   getKeyboardPressCalls: () => readonly unknown[];
@@ -90,6 +92,7 @@ export const playwrightSessionAdapterProxy = (): {
   refRegistryLayerAdapterProxy();
   domReadLayerAdapterProxy();
   rootCheckLayerAdapterProxy();
+  viewportSetLayerAdapterProxy();
 
   registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(FIXED_EPOCH_MS);
 
@@ -118,6 +121,7 @@ export const playwrightSessionAdapterProxy = (): {
     initScripts: [] as unknown[],
     stampCalls: [] as unknown[],
     screenshotCalls: [] as unknown[],
+    setViewportSizeCalls: [] as unknown[],
     clickCalls: [] as unknown[],
     fillCalls: [] as unknown[],
     waitForCalls: [] as unknown[],
@@ -227,6 +231,10 @@ export const playwrightSessionAdapterProxy = (): {
       state.screenshotCalls.push(options);
       return Promise.resolve(undefined);
     },
+    setViewportSize: async (options: unknown) => {
+      state.setViewportSizeCalls.push(options);
+      return Promise.resolve(undefined);
+    },
     goto: async () => Promise.resolve(undefined),
   });
 
@@ -287,6 +295,7 @@ export const playwrightSessionAdapterProxy = (): {
     getInitScripts: (): readonly unknown[] => state.initScripts,
     getStampCalls: (): readonly unknown[] => state.stampCalls,
     getScreenshotCalls: (): readonly unknown[] => state.screenshotCalls,
+    getSetViewportSizeCalls: (): readonly unknown[] => state.setViewportSizeCalls,
     getClickCalls: (): readonly unknown[] => state.clickCalls,
     getFillCalls: (): readonly unknown[] => state.fillCalls,
     getKeyboardPressCalls: (): readonly unknown[] => state.keyboardPressCalls,

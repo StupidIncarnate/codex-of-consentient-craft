@@ -1,6 +1,6 @@
 # Siegelense — the build
 
-**Valid as of the `health` commit, 2026-09-18.** Re-derive the counts below before trusting them; the
+**Valid as of the `resize` commit, 2026-09-18.** Re-derive the counts below before trusting them; the
 command for each is given beside it. **A count in this file is a claim about a moment, and this file does
 not update itself.**
 
@@ -9,7 +9,7 @@ not update itself.**
 | | Built | Total | |
 |---|---|---|---|
 | **Calls** | **13** | 13 | every name in the closed set routes; `notBuiltYet` is empty |
-| **Step verbs** | **13** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` `box` `seed` `until` `dom` `key` `health` |
+| **Step verbs** | **14** | 23 | `goto` `waitFor` `click` `type` `screenshot` `eval` `look` `box` `seed` `until` `dom` `key` `health` `resize` |
 | **Results kinds** | **6** | 6 | `console` `network` `ws` `server` `screenshots` `steps` |
 | **Build-order items** | see the table | 30 | Part 7 of the spec. Count the rows yourself; the tally is what rots |
 

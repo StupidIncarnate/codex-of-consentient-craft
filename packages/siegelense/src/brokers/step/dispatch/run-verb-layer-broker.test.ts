@@ -242,4 +242,24 @@ describe('runVerbLayerBroker', () => {
       );
     });
   });
+
+  describe('a resize step', () => {
+    it('VALID: {resize} => routes to stepResizeBroker and returns resize reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'resize', width: 1280, height: 720 });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('resized to 1280x720');
+    });
+  });
 });

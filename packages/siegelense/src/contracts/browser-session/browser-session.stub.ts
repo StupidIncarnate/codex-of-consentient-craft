@@ -45,6 +45,7 @@ export const BrowserSessionStub = ({
     readWebsocketSince,
     readDom,
     checkRootPresent,
+    setViewport,
     bufferLengths,
     close,
     ...dataProps
@@ -80,6 +81,7 @@ export const BrowserSessionStub = ({
     readWebsocketSince: readWebsocketSince ?? ((): readonly ContentText[] => []),
     readDom: readDom ?? (async (): Promise<DomReading> => Promise.resolve(DomReadingStub())),
     checkRootPresent: checkRootPresent ?? (async (): Promise<boolean> => Promise.resolve(true)),
+    setViewport: setViewport ?? (async (): Promise<void> => Promise.resolve()),
     bufferLengths:
       bufferLengths ??
       ((): BufferLengths => ({

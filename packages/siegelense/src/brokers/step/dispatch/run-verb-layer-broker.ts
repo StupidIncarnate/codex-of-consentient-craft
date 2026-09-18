@@ -42,6 +42,7 @@ import { stepGotoBroker } from '../goto/step-goto-broker';
 import { stepHealthBroker } from '../health/step-health-broker';
 import { stepKeyBroker } from '../key/step-key-broker';
 import { stepLookBroker } from '../look/step-look-broker';
+import { stepResizeBroker } from '../resize/step-resize-broker';
 import { stepScreenshotBroker } from '../screenshot/step-screenshot-broker';
 import { stepSeedBroker } from '../seed/step-seed-broker';
 import { stepTargetResolveBroker } from '../target-resolve/step-target-resolve-broker';
@@ -188,6 +189,9 @@ export const runVerbLayerBroker = async ({
       shotPath,
       browserWindowStart,
     });
+  }
+  if (step.step === 'resize') {
+    return stepResizeBroker({ session, width: step.width, height: step.height });
   }
 
   return stepEvalSourceBroker({ session, source: step.source });

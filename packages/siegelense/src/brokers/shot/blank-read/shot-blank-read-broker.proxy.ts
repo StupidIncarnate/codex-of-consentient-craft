@@ -29,6 +29,7 @@ export const shotBlankReadBrokerProxy = (): {
   // enforce-proxy-child-creation) can give every unstaged shot path a real decodable frame. A test's
   // own `stagesShot` for a SPECIFIC path still wins — exact-path matches outrank this wildcard.
   stagesDefaultShot: (params: { content: string }) => void;
+  stagesShotReadError: (params: { shotPath: AbsoluteFilePath; error: Error }) => void;
 } => {
   const readProxy = fsReadFileAdapterProxy();
   pngjsDecodeAdapterProxy();
@@ -52,6 +53,16 @@ export const shotBlankReadBrokerProxy = (): {
 
     stagesDefaultShot: ({ content }: { content: string }): void => {
       readProxy.resolvesAny({ content });
+    },
+
+    stagesShotReadError: ({
+      shotPath,
+      error,
+    }: {
+      shotPath: AbsoluteFilePath;
+      error: Error;
+    }): void => {
+      readProxy.rejects({ filePath: shotPath, error });
     },
   };
 };

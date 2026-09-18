@@ -33,16 +33,17 @@ export const stepStatics = {
       'until',
       'key',
       'health',
+      'resize',
     ],
-    // goto, click, type and key CHANGE the page. `look` does not, which is why it is not here — but it
+    // goto, click, type, key and resize CHANGE the page. `look` does not, which is why it is not here — but it
     // still captures, through `capturing` below.
-    acting: ['goto', 'click', 'type', 'key'],
+    acting: ['goto', 'click', 'type', 'key', 'resize'],
     // Which verbs resolve a shot path, and therefore capture. `acting` plus `look`: "Returns the
     // KEY inline and writes the SHOT, returning its path" (siegelense-tooling.md line 2587). Kept
     // apart from `acting` rather than folded into it, because `acting` also answers "did this step
     // change the page", and a reading step that answered yes to that would be a lie in every place
     // that asks.
-    capturing: ['goto', 'click', 'type', 'look', 'key', 'health'],
+    capturing: ['goto', 'click', 'type', 'look', 'key', 'health', 'resize'],
     // The members whose step carries a `target` selector or a `ref`, so each is subject to the
     // ambiguity rule: one match proceeds, AMBIGUOUS throws carrying the candidates, NO MATCH throws
     // naming the near misses (siegelense-tooling.md line 2109). A `ref` can never be ambiguous — it
@@ -70,6 +71,7 @@ export const stepStatics = {
       'dom',
       'key',
       'health',
+      'resize',
     ],
   },
   defaults: {

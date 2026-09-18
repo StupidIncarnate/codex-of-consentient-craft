@@ -17,6 +17,7 @@ import { stepGotoBrokerProxy } from '../goto/step-goto-broker.proxy';
 import { stepHealthBrokerProxy } from '../health/step-health-broker.proxy';
 import { stepKeyBrokerProxy } from '../key/step-key-broker.proxy';
 import { stepLookBrokerProxy } from '../look/step-look-broker.proxy';
+import { stepResizeBrokerProxy } from '../resize/step-resize-broker.proxy';
 import { stepScreenshotBrokerProxy } from '../screenshot/step-screenshot-broker.proxy';
 import { stepSeedBrokerProxy } from '../seed/step-seed-broker.proxy';
 import { stepTargetResolveBrokerProxy } from '../target-resolve/step-target-resolve-broker.proxy';
@@ -57,6 +58,7 @@ export const runVerbLayerBrokerProxy = (): {
   stepHealthBrokerProxy();
   stepKeyBrokerProxy();
   stepLookBrokerProxy();
+  stepResizeBrokerProxy();
   stepScreenshotBrokerProxy();
   stepTargetResolveBrokerProxy();
   stepTypeBrokerProxy();

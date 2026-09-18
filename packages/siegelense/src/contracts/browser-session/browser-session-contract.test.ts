@@ -75,5 +75,21 @@ describe('browserSessionContract', () => {
       expect(result).toBe(false);
       expect(mockCheck).toHaveBeenCalledTimes(1);
     });
+
+    it('VALID: {} => setViewport resolves by default', async () => {
+      const session = BrowserSessionStub();
+
+      await expect(session.setViewport({ width: 1280, height: 720 })).resolves.toBe(undefined);
+    });
+
+    it('VALID: {setViewport: mock} => setViewport uses the handed-in implementation', async () => {
+      const mockSetViewport = jest.fn().mockResolvedValue(undefined);
+      const session = BrowserSessionStub({ setViewport: mockSetViewport });
+
+      await session.setViewport({ width: 1280, height: 720 });
+
+      expect(mockSetViewport).toHaveBeenCalledTimes(1);
+      expect(mockSetViewport).toHaveBeenCalledWith({ width: 1280, height: 720 });
+    });
   });
 });

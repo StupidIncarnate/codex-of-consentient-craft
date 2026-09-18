@@ -18,9 +18,10 @@ describe('stepStatics', () => {
           'until',
           'key',
           'health',
+          'resize',
         ],
-        acting: ['goto', 'click', 'type', 'key'],
-        capturing: ['goto', 'click', 'type', 'look', 'key', 'health'],
+        acting: ['goto', 'click', 'type', 'key', 'resize'],
+        capturing: ['goto', 'click', 'type', 'look', 'key', 'health', 'resize'],
         targeting: ['waitFor', 'click', 'type'],
         browser: [
           'goto',
@@ -34,6 +35,7 @@ describe('stepStatics', () => {
           'dom',
           'key',
           'health',
+          'resize',
         ],
       },
       defaults: {
@@ -94,11 +96,12 @@ describe('stepStatics', () => {
       'look',
       'key',
       'health',
+      'resize',
     ]);
   });
 
   it('VALID: {verbs.acting} => omits look, which reads the page and never changes it', () => {
-    expect(stepStatics.verbs.acting).toStrictEqual(['goto', 'click', 'type', 'key']);
+    expect(stepStatics.verbs.acting).toStrictEqual(['goto', 'click', 'type', 'key', 'resize']);
   });
 
   // `seed` is the first verb that is in `all` and in NONE of the four subsets. It touches disk and
@@ -120,6 +123,7 @@ describe('stepStatics', () => {
       'dom',
       'key',
       'health',
+      'resize',
     ]);
   });
 
@@ -144,6 +148,7 @@ describe('stepStatics', () => {
       'dom',
       'key',
       'health',
+      'resize',
     ]);
   });
 
@@ -151,7 +156,7 @@ describe('stepStatics', () => {
     expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type']);
   });
 
-  it('VALID: {verbs.all} => ends with health, the thirteenth verb', () => {
+  it('VALID: {verbs.all} => ends with resize, the fourteenth verb', () => {
     expect(stepStatics.verbs.all).toStrictEqual([
       'goto',
       'waitFor',
@@ -166,6 +171,7 @@ describe('stepStatics', () => {
       'until',
       'key',
       'health',
+      'resize',
     ]);
   });
 });
