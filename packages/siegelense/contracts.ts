@@ -221,3 +221,9 @@ export * from './src/contracts/storage-reading/storage-reading.stub';
 
 export * from './src/contracts/hold-reading/hold-reading-contract';
 export * from './src/contracts/hold-reading/hold-reading.stub';
+
+export * from './src/contracts/video-action/video-action-contract';
+export * from './src/contracts/video-action/video-action.stub';
+
+export * from './src/contracts/video-result/video-result-contract';
+export * from './src/contracts/video-result/video-result.stub';

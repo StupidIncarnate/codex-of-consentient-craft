@@ -40,6 +40,7 @@ export const stepStatics = {
       'storage',
       'paste',
       'hold',
+      'video',
     ],
     // goto, click, type, key, resize and paste CHANGE the page. `look` does not, which is why it is not here — but it
     // still captures, through `capturing` below.
@@ -82,6 +83,7 @@ export const stepStatics = {
       'storage',
       'paste',
       'hold',
+      'video',
     ],
   },
   defaults: {

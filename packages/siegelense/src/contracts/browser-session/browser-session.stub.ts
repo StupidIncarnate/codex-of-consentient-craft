@@ -18,6 +18,11 @@ import type { RefResolution } from '../ref-resolution/ref-resolution-contract';
 import type { StepCandidate } from '../step-candidate/step-candidate-contract';
 import { StorageReadingStub } from '../storage-reading/storage-reading.stub';
 import type { StorageReading } from '../storage-reading/storage-reading-contract';
+import type { VideoActionStub } from '../video-action/video-action.stub';
+import { VideoResultStub } from '../video-result/video-result.stub';
+
+type VideoAction = ReturnType<typeof VideoActionStub>;
+type VideoResult = ReturnType<typeof VideoResultStub>;
 
 const matchCountContract = z.number().int().nonnegative().brand<'MatchCount'>();
 const bufferLineCountContract = z.number().int().nonnegative().brand<'BufferLineCount'>();
@@ -53,6 +58,7 @@ export const BrowserSessionStub = ({
     setViewport,
     addInitScript,
     readStorage,
+    videoAction,
     bufferLengths,
     close,
     ...dataProps
@@ -95,6 +101,15 @@ export const BrowserSessionStub = ({
     addInitScript: addInitScript ?? (async (): Promise<void> => Promise.resolve()),
     readStorage:
       readStorage ?? (async (): Promise<StorageReading> => Promise.resolve(StorageReadingStub())),
+    videoAction:
+      videoAction ??
+      (async ({ action }: { action: VideoAction }): Promise<VideoResult> =>
+        Promise.resolve(
+          VideoResultStub({
+            status: action === 'start' ? 'started' : 'stopped',
+            path: action === 'start' ? null : 'evidence/video',
+          }),
+        )),
     bufferLengths:
       bufferLengths ??
       ((): BufferLengths => ({

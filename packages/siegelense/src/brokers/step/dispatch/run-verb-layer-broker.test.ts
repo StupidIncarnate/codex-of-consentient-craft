@@ -435,4 +435,42 @@ describe('runVerbLayerBroker', () => {
       );
     });
   });
+
+  describe('a video step', () => {
+    it('VALID: {video, action: "start"} => routes to stepVideoBroker and returns video recording started', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'video', action: 'start' });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('video recording started');
+    });
+
+    it('VALID: {video, action: "stop"} => routes to stepVideoBroker and returns video recording stopped', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'video', action: 'stop' });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('video recording stopped — saved to evidence/video');
+    });
+  });
 });

@@ -9,6 +9,7 @@ import { SelectorStub } from '../selector/selector.stub';
 import { StepExpectationStub } from '../step-expectation/step-expectation.stub';
 import { StepFilePathStub } from '../step-file-path/step-file-path.stub';
 import { UrlPathStub } from '../url-path/url-path.stub';
+import { VideoActionStub } from '../video-action/video-action.stub';
 import { stepContract } from './step-contract';
 import type { Step } from './step-contract';
 
@@ -158,6 +159,12 @@ const STEP_DEFAULTS = {
     node: null,
     expect: StepExpectationStub(),
   },
+  video: {
+    step: 'video',
+    action: VideoActionStub(),
+    node: null,
+    expect: StepExpectationStub(),
+  },
 } as const satisfies Record<Step['step'], Record<string, unknown>>;
 
 export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
@@ -204,7 +211,9 @@ export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
                                         ? STEP_DEFAULTS.paste
                                         : stepVerb === 'hold'
                                           ? STEP_DEFAULTS.hold
-                                          : STEP_DEFAULTS.click;
+                                          : stepVerb === 'video'
+                                            ? STEP_DEFAULTS.video
+                                            : STEP_DEFAULTS.click;
 
   // A `ref` override without a `target` override would otherwise carry click's default target in
   // beside it, and the handle rule rejects a step holding both. The stub's job is to build a VALID

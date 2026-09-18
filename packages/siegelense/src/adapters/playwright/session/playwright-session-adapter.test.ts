@@ -4,6 +4,7 @@ import { DomReadingStub } from '../../../contracts/dom-reading/dom-reading.stub'
 import { FocusedElementStub } from '../../../contracts/focused-element/focused-element.stub';
 import { RawDomReadingStub } from '../../../contracts/raw-dom-reading/raw-dom-reading.stub';
 import { StepCandidateStub } from '../../../contracts/step-candidate/step-candidate.stub';
+import { VideoActionStub } from '../../../contracts/video-action/video-action.stub';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { playwrightSessionAdapter } from './playwright-session-adapter';
 import { playwrightSessionAdapterProxy } from './playwright-session-adapter.proxy';
@@ -891,6 +892,78 @@ describe('playwrightSessionAdapter', () => {
       expect(proxy.getStampCalls()).toStrictEqual(['stamp', 'unstamp']);
       expect(proxy.getKeyboardPressCalls()).toStrictEqual(['ControlOrMeta+V']);
       expect(proxy.getClipboardWrites()).toStrictEqual(['test']);
+    });
+  });
+
+  describe('context initialization', () => {
+    it('VALID: creates context with baseURL and recordVideo pointing to evidencePath/video', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      expect(proxy.getNewContextCalls()).toStrictEqual([
+        {
+          baseURL: BASE_URL,
+          recordVideo: { dir: `${EVIDENCE_PATH}/video` },
+        },
+      ]);
+    });
+  });
+
+  describe('videoAction()', () => {
+    it('VALID: {action: "start"} => returns status "started" with path null', async () => {
+      playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.videoAction({
+        action: VideoActionStub({ value: 'start' }),
+      });
+
+      expect(result).toStrictEqual({
+        status: 'started',
+        path: null,
+      });
+    });
+
+    it('VALID: {action: "stop"} with available page video => returns status "stopped" with video path', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setVideoPath({ videoPath: '/custom/video/run.webm' });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.videoAction({
+        action: VideoActionStub({ value: 'stop' }),
+      });
+
+      expect(result).toStrictEqual({
+        status: 'stopped',
+        path: '/custom/video/run.webm',
+      });
+    });
+
+    it('VALID: {action: "stop"} when page.video() returns null => falls back to evidencePath/video directory', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setHasVideo({ hasVideo: false });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.videoAction({
+        action: VideoActionStub({ value: 'stop' }),
+      });
+
+      expect(result).toStrictEqual({
+        status: 'stopped',
+        path: `${EVIDENCE_PATH}/video`,
+      });
     });
   });
 });

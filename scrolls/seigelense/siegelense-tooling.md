@@ -2725,6 +2725,8 @@ changing after seconds is the stuck-loader case.
 **`video`** — a screencast across a batch, for a HUMAN to watch and for the evidence trail. No step reads it back and no
 verdict is taken from it.
 
+> **Status: DELIVERED** — records screencast across batch (`recordVideo: { dir: path.join(evidencePath, 'video') }`), returning `'video recording started'` on `{ step: 'video', action: 'start' }` and `'video recording stopped — saved to <path>'` on `{ step: 'video', action: 'stop' }`. Driven on a real web instance with `.webm` file presence in instance evidence, and verified to refuse loudly on headless.
+
 ```
 { step: 'video', action: 'start' }   …steps…   { step: 'video', action: 'stop' }
 ```

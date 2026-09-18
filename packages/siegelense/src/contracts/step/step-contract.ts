@@ -58,6 +58,7 @@ import { stepPathContract } from '../step-path/step-path-contract';
 import { untilConsolePatternContract } from '../until-console-pattern/until-console-pattern-contract';
 import { untilFilePathContract } from '../until-file-path/until-file-path-contract';
 import { untilResponseContract } from '../until-response/until-response-contract';
+import { videoActionContract } from '../video-action/video-action-contract';
 
 const HANDLE_MESSAGE =
   'a driving step takes exactly one handle: a `target` selector — durable, meaning the same element on the next run, so it is what belongs in a saved batch — or a `ref`, which one `look` minted against this instance and this page state and which is for driving right now. Try { "step": "click", "target": "[data-testid=PIXEL_BTN]", "within": "[data-testid=GUILD_LIST]" } or { "step": "click", "ref": 23 }';
@@ -297,6 +298,14 @@ export const stepContract = z
           .positive()
           .brand<'HoldEveryMs'>()
           .default(holdStatics.defaults.everyMs as never),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('video'),
+        action: videoActionContract,
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })

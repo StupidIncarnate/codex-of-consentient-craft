@@ -53,6 +53,9 @@ export const playwrightSessionAdapterProxy = (): {
   setFocusedResult: (params: { raw: unknown }) => void;
   setRootPresent: (params: { present: boolean }) => void;
   setStorageResult: (params: { raw: unknown }) => void;
+  getNewContextCalls: () => readonly unknown[];
+  setHasVideo: (params: { hasVideo: boolean }) => void;
+  setVideoPath: (params: { videoPath: unknown }) => void;
   getInitScripts: () => readonly unknown[];
   getStampCalls: () => readonly unknown[];
   getScreenshotCalls: () => readonly unknown[];
@@ -139,6 +142,9 @@ export const playwrightSessionAdapterProxy = (): {
     waitForCalls: [] as unknown[],
     waitForFunctionCalls: [] as unknown[],
     waitForFunctionRejects: false,
+    newContextCalls: [] as unknown[],
+    hasVideo: true,
+    videoPath: '/evidence/video/run.webm' as unknown,
   };
 
   // Keyed on the selector string `page.locator(...)` actually received — the same string
@@ -266,6 +272,8 @@ export const playwrightSessionAdapterProxy = (): {
       return Promise.resolve(undefined);
     },
     goto: async () => Promise.resolve(undefined),
+    video: () =>
+      state.hasVideo ? { path: async () => Promise.resolve(String(state.videoPath)) } : null,
   });
 
   const context = {
@@ -274,7 +282,10 @@ export const playwrightSessionAdapterProxy = (): {
   };
 
   const browser = {
-    newContext: async () => Promise.resolve(context),
+    newContext: async (options?: unknown) => {
+      state.newContextCalls.push(options);
+      return Promise.resolve(context);
+    },
     close: async () => Promise.resolve(undefined),
   };
 
@@ -324,6 +335,13 @@ export const playwrightSessionAdapterProxy = (): {
     },
     setStorageResult: ({ raw }: { raw: unknown }): void => {
       state.storageReadingRaw = raw;
+    },
+    getNewContextCalls: (): readonly unknown[] => state.newContextCalls,
+    setHasVideo: ({ hasVideo }: { hasVideo: boolean }): void => {
+      state.hasVideo = hasVideo;
+    },
+    setVideoPath: ({ videoPath }: { videoPath: unknown }): void => {
+      state.videoPath = videoPath;
     },
     getInitScripts: (): readonly unknown[] => state.initScripts,
     getStampCalls: (): readonly unknown[] => state.stampCalls,

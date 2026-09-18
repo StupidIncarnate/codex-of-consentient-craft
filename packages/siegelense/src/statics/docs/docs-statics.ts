@@ -54,7 +54,7 @@ export const docsStatics = {
           lines: [
             'dungeonmaster siegelense cleanup — run it at the START of your pass and again at the END.',
             'It acts on STALENESS only. It never reaps a live instance, so it is safe at any moment, mid-pass included.',
-            'It reaps stale instances, releases their ports, releases the registry lock, and ages assets out on their own windows — video first on a shorter one. It refuses exactly what prune refuses, so evidence a VERIFIED prelude or an open quest WALKED note still cites is never taken.',
+            'It reaps stale instances, releases their ports, releases the registry lock, and ages assets out on their own windows — screencasts first on a shorter one. It refuses exactly what prune refuses, so evidence a VERIFIED prelude or an open quest WALKED note still cites is never taken.',
             'leftAlone is part of the answer: a cleanup reporting only what it removed cannot be told from one that removed the wrong thing.',
             'Add --human for the reading table. The default is one JSON document.',
           ],
@@ -155,7 +155,7 @@ export const docsStatics = {
         {
           heading: 'WHAT A PLAN CAN PROMISE TODAY',
           lines: [
-            `Twenty step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request, before, file, storage, paste and hold. Every other verb in the design is ${NOT_BUILT}.`,
+            `Twenty-one step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request, before, file, storage, paste, hold and video. Every other verb in the design is ${NOT_BUILT}.`,
             'look returns the key — every addressable element, its name, its text and a ref for each — so a prelude can discover a testId rather than only address one it was told about.',
             "seed runs a recipe against the instance and returns the ids it made, so a prelude CAN create its own starting state. dungeonmaster siegelense recipes lists every recipe with its produces: claim; name one in a { step: 'seed' } and read its ids back with {binding.field}.",
           ],

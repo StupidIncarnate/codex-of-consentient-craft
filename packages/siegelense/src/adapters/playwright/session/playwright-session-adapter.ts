@@ -54,6 +54,9 @@ import type {
 } from '../../../contracts/browser-session/browser-session-contract';
 import type { KeyReading } from '../../../contracts/key-reading/key-reading-contract';
 import type { StorageReading } from '../../../contracts/storage-reading/storage-reading-contract';
+import { videoResultContract } from '../../../contracts/video-result/video-result-contract';
+import type { VideoResult } from '../../../contracts/video-result/video-result-contract';
+import type { VideoAction } from '../../../contracts/video-action/video-action-contract';
 import { domReadLayerAdapter } from './dom-read-layer-adapter';
 import { keyPressLayerAdapter } from './key-press-layer-adapter';
 import { keyReadLayerAdapter } from './key-read-layer-adapter';
@@ -131,10 +134,8 @@ const NEAREST_NAMES_SOURCE = `() => Array.from(document.querySelectorAll('[data-
 
 export const playwrightSessionAdapter = async ({
   baseUrl,
-  // Accepted for signature parity with the lane boot broker's other process launches; `capture`
-  // takes a caller-resolved filePath directly, so this chunk's browser session has no read of its
-  // own home yet.
-  evidencePath: _evidencePath,
+  // Used for recordVideo.dir so screencast recordings land in the run's evidence directory.
+  evidencePath,
 }: {
   baseUrl: string;
   evidencePath: AbsoluteFilePath;
@@ -142,7 +143,10 @@ export const playwrightSessionAdapter = async ({
   process.env.PLAYWRIGHT_BROWSERS_PATH ??= path.join(os.homedir(), '.cache', 'ms-playwright');
 
   const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({ baseURL: baseUrl });
+  const context = await browser.newContext({
+    baseURL: baseUrl,
+    recordVideo: { dir: path.join(evidencePath, 'video') },
+  });
   // A real Ctrl+V is the only paste that arrives with isTrusted true, and it needs the clipboard
   // to be readable from the page's own origin.
   await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: baseUrl });
@@ -159,6 +163,7 @@ export const playwrightSessionAdapter = async ({
   const rootChecker = rootCheckLayerAdapter();
   // See the header: a HOLDER, not a reassigned `let`, and the one piece of ref state Node keeps.
   const mintState = { highest: 0 };
+  const videoState = { isRecording: false };
 
   // Installed before the page's own script on EVERY document, so a navigation empties the registry
   // by construction rather than by anyone remembering to clear it.
@@ -543,6 +548,26 @@ export const playwrightSessionAdapter = async ({
         filePath,
         value,
         timeoutMs,
+      });
+    },
+
+    videoAction: async ({ action }: { action: VideoAction }): Promise<VideoResult> => {
+      if (action === 'start') {
+        videoState.isRecording = true;
+        return videoResultContract.parse({
+          status: 'started',
+          path: null,
+        });
+      }
+
+      videoState.isRecording = false;
+      const video = page.video();
+      const videoPath =
+        (video === null ? null : await video.path()) ?? path.join(evidencePath, 'video');
+
+      return videoResultContract.parse({
+        status: 'stopped',
+        path: videoPath,
       });
     },
 

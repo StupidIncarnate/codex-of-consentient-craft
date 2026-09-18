@@ -54,6 +54,7 @@ import { stepPasteBroker } from '../paste/step-paste-broker';
 import { stepTargetResolveBroker } from '../target-resolve/step-target-resolve-broker';
 import { stepTypeBroker } from '../type/step-type-broker';
 import { stepUntilBroker } from '../until/step-until-broker';
+import { stepVideoBroker } from '../video/step-video-broker';
 import { stepWaitForBroker } from '../wait-for/step-wait-for-broker';
 
 export const runVerbLayerBroker = async ({
@@ -242,6 +243,9 @@ export const runVerbLayerBroker = async ({
   }
   if (step.step === 'storage') {
     return stepStorageBroker({ session, prefix: step.prefix });
+  }
+  if (step.step === 'video') {
+    return stepVideoBroker({ session, action: step.action });
   }
 
   return stepEvalSourceBroker({ session, source: step.source });

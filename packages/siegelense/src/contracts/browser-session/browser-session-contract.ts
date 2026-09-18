@@ -32,6 +32,8 @@ import type { KeyReading } from '../key-reading/key-reading-contract';
 import type { RefResolution } from '../ref-resolution/ref-resolution-contract';
 import type { StepCandidate } from '../step-candidate/step-candidate-contract';
 import type { StorageReading } from '../storage-reading/storage-reading-contract';
+import type { VideoAction } from '../video-action/video-action-contract';
+import type { VideoResult } from '../video-result/video-result-contract';
 
 export const browserSessionContract = z.object({});
 
@@ -150,6 +152,7 @@ export type BrowserSession = z.infer<typeof browserSessionContract> & {
   setViewport: (params: { width: number; height: number }) => Promise<void>;
   addInitScript: (params: { source: string }) => Promise<void>;
   readStorage: ({ prefix }: { prefix: string }) => Promise<StorageReading>;
+  videoAction: ({ action }: { action: VideoAction }) => Promise<VideoResult>;
   bufferLengths: () => BufferLengths;
   close: () => Promise<void>;
 };

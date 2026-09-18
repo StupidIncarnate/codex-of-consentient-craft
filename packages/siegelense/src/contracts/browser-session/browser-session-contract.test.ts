@@ -1,6 +1,8 @@
 import { browserSessionContract } from './browser-session-contract';
 import { BrowserSessionStub } from './browser-session.stub';
 import { StorageReadingStub } from '../storage-reading/storage-reading.stub';
+import { VideoActionStub } from '../video-action/video-action.stub';
+import { VideoResultStub } from '../video-result/video-result.stub';
 
 describe('browserSessionContract', () => {
   it('VALID: {} => the data half parses to an empty object', () => {
@@ -222,6 +224,34 @@ describe('browserSessionContract', () => {
 
       expect(mockCaptureLive).toHaveBeenCalledTimes(1);
       expect(mockCaptureLive).toHaveBeenCalledWith({ filePath: '/tmp/shot.png' });
+    });
+
+    it('VALID: {} => videoAction start resolves with status started and path null by default', async () => {
+      const session = BrowserSessionStub();
+
+      const result = await session.videoAction({ action: VideoActionStub({ value: 'start' }) });
+
+      expect(result).toStrictEqual({ status: 'started', path: null });
+    });
+
+    it('VALID: {} => videoAction stop resolves with status stopped and fallback path by default', async () => {
+      const session = BrowserSessionStub();
+
+      const result = await session.videoAction({ action: VideoActionStub({ value: 'stop' }) });
+
+      expect(result).toStrictEqual({ status: 'stopped', path: 'evidence/video' });
+    });
+
+    it('VALID: {videoAction: mock} => videoAction uses the handed-in implementation', async () => {
+      const customResult = VideoResultStub({ status: 'stopped', path: '/custom/path.webm' });
+      const mockVideoAction = jest.fn().mockResolvedValue(customResult);
+      const session = BrowserSessionStub({ videoAction: mockVideoAction });
+
+      const result = await session.videoAction({ action: VideoActionStub({ value: 'stop' }) });
+
+      expect(result).toStrictEqual({ status: 'stopped', path: '/custom/path.webm' });
+      expect(mockVideoAction).toHaveBeenCalledTimes(1);
+      expect(mockVideoAction).toHaveBeenCalledWith({ action: 'stop' });
     });
   });
 });

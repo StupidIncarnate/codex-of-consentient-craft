@@ -243,7 +243,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 | `screenshot` | **built** | `seed` | **built** |
 | `eval` | **built** | `until` | **built** |
 | `look` | **built** | `hold` | **built** |
-| `key` | **built** | `video` | not built |
+| `key` | **built** | `video` | **built** |
 | `paste` | **built** | `request` | **built** |
 | `box` | **built** | `resize` | **built** |
 | `dom` | **built** | | |
@@ -254,7 +254,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 packages/siegelense/src/statics/step/step-statics.ts   → verbs.all
 ```
 
-**`look`, `box`, `dom`, `seed`, `until`, `key`, `health`, `resize`, `request`, `before`, `file`, `storage`, `paste` and `hold` are built.** What is next is in "How to pick the next piece" — re-derive it
+**`look`, `box`, `dom`, `seed`, `until`, `key`, `health`, `resize`, `request`, `before`, `file`, `storage`, `paste`, `hold` and `video` are built.** What is next is in "How to pick the next piece" — re-derive it
 rather than trusting a shortlist written before this round.
 
 ### The build-order items

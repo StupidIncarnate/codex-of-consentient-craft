@@ -27,6 +27,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'storage' }),
   StepStub({ step: 'paste', target: SelectorStub(), value: ContentTextStub() }),
   StepStub({ step: 'hold' }),
+  StepStub({ step: 'video', action: 'start' }),
 ];
 
 describe('stepContract', () => {
@@ -1313,6 +1314,68 @@ describe('stepContract', () => {
       expect(() =>
         stepContract.parse({
           step: 'hold',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+  });
+
+  describe('the video step', () => {
+    it('VALID: {step: video, action: start} => parses valid video start step', () => {
+      const result = stepContract.parse({
+        step: 'video',
+        action: 'start',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'video',
+        action: 'start',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: video, action: stop, node, expect} => parses valid video stop step', () => {
+      const result = stepContract.parse({
+        step: 'video',
+        action: 'stop',
+        node: 'recorded-batch',
+        expect: 'error',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'video',
+        action: 'stop',
+        node: 'recorded-batch',
+        expect: 'error',
+      });
+    });
+
+    it('VALID: {step: video} => StepStub builds valid video default member', () => {
+      const result = StepStub({ step: 'video' });
+
+      expect(result).toStrictEqual({
+        step: 'video',
+        action: 'start',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: video, action: pause} => throws validation error on invalid action', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'video',
+          action: 'pause',
+        } as never),
+      ).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: {step: video, +target} => throws naming stray key because video is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'video',
+          action: 'start',
           target: '[data-testid="X"]',
         } as never),
       ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
