@@ -42,6 +42,7 @@ import { stepEvalSourceBroker } from '../eval-source/step-eval-source-broker';
 import { stepFileBroker } from '../file/step-file-broker';
 import { stepGotoBroker } from '../goto/step-goto-broker';
 import { stepHealthBroker } from '../health/step-health-broker';
+import { stepHoldBroker } from '../hold/step-hold-broker';
 import { stepKeyBroker } from '../key/step-key-broker';
 import { stepLookBroker } from '../look/step-look-broker';
 import { stepResizeBroker } from '../resize/step-resize-broker';
@@ -221,6 +222,16 @@ export const runVerbLayerBroker = async ({
       session,
       shotPath,
       browserWindowStart,
+    });
+  }
+  if (step.step === 'hold') {
+    return stepHoldBroker({
+      lane,
+      session,
+      index,
+      shotPath,
+      frames: step.frames,
+      everyMs: step.everyMs,
     });
   }
   if (step.step === 'resize') {

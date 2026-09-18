@@ -409,4 +409,30 @@ describe('runVerbLayerBroker', () => {
       expect(reading).toBe('pasted "hello" into [data-testid="INPUT"]');
     });
   });
+
+  describe('a hold step', () => {
+    it('VALID: {hold} => routes to stepHoldBroker and returns hold reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({
+        step: 'hold',
+        frames: 2,
+        everyMs: 1000,
+      });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe(
+        '{"frames":2,"differing":0,"verdict":"NOTHING CHANGED across 1s","shots":["/tmp/dm-siege-stub-evidence/step1_frame1.png","/tmp/dm-siege-stub-evidence/step1_frame2.png"]}',
+      );
+    });
+  });
 });

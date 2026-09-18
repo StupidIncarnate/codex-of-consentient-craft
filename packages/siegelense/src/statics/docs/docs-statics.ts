@@ -45,7 +45,7 @@ export const docsStatics = {
             'dungeonmaster siegelense capacity — what this machine can take right now. Ask prior to opening a pool.',
             'It answers a suggested pool size, a hard ceiling, a why sentence naming every figure it reasoned from, the measurements behind both, and the profile group it divided by.',
             'suggested comes from a MEASURED profile of what one instance of this spec costs, never a number somebody wrote down. With no profile yet it answers 2, and that pair profiles itself.',
-            'It counts instances this session did not start. It is advisory, with one hard floor: start refuses outright when the machine plainly cannot hold another.',
+            'It counts instances this session did not start. It is advisory, with one hard floor: start refuses outright when the machine plainly cannot take another.',
             'dungeonmaster siegelense profile --spec <specName> is the measurement capacity reads. Samples are grouped by pool size and never averaged across them — a solo reading and a contended one describe different worlds, so read the group matching the pool you are about to open.',
           ],
         },
@@ -74,7 +74,7 @@ export const docsStatics = {
           heading: 'STATUS — THE POST-MORTEM',
           lines: [
             'dungeonmaster siegelense status — the machine, every instance alive or dead, and the names of the metrics being monitored, so you do not guess at them.',
-            "A bare status never lists an instance's runs and never lists its evidence. Those appear only when you name an id you already hold. That is the no-browsing rule: fleet state is what you need to decide whether to reap or to dispatch, and a list of runs is what a session reads instead of reading its own record.",
+            "A bare status never lists an instance's runs and never lists its evidence. Those appear only when you name an id you already know. That is the no-browsing rule: fleet state is what you need to decide whether to reap or to dispatch, and a list of runs is what a session reads instead of reading its own record.",
             'dungeonmaster siegelense status --instance <id> gives one instance in full: last heartbeat, the last step it ran, its RSS at that moment, its surviving orphan process groups, the paths to what it left behind, and a likelyCause stated as evidence rather than as a verdict.',
             'A reaped entry survives as a TOMBSTONE for as long as its evidence does. Otherwise a cleanup — which any session may run, at any moment — would make a fixer\'s first call answer "unknown instance" for a walk whose captures are sitting on disk.',
             'Add --human for the fleet table.',
@@ -155,7 +155,7 @@ export const docsStatics = {
         {
           heading: 'WHAT A PLAN CAN PROMISE TODAY',
           lines: [
-            `Nineteen step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request, before, file, storage and paste. Every other verb in the design is ${NOT_BUILT}.`,
+            `Twenty step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request, before, file, storage, paste and hold. Every other verb in the design is ${NOT_BUILT}.`,
             'look returns the key — every addressable element, its name, its text and a ref for each — so a prelude can discover a testId rather than only address one it was told about.',
             "seed runs a recipe against the instance and returns the ids it made, so a prelude CAN create its own starting state. dungeonmaster siegelense recipes lists every recipe with its produces: claim; name one in a { step: 'seed' } and read its ids back with {binding.field}.",
           ],

@@ -26,6 +26,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'file' }),
   StepStub({ step: 'storage' }),
   StepStub({ step: 'paste', target: SelectorStub(), value: ContentTextStub() }),
+  StepStub({ step: 'hold' }),
 ];
 
 describe('stepContract', () => {
@@ -1241,6 +1242,77 @@ describe('stepContract', () => {
       expect(() =>
         stepContract.parse({
           step: 'storage',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+
+    it('VALID: {step: hold, minimal} => parses with defaults', () => {
+      const result = stepContract.parse({
+        step: 'hold',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'hold',
+        frames: 4,
+        everyMs: 1500,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: hold, custom options} => parses custom frames, everyMs, node, expect', () => {
+      const result = stepContract.parse({
+        step: 'hold',
+        frames: 5,
+        everyMs: 2000,
+        node: 'hold-node',
+        expect: 'error',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'hold',
+        frames: 5,
+        everyMs: 2000,
+        node: 'hold-node',
+        expect: 'error',
+      });
+    });
+
+    it('VALID: {step: hold} => StepStub builds valid hold default member', () => {
+      const result = StepStub({ step: 'hold' });
+
+      expect(result).toStrictEqual({
+        step: 'hold',
+        frames: 4,
+        everyMs: 1500,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: hold, frames: 1} => throws frames validation error', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'hold',
+          frames: 1,
+        } as never),
+      ).toThrow(/Number must be greater than or equal to 2/u);
+    });
+
+    it('INVALID: {step: hold, everyMs: 0} => throws everyMs validation error', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'hold',
+          everyMs: 0,
+        } as never),
+      ).toThrow(/Number must be greater than 0/u);
+    });
+
+    it('INVALID: {step: hold, +target} => throws naming stray key because hold is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'hold',
           target: '[data-testid="X"]',
         } as never),
       ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);

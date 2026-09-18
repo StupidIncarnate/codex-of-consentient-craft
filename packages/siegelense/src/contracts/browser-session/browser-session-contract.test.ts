@@ -207,5 +207,21 @@ describe('browserSessionContract', () => {
         timeoutMs: 5000,
       });
     });
+
+    it('VALID: {} => captureLive resolves by default', async () => {
+      const session = BrowserSessionStub();
+
+      await expect(session.captureLive({ filePath: '/tmp/shot.png' })).resolves.toBe(undefined);
+    });
+
+    it('VALID: {captureLive: mock} => captureLive uses the handed-in implementation', async () => {
+      const mockCaptureLive = jest.fn().mockResolvedValue(undefined);
+      const session = BrowserSessionStub({ captureLive: mockCaptureLive });
+
+      await session.captureLive({ filePath: '/tmp/shot.png' });
+
+      expect(mockCaptureLive).toHaveBeenCalledTimes(1);
+      expect(mockCaptureLive).toHaveBeenCalledWith({ filePath: '/tmp/shot.png' });
+    });
   });
 });

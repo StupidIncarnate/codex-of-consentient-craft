@@ -22,3 +22,5 @@ export * from './src/adapters/fs/stat/fs-stat-adapter';
 export * from './src/adapters/fs/statfs/fs-statfs-adapter';
 export * from './src/adapters/os/info/os-info-adapter';
 export * from './src/adapters/fetch/http-request/fetch-http-request-adapter';
+export * from './src/adapters/async/delay/async-delay-adapter';
+export * from './src/adapters/fs/copy-file/fs-copy-file-adapter';

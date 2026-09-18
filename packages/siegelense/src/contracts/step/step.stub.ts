@@ -151,6 +151,13 @@ const STEP_DEFAULTS = {
     node: null,
     expect: StepExpectationStub(),
   },
+  hold: {
+    step: 'hold',
+    frames: 4,
+    everyMs: 1500,
+    node: null,
+    expect: StepExpectationStub(),
+  },
 } as const satisfies Record<Step['step'], Record<string, unknown>>;
 
 export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
@@ -195,7 +202,9 @@ export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
                                       ? STEP_DEFAULTS.storage
                                       : stepVerb === 'paste'
                                         ? STEP_DEFAULTS.paste
-                                        : STEP_DEFAULTS.click;
+                                        : stepVerb === 'hold'
+                                          ? STEP_DEFAULTS.hold
+                                          : STEP_DEFAULTS.click;
 
   // A `ref` override without a `target` override would otherwise carry click's default target in
   // beside it, and the handle rule rejects a step holding both. The stub's job is to build a VALID

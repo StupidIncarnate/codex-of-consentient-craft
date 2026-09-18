@@ -17,6 +17,7 @@ import { stepEvalSourceBrokerProxy } from '../eval-source/step-eval-source-broke
 import { stepFileBrokerProxy } from '../file/step-file-broker.proxy';
 import { stepGotoBrokerProxy } from '../goto/step-goto-broker.proxy';
 import { stepHealthBrokerProxy } from '../health/step-health-broker.proxy';
+import { stepHoldBrokerProxy } from '../hold/step-hold-broker.proxy';
 import { stepKeyBrokerProxy } from '../key/step-key-broker.proxy';
 import { stepLookBrokerProxy } from '../look/step-look-broker.proxy';
 import { stepRequestBrokerProxy } from '../request/step-request-broker.proxy';
@@ -71,6 +72,7 @@ export const runVerbLayerBrokerProxy = (): {
   stepEvalSourceBrokerProxy();
   stepGotoBrokerProxy();
   stepHealthBrokerProxy();
+  stepHoldBrokerProxy();
   stepKeyBrokerProxy();
   stepLookBrokerProxy();
   stepResizeBrokerProxy();

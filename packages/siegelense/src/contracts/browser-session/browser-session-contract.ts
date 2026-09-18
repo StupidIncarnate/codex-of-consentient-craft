@@ -129,6 +129,7 @@ export type BrowserSession = z.infer<typeof browserSessionContract> & {
   // to a region is the expression's own job, not this call's.
   waitForPredicate: ({ source, timeoutMs }: { source: string; timeoutMs: number }) => Promise<void>;
   capture: ({ filePath }: { filePath: string }) => Promise<void>;
+  captureLive: ({ filePath }: { filePath: string }) => Promise<void>;
   evaluateSource: ({ source }: { source: string }) => Promise<ContentText>;
   // Armed once at boot and never cleared (siegelense-tooling.md line 1635) — a run records where it
   // started via `bufferLengths()` and reads forward from there with `fromIndex`, so its own index

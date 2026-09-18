@@ -52,6 +52,7 @@ import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-s
 import { stepExpectationContract } from '../step-expectation/step-expectation-contract';
 import { stepFilePathContract } from '../step-file-path/step-file-path-contract';
 import { stepStatics } from '../../statics/step/step-statics';
+import { holdStatics } from '../../statics/hold/hold-statics';
 import { storageStatics } from '../../statics/storage/storage-statics';
 import { stepPathContract } from '../step-path/step-path-contract';
 import { untilConsolePatternContract } from '../until-console-pattern/until-console-pattern-contract';
@@ -277,6 +278,25 @@ export const stepContract = z
         filePath: z.string().brand<'PasteFilePath'>().nullable().default(null),
         value: contentTextContract.nullable().default(null),
         timeoutMs: timeoutMsContract.nullable().default(null),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('hold'),
+        frames: z
+          .number()
+          .int()
+          .min(holdStatics.defaults.minFrames)
+          .brand<'HoldFrames'>()
+          .default(holdStatics.defaults.frames as never),
+        everyMs: z
+          .number()
+          .int()
+          .positive()
+          .brand<'HoldEveryMs'>()
+          .default(holdStatics.defaults.everyMs as never),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })

@@ -4,7 +4,7 @@
  * delegates the resolve-then-act work to `run-verb-layer-broker.ts`, then inverts `ok` around
  * `expect` exactly once so no verb broker has to know the difference between an unexpected failure
  * and an attack that landed (chunk-02-driver-and-batch.md, W14: "That inversion belongs in the
- * dispatcher, once, not in six brokers"). `screenshot` and `health` are the verbs whose own brokers
+ * dispatcher, once, not in six brokers"). `screenshot`, `health`, and `hold` are the verbs whose own brokers
  * already perform their capture with the caller-resolved `shotPath` as their `filePath`
  * (`run-verb-layer-broker.ts`), so this dispatcher's own unasked-capture step is skipped for them —
  * capturing again to the same path would be a second write of the same picture. A REAL failure
@@ -121,7 +121,8 @@ export const stepDispatchBroker = async ({
       shotPath !== null &&
       session !== null &&
       step.step !== 'screenshot' &&
-      step.step !== 'health'
+      step.step !== 'health' &&
+      step.step !== 'hold'
     ) {
       await session.capture({ filePath: shotPath });
     }
@@ -172,7 +173,8 @@ export const stepDispatchBroker = async ({
         shotPath !== null &&
         session !== null &&
         step.step !== 'screenshot' &&
-        step.step !== 'health'
+        step.step !== 'health' &&
+        step.step !== 'hold'
       ) {
         const captured = await session
           .capture({ filePath: shotPath })
@@ -242,7 +244,8 @@ export const stepDispatchBroker = async ({
       shotPath !== null &&
       session !== null &&
       step.step !== 'screenshot' &&
-      step.step !== 'health'
+      step.step !== 'health' &&
+      step.step !== 'hold'
     ) {
       await session.capture({ filePath: shotPath });
     }

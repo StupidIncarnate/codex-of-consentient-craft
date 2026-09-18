@@ -24,9 +24,10 @@ describe('stepStatics', () => {
           'file',
           'storage',
           'paste',
+          'hold',
         ],
         acting: ['goto', 'click', 'type', 'key', 'resize', 'paste'],
-        capturing: ['goto', 'click', 'type', 'look', 'key', 'health', 'resize', 'paste'],
+        capturing: ['goto', 'click', 'type', 'look', 'key', 'health', 'resize', 'paste', 'hold'],
         targeting: ['waitFor', 'click', 'type', 'paste'],
         browser: [
           'goto',
@@ -44,6 +45,7 @@ describe('stepStatics', () => {
           'before',
           'storage',
           'paste',
+          'hold',
         ],
       },
       defaults: {
@@ -106,6 +108,7 @@ describe('stepStatics', () => {
       'health',
       'resize',
       'paste',
+      'hold',
     ]);
   });
 
@@ -143,6 +146,7 @@ describe('stepStatics', () => {
       'before',
       'storage',
       'paste',
+      'hold',
     ]);
   });
 
@@ -171,6 +175,7 @@ describe('stepStatics', () => {
       'before',
       'storage',
       'paste',
+      'hold',
     ]);
   });
 
@@ -178,7 +183,7 @@ describe('stepStatics', () => {
     expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type', 'paste']);
   });
 
-  it('VALID: {verbs.all} => ends with paste, the nineteenth verb', () => {
+  it('VALID: {verbs.all} => ends with hold, the twentieth verb', () => {
     expect(stepStatics.verbs.all).toStrictEqual([
       'goto',
       'waitFor',
@@ -199,6 +204,7 @@ describe('stepStatics', () => {
       'file',
       'storage',
       'paste',
+      'hold',
     ]);
   });
 });

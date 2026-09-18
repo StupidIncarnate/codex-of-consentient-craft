@@ -218,3 +218,6 @@ export * from './src/contracts/step-file-path/step-file-path.stub';
 
 export * from './src/contracts/storage-reading/storage-reading-contract';
 export * from './src/contracts/storage-reading/storage-reading.stub';
+
+export * from './src/contracts/hold-reading/hold-reading-contract';
+export * from './src/contracts/hold-reading/hold-reading.stub';

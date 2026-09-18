@@ -455,6 +455,10 @@ export const playwrightSessionAdapter = async ({
       await page.screenshot({ path: filePath, animations: 'disabled', caret: 'hide' });
     },
 
+    captureLive: async ({ filePath }: { filePath: string }): Promise<void> => {
+      await page.screenshot({ path: filePath, animations: 'allow' });
+    },
+
     evaluateSource: async ({ source }: { source: string }): Promise<ContentText> => {
       const evaluated: unknown = await page.evaluate(source);
       if (evaluated === undefined) {

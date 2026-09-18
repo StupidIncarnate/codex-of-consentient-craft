@@ -43,6 +43,7 @@ export const BrowserSessionStub = ({
     pasteRef,
     waitForPredicate,
     capture,
+    captureLive,
     evaluateSource,
     readConsoleSince,
     readNetworkSince,
@@ -81,6 +82,7 @@ export const BrowserSessionStub = ({
     pasteRef: pasteRef ?? (async (): Promise<void> => Promise.resolve()),
     waitForPredicate: waitForPredicate ?? (async (): Promise<void> => Promise.resolve()),
     capture: capture ?? (async (): Promise<void> => Promise.resolve()),
+    captureLive: captureLive ?? (async (): Promise<void> => Promise.resolve()),
     evaluateSource:
       evaluateSource ??
       (async (): Promise<ContentText> => Promise.resolve(contentTextContract.parse(''))),

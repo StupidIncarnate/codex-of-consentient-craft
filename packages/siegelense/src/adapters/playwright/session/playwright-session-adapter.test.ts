@@ -512,6 +512,22 @@ describe('playwrightSessionAdapter', () => {
     });
   });
 
+  describe('captureLive()', () => {
+    it('VALID: {filePath} => calls screenshot with animations allowed', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.captureLive({ filePath: '/tmp/siegelense/step1_live.png' });
+
+      expect(proxy.getScreenshotCalls()).toStrictEqual([
+        { path: '/tmp/siegelense/step1_live.png', animations: 'allow' },
+      ]);
+    });
+  });
+
   describe('readConsoleSince()', () => {
     it('VALID: {a console message, then a pageerror} => returns both in order', async () => {
       const proxy = playwrightSessionAdapterProxy();

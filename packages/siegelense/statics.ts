@@ -22,3 +22,4 @@ export * from './src/statics/file/file-statics';
 export * from './src/statics/storage/storage-statics';
 export * from './src/statics/paste/paste-statics';
 export * from './src/statics/step/step-statics';
+export * from './src/statics/hold/hold-statics';

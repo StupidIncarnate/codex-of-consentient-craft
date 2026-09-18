@@ -2711,6 +2711,8 @@ point matters.
 **`hold`** — N frames at an interval, reporting which differ. Detects NON-SETTLEMENT, never motion quality. Runs LIVE,
 unlike every comparison capture.
 
+> **Status: DELIVERED** — captures N frames live (`animations: 'allow'`), delays between frames with `asyncDelayAdapter`, compares consecutive frames using `shotChangeReadBroker`, and reports `{ frames, differing, verdict, shots }`. Driven on a real web instance across frames with disk verification of frame captures, and verified to refuse loudly on headless.
+
 ```
 { step: 'hold', frames: 4, everyMs: 1500 }
 → { frames: 4, differing: 0, verdict: 'NOTHING CHANGED across 4.5s', shots: [...] }
