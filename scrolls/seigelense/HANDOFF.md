@@ -42,18 +42,21 @@ Copy the block below into a new session. It is self-contained.
 > untangle.
 >
 > **SUB-AGENT DISPATCH FOR IMPLEMENTATION AND REVIEW:**
-> Launch sub-agents in sequence to do the build and verification:
+> Launch sub-agents in sequence to do the planning, build, and verification:
 >
-> 1. **Coding sub-agent (The Builder):**
+> 1. **Planning:**
+>    - Review picking rules in `HANDOFF.md`, verify priorities, notarize requirements against `siegelense-tooling.md` (with re-derived line numbers), and write the plan to `scrolls/seigelense/plans/<piece>.md`.
+>
+> 2. **Coding sub-agent (The Builder):**
 >    - Reads architecture (`get-architecture`, `get-testing-patterns`, `get-folder-detail`).
 >    - Reads the piece requirements from `siegelense-tooling.md` and the piece's plan.
 >    - Implements all source code across architectural layers: statics, contracts & stubs, adapters (impl, proxy, unit test), brokers (impl, proxy, unit test), transformers, and guards.
 >    - Writes comprehensive unit tests following testing patterns (proxy pattern, strict assertions, branded Zod contracts).
 >    - Runs scoped ward on touched files until 100% green (`npm run ward -- --only lint,typecheck,unit -- <files>`).
 >    - Does not boot real background server processes or leave running instances.
->    - Reports back to parent with touched files, test results, and implementation notes.
+>    - **MUST be instructed in its initial prompt to message back starting with the exact marker `WORK DONE` followed by its summary when complete.**
 >
-> 2. **Manual verification & review sub-agent (The Driver & Fixer):**
+> 3. **Manual verification & review sub-agent (The Driver & Fixer):**
 >    - Reads `scrolls/seigelense/manual-verification-runbook.md` before driving.
 >    - Builds compiled output (`npm run build --workspace=@dungeonmaster/siegelense && npm run build --workspace=@dungeonmaster/cli`).
 >    - Cleans up stale sockets (`rm -rf /tmp/dm-siege-sockets`).
@@ -63,13 +66,13 @@ Copy the block below into a new session. It is self-contained.
 >    - Inspects real stdout/JSON for compliance with `siegelense-tooling.md`.
 >    - If any defects, omissions, or surprises are found: fixes the code directly, re-builds, and re-tests until solid.
 >    - Tears down instance (`dungeonmaster siegelense kill`) and verifies process table and socket directories are swept clean.
->    - Reports real command invocations, verbatim stdout/JSON outputs, and verification evidence back to parent.
+>    - **MUST be instructed in its initial prompt to message back starting with the exact marker `WORK DONE` followed by its summary when complete.**
 >
-> 3. **Parent agent (The Coordinator):**
->    - Selects the piece, creates the plan document in `scrolls/seigelense/plans/<piece>.md`.
->    - Dispatches the coding sub-agent, then dispatches the manual verification sub-agent once coding is done.
+> 4. **Parent orchestrator (The Coordinator):**
+>    - Dispatches sub-agents in sequence, explicitly instructing every agent to signal `WORK DONE`.
+>    - **DO NOT fill context with sub-agent transcript dumps or intermediate progress messages while waiting.** Check specifically for the `WORK DONE` marker at 1-minute intervals (e.g. via a quiet `python3 -c` scan of the subagent's transcript JSONL) rather than dumping streaming progress into context.
 >    - Verifies documentation updates (`HANDOFF.md`, `build-ledger.md`, `siegelense-tooling.md`).
->    - Runs final ward check and commits directly to `master`.
+>    - Runs final scoped ward check and commits directly to `master`.
 >
 > **The interface is the CLI.** Every call is `dungeonmaster siegelense <call>`. There are no MCP tools and
 > none are wanted — we should not have to install an MCP server for an LLM to use this. If you find MCP
