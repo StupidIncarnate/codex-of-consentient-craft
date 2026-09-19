@@ -23,4 +23,4 @@ export type HydrationPlan = z.infer<typeof hydrationPlanContract>;
  * than becoming a call. `TOut` stays `Record<string, unknown>` through chunks 1–3 — threading the
  * names `saveRecordAs` saves through this type is chunk 3b's own scheduled pass.
  */
-export type Plan<TOut> = HydrationPlan & { readonly __out?: TOut };
+export type Plan<TOut = Record<string, unknown>> = HydrationPlan & { readonly __out?: TOut };

@@ -23,7 +23,7 @@ import type {
   AnyIngredient,
   UnderAncestor,
 } from '../ingredient-config/ingredient-config-contract';
-import type { Handle, Op } from '../ingredient-handle/ingredient-handle-contract';
+import type { Handle, Op, SavedOf } from '../ingredient-handle/ingredient-handle-contract';
 import type { Matched } from '../matched-set/matched-set-contract';
 
 export const hydrationCollectionContract = z.object({
@@ -57,10 +57,10 @@ export interface FilterArgsFor<I> {
 }
 
 export interface Collection<R extends Registry, I, Anc extends AnyIngredient[] = []> {
-  add: <N extends number>(
+  add: <N extends number, const Ops extends readonly Op<unknown>[]>(
     count: N,
-    build: (rows: Handles<R, I, N, Anc>, all: Handle<R, I, Anc>) => Op[],
-  ) => Op;
+    build: (rows: Handles<R, I, N, Anc>, all: Handle<R, I, Anc>) => Ops,
+  ) => Op<SavedOf<Ops>>;
   /** No index access and no `add` on what comes back — the count is a RUN-TIME fact. */
   filter: (args: FilterArgsFor<I>) => Matched<I>;
   /**

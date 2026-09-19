@@ -42,10 +42,11 @@ export type RecipeDefData = z.infer<typeof recipeDefContract>;
  * branch while a real input type keeps its parameter required, which is what still refuses row
  * 13's negative case — a recipe declared WITH `inputs` called with none.
  */
-export type RecipeDef<TName extends string, TInput> = Omit<RecipeDefData, 'recipeName' | 'inputs'> &
-  (TInput extends undefined
-    ? (input?: TInput) => Plan<Record<string, unknown>>
-    : (input: TInput) => Plan<Record<string, unknown>>) & {
+export type RecipeDef<TName extends string, TInput, TOut = Record<string, unknown>> = Omit<
+  RecipeDefData,
+  'recipeName' | 'inputs'
+> &
+  (TInput extends undefined ? (input?: TInput) => Plan<TOut> : (input: TInput) => Plan<TOut>) & {
     recipeName: TName;
     inputs?: z.ZodType<TInput>;
   };

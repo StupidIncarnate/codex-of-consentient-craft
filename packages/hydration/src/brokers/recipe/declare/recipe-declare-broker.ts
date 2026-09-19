@@ -46,12 +46,13 @@ import type {
 import { hydrationPlanContract } from '../../../contracts/hydration-plan/hydration-plan-contract';
 import type { Plan } from '../../../contracts/hydration-plan/hydration-plan-contract';
 import type { HydrationOp } from '../../../contracts/hydration-op/hydration-op-contract';
-import type { Op } from '../../../contracts/ingredient-handle/ingredient-handle-contract';
+import type { Op, SavedOf } from '../../../contracts/ingredient-handle/ingredient-handle-contract';
 import { buildSequenceMarkTransformer } from '../../../transformers/build-sequence-mark/build-sequence-mark-transformer';
 
 export const recipeDeclareBroker = <
   TName extends string,
   TInputSchema extends AnyRecipeInputSchema = NoRecipeInputSchema,
+  const Ops extends readonly Op<unknown>[] = readonly Op<unknown>[],
 >({
   name,
   description,
@@ -61,19 +62,19 @@ export const recipeDeclareBroker = <
   name: TName;
   description: string;
   inputs?: TInputSchema;
-  build: (input: RecipeInputOf<TInputSchema>) => readonly Op[];
-}): RecipeDef<TName, RecipeInputOf<TInputSchema>> => {
+  build: (input: RecipeInputOf<TInputSchema>) => Ops;
+}): RecipeDef<TName, RecipeInputOf<TInputSchema>, SavedOf<Ops>> => {
   const identity = recipeDefContract.parse({
     recipeName: name,
     description,
     ...(inputs === undefined ? {} : { inputs }),
   });
 
-  return Object.assign((input: RecipeInputOf<TInputSchema>): Plan<Record<string, unknown>> => {
+  return Object.assign((input: RecipeInputOf<TInputSchema>): Plan<SavedOf<Ops>> => {
     buildSequenceMarkTransformer({ advance: true });
     return hydrationPlanContract.parse({
       recipeName: identity.recipeName,
       ops: build(input).flatMap((op) => op as unknown as readonly HydrationOp[]),
-    }) as unknown as Plan<Record<string, unknown>>;
-  }, identity) as unknown as RecipeDef<TName, RecipeInputOf<TInputSchema>>;
+    }) as unknown as Plan<SavedOf<Ops>>;
+  }, identity) as unknown as RecipeDef<TName, RecipeInputOf<TInputSchema>, SavedOf<Ops>>;
 };

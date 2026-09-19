@@ -31,8 +31,8 @@ import type {
   NoRecipeInputSchema,
   RecipeInputOf,
 } from '../recipe-def/recipe-def-contract';
-import type { Op } from '../ingredient-handle/ingredient-handle-contract';
-import type { HydrationPlan } from '../hydration-plan/hydration-plan-contract';
+import type { Op, SavedOf } from '../ingredient-handle/ingredient-handle-contract';
+import type { HydrationPlan, Plan } from '../hydration-plan/hydration-plan-contract';
 import type { HydrationRunResult } from '../hydration-run-result/hydration-run-result-contract';
 import type { PlanRunsResult } from '../plan-runs-result/plan-runs-result-contract';
 import type { PlanMakesEntry } from '../plan-makes-entry/plan-makes-entry-contract';
@@ -73,10 +73,17 @@ export interface HydrationFor<TTarget extends HydrationTarget> {
         ? unknown
         : { LINK_NAMES_AN_UNREGISTERED_INGREDIENT: LinkNames<R[keyof R]> }),
   ) => Entry<R>;
-  recipe: <TName extends string, TInputSchema extends AnyRecipeInputSchema = NoRecipeInputSchema>(
+  recipe: <
+    TName extends string,
+    TInputSchema extends AnyRecipeInputSchema = NoRecipeInputSchema,
+    const Ops extends readonly Op<unknown>[] = readonly Op<unknown>[],
+  >(
     meta: { name: TName; description: string; inputs?: TInputSchema },
-    build: (input: RecipeInputOf<TInputSchema>) => readonly Op[],
-  ) => RecipeDef<TName, RecipeInputOf<TInputSchema>>;
-  run: (plan: HydrationPlan, target: TTarget) => Promise<HydrationRunResult>;
+    build: (input: RecipeInputOf<TInputSchema>) => Ops,
+  ) => RecipeDef<TName, RecipeInputOf<TInputSchema>, SavedOf<Ops>>;
+  run: <TOut = HydrationRunResult>(
+    plan: Plan<TOut> | HydrationPlan,
+    target: TTarget,
+  ) => Promise<TOut>;
   listing: (plan: HydrationPlan) => { runs: PlanRunsResult; makes: readonly PlanMakesEntry[] };
 }

@@ -27,6 +27,7 @@ import type {
   LinkNames,
   Registry,
   AnyIngredient,
+  RecordOf,
 } from '../ingredient-config/ingredient-config-contract';
 import type { Collection } from '../hydration-collection/hydration-collection-contract';
 
@@ -41,9 +42,24 @@ declare const OP: unique symbol;
 /** One node of the plan tree, opaque at the chain's own type surface. Distinct from
  * `HydrationOp` (the concrete six-member union `hydration-op-contract.ts` validates) on purpose —
  * see the file PURPOSE above. */
-export interface Op {
+export interface Op<TSaved = never> {
   readonly [OP]: true;
+  readonly __saved?: TSaved;
 }
+
+type UnionToIntersection<U> = (U extends unknown ? (k: U) => void : never) extends (
+  k: infer I,
+) => void
+  ? I
+  : never;
+
+type ExtractSaved<O> = O extends Op<infer S> ? S : never;
+
+export type SavedOf<Ops> = [Ops] extends [readonly Op<unknown>[]]
+  ? [ExtractSaved<Ops[number]>] extends [never]
+    ? Record<string, never>
+    : UnionToIntersection<ExtractSaved<Ops[number]>>
+  : Record<string, unknown>;
 
 type TransitionField<I> = ConfigOf<I> extends { transitions: { field: infer F } } ? F : never;
 type TransitionTo<I> =
@@ -67,7 +83,9 @@ export interface RowVerbs<I> {
    * by accident, so its argument stays a plain `Partial<FieldsOf<I>>` with no `SavedRef`. */
   setRaw: (values: Partial<FieldsOf<I>>) => Op;
   /** The whole RECORD, not only its ids — server-assigned fields included. */
-  saveRecordAs: (args: { name: string }) => Op;
+  saveRecordAs: <const TName extends string>(args: {
+    name: TName;
+  }) => Op<Record<TName, RecordOf<I>>>;
   remove: () => Op;
 }
 

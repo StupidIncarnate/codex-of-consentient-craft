@@ -22,8 +22,12 @@
  * fact, never something a runner executes.
  */
 import { entryChainTransformer } from '../../../src/transformers/entry-chain/entry-chain-transformer';
+import { hydrationCreateBroker } from '../../../src/brokers/hydration/create/hydration-create-broker';
 import { guildIngredient, questIngredient, sessionIngredient, sessionFieldsContract } from '../dm-target';
+import type { DmTarget } from '../dm-target';
 import { userIngredient, postIngredient, commentIngredient } from '../sql-target';
+import type { Plan } from '../../../src/contracts/hydration-plan/hydration-plan-contract';
+import type { RecordOf } from '../../../src/contracts/ingredient-config/ingredient-config-contract';
 import type { Settable } from '../../../src/contracts/ingredient-handle/ingredient-handle-contract';
 import type { Equal, Expect } from '../expect';
 
@@ -93,3 +97,20 @@ dm.sessions.add(1, (s) => {
   withNestedChainSurvivesHolds = holds;
   return [];
 });
+
+// 7. `recipe(...)` correctly infers saved record fields in its plan's output type.
+const { registry: dmRegistry, recipe: dmRecipe } = hydrationCreateBroker<DmTarget>();
+const dmFramework = dmRegistry({ guilds: guildIngredient, quests: questIngredient });
+const recipeWithSaved = dmRecipe(
+  { name: 'recipe-with-saved', description: 'asserts saved type inference' },
+  () => [
+    dmFramework.quests.add(1, (q) => [
+      q[0].saveRecordAs({ name: 'savedQuest' }),
+    ]),
+  ],
+);
+const planWithSaved = recipeWithSaved();
+type PlanOutput<P> = P extends Plan<infer TOut> ? TOut : never;
+export const recipeInfersSavedHolds: Expect<
+  Equal<PlanOutput<typeof planWithSaved>, { savedQuest: RecordOf<typeof questIngredient> }>
+> = true;

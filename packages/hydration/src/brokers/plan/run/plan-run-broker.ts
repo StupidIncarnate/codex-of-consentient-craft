@@ -31,21 +31,24 @@ import { opUpdateApplyLayerBroker } from './op-update-apply-layer-broker';
 import { opFilterApplyLayerBroker } from './op-filter-apply-layer-broker';
 import { hydrationRunResultContract } from '../../../contracts/hydration-run-result/hydration-run-result-contract';
 import type { HydrationRunResult } from '../../../contracts/hydration-run-result/hydration-run-result-contract';
-import type { HydrationPlan } from '../../../contracts/hydration-plan/hydration-plan-contract';
+import type {
+  HydrationPlan,
+  Plan,
+} from '../../../contracts/hydration-plan/hydration-plan-contract';
 import type { HydrationTarget } from '../../../contracts/hydration-target/hydration-target-contract';
 import type { IngredientConfigData } from '../../../contracts/ingredient-config/ingredient-config-contract';
 import type { IngredientName } from '../../../contracts/ingredient-name/ingredient-name-contract';
 import type { HydrationRunState } from '../../../contracts/hydration-run-state/hydration-run-state-contract';
 
-export const planRunBroker = async ({
+export const planRunBroker = async <TOut = HydrationRunResult>({
   plan,
   target,
   ingredients,
 }: {
-  plan: HydrationPlan;
+  plan: Plan<TOut> | HydrationPlan;
   target: HydrationTarget;
   ingredients: readonly IngredientConfigData[];
-}): Promise<HydrationRunResult> => {
+}): Promise<TOut> => {
   const routePlan = planPreflightBroker({ plan, target, ingredients });
   const foldedPlan = planFoldWritesTransformer({ plan });
 
@@ -119,5 +122,6 @@ export const planRunBroker = async ({
     }
   }, Promise.resolve());
 
-  return hydrationRunResultContract.parse(Object.fromEntries(state.saved));
+  const saved = hydrationRunResultContract.parse(Object.fromEntries(state.saved));
+  return saved as unknown as TOut;
 };

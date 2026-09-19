@@ -63,8 +63,11 @@ import type {
   NoRecipeInputSchema,
   RecipeInputOf,
 } from '../../../contracts/recipe-def/recipe-def-contract';
-import type { Op } from '../../../contracts/ingredient-handle/ingredient-handle-contract';
-import type { HydrationPlan } from '../../../contracts/hydration-plan/hydration-plan-contract';
+import type { Op, SavedOf } from '../../../contracts/ingredient-handle/ingredient-handle-contract';
+import type {
+  HydrationPlan,
+  Plan,
+} from '../../../contracts/hydration-plan/hydration-plan-contract';
 import type { HydrationRunResult } from '../../../contracts/hydration-run-result/hydration-run-result-contract';
 import type { PlanRunsResult } from '../../../contracts/plan-runs-result/plan-runs-result-contract';
 import type { PlanMakesEntry } from '../../../contracts/plan-makes-entry/plan-makes-entry-contract';
@@ -86,12 +89,20 @@ export const hydrationCreateBroker = <TTarget extends HydrationTarget>(): Hydrat
       );
       return registryCreateBroker(entries as never);
     },
-    recipe: <TName extends string, TInputSchema extends AnyRecipeInputSchema = NoRecipeInputSchema>(
+    recipe: <
+      TName extends string,
+      TInputSchema extends AnyRecipeInputSchema = NoRecipeInputSchema,
+      const Ops extends readonly Op<unknown>[] = readonly Op<unknown>[],
+    >(
       meta: { name: TName; description: string; inputs?: TInputSchema },
-      build: (input: RecipeInputOf<TInputSchema>) => readonly Op[],
-    ): RecipeDef<TName, RecipeInputOf<TInputSchema>> => recipeDeclareBroker({ ...meta, build }),
-    run: async (plan: HydrationPlan, target: TTarget): Promise<HydrationRunResult> =>
-      planRunBroker({ plan, target, ingredients: registeredIngredients }),
+      build: (input: RecipeInputOf<TInputSchema>) => Ops,
+    ): RecipeDef<TName, RecipeInputOf<TInputSchema>, SavedOf<Ops>> =>
+      recipeDeclareBroker({ ...meta, build }),
+    run: async <TOut = HydrationRunResult>(
+      plan: Plan<TOut> | HydrationPlan,
+      target: TTarget,
+    ): Promise<TOut> =>
+      (await planRunBroker({ plan, target, ingredients: registeredIngredients })) as TOut,
     listing: (plan: HydrationPlan): { runs: PlanRunsResult; makes: readonly PlanMakesEntry[] } => ({
       runs: planRunsTransformer({ plan, ingredients: registeredIngredients }),
       makes: planMakesTransformer({ plan }),
