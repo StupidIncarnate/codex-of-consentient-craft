@@ -4,12 +4,12 @@
  * conflating the two is a bug — a refusal that fires partway through leaves half a plan behind.
  * Checks run in a FIXED order — routes, then fromSaved (a missing NAME, then an undeclared FIELD on
  * a name that does resolve), then links, then the verb a chain call needs, then a `set`'s transition
- * target — so a plan failing more than one reports the same one every time, never whichever a map
+ * target, then verbs on removed handles — so a plan failing more than one reports the same one every time, never whichever a map
  * iterated first to.
  *
  * USAGE:
  * const routePlan = planPreflightBroker({ plan, target, ingredients });
- * // Returns { guild: 'api', quest: 'write' } or throws one of the five pre-flight error classes
+ * // Returns { guild: 'api', quest: 'write' } or throws one of the six pre-flight error classes
  */
 import { routeSelectTransformer } from '../../../transformers/route-select/route-select-transformer';
 import { rowRefIngredientTransformer } from '../../../transformers/row-ref-ingredient/row-ref-ingredient-transformer';
@@ -25,6 +25,7 @@ import type { RoutePlan } from '../../../contracts/route-plan/route-plan-contrac
 import type { HydrationPlan } from '../../../contracts/hydration-plan/hydration-plan-contract';
 import type { HydrationOp } from '../../../contracts/hydration-op/hydration-op-contract';
 import type { HydrationTarget } from '../../../contracts/hydration-target/hydration-target-contract';
+import type { RowRef } from '../../../contracts/row-ref/row-ref-contract';
 import type {
   IngredientConfigData,
   AnyZodObjectSchema,
@@ -37,6 +38,7 @@ import { HydrationSavedRecordMissingError } from '../../../errors/hydration-save
 import { HydrationUnlinkedRowError } from '../../../errors/hydration-unlinked-row/hydration-unlinked-row-error';
 import { HydrationRouteVerbUnavailableError } from '../../../errors/hydration-route-verb-unavailable/hydration-route-verb-unavailable-error';
 import { HydrationTransitionUnreachableError } from '../../../errors/hydration-transition-unreachable/hydration-transition-unreachable-error';
+import { HydrationRemovedHandleVerbError } from '../../../errors/hydration-removed-handle-verb/hydration-removed-handle-verb-error';
 
 export const planPreflightBroker = ({
   plan,
@@ -59,29 +61,27 @@ export const planPreflightBroker = ({
   // "not found" case degrades to skipping the op rather than asserting past the type.
   const routePlan: Record<string, ReturnType<typeof hydrationRouteContract.parse>> = {};
   const routeCheckStack: HydrationOp[] = [...plan.ops].reverse();
-  while (routeCheckStack.length > 0) {
-    const op = routeCheckStack.pop();
-    if (op !== undefined) {
-      if (op.op === 'create') {
-        const routes = configByName.get(op.ingredient)?.routes;
-        if (routes !== undefined) {
-          const route = routeSelectTransformer({ routes, hasBaseUrl });
-          if (route === null) {
-            throw new HydrationRouteUnavailableError({
-              recipeName: plan.recipeName,
-              ingredientName: op.ingredient,
-              availableRoutes: hydrationRouteContract.options.filter(
-                (candidate) => routes[candidate] !== undefined,
-              ),
-              targetLacks: 'a baseUrl, so the api route has nothing to call',
-            });
-          }
-          routePlan[op.ingredient] = route;
+  for (let op = routeCheckStack.pop(); op !== undefined; op = routeCheckStack.pop()) {
+    if (op.op === 'create') {
+      const config = configByName.get(op.ingredient);
+      if (config !== undefined) {
+        const { routes } = config;
+        const route = routeSelectTransformer({ routes, hasBaseUrl });
+        if (route === null) {
+          throw new HydrationRouteUnavailableError({
+            recipeName: plan.recipeName,
+            ingredientName: op.ingredient,
+            availableRoutes: hydrationRouteContract.options.filter(
+              (candidate) => routes[candidate] !== undefined,
+            ),
+            targetLacks: 'a baseUrl, so the api route has nothing to call',
+          });
         }
+        routePlan[op.ingredient] = route;
       }
-      if (op.op === 'filter') {
-        routeCheckStack.push(...[...op.ops].reverse());
-      }
+    }
+    if (op.op === 'filter') {
+      routeCheckStack.push(...[...op.ops].reverse());
     }
   }
 
@@ -95,71 +95,65 @@ export const planPreflightBroker = ({
   // construction.
   const availableSavedRecordNames = planSavedNamesTransformer({ plan });
   const savedSoFar = new Set<SavedRecordName>();
-  const savedRecordIngredients = new Map<SavedRecordName, IngredientName>();
+  const savedRecordConfigs = new Map<SavedRecordName, IngredientConfigData>();
   const savedRefCheckStack: HydrationOp[] = [...plan.ops].reverse();
-  while (savedRefCheckStack.length > 0) {
-    const op = savedRefCheckStack.pop();
-    if (op !== undefined) {
-      const candidateValues =
-        op.op === 'create'
-          ? op.fields
-          : op.op === 'set'
-            ? op.written
-            : op.op === 'extra'
-              ? op.args
-              : op.op === 'filter'
-                ? op.where
-                : undefined;
+  for (let op = savedRefCheckStack.pop(); op !== undefined; op = savedRefCheckStack.pop()) {
+    const candidateValues =
+      op.op === 'create'
+        ? op.fields
+        : op.op === 'set'
+          ? op.written
+          : op.op === 'extra'
+            ? op.args
+            : op.op === 'filter'
+              ? op.where
+              : undefined;
 
-      if (candidateValues !== undefined) {
-        const ingredientName: IngredientName =
-          op.op === 'create' || op.op === 'filter'
-            ? op.ingredient
-            : rowRefIngredientTransformer({ rowRef: op.ref });
+    if (candidateValues !== undefined) {
+      const ingredientName: IngredientName =
+        'ingredient' in op ? op.ingredient : rowRefIngredientTransformer({ rowRef: op.ref });
 
-        Object.values(candidateValues).forEach((value) => {
-          if (isSavedRefGuard({ value })) {
-            const savedRef = savedRefContract.parse(value);
-            const savedRecordName = savedRef.name;
-            if (!savedSoFar.has(savedRecordName)) {
-              throw new HydrationSavedRecordMissingError({
-                recipeName: plan.recipeName,
-                ingredientName,
-                savedRecordName,
-                availableSavedRecordNames,
-              });
-            }
-            if (savedRef.field !== undefined) {
-              const producingIngredientName = savedRecordIngredients.get(savedRecordName);
-              const producingConfig =
-                producingIngredientName === undefined
-                  ? undefined
-                  : configByName.get(producingIngredientName);
-              if (producingConfig !== undefined) {
-                const recordSchema = producingConfig.record as AnyZodObjectSchema;
-                const declaredFieldNames = Object.keys(recordSchema.shape);
-                if (!declaredFieldNames.includes(savedRef.field)) {
-                  throw new HydrationSavedFieldMissingError({
-                    recipeName: plan.recipeName,
-                    ingredientName,
-                    savedRecordName,
-                    fieldName: savedRef.field,
-                    declaredFieldNames,
-                  });
-                }
+      Object.values(candidateValues).forEach((value) => {
+        if (isSavedRefGuard({ value })) {
+          const savedRef = savedRefContract.parse(value);
+          const savedRecordName = savedRef.name;
+          if (!savedSoFar.has(savedRecordName)) {
+            throw new HydrationSavedRecordMissingError({
+              recipeName: plan.recipeName,
+              ingredientName,
+              savedRecordName,
+              availableSavedRecordNames,
+            });
+          }
+          if (savedRef.field !== undefined) {
+            const producingConfig = savedRecordConfigs.get(savedRecordName);
+            if (producingConfig !== undefined) {
+              const recordSchema = producingConfig.record as AnyZodObjectSchema;
+              const declaredFieldNames = Object.keys(recordSchema.shape);
+              if (!declaredFieldNames.includes(savedRef.field)) {
+                throw new HydrationSavedFieldMissingError({
+                  recipeName: plan.recipeName,
+                  ingredientName,
+                  savedRecordName,
+                  fieldName: savedRef.field,
+                  declaredFieldNames,
+                });
               }
             }
           }
-        });
-      }
+        }
+      });
+    }
 
-      if (op.op === 'saveRecord') {
-        savedSoFar.add(op.name);
-        savedRecordIngredients.set(op.name, rowRefIngredientTransformer({ rowRef: op.ref }));
+    if (op.op === 'saveRecord') {
+      savedSoFar.add(op.name);
+      const config = configByName.get(rowRefIngredientTransformer({ rowRef: op.ref }));
+      if (config !== undefined) {
+        savedRecordConfigs.set(op.name, config);
       }
-      if (op.op === 'filter') {
-        savedRefCheckStack.push(...[...op.ops].reverse());
-      }
+    }
+    if (op.op === 'filter') {
+      savedRefCheckStack.push(...[...op.ops].reverse());
     }
   }
 
@@ -168,30 +162,27 @@ export const planPreflightBroker = ({
   // branch never reads `records` at all, only `ancestors` and `link.of`, so this reuses the same
   // pure rule the walk itself calls later rather than re-deriving it.
   const linksCheckStack: HydrationOp[] = [...plan.ops].reverse();
-  while (linksCheckStack.length > 0) {
-    const op = linksCheckStack.pop();
-    if (op !== undefined) {
-      if (op.op === 'create') {
-        const links = configByName.get(op.ingredient)?.links;
-        if (links !== undefined && links.length > 0) {
-          const linkResult = linkValuesTransformer({
-            links,
-            ancestors: op.ancestors,
-            ownFields: op.fields,
-            records: new Map(),
+  for (let op = linksCheckStack.pop(); op !== undefined; op = linksCheckStack.pop()) {
+    if (op.op === 'create') {
+      const links = configByName.get(op.ingredient)?.links;
+      if (links !== undefined && links.length > 0) {
+        const linkResult = linkValuesTransformer({
+          links,
+          ancestors: op.ancestors,
+          ownFields: op.fields,
+          records: new Map(),
+        });
+        if (!linkResult.ok) {
+          throw new HydrationUnlinkedRowError({
+            recipeName: plan.recipeName,
+            ingredientName: op.ingredient,
+            missingParentName: linkResult.missingParentName,
           });
-          if (!linkResult.ok) {
-            throw new HydrationUnlinkedRowError({
-              recipeName: plan.recipeName,
-              ingredientName: op.ingredient,
-              missingParentName: linkResult.missingParentName,
-            });
-          }
         }
       }
-      if (op.op === 'filter') {
-        linksCheckStack.push(...[...op.ops].reverse());
-      }
+    }
+    if (op.op === 'filter') {
+      linksCheckStack.push(...[...op.ops].reverse());
     }
   }
 
@@ -202,41 +193,38 @@ export const planPreflightBroker = ({
   // `planFoldWritesTransformer`'s own condition here.
   const folded = planFoldWritesTransformer({ plan });
   const verbCheckStack: HydrationOp[] = [...folded.ops].reverse();
-  while (verbCheckStack.length > 0) {
-    const op = verbCheckStack.pop();
-    if (op !== undefined) {
-      if (op.op === 'filter') {
-        const query = configByName.get(op.ingredient)?.routes.query;
-        if (query === undefined) {
-          throw new HydrationRouteVerbUnavailableError({
-            recipeName: plan.recipeName,
-            ingredientName: op.ingredient,
-            verb: 'query',
-          });
-        }
-        verbCheckStack.push(...[...op.ops].reverse());
+  for (let op = verbCheckStack.pop(); op !== undefined; op = verbCheckStack.pop()) {
+    if (op.op === 'filter') {
+      const query = configByName.get(op.ingredient)?.routes.query;
+      if (query === undefined) {
+        throw new HydrationRouteVerbUnavailableError({
+          recipeName: plan.recipeName,
+          ingredientName: op.ingredient,
+          verb: 'query',
+        });
       }
-      if (op.op === 'remove') {
-        const ingredientName = rowRefIngredientTransformer({ rowRef: op.ref });
-        const remove = configByName.get(ingredientName)?.routes.remove;
-        if (remove === undefined) {
-          throw new HydrationRouteVerbUnavailableError({
-            recipeName: plan.recipeName,
-            ingredientName,
-            verb: 'remove',
-          });
-        }
+      verbCheckStack.push(...[...op.ops].reverse());
+    }
+    if (op.op === 'remove') {
+      const ingredientName = rowRefIngredientTransformer({ rowRef: op.ref });
+      const remove = configByName.get(ingredientName)?.routes.remove;
+      if (remove === undefined) {
+        throw new HydrationRouteVerbUnavailableError({
+          recipeName: plan.recipeName,
+          ingredientName,
+          verb: 'remove',
+        });
       }
-      if (op.op === 'set' && Object.keys(op.written).length > 0) {
-        const ingredientName = rowRefIngredientTransformer({ rowRef: op.ref });
-        const update = configByName.get(ingredientName)?.routes.update;
-        if (update === undefined) {
-          throw new HydrationRouteVerbUnavailableError({
-            recipeName: plan.recipeName,
-            ingredientName,
-            verb: 'update',
-          });
-        }
+    }
+    if (op.op === 'set' && Object.keys(op.written).length > 0) {
+      const ingredientName = rowRefIngredientTransformer({ rowRef: op.ref });
+      const update = configByName.get(ingredientName)?.routes.update;
+      if (update === undefined) {
+        throw new HydrationRouteVerbUnavailableError({
+          recipeName: plan.recipeName,
+          ingredientName,
+          verb: 'update',
+        });
       }
     }
   }
@@ -248,26 +236,55 @@ export const planPreflightBroker = ({
   // at the call site; this is the runtime half for a hand-built op or a plan assembled outside it,
   // exactly as `isReachableTransitionGuard`'s own PURPOSE describes.
   const transitionCheckStack: HydrationOp[] = [...plan.ops].reverse();
-  while (transitionCheckStack.length > 0) {
-    const op = transitionCheckStack.pop();
-    if (op !== undefined) {
-      if (op.op === 'set' && op.transition !== undefined) {
-        const ingredientName = rowRefIngredientTransformer({ rowRef: op.ref });
-        const transitionSpec = configByName.get(ingredientName)?.transitions;
-        if (
-          transitionSpec !== undefined &&
-          !isReachableTransitionGuard({ to: op.transition.to, spec: transitionSpec })
-        ) {
-          throw new HydrationTransitionUnreachableError({
+  for (let op = transitionCheckStack.pop(); op !== undefined; op = transitionCheckStack.pop()) {
+    if (op.op === 'set' && op.transition !== undefined) {
+      const ingredientName = rowRefIngredientTransformer({ rowRef: op.ref });
+      const transitionSpec = configByName.get(ingredientName)?.transitions;
+      if (
+        transitionSpec !== undefined &&
+        !isReachableTransitionGuard({ to: op.transition.to, spec: transitionSpec })
+      ) {
+        throw new HydrationTransitionUnreachableError({
+          recipeName: plan.recipeName,
+          ingredientName,
+          to: String(op.transition.to),
+          reachableStates: transitionSpec.to.map((state) => String(state)),
+        });
+      }
+    }
+    if (op.op === 'filter') {
+      transitionCheckStack.push(...[...op.ops].reverse());
+    }
+  }
+
+  // 6. REMOVED REFS — once a row is removed, no further verbs may target it (`remove`, `set`,
+  // `saveRecordAs`, or extra verbs). Walking in declaration order catches verbs attempted on an
+  // already-removed row handle before anything runs.
+  const removedRefs = new Set<RowRef>();
+  const removedRefCheckStack: HydrationOp[] = [...plan.ops].reverse();
+  const verbByOp: Record<string, string> = {
+    remove: 'remove',
+    set: 'set',
+    saveRecord: 'saveRecordAs',
+  };
+  for (let op = removedRefCheckStack.pop(); op !== undefined; op = removedRefCheckStack.pop()) {
+    if (op.op === 'filter') {
+      removedRefCheckStack.push(...[...op.ops].reverse());
+    } else {
+      const verb = op.op === 'extra' ? op.verb : verbByOp[op.op];
+      if (verb !== undefined) {
+        if (removedRefs.has(op.ref)) {
+          const ingredientName = rowRefIngredientTransformer({ rowRef: op.ref });
+          throw new HydrationRemovedHandleVerbError({
             recipeName: plan.recipeName,
             ingredientName,
-            to: String(op.transition.to),
-            reachableStates: transitionSpec.to.map((state) => String(state)),
+            ref: op.ref,
+            verb,
           });
         }
-      }
-      if (op.op === 'filter') {
-        transitionCheckStack.push(...[...op.ops].reverse());
+        if (op.op === 'remove') {
+          removedRefs.add(op.ref);
+        }
       }
     }
   }

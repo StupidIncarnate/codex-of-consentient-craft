@@ -6,6 +6,7 @@ import { OpSetStub } from '../../../contracts/op-set/op-set.stub';
 import { OpRemoveStub } from '../../../contracts/op-remove/op-remove.stub';
 import { OpFilterStub } from '../../../contracts/op-filter/op-filter.stub';
 import { OpSaveRecordStub } from '../../../contracts/op-save-record/op-save-record.stub';
+import { OpExtraStub } from '../../../contracts/op-extra/op-extra.stub';
 import { IngredientConfigStub } from '../../../contracts/ingredient-config/ingredient-config.stub';
 import { LinkSpecStub } from '../../../contracts/link-spec/link-spec.stub';
 import { TransitionSpecStub } from '../../../contracts/transition-spec/transition-spec.stub';
@@ -17,6 +18,7 @@ import { HydrationSavedRecordMissingError } from '../../../errors/hydration-save
 import { HydrationUnlinkedRowError } from '../../../errors/hydration-unlinked-row/hydration-unlinked-row-error';
 import { HydrationRouteVerbUnavailableError } from '../../../errors/hydration-route-verb-unavailable/hydration-route-verb-unavailable-error';
 import { HydrationTransitionUnreachableError } from '../../../errors/hydration-transition-unreachable/hydration-transition-unreachable-error';
+import { HydrationRemovedHandleVerbError } from '../../../errors/hydration-removed-handle-verb/hydration-removed-handle-verb-error';
 
 describe('planPreflightBroker', () => {
   describe('routes — an ingredient needs a route this target cannot serve', () => {
@@ -577,7 +579,203 @@ describe('planPreflightBroker', () => {
     });
   });
 
-  describe('check order — routes, then fromSaved, then links, and the verb check last', () => {
+  describe('removed refs — once a row is removed, no further verbs may target it', () => {
+    it('INVALID: {remove followed by set} => throws HydrationRemovedHandleVerbError with verb "set"', () => {
+      planPreflightBrokerProxy();
+      const plan = HydrationPlanStub({
+        ops: [
+          OpCreateStub({ ingredient: 'quest', ref: 'quest[0:0]', index: 0, ancestors: [] }),
+          OpRemoveStub({ ref: 'quest[0:0]' }),
+          OpSetStub({ ref: 'quest[0:0]', written: { title: 'updated' } }),
+        ],
+      });
+      const ingredients = [
+        IngredientConfigStub({
+          name: 'quest',
+          routes: {
+            write: (): unknown => undefined,
+            remove: (): unknown => undefined,
+            update: (): unknown => undefined,
+          },
+        }),
+      ];
+
+      let thrown: unknown = null;
+      try {
+        planPreflightBroker({ plan, target: HydrationTargetStub({}), ingredients });
+      } catch (error: unknown) {
+        thrown = error;
+      }
+
+      expect(thrown instanceof HydrationRemovedHandleVerbError).toBe(true);
+
+      const error = thrown as HydrationRemovedHandleVerbError;
+
+      expect({
+        name: error.name,
+        message: error.message,
+        ref: error.ref,
+        verb: error.verb,
+      }).toStrictEqual({
+        name: 'HydrationRemovedHandleVerbError',
+        message:
+          'recipe "guild-mid-execution": ingredient "quest" calls "set" on removed row "quest[0:0]". Once a row is removed, no further verbs may target it.',
+        ref: 'quest[0:0]',
+        verb: 'set',
+      });
+    });
+
+    it('INVALID: {remove followed by saveRecordAs} => throws HydrationRemovedHandleVerbError with verb "saveRecordAs"', () => {
+      planPreflightBrokerProxy();
+      const plan = HydrationPlanStub({
+        ops: [
+          OpCreateStub({ ingredient: 'quest', ref: 'quest[0:0]', index: 0, ancestors: [] }),
+          OpRemoveStub({ ref: 'quest[0:0]' }),
+          OpSaveRecordStub({ ref: 'quest[0:0]', name: 'savedQuest' }),
+        ],
+      });
+      const ingredients = [
+        IngredientConfigStub({
+          name: 'quest',
+          routes: { write: (): unknown => undefined, remove: (): unknown => undefined },
+        }),
+      ];
+
+      let thrown: unknown = null;
+      try {
+        planPreflightBroker({ plan, target: HydrationTargetStub({}), ingredients });
+      } catch (error: unknown) {
+        thrown = error;
+      }
+
+      expect(thrown instanceof HydrationRemovedHandleVerbError).toBe(true);
+
+      const error = thrown as HydrationRemovedHandleVerbError;
+
+      expect({
+        name: error.name,
+        message: error.message,
+        ref: error.ref,
+        verb: error.verb,
+      }).toStrictEqual({
+        name: 'HydrationRemovedHandleVerbError',
+        message:
+          'recipe "guild-mid-execution": ingredient "quest" calls "saveRecordAs" on removed row "quest[0:0]". Once a row is removed, no further verbs may target it.',
+        ref: 'quest[0:0]',
+        verb: 'saveRecordAs',
+      });
+    });
+
+    it('INVALID: {remove followed by remove} => throws HydrationRemovedHandleVerbError with verb "remove"', () => {
+      planPreflightBrokerProxy();
+      const plan = HydrationPlanStub({
+        ops: [
+          OpCreateStub({ ingredient: 'quest', ref: 'quest[0:0]', index: 0, ancestors: [] }),
+          OpRemoveStub({ ref: 'quest[0:0]' }),
+          OpRemoveStub({ ref: 'quest[0:0]' }),
+        ],
+      });
+      const ingredients = [
+        IngredientConfigStub({
+          name: 'quest',
+          routes: { write: (): unknown => undefined, remove: (): unknown => undefined },
+        }),
+      ];
+
+      let thrown: unknown = null;
+      try {
+        planPreflightBroker({ plan, target: HydrationTargetStub({}), ingredients });
+      } catch (error: unknown) {
+        thrown = error;
+      }
+
+      expect(thrown instanceof HydrationRemovedHandleVerbError).toBe(true);
+
+      const error = thrown as HydrationRemovedHandleVerbError;
+
+      expect({
+        name: error.name,
+        message: error.message,
+        ref: error.ref,
+        verb: error.verb,
+      }).toStrictEqual({
+        name: 'HydrationRemovedHandleVerbError',
+        message:
+          'recipe "guild-mid-execution": ingredient "quest" calls "remove" on removed row "quest[0:0]". Once a row is removed, no further verbs may target it.',
+        ref: 'quest[0:0]',
+        verb: 'remove',
+      });
+    });
+
+    it('INVALID: {remove followed by extra} => throws HydrationRemovedHandleVerbError with verb op.verb', () => {
+      planPreflightBrokerProxy();
+      const plan = HydrationPlanStub({
+        ops: [
+          OpCreateStub({ ingredient: 'quest', ref: 'quest[0:0]', index: 0, ancestors: [] }),
+          OpRemoveStub({ ref: 'quest[0:0]' }),
+          OpExtraStub({ ref: 'quest[0:0]', verb: 'customAction' }),
+        ],
+      });
+      const ingredients = [
+        IngredientConfigStub({
+          name: 'quest',
+          routes: { write: (): unknown => undefined, remove: (): unknown => undefined },
+        }),
+      ];
+
+      let thrown: unknown = null;
+      try {
+        planPreflightBroker({ plan, target: HydrationTargetStub({}), ingredients });
+      } catch (error: unknown) {
+        thrown = error;
+      }
+
+      expect(thrown instanceof HydrationRemovedHandleVerbError).toBe(true);
+
+      const error = thrown as HydrationRemovedHandleVerbError;
+
+      expect({
+        name: error.name,
+        message: error.message,
+        ref: error.ref,
+        verb: error.verb,
+      }).toStrictEqual({
+        name: 'HydrationRemovedHandleVerbError',
+        message:
+          'recipe "guild-mid-execution": ingredient "quest" calls "customAction" on removed row "quest[0:0]". Once a row is removed, no further verbs may target it.',
+        ref: 'quest[0:0]',
+        verb: 'customAction',
+      });
+    });
+
+    it('VALID: {remove one row, set a different row} => does not throw removed handle error', () => {
+      planPreflightBrokerProxy();
+      const plan = HydrationPlanStub({
+        ops: [
+          OpCreateStub({ ingredient: 'quest', ref: 'quest[0:0]', index: 0, ancestors: [] }),
+          OpCreateStub({ ingredient: 'quest', ref: 'quest[0:1]', index: 1, ancestors: [] }),
+          OpRemoveStub({ ref: 'quest[0:0]' }),
+          OpSetStub({ ref: 'quest[0:1]', written: { title: 'other row' } }),
+        ],
+      });
+      const ingredients = [
+        IngredientConfigStub({
+          name: 'quest',
+          routes: {
+            write: (): unknown => undefined,
+            remove: (): unknown => undefined,
+            update: (): unknown => undefined,
+          },
+        }),
+      ];
+
+      const result = planPreflightBroker({ plan, target: HydrationTargetStub({}), ingredients });
+
+      expect(result).toStrictEqual({ quest: 'write' });
+    });
+  });
+
+  describe('check order — routes, then fromSaved, then links, verb, transitions, and removed refs last', () => {
     it('INVALID: {a plan failing both routes and links} => reports the routes failure', () => {
       planPreflightBrokerProxy();
       const plan = HydrationPlanStub({
@@ -619,6 +817,40 @@ describe('planPreflightBroker', () => {
       expect(() =>
         planPreflightBroker({ plan, target: HydrationTargetStub({}), ingredients }),
       ).toThrow(HydrationSavedRecordMissingError);
+    });
+
+    it('INVALID: {a plan failing both transitions and removed refs} => reports the transitions failure', () => {
+      planPreflightBrokerProxy();
+      const plan = HydrationPlanStub({
+        ops: [
+          OpCreateStub({ ingredient: 'quest', ref: 'quest[0:0]', index: 0, ancestors: [] }),
+          OpRemoveStub({ ref: 'quest[0:0]' }),
+          OpSetStub({
+            ref: 'quest[0:0]',
+            written: {},
+            transition: { field: 'status', to: 'blocked' },
+          }),
+        ],
+      });
+      const ingredients = [
+        IngredientConfigStub({
+          name: 'quest',
+          routes: {
+            write: (): unknown => undefined,
+            remove: (): unknown => undefined,
+            update: (): unknown => undefined,
+          },
+          transitions: TransitionSpecStub({
+            field: 'status',
+            to: ['created', 'in_progress'],
+            reach: (): unknown => undefined,
+          }),
+        }),
+      ];
+
+      expect(() =>
+        planPreflightBroker({ plan, target: HydrationTargetStub({}), ingredients }),
+      ).toThrow(HydrationTransitionUnreachableError);
     });
   });
 });

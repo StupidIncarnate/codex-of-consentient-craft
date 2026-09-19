@@ -4,6 +4,7 @@ import { questIngredient, questFieldsContract } from '../../../test/type-fixture
 import { HydrationPlanStub } from '../../contracts/hydration-plan/hydration-plan.stub';
 import { OpCreateStub } from '../../contracts/op-create/op-create.stub';
 import { OpSetStub } from '../../contracts/op-set/op-set.stub';
+import { OpRemoveStub } from '../../contracts/op-remove/op-remove.stub';
 import { OpSaveRecordStub } from '../../contracts/op-save-record/op-save-record.stub';
 import { SavedRefStub } from '../../contracts/saved-ref/saved-ref.stub';
 import type { IngredientConfigStub } from '../../contracts/ingredient-config/ingredient-config.stub';
@@ -182,6 +183,60 @@ describe('planFoldWritesTransformer', () => {
       const result = planFoldWritesTransformer({ plan });
 
       expect(result).toStrictEqual(plan);
+    });
+  });
+
+  describe('a set op targeting a ref already removed', () => {
+    it('VALID: {create quest[0:0], remove quest[0:0], set quest[0:0]} => the set op is NOT folded into create', () => {
+      const plan = HydrationPlanStub({
+        ops: [
+          OpCreateStub({
+            ref: 'guild[0:0]/quest[0:0]',
+            ancestors: ['guild[0:0]'],
+            index: 0,
+            fields: {},
+          }),
+          OpRemoveStub({ ref: 'guild[0:0]/quest[0:0]' }),
+          OpSetStub({ ref: 'guild[0:0]/quest[0:0]', written: { title: 'after remove' } }),
+        ],
+      });
+
+      const result = planFoldWritesTransformer({ plan });
+
+      expect(result).toStrictEqual(plan);
+    });
+
+    it('VALID: {create, set before remove, remove, set after remove} => only the first set folds into create', () => {
+      const plan = HydrationPlanStub({
+        ops: [
+          OpCreateStub({
+            ref: 'guild[0:0]/quest[0:0]',
+            ancestors: ['guild[0:0]'],
+            index: 0,
+            fields: {},
+          }),
+          OpSetStub({ ref: 'guild[0:0]/quest[0:0]', written: { title: 'before remove' } }),
+          OpRemoveStub({ ref: 'guild[0:0]/quest[0:0]' }),
+          OpSetStub({ ref: 'guild[0:0]/quest[0:0]', written: { title: 'after remove' } }),
+        ],
+      });
+
+      const result = planFoldWritesTransformer({ plan });
+
+      expect(result).toStrictEqual(
+        HydrationPlanStub({
+          ops: [
+            OpCreateStub({
+              ref: 'guild[0:0]/quest[0:0]',
+              ancestors: ['guild[0:0]'],
+              index: 0,
+              fields: { title: 'before remove' },
+            }),
+            OpRemoveStub({ ref: 'guild[0:0]/quest[0:0]' }),
+            OpSetStub({ ref: 'guild[0:0]/quest[0:0]', written: { title: 'after remove' } }),
+          ],
+        }),
+      );
     });
   });
 

@@ -4,14 +4,15 @@
  * pre-flight measures declaration order over the DECLARED plan, and folding changes op positions,
  * so running it first would change what "declared LATER" means for a `fromSaved` refusal.
  *
- * A `set` folds only when every `SavedRef` among its written values names a record already saved
- * BEFORE the matching `create` op — not merely before the `set` itself, because folding is what
- * moves that write earlier, onto the create. A `set` that fails this condition, or whose `ref`
- * matches no top-level `create` at all (a filter's nested `set` always targets `matchedRef`, a
- * run-time placeholder no `create` op ever produces), is left as its own op — the walk applies it
- * as an update instead of folding it away. A `set` carrying a `transition` keeps that half as a
- * standalone op even when its `written` half folds clean, since a transition is walked through the
- * ingredient's own gates at run time and cannot be merged into a `create`'s fields.
+ * A `set` folds only when no `remove` op targeting that same `ref` precedes it in the plan, and
+ * every `SavedRef` among its written values names a record already saved BEFORE the matching
+ * `create` op — not merely before the `set` itself, because folding is what moves that write earlier,
+ * onto the create. A `set` that fails this condition, or whose `ref` matches no top-level `create` at
+ * all (a filter's nested `set` always targets `matchedRef`, a run-time placeholder no `create` op
+ * ever produces), is left as its own op — the walk applies it as an update instead of folding it away.
+ * A `set` carrying a `transition` keeps that half as a standalone op even when its `written` half
+ * folds clean, since a transition is walked through the ingredient's own gates at run time and cannot
+ * be merged into a `create`'s fields.
  *
  * USAGE:
  * planFoldWritesTransformer({
@@ -63,9 +64,30 @@ export const planFoldWritesTransformer = ({ plan }: { plan: HydrationPlan }): Hy
   const foldedFieldsByRef = new Map<RowRef, FieldValues>();
   const droppedSets = new Set<HydrationOp>();
   const transitionOnlySets = new Map<HydrationOp, OpSet>();
+  const removedRefs = new Set<RowRef>();
 
   for (const op of plan.ops) {
+    if (op.op === 'remove') {
+      removedRefs.add(op.ref);
+    }
+    if (op.op === 'filter') {
+      const filterStack: HydrationOp[] = [...op.ops].reverse();
+      while (filterStack.length > 0) {
+        const nested = filterStack.pop();
+        if (nested !== undefined) {
+          if (nested.op === 'remove') {
+            removedRefs.add(nested.ref);
+          }
+          if (nested.op === 'filter') {
+            filterStack.push(...[...nested.ops].reverse());
+          }
+        }
+      }
+    }
     if (op.op !== 'set') {
+      continue;
+    }
+    if (removedRefs.has(op.ref)) {
       continue;
     }
     const availableNames = savedBeforeRef.get(op.ref);

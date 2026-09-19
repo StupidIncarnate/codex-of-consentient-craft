@@ -10,6 +10,7 @@ export * from './src/errors/hydration-filter-expectation/hydration-filter-expect
 export * from './src/errors/hydration-nested-ingredient-unregistered/hydration-nested-ingredient-unregistered-error';
 export * from './src/errors/hydration-query-failed/hydration-query-failed-error';
 export * from './src/errors/hydration-record-shape/hydration-record-shape-error';
+export * from './src/errors/hydration-removed-handle-verb/hydration-removed-handle-verb-error';
 export * from './src/errors/hydration-route-failed/hydration-route-failed-error';
 export * from './src/errors/hydration-route-unavailable/hydration-route-unavailable-error';
 export * from './src/errors/hydration-route-verb-unavailable/hydration-route-verb-unavailable-error';
