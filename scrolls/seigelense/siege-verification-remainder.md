@@ -959,6 +959,28 @@ same transformation `CONTROLS` undergoes when the key arrives, and `TRAPS` when 
 is a recipe that rotted while nobody was using it. A round that STILL finds one wrong reports it, the same way it
 reports a wrong guide heading — but that is the second line of defence, not the first.
 
+### The Core Law: Action Site vs. Data Handling via Seeders
+
+**Every verification pass operates under a strict separation of concerns between DRIVING the UI and SEEDING the state.** The architecture prohibits mixing them, because mixing them produces tests that pass against a state the system itself cannot reach.
+
+1. **The Action Site (Test / Verification Driver):**
+   - Drives the user actions, verifies the UI, clicks buttons, asserts outcomes, and triggers runs.
+   - **MUST NEVER** perform ad-hoc direct filesystem modifications or raw HTTP mutations to stand up a test scenario.
+   - If it needs state, it invokes the declared seed recipes.
+
+2. **Data Handling via Seeders (Recipes):**
+   - Exclusively responsible for creating valid domain states, setting up models, and walking state transitions through proper contracts/endpoints.
+   - **Everything in seeding MUST be async.** Seeding interacts with I/O (files, DBs, endpoints, processes) and must always return a `Promise`. Tests must never rely on synchronous `() => void` seeding.
+
+3. **Fault Injection / Tamper Layer (The Antagonist):**
+   - Exclusively for intentional corruption (e.g., malformed files, crash testing).
+   - Completely isolated from the standard seeding path. An antagonist attacks a clean, verified state; it does not seed a corrupted one.
+
+**Impact on Siegemaster / Siegelense Standards & Prompts:**
+- Prompt changes and architectural standards for agents driving verification must explicitly mandate using **async seed recipes** for scenario initialization.
+- A verifier or test driver (flowrider, siegemaster) must be explicitly instructed that it is a *driver*, not a setup script. Reaching for `fs.writeFileSync` or a direct fetch to bypass a missing recipe is a rule violation. The recipe book is the only legal way to create state.
+- If a walk needs a state that no recipe covers, it must dispatch the planner to write the recipe, rather than attempting to forge the state directly in the driving code.
+
 ### The planner reads almost no implementation — sub-agents do, for BOTH jobs
 
 **Two jobs, one dispatch shape.** A recipe is either missing or broken, and in both cases the work is reading production
