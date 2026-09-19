@@ -55,6 +55,25 @@ describe('runResultContract', () => {
       });
     });
 
+    it('VALID: {durationMs: 450} => parses with optional duration in milliseconds', () => {
+      const result = runResultContract.parse({
+        instanceId: 'inst_7f3a9c21',
+        runId: 'run_2',
+        status: 'done',
+        stepsRun: 5,
+        stoppedAt: null,
+        index: {
+          console: { errors: 0, warnings: 2 },
+          server: { errors: 0 },
+          network: { exchanges: 14, non2xx: 0 },
+        },
+        shots: [],
+        durationMs: 450,
+      });
+
+      expect(result.durationMs).toBe(450);
+    });
+
     it('VALID: {status: failed, stoppedAt with two candidates} => a failing return carries the AMBIGUOUS key', () => {
       const result = runResultContract.parse({
         instanceId: 'inst_7f3a9c21',

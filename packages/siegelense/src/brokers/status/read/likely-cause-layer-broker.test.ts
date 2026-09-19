@@ -15,14 +15,14 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: InstanceStateStub({ value: 'dead' }),
-        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         rssAtLastBeat: MegabytesStub({ value: 2980 }),
         oomKillsSinceBoot: ReadingCountStub({ value: 2 }),
         shutdownReason: null,
       });
 
       expect(result).toBe(
-        'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-web; kernel OOM kills since boot: 2',
+        'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',
       );
     });
   });
@@ -33,7 +33,7 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: InstanceStateStub({ value: 'dead' }),
-        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         rssAtLastBeat: null,
         oomKillsSinceBoot: null,
         shutdownReason: null,
@@ -49,14 +49,14 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: InstanceStateStub({ value: 'killed' }),
-        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         rssAtLastBeat: MegabytesStub({ value: 1200 }),
         oomKillsSinceBoot: ReadingCountStub({ value: 0 }),
         shutdownReason: null,
       });
 
       expect(result).toBe(
-        'rss 1200MB at last beat; no profile recorded for spec dungeonmaster-web; kernel OOM kills since boot: 0',
+        'rss 1200MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 0',
       );
     });
   });
@@ -67,7 +67,7 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: InstanceStateStub({ value: 'dead' }),
-        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         rssAtLastBeat: MegabytesStub({ value: 622 }),
         oomKillsSinceBoot: ReadingCountStub({ value: 1 }),
         shutdownReason: ContentTextStub({
@@ -83,7 +83,7 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: InstanceStateStub({ value: 'killed' }),
-        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         rssAtLastBeat: null,
         oomKillsSinceBoot: null,
         shutdownReason: ContentTextStub({
@@ -101,7 +101,7 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: InstanceStateStub({ value: 'alive' }),
-        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         rssAtLastBeat: null,
         oomKillsSinceBoot: ReadingCountStub({ value: 2 }),
         shutdownReason: null,
@@ -115,7 +115,7 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: InstanceStateStub({ value: 'alive' }),
-        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         rssAtLastBeat: null,
         oomKillsSinceBoot: null,
         shutdownReason: ContentTextStub({ value: 'reaped by idle timeout' }),

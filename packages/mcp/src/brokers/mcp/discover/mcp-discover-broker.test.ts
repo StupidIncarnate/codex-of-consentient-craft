@@ -383,7 +383,7 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {grep PascalCase, no strict} => cross-convention matches kebab content via tree output', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({
-        value: `${process.cwd()}/src/contracts/orchestration-event-type-contract.ts`,
+        value: `${process.cwd()}/packages/mcp/src/contracts/orchestration-event-type-contract.ts`,
       });
       const contents = FileContentsStub({
         value: `export const orchestrationEventTypeContract = z.enum(['x', 'y']);`,

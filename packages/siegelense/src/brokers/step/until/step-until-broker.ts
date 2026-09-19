@@ -61,7 +61,7 @@ export const stepUntilBroker = async ({
   const resolvedTimeoutMs = timeoutMs ?? driverStatics.run.defaultStepTimeoutMs;
 
   // The one form R13 exists for: an operational flow has no screen and still writes files, so
-  // `file` runs on a browserless lane exactly as it runs on `dungeonmaster-web` — checked before
+  // `file` runs on a browserless lane exactly as it runs on `dungeonmaster-stack` — checked before
   // the browser guard below, the same way `seed` is routed before `runVerbLayerBroker` narrows to
   // a live page.
   if (file !== null) {

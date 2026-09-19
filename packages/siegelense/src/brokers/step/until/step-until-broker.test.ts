@@ -256,7 +256,7 @@ describe('stepUntilBroker', () => {
       expect({ name: error.name, message: error.message }).toStrictEqual({
         name: 'BrowserStepUnsupportedError',
         message:
-          'Step until { visible } needs a browser, but spec dungeonmaster-headless declares browser: false — until { file } is the form that runs on a lane with no screen',
+          'Step until { visible } needs a browser, but spec dungeonmaster-api declares browser: false — until { file } is the form that runs on a lane with no screen',
       });
     });
   });

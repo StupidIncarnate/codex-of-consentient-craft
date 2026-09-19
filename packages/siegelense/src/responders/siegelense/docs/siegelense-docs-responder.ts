@@ -1,7 +1,7 @@
 /**
- * PURPOSE: The surface `dungeonmaster siegelense docs [--for <scope>] [--human]` serves — one JSON
- * document on stdout by default (the raw `DocsAnswer`), or the plain-text manual through
- * `docsAnswerRenderTransformer` when `human` is true. Writes through `process.stdout.write`, never
+ * PURPOSE: The surface `dungeonmaster siegelense docs --for <scope> [--json]` serves —
+ * clean, readable Markdown on stdout by default through `docsAnswerRenderTransformer`, or the raw
+ * `DocsAnswer` JSON document when `json` is true. Writes through `process.stdout.write`, never
  * `console.log`, matching every other siegelense call.
  *
  * It reaches no broker, and that is the shape rather than an omission: the manual is immutable
@@ -15,11 +15,11 @@
  * the call's entry the same shape as its siblings that really do wait on a broker.
  *
  * USAGE:
- * await SiegelenseDocsResponder({ scope: null, human: false });
- * // Writes every scope as one JSON document
+ * await SiegelenseDocsResponder({ scope: docsScopeContract.parse('operating'), json: false });
+ * // Writes the operating instructions as formatted Markdown
  *
- * await SiegelenseDocsResponder({ scope: docsScopeContract.parse('walking'), human: true });
- * // Writes the walker's page as indented text
+ * await SiegelenseDocsResponder({ scope: docsScopeContract.parse('walking'), json: true });
+ * // Writes the walker's page as one JSON document
  */
 
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
@@ -32,17 +32,17 @@ import { docsAnswerRenderTransformer } from '../../../transformers/docs-answer-r
 
 export const SiegelenseDocsResponder = async ({
   scope,
-  human,
+  json,
 }: {
-  scope: DocsScope | null;
-  human: boolean;
+  scope: DocsScope;
+  json: boolean;
 }): Promise<AdapterResult> => {
   const answer = docsAnswerComposeTransformer({ scope });
 
   process.stdout.write(
-    human
-      ? docsAnswerRenderTransformer({ answer })
-      : `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+    json
+      ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
+      : docsAnswerRenderTransformer({ answer }),
   );
 
   return Promise.resolve(adapterResultContract.parse({ success: true }));

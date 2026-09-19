@@ -13,17 +13,17 @@
  * USAGE:
  * likelyCauseLayerBroker({
  *   state: InstanceStateStub({ value: 'dead' }),
- *   specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+ *   specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
  *   rssAtLastBeat: MegabytesStub({ value: 2980 }),
  *   oomKillsSinceBoot: ReadingCountStub({ value: 2 }),
  *   shutdownReason: null,
  * });
- * // Returns 'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-web; kernel OOM
+ * // Returns 'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM
  * // kills since boot: 2' as ContentText
  *
  * likelyCauseLayerBroker({
  *   state: InstanceStateStub({ value: 'dead' }),
- *   specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+ *   specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
  *   rssAtLastBeat: MegabytesStub({ value: 622 }),
  *   oomKillsSinceBoot: ReadingCountStub({ value: 1 }),
  *   shutdownReason: ContentTextStub({ value: 'reaped by idle timeout after 900s with no run received' }),

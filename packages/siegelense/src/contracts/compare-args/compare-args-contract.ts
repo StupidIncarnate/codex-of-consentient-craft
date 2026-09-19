@@ -20,6 +20,7 @@ export const compareArgsContract = z
     instanceId: instanceIdContract,
     runA: runIdContract,
     runB: runIdContract,
+    json: z.boolean().default(false),
   })
   .strict();
 

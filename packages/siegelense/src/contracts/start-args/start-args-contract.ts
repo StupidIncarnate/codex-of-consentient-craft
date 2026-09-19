@@ -12,11 +12,11 @@
  * validates argv the transformer has already normalised.
  *
  * USAGE:
- * startArgsContract.parse({ specName: 'dungeonmaster-web', questId: null, guildId: null, seed: null });
+ * startArgsContract.parse({ specName: 'dungeonmaster-stack', questId: null, guildId: null, seed: null });
  * // Returns a validated StartArgs for the unowned, unseeded case, with the default idle ceiling
  *
  * startArgsContract.parse({
- *   specName: 'dungeonmaster-web',
+ *   specName: 'dungeonmaster-stack',
  *   questId: null,
  *   guildId: null,
  *   seed: 'guild-with-three-quests',
@@ -47,6 +47,7 @@ export const startArgsContract = z
     // live question.
     seed: recipeNameContract.nullable(),
     idleTimeoutMs: timeoutMsContract.optional(),
+    json: z.boolean().default(false),
   })
   .strict();
 

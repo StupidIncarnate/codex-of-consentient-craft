@@ -81,12 +81,9 @@ The import is dynamic, never static: a static import would pull Playwright — a
 `dist/bin/dungeonmaster.js`, the binary every consumer installs whether or not they ever run a
 siegelense call.
 
-Every built call writes one JSON document to stdout by default. `--human` renders an operator table
-instead, and only the calls that ship a renderer — `status`, `cleanup`, `recipes` — implement it;
-every other call refuses `--human` by name rather than falling through to JSON silently. A refusal
-writes nothing to stdout and exits 1. The refusal names those calls as a sentence the flow builds
-from the help statics, so a bare `join(' and ')` is wrong here: it reads correctly at two and
-breaks at three.
+Every built call renders a concise, token-efficient human-readable view by default. Passing `--json`
+writes the raw JSON document to stdout instead. Unrecognised flags write nothing to stdout and exit 1
+with an error listing the accepted flags for that command.
 
 `packages/cli/bin/cli-entry.integration.test.ts` is the seam test, spawning the real binary through
 `cliBinHarness` — every other siegelense test in the repo starts at `SiegelenseFlow` or below, so only

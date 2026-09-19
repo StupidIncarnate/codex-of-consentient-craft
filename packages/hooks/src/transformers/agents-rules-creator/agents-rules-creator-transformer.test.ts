@@ -8,7 +8,7 @@ describe('agentsRulesCreatorTransformer', () => {
     expect(result.startsWith('# Dungeonmaster Operating Rules\n\n')).toBe(true);
 
     const activeSnippets = Object.values(sessionSnippetStatics).filter(
-      (snippet): snippet is string => typeof snippet === 'string',
+      (snippet): snippet is NonNullable<typeof snippet> => snippet !== null,
     );
 
     const expected = `# Dungeonmaster Operating Rules\n\n${activeSnippets.join('\n\n---\n\n')}\n`;

@@ -29,7 +29,7 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  --where-steps <a-b>             narrow to a step range, e.g. 4-9.\n' +
           '  --fields <a,b,c>                project the answer down to this comma-separated list of fields.\n' +
           "  --since boot                    read from the beginning of the instance's lifetime, in place of naming a run.\n" +
-          '  --json                          print the JSON answer — the default; explicit and refused nowhere.\n' +
+          '  --json                          print raw JSON output instead of the human-readable view.\n' +
           '\n' +
           'REFUSES\n' +
           '  Against a finished instance you must name --run (or --since boot); omit both and the call refuses rather than guessing which run you meant.\n' +
@@ -51,11 +51,10 @@ describe('siegelenseHelpRenderTransformer', () => {
         'siegelense cleanup — reap every stale instance the registry holds.\n' +
           '\n' +
           'USAGE\n' +
-          '  dungeonmaster siegelense cleanup [--json] [--human]\n' +
+          '  dungeonmaster siegelense cleanup [--json]\n' +
           '\n' +
           'FLAGS\n' +
-          '  --json              print the JSON answer — the default; explicit and refused nowhere.\n' +
-          '  --human             render the operator table instead of JSON. Only status, cleanup, prune, recipes and docs implement this.\n' +
+          '  --json             print raw JSON output instead of the human-readable view.\n' +
           '\n' +
           'REFUSES\n' +
           "  Takes no input. Reaps, releases, and ages assets out on their own windows — video first on a shorter one. It refuses exactly what prune refuses, so a capture a VERIFIED prelude or an open quest's WALKED line still cites is never touched, and the instance it belongs to says so in leftAlone.\n" +
@@ -81,7 +80,7 @@ describe('siegelenseHelpRenderTransformer', () => {
           '\n' +
           'FLAGS\n' +
           '  --instance <id>  required   the instance to stop. Accepts an already-dead instance id too, reaping its orphaned process groups from its heartbeat file when the driver itself is unreachable.\n' +
-          '  --json                      print the JSON answer — the default; explicit and refused nowhere.\n' +
+          '  --json                      print raw JSON output instead of the human-readable view.\n' +
           '\n' +
           'OUTPUT\n' +
           '  One JSON document on stdout: the KillResult.\n' +
@@ -108,7 +107,7 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  --guild <guildId>                  the guild to file evidence under, when there is no quest.\n' +
           "  --seed <recipeName>                runs that recipe against the lane once it is up, and returns the ids it made on the manifest's `seeded`. `dungeonmaster siegelense recipes` lists every name with its produces: line. Omitted, the instance starts empty and `seeded` is null.\n" +
           "  --idle-timeout-ms <ms>             raises this instance's idle ceiling above driverStatics.idle.timeoutMs (900000ms) — the length of think-time between runs the served lane survives before reaping itself with no run received. Omitted, the default applies.\n" +
-          '  --json                             print the JSON answer — the default; explicit and refused nowhere.\n' +
+          '  --json                             print raw JSON output instead of the human-readable view.\n' +
           '\n' +
           'REFUSES\n' +
           '  A --seed that FAILS tears the instance down and reports the failure, rather than handing back a lane whose state is not what you asked for. `seeded: null` means no --seed was given, never that one was given and produced nothing.\n' +
@@ -118,7 +117,7 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  One JSON document on stdout: the manifest — instance id, base URL, and every evidence path this run will want, since there is no lookup call to recover them later.\n' +
           '\n' +
           'EXAMPLE\n' +
-          '  dungeonmaster siegelense start --spec dungeonmaster-web\n',
+          '  dungeonmaster siegelense start --spec dungeonmaster-stack\n',
       );
     });
   });

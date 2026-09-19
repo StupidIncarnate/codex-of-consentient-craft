@@ -20,7 +20,7 @@ describe('capacityAnswerContract', () => {
           diskFreeMB: 41_000,
         },
         profile: {
-          spec: 'dungeonmaster-web',
+          spec: 'dungeonmaster-stack',
           poolSize: 1,
           steadyMB: 1800,
           peakMB: 2600,
@@ -36,14 +36,14 @@ describe('capacityAnswerContract', () => {
         CapacityAnswerStub({
           suggested: 2,
           profile: null,
-          why: 'no measured profile for dungeonmaster-web, so the default pair of 2 profiles itself',
+          why: 'no measured profile for dungeonmaster-stack, so the default pair of 2 profiles itself',
         }),
       );
 
       expect(result).toStrictEqual({
         suggested: 2,
         ceiling: 3,
-        why: 'no measured profile for dungeonmaster-web, so the default pair of 2 profiles itself',
+        why: 'no measured profile for dungeonmaster-stack, so the default pair of 2 profiles itself',
         measured: {
           freeMemMB: 5320,
           cores: 8,

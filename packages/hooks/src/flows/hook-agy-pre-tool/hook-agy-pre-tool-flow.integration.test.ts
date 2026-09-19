@@ -1,3 +1,4 @@
+import { discoverSuggestionMessageStatics } from '../../statics/discover-suggestion-message/discover-suggestion-message-statics';
 import { HookAgyPreToolFlow } from './hook-agy-pre-tool-flow';
 
 describe('HookAgyPreToolFlow', () => {
@@ -28,9 +29,14 @@ describe('HookAgyPreToolFlow', () => {
 
     const result = await HookAgyPreToolFlow({ inputData });
 
-    expect(result.exitCode).toBe(0);
-    const parsedStdout = JSON.parse(result.stdout) as { decision: string };
-    expect(parsedStdout.decision).toBe('deny');
+    expect(result).toStrictEqual({
+      exitCode: 0,
+      stdout: JSON.stringify({
+        decision: 'deny',
+        reason: discoverSuggestionMessageStatics.blockMessage,
+      }),
+      stderr: '',
+    });
   });
 
   it('INVALID: {inputData: invalid JSON} => falls back to allow gracefully', async () => {

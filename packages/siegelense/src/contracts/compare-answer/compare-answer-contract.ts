@@ -30,6 +30,7 @@ import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { countDeltaContract } from '../count-delta/count-delta-contract';
 import { instanceIdContract } from '../instance-id/instance-id-contract';
+import { readingCountContract } from '../reading-count/reading-count-contract';
 import { runIdContract } from '../run-id/run-id-contract';
 
 export const compareAnswerContract = z
@@ -50,6 +51,10 @@ export const compareAnswerContract = z
       new: z.array(contentTextContract).readonly(),
     }),
     pixels: contentTextContract.nullable(),
+    consoleErrorDelta: z.number().int().brand<'ConsoleErrorDelta'>().optional(),
+    serverErrorDelta: z.number().int().brand<'ServerErrorDelta'>().optional(),
+    networkNon2xxDelta: z.number().int().brand<'NetworkNon2xxDelta'>().optional(),
+    pixelDiffCount: readingCountContract.optional(),
   })
   .strict();
 

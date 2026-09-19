@@ -6,7 +6,7 @@ describe('capacityProfileContract', () => {
     it('VALID: {the solo group} => parses the group as measured', () => {
       const result = capacityProfileContract.parse(
         CapacityProfileStub({
-          spec: 'dungeonmaster-web',
+          spec: 'dungeonmaster-stack',
           poolSize: 1,
           steadyMB: 1800,
           peakMB: 2600,
@@ -15,7 +15,7 @@ describe('capacityProfileContract', () => {
       );
 
       expect(result).toStrictEqual({
-        spec: 'dungeonmaster-web',
+        spec: 'dungeonmaster-stack',
         poolSize: 1,
         steadyMB: 1800,
         peakMB: 2600,
@@ -29,7 +29,7 @@ describe('capacityProfileContract', () => {
       );
 
       expect(result).toStrictEqual({
-        spec: 'dungeonmaster-web',
+        spec: 'dungeonmaster-stack',
         poolSize: 3,
         steadyMB: 1920,
         peakMB: 2810,

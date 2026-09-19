@@ -13,6 +13,7 @@ import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-moc
 
 import { snapshotListBroker } from '../../../brokers/snapshot/list/snapshot-list-broker';
 import { snapshotListBrokerProxy } from '../../../brokers/snapshot/list/snapshot-list-broker.proxy';
+import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { SnapshotsAnswerStub } from '../../../contracts/snapshots-answer/snapshots-answer.stub';
 
 type SnapshotsAnswer = ReturnType<typeof SnapshotsAnswerStub>;
@@ -20,6 +21,7 @@ type SnapshotsAnswer = ReturnType<typeof SnapshotsAnswerStub>;
 export const SiegelenseSnapshotsResponderProxy = (): {
   stageAnswer: (params: { answer: SnapshotsAnswer }) => void;
   stageError: (params: { error: Error }) => void;
+  stageNow: (params: { nowMs: EpochMs }) => void;
   getStdoutWrites: () => unknown[];
 } => {
   // Constructed for enforce-proxy-child-creation only — this proxy stages snapshotListBroker
@@ -27,6 +29,9 @@ export const SiegelenseSnapshotsResponderProxy = (): {
   snapshotListBrokerProxy();
 
   const listHandle = registerMock({ fn: snapshotListBroker });
+  const nowHandle = registerSpyOn({ object: Date, method: 'now' });
+  nowHandle.calledWith([]).returns(0);
+
   const stdoutHandle = registerSpyOn({ object: process.stdout, method: 'write' });
   stdoutHandle.calledWith([]).returns(true);
 
@@ -37,6 +42,10 @@ export const SiegelenseSnapshotsResponderProxy = (): {
 
     stageError: ({ error }: { error: Error }): void => {
       listHandle.calledWith([]).rejects(error);
+    },
+
+    stageNow: ({ nowMs }: { nowMs: EpochMs }): void => {
+      nowHandle.calledWith([]).returns(nowMs);
     },
 
     getStdoutWrites: (): unknown[] => stdoutHandle.callsMatching([]).map((call) => call[0]),

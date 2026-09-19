@@ -7,5 +7,6 @@ export const CapacityArgsStub = ({ ...props }: StubArgument<CapacityArgs> = {}):
   capacityArgsContract.parse({
     specName: null,
     poolSize: null,
+    isJson: false,
     ...props,
   });

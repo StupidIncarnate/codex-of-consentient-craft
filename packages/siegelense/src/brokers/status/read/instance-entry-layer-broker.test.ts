@@ -31,7 +31,7 @@ describe('instanceEntryLayerBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId: null,
-        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         pgids: [],
         bootedAtMs: EpochMsStub({ value: 1_700_000_160_000 }),
         lastBeatMs: EpochMsStub({ value: 1_700_000_998_000 }),
@@ -65,7 +65,7 @@ describe('instanceEntryLayerBroker', () => {
         InstanceStatusStub({
           id: instanceId,
           state: 'alive',
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           uptime: '14m',
           lastBeat: '2s',
           runs: 0,
@@ -89,7 +89,7 @@ describe('instanceEntryLayerBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId: null,
-        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         pgids: [ProcessGroupIdStub({ value: 4_143_212 }), ProcessGroupIdStub({ value: 4_143_213 })],
         bootedAtMs: EpochMsStub({ value: 1_700_000_160_000 }),
         lastBeatMs: EpochMsStub({ value: 1_700_000_998_000 }),
@@ -123,7 +123,7 @@ describe('instanceEntryLayerBroker', () => {
         InstanceStatusStub({
           id: instanceId,
           state: 'alive',
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           uptime: '14m',
           lastBeat: '2s',
           runs: 0,
@@ -151,7 +151,7 @@ describe('instanceEntryLayerBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
-        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         pgids: [],
         lastBeatMs: EpochMsStub({ value: 1_700_000_760_000 }),
       });
@@ -196,7 +196,7 @@ describe('instanceEntryLayerBroker', () => {
         InstanceStatusStub({
           id: instanceId,
           state: 'dead',
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           uptime: null,
           lastBeat: '4m',
           runs: 0,
@@ -230,7 +230,7 @@ describe('instanceEntryLayerBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
-        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         pgids: [],
         lastBeatMs: EpochMsStub({ value: 1_700_000_760_000 }),
       });
@@ -284,7 +284,7 @@ describe('instanceEntryLayerBroker', () => {
         InstanceStatusStub({
           id: instanceId,
           state: 'dead',
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           uptime: null,
           lastBeat: '4m',
           runs: 0,
@@ -321,7 +321,7 @@ describe('instanceEntryLayerBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
-        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         pgids: [pgid],
         lastBeatMs: EpochMsStub({ value: 1_700_000_760_000 }),
       });
@@ -394,7 +394,7 @@ describe('instanceEntryLayerBroker', () => {
         InstanceStatusStub({
           id: instanceId,
           state: 'dead',
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           uptime: null,
           lastBeat: '4m',
           runs: 2,
@@ -412,7 +412,7 @@ describe('instanceEntryLayerBroker', () => {
             lastShot: 'run_2/step7.png',
           },
           likelyCause:
-            'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-web; kernel OOM kills since boot: 2',
+            'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',
           evidenceComplete: false,
         }),
       );
@@ -432,7 +432,7 @@ describe('instanceEntryLayerBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
-        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         pgids: [],
         lastBeatMs: EpochMsStub({ value: 1_700_000_760_000 }),
       });
@@ -483,7 +483,7 @@ describe('instanceEntryLayerBroker', () => {
         InstanceStatusStub({
           id: instanceId,
           state: 'killed',
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           uptime: null,
           lastBeat: '4m',
           runs: 1,
@@ -518,7 +518,7 @@ describe('instanceEntryLayerBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
-        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         pgids: [],
         lastBeatMs: EpochMsStub({ value: 1_700_000_760_000 }),
       });
@@ -572,7 +572,7 @@ describe('instanceEntryLayerBroker', () => {
         InstanceStatusStub({
           id: instanceId,
           state: 'killed',
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           uptime: null,
           lastBeat: '4m',
           runs: 2,

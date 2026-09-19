@@ -25,16 +25,7 @@ const JSON_FLAG = {
   name: siegelenseOutputStatics.flags.json,
   value: null,
   required: false,
-  description: 'print the JSON answer — the default; explicit and refused nowhere.',
-} as const;
-
-const HUMAN_FLAG = {
-  name: siegelenseOutputStatics.flags.human,
-  value: null,
-  required: false,
-  description:
-    'render the operator table instead of JSON. Only status, cleanup, prune, recipes and docs ' +
-    'implement this.',
+  description: 'print raw JSON output instead of the human-readable view.',
 } as const;
 
 export const siegelenseHelpStatics = {
@@ -100,7 +91,7 @@ export const siegelenseHelpStatics = {
       ],
       output:
         'One JSON document on stdout: the manifest — instance id, base URL, and every evidence path this run will want, since there is no lookup call to recover them later.',
-      example: 'dungeonmaster siegelense start --spec dungeonmaster-web',
+      example: 'dungeonmaster siegelense start --spec dungeonmaster-stack',
     },
     run: {
       summary:
@@ -253,7 +244,7 @@ export const siegelenseHelpStatics = {
           value: '<specName>',
           required: false,
           description:
-            'the lane spec to price. Omitted, the browsered dungeonmaster-web spec is assumed — the more expensive of the two built-ins, so a bare call answers conservatively. The why sentence names whichever spec was read.',
+            'the lane spec to price. Omitted, the browsered dungeonmaster-stack spec is assumed — the more expensive of the two built-ins, so a bare call answers conservatively. The why sentence names whichever spec was read.',
         },
         {
           name: '--pool',
@@ -271,7 +262,7 @@ export const siegelenseHelpStatics = {
       ],
       output:
         'One JSON document on stdout: the CapacityAnswer — suggested, ceiling, a why sentence naming every figure it reasoned from, the measured host block, and the one profile group it divided by (null for a spec nothing has run).',
-      example: 'dungeonmaster siegelense capacity --spec dungeonmaster-web --pool 3',
+      example: 'dungeonmaster siegelense capacity --spec dungeonmaster-stack --pool 3',
     },
     profile: {
       summary:
@@ -293,11 +284,11 @@ export const siegelenseHelpStatics = {
       ],
       output:
         "One JSON document on stdout: the SpecProfile — processes, the spec's content hash, measuredAt, fromRuns, bootMs, and one sample group per pool size.",
-      example: 'dungeonmaster siegelense profile --spec dungeonmaster-web',
+      example: 'dungeonmaster siegelense profile --spec dungeonmaster-stack',
     },
     status: {
       summary: 'siegelense status — report the fleet, or one instance in full.',
-      synopsis: 'dungeonmaster siegelense status [--instance <id>] [--json] [--human]',
+      synopsis: 'dungeonmaster siegelense status [--instance <id>] [--json]',
       flags: [
         {
           name: '--instance',
@@ -307,7 +298,6 @@ export const siegelenseHelpStatics = {
             'report that one instance in full — last beat, last step, RSS, orphans, evidence paths, likelyCause — instead of the fleet.',
         },
         JSON_FLAG,
-        HUMAN_FLAG,
       ],
       refusals: ["Never lists another instance's runs or evidence unless you name it."],
       output: 'One JSON document on stdout: the StatusAnswer.',
@@ -315,8 +305,8 @@ export const siegelenseHelpStatics = {
     },
     cleanup: {
       summary: 'siegelense cleanup — reap every stale instance the registry holds.',
-      synopsis: 'dungeonmaster siegelense cleanup [--json] [--human]',
-      flags: [JSON_FLAG, HUMAN_FLAG],
+      synopsis: 'dungeonmaster siegelense cleanup [--json]',
+      flags: [JSON_FLAG],
       refusals: [
         "Takes no input. Reaps, releases, and ages assets out on their own windows — video first on a shorter one. It refuses exactly what prune refuses, so a capture a VERIFIED prelude or an open quest's WALKED line still cites is never touched, and the instance it belongs to says so in leftAlone.",
       ],
@@ -327,7 +317,7 @@ export const siegelenseHelpStatics = {
       summary:
         'siegelense prune — reclaim asset space deliberately, rather than waiting for the age-out window.',
       synopsis:
-        'dungeonmaster siegelense prune [--instance <id>] [--kind <kind>] [--older-than <window>] [--json] [--human]',
+        'dungeonmaster siegelense prune [--instance <id>] [--kind <kind>] [--older-than <window>] [--json]',
       flags: [
         {
           name: '--instance',
@@ -350,7 +340,6 @@ export const siegelenseHelpStatics = {
             'how old an asset must be to go — a whole number and one of d, h, m, s. Defaults to 7d; this call deletes, so it never defaults to taking everything.',
         },
         JSON_FLAG,
-        HUMAN_FLAG,
       ],
       refusals: [
         'It refuses rather than warns: anything a VERIFIED prelude or an open quest WALKED note still cites stays, and the refusal names the citing file and the run id so a caller can open it.',
@@ -409,37 +398,36 @@ export const siegelenseHelpStatics = {
     recipes: {
       summary:
         'siegelense recipes — list every recipe: the state each one creates, and how honestly it creates it. Starts nothing.',
-      synopsis: 'dungeonmaster siegelense recipes [--json] [--human]',
-      flags: [JSON_FLAG, HUMAN_FLAG],
+      synopsis: 'dungeonmaster siegelense recipes [--json]',
+      flags: [JSON_FLAG],
       refusals: [
         'Takes no selector — no --instance, no name, no fidelity filter. It lists every recipe, because narrowing a catalogue you have not read yet is the query-everything a listing exists to prevent.',
         'Needs no instance and holds no pool slot. produces:, fidelity and mirrors: are static data the tool reads, never something it learns by running a recipe.',
       ],
       output:
         'One JSON document on stdout: the RecipesAnswer — every declared recipe with its produces: claim, its fidelity, its mirrors: pointer, and the parameters and ids it names. An EMPTY list is a real answer and means "no recipes yet"; an absent packages/siegelense-recipes/ is a refusal instead, so the two never read alike.',
-      example: 'dungeonmaster siegelense recipes --human',
+      example: 'dungeonmaster siegelense recipes',
     },
     docs: {
       summary:
         "siegelense docs — this tool's own instructions, scoped to one role. Starts nothing.",
-      synopsis: 'dungeonmaster siegelense docs [--for <scope>] [--json] [--human]',
+      synopsis: 'dungeonmaster siegelense docs --for <scope> [--json]',
       flags: [
         {
           name: '--for',
           value: '<scope>',
-          required: false,
-          description: `serve one role's page instead of the whole surface: ${siegelenseCallStatics.docs.scopes.join(', ')}. Omitted, every scope is served.`,
+          required: true,
+          description: `serve one role's page instead of the whole surface: ${siegelenseCallStatics.docs.scopes.join(', ')}.`,
         },
         JSON_FLAG,
-        HUMAN_FLAG,
       ],
       refusals: [
         'An unrecognised --for value is refused BY NAME and lists the scopes that exist. It never answers an empty document, because "this role has no instructions" is the one answer this call must not give.',
         'There is no scope for a code-reading role, and that absence is deliberate: a session that opens source files and calls nothing here would be handed the vocabulary for driving a browser.',
       ],
       output:
-        'One JSON document on stdout: the DocsAnswer — an about preamble, and one document per scope served, each a headed list of lines. --human renders the same document as indented text.',
-      example: 'dungeonmaster siegelense docs --for walking --human',
+        'One JSON document on stdout: the DocsAnswer — an about preamble, and one document per scope served, each a headed list of lines.',
+      example: 'dungeonmaster siegelense docs --for walking',
     },
   },
   internal: {
@@ -450,7 +438,7 @@ export const siegelenseHelpStatics = {
       flags: [],
       refusals: [],
       output: "internal to the instance's socket protocol; never printed by any call.",
-      example: 'dungeonmaster siegelense start --spec dungeonmaster-web',
+      example: 'dungeonmaster siegelense start --spec dungeonmaster-stack',
     },
   },
 } as const;

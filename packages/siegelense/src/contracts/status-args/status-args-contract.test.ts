@@ -18,6 +18,24 @@ describe('statusArgsContract', () => {
 
       expect(result).toStrictEqual({ instanceId: 'inst_7f3a9c21', human: true });
     });
+
+    it('VALID: {instanceId: null, branch: "feat/my-branch", since: "1h", human: true} => branch and since filters parse', () => {
+      const args = StatusArgsStub({
+        instanceId: null,
+        branch: 'feat/my-branch',
+        since: '1h',
+        human: true,
+      });
+
+      const result = statusArgsContract.parse(args);
+
+      expect(result).toStrictEqual({
+        instanceId: null,
+        branch: 'feat/my-branch',
+        since: '1h',
+        human: true,
+      });
+    });
   });
 
   describe('invalid args', () => {
@@ -55,6 +73,16 @@ describe('statusArgsContract', () => {
       expect(() =>
         statusArgsContract.parse({ instanceId: 'not-an-instance-id', human: false }),
       ).toThrow(/Instance id must look like/u);
+    });
+
+    it('INVALID: {since: "2h"} => throws for invalid enum value', () => {
+      expect(() =>
+        statusArgsContract.parse({
+          instanceId: null,
+          since: '2h' as never,
+          human: false,
+        }),
+      ).toThrow(/Invalid enum value/u);
     });
 
     it('INVALID: {extra key "verbose"} => throws Unrecognized key, no extra field is accepted', () => {

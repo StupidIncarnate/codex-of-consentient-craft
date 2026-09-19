@@ -35,6 +35,7 @@ export const killResultContract = z.object({
   homeRemoved: z.boolean(),
   evidenceKept: repoLocalPathContract,
   reapedPgids: z.array(processGroupIdContract).readonly(),
+  killed: z.array(processGroupIdContract).readonly().optional(),
 });
 
 export type KillResult = z.infer<typeof killResultContract>;

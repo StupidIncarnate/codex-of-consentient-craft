@@ -28,5 +28,6 @@ export const RegistryEntryStub = ({ ...props }: StubArgument<RegistryEntry> = {}
     lastBeatMs: null,
     prunedAtMs: null,
     prunedByRule: null,
+    branch: null,
     ...props,
   });

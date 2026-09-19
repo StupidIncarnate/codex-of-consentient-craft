@@ -8,7 +8,6 @@ describe('siegelenseOutputStatics', () => {
       },
       flags: {
         json: '--json',
-        human: '--human',
         help: '--help',
         helpShort: '-h',
       },

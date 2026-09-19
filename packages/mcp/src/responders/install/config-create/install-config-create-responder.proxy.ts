@@ -85,7 +85,9 @@ export const InstallConfigCreateResponderProxy = (): {
         targetProjectRoot: pathSegmentContract.parse(targetProjectRoot),
         settingsPath: claudeSettingsPathFor({ targetProjectRoot }),
       });
-      agentsProxy.setupSuccess({ targetProjectRoot });
+      agentsProxy.setupSuccess({
+        targetProjectRoot: pathSegmentContract.parse(targetProjectRoot),
+      });
     },
 
     setupFileReadError: ({ targetProjectRoot }: { targetProjectRoot: FilePath }): void => {
@@ -98,7 +100,9 @@ export const InstallConfigCreateResponderProxy = (): {
         targetProjectRoot: pathSegmentContract.parse(targetProjectRoot),
         settingsPath: claudeSettingsPathFor({ targetProjectRoot }),
       });
-      agentsProxy.setupSuccess({ targetProjectRoot });
+      agentsProxy.setupSuccess({
+        targetProjectRoot: pathSegmentContract.parse(targetProjectRoot),
+      });
     },
 
     getWrittenConfig: ({ targetProjectRoot }: { targetProjectRoot: FilePath }): unknown =>

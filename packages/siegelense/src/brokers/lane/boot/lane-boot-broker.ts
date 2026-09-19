@@ -22,9 +22,10 @@
  * see `lane-spec-statics.ts`'s header. A caller that wants a lane to exercise a fake CLI sets
  * `CLAUDE_CLI_PATH`/`WARD_CLI_PATH` in its OWN environment before invoking siegelense, and the merge
  * below is what lets that survive. When `spec.requiresFakeAgentCli` is true and the caller supplied
- * neither, this call throws `FakeAgentCliRequiredError` before any mkdir or spawn happens, rather
- * than silently booting the api process against the real `claude`/`dungeonmaster-ward` binaries —
- * see `fake-agent-cli-statics.ts`'s header for why that outcome is unacceptable to leave live.
+ * neither, this call checks for committed in-repo fixtures on disk, populating them into the
+ * inherited environment if found, and throws `FakeAgentCliRequiredError` before any mkdir or spawn
+ * happens only when a variable is not provided and its fixture file is not found on disk — see
+ * `fake-agent-cli-statics.ts`'s header for why that outcome is unacceptable to leave live.
  *
  * USAGE:
  * const lane = await laneBootBroker({
@@ -51,6 +52,7 @@ import { childProcessSpawnDetachedAdapter } from '../../../adapters/child-proces
 import { fsCloseFdAdapter } from '../../../adapters/fs/close-fd/fs-close-fd-adapter';
 import { fsOpenFdAdapter } from '../../../adapters/fs/open-fd/fs-open-fd-adapter';
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
+import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { playwrightSessionAdapter } from '../../../adapters/playwright/session/playwright-session-adapter';
 import { processKillGroupAdapter } from '../../../adapters/process/kill-group/process-kill-group-adapter';
 import { serverLogReaderLayerBroker } from './server-log-reader-layer-broker';
@@ -86,20 +88,53 @@ export const laneBootBroker = async ({
   // `unknown` so a value already known non-undefined at runtime passes through with no type
   // predicate, and a genuinely undefined one is filtered out first. Computed before any side
   // effect below so the `requiresFakeAgentCli` check can refuse before mkdir or spawn ever runs.
-  const inheritedEnv = Object.fromEntries(
+  const inheritedEnv: Record<PropertyKey, ContentText> = Object.fromEntries(
     Object.entries(process.env)
       .filter(([, value]) => value !== undefined)
       .map(([key, value]): [PropertyKey, ContentText] => [key, contentTextContract.parse(value)]),
   );
 
+  const cwdSeed = processCwdAdapter();
+  const repoRoot = await cwdResolveBroker({ startPath: cwdSeed, kind: 'repo-root' });
+  const spawnCwd = absoluteFilePathContract.parse(repoRoot);
+
   // A spec whose processes would otherwise talk to the REAL claude/dungeonmaster-ward binaries
   // must say so declaratively (LaneSpec's PURPOSE) — this is where that declaration is honored.
-  // Refusing here, before any mkdir or spawn, is what keeps a caller who forgot the env from
-  // paying for a real agent run and getting a non-deterministic reading back for it.
+  // When requiresFakeAgentCli is true and an environment variable is not explicitly provided, this
+  // checks whether committed fixture binaries exist on disk in the repository and populates them.
+  // Refusing here when neither the env var nor the fixture is found, before any mkdir or spawn,
+  // is what keeps a caller who forgot the env from paying for a real agent run and getting a
+  // non-deterministic reading back for it.
   if (spec.requiresFakeAgentCli) {
-    const missing = fakeAgentCliStatics.requiredEnvVars.filter(
-      ({ name }) => inheritedEnv[name] === undefined,
+    const checks = await Promise.all(
+      fakeAgentCliStatics.requiredEnvVars.map(async (required) => {
+        if (inheritedEnv[required.name] !== undefined) {
+          return null;
+        }
+        const fixturePath = absoluteFilePathContract.parse(
+          pathJoinAdapter({ paths: [repoRoot, required.fixtureRelativePath] }),
+        );
+        const fileStat = await fsStatAdapter({ filePath: fixturePath });
+        if (fileStat !== null) {
+          return { name: required.name, path: contentTextContract.parse(fixturePath) };
+        }
+        return required;
+      }),
     );
+    const missing: (
+      | (typeof fakeAgentCliStatics.requiredEnvVars)[0]
+      | (typeof fakeAgentCliStatics.requiredEnvVars)[1]
+    )[] = [];
+    checks.forEach((entry) => {
+      if (entry === null) {
+        return;
+      }
+      if ('path' in entry) {
+        inheritedEnv[entry.name] = entry.path;
+        return;
+      }
+      missing.push(entry);
+    });
     if (missing.length > 0) {
       throw new FakeAgentCliRequiredError({ specName: spec.name, missing: [...missing] });
     }
@@ -109,10 +144,6 @@ export const laneBootBroker = async ({
     fsMkdirAdapter({ filepath: filePathContract.parse(homePath) }),
     fsMkdirAdapter({ filepath: filePathContract.parse(evidencePath) }),
   ]);
-
-  const cwdSeed = processCwdAdapter();
-  const repoRoot = await cwdResolveBroker({ startPath: cwdSeed, kind: 'repo-root' });
-  const spawnCwd = absoluteFilePathContract.parse(repoRoot);
 
   // Per-instance, and known nowhere else: both live inside homePath, which only this call mints.
   const claudeQueueDir = absoluteFilePathContract.parse(

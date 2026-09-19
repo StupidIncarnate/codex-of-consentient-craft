@@ -17,17 +17,26 @@ import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { snapshotListBroker } from '../../../brokers/snapshot/list/snapshot-list-broker';
+import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
+import { snapshotsAnswerRenderTransformer } from '../../../transformers/snapshots-answer-render/snapshots-answer-render-transformer';
 
 export const SiegelenseSnapshotsResponder = async ({
   instanceId,
+  json = false,
 }: {
   instanceId: InstanceId;
+  json?: boolean | undefined;
 }): Promise<AdapterResult> => {
   const answer = await snapshotListBroker({ instanceId });
   process.stdout.write(
-    `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+    json
+      ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
+      : snapshotsAnswerRenderTransformer({
+          answer,
+          nowMs: epochMsContract.parse(Date.now()),
+        }),
   );
   return adapterResultContract.parse({ success: true });
 };

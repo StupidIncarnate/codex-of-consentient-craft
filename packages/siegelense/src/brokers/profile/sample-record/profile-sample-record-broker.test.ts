@@ -14,7 +14,7 @@ import { profileSampleRecordBroker } from './profile-sample-record-broker';
 import { profileSampleRecordBrokerProxy } from './profile-sample-record-broker.proxy';
 
 const ROOT_PATH_VALUE = '/home/user/.dungeonmaster/siegelense';
-const HEADLESS_SPEC = SpecNameStub({ value: 'dungeonmaster-headless' });
+const HEADLESS_SPEC = SpecNameStub({ value: 'dungeonmaster-api' });
 const INSTANCE_ID = InstanceIdStub({ value: 'inst_7f3a9c21' });
 const FIRST_BEAT_MS = 1_700_000_000_000;
 

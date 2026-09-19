@@ -16,11 +16,11 @@
  * fix instead of leaving a caller to rediscover it.
  *
  * USAGE:
- * throw new BrowserStepUnsupportedError({ verb: 'click', specName: 'dungeonmaster-headless' });
+ * throw new BrowserStepUnsupportedError({ verb: 'click', specName: 'dungeonmaster-api' });
  * // Throws error naming both the browser verb and the browserless spec it was submitted against
  *
  * throw new BrowserStepUnsupportedError({
- *   verb: 'until', specName: 'dungeonmaster-headless', form: 'visible',
+ *   verb: 'until', specName: 'dungeonmaster-api', form: 'visible',
  * });
  * // Throws error naming the spec, the form the caller wrote, and the `file` form that works there
  *

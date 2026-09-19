@@ -1,21 +1,17 @@
 /**
- * PURPOSE: The surface `dungeonmaster siegelense cleanup` serves — one JSON document on stdout by
- * default (the raw `CleanupAnswer`), or the operator's bookend table through
- * `cleanupAnswerRenderTransformer` when `human` is true (siegelense-tooling.md's `--human`
- * opt-out). `cleanup {}` still takes no OTHER input: `human` is the one flag the call recognises.
- * Writes through `process.stdout.write`, never `console.log`, matching `SiegelenseFleetResponder`.
- * The whole parameter defaults to `{ human: false }`: `SiegelenseFlow`'s current route calls this
- * responder with zero arguments, and that call site belongs to the route table (a later work item),
- * not to this file — without the default, destructuring `undefined` there would throw. **The
- * refusal for `--human` on a call with no renderer lives in `SiegelenseFlow`'s route table, not
- * here** — this responder only ever renders when told to.
+ * PURPOSE: The surface `dungeonmaster siegelense cleanup` serves — the operator's bookend table
+ * through `cleanupAnswerRenderTransformer` by default (when `human` is true or omitted), or one
+ * JSON document on stdout (the raw `CleanupAnswer`) when `human` is false (opted into with
+ * `--json`). Writes through `process.stdout.write`, never `console.log`, matching `SiegelenseFleetResponder`.
+ * The whole parameter defaults to `{ human: true }`: calling this responder with zero arguments
+ * outputs the human table by default.
  *
  * USAGE:
+ * await SiegelenseCleanupResponder();
+ * // Writes what was reaped, what ports/locks came back, and what was left alone with its reason
+ *
  * await SiegelenseCleanupResponder({ human: false });
  * // Writes the CleanupAnswer as one JSON document
- *
- * await SiegelenseCleanupResponder({ human: true });
- * // Writes what was reaped, what ports/locks came back, and what was left alone with its reason
  */
 
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
@@ -27,10 +23,10 @@ import { cleanupAnswerRenderTransformer } from '../../../transformers/cleanup-an
 
 export const SiegelenseCleanupResponder = async (
   {
-    human,
+    human = true,
   }: {
-    human: boolean;
-  } = { human: false },
+    human?: boolean;
+  } = { human: true },
 ): Promise<AdapterResult> => {
   const answer = await cleanupRunBroker();
   process.stdout.write(

@@ -17,6 +17,7 @@ import { instanceIdContract } from '../instance-id/instance-id-contract';
 export const snapshotsArgsContract = z
   .object({
     instanceId: instanceIdContract,
+    json: z.boolean().default(false),
   })
   .strict();
 

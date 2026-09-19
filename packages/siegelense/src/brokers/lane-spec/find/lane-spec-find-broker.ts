@@ -5,7 +5,7 @@
  * directly whenever the caller needs a validated `LaneSpec` rather than the raw template object.
  *
  * USAGE:
- * laneSpecFindBroker({ specName: SpecNameStub({ value: 'dungeonmaster-headless' }) });
+ * laneSpecFindBroker({ specName: SpecNameStub({ value: 'dungeonmaster-api' }) });
  * // Returns the validated LaneSpec for the browserless built-in
  */
 

@@ -4,47 +4,52 @@ import { docsArgsParseTransformer } from './docs-args-parse-transformer';
 
 describe('docsArgsParseTransformer', () => {
   describe('the accepted forms', () => {
-    it('EMPTY: {args: []} => returns the whole surface as JSON', () => {
-      const result = docsArgsParseTransformer({ args: [] });
-
-      expect(result).toStrictEqual({ scope: null, human: false });
-    });
-
     it.each(siegelenseCallStatics.docs.scopes)(
       'VALID: {args: ["--for", "%s"]} => returns that one scope',
       (scope) => {
         const result = docsArgsParseTransformer({ args: ['--for', scope] });
 
-        expect(result).toStrictEqual({ scope, human: false });
+        expect(result).toStrictEqual({ scope, json: false });
       },
     );
 
-    it('VALID: {args: ["--human"]} => the whole surface, rendered as text', () => {
-      const result = docsArgsParseTransformer({ args: ['--human'] });
+    it('VALID: {args: ["--for", "walking", "--json"]} => one scope with json flag', () => {
+      const result = docsArgsParseTransformer({ args: ['--for', 'walking', '--json'] });
 
-      expect(result).toStrictEqual({ scope: null, human: true });
-    });
-
-    it('VALID: {args: ["--for", "walking", "--human"]} => one scope, rendered as text', () => {
-      const result = docsArgsParseTransformer({ args: ['--for', 'walking', '--human'] });
-
-      expect(result).toStrictEqual({ scope: 'walking', human: true });
-    });
-
-    it('VALID: {args: ["--json"]} => the explicit default parses to the same thing as the bare call', () => {
-      const result = docsArgsParseTransformer({ args: ['--json'] });
-
-      expect(result).toStrictEqual({ scope: null, human: false });
+      expect(result).toStrictEqual({ scope: 'walking', json: true });
     });
   });
 
   describe('refusals', () => {
+    it('INVALID: {args: []} => refuses missing --for flag, listing valid scopes', () => {
+      expect(() => docsArgsParseTransformer({ args: [] })).toThrow(
+        '--for <scope> is required: specify the role whose instructions to read.\n\n' +
+          'Accepted scopes: operating, planning, walking, attacking, fixing, driving, operational\n\n' +
+          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
+      );
+    });
+
+    it('INVALID: {args: ["--human"]} => refuses --human as an unknown flag', () => {
+      expect(() => docsArgsParseTransformer({ args: ['--human'] })).toThrow(
+        'Unknown flag: --human\n\n' +
+          'Accepted flags: --for, --json\n\n' +
+          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
+      );
+    });
+
+    it('INVALID: {args: ["--json"]} => refuses missing --for flag when only flags present', () => {
+      expect(() => docsArgsParseTransformer({ args: ['--json'] })).toThrow(
+        '--for <scope> is required: specify the role whose instructions to read.\n\n' +
+          'Accepted scopes: operating, planning, walking, attacking, fixing, driving, operational\n\n' +
+          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
+      );
+    });
+
     it('INVALID: {args: ["--for", "reader"]} => refuses by name and lists the seven scopes that exist', () => {
       expect(() => docsArgsParseTransformer({ args: ['--for', 'reader'] })).toThrow(
         'Unknown docs scope: reader\n\n' +
           'docs serves one scope per tool-using role. The scopes that exist are: operating, planning, walking, attacking, fixing, driving, operational.\n\n' +
-          'Omit --for to get all of them.\n\n' +
-          'Usage: dungeonmaster siegelense docs [--for <scope>] [--json] [--human]',
+          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
       );
     });
 
@@ -52,8 +57,7 @@ describe('docsArgsParseTransformer', () => {
       expect(() => docsArgsParseTransformer({ args: ['--for', 'start'] })).toThrow(
         'Unknown docs scope: start\n\n' +
           'docs serves one scope per tool-using role. The scopes that exist are: operating, planning, walking, attacking, fixing, driving, operational.\n\n' +
-          'Omit --for to get all of them.\n\n' +
-          'Usage: dungeonmaster siegelense docs [--for <scope>] [--json] [--human]',
+          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
       );
     });
 
@@ -80,8 +84,8 @@ describe('docsArgsParseTransformer', () => {
     it('INVALID: {args: ["--instance", "inst_7f3a9c21"]} => refuses a flag docs does not take, naming the accepted set', () => {
       expect(() => docsArgsParseTransformer({ args: ['--instance', 'inst_7f3a9c21'] })).toThrow(
         'Unknown flag: --instance\n\n' +
-          'Accepted flags: --for, --json, --human\n\n' +
-          'Usage: dungeonmaster siegelense docs [--for <scope>] [--json] [--human]',
+          'Accepted flags: --for, --json\n\n' +
+          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
       );
     });
 
@@ -89,7 +93,7 @@ describe('docsArgsParseTransformer', () => {
       expect(() => docsArgsParseTransformer({ args: ['walking'] })).toThrow(
         'Unexpected positional argument: walking\n\n' +
           'docs names its scope with --for, so a bare word here belongs to no flag.\n\n' +
-          'Usage: dungeonmaster siegelense docs [--for <scope>] [--json] [--human]',
+          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
       );
     });
 
@@ -97,7 +101,7 @@ describe('docsArgsParseTransformer', () => {
       expect(() => docsArgsParseTransformer({ args: ['--for', 'walking', 'extra'] })).toThrow(
         'Unexpected positional argument: extra\n\n' +
           'docs names its scope with --for, so a bare word here belongs to no flag.\n\n' +
-          'Usage: dungeonmaster siegelense docs [--for <scope>] [--json] [--human]',
+          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
       );
     });
   });

@@ -133,7 +133,7 @@ describe('instanceStartBroker', () => {
       const instanceId = proxy.mintInstanceId();
       const specName = SpecNameStub({ value: 'test-driver-reports-failure' });
       const driverMessage =
-        'Lane spec dungeonmaster-web requires a fake agent CLI, and the environment supplies none of it: set CLAUDE_CLI_PATH to a stub Claude CLI binary.';
+        'Lane spec dungeonmaster-stack requires a fake agent CLI, and the environment supplies none of it: set CLAUDE_CLI_PATH to a stub Claude CLI binary.';
       proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
       proxy.setupBootFailureMarkerAppears({
         instanceId,
@@ -566,7 +566,7 @@ describe('instanceStartBroker', () => {
       await expect(
         instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null, seed: null }),
       ).rejects.toThrow(
-        /^Refusing to start dungeonmaster-web: this machine cannot hold another instance right now — no room for one more: 2599MB available is under the 2600MB this spec peaks at\. Run/u,
+        /^Refusing to start dungeonmaster-stack: this machine cannot hold another instance right now — no room for one more: 2599MB available is under the 2600MB this spec peaks at\. Run/u,
       );
 
       expect(proxy.getWriteOrder()).toStrictEqual([]);
@@ -588,7 +588,7 @@ describe('instanceStartBroker', () => {
       await expect(
         instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null, seed: null }),
       ).rejects.toThrow(
-        /^Refusing to start dungeonmaster-web: this machine cannot hold another instance right now — the policy pool of 3 is full\. Run/u,
+        /^Refusing to start dungeonmaster-stack: this machine cannot hold another instance right now — the policy pool of 3 is full\. Run/u,
       );
 
       expect(proxy.getWriteOrder()).toStrictEqual([]);

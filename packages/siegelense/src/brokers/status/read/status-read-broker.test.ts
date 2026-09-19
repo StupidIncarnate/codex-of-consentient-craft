@@ -30,7 +30,7 @@ describe('statusReadBroker', () => {
         RegistryEntryStub({
           id,
           guildId: null,
-          specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+          specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
           pgids: [ProcessGroupIdStub({ value: 4_143_212 + index })],
           state: 'alive',
           bootedAtMs: EpochMsStub({ value: nowMs - 60_000 }),
@@ -97,7 +97,7 @@ describe('statusReadBroker', () => {
           instances: ids.map((id) => ({
             id,
             state: 'alive',
-            specName: 'dungeonmaster-web',
+            specName: 'dungeonmaster-stack',
             uptime: '1m',
             lastBeat: '1s',
             runs: 0,
@@ -107,6 +107,7 @@ describe('statusReadBroker', () => {
             orphans: [],
             evidence: null,
             likelyCause: null,
+            branch: null,
             evidenceComplete: true,
           })),
         }),
@@ -165,7 +166,7 @@ describe('statusReadBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
-        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         pgids: [pgid],
         state: 'alive',
         lastBeatMs: EpochMsStub({ value: nowMs - 240_000 }),
@@ -259,7 +260,7 @@ describe('statusReadBroker', () => {
             {
               id: instanceId,
               state: 'dead',
-              specName: 'dungeonmaster-web',
+              specName: 'dungeonmaster-stack',
               uptime: null,
               lastBeat: '4m',
               runs: 2,
@@ -277,7 +278,8 @@ describe('statusReadBroker', () => {
                 lastShot: 'run_2/step7.png',
               },
               likelyCause:
-                'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-web; kernel OOM kills since boot: 2',
+                'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',
+              branch: null,
               evidenceComplete: false,
             },
           ],
@@ -326,6 +328,164 @@ describe('statusReadBroker', () => {
           queriedInstanceState: 'unknown',
         }),
       );
+    });
+  });
+
+  describe('branch and since filtering', () => {
+    it('VALID: {branch filter matches one of two instances} => only the matching branch is returned', async () => {
+      const proxy = statusReadBrokerProxy();
+      const nowMs = 1_700_001_000_000;
+      const id1 = InstanceIdStub({ value: 'inst_00000001' });
+      const id2 = InstanceIdStub({ value: 'inst_00000002' });
+      const entry1 = RegistryEntryStub({
+        id: id1,
+        branch: 'feat/branch-a',
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        state: 'alive',
+        bootedAtMs: EpochMsStub({ value: nowMs - 60_000 }),
+        lastBeatMs: EpochMsStub({ value: nowMs - 1000 }),
+      });
+      const entry2 = RegistryEntryStub({
+        id: id2,
+        branch: 'main',
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        state: 'alive',
+        bootedAtMs: EpochMsStub({ value: nowMs - 60_000 }),
+        lastBeatMs: EpochMsStub({ value: nowMs - 1000 }),
+      });
+      const registry = RegistryStub({ instances: [entry1, entry2] });
+
+      proxy.setupNow({ nowMs });
+      proxy.setupRegistryResolution({ registry });
+      proxy.setupInstanceStateResolution({ registry });
+      proxy.setupInstanceStateResolution({ registry });
+
+      proxy.setupMachineReading({
+        freeMemBytes: 980 * 1_048_576,
+        totalMemBytes: 16_000 * 1_048_576,
+        coreCount: 8,
+        loadAvg: [7.9, 6.2, 4.1],
+        diskBavail: 512_000,
+        diskBsize: 4096,
+        vmstatContent: 'nr_free_pages 100\noom_kill 2\n',
+      });
+
+      const evidencePath1 = FilePathStub({ value: `${ROOT_PATH_VALUE}/unowned/instances/${id1}` });
+      proxy.setupEvidenceDir({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        evidencePath: evidencePath1,
+      });
+      proxy.setupHeartbeatMissing({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        evidencePath: evidencePath1,
+      });
+      proxy.setupRunsDirPathJoin({ evidencePath: evidencePath1 });
+      proxy.setupRunsDirEntries({ evidencePath: evidencePath1, entries: [] });
+      proxy.setupProcListing({ pids: [] });
+
+      const result = await statusReadBroker({ instanceId: null, branch: 'feat/branch-a' });
+
+      expect(result.instances).toStrictEqual([
+        {
+          id: id1,
+          state: 'alive',
+          specName: 'dungeonmaster-stack',
+          uptime: '1m',
+          lastBeat: '1s',
+          runs: 0,
+          rssMB: 0,
+          rssAtLastBeat: null,
+          lastStep: null,
+          orphans: [],
+          evidence: null,
+          likelyCause: null,
+          branch: 'feat/branch-a',
+          evidenceComplete: true,
+        },
+      ]);
+    });
+
+    it('VALID: {since filter 1h filters out instance active 2h ago} => only instances within the 1h window returned', async () => {
+      const proxy = statusReadBrokerProxy();
+      const nowMs = 1_700_001_000_000;
+      const idRecent = InstanceIdStub({ value: 'inst_00000001' });
+      const idOld = InstanceIdStub({ value: 'inst_00000002' });
+      const entryRecent = RegistryEntryStub({
+        id: idRecent,
+        branch: 'main',
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        state: 'alive',
+        bootedAtMs: EpochMsStub({ value: nowMs - 60_000 }),
+        lastBeatMs: EpochMsStub({ value: nowMs - 1000 }),
+      });
+      const entryOld = RegistryEntryStub({
+        id: idOld,
+        branch: 'main',
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        state: 'alive',
+        bootedAtMs: EpochMsStub({ value: nowMs - 7_200_000 }),
+        lastBeatMs: EpochMsStub({ value: nowMs - 7_200_000 }),
+      });
+      const registry = RegistryStub({ instances: [entryRecent, entryOld] });
+
+      proxy.setupNow({ nowMs });
+      proxy.setupRegistryResolution({ registry });
+      proxy.setupInstanceStateResolution({ registry });
+      proxy.setupInstanceStateResolution({ registry });
+
+      proxy.setupMachineReading({
+        freeMemBytes: 980 * 1_048_576,
+        totalMemBytes: 16_000 * 1_048_576,
+        coreCount: 8,
+        loadAvg: [7.9, 6.2, 4.1],
+        diskBavail: 512_000,
+        diskBsize: 4096,
+        vmstatContent: 'nr_free_pages 100\noom_kill 2\n',
+      });
+
+      const evidencePathRecent = FilePathStub({
+        value: `${ROOT_PATH_VALUE}/unowned/instances/${idRecent}`,
+      });
+      proxy.setupEvidenceDir({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        evidencePath: evidencePathRecent,
+      });
+      proxy.setupHeartbeatMissing({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        evidencePath: evidencePathRecent,
+      });
+      proxy.setupRunsDirPathJoin({ evidencePath: evidencePathRecent });
+      proxy.setupRunsDirEntries({ evidencePath: evidencePathRecent, entries: [] });
+      proxy.setupProcListing({ pids: [] });
+
+      const result = await statusReadBroker({ instanceId: null, since: '1h' });
+
+      expect(result.instances).toStrictEqual([
+        {
+          id: idRecent,
+          state: 'alive',
+          specName: 'dungeonmaster-stack',
+          uptime: '1m',
+          lastBeat: '1s',
+          runs: 0,
+          rssMB: 0,
+          rssAtLastBeat: null,
+          lastStep: null,
+          orphans: [],
+          evidence: null,
+          likelyCause: null,
+          branch: 'main',
+          evidenceComplete: true,
+        },
+      ]);
     });
   });
 });

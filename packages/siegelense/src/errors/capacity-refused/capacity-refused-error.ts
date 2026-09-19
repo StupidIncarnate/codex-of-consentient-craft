@@ -7,7 +7,7 @@
  *
  * USAGE:
  * throw new CapacityRefusedError({
- *   specName: 'dungeonmaster-web',
+ *   specName: 'dungeonmaster-stack',
  *   why: 'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; …',
  * });
  * // Throws naming the spec and the whole measured reason

@@ -5,7 +5,7 @@ describe('specProfileContract', () => {
   describe('a measured profile', () => {
     it('VALID: {two pool-size groups} => parses to the complete answer, both groups intact', () => {
       const profile = SpecProfileStub({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         processes: 3,
         hash: 'a3f9c2e1',
         measuredAt: '2026-09-14',
@@ -18,7 +18,7 @@ describe('specProfileContract', () => {
       });
 
       expect(specProfileContract.parse(profile)).toStrictEqual({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         processes: 3,
         hash: 'a3f9c2e1',
         measuredAt: '2026-09-14',
@@ -35,7 +35,7 @@ describe('specProfileContract', () => {
   describe('a spec nothing has measured', () => {
     it('EMPTY: {no samples, no boot, no date} => parses, because "never measured" is a real answer', () => {
       const profile = SpecProfileStub({
-        specName: 'dungeonmaster-headless',
+        specName: 'dungeonmaster-api',
         processes: 1,
         hash: 'a3f9c2e1',
         measuredAt: null,
@@ -45,7 +45,7 @@ describe('specProfileContract', () => {
       });
 
       expect(specProfileContract.parse(profile)).toStrictEqual({
-        specName: 'dungeonmaster-headless',
+        specName: 'dungeonmaster-api',
         processes: 1,
         hash: 'a3f9c2e1',
         measuredAt: null,
@@ -60,7 +60,7 @@ describe('specProfileContract', () => {
     it('INVALID: {poolSize: 0 in a sample} => throws', () => {
       expect(() => {
         specProfileContract.parse({
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           processes: 3,
           hash: 'a3f9c2e1',
           measuredAt: null,
@@ -74,7 +74,7 @@ describe('specProfileContract', () => {
     it('INVALID: {a sample with no poolSize} => throws, a reading without its condition is not a reading', () => {
       expect(() => {
         specProfileContract.parse({
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           processes: 3,
           hash: 'a3f9c2e1',
           measuredAt: null,

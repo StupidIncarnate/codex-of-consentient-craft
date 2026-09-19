@@ -44,7 +44,7 @@ describe('statusAnswerContract', () => {
           {
             id: 'inst_7f3a',
             state: 'alive',
-            specName: 'dungeonmaster-web',
+            specName: 'dungeonmaster-stack',
             uptime: '14m',
             lastBeat: '2s ago',
             runs: 3,
@@ -54,6 +54,7 @@ describe('statusAnswerContract', () => {
             orphans: [],
             evidence: null,
             likelyCause: null,
+            branch: null,
             evidenceComplete: true,
           },
         ],
@@ -65,7 +66,7 @@ describe('statusAnswerContract', () => {
         {
           id: 'inst_7f3a',
           state: 'alive',
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           uptime: '14m',
           lastBeat: '2s ago',
           runs: 3,
@@ -75,6 +76,7 @@ describe('statusAnswerContract', () => {
           orphans: [],
           evidence: null,
           likelyCause: null,
+          branch: null,
           evidenceComplete: true,
         },
       ]);

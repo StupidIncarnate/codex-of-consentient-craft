@@ -9,10 +9,15 @@ import { fleetTableRenderTransformer } from './fleet-table-render-transformer';
 
 describe('fleetTableRenderTransformer', () => {
   describe('no entries', () => {
-    it('EMPTY: {entries: []} => the header line alone', () => {
+    it('EMPTY: {entries: []} => the header line with box borders', () => {
       const result = fleetTableRenderTransformer({ entries: [], nowMs: EpochMsStub() });
 
-      expect(result).toBe('ID  STATE  SPEC  PORTS  LAST BEAT\n');
+      expect(result).toBe(
+        '┌────┬───────┬──────┬───────┬───────────┐\n' +
+          '│ ID │ STATE │ SPEC │ PORTS │ LAST BEAT │\n' +
+          '├────┼───────┼──────┼───────┼───────────┤\n' +
+          '└────┴───────┴──────┴───────┴───────────┘\n',
+      );
     });
   });
 
@@ -20,7 +25,7 @@ describe('fleetTableRenderTransformer', () => {
     it('EMPTY: {lastBeatMs: null} => the LAST BEAT column reads a dash', () => {
       const entry = RegistryEntryStub({
         id: InstanceIdStub({ value: 'inst_00000000' }),
-        specName: SpecNameStub({ value: 'dungeonmaster-headless' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-api' }),
         ports: PortPairStub({ api: 34_180, web: 34_181 }),
         state: InstanceStateStub({ value: 'alive' }),
         lastBeatMs: null,
@@ -29,8 +34,11 @@ describe('fleetTableRenderTransformer', () => {
       const result = fleetTableRenderTransformer({ entries: [entry], nowMs: EpochMsStub() });
 
       expect(result).toBe(
-        'ID             STATE  SPEC                    PORTS        LAST BEAT\n' +
-          'inst_00000000  alive  dungeonmaster-headless  34180/34181  -\n',
+        '┌───────────────┬───────┬───────────────────┬─────────────┬───────────┐\n' +
+          '│ ID            │ STATE │ SPEC              │ PORTS       │ LAST BEAT │\n' +
+          '├───────────────┼───────┼───────────────────┼─────────────┼───────────┤\n' +
+          '│ inst_00000000 │ alive │ dungeonmaster-api │ 34180/34181 │ -         │\n' +
+          '└───────────────┴───────┴───────────────────┴─────────────┴───────────┘\n',
       );
     });
   });
@@ -39,7 +47,7 @@ describe('fleetTableRenderTransformer', () => {
     it('VALID: {nowMs - lastBeatMs = 13h} => LAST BEAT renders the same age elapsedRenderTransformer produces', () => {
       const entry = RegistryEntryStub({
         id: InstanceIdStub({ value: 'inst_0ac4219441534a54872b9c3a478d99d8' }),
-        specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         ports: PortPairStub({ api: 33_107, web: 34_781 }),
         state: InstanceStateStub({ value: 'killed' }),
         lastBeatMs: EpochMsStub({ value: 53_200_000 }),
@@ -51,8 +59,11 @@ describe('fleetTableRenderTransformer', () => {
       });
 
       expect(result).toBe(
-        'ID                                     STATE   SPEC               PORTS        LAST BEAT\n' +
-          'inst_0ac4219441534a54872b9c3a478d99d8  killed  dungeonmaster-web  33107/34781  13h\n',
+        '┌───────────────────────────────────────┬────────┬─────────────────────┬─────────────┬───────────┐\n' +
+          '│ ID                                    │ STATE  │ SPEC                │ PORTS       │ LAST BEAT │\n' +
+          '├───────────────────────────────────────┼────────┼─────────────────────┼─────────────┼───────────┤\n' +
+          '│ inst_0ac4219441534a54872b9c3a478d99d8 │ killed │ dungeonmaster-stack │ 33107/34781 │ 13h       │\n' +
+          '└───────────────────────────────────────┴────────┴─────────────────────┴─────────────┴───────────┘\n',
       );
     });
   });
@@ -62,14 +73,14 @@ describe('fleetTableRenderTransformer', () => {
       const entries = [
         RegistryEntryStub({
           id: InstanceIdStub({ value: 'inst_7f3a9c21' }),
-          specName: SpecNameStub({ value: 'dungeonmaster-web' }),
+          specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
           ports: PortPairStub({ api: 34_172, web: 34_173 }),
           state: InstanceStateStub({ value: 'alive' }),
           lastBeatMs: EpochMsStub({ value: 1_699_967_600_000 }),
         }),
         RegistryEntryStub({
           id: InstanceIdStub({ value: 'inst_00000000' }),
-          specName: SpecNameStub({ value: 'dungeonmaster-headless' }),
+          specName: SpecNameStub({ value: 'dungeonmaster-api' }),
           ports: PortPairStub({ api: 34_180, web: 34_181 }),
           state: InstanceStateStub({ value: 'dead' }),
           lastBeatMs: null,
@@ -82,9 +93,12 @@ describe('fleetTableRenderTransformer', () => {
       });
 
       expect(result).toBe(
-        'ID             STATE  SPEC                    PORTS        LAST BEAT\n' +
-          'inst_7f3a9c21  alive  dungeonmaster-web       34172/34173  9h\n' +
-          'inst_00000000  dead   dungeonmaster-headless  34180/34181  -\n',
+        '┌───────────────┬───────┬─────────────────────┬─────────────┬───────────┐\n' +
+          '│ ID            │ STATE │ SPEC                │ PORTS       │ LAST BEAT │\n' +
+          '├───────────────┼───────┼─────────────────────┼─────────────┼───────────┤\n' +
+          '│ inst_7f3a9c21 │ alive │ dungeonmaster-stack │ 34172/34173 │ 9h        │\n' +
+          '│ inst_00000000 │ dead  │ dungeonmaster-api   │ 34180/34181 │ -         │\n' +
+          '└───────────────┴───────┴─────────────────────┴─────────────┴───────────┘\n',
       );
     });
   });

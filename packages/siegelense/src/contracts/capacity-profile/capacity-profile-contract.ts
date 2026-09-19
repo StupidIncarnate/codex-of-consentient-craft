@@ -10,7 +10,7 @@
  *
  * USAGE:
  * capacityProfileContract.parse({
- *   spec: 'dungeonmaster-web', poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9,
+ *   spec: 'dungeonmaster-stack', poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9,
  * });
  * // Returns a validated CapacityProfile
  */

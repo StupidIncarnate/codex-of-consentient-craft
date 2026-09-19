@@ -234,7 +234,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 |---|---|---|---|
 | `goto` | **built** | `before` | **built** |
 | `waitFor` | **built** | `health` | **built** |
-| `click` | **built** | `reset` | not built |
+| `click` | **built** | `reset` | **built** |
 | `type` | **built** | `snapshot` | **built** |
 | `screenshot` | **built** | `seed` | **built** |
 | `eval` | **built** | `until` | **built** |
@@ -250,8 +250,7 @@ packages/siegelense/src/flows/siegelense/siegelense-flow.ts   → CALL_ROUTES
 packages/siegelense/src/statics/step/step-statics.ts   → verbs.all
 ```
 
-**`look`, `box`, `dom`, `seed`, `until`, `key`, `health`, `resize`, `request`, `before`, `file`, `storage`, `paste`, `hold`, `video` and `snapshot` are built.** What is next is in "How to pick the next piece" — re-derive it
-rather than trusting a shortlist written before this round.
+**All twenty-three step verbs are built: `goto`, `waitFor`, `click`, `type`, `screenshot`, `eval`, `look`, `box`, `dom`, `seed`, `until`, `key`, `health`, `resize`, `request`, `before`, `file`, `storage`, `paste`, `hold`, `video`, `snapshot`, and `reset`.**
 
 ### The build-order items
 
@@ -277,7 +276,7 @@ yourself from the table rather than trusting a tally; a tally is the first thing
 | 8 | `health` — one reading, one verdict line | **done** — root presence, page blankness, console errors, 5xx, server log errors, shot capture; driven on real lane across HEALTHY, DEGRADED, DOWN |
 | 9 | `until` — wait on a response, a file, a predicate | **done** — all five forms, each driven against a real lane |
 | 10 | Selectable readings — `network` projection, `box`, `dom` cap | **done** — network projection, box geometry, and dom projection with self-reporting cap built |
-| 11 | `hold` and `video` | **not started** |
+| 11 | `hold` and `video` | **done** — `hold` delivers live non-settlement frame comparison via `shotChangeReadBroker`; `video` records screencast across batch via Playwright `recordVideo` |
 | 11b | The human-check route | spec-side |
 | 11c | The declared-value block and its third reader | spec-side |
 | 11d | `siegemaster-reader` | **not started** — orchestrator |
@@ -287,8 +286,8 @@ yourself from the table rather than trusting a tally; a tally is the first thing
 | 11h | Print the owning node id in `get-qa-checklist` | **not started** — orchestrator/mcp |
 | 12 | Server-side failure injection | **not started** |
 | 13b | `compare` — the index delta between two runs | **done** minus `elements` |
-| 14 | Three reset levels with named snapshots | part: the `snapshots` call and the automatic `run_N:start`/`run_N:end` pair are real copies; no `reset`, no manual `snapshot` verb |
-| 15 | `resize`, and a direct `request` step | **not started** |
+| 14 | Three reset levels with named snapshots | **done** — `snapshot` delivers named manual state restore points (`snapshots` call reports `manual: true`); `reset` rolls back across `page`, `state`, and `instance` levels reporting diff undid |
+| 15 | `resize`, and a direct `request` step | **done** — `resize` delivers dynamic viewport sizing via `session.setViewport` with layout shift tracking; `request` delivers direct HTTP client against `lane.apiBaseUrl` |
 | 16 | The two local lint rules | part: `.first()`/`.last()` done, DOM-handle rule open |
 | 17 | The lane spec and N ports, moved where consumers get it | part: it is data; it still names two packages directly |
 

@@ -4,20 +4,25 @@ import { docsAnswerRenderTransformer } from './docs-answer-render-transformer';
 
 describe('docsAnswerRenderTransformer', () => {
   describe('one scope', () => {
-    it('VALID: {one document, one section} => renders ABOUT, the scope headline, then the indented section', () => {
+    it('VALID: {one document, one section} => renders title, ABOUT, the scope headline, then the section', () => {
       const answer = DocsAnswerStub();
 
       const result = docsAnswerRenderTransformer({ answer });
 
       expect(result).toBe(
-        'ABOUT\n' +
-          '  siegelense stands up one instance of an app, drives it, and hands back READINGS.\n' +
+        '# Siegelense Documentation\n' +
           '\n' +
-          'walking — the walker\n' +
-          '  The verbs, the reading rules and the ladder.\n' +
+          '## About\n' +
           '\n' +
-          '  THE LADDER\n' +
-          '    The rule: reach for the key first. dom is the hatch — last, and always narrow.\n',
+          '- siegelense stands up one instance of an app, drives it, and hands back READINGS.\n' +
+          '\n' +
+          '## walking — the walker\n' +
+          '\n' +
+          'The verbs, the reading rules and the ladder.\n' +
+          '\n' +
+          '### THE LADDER\n' +
+          '\n' +
+          '- The rule: reach for the key first. dom is the hatch — last, and always narrow.\n',
       );
     });
   });
@@ -45,31 +50,145 @@ describe('docsAnswerRenderTransformer', () => {
       const result = docsAnswerRenderTransformer({ answer });
 
       expect(result).toBe(
-        'ABOUT\n' +
-          '  Every call is: dungeonmaster siegelense <call>.\n' +
+        '# Siegelense Documentation\n' +
           '\n' +
-          'operating — the operator\n' +
-          '  Fleet management.\n' +
+          '## About\n' +
           '\n' +
-          '  REAPING RULES\n' +
-          '    Run cleanup at both ends.\n' +
+          '- Every call is: dungeonmaster siegelense <call>.\n' +
           '\n' +
-          'driving — a session nobody orchestrated\n' +
-          '  Everything is yours to do.\n' +
+          '## operating — the operator\n' +
           '\n' +
-          '  THE SURFACE\n' +
-          '    kill is yours to call.\n',
+          'Fleet management.\n' +
+          '\n' +
+          '### REAPING RULES\n' +
+          '\n' +
+          '- Run cleanup at both ends.\n' +
+          '\n' +
+          '## driving — a session nobody orchestrated\n' +
+          '\n' +
+          'Everything is yours to do.\n' +
+          '\n' +
+          '### THE SURFACE\n' +
+          '\n' +
+          '- kill is yours to call.\n',
+      );
+    });
+  });
+
+  describe('formatting', () => {
+    it('VALID: {step definition} => renders as fenced json block', () => {
+      const answer = DocsAnswerStub({
+        about: [],
+        scopes: [
+          {
+            scope: 'walking',
+            audience: 'the walker',
+            summary: 'Summary',
+            sections: [
+              {
+                heading: 'VERBS',
+                lines: ["{ step: 'goto', path: '/' }"],
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = docsAnswerRenderTransformer({ answer });
+
+      expect(result).toBe(
+        '# Siegelense Documentation\n' +
+          '\n' +
+          '## walking — the walker\n' +
+          '\n' +
+          'Summary\n' +
+          '\n' +
+          '### VERBS\n' +
+          '\n' +
+          '```json\n' +
+          "{ step: 'goto', path: '/' }\n" +
+          '```\n',
+      );
+    });
+
+    it('VALID: {cli command} => renders as fenced bash block', () => {
+      const answer = DocsAnswerStub({
+        about: [],
+        scopes: [
+          {
+            scope: 'fixing',
+            audience: 'the fixer',
+            summary: 'Summary',
+            sections: [
+              {
+                heading: 'COMMANDS',
+                lines: ['dungeonmaster siegelense status --instance <id>'],
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = docsAnswerRenderTransformer({ answer });
+
+      expect(result).toBe(
+        '# Siegelense Documentation\n' +
+          '\n' +
+          '## fixing — the fixer\n' +
+          '\n' +
+          'Summary\n' +
+          '\n' +
+          '### COMMANDS\n' +
+          '\n' +
+          '```bash\n' +
+          'dungeonmaster siegelense status --instance <id>\n' +
+          '```\n',
+      );
+    });
+
+    it('VALID: {term with em-dash} => bolds the prefix term', () => {
+      const answer = DocsAnswerStub({
+        about: [],
+        scopes: [
+          {
+            scope: 'operating',
+            audience: 'the operator',
+            summary: 'Summary',
+            sections: [
+              {
+                heading: 'CAPACITY',
+                lines: [
+                  'dungeonmaster siegelense capacity — what this machine can take right now.',
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = docsAnswerRenderTransformer({ answer });
+
+      expect(result).toBe(
+        '# Siegelense Documentation\n' +
+          '\n' +
+          '## operating — the operator\n' +
+          '\n' +
+          'Summary\n' +
+          '\n' +
+          '### CAPACITY\n' +
+          '\n' +
+          '- **dungeonmaster siegelense capacity** — what this machine can take right now.\n',
       );
     });
   });
 
   describe('edge cases', () => {
-    it('EMPTY: {scopes: [], about: []} => renders the bare ABOUT heading and one trailing newline', () => {
+    it('EMPTY: {scopes: [], about: []} => renders the bare title and one trailing newline', () => {
       const answer = DocsAnswerStub({ about: [], scopes: [] });
 
       const result = docsAnswerRenderTransformer({ answer });
 
-      expect(result).toBe('ABOUT\n');
+      expect(result).toBe('# Siegelense Documentation\n');
     });
 
     it('EMPTY: {a section with no lines} => renders the heading alone, never a dangling indent', () => {
@@ -88,12 +207,13 @@ describe('docsAnswerRenderTransformer', () => {
       const result = docsAnswerRenderTransformer({ answer });
 
       expect(result).toBe(
-        'ABOUT\n' +
+        '# Siegelense Documentation\n' +
           '\n' +
-          'planning — the planner\n' +
-          '  Preludes and profiles.\n' +
+          '## planning — the planner\n' +
           '\n' +
-          '  RECIPES\n',
+          'Preludes and profiles.\n' +
+          '\n' +
+          '### RECIPES\n',
       );
     });
   });

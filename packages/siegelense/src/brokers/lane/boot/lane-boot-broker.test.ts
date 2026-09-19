@@ -10,6 +10,7 @@ import { LaneSpecStub } from '../../../contracts/lane-spec/lane-spec.stub';
 import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { laneSpecStatics } from '../../../statics/lane-spec/lane-spec-statics';
+import { fakeAgentCliStatics } from '../../../statics/fake-agent-cli/fake-agent-cli-statics';
 
 const INSTANCE_ID = InstanceIdStub();
 const HOME_PATH = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_7f3a9c21' });
@@ -50,7 +51,7 @@ describe('laneBootBroker', () => {
         env: { DUNGEONMASTER_WEB_PORT: '{webPort}' },
       });
       const spec = LaneSpecStub({
-        name: 'dungeonmaster-web',
+        name: 'dungeonmaster-stack',
         processes: [apiProcess, webProcess],
         browser: true,
         env: { DUNGEONMASTER_PORT: '{apiPort}' },
@@ -218,7 +219,7 @@ describe('laneBootBroker', () => {
         env: { DUNGEONMASTER_WEB_PORT: '{webPort}' },
       });
       const spec = LaneSpecStub({
-        name: 'dungeonmaster-web',
+        name: 'dungeonmaster-stack',
         processes: [apiProcess, webProcess],
         browser: true,
         env: { DUNGEONMASTER_PORT: '{apiPort}' },
@@ -342,7 +343,7 @@ describe('laneBootBroker', () => {
         env: {},
       });
       const spec = LaneSpecStub({
-        name: 'dungeonmaster-headless',
+        name: 'dungeonmaster-api',
         processes: [apiProcess],
         browser: false,
         env: { DUNGEONMASTER_PORT: '{apiPort}' },
@@ -449,8 +450,8 @@ describe('laneBootBroker', () => {
     });
   });
 
-  describe('the real dungeonmaster-headless static, run through a real boot', () => {
-    it('VALID: {laneSpecStatics.specs[dungeonmaster-headless], CLAUDE_CLI_PATH/WARD_CLI_PATH supplied by the caller} => boots, and both fake-CLI paths reach the spawned process', async () => {
+  describe('the real dungeonmaster-api static, run through a real boot', () => {
+    it('VALID: {laneSpecStatics.specs[dungeonmaster-api], CLAUDE_CLI_PATH/WARD_CLI_PATH supplied by the caller} => boots, and both fake-CLI paths reach the spawned process', async () => {
       // The caller's own shell supplying these before invoking siegelense is the ONLY way
       // requiresFakeAgentCli: true (declared on this static — see lane-spec-statics.ts) is
       // satisfied; the merge lets an ambient value neither this broker nor the spec resolves
@@ -464,7 +465,7 @@ describe('laneBootBroker', () => {
       // Statics hold raw, unbranded data (see lane-spec-statics.ts's PURPOSE) — routing it through
       // LaneSpecStub's own laneSpecContract.parse is what brands it, without this test file
       // importing a contract directly.
-      const spec = LaneSpecStub({ ...laneSpecStatics.specs['dungeonmaster-headless'] });
+      const spec = LaneSpecStub({ ...laneSpecStatics.specs['dungeonmaster-api'] });
       proxy.setupProcessBoot({
         logPath: API_LOG_PATH,
         fd: apiFd,
@@ -516,14 +517,12 @@ describe('laneBootBroker', () => {
   });
 
   describe('a spec requiring a fake agent CLI', () => {
-    it('ERROR: {requiresFakeAgentCli: true, nothing supplied} => refuses before spawning anything, naming the missing variables and what to set them to', async () => {
+    it('ERROR: {requiresFakeAgentCli: true, nothing supplied, fixtures missing on disk} => refuses before spawning anything, naming the missing variables and what to set them to', async () => {
       Reflect.deleteProperty(process.env, 'CLAUDE_CLI_PATH');
       Reflect.deleteProperty(process.env, 'WARD_CLI_PATH');
-      // Registers every mocked boundary with its default throw-on-unmatched-call behavior and
-      // stages NONE of them — if the refusal below ever moved past the first side effect, the
-      // next unstaged mkdir/spawn call would throw a mismatch error instead, and the assertion
-      // on FakeAgentCliRequiredError's own shape would fail.
-      laneBootBrokerProxy();
+      const proxy = laneBootBrokerProxy();
+      const repoRoot = proxy.resolveRepoRoot();
+      proxy.setupAgentCliFixturesNotFound({ repoRoot });
       const apiProcess = LaneProcessStub({
         name: 'api',
         command: 'npm',
@@ -534,7 +533,7 @@ describe('laneBootBroker', () => {
         env: {},
       });
       const spec = LaneSpecStub({
-        name: 'dungeonmaster-headless',
+        name: 'dungeonmaster-api',
         processes: [apiProcess],
         browser: false,
         env: {},
@@ -552,10 +551,116 @@ describe('laneBootBroker', () => {
       expect({ name: caughtError.name, message: caughtError.message }).toStrictEqual({
         name: 'FakeAgentCliRequiredError',
         message:
-          'Lane spec dungeonmaster-headless requires a fake agent CLI, and the environment ' +
+          'Lane spec dungeonmaster-api requires a fake agent CLI, and the environment ' +
           'supplies none of it: set CLAUDE_CLI_PATH to a stub Claude CLI binary; set ' +
           'WARD_CLI_PATH to a stub dungeonmaster-ward CLI binary. Refusing to boot against the ' +
           'real CLI — that spends real API usage and produces a non-deterministic reading.',
+      });
+    });
+
+    it('ERROR: {requiresFakeAgentCli: true, one fixture on disk, other missing} => refuses naming only the missing variable', async () => {
+      Reflect.deleteProperty(process.env, 'CLAUDE_CLI_PATH');
+      Reflect.deleteProperty(process.env, 'WARD_CLI_PATH');
+      const proxy = laneBootBrokerProxy();
+      const repoRoot = proxy.resolveRepoRoot();
+      const claudeFixture = AbsoluteFilePathStub({
+        value: `${repoRoot}/${fakeAgentCliStatics.requiredEnvVars[0].fixtureRelativePath}`,
+      });
+      const wardFixture = AbsoluteFilePathStub({
+        value: `${repoRoot}/${fakeAgentCliStatics.requiredEnvVars[1].fixtureRelativePath}`,
+      });
+      proxy.setupAgentCliFixtureFound({ filePath: claudeFixture });
+      proxy.setupAgentCliFixtureNotFound({ filePath: wardFixture });
+      const apiProcess = LaneProcessStub({
+        name: 'api',
+        command: 'npm',
+        args: ['run', 'dev:no-watch'],
+        portRole: 'api',
+        readyPath: '/api/guilds',
+        logFileName: 'api-server.log',
+        env: {},
+      });
+      const spec = LaneSpecStub({
+        name: 'dungeonmaster-api',
+        processes: [apiProcess],
+        browser: false,
+        env: {},
+        requiresFakeAgentCli: true,
+      });
+
+      const caughtError = (await laneBootBroker({
+        spec,
+        ports: PortPairStub({ api: 34_172, web: 34_173 }),
+        instanceId: INSTANCE_ID,
+        homePath: HOME_PATH,
+        evidencePath: EVIDENCE_PATH,
+      }).catch((error: unknown) => error)) as FakeAgentCliRequiredError;
+
+      expect({ name: caughtError.name, message: caughtError.message }).toStrictEqual({
+        name: 'FakeAgentCliRequiredError',
+        message:
+          'Lane spec dungeonmaster-api requires a fake agent CLI, and the environment ' +
+          'supplies none of it: set WARD_CLI_PATH to a stub dungeonmaster-ward CLI binary. Refusing to boot ' +
+          'against the real CLI — that spends real API usage and produces a non-deterministic reading.',
+      });
+    });
+
+    it('VALID: {requiresFakeAgentCli: true, nothing supplied in env, fixtures exist on disk} => boots using in-repo fixtures populated into environment', async () => {
+      Reflect.deleteProperty(process.env, 'CLAUDE_CLI_PATH');
+      Reflect.deleteProperty(process.env, 'WARD_CLI_PATH');
+      const proxy = laneBootBrokerProxy();
+      const repoRoot = proxy.resolveRepoRoot();
+      proxy.setupAgentCliFixturesFound({ repoRoot });
+      const apiFd = FileDescriptorStub({ value: 10 });
+      const apiProcess = LaneProcessStub({
+        name: 'api',
+        command: 'npm',
+        args: ['run', 'dev:no-watch'],
+        portRole: 'api',
+        readyPath: '/api/guilds',
+        logFileName: 'api-server.log',
+        env: {},
+      });
+      const spec = LaneSpecStub({
+        name: 'dungeonmaster-api',
+        processes: [apiProcess],
+        browser: false,
+        env: {},
+        requiresFakeAgentCli: true,
+      });
+      proxy.setupProcessBoot({
+        logPath: API_LOG_PATH,
+        fd: apiFd,
+        command: 'npm',
+        args: ['run', 'dev:no-watch'],
+        pid: 1_001,
+      });
+      proxy.setupServerReachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
+      const inheritedEnvSnapshot = proxy.getInheritedEnvSnapshot();
+
+      const lane = await laneBootBroker({
+        spec,
+        ports: PortPairStub({ api: 34_172, web: 34_173 }),
+        instanceId: INSTANCE_ID,
+        homePath: HOME_PATH,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      expect(lane.specName).toBe('dungeonmaster-api');
+      expect(
+        proxy.getSpawnOptionsFor({
+          command: 'npm',
+          args: ['run', 'dev:no-watch'],
+        }),
+      ).toStrictEqual({
+        cwd: repoRoot,
+        env: {
+          ...inheritedEnvSnapshot,
+          CLAUDE_CLI_PATH: `${repoRoot}/${fakeAgentCliStatics.requiredEnvVars[0].fixtureRelativePath}`,
+          WARD_CLI_PATH: `${repoRoot}/${fakeAgentCliStatics.requiredEnvVars[1].fixtureRelativePath}`,
+        },
+        detached: true,
+        stdio: ['ignore', apiFd, apiFd],
       });
     });
   });
@@ -599,16 +704,18 @@ describe('laneBootBroker', () => {
         evidencePath: EVIDENCE_PATH,
       });
 
-      expect(lane.specName).toBe('dungeonmaster-headless');
+      expect(lane.specName).toBe('dungeonmaster-api');
     });
   });
 
   describe('the built-in specs both declare requiresFakeAgentCli', () => {
-    it('ERROR: {laneSpecStatics.specs[dungeonmaster-web], nothing supplied} => refuses to boot', async () => {
+    it('ERROR: {laneSpecStatics.specs[dungeonmaster-stack], nothing supplied, fixtures missing on disk} => refuses to boot', async () => {
       Reflect.deleteProperty(process.env, 'CLAUDE_CLI_PATH');
       Reflect.deleteProperty(process.env, 'WARD_CLI_PATH');
-      laneBootBrokerProxy();
-      const spec = LaneSpecStub({ ...laneSpecStatics.specs['dungeonmaster-web'] });
+      const proxy = laneBootBrokerProxy();
+      const repoRoot = proxy.resolveRepoRoot();
+      proxy.setupAgentCliFixturesNotFound({ repoRoot });
+      const spec = LaneSpecStub({ ...laneSpecStatics.specs['dungeonmaster-stack'] });
 
       const caughtError = (await laneBootBroker({
         spec,
@@ -621,18 +728,20 @@ describe('laneBootBroker', () => {
       expect({ name: caughtError.name, message: caughtError.message }).toStrictEqual({
         name: 'FakeAgentCliRequiredError',
         message:
-          'Lane spec dungeonmaster-web requires a fake agent CLI, and the environment supplies ' +
+          'Lane spec dungeonmaster-stack requires a fake agent CLI, and the environment supplies ' +
           'none of it: set CLAUDE_CLI_PATH to a stub Claude CLI binary; set WARD_CLI_PATH to a ' +
           'stub dungeonmaster-ward CLI binary. Refusing to boot against the real CLI — that ' +
           'spends real API usage and produces a non-deterministic reading.',
       });
     });
 
-    it('ERROR: {laneSpecStatics.specs[dungeonmaster-headless], nothing supplied} => refuses to boot', async () => {
+    it('ERROR: {laneSpecStatics.specs[dungeonmaster-api], nothing supplied, fixtures missing on disk} => refuses to boot', async () => {
       Reflect.deleteProperty(process.env, 'CLAUDE_CLI_PATH');
       Reflect.deleteProperty(process.env, 'WARD_CLI_PATH');
-      laneBootBrokerProxy();
-      const spec = LaneSpecStub({ ...laneSpecStatics.specs['dungeonmaster-headless'] });
+      const proxy = laneBootBrokerProxy();
+      const repoRoot = proxy.resolveRepoRoot();
+      proxy.setupAgentCliFixturesNotFound({ repoRoot });
+      const spec = LaneSpecStub({ ...laneSpecStatics.specs['dungeonmaster-api'] });
 
       const caughtError = (await laneBootBroker({
         spec,
@@ -645,10 +754,60 @@ describe('laneBootBroker', () => {
       expect({ name: caughtError.name, message: caughtError.message }).toStrictEqual({
         name: 'FakeAgentCliRequiredError',
         message:
-          'Lane spec dungeonmaster-headless requires a fake agent CLI, and the environment ' +
+          'Lane spec dungeonmaster-api requires a fake agent CLI, and the environment ' +
           'supplies none of it: set CLAUDE_CLI_PATH to a stub Claude CLI binary; set ' +
           'WARD_CLI_PATH to a stub dungeonmaster-ward CLI binary. Refusing to boot against the ' +
           'real CLI — that spends real API usage and produces a non-deterministic reading.',
+      });
+    });
+
+    it('VALID: {laneSpecStatics.specs[dungeonmaster-api], nothing supplied, fixtures exist on disk} => boots using committed fixture paths', async () => {
+      Reflect.deleteProperty(process.env, 'CLAUDE_CLI_PATH');
+      Reflect.deleteProperty(process.env, 'WARD_CLI_PATH');
+      const proxy = laneBootBrokerProxy();
+      const repoRoot = proxy.resolveRepoRoot();
+      proxy.setupAgentCliFixturesFound({ repoRoot });
+      const apiFd = FileDescriptorStub({ value: 10 });
+      const spec = LaneSpecStub({ ...laneSpecStatics.specs['dungeonmaster-api'] });
+      proxy.setupProcessBoot({
+        logPath: API_LOG_PATH,
+        fd: apiFd,
+        command: 'npm',
+        args: ['run', 'dev:no-watch', '--workspace=@dungeonmaster/server'],
+        pid: 1_001,
+      });
+      proxy.setupServerReachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
+      const inheritedEnvSnapshot = proxy.getInheritedEnvSnapshot();
+
+      await laneBootBroker({
+        spec,
+        ports: PortPairStub({ api: 34_172, web: 34_173 }),
+        instanceId: INSTANCE_ID,
+        homePath: HOME_PATH,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      expect(
+        proxy.getSpawnOptionsFor({
+          command: 'npm',
+          args: ['run', 'dev:no-watch', '--workspace=@dungeonmaster/server'],
+        }),
+      ).toStrictEqual({
+        cwd: repoRoot,
+        env: {
+          ...inheritedEnvSnapshot,
+          CLAUDE_CLI_PATH: `${repoRoot}/${fakeAgentCliStatics.requiredEnvVars[0].fixtureRelativePath}`,
+          WARD_CLI_PATH: `${repoRoot}/${fakeAgentCliStatics.requiredEnvVars[1].fixtureRelativePath}`,
+          DUNGEONMASTER_PORT: '34172',
+          DUNGEONMASTER_HOME: HOME_PATH,
+          HOME: HOME_PATH,
+          FAKE_CLAUDE_QUEUE_DIR: `${HOME_PATH}/claude-queue`,
+          FAKE_WARD_QUEUE_DIR: `${HOME_PATH}/ward-queue`,
+          E2E_SIGNAL_BACK_HTTP: '1',
+          DUNGEONMASTER_RATE_LIMITS_POLL_MS: '500',
+        },
+        detached: true,
+        stdio: ['ignore', apiFd, apiFd],
       });
     });
   });
@@ -670,7 +829,7 @@ describe('laneBootBroker', () => {
         env: {},
       });
       const spec = LaneSpecStub({
-        name: 'dungeonmaster-headless',
+        name: 'dungeonmaster-api',
         processes: [apiProcess],
         browser: false,
         env: {},
@@ -697,7 +856,7 @@ describe('laneBootBroker', () => {
       expect({ name: caughtError.name, message: caughtError.message }).toStrictEqual({
         name: 'LaneBootFailedError',
         message:
-          `Lane dungeonmaster-headless for instance inst_7f3a9c21 did not become ready: api never ` +
+          `Lane dungeonmaster-api for instance inst_7f3a9c21 did not become ready: api never ` +
           `answered their ready path. Logs: ${API_LOG_PATH}`,
       });
       expect(proxy.getKillSignalsFor({ pgid: apiPgid })).toStrictEqual(['SIGKILL']);
@@ -719,7 +878,7 @@ describe('laneBootBroker', () => {
         env: {},
       });
       const spec = LaneSpecStub({
-        name: 'dungeonmaster-headless',
+        name: 'dungeonmaster-api',
         processes: [apiProcess],
         browser: false,
         env: {},
@@ -775,7 +934,7 @@ describe('laneBootBroker', () => {
         env: {},
       });
       const spec = LaneSpecStub({
-        name: 'dungeonmaster-web',
+        name: 'dungeonmaster-stack',
         processes: [apiProcess, webProcess],
         browser: false,
         env: {},
@@ -810,7 +969,7 @@ describe('laneBootBroker', () => {
       expect({ name: caughtError.name, message: caughtError.message }).toStrictEqual({
         name: 'LaneBootFailedError',
         message:
-          `Lane dungeonmaster-web for instance inst_7f3a9c21 did not become ready: api never ` +
+          `Lane dungeonmaster-stack for instance inst_7f3a9c21 did not become ready: api never ` +
           `answered their ready path. Logs: ${API_LOG_PATH}`,
       });
       expect(proxy.getKillSignalsFor({ pgid: apiPgid })).toStrictEqual(['SIGKILL']);
@@ -843,7 +1002,7 @@ describe('laneBootBroker', () => {
         env: {},
       });
       const spec = LaneSpecStub({
-        name: 'dungeonmaster-web',
+        name: 'dungeonmaster-stack',
         processes: [apiProcess, webProcess],
         browser: false,
         env: {},

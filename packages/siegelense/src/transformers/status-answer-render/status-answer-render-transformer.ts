@@ -26,9 +26,9 @@ import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { InstanceId } from '../../contracts/instance-id/instance-id-contract';
 import type { StatusAnswer } from '../../contracts/status-answer/status-answer-contract';
+import { statusTableStatics } from '../../statics/status-table/status-table-statics';
 
 const EMPTY_MESSAGE = 'No siegelense instances running.\n';
-const FLEET_HEADER = 'ID\tSTATE\tSPEC\tUPTIME\tLAST BEAT\tRUNS\tRSS\tORPHANS\n';
 
 export const statusAnswerRenderTransformer = ({
   answer,
@@ -89,17 +89,42 @@ export const statusAnswerRenderTransformer = ({
 
   const monitoredLine = `MONITORED: ${answer.monitored.join(', ')}`;
   const machineLine = `MACHINE: free ${answer.machine.freeMemMB}MB/${answer.machine.totalMemMB}MB mem, free disk ${answer.machine.freeDiskMB ?? '-'}MB, ${answer.machine.cores} cores, load ${answer.machine.loadAvg.join('/')}, OOM kills ${answer.machine.oomKillsSinceBoot ?? '-'} (last ${answer.machine.lastOomAt ?? '-'})`;
-  const rows = answer.instances
-    .map((instance) => {
-      const rss =
-        instance.rssMB === null
-          ? instance.rssAtLastBeat === null
-            ? '-'
-            : `${instance.rssAtLastBeat}MB`
-          : `${instance.rssMB}MB`;
-      return `${instance.id}\t${instance.state}\t${instance.specName}\t${instance.uptime ?? '-'}\t${instance.lastBeat ?? '-'}\t${instance.runs}\t${rss}\t${instance.orphans.length}`;
-    })
-    .join('\n');
 
-  return contentTextContract.parse(`${monitoredLine}\n${machineLine}\n${FLEET_HEADER}${rows}\n`);
+  const { headers, cellPadding } = statusTableStatics.table;
+
+  const rows = answer.instances.map((instance) => {
+    const rss =
+      instance.rssMB === null
+        ? instance.rssAtLastBeat === null
+          ? '-'
+          : `${instance.rssAtLastBeat}MB`
+        : `${instance.rssMB}MB`;
+    return [
+      instance.id,
+      instance.state,
+      instance.specName,
+      instance.branch ?? '-',
+      instance.uptime ?? '-',
+      instance.lastBeat ?? '-',
+      String(instance.runs),
+      rss,
+      String(instance.orphans.length),
+    ];
+  });
+
+  const widths = headers.map((header, columnIndex) =>
+    Math.max(header.length, ...rows.map((row) => row[columnIndex]?.length ?? 0)),
+  );
+
+  const topLine = `┌${widths.map((w) => '─'.repeat(w + cellPadding)).join('┬')}┐`;
+  const headerLine = `│${headers.map((h, i) => ` ${h.padEnd(widths[i] ?? h.length)} `).join('│')}│`;
+  const headerSeparator = `├${widths.map((w) => '─'.repeat(w + cellPadding)).join('┼')}┤`;
+  const rowLines = rows.map(
+    (cells) => `│${cells.map((c, i) => ` ${c.padEnd(widths[i] ?? c.length)} `).join('│')}│`,
+  );
+  const bottomLine = `└${widths.map((w) => '─'.repeat(w + cellPadding)).join('┴')}┘`;
+
+  const tableLines = [topLine, headerLine, headerSeparator, ...rowLines, bottomLine];
+
+  return contentTextContract.parse(`${monitoredLine}\n${machineLine}\n${tableLines.join('\n')}\n`);
 };

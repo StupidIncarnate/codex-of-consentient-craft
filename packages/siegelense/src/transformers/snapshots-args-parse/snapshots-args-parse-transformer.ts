@@ -47,14 +47,6 @@ export const snapshotsArgsParseTransformer = ({
       continue;
     }
 
-    if (arg === siegelenseOutputStatics.flags.human) {
-      throw new Error(
-        `${siegelenseOutputStatics.flags.human} is not implemented for snapshots: it answers JSON ` +
-          `only. A snapshot list is a handful of names and times — read it as JSON rather than ` +
-          `being handed a table this call has no renderer for.\n\n${USAGE}`,
-      );
-    }
-
     if (arg?.startsWith('--')) {
       throw new Error(
         `Unknown flag: ${arg}\n\nAccepted flags: ${KNOWN_FLAGS.join(', ')}\n\n${USAGE}`,
@@ -80,5 +72,6 @@ export const snapshotsArgsParseTransformer = ({
       flag: INSTANCE_FLAG,
       parse: () => instanceIdContract.parse(rawInstanceId),
     }),
+    json: args.includes(siegelenseOutputStatics.flags.json),
   });
 };

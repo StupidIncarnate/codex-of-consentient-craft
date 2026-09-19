@@ -13,10 +13,10 @@
  * means.
  *
  * USAGE:
- * startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-web'] });
- * // Returns StartArgs { specName: 'dungeonmaster-web', questId: null, guildId: null, seed: null }
+ * startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-stack'] });
+ * // Returns StartArgs { specName: 'dungeonmaster-stack', questId: null, guildId: null, seed: null }
  *
- * startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-web', '--seed', 'guild-with-three-quests'] });
+ * startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-stack', '--seed', 'guild-with-three-quests'] });
  * // Returns StartArgs whose `seed` names the recipe to run once the lane is up
  */
 
@@ -123,5 +123,6 @@ export const startArgsParseTransformer = ({ args }: { args: readonly string[] })
             parse: () => timeoutMsContract.parse(Number(idleTimeoutValue)),
           }),
         }),
+    json: args.includes(siegelenseOutputStatics.flags.json),
   });
 };

@@ -28,7 +28,7 @@
  * lane), so this broker derives the SAME deterministic value from `instanceId` alone — the
  * convention every other siegelense OS-tmp path in this package already follows (see
  * `locationsSocketPathFindBroker`). The manifest's `baseUrl` is `null` for a spec whose processes
- * never claim the `web` portRole — a `dungeonmaster-headless` boot has nothing listening there —
+ * never claim the `web` portRole — a `dungeonmaster-api` boot has nothing listening there —
  * rather than a URL built unconditionally off a port nothing binds. The boot poll's outcome decides
  * which of two errors reaches the caller: a `'failed'` status means the driver caught its own error
  * and left a `boot-failure.json` marker before exiting, so `DriverBootFailedError` carries that

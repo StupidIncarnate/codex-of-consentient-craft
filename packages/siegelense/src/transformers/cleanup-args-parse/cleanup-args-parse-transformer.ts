@@ -9,6 +9,9 @@
  *
  * USAGE:
  * cleanupArgsParseTransformer({ args: [] });
+ * // Returns { human: true } as CleanupArgs
+ *
+ * cleanupArgsParseTransformer({ args: ['--json'] });
  * // Returns { human: false } as CleanupArgs
  */
 
@@ -18,20 +21,17 @@ import {
 } from '../../contracts/cleanup-args/cleanup-args-contract';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 
-const KNOWN_FLAGS = [
-  siegelenseOutputStatics.flags.json,
-  siegelenseOutputStatics.flags.human,
-] as const;
+const KNOWN_FLAGS = [siegelenseOutputStatics.flags.json] as const;
 // Deliberately shorter than the help page's own refusal: an argv mistake needs the half that says
 // nothing can be selected, not the whole retention story. What it must NOT say is that cleanup
 // ages no asset — it does, on its own windows, and that sentence was true only before prune landed.
 const CLEANUP_TAKES_NO_INPUT =
   'Takes no input: it reaps stale instances and ages assets on their own windows, with nothing to select.';
-const USAGE = 'Usage: dungeonmaster siegelense cleanup [--json] [--human]';
+const USAGE = 'Usage: dungeonmaster siegelense cleanup [--json]';
 
 export const cleanupArgsParseTransformer = ({ args }: { args: readonly string[] }): CleanupArgs => {
   for (const arg of args) {
-    if (arg === siegelenseOutputStatics.flags.json || arg === siegelenseOutputStatics.flags.human) {
+    if (arg === siegelenseOutputStatics.flags.json) {
       continue;
     }
 
@@ -48,7 +48,7 @@ export const cleanupArgsParseTransformer = ({ args }: { args: readonly string[] 
     );
   }
 
-  const human = args.includes(siegelenseOutputStatics.flags.human);
+  const isJson = args.includes(siegelenseOutputStatics.flags.json);
 
-  return cleanupArgsContract.parse({ human });
+  return cleanupArgsContract.parse({ human: !isJson });
 };

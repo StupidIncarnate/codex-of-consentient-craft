@@ -3,20 +3,20 @@ import { CleanupArgsStub } from './cleanup-args.stub';
 
 describe('cleanupArgsContract', () => {
   describe('valid args', () => {
-    it('VALID: {human: false} => the JSON default parses', () => {
+    it('VALID: {human: true} => the default human form parses', () => {
+      const args = CleanupArgsStub();
+
+      const result = cleanupArgsContract.parse(args);
+
+      expect(result).toStrictEqual({ human: true });
+    });
+
+    it('VALID: {human: false} => the explicit JSON form parses', () => {
       const args = CleanupArgsStub({ human: false });
 
       const result = cleanupArgsContract.parse(args);
 
       expect(result).toStrictEqual({ human: false });
-    });
-
-    it('VALID: {human: true} => the human-table form parses', () => {
-      const args = CleanupArgsStub({ human: true });
-
-      const result = cleanupArgsContract.parse(args);
-
-      expect(result).toStrictEqual({ human: true });
     });
   });
 

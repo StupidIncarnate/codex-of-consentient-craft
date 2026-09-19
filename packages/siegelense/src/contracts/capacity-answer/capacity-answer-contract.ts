@@ -17,7 +17,7 @@
  *   ceiling: 3,
  *   why: 'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; …',
  *   measured: { freeMemMB: 5320, cores: 8, loadAvg1: 4.2, siegeInstances: 1, diskFreeMB: 41000 },
- *   profile: { spec: 'dungeonmaster-web', poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 },
+ *   profile: { spec: 'dungeonmaster-stack', poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 },
  * });
  * // Returns a validated CapacityAnswer
  */

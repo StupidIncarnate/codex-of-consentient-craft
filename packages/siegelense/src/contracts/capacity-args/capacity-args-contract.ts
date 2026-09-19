@@ -1,16 +1,15 @@
 /**
- * PURPOSE: What `dungeonmaster siegelense capacity`'s argv parses down to — which spec to price, and
- * the pool size whose sample group to read. Reach for this over passing two loose values: the pair
- * travels together from the flow through the responder into the broker, and `poolSize` is the field
- * that decides WHICH measured group the division uses (siegelense-tooling.md line 2526).
+ * PURPOSE: What `dungeonmaster siegelense capacity`'s argv parses down to — which spec to price,
+ * the pool size whose sample group to read, and whether to output raw JSON rather than the default
+ * human summary. Reach for this over passing loose values: the tuple travels together from the flow
+ * through the responder into the broker.
  *
- * Both are `.nullable()` rather than absent-able: an omitted flag means "use the knob"
- * (`capacityStatics.defaults.specName`, `capacityStatics.policy.ceiling`), and under this repo's
- * `exactOptionalPropertyTypes` an absent key and an explicit `null` are different values — a
- * nullable field keeps the parsed shape and the argv shape the same thing.
+ * Both `specName` and `poolSize` are `.nullable()` rather than absent-able: an omitted flag means
+ * "use the knob" (`capacityStatics.defaults.specName`, `capacityStatics.policy.ceiling`). `isJson`
+ * defaults to false (human output by default).
  *
  * USAGE:
- * capacityArgsContract.parse({ specName: null, poolSize: null });
+ * capacityArgsContract.parse({ specName: null, poolSize: null, isJson: false });
  * // Returns a validated CapacityArgs — the bare `capacity` form
  */
 
@@ -23,6 +22,7 @@ export const capacityArgsContract = z
   .object({
     specName: specNameContract.nullable(),
     poolSize: profilePoolSizeContract.nullable(),
+    isJson: z.boolean().default(false),
   })
   .strict();
 

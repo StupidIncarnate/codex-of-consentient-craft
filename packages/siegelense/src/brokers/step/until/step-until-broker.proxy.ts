@@ -176,11 +176,11 @@ export const stepUntilBrokerProxy = (): {
     }),
 
     laneWithoutBrowser: (): { lane: LaneSession } => ({
-      lane: LaneSessionStub({ browser: null, specName: 'dungeonmaster-headless' }),
+      lane: LaneSessionStub({ browser: null, specName: 'dungeonmaster-api' }),
     }),
 
     // `browser: null` on purpose — R13's whole point is that `file` runs WITHOUT one, on a
-    // browserless lane exactly as it runs on `dungeonmaster-web`.
+    // browserless lane exactly as it runs on `dungeonmaster-stack`.
     laneForFile: ({
       homePath,
     }: {

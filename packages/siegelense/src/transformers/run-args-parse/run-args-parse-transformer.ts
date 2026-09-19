@@ -17,7 +17,7 @@
  *   args: ['--instance', 'inst_7f3a9c21', '--steps', '[{"step":"goto","path":"/"}]'],
  *   stepsFileContent: null,
  * });
- * // Returns { instanceId: 'inst_7f3a9c21', steps: [{ step: 'goto', path: '/', node: null, expect: 'ok' }], stopOn: 'error' }
+ * // Returns { instanceId: 'inst_7f3a9c21', steps: [{ step: 'goto', path: '/', node: null, expect: 'ok' }], stopOn: 'error', json: false }
  */
 
 import type { ContentText } from '@dungeonmaster/shared/contracts';
@@ -135,6 +135,12 @@ export const runArgsParseTransformer = ({
 
   return flagContractParseTransformer({
     flag: sourceFlag,
-    parse: () => runArgsContract.parse({ instanceId, steps: parsedSteps, stopOn }),
+    parse: () =>
+      runArgsContract.parse({
+        instanceId,
+        steps: parsedSteps,
+        stopOn,
+        json: args.includes(siegelenseOutputStatics.flags.json),
+      }),
   });
 };

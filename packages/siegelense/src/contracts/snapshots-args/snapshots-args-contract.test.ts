@@ -3,9 +3,17 @@ import { SnapshotsArgsStub } from './snapshots-args.stub';
 
 describe('snapshotsArgsContract', () => {
   describe('valid args', () => {
-    it('VALID: {instanceId} => parses the one field through', () => {
+    it('VALID: {instanceId} => parses with json false by default', () => {
       expect(SnapshotsArgsStub({ instanceId: 'inst_9b2c4d1e' })).toStrictEqual({
         instanceId: 'inst_9b2c4d1e',
+        json: false,
+      });
+    });
+
+    it('VALID: {instanceId, json: true} => parses with json true', () => {
+      expect(SnapshotsArgsStub({ instanceId: 'inst_9b2c4d1e', json: true })).toStrictEqual({
+        instanceId: 'inst_9b2c4d1e',
+        json: true,
       });
     });
   });

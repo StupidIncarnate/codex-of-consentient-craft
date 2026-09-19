@@ -12,7 +12,7 @@ describe('laneSpecContract', () => {
       const result = laneSpecContract.parse(spec);
 
       expect(result).toStrictEqual({
-        name: 'dungeonmaster-headless',
+        name: 'dungeonmaster-api',
         processes: [
           {
             name: 'api',
@@ -33,7 +33,7 @@ describe('laneSpecContract', () => {
 
     it('VALID: {api and web processes with different portRoles} => parses', () => {
       const spec: LaneSpec = LaneSpecStub({
-        name: 'dungeonmaster-web',
+        name: 'dungeonmaster-stack',
         browser: true,
         processes: [
           LaneProcessStub({ name: 'api', portRole: 'api' }),
@@ -66,7 +66,7 @@ describe('laneSpecContract', () => {
     it('INVALID: {processes: []} => throws for a spec with no processes', () => {
       expect(() =>
         laneSpecContract.parse({
-          name: 'dungeonmaster-headless',
+          name: 'dungeonmaster-api',
           processes: [],
           browser: false,
           bootTimeoutMs: 180_000,
@@ -78,7 +78,7 @@ describe('laneSpecContract', () => {
     it('INVALID: {two processes both portRole "api"} => throws for a claimed-role collision', () => {
       expect(() =>
         laneSpecContract.parse({
-          name: 'dungeonmaster-headless',
+          name: 'dungeonmaster-api',
           processes: [
             {
               name: 'api',

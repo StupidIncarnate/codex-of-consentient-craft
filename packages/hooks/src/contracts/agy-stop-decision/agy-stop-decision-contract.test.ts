@@ -26,7 +26,7 @@ describe('agyStopDecisionContract', () => {
     it('INVALID: {decision: invalid} => throws validation error', () => {
       expect(() => {
         return agyStopDecisionContract.parse({ decision: 'invalid' } as never);
-      }).toThrow();
+      }).toThrow(/Invalid enum value/u);
     });
   });
 });

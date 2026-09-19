@@ -5,13 +5,14 @@ describe('agentsSkillsConfigContract', () => {
   it('VALID: {default stub} => parses successfully', () => {
     const result = AgentsSkillsConfigStub();
 
-    expect(result.entries).toHaveLength(1);
-    expect(result.entries[0]?.path).toBe('.claude/skills');
+    expect(result).toStrictEqual({
+      entries: [{ path: '.claude/skills' }],
+    });
   });
 
   it('INVALID: {missing entries} => throws validation error', () => {
     expect(() => {
       return agentsSkillsConfigContract.parse({} as never);
-    }).toThrow();
+    }).toThrow(/Required/u);
   });
 });

@@ -16,6 +16,7 @@ describe('resultsArgsParseTransformer', () => {
         where: null,
         fields: null,
         since: null,
+        json: false,
       });
     });
   });
@@ -34,6 +35,7 @@ describe('resultsArgsParseTransformer', () => {
         where: null,
         fields: null,
         since: null,
+        json: false,
       });
     });
   });
@@ -61,6 +63,7 @@ describe('resultsArgsParseTransformer', () => {
         where: { path: '/api/quests', method: 'POST', nth: null, level: null, steps: null },
         fields: null,
         since: null,
+        json: false,
       });
     });
   });
@@ -79,6 +82,7 @@ describe('resultsArgsParseTransformer', () => {
         where: null,
         fields: ['status', 'responseBody'],
         since: null,
+        json: false,
       });
     });
   });
@@ -97,12 +101,13 @@ describe('resultsArgsParseTransformer', () => {
         where: null,
         fields: null,
         since: 'boot',
+        json: false,
       });
     });
   });
 
-  describe('--json is accepted as an explicit affirmation of the default', () => {
-    it('VALID: {--instance inst_7f3a9c21 --json} => the same object --json contributes no field to', () => {
+  describe('--json flag', () => {
+    it('VALID: {--instance inst_7f3a9c21 --json} => parses with json true', () => {
       const result = resultsArgsParseTransformer({
         args: ['--instance', 'inst_7f3a9c21', '--json'],
       });
@@ -115,6 +120,7 @@ describe('resultsArgsParseTransformer', () => {
         where: null,
         fields: null,
         since: null,
+        json: true,
       });
     });
   });
@@ -148,6 +154,7 @@ describe('resultsArgsParseTransformer', () => {
         where: { path: null, method: null, nth: null, level: null, steps: '9-4' },
         fields: null,
         since: null,
+        json: false,
       });
     });
   });

@@ -9,7 +9,7 @@ describe('registryEntryContract', () => {
         owner: '42781',
         questId: 'add-auth',
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         specHash: 'a3f9c2e1',
         pid: 'proc-12345',
         pgids: [4821],
@@ -30,7 +30,7 @@ describe('registryEntryContract', () => {
         owner: '42781',
         questId: 'add-auth',
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         specHash: 'a3f9c2e1',
         pid: 'proc-12345',
         pgids: [4821],
@@ -42,6 +42,7 @@ describe('registryEntryContract', () => {
         lastBeatMs: 1_700_000_010_000,
         prunedAtMs: null,
         prunedByRule: null,
+        branch: null,
       });
     });
 
@@ -51,7 +52,7 @@ describe('registryEntryContract', () => {
         owner: '42781',
         questId: 'add-auth',
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         specHash: 'a3f9c2e1',
         pid: 'proc-12345',
         pgids: [4821],
@@ -72,7 +73,7 @@ describe('registryEntryContract', () => {
         owner: '42781',
         questId: 'add-auth',
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         specHash: 'a3f9c2e1',
         pid: 'proc-12345',
         pgids: [4821],
@@ -84,6 +85,7 @@ describe('registryEntryContract', () => {
         lastBeatMs: 1_700_000_010_000,
         prunedAtMs: null,
         prunedByRule: null,
+        branch: null,
       });
     });
 
@@ -93,7 +95,7 @@ describe('registryEntryContract', () => {
         owner: '42781',
         questId: 'add-auth',
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         specHash: 'a3f9c2e1',
         pid: null,
         pgids: [],
@@ -114,7 +116,7 @@ describe('registryEntryContract', () => {
         owner: '42781',
         questId: 'add-auth',
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         specHash: 'a3f9c2e1',
         pid: null,
         pgids: [],
@@ -126,6 +128,7 @@ describe('registryEntryContract', () => {
         lastBeatMs: null,
         prunedAtMs: null,
         prunedByRule: null,
+        branch: null,
       });
     });
 
@@ -135,7 +138,7 @@ describe('registryEntryContract', () => {
         owner: '42781',
         questId: null,
         guildId: null,
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         specHash: 'a3f9c2e1',
         pid: 'proc-12345',
         pgids: [4821],
@@ -156,7 +159,7 @@ describe('registryEntryContract', () => {
         owner: '42781',
         questId: null,
         guildId: null,
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         specHash: 'a3f9c2e1',
         pid: 'proc-12345',
         pgids: [4821],
@@ -168,6 +171,7 @@ describe('registryEntryContract', () => {
         lastBeatMs: 1_700_000_010_000,
         prunedAtMs: null,
         prunedByRule: null,
+        branch: null,
       });
     });
 
@@ -177,7 +181,7 @@ describe('registryEntryContract', () => {
         owner: '42781',
         questId: 'add-auth',
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         specHash: 'a3f9c2e1',
         pid: null,
         pgids: [],
@@ -198,7 +202,7 @@ describe('registryEntryContract', () => {
         owner: '42781',
         questId: 'add-auth',
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         specHash: 'a3f9c2e1',
         pid: null,
         pgids: [],
@@ -210,7 +214,19 @@ describe('registryEntryContract', () => {
         lastBeatMs: 1_700_000_010_000,
         prunedAtMs: 1_700_003_000_000,
         prunedByRule: 'olderThan 7d',
+        branch: null,
       });
+    });
+
+    it('VALID: {branch: "feature/DEF-04"} => parses a row carrying a git branch name', () => {
+      const entry = RegistryEntryStub({
+        id: 'inst_7f3a9c21',
+        branch: 'feature/DEF-04',
+      });
+
+      const result = registryEntryContract.parse(entry);
+
+      expect(result.branch).toBe('feature/DEF-04');
     });
   });
 
@@ -221,7 +237,7 @@ describe('registryEntryContract', () => {
           owner: '42781',
           questId: null,
           guildId: null,
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           specHash: 'a3f9c2e1',
           pid: null,
           pgids: [],
@@ -244,7 +260,7 @@ describe('registryEntryContract', () => {
           owner: '42781',
           questId: null,
           guildId: null,
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           specHash: 'a3f9c2e1',
           pid: null,
           pgids: [],
@@ -267,7 +283,7 @@ describe('registryEntryContract', () => {
           owner: '42781',
           questId: undefined,
           guildId: null,
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           specHash: 'a3f9c2e1',
           pid: null,
           pgids: [],
@@ -290,7 +306,7 @@ describe('registryEntryContract', () => {
           owner: '42781',
           questId: null,
           guildId: null,
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           specHash: 'a3f9c2e1',
           pid: null,
           pgids: [],

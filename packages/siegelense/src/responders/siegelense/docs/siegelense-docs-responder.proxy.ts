@@ -8,7 +8,7 @@
  *
  * USAGE:
  * const proxy = SiegelenseDocsResponderProxy();
- * await SiegelenseDocsResponder({ scope: null, human: false });
+ * await SiegelenseDocsResponder({ scope: DocsScopeStub({ value: 'operating' }), json: false, human: false });
  * proxy.getStdoutLines();
  */
 

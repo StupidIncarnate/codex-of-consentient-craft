@@ -30,8 +30,7 @@ export const fleetTableRenderTransformer = ({
   entries: readonly RegistryEntry[];
   nowMs: EpochMs;
 }): ContentText => {
-  const { header, columnGap } = fleetListingStatics.table;
-  const gap = ' '.repeat(columnGap);
+  const { header, cellPadding } = fleetListingStatics.table;
 
   const rows = entries.map((entry) => [
     entry.id,
@@ -47,13 +46,15 @@ export const fleetTableRenderTransformer = ({
     Math.max(label.length, ...rows.map((row) => row[columnIndex]?.length ?? 0)),
   );
 
-  const lines = [header, ...rows].map((cells) =>
-    cells
-      .map((cell, columnIndex) =>
-        columnIndex === cells.length - 1 ? cell : cell.padEnd(widths[columnIndex] ?? cell.length),
-      )
-      .join(gap),
+  const topLine = `┌${widths.map((w) => '─'.repeat(w + cellPadding)).join('┬')}┐`;
+  const headerLine = `│${header.map((h, i) => ` ${h.padEnd(widths[i] ?? h.length)} `).join('│')}│`;
+  const headerSeparator = `├${widths.map((w) => '─'.repeat(w + cellPadding)).join('┼')}┤`;
+  const rowLines = rows.map(
+    (cells) => `│${cells.map((c, i) => ` ${c.padEnd(widths[i] ?? c.length)} `).join('│')}│`,
   );
+  const bottomLine = `└${widths.map((w) => '─'.repeat(w + cellPadding)).join('┴')}┘`;
 
-  return contentTextContract.parse(lines.map((line) => `${line}\n`).join(''));
+  const lines = [topLine, headerLine, headerSeparator, ...rowLines, bottomLine];
+
+  return contentTextContract.parse(`${lines.join('\n')}\n`);
 };

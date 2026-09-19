@@ -26,7 +26,7 @@ describe('agyPreToolDecisionContract', () => {
     it('INVALID: {decision: invalid} => throws validation error', () => {
       expect(() => {
         return agyPreToolDecisionContract.parse({ decision: 'invalid' } as never);
-      }).toThrow();
+      }).toThrow(/Invalid enum value/u);
     });
   });
 });

@@ -1,3 +1,4 @@
+import { subagentStopBlockMessageStatics } from '../../statics/subagent-stop-block-message/subagent-stop-block-message-statics';
 import { HookAgyStopFlow } from './hook-agy-stop-flow';
 
 describe('HookAgyStopFlow', () => {
@@ -8,9 +9,14 @@ describe('HookAgyStopFlow', () => {
 
     const result = await HookAgyStopFlow({ inputData });
 
-    expect(result.exitCode).toBe(0);
-    const parsed = JSON.parse(result.stdout) as { decision: string };
-    expect(parsed.decision).toBe('continue');
+    expect(result).toStrictEqual({
+      exitCode: 0,
+      stdout: JSON.stringify({
+        decision: 'continue',
+        reason: subagentStopBlockMessageStatics.backgroundTaskMessage,
+      }),
+      stderr: '',
+    });
   });
 
   it('VALID: {inputData: fullyIdle true without transcript} => returns exitCode 0 with stop decision', async () => {

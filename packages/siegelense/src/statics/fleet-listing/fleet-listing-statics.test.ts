@@ -6,6 +6,7 @@ describe('fleetListingStatics', () => {
       table: {
         header: ['ID', 'STATE', 'SPEC', 'PORTS', 'LAST BEAT'],
         columnGap: 2,
+        cellPadding: 2,
       },
       evidence: {
         shapeLine: 'evidence: <repoRoot>/.siegelense/{unowned|guilds/<guildId>}/instances/<id>/\n',

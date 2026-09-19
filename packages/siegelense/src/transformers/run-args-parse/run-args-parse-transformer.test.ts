@@ -30,6 +30,7 @@ describe('runArgsParseTransformer', () => {
           },
         ],
         stopOn: 'error',
+        json: false,
       });
     });
 
@@ -45,6 +46,7 @@ describe('runArgsParseTransformer', () => {
         instanceId: 'inst_7f3a9c21',
         steps: [{ step: 'goto', path: '/', node: null, expect: 'ok' }],
         stopOn: 'error',
+        json: false,
       });
     });
 
@@ -56,7 +58,28 @@ describe('runArgsParseTransformer', () => {
         stepsFileContent: null,
       });
 
-      expect(result.stopOn).toBe('never');
+      expect(result).toStrictEqual({
+        instanceId: 'inst_7f3a9c21',
+        steps: [{ step: 'goto', path: '/', node: null, expect: 'ok' }],
+        stopOn: 'never',
+        json: false,
+      });
+    });
+
+    it('VALID: {--json} => parses with json true', () => {
+      const stepsJson = JSON.stringify([{ step: 'goto', path: '/' }]);
+
+      const result = runArgsParseTransformer({
+        args: ['--instance', 'inst_7f3a9c21', '--steps', stepsJson, '--json'],
+        stepsFileContent: null,
+      });
+
+      expect(result).toStrictEqual({
+        instanceId: 'inst_7f3a9c21',
+        steps: [{ step: 'goto', path: '/', node: null, expect: 'ok' }],
+        stopOn: 'error',
+        json: true,
+      });
     });
   });
 

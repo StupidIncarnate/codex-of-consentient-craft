@@ -2,7 +2,7 @@
  * PURPOSE: What `start` hands back — an instance id, the URL to open a browser against, the throwaway
  * home, and every path a session will want tomorrow, because there is no LOOKUP call to recover one
  * later (siegelense-tooling.md lines 2162–2164). `baseUrl` is `.nullable()`, never a live-looking URL
- * by default: a `dungeonmaster-headless` spec binds no `web` port (spec line 2145 — "A BROWSERLESS
+ * by default: a `dungeonmaster-api` spec binds no `web` port (spec line 2145 — "A BROWSERLESS
  * spec is just another spec"), so a caller that only checks "is this field present" before opening it
  * would otherwise get a URL nothing answers, with nothing saying why. `null` here means exactly "this
  * spec never claimed a web surface" — never "the surface failed to come up," which is what
@@ -22,7 +22,7 @@
  * USAGE:
  * instanceManifestContract.parse({
  *   instanceId: 'inst_7f3a9c21',
- *   specName: 'dungeonmaster-web',
+ *   specName: 'dungeonmaster-stack',
  *   baseUrl: 'http://localhost:34173',
  *   home: '/tmp/dm-siege-inst_7f3a9c21',
  *   evidence: { path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21', linkPresent: true },
@@ -54,8 +54,16 @@ export const instanceManifestContract = z.object({
   instanceId: instanceIdContract,
   specName: specNameContract,
   baseUrl: contentTextContract.nullable(),
+  url: contentTextContract.optional(),
+  apiUrl: contentTextContract.optional(),
   home: absoluteFilePathContract,
   evidence: repoLocalPathContract,
+  paths: z
+    .object({
+      home: absoluteFilePathContract,
+      evidenceDir: contentTextContract,
+    })
+    .optional(),
   logs: z.object({
     api: repoLocalPathContract,
     web: repoLocalPathContract,

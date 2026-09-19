@@ -23,6 +23,7 @@ import { fsMkdirAdapter, netFreePortPairAdapter } from '@dungeonmaster/shared/ad
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 
+import { gitBranchReadAdapter } from '../../../adapters/git/branch-read/git-branch-read-adapter';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -57,6 +58,7 @@ export const instanceReserveBroker = async ({
   );
   const resolvedOwner = instanceOwnerContract.parse(String(process.pid));
   const resolvedReservedAtMs = epochMsContract.parse(Date.now());
+  const resolvedBranch = gitBranchReadAdapter();
 
   const rawPairs = await Promise.all(
     Array.from({ length: instanceLifecycleStatics.ports.claimAttempts }, async () =>
@@ -95,6 +97,7 @@ export const instanceReserveBroker = async ({
         pgids: [],
         socketPath: null,
         ports: winner,
+        branch: resolvedBranch,
         state: 'alive',
         reservedAtMs: resolvedReservedAtMs,
         bootedAtMs: null,

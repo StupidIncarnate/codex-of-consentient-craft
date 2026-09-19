@@ -63,7 +63,7 @@ export const stepStatics = {
     // browserless spec rather than answering an empty key (siegelense-tooling.md lines 1613,
     // 2128-2130). `seed` is the first verb that is NOT one: it touches disk and HTTP and never a
     // screen — "a recipe touches STATE, never a screen" (siegelense-recipes.md line 471) — so it
-    // runs against `dungeonmaster-headless` exactly as it runs against a browsered lane. `until`
+    // runs against `dungeonmaster-api` exactly as it runs against a browsered lane. `until`
     // sits outside this list too, for a different reason: only its `file` form needs no browser,
     // while its `visible`/`predicate`/`console`/`response` forms do — that split happens PER FORM
     // inside `stepUntilBroker` itself, not here, so this list stays "every member needs a browser

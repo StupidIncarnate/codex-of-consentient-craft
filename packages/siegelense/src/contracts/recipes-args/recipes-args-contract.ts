@@ -1,12 +1,12 @@
 /**
  * PURPOSE: What `dungeonmaster siegelense recipes`'s argv parses into. The call takes no input of
  * its own — it lists every recipe, always — so `human` is the only field: the listing is one of the
- * calls that ships a renderer, and `--human` picks the reading table over the JSON default. Reach
- * for this over `StatusArgs` or `CleanupArgs` purely for the call it belongs to; the three are
+ * calls that ships a renderer, and human-readable output is the default unless `--json` is passed.
+ * Reach for this over `StatusArgs` or `CleanupArgs` purely for the call it belongs to; the three are
  * separate shapes so a flag added to one never silently becomes legal on another.
  *
  * USAGE:
- * recipesArgsContract.parse({ human: false });
+ * recipesArgsContract.parse({ human: true });
  * // Returns a validated RecipesArgs
  */
 

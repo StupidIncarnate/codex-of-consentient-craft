@@ -1,18 +1,17 @@
 /**
- * PURPOSE: Reads `dungeonmaster siegelense docs`'s argv into a `DocsArgs`. `--for` is OPTIONAL, and
- * its absence parses to `scope: null` — the whole surface — rather than a refusal, because serving
- * every scope is the form the design names first. An unrecognised scope refuses with its own
- * sentence rather than through `flagContractParseTransformer`: the refusal a session meets here
- * must NAME the value it was given and LIST the seven scopes that exist, because an empty document
- * or a bare enum complaint both read as "this role has no instructions", which is the one answer
- * this call must never give.
+ * PURPOSE: Reads `dungeonmaster siegelense docs`'s argv into a `DocsArgs`. `--for <scope>` is
+ * REQUIRED, specifying the role whose instructions to read. An unrecognised scope refuses with its
+ * own sentence rather than through `flagContractParseTransformer`: the refusal a session meets
+ * here must NAME the value it was given and LIST the seven scopes that exist, because an empty
+ * document or a bare enum complaint both read as "this role has no instructions", which is the one
+ * answer this call must never give.
  *
  * USAGE:
- * docsArgsParseTransformer({ args: [] });
- * // Returns { scope: null, human: false } as DocsArgs
+ * docsArgsParseTransformer({ args: ['--for', 'walking'] });
+ * // Returns { scope: 'walking', json: false } as DocsArgs
  *
- * docsArgsParseTransformer({ args: ['--for', 'walking', '--human'] });
- * // Returns { scope: 'walking', human: true } as DocsArgs
+ * docsArgsParseTransformer({ args: ['--for', 'operating', '--json'] });
+ * // Returns { scope: 'operating', json: true } as DocsArgs
  */
 
 import { docsArgsContract, type DocsArgs } from '../../contracts/docs-args/docs-args-contract';
@@ -22,12 +21,8 @@ import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegele
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
 
 const FOR_FLAG = '--for';
-const KNOWN_FLAGS = [
-  FOR_FLAG,
-  siegelenseOutputStatics.flags.json,
-  siegelenseOutputStatics.flags.human,
-] as const;
-const USAGE = 'Usage: dungeonmaster siegelense docs [--for <scope>] [--json] [--human]';
+const KNOWN_FLAGS = [FOR_FLAG, siegelenseOutputStatics.flags.json] as const;
+const USAGE = 'Usage: dungeonmaster siegelense docs --for <scope> [--json]';
 const SCOPE_LIST = siegelenseCallStatics.docs.scopes.join(', ');
 
 export const docsArgsParseTransformer = ({ args }: { args: readonly string[] }): DocsArgs => {
@@ -44,7 +39,7 @@ export const docsArgsParseTransformer = ({ args }: { args: readonly string[] }):
       continue;
     }
 
-    if (arg === siegelenseOutputStatics.flags.json || arg === siegelenseOutputStatics.flags.human) {
+    if (arg === siegelenseOutputStatics.flags.json) {
       continue;
     }
 
@@ -61,25 +56,25 @@ export const docsArgsParseTransformer = ({ args }: { args: readonly string[] }):
   }
 
   const rawScope = flagValueReadTransformer({ args, flag: FOR_FLAG });
+  const json = args.includes(siegelenseOutputStatics.flags.json);
 
   if (rawScope === null) {
-    return docsArgsContract.parse({
-      scope: null,
-      human: args.includes(siegelenseOutputStatics.flags.human),
-    });
+    throw new Error(
+      `--for <scope> is required: specify the role whose instructions to read.\n\n` +
+        `Accepted scopes: ${SCOPE_LIST}\n\n${USAGE}`,
+    );
   }
 
   const parsedScope = docsScopeContract.safeParse(rawScope);
   if (!parsedScope.success) {
     throw new Error(
       `Unknown docs scope: ${rawScope}\n\n` +
-        `docs serves one scope per tool-using role. The scopes that exist are: ${SCOPE_LIST}.\n\n` +
-        `Omit ${FOR_FLAG} to get all of them.\n\n${USAGE}`,
+        `docs serves one scope per tool-using role. The scopes that exist are: ${SCOPE_LIST}.\n\n${USAGE}`,
     );
   }
 
   return docsArgsContract.parse({
     scope: parsedScope.data,
-    human: args.includes(siegelenseOutputStatics.flags.human),
+    json,
   });
 };

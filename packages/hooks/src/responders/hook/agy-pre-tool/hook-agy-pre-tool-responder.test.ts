@@ -6,6 +6,7 @@ import { HookAgyPreToolResponderProxy } from './hook-agy-pre-tool-responder.prox
 describe('HookAgyPreToolResponder', () => {
   describe('run_command', () => {
     it('VALID: {CommandLine: git status} => returns allow', async () => {
+      HookAgyPreToolResponderProxy();
       const result = await HookAgyPreToolResponder({
         hookInput: {
           toolCall: {
@@ -21,6 +22,7 @@ describe('HookAgyPreToolResponder', () => {
     });
 
     it('INVALID: {CommandLine: git checkout -- file.txt} => returns deny with git destructive message', async () => {
+      HookAgyPreToolResponderProxy();
       const result = await HookAgyPreToolResponder({
         hookInput: {
           toolCall: {
@@ -37,6 +39,7 @@ describe('HookAgyPreToolResponder', () => {
     });
 
     it('INVALID: {CommandLine: npx jest} => returns deny with ward recommendation', async () => {
+      HookAgyPreToolResponderProxy();
       const result = await HookAgyPreToolResponder({
         hookInput: {
           toolCall: {
@@ -46,12 +49,14 @@ describe('HookAgyPreToolResponder', () => {
         },
       });
 
-      expect(result.decision).toBe('deny');
-      expect(typeof result.reason).toBe('string');
-      expect(result.reason?.includes('npm run ward')).toBe(true);
+      expect(result).toStrictEqual({
+        decision: 'deny',
+        reason: 'Blocked: direct jest invocation. Use instead: `npm run ward -- --only test`',
+      });
     });
 
     it('VALID: {CommandLine: npm run ward | cat} => returns allow with stripped CommandLine', async () => {
+      HookAgyPreToolResponderProxy();
       const result = await HookAgyPreToolResponder({
         hookInput: {
           toolCall: {
@@ -110,9 +115,16 @@ describe('HookAgyPreToolResponder', () => {
         },
       });
 
-      expect(result.decision).toBe('deny');
-      expect(typeof result.reason).toBe('string');
-      expect(result.reason?.includes('New code quality violations detected')).toBe(true);
+      expect(result).toStrictEqual({
+        decision: 'deny',
+        reason:
+          '🛑 New code quality violations detected:\n' +
+          '  ❌ Code Quality Issue: 1 violation\n' +
+          '     This rule violation should be fixed to maintain code quality.\n' +
+          '     Line 1:1 - Unexpected console statement\n' +
+          '\n' +
+          'Your edit was NOT applied — the file is unchanged. Re-submit the ENTIRE corrected edit, not a surgical follow-up (nothing was written, so a patch targeting your intended new text will not match). These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
+      });
     });
   });
 
@@ -158,14 +170,22 @@ describe('HookAgyPreToolResponder', () => {
         },
       });
 
-      expect(result.decision).toBe('deny');
-      expect(typeof result.reason).toBe('string');
-      expect(result.reason?.includes('New code quality violations detected')).toBe(true);
+      expect(result).toStrictEqual({
+        decision: 'deny',
+        reason:
+          '🛑 New code quality violations detected:\n' +
+          '  ❌ Code Quality Issue: 1 violation\n' +
+          '     This rule violation should be fixed to maintain code quality.\n' +
+          '     Line 1:1 - Unexpected console statement\n' +
+          '\n' +
+          'Your edit was NOT applied — the file is unchanged. Re-submit the ENTIRE corrected edit, not a surgical follow-up (nothing was written, so a patch targeting your intended new text will not match). These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
+      });
     });
   });
 
   describe('search tools', () => {
     it('INVALID: {grep_search} => returns deny with discover message', async () => {
+      HookAgyPreToolResponderProxy();
       const result = await HookAgyPreToolResponder({
         hookInput: {
           toolCall: {
@@ -182,6 +202,7 @@ describe('HookAgyPreToolResponder', () => {
     });
 
     it('INVALID: {find_by_name} => returns deny with discover message', async () => {
+      HookAgyPreToolResponderProxy();
       const result = await HookAgyPreToolResponder({
         hookInput: {
           toolCall: {
@@ -200,6 +221,7 @@ describe('HookAgyPreToolResponder', () => {
 
   describe('other tools', () => {
     it('VALID: {view_file} => returns allow', async () => {
+      HookAgyPreToolResponderProxy();
       const result = await HookAgyPreToolResponder({
         hookInput: {
           toolCall: {
@@ -215,6 +237,7 @@ describe('HookAgyPreToolResponder', () => {
     });
 
     it('EMPTY: {empty input} => returns allow', async () => {
+      HookAgyPreToolResponderProxy();
       const result = await HookAgyPreToolResponder({
         hookInput: null,
       });

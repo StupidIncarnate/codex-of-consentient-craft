@@ -76,7 +76,7 @@ export const runVerbLayerBroker = async ({
 }): Promise<ContentText> => {
   // `seed` is routed FIRST, before the browser is narrowed, because it is the first verb that
   // touches no page: a recipe writes files and calls the lane's own API, so it runs identically
-  // against `dungeonmaster-headless`. Its parameters are the step's own extra keys — the `seed`
+  // against `dungeonmaster-api`. Its parameters are the step's own extra keys — the `seed`
   // member of `stepContract` is `.catchall()` rather than `.strict()` for exactly that — and
   // `recipeSeedRunBroker` is what grades them against the named recipe's manifest.
   if (step.step === 'seed') {

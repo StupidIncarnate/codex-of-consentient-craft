@@ -7,6 +7,6 @@ import type { PruneArgs } from './prune-args-contract';
 export const PruneArgsStub = ({ ...props }: StubArgument<PruneArgs> = {}): PruneArgs =>
   pruneArgsContract.parse({
     query: PruneQueryStub(),
-    human: false,
+    human: true,
     ...props,
   });

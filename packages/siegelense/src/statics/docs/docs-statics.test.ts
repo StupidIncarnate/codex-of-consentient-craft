@@ -9,8 +9,8 @@ describe('docsStatics', () => {
       expect(
         siegelenseCallStatics.docs.scopes.map((name) => docsStatics.scopes[name].audience),
       ).toStrictEqual([
-        'the operator — the session that opens and closes a pool of instances and dispatches minions into them.',
-        'the planner — the session that writes the walk and proves the prelude reaching its entry state.',
+        'the operator — the session that opens and closes a pool of instances and assigns tasks to other agents.',
+        'the planner — the session that writes the test sequence and proves that the application reaches its starting state.',
         'the walker — the session driving a browser against one instance and recording what it reads.',
         'the stress tester — the session running attacks against one instance and measuring what breaks.',
         'the fixer — the session that arrives after the walk is over and the instance is gone.',
@@ -37,7 +37,7 @@ describe('docsStatics', () => {
 
     it('VALID: {operating.summary} => states why the driving vocabulary is absent', () => {
       expect(docsStatics.scopes.operating.summary).toBe(
-        'Fleet management, at both ends of a pass. You never drive a page, so this scope carries none of that vocabulary: no batch is yours to submit, and handing you the driving verbs would be handing you the one thing your own rules forbid.',
+        'This scope covers instance and fleet management. As an operator, you do not interact with web pages directly or submit run batches. Therefore, this section does not include any browser-driving commands.',
       );
     });
   });
@@ -45,13 +45,13 @@ describe('docsStatics', () => {
   describe('the preamble every answer carries', () => {
     it('VALID: {about} => names the 50,000-character ceiling, the marker rule and the absent code-reader scope', () => {
       expect(docsStatics.about).toStrictEqual([
-        'siegelense stands up one instance of an app, drives it, and hands back READINGS. Every call is: dungeonmaster siegelense <call>. Steps are values inside a run batch, never calls of their own.',
-        'A command returns a READING, never a verdict on whether a unit passes. Comparing two measured values is a reading; deciding a unit passed is not.',
-        "A line ending NOT BUILT YET names a capability this tool's design has and its code does not. Do not call it. Where something callable does the same job today, the line says what it is. A line with no such marker is callable now.",
-        "Use --for to narrow this to one role's page, because the whole surface is not every reader's business. Omit it and you get all seven.",
-        'The seven scopes are one per tool-using role. A code-reading role gets no scope, and that absence is deliberate: a session that opens source files and calls nothing here needs no page of these instructions, and handing it one would hand a code reader the vocabulary for driving a browser.',
-        'This is served by a call rather than pasted into a prompt for three reasons. Any session can fetch it, so "go drive the app with the siege tool" becomes a usable instruction to a session nobody orchestrated. There is one source to edit rather than one copy per role prompt. And a prompt has a hard ceiling: a served prompt over 50,000 characters is spilled to a file with an error stub handed back, and a full tool manual inside one spends that budget on something a call serves for free.',
-        'dungeonmaster siegelense <call> --help is a different document: flags, refusals and one example per call. This is the role-scoped manual. Reach for --help when you need the flag; reach for this when you need the rule.',
+        'The siegelense tool launches an instance of an application, interacts with it, and returns readings. You run it using: dungeonmaster siegelense <call>. Steps are passed as values within a run batch; they are not standalone commands.',
+        'A command only returns measured readings. It does not decide if a test passes or fails. Comparing two values is a reading, but determining if the result means pass or fail is left to the user.',
+        'If a line ends with NOT BUILT YET, it describes a planned feature that is not implemented yet. Do not try to use it. If a different command can do the same job right now, the instructions will tell you. If a line does not have this marker, the feature is fully built and ready to use.',
+        'You can use the --for flag to show instructions for a specific role. If you omit this flag, you will see the instructions for all seven roles.',
+        'Each of the seven scopes corresponds to a specific role that uses this tool. There is no scope for a code-reading role. This is intentional: an agent that only reads code does not need instructions on how to use siegelense to drive a web browser.',
+        'These instructions are provided via a command rather than being hardcoded into agent prompts for three reasons. First, any agent can fetch them dynamically. Second, there is only one central source of documentation to maintain. Third, system prompts have character limits; serving the manual dynamically saves valuable prompt space.',
+        'Running dungeonmaster siegelense <call> --help provides different information. It shows the specific flags, errors, and an example for that command. This document is the role-specific manual. Use --help to learn how to run a command, and use this document to understand the rules and concepts.',
       ]);
     });
   });
@@ -61,25 +61,25 @@ describe('docsStatics', () => {
       expect(docsStatics.scopes.walking.sections[1]).toStrictEqual({
         heading: 'THE LADDER',
         lines: [
-          'The rule: reach for the key first. dom is the hatch — last, and always with a narrow target.',
-          'Rung 1, look — the default. What is here, what is it called, what is wrong with it. About 243 tokens for a whole page. Built.',
-          'Rung 2, look { within } — the same reading scoped to one region, when the region is crowded or the page holds a long transcript. Cheaper. Built. `within` takes a bare testId or the full [data-testid="..."] form; both reach the same element.',
-          "Rung 3, box { ref } — one element's geometry, exactly. A few lines. Built.",
-          'Rung 4, dom { target } — the hatch. A named selector, and a question the key does not carry. Unbounded without care. Built.',
-          'Rung 5, eval — a question no step shapes at all. It is a DIFFERENT hatch carrying a different risk: dom is expensive, while eval is cheap and can quietly break the founding rule by computing a verdict inside the page and handing it back as a value.',
+          'Always try to use the look command first. Only use the dom command as a last resort, and always target it as narrowly as possible.',
+          'Rung 1, look — the default tool. It tells you what elements exist, what they are called, and if they have any errors. It is efficient and fully built.',
+          'Rung 2, look { within } — the same command, but restricted to a specific section of the page. Use this when the page is too crowded or has a very long list of items. It is faster and fully built. The within parameter accepts a simple testId or a full CSS selector like [data-testid="..."]',
+          'Rung 3, box { ref } — provides the exact physical dimensions and position of a single element on the screen. Fully built.',
+          'Rung 4, dom { target } — the escape hatch. Use this only when you need to answer a specific question that the look command cannot answer. It can be very slow and resource-intensive if used carelessly. Fully built.',
+          'Rung 5, eval — runs custom JavaScript on the page. This is a different kind of escape hatch. It is fast, but it risks breaking the rules by calculating test results inside the browser instead of returning raw data.',
         ],
       });
     });
 
     it('VALID: {walking} => opens by teaching the key, before any verb is taught', () => {
       expect(docsStatics.scopes.walking.sections[0].lines[0]).toBe(
-        'look returns the KEY: a tree of every addressable element on the page, one line each, with a ref you can drive. It answers both "what is on this screen" and "how do I address the second of two identical controls". Take one before you plan a click.',
+        'The look command returns a structured list of every interactable element on the page. Each element has a temporary ref ID that you can use to interact with it. It tells you exactly what is on the screen and how to target specific elements. Always run look before trying to click anything.',
       );
     });
 
     it("VALID: {walking} => dom's three guards are carried with the hatch, cap included", () => {
       expect(docsStatics.scopes.walking.sections[2].lines[3]).toBe(
-        'Three guards arrive with it: own text nodes by default, with text: "full" the opt-in for textContent; a fields: projection, the same way a network query projects; and a match cap that SAYS it capped, with the true count beside it — count: 58, showing 10 is an answer, where ten silent rows is a trap.',
+        'The dom command has three built-in safety features. First, it only reads direct text nodes by default unless you explicitly ask for full textContent. Second, you must specify which fields you want to read. Third, it has a maximum limit on how many items it will return, but it will tell you the true total count so you know if items were skipped.',
       );
     });
   });
@@ -89,11 +89,11 @@ describe('docsStatics', () => {
       expect(docsStatics.scopes.driving.sections[0]).toStrictEqual({
         heading: 'FIVE THINGS TRUE OF YOU AND OF NO DISPATCHED ROLE',
         lines: [
-          'You are sharing this machine. Read capacity before you open anything, and know that start QUEUES rather than refusing — open three instances beside a running pass and that pass measures your pressure as if it were its own.',
-          'kill is yours to call and nothing else will. No dispatcher is watching, so your instance leaks until the idle timeout or until somebody else happens to run cleanup.',
-          'Your evidence is where start said it was: the manifest carries the instance id and the evidence directory, and you hold both for your whole life. There is no LOOKUP call to recover them later, so anything a person will want tomorrow goes into what you write down, never left in scrollback.',
-          'Your instance is filed under unowned — no quest protects it from ageing out. Come back next week for a capture and it was reclaimed on the ordinary window.',
-          "cleanup is safe for you to run and will not touch anyone's live work. It acts on staleness only. Run it rather than reaching for something blunter, or orphans accumulate.",
+          'You are sharing this machine with other agents. Run capacity before starting anything. The start command will queue your request if the machine is busy, so starting multiple instances will slow down other tests.',
+          'You must call kill yourself. Since no operator is managing you, your instance will stay alive and leak resources until the idle timeout hits, or until another agent runs the cleanup command.',
+          'The start command provides the paths to your instance evidence. You must save these paths yourself. There is no command to look them up later, so write them down immediately.',
+          'Your instance is marked as unowned, which means its assets are not protected. They will be automatically deleted when they get old.',
+          'The cleanup command is completely safe to run. It only removes stale instances and will not interfere with active tests. Run it regularly to prevent orphan processes from building up.',
         ],
       });
     });
@@ -102,51 +102,51 @@ describe('docsStatics', () => {
   describe('the remaining scopes carry their own headline rule', () => {
     it('VALID: {fixing} => states that the first four reads start nothing', () => {
       expect(docsStatics.scopes.fixing.sections[0].lines[1]).toBe(
-        'Steps 1 to 4 below start NOTHING. They read the asset tree and the registry, cost no boot and no pool slot, and answer exactly as well for an instance killed an hour ago as for one still running. The first thing that needs a live instance is step 5, which is the reproduction.',
+        'Steps 1 through 4 below do not require a running instance. They only read files from disk. They are completely free and work perfectly even if the instance was shut down hours ago. You only need to start a new instance for Step 5, when you actually reproduce the bug.',
       );
     });
 
     it('VALID: {attacking} => names all three reset levels, each declaring what it keeps', () => {
       expect(docsStatics.scopes.attacking.sections[3].lines.slice(0, 3)).toStrictEqual([
-        'page — clears browser storage and the loaded document. Keeps disk and server memory. About a second. NOT BUILT YET.',
-        'state — clears disk, plus everything page clears. KEEPS SERVER MEMORY. About two seconds. NOT BUILT YET.',
-        'instance — clears everything: a fresh process, then re-seed. Keeps nothing. About twenty seconds of boot plus the recipe. Reachable today only by closing the instance and booting another.',
+        'The page level clears browser storage and reloads the document, but it keeps the disk and server memory. This takes about one second. NOT BUILT YET.',
+        'The state level clears the disk and the browser, but it KEEPS SERVER MEMORY. This takes about two seconds. NOT BUILT YET.',
+        'The instance level clears everything by starting a completely new process. This takes about twenty seconds. Right now, you can only do this manually by closing the current instance and starting a new one.',
       ]);
     });
 
     it('VALID: {attacking} => marks health, reset and snapshot as built', () => {
       expect(docsStatics.scopes.attacking.sections[0].lines[0]).toBe(
-        'reset and snapshot are both BUILT. health is BUILT.',
+        'The reset and snapshot commands are BUILT. The health command is BUILT.',
       );
     });
 
     it('VALID: {attacking} => gives the callable stand-in for the unbuilt health reading', () => {
       expect(docsStatics.scopes.attacking.sections[1].lines[3]).toBe(
-        'Take the same reading by hand today, and every part of it is already callable: results --kind console for errors, --kind network for non-2xx, --kind server --where-steps a-b --where-level error for the server log, and the blank field on the capture the acting step already took.',
+        'You can perform this exact health check manually using existing commands: check results --kind console for browser errors, results --kind network for failed requests, results --kind server --where-steps a-b --where-level error for server logs, and check the blank status on your screenshots.',
       );
     });
 
     it('VALID: {planning} => names the twenty-three built verbs and marks every other one', () => {
       expect(docsStatics.scopes.planning.sections[5].lines[0]).toBe(
-        'Twenty-three step verbs exist: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request, before, file, storage, paste, hold, video, snapshot and reset. Every other verb in the design is NOT BUILT YET.',
+        'There are twenty-three available step verbs: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request, before, file, storage, paste, hold, video, snapshot, and reset. Any other verb you see in the design is NOT BUILT YET.',
       );
     });
 
     it('VALID: {planning} => says a prelude CAN create its own starting state, now that seed runs a recipe', () => {
       expect(docsStatics.scopes.planning.sections[5].lines[2]).toBe(
-        "seed runs a recipe against the instance and returns the ids it made, so a prelude CAN create its own starting state. dungeonmaster siegelense recipes lists every recipe with its produces: claim; name one in a { step: 'seed' } and read its ids back with {binding.field}.",
+        'The seed command runs a setup recipe to prepare the application state. Run dungeonmaster siegelense recipes to see what recipes are available. You can run a recipe using { step: "seed" } and then use its generated IDs in your test steps.',
       );
     });
 
     it('VALID: {operational} => says browser steps error by name on a browserless lane, naming the shape rather than a count', () => {
       expect(docsStatics.scopes.operational.sections[1].lines[2]).toBe(
-        'Browser steps go missing LOUDLY. A browser step submitted against a browserless instance is an error naming the spec, never an empty reading — a reading that quietly returns nothing is the count: 0 problem arriving at the one place a walk cannot recover from it. This half is BUILT: every browser verb errors by name here — goto, waitFor, click, type, screenshot, eval, look, box, dom, key, health and resize.',
+        'If you accidentally send a browser command to a headless instance, it will fail immediately with a clear error message. It will not silently ignore the command. The following browser commands will explicitly fail on a headless instance: goto, waitFor, click, type, screenshot, eval, look, box, dom, key, health, and resize.',
       );
     });
 
-    it('VALID: {operational} => closes by naming which steps are still unbuilt, and that until { file } is the only until form here', () => {
+    it('VALID: {operational} => closes by naming which steps are built, and that until { file } is the only until form here', () => {
       expect(docsStatics.scopes.operational.sections[4].lines[0]).toBe(
-        '`request`, `file` and `storage` are still NOT BUILT YET; `until { file }` is BUILT and is the only until form this scope gets — its browser siblings (`visible`/`predicate`/`console`/`response`) all refuse here by name. What works today on a browserless lane is: boot it, close it, read its server log off disk, and wait on a file appearing with `until { file }`.',
+        'The request, file, and storage commands are fully built. The until { file } command is built and is the only until form allowed on a headless instance. All other until forms (visible, predicate, console, response) will fail with an error. Right now, you can boot a headless instance, shut it down, read its server logs, and test it using request, file, and until { file }.',
       );
     });
   });

@@ -62,7 +62,7 @@ describe('siegelenseHelpStatics', () => {
           name: '--json',
           value: null,
           required: false,
-          description: 'print the JSON answer — the default; explicit and refused nowhere.',
+          description: 'print raw JSON output instead of the human-readable view.',
         },
       ],
       refusals: [
@@ -71,7 +71,7 @@ describe('siegelenseHelpStatics', () => {
       ],
       output:
         'One JSON document on stdout: the manifest — instance id, base URL, and every evidence path this run will want, since there is no lookup call to recover them later.',
-      example: 'dungeonmaster siegelense start --spec dungeonmaster-web',
+      example: 'dungeonmaster siegelense start --spec dungeonmaster-stack',
     });
   });
 
@@ -116,7 +116,7 @@ describe('siegelenseHelpStatics', () => {
           name: '--json',
           value: null,
           required: false,
-          description: 'print the JSON answer — the default; explicit and refused nowhere.',
+          description: 'print raw JSON output instead of the human-readable view.',
         },
       ],
       refusals: [],
@@ -205,7 +205,7 @@ describe('siegelenseHelpStatics', () => {
           name: '--json',
           value: null,
           required: false,
-          description: 'print the JSON answer — the default; explicit and refused nowhere.',
+          description: 'print raw JSON output instead of the human-readable view.',
         },
       ],
       refusals: [
@@ -232,7 +232,7 @@ describe('siegelenseHelpStatics', () => {
           name: '--json',
           value: null,
           required: false,
-          description: 'print the JSON answer — the default; explicit and refused nowhere.',
+          description: 'print raw JSON output instead of the human-readable view.',
         },
       ],
       refusals: [],
@@ -244,7 +244,7 @@ describe('siegelenseHelpStatics', () => {
   it('VALID: {calls.status} => toStrictEqual its summary, synopsis, flags, refusals, output and example', () => {
     expect(siegelenseHelpStatics.calls.status).toStrictEqual({
       summary: 'siegelense status — report the fleet, or one instance in full.',
-      synopsis: 'dungeonmaster siegelense status [--instance <id>] [--json] [--human]',
+      synopsis: 'dungeonmaster siegelense status [--instance <id>] [--json]',
       flags: [
         {
           name: '--instance',
@@ -257,14 +257,7 @@ describe('siegelenseHelpStatics', () => {
           name: '--json',
           value: null,
           required: false,
-          description: 'print the JSON answer — the default; explicit and refused nowhere.',
-        },
-        {
-          name: '--human',
-          value: null,
-          required: false,
-          description:
-            'render the operator table instead of JSON. Only status, cleanup, prune, recipes and docs implement this.',
+          description: 'print raw JSON output instead of the human-readable view.',
         },
       ],
       refusals: ["Never lists another instance's runs or evidence unless you name it."],
@@ -276,20 +269,13 @@ describe('siegelenseHelpStatics', () => {
   it('VALID: {calls.cleanup} => toStrictEqual its summary, synopsis, flags, refusals, output and example', () => {
     expect(siegelenseHelpStatics.calls.cleanup).toStrictEqual({
       summary: 'siegelense cleanup — reap every stale instance the registry holds.',
-      synopsis: 'dungeonmaster siegelense cleanup [--json] [--human]',
+      synopsis: 'dungeonmaster siegelense cleanup [--json]',
       flags: [
         {
           name: '--json',
           value: null,
           required: false,
-          description: 'print the JSON answer — the default; explicit and refused nowhere.',
-        },
-        {
-          name: '--human',
-          value: null,
-          required: false,
-          description:
-            'render the operator table instead of JSON. Only status, cleanup, prune, recipes and docs implement this.',
+          description: 'print raw JSON output instead of the human-readable view.',
         },
       ],
       refusals: [
@@ -318,7 +304,7 @@ describe('siegelenseHelpStatics', () => {
           name: '--json',
           value: null,
           required: false,
-          description: 'print the JSON answer — the default; explicit and refused nowhere.',
+          description: 'print raw JSON output instead of the human-readable view.',
         },
       ],
       refusals: [
@@ -347,7 +333,7 @@ describe('siegelenseHelpStatics', () => {
           name: '--json',
           value: null,
           required: false,
-          description: 'print the JSON answer — the default; explicit and refused nowhere.',
+          description: 'print raw JSON output instead of the human-readable view.',
         },
       ],
       refusals: [
@@ -356,7 +342,7 @@ describe('siegelenseHelpStatics', () => {
       ],
       output:
         "One JSON document on stdout: the SpecProfile — processes, the spec's content hash, measuredAt, fromRuns, bootMs, and one sample group per pool size.",
-      example: 'dungeonmaster siegelense profile --spec dungeonmaster-web',
+      example: 'dungeonmaster siegelense profile --spec dungeonmaster-stack',
     });
   });
 
@@ -377,7 +363,7 @@ describe('siegelenseHelpStatics', () => {
           name: '--json',
           value: null,
           required: false,
-          description: 'print the JSON answer — the default; explicit and refused nowhere.',
+          description: 'print raw JSON output instead of the human-readable view.',
         },
       ],
       refusals: [
@@ -394,20 +380,13 @@ describe('siegelenseHelpStatics', () => {
     expect(siegelenseHelpStatics.calls.recipes).toStrictEqual({
       summary:
         'siegelense recipes — list every recipe: the state each one creates, and how honestly it creates it. Starts nothing.',
-      synopsis: 'dungeonmaster siegelense recipes [--json] [--human]',
+      synopsis: 'dungeonmaster siegelense recipes [--json]',
       flags: [
         {
           name: '--json',
           value: null,
           required: false,
-          description: 'print the JSON answer — the default; explicit and refused nowhere.',
-        },
-        {
-          name: '--human',
-          value: null,
-          required: false,
-          description:
-            'render the operator table instead of JSON. Only status, cleanup, prune, recipes and docs implement this.',
+          description: 'print raw JSON output instead of the human-readable view.',
         },
       ],
       refusals: [
@@ -416,7 +395,7 @@ describe('siegelenseHelpStatics', () => {
       ],
       output:
         'One JSON document on stdout: the RecipesAnswer — every declared recipe with its produces: claim, its fidelity, its mirrors: pointer, and the parameters and ids it names. An EMPTY list is a real answer and means "no recipes yet"; an absent packages/siegelense-recipes/ is a refusal instead, so the two never read alike.',
-      example: 'dungeonmaster siegelense recipes --human',
+      example: 'dungeonmaster siegelense recipes',
     });
   });
 
@@ -431,7 +410,7 @@ describe('siegelenseHelpStatics', () => {
           value: '<specName>',
           required: false,
           description:
-            'the lane spec to price. Omitted, the browsered dungeonmaster-web spec is assumed — the more expensive of the two built-ins, so a bare call answers conservatively. The why sentence names whichever spec was read.',
+            'the lane spec to price. Omitted, the browsered dungeonmaster-stack spec is assumed — the more expensive of the two built-ins, so a bare call answers conservatively. The why sentence names whichever spec was read.',
         },
         {
           name: '--pool',
@@ -444,7 +423,7 @@ describe('siegelenseHelpStatics', () => {
           name: '--json',
           value: null,
           required: false,
-          description: 'print the JSON answer — the default; explicit and refused nowhere.',
+          description: 'print raw JSON output instead of the human-readable view.',
         },
       ],
       refusals: [
@@ -454,7 +433,7 @@ describe('siegelenseHelpStatics', () => {
       ],
       output:
         'One JSON document on stdout: the CapacityAnswer — suggested, ceiling, a why sentence naming every figure it reasoned from, the measured host block, and the one profile group it divided by (null for a spec nothing has run).',
-      example: 'dungeonmaster siegelense capacity --spec dungeonmaster-web --pool 3',
+      example: 'dungeonmaster siegelense capacity --spec dungeonmaster-stack --pool 3',
     });
   });
 
@@ -463,7 +442,7 @@ describe('siegelenseHelpStatics', () => {
       summary:
         'siegelense prune — reclaim asset space deliberately, rather than waiting for the age-out window.',
       synopsis:
-        'dungeonmaster siegelense prune [--instance <id>] [--kind <kind>] [--older-than <window>] [--json] [--human]',
+        'dungeonmaster siegelense prune [--instance <id>] [--kind <kind>] [--older-than <window>] [--json]',
       flags: [
         {
           name: '--instance',
@@ -489,14 +468,7 @@ describe('siegelenseHelpStatics', () => {
           name: '--json',
           value: null,
           required: false,
-          description: 'print the JSON answer — the default; explicit and refused nowhere.',
-        },
-        {
-          name: '--human',
-          value: null,
-          required: false,
-          description:
-            'render the operator table instead of JSON. Only status, cleanup, prune, recipes and docs implement this.',
+          description: 'print raw JSON output instead of the human-readable view.',
         },
       ],
       refusals: [
@@ -515,27 +487,20 @@ describe('siegelenseHelpStatics', () => {
     expect(siegelenseHelpStatics.calls.docs).toStrictEqual({
       summary:
         "siegelense docs — this tool's own instructions, scoped to one role. Starts nothing.",
-      synopsis: 'dungeonmaster siegelense docs [--for <scope>] [--json] [--human]',
+      synopsis: 'dungeonmaster siegelense docs --for <scope> [--json]',
       flags: [
         {
           name: '--for',
           value: '<scope>',
-          required: false,
+          required: true,
           description:
-            "serve one role's page instead of the whole surface: operating, planning, walking, attacking, fixing, driving, operational. Omitted, every scope is served.",
+            "serve one role's page instead of the whole surface: operating, planning, walking, attacking, fixing, driving, operational.",
         },
         {
           name: '--json',
           value: null,
           required: false,
-          description: 'print the JSON answer — the default; explicit and refused nowhere.',
-        },
-        {
-          name: '--human',
-          value: null,
-          required: false,
-          description:
-            'render the operator table instead of JSON. Only status, cleanup, prune, recipes and docs implement this.',
+          description: 'print raw JSON output instead of the human-readable view.',
         },
       ],
       refusals: [
@@ -543,8 +508,8 @@ describe('siegelenseHelpStatics', () => {
         'There is no scope for a code-reading role, and that absence is deliberate: a session that opens source files and calls nothing here would be handed the vocabulary for driving a browser.',
       ],
       output:
-        'One JSON document on stdout: the DocsAnswer — an about preamble, and one document per scope served, each a headed list of lines. --human renders the same document as indented text.',
-      example: 'dungeonmaster siegelense docs --for walking --human',
+        'One JSON document on stdout: the DocsAnswer — an about preamble, and one document per scope served, each a headed list of lines.',
+      example: 'dungeonmaster siegelense docs --for walking',
     });
   });
 
@@ -556,7 +521,7 @@ describe('siegelenseHelpStatics', () => {
       flags: [],
       refusals: [],
       output: "internal to the instance's socket protocol; never printed by any call.",
-      example: 'dungeonmaster siegelense start --spec dungeonmaster-web',
+      example: 'dungeonmaster siegelense start --spec dungeonmaster-stack',
     });
   });
 

@@ -43,6 +43,6 @@ export const capacityStatics = {
     // The browsered spec, and the more expensive of the two built-ins, so a bare `capacity` with
     // no --spec answers conservatively. Read off laneSpecStatics rather than typed so the name
     // cannot drift from the spec it points at.
-    specName: laneSpecStatics.specs['dungeonmaster-web'].name,
+    specName: laneSpecStatics.specs['dungeonmaster-stack'].name,
   },
 } as const;

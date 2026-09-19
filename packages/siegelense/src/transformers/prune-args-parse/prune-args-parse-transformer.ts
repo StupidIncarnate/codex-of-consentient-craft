@@ -10,7 +10,7 @@
  *
  * USAGE:
  * pruneArgsParseTransformer({ args: ['--kind', 'video', '--older-than', '2d'] });
- * // Returns { query: { instanceId: null, kind: 'video', olderThan: '2d' }, human: false }
+ * // Returns { query: { instanceId: null, kind: 'video', olderThan: '2d' }, human: true }
  */
 
 import { elapsedTextContract } from '../../contracts/elapsed-text/elapsed-text-contract';
@@ -29,14 +29,10 @@ const KIND_FLAG = '--kind';
 const OLDER_THAN_FLAG = '--older-than';
 
 const VALUE_FLAGS = [INSTANCE_FLAG, KIND_FLAG, OLDER_THAN_FLAG];
-const KNOWN_FLAGS = [
-  ...VALUE_FLAGS,
-  siegelenseOutputStatics.flags.json,
-  siegelenseOutputStatics.flags.human,
-];
+const KNOWN_FLAGS = [...VALUE_FLAGS, siegelenseOutputStatics.flags.json];
 const USAGE =
   'Usage: dungeonmaster siegelense prune [--instance <instanceId>] [--kind <kind>] ' +
-  '[--older-than <window>] [--json] [--human]';
+  '[--older-than <window>] [--json]';
 
 export const pruneArgsParseTransformer = ({ args }: { args: readonly string[] }): PruneArgs => {
   for (let i = 0; i < args.length; i++) {
@@ -52,7 +48,7 @@ export const pruneArgsParseTransformer = ({ args }: { args: readonly string[] })
       continue;
     }
 
-    if (arg === siegelenseOutputStatics.flags.json || arg === siegelenseOutputStatics.flags.human) {
+    if (arg === siegelenseOutputStatics.flags.json) {
       continue;
     }
 
@@ -99,6 +95,6 @@ export const pruneArgsParseTransformer = ({ args }: { args: readonly string[] })
             }),
       olderThan,
     },
-    human: args.includes(siegelenseOutputStatics.flags.human),
+    human: !args.includes(siegelenseOutputStatics.flags.json),
   });
 };

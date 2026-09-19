@@ -58,7 +58,6 @@ import { SiegelenseSnapshotsResponder } from '../../responders/siegelense/snapsh
 import { SiegelenseStartResponder } from '../../responders/siegelense/start/siegelense-start-responder';
 import { SiegelenseStatusResponder } from '../../responders/siegelense/status/siegelense-status-responder';
 import { siegelenseCallStatics } from '../../statics/siegelense-call/siegelense-call-statics';
-import { siegelenseHelpStatics } from '../../statics/siegelense-help/siegelense-help-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { capacityArgsParseTransformer } from '../../transformers/capacity-args-parse/capacity-args-parse-transformer';
 import { cleanupArgsParseTransformer } from '../../transformers/cleanup-args-parse/cleanup-args-parse-transformer';
@@ -79,7 +78,6 @@ import { statusArgsParseTransformer } from '../../transformers/status-args-parse
 
 const HELP_FLAG = siegelenseOutputStatics.flags.help;
 const HELP_SHORT_FLAG = siegelenseOutputStatics.flags.helpShort;
-const HUMAN_FLAG = siegelenseOutputStatics.flags.human;
 const DRIVER_CALL_NAME = 'driver';
 const INSTANCE_FLAG = '--instance';
 const IDLE_TIMEOUT_MS_FLAG = '--idle-timeout-ms';
@@ -98,8 +96,10 @@ const CALL_ROUTES = new Map<
   ['run', async (callArgs) => SiegelenseRunResponder({ args: callArgs })],
   [
     'results',
-    async (callArgs) =>
-      SiegelenseResultsResponder({ query: resultsArgsParseTransformer({ args: callArgs }) }),
+    async (callArgs) => {
+      const { json, ...query } = resultsArgsParseTransformer({ args: callArgs });
+      return SiegelenseResultsResponder({ query, json });
+    },
   ],
   [
     'kill',
@@ -112,8 +112,7 @@ const CALL_ROUTES = new Map<
   ],
   [
     'profile',
-    async (callArgs) =>
-      SiegelenseProfileResponder({ specName: profileArgsParseTransformer({ args: callArgs }) }),
+    async (callArgs) => SiegelenseProfileResponder(profileArgsParseTransformer({ args: callArgs })),
   ],
   [
     'status',
@@ -129,8 +128,10 @@ const CALL_ROUTES = new Map<
   ],
   [
     'compare',
-    async (callArgs) =>
-      SiegelenseCompareResponder({ query: compareArgsParseTransformer({ args: callArgs }) }),
+    async (callArgs) => {
+      const parsed = compareArgsParseTransformer({ args: callArgs });
+      return SiegelenseCompareResponder({ query: parsed, json: parsed.json });
+    },
   ],
   [
     'snapshots',
@@ -147,21 +148,7 @@ const CALL_ROUTES = new Map<
   ],
 ]);
 
-// Derived from each call's own help entry — never a second hardcoded ['status', 'cleanup'] —
-// so the ONLY two calls this admits are the ones whose page actually documents a --human flag.
 const BUILT_CALL_NAMES = [...CALL_ROUTES.keys()];
-const HUMAN_RENDERER_CALLS = BUILT_CALL_NAMES.filter((name) =>
-  siegelenseHelpStatics.calls[name].flags.some((flag) => flag.name === HUMAN_FLAG),
-);
-
-// A bare `join(' and ')` reads as a sentence at two names and breaks at three
-// ("status and cleanup and recipes"). This stays readable however many calls grow a renderer.
-const HUMAN_RENDERER_SENTENCE = [
-  HUMAN_RENDERER_CALLS.slice(0, -1).join(', '),
-  HUMAN_RENDERER_CALLS.slice(-1).join(''),
-]
-  .filter((part) => part !== '')
-  .join(' and ');
 
 export const SiegelenseFlow = async ({
   args,
@@ -206,13 +193,6 @@ export const SiegelenseFlow = async ({
     if (callArgs.includes(HELP_FLAG) || callArgs.includes(HELP_SHORT_FLAG)) {
       process.stdout.write(siegelenseHelpRenderTransformer({ call }));
       return adapterResultContract.parse({ success: true });
-    }
-
-    if (callArgs.includes(HUMAN_FLAG) && !HUMAN_RENDERER_CALLS.includes(call)) {
-      throw new Error(
-        `${HUMAN_FLAG} is not implemented for ${call}: only ${HUMAN_RENDERER_SENTENCE} ` +
-          `render a human table; every other call answers JSON only.`,
-      );
     }
 
     return routeHandler(callArgs);

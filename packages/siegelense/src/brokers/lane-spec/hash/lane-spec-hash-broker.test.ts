@@ -3,9 +3,9 @@ import { laneSpecHashBrokerProxy } from './lane-spec-hash-broker.proxy';
 import { LaneSpecStub } from '../../../contracts/lane-spec/lane-spec.stub';
 
 // sha256 of the default LaneSpecStub's canonical JSON (one 'api' process).
-const ONE_PROCESS_HASH = '1f16085bde284fc46d2c79b63ba15a87d04d2d741dbc4b1ff8ce78082ae21dd9';
+const ONE_PROCESS_HASH = '115942c3cb8ab9ae5c319e25cd20c8e578fd7d92a21a25d3e4af91fb63ddb9d2';
 // sha256 of the same spec with a second, 'web'-portRole process appended.
-const TWO_PROCESS_HASH = '76d4e51aee898136c2f87b4bafce8182093e4fff3c9cc3d28312b20e7577bf0e';
+const TWO_PROCESS_HASH = '1eeee776411de2e0b2e5c7f5f0fcb56292128ef7db656f296c44032d712b4940';
 
 describe('laneSpecHashBroker', () => {
   describe('a known spec', () => {

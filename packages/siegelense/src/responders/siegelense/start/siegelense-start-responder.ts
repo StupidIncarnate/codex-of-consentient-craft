@@ -28,6 +28,7 @@ import type { RecipeName } from '@dungeonmaster/siegelense-recipes/contracts';
 import { instanceStartBroker } from '../../../brokers/instance/start/instance-start-broker';
 import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
+import { startAnswerRenderTransformer } from '../../../transformers/start-answer-render/start-answer-render-transformer';
 
 export const SiegelenseStartResponder = async ({
   specName,
@@ -35,6 +36,7 @@ export const SiegelenseStartResponder = async ({
   guildId,
   seed,
   idleTimeoutMs,
+  json = false,
 }: {
   specName: SpecName;
   questId: QuestId | null;
@@ -45,6 +47,7 @@ export const SiegelenseStartResponder = async ({
   // `exactOptionalPropertyTypes` refuses a narrower `idleTimeoutMs?: TimeoutMs` as an incompatible
   // target for that wider source type.
   idleTimeoutMs?: TimeoutMs | undefined;
+  json?: boolean | undefined;
 }): Promise<AdapterResult> => {
   const manifest = await instanceStartBroker(
     idleTimeoutMs === undefined
@@ -52,7 +55,9 @@ export const SiegelenseStartResponder = async ({
       : { specName, questId, guildId, seed, idleTimeoutMs },
   );
   process.stdout.write(
-    `${JSON.stringify(manifest, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+    json
+      ? `${JSON.stringify(manifest, null, siegelenseOutputStatics.json.indentSpaces)}\n`
+      : startAnswerRenderTransformer({ manifest }),
   );
   return adapterResultContract.parse({ success: true });
 };

@@ -323,8 +323,8 @@ export const instanceStartBrokerProxy = (): {
   // `laneSpecStatics.specs` is typed `as const` (readonly at the TYPE level only — nothing here
   // freezes it at runtime), and `laneSpecFindBroker` itself reads through this SAME widened-type
   // alias rather than `Reflect.set` (confined to *-guard.ts/*-contract.ts) to register the value a
-  // test builds. Adding a NEW key here — never overwriting 'dungeonmaster-web' or
-  // 'dungeonmaster-headless' — keeps every OTHER test's use of the real built-ins untouched
+  // test builds. Adding a NEW key here — never overwriting 'dungeonmaster-stack' or
+  // 'dungeonmaster-api' — keeps every OTHER test's use of the real built-ins untouched
   // regardless of run order within this file.
   const registerLaneSpec = ({ specName, spec }: { specName: SpecName; spec: LaneSpec }): void => {
     const mutableSpecs: Record<SpecName, LaneSpec> = laneSpecStatics.specs;

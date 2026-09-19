@@ -5,12 +5,13 @@ import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 
+import { killAnswerRenderTransformer } from '../../../transformers/kill-answer-render/kill-answer-render-transformer';
 import { SiegelenseKillResponder } from './siegelense-kill-responder';
 import { SiegelenseKillResponderProxy } from './siegelense-kill-responder.proxy';
 
 describe('SiegelenseKillResponder', () => {
   describe('a known, alive id', () => {
-    it('VALID: {a known id} => writes the complete KillResult as one JSON document', async () => {
+    it('VALID: {a known id} => writes the human summary by default', async () => {
       const proxy = SiegelenseKillResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c1234' });
       const registry = RegistryStub({
@@ -21,6 +22,23 @@ describe('SiegelenseKillResponder', () => {
       proxy.stageKillResult({ result: killResult });
 
       await SiegelenseKillResponder({ instanceId });
+
+      expect(proxy.getStdoutWrites()).toStrictEqual([
+        killAnswerRenderTransformer({ result: killResult }),
+      ]);
+    });
+
+    it('VALID: {json: true} => writes the complete KillResult as one JSON document', async () => {
+      const proxy = SiegelenseKillResponderProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_9b2c1234' });
+      const registry = RegistryStub({
+        instances: [RegistryEntryStub({ id: instanceId, state: 'alive' })],
+      });
+      const killResult = KillResultStub({ instanceId });
+      proxy.stageRegistry({ registry });
+      proxy.stageKillResult({ result: killResult });
+
+      await SiegelenseKillResponder({ instanceId, json: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(killResult, null, siegelenseOutputStatics.json.indentSpaces)}\n`,

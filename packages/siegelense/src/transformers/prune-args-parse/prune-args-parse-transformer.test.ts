@@ -5,21 +5,21 @@ describe('pruneArgsParseTransformer', () => {
     it('VALID: {args: []} => every selector null but the window, which falls back to the default rather than to no window at all', () => {
       expect(pruneArgsParseTransformer({ args: [] })).toStrictEqual({
         query: { instanceId: null, kind: null, olderThan: '7d' },
-        human: false,
+        human: true,
       });
     });
 
     it('VALID: {args: --older-than 7d} => the window-only form', () => {
       expect(pruneArgsParseTransformer({ args: ['--older-than', '7d'] })).toStrictEqual({
         query: { instanceId: null, kind: null, olderThan: '7d' },
-        human: false,
+        human: true,
       });
     });
 
     it('VALID: {args: --instance inst_9b2c} => the one-instance form', () => {
       expect(pruneArgsParseTransformer({ args: ['--instance', 'inst_9b2c'] })).toStrictEqual({
         query: { instanceId: 'inst_9b2c', kind: null, olderThan: '7d' },
-        human: false,
+        human: true,
       });
     });
 
@@ -28,22 +28,17 @@ describe('pruneArgsParseTransformer', () => {
         pruneArgsParseTransformer({ args: ['--kind', 'video', '--older-than', '2d'] }),
       ).toStrictEqual({
         query: { instanceId: null, kind: 'video', olderThan: '2d' },
-        human: false,
-      });
-    });
-
-    it('VALID: {args: all three plus --human} => every selector and the table renderer', () => {
-      expect(
-        pruneArgsParseTransformer({
-          args: ['--instance', 'inst_9b2c', '--kind', 'shot', '--older-than', '30m', '--human'],
-        }),
-      ).toStrictEqual({
-        query: { instanceId: 'inst_9b2c', kind: 'shot', olderThan: '30m' },
         human: true,
       });
     });
 
-    it('VALID: {args: --json} => the explicit default contributes no field', () => {
+    it('INVALID: {args: [--human]} => --human is refused as an unknown flag', () => {
+      expect(() => pruneArgsParseTransformer({ args: ['--human'] })).toThrow(
+        /^Unknown flag: --human\n\nAccepted flags: --instance, --kind, --older-than, --json\n\nUsage: dungeonmaster siegelense prune \[--instance <instanceId>\] \[--kind <kind>\] \[--older-than <window>\] \[--json\]$/u,
+      );
+    });
+
+    it('VALID: {args: --json} => the explicit json flag parses to human: false', () => {
       expect(pruneArgsParseTransformer({ args: ['--json'] })).toStrictEqual({
         query: { instanceId: null, kind: null, olderThan: '7d' },
         human: false,
@@ -72,7 +67,7 @@ describe('pruneArgsParseTransformer', () => {
 
     it('INVALID: {args: --all} => an unknown flag lists the accepted ones', () => {
       expect(() => pruneArgsParseTransformer({ args: ['--all'] })).toThrow(
-        /^Unknown flag: --all\n\nAccepted flags: --instance, --kind, --older-than, --json, --human\n\nUsage: dungeonmaster siegelense prune \[--instance <instanceId>\] \[--kind <kind>\] \[--older-than <window>\] \[--json\] \[--human\]$/u,
+        /^Unknown flag: --all\n\nAccepted flags: --instance, --kind, --older-than, --json\n\nUsage: dungeonmaster siegelense prune \[--instance <instanceId>\] \[--kind <kind>\] \[--older-than <window>\] \[--json\]$/u,
       );
     });
 

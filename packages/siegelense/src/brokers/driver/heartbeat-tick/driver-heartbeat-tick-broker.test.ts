@@ -44,7 +44,7 @@ describe('driverHeartbeatTickBroker', () => {
       const proxy = driverHeartbeatTickBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const pgids = [ProcessGroupIdStub({ value: 4821 })];
-      const lane = LaneSessionStub({ specName: 'dungeonmaster-headless', pgids });
+      const lane = LaneSessionStub({ specName: 'dungeonmaster-api', pgids });
       const nowMs = 1_700_000_500_000;
       const evidencePath = FilePathStub({
         value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21',
@@ -64,7 +64,7 @@ describe('driverHeartbeatTickBroker', () => {
       expect(proxy.getSampleRecordCalls()).toStrictEqual([
         {
           instanceId: 'inst_7f3a9c21',
-          specName: 'dungeonmaster-headless',
+          specName: 'dungeonmaster-api',
           rssMB: 1840,
           beatAtMs: nowMs,
         },
@@ -74,7 +74,7 @@ describe('driverHeartbeatTickBroker', () => {
     it('VALID: {a beat whose measurement failed} => still hands the sampler the null reading rather than skipping it', async () => {
       const proxy = driverHeartbeatTickBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
-      const lane = LaneSessionStub({ specName: 'dungeonmaster-headless' });
+      const lane = LaneSessionStub({ specName: 'dungeonmaster-api' });
       const nowMs = 1_700_000_500_000;
       const evidencePath = FilePathStub({
         value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21',
@@ -87,7 +87,7 @@ describe('driverHeartbeatTickBroker', () => {
       expect(proxy.getSampleRecordCalls()).toStrictEqual([
         {
           instanceId: 'inst_7f3a9c21',
-          specName: 'dungeonmaster-headless',
+          specName: 'dungeonmaster-api',
           rssMB: null,
           beatAtMs: nowMs,
         },
@@ -99,7 +99,7 @@ describe('driverHeartbeatTickBroker', () => {
     it('ERROR: {the sample write rejects} => the beat still reports success, and the failure is named on stderr', async () => {
       const proxy = driverHeartbeatTickBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
-      const lane = LaneSessionStub({ specName: 'dungeonmaster-headless' });
+      const lane = LaneSessionStub({ specName: 'dungeonmaster-api' });
       const nowMs = 1_700_000_500_000;
       const evidencePath = FilePathStub({
         value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21',

@@ -21,7 +21,7 @@ import { laneSpecHashBroker } from '../../lane-spec/hash/lane-spec-hash-broker';
 
 import { profileSampleRecordBroker } from './profile-sample-record-broker';
 
-const HEADLESS_SPEC = SpecNameStub({ value: 'dungeonmaster-headless' });
+const HEADLESS_SPEC = SpecNameStub({ value: 'dungeonmaster-api' });
 const SUBJECT_ID = InstanceIdStub({ value: 'inst_aaaa1111' });
 const SECOND_ID = InstanceIdStub({ value: 'inst_bbbb2222' });
 const THIRD_ID = InstanceIdStub({ value: 'inst_cccc3333' });
@@ -180,7 +180,7 @@ describe('the profile sample-write path, against a real tree', () => {
   describe('what profile reads back off that tree', () => {
     it('VALID: {one run measured solo and contended} => two groups with their own steadyMB and peakMB, never one blended row', () => {
       expect(profile).toStrictEqual({
-        specName: 'dungeonmaster-headless',
+        specName: 'dungeonmaster-api',
         processes: 1,
         hash: String(laneSpecHashBroker({ spec: laneSpecFindBroker({ specName: HEADLESS_SPEC }) })),
         measuredAt: '2025-09-14',

@@ -4,8 +4,8 @@ describe('laneSpecStatics', () => {
   describe('the complete built-in spec set', () => {
     it('VALID: {laneSpecStatics.specs} => asserts every field of both built-in specs', () => {
       expect(laneSpecStatics.specs).toStrictEqual({
-        'dungeonmaster-web': {
-          name: 'dungeonmaster-web',
+        'dungeonmaster-stack': {
+          name: 'dungeonmaster-stack',
           processes: [
             {
               name: 'api',
@@ -38,8 +38,8 @@ describe('laneSpecStatics', () => {
           env: { DUNGEONMASTER_PORT: '{apiPort}' },
           requiresFakeAgentCli: true,
         },
-        'dungeonmaster-headless': {
-          name: 'dungeonmaster-headless',
+        'dungeonmaster-api': {
+          name: 'dungeonmaster-api',
           processes: [
             {
               name: 'api',
@@ -68,14 +68,12 @@ describe('laneSpecStatics', () => {
   });
 
   describe('the browserless spec does not drift from the browsered one', () => {
-    it("VALID: {dungeonmaster-headless.processes} => is dungeonmaster-web's processes filtered on portRole 'api'", () => {
-      const webApiProcesses = laneSpecStatics.specs['dungeonmaster-web'].processes.filter(
+    it("VALID: {dungeonmaster-api.processes} => is dungeonmaster-stack's processes filtered on portRole 'api'", () => {
+      const webApiProcesses = laneSpecStatics.specs['dungeonmaster-stack'].processes.filter(
         (process) => process.portRole === 'api',
       );
 
-      expect(laneSpecStatics.specs['dungeonmaster-headless'].processes).toStrictEqual(
-        webApiProcesses,
-      );
+      expect(laneSpecStatics.specs['dungeonmaster-api'].processes).toStrictEqual(webApiProcesses);
     });
   });
 });

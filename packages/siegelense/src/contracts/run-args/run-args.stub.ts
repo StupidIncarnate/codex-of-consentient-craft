@@ -11,5 +11,6 @@ export const RunArgsStub = ({ ...props }: StubArgument<RunArgs> = {}): RunArgs =
     instanceId: InstanceIdStub(),
     steps: [StepStub()],
     stopOn: StopOnStub(),
+    json: false,
     ...props,
   });

@@ -67,7 +67,7 @@ describe('stepResetBroker', () => {
           reseed: null,
         }),
       ).rejects.toThrow(
-        'Step reset { page } needs a browser, but spec dungeonmaster-web declares browser: false — until { file } is the form that runs on a lane with no screen',
+        'Step reset { page } needs a browser, but spec dungeonmaster-stack declares browser: false — until { file } is the form that runs on a lane with no screen',
       );
     });
   });

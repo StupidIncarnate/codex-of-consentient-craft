@@ -8,7 +8,7 @@
  * USAGE:
  * pruneArgsContract.parse({
  *   query: { instanceId: null, kind: null, olderThan: '7d' },
- *   human: false,
+ *   human: true,
  * });
  * // Returns a validated PruneArgs
  */

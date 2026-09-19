@@ -138,6 +138,7 @@ export const instanceEntryLayerBroker = async ({
       orphans,
       evidence: null,
       likelyCause,
+      branch: entry.branch ?? null,
       evidenceComplete,
     });
   }
@@ -180,6 +181,7 @@ export const instanceEntryLayerBroker = async ({
         lastShot: null,
       }),
       likelyCause,
+      branch: entry.branch ?? null,
       evidenceComplete,
     });
   }
@@ -214,6 +216,7 @@ export const instanceEntryLayerBroker = async ({
         lastShot: null,
       }),
       likelyCause,
+      branch: entry.branch ?? null,
       evidenceComplete,
     });
   }
@@ -251,6 +254,7 @@ export const instanceEntryLayerBroker = async ({
       lastShot,
     }),
     likelyCause,
+    branch: entry.branch ?? null,
     evidenceComplete,
   });
 };

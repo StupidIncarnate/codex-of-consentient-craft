@@ -24,11 +24,14 @@ import { registryReadBroker } from '../../../brokers/registry/read/registry-read
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
+import { killAnswerRenderTransformer } from '../../../transformers/kill-answer-render/kill-answer-render-transformer';
 
 export const SiegelenseKillResponder = async ({
   instanceId,
+  json = false,
 }: {
   instanceId: InstanceId;
+  json?: boolean | undefined;
 }): Promise<AdapterResult> => {
   const registry = await registryReadBroker();
   const isKnownInstance = registry.instances.some((candidate) => candidate.id === instanceId);
@@ -38,7 +41,9 @@ export const SiegelenseKillResponder = async ({
 
   const result = await instanceKillBroker({ instanceId });
   process.stdout.write(
-    `${JSON.stringify(result, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+    json
+      ? `${JSON.stringify(result, null, siegelenseOutputStatics.json.indentSpaces)}\n`
+      : killAnswerRenderTransformer({ result }),
   );
   return adapterResultContract.parse({ success: true });
 };

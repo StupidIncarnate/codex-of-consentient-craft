@@ -10,5 +10,6 @@ export const StartArgsStub = ({ ...props }: StubArgument<StartArgs> = {}): Start
     questId: null,
     guildId: null,
     seed: null,
+    json: false,
     ...props,
   });

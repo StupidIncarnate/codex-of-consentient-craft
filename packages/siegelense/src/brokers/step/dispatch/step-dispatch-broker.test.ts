@@ -300,9 +300,9 @@ describe('stepDispatchBroker', () => {
   });
 
   describe('a browser step against a browserless lane', () => {
-    it('INVALID: {click against dungeonmaster-headless} => throws BrowserStepUnsupportedError naming the spec', async () => {
+    it('INVALID: {click against dungeonmaster-api} => throws BrowserStepUnsupportedError naming the spec', async () => {
       const proxy = stepDispatchBrokerProxy();
-      const lane = proxy.browserlessLane({ specName: 'dungeonmaster-headless' });
+      const lane = proxy.browserlessLane({ specName: 'dungeonmaster-api' });
       const step = StepStub({ step: 'click', target: SelectorStub() });
 
       const error = await stepDispatchBroker({
@@ -323,8 +323,7 @@ describe('stepDispatchBroker', () => {
 
       expect({ name: error.name, message: error.message }).toStrictEqual({
         name: 'BrowserStepUnsupportedError',
-        message:
-          'Step click needs a browser, but spec dungeonmaster-headless declares browser: false',
+        message: 'Step click needs a browser, but spec dungeonmaster-api declares browser: false',
       });
     });
 

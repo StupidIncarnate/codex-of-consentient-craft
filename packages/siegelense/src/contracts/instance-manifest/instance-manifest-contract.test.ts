@@ -6,7 +6,7 @@ describe('instanceManifestContract', () => {
     it('VALID: {a quest-owned instance, every link present} => parses the complete manifest', () => {
       const manifest = InstanceManifestStub({
         instanceId: 'inst_7f3a9c21',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         baseUrl: 'http://localhost:34173',
         home: '/tmp/dm-siege-inst_7f3a9c21',
         evidence: {
@@ -33,7 +33,7 @@ describe('instanceManifestContract', () => {
 
       expect(result).toStrictEqual({
         instanceId: 'inst_7f3a9c21',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         baseUrl: 'http://localhost:34173',
         home: '/tmp/dm-siege-inst_7f3a9c21',
         evidence: {
@@ -103,7 +103,7 @@ describe('instanceManifestContract', () => {
 
       expect(result).toStrictEqual({
         instanceId: 'inst_7f3a9c21',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         baseUrl: 'http://localhost:34173',
         home: '/tmp/dm-siege-inst_7f3a9c21',
         evidence: {
@@ -159,7 +159,7 @@ describe('instanceManifestContract', () => {
     it('INVALID: {missing instanceId} => throws Required', () => {
       expect(() =>
         instanceManifestContract.parse({
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           baseUrl: 'http://localhost:34173',
           home: '/tmp/dm-siege-inst_7f3a9c21',
           evidence: {

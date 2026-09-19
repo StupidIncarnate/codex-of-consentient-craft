@@ -8,6 +8,17 @@ import { SiegelenseRecipesResponderProxy } from './siegelense-recipes-responder.
 
 describe('SiegelenseRecipesResponder', () => {
   describe('an empty book', () => {
+    it('EMPTY: {no args, no recipes} => writes the "no recipes yet" sentence by default', async () => {
+      const proxy = SiegelenseRecipesResponderProxy();
+      proxy.stageAnswer({ answer: RecipesAnswerStub({ recipes: [] }) });
+
+      await SiegelenseRecipesResponder();
+
+      expect(proxy.getStdoutWrites()).toStrictEqual([
+        'No recipes yet — packages/siegelense-recipes/ holds none. Adding one lists it here.\n',
+      ]);
+    });
+
     it('EMPTY: {human: false, no recipes} => writes the empty RecipesAnswer as one JSON document', async () => {
       const proxy = SiegelenseRecipesResponderProxy();
       const answer = RecipesAnswerStub({ recipes: [] });

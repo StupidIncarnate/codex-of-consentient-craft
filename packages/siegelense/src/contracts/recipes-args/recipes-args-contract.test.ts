@@ -3,20 +3,20 @@ import { RecipesArgsStub } from './recipes-args.stub';
 
 describe('recipesArgsContract', () => {
   describe('valid args', () => {
-    it('VALID: {human: false} => the JSON default parses', () => {
+    it('VALID: {human: true} => the default human form parses', () => {
+      const args = RecipesArgsStub();
+
+      const result = recipesArgsContract.parse(args);
+
+      expect(result).toStrictEqual({ human: true });
+    });
+
+    it('VALID: {human: false} => the explicit JSON form parses', () => {
       const args = RecipesArgsStub({ human: false });
 
       const result = recipesArgsContract.parse(args);
 
       expect(result).toStrictEqual({ human: false });
-    });
-
-    it('VALID: {human: true} => the reading-table form parses', () => {
-      const args = RecipesArgsStub({ human: true });
-
-      const result = recipesArgsContract.parse(args);
-
-      expect(result).toStrictEqual({ human: true });
     });
   });
 

@@ -29,8 +29,17 @@ describe('agyPreToolHookDataContract', () => {
       },
     });
 
-    expect(result.conversationId).toBe('test-conv-id');
-    expect(result.workspacePaths).toStrictEqual(['/test/path']);
-    expect(result.stepIdx).toBe(5);
+    expect(result).toStrictEqual({
+      conversationId: 'test-conv-id',
+      workspacePaths: ['/test/path'],
+      transcriptPath: '/test/transcript.jsonl',
+      artifactDirectoryPath: '/test/artifacts',
+      modelName: 'auto',
+      stepIdx: 5,
+      toolCall: {
+        name: 'view_file',
+        args: { AbsolutePath: '/test/file.ts' },
+      },
+    });
   });
 });

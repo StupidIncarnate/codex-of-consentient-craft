@@ -6,6 +6,27 @@ import { SiegelenseCleanupResponderProxy } from './siegelense-cleanup-responder.
 
 describe('SiegelenseCleanupResponder', () => {
   describe('something reaped', () => {
+    it('VALID: {no args, one stale instance reaped} => writes the human table by default', async () => {
+      const proxy = SiegelenseCleanupResponderProxy();
+      const answer = CleanupAnswerStub({
+        reaped: [{ id: 'inst_9b2c', staleFor: '9h', killed: [33_812, 33_840], homeRemoved: true }],
+        portsReleased: [41_345, 34_173],
+        lockReleased: true,
+        leftAlone: [],
+      });
+      proxy.stageAnswer({ answer });
+
+      await SiegelenseCleanupResponder();
+
+      expect(proxy.getStdoutWrites()).toStrictEqual([
+        'REAPED: inst_9b2c (stale 9h, killed 33812, 33840, home removed)\n' +
+          'PORTS RELEASED: 41345, 34173\n' +
+          'LOCK RELEASED: yes\n' +
+          'ASSETS AGED: 3 instances, 1840MB\n' +
+          'LEFT ALONE: none\n',
+      ]);
+    });
+
     it('VALID: {human: false, one stale instance reaped} => writes the CleanupAnswer as one JSON document', async () => {
       const proxy = SiegelenseCleanupResponderProxy();
       const answer = CleanupAnswerStub({

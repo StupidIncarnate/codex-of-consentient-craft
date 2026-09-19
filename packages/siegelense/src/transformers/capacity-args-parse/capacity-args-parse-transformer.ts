@@ -8,12 +8,12 @@
  *
  * `--pool` is what makes the never-average rule operable from a terminal: it is the size of the pool
  * the caller is about to open, and the sample group matching it is the one the division uses (line
- * 2526). No `--human` appears among the accepted flags, which is the whole opt-out — `SiegelenseFlow`
- * derives which calls admit it from each call's own help entry.
+ * 2526). `--json` outputs raw JSON instead of the default human summary. `--human` is accepted
+ * silently as an explicit affirmation of the default.
  *
  * USAGE:
  * capacityArgsParseTransformer({ args: [] });
- * // Returns { specName: null, poolSize: null } as CapacityArgs
+ * // Returns { specName: null, poolSize: null, isJson: false } as CapacityArgs
  */
 
 import { capacityArgsContract } from '../../contracts/capacity-args/capacity-args-contract';
@@ -82,5 +82,7 @@ export const capacityArgsParseTransformer = ({
           parse: () => profilePoolSizeContract.parse(Number(rawPoolSize)),
         });
 
-  return capacityArgsContract.parse({ specName, poolSize });
+  const isJson = args.includes(siegelenseOutputStatics.flags.json);
+
+  return capacityArgsContract.parse({ specName, poolSize, isJson });
 };

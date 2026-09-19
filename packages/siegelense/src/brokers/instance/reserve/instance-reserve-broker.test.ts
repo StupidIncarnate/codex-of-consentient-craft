@@ -144,6 +144,30 @@ describe('instanceReserveBroker', () => {
         }),
       );
     });
+
+    it('VALID: {branch detected on git HEAD} => the written row carries the branch name', async () => {
+      const proxy = instanceReserveBrokerProxy();
+      const specName = SpecNameStub();
+      const specHash = SpecHashStub();
+      proxy.setupBranch({ branch: 'feat/def-04' });
+      proxy.setupRegistry({ json: JSON.stringify(RegistryStub({ instances: [] })) });
+      proxy.setupEvidenceDir({
+        homeDir: HOME_DIR,
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+      });
+      proxy.setupPortCandidates({ pairs: freePairs(instanceLifecycleStatics.ports.claimAttempts) });
+
+      const result = await instanceReserveBroker({
+        specName,
+        specHash,
+        questId: null,
+        guildId: null,
+      });
+
+      expect(result.branch).toBe('feat/def-04');
+    });
   });
 
   describe('port collision', () => {

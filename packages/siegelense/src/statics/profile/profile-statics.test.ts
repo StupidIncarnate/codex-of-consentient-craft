@@ -18,4 +18,13 @@ describe('profileStatics', () => {
       expect(profileStatics.settle).toStrictEqual({ afterMs: 30_000 });
     });
   });
+
+  describe('table', () => {
+    it('VALID: {table} => defines the expected headers and cell padding', () => {
+      expect(profileStatics.table).toStrictEqual({
+        headers: ['POOL', 'STEADY', 'PEAK', 'RUNS'],
+        cellPadding: 2,
+      });
+    });
+  });
 });

@@ -1,27 +1,30 @@
 /**
- * PURPOSE: Reads `dungeonmaster siegelense profile`'s argv down to the one thing the call takes —
- * the spec to report on. `--spec` is REQUIRED, unlike `statusArgsParseTransformer`'s optional
+ * PURPOSE: Reads `dungeonmaster siegelense profile`'s argv down to the spec to report on and
+ * whether to output raw JSON. `--spec` is REQUIRED, unlike `statusArgsParseTransformer`'s optional
  * `--instance`: there is no fleet-wide form of a profile, because a profile is keyed by one spec's
- * content hash and two specs share nothing. No `--human` appears among the accepted flags, and that
- * is the whole opt-out: `SiegelenseFlow` derives which calls admit `--human` from each call's own
- * help entry, so a page with no such flag refuses it by name before argv ever reaches here.
+ * content hash and two specs share nothing. `--json` outputs raw JSON instead of the default human
+ * summary. `--human` is accepted silently as an explicit affirmation of the default.
  *
  * USAGE:
- * profileArgsParseTransformer({ args: ['--spec', 'dungeonmaster-web'] });
- * // Returns 'dungeonmaster-web' as SpecName
+ * profileArgsParseTransformer({ args: ['--spec', 'dungeonmaster-stack'] });
+ * // Returns { specName: 'dungeonmaster-stack', isJson: false } as ProfileArgs
  */
 
+import { profileArgsContract } from '../../contracts/profile-args/profile-args-contract';
+import type { ProfileArgs } from '../../contracts/profile-args/profile-args-contract';
 import { specNameContract } from '../../contracts/spec-name/spec-name-contract';
-import type { SpecName } from '../../contracts/spec-name/spec-name-contract';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
 
 const SPEC_FLAG = '--spec';
-const KNOWN_FLAGS = [SPEC_FLAG, siegelenseOutputStatics.flags.json] as const;
+const KNOWN_FLAGS = [
+  SPEC_FLAG,
+  siegelenseOutputStatics.flags.json,
+] as const;
 const USAGE = 'Usage: dungeonmaster siegelense profile --spec <specName> [--json]';
 
-export const profileArgsParseTransformer = ({ args }: { args: readonly string[] }): SpecName => {
+export const profileArgsParseTransformer = ({ args }: { args: readonly string[] }): ProfileArgs => {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
 
@@ -60,8 +63,12 @@ export const profileArgsParseTransformer = ({ args }: { args: readonly string[] 
     );
   }
 
-  return flagContractParseTransformer({
+  const specName = flagContractParseTransformer({
     flag: SPEC_FLAG,
     parse: () => specNameContract.parse(rawSpecName),
   });
+
+  const isJson = args.includes(siegelenseOutputStatics.flags.json);
+
+  return profileArgsContract.parse({ specName, isJson });
 };

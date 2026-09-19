@@ -5,7 +5,7 @@ describe('startArgsContract', () => {
   describe('valid args', () => {
     it('VALID: {specName, questId: null, guildId: null} => the unowned form parses', () => {
       const args = StartArgsStub({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         questId: null,
         guildId: null,
       });
@@ -13,16 +13,17 @@ describe('startArgsContract', () => {
       const result = startArgsContract.parse(args);
 
       expect(result).toStrictEqual({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         questId: null,
         guildId: null,
         seed: null,
+        json: false,
       });
     });
 
     it('VALID: {specName, questId, guildId} => the owned form parses', () => {
       const args = StartArgsStub({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         questId: 'add-auth',
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
       });
@@ -30,16 +31,17 @@ describe('startArgsContract', () => {
       const result = startArgsContract.parse(args);
 
       expect(result).toStrictEqual({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         questId: 'add-auth',
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         seed: null,
+        json: false,
       });
     });
 
     it('VALID: {specName, questId: null, guildId: null, idleTimeoutMs: 1_800_000} => the raised ceiling parses', () => {
       const args = StartArgsStub({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         questId: null,
         guildId: null,
         idleTimeoutMs: 1_800_000,
@@ -48,24 +50,40 @@ describe('startArgsContract', () => {
       const result = startArgsContract.parse(args);
 
       expect(result).toStrictEqual({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         questId: null,
         guildId: null,
         seed: null,
         idleTimeoutMs: 1_800_000,
+        json: false,
       });
     });
 
     it('VALID: {seed} => the recipe name a boot-time seed names parses', () => {
       const result = startArgsContract.parse(
-        StartArgsStub({ specName: 'dungeonmaster-web', seed: 'guild-with-three-quests' }),
+        StartArgsStub({ specName: 'dungeonmaster-stack', seed: 'guild-with-three-quests' }),
       );
 
       expect(result).toStrictEqual({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         questId: null,
         guildId: null,
         seed: 'guild-with-three-quests',
+        json: false,
+      });
+    });
+
+    it('VALID: {json: true} => explicit json flag parses', () => {
+      const result = startArgsContract.parse(
+        StartArgsStub({ specName: 'dungeonmaster-stack', json: true }),
+      );
+
+      expect(result).toStrictEqual({
+        specName: 'dungeonmaster-stack',
+        questId: null,
+        guildId: null,
+        seed: null,
+        json: true,
       });
     });
   });
@@ -74,7 +92,7 @@ describe('startArgsContract', () => {
     it('INVALID: {seed: "Not Kebab"} => throws naming the kebab rule', () => {
       expect(() =>
         startArgsContract.parse({
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           questId: null,
           guildId: null,
           seed: 'Not Kebab',
@@ -84,7 +102,7 @@ describe('startArgsContract', () => {
 
     it('INVALID: {missing questId} => raises exactly one issue, scoped to questId, because .nullable() is not .optional()', () => {
       const result = startArgsContract.safeParse({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         guildId: null,
         seed: null,
       });
@@ -103,7 +121,7 @@ describe('startArgsContract', () => {
 
     it('INVALID: {missing guildId} => raises exactly one issue, scoped to guildId, because .nullable() is not .optional()', () => {
       const result = startArgsContract.safeParse({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         questId: null,
         seed: null,
       });
@@ -123,7 +141,7 @@ describe('startArgsContract', () => {
     it('INVALID: {extra key "reason"} => throws Unrecognized key, no extra field is accepted', () => {
       expect(() =>
         startArgsContract.parse({
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           questId: null,
           guildId: null,
           seed: null,

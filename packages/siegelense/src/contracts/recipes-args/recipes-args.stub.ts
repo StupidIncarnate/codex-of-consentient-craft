@@ -5,6 +5,6 @@ import type { RecipesArgs } from './recipes-args-contract';
 
 export const RecipesArgsStub = ({ ...props }: StubArgument<RecipesArgs> = {}): RecipesArgs =>
   recipesArgsContract.parse({
-    human: false,
+    human: true,
     ...props,
   });

@@ -6,8 +6,9 @@ import { fsEnsureWriteAdapterProxy } from '../../../adapters/fs/ensure-write/fs-
 import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
-import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+
+type FileContents = ReturnType<typeof FileContentsStub>;
+type FilePath = ReturnType<typeof FilePathStub>;
 
 export const installAgentsSetupBrokerProxy = (): {
   setupSuccess: (params: { targetProjectRoot: FilePath }) => void;

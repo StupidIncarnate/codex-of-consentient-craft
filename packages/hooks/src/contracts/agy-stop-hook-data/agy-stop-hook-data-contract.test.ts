@@ -24,7 +24,16 @@ describe('agyStopHookDataContract', () => {
       modelName: 'auto',
     });
 
-    expect(result.fullyIdle).toBe(false);
-    expect(result.conversationId).toBe('conv-123');
+    expect(result).toStrictEqual({
+      executionNum: 1,
+      terminationReason: 'model_stop',
+      error: '',
+      fullyIdle: false,
+      conversationId: 'conv-123',
+      workspacePaths: ['/workspace'],
+      transcriptPath: '/transcript.jsonl',
+      artifactDirectoryPath: '/artifacts',
+      modelName: 'auto',
+    });
   });
 });

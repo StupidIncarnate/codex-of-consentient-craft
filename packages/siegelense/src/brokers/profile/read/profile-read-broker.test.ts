@@ -9,8 +9,8 @@ import { profileReadBroker } from './profile-read-broker';
 import { profileReadBrokerProxy } from './profile-read-broker.proxy';
 
 const ROOT_PATH_VALUE = '/home/user/.dungeonmaster/siegelense';
-const WEB_SPEC = SpecNameStub({ value: 'dungeonmaster-web' });
-const HEADLESS_SPEC = SpecNameStub({ value: 'dungeonmaster-headless' });
+const WEB_SPEC = SpecNameStub({ value: 'dungeonmaster-stack' });
+const HEADLESS_SPEC = SpecNameStub({ value: 'dungeonmaster-api' });
 const BEAT_MS = 1_757_808_000_000;
 
 // The digests are REAL: laneSpecHashBrokerProxy stages nothing, so each spec's profile directory is
@@ -40,7 +40,7 @@ describe('profileReadBroker', () => {
       const result = await profileReadBroker({ specName: HEADLESS_SPEC });
 
       expect(result).toStrictEqual({
-        specName: 'dungeonmaster-headless',
+        specName: 'dungeonmaster-api',
         processes: 1,
         hash: String(specHashFor({ specName: HEADLESS_SPEC })),
         measuredAt: null,
@@ -52,7 +52,7 @@ describe('profileReadBroker', () => {
   });
 
   describe('processes counts the browser', () => {
-    it('VALID: {dungeonmaster-web, which boots api, vite and chromium} => processes is 3', async () => {
+    it('VALID: {dungeonmaster-stack, which boots api, vite and chromium} => processes is 3', async () => {
       const proxy = profileReadBrokerProxy();
       const profilesPath = profilesPathFor({ specName: WEB_SPEC });
       proxy.setupProfileTree({ profilesPath, sampleFileNames: [], bootFileNames: [] });
@@ -60,7 +60,7 @@ describe('profileReadBroker', () => {
       const result = await profileReadBroker({ specName: WEB_SPEC });
 
       expect(result).toStrictEqual({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         processes: 3,
         hash: String(specHashFor({ specName: WEB_SPEC })),
         measuredAt: null,
@@ -138,7 +138,7 @@ describe('profileReadBroker', () => {
       const result = await profileReadBroker({ specName: WEB_SPEC });
 
       expect(result).toStrictEqual({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         processes: 3,
         hash,
         measuredAt: '2025-09-14',
@@ -182,7 +182,7 @@ describe('profileReadBroker', () => {
       const result = await profileReadBroker({ specName: HEADLESS_SPEC });
 
       expect(result).toStrictEqual({
-        specName: 'dungeonmaster-headless',
+        specName: 'dungeonmaster-api',
         processes: 1,
         hash,
         measuredAt: '2025-09-14',
@@ -221,7 +221,7 @@ describe('profileReadBroker', () => {
       const result = await profileReadBroker({ specName: HEADLESS_SPEC });
 
       expect(result).toStrictEqual({
-        specName: 'dungeonmaster-headless',
+        specName: 'dungeonmaster-api',
         processes: 1,
         hash,
         measuredAt: '2025-09-14',

@@ -7,7 +7,7 @@ describe('capacitySampleSelectTransformer', () => {
   describe('two groups, never blended', () => {
     it('VALID: {poolSize: 1, groups at 1 and 3} => returns the pool-size-1 group verbatim', () => {
       const profile = SpecProfileStub({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         samples: [
           { poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 },
           { poolSize: 3, steadyMB: 1920, peakMB: 2810, runs: 5 },
@@ -20,7 +20,7 @@ describe('capacitySampleSelectTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        spec: 'dungeonmaster-web',
+        spec: 'dungeonmaster-stack',
         poolSize: 1,
         steadyMB: 1800,
         peakMB: 2600,
@@ -30,7 +30,7 @@ describe('capacitySampleSelectTransformer', () => {
 
     it('VALID: {poolSize: 3, groups at 1 and 3} => returns the pool-size-3 group verbatim', () => {
       const profile = SpecProfileStub({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         samples: [
           { poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 },
           { poolSize: 3, steadyMB: 1920, peakMB: 2810, runs: 5 },
@@ -43,7 +43,7 @@ describe('capacitySampleSelectTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        spec: 'dungeonmaster-web',
+        spec: 'dungeonmaster-stack',
         poolSize: 3,
         steadyMB: 1920,
         peakMB: 2810,
@@ -65,7 +65,7 @@ describe('capacitySampleSelectTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        spec: 'dungeonmaster-web',
+        spec: 'dungeonmaster-stack',
         poolSize: 1,
         steadyMB: 1800,
         peakMB: 2600,
@@ -87,7 +87,7 @@ describe('capacitySampleSelectTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        spec: 'dungeonmaster-web',
+        spec: 'dungeonmaster-stack',
         poolSize: 3,
         steadyMB: 1920,
         peakMB: 2810,
@@ -110,7 +110,7 @@ describe('capacitySampleSelectTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        spec: 'dungeonmaster-web',
+        spec: 'dungeonmaster-stack',
         poolSize: 2,
         steadyMB: 1860,
         peakMB: 2700,
@@ -131,7 +131,7 @@ describe('capacitySampleSelectTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        spec: 'dungeonmaster-web',
+        spec: 'dungeonmaster-stack',
         poolSize: 3,
         steadyMB: 1920,
         peakMB: 2810,
