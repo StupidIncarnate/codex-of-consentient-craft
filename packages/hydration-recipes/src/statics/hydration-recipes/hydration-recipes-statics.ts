@@ -3,9 +3,9 @@
  * package grows.
  *
  * USAGE:
- * siegelenseRecipesStatics.packageName;
+ * hydrationRecipesStatics.packageName;
  */
 
-export const siegelenseRecipesStatics = {
-  packageName: 'siegelense-recipes',
+export const hydrationRecipesStatics = {
+  packageName: 'hydration-recipes',
 } as const;

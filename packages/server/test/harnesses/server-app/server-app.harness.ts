@@ -47,11 +47,11 @@ import { locationsStatics, pastedImageStatics } from '@dungeonmaster/shared/stat
 import {
   dmRegistryBroker,
   recipesHydrationCreateBroker,
-} from '@dungeonmaster/siegelense-recipes/brokers';
-import { dmTargetContract, guildFieldsContract } from '@dungeonmaster/siegelense-recipes/contracts';
-import type { QuestFields } from '@dungeonmaster/siegelense-recipes/contracts';
+} from '@dungeonmaster/hydration-recipes/brokers';
+import { dmTargetContract, guildFieldsContract } from '@dungeonmaster/hydration-recipes/contracts';
+import type { QuestFields } from '@dungeonmaster/hydration-recipes/contracts';
 
-// `recipe()` is stateless (packages/siegelense-recipes/CLAUDE.md — confirmed by reading
+// `recipe()` is stateless (packages/hydration-recipes/CLAUDE.md — confirmed by reading
 // hydration-create-broker.ts: neither ingredient() nor recipe() touches registeredIngredients),
 // so a fresh recipesHydrationCreateBroker() call here is fine even though execution goes through
 // dmRegistryBroker.run — only registry()/run() must share one instance, and dmRegistryBroker
@@ -62,7 +62,7 @@ const { recipe } = recipesHydrationCreateBroker();
 // framework (scrolls/seigelense/siegelense-recipes.md). `enforce-import-dependencies`
 // (packages/eslint-plugin) restricts every file classified `flows/` — colocated integration
 // tests included, no carve-out for test files — to `contracts, transformers, guards, statics,
-// errors, flows, responders, hono, ...`; `@dungeonmaster/siegelense-recipes` exposes its runner
+// errors, flows, responders, hono, ...`; `@dungeonmaster/hydration-recipes` exposes its runner
 // only as `dmRegistryBroker`, a `brokers/`-suffixed export, and has no `responders` subpath. A
 // file under `test/harnesses/` is not classified into any architecture folder type, so it is the
 // only place in this package that can import a broker on the recipe framework's behalf.
@@ -339,8 +339,8 @@ export const serverAppHarness = (): {
     )();
     const result = await dmRegistryBroker.run(plan, target);
     return {
-      guild: result[GUILD_SAVE_NAME] as Guild,
-      quest: result[QUEST_SAVE_NAME] as Quest,
+      guild: result[GUILD_SAVE_NAME] as unknown as Guild,
+      quest: result[QUEST_SAVE_NAME] as unknown as Quest,
     };
   };
 

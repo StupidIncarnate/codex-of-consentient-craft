@@ -10,7 +10,7 @@ const CONTEXT = InstallContextStub({
 
 describe('InstallRecipesScaffoldResponder', () => {
   describe('package absent', () => {
-    it('VALID: {packages/siegelense-recipes absent} => created, with an empty src/', async () => {
+    it('VALID: {packages/hydration-recipes absent} => created, with an empty src/', async () => {
       const proxy = InstallRecipesScaffoldResponderProxy();
       proxy.setupPackageAbsent();
 
@@ -20,14 +20,14 @@ describe('InstallRecipesScaffoldResponder', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'created',
-        message: 'Created packages/siegelense-recipes/src/',
+        message: 'Created packages/hydration-recipes/src/',
       });
-      expect(proxy.getCreatedDirs()).toStrictEqual(['/project/packages/siegelense-recipes/src']);
+      expect(proxy.getCreatedDirs()).toStrictEqual(['/project/packages/hydration-recipes/src']);
     });
   });
 
   describe('package present, holding a recipe', () => {
-    it('VALID: {packages/siegelense-recipes present} => nothing written, existing contents survive untouched', async () => {
+    it('VALID: {packages/hydration-recipes present} => nothing written, existing contents survive untouched', async () => {
       const proxy = InstallRecipesScaffoldResponderProxy();
       proxy.setupPackagePresent();
 
@@ -37,7 +37,7 @@ describe('InstallRecipesScaffoldResponder', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'skipped',
-        message: 'packages/siegelense-recipes/ already present; left untouched',
+        message: 'packages/hydration-recipes/ already present; left untouched',
       });
       expect(proxy.getCreatedDirs()).toStrictEqual([]);
     });

@@ -1,4 +1,4 @@
-# @dungeonmaster/siegelense-recipes
+# @dungeonmaster/hydration-recipes
 
 This repo's OWN states — which ingredients exist, what each one `copies:`, and the root-`dependencies`
 rule that keeps the package unpublished. See `scrolls/seigelense/siegelense-recipes.md` for the
@@ -102,9 +102,9 @@ the full reasoning.
 
 ## This package is NOT in the root `package.json` `dependencies`, and a test pins it
 
-`src/statics/siegelense-recipes/siegelense-recipes-statics.test.ts` reads the root `package.json`
+`src/statics/hydration-recipes/hydration-recipes-statics.test.ts` reads the root `package.json`
 (walking UP from `__dirname`, never `process.cwd()`) and asserts
-`rootPackageJson.dependencies['@dungeonmaster/siegelense-recipes']` is `undefined`, and that this
+`rootPackageJson.dependencies['@dungeonmaster/hydration-recipes']` is `undefined`, and that this
 package's OWN `package.json` carries `"private": true`. `dungeonmaster create-package` adds a
 `dependencies` entry automatically — that is what would put this package back, and nothing else
 would say so without this test.
@@ -112,8 +112,8 @@ would say so without this test.
 ## Build before a listing is honest
 
 `recipes {}` (chunk 8, `@dungeonmaster/siegelense`) globs
-`packages/siegelense-recipes/dist/index.js` and dynamically imports it — it reads COMPILED output,
-never source. Run `npm run build --workspace=@dungeonmaster/siegelense-recipes` before trusting the
+`packages/hydration-recipes/dist/index.js` and dynamically imports it — it reads COMPILED output,
+never source. Run `npm run build --workspace=@dungeonmaster/hydration-recipes` before trusting the
 listing after editing a recipe.
 
 ## The three exports chunk 8 reads, and why they are three, not one
@@ -130,7 +130,7 @@ at the target's `home` for the run's duration (restored in a `finally`, since th
 runs a seed inherits the OPERATOR's environment, not the lane's), and runs the plan through
 `dmRegistryBroker.run` — never a fresh `recipesHydrationCreateBroker()` call.
 
-`src/siegelense-recipes-exports.integration.test.ts` asserts `index.ts`'s export names against this
+`src/hydration-recipes-exports.integration.test.ts` asserts `index.ts`'s export names against this
 same statics file, so a rename on either side of the boundary goes red here instead of only at run
 time, in a consumer's repo.
 

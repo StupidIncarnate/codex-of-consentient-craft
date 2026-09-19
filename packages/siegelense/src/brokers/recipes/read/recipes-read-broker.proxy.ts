@@ -20,7 +20,7 @@ export const recipesReadBrokerProxy = (): {
     }): void => {
       locateProxy.setupPresentAndBuilt({
         cwdPath: '/repo',
-        packagePath: FilePathStub({ value: '/repo/packages/siegelense-recipes' }),
+        packagePath: FilePathStub({ value: '/repo/packages/hydration-recipes' }),
         entryPath,
       });
       importProxy.succeeds({ path: entryPath, module: moduleExports });

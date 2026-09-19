@@ -16,7 +16,7 @@ const allowlistedGuardFixture =
 const promptStaticsFixture =
   '/repo/packages/orchestrator/src/statics/codeweaver-prompt/codeweaver-prompt-statics.ts';
 const allowlistedTransitionTargetStatusesFixture =
-  '/repo/packages/siegelense-recipes/src/statics/quest-transition-target-statuses/quest-transition-target-statuses-statics.ts';
+  '/repo/packages/hydration-recipes/src/statics/quest-transition-target-statuses/quest-transition-target-statuses-statics.ts';
 
 ruleTester.run('ban-quest-status-literals', ruleBanQuestStatusLiteralsBroker(), {
   valid: [

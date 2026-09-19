@@ -13,7 +13,7 @@ import { z } from 'zod';
 
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
 
-import * as siegelenseRecipesIndex from '../index';
+import * as hydrationRecipesIndex from '../index';
 
 const ingredientNameShape = z.string().min(1).brand<'IngredientName'>();
 const makesCountShape = z.number().int().positive().brand<'MakesCount'>();
@@ -40,27 +40,27 @@ const recipesListingShape = z.array(
 
 describe('the exports @dungeonmaster/siegelense reads off this package', () => {
   it('VALID: {} => the module carries exactly the three names the convention declares', () => {
-    expect(Object.keys(siegelenseRecipesIndex).sort()).toStrictEqual(
+    expect(Object.keys(hydrationRecipesIndex).sort()).toStrictEqual(
       Object.values(recipesConventionStatics.exports).sort(),
     );
   });
 
   it('VALID: {} => the export named by exports.listingBuild takes zero arguments', () => {
-    const listingExport = siegelenseRecipesIndex[recipesConventionStatics.exports.listingBuild];
+    const listingExport = hydrationRecipesIndex[recipesConventionStatics.exports.listingBuild];
     const declaredArity = listingExport.length;
 
     expect(declaredArity).toStrictEqual(0);
   });
 
   it('VALID: {} => the export named by exports.seedRun takes exactly one argument', () => {
-    const seedRunExport = siegelenseRecipesIndex[recipesConventionStatics.exports.seedRun];
+    const seedRunExport = hydrationRecipesIndex[recipesConventionStatics.exports.seedRun];
     const declaredArity = seedRunExport.length;
 
     expect(declaredArity).toStrictEqual(1);
   });
 
   it('VALID: {} => calling it returns the real listing, matching the shape siegelense parses', () => {
-    const listingExport = siegelenseRecipesIndex[recipesConventionStatics.exports.listingBuild];
+    const listingExport = hydrationRecipesIndex[recipesConventionStatics.exports.listingBuild];
 
     const listing = listingExport();
 
@@ -97,7 +97,7 @@ describe('the exports @dungeonmaster/siegelense reads off this package', () => {
   });
 
   it('VALID: {} => recipesManifest names and describes the same recipes the listing broker does', () => {
-    const manifestExport = siegelenseRecipesIndex[recipesConventionStatics.exports.manifest];
+    const manifestExport = hydrationRecipesIndex[recipesConventionStatics.exports.manifest];
 
     expect(
       manifestExport.map((entry) => ({

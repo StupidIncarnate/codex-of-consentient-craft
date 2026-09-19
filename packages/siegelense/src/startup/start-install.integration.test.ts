@@ -37,7 +37,7 @@ describe('StartInstall', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'created',
-        message: `Created .siegelense -> ${dungeonmasterHomePath}/siegelense; Created .gitignore with .siegelense; Created packages/siegelense-recipes/src/`,
+        message: `Created .siegelense -> ${dungeonmasterHomePath}/siegelense; Created .gitignore with .siegelense; Created packages/hydration-recipes/src/`,
       });
     });
   });
@@ -118,7 +118,7 @@ describe('StartInstall', () => {
   });
 
   describe('the recipes scaffold', () => {
-    it('VALID: {fresh target} => packages/siegelense-recipes/src exists and is empty', async () => {
+    it('VALID: {fresh target} => packages/hydration-recipes/src exists and is empty', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'siegelense-start-install-recipes-empty' }),
       });
@@ -136,7 +136,7 @@ describe('StartInstall', () => {
       Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
 
       const recipesEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: 'packages/siegelense-recipes/src' }),
+        relativePath: RelativePathStub({ value: 'packages/hydration-recipes/src' }),
       });
 
       testbed.cleanup();
@@ -160,7 +160,7 @@ describe('StartInstall', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'packages/siegelense-recipes/src/marker.txt' }),
+        relativePath: RelativePathStub({ value: 'packages/hydration-recipes/src/marker.txt' }),
         content: FileContentStub({ value: 'do not touch\n' }),
       });
 
@@ -174,7 +174,7 @@ describe('StartInstall', () => {
       Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
 
       const markerContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'packages/siegelense-recipes/src/marker.txt' }),
+        relativePath: RelativePathStub({ value: 'packages/hydration-recipes/src/marker.txt' }),
       });
 
       testbed.cleanup();

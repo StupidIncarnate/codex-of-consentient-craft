@@ -75,11 +75,32 @@ export const instanceStubHarness = (): {
           req.on('data', (chunk: Buffer) => chunks.push(chunk));
           req.on('end', () => {
             const rawBody = Buffer.concat(chunks).toString('utf8');
-            recorded = {
+            const requestEntry = {
               method: req.method ?? '',
               path: req.url ?? '',
               body: rawBody === '' ? null : (JSON.parse(rawBody) as unknown),
             };
+            if (recorded === null || req.method === 'POST') {
+              recorded = requestEntry;
+            }
+
+            const bodyRecord =
+              typeof body === 'object' && body !== null
+                ? (body as Record<PropertyKey, unknown>)
+                : undefined;
+
+            if (req.method === 'POST' && bodyRecord !== undefined && 'id' in bodyRecord) {
+              res.writeHead(status, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: true, questId: bodyRecord.id }));
+              return;
+            }
+
+            if (req.method === 'GET' && bodyRecord !== undefined && 'id' in bodyRecord) {
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: true, quest: bodyRecord }));
+              return;
+            }
+
             res.writeHead(status, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(body));
           });

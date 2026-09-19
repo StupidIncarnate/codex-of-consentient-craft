@@ -4,7 +4,7 @@
  * server, one without so its `write` route touches disk directly
  * (scrolls/seigelense/plans/recipes-chunk-09-10-migration.md §3 G0-d: a target with a `baseUrl`
  * always takes `api` over `write`, so one object cannot serve both). Neither
- * `@dungeonmaster/siegelense-recipes` nor this package imports the other's specs or harnesses, so
+ * `@dungeonmaster/hydration-recipes` nor this package imports the other's specs or harnesses, so
  * this file is the one place the two agree on `DmTarget`'s shape, rather than every domain
  * harness (guild, quest, session) rebuilding it by hand and drifting apart.
  *
@@ -15,8 +15,8 @@
  */
 import type { APIRequestContext } from '@playwright/test';
 
-import { dmTargetContract } from '@dungeonmaster/siegelense-recipes/contracts';
-import type { DmTarget } from '@dungeonmaster/siegelense-recipes/contracts';
+import { dmTargetContract } from '@dungeonmaster/hydration-recipes/contracts';
+import type { DmTarget } from '@dungeonmaster/hydration-recipes/contracts';
 
 type GuildRecord = Record<PropertyKey, unknown>;
 
@@ -33,7 +33,7 @@ export const dmTargetHarness = ({
 } => {
   // A `write` route (questWriteRouteBroker, guildWriteRouteBroker, operationWriteRouteBroker)
   // resolves its home from the GLOBAL process.env.DUNGEONMASTER_HOME, never from the `target`
-  // object a caller built (packages/siegelense-recipes/CLAUDE.md, "A DmTarget alone does not
+  // object a caller built (packages/hydration-recipes/CLAUDE.md, "A DmTarget alone does not
   // isolate a write route from the real machine"). playwright.config.ts:32 sets this at module
   // scope, re-run in every spec worker, so it is already correct by the time any spec runs — but
   // a config refactor that drops that line breaks every `write` route with no symptom besides a

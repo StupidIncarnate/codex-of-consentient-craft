@@ -1,9 +1,9 @@
 /**
  * PURPOSE: Public entry point for this package's brokers surface — every downstream import of
- * '@dungeonmaster/siegelense-recipes/brokers' resolves through this file.
+ * '@dungeonmaster/hydration-recipes/brokers' resolves through this file.
  *
  * USAGE:
- * import { ... } from '@dungeonmaster/siegelense-recipes/brokers';
+ * import { ... } from '@dungeonmaster/hydration-recipes/brokers';
  */
 
 export * from './src/brokers/recipes-hydration/create/recipes-hydration-create-broker';

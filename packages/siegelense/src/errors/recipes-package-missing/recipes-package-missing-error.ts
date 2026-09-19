@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Represents an error when `<repoRoot>/packages/siegelense-recipes` does not exist on
+ * PURPOSE: Represents an error when `<repoRoot>/packages/hydration-recipes` does not exist on
  * disk — the repo has never run the scaffold that creates it. Kept apart from
  * `RecipesBuildMissingError`: an absent package is a repo that has not adopted the recipes
  * convention at all, while a present-but-unbuilt one has adopted it and only needs compiling —
@@ -7,7 +7,7 @@
  * through `dungeonmaster init` for nothing.
  *
  * USAGE:
- * throw new RecipesPackageMissingError({ packagePath: '/repo/packages/siegelense-recipes' });
+ * throw new RecipesPackageMissingError({ packagePath: '/repo/packages/hydration-recipes' });
  * // Throws error naming the path that was searched and dungeonmaster init as what creates it
  *
  * WHEN-TO-USE: From the broker locating the recipes package, once the package directory is found
@@ -18,7 +18,7 @@
 export class RecipesPackageMissingError extends Error {
   public constructor({ packagePath }: { packagePath: string }) {
     super(
-      `No recipes package found at ${packagePath}. Run "dungeonmaster init" to scaffold packages/siegelense-recipes.`,
+      `No recipes package found at ${packagePath}. Run "dungeonmaster init" to scaffold packages/hydration-recipes.`,
     );
     this.name = 'RecipesPackageMissingError';
   }

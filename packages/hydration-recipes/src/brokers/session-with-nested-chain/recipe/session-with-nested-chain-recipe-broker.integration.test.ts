@@ -37,7 +37,7 @@ describe('sessionWithNestedChainRecipeBroker', () => {
     it('VALID: {guildPath from an earlier step} => saves exactly nested', async () => {
       const target = fileTarget.target();
       const earlierStep = await run(guildMidExecutionRecipeBroker(), target);
-      const guild = earlierStep[GUILD_NAME] as Guild;
+      const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
       const result = await run(
         sessionWithNestedChainRecipeBroker({ guildPath: guild.path }),
@@ -50,13 +50,13 @@ describe('sessionWithNestedChainRecipeBroker', () => {
     it("VALID: {guildPath from an earlier step} => the session's directory is under THAT guild's own path", async () => {
       const target = fileTarget.target();
       const earlierStep = await run(guildMidExecutionRecipeBroker(), target);
-      const guild = earlierStep[GUILD_NAME] as Guild;
+      const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
       const result = await run(
         sessionWithNestedChainRecipeBroker({ guildPath: guild.path }),
         target,
       );
-      const nested = result[NESTED_NAME] as SessionRecord;
+      const nested = (result as Record<PropertyKey, unknown>)[NESTED_NAME] as SessionRecord;
 
       expect({ sessionId: nested.sessionId, cwd: nested.cwd }).toStrictEqual({
         sessionId: 'seed-session-1',
@@ -67,13 +67,13 @@ describe('sessionWithNestedChainRecipeBroker', () => {
     it('VALID: {guildPath from an earlier step} => withNestedChain writes two correlated sub-agent transcripts', async () => {
       const target = fileTarget.target();
       const earlierStep = await run(guildMidExecutionRecipeBroker(), target);
-      const guild = earlierStep[GUILD_NAME] as Guild;
+      const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
       const result = await run(
         sessionWithNestedChainRecipeBroker({ guildPath: guild.path }),
         target,
       );
-      const nested = result[NESTED_NAME] as SessionRecord;
+      const nested = (result as Record<PropertyKey, unknown>)[NESTED_NAME] as SessionRecord;
 
       const subagents = subagentQueryRouteBroker({
         target,

@@ -30,7 +30,7 @@ describe('InstallFlow', () => {
         relativePath: RelativePathStub({ value: '.gitignore' }),
       });
       const recipesEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: 'packages/siegelense-recipes/src' }),
+        relativePath: RelativePathStub({ value: 'packages/hydration-recipes/src' }),
       });
 
       testbed.cleanup();
@@ -39,7 +39,7 @@ describe('InstallFlow', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'created',
-        message: `Created .siegelense -> ${dungeonmasterHomePath}/siegelense; Created .gitignore with .siegelense; Created packages/siegelense-recipes/src/`,
+        message: `Created .siegelense -> ${dungeonmasterHomePath}/siegelense; Created .gitignore with .siegelense; Created packages/hydration-recipes/src/`,
       });
       expect(gitignoreContent).toBe('.siegelense\n');
       expect(recipesEntries).toStrictEqual([]);
@@ -73,7 +73,7 @@ describe('InstallFlow', () => {
         relativePath: RelativePathStub({ value: '.gitignore' }),
       });
       const recipesEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: 'packages/siegelense-recipes/src' }),
+        relativePath: RelativePathStub({ value: 'packages/hydration-recipes/src' }),
       });
 
       testbed.cleanup();
@@ -82,7 +82,7 @@ describe('InstallFlow', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'skipped',
-        message: `.siegelense already points at ${dungeonmasterHomePath}/siegelense; .siegelense already in .gitignore; packages/siegelense-recipes/ already present; left untouched`,
+        message: `.siegelense already points at ${dungeonmasterHomePath}/siegelense; .siegelense already in .gitignore; packages/hydration-recipes/ already present; left untouched`,
       });
       expect(gitignoreContent).toBe('.siegelense\n');
       expect(recipesEntries).toStrictEqual([]);

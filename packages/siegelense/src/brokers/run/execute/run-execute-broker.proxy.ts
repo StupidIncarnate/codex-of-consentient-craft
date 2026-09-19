@@ -302,7 +302,7 @@ export const runExecuteBrokerProxy = (): {
     // as one-shots, and this proxy is already using both for the run's own evidence paths.
     seedBookPresent: (): void => {
       stepLayerProxy.seedBookPresentAt({
-        packagePath: FilePathStub({ value: '/default/cwd/packages/siegelense-recipes' }),
+        packagePath: FilePathStub({ value: '/default/cwd/packages/hydration-recipes' }),
       });
     },
 

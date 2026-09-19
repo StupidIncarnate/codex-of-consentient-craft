@@ -36,7 +36,7 @@ describe('questAdvancesOneStepRecipeBroker', () => {
     it('VALID: {guildId from an earlier step} => saves exactly quest', async () => {
       const target = fileTarget.target();
       const earlierStep = await run(guildMidExecutionRecipeBroker(), target);
-      const guild = earlierStep[GUILD_NAME] as Guild;
+      const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
       const result = await run(questAdvancesOneStepRecipeBroker({ guildId: guild.id }), target);
 
@@ -46,10 +46,10 @@ describe('questAdvancesOneStepRecipeBroker', () => {
     it('VALID: {guildId from an earlier step} => the quest is under THAT guild, in_progress', async () => {
       const target = fileTarget.target();
       const earlierStep = await run(guildMidExecutionRecipeBroker(), target);
-      const guild = earlierStep[GUILD_NAME] as Guild;
+      const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
       const result = await run(questAdvancesOneStepRecipeBroker({ guildId: guild.id }), target);
-      const quest = result[QUEST_NAME] as Quest;
+      const quest = (result as Record<PropertyKey, unknown>)[QUEST_NAME] as Quest;
 
       expect({ status: quest.status, title: quest.title }).toStrictEqual({
         status: 'in_progress',
@@ -60,10 +60,10 @@ describe('questAdvancesOneStepRecipeBroker', () => {
     it('VALID: {guildId from an earlier step} => the ledger reads one item complete, the second running', async () => {
       const target = fileTarget.target();
       const earlierStep = await run(guildMidExecutionRecipeBroker(), target);
-      const guild = earlierStep[GUILD_NAME] as Guild;
+      const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
       const result = await run(questAdvancesOneStepRecipeBroker({ guildId: guild.id }), target);
-      const quest = result[QUEST_NAME] as Quest;
+      const quest = (result as Record<PropertyKey, unknown>)[QUEST_NAME] as Quest;
 
       const operationsOnDisk = fileTarget.readQuestFileOperations({
         guildId: guild.id,

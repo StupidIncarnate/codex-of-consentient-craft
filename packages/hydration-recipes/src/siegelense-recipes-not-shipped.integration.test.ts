@@ -1,13 +1,13 @@
 import { join } from 'path';
 import { packageJsonReadBroker } from './brokers/package-json/read/package-json-read-broker';
 import { hasPackageJsonDependencyGuard } from './guards/has-package-json-dependency/has-package-json-dependency-guard';
-import { siegelenseRecipesStatics } from './statics/siegelense-recipes/siegelense-recipes-statics';
+import { hydrationRecipesStatics } from './statics/hydration-recipes/hydration-recipes-statics';
 
 describe('this repo does not ship its own recipes package', () => {
   it("VALID: {root package.json dependencies} => holds no entry for this repo's own recipes package, because dependencies is what ships to every consumer's npm install", () => {
     const rootPackageJsonPath = join(__dirname, '../../..', 'package.json');
     const rootPackageJson = packageJsonReadBroker({ filePath: rootPackageJsonPath });
-    const shippedDependencyKey = `@dungeonmaster/${siegelenseRecipesStatics.packageName}`;
+    const shippedDependencyKey = `@dungeonmaster/${hydrationRecipesStatics.packageName}`;
 
     const result = hasPackageJsonDependencyGuard({
       packageJson: rootPackageJson,

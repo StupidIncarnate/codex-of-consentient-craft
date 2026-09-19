@@ -8,8 +8,8 @@ import { guildContract } from '@dungeonmaster/shared/contracts';
 import {
   dmRegistryBroker,
   recipesHydrationCreateBroker,
-} from '@dungeonmaster/siegelense-recipes/brokers';
-import { guildFieldsContract } from '@dungeonmaster/siegelense-recipes/contracts';
+} from '@dungeonmaster/hydration-recipes/brokers';
+import { guildFieldsContract } from '@dungeonmaster/hydration-recipes/contracts';
 
 import { test, expect } from '../../../test/harnesses/e2e-fixtures';
 import { dmTargetHarness } from '../../../test/harnesses/dm-target/dm-target.harness';

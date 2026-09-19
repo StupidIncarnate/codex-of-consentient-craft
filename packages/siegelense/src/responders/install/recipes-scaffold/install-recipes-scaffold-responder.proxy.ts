@@ -8,8 +8,8 @@ import { InstallRecipesScaffoldResponder } from './install-recipes-scaffold-resp
 
 // Every caller in these tests exercises targetProjectRoot: '/project' (the real, unstaged
 // pathResolve passthrough resolves it to these exact paths), so every test lands on these paths.
-const RECIPES_PACKAGE_PATH = FilePathStub({ value: '/project/packages/siegelense-recipes' });
-const RECIPES_SRC_PATH = FilePathStub({ value: '/project/packages/siegelense-recipes/src' });
+const RECIPES_PACKAGE_PATH = FilePathStub({ value: '/project/packages/hydration-recipes' });
+const RECIPES_SRC_PATH = FilePathStub({ value: '/project/packages/hydration-recipes/src' });
 
 export const InstallRecipesScaffoldResponderProxy = (): {
   callResponder: typeof InstallRecipesScaffoldResponder;
@@ -24,7 +24,7 @@ export const InstallRecipesScaffoldResponderProxy = (): {
   return {
     callResponder: InstallRecipesScaffoldResponder,
 
-    // Neither packages/siegelense-recipes/ nor its src/ exist yet — the fresh-install case.
+    // Neither packages/hydration-recipes/ nor its src/ exist yet — the fresh-install case.
     setupPackageAbsent: (): void => {
       existsProxy.returns({ filePath: RECIPES_PACKAGE_PATH, result: false });
       mkdirProxy.succeeds({ filepath: RECIPES_SRC_PATH });

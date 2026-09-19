@@ -12,8 +12,8 @@ import type { APIRequestContext } from '@playwright/test';
 import {
   dmRegistryBroker,
   recipesHydrationCreateBroker,
-} from '@dungeonmaster/siegelense-recipes/brokers';
-import { guildFieldsContract } from '@dungeonmaster/siegelense-recipes/contracts';
+} from '@dungeonmaster/hydration-recipes/brokers';
+import { guildFieldsContract } from '@dungeonmaster/hydration-recipes/contracts';
 import type { GuildId, UrlSlug } from '@dungeonmaster/shared/contracts';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 

@@ -4,13 +4,13 @@ describe('RecipesPackageMissingError', () => {
   describe('constructor()', () => {
     it('VALID: {packagePath} => names the searched path and dungeonmaster init as the fix', () => {
       const error = new RecipesPackageMissingError({
-        packagePath: '/repo/packages/siegelense-recipes',
+        packagePath: '/repo/packages/hydration-recipes',
       });
 
       expect({ name: error.name, message: error.message }).toStrictEqual({
         name: 'RecipesPackageMissingError',
         message:
-          'No recipes package found at /repo/packages/siegelense-recipes. Run "dungeonmaster init" to scaffold packages/siegelense-recipes.',
+          'No recipes package found at /repo/packages/hydration-recipes. Run "dungeonmaster init" to scaffold packages/hydration-recipes.',
       });
     });
   });
@@ -18,7 +18,7 @@ describe('RecipesPackageMissingError', () => {
   describe('error inheritance', () => {
     it('VALID: error instanceof RecipesPackageMissingError => returns true', () => {
       const error = new RecipesPackageMissingError({
-        packagePath: '/repo/packages/siegelense-recipes',
+        packagePath: '/repo/packages/hydration-recipes',
       });
 
       expect(error instanceof RecipesPackageMissingError).toBe(true);
@@ -26,7 +26,7 @@ describe('RecipesPackageMissingError', () => {
 
     it('VALID: error instanceof Error => returns true', () => {
       const error = new RecipesPackageMissingError({
-        packagePath: '/repo/packages/siegelense-recipes',
+        packagePath: '/repo/packages/hydration-recipes',
       });
 
       expect(error instanceof Error).toBe(true);

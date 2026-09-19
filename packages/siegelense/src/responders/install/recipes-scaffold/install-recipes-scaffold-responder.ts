@@ -1,6 +1,6 @@
 /**
- * PURPOSE: Creates `packages/siegelense-recipes/src/` in the target repo when that package is
- * absent, so `packages/siegelense-recipes/` exists in every repo siegelense is installed in — a
+ * PURPOSE: Creates `packages/hydration-recipes/src/` in the target repo when that package is
+ * absent, so `packages/hydration-recipes/` exists in every repo siegelense is installed in — a
  * convention nothing creates is a convention half the repos will not have. An EMPTY folder is a
  * real answer where a MISSING one is not: an empty folder says "no recipes yet", an absent folder
  * can only say "something is wrong", and the tool cannot tell "you have written none" from "you
@@ -9,7 +9,7 @@
  *
  * USAGE:
  * const result = await InstallRecipesScaffoldResponder({ context });
- * // Creates packages/siegelense-recipes/src/ when the package is absent; an existing package's
+ * // Creates packages/hydration-recipes/src/ when the package is absent; an existing package's
  * // contents are neither read nor written
  */
 
@@ -28,7 +28,7 @@ import {
 
 const PACKAGE_NAME = '@dungeonmaster/siegelense';
 const PACKAGES_DIRNAME = 'packages';
-const RECIPES_PACKAGE_DIRNAME = 'siegelense-recipes';
+const RECIPES_PACKAGE_DIRNAME = 'hydration-recipes';
 const SRC_DIRNAME = 'src';
 
 export const InstallRecipesScaffoldResponder = async ({

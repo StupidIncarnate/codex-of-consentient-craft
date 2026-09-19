@@ -5,7 +5,7 @@
  * the recipes' own proxies stage, and that is only reusable if they are exported.
  *
  * USAGE:
- * import { recipeRunBrokerProxy } from '@dungeonmaster/siegelense-recipes/testing';
+ * import { recipeRunBrokerProxy } from '@dungeonmaster/hydration-recipes/testing';
  */
 
 export * from './src/brokers/recipe/run/recipe-run-broker.proxy';

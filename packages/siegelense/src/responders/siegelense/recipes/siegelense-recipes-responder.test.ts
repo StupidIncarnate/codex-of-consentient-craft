@@ -103,11 +103,11 @@ describe('SiegelenseRecipesResponder', () => {
     it('ERROR: {package directory absent} => the refusal reaches the caller intact', async () => {
       const proxy = SiegelenseRecipesResponderProxy();
       proxy.stageError({
-        error: new RecipesPackageMissingError({ packagePath: '/repo/packages/siegelense-recipes' }),
+        error: new RecipesPackageMissingError({ packagePath: '/repo/packages/hydration-recipes' }),
       });
 
       await expect(SiegelenseRecipesResponder({ human: false })).rejects.toStrictEqual(
-        new RecipesPackageMissingError({ packagePath: '/repo/packages/siegelense-recipes' }),
+        new RecipesPackageMissingError({ packagePath: '/repo/packages/hydration-recipes' }),
       );
     });
   });
@@ -117,13 +117,13 @@ describe('SiegelenseRecipesResponder', () => {
       const proxy = SiegelenseRecipesResponderProxy();
       proxy.stageError({
         error: new RecipesBuildMissingError({
-          distPath: '/repo/packages/siegelense-recipes/dist/index.js',
+          distPath: '/repo/packages/hydration-recipes/dist/index.js',
         }),
       });
 
       await expect(SiegelenseRecipesResponder({ human: false })).rejects.toStrictEqual(
         new RecipesBuildMissingError({
-          distPath: '/repo/packages/siegelense-recipes/dist/index.js',
+          distPath: '/repo/packages/hydration-recipes/dist/index.js',
         }),
       );
     });

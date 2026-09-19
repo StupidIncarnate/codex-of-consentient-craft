@@ -1,11 +1,11 @@
 /**
  * PURPOSE: The manifest and listing broker `@dungeonmaster/siegelense` reads to list this repo's
  * recipes without importing them. Chunk 8's listing responder globs
- * `packages/siegelense-recipes/dist/index.js`, dynamically imports it, and reads the export names
+ * `packages/hydration-recipes/dist/index.js`, dynamically imports it, and reads the export names
  * `recipesConventionStatics` (`@dungeonmaster/shared/statics`) declares off it. `export *`, never
  * an alias, for each: the two packages may not import each other, so a renamed export here compiles
  * fine on both sides and fails only at run time, in a consumer's repo —
- * `src/siegelense-recipes-exports.integration.test.ts` is what catches that instead.
+ * `src/hydration-recipes-exports.integration.test.ts` is what catches that instead.
  * `recipesConventionStatics.exports.seedRun` names a third export this file does not yet carry —
  * the seed-running broker has no implementation in this package yet.
  *
@@ -15,7 +15,7 @@
  * identity fields before the manifest ever sees it.
  *
  * Reading `recipes {}` needs a BUILD first: this file's compiled output is what chunk 8 imports,
- * so `npm run build --workspace=@dungeonmaster/siegelense-recipes` must run before the listing is
+ * so `npm run build --workspace=@dungeonmaster/hydration-recipes` must run before the listing is
  * honest about a just-edited recipe. The same is true of `recipesSeedRunBroker`: a `seed` step
  * dynamically imports this same compiled output.
  *
@@ -31,7 +31,7 @@
  *   recipesManifest,
  *   recipesListingBuildBroker,
  *   recipesSeedRunBroker,
- * } from '@dungeonmaster/siegelense-recipes';
+ * } from '@dungeonmaster/hydration-recipes';
  * // recipesManifest returns [{ recipeName: 'guild-mid-execution', description: '…' }, …]
  * // recipesListingBuildBroker() returns the recipes {} listing: recipeName, description,
  * // inputKeys, runs, makes

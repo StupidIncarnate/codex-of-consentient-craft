@@ -3,7 +3,7 @@
  * assertions use to read back what it wrote.
  *
  * USAGE:
- * import { transcriptLinesReadTransformer } from '@dungeonmaster/siegelense-recipes/transformers';
+ * import { transcriptLinesReadTransformer } from '@dungeonmaster/hydration-recipes/transformers';
  */
 
 export * from './src/transformers/transcript-lines-read/transcript-lines-read-transformer';

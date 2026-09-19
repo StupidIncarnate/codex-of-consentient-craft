@@ -1,9 +1,9 @@
 /**
  * PURPOSE: Public entry point for this package's contracts surface — every downstream import of
- * '@dungeonmaster/siegelense-recipes/contracts' resolves through this file.
+ * '@dungeonmaster/hydration-recipes/contracts' resolves through this file.
  *
  * USAGE:
- * import { ... } from '@dungeonmaster/siegelense-recipes/contracts';
+ * import { ... } from '@dungeonmaster/hydration-recipes/contracts';
  */
 
 export * from './src/contracts/corrupt-schema-args/corrupt-schema-args-contract';

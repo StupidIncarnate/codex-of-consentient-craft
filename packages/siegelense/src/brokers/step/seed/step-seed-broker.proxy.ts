@@ -23,9 +23,9 @@ import { recipesLocateBrokerProxy } from '../../recipes/locate/recipes-locate-br
 import { recipesReadBrokerProxy } from '../../recipes/read/recipes-read-broker.proxy';
 
 const ENTRY_PATH: FilePath = FilePathStub({
-  value: '/repo/packages/siegelense-recipes/dist/index.js',
+  value: '/repo/packages/hydration-recipes/dist/index.js',
 });
-const PACKAGE_PATH: FilePath = FilePathStub({ value: '/repo/packages/siegelense-recipes' });
+const PACKAGE_PATH: FilePath = FilePathStub({ value: '/repo/packages/hydration-recipes' });
 
 const LOCATE_REPEAT_COUNT = 8;
 

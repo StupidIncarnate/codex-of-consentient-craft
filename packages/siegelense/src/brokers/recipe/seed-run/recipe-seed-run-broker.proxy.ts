@@ -18,9 +18,9 @@ import type { SeedResult } from '../../../contracts/seed-result/seed-result-cont
 import { recipesLocateBrokerProxy } from '../../recipes/locate/recipes-locate-broker.proxy';
 
 const ENTRY_PATH: FilePath = FilePathStub({
-  value: '/repo/packages/siegelense-recipes/dist/index.js',
+  value: '/repo/packages/hydration-recipes/dist/index.js',
 });
-const PACKAGE_PATH: FilePath = FilePathStub({ value: '/repo/packages/siegelense-recipes' });
+const PACKAGE_PATH: FilePath = FilePathStub({ value: '/repo/packages/hydration-recipes' });
 
 export const recipeSeedRunBrokerProxy = (): {
   bookPresent: () => void;

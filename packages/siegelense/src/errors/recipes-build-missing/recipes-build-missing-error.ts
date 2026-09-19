@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Represents an error when `packages/siegelense-recipes` exists but its `dist/index.js`
+ * PURPOSE: Represents an error when `packages/hydration-recipes` exists but its `dist/index.js`
  * does not — the package has adopted the recipes convention and simply has not been compiled
  * since. Kept apart from `RecipesPackageMissingError` for the same reason that error names: an
  * adoption problem and a build problem point a person at two different commands, and collapsing
@@ -7,7 +7,7 @@
  * `dungeonmaster init` for nothing.
  *
  * USAGE:
- * throw new RecipesBuildMissingError({ distPath: '/repo/packages/siegelense-recipes/dist/index.js' });
+ * throw new RecipesBuildMissingError({ distPath: '/repo/packages/hydration-recipes/dist/index.js' });
  * // Throws error naming the missing compiled file and the exact build command that produces it
  *
  * WHEN-TO-USE: From the broker locating the recipes package, once the package directory exists
@@ -20,7 +20,7 @@
 export class RecipesBuildMissingError extends Error {
   public constructor({ distPath }: { distPath: string }) {
     super(
-      `Recipes package built output not found at ${distPath}. Run "npm run build --workspace=@dungeonmaster/siegelense-recipes" to build it.`,
+      `Recipes package built output not found at ${distPath}. Run "npm run build --workspace=@dungeonmaster/hydration-recipes" to build it.`,
     );
     this.name = 'RecipesBuildMissingError';
   }

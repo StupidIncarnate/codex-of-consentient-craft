@@ -12,14 +12,14 @@ describe('recipesLocateBroker', () => {
 
       proxy.setupPresentAndBuilt({
         cwdPath: '/repo',
-        packagePath: FilePathStub({ value: '/repo/packages/siegelense-recipes' }),
-        entryPath: FilePathStub({ value: '/repo/packages/siegelense-recipes/dist/index.js' }),
+        packagePath: FilePathStub({ value: '/repo/packages/hydration-recipes' }),
+        entryPath: FilePathStub({ value: '/repo/packages/hydration-recipes/dist/index.js' }),
       });
 
       const result = await recipesLocateBroker();
 
       expect(result).toStrictEqual(
-        AbsoluteFilePathStub({ value: '/repo/packages/siegelense-recipes/dist/index.js' }),
+        AbsoluteFilePathStub({ value: '/repo/packages/hydration-recipes/dist/index.js' }),
       );
     });
   });
@@ -30,11 +30,11 @@ describe('recipesLocateBroker', () => {
 
       proxy.setupPackageMissing({
         cwdPath: '/repo',
-        packagePath: FilePathStub({ value: '/repo/packages/siegelense-recipes' }),
+        packagePath: FilePathStub({ value: '/repo/packages/hydration-recipes' }),
       });
 
       await expect(recipesLocateBroker()).rejects.toStrictEqual(
-        new RecipesPackageMissingError({ packagePath: '/repo/packages/siegelense-recipes' }),
+        new RecipesPackageMissingError({ packagePath: '/repo/packages/hydration-recipes' }),
       );
     });
   });
@@ -45,13 +45,13 @@ describe('recipesLocateBroker', () => {
 
       proxy.setupBuildMissing({
         cwdPath: '/repo',
-        packagePath: FilePathStub({ value: '/repo/packages/siegelense-recipes' }),
-        entryPath: FilePathStub({ value: '/repo/packages/siegelense-recipes/dist/index.js' }),
+        packagePath: FilePathStub({ value: '/repo/packages/hydration-recipes' }),
+        entryPath: FilePathStub({ value: '/repo/packages/hydration-recipes/dist/index.js' }),
       });
 
       await expect(recipesLocateBroker()).rejects.toStrictEqual(
         new RecipesBuildMissingError({
-          distPath: '/repo/packages/siegelense-recipes/dist/index.js',
+          distPath: '/repo/packages/hydration-recipes/dist/index.js',
         }),
       );
     });

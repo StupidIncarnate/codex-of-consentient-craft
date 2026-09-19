@@ -1,7 +1,7 @@
 {
-  "name": "@dungeonmaster/siegelense-recipes",
+  "name": "@dungeonmaster/hydration-recipes",
   "version": "0.1.0",
-  "description": "siegelense-recipes package",
+  "description": "hydration-recipes package",
   "private": true,
   "exports": {
     ".": {

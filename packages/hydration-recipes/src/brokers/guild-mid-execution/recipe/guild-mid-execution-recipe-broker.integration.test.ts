@@ -45,7 +45,7 @@ describe('guildMidExecutionRecipeBroker', () => {
 
     it('VALID: {} => the guild record carries the derived name and a real url slug', async () => {
       const result = await run(guildMidExecutionRecipeBroker(), fileTarget.target());
-      const guild = result[GUILD_NAME] as Guild;
+      const guild = result[GUILD_NAME] as unknown as Guild;
 
       expect({ name: guild.name, urlSlug: guild.urlSlug }).toStrictEqual({
         name: 'Guild 1',
@@ -55,9 +55,9 @@ describe('guildMidExecutionRecipeBroker', () => {
 
     it('VALID: {} => the three quests read back with the titles defaults(index) and set() produced', async () => {
       const result = await run(guildMidExecutionRecipeBroker(), fileTarget.target());
-      const quest1 = result[QUEST1_NAME] as Quest;
-      const quest2 = result[QUEST2_NAME] as Quest;
-      const quest3 = result[QUEST3_NAME] as Quest;
+      const quest1 = result[QUEST1_NAME] as unknown as Quest;
+      const quest2 = result[QUEST2_NAME] as unknown as Quest;
+      const quest3 = result[QUEST3_NAME] as unknown as Quest;
 
       expect([quest1.title, quest2.title, quest3.title]).toStrictEqual([
         'The running one',
@@ -68,8 +68,8 @@ describe('guildMidExecutionRecipeBroker', () => {
 
     it('VALID: {} => on disk, the first quest is in_progress with the riftcarver operation dropped from its ledger', async () => {
       const result = await run(guildMidExecutionRecipeBroker(), fileTarget.target());
-      const guild = result[GUILD_NAME] as Guild;
-      const quest1 = result[QUEST1_NAME] as Quest;
+      const guild = result[GUILD_NAME] as unknown as Guild;
+      const quest1 = result[QUEST1_NAME] as unknown as Quest;
 
       const operationsOnDisk = fileTarget.readQuestFileOperations({
         guildId: guild.id,
@@ -85,9 +85,9 @@ describe('guildMidExecutionRecipeBroker', () => {
 
     it("VALID: {} => on disk, the second and third quests' ledgers stay empty — the scope rule", async () => {
       const result = await run(guildMidExecutionRecipeBroker(), fileTarget.target());
-      const guild = result[GUILD_NAME] as Guild;
-      const quest2 = result[QUEST2_NAME] as Quest;
-      const quest3 = result[QUEST3_NAME] as Quest;
+      const guild = result[GUILD_NAME] as unknown as Guild;
+      const quest2 = result[QUEST2_NAME] as unknown as Quest;
+      const quest3 = result[QUEST3_NAME] as unknown as Quest;
 
       const rolesOnDisk2 = fileTarget
         .readQuestFileOperations({ guildId: guild.id, questFolder: quest2.folder })

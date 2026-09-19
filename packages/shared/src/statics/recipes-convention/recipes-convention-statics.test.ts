@@ -5,7 +5,7 @@ describe('recipesConventionStatics', () => {
     expect(recipesConventionStatics).toStrictEqual({
       package: {
         workspaceDirName: 'packages',
-        dirName: 'siegelense-recipes',
+        dirName: 'hydration-recipes',
       },
       entry: {
         distRelativePath: 'dist/index.js',

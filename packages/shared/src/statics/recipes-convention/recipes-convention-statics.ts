@@ -9,7 +9,7 @@
  *
  * USAGE:
  * recipesConventionStatics.package.dirName;
- * // Returns 'siegelense-recipes'
+ * // Returns 'hydration-recipes'
  *
  * recipesConventionStatics.exports.manifest;
  * // Returns 'recipesManifest'
@@ -18,7 +18,7 @@
 export const recipesConventionStatics = {
   package: {
     workspaceDirName: 'packages',
-    dirName: 'siegelense-recipes',
+    dirName: 'hydration-recipes',
   },
   entry: {
     distRelativePath: 'dist/index.js',

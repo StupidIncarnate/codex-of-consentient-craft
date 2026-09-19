@@ -28,7 +28,7 @@ import { dmTargetHarness } from '../dm-target/dm-target.harness';
 import {
   dmRegistryBroker,
   recipesHydrationCreateBroker,
-} from '@dungeonmaster/siegelense-recipes/brokers';
+} from '@dungeonmaster/hydration-recipes/brokers';
 
 const { recipe } = recipesHydrationCreateBroker();
 const QUEST_SAVE_NAME = 'quest';

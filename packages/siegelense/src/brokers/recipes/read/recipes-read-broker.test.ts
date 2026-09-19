@@ -7,7 +7,7 @@ import { RecipeListingEntryStub } from '../../../contracts/recipe-listing-entry/
 import { RecipeNameStub } from '../../../contracts/recipe-name/recipe-name.stub';
 import { RecipesListingExportInvalidError } from '../../../errors/recipes-listing-export-invalid/recipes-listing-export-invalid-error';
 
-const ENTRY_PATH = '/repo/packages/siegelense-recipes/dist/index.js';
+const ENTRY_PATH = '/repo/packages/hydration-recipes/dist/index.js';
 
 const MISSING_RUNS_ZOD_MESSAGE =
   '[\n  {\n    "code": "invalid_type",\n    "expected": "object",\n    "received": "undefined",\n    "path": [\n      0,\n      "runs"\n    ],\n    "message": "Required"\n  }\n]';
