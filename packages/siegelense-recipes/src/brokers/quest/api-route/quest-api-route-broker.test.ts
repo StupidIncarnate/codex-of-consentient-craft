@@ -2,6 +2,7 @@ import { questApiRouteBroker } from './quest-api-route-broker';
 import { questApiRouteBrokerProxy } from './quest-api-route-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
 import { DmHttpResponseStub } from '../../../contracts/dm-http-response/dm-http-response.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts';
 
 const GUILD_ID = '11111111-1111-4111-8111-111111111111';
 
@@ -10,11 +11,16 @@ describe('questApiRouteBroker', () => {
     it('VALID: {guildId, title, userRequest} => posts exactly those three fields to /api/quests', async () => {
       const proxy = questApiRouteBrokerProxy();
       const target = DmTargetStub({ baseUrl: 'http://app.in-process' });
-      const response = DmHttpResponseStub({
+      const postResponse = DmHttpResponseStub({
         status: 201,
         body: { success: true, questId: 'add-auth' },
       });
-      proxy.succeeds({ url: 'http://app.in-process/api/quests', response });
+      const getResponse = DmHttpResponseStub({
+        status: 200,
+        body: { success: true, quest: QuestStub({ id: 'add-auth' }) },
+      });
+      proxy.succeeds({ url: 'http://app.in-process/api/quests', response: postResponse });
+      proxy.succeeds({ url: 'http://app.in-process/api/quests/add-auth', response: getResponse });
 
       const result = await questApiRouteBroker({
         target,
@@ -26,7 +32,7 @@ describe('questApiRouteBroker', () => {
         },
       });
 
-      expect(result).toStrictEqual({ success: true, questId: 'add-auth' });
+      expect(result).toStrictEqual(QuestStub({ id: 'add-auth' }));
     });
   });
 

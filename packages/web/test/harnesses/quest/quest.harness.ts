@@ -12,14 +12,26 @@ import { dirname, join } from 'path';
 import type { APIRequestContext } from '@playwright/test';
 
 import {
-  addQuestResultContract,
+  guildIdContract,
+  filePathContract,
+  questContract,
+  type Quest,
   type QuestId,
   type FilePath,
   type WorkItemRole,
 } from '@dungeonmaster/shared/contracts';
+import { dungeonmasterHomeStatics, environmentStatics } from '@dungeonmaster/shared/statics';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { questFlowObservableSeedTransformer } from '@dungeonmaster/testing/transformers/quest-flow-observable-seed';
+import { dmTargetHarness } from '../dm-target/dm-target.harness';
+import {
+  dmRegistryBroker,
+  recipesHydrationCreateBroker,
+} from '@dungeonmaster/siegelense-recipes/brokers';
+
+const { recipe } = recipesHydrationCreateBroker();
+const QUEST_SAVE_NAME = 'quest';
 
 const JSON_INDENT = 2;
 const CREATED_AT_INTERVAL_MS = 1000;
@@ -121,8 +133,10 @@ const DEFAULT_FLOWS_FLOWRIDER_SIGNED: FlowInput[] = [
 ];
 
 export const questHarness = ({
+  baseURL,
   request,
 }: {
+  baseURL?: string;
   request: APIRequestContext;
 }): {
   createQuest: (params: {
@@ -215,6 +229,12 @@ export const questHarness = ({
     worktreePath?: string;
   }) => void;
 } => {
+  const resolvedBaseUrl =
+    baseURL ??
+    process.env.DUNGEONMASTER_BASE_URL ??
+    `http://${environmentStatics.hostname}:${process.env.DUNGEONMASTER_WEB_PORT ?? String(Number(process.env.DUNGEONMASTER_PORT ?? '5737') + 1)}`;
+  const dmTarget = dmTargetHarness({ baseURL: resolvedBaseUrl, request });
+
   const createQuest = async ({
     guildId,
     title,
@@ -224,20 +244,27 @@ export const questHarness = ({
     title: string;
     userRequest: string;
   }): Promise<{ questId: QuestId; questFolder: QuestId; filePath: FilePath; success: boolean }> => {
-    const response = await request.post('/api/quests', {
-      data: { guildId, title, userRequest },
-    });
-    const result = addQuestResultContract.parse(await response.json());
-    if (!result.questFolder || !result.filePath) {
-      throw new Error(
-        `createQuest API did not return questFolder/filePath: ${JSON.stringify(result)}`,
-      );
-    }
+    const plan = recipe({ name: 'seed-quest', description: 'seed one quest via api route' }, () => [
+      dmRegistryBroker.quests.under({ guildId: guildIdContract.parse(guildId) }).add(1, (q) => [
+        q[0].set({
+          title: questContract.shape.title.parse(title),
+          userRequest: questContract.shape.userRequest.parse(userRequest),
+        }),
+        q[0].saveRecordAs({ name: QUEST_SAVE_NAME }),
+      ]),
+    ])();
+    const result = await dmRegistryBroker.run(plan, dmTarget.apiTarget());
+    const quest = (result as Record<PropertyKey, unknown>)[QUEST_SAVE_NAME] as Quest;
+    const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+    const questFolderPath = `${dungeonmasterHome}/${dungeonmasterHomeStatics.paths.guildsDir}/${guildId}/${dungeonmasterHomeStatics.paths.questsDir}/${quest.folder}`;
+    const filePath = filePathContract.parse(
+      `${questFolderPath}/${dungeonmasterHomeStatics.paths.questFile}`,
+    );
     return {
-      success: result.success,
-      questId: result.questId!,
-      questFolder: result.questFolder as unknown as QuestId,
-      filePath: result.filePath as FilePath,
+      success: true,
+      questId: quest.id,
+      questFolder: quest.folder as unknown as QuestId,
+      filePath,
     };
   };
 
