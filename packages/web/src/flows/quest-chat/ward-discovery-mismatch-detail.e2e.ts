@@ -99,7 +99,7 @@ test.describe('Failed ward row shows discovery-mismatch detail (all checks pass/
     // The mismatch-only detail blob: every check pass/skip, but the e2e check carries
     // `discoveryMismatch: true` plus the discovered-but-unprocessed file list — the sole reason
     // the run exited 1.
-    quests.writeWardResultDetail({
+    await quests.writeWardResultDetail({
       questFilePath: String(questFilePath),
       wardResultId,
       detail: {

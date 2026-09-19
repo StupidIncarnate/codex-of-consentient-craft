@@ -54,7 +54,7 @@ test.describe('FOLLOW-UP tab transcript survives being stopped for a merge', () 
 
     // A quest already blocked — mergeable AND followup-chatable at once, so this one test can
     // open the transcript, then swap to the tab that carries the real Merge button.
-    warpgate.seedWarpgateQuest({
+    await warpgate.seedWarpgateQuest({
       questId,
       questFolder,
       questFilePath,

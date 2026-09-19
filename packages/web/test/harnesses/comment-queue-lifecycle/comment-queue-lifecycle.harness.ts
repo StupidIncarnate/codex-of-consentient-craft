@@ -136,7 +136,7 @@ export const commentQueueLifecycleHarness = ({
   }) => Promise<void>;
   readQueue: (params: { which: 'first' | 'second' }) => Promise<unknown>;
   rawQueue: (params: { which: 'first' | 'second' }) => Promise<unknown>;
-  seededRawQueue: (params: { which: 'first' | 'second' }) => unknown;
+  getSeededRawQueue: (params: { which: 'first' | 'second' }) => unknown;
   hasQueueKey: (params: { which: 'first' | 'second' }) => Promise<boolean>;
   queueBar: () => Locator;
   queueCount: () => Locator;
@@ -335,7 +335,7 @@ export const commentQueueLifecycleHarness = ({
     // The exact bytes writeQueue put in that quest's key, so an "untouched" assertion compares the
     // whole stored array byte-for-byte rather than merely counting what survived. Synchronous: this
     // reads what the harness itself wrote, never the browser.
-    seededRawQueue: ({ which }: { which: 'first' | 'second' }): unknown =>
+    getSeededRawQueue: ({ which }: { which: 'first' | 'second' }): unknown =>
       questFor({ which }).seedRaw,
 
     hasQueueKey: async ({ which }: { which: 'first' | 'second' }): Promise<boolean> =>

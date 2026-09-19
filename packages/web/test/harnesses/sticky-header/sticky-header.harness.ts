@@ -15,8 +15,10 @@
  */
 import type { APIRequestContext, Page } from '@playwright/test';
 
+import type { SessionId } from '@dungeonmaster/shared/contracts';
 import {
   AssistantReadToolUseStreamLineStub,
+  SessionIdStub,
   SuccessfulToolResultStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -153,8 +155,8 @@ export const stickyHeaderHarness = ({
   // Both surfaces read the same seeded session, so the chain shape is built once. Chain A holds a
   // tall report, a CLOSED tool call, and the nested chain B — so one fixture exercises the outer
   // pin, the recursive pin, and the closed-row negative together.
-  const seedNestedChainSession = async (): Promise<string> => {
-    const sessionId = `e2e-sticky-${Date.now()}`;
+  const seedNestedChainSession = async (): Promise<SessionId> => {
+    const sessionId = SessionIdStub({ value: `e2e-sticky-${Date.now()}` });
     const parentRealAgentId = `stickyparent${Date.now()}`;
     const nestedRealAgentId = `stickynested${Date.now()}`;
 

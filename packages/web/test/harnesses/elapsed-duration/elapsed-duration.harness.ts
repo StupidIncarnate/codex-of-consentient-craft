@@ -49,7 +49,7 @@ export const elapsedDurationHarness = ({
       completedAt?: string;
       status?: string;
     }[];
-  }) => void;
+  }) => Promise<void>;
   installIntervalCounter: () => Promise<void>;
   // Fields stay `unknown`, never a raw TS `number` keyword, which @dungeonmaster/ban-primitives
   // forbids outside a function parameter position — these are interval-id tallies with no domain

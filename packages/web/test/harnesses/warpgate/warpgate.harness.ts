@@ -61,7 +61,7 @@ export const warpgateHarness = ({
     status: string;
     warpgateStatus: string;
     tavernkeeperSessionId?: string;
-  }) => void;
+  }) => Promise<void>;
   seedFollowupTurns: (params: {
     sessionId: string;
     turns: readonly { role: 'user' | 'assistant'; text: string }[];

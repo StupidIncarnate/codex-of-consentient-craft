@@ -132,7 +132,7 @@ test.describe('The session transcript route never grows its own elapsed-tick clo
       title: 'Subagent Duration Session Same Test Id Quest',
       userRequest: 'Build the feature',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

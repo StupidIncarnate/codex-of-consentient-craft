@@ -23,7 +23,7 @@
  * const children = await images.readBubbleChildren({ page });
  * // [{ tag: 'span', text: 'A', testId: 'CHAT_MESSAGE_TEXT', src: '' }, { tag: 'img', ... }, ...]
  */
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'fs';
+import fs, { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { dirname, join } from 'path';
 import { crc32, deflateSync } from 'zlib';
@@ -360,7 +360,9 @@ export const transcriptImagesHarness = (): {
   readQuestImagePaths: (params: { questFilePath: string }) => Promise<readonly unknown[]>;
   // check-bytes-match-disk's HOSTILE input class: raw bytes containing a NUL, a run of 0xFF, and a
   // 0x0A, written directly (no PNG encode) since the route never decodes what it serves.
-  seedHostileBytesFile: (params: { fileName: string }) => { imagePath: unknown; bytes: Buffer };
+  seedHostileBytesFile: (params: {
+    fileName: string;
+  }) => Promise<{ imagePath: unknown; bytes: Buffer }>;
   // Runtime proof (not trust-by-construction) that seedHostileBytesFile's own fixture actually
   // carries all three hostile bytes, so a future edit to that fixture can't silently go soft.
   verifyHostileBytesPresent: (params: { bytes: Buffer }) => unknown;
@@ -519,11 +521,11 @@ export const transcriptImagesHarness = (): {
 
     seedImageFile: seedPngFileToTemp,
 
-    seedHostileBytesFile: ({
+    seedHostileBytesFile: async ({
       fileName,
     }: {
       fileName: string;
-    }): { imagePath: unknown; bytes: Buffer } => {
+    }): Promise<{ imagePath: unknown; bytes: Buffer }> => {
       const bytes = Buffer.concat([
         Buffer.from([HOSTILE_NUL_BYTE]),
         Buffer.alloc(HOSTILE_FF_RUN_LENGTH, 0xff),
@@ -535,10 +537,13 @@ export const transcriptImagesHarness = (): {
       // Same images-subdirectory placement and quest-file marker as seedPngFileToTemp above, and
       // for the same reason.
       const imagesDir = join(dir, locationsStatics.quest.imagesDir);
-      mkdirSync(imagesDir, { recursive: true });
-      writeFileSync(join(dir, locationsStatics.quest.questFile), QUEST_FILE_EXISTENCE_ONLY_CONTENT);
+      await fs.promises.mkdir(imagesDir, { recursive: true });
+      await fs.promises.writeFile(
+        join(dir, locationsStatics.quest.questFile),
+        QUEST_FILE_EXISTENCE_ONLY_CONTENT,
+      );
       const imagePath = join(imagesDir, fileName);
-      writeFileSync(imagePath, bytes);
+      await fs.promises.writeFile(imagePath, bytes);
       return { imagePath, bytes };
     },
 

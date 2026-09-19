@@ -25,7 +25,7 @@ export const questSpecReadonlyHarness = (): {
     questFilePath: string;
     designDecisions: DesignDecision[];
     toolingRequirements: ToolingRequirement[];
-  }) => void;
+  }) => Promise<void>;
 } => {
   const seedDesignDecisionsAndTooling = async ({
     questFilePath,

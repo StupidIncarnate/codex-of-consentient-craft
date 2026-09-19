@@ -52,14 +52,14 @@ const resolveHomeFile = ({ filename }: { filename: string }): FilePath => {
 };
 
 export const rateLimitsHarness = (): {
-  beforeEach: () => void;
-  afterEach: () => void;
-  writeSnapshot: (params: { snapshot: RateLimitsSnapshot }) => void;
+  beforeEach: () => Promise<void>;
+  afterEach: () => Promise<void>;
+  writeSnapshot: (params: { snapshot: RateLimitsSnapshot }) => Promise<void>;
   writeLedger: (params: {
     spendTokens: number;
     fiveHourCeiling: number | null;
     sevenDayCeiling: number | null;
-  }) => void;
+  }) => Promise<void>;
 } => {
   // One hour of spend, stamped into the CURRENT hour's bucket so it sits inside both windows, and
   // recorded as input tokens because their weight is 1 — the weighted total the percentage is
@@ -98,7 +98,7 @@ export const rateLimitsHarness = (): {
 
   const reset = async (): Promise<void> => {
     fs.rmSync(resolveHomeFile({ filename: SNAPSHOT_FILENAME }), { force: true });
-    writeLedger({ spendTokens: 0, fiveHourCeiling: null, sevenDayCeiling: null });
+    await writeLedger({ spendTokens: 0, fiveHourCeiling: null, sevenDayCeiling: null });
 
     const statePath = resolveHomeFile({ filename: DISPATCH_STATE_FILENAME });
     await fs.promises.mkdir(path.dirname(statePath), { recursive: true });

@@ -46,7 +46,7 @@ test.describe('Warpgate merge button visibility', () => {
         title,
       });
 
-      warpgate.seedWarpgateQuest({
+      await warpgate.seedWarpgateQuest({
         questId,
         questFolder,
         questFilePath,
@@ -86,7 +86,7 @@ test.describe('Warpgate merge button visibility', () => {
       title: MARKUP_SHAPED_TITLE,
     });
 
-    warpgate.seedWarpgateQuest({
+    await warpgate.seedWarpgateQuest({
       questId,
       questFolder,
       questFilePath,
@@ -139,7 +139,7 @@ test.describe('Warpgate merge button visibility', () => {
       guildName: 'Banner Guild',
       title: 'Banner Complete Quest',
     });
-    warpgate.seedWarpgateQuest({
+    await warpgate.seedWarpgateQuest({
       questId: completeSetup.questId,
       questFolder: completeSetup.questFolder,
       questFilePath: completeSetup.questFilePath,
@@ -157,7 +157,7 @@ test.describe('Warpgate merge button visibility', () => {
       guildId: completeSetup.guildId,
       title: 'Banner Merged Quest',
     });
-    warpgate.seedWarpgateQuest({
+    await warpgate.seedWarpgateQuest({
       questId: mergedQuest.questId,
       questFolder: mergedQuest.questFolder,
       questFilePath: mergedQuest.questFilePath,

@@ -67,7 +67,7 @@ test.describe('Image route answers', () => {
   test('VALID: {a seeded PNG whose bytes contain a NUL, a run of 0xFF, and a 0x0A} => the response body bytes exactly equal the file on disk', async ({
     request,
   }) => {
-    const seeded = images.seedHostileBytesFile({ fileName: 'hostile.png' });
+    const seeded = await images.seedHostileBytesFile({ fileName: 'hostile.png' });
     expect(images.verifyHostileBytesPresent({ bytes: seeded.bytes })).toBe(true);
 
     const url = String(images.buildExpectedImageUrl({ imagePath: String(seeded.imagePath) }));

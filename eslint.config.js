@@ -161,8 +161,8 @@ module.exports = [
       '@dungeonmaster-local/no-bare-location-literals': 'error',
       '@dungeonmaster-local/no-hardcoded-package-names': 'error',
       '@dungeonmaster-local/ban-locator-pick': 'error',
-      '@dungeonmaster-local/ban-sync-seeding-methods': 'warn',
-      '@dungeonmaster-local/ban-direct-io-in-test-scenarios': 'warn',
+      '@dungeonmaster-local/ban-sync-seeding-methods': 'error',
+      '@dungeonmaster-local/ban-direct-io-in-test-scenarios': 'off',
     },
   },
   // Test file-specific overrides (from dungeonmaster test config)

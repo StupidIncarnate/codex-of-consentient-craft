@@ -163,9 +163,9 @@ export const commentQueueSendHarness = ({
   hasQueueKey: () => Promise<boolean>;
   waitForCommentsPostRequest: () => Promise<unknown>;
   hasCommentPostRequest: () => boolean;
-  makeNodeBetaStale: () => void;
-  corruptQuestFile: () => void;
-  restoreQuestFile: () => void;
+  makeNodeBetaStale: () => Promise<void>;
+  corruptQuestFile: () => Promise<void>;
+  restoreQuestFile: () => Promise<void>;
   goOffline: () => Promise<void>;
   goOnline: () => Promise<void>;
   queueClaudeResponse: (params: { text: string }) => void;
@@ -380,8 +380,8 @@ export const commentQueueSendHarness = ({
     // resolve a comment anchored to beta afterward, so a Send against it earns a REAL 409
     // naming beta, never a stubbed one. Every other seed field is left exactly as originally
     // written (same status, same session, same userRequest).
-    makeNodeBetaStale: (): void => {
-      questHarness({ request }).writeQuestFile({
+    makeNodeBetaStale: async (): Promise<void> => {
+      await questHarness({ request }).writeQuestFile({
         questId: seeded.questId,
         questFolder: seeded.questFolder,
         questFilePath: seeded.questFilePath,
@@ -396,8 +396,8 @@ export const commentQueueSendHarness = ({
     // questHarness.writeUnparseableQuestFile's own use in unreadable-quest-file-reported.e2e.ts).
     // The comments responder's quest-load call throws for real, and its outer try/catch is the
     // ONLY thing that can turn that into a 500 — a genuine one, not a stubbed response.
-    corruptQuestFile: (): void => {
-      questHarness({ request }).writeUnparseableQuestFile({
+    corruptQuestFile: async (): Promise<void> => {
+      await questHarness({ request }).writeUnparseableQuestFile({
         questId: seeded.questId,
         questFolder: seeded.questFolder,
         questFilePath: seeded.questFilePath,
@@ -406,8 +406,8 @@ export const commentQueueSendHarness = ({
 
     // Restores quest.json to the exact shape it held before corruptQuestFile — same status,
     // session and flow — so the very next Send resolves against a loadable quest again.
-    restoreQuestFile: (): void => {
-      questHarness({ request }).writeQuestFile({
+    restoreQuestFile: async (): Promise<void> => {
+      await questHarness({ request }).writeQuestFile({
         questId: seeded.questId,
         questFolder: seeded.questFolder,
         questFilePath: seeded.questFilePath,

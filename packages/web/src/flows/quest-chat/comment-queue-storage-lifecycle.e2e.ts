@@ -113,7 +113,7 @@ test.describe('Comment Queue Storage Lifecycle', () => {
     await lifecycle.reloadQuest();
 
     expect(await lifecycle.rawQueue({ which: 'first' })).toBe(
-      lifecycle.seededRawQueue({ which: 'first' }),
+      lifecycle.getSeededRawQueue({ which: 'first' }),
     );
     await expect(lifecycle.queueCount()).toHaveText('1 COMMENT QUEUED');
     await lifecycle.openCommentPopoverOn({ card: lifecycle.nodeCard({ which: 'first' }) });
@@ -227,7 +227,7 @@ test.describe('Comment Queue Storage Lifecycle', () => {
     // Byte-identical: the sweep neither reordered, re-stamped nor rewrote the other quest's array
     // while it was rewriting the mounted quest's.
     expect(await lifecycle.rawQueue({ which: 'second' })).toBe(
-      lifecycle.seededRawQueue({ which: 'second' }),
+      lifecycle.getSeededRawQueue({ which: 'second' }),
     );
     expect(await lifecycle.readQueue({ which: 'first' })).toStrictEqual([
       {
@@ -278,7 +278,7 @@ test.describe('Comment Queue Storage Lifecycle', () => {
     await expect(lifecycle.popoverEditor()).toHaveValue('');
     // And the queue left behind on the first quest is still there, whole.
     expect(await lifecycle.rawQueue({ which: 'first' })).toBe(
-      lifecycle.seededRawQueue({ which: 'first' }),
+      lifecycle.getSeededRawQueue({ which: 'first' }),
     );
     expect(await lifecycle.readQueue({ which: 'first' })).toStrictEqual([
       {
@@ -327,7 +327,7 @@ test.describe('Comment Queue Storage Lifecycle', () => {
     expect(await lifecycle.hasQueueKey({ which: 'first' })).toBe(false);
     // The mounted quest's own fresh entry is untouched by the same pass.
     expect(await lifecycle.rawQueue({ which: 'second' })).toBe(
-      lifecycle.seededRawQueue({ which: 'second' }),
+      lifecycle.getSeededRawQueue({ which: 'second' }),
     );
     await expect(lifecycle.queueCount()).toHaveText('1 COMMENT QUEUED');
   });

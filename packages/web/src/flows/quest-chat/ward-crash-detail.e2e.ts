@@ -96,7 +96,7 @@ test.describe('Failed ward row shows crash detail (no structured errors)', () =>
 
     // The crash-only detail blob: integration check FAILED, one project FAILED with no structured
     // errors and no test failures — the reason only in rawOutput.
-    quests.writeWardResultDetail({
+    await quests.writeWardResultDetail({
       questFilePath: String(questFilePath),
       wardResultId,
       detail: {
