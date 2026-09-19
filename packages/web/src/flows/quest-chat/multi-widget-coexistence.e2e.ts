@@ -74,7 +74,7 @@ test.describe('Multi-widget coexistence', () => {
     //       (isRecoverable is false for review_flows), so the only queue entry
     //       is the queued quest explicitly started below.
     const sessionId1 = `e2e-session-mwc-primary-${Date.now()}`;
-    sessions.createSessionFile({ sessionId: sessionId1, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId: sessionId1, userMessage: 'Build the feature' });
 
     const primary = await quests.createQuest({
       guildId,
@@ -102,7 +102,7 @@ test.describe('Multi-widget coexistence', () => {
     //    The queue bar (QUEST_QUEUE_BAR_COLLAPSED_LABEL) only renders when there
     //    is at least one entry in the execution queue — POST /start enqueues it.
     const sessionId2 = `e2e-session-mwc-queued-${Date.now()}`;
-    sessions.createSessionFile({ sessionId: sessionId2, userMessage: 'Add second feature' });
+    await sessions.createSessionFile({ sessionId: sessionId2, userMessage: 'Add second feature' });
 
     const queued = await quests.createQuest({
       guildId,

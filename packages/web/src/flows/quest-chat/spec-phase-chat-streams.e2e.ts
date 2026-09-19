@@ -40,7 +40,7 @@ test.describe('Spec-phase intake conversation streams into the chat panel', () =
     const guildId = guilds.extractGuildId({ guild });
 
     const sessionId = `e2e-spec-phase-chat-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'The rows do not render' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'The rows do not render' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -90,7 +90,7 @@ test.describe('Spec-phase intake conversation streams into the chat panel', () =
     await expect
       .poll(
         async () => {
-          sessions.appendMainSessionLine({ sessionId, line: assistantLine });
+          await sessions.appendMainSessionLine({ sessionId, line: assistantLine });
           return page.getByText(ASSISTANT_TEXT).first().isVisible();
         },
         { timeout: STREAM_TIMEOUT },

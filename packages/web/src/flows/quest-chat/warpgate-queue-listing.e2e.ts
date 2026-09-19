@@ -43,7 +43,7 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
     // duration of the test — the SECOND quest a non-vacuous "is X listed" check needs, per
     // execution-queue-streaming.e2e.ts's own pattern for keeping an entry stable.
     const sessionIdA = `e2e-queue-a-${Date.now()}`;
-    sessions.createSessionFile({ sessionId: sessionIdA, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId: sessionIdA, userMessage: 'Build the feature' });
     const createdA = await quests.createQuest({
       guildId,
       title: 'Queue Listing Quest A',
@@ -85,7 +85,7 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
     // listener removes it for), then merged for real via the Merge route — the same
     // OrchestrationMergeResponder the UI's Teleport with Booty button calls.
     const sessionIdB = `e2e-queue-b-${Date.now()}`;
-    sessions.createSessionFile({ sessionId: sessionIdB, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId: sessionIdB, userMessage: 'Build the feature' });
     const createdB = await quests.createQuest({
       guildId,
       title: 'Queue Listing Quest B',

@@ -18,7 +18,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Pause/Resume emits lifecycle events', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {click PAUSE on in_progress quest} => server broadcasts a quest-paused WS frame for that questId', async ({
@@ -35,7 +35,7 @@ test.describe('Pause/Resume emits lifecycle events', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-pause-emit-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
       guildId,
@@ -108,7 +108,7 @@ test.describe('Pause/Resume emits lifecycle events', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-resume-emit-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
       guildId,

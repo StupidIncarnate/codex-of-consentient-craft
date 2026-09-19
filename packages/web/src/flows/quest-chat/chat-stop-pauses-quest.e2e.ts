@@ -48,7 +48,7 @@ test.describe('Chat STOP pauses quest', () => {
 
     // Pre-seed session JSONL so navigating to /session/:sessionId doesn't 404.
     const sessionId = `e2e-chat-stop-pauses-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),

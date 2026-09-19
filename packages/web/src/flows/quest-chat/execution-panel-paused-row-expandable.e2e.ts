@@ -16,7 +16,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Paused quest: pending work items with sessionId stay expandable', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {paused quest, codeweaver pending row with sessionId} => row is expandable and shows replayed messages', async ({
@@ -37,11 +37,11 @@ test.describe('Paused quest: pending work items with sessionId stay expandable',
 
     const codeweaverText = 'Codeweaver progress captured before pause';
 
-    sessions.createSessionWithAssistantText({
+    await sessions.createSessionWithAssistantText({
       sessionId: chaosSessionId,
       text: 'Chaos summary',
     });
-    sessions.createSessionWithAssistantText({
+    await sessions.createSessionWithAssistantText({
       sessionId: codeweaverSessionId,
       text: codeweaverText,
     });

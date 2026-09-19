@@ -28,7 +28,7 @@ test.describe('Quest Pause and Resume', () => {
     });
     const guildId = String(guild.id);
     const sessionId = `e2e-session-pause-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await questHarness({ request }).createQuest({
       guildId,
@@ -90,7 +90,7 @@ test.describe('Quest Pause and Resume', () => {
     });
     const guildId = String(guild.id);
     const sessionId = `e2e-session-resume-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await questHarness({ request }).createQuest({
       guildId,

@@ -65,7 +65,7 @@ export const warpgateHarness = ({
   seedFollowupTurns: (params: {
     sessionId: string;
     turns: readonly { role: 'user' | 'assistant'; text: string }[];
-  }) => void;
+  }) => Promise<void>;
 } => {
   const guilds = guildHarness({ request });
   const quests = questHarness({ request });
@@ -195,14 +195,14 @@ export const warpgateHarness = ({
   // Multi-turn tavernkeeper session so the FOLLOW-UP tab has >=2 PRIOR turns to survive a
   // status change — one turn alone cannot distinguish "the transcript survived" from "the last
   // message survived".
-  const seedFollowupTurns = ({
+  const seedFollowupTurns = async ({
     sessionId,
     turns,
   }: {
     sessionId: string;
     turns: readonly { role: 'user' | 'assistant'; text: string }[];
-  }): void => {
-    sessions.createMultiEntrySessionFile({
+  }): Promise<void> => {
+    await sessions.createMultiEntrySessionFile({
       sessionId,
       lines: turns.map((turn) =>
         JSON.stringify(

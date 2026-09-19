@@ -71,7 +71,7 @@ test.describe('Transcript entry replaces the optimistic bubble it matches', () =
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-transcript-replaces-optimistic-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),

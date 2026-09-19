@@ -59,7 +59,7 @@ test.describe('Begin Quest starts the dispatch queue', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-session-start-dispatch-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
       guildId,

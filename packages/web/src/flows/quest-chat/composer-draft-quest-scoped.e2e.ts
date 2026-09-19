@@ -53,7 +53,7 @@ test.describe('Composer draft — scoped per quest, never leaks across a navigat
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionIdA = `e2e-draft-scope-a-${Date.now()}`;
-    sessions.createSessionFile({ sessionId: sessionIdA, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId: sessionIdA, userMessage: 'Build feature' });
     const createdA = await quests.createQuest({
       guildId: String(guildId),
       title: 'Draft Scope Quest A',
@@ -76,7 +76,7 @@ test.describe('Composer draft — scoped per quest, never leaks across a navigat
     });
 
     const sessionIdB = `e2e-draft-scope-b-${Date.now()}`;
-    sessions.createSessionFile({ sessionId: sessionIdB, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId: sessionIdB, userMessage: 'Build feature' });
     const createdB = await quests.createQuest({
       guildId: String(guildId),
       title: 'Draft Scope Quest B',
@@ -141,7 +141,7 @@ test.describe('Composer draft — scoped per quest, never leaks across a navigat
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionIdA = `e2e-draft-scope-rt-a-${Date.now()}`;
-    sessions.createSessionFile({ sessionId: sessionIdA, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId: sessionIdA, userMessage: 'Build feature' });
     const createdA = await quests.createQuest({
       guildId: String(guildId),
       title: 'Draft Scope Round Trip A',
@@ -164,7 +164,7 @@ test.describe('Composer draft — scoped per quest, never leaks across a navigat
     });
 
     const sessionIdB = `e2e-draft-scope-rt-b-${Date.now()}`;
-    sessions.createSessionFile({ sessionId: sessionIdB, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId: sessionIdB, userMessage: 'Build feature' });
     const createdB = await quests.createQuest({
       guildId: String(guildId),
       title: 'Draft Scope Round Trip B',

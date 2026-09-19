@@ -99,8 +99,8 @@ export const followupHarness = ({
   seedTavernkeeperSession: (params: {
     sessionId: string;
     turns: readonly { role: 'user' | 'assistant'; text: string }[];
-  }) => void;
-  streamAssistantTurn: (params: { sessionId: string; text: string; order: number }) => void;
+  }) => Promise<void>;
+  streamAssistantTurn: (params: { sessionId: string; text: string; order: number }) => Promise<void>;
   transcriptHasText: (params: { text: string }) => Promise<boolean>;
   transcriptOrder: (params: { candidates: readonly string[] }) => Promise<ContentText[]>;
   isTurnInFlight: () => Promise<boolean>;
@@ -249,16 +249,16 @@ export const followupHarness = ({
   // both on replay and while a turn streams. Callers seed it BEFORE navigating, because
   // subscribe-quest replays it as soon as the browser binds the quest, and because the quest-driven
   // watcher tails it from `end` (a file that does not exist yet has no `end` to tail from).
-  const seedTavernkeeperSession = ({
+  const seedTavernkeeperSession = async ({
     sessionId,
     turns,
   }: {
     sessionId: string;
     turns: readonly { role: 'user' | 'assistant'; text: string }[];
-  }): void => {
+  }): Promise<void> => {
     const sessions = sessionHarness({ guildPath });
     const baseEpoch = new Date(SESSION_BASE_EPOCH_ISO).getTime();
-    sessions.createMultiEntrySessionFile({
+    await sessions.createMultiEntrySessionFile({
       sessionId,
       lines: turns.map((turn, index) =>
         JSON.stringify({
@@ -279,7 +279,7 @@ export const followupHarness = ({
   // is produced, while `test/harnesses/claude-mock/bin/claude` writes the whole file once at exit —
   // so a spec that needs a partially-written transcript mid-run has to write the lines itself. The
   // held-back queue response keeps the child alive around it, so the run really is still going.
-  const streamAssistantTurn = ({
+  const streamAssistantTurn = async ({
     sessionId,
     text,
     order,
@@ -287,14 +287,14 @@ export const followupHarness = ({
     sessionId: string;
     text: string;
     order: number;
-  }): void => {
+  }): Promise<void> => {
     const sessions = sessionHarness({ guildPath });
     const streamedAt = new Date(
       new Date(SESSION_BASE_EPOCH_ISO).getTime() +
         STREAMED_TURN_BASE_OFFSET_MS +
         order * STREAMED_TURN_INTERVAL_MS,
     ).toISOString();
-    sessions.appendMainSessionLine({
+    await sessions.appendMainSessionLine({
       sessionId,
       line: JSON.stringify({
         ...AssistantTextStreamLineStub({

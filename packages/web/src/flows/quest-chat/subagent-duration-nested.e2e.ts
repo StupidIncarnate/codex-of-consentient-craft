@@ -82,7 +82,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     // before the main loop reaches the inner file's body entry — the arrangement every OTHER
     // passing chain fixture in this codebase gets by staggering timestamps instead, which this
     // harness's fixed same-timestamp stub does not allow.
-    subagentDuration.seedNestedChain({
+    await subagentDuration.seedNestedChain({
       sessionId,
       outerAgentId: 'nestedcount1outer',
       outerToolUseId: 'toolu_nested_count_outer',
@@ -192,7 +192,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
 
     // Agent ids named so the outer's own subagent file sorts alphabetically before the inner's —
     // see the comment on the first test's seedNestedChain call for why the tie forces this.
-    subagentDuration.seedNestedChain({
+    await subagentDuration.seedNestedChain({
       sessionId,
       outerAgentId: 'nestedindependent1outer',
       outerToolUseId: 'toolu_nested_independent_outer',
@@ -301,7 +301,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
 
     // Agent ids named so the outer's own subagent file sorts alphabetically before the inner's —
     // see the comment on the first test's seedNestedChain call for why the tie forces this.
-    subagentDuration.seedNestedChain({
+    await subagentDuration.seedNestedChain({
       sessionId,
       outerAgentId: 'nestedhasstart1outer',
       outerToolUseId: 'toolu_nested_has_start_outer',
@@ -388,7 +388,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
 
     // Agent ids named so the outer's own subagent file sorts alphabetically before the inner's —
     // see the comment on the first test's seedNestedChain call for why the tie forces this.
-    subagentDuration.seedNestedChain({
+    await subagentDuration.seedNestedChain({
       sessionId,
       outerAgentId: 'nestedchaintonested1outer',
       outerToolUseId: 'toolu_nested_chain_to_nested_outer',

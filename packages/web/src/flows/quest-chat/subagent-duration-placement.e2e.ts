@@ -59,7 +59,7 @@ test.describe('The subagent-chain duration figure is placed and styled like exec
     });
     const guildId = guilds.extractGuildId({ guild });
 
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: PLACEMENT_SESSION_ID,
       agentId: PLACEMENT_AGENT_ID,
       taskToolUseId: PLACEMENT_TOOL_USE_ID,
@@ -131,7 +131,7 @@ test.describe('The subagent-chain duration figure is placed and styled like exec
     });
     const guildId = guilds.extractGuildId({ guild });
 
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: STYLE_SESSION_ID,
       agentId: STYLE_AGENT_ID,
       taskToolUseId: STYLE_TOOL_USE_ID,

@@ -42,7 +42,7 @@ test.describe('Quest Dual Panel', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-dual-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Build the login feature',
     });
@@ -130,7 +130,7 @@ test.describe('Quest Dual Panel', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-dual-stale-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Build the login feature',
     });
@@ -220,7 +220,7 @@ test.describe('Quest Dual Panel', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-dual-load-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Build the feature',
     });
@@ -279,7 +279,7 @@ test.describe('Quest Dual Panel', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-dual-history-${Date.now()}`;
-    sessions.createAnsweredClarificationSession({ sessionId });
+    await sessions.createAnsweredClarificationSession({ sessionId });
 
     // Create quest via API to get the server-resolved file path
     const created = await questHarness({ request }).createQuest({
@@ -337,7 +337,7 @@ test.describe('Quest Dual Panel', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-dual-reload-${Date.now()}`;
-    sessions.createAnsweredClarificationSession({ sessionId });
+    await sessions.createAnsweredClarificationSession({ sessionId });
 
     // Create quest via API to get the server-resolved file path
     const created = await questHarness({ request }).createQuest({

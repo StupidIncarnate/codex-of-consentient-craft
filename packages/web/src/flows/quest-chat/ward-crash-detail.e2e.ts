@@ -20,7 +20,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Failed ward row shows crash detail (no structured errors)', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {blocked quest, failed ward linked to a crash-only ward-result} => expanded WARD row shows FAILED summary + rawOutput', async ({
@@ -37,7 +37,7 @@ test.describe('Failed ward row shows crash detail (no structured errors)', () =>
     const guildId = String(guild.id);
 
     const chaosSessionId = `e2e-ward-crash-chaos-${Date.now()}`;
-    sessions.createSessionWithAssistantText({
+    await sessions.createSessionWithAssistantText({
       sessionId: chaosSessionId,
       text: 'Spec captured during streaming',
     });

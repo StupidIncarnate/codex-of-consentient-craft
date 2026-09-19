@@ -272,7 +272,10 @@ export const commentQueueSendHarness = ({
         .replace(/\s+/gu, '-');
 
       seeded.sessionId = `e2e-session-comment-send-${Date.now()}`;
-      sessions.createSessionFile({ sessionId: seeded.sessionId, userMessage: 'Build the feature' });
+      await sessions.createSessionFile({
+        sessionId: seeded.sessionId,
+        userMessage: 'Build the feature',
+      });
 
       const created = await quests.createQuest({
         guildId,

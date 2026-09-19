@@ -17,7 +17,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Expandable headers stay reachable while their own body scrolls under them', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {scrolled to the foot of a nested sub-agent chain} => row and both chain headers pin as one contiguous stack, outermost on top', async ({

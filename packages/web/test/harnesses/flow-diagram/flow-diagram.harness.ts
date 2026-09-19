@@ -403,7 +403,7 @@ export const flowDiagramHarness = ({
       const guildId = String(guild.id);
 
       const sessionId = `e2e-session-diagram-${Date.now()}`;
-      sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+      await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
       const created = await quests.createQuest({
         guildId,

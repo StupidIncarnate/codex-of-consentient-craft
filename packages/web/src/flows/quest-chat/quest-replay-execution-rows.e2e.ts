@@ -16,7 +16,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Quest reload replays per-work-item entries onto execution rows', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {in_progress quest with in-progress codeweaver workItem} => its execution row shows replayed codeweaver text on reload', async ({
@@ -38,8 +38,8 @@ test.describe('Quest reload replays per-work-item entries onto execution rows', 
     const chaosText = 'Chaoswhisperer summary captured during streaming';
     const codeweaverText = 'Codeweaver analysis captured before pause';
 
-    sessions.createSessionWithAssistantText({ sessionId: chaosSessionId, text: chaosText });
-    sessions.createSessionWithAssistantText({
+    await sessions.createSessionWithAssistantText({ sessionId: chaosSessionId, text: chaosText });
+    await sessions.createSessionWithAssistantText({
       sessionId: codeweaverSessionId,
       text: codeweaverText,
     });

@@ -31,7 +31,7 @@ test.describe('Quest Spec Panel', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-spec-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Build the feature',
     });

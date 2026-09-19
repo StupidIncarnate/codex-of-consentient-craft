@@ -68,7 +68,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-draft-reload-state-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -150,7 +150,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-draft-reload-send-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -222,7 +222,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-draft-reload-tokens-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -275,7 +275,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-draft-reload-bytes-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -331,7 +331,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-draft-reload-count-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -406,7 +406,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-draft-reload-order-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -482,7 +482,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-draft-reload-renders-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -560,7 +560,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-draft-reload-bounded-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -640,7 +640,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-draft-reload-serialize-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -718,7 +718,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-draft-reload-sends-bytes-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -811,7 +811,7 @@ test.describe('Composer paste — draft persists across reload and restores into
 
     // Quest A — the baseline: paste 2 byte-distinct images and send WITHOUT ever reloading.
     const sessionIdA = `e2e-draft-reload-writes-a-${Date.now()}`;
-    sessions.createSessionFile({ sessionId: sessionIdA, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId: sessionIdA, userMessage: 'Build feature' });
     const createdA = await quests.createQuest({
       guildId: String(guildId),
       title: 'Draft Reload Writes A Quest',
@@ -871,7 +871,7 @@ test.describe('Composer paste — draft persists across reload and restores into
 
     // Quest B — paste the SAME two images, reload, wait for the restore, THEN send.
     const sessionIdB = `e2e-draft-reload-writes-b-${Date.now()}`;
-    sessions.createSessionFile({ sessionId: sessionIdB, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId: sessionIdB, userMessage: 'Build feature' });
     const createdB = await quests.createQuest({
       guildId: String(guildId),
       title: 'Draft Reload Writes B Quest',
@@ -972,7 +972,7 @@ test.describe('Composer paste — a draft database missing its store heals itsel
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-draft-store-heals-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),

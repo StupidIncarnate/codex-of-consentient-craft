@@ -22,7 +22,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Failed ward row shows discovery-mismatch detail (all checks pass/skip)', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {blocked quest, failed ward linked to a mismatch-only ward-result} => expanded WARD row shows DISCOVERY MISMATCH + discovered files', async ({
@@ -39,7 +39,7 @@ test.describe('Failed ward row shows discovery-mismatch detail (all checks pass/
     const guildId = String(guild.id);
 
     const chaosSessionId = `e2e-ward-mismatch-chaos-${Date.now()}`;
-    sessions.createSessionWithAssistantText({
+    await sessions.createSessionWithAssistantText({
       sessionId: chaosSessionId,
       text: 'Spec captured during streaming',
     });

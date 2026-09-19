@@ -19,7 +19,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Per-work-item LIVE streaming reads `<sessionId>/subagents/agent-<agentId>.jsonl` appends', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {monitor-session announced + sub-agent JSONL appended live} => the codeweaver execution row shows the streamed assistant text WITHOUT page refresh', async ({
@@ -44,14 +44,14 @@ test.describe('Per-work-item LIVE streaming reads `<sessionId>/subagents/agent-<
     const REPLAY_MARKER = 'REPLAY_CODEWEAVER_MARKER_abc';
     const LIVE_MARKER = 'LIVE_CODEWEAVER_MARKER_xyz123';
 
-    sessions.createSessionWithAssistantText({
+    await sessions.createSessionWithAssistantText({
       sessionId: chaosSessionId,
       text: 'Chaos summary placeholder',
     });
 
     // Seed the parent /dumpster-launch session JSONL so the watcher's main tail has a
     // file to open. Content is irrelevant — the bug surfaces from sub-agent activity.
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId: parentSessionId,
       userMessage: 'dumpster-launch parent placeholder',
     });
@@ -73,7 +73,7 @@ test.describe('Per-work-item LIVE streaming reads `<sessionId>/subagents/agent-<
     // the watcher's onSessionIdLearned regex never matches, so it never overwrites the
     // sessionId we pre-stamp below. In production, get-agent-prompt MCP handler stamps
     // wi.sessionId = parentSessionId / wi.agentId = realAgentId.
-    sessions.createSubagentTailMultiEntry({
+    await sessions.createSubagentTailMultiEntry({
       sessionId: parentSessionId,
       agentId: realAgentId,
       lines: [
@@ -150,7 +150,7 @@ test.describe('Per-work-item LIVE streaming reads `<sessionId>/subagents/agent-<
     // entry under SYNTHETIC_SESSION_KEY (__no_session__). The execution row does
     // sessionEntries.get(wi.sessionId) and finds [] — row stays empty until the user
     // refreshes (which triggers chat-replay-responder that stamps payload.sessionId).
-    sessions.appendSubagentLine({
+    await sessions.appendSubagentLine({
       sessionId: parentSessionId,
       agentId: realAgentId,
       line: JSON.stringify(

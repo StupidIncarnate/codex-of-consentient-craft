@@ -242,7 +242,7 @@ export const commentQueueLifecycleHarness = ({
         .replace(/\s+/gu, '-');
 
       const sessionId = `e2e-session-comment-lifecycle-${Date.now()}`;
-      sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+      await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
       // Sequential by construction: each quest awaits the previous one's chain link, so both POSTs
       // land in authoring order and `first` is always the earlier-created quest.

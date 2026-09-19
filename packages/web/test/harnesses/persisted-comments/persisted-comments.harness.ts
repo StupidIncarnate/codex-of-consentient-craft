@@ -384,7 +384,7 @@ export const persistedCommentsHarness = ({
     const guild = await guildHarness({ request }).createGuild({ name: guildName, path: guildPath });
 
     const sessionId = `e2e-session-view-comments-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
       guildId: String(guild.id),

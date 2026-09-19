@@ -70,7 +70,7 @@ test.describe('WS Reconnect', () => {
 
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {WS drops via offline mode, restored} => chat keeps streaming after reconnect', async ({
@@ -97,7 +97,7 @@ test.describe('WS Reconnect', () => {
     const guildSlug = guildHarness({ request }).extractUrlSlug({ guild });
 
     const sessionId = `e2e-ws-reconnect-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'First message' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'First message' });
 
     const quests = questHarness({ request });
     const created = await quests.createQuest({

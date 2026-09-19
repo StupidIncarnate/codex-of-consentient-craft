@@ -32,7 +32,7 @@ test.describe('Quest WS Update', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-ws-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Build the feature',
     });
@@ -105,7 +105,7 @@ test.describe('Quest WS Update', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-ws-inc-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Build the feature',
     });

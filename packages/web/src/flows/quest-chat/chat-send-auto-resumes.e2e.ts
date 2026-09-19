@@ -41,7 +41,7 @@ test.describe('Chat send auto-resumes paused quest', () => {
     const guildId = guilds.extractGuildId({ guild });
 
     const sessionId = `e2e-chat-auto-resume-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),

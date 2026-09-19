@@ -50,7 +50,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-send-text-only-newline-shift-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -124,7 +124,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-send-text-only-newline-adds-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -178,7 +178,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-send-text-only-newline-eoc-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -239,7 +239,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-send-text-only-newline-restore-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -314,7 +314,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-send-text-only-newline-caret-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -397,7 +397,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-send-text-only-newline-plain-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),

@@ -81,7 +81,7 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
       });
       const guildId = guilds.extractGuildId({ guild });
       const sessionId = `e2e-matrix-${status}-${Date.now()}`;
-      sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+      await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
       const created = await quests.createQuest({
         guildId: String(guildId),

@@ -42,7 +42,7 @@ test.describe('Clarification Design Decisions', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-clarify-dd-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Build the feature',
     });
@@ -146,7 +146,7 @@ test.describe('Clarification Design Decisions', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-no-clarify-dd-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Build the feature',
     });

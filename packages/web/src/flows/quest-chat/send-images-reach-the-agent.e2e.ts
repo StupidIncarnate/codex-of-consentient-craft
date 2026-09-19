@@ -54,7 +54,7 @@ test.describe('Composer send — images reach the agent', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-reach-agent-branch-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -133,7 +133,7 @@ test.describe('Composer send — images reach the agent', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-reach-agent-forward-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -226,7 +226,7 @@ test.describe('Composer send — images reach the agent', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-reach-agent-abspath-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -318,7 +318,7 @@ test.describe('Composer send — images reach the agent', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-reach-agent-mdpath-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -405,7 +405,7 @@ test.describe('Composer send — images reach the agent', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-reach-agent-nth-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -503,7 +503,7 @@ test.describe('Composer send — images reach the agent', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-reach-agent-trailer-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -601,7 +601,7 @@ test.describe('Composer send — images reach the agent', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-reach-agent-argv-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -684,7 +684,7 @@ test.describe('Composer send — images reach the agent', () => {
 
     const sessionId = `e2e-reach-agent-followup-${Date.now()}`;
     // The transcript file has to exist before the tail attaches — it tails from `end`.
-    followup.seedTavernkeeperSession({
+    await followup.seedTavernkeeperSession({
       sessionId,
       turns: [
         {
@@ -775,7 +775,7 @@ test.describe('Composer send — images reach the agent', () => {
 
     const sessionId = `e2e-reach-agent-followup-body-${Date.now()}`;
     // The transcript file has to exist before the tail attaches — it tails from `end`.
-    followup.seedTavernkeeperSession({
+    await followup.seedTavernkeeperSession({
       sessionId,
       turns: [
         {
@@ -887,7 +887,7 @@ test.describe('Composer send — images reach the agent', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-reach-agent-first-token-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),

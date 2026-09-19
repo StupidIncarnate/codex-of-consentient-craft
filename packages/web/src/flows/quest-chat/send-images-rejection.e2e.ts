@@ -231,7 +231,7 @@ test.describe('Composer send — images and a rejected send', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-send-images-rejection-write-failure-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -306,7 +306,7 @@ test.describe('Composer send — images and a rejected send', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-send-images-rejection-retry-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),

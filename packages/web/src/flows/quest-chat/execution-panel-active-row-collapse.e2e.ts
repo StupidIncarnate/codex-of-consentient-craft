@@ -16,7 +16,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Execution panel: active (in_progress) row stays collapsed when user clicks the header', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {in_progress row, user clicks header to collapse} => row stays collapsed (auto-expand effect must not re-fire on the user-initiated state flip)', async ({
@@ -37,7 +37,7 @@ test.describe('Execution panel: active (in_progress) row stays collapsed when us
     // chat-history-replay-broker will deliver this on subscribe so the codeweaver
     // row has `hasEntries === true` — the precondition for the in_progress
     // auto-expand effect to fire.
-    sessions.createSessionWithAssistantText({
+    await sessions.createSessionWithAssistantText({
       sessionId: codeweaverSessionId,
       text: 'Active row pre-seeded text',
     });

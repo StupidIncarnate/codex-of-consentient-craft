@@ -314,7 +314,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-session-clarify-freeform-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
       guildId,

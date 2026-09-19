@@ -137,11 +137,11 @@ test.describe('A carved quest renders the transcripts on both sides of its carve
 
     // The two transcripts, each written in the encoding the session that produced it really ran
     // under.
-    guildSessions.createSessionWithAssistantText({
+    await guildSessions.createSessionWithAssistantText({
       sessionId: INTAKE_SESSION_ID,
       text: INTAKE_TEXT,
     });
-    worktreeSessions.createSessionWithAssistantText({
+    await worktreeSessions.createSessionWithAssistantText({
       sessionId: CODEWEAVER_SESSION_ID,
       text: CODEWEAVER_TEXT,
     });
@@ -318,7 +318,7 @@ test.describe('A carved quest renders the transcripts on both sides of its carve
     await expect
       .poll(
         async () => {
-          worktreeSessions.appendMainSessionLine({
+          await worktreeSessions.appendMainSessionLine({
             sessionId: CODEWEAVER_SESSION_ID,
             line: liveLine,
           });
