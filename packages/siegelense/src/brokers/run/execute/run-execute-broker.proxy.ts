@@ -2,7 +2,7 @@ import { existsSync } from 'fs';
 import { access, realpath } from 'fs/promises';
 import { z } from 'zod';
 import { fsMkdirAdapterProxy } from '@dungeonmaster/shared/testing';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import {
   absoluteFilePathContract,
@@ -34,6 +34,7 @@ import { locationsRunPathsFindBrokerProxy } from '../../locations/run-paths-find
 import { locationsShotPathFindBrokerProxy } from '../../locations/shot-path-find/locations-shot-path-find-broker.proxy';
 import { runReturnWriteBrokerProxy } from '../return-write/run-return-write-broker.proxy';
 import { runTranscriptAppendBrokerProxy } from '../transcript-append/run-transcript-append-broker.proxy';
+import * as stepDispatchBrokerModule from '../../step/dispatch/step-dispatch-broker';
 import { runExecuteStepLayerBrokerProxy } from './run-execute-step-layer-broker.proxy';
 
 // Re-declared locally rather than imported: browser-session-contract.ts keeps its own parsing
@@ -104,7 +105,9 @@ export const runExecuteBrokerProxy = (): {
     apiBaseUrl: ContentText;
     guild: Guild;
     questIds: readonly ContentText[];
-  }) => void;
+    secondGuild?: Guild;
+  }) => { getCallArgs: () => readonly unknown[] };
+  dispatchedSteps: () => readonly unknown[];
   laneFailingOnPath: (params: { failingPath: string; error: Error }) => {
     lane: LaneSession;
     gotoCallCount: () => ReadingCount;
@@ -169,6 +172,11 @@ export const runExecuteBrokerProxy = (): {
   const transcriptProxy = runTranscriptAppendBrokerProxy();
   const returnWriteProxy = runReturnWriteBrokerProxy();
   const stepLayerProxy = runExecuteStepLayerBrokerProxy(); // also stages Date.now via its own child.
+  const dispatchSpy = registerSpyOn({
+    object: stepDispatchBrokerModule,
+    method: 'stepDispatchBroker',
+    passthrough: true,
+  });
 
   // The two automatic captures a run makes at its own boundaries. Answered for ANY arguments, since
   // the interesting value is WHICH names were asked for, read back through the two methods below.
@@ -302,13 +310,25 @@ export const runExecuteBrokerProxy = (): {
       apiBaseUrl,
       guild,
       questIds,
+      secondGuild,
     }: {
       apiBaseUrl: ContentText;
       guild: Guild;
       questIds: readonly ContentText[];
-    }): void => {
-      stepLayerProxy.seedLaneAnswers({ apiBaseUrl, guild, questIds });
-    },
+      secondGuild?: Guild;
+    }): { getCallArgs: () => readonly unknown[] } =>
+      stepLayerProxy.seedLaneAnswers({
+        apiBaseUrl,
+        guild,
+        questIds,
+        ...(secondGuild === undefined ? {} : { secondGuild }),
+      }),
+
+    dispatchedSteps: (): readonly unknown[] =>
+      dispatchSpy.callsMatching([]).map((call) => {
+        const [first] = call;
+        return first !== null && typeof first === 'object' && 'step' in first ? first.step : null;
+      }),
 
     laneFailingOnPath: ({
       failingPath,

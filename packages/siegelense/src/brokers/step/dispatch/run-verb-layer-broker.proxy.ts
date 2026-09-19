@@ -14,8 +14,7 @@ import type { BrowserSession } from '../../../contracts/browser-session/browser-
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { RecipeListingEntryStub } from '../../../contracts/recipe-listing-entry/recipe-listing-entry.stub';
-import { SeedResultStub } from '../../../contracts/seed-result/seed-result.stub';
-import type { SeedResult } from '../../../contracts/seed-result/seed-result-contract';
+import { RecipeInputKeyStub } from '../../../contracts/recipe-input-key/recipe-input-key.stub';
 import { RefResolutionStub } from '../../../contracts/ref-resolution/ref-resolution.stub';
 import { stepBoxBrokerProxy } from '../box/step-box-broker.proxy';
 import { stepBeforeBrokerProxy } from '../before/step-before-broker.proxy';
@@ -62,7 +61,8 @@ export const runVerbLayerBrokerProxy = (): {
     apiBaseUrl: ContentText;
     guild: Guild;
     questIds: readonly ContentText[];
-  }) => void;
+    secondGuild?: Guild;
+  }) => { getCallArgs: () => readonly unknown[] };
   browserlessLane: (params?: { apiBaseUrl?: ContentText }) => { lane: LaneSession };
   setupRequestResponse: (params: {
     url: string;
@@ -185,19 +185,30 @@ export const runVerbLayerBrokerProxy = (): {
       apiBaseUrl: _apiBaseUrl,
       guild,
       questIds,
+      secondGuild,
     }: {
       apiBaseUrl: ContentText;
       guild: Guild;
       questIds: readonly ContentText[];
-    }): void => {
+      secondGuild?: Guild;
+    }): { getCallArgs: () => readonly unknown[] } => {
       const activeQuestId =
         questIds[1] ??
         questIds[0] ??
         ContentTextStub({ value: 'bbbbbbbb-2222-4222-8222-222222222222' });
-      const result: SeedResult = SeedResultStub({
-        guildId: guild.id,
-        guildSlug: ContentTextStub({ value: guild.urlSlug ?? 'siege-guild' }),
+      const makeResult = (targetGuild: Guild): Record<PropertyKey, unknown> => ({
+        guildId: targetGuild.id,
+        guildSlug: ContentTextStub({ value: targetGuild.urlSlug ?? 'siege-guild' }),
         questId: activeQuestId,
+        guild: {
+          id: targetGuild.id,
+          name: targetGuild.name,
+          path: targetGuild.path,
+          urlSlug: targetGuild.urlSlug ?? 'siege-guild',
+        },
+        quest: {
+          id: activeQuestId,
+        },
       });
       seedProxy.stagesListing({
         listing: [
@@ -209,9 +220,22 @@ export const runVerbLayerBrokerProxy = (): {
             recipeName: 'guild-mid-execution' as never,
             inputKeys: [],
           }),
+          RecipeListingEntryStub({
+            recipeName: 'session-with-nested-subagent' as never,
+            inputKeys: [RecipeInputKeyStub({ value: 'guildPath' })],
+          }),
         ],
       });
-      seedProxy.stagesSeedRun({ result });
+      const SECOND_SEED_CALL = 2;
+      const seedCallState = { count: 0 };
+      const seedResult = (): unknown => {
+        seedCallState.count += 1;
+        if (seedCallState.count === SECOND_SEED_CALL && secondGuild !== undefined) {
+          return makeResult(secondGuild);
+        }
+        return makeResult(guild);
+      };
+      return seedProxy.stagesSeedRun({ result: seedResult });
     },
 
     browserlessLane: (params?: { apiBaseUrl?: ContentText }): { lane: LaneSession } => ({

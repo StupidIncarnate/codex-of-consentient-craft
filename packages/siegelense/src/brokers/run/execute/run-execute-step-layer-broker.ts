@@ -32,17 +32,18 @@
  * whole step loop, so every step's `until { console }`/`until { response }` scans from THIS RUN's
  * own window rather than a fresh `bufferLengths()` read at whatever moment that one step starts.
  *
- * It is also where a step's `{binding.field}` placeholders are SUBSTITUTED, immediately inside the
- * try. That placement is the point: an unresolvable binding throws, and this is the one place a
- * throw becomes an `ok: false` reading plus a `StoppedAt` naming the step and the verb — so a
- * misspelled `as:` stops the batch, lands in the transcript, and reads back through `results` like
- * any other failure, instead of crashing the whole run.
+ * It is also where a step's references are SUBSTITUTED, immediately inside the try. That
+ * placement is the point: an unresolvable reference throws, and this is the one place a throw
+ * becomes an `ok: false` reading plus a `StoppedAt` naming the step and the verb — so an unresolvable
+ * reference stops the batch, lands in the transcript, and reads back through `results` like any other
+ * failure, instead of crashing the whole run.
  *
  * USAGE:
  * await runExecuteStepLayerBroker({
  *   lane, step: StepStub({ step: 'goto', path: UrlPathStub() }),
  *   index: StepIndexStub({ value: 3 }), shotPath: null, browserWindowStart: null,
  *   lastShotPath: driverSessionState.lastShotPath, setLastShotPath: driverSessionState.setLastShotPath,
+ *   outputs: () => ({}), recordOutput: () => {},
  * });
  * // Returns { reading, stoppedAt: null, timedOut: false } on success, or
  * // { reading, stoppedAt, timedOut } once ok is false
@@ -54,23 +55,25 @@ import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import type { BufferLengths } from '../../../contracts/browser-session/browser-session-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
-import type { SeedBindings } from '../../../contracts/seed-bindings/seed-bindings-contract';
-import type { SeedBindingName } from '../../../contracts/seed-binding-name/seed-binding-name-contract';
 import { serverLogWindowContract } from '../../../contracts/server-log-window/server-log-window-contract';
+import { stepContract } from '../../../contracts/step/step-contract';
 import type { Step } from '../../../contracts/step/step-contract';
 import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { stepReadingContract } from '../../../contracts/step-reading/step-reading-contract';
 import type { StepReading } from '../../../contracts/step-reading/step-reading-contract';
+import { stepOutputNameContract } from '../../../contracts/step-output-name/step-output-name-contract';
+import type { StepOutputName } from '../../../contracts/step-output-name/step-output-name-contract';
 import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contract';
 import { stoppedAtContract } from '../../../contracts/stopped-at/stopped-at-contract';
 import type { StoppedAt } from '../../../contracts/stopped-at/stopped-at-contract';
 import { stepCandidateContract } from '../../../contracts/step-candidate/step-candidate-contract';
+import { urlPathContract } from '../../../contracts/url-path/url-path-contract';
 import { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
 import { StepFailureCaptureError } from '../../../errors/step-failure-capture/step-failure-capture-error';
 import { UntilCeilingHitError } from '../../../errors/until-ceiling-hit/until-ceiling-hit-error';
 import { WaitForCeilingHitError } from '../../../errors/wait-for-ceiling-hit/wait-for-ceiling-hit-error';
-import { stepInterpolateTransformer } from '../../../transformers/step-interpolate/step-interpolate-transformer';
+import { stepRefSubstituteTransformer } from '../../../transformers/step-ref-substitute/step-ref-substitute-transformer';
 import { stepDispatchBroker } from '../../step/dispatch/step-dispatch-broker';
 
 export const runExecuteStepLayerBroker = async ({
@@ -81,8 +84,8 @@ export const runExecuteStepLayerBroker = async ({
   browserWindowStart,
   lastShotPath,
   setLastShotPath,
-  bindings,
-  recordBinding,
+  outputs,
+  recordOutput,
 }: {
   lane: LaneSession;
   step: Step;
@@ -91,26 +94,67 @@ export const runExecuteStepLayerBroker = async ({
   browserWindowStart: BufferLengths | null;
   lastShotPath: () => AbsoluteFilePath | null;
   setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
-  bindings: () => SeedBindings;
-  recordBinding: (params: { name: SeedBindingName; result: unknown }) => void;
+  outputs: () => Record<PropertyKey, Record<PropertyKey, unknown>>;
+  recordOutput: (params: { name: StepOutputName; result: Record<PropertyKey, unknown> }) => void;
 }): Promise<{ reading: StepReading; stoppedAt: StoppedAt | null; timedOut: boolean }> => {
   const verb = stepVerbContract.parse(step.step);
   const serverLogStartByte = lane.serverLogLength();
 
   try {
-    // Inside the try, and this is the one place it can be: an unresolvable `{g.guildSlug}` throws,
-    // and only here does a throw become an `ok: false` reading plus a `StoppedAt` naming the step.
-    // Interpolating in the parent's loop instead would crash the batch rather than record it.
+    let resolvedStep = step;
+
+    if (step.step === 'goto') {
+      if (typeof step.path === 'object') {
+        const match = contentTextContract.parse(
+          `{${step.path.step}.${step.path.row}.${step.path.field}}`,
+        );
+        const resolvedPath = stepRefSubstituteTransformer({
+          text: match,
+          outputs: outputs(),
+        });
+        resolvedStep = { ...step, path: urlPathContract.parse(resolvedPath) };
+      } else if (step.path.includes('{')) {
+        const resolvedPath = stepRefSubstituteTransformer({
+          text: contentTextContract.parse(step.path),
+          outputs: outputs(),
+        });
+        resolvedStep = { ...step, path: urlPathContract.parse(resolvedPath) };
+      }
+    } else if (step.step === 'seed' && step.params !== null) {
+      const resolvedParams: Record<PropertyKey, unknown> = {};
+      Object.entries(step.params).forEach(([key, value]) => {
+        if (typeof value === 'string' && value.includes('{')) {
+          resolvedParams[key] = stepRefSubstituteTransformer({
+            text: contentTextContract.parse(value),
+            outputs: outputs(),
+          });
+        } else {
+          resolvedParams[key] = value;
+        }
+      });
+      resolvedStep = stepContract.parse({
+        ...step,
+        params: resolvedParams,
+      });
+    }
+
     const reading = await stepDispatchBroker({
       lane,
-      step: stepInterpolateTransformer({ step, bindings: bindings() }),
+      step: resolvedStep,
       index,
       shotPath,
       browserWindowStart,
       lastShotPath,
       setLastShotPath,
-      recordBinding,
+      recordBinding: (): void => undefined,
     });
+
+    if (step.step === 'seed' && step.as !== null) {
+      recordOutput({
+        name: stepOutputNameContract.parse(step.as),
+        result: JSON.parse(reading.reading) as Record<PropertyKey, unknown>,
+      });
+    }
 
     if (reading.ok) {
       return { reading, stoppedAt: null, timedOut: false };

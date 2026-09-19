@@ -35,7 +35,8 @@ export const runExecuteStepLayerBrokerProxy = (): {
     apiBaseUrl: ContentText;
     guild: Guild;
     questIds: readonly ContentText[];
-  }) => void;
+    secondGuild?: Guild;
+  }) => { getCallArgs: () => readonly unknown[] };
   lastShotPath: () => AbsoluteFilePath | null;
   setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
 } => {

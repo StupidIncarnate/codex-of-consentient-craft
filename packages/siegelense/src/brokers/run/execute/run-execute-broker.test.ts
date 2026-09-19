@@ -1164,7 +1164,7 @@ describe('runExecuteBroker', () => {
     });
   });
 
-  describe('as: bindings, and the {binding.field} a later step reads them back by', () => {
+  describe('reference substitution between steps', () => {
     const API_PORT = 41001;
     const API = `http://dungeonmaster.localhost:${String(API_PORT)}`;
     const GUILD_ID = '7306b468-0f2d-4a5e-9c3b-2d1e8f0a6b41';
@@ -1174,7 +1174,7 @@ describe('runExecuteBroker', () => {
       'cccccccc-3333-4333-8333-333333333333',
     ];
 
-    it('VALID: {seed as g, then goto /{g.guildSlug}/quest/{g.questId}} => the goto opens the SUBSTITUTED url', async () => {
+    it("VALID: {seed as 'g', then goto '/{g.guild.urlSlug}'} => the goto step navigates to the slug the seed actually minted", async () => {
       const proxy = runExecuteBrokerProxy();
       const runId = RunIdStub({ value: 'run_1' });
       proxy.stagePaths({ runId });
@@ -1197,7 +1197,7 @@ describe('runExecuteBroker', () => {
         runId,
         steps: [
           StepStub({ step: 'seed', recipe: 'guild-with-three-quests', as: 'g' }),
-          StepStub({ step: 'goto', path: '/{g.guildSlug}/quest/{g.questId}' }),
+          StepStub({ step: 'goto', path: '/{g.guild.urlSlug}' }),
         ],
         stopOn: StopOnStub({ value: 'error' }),
         flushCursor: proxy.flushCursor,
@@ -1207,19 +1207,15 @@ describe('runExecuteBroker', () => {
       });
 
       expect(result.status).toBe('done');
-      // The ids came off the recipe's own responses, so a binding that failed to resolve would
-      // have opened the literal placeholder text instead.
-      expect(gotoPaths()).toStrictEqual([
-        '/siege-guild/quest/bbbbbbbb-2222-4222-8222-222222222222',
-      ]);
+      expect(gotoPaths()).toStrictEqual(['/siege-guild']);
     });
 
-    it('INVALID: {a misspelled binding} => the step reads ok: false, stoppedAt NAMES the binding, and the batch stops', async () => {
+    it("VALID: {seed as 'g', then seed with params {guildPath:'{g.guild.path}'}} => the second seed entry receives the first seed's real path", async () => {
       const proxy = runExecuteBrokerProxy();
       const runId = RunIdStub({ value: 'run_1' });
       proxy.stagePaths({ runId });
       proxy.seedBookPresent();
-      proxy.seedLaneAnswers({
+      const seedRun = proxy.seedLaneAnswers({
         apiBaseUrl: ContentTextStub({ value: API }),
         guild: GuildStub({
           id: GUILD_ID,
@@ -1229,6 +1225,62 @@ describe('runExecuteBroker', () => {
         }),
         questIds: MINTED_QUEST_IDS.map((value) => ContentTextStub({ value })),
       });
+      const { lane } = proxy.laneRecordingGotoPaths({ apiPort: API_PORT });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'seed', recipe: 'guild-with-three-quests', as: 'g' }),
+          StepStub({
+            step: 'seed',
+            recipe: 'session-with-nested-subagent',
+            params: { guildPath: '{g.guild.path}' },
+          }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(result.status).toBe('done');
+
+      const paramsList = (seedRun.getCallArgs() as readonly [{ params: unknown }][]).map(
+        ([call]) => call.params,
+      );
+
+      expect(paramsList).toStrictEqual([
+        null,
+        {
+          guildPath: '/tmp/dm-siege-inst_seed/siege-repo',
+        },
+      ]);
+    });
+
+    it("VALID: {two seeds, both with as:} => the second reference resolves against the second step's own output, not the first's", async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      proxy.seedBookPresent();
+      proxy.seedLaneAnswers({
+        apiBaseUrl: ContentTextStub({ value: API }),
+        guild: GuildStub({
+          id: GUILD_ID,
+          name: 'First Guild',
+          path: '/tmp/first-guild',
+          urlSlug: 'first-guild',
+        }),
+        questIds: MINTED_QUEST_IDS.map((value) => ContentTextStub({ value })),
+        secondGuild: GuildStub({
+          id: '88888888-8888-4888-8888-888888888888',
+          name: 'Second Guild',
+          path: '/tmp/second-guild',
+          urlSlug: 'second-guild',
+        }),
+      });
       const { lane, gotoPaths } = proxy.laneRecordingGotoPaths({ apiPort: API_PORT });
 
       const result = await runExecuteBroker({
@@ -1237,7 +1289,32 @@ describe('runExecuteBroker', () => {
         runId,
         steps: [
           StepStub({ step: 'seed', recipe: 'guild-with-three-quests', as: 'g' }),
-          StepStub({ step: 'goto', path: '/{g.guildSlugg}' }),
+          StepStub({ step: 'seed', recipe: 'guild-with-three-quests', as: 'g' }),
+          StepStub({ step: 'goto', path: '/{g.guild.urlSlug}' }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(result.status).toBe('done');
+      expect(gotoPaths()).toStrictEqual(['/second-guild']);
+    });
+
+    it('INVALID: {a reference in step 1} => the batch stops at step 1 with a message naming that nothing has been named yet', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane, gotoPaths } = proxy.laneRecordingGotoPaths({ apiPort: API_PORT });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'goto', path: '/{g.guild.urlSlug}' }),
           StepStub({ step: 'goto', path: '/never-reached' }),
         ],
         stopOn: StopOnStub({ value: 'error' }),
@@ -1253,17 +1330,39 @@ describe('runExecuteBroker', () => {
         stoppedAt: result.stoppedAt,
       }).toStrictEqual({
         status: 'failed',
-        stepsRun: 2,
+        stepsRun: 1,
         stoppedAt: {
-          step: 2,
+          step: 1,
           verb: 'goto',
-          error:
-            'UNKNOWN BINDING: {g.guildSlugg} cannot be resolved — bound in this batch: g. "g" holds: guildId, guildSlug, questId. A binding is minted by a { "step": "seed", "recipe": "…", "as": "g" } EARLIER IN THIS BATCH, and lives only for that batch. Nothing is interpolated as a literal: a placeholder that survived would become a URL nobody meant.',
+          error: 'cannot resolve reference {g.guild.urlSlug} — nothing has been named yet',
           candidates: [],
         },
       });
-      // Nothing was opened: the refusal fired BEFORE the browser was asked for a nonsense URL.
       expect(gotoPaths()).toStrictEqual([]);
+    });
+
+    it('VALID: {a step whose fields carry no reference} => the step is dispatched with its fields unchanged', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane } = proxy.laneRecordingGotoPaths({ apiPort: API_PORT });
+
+      const parsedStep = StepStub({ step: 'goto', path: '/guilds' });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [parsedStep],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(result.status).toBe('done');
+      expect(proxy.dispatchedSteps()).toStrictEqual([parsedStep]);
     });
   });
 });

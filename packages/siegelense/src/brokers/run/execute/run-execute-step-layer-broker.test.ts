@@ -14,7 +14,7 @@ const FIXED_NOW_MS = 1_700_000_000_000;
 // Every case below drives a browser verb with no placeholder, so the binding store is empty and
 // nothing is ever recorded. Interpolation and recording have their own coverage in
 // step-interpolate-transformer.test.ts and run-execute-broker.test.ts.
-const NO_BINDINGS = (): Record<PropertyKey, never> => ({});
+const NO_OUTPUTS = (): Record<PropertyKey, Record<PropertyKey, unknown>> => ({});
 const NOOP = (): void => undefined;
 
 describe('runExecuteStepLayerBroker', () => {
@@ -32,8 +32,8 @@ describe('runExecuteStepLayerBroker', () => {
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
-        bindings: NO_BINDINGS,
-        recordBinding: NOOP,
+        outputs: NO_OUTPUTS,
+        recordOutput: NOOP,
       });
 
       expect(outcome).toStrictEqual({
@@ -78,8 +78,8 @@ describe('runExecuteStepLayerBroker', () => {
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
-        bindings: NO_BINDINGS,
-        recordBinding: NOOP,
+        outputs: NO_OUTPUTS,
+        recordOutput: NOOP,
       });
 
       expect(outcome.reading.serverWindow).toStrictEqual({ fromByte: 100, toByte: 999 });
@@ -102,8 +102,8 @@ describe('runExecuteStepLayerBroker', () => {
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
-        bindings: NO_BINDINGS,
-        recordBinding: NOOP,
+        outputs: NO_OUTPUTS,
+        recordOutput: NOOP,
       });
 
       expect(outcome).toStrictEqual({
@@ -152,8 +152,8 @@ describe('runExecuteStepLayerBroker', () => {
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
-        bindings: NO_BINDINGS,
-        recordBinding: NOOP,
+        outputs: NO_OUTPUTS,
+        recordOutput: NOOP,
       });
 
       expect(outcome).toStrictEqual({
@@ -203,8 +203,8 @@ describe('runExecuteStepLayerBroker', () => {
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
-        bindings: NO_BINDINGS,
-        recordBinding: NOOP,
+        outputs: NO_OUTPUTS,
+        recordOutput: NOOP,
       });
 
       expect(outcome).toStrictEqual({
@@ -254,8 +254,8 @@ describe('runExecuteStepLayerBroker', () => {
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
-        bindings: NO_BINDINGS,
-        recordBinding: NOOP,
+        outputs: NO_OUTPUTS,
+        recordOutput: NOOP,
       });
 
       expect(outcome).toStrictEqual({
@@ -310,8 +310,8 @@ describe('runExecuteStepLayerBroker', () => {
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
-        bindings: NO_BINDINGS,
-        recordBinding: NOOP,
+        outputs: NO_OUTPUTS,
+        recordOutput: NOOP,
       });
 
       expect(outcome).toStrictEqual({
@@ -361,8 +361,8 @@ describe('runExecuteStepLayerBroker', () => {
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
-        bindings: NO_BINDINGS,
-        recordBinding: NOOP,
+        outputs: NO_OUTPUTS,
+        recordOutput: NOOP,
       });
 
       // The other half of R9. A ceiling is the only thing that may answer `timeout`; an ambiguity
@@ -393,8 +393,8 @@ describe('runExecuteStepLayerBroker', () => {
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
-        bindings: NO_BINDINGS,
-        recordBinding: NOOP,
+        outputs: NO_OUTPUTS,
+        recordOutput: NOOP,
       });
 
       expect(outcome).toStrictEqual({
@@ -437,8 +437,8 @@ describe('runExecuteStepLayerBroker', () => {
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
-        bindings: NO_BINDINGS,
-        recordBinding: NOOP,
+        outputs: NO_OUTPUTS,
+        recordOutput: NOOP,
       });
 
       expect(outcome).toStrictEqual({

@@ -72,7 +72,8 @@ export const stepDispatchBrokerProxy = (): {
     apiBaseUrl: ContentText;
     guild: Guild;
     questIds: readonly ContentText[];
-  }) => void;
+    secondGuild?: Guild;
+  }) => { getCallArgs: () => readonly unknown[] };
   lastShotPath: () => AbsoluteFilePath | null;
   setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
   stagesShotFrame: (params: {
@@ -263,12 +264,18 @@ export const stepDispatchBrokerProxy = (): {
       apiBaseUrl,
       guild,
       questIds,
+      secondGuild,
     }: {
       apiBaseUrl: ContentText;
       guild: Guild;
       questIds: readonly ContentText[];
-    }): void => {
-      verbLayerProxy.seedLaneAnswers({ apiBaseUrl, guild, questIds });
-    },
+      secondGuild?: Guild;
+    }): { getCallArgs: () => readonly unknown[] } =>
+      verbLayerProxy.seedLaneAnswers({
+        apiBaseUrl,
+        guild,
+        questIds,
+        ...(secondGuild === undefined ? {} : { secondGuild }),
+      }),
   };
 };

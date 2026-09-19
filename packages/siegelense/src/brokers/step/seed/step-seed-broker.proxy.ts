@@ -27,6 +27,8 @@ const ENTRY_PATH: FilePath = FilePathStub({
 });
 const PACKAGE_PATH: FilePath = FilePathStub({ value: '/repo/packages/siegelense-recipes' });
 
+const LOCATE_REPEAT_COUNT = 8;
+
 export const stepSeedBrokerProxy = (): {
   stagesListing: (params: { listing: unknown }) => void;
   stagesSeedRun: (params: { result: unknown }) => { getCallArgs: () => readonly unknown[] };
@@ -55,15 +57,12 @@ export const stepSeedBrokerProxy = (): {
       importProxy.succeeds({ path: entryPath, module: moduleExports });
       return;
     }
-    locateProxy.setupPresentAndBuilt({
-      cwdPath: '/repo',
-      packagePath: PACKAGE_PATH,
-      entryPath: ENTRY_PATH,
-    });
-    locateProxy.setupPresentAndBuilt({
-      cwdPath: '/repo',
-      packagePath: PACKAGE_PATH,
-      entryPath: ENTRY_PATH,
+    Array.from({ length: LOCATE_REPEAT_COUNT }).forEach(() => {
+      locateProxy.setupPresentAndBuilt({
+        cwdPath: '/repo',
+        packagePath: PACKAGE_PATH,
+        entryPath: ENTRY_PATH,
+      });
     });
     importProxy.succeeds({ path: ENTRY_PATH, module: moduleExports });
   };
@@ -81,7 +80,10 @@ export const stepSeedBrokerProxy = (): {
 
     stagesSeedRun: ({ result }: { result: unknown }): { getCallArgs: () => readonly unknown[] } => {
       stageEntry();
-      const seedRunMock = jest.fn().mockResolvedValue(result);
+      const seedRunMock =
+        typeof result === 'function'
+          ? jest.fn().mockImplementation(result as (...args: readonly unknown[]) => unknown)
+          : jest.fn().mockResolvedValue(result);
       moduleExports[recipesConventionStatics.exports.seedRun] = seedRunMock;
       return { getCallArgs: (): readonly unknown[] => seedRunMock.mock.calls };
     },

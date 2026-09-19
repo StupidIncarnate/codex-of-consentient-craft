@@ -68,7 +68,6 @@ import type { ReadingCount } from '../../../contracts/reading-count/reading-coun
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { runResultContract } from '../../../contracts/run-result/run-result-contract';
 import type { RunResult } from '../../../contracts/run-result/run-result-contract';
-import type { SeedBindings } from '../../../contracts/seed-bindings/seed-bindings-contract';
 import { snapshotBoundaryContract } from '../../../contracts/snapshot-boundary/snapshot-boundary-contract';
 import { runStatusContract } from '../../../contracts/run-status/run-status-contract';
 import type { RunStatus } from '../../../contracts/run-status/run-status-contract';
@@ -76,6 +75,7 @@ import { shotListingContract } from '../../../contracts/shot-listing/shot-listin
 import type { ShotListing } from '../../../contracts/shot-listing/shot-listing-contract';
 import type { Step } from '../../../contracts/step/step-contract';
 import { stepIndexContract } from '../../../contracts/step-index/step-index-contract';
+import type { StepOutputName } from '../../../contracts/step-output-name/step-output-name-contract';
 import type { StepReading } from '../../../contracts/step-reading/step-reading-contract';
 import type { StopOn } from '../../../contracts/stop-on/stop-on-contract';
 import type { StoppedAt } from '../../../contracts/stopped-at/stopped-at-contract';
@@ -221,12 +221,14 @@ export const runExecuteBroker = async ({
   const readings: StepReading[] = [];
   const stopCandidates: { stoppedAt: StoppedAt; timedOut: boolean }[] = [];
 
-  // Every `as:` binding this BATCH has made, in a HOLDER whose field mutates rather than a
+  // Every step output this BATCH has made, in a HOLDER whose field mutates rather than a
   // reassigned `let` — the same shape, and the same `require-atomic-updates` reason, as
-  // `cursorState` above. Scoped to one run on purpose: a binding names the ids THIS batch made,
-  // and carrying one across runs would mean surviving a `reset`. An unresolvable binding failing
+  // `cursorState` above. Scoped to one run on purpose: a step's output names the ids THIS batch made,
+  // and carrying one across runs would mean surviving a `reset`. An unresolvable reference failing
   // loudly by name is a better answer than a stale id resolving quietly.
-  const bindingsState: { values: SeedBindings } = { values: {} };
+  const outputsState: { values: Record<PropertyKey, Record<PropertyKey, unknown>> } = {
+    values: {},
+  };
 
   // A sequential reduce chain, not a for-of with await: each step's dispatch depends on the page
   // state the PREVIOUS step left behind, and the transcript must flush in that same order, so
@@ -260,9 +262,15 @@ export const runExecuteBroker = async ({
       browserWindowStart,
       lastShotPath,
       setLastShotPath,
-      bindings: () => bindingsState.values,
-      recordBinding: ({ name, result }) => {
-        bindingsState.values = { ...bindingsState.values, [name]: result };
+      outputs: () => outputsState.values,
+      recordOutput: ({
+        name,
+        result,
+      }: {
+        name: StepOutputName;
+        result: Record<PropertyKey, unknown>;
+      }) => {
+        outputsState.values = { ...outputsState.values, [name]: result };
       },
     });
     readings.push(outcome.reading);
