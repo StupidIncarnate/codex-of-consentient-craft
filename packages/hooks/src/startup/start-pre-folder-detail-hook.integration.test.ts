@@ -62,9 +62,9 @@ describe('pre-folder-detail-hook', () => {
   describe('process smoke tests', () => {
     const runner = hookRunnerHarness();
 
-    it('VALID: real process, {Write into brokers, transcript records no call} => exit code 2', () => {
+    it('VALID: real process, {Write into brokers, transcript records no call} => exit code 2', async () => {
       const transcripts = transcriptHarness();
-      const transcriptPath = transcripts.write({ contents: plainLine });
+      const transcriptPath = await transcripts.write({ contents: plainLine });
 
       const result = runner.runHook({
         hookName: 'start-pre-folder-detail-hook',
@@ -83,9 +83,9 @@ describe('pre-folder-detail-hook', () => {
       });
     });
 
-    it('VALID: real process, {Edit into brokers with no call recorded} => exit code 0', () => {
+    it('VALID: real process, {Edit into brokers with no call recorded} => exit code 0', async () => {
       const transcripts = transcriptHarness();
-      const transcriptPath = transcripts.write({ contents: plainLine });
+      const transcriptPath = await transcripts.write({ contents: plainLine });
 
       const result = runner.runHook({
         hookName: 'start-pre-folder-detail-hook',
@@ -105,7 +105,7 @@ describe('pre-folder-detail-hook', () => {
   describe('blocked: folder type never loaded this session', () => {
     it('VALID: {Write into brokers, transcript records no call} => exit 2 naming the folder type', async () => {
       const transcripts = transcriptHarness();
-      const transcriptPath = transcripts.write({ contents: plainLine });
+      const transcriptPath = await transcripts.write({ contents: plainLine });
 
       const result = await persistentRunner.runHook({
         hookData: FolderDetailHookDataStub({
@@ -125,7 +125,7 @@ describe('pre-folder-detail-hook', () => {
 
     it('VALID: {Write into brokers, transcript records only a contracts call} => exit 2', async () => {
       const transcripts = transcriptHarness();
-      const transcriptPath = transcripts.write({
+      const transcriptPath = await transcripts.write({
         contents: contractsCallLine,
       });
 
@@ -149,7 +149,7 @@ describe('pre-folder-detail-hook', () => {
   describe('allowed', () => {
     it('VALID: {Write into brokers, transcript records the brokers call} => exit 0', async () => {
       const transcripts = transcriptHarness();
-      const transcriptPath = transcripts.write({
+      const transcriptPath = await transcripts.write({
         contents: [plainLine, brokersCallLine].join('\n'),
       });
 
@@ -167,7 +167,7 @@ describe('pre-folder-detail-hook', () => {
 
     it('VALID: {Edit into brokers with no call recorded} => exit 0, only Write is gated', async () => {
       const transcripts = transcriptHarness();
-      const transcriptPath = transcripts.write({ contents: plainLine });
+      const transcriptPath = await transcripts.write({ contents: plainLine });
 
       const result = await persistentRunner.runHook({
         hookData: FolderDetailHookDataStub({
@@ -184,7 +184,7 @@ describe('pre-folder-detail-hook', () => {
 
     it('VALID: {Write outside packages/*/src/<folderType>} => exit 0', async () => {
       const transcripts = transcriptHarness();
-      const transcriptPath = transcripts.write({ contents: plainLine });
+      const transcriptPath = await transcripts.write({ contents: plainLine });
 
       const result = await persistentRunner.runHook({
         hookData: FolderDetailHookDataStub({

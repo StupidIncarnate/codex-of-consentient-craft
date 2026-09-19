@@ -6,7 +6,7 @@
  *
  * USAGE:
  * const project = freshProjectHarness();
- * const projectPath = project.create();
+ * const projectPath = await project.create();
  * const result = await InstallFlow({
  *   context: { targetProjectRoot: projectPath, dungeonmasterRoot: projectPath },
  * });
@@ -21,18 +21,18 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const freshProjectHarness = (): {
-  create: () => FilePath;
+  create: () => Promise<FilePath>;
   readSettings: (params: { projectPath: FilePath }) => unknown;
   cleanup: () => void;
 } => {
   const createdDirs: FilePath[] = [];
 
   return {
-    create: (): FilePath => {
+    create: async (): Promise<FilePath> => {
       const projectPath = FilePathStub({
-        value: fs.mkdtempSync(path.join(os.tmpdir(), 'dm-fresh-project-')),
+        value: await fs.promises.mkdtemp(path.join(os.tmpdir(), 'dm-fresh-project-')),
       });
-      fs.writeFileSync(
+      await fs.promises.writeFile(
         path.join(projectPath, 'package.json'),
         JSON.stringify({ name: 'fresh-project', version: '1.0.0' }, null, 2),
       );

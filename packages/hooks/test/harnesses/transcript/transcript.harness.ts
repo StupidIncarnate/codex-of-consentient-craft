@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const transcripts = transcriptHarness();
- * const filePath = transcripts.write({ contents: jsonlString });
+ * const filePath = await transcripts.write({ contents: jsonlString });
  * // ...run the flow against filePath...
  * transcripts.cleanup();
  */
@@ -15,7 +15,7 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const transcriptHarness = (): {
-  write: (params: { contents: string }) => FilePath;
+  write: (params: { contents: string }) => Promise<FilePath>;
   missingPath: () => FilePath;
   cleanup: () => void;
 } => {
@@ -30,9 +30,9 @@ export const transcriptHarness = (): {
   };
 
   return {
-    write: ({ contents }: { contents: string }): FilePath => {
+    write: async ({ contents }: { contents: string }): Promise<FilePath> => {
       const filePath = FilePathStub({ value: path.join(newDir(), 'agent.jsonl') });
-      fs.writeFileSync(filePath, contents);
+      await fs.promises.writeFile(filePath, contents);
       return filePath;
     },
     missingPath: (): FilePath => FilePathStub({ value: path.join(newDir(), 'missing.jsonl') }),

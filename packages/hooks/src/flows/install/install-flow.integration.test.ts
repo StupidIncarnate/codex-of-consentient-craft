@@ -220,7 +220,7 @@ describe('InstallFlow', () => {
     const project = freshProjectHarness();
 
     it('VALID: {context: fresh project with no .claude directory} => creates .claude directory and settings.json', async () => {
-      const projectPath = project.create();
+      const projectPath = await project.create();
 
       const result = await InstallFlow({
         context: {
