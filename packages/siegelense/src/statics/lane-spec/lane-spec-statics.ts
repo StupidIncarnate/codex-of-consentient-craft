@@ -1,6 +1,6 @@
 /**
- * PURPOSE: The two built-in lane specs, as raw (unbranded) data — `dungeonmaster-web` (api + web,
- * `browser: true`) and `dungeonmaster-headless` (api only, `browser: false`), mirroring
+ * PURPOSE: The two built-in lane specs, as raw (unbranded) data — `dungeonmaster-stack` (api + web,
+ * `browser: true`) and `dungeonmaster-api` (api only, `browser: false`), mirroring
  * `packages/web/test/siege-driver/siege-lane.ts`'s measured env blocks, its `dev:no-watch` choice
  * for the api process and its `DUNGEONMASTER_WEB_PORT` requirement for the web process. `{apiPort}`,
  * `{webPort}`, `{home}`, `{claudeQueueDir}` and `{wardQueueDir}` are placeholders `lane-boot-broker`
@@ -14,8 +14,8 @@
  * survives, and its `requiresFakeAgentCli` check (below) is what refuses to boot rather than fall
  * through to the real binaries when neither is supplied. Statics may
  * import only other statics, so this file never calls `laneSpecContract.parse` —
- * `lane-spec-find-broker` is what brands an entry into a `LaneSpec`. `dungeonmaster-headless.processes`
- * carries the SAME `API_PROCESS` object reference `dungeonmaster-web` carries, rather than a second
+ * `lane-spec-find-broker` is what brands an entry into a `LaneSpec`. `dungeonmaster-api.processes`
+ * carries the SAME `API_PROCESS` object reference `dungeonmaster-stack` carries, rather than a second
  * hand-written copy of it, so a change to the api process reaches both specs by construction and the
  * two cannot drift apart. Both set `requiresFakeAgentCli: true` for the same reason: `browser: false`
  * changes only whether Chromium rides along, and both specs' `processes` still include `API_PROCESS`
@@ -23,7 +23,7 @@
  * needs the stub exactly as much as a browsered one does.
  *
  * USAGE:
- * laneSpecStatics.specs['dungeonmaster-headless'].browser;
+ * laneSpecStatics.specs['dungeonmaster-api'].browser;
  * // Returns false
  */
 
@@ -62,8 +62,8 @@ const WEB_PROCESS = {
 
 export const laneSpecStatics = {
   specs: {
-    'dungeonmaster-web': {
-      name: 'dungeonmaster-web',
+    'dungeonmaster-stack': {
+      name: 'dungeonmaster-stack',
       // The SAME API_PROCESS reference the headless spec below carries — one definition, so a
       // change to the api process reaches both specs by construction and the two cannot drift.
       processes: [API_PROCESS, WEB_PROCESS],
@@ -72,8 +72,8 @@ export const laneSpecStatics = {
       env: { DUNGEONMASTER_PORT: '{apiPort}' },
       requiresFakeAgentCli: true,
     },
-    'dungeonmaster-headless': {
-      name: 'dungeonmaster-headless',
+    'dungeonmaster-api': {
+      name: 'dungeonmaster-api',
       processes: [API_PROCESS],
       browser: false,
       bootTimeoutMs: driverStatics.boot.defaultTimeoutMs,

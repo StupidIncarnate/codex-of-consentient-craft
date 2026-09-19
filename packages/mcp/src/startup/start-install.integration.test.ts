@@ -1,5 +1,6 @@
 import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { mcpServerStatics } from '../statics/mcp-server/mcp-server-statics';
 import { StartInstall } from './start-install';
 
 describe('start-install integration', () => {
@@ -35,7 +36,7 @@ describe('start-install integration', () => {
               dungeonmaster: {
                 type: 'stdio',
                 command: 'node',
-                args: ['node_modules/@dungeonmaster/mcp/dist/src/index.js'],
+                args: ['-e', mcpServerStatics.resolveScript],
               },
             },
           },

@@ -18,6 +18,10 @@ import { stepDispatchBrokerProxy } from './step-dispatch-broker.proxy';
 
 const FIXED_NOW_MS = 1_700_000_000_000;
 
+// Every case below drives a browser verb; `recordBinding` only ever fires for `seed`, which has
+// its own coverage in step-seed-broker.test.ts.
+const NOOP = (): void => undefined;
+
 describe('stepDispatchBroker', () => {
   describe('a targeting step against one match', () => {
     it('VALID: {click on a single match} => returns a reading with ok true and the shot path', async () => {
@@ -43,8 +47,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result).toStrictEqual({
@@ -85,8 +91,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result).toStrictEqual({
@@ -121,8 +129,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.pixelChange).toBe(null);
@@ -168,8 +178,10 @@ describe('stepDispatchBroker', () => {
         step: StepStub({ step: 'click', target: SelectorStub() }),
         index: StepIndexStub({ value: 1 }),
         shotPath: firstShotPath,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       const result = await stepDispatchBroker({
@@ -177,8 +189,10 @@ describe('stepDispatchBroker', () => {
         step: StepStub({ step: 'click', target: SelectorStub() }),
         index: StepIndexStub({ value: 2 }),
         shotPath: secondShotPath,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.pixelChange).toBe('2%');
@@ -203,8 +217,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result).toStrictEqual({
@@ -241,8 +257,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect({
@@ -272,8 +290,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.serverWindow).toStrictEqual({ fromByte: 120, toByte: 450 });
@@ -281,9 +301,9 @@ describe('stepDispatchBroker', () => {
   });
 
   describe('a browser step against a browserless lane', () => {
-    it('INVALID: {click against dungeonmaster-headless} => throws BrowserStepUnsupportedError naming the spec', async () => {
+    it('INVALID: {click against dungeonmaster-api} => throws BrowserStepUnsupportedError naming the spec', async () => {
       const proxy = stepDispatchBrokerProxy();
-      const lane = proxy.browserlessLane({ specName: 'dungeonmaster-headless' });
+      const lane = proxy.browserlessLane({ specName: 'dungeonmaster-api' });
       const step = StepStub({ step: 'click', target: SelectorStub() });
 
       const error = await stepDispatchBroker({
@@ -291,8 +311,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub(),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       }).then(
         (): never => {
           throw new Error('Expected stepDispatchBroker to reject');
@@ -302,8 +324,7 @@ describe('stepDispatchBroker', () => {
 
       expect({ name: error.name, message: error.message }).toStrictEqual({
         name: 'BrowserStepUnsupportedError',
-        message:
-          'Step click needs a browser, but spec dungeonmaster-headless declares browser: false',
+        message: 'Step click needs a browser, but spec dungeonmaster-api declares browser: false',
       });
     });
 
@@ -320,8 +341,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub(),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.ok).toBe(true);
@@ -341,8 +364,10 @@ describe('stepDispatchBroker', () => {
           step,
           index: StepIndexStub(),
           shotPath: null,
+          browserWindowStart: null,
           lastShotPath: proxy.lastShotPath,
           setLastShotPath: proxy.setLastShotPath,
+          recordBinding: NOOP,
         }).then(
           (): never => {
             throw new Error('Expected stepDispatchBroker to reject');
@@ -370,8 +395,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect({ ok: result.ok, reading: JSON.parse(result.reading) }).toStrictEqual({
@@ -391,8 +418,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect({ ok: result.ok, reading: JSON.parse(result.reading) }).toStrictEqual({
@@ -413,8 +442,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result).toStrictEqual({
@@ -444,8 +475,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result).toStrictEqual({
@@ -482,8 +515,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result).toStrictEqual({
@@ -519,8 +554,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result).toStrictEqual({
@@ -557,8 +594,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       }).then(
         (): never => {
           throw new Error('Expected stepDispatchBroker to reject');
@@ -592,8 +631,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       }).then(
         (): never => {
           throw new Error('Expected stepDispatchBroker to reject');
@@ -621,8 +662,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       }).then(
         (): never => {
           throw new Error('Expected stepDispatchBroker to reject');
@@ -643,6 +686,145 @@ describe('stepDispatchBroker', () => {
         [{ filePath: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png' }],
       ]);
     });
+
+    it('ERROR: {click throws for a real reason, the failure capture succeeds} => the wrapped error carries the measured blank, blankColour and pixelChange, not null', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const { lane: firstLane } = proxy.happyLane();
+      const firstShotPath = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+      });
+      const backgroundPixel = [0x0d, 0x09, 0x07, 255];
+      const backgroundPixels = new Uint8Array(
+        Array.from({ length: 8 }, () => backgroundPixel).flat(),
+      );
+      proxy.stagesShotFrame({
+        shotPath: firstShotPath,
+        width: 4,
+        height: 2,
+        pixels: backgroundPixels,
+      });
+
+      await stepDispatchBroker({
+        lane: firstLane,
+        step: StepStub({ step: 'click', target: SelectorStub() }),
+        index: StepIndexStub({ value: 1 }),
+        shotPath: firstShotPath,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
+      });
+
+      const { lane: failingLane } = proxy.laneRejectingClickMatch({
+        error: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
+      });
+      const secondShotPath = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step2.png',
+      });
+      const whitePixel = [0xff, 0xff, 0xff, 255];
+      const whitePixels = new Uint8Array(Array.from({ length: 8 }, () => whitePixel).flat());
+      proxy.stagesShotFrame({ shotPath: secondShotPath, width: 4, height: 2, pixels: whitePixels });
+
+      const error = await stepDispatchBroker({
+        lane: failingLane,
+        step: StepStub({ step: 'click', target: SelectorStub() }),
+        index: StepIndexStub({ value: 2 }),
+        shotPath: secondShotPath,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
+      }).then(
+        (): never => {
+          throw new Error('Expected stepDispatchBroker to reject');
+        },
+        (caught: unknown): StepFailureCaptureError => caught as StepFailureCaptureError,
+      );
+
+      expect({
+        captured: error.captured,
+        blank: error.blank,
+        blankColour: error.blankColour,
+        pixelChange: error.pixelChange,
+      }).toStrictEqual({
+        captured: true,
+        blank: true,
+        blankColour: '#ffffff',
+        pixelChange: '100%',
+      });
+    });
+
+    it('ERROR: {click throws for a real reason, the failure capture succeeds but measuring it throws} => the readings stay null and the original click error still propagates', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const { lane: firstLane } = proxy.happyLane();
+      const firstShotPath = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+      });
+      const backgroundPixel = [0x0d, 0x09, 0x07, 255];
+      const backgroundPixels = new Uint8Array(
+        Array.from({ length: 8 }, () => backgroundPixel).flat(),
+      );
+      proxy.stagesShotFrame({
+        shotPath: firstShotPath,
+        width: 4,
+        height: 2,
+        pixels: backgroundPixels,
+      });
+
+      await stepDispatchBroker({
+        lane: firstLane,
+        step: StepStub({ step: 'click', target: SelectorStub() }),
+        index: StepIndexStub({ value: 1 }),
+        shotPath: firstShotPath,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
+      });
+
+      const { lane: failingLane } = proxy.laneRejectingClickMatch({
+        error: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
+      });
+      const secondShotPath = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step2.png',
+      });
+      // An evidence read failure proves measurement failures degrade gracefully instead of masking
+      // the step's own error.
+      proxy.stagesShotReadError({
+        shotPath: secondShotPath,
+        error: new Error('EACCES: permission denied, read'),
+      });
+
+      const error = await stepDispatchBroker({
+        lane: failingLane,
+        step: StepStub({ step: 'click', target: SelectorStub() }),
+        index: StepIndexStub({ value: 2 }),
+        shotPath: secondShotPath,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
+      }).then(
+        (): never => {
+          throw new Error('Expected stepDispatchBroker to reject');
+        },
+        (caught: unknown): StepFailureCaptureError => caught as StepFailureCaptureError,
+      );
+
+      expect({
+        captured: error.captured,
+        blank: error.blank,
+        blankColour: error.blankColour,
+        pixelChange: error.pixelChange,
+        underlyingMessage: (error.underlyingError as Error).message,
+      }).toStrictEqual({
+        captured: true,
+        blank: null,
+        blankColour: null,
+        pixelChange: null,
+        underlyingMessage: 'AMBIGUOUS: 2 elements match [data-testid="X"]',
+      });
+    });
   });
 
   describe('a node label', () => {
@@ -660,8 +842,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub(),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.node).toBe('open-guild-modal');
@@ -682,8 +866,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub(),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.shot).toBe(null);
@@ -701,8 +887,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub(),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       }).then(
         (): never => {
           throw new Error('Expected stepDispatchBroker to reject');
@@ -726,8 +914,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub(),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.reading).toBe('/api/guilds');
@@ -747,8 +937,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub(),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.reading).toBe('[data-testid="GUILD_ADD"] reached state "visible"');
@@ -768,8 +960,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub(),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.reading).toBe('typed "siege-1" into [data-testid="GUILD_ADD"]');
@@ -791,8 +985,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub({ value: 1 }),
         shotPath,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.reading).toBe(
@@ -801,6 +997,64 @@ describe('stepDispatchBroker', () => {
       expect(captureCallArgs()).toStrictEqual([
         [{ filePath: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png' }],
       ]);
+    });
+
+    it('VALID: {health} => the reading is the rendered health line, captured exactly once', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const { lane, captureCallArgs } = proxy.happyLane();
+      const step = StepStub({ step: 'health' });
+      const shotPath = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+      });
+      const backgroundPixel = [0x0d, 0x09, 0x07, 255];
+      const pixels = new Uint8Array(Array.from({ length: 8 }, () => backgroundPixel).flat());
+      proxy.stagesShotFrame({ shotPath, width: 4, height: 2, pixels });
+
+      const result = await stepDispatchBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 1 }),
+        shotPath,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
+      });
+
+      expect(result.reading).toBe(
+        'DOWN      root present · page blank (#0d0907) · console clean · no 5xx · server log clean',
+      );
+      expect(captureCallArgs()).toStrictEqual([
+        [{ filePath: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png' }],
+      ]);
+    });
+
+    it('VALID: {hold} => returns hold reading and skips dispatcher secondary capture', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const { lane, captureCallArgs } = proxy.happyLane();
+      const step = StepStub({ step: 'hold', frames: 2, everyMs: 1000 });
+      const shotPath = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+      });
+      const backgroundPixel = [0x0d, 0x09, 0x07, 255];
+      const pixels = new Uint8Array(Array.from({ length: 8 }, () => backgroundPixel).flat());
+      proxy.stagesShotFrame({ shotPath, width: 4, height: 2, pixels });
+
+      const result = await stepDispatchBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 1 }),
+        shotPath,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
+      });
+
+      expect(result.reading).toBe(
+        '{"frames":2,"differing":0,"verdict":"NOTHING CHANGED across 1s","shots":["/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1_frame1.png","/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1_frame2.png"]}',
+      );
+      expect(captureCallArgs()).toStrictEqual([]);
     });
 
     it('VALID: {eval} => the reading is the stringified evaluated value', async () => {
@@ -816,8 +1070,10 @@ describe('stepDispatchBroker', () => {
         step,
         index: StepIndexStub(),
         shotPath: null,
+        browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
         setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
       });
 
       expect(result.reading).toBe('"Guild Hall"');

@@ -14,7 +14,7 @@
  *
  * USAGE:
  * const spec = laneSpecContract.parse({
- *   name: 'dungeonmaster-headless',
+ *   name: 'dungeonmaster-api',
  *   processes: [{ name: 'api', command: 'npm', args: [], portRole: 'api', readyPath: '/api/guilds',
  *     logFileName: 'api-server.log', env: {} }],
  *   browser: false,

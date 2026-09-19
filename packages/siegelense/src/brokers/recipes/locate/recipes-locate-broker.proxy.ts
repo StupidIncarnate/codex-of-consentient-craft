@@ -12,6 +12,7 @@ export const recipesLocateBrokerProxy = (): {
     packagePath: FilePath;
     entryPath: FilePath;
   }) => void;
+  setupPresentAndBuiltAt: (params: { packagePath: FilePath; entryPath: FilePath }) => void;
   setupPackageMissing: (params: { cwdPath: string; packagePath: FilePath }) => void;
   setupBuildMissing: (params: {
     cwdPath: string;
@@ -38,6 +39,17 @@ export const recipesLocateBrokerProxy = (): {
       resolveProxy.setupRepoRootFoundAtStart({ startPath: cwdPath });
       joinProxy.returns({ result: packagePath });
       joinProxy.returns({ result: entryPath });
+      existsProxy.returns({ filePath: packagePath, result: true });
+      existsProxy.returns({ filePath: entryPath, result: true });
+    },
+
+    setupPresentAndBuiltAt: ({
+      packagePath,
+      entryPath,
+    }: {
+      packagePath: FilePath;
+      entryPath: FilePath;
+    }): void => {
       existsProxy.returns({ filePath: packagePath, result: true });
       existsProxy.returns({ filePath: entryPath, result: true });
     },

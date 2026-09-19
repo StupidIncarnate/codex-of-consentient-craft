@@ -1,3 +1,4 @@
+import { mcpServerStatics } from '../../statics/mcp-server/mcp-server-statics';
 import { dungeonmasterConfigCreatorTransformer } from './dungeonmaster-config-creator-transformer';
 
 describe('dungeonmasterConfigCreatorTransformer', () => {
@@ -11,7 +12,7 @@ describe('dungeonmasterConfigCreatorTransformer', () => {
     expect(dungeonmasterConfig).toStrictEqual({
       type: 'stdio',
       command: 'node',
-      args: ['node_modules/@dungeonmaster/mcp/dist/src/index.js'],
+      args: ['-e', mcpServerStatics.resolveScript],
     });
   });
 
@@ -23,7 +24,7 @@ describe('dungeonmasterConfigCreatorTransformer', () => {
     expect(dungeonmasterConfig).toStrictEqual({
       type: 'stdio',
       command: 'node',
-      args: ['node_modules/@dungeonmaster/mcp/dist/src/index.js'],
+      args: ['-e', mcpServerStatics.resolveScript],
     });
   });
 });

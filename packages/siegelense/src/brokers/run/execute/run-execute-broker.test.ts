@@ -1,4 +1,4 @@
-import { ContentTextStub, FileNameStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub, FileNameStub, GuildStub } from '@dungeonmaster/shared/contracts';
 
 import { BufferEntryStub } from '../../../contracts/buffer-entry/buffer-entry.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -10,6 +10,7 @@ import { StepExpectationStub } from '../../../contracts/step-expectation/step-ex
 import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 import { StopOnStub } from '../../../contracts/stop-on/stop-on.stub';
+import { UntilResponseStub } from '../../../contracts/until-response/until-response.stub';
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 import { locationsShotPathFindBroker } from '../../locations/shot-path-find/locations-shot-path-find-broker';
 
@@ -391,6 +392,113 @@ describe('runExecuteBroker', () => {
         stoppedAt: null,
       });
       expect(gotoCallCount()).toBe(2);
+    });
+  });
+
+  describe('until { response } after a click in the SAME run', () => {
+    // The real drive's own repro: `[{ click }, { until: response POST /api/guilds }]` never
+    // observed the response, because `stepUntilBroker` read `fromIndex` off a fresh
+    // `session.bufferLengths()` at the `until` step's own start — by then the click's own POST was
+    // already in the buffer, so the scan started AFTER it. `browserWindowStart` is computed ONCE,
+    // before the whole step loop, so this proves the fix without a live browser: the click's POST
+    // must still resolve the very next step.
+    it('VALID: {click fires the POST, until { response } is the next step} => resolves rather than timing out', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane } = proxy.laneClickTriggersNetworkLine();
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'click', target: SelectorStub() }),
+          StepStub({
+            step: 'until',
+            response: UntilResponseStub({ method: 'POST', path: '/api/guilds' }),
+            timeoutMs: 1000,
+          }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({
+        status: 'done',
+        stepsRun: 2,
+        stoppedAt: null,
+      });
+    });
+  });
+
+  describe('until { response } against a match from a PREVIOUS run', () => {
+    // The other half of the fix: reading from the RUN's own window, not the step's, must never
+    // let a match from an EARLIER run satisfy an `until` in THIS run. Run 1's click fires the same
+    // POST; run 2 asks `until { response }` alone, against the SAME lane (one browser session,
+    // exactly as a real driver's lane persists across `run` calls) — the match sits before run 2's
+    // own window, so it still times out, and the note now names it as belonging to an earlier run.
+    // `timeoutMs: 0` — never a real poll wait — because every proxy composed through
+    // `runExecuteBrokerProxy()` shares ONE `Date.now` mock, pinned by `stepDispatchBrokerProxy`'s
+    // own constructor to a fixed value for the whole file; a positive timeout would poll forever
+    // against a clock that never advances, since the ceiling check (`Date.now() < deadlineAtMs`)
+    // never becomes false. `deadlineAtMs = startedAtMs + 0` equals `startedAtMs` under that same
+    // pinned clock, so the ceiling is hit on the FIRST synchronous check, with no wait at all.
+    it('ERROR: {run 1 fires the POST, run 2 alone asks until { response }} => still times out, the note naming an earlier run', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const firstRunId = RunIdStub({ value: 'run_1' });
+      const secondRunId = RunIdStub({ value: 'run_2' });
+      proxy.stagePaths({ runId: firstRunId });
+      proxy.stagePaths({ runId: secondRunId });
+      const { lane } = proxy.laneClickTriggersNetworkLine();
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId: firstRunId,
+        steps: [StepStub({ step: 'click', target: SelectorStub() })],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId: secondRunId,
+        steps: [
+          StepStub({
+            step: 'until',
+            response: UntilResponseStub({ method: 'POST', path: '/api/guilds' }),
+            timeoutMs: 0,
+          }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({ status: result.status, stoppedAt: result.stoppedAt }).toStrictEqual({
+        status: 'timeout',
+        stoppedAt: {
+          step: 1,
+          verb: 'until',
+          error:
+            "response POST /api/guilds never resolved in 0ms — 0 of 0 network lines since this step began matched. A match DID arrive earlier in this instance's buffer, 1 line before this run's own window began — it belongs to an earlier run, not this one: read it back with `results --kind network --since boot`.",
+          candidates: [],
+        },
+      });
     });
   });
 
@@ -913,6 +1021,249 @@ describe('runExecuteBroker', () => {
       });
 
       expect(result.shots.map((shot) => shot.path)).toStrictEqual([expectedShotPath]);
+    });
+  });
+
+  describe('the automatic snapshot pair', () => {
+    it('VALID: {one run} => captures run_1:start before the batch and run_1:end after it, both manual false', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const lane = proxy.cleanLane();
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 2 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(proxy.capturedSnapshotCalls()).toStrictEqual([
+        { homePath: '/tmp/dm-siege-stub', name: 'run_1:start', manual: false },
+        { homePath: '/tmp/dm-siege-stub', name: 'run_1:end', manual: false },
+      ]);
+    });
+
+    it('VALID: {two runs on one instance} => four automatic captures, run_1:start, run_1:end, run_2:start, run_2:end', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const instanceId = InstanceIdStub();
+      const firstRunId = RunIdStub({ value: 'run_1' });
+      const secondRunId = RunIdStub({ value: 'run_2' });
+      proxy.stagePaths({ runId: firstRunId });
+      proxy.stagePaths({ runId: secondRunId });
+      const lane = proxy.cleanLane();
+
+      await runExecuteBroker({
+        lane,
+        instanceId,
+        runId: firstRunId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+      await runExecuteBroker({
+        lane,
+        instanceId,
+        runId: secondRunId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(proxy.capturedSnapshotCalls()).toStrictEqual([
+        { homePath: '/tmp/dm-siege-stub', name: 'run_1:start', manual: false },
+        { homePath: '/tmp/dm-siege-stub', name: 'run_1:end', manual: false },
+        { homePath: '/tmp/dm-siege-stub', name: 'run_2:start', manual: false },
+        { homePath: '/tmp/dm-siege-stub', name: 'run_2:end', manual: false },
+      ]);
+    });
+
+    it('VALID: {three steps} => the start half has already landed when step 1 dispatches, and no second capture lands until the batch is over', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane, snapshotCountAtEachStep } = proxy.laneRecordingSnapshotGrowth();
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 3 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(snapshotCountAtEachStep()).toStrictEqual([1, 1, 1]);
+    });
+
+    it('VALID: {a failing batch} => still captures the end half, so a failed run is a point you can return to', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_3' });
+      proxy.stagePaths({ runId });
+      const { lane } = proxy.laneFailingOnPath({
+        failingPath: '/step-3',
+        error: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
+      });
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 5 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(proxy.capturedSnapshotCalls()).toStrictEqual([
+        { homePath: '/tmp/dm-siege-stub', name: 'run_3:start', manual: false },
+        { homePath: '/tmp/dm-siege-stub', name: 'run_3:end', manual: false },
+      ]);
+    });
+
+    it('ERROR: {a capture that fails} => the batch still reports done with every step run', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      proxy.failSnapshotCapture({ error: new Error('ENOSPC: no space left on device') });
+      const lane = proxy.cleanLane();
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 3 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({ status: 'done', stepsRun: 3, stoppedAt: null });
+    });
+  });
+
+  describe('as: bindings, and the {binding.field} a later step reads them back by', () => {
+    const API_PORT = 41001;
+    const API = `http://dungeonmaster.localhost:${String(API_PORT)}`;
+    const GUILD_ID = '7306b468-0f2d-4a5e-9c3b-2d1e8f0a6b41';
+    const MINTED_QUEST_IDS = [
+      'aaaaaaaa-1111-4111-8111-111111111111',
+      'bbbbbbbb-2222-4222-8222-222222222222',
+      'cccccccc-3333-4333-8333-333333333333',
+    ];
+
+    it('VALID: {seed as g, then goto /{g.guildSlug}/quest/{g.questId}} => the goto opens the SUBSTITUTED url', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      proxy.seedBookPresent();
+      proxy.seedLaneAnswers({
+        apiBaseUrl: ContentTextStub({ value: API }),
+        guild: GuildStub({
+          id: GUILD_ID,
+          name: 'Siege Guild',
+          path: '/tmp/dm-siege-inst_seed/siege-repo',
+          urlSlug: 'siege-guild',
+        }),
+        questIds: MINTED_QUEST_IDS.map((value) => ContentTextStub({ value })),
+      });
+      const { lane, gotoPaths } = proxy.laneRecordingGotoPaths({ apiPort: API_PORT });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'seed', recipe: 'guild-with-three-quests', as: 'g' }),
+          StepStub({ step: 'goto', path: '/{g.guildSlug}/quest/{g.questId}' }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(result.status).toBe('done');
+      // The ids came off the recipe's own responses, so a binding that failed to resolve would
+      // have opened the literal placeholder text instead.
+      expect(gotoPaths()).toStrictEqual([
+        '/siege-guild/quest/bbbbbbbb-2222-4222-8222-222222222222',
+      ]);
+    });
+
+    it('INVALID: {a misspelled binding} => the step reads ok: false, stoppedAt NAMES the binding, and the batch stops', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      proxy.seedBookPresent();
+      proxy.seedLaneAnswers({
+        apiBaseUrl: ContentTextStub({ value: API }),
+        guild: GuildStub({
+          id: GUILD_ID,
+          name: 'Siege Guild',
+          path: '/tmp/dm-siege-inst_seed/siege-repo',
+          urlSlug: 'siege-guild',
+        }),
+        questIds: MINTED_QUEST_IDS.map((value) => ContentTextStub({ value })),
+      });
+      const { lane, gotoPaths } = proxy.laneRecordingGotoPaths({ apiPort: API_PORT });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'seed', recipe: 'guild-with-three-quests', as: 'g' }),
+          StepStub({ step: 'goto', path: '/{g.guildSlugg}' }),
+          StepStub({ step: 'goto', path: '/never-reached' }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({
+        status: 'failed',
+        stepsRun: 2,
+        stoppedAt: {
+          step: 2,
+          verb: 'goto',
+          error:
+            'UNKNOWN BINDING: {g.guildSlugg} cannot be resolved — bound in this batch: g. "g" holds: guildId, guildSlug, questId. A binding is minted by a { "step": "seed", "recipe": "…", "as": "g" } EARLIER IN THIS BATCH, and lives only for that batch. Nothing is interpolated as a literal: a placeholder that survived would become a URL nobody meant.',
+          candidates: [],
+        },
+      });
+      // Nothing was opened: the refusal fired BEFORE the browser was asked for a nonsense URL.
+      expect(gotoPaths()).toStrictEqual([]);
     });
   });
 });

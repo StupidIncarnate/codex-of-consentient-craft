@@ -42,7 +42,7 @@ describe('statusAnswerRenderTransformer', () => {
           InstanceStatusStub({
             id: 'inst_7f3a',
             state: 'alive',
-            specName: 'dungeonmaster-web',
+            specName: 'dungeonmaster-stack',
             uptime: '14m',
             lastBeat: '2s ago',
             runs: 3,
@@ -61,8 +61,11 @@ describe('statusAnswerRenderTransformer', () => {
       expect(result).toBe(
         'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
           'MACHINE: free 980MB/16000MB mem, free disk -MB, 8 cores, load 7.9/6.2/4.1, OOM kills - (last -)\n' +
-          'ID\tSTATE\tSPEC\tUPTIME\tLAST BEAT\tRUNS\tRSS\tORPHANS\n' +
-          'inst_7f3a\talive\tdungeonmaster-web\t14m\t2s ago\t3\t1840MB\t0\n',
+          '┌───────────┬───────┬─────────────────────┬────────┬────────┬───────────┬──────┬────────┬─────────┐\n' +
+          '│ ID        │ STATE │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ RSS    │ ORPHANS │\n' +
+          '├───────────┼───────┼─────────────────────┼────────┼────────┼───────────┼──────┼────────┼─────────┤\n' +
+          '│ inst_7f3a │ alive │ dungeonmaster-stack │ -      │ 14m    │ 2s ago    │ 3    │ 1840MB │ 0       │\n' +
+          '└───────────┴───────┴─────────────────────┴────────┴────────┴───────────┴──────┴────────┴─────────┘\n',
       );
     });
   });
@@ -83,7 +86,7 @@ describe('statusAnswerRenderTransformer', () => {
           InstanceStatusStub({
             id: 'inst_7f3a',
             state: 'alive',
-            specName: 'dungeonmaster-web',
+            specName: 'dungeonmaster-stack',
             uptime: '14m',
             lastBeat: '2s ago',
             runs: 3,
@@ -97,7 +100,7 @@ describe('statusAnswerRenderTransformer', () => {
           InstanceStatusStub({
             id: 'inst_9b2c',
             state: 'dead',
-            specName: 'dungeonmaster-headless',
+            specName: 'dungeonmaster-api',
             uptime: null,
             lastBeat: '9h ago',
             runs: 5,
@@ -116,9 +119,12 @@ describe('statusAnswerRenderTransformer', () => {
       expect(result).toBe(
         'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
           'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
-          'ID\tSTATE\tSPEC\tUPTIME\tLAST BEAT\tRUNS\tRSS\tORPHANS\n' +
-          'inst_7f3a\talive\tdungeonmaster-web\t14m\t2s ago\t3\t1840MB\t0\n' +
-          'inst_9b2c\tdead\tdungeonmaster-headless\t-\t9h ago\t5\t1200MB\t1\n',
+          '┌───────────┬───────┬─────────────────────┬────────┬────────┬───────────┬──────┬────────┬─────────┐\n' +
+          '│ ID        │ STATE │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ RSS    │ ORPHANS │\n' +
+          '├───────────┼───────┼─────────────────────┼────────┼────────┼───────────┼──────┼────────┼─────────┤\n' +
+          '│ inst_7f3a │ alive │ dungeonmaster-stack │ -      │ 14m    │ 2s ago    │ 3    │ 1840MB │ 0       │\n' +
+          '│ inst_9b2c │ dead  │ dungeonmaster-api   │ -      │ -      │ 9h ago    │ 5    │ 1200MB │ 1       │\n' +
+          '└───────────┴───────┴─────────────────────┴────────┴────────┴───────────┴──────┴────────┴─────────┘\n',
       );
     });
   });
@@ -130,7 +136,7 @@ describe('statusAnswerRenderTransformer', () => {
           InstanceStatusStub({
             id: 'inst_9b2c',
             state: 'dead',
-            specName: 'dungeonmaster-web',
+            specName: 'dungeonmaster-stack',
             uptime: null,
             lastBeat: '9h ago',
             runs: 3,
@@ -158,7 +164,7 @@ describe('statusAnswerRenderTransformer', () => {
 
       expect(result).toBe(
         'INSTANCE inst_9b2c — dead\n' +
-          'SPEC: dungeonmaster-web\n' +
+          'SPEC: dungeonmaster-stack\n' +
           'UPTIME: -\n' +
           'LAST BEAT: 9h ago\n' +
           'RUNS: 3\n' +
@@ -181,7 +187,7 @@ describe('statusAnswerRenderTransformer', () => {
           InstanceStatusStub({
             id: 'inst_7f3a',
             state: 'alive',
-            specName: 'dungeonmaster-web',
+            specName: 'dungeonmaster-stack',
             uptime: '14m',
             lastBeat: '2s ago',
             runs: 0,
@@ -205,7 +211,7 @@ describe('statusAnswerRenderTransformer', () => {
 
       expect(result).toBe(
         'INSTANCE inst_7f3a — alive\n' +
-          'SPEC: dungeonmaster-web\n' +
+          'SPEC: dungeonmaster-stack\n' +
           'UPTIME: 14m\n' +
           'LAST BEAT: 2s ago\n' +
           'RUNS: 0\n' +

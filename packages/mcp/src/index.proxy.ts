@@ -16,6 +16,7 @@ export const indexProxy = (): {
     stderrSpy: SpyOnHandle;
   };
   loadIndexWithStartupBehavior: (startMcpServerBehavior: () => Promise<void>) => Promise<void>;
+  simulateSignal: (params: { signal: 'SIGTERM' | 'SIGINT' }) => void;
 } => {
   /**
    * Capture process.exit and process.stderr calls for testing error handling
@@ -44,6 +45,9 @@ export const indexProxy = (): {
   const loadIndexWithStartupBehavior = async (
     startMcpServerBehavior: () => Promise<void>,
   ): Promise<void> => {
+    process.removeAllListeners('SIGTERM');
+    process.removeAllListeners('SIGINT');
+
     type ModulePath = IsolateModulesMock['module'];
 
     await isolateModules({
@@ -59,8 +63,13 @@ export const indexProxy = (): {
     });
   };
 
+  const simulateSignal = ({ signal }: { signal: 'SIGTERM' | 'SIGINT' }): void => {
+    process.emit(signal);
+  };
+
   return {
     captureProcessInteractions,
     loadIndexWithStartupBehavior,
+    simulateSignal,
   };
 };

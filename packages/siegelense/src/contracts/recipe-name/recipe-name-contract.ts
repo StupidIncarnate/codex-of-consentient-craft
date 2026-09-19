@@ -13,6 +13,13 @@
 
 import { z } from 'zod';
 
-export const recipeNameContract = z.string().min(1).brand<'RecipeName'>();
+export const recipeNameContract = z
+  .string()
+  .min(1)
+  .regex(
+    /^[a-z0-9]+(?:-[a-z0-9]+)*$/u,
+    'Recipe name must be kebab-case — lower-case letters, digits and single hyphens, such as "guild-with-three-quests"',
+  )
+  .brand<'RecipeName'>();
 
 export type RecipeName = z.infer<typeof recipeNameContract>;

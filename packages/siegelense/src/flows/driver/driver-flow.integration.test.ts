@@ -39,7 +39,7 @@ const HEARTBEAT_WAIT_CEILING_MS = 20_000;
 // (driverStatics.teardown.graceMs, 3s) is the only real wait on the kill path — 10s leaves ample
 // margin over that without reading as a timing-sensitive guess.
 const DRIVER_EXIT_WAIT_CEILING_MS = 10_000;
-const HEADLESS_SPEC = SpecNameStub({ value: 'dungeonmaster-headless' });
+const HEADLESS_SPEC = SpecNameStub({ value: 'dungeonmaster-api' });
 
 // FIXED: the driver, spawned as a real OS process from inside a Jest worker, used to crash before
 // answering its ready path with `Error [ERR_MODULE_NOT_FOUND]` resolving

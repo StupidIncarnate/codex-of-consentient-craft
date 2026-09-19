@@ -9,7 +9,7 @@
  *
  * USAGE:
  * const fleet = driverFleetHarness();
- * const manifest = await fleet.boot({ specName: SpecNameStub({ value: 'dungeonmaster-headless' }) });
+ * const manifest = await fleet.boot({ specName: SpecNameStub({ value: 'dungeonmaster-api' }) });
  * const entry = await fleet.registryEntry({ instanceId: manifest.instanceId });
  * const result = await fleet.killViaBroker({ instanceId: manifest.instanceId });
  * // fleet.afterAll() reaps anything still alive when the suite ends
@@ -124,7 +124,12 @@ export const driverFleetHarness = (): {
     process.env.CLAUDE_CLI_PATH = FAKE_CLAUDE_CLI_PATH;
     process.env.WARD_CLI_PATH = FAKE_WARD_CLI_PATH;
 
-    const manifest = await instanceStartBroker({ specName, questId: null, guildId: null });
+    const manifest = await instanceStartBroker({
+      specName,
+      questId: null,
+      guildId: null,
+      seed: null,
+    });
     trackedInstanceIds.add(manifest.instanceId);
     return manifest;
   };

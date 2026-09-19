@@ -19,3 +19,5 @@ export * from './src/brokers/dm/registry/dm-registry-broker';
 export * from './src/brokers/guild-mid-execution/recipe/guild-mid-execution-recipe-broker';
 export * from './src/brokers/session-with-nested-chain/recipe/session-with-nested-chain-recipe-broker';
 export * from './src/brokers/quest-advances-one-step/recipe/quest-advances-one-step-recipe-broker';
+
+export * from './src/brokers/recipe/run/recipe-run-broker';

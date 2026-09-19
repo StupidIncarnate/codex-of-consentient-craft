@@ -17,9 +17,9 @@
  *
  * USAGE:
  * instanceStatusContract.parse({
- *   id: 'inst_7f3a', state: 'alive', specName: 'dungeonmaster-web',
+ *   id: 'inst_7f3a', state: 'alive', specName: 'dungeonmaster-stack',
  *   uptime: '14m', lastBeat: '2s ago', runs: 3, rssMB: 1840, rssAtLastBeat: null,
- *   lastStep: null, orphans: [], evidence: null, likelyCause: null, evidenceComplete: true,
+ *   lastStep: null, orphans: [], evidence: null, likelyCause: null, branch: null, evidenceComplete: true,
  * });
  * // Returns a validated InstanceStatus
  */
@@ -51,6 +51,7 @@ export const instanceStatusContract = z.object({
   orphans: z.array(orphanReadingContract).readonly(),
   evidence: instanceEvidenceListingContract.nullable(),
   likelyCause: contentTextContract.nullable(),
+  branch: contentTextContract.nullable(),
   evidenceComplete: z.boolean(),
 });
 

@@ -156,16 +156,13 @@ describe('dungeonmaster siegelense subcommand seam', () => {
     },
   );
 
-  it.each(NOT_BUILT_CALL_NAMES)(
-    'INVALID: {dungeonmaster siegelense %s} => exits 1 and stderr names it as not built yet',
-    (name) => {
-      expect(notBuiltResults[name]).toStrictEqual({
-        exitCode: ExitCodeStub({ value: 1 }),
-        stdout: '',
-        stderr: `Error: ${name} ${NOT_BUILT_REFUSAL_SUFFIX}`,
-      });
-    },
-  );
+  // `it.each` throws on an empty array, so the not-built seam is asserted as one case rather than
+  // one per name. What it proves is the same thing from the other side: the closed set and the
+  // route table now agree, so no name reaches the refusal at all.
+  it('VALID: {every name the spec defines} => routed, so none refuses as not built yet', () => {
+    expect(NOT_BUILT_CALL_NAMES).toStrictEqual([]);
+    expect(notBuiltResults).toStrictEqual({});
+  });
 
   it('VALID: {dungeonmaster siegelense --help} => exits 0 and prints the index page', () => {
     expect(bareHelp.exitCode).toBe(ExitCodeStub({ value: 0 }));

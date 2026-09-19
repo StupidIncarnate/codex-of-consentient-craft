@@ -25,6 +25,8 @@ interface FlowModule {
   HookPreBashFlow?: SyncHookFlow;
   HookPreSearchFlow?: SyncHookFlow;
   HookSessionSnippetFlow?: SessionSnippetFlow;
+  HookAgyPreToolFlow?: AsyncHookFlow;
+  HookAgyStopFlow?: AsyncHookFlow;
 }
 
 const writeResult = (result: ExecResult): void => {
@@ -57,7 +59,9 @@ const processEnvelope = async (params: {
     flowModule.HookPreEditFlow ??
     flowModule.HookPostEditFlow ??
     flowModule.HookSubagentStopFlow ??
-    flowModule.HookPreFolderDetailFlow;
+    flowModule.HookPreFolderDetailFlow ??
+    flowModule.HookAgyPreToolFlow ??
+    flowModule.HookAgyStopFlow;
   if (asyncFlow) {
     const result = await asyncFlow({ inputData });
     writeResult(result);

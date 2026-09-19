@@ -2,12 +2,20 @@ import { killArgsParseTransformer } from './kill-args-parse-transformer';
 
 describe('killArgsParseTransformer', () => {
   describe('the full flag set', () => {
-    it('VALID: {args: [--instance, inst_7f3a9c21, --json]} => the complete parsed object', () => {
+    it('VALID: {args: [--instance, inst_7f3a9c21]} => parses with json false by default', () => {
+      const result = killArgsParseTransformer({
+        args: ['--instance', 'inst_7f3a9c21'],
+      });
+
+      expect(result).toStrictEqual({ instanceId: 'inst_7f3a9c21', json: false });
+    });
+
+    it('VALID: {args: [--instance, inst_7f3a9c21, --json]} => the complete parsed object with json true', () => {
       const result = killArgsParseTransformer({
         args: ['--instance', 'inst_7f3a9c21', '--json'],
       });
 
-      expect(result).toStrictEqual({ instanceId: 'inst_7f3a9c21' });
+      expect(result).toStrictEqual({ instanceId: 'inst_7f3a9c21', json: true });
     });
   });
 

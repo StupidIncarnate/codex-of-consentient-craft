@@ -22,7 +22,7 @@
  *   owner: '42781',
  *   questId: null,
  *   guildId: null,
- *   specName: 'dungeonmaster-web',
+ *   specName: 'dungeonmaster-stack',
  *   specHash: 'a3f9c2e1',
  *   pid: null,
  *   pgids: [],
@@ -34,6 +34,7 @@
  *   lastBeatMs: null,
  *   prunedAtMs: null,
  *   prunedByRule: null,
+ *   branch: null,
  * });
  * // Returns a validated RegistryEntry
  */
@@ -74,6 +75,7 @@ export const registryEntryContract = z.object({
   lastBeatMs: epochMsContract.nullable(),
   prunedAtMs: epochMsContract.nullable(),
   prunedByRule: contentTextContract.nullable(),
+  branch: contentTextContract.nullish(),
 });
 
 export type RegistryEntry = z.infer<typeof registryEntryContract>;

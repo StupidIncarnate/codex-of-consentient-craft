@@ -13,7 +13,7 @@
  * await StartSiegelense({ args: ['--help'] });
  * // Prints the index: one line per built call, plus the six not built yet
  *
- * await StartSiegelense({ args: ['start', '--spec', 'dungeonmaster-web'] });
+ * await StartSiegelense({ args: ['start', '--spec', 'dungeonmaster-stack'] });
  * // Boots an instance and prints its manifest
  *
  * await StartSiegelense({ args: ['run', '--instance', 'inst_7f3a9c21', '--steps', '[...]'] });

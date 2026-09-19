@@ -7,7 +7,7 @@ describe('instanceStatusContract', () => {
       const status = InstanceStatusStub({
         id: 'inst_7f3a',
         state: 'alive',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         uptime: '14m',
         lastBeat: '2s ago',
         runs: 3,
@@ -25,7 +25,7 @@ describe('instanceStatusContract', () => {
       expect(result).toStrictEqual({
         id: 'inst_7f3a',
         state: 'alive',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         uptime: '14m',
         lastBeat: '2s ago',
         runs: 3,
@@ -35,6 +35,7 @@ describe('instanceStatusContract', () => {
         orphans: [],
         evidence: null,
         likelyCause: null,
+        branch: null,
         evidenceComplete: true,
       });
     });
@@ -43,7 +44,7 @@ describe('instanceStatusContract', () => {
       const status = InstanceStatusStub({
         id: 'inst_9b2c',
         state: 'dead',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         uptime: null,
         lastBeat: '20:11:02',
         runs: 2,
@@ -58,7 +59,7 @@ describe('instanceStatusContract', () => {
           lastShot: 'run_2/step7.png',
         },
         likelyCause:
-          'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-web; kernel OOM kills since boot: 2',
+          'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',
         evidenceComplete: true,
       });
 
@@ -67,7 +68,7 @@ describe('instanceStatusContract', () => {
       expect(result).toStrictEqual({
         id: 'inst_9b2c',
         state: 'dead',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         uptime: null,
         lastBeat: '20:11:02',
         runs: 2,
@@ -82,7 +83,8 @@ describe('instanceStatusContract', () => {
           lastShot: 'run_2/step7.png',
         },
         likelyCause:
-          'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-web; kernel OOM kills since boot: 2',
+          'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',
+        branch: null,
         evidenceComplete: true,
       });
     });
@@ -91,7 +93,7 @@ describe('instanceStatusContract', () => {
       const status = InstanceStatusStub({
         id: 'inst_9b2c',
         state: 'dead',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         uptime: null,
         lastBeat: '20:11:02',
         runs: 2,
@@ -101,7 +103,7 @@ describe('instanceStatusContract', () => {
         orphans: [{ pgid: 33_812, cmd: 'npm run dev:no-watch', alive: true }],
         evidence: null,
         likelyCause:
-          'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-web; kernel OOM kills since boot: 2',
+          'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',
         evidenceComplete: true,
       });
 
@@ -110,7 +112,7 @@ describe('instanceStatusContract', () => {
       expect(result).toStrictEqual({
         id: 'inst_9b2c',
         state: 'dead',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         uptime: null,
         lastBeat: '20:11:02',
         runs: 2,
@@ -120,7 +122,8 @@ describe('instanceStatusContract', () => {
         orphans: [{ pgid: 33_812, cmd: 'npm run dev:no-watch', alive: true }],
         evidence: null,
         likelyCause:
-          'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-web; kernel OOM kills since boot: 2',
+          'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',
+        branch: null,
         evidenceComplete: true,
       });
     });
@@ -139,7 +142,7 @@ describe('instanceStatusContract', () => {
       expect(result).toStrictEqual({
         id: 'inst_9b2c',
         state: 'killed',
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         uptime: '14m',
         lastBeat: '2s ago',
         runs: 2,
@@ -149,6 +152,7 @@ describe('instanceStatusContract', () => {
         orphans: [],
         evidence: null,
         likelyCause: null,
+        branch: null,
         evidenceComplete: false,
       });
     });
@@ -160,7 +164,7 @@ describe('instanceStatusContract', () => {
         instanceStatusContract.parse({
           id: 'inst_7f3a',
           state: 'alive',
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           uptime: '14m',
           lastBeat: '2s ago',
           rssMB: 1840,
@@ -169,6 +173,7 @@ describe('instanceStatusContract', () => {
           orphans: [],
           evidence: null,
           likelyCause: null,
+          branch: null,
           evidenceComplete: true,
         }),
       ).toThrow(/Required/u);
@@ -179,7 +184,7 @@ describe('instanceStatusContract', () => {
         instanceStatusContract.parse({
           id: 'inst_7f3a',
           state: 'alive',
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           uptime: '14m',
           lastBeat: '2s ago',
           runs: 3,
@@ -188,6 +193,7 @@ describe('instanceStatusContract', () => {
           orphans: [],
           evidence: null,
           likelyCause: null,
+          branch: null,
           evidenceComplete: true,
         }),
       ).toThrow(/Required/u);
@@ -198,7 +204,7 @@ describe('instanceStatusContract', () => {
         instanceStatusContract.parse({
           id: 'inst_7f3a',
           state: 'alive',
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           uptime: '14m',
           lastBeat: '2s ago',
           runs: 3,
@@ -208,6 +214,7 @@ describe('instanceStatusContract', () => {
           orphans: [],
           evidence: null,
           likelyCause: null,
+          branch: null,
         }),
       ).toThrow(/Required/u);
     });
@@ -217,7 +224,7 @@ describe('instanceStatusContract', () => {
         instanceStatusContract.parse({
           id: 'inst_7f3a',
           state: 'starting',
-          specName: 'dungeonmaster-web',
+          specName: 'dungeonmaster-stack',
           uptime: '14m',
           lastBeat: '2s ago',
           runs: 3,
@@ -227,6 +234,7 @@ describe('instanceStatusContract', () => {
           orphans: [],
           evidence: null,
           likelyCause: null,
+          branch: null,
           evidenceComplete: true,
         }),
       ).toThrow(/Invalid enum value/u);

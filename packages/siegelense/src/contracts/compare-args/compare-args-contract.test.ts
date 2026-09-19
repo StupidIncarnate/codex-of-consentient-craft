@@ -16,6 +16,25 @@ describe('compareArgsContract', () => {
         instanceId: 'inst_7f3a9c21',
         runA: 'run_4',
         runB: 'run_5',
+        json: false,
+      });
+    });
+
+    it('VALID: {json: true} => parses with json: true', () => {
+      const args = CompareArgsStub({
+        instanceId: 'inst_7f3a9c21',
+        runA: 'run_4',
+        runB: 'run_5',
+        json: true,
+      });
+
+      const result = compareArgsContract.parse(args);
+
+      expect(result).toStrictEqual({
+        instanceId: 'inst_7f3a9c21',
+        runA: 'run_4',
+        runB: 'run_5',
+        json: true,
       });
     });
   });

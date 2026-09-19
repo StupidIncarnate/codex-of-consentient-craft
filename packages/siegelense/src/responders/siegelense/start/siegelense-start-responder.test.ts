@@ -4,12 +4,13 @@ import { InstanceManifestStub } from '../../../contracts/instance-manifest/insta
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 
+import { startAnswerRenderTransformer } from '../../../transformers/start-answer-render/start-answer-render-transformer';
 import { SiegelenseStartResponder } from './siegelense-start-responder';
 import { SiegelenseStartResponderProxy } from './siegelense-start-responder.proxy';
 
 describe('SiegelenseStartResponder', () => {
   describe('a spec with a quest and a guild', () => {
-    it('VALID: {specName, questId, guildId} => writes the complete InstanceManifest as one JSON document', async () => {
+    it('VALID: {specName, questId, guildId} => writes the human summary by default', async () => {
       const proxy = SiegelenseStartResponderProxy();
       const specName = SpecNameStub();
       const questId = QuestIdStub();
@@ -17,7 +18,20 @@ describe('SiegelenseStartResponder', () => {
       const manifest = InstanceManifestStub({ specName });
       proxy.stageManifest({ manifest });
 
-      await SiegelenseStartResponder({ specName, questId, guildId });
+      await SiegelenseStartResponder({ specName, questId, guildId, seed: null });
+
+      expect(proxy.getStdoutWrites()).toStrictEqual([startAnswerRenderTransformer({ manifest })]);
+    });
+
+    it('VALID: {json: true} => writes the complete InstanceManifest as one JSON document', async () => {
+      const proxy = SiegelenseStartResponderProxy();
+      const specName = SpecNameStub();
+      const questId = QuestIdStub();
+      const guildId = GuildIdStub();
+      const manifest = InstanceManifestStub({ specName });
+      proxy.stageManifest({ manifest });
+
+      await SiegelenseStartResponder({ specName, questId, guildId, seed: null, json: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(manifest, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
@@ -32,11 +46,11 @@ describe('SiegelenseStartResponder', () => {
       const manifest = InstanceManifestStub({ specName });
       proxy.stageManifest({ manifest });
 
-      await SiegelenseStartResponder({ specName, questId: null, guildId: null });
+      await SiegelenseStartResponder({ specName, questId: null, guildId: null, seed: null });
 
-      expect(proxy.getStartCallsMatching({ specName, questId: null, guildId: null })).toStrictEqual(
-        [[{ specName, questId: null, guildId: null }]],
-      );
+      expect(
+        proxy.getStartCallsMatching({ specName, questId: null, guildId: null, seed: null }),
+      ).toStrictEqual([[{ specName, questId: null, guildId: null, seed: null }]]);
     });
   });
 
@@ -48,7 +62,7 @@ describe('SiegelenseStartResponder', () => {
       proxy.stageError({ error: thrown });
 
       await expect(
-        SiegelenseStartResponder({ specName, questId: null, guildId: null }),
+        SiegelenseStartResponder({ specName, questId: null, guildId: null, seed: null }),
       ).rejects.toStrictEqual(thrown);
       expect(proxy.getStdoutWrites()).toStrictEqual([]);
     });

@@ -3,11 +3,12 @@ import { CleanupAnswerStub } from './cleanup-answer.stub';
 
 describe('cleanupAnswerContract', () => {
   describe('valid answers', () => {
-    it('VALID: {the spec line 1357-1362 example, minus assetsAged} => parses with no assetsAged field', () => {
+    it('VALID: {the spec line 1404-1409 example} => parses with assetsAged and both leftAlone reasons', () => {
       const answer = CleanupAnswerStub({
         reaped: [{ id: 'inst_9b2c', staleFor: '9h', killed: [33_812, 33_840], homeRemoved: true }],
         portsReleased: [41_345, 34_173],
         lockReleased: true,
+        assetsAged: { instances: 3, freedMB: 1840 },
         leftAlone: [
           { id: 'inst_7f3a', why: 'live — last beat 2s ago' },
           {
@@ -23,6 +24,7 @@ describe('cleanupAnswerContract', () => {
         reaped: [{ id: 'inst_9b2c', staleFor: '9h', killed: [33_812, 33_840], homeRemoved: true }],
         portsReleased: [41_345, 34_173],
         lockReleased: true,
+        assetsAged: { instances: 3, freedMB: 1840 },
         leftAlone: [
           { id: 'inst_7f3a', why: 'live — last beat 2s ago' },
           {
@@ -33,8 +35,13 @@ describe('cleanupAnswerContract', () => {
       });
     });
 
-    it('EMPTY: {reaped: [], leftAlone: []} => a clean machine is a real answer', () => {
-      const answer = CleanupAnswerStub({ reaped: [], portsReleased: [], leftAlone: [] });
+    it('EMPTY: {reaped: [], leftAlone: [], nothing aged} => a clean machine is a real answer, and the aged pair reads zero rather than absent', () => {
+      const answer = CleanupAnswerStub({
+        reaped: [],
+        portsReleased: [],
+        assetsAged: { instances: 0, freedMB: 0 },
+        leftAlone: [],
+      });
 
       const result = cleanupAnswerContract.parse(answer);
 
@@ -42,6 +49,7 @@ describe('cleanupAnswerContract', () => {
         reaped: [],
         portsReleased: [],
         lockReleased: true,
+        assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [],
       });
     });
@@ -50,6 +58,7 @@ describe('cleanupAnswerContract', () => {
       const answer = CleanupAnswerStub({
         reaped: [],
         portsReleased: [],
+        assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [
           { id: 'inst_7f3a', why: 'live — last beat 2s ago' },
           { id: 'inst_1d09', why: 'reserved — booting, no beat yet' },
@@ -62,6 +71,7 @@ describe('cleanupAnswerContract', () => {
         reaped: [],
         portsReleased: [],
         lockReleased: true,
+        assetsAged: { instances: 0, freedMB: 0 },
         leftAlone: [
           { id: 'inst_7f3a', why: 'live — last beat 2s ago' },
           { id: 'inst_1d09', why: 'reserved — booting, no beat yet' },
@@ -70,17 +80,40 @@ describe('cleanupAnswerContract', () => {
     });
   });
 
-  describe('the assetsAged refusal', () => {
-    it('INVALID: {+assetsAged} => throws naming the stray key, because cleanup ages nothing yet', () => {
+  describe('assetsAged', () => {
+    it('INVALID: {assetsAged omitted} => throws Required, so an answer can never be silent about whether it touched evidence', () => {
       expect(() =>
         cleanupAnswerContract.parse({
           reaped: [],
           portsReleased: [],
           lockReleased: true,
           leftAlone: [],
-          assetsAged: { instances: 3, freedMB: 1840 },
-        } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'assetsAged'/u);
+        }),
+      ).toThrow(/Required/u);
+    });
+
+    it('INVALID: {assetsAged: {instances: 3}} => a count with no size throws, so a caller can never read one without the other', () => {
+      expect(() =>
+        cleanupAnswerContract.parse({
+          reaped: [],
+          portsReleased: [],
+          lockReleased: true,
+          assetsAged: { instances: 3 },
+          leftAlone: [],
+        }),
+      ).toThrow(/Required/u);
+    });
+
+    it('INVALID: {assetsAged carrying videoFirst} => throws naming the stray key, because no built step writes a video', () => {
+      expect(() =>
+        cleanupAnswerContract.parse({
+          reaped: [],
+          portsReleased: [],
+          lockReleased: true,
+          assetsAged: { instances: 3, freedMB: 1840, videoFirst: true },
+          leftAlone: [],
+        }),
+      ).toThrow(/Unrecognized key\(s\) in object: 'videoFirst'/u);
     });
   });
 
@@ -90,6 +123,7 @@ describe('cleanupAnswerContract', () => {
         cleanupAnswerContract.parse({
           reaped: [],
           portsReleased: [],
+          assetsAged: { instances: 0, freedMB: 0 },
           leftAlone: [],
         }),
       ).toThrow(/Required/u);

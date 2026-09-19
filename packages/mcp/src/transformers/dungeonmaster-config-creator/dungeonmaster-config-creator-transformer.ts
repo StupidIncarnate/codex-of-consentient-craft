@@ -12,12 +12,13 @@ import type {
   McpServerConfig,
   McpServerName,
 } from '../../contracts/mcp-config/mcp-config-contract';
+import { mcpServerStatics } from '../../statics/mcp-server/mcp-server-statics';
 
 export const dungeonmasterConfigCreatorTransformer = (): Record<McpServerName, McpServerConfig> =>
   ({
     dungeonmaster: {
       type: 'stdio' as const,
       command: 'node' as const,
-      args: ['node_modules/@dungeonmaster/mcp/dist/src/index.js'] as const,
+      args: ['-e', mcpServerStatics.resolveScript] as const,
     },
   }) as Record<McpServerName, McpServerConfig>;

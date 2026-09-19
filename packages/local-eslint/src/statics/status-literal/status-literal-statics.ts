@@ -36,6 +36,11 @@ export const statusLiteralStatics = {
     // rule exempts so that array can be an inline literal tuple and keep its narrow type instead of
     // widening through `.filter()`. See that folder's own statics file for the full reasoning.
     '/packages/siegelense-recipes/src/statics/quest-transition-target-statuses/',
+    // The siegelense recipe fixture's own `statusWalk` — the ordered list of statuses the
+    // `guild-with-three-quests` recipe PATCHes a quest through to reach `in_progress`. It is the
+    // same shape, and the same reason, as the hydrate-strategy walk above: an ordered array of
+    // status literals, not a comparison, and a guard cannot express an ORDER.
+    '/packages/siegelense-recipes/src/statics/seed-fixture/',
   ],
   // Path regex fragments — guard matches filenames ending in these forms.
   allowlistPathRegexSources: [

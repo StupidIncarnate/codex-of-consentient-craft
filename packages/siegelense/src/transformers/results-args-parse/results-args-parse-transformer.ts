@@ -21,7 +21,7 @@
  *   args: ['--instance', 'inst_7f3a9c21', '--run', 'run_2', '--kind', 'network'],
  * });
  * // Returns ResultsArgs { instanceId: 'inst_7f3a9c21', runId: 'run_2', step: null,
- * //   kind: 'network', where: null, fields: null, since: null }
+ * //   kind: 'network', where: null, fields: null, since: null, json: false }
  */
 
 import { arrayIndexContract, contentTextContract } from '@dungeonmaster/shared/contracts';
@@ -209,5 +209,6 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
             flag: SINCE_FLAG,
             parse: () => sinceMarkerContract.parse(sinceValue),
           }),
+    json: args.includes(siegelenseOutputStatics.flags.json),
   });
 };

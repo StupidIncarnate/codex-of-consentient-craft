@@ -19,15 +19,20 @@ import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { compareReadBroker } from '../../../brokers/compare/read/compare-read-broker';
 import type { CompareQuery } from '../../../contracts/compare-query/compare-query-contract';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
+import { compareAnswerRenderTransformer } from '../../../transformers/compare-answer-render/compare-answer-render-transformer';
 
 export const SiegelenseCompareResponder = async ({
   query,
+  json = false,
 }: {
   query: CompareQuery;
+  json?: boolean | undefined;
 }): Promise<AdapterResult> => {
   const answer = await compareReadBroker({ query });
   process.stdout.write(
-    `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+    json
+      ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
+      : compareAnswerRenderTransformer({ answer }),
   );
   return adapterResultContract.parse({ success: true });
 };

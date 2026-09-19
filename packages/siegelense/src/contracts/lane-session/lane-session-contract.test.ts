@@ -35,6 +35,12 @@ describe('laneSessionContract', () => {
       expect(lane.readServerLogSince({ fromByte: 0 })).toStrictEqual([]);
     });
 
+    it('VALID: {} => apiBaseUrl defaults to http://127.0.0.1:0', () => {
+      const lane = LaneSessionStub();
+
+      expect(lane.apiBaseUrl).toBe('http://127.0.0.1:0');
+    });
+
     it('VALID: {serverLogLength: mock} => the handed-in function is the same reference', () => {
       const mockServerLogLength = jest.fn();
 

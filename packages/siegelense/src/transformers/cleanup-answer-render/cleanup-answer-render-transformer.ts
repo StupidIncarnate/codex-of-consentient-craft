@@ -1,9 +1,11 @@
 /**
  * PURPOSE: Renders a `CleanupAnswer` into the text an operator reads at a terminal — what was
- * reaped, what ports and locks came back, and what was left alone and why. `LEFT ALONE` is printed
- * even when empty: a cleanup that only ever shows what it removed cannot be told from one that
- * removed the wrong thing (siegelense-tooling.md line 1365). Pure, so this text is provable without
- * stdout, the same split `registryEntryRowFormatTransformer` already uses for the fleet listing.
+ * reaped, what ports and locks came back, how much evidence aged out, and what was left alone and
+ * why. `LEFT ALONE` is printed even when empty: a cleanup that only ever shows what it removed
+ * cannot be told from one that removed the wrong thing (siegelense-tooling.md line 1412). `ASSETS
+ * AGED` prints its zero for the same reason — a call that ages nothing and a call that says nothing
+ * about ageing read identically otherwise. Pure, so this text is provable without stdout, the same
+ * split `fleetTableRenderTransformer` already uses for the fleet listing.
  *
  * USAGE:
  * cleanupAnswerRenderTransformer({ answer: CleanupAnswerStub() });
@@ -42,6 +44,8 @@ export const cleanupAnswerRenderTransformer = ({
   return contentTextContract.parse(
     `REAPED: ${reapedText}\nPORTS RELEASED: ${portsText}\nLOCK RELEASED: ${
       answer.lockReleased ? 'yes' : 'no'
-    }\nLEFT ALONE: ${leftAloneText}\n`,
+    }\nASSETS AGED: ${answer.assetsAged.instances} instances, ${
+      answer.assetsAged.freedMB
+    }MB\nLEFT ALONE: ${leftAloneText}\n`,
   );
 };

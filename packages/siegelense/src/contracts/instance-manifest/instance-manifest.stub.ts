@@ -27,6 +27,7 @@ export const InstanceManifestStub = ({
         path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/web-server.log',
       }),
     },
+    seeded: null,
     queuedMs: EpochMsStub({ value: 34_000 }),
     aheadOfMe: ReadingCountStub({ value: 2 }),
     bootMs: EpochMsStub({ value: 21_000 }),

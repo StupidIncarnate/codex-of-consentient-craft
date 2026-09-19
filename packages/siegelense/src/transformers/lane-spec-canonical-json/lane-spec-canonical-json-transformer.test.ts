@@ -7,7 +7,7 @@ describe('laneSpecCanonicalJsonTransformer', () => {
       const result = laneSpecCanonicalJsonTransformer({ spec: LaneSpecStub() });
 
       expect(result).toBe(
-        '{"name":"dungeonmaster-headless","processes":[{"name":"api","command":"npm",' +
+        '{"name":"dungeonmaster-api","processes":[{"name":"api","command":"npm",' +
           '"args":["run","dev:no-watch","--workspace=@dungeonmaster/server"],"portRole":"api",' +
           '"readyPath":"/api/guilds","logFileName":"api-server.log",' +
           '"env":{"DUNGEONMASTER_PORT":"{apiPort}"}}],"browser":false,"bootTimeoutMs":180000,' +
@@ -41,7 +41,7 @@ describe('laneSpecCanonicalJsonTransformer', () => {
       const result = laneSpecCanonicalJsonTransformer({ spec: twoProcessSpec });
 
       expect(result).toBe(
-        '{"name":"dungeonmaster-headless","processes":[{"name":"api","command":"npm",' +
+        '{"name":"dungeonmaster-api","processes":[{"name":"api","command":"npm",' +
           '"args":["run","dev:no-watch","--workspace=@dungeonmaster/server"],"portRole":"api",' +
           '"readyPath":"/api/guilds","logFileName":"api-server.log",' +
           '"env":{"DUNGEONMASTER_PORT":"{apiPort}"}},{"name":"web","command":"npm",' +

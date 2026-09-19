@@ -42,9 +42,7 @@ export const typescriptMockCallsToStatementsAdapter = ({
         undefined,
         [tsNodeFactory.createStringLiteral(mock.moduleName)],
       );
-      const spreadActual = tsNodeFactory.createSpreadAssignment(requireActualCall);
-
-      const mockProperties: ts.ObjectLiteralElementLike[] = [spreadActual];
+      const mockProperties: ts.ObjectLiteralElementLike[] = [];
       for (const identifierName of mock.identifierNames) {
         const jestFnCall = tsNodeFactory.createCallExpression(
           tsNodeFactory.createPropertyAccessExpression(
@@ -62,16 +60,49 @@ export const typescriptMockCallsToStatementsAdapter = ({
         );
       }
 
-      const objectLiteral = tsNodeFactory.createObjectLiteralExpression(mockProperties, false);
-      const factoryArrow = tsNodeFactory.createArrowFunction(
-        undefined,
-        undefined,
-        [],
-        undefined,
-        undefined,
-        tsNodeFactory.createParenthesizedExpression(objectLiteral),
-      );
-      args.push(factoryArrow);
+      if (mock.moduleName === 'process' || mock.moduleName === 'node:process') {
+        const objectCreateCall = tsNodeFactory.createCallExpression(
+          tsNodeFactory.createPropertyAccessExpression(
+            tsNodeFactory.createIdentifier('Object'),
+            tsNodeFactory.createIdentifier('create'),
+          ),
+          undefined,
+          [requireActualCall],
+        );
+        const objectLiteral = tsNodeFactory.createObjectLiteralExpression(mockProperties, false);
+        const objectAssignCall = tsNodeFactory.createCallExpression(
+          tsNodeFactory.createPropertyAccessExpression(
+            tsNodeFactory.createIdentifier('Object'),
+            tsNodeFactory.createIdentifier('assign'),
+          ),
+          undefined,
+          [objectCreateCall, objectLiteral],
+        );
+        const factoryArrow = tsNodeFactory.createArrowFunction(
+          undefined,
+          undefined,
+          [],
+          undefined,
+          undefined,
+          objectAssignCall,
+        );
+        args.push(factoryArrow);
+      } else {
+        const spreadActual = tsNodeFactory.createSpreadAssignment(requireActualCall);
+        const objectLiteral = tsNodeFactory.createObjectLiteralExpression(
+          [spreadActual, ...mockProperties],
+          false,
+        );
+        const factoryArrow = tsNodeFactory.createArrowFunction(
+          undefined,
+          undefined,
+          [],
+          undefined,
+          undefined,
+          tsNodeFactory.createParenthesizedExpression(objectLiteral),
+        );
+        args.push(factoryArrow);
+      }
     } else if (mock.factory) {
       const tempSourceFile = ts.createSourceFile(
         'temp.ts',

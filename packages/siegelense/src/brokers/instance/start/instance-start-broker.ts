@@ -1,8 +1,10 @@
 /**
  * PURPOSE: The thin client half of `start` — opportunistically reaps any instance whose heartbeat
  * has gone cold (spec line 1673: the only recovery path there is, and a silent reap reads as a
- * bug, so each one is reported on stderr), reserves a NEW instance BEFORE anything boots (spec
- * line 1619: otherwise three sessions each divide free memory by peak and six boot), acquires
+ * bug, so each one is reported on stderr), REFUSES outright when `capacity` answers `suggested: 0`
+ * (spec lines 1588-1590 — the one hard edge in an otherwise advisory reading, because the
+ * alternative is the OS killing something at random), reserves a NEW instance BEFORE anything boots
+ * (spec line 1619: otherwise three sessions each divide free memory by peak and six boot), acquires
  * `boot.lock` so at most one boot runs at a time across every process on the machine, spawns the
  * driver process detached, and polls its socket until it answers or the boot deadline passes. The
  * driver releases `boot.lock` itself once its OWN boot finishes (line 1620 — the lock covers the
@@ -11,19 +13,47 @@
  * `ping`, including the ping timing out. A lock left held by a boot that threw wedges every other
  * session until the TTL expires.
  *
+ * `seed` runs a recipe against the lane once it answers, and its returned ids ride back on the
+ * manifest's `seeded` field. It runs from this side rather than down the driver socket because this
+ * side already holds the booted lane's api port and the deterministic home; a seed that throws
+ * takes the same teardown path every other boot failure takes, because a lane whose state is not
+ * what the caller asked for is not a lane the caller should be handed.
+ *
+ * A successful boot also RECORDS what it cost, through `profileBootRecordBroker` — this is the only
+ * side that watches a boot from its first moment, so nothing else can measure `bootMs` (spec line
+ * 1483). That write is caught and reported rather than awaited bare: a profile is a convenience
+ * `capacity` reads, and a failed profile write must never tear down an instance that booted fine.
+ *
  * `home` is never written to the registry (the driver computes it privately when it boots the
  * lane), so this broker derives the SAME deterministic value from `instanceId` alone — the
  * convention every other siegelense OS-tmp path in this package already follows (see
  * `locationsSocketPathFindBroker`). The manifest's `baseUrl` is `null` for a spec whose processes
- * never claim the `web` portRole — a `dungeonmaster-headless` boot has nothing listening there —
- * rather than a URL built unconditionally off a port nothing binds. When the driver's ping never
- * answers, `LaneBootFailedError.unready` names only the processes THIS broker can confirm are
- * still not answering their own readyPath, probed directly rather than assumed to be every
- * process the spec declares.
+ * never claim the `web` portRole — a `dungeonmaster-api` boot has nothing listening there —
+ * rather than a URL built unconditionally off a port nothing binds. The boot poll's outcome decides
+ * which of two errors reaches the caller: a `'failed'` status means the driver caught its own error
+ * and left a `boot-failure.json` marker before exiting, so `DriverBootFailedError` carries that
+ * message straight through; a `'timeout'` status means the poll ran out its deadline with no such
+ * report, so `LaneBootFailedError.unready` names only the processes THIS broker can confirm are
+ * still not answering their own readyPath, probed directly rather than assumed to be every process
+ * the spec declares. Either throw releases the reservation `instanceReserveBroker` minted for this
+ * attempt (via `instanceReleaseBroker`, tombstoning the row rather than deleting it) alongside
+ * `boot.lock` — a failed boot must leave the registry as it found it, not holding a port pair with
+ * no process behind it forever.
  *
  * USAGE:
- * await instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null });
- * // Returns an InstanceManifest once the driver answers `ping`, or throws LaneBootFailedError
+ * await instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null, seed: null });
+ * // Returns an InstanceManifest once the driver answers `ping`, or throws DriverBootFailedError /
+ * // LaneBootFailedError after releasing boot.lock and this attempt's reservation
+ *
+ * await instanceStartBroker({
+ *   specName: SpecNameStub(),
+ *   questId: null,
+ *   guildId: null,
+ *   seed: RecipeNameStub({ value: 'guild-with-three-quests' }),
+ *   idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+ * });
+ * // Same, but appends `--idle-timeout-ms 1800000` to the spawned driver's own argv, raising the
+ * // ceiling that instance reaps itself against above driverStatics.idle.timeoutMs
  */
 
 import { pathJoinAdapter, processCwdAdapter } from '@dungeonmaster/shared/adapters';
@@ -33,9 +63,12 @@ import {
   type ContentText,
   type GuildId,
   type QuestId,
+  type TimeoutMs,
 } from '@dungeonmaster/shared/contracts';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+
+import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
 
 import { childProcessSpawnDetachedAdapter } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter';
 import { cliPackageBinResolveAdapter } from '../../../adapters/cli-package/bin-resolve/cli-package-bin-resolve-adapter';
@@ -43,6 +76,8 @@ import { fsOpenFdAdapter } from '../../../adapters/fs/open-fd/fs-open-fd-adapter
 import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
 import { instanceStartBootPollLayerBroker } from './instance-start-boot-poll-layer-broker';
 import { bootLockAcquireBroker } from '../../boot-lock/acquire/boot-lock-acquire-broker';
+import { capacityReadBroker } from '../../capacity/read/capacity-read-broker';
+import { CapacityRefusedError } from '../../../errors/capacity-refused/capacity-refused-error';
 import { bootLockReleaseBroker } from '../../boot-lock/release/boot-lock-release-broker';
 import { isReservedRegistryEntryGuard } from '../../../guards/is-reserved-registry-entry/is-reserved-registry-entry-guard';
 import { isStaleRegistryEntryGuard } from '../../../guards/is-stale-registry-entry/is-stale-registry-entry-guard';
@@ -51,7 +86,10 @@ import { laneReadyWaitBroker } from '../../lane/ready-wait/lane-ready-wait-broke
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { locationsRepoLinkPathFindBroker } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker';
 import { locationsSocketPathFindBroker } from '../../locations/socket-path-find/locations-socket-path-find-broker';
+import { instanceReleaseBroker } from '../release/instance-release-broker';
 import { instanceReserveBroker } from '../reserve/instance-reserve-broker';
+import { profileBootRecordBroker } from '../../profile/boot-record/profile-boot-record-broker';
+import { recipeSeedRunBroker } from '../../recipe/seed-run/recipe-seed-run-broker';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceManifestContract } from '../../../contracts/instance-manifest/instance-manifest-contract';
@@ -62,6 +100,7 @@ import { laneSpecHashBroker } from '../../lane-spec/hash/lane-spec-hash-broker';
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
+import { DriverBootFailedError } from '../../../errors/driver-boot-failed/driver-boot-failed-error';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
 import { laneProcessPortResolveTransformer } from '../../../transformers/lane-process-port-resolve/lane-process-port-resolve-transformer';
 
@@ -69,10 +108,14 @@ export const instanceStartBroker = async ({
   specName,
   questId,
   guildId,
+  seed,
+  idleTimeoutMs,
 }: {
   specName: SpecName;
   questId: QuestId | null;
   guildId: GuildId | null;
+  seed: RecipeName | null;
+  idleTimeoutMs?: TimeoutMs;
 }): Promise<InstanceManifest> => {
   const spec = laneSpecFindBroker({ specName });
   const specHash = laneSpecHashBroker({ spec });
@@ -114,6 +157,20 @@ export const instanceStartBroker = async ({
       );
     }),
   );
+
+  // `capacity` is advisory everywhere except here (spec lines 1588-1590): starting an instance the
+  // machine plainly cannot hold ends with the OS killing something at random, which is worse than a
+  // refusal. Read AFTER the opportunistic reap above, so a fleet of cold lanes is cleared before it
+  // is counted, and BEFORE instanceReserveBroker, so a refusal leaves no reservation and no claimed
+  // port pair behind. `suggested: 0` is both refusals the spec asks for — no room in memory for one
+  // more, and the pool size already full (line 1540, the chunk-2 marker's own NOT YET) — and the
+  // `why` sentence carried into the error says which of the two fired. `poolSize: null` takes
+  // capacity's own default, the most CONTENDED group the profile holds: a refusal should err toward
+  // refusing rather than toward an OOM.
+  const capacity = await capacityReadBroker({ specName, poolSize: null });
+  if (capacity.suggested === 0) {
+    throw new CapacityRefusedError({ specName, why: capacity.why });
+  }
 
   const reservedEntry = await instanceReserveBroker({ specName, specHash, questId, guildId });
 
@@ -168,6 +225,7 @@ export const instanceStartBroker = async ({
         'driver',
         '--instance',
         reservedEntry.id,
+        ...(idleTimeoutMs === undefined ? [] : ['--idle-timeout-ms', String(idleTimeoutMs)]),
       ],
       cwd: absoluteFilePathContract.parse(repoRoot),
       env: inheritedEnv,
@@ -181,12 +239,25 @@ export const instanceStartBroker = async ({
       bootStartedAtMs + driverStatics.boot.defaultTimeoutMs,
     );
 
-    const bootAnswered = await instanceStartBootPollLayerBroker({
+    const pollOutcome = await instanceStartBootPollLayerBroker({
       socketPath,
       deadlineMs: bootDeadlineMs,
+      evidencePath,
     });
 
-    if (!bootAnswered) {
+    if (pollOutcome.status === 'failed') {
+      // The driver caught its own error and wrote it beside the evidence before exiting — that
+      // report IS the cause, so it is what reaches the caller rather than the generic "never
+      // answered its ready path" a bare connection refusal would otherwise read as.
+      throw new DriverBootFailedError({
+        specName: spec.name,
+        instanceId: reservedEntry.id,
+        driverMessage: pollOutcome.message,
+        driverLogPath,
+      });
+    }
+
+    if (pollOutcome.status === 'timeout') {
       // The driver's own control socket never answered, which says nothing by itself about
       // WHICH of the spec's processes stalled — a process with no readyPath is never a boot-
       // readiness candidate at all (lane-boot-broker never checks it), and a process that DOES
@@ -234,6 +305,21 @@ export const instanceStartBroker = async ({
     const bootEndedAtMs = epochMsContract.parse(Date.now());
     const bootMs = epochMsContract.parse(bootEndedAtMs - bootStartedAtMs);
 
+    // This is the only side that sees a boot begin, so it is the only side that can measure one —
+    // `bootMs` is the one figure in a profile that is genuinely measured rather than illustrative
+    // (spec line 1483). Caught rather than awaited bare: a profile is a convenience `capacity`
+    // reads, and letting its write throw here would land in the catch below and tear down an
+    // instance that booted perfectly well.
+    await profileBootRecordBroker({
+      instanceId: reservedEntry.id,
+      specHash,
+      bootMs,
+    }).catch((error: unknown) => {
+      process.stderr.write(
+        `instanceStartBroker: recording the boot profile for ${reservedEntry.id} failed, the instance is up regardless: ${String(error)}\n`,
+      );
+    });
+
     const registryAfterBoot = await registryReadBroker();
     const bootedEntry = registryAfterBoot.instances.find(
       (candidate) => candidate.id === reservedEntry.id,
@@ -274,6 +360,27 @@ export const instanceStartBroker = async ({
         }) === bootedEntry.ports.web,
     );
 
+    // `--seed` runs from THIS side rather than down the driver socket: the client half already
+    // holds the booted lane's api port and the deterministic home, so building a RecipeContext
+    // costs nothing, and routing it through `run` instead would burn a run id and write a
+    // transcript entry for something that is not a step.
+    //
+    // A seed that fails tears the instance down and rethrows, through the same catch every other
+    // boot failure takes. A lane whose seed failed is a lane whose state is not what the caller
+    // asked for, and handing back a manifest with `seeded: null` would make it indistinguishable
+    // from one nobody asked to seed.
+    const seeded =
+      seed === null
+        ? null
+        : await recipeSeedRunBroker({
+            recipe: seed,
+            apiBaseUrl: contentTextContract.parse(
+              `http://${environmentStatics.hostname}:${String(bootedEntry.ports.api)}`,
+            ),
+            homePath,
+            parameters: {},
+          });
+
     return instanceManifestContract.parse({
       instanceId: reservedEntry.id,
       specName,
@@ -285,12 +392,31 @@ export const instanceStartBroker = async ({
       home: homePath,
       evidence: evidenceRepoLocal,
       logs: { api: apiLogRepoLocal, web: webLogRepoLocal },
+      // The SEEDED guild, never the partition one — `evidence` above is still filed under the
+      // guild that owns `quest` (siegelense-tooling.md line 2328). Keying assets by a seeded id
+      // would file every instance under a partition of its own and defeat the point.
+      seeded,
       queuedMs,
       aheadOfMe,
       bootMs,
     });
   } catch (bootError) {
     await bootLockReleaseBroker({ instanceId: reservedEntry.id });
+
+    // A reservation `instanceReserveBroker` minted for THIS attempt must not outlive a boot that
+    // never happened — an unreleased row stays `state: 'alive'` with `bootedAtMs: null` forever,
+    // holding its port pair with no process behind it. Released, never deleted: instanceReleaseBroker's
+    // own tombstone rule is what keeps a fixer's later `results` from answering "unknown instance"
+    // for evidence already sitting on disk. Wrapped so a throw HERE can never replace `bootError` —
+    // the boot failure is what a caller needs to see, whether or not the cleanup after it succeeds.
+    try {
+      await instanceReleaseBroker({ instanceId: reservedEntry.id });
+    } catch (releaseError: unknown) {
+      process.stderr.write(
+        `instanceStartBroker: releasing the reservation for ${reservedEntry.id} after a failed boot failed: ${String(releaseError)}\n`,
+      );
+    }
+
     throw bootError;
   }
 };

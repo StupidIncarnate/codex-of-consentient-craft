@@ -3,7 +3,11 @@
  * STATUS rather than a payload (siegelense-tooling.md line 49: "run → submit a BATCH of steps;
  * blocks; returns a STATUS, never a payload"). Records the instance's continuous browser/server
  * buffers as THIS run's own window before anything dispatches (line 90: "a run's index counts its
- * OWN window, never the running total"), restarts step numbering at 1 inside a run-namespaced shots
+ * OWN window, never the running total"), and hands that same `browserWindowStart` down to
+ * `runExecuteStepLayerBroker` unchanged for every step — `until`'s `console`/`response` forms are the
+ * one thing below that reads it, so a match that landed during an EARLIER STEP of this same run still
+ * resolves, rather than the ceiling being measured from whatever the buffer happens to hold at the
+ * moment that one step starts. Restarts step numbering at 1 inside a run-namespaced shots
  * directory (line 1630) — every acting step's unasked capture resolves there by index, and a
  * `screenshot` step resolves by its own `name` (line 2516) instead, still inside that same
  * run-namespaced directory so two runs never collide on one caller-chosen filename — flushes the
@@ -12,9 +16,9 @@
  * `runExecuteStepLayerBroker` is what turns BOTH an uncaught exception and the dispatcher's own
  * `expect: 'error'`-but-succeeded finding into the same `ok: false` reading, so the loop below only
  * ever has ONE stop condition to check. `status` reads whether the run's first stop carries
- * `timedOut` — set only when the underlying step threw `WaitForCeilingHitError` — rather than
- * sniffing `stoppedAt.error` text for the word "timeout", so a driver rewording its own message
- * never flips the run's own verdict. Each shot listing carries the SAME `pixelChange`, `blank` and
+ * `timedOut` — set only when the underlying step threw `WaitForCeilingHitError` or its `until`
+ * counterpart `UntilCeilingHitError` — rather than sniffing `stoppedAt.error` text for the word
+ * "timeout", so a driver rewording its own message never flips the run's own verdict. Each shot listing carries the SAME `pixelChange`, `blank` and
  * `blankColour` its source `StepReading` carries, rather than re-deriving them — a `ShotListing` is a
  * projection of the step that captured it, and the two must never disagree about whether that
  * capture was blank. At run start the console/network/websocket lines that arrived SINCE the last
@@ -33,7 +37,13 @@
  * itself (packages/siegelense/CLAUDE.md: "every path handed back is repo-local, through
  * <repoRoot>/.siegelense") — the same address is both what the step actually captures to and what
  * `RunResult.shots`/the transcript report, so a later `results` read of this run's own evidence never
- * disagrees with what this run just returned.
+ * disagrees with what this run just returned. It also mints the automatic snapshot pair — one capture
+ * of the lane's throwaway home before the first step and one after the last, named `run_N:start` and
+ * `run_N:end` (line 2630) — which is what `snapshots` lists and what `reset level: 'state'` returns
+ * to. Both are fire-and-forget: a capture that fails is logged and the batch continues, since a
+ * restore-point write must never replace the walk's own result, and `snapshotCaptureBroker` appends
+ * its index line only after the payload lands, so a failed capture leaves no row at all rather than a
+ * row pointing at nothing.
  *
  * USAGE:
  * await runExecuteBroker({
@@ -58,6 +68,8 @@ import type { ReadingCount } from '../../../contracts/reading-count/reading-coun
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { runResultContract } from '../../../contracts/run-result/run-result-contract';
 import type { RunResult } from '../../../contracts/run-result/run-result-contract';
+import type { SeedBindings } from '../../../contracts/seed-bindings/seed-bindings-contract';
+import { snapshotBoundaryContract } from '../../../contracts/snapshot-boundary/snapshot-boundary-contract';
 import { runStatusContract } from '../../../contracts/run-status/run-status-contract';
 import type { RunStatus } from '../../../contracts/run-status/run-status-contract';
 import { shotListingContract } from '../../../contracts/shot-listing/shot-listing-contract';
@@ -71,7 +83,9 @@ import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/in
 import { stepStatics } from '../../../statics/step/step-statics';
 import { runIndexComputeTransformer } from '../../../transformers/run-index-compute/run-index-compute-transformer';
 import { shotOpenDecideTransformer } from '../../../transformers/shot-open-decide/shot-open-decide-transformer';
+import { snapshotAutoNameTransformer } from '../../../transformers/snapshot-auto-name/snapshot-auto-name-transformer';
 import { bufferAppendBroker } from '../../buffer/append/buffer-append-broker';
+import { snapshotCaptureBroker } from '../../snapshot/capture/snapshot-capture-broker';
 import { locationsBufferPathsFindBroker } from '../../locations/buffer-paths-find/locations-buffer-paths-find-broker';
 import { locationsRepoLinkPathFindBroker } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker';
 import { locationsRunPathsFindBroker } from '../../locations/run-paths-find/locations-run-paths-find-broker';
@@ -186,8 +200,33 @@ export const runExecuteBroker = async ({
     ]);
   }
 
+  // The automatic `run_N:start` half of the pair (siegelense-tooling.md line 2630: "Every run also
+  // snapshots automatically, at start and at end"). Taken before the first step dispatches, so it is
+  // the state the batch began from. A capture failure is LOGGED and the run continues — the batch's
+  // own result must never be replaced by a restore-point write, the same rule `step-dispatch-broker`
+  // already follows for a failure capture — and because `snapshotCaptureBroker` appends its index
+  // line only after the payload lands, a failure here leaves no row claiming a restore point that is
+  // not on disk.
+  await snapshotCaptureBroker({
+    homePath: lane.homePath,
+    name: snapshotAutoNameTransformer({
+      runId,
+      boundary: snapshotBoundaryContract.parse('start'),
+    }),
+    manual: false,
+  }).catch((error: unknown) => {
+    process.stderr.write(`[run-execute] start snapshot failed for ${runId}: ${String(error)}\n`);
+  });
+
   const readings: StepReading[] = [];
   const stopCandidates: { stoppedAt: StoppedAt; timedOut: boolean }[] = [];
+
+  // Every `as:` binding this BATCH has made, in a HOLDER whose field mutates rather than a
+  // reassigned `let` — the same shape, and the same `require-atomic-updates` reason, as
+  // `cursorState` above. Scoped to one run on purpose: a binding names the ids THIS batch made,
+  // and carrying one across runs would mean surviving a `reset`. An unresolvable binding failing
+  // loudly by name is a better answer than a stale id resolving quietly.
+  const bindingsState: { values: SeedBindings } = { values: {} };
 
   // A sequential reduce chain, not a for-of with await: each step's dispatch depends on the page
   // state the PREVIOUS step left behind, and the transcript must flush in that same order, so
@@ -204,7 +243,10 @@ export const runExecuteBroker = async ({
     }
 
     const index = stepIndexContract.parse(position + instanceLifecycleStatics.numbering.firstStep);
-    const shotPath = stepStatics.verbs.acting.some((verb) => verb === step.step)
+    // `verbs.capturing`, not `verbs.acting`: `look` captures without acting, because it "returns
+    // the KEY inline and writes the SHOT" (siegelense-tooling.md line 2587) while changing nothing
+    // on the page.
+    const shotPath = stepStatics.verbs.capturing.some((verb) => verb === step.step)
       ? locationsShotPathFindBroker({ shotsDir: reportedShotsDir, step: index })
       : step.step === 'screenshot'
         ? locationsShotPathFindBroker({ shotsDir: reportedShotsDir, step: index, name: step.name })
@@ -215,8 +257,13 @@ export const runExecuteBroker = async ({
       step,
       index,
       shotPath,
+      browserWindowStart,
       lastShotPath,
       setLastShotPath,
+      bindings: () => bindingsState.values,
+      recordBinding: ({ name, result }) => {
+        bindingsState.values = { ...bindingsState.values, [name]: result };
+      },
     });
     readings.push(outcome.reading);
     await runTranscriptAppendBroker({ transcriptPath: transcript, reading: outcome.reading });
@@ -263,6 +310,16 @@ export const runExecuteBroker = async ({
       stopCandidates.push({ stoppedAt: outcome.stoppedAt, timedOut: outcome.timedOut });
     }
   }, Promise.resolve());
+
+  // The `run_N:end` half, taken once the batch has stopped running — the point "put it back to where
+  // run N finished" returns to. Same swallow-and-log rule as the start half above.
+  await snapshotCaptureBroker({
+    homePath: lane.homePath,
+    name: snapshotAutoNameTransformer({ runId, boundary: snapshotBoundaryContract.parse('end') }),
+    manual: false,
+  }).catch((error: unknown) => {
+    process.stderr.write(`[run-execute] end snapshot failed for ${runId}: ${String(error)}\n`);
+  });
 
   // The FIRST failure only — a later one under stopOn: 'never' still gets its own transcript
   // entry, but the run's own verdict reports where it would have stopped.

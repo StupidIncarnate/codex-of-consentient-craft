@@ -29,7 +29,7 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  --where-steps <a-b>             narrow to a step range, e.g. 4-9.\n' +
           '  --fields <a,b,c>                project the answer down to this comma-separated list of fields.\n' +
           "  --since boot                    read from the beginning of the instance's lifetime, in place of naming a run.\n" +
-          '  --json                          print the JSON answer — the default; explicit and refused nowhere.\n' +
+          '  --json                          print raw JSON output instead of the human-readable view.\n' +
           '\n' +
           'REFUSES\n' +
           '  Against a finished instance you must name --run (or --since boot); omit both and the call refuses rather than guessing which run you meant.\n' +
@@ -43,22 +43,21 @@ describe('siegelenseHelpRenderTransformer', () => {
     });
   });
 
-  describe('cleanup — the ages-nothing refusal', () => {
-    it('VALID: {call: cleanup} => the page carries the ages-nothing sentence', () => {
+  describe('cleanup — the ages-assets refusal', () => {
+    it('VALID: {call: cleanup} => the page carries the ages-assets sentence', () => {
       const result = siegelenseHelpRenderTransformer({ call: 'cleanup' });
 
       expect(result).toBe(
         'siegelense cleanup — reap every stale instance the registry holds.\n' +
           '\n' +
           'USAGE\n' +
-          '  dungeonmaster siegelense cleanup [--json] [--human]\n' +
+          '  dungeonmaster siegelense cleanup [--json]\n' +
           '\n' +
           'FLAGS\n' +
-          '  --json              print the JSON answer — the default; explicit and refused nowhere.\n' +
-          '  --human             render the operator table instead of JSON. Only status, cleanup and recipes implement this.\n' +
+          '  --json             print raw JSON output instead of the human-readable view.\n' +
           '\n' +
           'REFUSES\n' +
-          '  Takes no input. Reaps and releases only — it ages no asset, so a clean baseline capture is never touched by this call.\n' +
+          "  Takes no input. Reaps, releases, and ages assets out on their own windows — video first on a shorter one. It refuses exactly what prune refuses, so a capture a VERIFIED prelude or an open quest's WALKED line still cites is never touched, and the instance it belongs to says so in leftAlone.\n" +
           '\n' +
           'OUTPUT\n' +
           '  One JSON document on stdout: the CleanupAnswer.\n' +
@@ -96,26 +95,55 @@ describe('siegelenseHelpRenderTransformer', () => {
   });
 
   describe('a call whose refusals array is empty', () => {
-    it('EDGE: {call: start, refusals: []} => no REFUSES heading', () => {
+    it('EDGE: {call: kill, refusals: []} => no REFUSES heading', () => {
+      const result = siegelenseHelpRenderTransformer({ call: 'kill' });
+
+      expect(result).toBe(
+        'siegelense kill — stop one running instance.\n' +
+          '\n' +
+          'USAGE\n' +
+          '  dungeonmaster siegelense kill --instance <id> [--json]\n' +
+          '\n' +
+          'FLAGS\n' +
+          '  --instance <id>  required   the instance to stop. Accepts an already-dead instance id too, reaping its orphaned process groups from its heartbeat file when the driver itself is unreachable.\n' +
+          '  --json                      print raw JSON output instead of the human-readable view.\n' +
+          '\n' +
+          'OUTPUT\n' +
+          '  One JSON document on stdout: the KillResult.\n' +
+          '\n' +
+          'EXAMPLE\n' +
+          '  dungeonmaster siegelense kill --instance inst_9b2c\n',
+      );
+    });
+  });
+
+  describe('start now carries an idle-timeout-ms flag and a refusal', () => {
+    it('VALID: {call: start} => the exact rendered page, flag and refusal included', () => {
       const result = siegelenseHelpRenderTransformer({ call: 'start' });
 
       expect(result).toBe(
         'siegelense start — boot one instance for a lane spec and block until the driver answers or the boot deadline passes.\n' +
           '\n' +
           'USAGE\n' +
-          '  dungeonmaster siegelense start --spec <specName> [--quest <questId>] [--guild <guildId>] [--json]\n' +
+          '  dungeonmaster siegelense start --spec <specName> [--quest <questId>] [--guild <guildId>] [--seed <recipeName>] [--idle-timeout-ms <ms>] [--json]\n' +
           '\n' +
           'FLAGS\n' +
-          '  --spec <specName>  required   the lane spec to boot.\n' +
-          "  --quest <questId>             files the instance's evidence under that quest's guild. Omitted, the instance is unowned.\n" +
-          '  --guild <guildId>             the guild to file evidence under, when there is no quest.\n' +
-          '  --json                        print the JSON answer — the default; explicit and refused nowhere.\n' +
+          '  --spec <specName>       required   the lane spec to boot.\n' +
+          "  --quest <questId>                  files the instance's evidence under that quest's guild. Omitted, the instance is unowned.\n" +
+          '  --guild <guildId>                  the guild to file evidence under, when there is no quest.\n' +
+          "  --seed <recipeName>                runs that recipe against the lane once it is up, and returns the ids it made on the manifest's `seeded`. `dungeonmaster siegelense recipes` lists every name with its produces: line. Omitted, the instance starts empty and `seeded` is null.\n" +
+          "  --idle-timeout-ms <ms>             raises this instance's idle ceiling above driverStatics.idle.timeoutMs (900000ms) — the length of think-time between runs the served lane survives before reaping itself with no run received. Omitted, the default applies.\n" +
+          '  --json                             print raw JSON output instead of the human-readable view.\n' +
+          '\n' +
+          'REFUSES\n' +
+          '  A --seed that FAILS tears the instance down and reports the failure, rather than handing back a lane whose state is not what you asked for. `seeded: null` means no --seed was given, never that one was given and produced nothing.\n' +
+          '  --idle-timeout-ms only RAISES the ceiling for this one instance — it never disables the idle timeout or makes it infinite. The timeout is the only backstop against an abandoned lane holding a port pair and a browser open forever.\n' +
           '\n' +
           'OUTPUT\n' +
           '  One JSON document on stdout: the manifest — instance id, base URL, and every evidence path this run will want, since there is no lookup call to recover them later.\n' +
           '\n' +
           'EXAMPLE\n' +
-          '  dungeonmaster siegelense start --spec dungeonmaster-web\n',
+          '  dungeonmaster siegelense start --spec dungeonmaster-stack\n',
       );
     });
   });
@@ -125,24 +153,22 @@ describe('siegelenseHelpRenderTransformer', () => {
       const result = siegelenseHelpRenderTransformer({ call: null });
 
       expect(result).toBe(
-        'dungeonmaster siegelense — every built call reachable without installing anything. 8 of 13 calls are built.\n' +
+        'dungeonmaster siegelense — every built call reachable without installing anything. 13 of 13 calls are built.\n' +
           '\n' +
           'CALLS\n' +
           '  siegelense start — boot one instance for a lane spec and block until the driver answers or the boot deadline passes.\n' +
           '  siegelense run — submit one batch of steps to a running instance and block until it finishes.\n' +
           '  siegelense results — read evidence off disk for one instance. Starts nothing.\n' +
           '  siegelense kill — stop one running instance.\n' +
+          '  siegelense capacity — how many instances this machine can take right now. Ask before opening a pool. Starts nothing.\n' +
+          '  siegelense profile — what one instance of a lane spec costs, measured. Starts nothing.\n' +
           '  siegelense status — report the fleet, or one instance in full.\n' +
           '  siegelense cleanup — reap every stale instance the registry holds.\n' +
+          '  siegelense prune — reclaim asset space deliberately, rather than waiting for the age-out window.\n' +
           "  siegelense compare — diff two runs of one instance's timeline.\n" +
+          '  siegelense snapshots — list the points `reset level: state` can return to for one instance. Starts nothing.\n' +
           '  siegelense recipes — list what states can be created. No instance needed.\n' +
-          '\n' +
-          'NOT BUILT YET\n' +
-          '  capacity\n' +
-          '  profile\n' +
-          '  prune\n' +
-          '  snapshots\n' +
-          '  docs\n' +
+          "  siegelense docs — this tool's own instructions, scoped to one role. Starts nothing.\n" +
           '\n' +
           "dungeonmaster siegelense <call> --help  for one call's flags and refusals\n",
       );

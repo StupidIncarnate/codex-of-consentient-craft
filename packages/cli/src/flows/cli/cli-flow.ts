@@ -50,6 +50,17 @@ export const CliFlow = async ({
     return CliSiegelenseResponder({ args });
   }
 
-  await CliServeResponder();
-  return adapterResultContract.parse({ success: true });
+  // Serving is what NO command means, and what `start` names explicitly. Every other unrecognized
+  // word is a command this CLI does not have, and it has to say so. Falling through to the server
+  // instead boots an HTTP listener on `dungeonmaster.port` for a typo: the first attempt looks
+  // like it worked, and a second one dies on `EADDRINUSE: address already in use ::1:4800` — a
+  // stack trace about a port, for a caller whose actual mistake was two transposed letters in a
+  // subcommand name. `start` is routed here by name rather than left to the fallthrough, so the
+  // command it names and the command it runs stay the same thing.
+  if (command === undefined || command === COMMANDS.start) {
+    await CliServeResponder();
+    return adapterResultContract.parse({ success: true });
+  }
+
+  throw new Error(`Unknown command: ${command}. Commands: ${Object.values(COMMANDS).join(', ')}.`);
 };

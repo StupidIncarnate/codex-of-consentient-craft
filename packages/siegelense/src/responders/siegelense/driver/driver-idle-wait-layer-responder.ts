@@ -10,16 +10,17 @@
  * this file's own top-level export is that name. The `sleep` timer is CLEARED right after the race
  * settles, on both branches, never left to fire on its own: `Promise.race` does not cancel the
  * losing side, so a `kill` that wins the race otherwise leaves this timer running — REF'D, since a
- * bare `setTimeout` is ref'd by default — for up to `driverStatics.idle.timeoutMs` (900s) more.
- * Measured directly, live, via `process.report.getReport().libuv` against a driver hung after a
- * successful `kill`: a `"timer"` entry with `is_referenced:true` and `firesInMsFromNow` matching the
- * remainder of that same 900s window — the one thing keeping its OS process (and so its whole
- * event loop) alive; `_getActiveHandles()`/`_getActiveRequests()` do not surface a raw timer handle
- * the same way, which is why this took a live diagnostic report to find rather than showing up in
- * either of those. `sleepTimerRef.current` (a mutable property on a `const` object), not a plain
- * reassigned `let`, holds the timer id across the `Promise` executor boundary — a `let` reassigned
- * only inside that executor reads back to `typescript-eslint` as permanently unset outside it, which
- * flags the later null-check as unreachable even though the executor runs synchronously.
+ * bare `setTimeout` is ref'd by default — for up to `driverSessionState.idleTimeoutMs()` (900s by
+ * default, or a caller's raised `--idle-timeout-ms` ceiling) more. Measured directly, live, via
+ * `process.report.getReport().libuv` against a driver hung after a successful `kill`: a `"timer"`
+ * entry with `is_referenced:true` and `firesInMsFromNow` matching the remainder of that same window —
+ * the one thing keeping its OS process (and so its whole event loop) alive;
+ * `_getActiveHandles()`/`_getActiveRequests()` do not surface a raw timer handle the same way, which
+ * is why this took a live diagnostic report to find rather than showing up in either of those.
+ * `sleepTimerRef.current` (a mutable property on a `const` object), not a plain reassigned `let`,
+ * holds the timer id across the `Promise` executor boundary — a `let` reassigned only inside that
+ * executor reads back to `typescript-eslint` as permanently unset outside it, which flags the later
+ * null-check as unreachable even though the executor runs synchronously.
  *
  * USAGE:
  * const wasKilled = await DriverIdleWaitLayerResponder({ killSignal: killSignalPromise });
@@ -27,7 +28,6 @@
  */
 
 import { driverSessionState } from '../../../state/driver-session/driver-session-state';
-import { driverStatics } from '../../../statics/driver/driver-statics';
 
 export const DriverIdleWaitLayerResponder = async ({
   killSignal,
@@ -38,7 +38,7 @@ export const DriverIdleWaitLayerResponder = async ({
     return true;
   }
 
-  const deadlineMs = driverSessionState.lastActivityMs() + driverStatics.idle.timeoutMs;
+  const deadlineMs = driverSessionState.lastActivityMs() + driverSessionState.idleTimeoutMs();
   const nowMs = Date.now();
 
   if (nowMs >= deadlineMs) {

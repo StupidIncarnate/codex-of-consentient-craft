@@ -1,3 +1,6 @@
+import { readFile } from 'fs/promises';
+import { ExitCodeStub, StreamJsonLineStub } from '@dungeonmaster/shared/contracts';
+import { locationsStatics, sessionSnippetStatics } from '@dungeonmaster/shared/statics';
 import { childProcessSpawnStreamJsonAdapter } from './child-process-spawn-stream-json-adapter';
 import { childProcessSpawnStreamJsonAdapterProxy } from './child-process-spawn-stream-json-adapter.proxy';
 import {
@@ -418,6 +421,99 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
       const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
       expect(options.stdio).toStrictEqual(['inherit', 'pipe', 'inherit']);
+    });
+  });
+
+  describe('session snippets', () => {
+    type ExitCode = ReturnType<typeof ExitCodeStub>;
+    type PromptText = ReturnType<typeof PromptTextStub>;
+    interface TranscriptEntry {
+      type?: PromptText;
+      attachment?: {
+        type?: PromptText;
+        hookEvent?: PromptText;
+        exitCode?: ExitCode;
+        content?: PromptText;
+      };
+    }
+
+    const EXPECTED_SNIPPET_KEYS = Object.keys(sessionSnippetStatics);
+
+    it('VALID: {this checkout .claude/settings.json} => the --settings blob registers a hook for every configured snippet key', async () => {
+      const repoRoot = `${__dirname}/../../../../../..`;
+      const settingsPath = AbsoluteFilePathStub({
+        value: `${repoRoot}/${locationsStatics.repoRoot.claude.dir}/${locationsStatics.repoRoot.claude.settings}`,
+      });
+      const contents = await readFile(settingsPath, 'utf8');
+
+      const matched = [...contents.matchAll(/dungeonmaster-session-snippet ([A-Za-z]+)/gu)].map(
+        (match) => match[1]!,
+      );
+      const registeredKeys = [...new Set(matched)].sort((a, b) => a.localeCompare(b));
+
+      expect(registeredKeys).toStrictEqual(
+        [...EXPECTED_SNIPPET_KEYS].sort((a, b) => a.localeCompare(b)),
+      );
+    });
+
+    it('VALID: {trivial prompt, --settings hooks} => every configured SessionStart snippet attaches once, before the first user entry', () => {
+      const proxy = childProcessSpawnStreamJsonAdapterProxy();
+      const stdoutData = [
+        ...EXPECTED_SNIPPET_KEYS.map((key) =>
+          StreamJsonLineStub({
+            value: JSON.stringify({
+              type: 'attachment',
+              attachment: {
+                type: 'hook_success',
+                hookEvent: 'SessionStart',
+                exitCode: 0,
+                content: `<dungeonmaster-${key}>`,
+              },
+            }),
+          }),
+        ),
+        StreamJsonLineStub({ value: JSON.stringify({ type: 'user' }) }),
+      ];
+
+      proxy.setupSuccess({ exitCode: ExitCodeStub({ value: 0 }), stdoutData });
+      proxy.setupSpawn();
+
+      childProcessSpawnStreamJsonAdapter({
+        prompt: PromptTextStub({ value: 'Reply with the single word: ack' }),
+        cwd: RepoRootCwdStub({ value: '/repo' }),
+        model: ClaudeModelStub({ value: 'haiku' }),
+      });
+
+      const exitCode = ExitCodeStub({ value: 0 });
+      const transcript = stdoutData.map((line) => JSON.parse(line) as TranscriptEntry);
+
+      const firstUserIndex = transcript.findIndex((entry) => entry.type === 'user');
+      const sessionStartAttachments = transcript
+        .filter((entry) => entry.type === 'attachment')
+        .filter((entry) => entry.attachment?.hookEvent === 'SessionStart');
+      const attachmentIndices = sessionStartAttachments.map((entry) => transcript.indexOf(entry));
+
+      const attachmentSnippetKeys = sessionStartAttachments
+        .map((entry) =>
+          String(
+            EXPECTED_SNIPPET_KEYS.find((key) =>
+              String(entry.attachment?.content).includes(`<dungeonmaster-${key}>`),
+            ),
+          ),
+        )
+        .sort((a, b) => a.localeCompare(b));
+
+      expect(attachmentSnippetKeys).toStrictEqual(
+        [...EXPECTED_SNIPPET_KEYS].sort((a, b) => a.localeCompare(b)),
+      );
+      expect(sessionStartAttachments.map((entry) => entry.attachment?.type)).toStrictEqual(
+        EXPECTED_SNIPPET_KEYS.map(() => 'hook_success'),
+      );
+      expect(sessionStartAttachments.map((entry) => entry.attachment?.exitCode)).toStrictEqual(
+        EXPECTED_SNIPPET_KEYS.map(() => 0),
+      );
+      expect(Math.max(...attachmentIndices)).toBeLessThan(firstUserIndex);
+      expect(exitCode).toBe(ExitCodeStub({ value: 0 }));
     });
   });
 });

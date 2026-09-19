@@ -5,13 +5,14 @@ import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { RunMissingError } from '../../../errors/run-missing/run-missing-error';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
+import { compareAnswerRenderTransformer } from '../../../transformers/compare-answer-render/compare-answer-render-transformer';
 
 import { SiegelenseCompareResponder } from './siegelense-compare-responder';
 import { SiegelenseCompareResponderProxy } from './siegelense-compare-responder.proxy';
 
 describe('SiegelenseCompareResponder', () => {
   describe('two runs', () => {
-    it('VALID: {two runs} => writes the complete CompareAnswer as one JSON document', async () => {
+    it('VALID: {default: json false} => writes the human summary to stdout', async () => {
       const proxy = SiegelenseCompareResponderProxy();
       const query = CompareQueryStub();
       const answer = CompareAnswerStub({
@@ -22,6 +23,21 @@ describe('SiegelenseCompareResponder', () => {
       proxy.stageAnswer({ answer });
 
       await SiegelenseCompareResponder({ query });
+
+      expect(proxy.getStdoutWrites()).toStrictEqual([compareAnswerRenderTransformer({ answer })]);
+    });
+
+    it('VALID: {json: true} => writes the complete CompareAnswer as one JSON document', async () => {
+      const proxy = SiegelenseCompareResponderProxy();
+      const query = CompareQueryStub();
+      const answer = CompareAnswerStub({
+        instanceId: query.instanceId,
+        runA: query.runA,
+        runB: query.runB,
+      });
+      proxy.stageAnswer({ answer });
+
+      await SiegelenseCompareResponder({ query, json: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,

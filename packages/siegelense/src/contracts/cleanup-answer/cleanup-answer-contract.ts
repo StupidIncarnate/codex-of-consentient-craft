@@ -1,20 +1,20 @@
 /**
- * PURPOSE: The whole `cleanup {}` answer — reaping by staleness, port release, lock release, and
- * `leftAlone` (spec lines 1357-1362). `.strict()` on purpose: this contract carries no `assetsAged`
- * field, and chunk-03 §3.E is why — ageing an asset needs a citation resolver that also covers a
- * `WALKED` line on an open quest, which is Part 7 item 11g's `questNotes` work in `shared` and
- * `orchestrator`, not this package's to write yet. Shipping ageing without that resolver unprotects a
- * clean happy walk's baseline shots (spec lines 241-244), so `cleanup` in this chunk reaps and
- * releases only — it never touches an asset — and `.strict()` is what makes a later
- * `assetsAged: {...}` a parse error instead of a silently accepted extra key. Reach for this over
- * building the four parts ad hoc: this is the one shape both `siegelense-cleanup` and
- * `dungeonmaster siegelense cleanup` render from.
+ * PURPOSE: The whole `cleanup {}` answer — reaping by staleness, port release, lock release,
+ * `assetsAged` and `leftAlone` (spec lines 2444-2450). `assetsAged` carries `instances` and
+ * `freedMB` and nothing else: the spec's longer example at line 1407 also shows `videoFirst: true`,
+ * and no built step writes a `.webm`, so reporting it would be an assertion about work nobody has
+ * done. It is a nested object rather than two flat fields because a reader asks one question of it —
+ * "did this call touch any evidence" — and two sibling keys would let a caller read the count
+ * without the size. `.strict()` on purpose: a field silently accepted is a field nothing renders.
+ * Reach for this over building the five parts ad hoc: this is the one shape both
+ * `cleanupAnswerRenderTransformer` and `dungeonmaster siegelense cleanup`'s JSON render from.
  *
  * USAGE:
  * cleanupAnswerContract.parse({
  *   reaped: [{ id: 'inst_9b2c', staleFor: '9h', killed: [33812, 33840], homeRemoved: true }],
  *   portsReleased: [41345, 34173],
  *   lockReleased: true,
+ *   assetsAged: { instances: 3, freedMB: 1840 },
  *   leftAlone: [{ id: 'inst_7f3a', why: 'live — last beat 2s ago' }],
  * });
  * // Returns a validated CleanupAnswer
@@ -25,6 +25,8 @@ import { z } from 'zod';
 import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
 import { leftAloneContract } from '../left-alone/left-alone-contract';
+import { megabytesContract } from '../megabytes/megabytes-contract';
+import { readingCountContract } from '../reading-count/reading-count-contract';
 import { reapedInstanceContract } from '../reaped-instance/reaped-instance-contract';
 
 export const cleanupAnswerContract = z
@@ -32,6 +34,12 @@ export const cleanupAnswerContract = z
     reaped: z.array(reapedInstanceContract).readonly(),
     portsReleased: z.array(networkPortContract).readonly(),
     lockReleased: z.boolean(),
+    assetsAged: z
+      .object({
+        instances: readingCountContract,
+        freedMB: megabytesContract,
+      })
+      .strict(),
     leftAlone: z.array(leftAloneContract).readonly(),
   })
   .strict();

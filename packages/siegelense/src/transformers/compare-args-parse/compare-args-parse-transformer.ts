@@ -102,5 +102,6 @@ export const compareArgsParseTransformer = ({ args }: { args: readonly string[] 
       flag: RUN_B_FLAG,
       parse: () => runIdContract.parse(runBValue),
     }),
+    json: args.includes(siegelenseOutputStatics.flags.json),
   });
 };

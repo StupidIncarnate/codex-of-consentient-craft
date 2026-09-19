@@ -10,15 +10,15 @@
  * the same check `SiegelenseKillResponder` makes: `instanceRunBroker` falls back to a
  * deterministic socket path for an id the registry never held, so without this check a typo
  * answers `DriverUnreachableError` — a driver problem — instead of what it actually is. Writes the
- * resulting `RunResult` to stdout as one JSON document: an index and a shot list, never the
- * steps' own payloads (`packages/siegelense/CLAUDE.md`: "`run` returns a status; `results` returns
+ * resulting `RunResult` to stdout as a concise human summary by default, or as raw JSON when
+ * `--json` is given (`packages/siegelense/CLAUDE.md`: "`run` returns a status; `results` returns
  * payloads").
  *
  * USAGE:
  * await SiegelenseRunResponder({
  *   args: ['--instance', 'inst_7f3a9c21', '--steps', '[{"step":"goto","path":"/"}]'],
  * });
- * // Writes the RunResult as one JSON document to stdout, or throws first
+ * // Writes the human view (or raw JSON if --json is passed) to stdout, or throws first
  */
 
 import { pathResolveAdapter } from '@dungeonmaster/shared/adapters';
@@ -31,6 +31,7 @@ import { registryReadBroker } from '../../../brokers/registry/read/registry-read
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { flagValueReadTransformer } from '../../../transformers/flag-value-read/flag-value-read-transformer';
+import { runAnswerRenderTransformer } from '../../../transformers/run-answer-render/run-answer-render-transformer';
 import { runArgsParseTransformer } from '../../../transformers/run-args-parse/run-args-parse-transformer';
 
 const STEPS_FILE_FLAG = '--steps-file';
@@ -58,7 +59,7 @@ export const SiegelenseRunResponder = async ({
           }),
         );
 
-  const { instanceId, steps, stopOn } = runArgsParseTransformer({ args, stepsFileContent });
+  const { instanceId, steps, stopOn, json } = runArgsParseTransformer({ args, stepsFileContent });
 
   const registry = await registryReadBroker();
   const isKnownInstance = registry.instances.some((candidate) => candidate.id === instanceId);
@@ -68,7 +69,9 @@ export const SiegelenseRunResponder = async ({
 
   const result = await instanceRunBroker({ instanceId, steps, stopOn });
   process.stdout.write(
-    `${JSON.stringify(result, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+    json
+      ? `${JSON.stringify(result, null, siegelenseOutputStatics.json.indentSpaces)}\n`
+      : runAnswerRenderTransformer({ result }),
   );
   return adapterResultContract.parse({ success: true });
 };

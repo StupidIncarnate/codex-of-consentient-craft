@@ -2,23 +2,25 @@ import { startArgsParseTransformer } from './start-args-parse-transformer';
 
 describe('startArgsParseTransformer', () => {
   describe('the unowned case', () => {
-    it('VALID: {--spec dungeonmaster-web} => quest and guild null', () => {
-      const result = startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-web'] });
+    it('VALID: {--spec dungeonmaster-stack} => quest and guild null, json false', () => {
+      const result = startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-stack'] });
 
       expect(result).toStrictEqual({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         questId: null,
         guildId: null,
+        seed: null,
+        json: false,
       });
     });
   });
 
   describe('every flag named', () => {
-    it('VALID: {--spec, --quest, --guild} => returns the complete object', () => {
+    it('VALID: {--spec, --quest, --guild} => returns the complete object with json false', () => {
       const result = startArgsParseTransformer({
         args: [
           '--spec',
-          'dungeonmaster-web',
+          'dungeonmaster-stack',
           '--quest',
           'add-auth',
           '--guild',
@@ -27,19 +29,21 @@ describe('startArgsParseTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         questId: 'add-auth',
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        seed: null,
+        json: false,
       });
     });
   });
 
-  describe('--json is accepted as an explicit affirmation of the default', () => {
-    it('VALID: {--spec, --quest, --guild, --json} => the same object --json contributes no field to', () => {
+  describe('--json is accepted and sets json true', () => {
+    it('VALID: {--spec, --quest, --guild, --json} => returns object with json true', () => {
       const result = startArgsParseTransformer({
         args: [
           '--spec',
-          'dungeonmaster-web',
+          'dungeonmaster-stack',
           '--quest',
           'add-auth',
           '--guild',
@@ -49,9 +53,11 @@ describe('startArgsParseTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        specName: 'dungeonmaster-web',
+        specName: 'dungeonmaster-stack',
         questId: 'add-auth',
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        seed: null,
+        json: true,
       });
     });
   });
@@ -81,7 +87,7 @@ describe('startArgsParseTransformer', () => {
   describe('an empty --quest', () => {
     it('INVALID: {--quest ""} => throws naming --quest and questIdContract\'s own message', () => {
       expect(() =>
-        startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-web', '--quest', ''] }),
+        startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-stack', '--quest', ''] }),
       ).toThrow(/^--quest: String must contain at least 1 character\(s\)$/u);
     });
   });
@@ -90,7 +96,7 @@ describe('startArgsParseTransformer', () => {
     it("INVALID: {--guild not-a-uuid} => throws naming --guild and guildIdContract's own message", () => {
       expect(() =>
         startArgsParseTransformer({
-          args: ['--spec', 'dungeonmaster-web', '--guild', 'not-a-uuid'],
+          args: ['--spec', 'dungeonmaster-stack', '--guild', 'not-a-uuid'],
         }),
       ).toThrow(/^--guild: Invalid uuid$/u);
     });
@@ -99,16 +105,85 @@ describe('startArgsParseTransformer', () => {
   describe('unknown flag', () => {
     it('INVALID: {--bogus X} => throws naming the flag and listing the accepted ones', () => {
       expect(() => startArgsParseTransformer({ args: ['--bogus', 'X'] })).toThrow(
-        /^Unknown flag: --bogus\n\nAccepted flags: --spec, --quest, --guild, --json\n\nUsage: dungeonmaster siegelense start --spec <specName> \[--quest <questId>\] \[--guild <guildId>\] \[--json\]$/u,
+        /^Unknown flag: --bogus\n\nAccepted flags: --spec, --quest, --guild, --idle-timeout-ms, --seed, --json\n\nUsage: dungeonmaster siegelense start --spec <specName> \[--quest <questId>\] \[--guild <guildId>\] \[--seed <recipeName>\] \[--idle-timeout-ms <ms>\] \[--json\]$/u,
       );
     });
   });
 
   describe('positional argument', () => {
     it('INVALID: {a bare token} => throws naming it', () => {
-      expect(() => startArgsParseTransformer({ args: ['dungeonmaster-web'] })).toThrow(
-        /^Unexpected positional argument: dungeonmaster-web\n\nEvery value must directly follow the flag it belongs to\.\n\nUsage: dungeonmaster siegelense start --spec <specName> \[--quest <questId>\] \[--guild <guildId>\] \[--json\]$/u,
+      expect(() => startArgsParseTransformer({ args: ['dungeonmaster-stack'] })).toThrow(
+        /^Unexpected positional argument: dungeonmaster-stack\n\nEvery value must directly follow the flag it belongs to\.\n\nUsage: dungeonmaster siegelense start --spec <specName> \[--quest <questId>\] \[--guild <guildId>\] \[--seed <recipeName>\] \[--idle-timeout-ms <ms>\] \[--json\]$/u,
       );
+    });
+  });
+
+  describe("--idle-timeout-ms raises the served lane's idle ceiling", () => {
+    it('VALID: {--spec, --idle-timeout-ms 1800000} => returns idleTimeoutMs alongside the rest', () => {
+      const result = startArgsParseTransformer({
+        args: ['--spec', 'dungeonmaster-stack', '--idle-timeout-ms', '1800000'],
+      });
+
+      expect(result).toStrictEqual({
+        specName: 'dungeonmaster-stack',
+        questId: null,
+        guildId: null,
+        seed: null,
+        idleTimeoutMs: 1_800_000,
+        json: false,
+      });
+    });
+
+    it('VALID: {--spec only, no --idle-timeout-ms} => the key is absent, not null', () => {
+      const result = startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-stack'] });
+
+      expect(result).toStrictEqual({
+        specName: 'dungeonmaster-stack',
+        questId: null,
+        guildId: null,
+        seed: null,
+        json: false,
+      });
+    });
+
+    it('INVALID: {--idle-timeout-ms not-a-number} => throws naming --idle-timeout-ms', () => {
+      expect(() =>
+        startArgsParseTransformer({
+          args: ['--spec', 'dungeonmaster-stack', '--idle-timeout-ms', 'not-a-number'],
+        }),
+      ).toThrow(/^--idle-timeout-ms: Expected number, received nan$/u);
+    });
+
+    it("INVALID: {--idle-timeout-ms -1} => throws naming --idle-timeout-ms and the contract's own message", () => {
+      expect(() =>
+        startArgsParseTransformer({
+          args: ['--spec', 'dungeonmaster-stack', '--idle-timeout-ms', '-1'],
+        }),
+      ).toThrow(/^--idle-timeout-ms: Number must be greater than or equal to 0$/u);
+    });
+  });
+
+  describe('--seed names a recipe to run once the lane is up', () => {
+    it('VALID: {--spec, --seed guild-with-three-quests} => returns that recipe name', () => {
+      const result = startArgsParseTransformer({
+        args: ['--spec', 'dungeonmaster-stack', '--seed', 'guild-with-three-quests'],
+      });
+
+      expect(result).toStrictEqual({
+        specName: 'dungeonmaster-stack',
+        questId: null,
+        guildId: null,
+        seed: 'guild-with-three-quests',
+        json: false,
+      });
+    });
+
+    it("INVALID: {--seed 'Not Kebab'} => throws naming the flag and the kebab rule", () => {
+      expect(() =>
+        startArgsParseTransformer({
+          args: ['--spec', 'dungeonmaster-stack', '--seed', 'Not Kebab'],
+        }),
+      ).toThrow(/^--seed: Recipe name must be kebab-case/u);
     });
   });
 });

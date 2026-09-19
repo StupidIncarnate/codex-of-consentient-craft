@@ -7,9 +7,10 @@
  * crash the batch: "a step's failure is CAUGHT and recorded as a reading, which is different from
  * swallowing" — the exception becomes an `ok: false` reading exactly like the dispatcher's own
  * `expect: 'error'`-but-succeeded finding, so the parent's `stopOn` check never has to know which of
- * the two produced it. `timedOut` reads `error instanceof WaitForCeilingHitError` rather than the
- * rendered message, so `runExecuteBroker` can tell `status: 'timeout'` apart from `status: 'failed'`
- * without parsing prose the underlying driver could reword out from under it. "A timeout must NAME
+ * the two produced it. `timedOut` reads `error instanceof WaitForCeilingHitError` (or its `until`
+ * counterpart, `UntilCeilingHitError`) rather than the rendered message, so `runExecuteBroker` can
+ * tell `status: 'timeout'` apart from `status: 'failed'` without parsing prose the underlying
+ * driver could reword out from under it. "A timeout must NAME
  * the step" (siegelense-tooling.md line 101) is satisfied here, since `step` and `verb` are known at
  * the call site even when the underlying error carries neither. `serverWindow` is required on every
  * `StepReading`, never nullable, so the uncaught-exception branch reads `lane.serverLogLength()`
@@ -19,15 +20,28 @@
  * broker unwraps it FIRST — the message extraction and the `WaitForCeilingHitError` timeout check
  * both run against `.underlyingError`, never the wrapper — and gates the reading's `shot` on
  * `.captured`, so a capture that never landed is reported as `null` rather than a path naming a
- * missing file. `lastShotPath`/
+ * missing file. `blank`, `blankColour` and `pixelChange` ride the same gate: `stepDispatchBroker`
+ * already measured them against the SAME capture `.captured` reports on, so this broker reads
+ * `.blank`/`.blankColour`/`.pixelChange` straight off the wrapper rather than re-deriving or
+ * hardcoding them — a REAL failure whose capture landed must carry the same evidence a success would
+ * have, since `blank` is the one VERDICT field in this design. `lastShotPath`/
  * `setLastShotPath` are threaded straight through to `stepDispatchBroker` unchanged — a broker's
  * allowed imports do not include `state/`, so this file never reads the INSTANCE's last-capture
- * pointer itself, only carries the caller's accessor one layer further down.
+ * pointer itself, only carries the caller's accessor one layer further down. `browserWindowStart`
+ * rides the same way, straight through unchanged: `runExecuteBroker` computes it once, before the
+ * whole step loop, so every step's `until { console }`/`until { response }` scans from THIS RUN's
+ * own window rather than a fresh `bufferLengths()` read at whatever moment that one step starts.
+ *
+ * It is also where a step's `{binding.field}` placeholders are SUBSTITUTED, immediately inside the
+ * try. That placement is the point: an unresolvable binding throws, and this is the one place a
+ * throw becomes an `ok: false` reading plus a `StoppedAt` naming the step and the verb — so a
+ * misspelled `as:` stops the batch, lands in the transcript, and reads back through `results` like
+ * any other failure, instead of crashing the whole run.
  *
  * USAGE:
  * await runExecuteStepLayerBroker({
  *   lane, step: StepStub({ step: 'goto', path: UrlPathStub() }),
- *   index: StepIndexStub({ value: 3 }), shotPath: null,
+ *   index: StepIndexStub({ value: 3 }), shotPath: null, browserWindowStart: null,
  *   lastShotPath: driverSessionState.lastShotPath, setLastShotPath: driverSessionState.setLastShotPath,
  * });
  * // Returns { reading, stoppedAt: null, timedOut: false } on success, or
@@ -38,7 +52,10 @@ import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
+import type { BufferLengths } from '../../../contracts/browser-session/browser-session-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
+import type { SeedBindings } from '../../../contracts/seed-bindings/seed-bindings-contract';
+import type { SeedBindingName } from '../../../contracts/seed-binding-name/seed-binding-name-contract';
 import { serverLogWindowContract } from '../../../contracts/server-log-window/server-log-window-contract';
 import type { Step } from '../../../contracts/step/step-contract';
 import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
@@ -48,8 +65,12 @@ import type { StepReading } from '../../../contracts/step-reading/step-reading-c
 import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contract';
 import { stoppedAtContract } from '../../../contracts/stopped-at/stopped-at-contract';
 import type { StoppedAt } from '../../../contracts/stopped-at/stopped-at-contract';
+import { stepCandidateContract } from '../../../contracts/step-candidate/step-candidate-contract';
+import { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
 import { StepFailureCaptureError } from '../../../errors/step-failure-capture/step-failure-capture-error';
+import { UntilCeilingHitError } from '../../../errors/until-ceiling-hit/until-ceiling-hit-error';
 import { WaitForCeilingHitError } from '../../../errors/wait-for-ceiling-hit/wait-for-ceiling-hit-error';
+import { stepInterpolateTransformer } from '../../../transformers/step-interpolate/step-interpolate-transformer';
 import { stepDispatchBroker } from '../../step/dispatch/step-dispatch-broker';
 
 export const runExecuteStepLayerBroker = async ({
@@ -57,27 +78,38 @@ export const runExecuteStepLayerBroker = async ({
   step,
   index,
   shotPath,
+  browserWindowStart,
   lastShotPath,
   setLastShotPath,
+  bindings,
+  recordBinding,
 }: {
   lane: LaneSession;
   step: Step;
   index: StepIndex;
   shotPath: AbsoluteFilePath | null;
+  browserWindowStart: BufferLengths | null;
   lastShotPath: () => AbsoluteFilePath | null;
   setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
+  bindings: () => SeedBindings;
+  recordBinding: (params: { name: SeedBindingName; result: unknown }) => void;
 }): Promise<{ reading: StepReading; stoppedAt: StoppedAt | null; timedOut: boolean }> => {
   const verb = stepVerbContract.parse(step.step);
   const serverLogStartByte = lane.serverLogLength();
 
   try {
+    // Inside the try, and this is the one place it can be: an unresolvable `{g.guildSlug}` throws,
+    // and only here does a throw become an `ok: false` reading plus a `StoppedAt` naming the step.
+    // Interpolating in the parent's loop instead would crash the batch rather than record it.
     const reading = await stepDispatchBroker({
       lane,
-      step,
+      step: stepInterpolateTransformer({ step, bindings: bindings() }),
       index,
       shotPath,
+      browserWindowStart,
       lastShotPath,
       setLastShotPath,
+      recordBinding,
     });
 
     if (reading.ok) {
@@ -107,6 +139,9 @@ export const runExecuteStepLayerBroker = async ({
     // timeout check below see the real rejection either way — whether it arrived wrapped or raw
     // (no capture was attempted: `shotPath` was null, or the verb was `'screenshot'`).
     const capturedShot = error instanceof StepFailureCaptureError ? error.captured : false;
+    const capturedBlank = error instanceof StepFailureCaptureError ? error.blank : null;
+    const capturedBlankColour = error instanceof StepFailureCaptureError ? error.blankColour : null;
+    const capturedPixelChange = error instanceof StepFailureCaptureError ? error.pixelChange : null;
     const underlyingError =
       error instanceof StepFailureCaptureError ? error.underlyingError : error;
     // The error reaching here can be a raw, unwrapped Playwright rejection re-thrown unchanged by
@@ -127,6 +162,16 @@ export const runExecuteStepLayerBroker = async ({
         ? String(underlyingError.message)
         : String(underlyingError),
     );
+    // The STRUCTURED half of an ambiguity. The message already carries every candidate, but a
+    // session parsing the JSON got an empty array — `StoppedAt.candidates` was hardcoded `[]` on
+    // every failure, so the one failure with a machine-readable recovery reported none of it
+    // (scrolls/seigelense/HANDOFF.md findings-log row 10). Read off the UNWRAPPED error: a real
+    // failure that captured arrives inside `StepFailureCaptureError`, so an `instanceof` against
+    // the raw `error` would miss every ambiguity on an acting step — which is all of them.
+    const ambiguousCandidates =
+      underlyingError instanceof StepAmbiguousError
+        ? underlyingError.candidates.map((candidate) => stepCandidateContract.parse(candidate))
+        : [];
     const reading = stepReadingContract.parse({
       step: index,
       verb,
@@ -135,9 +180,9 @@ export const runExecuteStepLayerBroker = async ({
       expected: step.expect,
       reading: message,
       shot: capturedShot ? shotPath : null,
-      pixelChange: null,
-      blank: null,
-      blankColour: null,
+      pixelChange: capturedPixelChange,
+      blank: capturedBlank,
+      blankColour: capturedBlankColour,
       serverWindow: serverLogWindowContract.parse({
         fromByte: serverLogStartByte,
         toByte: lane.serverLogLength(),
@@ -148,8 +193,15 @@ export const runExecuteStepLayerBroker = async ({
 
     return {
       reading,
-      stoppedAt: stoppedAtContract.parse({ step: index, verb, error: message, candidates: [] }),
-      timedOut: underlyingError instanceof WaitForCeilingHitError,
+      stoppedAt: stoppedAtContract.parse({
+        step: index,
+        verb,
+        error: message,
+        candidates: ambiguousCandidates,
+      }),
+      timedOut:
+        underlyingError instanceof WaitForCeilingHitError ||
+        underlyingError instanceof UntilCeilingHitError,
     };
   }
 };

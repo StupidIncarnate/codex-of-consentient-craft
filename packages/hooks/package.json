@@ -11,7 +11,9 @@
     "dungeonmaster-post-ask-question": "./dist/src/startup/start-post-ask-question-hook.js",
     "dungeonmaster-worktree-create": "./dist/src/startup/start-worktree-create-hook.js",
     "dungeonmaster-session-snippet": "./dist/src/startup/start-session-snippet-hook.js",
-    "dungeonmaster-subagent-stop": "./dist/src/startup/start-subagent-stop-hook.js"
+    "dungeonmaster-subagent-stop": "./dist/src/startup/start-subagent-stop-hook.js",
+    "dungeonmaster-agy-pre-tool": "./dist/src/startup/start-agy-pre-tool-hook.js",
+    "dungeonmaster-agy-stop": "./dist/src/startup/start-agy-stop-hook.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

@@ -1,14 +1,14 @@
 /**
  * PURPOSE: Represents an error when one or more of a lane spec's processes never answered their
  * `readyPath` inside `driverStatics.boot.defaultTimeoutMs`. A lane spec (`laneSpecContract`) can
- * carry several processes — `dungeonmaster-web` boots an api and a web server together — and a
+ * carry several processes — `dungeonmaster-stack` boots an api and a web server together — and a
  * caller cannot fix a stuck boot without knowing which process stalled and where its output went,
  * so both are folded into the message. Log paths are handed back rather than log content: content
  * would go stale the instant more output is written, the path never does.
  *
  * USAGE:
  * throw new LaneBootFailedError({
- *   specName: 'dungeonmaster-web',
+ *   specName: 'dungeonmaster-stack',
  *   instanceId: 'inst_7f3a9c21',
  *   unready: ['web'],
  *   logPaths: ['/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/web.log'],

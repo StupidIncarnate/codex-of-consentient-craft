@@ -10,12 +10,6 @@
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./brokers": {
-      "source": "./brokers.ts",
-      "import": "./dist/brokers.js",
-      "require": "./dist/brokers.js",
-      "types": "./dist/brokers.d.ts"
-    },
     "./contracts": {
       "source": "./contracts.ts",
       "import": "./dist/contracts.js",
@@ -27,6 +21,24 @@
       "import": "./dist/statics.js",
       "require": "./dist/statics.js",
       "types": "./dist/statics.d.ts"
+    },
+    "./brokers": {
+      "source": "./brokers.ts",
+      "import": "./dist/brokers.js",
+      "require": "./dist/brokers.js",
+      "types": "./dist/brokers.d.ts"
+    },
+    "./transformers": {
+      "source": "./transformers.ts",
+      "import": "./dist/transformers.js",
+      "require": "./dist/transformers.js",
+      "types": "./dist/transformers.d.ts"
+    },
+    "./testing": {
+      "source": "./testing.ts",
+      "import": "./dist/testing.js",
+      "require": "./dist/testing.js",
+      "types": "./dist/testing.d.ts"
     }
   },
   "scripts": {
@@ -41,7 +53,7 @@
     "@dungeonmaster/hydration": "*",
     "@dungeonmaster/orchestrator": "*",
     "@dungeonmaster/shared": "*",
-    "zod": "^3.22.4"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@dungeonmaster/testing": "*",

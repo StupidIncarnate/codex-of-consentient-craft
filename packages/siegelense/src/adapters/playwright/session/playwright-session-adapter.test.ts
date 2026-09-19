@@ -1,6 +1,10 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
+import { DomReadingStub } from '../../../contracts/dom-reading/dom-reading.stub';
+import { FocusedElementStub } from '../../../contracts/focused-element/focused-element.stub';
+import { RawDomReadingStub } from '../../../contracts/raw-dom-reading/raw-dom-reading.stub';
 import { StepCandidateStub } from '../../../contracts/step-candidate/step-candidate.stub';
+import { VideoActionStub } from '../../../contracts/video-action/video-action.stub';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { playwrightSessionAdapter } from './playwright-session-adapter';
 import { playwrightSessionAdapterProxy } from './playwright-session-adapter.proxy';
@@ -200,14 +204,56 @@ describe('playwrightSessionAdapter', () => {
     });
   });
 
+  describe('waitForPredicate()', () => {
+    it('VALID: {source, timeoutMs} => calls page.waitForFunction with the source and the timeout', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.waitForPredicate({
+        source: 'document.querySelectorAll("[data-testid=QUEST_ROW]").length === 3',
+        timeoutMs: driverStatics.run.defaultStepTimeoutMs,
+      });
+
+      expect(proxy.getWaitForFunctionCalls()).toStrictEqual([
+        {
+          source: 'document.querySelectorAll("[data-testid=QUEST_ROW]").length === 3',
+          options: { timeout: driverStatics.run.defaultStepTimeoutMs },
+        },
+      ]);
+    });
+
+    it('ERROR: {predicate never becomes true} => rejects with the underlying timeout', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setWaitForFunctionRejects();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await expect(session.waitForPredicate({ source: 'false', timeoutMs: 5000 })).rejects.toThrow(
+        /Timeout 30000ms exceeded/u,
+      );
+    });
+  });
+
   describe('describeMatches()', () => {
     it('VALID: {two matches} => returns both candidates with their real content', async () => {
       const proxy = playwrightSessionAdapterProxy();
       proxy.setDescribeMatchesResult({
         raw: [
-          { index: 0, within: '[data-testid="GUILD_LIST"]', text: '+', rect: '(444,348) 27x25' },
+          {
+            index: 0,
+            ref: 16,
+            within: '[data-testid="GUILD_LIST"]',
+            text: '+',
+            rect: '(444,348) 27x25',
+          },
           {
             index: 1,
+            ref: 23,
             within: '[data-testid="GUILD_SESSION_LIST"]',
             text: '+',
             rect: '(965,348) 27x25',
@@ -224,17 +270,230 @@ describe('playwrightSessionAdapter', () => {
       expect(result).toStrictEqual([
         StepCandidateStub({
           index: 0,
+          ref: 16,
           within: '[data-testid="GUILD_LIST"]',
           text: '+',
           rect: '(444,348) 27x25',
         }),
         StepCandidateStub({
           index: 1,
+          ref: 23,
           within: '[data-testid="GUILD_SESSION_LIST"]',
           text: '+',
           rect: '(965,348) 27x25',
         }),
       ]);
+    });
+
+    it('VALID: {a described candidate} => its ref becomes drivable, because describing mints one exactly as a look does', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setDescribeMatchesResult({
+        raw: [
+          {
+            index: 0,
+            ref: 16,
+            within: '[data-testid="GUILD_LIST"]',
+            text: '+',
+            rect: '(444,348) 27x25',
+          },
+        ],
+      });
+      proxy.setRefState({ state: 'out-of-range' });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+      await session.describeMatches({ target: TARGET });
+
+      const result = await session.refState({ ref: 16 });
+
+      expect(result).toStrictEqual({ state: 'stale', boundary: 'navigation', highestMinted: 16 });
+    });
+  });
+
+  describe('look()', () => {
+    it('VALID: {a page reading} => returns the whole listing, rendered', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setKeyReadResult({
+        raw: {
+          rows: [
+            {
+              ref: 1,
+              depth: 0,
+              parentRef: null,
+              testId: 'MAP_FRAME',
+              tag: 'div',
+              role: null,
+              domId: null,
+              text: null,
+              value: null,
+              placeholder: null,
+              attributes: [],
+              flags: [],
+              flagDetail: {},
+            },
+          ],
+          highestRef: 1,
+          skipped: [],
+        },
+      });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.look({ within: null });
+
+      expect(result.rendered).toBe(
+        [
+          'key: 1 rows',
+          'ref  element          text / value  attrs  flags',
+          '---  ---------------  ------------  -----  -----',
+          '  1  MAP_FRAME <div>',
+        ].join('\n'),
+      );
+    });
+
+    it('VALID: {a within scope} => the scope rides the listing', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setKeyReadResult({ raw: { rows: [], highestRef: 0, skipped: [] } });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.look({ within: WITHIN });
+
+      expect(result.within).toBe(WITHIN);
+    });
+  });
+
+  describe('the ref registry', () => {
+    it('VALID: {a session} => the init script is added once, before any navigation', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      await playwrightSessionAdapter({ baseUrl: BASE_URL, evidencePath: EVIDENCE_PATH });
+
+      expect(proxy.getInitScripts()).toStrictEqual([
+        [
+          '(() => {',
+          '  const existing = window.__siege;',
+          '  if (existing === undefined) {',
+          '    window.__siege = { refs: [] };',
+          '    return;',
+          '  }',
+          '  if (Array.isArray(existing.refs) === false) {',
+          '    existing.refs = [];',
+          '  }',
+          '})()',
+        ].join('\n'),
+      ]);
+    });
+
+    it('VALID: {a ref nothing ever minted} => answers unknown rather than resolving to something else', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setRefState({ state: 'out-of-range' });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.refState({ ref: 99 });
+
+      expect(result).toStrictEqual({ state: 'unknown', boundary: null, highestMinted: 0 });
+    });
+
+    it('VALID: {a look, then a ref inside what it minted, gone} => answers stale naming the navigation', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setKeyReadResult({ raw: { rows: [], highestRef: 41, skipped: [] } });
+      proxy.setRefState({ state: 'out-of-range' });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+      await session.look({ within: null });
+
+      const result = await session.refState({ ref: 23 });
+
+      expect(result).toStrictEqual({ state: 'stale', boundary: 'navigation', highestMinted: 41 });
+    });
+  });
+
+  describe('clickRef()', () => {
+    it('VALID: {ref} => stamps, clicks the stamp through the strict locator, then unstamps', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.clickRef({ ref: 26, timeoutMs: 5000 });
+
+      expect(proxy.getClickCalls()).toStrictEqual([
+        { selector: '[siege-target]', options: { timeout: 5000 } },
+      ]);
+    });
+
+    it('VALID: {ref} => the stamp is removed afterwards, so the mutation never outlives the step', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.clickRef({ ref: 26, timeoutMs: 5000 });
+
+      expect(proxy.getStampCalls()).toStrictEqual(['stamp', 'unstamp']);
+    });
+  });
+
+  describe('fillRef()', () => {
+    it('VALID: {ref, value} => fills the stamp through the strict locator', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.fillRef({ ref: 14, value: 'guild-alpha', timeoutMs: 5000 });
+
+      expect(proxy.getFillCalls()).toStrictEqual([
+        { selector: '[siege-target]', value: 'guild-alpha', options: { timeout: 5000 } },
+      ]);
+    });
+  });
+
+  describe('boxRef()', () => {
+    it('VALID: {ref} => reads the geometry of the ref from the page', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setBoxResult({
+        raw: {
+          ref: 26,
+          x: 607,
+          y: 472,
+          width: 66,
+          height: 27,
+          viewport: { width: 1280, height: 720 },
+          visible: true,
+          inViewport: true,
+        },
+      });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.boxRef({ ref: 26 });
+
+      expect(result).toStrictEqual({
+        ref: 26,
+        x: 607,
+        y: 472,
+        width: 66,
+        height: 27,
+        viewport: { width: 1280, height: 720 },
+        visible: true,
+        inViewport: true,
+      });
     });
   });
 
@@ -250,6 +509,22 @@ describe('playwrightSessionAdapter', () => {
 
       expect(proxy.getScreenshotCalls()).toStrictEqual([
         { path: '/tmp/siegelense/step1.png', animations: 'disabled', caret: 'hide' },
+      ]);
+    });
+  });
+
+  describe('captureLive()', () => {
+    it('VALID: {filePath} => calls screenshot with animations allowed', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.captureLive({ filePath: '/tmp/siegelense/step1_live.png' });
+
+      expect(proxy.getScreenshotCalls()).toStrictEqual([
+        { path: '/tmp/siegelense/step1_live.png', animations: 'allow' },
       ]);
     });
   });
@@ -419,6 +694,290 @@ describe('playwrightSessionAdapter', () => {
       const result = await session.evaluateSource({ source: '({ ok: true })' });
 
       expect(result).toBe('{"ok":true}');
+    });
+  });
+
+  describe('readDom()', () => {
+    it('VALID: {target, fields: null, text: null} => returns DomReading from page evaluate and domReadLayerAdapter', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setDomReadResult({
+        raw: RawDomReadingStub(),
+      });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.readDom({
+        target: 'button',
+        fields: null,
+        text: null,
+      });
+
+      expect(result).toStrictEqual(DomReadingStub());
+    });
+  });
+
+  describe('pressKey()', () => {
+    it('VALID: {press: "Enter", nothing focused} => calls page.keyboard.press and returns KeyReading with focused: null', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setFocusedResult({ raw: null });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const reading = await session.pressKey({ press: 'Enter' });
+
+      expect(proxy.getKeyboardPressCalls()).toStrictEqual(['Enter']);
+      expect(reading).toStrictEqual({
+        press: 'Enter',
+        focused: null,
+      });
+    });
+
+    it('VALID: {press: "Tab", active element focused} => calls page.keyboard.press and returns KeyReading with focused element', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const raw = FocusedElementStub({
+        tag: 'input',
+        testId: 'NAME_INPUT',
+        text: 'alice',
+        ref: 14,
+      });
+      proxy.setFocusedResult({ raw });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const reading = await session.pressKey({ press: 'Tab' });
+
+      expect(proxy.getKeyboardPressCalls()).toStrictEqual(['Tab']);
+      expect(reading).toStrictEqual({
+        press: 'Tab',
+        focused: {
+          tag: 'input',
+          testId: 'NAME_INPUT',
+          role: null,
+          domId: null,
+          text: 'alice',
+          ref: 14,
+        },
+      });
+    });
+  });
+
+  describe('checkRootPresent()', () => {
+    it('VALID: {root is present} => returns true', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setRootPresent({ present: true });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.checkRootPresent();
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {root is absent} => returns false', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setRootPresent({ present: false });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.checkRootPresent();
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('setViewport()', () => {
+    it('VALID: {width: 1280, height: 720} => calls page.setViewportSize with width and height', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.setViewport({ width: 1280, height: 720 });
+
+      expect(proxy.getSetViewportSizeCalls()).toStrictEqual([{ width: 1280, height: 720 }]);
+    });
+  });
+
+  describe('addInitScript()', () => {
+    it('VALID: {source: "window.__test = 1;"} => delegates to initScriptAddLayerAdapter', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.addInitScript({ source: 'window.__test = 1;' });
+
+      expect(proxy.getInitScripts().slice(1)).toStrictEqual([{ content: 'window.__test = 1;' }]);
+    });
+  });
+
+  describe('readStorage()', () => {
+    it('VALID: {prefix: "dm-"} => delegates to storageReadLayerAdapter and returns StorageReading', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setStorageResult({
+        raw: {
+          origin: 'http://localhost:5173',
+          local: { 'dm-theme': 'dark' },
+          session: {},
+        },
+      });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.readStorage({ prefix: 'dm-' });
+
+      expect(result).toStrictEqual({
+        origin: 'http://localhost:5173',
+        local: { 'dm-theme': 'dark' },
+        session: {},
+      });
+    });
+  });
+
+  describe('clearStorage()', () => {
+    it('VALID: clears localStorage and sessionStorage via evaluate', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.clearStorage();
+
+      expect(proxy.getClearStorageCalls()).toStrictEqual([true]);
+    });
+  });
+
+  describe('pasteMatch()', () => {
+    it('VALID: {target: "[data-testid=\\"INPUT\\"]", value: "test"} => focuses locator, writes clipboard, and presses ControlOrMeta+V', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.pasteMatch({
+        target: '[data-testid="INPUT"]',
+        filePath: null,
+        value: 'test',
+        timeoutMs: 5000,
+      });
+
+      expect(proxy.getFocusCalls()).toStrictEqual([
+        { selector: '[data-testid="INPUT"]', options: { timeout: 5000 } },
+      ]);
+      expect(proxy.getKeyboardPressCalls()).toStrictEqual(['ControlOrMeta+V']);
+      expect(proxy.getClipboardWrites()).toStrictEqual(['test']);
+    });
+  });
+
+  describe('pasteRef()', () => {
+    it('VALID: {ref: 7, value: "test"} => stamps ref, focuses locator, unstamps, writes clipboard, and presses ControlOrMeta+V', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      await session.pasteRef({
+        ref: 7,
+        filePath: null,
+        value: 'test',
+        timeoutMs: 4000,
+      });
+
+      expect(proxy.getFocusCalls()).toStrictEqual([
+        { selector: '[siege-target]', options: { timeout: 4000 } },
+      ]);
+      expect(proxy.getStampCalls()).toStrictEqual(['stamp', 'unstamp']);
+      expect(proxy.getKeyboardPressCalls()).toStrictEqual(['ControlOrMeta+V']);
+      expect(proxy.getClipboardWrites()).toStrictEqual(['test']);
+    });
+  });
+
+  describe('context initialization', () => {
+    it('VALID: creates context with baseURL and recordVideo pointing to evidencePath/video', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      expect(proxy.getNewContextCalls()).toStrictEqual([
+        {
+          baseURL: BASE_URL,
+          recordVideo: { dir: `${EVIDENCE_PATH}/video` },
+        },
+      ]);
+    });
+  });
+
+  describe('videoAction()', () => {
+    it('VALID: {action: "start"} => returns status "started" with path null', async () => {
+      playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.videoAction({
+        action: VideoActionStub({ value: 'start' }),
+      });
+
+      expect(result).toStrictEqual({
+        status: 'started',
+        path: null,
+      });
+    });
+
+    it('VALID: {action: "stop"} with available page video => returns status "stopped" with video path', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setVideoPath({ videoPath: '/custom/video/run.webm' });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.videoAction({
+        action: VideoActionStub({ value: 'stop' }),
+      });
+
+      expect(result).toStrictEqual({
+        status: 'stopped',
+        path: '/custom/video/run.webm',
+      });
+    });
+
+    it('VALID: {action: "stop"} when page.video() returns null => falls back to evidencePath/video directory', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setHasVideo({ hasVideo: false });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const result = await session.videoAction({
+        action: VideoActionStub({ value: 'stop' }),
+      });
+
+      expect(result).toStrictEqual({
+        status: 'stopped',
+        path: `${EVIDENCE_PATH}/video`,
+      });
     });
   });
 });

@@ -4,19 +4,21 @@
  * `/proc` for orphans and rss, the two known log files, the repo-local symlink, and the last run's
  * transcript — behind scenario methods a test calls in the SAME order the broker itself reaches
  * them, since `pathJoinAdapter`'s mock is one call-ordered queue shared by every proxy that stages it
- * (see `heartbeat-write-broker.proxy.ts` for the same rule on a shorter chain). Four of this broker's
- * OWN joins — `runs`, `api-server.log`, `web-server.log`, and the last run's transcript — are
- * explicitly staged here too, via `setupRunsDirPathJoin` / `setupApiWebLogPathJoins` /
- * `setupTranscriptPathJoin`, rather than left to `pathJoinAdapter`'s real-passthrough default:
+ * (see `heartbeat-write-broker.proxy.ts` for the same rule on a shorter chain). Five of this broker's
+ * OWN joins — `runs`, `shutdown-reason.json`, `api-server.log`, `web-server.log`, and the last run's
+ * transcript — are explicitly staged here too, via `setupRunsDirPathJoin` /
+ * `setupShutdownReasonPathJoin` / `setupApiWebLogPathJoins` / `setupTranscriptPathJoin`, rather than
+ * left to `pathJoinAdapter`'s real-passthrough default:
  * `locationsRepoLinkPathFindBroker`'s OWN resolution (staged by `setupRepoLinkResolves`) pushes ITS
  * pending entries onto this SAME shared queue well before it actually runs, and an unstaged call
  * from this broker in between would consume one of those instead of computing its own real join. A
  * test therefore calls the push-registering methods in exactly this order: `setupEvidenceDir`,
  * `setupHeartbeatFound`/`setupHeartbeatMissing`, `setupRunsDirPathJoin`,
- * `setupApiWebLogPathJoins` (named only), `setupRepoLinkResolves` (named only),
- * `setupTranscriptPathJoin` (named, with a run, only) — the non-pushing methods
- * (`setupRunsDirEntries`, `setupProcListing`, the log presence/absence, `setupTranscriptLines`) may
- * be called in any position relative to those. `setupProcListing` alone answers BOTH
+ * `setupShutdownReasonPathJoin` (whenever `state !== 'alive'`), `setupApiWebLogPathJoins` (named
+ * only), `setupRepoLinkResolves` (named only), `setupTranscriptPathJoin` (named, with a run, only) —
+ * the non-pushing methods (`setupRunsDirEntries`, `setupShutdownReasonMissing`/
+ * `setupShutdownReasonFound`, `setupProcListing`, the log presence/absence, `setupTranscriptLines`)
+ * may be called in any position relative to those. `setupProcListing` alone answers BOTH
  * `orphanReadBroker`'s and `machineRssByPgidBroker`'s own `/proc` readdir, since both call it with
  * the identical `dirPath` argument against the one shared mock.
  *
@@ -26,6 +28,8 @@
  * proxy.setupHeartbeatMissing({ homeDir, homePath, rootPath, evidencePath });
  * proxy.setupRunsDirPathJoin({ evidencePath });
  * proxy.setupRunsDirEntries({ evidencePath, entries: [] });
+ * proxy.setupShutdownReasonPathJoin({ evidencePath });
+ * proxy.setupShutdownReasonMissing({ evidencePath });
  * proxy.setupProcListing({ pids: [] });
  */
 
@@ -39,15 +43,18 @@ import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-a
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import type { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
+import type { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';
 import { heartbeatReadBrokerProxy } from '../../heartbeat/read/heartbeat-read-broker.proxy';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker.proxy';
 import { machineRssByPgidBrokerProxy } from '../../machine/rss-by-pgid/machine-rss-by-pgid-broker.proxy';
 import { orphanReadBrokerProxy } from '../../orphan/read/orphan-read-broker.proxy';
+import { shutdownReasonReadBrokerProxy } from '../../shutdown-reason/read/shutdown-reason-read-broker.proxy';
 import { likelyCauseLayerBrokerProxy } from './likely-cause-layer-broker.proxy';
 
 type InstanceHeartbeat = ReturnType<typeof InstanceHeartbeatStub>;
 type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
+type ShutdownReason = ReturnType<typeof ShutdownReasonStub>;
 
 export const instanceEntryLayerBrokerProxy = (): {
   setupEvidenceDir: (params: {
@@ -71,6 +78,9 @@ export const instanceEntryLayerBrokerProxy = (): {
   }) => void;
   setupRunsDirPathJoin: (params: { evidencePath: FilePath }) => void;
   setupRunsDirEntries: (params: { evidencePath: FilePath; entries: readonly string[] }) => void;
+  setupShutdownReasonPathJoin: (params: { evidencePath: FilePath }) => void;
+  setupShutdownReasonMissing: (params: { evidencePath: FilePath }) => void;
+  setupShutdownReasonFound: (params: { evidencePath: FilePath; marker: ShutdownReason }) => void;
   setupProcListing: (params: { pids: readonly string[] }) => void;
   setupPidStatPathJoin: (params: { pid: string }) => void;
   setupPidStat: (params: { pid: string; pgrp: number; comm?: string }) => void;
@@ -110,6 +120,7 @@ export const instanceEntryLayerBrokerProxy = (): {
   const webLogStatProxy = fsStatAdapterProxy();
   const repoLinkProxy = locationsRepoLinkPathFindBrokerProxy();
   const transcriptReadProxy = fsReadFileAdapterProxy();
+  const shutdownReasonProxy = shutdownReasonReadBrokerProxy();
 
   return {
     setupEvidenceDir: (params: {
@@ -160,6 +171,39 @@ export const instanceEntryLayerBrokerProxy = (): {
           value: `${evidencePath}/${locationsStatics.siegelense.runsDir}`,
         }),
         entries,
+      });
+    },
+
+    // Pushed onto the SAME shared pathJoinAdapter queue as setupRunsDirPathJoin, and consumed
+    // right after it — `shutdownReasonReadBroker`'s own internal join is the very next real
+    // pathJoin call once `state !== 'alive'`, synchronous within the `Promise.all` array literal
+    // and therefore ahead of every per-pid join (queued behind it, from a LATER microtask) and
+    // every named-branch join (queued behind it too, reached only after `Promise.all` resolves).
+    // A test for a non-alive instance calls this immediately after `setupRunsDirPathJoin`.
+    setupShutdownReasonPathJoin: ({ evidencePath }: { evidencePath: FilePath }): void => {
+      ownPathJoinProxy.returns({
+        result: FilePathStub({
+          value: `${evidencePath}/${locationsStatics.siegelense.shutdownReason}`,
+        }),
+      });
+    },
+
+    setupShutdownReasonMissing: ({ evidencePath }: { evidencePath: FilePath }): void => {
+      shutdownReasonProxy.setupMarkerMissing({
+        evidencePath: AbsoluteFilePathStub({ value: String(evidencePath) }),
+      });
+    },
+
+    setupShutdownReasonFound: ({
+      evidencePath,
+      marker,
+    }: {
+      evidencePath: FilePath;
+      marker: ShutdownReason;
+    }): void => {
+      shutdownReasonProxy.setupMarkerFound({
+        evidencePath: AbsoluteFilePathStub({ value: String(evidencePath) }),
+        marker,
       });
     },
 

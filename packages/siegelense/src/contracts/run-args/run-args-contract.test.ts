@@ -3,18 +3,31 @@ import { RunArgsStub } from './run-args.stub';
 
 describe('runArgsContract', () => {
   describe('valid args', () => {
-    it('VALID: {instanceId, one step, stopOn} => parses the complete args', () => {
+    it('VALID: {instanceId, one step, stopOn, json: false} => parses the complete args', () => {
       const result = runArgsContract.parse({
         instanceId: 'inst_7f3a9c21',
         steps: [{ step: 'goto', path: '/api/guilds', node: null, expect: 'ok' }],
         stopOn: 'error',
+        json: false,
       });
 
       expect(result).toStrictEqual({
         instanceId: 'inst_7f3a9c21',
         steps: [{ step: 'goto', path: '/api/guilds', node: null, expect: 'ok' }],
         stopOn: 'error',
+        json: false,
       });
+    });
+
+    it('VALID: {json: true} => parses args with json true', () => {
+      const result = runArgsContract.parse({
+        instanceId: 'inst_7f3a9c21',
+        steps: [{ step: 'goto', path: '/api/guilds', node: null, expect: 'ok' }],
+        stopOn: 'error',
+        json: true,
+      });
+
+      expect(result.json).toBe(true);
     });
 
     it('VALID: {stopOn: never} => an adversarial batch that pushes through every step parses', () => {
@@ -22,6 +35,7 @@ describe('runArgsContract', () => {
         instanceId: 'inst_7f3a9c21',
         steps: [{ step: 'eval', source: 'document.title', node: null, expect: 'ok' }],
         stopOn: 'never',
+        json: false,
       });
 
       expect(result.stopOn).toBe('never');
@@ -34,6 +48,7 @@ describe('runArgsContract', () => {
         instanceId: 'inst_7f3a9c21',
         steps: [],
         stopOn: 'error',
+        json: false,
       });
 
       expect(result.steps).toStrictEqual([]);
@@ -45,6 +60,7 @@ describe('runArgsContract', () => {
       const result = runArgsContract.safeParse({
         instanceId: 'inst_7f3a9c21',
         steps: [],
+        json: false,
       });
 
       expect(result.success).toBe(false);
@@ -63,6 +79,7 @@ describe('runArgsContract', () => {
       const result = runArgsContract.safeParse({
         steps: [],
         stopOn: 'error',
+        json: false,
       });
 
       expect(result.success).toBe(false);
@@ -72,6 +89,25 @@ describe('runArgsContract', () => {
           expected: 'string',
           received: 'undefined',
           path: ['instanceId'],
+          message: 'Required',
+        },
+      ]);
+    });
+
+    it('INVALID: {missing json} => raises exactly one issue, scoped to json', () => {
+      const result = runArgsContract.safeParse({
+        instanceId: 'inst_7f3a9c21',
+        steps: [],
+        stopOn: 'error',
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error?.issues).toStrictEqual([
+        {
+          code: 'invalid_type',
+          expected: 'boolean',
+          received: 'undefined',
+          path: ['json'],
           message: 'Required',
         },
       ]);
@@ -100,12 +136,14 @@ describe('runArgsContract', () => {
             step: 'click',
             target: '[data-testid="GUILD_ADD"]',
             within: null,
+            ref: null,
             timeoutMs: null,
             node: null,
             expect: 'ok',
           },
         ],
         stopOn: 'error',
+        json: false,
       });
     });
   });

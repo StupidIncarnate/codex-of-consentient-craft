@@ -12,6 +12,8 @@
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 
+import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
+
 import { instanceStartBroker } from '../../../brokers/instance/start/instance-start-broker';
 import { instanceStartBrokerProxy } from '../../../brokers/instance/start/instance-start-broker.proxy';
 import type { InstanceManifestStub } from '../../../contracts/instance-manifest/instance-manifest.stub';
@@ -28,6 +30,7 @@ export const SiegelenseStartResponderProxy = (): {
     specName: SpecName;
     questId: QuestId | null;
     guildId: GuildId | null;
+    seed: RecipeName | null;
   }) => unknown[][];
 } => {
   // Constructed for enforce-proxy-child-creation only — this proxy stages instanceStartBroker
@@ -53,10 +56,12 @@ export const SiegelenseStartResponderProxy = (): {
       specName,
       questId,
       guildId,
+      seed,
     }: {
       specName: SpecName;
       questId: QuestId | null;
       guildId: GuildId | null;
-    }): unknown[][] => instanceStartHandle.callsMatching([{ specName, questId, guildId }]),
+      seed: RecipeName | null;
+    }): unknown[][] => instanceStartHandle.callsMatching([{ specName, questId, guildId, seed }]),
   };
 };

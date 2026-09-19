@@ -19,6 +19,7 @@ describe('siegelenseCallStatics', () => {
           'recipes',
           'docs',
         ],
+        humanRenderers: ['status', 'cleanup', 'prune', 'recipes', 'docs'],
       },
       docs: {
         scopes: [

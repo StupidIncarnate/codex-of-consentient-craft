@@ -11,11 +11,11 @@ const WARD_QUEUE_DIR = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1/ward-
 
 describe('laneEnvSubstituteTransformer', () => {
   describe('the built-in specs, run through the real substitution', () => {
-    it('VALID: {dungeonmaster-web} => every declared env value resolves, no placeholder left', () => {
+    it('VALID: {dungeonmaster-stack} => every declared env value resolves, no placeholder left', () => {
       // Statics hold raw, unbranded data (see lane-spec-statics.ts's PURPOSE) — routing it through
       // LaneSpecStub's own laneSpecContract.parse is what brands it, without this test file
       // importing a contract directly.
-      const spec = LaneSpecStub({ ...laneSpecStatics.specs['dungeonmaster-web'] });
+      const spec = LaneSpecStub({ ...laneSpecStatics.specs['dungeonmaster-stack'] });
 
       const substitutedValues = [
         laneEnvSubstituteTransformer({
@@ -40,8 +40,8 @@ describe('laneEnvSubstituteTransformer', () => {
       expect(hasUnresolvedPlaceholder).toBe(false);
     });
 
-    it('VALID: {dungeonmaster-headless} => every declared env value resolves, no placeholder left', () => {
-      const spec = LaneSpecStub({ ...laneSpecStatics.specs['dungeonmaster-headless'] });
+    it('VALID: {dungeonmaster-api} => every declared env value resolves, no placeholder left', () => {
+      const spec = LaneSpecStub({ ...laneSpecStatics.specs['dungeonmaster-api'] });
 
       const substitutedValues = [
         laneEnvSubstituteTransformer({

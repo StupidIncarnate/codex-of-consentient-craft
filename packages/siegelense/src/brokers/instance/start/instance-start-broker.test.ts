@@ -1,4 +1,9 @@
-import { FilePathStub, GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  FilePathStub,
+  GuildIdStub,
+  QuestIdStub,
+  TimeoutMsStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { instanceStartBroker } from './instance-start-broker';
 import { instanceStartBrokerProxy } from './instance-start-broker.proxy';
@@ -14,6 +19,7 @@ import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-en
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
+import { DriverBootFailedError } from '../../../errors/driver-boot-failed/driver-boot-failed-error';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
 
 const UNOWNED_EVIDENCE_PATH_VALUE =
@@ -33,13 +39,64 @@ describe('instanceStartBroker', () => {
         }),
       });
 
-      await instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null });
+      await instanceStartBroker({
+        specName: SpecNameStub(),
+        questId: null,
+        guildId: null,
+        seed: null,
+      });
 
       const writeOrder = proxy.getWriteOrder();
       const registryWriteIndex = writeOrder.findIndex((path) => path.includes('registry.json.tmp'));
       const bootLockWriteIndex = writeOrder.findIndex((path) => path.includes('boot.lock'));
 
       expect(registryWriteIndex).toBeLessThan(bootLockWriteIndex);
+    });
+  });
+
+  describe('idleTimeoutMs carried to the spawned driver', () => {
+    it('VALID: {idleTimeoutMs given} => boots successfully, proving the driver was spawned with --idle-timeout-ms naming it', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [RegistryEntryStub({ id: instanceId })],
+        }),
+        idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+      });
+
+      const result = await instanceStartBroker({
+        specName: SpecNameStub(),
+        questId: null,
+        guildId: null,
+        seed: null,
+        idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+      });
+
+      expect(result.instanceId).toBe(instanceId);
+    });
+
+    it('VALID: {idleTimeoutMs omitted} => boots successfully, proving the driver was spawned with no --idle-timeout-ms flag', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [RegistryEntryStub({ id: instanceId })],
+        }),
+      });
+
+      const result = await instanceStartBroker({
+        specName: SpecNameStub(),
+        questId: null,
+        guildId: null,
+        seed: null,
+      });
+
+      expect(result.instanceId).toBe(instanceId);
     });
   });
 
@@ -60,13 +117,142 @@ describe('instanceStartBroker', () => {
         nowMs,
       });
 
-      await expect(instanceStartBroker({ specName, questId: null, guildId: null })).rejects.toThrow(
-        LaneBootFailedError,
-      );
+      await expect(
+        instanceStartBroker({ specName, questId: null, guildId: null, seed: null }),
+      ).rejects.toThrow(LaneBootFailedError);
 
       expect(proxy.getBootLockReleasedPaths()).toStrictEqual([
         '/home/user/.dungeonmaster/siegelense/boot.lock',
       ]);
+    });
+  });
+
+  describe('the driver reports its own boot failure via a marker', () => {
+    it('ERROR: {boot-failure.json appears on the first failed ping} => throws DriverBootFailedError naming the driver message, not a generic ready-path timeout', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      const specName = SpecNameStub({ value: 'test-driver-reports-failure' });
+      const driverMessage =
+        'Lane spec dungeonmaster-stack requires a fake agent CLI, and the environment supplies none of it: set CLAUDE_CLI_PATH to a stub Claude CLI binary.';
+      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
+      proxy.setupBootFailureMarkerAppears({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [RegistryEntryStub({ id: instanceId })],
+        }),
+        driverMessage,
+      });
+
+      const thrownError = await instanceStartBroker({
+        specName,
+        questId: null,
+        guildId: null,
+        seed: null,
+      }).catch((error: unknown) => error);
+
+      expect(thrownError instanceof DriverBootFailedError).toBe(true);
+      expect(String(thrownError)).toBe(
+        `DriverBootFailedError: Lane ${specName} for instance ${instanceId} failed to boot: ${driverMessage} Driver log: ${UNOWNED_EVIDENCE_PATH_VALUE}/driver.log`,
+      );
+      expect(proxy.getBootLockReleasedPaths()).toStrictEqual([
+        '/home/user/.dungeonmaster/siegelense/boot.lock',
+      ]);
+    });
+  });
+
+  describe('a failed boot releases its reservation', () => {
+    it('ERROR: {driver reports a boot failure} => releases the reservation instead of leaving it alive with no boot time', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      const specName = SpecNameStub({ value: 'test-release-on-marker-failure' });
+      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
+      proxy.setupBootFailureMarkerAppears({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [RegistryEntryStub({ id: instanceId })],
+        }),
+        driverMessage: 'CLAUDE_CLI_PATH is required',
+      });
+
+      await instanceStartBroker({ specName, questId: null, guildId: null, seed: null }).catch(
+        (error: unknown) => error,
+      );
+
+      const expectedRegistry = RegistryStub({
+        instances: [
+          RegistryEntryStub({
+            id: instanceId,
+            state: 'killed',
+            pid: null,
+            pgids: [],
+            socketPath: null,
+          }),
+        ],
+      });
+
+      expect(proxy.getLastRegistryWriteContent()).toStrictEqual(expectedRegistry);
+    });
+
+    it('ERROR: {driver never answers ping, timeout path} => also releases the reservation', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      const nowMs = 1_700_000_000_000;
+      const specName = SpecNameStub({ value: 'test-release-on-timeout' });
+      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
+      proxy.stageProcessUnreachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
+      proxy.setupBootNeverAnswers({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [RegistryEntryStub({ id: instanceId })],
+        }),
+        nowMs,
+      });
+
+      await instanceStartBroker({ specName, questId: null, guildId: null, seed: null }).catch(
+        (error: unknown) => error,
+      );
+
+      const expectedRegistry = RegistryStub({
+        instances: [
+          RegistryEntryStub({
+            id: instanceId,
+            state: 'killed',
+            pid: null,
+            pgids: [],
+            socketPath: null,
+          }),
+        ],
+      });
+
+      expect(proxy.getLastRegistryWriteContent()).toStrictEqual(expectedRegistry);
+    });
+
+    it('ERROR: {releasing the reservation itself throws} => still rejects with the original boot error', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      const nowMs = 1_700_000_000_000;
+      const specName = SpecNameStub({ value: 'test-release-throws' });
+      const releaseError = Object.assign(new Error('EACCES: permission denied'), {
+        code: 'EACCES',
+      });
+      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
+      proxy.stageProcessUnreachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
+      proxy.setupBootNeverAnswers({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [RegistryEntryStub({ id: instanceId })],
+        }),
+        nowMs,
+      });
+      proxy.stageInstanceReleaseWriteFails({ error: releaseError });
+
+      await expect(
+        instanceStartBroker({ specName, questId: null, guildId: null, seed: null }),
+      ).rejects.toThrow(LaneBootFailedError);
     });
   });
 
@@ -106,6 +292,7 @@ describe('instanceStartBroker', () => {
         specName,
         questId: null,
         guildId: null,
+        seed: null,
       }).catch((error: unknown) => error);
 
       expect(String(thrownError)).toBe(
@@ -126,7 +313,12 @@ describe('instanceStartBroker', () => {
         registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId, specName })] }),
       });
 
-      const result = await instanceStartBroker({ specName, questId: null, guildId: null });
+      const result = await instanceStartBroker({
+        specName,
+        questId: null,
+        guildId: null,
+        seed: null,
+      });
 
       expect(result.baseUrl).toBe(null);
     });
@@ -164,7 +356,12 @@ describe('instanceStartBroker', () => {
         }),
       });
 
-      const result = await instanceStartBroker({ specName, questId: null, guildId: null });
+      const result = await instanceStartBroker({
+        specName,
+        questId: null,
+        guildId: null,
+        seed: null,
+      });
 
       expect(result.baseUrl).toBe('http://dungeonmaster.localhost:40501');
     });
@@ -188,6 +385,7 @@ describe('instanceStartBroker', () => {
         specName: SpecNameStub(),
         questId: null,
         guildId: null,
+        seed: null,
       });
 
       expect(result.aheadOfMe).toBe(2);
@@ -214,6 +412,7 @@ describe('instanceStartBroker', () => {
         specName: SpecNameStub(),
         questId: null,
         guildId: null,
+        seed: null,
       });
 
       expect(result.aheadOfMe).toBe(1);
@@ -236,6 +435,7 @@ describe('instanceStartBroker', () => {
         specName: SpecNameStub(),
         questId: null,
         guildId: null,
+        seed: null,
       });
 
       expect(result.queuedMs).toBe(34_000);
@@ -261,7 +461,12 @@ describe('instanceStartBroker', () => {
       });
       proxy.setupStaleReap({ staleInstanceId });
 
-      await instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null });
+      await instanceStartBroker({
+        specName: SpecNameStub(),
+        questId: null,
+        guildId: null,
+        seed: null,
+      });
 
       expect(proxy.getStderrMessages()).toStrictEqual([
         `instanceStartBroker: reaped stale instance ${staleInstanceId} — heartbeat gone cold, signalled pgids []\n`,
@@ -283,6 +488,7 @@ describe('instanceStartBroker', () => {
         specName: SpecNameStub(),
         questId: null,
         guildId: null,
+        seed: null,
       });
 
       expect(result.evidence.path).toBe(
@@ -306,7 +512,12 @@ describe('instanceStartBroker', () => {
         }),
       });
 
-      const result = await instanceStartBroker({ specName: SpecNameStub(), questId, guildId });
+      const result = await instanceStartBroker({
+        specName: SpecNameStub(),
+        questId,
+        guildId,
+        seed: null,
+      });
 
       expect(result.evidence.path).toBe(
         `/default/cwd/.siegelense/guilds/${guildId}/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479`,
@@ -328,12 +539,78 @@ describe('instanceStartBroker', () => {
         specName: SpecNameStub(),
         questId: null,
         guildId: null,
+        seed: null,
       });
 
       expect(result.evidence).toStrictEqual({
         path: '/default/cwd/.siegelense/unowned/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479',
         linkPresent: true,
       });
+    });
+  });
+
+  describe("capacity's one hard refusal", () => {
+    it('ERROR: {capacity suggests 0 for want of memory} => throws before any reservation is written, carrying the why verbatim', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
+      });
+      proxy.setupCapacityRefusal({
+        specName: SpecNameStub(),
+        why: 'no room for one more: 2599MB available is under the 2600MB this spec peaks at',
+      });
+
+      await expect(
+        instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null, seed: null }),
+      ).rejects.toThrow(
+        /^Refusing to start dungeonmaster-stack: this machine cannot hold another instance right now — no room for one more: 2599MB available is under the 2600MB this spec peaks at\. Run/u,
+      );
+
+      expect(proxy.getWriteOrder()).toStrictEqual([]);
+    });
+
+    it('ERROR: {capacity suggests 0 because the pool is full} => the same refusal carries the policy reason instead', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
+      });
+      proxy.setupCapacityRefusal({
+        specName: SpecNameStub(),
+        why: 'the policy pool of 3 is full',
+      });
+
+      await expect(
+        instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null, seed: null }),
+      ).rejects.toThrow(
+        /^Refusing to start dungeonmaster-stack: this machine cannot hold another instance right now — the policy pool of 3 is full\. Run/u,
+      );
+
+      expect(proxy.getWriteOrder()).toStrictEqual([]);
+    });
+
+    it('VALID: {capacity suggests more than zero} => the reservation is written and the boot proceeds', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
+      });
+
+      const result = await instanceStartBroker({
+        specName: SpecNameStub(),
+        questId: null,
+        guildId: null,
+        seed: null,
+      });
+
+      expect(result.instanceId).toBe(instanceId);
     });
   });
 });

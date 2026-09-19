@@ -31,6 +31,7 @@ export const stepSeedBrokerProxy = (): {
   stagesListing: (params: { listing: unknown }) => void;
   stagesSeedRun: (params: { result: unknown }) => { getCallArgs: () => readonly unknown[] };
   stagesSeedRunThrows: (params: { error: Error }) => void;
+  bookPresentAt: (params: { packagePath: FilePath }) => void;
 } => {
   const locateProxy = recipesLocateBrokerProxy();
   const importProxy = runtimeDynamicImportAdapterProxy();
@@ -39,8 +40,21 @@ export const stepSeedBrokerProxy = (): {
   // satisfies enforce-proxy-child-creation for stepSeedBroker's own import of recipesReadBroker.
   recipesReadBrokerProxy();
   const moduleExports: Record<PropertyKey, unknown> = {};
+  const state: { packagePath: FilePath | null } = { packagePath: null };
 
   const stageEntry = (): void => {
+    if (state.packagePath !== null) {
+      const pkgPath = state.packagePath;
+      const entryPath = FilePathStub({
+        value: `${state.packagePath}/${recipesConventionStatics.entry.distRelativePath}`,
+      });
+      locateProxy.setupPresentAndBuiltAt({
+        packagePath: pkgPath,
+        entryPath,
+      });
+      importProxy.succeeds({ path: entryPath, module: moduleExports });
+      return;
+    }
     locateProxy.setupPresentAndBuilt({
       cwdPath: '/repo',
       packagePath: PACKAGE_PATH,
@@ -55,6 +69,11 @@ export const stepSeedBrokerProxy = (): {
   };
 
   return {
+    bookPresentAt: ({ packagePath }: { packagePath: FilePath }): void => {
+      state.packagePath = packagePath;
+      stageEntry();
+    },
+
     stagesListing: ({ listing }: { listing: unknown }): void => {
       stageEntry();
       moduleExports[recipesConventionStatics.exports.listingBuild] = (): unknown => listing;

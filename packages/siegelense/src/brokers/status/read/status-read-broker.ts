@@ -34,16 +34,26 @@ import { registryReadBroker } from '../../registry/read/registry-read-broker';
 import { machineStatics } from '../../../statics/machine/machine-statics';
 import { instanceEntryLayerBroker } from './instance-entry-layer-broker';
 
+const SINCE_WINDOWS_MS = {
+  '1h': 3_600_000,
+  '6h': 21_600_000,
+  '1d': 86_400_000,
+} as const;
+
 export const statusReadBroker = async ({
   instanceId,
+  branch = null,
+  since = null,
 }: {
   instanceId: InstanceId | null;
+  branch?: string | null;
+  since?: '1h' | '6h' | '1d' | null;
 }): Promise<StatusAnswer> => {
   // Resolved BEFORE machineReadBroker: machineOomCountBroker's own '/proc' + 'vmstat' join is left
   // to pathJoinAdapter's real-passthrough default (safe only once nothing else is pending on that
   // shared queue) — registryReadBroker/instanceStateResolveBroker's own path resolutions, pushed
   // onto that same mock by a composing test, have to be fully drained by real calls first.
-  const entryStatePairs: readonly { entry: RegistryEntry; state: InstanceState }[] =
+  let entryStatePairs: readonly { entry: RegistryEntry; state: InstanceState }[] =
     instanceId === null
       ? await Promise.all(
           (await registryReadBroker()).instances.map(async (entry) => ({
@@ -57,6 +67,20 @@ export const statusReadBroker = async ({
             : [{ entry: resolved.entry, state: resolved.state }],
         );
 
+  if (branch !== null) {
+    entryStatePairs = entryStatePairs.filter((pair) => pair.entry.branch === branch);
+  }
+
+  const nowMs = epochMsContract.parse(Date.now());
+
+  if (since !== null) {
+    const windowMs = SINCE_WINDOWS_MS[since];
+    entryStatePairs = entryStatePairs.filter((pair) => {
+      const activityMs = pair.entry.lastBeatMs ?? pair.entry.reservedAtMs;
+      return nowMs - activityMs <= windowMs;
+    });
+  }
+
   // A named query's entryStatePairs is empty ONLY when instanceStateResolveBroker found no
   // registry entry — its own first check pins that exact case to 'unknown'
   // (instance-state-resolve-broker.ts) — so the pair's own state covers every other named
@@ -69,7 +93,6 @@ export const statusReadBroker = async ({
       : (entryStatePairs[0]?.state ?? instanceStateContract.parse('unknown'));
 
   const machine = await machineReadBroker();
-  const nowMs = epochMsContract.parse(Date.now());
 
   const instances = await Promise.all(
     entryStatePairs.map(async ({ entry, state }) =>

@@ -23,6 +23,7 @@ describe('driverStatics', () => {
       },
       run: {
         defaultStepTimeoutMs: 30_000,
+        untilPollMs: 100,
       },
     });
   });

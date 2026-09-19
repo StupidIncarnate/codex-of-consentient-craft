@@ -1,14 +1,17 @@
 /**
  * PURPOSE: Test proxy for DriverServeLayerResponder — every child it composes is mocked directly
  * (driverHandleRequestBroker, driverHeartbeatTickBroker, DriverIdleWaitLayerResponder,
- * laneTeardownBroker, instanceReleaseBroker) because each already carries its own dedicated test
- * suite; this proxy only proves the WIRING between them. `netUnixServeAdapter` runs through its own
- * real proxy (mocking only 'net'/'fs') so a test drives a request through the real socket-framing
- * path via `connectClient()`/`sendFrame()`, and `getSocketCloseCallCount()` reads that same real
- * proxy's own close counter — proving THIS responder called `close()` on its way out, not merely
- * that the adapter proxy supports one. `setInterval` and `process.on` are captured rather than
- * left real, so a test can fire a heartbeat tick or a signal handler on demand instead of waiting on
- * a real timer or sending a real OS signal to the test runner.
+ * laneTeardownBroker, instanceReleaseBroker, shutdownReasonWriteBroker) because each already carries
+ * its own dedicated test suite; this proxy only proves the WIRING between them.
+ * `locationsInstanceEvidencePathFindBroker` runs REAL here (never mocked, like
+ * `locationsSocketPathFindBroker`), so its own proxy is STAGED rather than left unconfigured.
+ * `netUnixServeAdapter` runs through its own real proxy (mocking only 'net'/'fs') so a test drives a
+ * request through the real socket-framing path via `connectClient()`/`sendFrame()`, and
+ * `getSocketCloseCallCount()` reads that same real proxy's own close counter — proving THIS
+ * responder called `close()` on its way out, not merely that the adapter proxy supports one.
+ * `setInterval` and `process.on` are captured rather than left real, so a test can fire a heartbeat
+ * tick or a signal handler on demand instead of waiting on a real timer or sending a real OS signal
+ * to the test runner.
  *
  * USAGE:
  * const proxy = DriverServeLayerResponderProxy();
@@ -28,12 +31,16 @@ import { instanceReleaseBroker } from '../../../brokers/instance/release/instanc
 import { instanceReleaseBrokerProxy } from '../../../brokers/instance/release/instance-release-broker.proxy';
 import { laneTeardownBroker } from '../../../brokers/lane/teardown/lane-teardown-broker';
 import { laneTeardownBrokerProxy } from '../../../brokers/lane/teardown/lane-teardown-broker.proxy';
+import { locationsInstanceEvidencePathFindBrokerProxy } from '../../../brokers/locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { locationsSocketPathFindBrokerProxy } from '../../../brokers/locations/socket-path-find/locations-socket-path-find-broker.proxy';
+import { shutdownReasonWriteBroker } from '../../../brokers/shutdown-reason/write/shutdown-reason-write-broker';
+import { shutdownReasonWriteBrokerProxy } from '../../../brokers/shutdown-reason/write/shutdown-reason-write-broker.proxy';
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
 import type { DriverResponse } from '../../../contracts/driver-response/driver-response-contract';
 import { KillResultStub } from '../../../contracts/kill-result/kill-result.stub';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
+import { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';
 import { driverSessionStateProxy } from '../../../state/driver-session/driver-session-state.proxy';
 import { DriverIdleWaitLayerResponder } from './driver-idle-wait-layer-responder';
 import { DriverIdleWaitLayerResponderProxy } from './driver-idle-wait-layer-responder.proxy';
@@ -47,6 +54,7 @@ export const DriverServeLayerResponderProxy = (): {
   getLaneTeardownCallCount: () => ReturnType<typeof ReadingCountStub>;
   getInstanceReleaseCallCount: () => ReturnType<typeof ReadingCountStub>;
   getSocketCloseCallCount: () => ReturnType<typeof ReadingCountStub>;
+  getShutdownReasonWriteCallArgs: () => unknown;
   fireHeartbeatTick: () => void;
   stageHeartbeatTickFails: (params: { error: Error }) => void;
   getStderrWrites: () => unknown[];
@@ -63,13 +71,22 @@ export const DriverServeLayerResponderProxy = (): {
   laneTeardownBrokerProxy();
   DriverIdleWaitLayerResponderProxy();
   driverSessionStateProxy();
-  // locationsSocketPathFindBroker runs REAL here (DriverServeLayerResponder never mocks it), so
-  // its own proxy must be STAGED, not just constructed — otherwise it leaves the pathJoinAdapter
-  // catch-all unconfigured and the real call underneath it throws.
+  shutdownReasonWriteBrokerProxy();
+  // locationsSocketPathFindBroker and locationsInstanceEvidencePathFindBroker both run REAL here
+  // (DriverServeLayerResponder never mocks either), so their own proxies must be STAGED, not just
+  // constructed — otherwise they leave the pathJoinAdapter catch-all unconfigured and the real call
+  // underneath throws.
   const socketPathProxy = locationsSocketPathFindBrokerProxy();
   socketPathProxy.setupSocketPath({
     tmpDir: '/tmp',
     socketPath: FilePathStub({ value: '/tmp/dm-siege-sockets/inst-serve-test.sock' }),
+  });
+  const evidencePathProxy = locationsInstanceEvidencePathFindBrokerProxy();
+  evidencePathProxy.setupInstanceEvidencePath({
+    homeDir: '/home/user',
+    homePath: FilePathStub({ value: '/tmp/dm-siege-evidence-test' }),
+    rootPath: FilePathStub({ value: '/tmp/dm-siege-evidence-test' }),
+    evidencePath: FilePathStub({ value: '/tmp/dm-siege-evidence-test/inst-serve-test' }),
   });
 
   const handleRequestHandle = registerMock({ fn: driverHandleRequestBroker });
@@ -88,6 +105,9 @@ export const DriverServeLayerResponderProxy = (): {
 
   const instanceReleaseHandle = registerMock({ fn: instanceReleaseBroker });
   instanceReleaseHandle.calledWith([]).resolves(RegistryEntryStub());
+
+  const shutdownReasonWriteHandle = registerMock({ fn: shutdownReasonWriteBroker });
+  shutdownReasonWriteHandle.calledWith([]).resolves(ShutdownReasonStub());
 
   const intervalCallbacks: (() => void)[] = [];
   registerSpyOn({ object: globalThis, method: 'setInterval' })
@@ -132,6 +152,11 @@ export const DriverServeLayerResponderProxy = (): {
 
     getSocketCloseCallCount: (): ReturnType<typeof ReadingCountStub> =>
       socketProxy.getCloseCallCount(),
+
+    getShutdownReasonWriteCallArgs: (): unknown => {
+      const argsList = shutdownReasonWriteHandle.callsMatching([]).map((call) => call[0]);
+      return argsList[argsList.length - 1];
+    },
 
     fireHeartbeatTick: (): void => {
       intervalCallbacks.at(-1)?.();

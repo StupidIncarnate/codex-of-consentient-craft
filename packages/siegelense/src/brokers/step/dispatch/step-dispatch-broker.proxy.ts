@@ -1,7 +1,12 @@
 import { PNG } from 'pngjs';
 import { z } from 'zod';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type {
+  AbsoluteFilePath,
+  ContentText,
+  FilePath,
+  Guild,
+} from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
@@ -62,6 +67,12 @@ export const stepDispatchBrokerProxy = (): {
     captureCallArgs: () => readonly unknown[];
   };
   laneRejectingWaitForMatch: (params: { error: Error }) => { lane: LaneSession };
+  seedBookPresentAt: (params: { packagePath: FilePath }) => void;
+  seedLaneAnswers: (params: {
+    apiBaseUrl: ContentText;
+    guild: Guild;
+    questIds: readonly ContentText[];
+  }) => void;
   lastShotPath: () => AbsoluteFilePath | null;
   setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
   stagesShotFrame: (params: {
@@ -70,12 +81,12 @@ export const stepDispatchBrokerProxy = (): {
     height: number;
     pixels: Uint8Array;
   }) => void;
+  stagesShotReadError: (params: { shotPath: AbsoluteFilePath; error: Error }) => void;
 } => {
-  // Constructed for its own default behavior — this proxy builds its own BrowserSession scenarios
-  // directly, so most of runVerbLayerBrokerProxy's own surface is never addressed further. Same
-  // pattern as lane-boot-broker.proxy.ts's own unaddressed child proxy constructions. Kept as a
-  // reference (not a bare call) only because `stagesSeedRecipe` below delegates to its own
-  // `stagesSeedRecipe` — the ONE method this proxy re-exposes.
+  // This proxy builds its own BrowserSession scenarios directly, so only the SEED half of the verb
+  // layer's own proxy is ever addressed: a `seed` step drives no page and so has no BrowserSession
+  // scenario a lane stub could carry. Kept as a reference only because `stagesSeedRecipe` below
+  // delegates to it.
   const verbLayerProxy = runVerbLayerBrokerProxy();
   errorIsNativeErrorAdapterProxy();
 
@@ -234,6 +245,30 @@ export const stepDispatchBrokerProxy = (): {
     }): void => {
       blankReadProxy.stagesShot({ shotPath, width, height, pixels });
       changeReadProxy.stagesShot({ path: shotPath, width, height, pixels });
+    },
+    stagesShotReadError: ({
+      shotPath,
+      error,
+    }: {
+      shotPath: AbsoluteFilePath;
+      error: Error;
+    }): void => {
+      blankReadProxy.stagesShotReadError({ shotPath, error });
+    },
+    seedBookPresentAt: ({ packagePath }: { packagePath: FilePath }): void => {
+      verbLayerProxy.seedBookPresentAt({ packagePath });
+    },
+
+    seedLaneAnswers: ({
+      apiBaseUrl,
+      guild,
+      questIds,
+    }: {
+      apiBaseUrl: ContentText;
+      guild: Guild;
+      questIds: readonly ContentText[];
+    }): void => {
+      verbLayerProxy.seedLaneAnswers({ apiBaseUrl, guild, questIds });
     },
   };
 };

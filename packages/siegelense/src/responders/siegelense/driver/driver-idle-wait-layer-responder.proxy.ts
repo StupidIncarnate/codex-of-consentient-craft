@@ -21,6 +21,7 @@ import { driverSessionStateProxy } from '../../../state/driver-session/driver-se
 
 export const DriverIdleWaitLayerResponderProxy = (): {
   setupLaneReady: (params: { nowMs: EpochMs }) => void;
+  setupLaneReadyWithIdleTimeout: (params: { nowMs: EpochMs; idleTimeoutMs: TimeoutMs }) => void;
   setupKilledAlready: () => void;
   touch: (params: { nowMs: EpochMs }) => void;
   stageNow: (params: { ms: EpochMs }) => void;
@@ -41,6 +42,17 @@ export const DriverIdleWaitLayerResponderProxy = (): {
     setupLaneReady: ({ nowMs }: { nowMs: EpochMs }): void => {
       nowHandle.onceFor([]).returns(nowMs);
       driverSessionState.set({ lane: LaneSessionStub() });
+    },
+
+    setupLaneReadyWithIdleTimeout: ({
+      nowMs,
+      idleTimeoutMs,
+    }: {
+      nowMs: EpochMs;
+      idleTimeoutMs: TimeoutMs;
+    }): void => {
+      nowHandle.onceFor([]).returns(nowMs);
+      driverSessionState.set({ lane: LaneSessionStub(), idleTimeoutMs });
     },
 
     setupKilledAlready: (): void => {

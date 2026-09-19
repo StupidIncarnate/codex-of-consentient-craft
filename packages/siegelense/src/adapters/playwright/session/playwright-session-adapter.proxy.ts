@@ -3,7 +3,17 @@ import { EventEmitter } from 'events';
 import { chromium } from '@playwright/test';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
+import { domReadLayerAdapterProxy } from './dom-read-layer-adapter.proxy';
+import { keyPressLayerAdapterProxy } from './key-press-layer-adapter.proxy';
+import { keyReadLayerAdapterProxy } from './key-read-layer-adapter.proxy';
 import { listenersLayerAdapterProxy } from './listeners-layer-adapter.proxy';
+import { refRegistryLayerAdapterProxy } from './ref-registry-layer-adapter.proxy';
+import { rootCheckLayerAdapterProxy } from './root-check-layer-adapter.proxy';
+import { viewportSetLayerAdapterProxy } from './viewport-set-layer-adapter.proxy';
+import { initScriptAddLayerAdapterProxy } from './init-script-add-layer-adapter.proxy';
+import { storageReadLayerAdapterProxy } from './storage-read-layer-adapter.proxy';
+import { pasteLayerAdapterProxy } from './paste-layer-adapter.proxy';
+import { RawDomReadingStub } from '../../../contracts/raw-dom-reading/raw-dom-reading.stub';
 
 // The one thing this proxy mocks over the npm boundary: `chromium.launch`, staged on its launch
 // options object. Everything hanging off the fake `Browser`/`BrowserContext`/`Page` it resolves to
@@ -19,16 +29,46 @@ const FIXED_EPOCH_MS = 1_700_000_000_000;
 // gone).
 const NEAREST_NAMES_MARKER = "querySelectorAll('[data-testid]')";
 const DESCRIBE_MATCHES_MARKER = 'getBoundingClientRect';
+// The key reader's source ALSO calls getBoundingClientRect, so it is matched first and on a phrase
+// only it carries. Order is load-bearing here: swap the two and every `look` would be answered with
+// the staged describeMatches rows.
+const KEY_READ_MARKER = 'hasContentDescendant';
+const DOM_READ_MARKER = 'childElementCount';
+const KEY_PRESS_MARKER = 'document.activeElement';
+const REF_STATE_MARKER = 'isConnected === true ?';
+const STAMP_MARKER = "setAttribute('siege-target'";
+const UNSTAMP_MARKER = "removeAttribute('siege-target')";
+const BOX_MARKER = 'getComputedStyle';
+const ROOT_CHECK_MARKER = 'document.querySelector("#root")';
 
 export const playwrightSessionAdapterProxy = (): {
   setLocatorCount: (params: { selector: string; count: number }) => void;
   setDescribeMatchesResult: (params: { raw: readonly unknown[] }) => void;
   setNearestNamesResult: (params: { raw: readonly unknown[] }) => void;
+  setKeyReadResult: (params: { raw: unknown }) => void;
+  setDomReadResult: (params: { raw: unknown }) => void;
+  setRefState: (params: { state: string }) => void;
+  setBoxResult: (params: { raw: unknown }) => void;
   setEvaluateSourceResult: (params: { result: unknown }) => void;
+  setFocusedResult: (params: { raw: unknown }) => void;
+  setRootPresent: (params: { present: boolean }) => void;
+  setStorageResult: (params: { raw: unknown }) => void;
+  getClearStorageCalls: () => readonly unknown[];
+  getNewContextCalls: () => readonly unknown[];
+  setHasVideo: (params: { hasVideo: boolean }) => void;
+  setVideoPath: (params: { videoPath: unknown }) => void;
+  getInitScripts: () => readonly unknown[];
+  getStampCalls: () => readonly unknown[];
   getScreenshotCalls: () => readonly unknown[];
+  getSetViewportSizeCalls: () => readonly unknown[];
   getClickCalls: () => readonly unknown[];
+  getFocusCalls: () => readonly unknown[];
   getFillCalls: () => readonly unknown[];
+  getKeyboardPressCalls: () => readonly unknown[];
+  getClipboardWrites: () => readonly unknown[];
   getWaitForCalls: () => readonly unknown[];
+  getWaitForFunctionCalls: () => readonly unknown[];
+  setWaitForFunctionRejects: () => void;
   setResponseTextThrows: () => void;
   emitConsoleMessage: (params: { type: string; text: string; url: string; line: number }) => void;
   emitPageError: (params: { name: string; message: string; stack: string | undefined }) => void;
@@ -53,9 +93,19 @@ export const playwrightSessionAdapterProxy = (): {
     close: () => void;
   };
 } => {
-  // listenersLayerAdapter is pure (no npm boundary of its own), so its proxy is empty — called
-  // here only to satisfy enforce-proxy-child-creation, since this file's implementation imports it.
+  // Each of these three layer adapters is pure (no npm boundary of its own), so its proxy is empty
+  // — called here only to satisfy enforce-proxy-child-creation, since this file's implementation
+  // imports all three.
   listenersLayerAdapterProxy();
+  keyPressLayerAdapterProxy();
+  keyReadLayerAdapterProxy();
+  refRegistryLayerAdapterProxy();
+  domReadLayerAdapterProxy();
+  rootCheckLayerAdapterProxy();
+  viewportSetLayerAdapterProxy();
+  initScriptAddLayerAdapterProxy();
+  storageReadLayerAdapterProxy();
+  pasteLayerAdapterProxy();
 
   registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(FIXED_EPOCH_MS);
 
@@ -63,12 +113,40 @@ export const playwrightSessionAdapterProxy = (): {
     locatorCounts: new Map<unknown, unknown>(),
     describeMatchesRaw: [] as unknown,
     nearestNamesRaw: [] as unknown,
+    keyReadRaw: { rows: [], highestRef: 0, skipped: [] } as unknown,
+    domReadRaw: RawDomReadingStub() as unknown,
+    focusedRaw: null as unknown,
+    rootPresent: true,
+    storageReadingRaw: undefined as unknown,
+    clearStorageCalls: [] as unknown[],
+    keyboardPressCalls: [] as unknown[],
+    refState: 'live',
+    boxRaw: {
+      ref: 26,
+      x: 607,
+      y: 472,
+      width: 66,
+      height: 27,
+      viewport: { width: 1280, height: 720 },
+      visible: true,
+      inViewport: true,
+    } as unknown,
     evaluateSourceResult: undefined as unknown,
     responseTextThrows: false,
+    initScripts: [] as unknown[],
+    stampCalls: [] as unknown[],
     screenshotCalls: [] as unknown[],
+    setViewportSizeCalls: [] as unknown[],
     clickCalls: [] as unknown[],
+    focusCalls: [] as unknown[],
     fillCalls: [] as unknown[],
+    clipboardWrites: [] as unknown[],
     waitForCalls: [] as unknown[],
+    waitForFunctionCalls: [] as unknown[],
+    waitForFunctionRejects: false,
+    newContextCalls: [] as unknown[],
+    hasVideo: true,
+    videoPath: '/evidence/video/run.webm' as unknown,
   };
 
   // Keyed on the selector string `page.locator(...)` actually received — the same string
@@ -82,12 +160,17 @@ export const playwrightSessionAdapterProxy = (): {
   }): {
     count: () => Promise<unknown>;
     click: (options: unknown) => Promise<undefined>;
+    focus: (options: unknown) => Promise<undefined>;
     fill: (value: unknown, options: unknown) => Promise<undefined>;
     waitFor: (options: unknown) => Promise<undefined>;
   } => ({
     count: async (): Promise<unknown> => Promise.resolve(state.locatorCounts.get(selector) ?? 0),
     click: async (options: unknown): Promise<undefined> => {
       state.clickCalls.push({ selector, options });
+      return Promise.resolve(undefined);
+    },
+    focus: async (options: unknown): Promise<undefined> => {
+      state.focusCalls.push({ selector, options });
       return Promise.resolve(undefined);
     },
     fill: async (value: unknown, options: unknown): Promise<undefined> => {
@@ -102,6 +185,12 @@ export const playwrightSessionAdapterProxy = (): {
 
   const page = Object.assign(new EventEmitter(), {
     locator: (selector: string) => buildFakeLocator({ selector }),
+    keyboard: {
+      press: async (key: string): Promise<void> => {
+        state.keyboardPressCalls.push(key);
+        return Promise.resolve(undefined);
+      },
+    },
     // Real Playwright's client tags every `evaluate()` call with `isFunction: typeof pageFunction
     // === 'function'` (playwright-core lib/client/jsHandle.js), and its browser-side utility script
     // (lib/generated/utilityScriptSource.js `evaluate()`) applies the second argument ONLY when that
@@ -112,25 +201,85 @@ export const playwrightSessionAdapterProxy = (): {
     // is modelled here instead of bypassed.
     evaluate: async (pageFunction: unknown, arg?: unknown): Promise<unknown> => {
       if (typeof pageFunction === 'function') {
+        if (String(pageFunction).includes('localStorage.clear()')) {
+          state.clearStorageCalls.push(true);
+          return Promise.resolve(undefined);
+        }
+        if (String(pageFunction).includes('localStorage')) {
+          return Promise.resolve(
+            state.storageReadingRaw ?? {
+              origin: 'http://localhost:5173',
+              local: {},
+              session: {},
+            },
+          );
+        }
+        if (String(pageFunction).includes('clipboard')) {
+          state.clipboardWrites.push(arg);
+          return Promise.resolve(undefined);
+        }
         return (pageFunction as (value: unknown) => unknown)(arg);
       }
       if (arg !== undefined) {
         return undefined;
       }
       const source = String(pageFunction);
+      if (source.includes(DOM_READ_MARKER)) {
+        return Promise.resolve(state.domReadRaw);
+      }
+      if (source.includes(KEY_READ_MARKER)) {
+        return Promise.resolve(state.keyReadRaw);
+      }
+      if (source.includes(KEY_PRESS_MARKER)) {
+        return Promise.resolve(state.focusedRaw);
+      }
+      if (source.includes(REF_STATE_MARKER)) {
+        return Promise.resolve(state.refState);
+      }
+      if (source.includes(BOX_MARKER)) {
+        return Promise.resolve(state.boxRaw);
+      }
+      if (source.includes(STAMP_MARKER)) {
+        state.stampCalls.push('stamp');
+        return Promise.resolve(true);
+      }
+      if (source.includes(UNSTAMP_MARKER)) {
+        state.stampCalls.push('unstamp');
+        return Promise.resolve(true);
+      }
       if (source.includes(DESCRIBE_MATCHES_MARKER)) {
         return Promise.resolve(state.describeMatchesRaw);
       }
       if (source.includes(NEAREST_NAMES_MARKER)) {
         return Promise.resolve(state.nearestNamesRaw);
       }
+      if (source.includes(ROOT_CHECK_MARKER)) {
+        return Promise.resolve(state.rootPresent);
+      }
       return Promise.resolve(state.evaluateSourceResult);
+    },
+    waitForFunction: async (source: unknown, _arg: unknown, options: unknown): Promise<unknown> => {
+      state.waitForFunctionCalls.push({ source, options });
+      if (state.waitForFunctionRejects) {
+        return Promise.reject(new Error('Timeout 30000ms exceeded'));
+      }
+      return Promise.resolve(true);
+    },
+    addInitScript: async (script: unknown) => {
+      state.initScripts.push(script);
+      return Promise.resolve(undefined);
     },
     screenshot: async (options: unknown) => {
       state.screenshotCalls.push(options);
       return Promise.resolve(undefined);
     },
+    setViewportSize: async (options: unknown) => {
+      state.setViewportSizeCalls.push(options);
+      return Promise.resolve(undefined);
+    },
     goto: async () => Promise.resolve(undefined),
+    video: () =>
+      state.hasVideo ? { path: async () => Promise.resolve(String(state.videoPath)) } : null,
   });
 
   const context = {
@@ -139,7 +288,10 @@ export const playwrightSessionAdapterProxy = (): {
   };
 
   const browser = {
-    newContext: async () => Promise.resolve(context),
+    newContext: async (options?: unknown) => {
+      state.newContextCalls.push(options);
+      return Promise.resolve(context);
+    },
     close: async () => Promise.resolve(undefined),
   };
 
@@ -166,13 +318,52 @@ export const playwrightSessionAdapterProxy = (): {
     setNearestNamesResult: ({ raw }): void => {
       state.nearestNamesRaw = raw;
     },
+    setKeyReadResult: ({ raw }): void => {
+      state.keyReadRaw = raw;
+    },
+    setDomReadResult: ({ raw }): void => {
+      state.domReadRaw = raw;
+    },
+    setRefState: ({ state: refState }): void => {
+      state.refState = refState;
+    },
+    setBoxResult: ({ raw }): void => {
+      state.boxRaw = raw;
+    },
     setEvaluateSourceResult: ({ result }): void => {
       state.evaluateSourceResult = result;
     },
+    setFocusedResult: ({ raw }): void => {
+      state.focusedRaw = raw;
+    },
+    setRootPresent: ({ present }: { present: boolean }): void => {
+      state.rootPresent = present;
+    },
+    setStorageResult: ({ raw }: { raw: unknown }): void => {
+      state.storageReadingRaw = raw;
+    },
+    getClearStorageCalls: (): readonly unknown[] => state.clearStorageCalls,
+    getNewContextCalls: (): readonly unknown[] => state.newContextCalls,
+    setHasVideo: ({ hasVideo }: { hasVideo: boolean }): void => {
+      state.hasVideo = hasVideo;
+    },
+    setVideoPath: ({ videoPath }: { videoPath: unknown }): void => {
+      state.videoPath = videoPath;
+    },
+    getInitScripts: (): readonly unknown[] => state.initScripts,
+    getStampCalls: (): readonly unknown[] => state.stampCalls,
     getScreenshotCalls: (): readonly unknown[] => state.screenshotCalls,
+    getSetViewportSizeCalls: (): readonly unknown[] => state.setViewportSizeCalls,
     getClickCalls: (): readonly unknown[] => state.clickCalls,
+    getFocusCalls: (): readonly unknown[] => state.focusCalls,
     getFillCalls: (): readonly unknown[] => state.fillCalls,
+    getKeyboardPressCalls: (): readonly unknown[] => state.keyboardPressCalls,
+    getClipboardWrites: (): readonly unknown[] => state.clipboardWrites,
     getWaitForCalls: (): readonly unknown[] => state.waitForCalls,
+    getWaitForFunctionCalls: (): readonly unknown[] => state.waitForFunctionCalls,
+    setWaitForFunctionRejects: (): void => {
+      state.waitForFunctionRejects = true;
+    },
     setResponseTextThrows: (): void => {
       state.responseTextThrows = true;
     },

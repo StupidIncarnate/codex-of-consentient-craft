@@ -15,7 +15,23 @@ const STEP_FIXTURES = [
   StepStub({ step: 'type', target: SelectorStub(), value: ContentTextStub() }),
   StepStub({ step: 'screenshot', name: FileNameStub({ value: 'step1.png' }) }),
   StepStub({ step: 'eval', source: ContentTextStub() }),
+  StepStub({ step: 'look' }),
+  StepStub({ step: 'box' }),
+  StepStub({ step: 'dom', target: SelectorStub() }),
   StepStub({ step: 'seed' }),
+  StepStub({ step: 'until', visible: SelectorStub() }),
+  StepStub({ step: 'key', press: ContentTextStub({ value: 'Enter' }) }),
+  StepStub({ step: 'health' }),
+  StepStub({ step: 'resize', width: 1280, height: 720 }),
+  StepStub({ step: 'request', path: '/api/guilds' }),
+  StepStub({ step: 'before', source: ContentTextStub() }),
+  StepStub({ step: 'file' }),
+  StepStub({ step: 'storage' }),
+  StepStub({ step: 'paste', target: SelectorStub(), value: ContentTextStub() }),
+  StepStub({ step: 'hold' }),
+  StepStub({ step: 'video', action: 'start' }),
+  StepStub({ step: 'snapshot' }),
+  StepStub({ step: 'reset' }),
 ];
 
 describe('stepContract', () => {
@@ -79,6 +95,7 @@ describe('stepContract', () => {
         step: 'click',
         target: '[data-testid="PIXEL_BTN"]',
         within: '[data-testid="GUILD_LIST"]',
+        ref: null,
         timeoutMs: null,
         node: null,
       });
@@ -87,6 +104,21 @@ describe('stepContract', () => {
         step: 'click',
         target: '[data-testid="PIXEL_BTN"]',
         within: '[data-testid="GUILD_LIST"]',
+        ref: null,
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: click, ref} => parses the ref half of the handle rule', () => {
+      const result = stepContract.parse({ step: 'click', ref: 26 });
+
+      expect(result).toStrictEqual({
+        step: 'click',
+        target: null,
+        within: null,
+        ref: 26,
         timeoutMs: null,
         node: null,
         expect: 'ok',
@@ -98,6 +130,7 @@ describe('stepContract', () => {
         step: 'type',
         target: '[data-testid="CHAT_INPUT"]',
         within: null,
+        ref: null,
         value: '<script>alert(1)</script>',
         timeoutMs: null,
         node: null,
@@ -108,11 +141,106 @@ describe('stepContract', () => {
         step: 'type',
         target: '[data-testid="CHAT_INPUT"]',
         within: null,
+        ref: null,
         value: '<script>alert(1)</script>',
         timeoutMs: null,
         node: null,
         expect: 'error',
       });
+    });
+
+    it('VALID: {step: look} => parses the whole-page reading with no scope', () => {
+      const result = stepContract.parse({ step: 'look' });
+
+      expect(result).toStrictEqual({
+        step: 'look',
+        within: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: look, within} => parses the scoped reading, rung 2 of the ladder', () => {
+      const result = stepContract.parse({ step: 'look', within: 'SUBAGENT_CHAIN' });
+
+      expect(result).toStrictEqual({
+        step: 'look',
+        within: 'SUBAGENT_CHAIN',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: look, +target} => throws naming the stray key, because look reads and never targets', () => {
+      expect(() =>
+        stepContract.parse({ step: 'look', target: '[data-testid="X"]' } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+
+    it('VALID: {step: box} => parses the complete box member', () => {
+      const result = stepContract.parse({ step: 'box', ref: 26, node: 'target-box' });
+
+      expect(result).toStrictEqual({
+        step: 'box',
+        ref: 26,
+        node: 'target-box',
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: box, no ref} => throws for the missing ref', () => {
+      expect(() => stepContract.parse({ step: 'box' } as never)).toThrow(/Required/u);
+    });
+
+    it('INVALID: {step: box, +target} => throws naming the stray key, because box takes ref only', () => {
+      expect(() =>
+        stepContract.parse({ step: 'box', ref: 26, target: '[data-testid="X"]' } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+
+    it('VALID: {step: dom} => parses the complete dom member with target, defaults for fields and text', () => {
+      const result = stepContract.parse({ step: 'dom', target: '[data-testid="QUEST_ROW"]' });
+
+      expect(result).toStrictEqual({
+        step: 'dom',
+        target: '[data-testid="QUEST_ROW"]',
+        fields: null,
+        text: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: dom, fields, text} => parses with fields projection and explicit text mode', () => {
+      const result = stepContract.parse({
+        step: 'dom',
+        target: '[data-testid="TOAST"]',
+        fields: ['text', 'rect'],
+        text: 'full',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'dom',
+        target: '[data-testid="TOAST"]',
+        fields: ['text', 'rect'],
+        text: 'full',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: dom, no target} => throws for missing target', () => {
+      expect(() => stepContract.parse({ step: 'dom' } as never)).toThrow(/Required/u);
+    });
+
+    it('INVALID: {step: dom, +ref} => throws naming the stray key, because dom takes target only', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'dom',
+          target: '[data-testid="X"]',
+          ref: 26,
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'ref'/u);
     });
 
     it('VALID: {step: screenshot} => parses the complete screenshot member', () => {
@@ -183,6 +311,212 @@ describe('stepContract', () => {
         expect: 'ok',
       });
     });
+
+    it('VALID: {step: key} => parses the complete key member', () => {
+      const result = stepContract.parse({
+        step: 'key',
+        press: 'Enter',
+        node: 'confirm',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'key',
+        press: 'Enter',
+        node: 'confirm',
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: key, missing press} => throws for missing press', () => {
+      expect(() => stepContract.parse({ step: 'key' } as never)).toThrow(/Required/u);
+    });
+
+    it('INVALID: {step: key, +target} => throws naming the stray key, because key takes press only', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'key',
+          press: 'Enter',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+
+    it('VALID: {step: health} => parses the complete health member', () => {
+      const result = stepContract.parse({
+        step: 'health',
+        node: 'baseline-health',
+        expect: 'ok',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'health',
+        node: 'baseline-health',
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: health, defaults} => fills default node and expect', () => {
+      const result = stepContract.parse({
+        step: 'health',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'health',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: health, +target} => throws naming the stray key, because health takes no target', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'health',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+
+    it('VALID: {step: until, visible} => parses the visible form, the other four conditions null', () => {
+      const result = stepContract.parse({
+        step: 'until',
+        visible: '[data-testid="SUBAGENT_CHAIN"]',
+        timeoutMs: 20000,
+        node: null,
+      });
+
+      expect(result).toStrictEqual({
+        step: 'until',
+        visible: '[data-testid="SUBAGENT_CHAIN"]',
+        response: null,
+        file: null,
+        predicate: null,
+        console: null,
+        timeoutMs: 20000,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: until, predicate} => parses the predicate form', () => {
+      const result = stepContract.parse({
+        step: 'until',
+        predicate: 'document.querySelectorAll("[data-testid=QUEST_ROW]").length === 3',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'until',
+        visible: null,
+        response: null,
+        file: null,
+        predicate: 'document.querySelectorAll("[data-testid=QUEST_ROW]").length === 3',
+        console: null,
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: until, console} => parses the console form, the pattern UNWRAPPED', () => {
+      const result = stepContract.parse({ step: 'until', console: 'hydrated' });
+
+      expect(result).toStrictEqual({
+        step: 'until',
+        visible: null,
+        response: null,
+        file: null,
+        predicate: null,
+        console: 'hydrated',
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: until, response} => parses the response form', () => {
+      const result = stepContract.parse({
+        step: 'until',
+        response: { method: 'POST', path: '/api/quests' },
+        timeoutMs: 15000,
+      });
+
+      expect(result).toStrictEqual({
+        step: 'until',
+        visible: null,
+        response: { method: 'POST', path: '/api/quests' },
+        file: null,
+        predicate: null,
+        console: null,
+        timeoutMs: 15000,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: until, file} => parses the file form, the one that runs on a browserless lane', () => {
+      const result = stepContract.parse({
+        step: 'until',
+        file: 'guilds/g1/quests/q1/quest.json',
+        timeoutMs: 10000,
+      });
+
+      expect(result).toStrictEqual({
+        step: 'until',
+        visible: null,
+        response: null,
+        file: 'guilds/g1/quests/q1/quest.json',
+        predicate: null,
+        console: null,
+        timeoutMs: 10000,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: until, console: "/hydrated/"} => throws naming the unwrapped form', () => {
+      expect(() => stepContract.parse({ step: 'until', console: '/hydrated/' })).toThrow(
+        /a regex SOURCE string, not a regex literal/u,
+      );
+    });
+
+    it('INVALID: {step: until, file: "/etc/passwd"} => throws naming the lane home', () => {
+      expect(() => stepContract.parse({ step: 'until', file: '/etc/passwd' })).toThrow(
+        /resolved against the lane's own throwaway home/u,
+      );
+    });
+  });
+
+  describe('the until step: exactly one condition, never zero and never two', () => {
+    it('INVALID: {step: until, no condition} => rejected, naming all five forms', () => {
+      expect(() => stepContract.parse({ step: 'until' })).toThrow(
+        /an `until` step waits on exactly one condition/u,
+      );
+    });
+
+    it('INVALID: {step: until, visible AND predicate} => rejected', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'until',
+          visible: '[data-testid="X"]',
+          predicate: 'true',
+        }),
+      ).toThrow(/an `until` step waits on exactly one condition/u);
+    });
+
+    it('INVALID: {step: until, console AND response} => rejected', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'until',
+          console: 'hydrated',
+          response: { method: 'GET', path: '/x' },
+        }),
+      ).toThrow(/an `until` step waits on exactly one condition/u);
+    });
+
+    it('VALID: {step: until, file only} => never graded against the handle rule, which governs click/type only', () => {
+      const result = stepContract.parse({ step: 'until', file: 'a.json' });
+
+      expect(result.step).toBe('until');
+    });
   });
 
   describe('rejecting a payload shaped like a different member', () => {
@@ -203,10 +537,10 @@ describe('stepContract', () => {
       ).toThrow(/Required/u);
     });
 
-    it('INVALID: {step: click, path, no target} => throws for the missing click field', () => {
+    it("INVALID: {step: click, path, no target} => throws naming goto's field as the stray key", () => {
       expect(() =>
         stepContract.parse({ step: 'click', path: '/api/guilds', node: null } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/Unrecognized key\(s\) in object: 'path'/u);
     });
 
     it('INVALID: {step: type, target, no value} => throws for the missing type field', () => {
@@ -227,10 +561,86 @@ describe('stepContract', () => {
       ).toThrow(/Required/u);
     });
 
-    it('INVALID: {step: eval, name, no source} => throws for the missing eval field', () => {
+    it('VALID: {step: paste, target, value} => parses the complete paste member with value', () => {
+      const result = stepContract.parse({
+        step: 'paste',
+        target: '[data-testid="CHAT_INPUT"]',
+        value: 'test message',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'paste',
+        target: '[data-testid="CHAT_INPUT"]',
+        within: null,
+        ref: null,
+        filePath: null,
+        value: 'test message',
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: paste, ref, filePath} => parses the paste member with filePath and ref', () => {
+      const result = stepContract.parse({
+        step: 'paste',
+        ref: 14,
+        filePath: '/tmp/fixture.png',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'paste',
+        target: null,
+        within: null,
+        ref: 14,
+        filePath: '/tmp/fixture.png',
+        value: null,
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: paste, target, within, filePath, timeoutMs, node, expect} => parses full paste member', () => {
+      const result = stepContract.parse({
+        step: 'paste',
+        target: '[data-testid="CHAT_INPUT"]',
+        within: '[data-testid="PANEL"]',
+        filePath: '/tmp/image.png',
+        timeoutMs: 15000,
+        node: 'paste-node',
+        expect: 'error',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'paste',
+        target: '[data-testid="CHAT_INPUT"]',
+        within: '[data-testid="PANEL"]',
+        ref: null,
+        filePath: '/tmp/image.png',
+        value: null,
+        timeoutMs: 15000,
+        node: 'paste-node',
+        expect: 'error',
+      });
+    });
+
+    it('INVALID: {step: paste, no target and no ref} => throws validation error for missing handle', () => {
       expect(() =>
-        stepContract.parse({ step: 'eval', name: 'step1.png', node: null } as never),
-      ).toThrow(/Required/u);
+        stepContract.parse({
+          step: 'paste',
+          value: 'test message',
+        }),
+      ).toThrow(/a paste step requires at least one target handle/u);
+    });
+
+    it('INVALID: {step: paste, no filePath and no value} => throws validation error for missing payload', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'paste',
+          target: '[data-testid="CHAT_INPUT"]',
+        }),
+      ).toThrow(/a paste step requires at least one payload/u);
     });
 
     it('INVALID: {step: seed, no recipe} => throws for the missing seed field', () => {
@@ -335,6 +745,16 @@ describe('stepContract', () => {
       );
     });
 
+    it('INVALID: {step: until, +path from goto} => throws naming the stray key', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'until',
+          visible: '[data-testid="X"]',
+          path: '/api/guilds',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'path'/u);
+    });
+
     it('INVALID: {step: waitFor, misspelled "taget"} => throws naming the misspelled key', () => {
       expect(() =>
         stepContract.parse({
@@ -360,16 +780,16 @@ describe('stepContract', () => {
   });
 
   describe('an unknown discriminator', () => {
-    it('INVALID: {step: "look"} => throws for a verb outside the union', () => {
+    it('INVALID: {step: "teleport"} => throws for a verb outside the union', () => {
       expect(() =>
-        stepContract.parse({ step: 'look', target: '[data-testid="X"]' } as never),
+        stepContract.parse({ step: 'teleport', target: '[data-testid="X"]' } as never),
       ).toThrow(/Invalid discriminator/u);
     });
 
-    it('INVALID: {step: "look", every field of every member} => discriminator error wins over any unknown-key error', () => {
+    it('INVALID: {step: "teleport", every field of every member} => discriminator error wins over any unknown-key error', () => {
       expect(() =>
         stepContract.parse({
-          step: 'look',
+          step: 'teleport',
           path: '/api/guilds',
           target: '[data-testid="X"]',
           within: null,
@@ -381,6 +801,49 @@ describe('stepContract', () => {
           node: null,
         } as never),
       ).toThrow(/Invalid discriminator/u);
+    });
+  });
+
+  describe('the handle rule: a target OR a ref, never both and never neither', () => {
+    it('INVALID: {step: click with both a target and a ref} => rejected, naming both kinds of handle', () => {
+      expect(() =>
+        stepContract.parse({ step: 'click', target: '[data-testid="PIXEL_BTN"]', ref: 26 }),
+      ).toThrow(/a driving step takes exactly one handle/u);
+    });
+
+    it('INVALID: {step: click with neither} => rejected, naming both kinds of handle', () => {
+      expect(() => stepContract.parse({ step: 'click' })).toThrow(
+        /a driving step takes exactly one handle/u,
+      );
+    });
+
+    it('INVALID: {step: type with both} => rejected', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'type',
+          target: '[data-testid="CHAT_INPUT"]',
+          ref: 14,
+          value: 'x',
+        }),
+      ).toThrow(/a driving step takes exactly one handle/u);
+    });
+
+    it('INVALID: {step: type with neither} => rejected', () => {
+      expect(() => stepContract.parse({ step: 'type', value: 'x' })).toThrow(
+        /a driving step takes exactly one handle/u,
+      );
+    });
+
+    it('VALID: {step: goto} => never graded against the handle rule, because it carries no handle at all', () => {
+      const result = stepContract.parse({ step: 'goto', path: '/' });
+
+      expect(result).toStrictEqual({ step: 'goto', path: '/', node: null, expect: 'ok' });
+    });
+
+    it('VALID: {step: look} => never graded against the handle rule either', () => {
+      const result = stepContract.parse({ step: 'look' });
+
+      expect(result).toStrictEqual({ step: 'look', within: null, node: null, expect: 'ok' });
     });
   });
 
@@ -409,6 +872,7 @@ describe('stepContract', () => {
         step: 'click',
         target: '[data-testid="GUILD_ADD"]',
         within: null,
+        ref: null,
         timeoutMs: null,
         node: null,
         expect: 'ok',
@@ -420,6 +884,22 @@ describe('stepContract', () => {
 
       expect(result).toStrictEqual({ step: 'goto', path: '/', node: null, expect: 'ok' });
     });
+
+    it('EDGE: {step: until, visible, timeoutMs omitted} => defaults timeoutMs to null, resolved later by driverStatics', () => {
+      const result = stepContract.parse({ step: 'until', visible: '[data-testid="X"]' });
+
+      expect(result).toStrictEqual({
+        step: 'until',
+        visible: '[data-testid="X"]',
+        response: null,
+        file: null,
+        predicate: null,
+        console: null,
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
   });
 
   describe('stub', () => {
@@ -430,10 +910,680 @@ describe('stepContract', () => {
         step: 'click',
         target: '[data-testid="GUILD_ADD"]',
         within: null,
+        ref: null,
         timeoutMs: null,
         node: null,
         expect: 'ok',
       });
+    });
+
+    it('VALID: {ref override} => drops the default target, so naming a ref names that handle and no other', () => {
+      const result = StepStub({ step: 'click', ref: 26 });
+
+      expect(result).toStrictEqual({
+        step: 'click',
+        target: null,
+        within: null,
+        ref: 26,
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: look} => creates the whole-page reading', () => {
+      const result = StepStub({ step: 'look' });
+
+      expect(result).toStrictEqual({
+        step: 'look',
+        within: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: box} => creates the box reading step with default ref', () => {
+      const result = StepStub({ step: 'box' });
+
+      expect(result).toStrictEqual({
+        step: 'box',
+        ref: 26,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: dom} => creates the dom reading step with default target', () => {
+      const result = StepStub({ step: 'dom' });
+
+      expect(result).toStrictEqual({
+        step: 'dom',
+        target: '[data-testid="GUILD_ADD"]',
+        fields: null,
+        text: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: until} => defaults to the visible form', () => {
+      const result = StepStub({ step: 'until' });
+
+      expect(result).toStrictEqual({
+        step: 'until',
+        visible: '[data-testid="GUILD_ADD"]',
+        response: null,
+        file: null,
+        predicate: null,
+        console: null,
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: until, predicate override} => drops the default visible, so naming a different condition names that one alone', () => {
+      const result = StepStub({ step: 'until', predicate: 'true' });
+
+      expect(result).toStrictEqual({
+        step: 'until',
+        visible: null,
+        response: null,
+        file: null,
+        predicate: 'true',
+        console: null,
+        timeoutMs: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: resize} => StepStub builds valid resize default member', () => {
+      const result = StepStub({ step: 'resize' });
+
+      expect(result).toStrictEqual({
+        step: 'resize',
+        width: 1280,
+        height: 720,
+        node: null,
+        expect: 'ok',
+      });
+    });
+  });
+
+  describe('resize member validation', () => {
+    it('VALID: {step: resize, width, height} => parses the complete resize member', () => {
+      const result = stepContract.parse({
+        step: 'resize',
+        width: 1920,
+        height: 1080,
+        node: 'desktop-hd',
+        expect: 'ok',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'resize',
+        width: 1920,
+        height: 1080,
+        node: 'desktop-hd',
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: resize, width: 0} => throws for non-positive width', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'resize',
+          width: 0,
+          height: 720,
+        } as never),
+      ).toThrow(/Number must be greater than 0/u);
+    });
+
+    it('INVALID: {step: resize, width: 1280.5} => throws for non-integer width', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'resize',
+          width: 1280.5,
+          height: 720,
+        } as never),
+      ).toThrow(/Expected integer/u);
+    });
+
+    it('INVALID: {step: resize, height: -10} => throws for negative height', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'resize',
+          width: 1280,
+          height: -10,
+        } as never),
+      ).toThrow(/Number must be greater than 0/u);
+    });
+
+    it('INVALID: {step: resize, +target} => throws naming the stray key, because resize is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'resize',
+          width: 1280,
+          height: 720,
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+  });
+
+  describe('request member', () => {
+    it('VALID: {step: request, path: "/api/guilds"} => parses with default GET method, null node, and ok expect', () => {
+      const result = stepContract.parse({ step: 'request', path: '/api/guilds' });
+
+      expect(result).toStrictEqual({
+        step: 'request',
+        method: 'GET',
+        path: '/api/guilds',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: request, full options} => parses with custom method, body, headers, node, and expect', () => {
+      const result = stepContract.parse({
+        step: 'request',
+        method: 'POST',
+        path: '/api/guilds',
+        body: { name: 'guild-1' },
+        headers: { 'x-custom': 'val' },
+        node: 'create-node',
+        expect: 'error',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'request',
+        method: 'POST',
+        path: '/api/guilds',
+        body: { name: 'guild-1' },
+        headers: { 'x-custom': 'val' },
+        node: 'create-node',
+        expect: 'error',
+      });
+    });
+
+    it('INVALID: {step: request, missing path} => throws for missing path', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'request',
+        } as never),
+      ).toThrow(/Required/u);
+    });
+
+    it('INVALID: {step: request, invalid method} => throws for unlisted method', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'request',
+          path: '/api/guilds',
+          method: 'INVALID_METHOD',
+        } as never),
+      ).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: {step: request, +target} => throws naming the stray key, because request is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'request',
+          path: '/api/guilds',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+  });
+
+  describe('before member', () => {
+    it('VALID: {step: before, source: "..."} => parses with null node and ok expect', () => {
+      const result = stepContract.parse({ step: 'before', source: 'window.__injected = true;' });
+
+      expect(result).toStrictEqual({
+        step: 'before',
+        source: 'window.__injected = true;',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: before, full options} => parses with custom node and expect', () => {
+      const result = stepContract.parse({
+        step: 'before',
+        source: 'window.__injected = true;',
+        node: 'init-script',
+        expect: 'error',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'before',
+        source: 'window.__injected = true;',
+        node: 'init-script',
+        expect: 'error',
+      });
+    });
+
+    it('VALID: {step: before} => StepStub builds valid before default member', () => {
+      const result = StepStub({ step: 'before' });
+
+      expect(result).toStrictEqual({
+        step: 'before',
+        source: 'window.__injected = true;',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: before, missing source} => throws for missing source', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'before',
+        } as never),
+      ).toThrow(/Required/u);
+    });
+
+    it('INVALID: {step: before, +target} => throws naming the stray key, because before is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'before',
+          source: 'window.__injected = true;',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+  });
+
+  describe('file member', () => {
+    it('VALID: {step: file, path: "..."} => parses with null node and ok expect', () => {
+      const result = stepContract.parse({ step: 'file', path: 'guilds/g1/quests/q1/quest.json' });
+
+      expect(result).toStrictEqual({
+        step: 'file',
+        path: 'guilds/g1/quests/q1/quest.json',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: file, full options} => parses with custom node and expect', () => {
+      const result = stepContract.parse({
+        step: 'file',
+        path: 'guilds/g1/quests/q1/quest.json',
+        node: 'quest-file',
+        expect: 'error',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'file',
+        path: 'guilds/g1/quests/q1/quest.json',
+        node: 'quest-file',
+        expect: 'error',
+      });
+    });
+
+    it('VALID: {step: file} => StepStub builds valid file default member', () => {
+      const result = StepStub({ step: 'file' });
+
+      expect(result).toStrictEqual({
+        step: 'file',
+        path: 'guilds/g1/quests/q1/quest.json',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: file, missing path} => throws for missing path', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'file',
+        } as never),
+      ).toThrow(/Required/u);
+    });
+
+    it('INVALID: {step: file, +target} => throws naming the stray key, because file is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'file',
+          path: 'guilds/g1/quests/q1/quest.json',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+  });
+
+  describe('storage member', () => {
+    it('VALID: {step: storage} => parses with default prefix, null node, and ok expect', () => {
+      const result = stepContract.parse({ step: 'storage' });
+
+      expect(result).toStrictEqual({
+        step: 'storage',
+        prefix: '',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: storage, prefix: "dm-"} => parses with custom prefix', () => {
+      const result = stepContract.parse({
+        step: 'storage',
+        prefix: 'dm-',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'storage',
+        prefix: 'dm-',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: storage, full options} => parses with custom node and expect', () => {
+      const result = stepContract.parse({
+        step: 'storage',
+        prefix: 'dm-',
+        node: 'storage-check',
+        expect: 'error',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'storage',
+        prefix: 'dm-',
+        node: 'storage-check',
+        expect: 'error',
+      });
+    });
+
+    it('VALID: {step: storage} => StepStub builds valid storage default member', () => {
+      const result = StepStub({ step: 'storage' });
+
+      expect(result).toStrictEqual({
+        step: 'storage',
+        prefix: '',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: storage, +target} => throws naming the stray key, because storage is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'storage',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+
+    it('VALID: {step: hold, minimal} => parses with defaults', () => {
+      const result = stepContract.parse({
+        step: 'hold',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'hold',
+        frames: 4,
+        everyMs: 1500,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: hold, custom options} => parses custom frames, everyMs, node, expect', () => {
+      const result = stepContract.parse({
+        step: 'hold',
+        frames: 5,
+        everyMs: 2000,
+        node: 'hold-node',
+        expect: 'error',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'hold',
+        frames: 5,
+        everyMs: 2000,
+        node: 'hold-node',
+        expect: 'error',
+      });
+    });
+
+    it('VALID: {step: hold} => StepStub builds valid hold default member', () => {
+      const result = StepStub({ step: 'hold' });
+
+      expect(result).toStrictEqual({
+        step: 'hold',
+        frames: 4,
+        everyMs: 1500,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: hold, frames: 1} => throws frames validation error', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'hold',
+          frames: 1,
+        } as never),
+      ).toThrow(/Number must be greater than or equal to 2/u);
+    });
+
+    it('INVALID: {step: hold, everyMs: 0} => throws everyMs validation error', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'hold',
+          everyMs: 0,
+        } as never),
+      ).toThrow(/Number must be greater than 0/u);
+    });
+
+    it('INVALID: {step: hold, +target} => throws naming stray key because hold is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'hold',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+  });
+
+  describe('the video step', () => {
+    it('VALID: {step: video, action: start} => parses valid video start step', () => {
+      const result = stepContract.parse({
+        step: 'video',
+        action: 'start',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'video',
+        action: 'start',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: video, action: stop, node, expect} => parses valid video stop step', () => {
+      const result = stepContract.parse({
+        step: 'video',
+        action: 'stop',
+        node: 'recorded-batch',
+        expect: 'error',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'video',
+        action: 'stop',
+        node: 'recorded-batch',
+        expect: 'error',
+      });
+    });
+
+    it('VALID: {step: video} => StepStub builds valid video default member', () => {
+      const result = StepStub({ step: 'video' });
+
+      expect(result).toStrictEqual({
+        step: 'video',
+        action: 'start',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: video, action: pause} => throws validation error on invalid action', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'video',
+          action: 'pause',
+        } as never),
+      ).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: {step: video, +target} => throws naming stray key because video is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'video',
+          action: 'start',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+  });
+
+  describe('the snapshot step', () => {
+    it('VALID: {step: snapshot, as: "clean"} => parses valid snapshot step with defaults', () => {
+      const result = stepContract.parse({
+        step: 'snapshot',
+        as: 'clean',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'snapshot',
+        as: 'clean',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: snapshot, as: "after-cycle-1", node, expect} => parses valid snapshot step with explicit node and expect', () => {
+      const result = stepContract.parse({
+        step: 'snapshot',
+        as: 'after-cycle-1',
+        node: 'baseline-saved',
+        expect: 'error',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'snapshot',
+        as: 'after-cycle-1',
+        node: 'baseline-saved',
+        expect: 'error',
+      });
+    });
+
+    it('VALID: {step: snapshot} => StepStub builds valid snapshot default member', () => {
+      const result = StepStub({ step: 'snapshot' });
+
+      expect(result).toStrictEqual({
+        step: 'snapshot',
+        as: 'clean',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: snapshot, as: ""} => throws on empty snapshot name', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'snapshot',
+          as: '',
+        } as never),
+      ).toThrow(/String must contain at least 1 character/u);
+    });
+
+    it('INVALID: {step: snapshot, as: "invalid name!"} => throws on invalid characters in name', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'snapshot',
+          as: 'invalid name!',
+        } as never),
+      ).toThrow(/Invalid/u);
+    });
+
+    it('INVALID: {step: snapshot, +target} => throws naming stray key because snapshot is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'snapshot',
+          as: 'clean',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+
+    it('VALID: {step: reset, to: "clean"} => parses valid reset step with state level and to snapshot', () => {
+      const result = stepContract.parse({
+        step: 'reset',
+        level: 'state',
+        to: 'clean',
+        node: 'after-reset',
+        expect: 'ok',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'reset',
+        level: 'state',
+        to: 'clean',
+        reseed: null,
+        node: 'after-reset',
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: reset, level: "page"} => parses page level reset with default to null', () => {
+      const result = stepContract.parse({
+        step: 'reset',
+        level: 'page',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'reset',
+        level: 'page',
+        to: null,
+        reseed: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: reset} => StepStub builds valid reset default member', () => {
+      const result = StepStub({ step: 'reset' });
+
+      expect(result).toStrictEqual({
+        step: 'reset',
+        level: 'state',
+        to: 'clean',
+        reseed: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('INVALID: {step: reset, level: "state", to: null} => throws when state reset lacks to snapshot', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'reset',
+          level: 'state',
+          to: null,
+        } as never),
+      ).toThrow(/requires an explicit.*to.*snapshot name/u);
+    });
+
+    it('INVALID: {step: reset, +target} => throws naming stray key because reset is strict', () => {
+      expect(() =>
+        stepContract.parse({
+          step: 'reset',
+          level: 'page',
+          target: '[data-testid="X"]',
+        } as never),
+      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
     });
   });
 });

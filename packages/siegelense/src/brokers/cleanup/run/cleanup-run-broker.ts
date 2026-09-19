@@ -10,16 +10,17 @@
  * `isStaleRegistryEntryGuard` alone would leave it forever (it returns false for `lastBeatMs:
  * null` on purpose — see its own PURPOSE — because a fresh reservation is not the same as a
  * heartbeat gone cold), so `isReservedRegistryEntryGuard` plus the reservation ceiling is the
- * second, separate staleness test this broker adds on top. `assetsAged` is deliberately ABSENT,
- * not zero: ageing an asset needs a citation resolver that also covers a `WALKED` quest-note line,
- * which does not exist yet in this package (chunk-03-read-path-and-perception.md §3.E) — shipping
- * ageing ahead of that resolver would age out a clean happy walk's own baseline shots, the exact
- * evidence the adversarial phase reads next. `cleanupAnswerContract` is `.strict()` for this
- * reason, and stays that way until the resolver lands and this file grows the field for real.
+ * second, separate staleness test this broker adds on top. `assetsAged` runs LAST, over every row
+ * this pass did not leave alone, through `assetsAgeLayerBroker` — which shares
+ * `pruneInstanceReclaimBroker` with `prune`, so `cleanup` refuses exactly what `prune` refuses and
+ * the two cannot drift on what "still cited" means. A row the citation resolver held back joins
+ * `leftAlone` with the citing file named, which is the spec's own worked example at line 1409, and
+ * it is appended rather than merged: a row already left alone for being LIVE keeps that reason,
+ * since a caller asking "did you touch anything of mine" needs the first reason it would have hit.
  *
  * USAGE:
  * await cleanupRunBroker();
- * // Returns { reaped, portsReleased, lockReleased, leftAlone } — no assetsAged key
+ * // Returns { reaped, portsReleased, lockReleased, assetsAged, leftAlone }
  */
 
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -31,6 +32,7 @@ import { isStaleRegistryEntryGuard } from '../../../guards/is-stale-registry-ent
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { elapsedRenderTransformer } from '../../../transformers/elapsed-render/elapsed-render-transformer';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
+import { assetsAgeLayerBroker } from './assets-age-layer-broker';
 import { lockReleaseLayerBroker } from './lock-release-layer-broker';
 import { staleReapLayerBroker } from './stale-reap-layer-broker';
 
@@ -74,10 +76,22 @@ export const cleanupRunBroker = async (): Promise<CleanupAnswer> => {
 
   const { lockReleased } = await lockReleaseLayerBroker({ nowMs });
 
+  // Ageing runs over every row this pass did not already leave alone — a reaped instance's
+  // evidence outlives its processes, so its assets are in scope the moment the reap is done.
+  const leftAloneIds = new Set(leftAlone.map((entry) => String(entry.id)));
+  const assetsAged = await assetsAgeLayerBroker({
+    entries: registry.instances.filter((entry) => !leftAloneIds.has(String(entry.id))),
+    nowMs,
+  });
+
   return cleanupAnswerContract.parse({
     reaped: reapResults.map((result) => result.reaped),
     portsReleased: reapResults.flatMap((result) => result.portsReleased),
     lockReleased,
-    leftAlone,
+    assetsAged: { instances: assetsAged.instances, freedMB: assetsAged.freedMB },
+    leftAlone: [
+      ...leftAlone,
+      ...assetsAged.refusals.map((refusal) => leftAloneContract.parse(refusal)),
+    ],
   });
 };

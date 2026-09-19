@@ -1,7 +1,5 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
-import { ShotDimensionMismatchError } from '../../../errors/shot-dimension-mismatch/shot-dimension-mismatch-error';
-
 import { shotChangeReadBroker } from './shot-change-read-broker';
 import { shotChangeReadBrokerProxy } from './shot-change-read-broker.proxy';
 
@@ -101,7 +99,7 @@ describe('shotChangeReadBroker', () => {
   });
 
   describe('dimension mismatch', () => {
-    it('ERROR: {frames of different sizes} => throws ShotDimensionMismatchError naming both paths and both sizes', async () => {
+    it("VALID: {frames of different sizes} => returns '100%'", async () => {
       const proxy = shotChangeReadBrokerProxy();
       const previousPath = AbsoluteFilePathStub({
         value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step7.png',
@@ -123,18 +121,9 @@ describe('shotChangeReadBroker', () => {
         pixels: new Uint8Array(100).fill(255),
       });
 
-      const error = await shotChangeReadBroker({ previousPath, currentPath }).then(
-        (): never => {
-          throw new Error('Expected shotChangeReadBroker to reject');
-        },
-        (caught: unknown): ShotDimensionMismatchError => caught as ShotDimensionMismatchError,
-      );
+      const result = await shotChangeReadBroker({ previousPath, currentPath });
 
-      expect(error instanceof ShotDimensionMismatchError).toBe(true);
-      expect({ name: error.name, message: error.message }).toStrictEqual({
-        name: 'ShotDimensionMismatchError',
-        message: `Shot dimension mismatch: ${previousPath} is 10x10 but ${currentPath} is 5x5 — pixelChange cannot compare captures of different sizes`,
-      });
+      expect(result).toBe('100%');
     });
   });
 });

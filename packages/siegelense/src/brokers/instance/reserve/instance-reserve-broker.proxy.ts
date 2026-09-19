@@ -5,6 +5,7 @@ import type { FilePath, NetworkPort } from '@dungeonmaster/shared/contracts';
 
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { registryUpdateBrokerProxy } from '../../registry/update/registry-update-broker.proxy';
+import { gitBranchReadAdapterProxy } from '../../../adapters/git/branch-read/git-branch-read-adapter.proxy';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 
@@ -41,12 +42,14 @@ export const instanceReserveBrokerProxy = (): {
   setupPortCandidates: (params: {
     pairs: readonly { api: NetworkPort; web: NetworkPort }[];
   }) => void;
+  setupBranch: (params: { branch: string | null }) => void;
   getWrittenRegistry: () => unknown;
   getCreatedDirs: () => readonly unknown[];
 } => {
   const updateProxy = registryUpdateBrokerProxy();
   const evidenceProxy = locationsInstanceEvidencePathFindBrokerProxy();
   const mkdirProxy = fsMkdirAdapterProxy();
+  const branchProxy = gitBranchReadAdapterProxy();
   netFreePortPairAdapterProxy();
 
   const createServerHandle = registerMock({ fn: createServer });
@@ -95,6 +98,10 @@ export const instanceReserveBrokerProxy = (): {
         createServerHandle.onceFor([]).returns(buildFakePortServer({ port: api }));
         createServerHandle.onceFor([]).returns(buildFakePortServer({ port: web }));
       });
+    },
+
+    setupBranch: ({ branch }: { branch: string | null }): void => {
+      branchProxy.setupBranch({ branch });
     },
 
     getWrittenRegistry: (): unknown => {

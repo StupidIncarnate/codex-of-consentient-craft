@@ -6,7 +6,7 @@
  * cannot hand back an npm-package type, and contracts/ cannot import one to describe it either. The
  * data half stays an empty `z.object({})` and every field is added through a TypeScript intersection.
  * `browser` is what makes a browserless spec REPRESENTABLE rather than a bug waiting in an adapter: a
- * `dungeonmaster-headless` instance boots its servers and no Chromium, so its `LaneSession.browser` is
+ * `dungeonmaster-api` instance boots its servers and no Chromium, so its `LaneSession.browser` is
  * `null` by construction rather than a `BrowserSession` some caller forgot to close, and the guard that
  * rejects a browser step against it reads this field instead of probing a live page for one
  * (siegelense-tooling.md line 1623). `logFds` carries the raw OS descriptors `lane-boot-broker` opened
@@ -20,7 +20,7 @@
  * if (lane.browser === null) {
  *   throw new BrowserStepUnsupportedError({ verb: 'click', specName: lane.specName });
  * }
- * // lane.browser is null on a browserless spec and a live BrowserSession on 'dungeonmaster-web'
+ * // lane.browser is null on a browserless spec and a live BrowserSession on 'dungeonmaster-stack'
  */
 
 import { z } from 'zod';
@@ -42,6 +42,7 @@ export type LaneSession = z.infer<typeof laneSessionContract> & {
   homePath: AbsoluteFilePath;
   evidencePath: AbsoluteFilePath;
   baseUrl: ContentText;
+  apiBaseUrl: ContentText;
   pgids: readonly ProcessGroupId[];
   browser: BrowserSession | null;
   logFds: readonly FileDescriptor[];

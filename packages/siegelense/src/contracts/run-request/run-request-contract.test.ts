@@ -71,6 +71,7 @@ describe('runRequestContract', () => {
             step: 'click',
             target: '[data-testid="GUILD_ADD"]',
             within: null,
+            ref: null,
             timeoutMs: null,
             node: null,
             expect: 'ok',

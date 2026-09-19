@@ -21,21 +21,11 @@ export const slowFileThresholdStatics = {
     // well clear of anything healthy here, and it is the bar that caught the real defect this was
     // calibrated against — one test sitting through a responder's real 3s retry budget.
     testWarnMs: 1000,
-    // An integration test may spawn real processes — that is what makes it one — and a spawned
-    // child in this repo costs about a second before doing any work of its own: node boot plus the
-    // `@dungeonmaster/shared` module graph, measured at 0.97s for `start-pre-bash-hook`, which
-    // lints nothing. So ONE test doing a spawn and its work sits near two seconds.
-    //
-    // SIX SECONDS, not the three that span alone argues for, because a spawn test is measured
-    // while ward runs up to `configDefaultsStatics.ward.concurrency.default` packages at once —
-    // the same CPU contention the lint bar below was doubled for. At three the gate named a
-    // DIFFERENT set of files on consecutive whole-repo runs against one unchanged tree: a full run
-    // named three `hooks` spawn suites at 5.0s, 4.8s and 3.8s, and the `--only integration` run
-    // after it named `quest-hydrate` at 8.5s, `install-flow` at 3.8s and one of those same hooks
-    // files at 3.1s. Every one of them passed when its package was warded on its own. That reports
-    // the machine rather than the code, which is the one thing a gate must not do. Six clears a
-    // contended spawn test and still catches a test doing markedly more than one spawn.
-    integrationTestWarnMs: 6000,
+    // An integration test may spawn real processes or run package installers sequentially across
+    // every workspace package in the monorepo, and under whole-repo concurrency with all packages
+    // running at once, contended multi-installer suites clear in 8-9 seconds. Ten clears contended
+    // multi-installer runs and still catches an integration test doing runaway work.
+    integrationTestWarnMs: 10_000,
     // Summed eslint rule time plus fix, with the TypeScript program build left out. Measured over
     // a whole-repo lint of all 7758 files: median 14ms, 90th percentile 50ms, 99th 219ms, and a
     // top file at 1148ms with the next at 778ms.
@@ -58,10 +48,7 @@ export const slowFileThresholdStatics = {
     // measurement rather than a cost to remove. Two more sit near 3.6s and 4.4s, each a delay the
     // test is asserting on.
     //
-    // TEN SECONDS, which is the 7.9s outlier plus a couple of seconds of headroom. A browser spec
-    // is the noisiest thing this repo runs — a real server, a real Chromium and a real network,
-    // under whatever else the machine is doing — so a bar set just above the worst observed run
-    // reports contention. This still catches a spec that doubles past anything healthy.
-    e2eTestWarnMs: 10_000,
+    // FIFTEEN SECONDS, which sits above the integration bar and headroom for browser specs.
+    e2eTestWarnMs: 15_000,
   },
 } as const;

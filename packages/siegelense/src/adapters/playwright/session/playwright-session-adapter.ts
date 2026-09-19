@@ -8,11 +8,21 @@
  * methods (`countMatches`, `clickMatch`, `fillMatch`, `waitForMatch`) never call `.first()`/`.last()`
  * — `within` and `target` compose into ONE CSS descendant selector Playwright resolves in strict
  * mode, which is what leaves the ambiguity decision to the caller instead of silently picking a
- * match.
+ * match. **Driving by REF goes through that same strict locator**, by stamping the element and
+ * resolving the stamp, so a ref inherits the no-pick guarantee rather than sitting beside it.
+ *
+ * `mintState.highest` is the only piece of ref state Node keeps, and it exists because the page
+ * cannot answer one question about itself: after a navigation the registry comes back EMPTY, so a
+ * ref this instance minted and a ref carried in from a DIFFERENT instance both read as "past the
+ * end" — two failures whose recovery is different. The counter survives navigation and dies with the
+ * instance, which is exactly the lifetime a ref has. It is a HOLDER whose field mutates rather than
+ * a reassigned `let`, matching `run-execute-broker.ts`'s `cursorState`, so a read before an await
+ * and a write after it never give `require-atomic-updates` cause to flag it.
  *
  * USAGE:
  * const session = await playwrightSessionAdapter({ baseUrl: 'http://localhost:5173', evidencePath });
- * const count = await session.countMatches({ target: '[data-testid="PIXEL_BTN"]' });
+ * const key = await session.look({ within: null });
+ * await session.clickRef({ ref: 23, timeoutMs: 30000 });
  * await session.close();
  */
 
@@ -24,17 +34,39 @@ import { z } from 'zod';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
+import { boxReadingContract } from '../../../contracts/box-reading/box-reading-contract';
+import type { BoxReading } from '../../../contracts/box-reading/box-reading-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
+import type { KeyListing } from '../../../contracts/key-listing/key-listing-contract';
 import { locatorStateContract } from '../../../contracts/locator-state/locator-state-contract';
+import type { RefResolution } from '../../../contracts/ref-resolution/ref-resolution-contract';
+import { selectorContract } from '../../../contracts/selector/selector-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { stepCandidateContract } from '../../../contracts/step-candidate/step-candidate-contract';
 import type { StepCandidate } from '../../../contracts/step-candidate/step-candidate-contract';
+import type { DomField } from '../../../contracts/dom-field/dom-field-contract';
+import type { DomReading } from '../../../contracts/dom-reading/dom-reading-contract';
+import type { DomTextMode } from '../../../contracts/dom-text-mode/dom-text-mode-contract';
 import type {
   BrowserSession,
   BufferLengths,
   MatchCount,
 } from '../../../contracts/browser-session/browser-session-contract';
+import type { KeyReading } from '../../../contracts/key-reading/key-reading-contract';
+import type { StorageReading } from '../../../contracts/storage-reading/storage-reading-contract';
+import { videoResultContract } from '../../../contracts/video-result/video-result-contract';
+import type { VideoResult } from '../../../contracts/video-result/video-result-contract';
+import type { VideoAction } from '../../../contracts/video-action/video-action-contract';
+import { domReadLayerAdapter } from './dom-read-layer-adapter';
+import { keyPressLayerAdapter } from './key-press-layer-adapter';
+import { keyReadLayerAdapter } from './key-read-layer-adapter';
 import { listenersLayerAdapter } from './listeners-layer-adapter';
+import { refRegistryLayerAdapter } from './ref-registry-layer-adapter';
+import { rootCheckLayerAdapter } from './root-check-layer-adapter';
+import { viewportSetLayerAdapter } from './viewport-set-layer-adapter';
+import { initScriptAddLayerAdapter } from './init-script-add-layer-adapter';
+import { storageReadLayerAdapter } from './storage-read-layer-adapter';
+import { pasteLayerAdapter } from './paste-layer-adapter';
 
 // Re-declared locally rather than imported: `browser-session-contract.ts` keeps its own parsing
 // contracts private (leading underscore, no export) because the facade's data half is `{}` — a
@@ -51,7 +83,14 @@ const NEAREST_NAMES_LIMIT = 50;
 // rect as `(x,y) WxH`, matching `stepCandidateContract`'s own example. `querySelectorAll` only, on
 // both the `within` scope and the `target` — a bare `querySelector` silently returns match one,
 // which is `.first()` again wearing a different name.
+//
+// Each candidate also MINTS A REF, through the same mint-or-reuse the key uses, and that is what
+// makes the ambiguity error's advice followable: two candidates sharing a `within` cannot be told
+// apart by narrowing, which is the measured dead end at `scrolls/seigelense/HANDOFF.md` lines
+// 206-214, and a ref separates them because it binds to one element.
 const DESCRIBE_MATCHES_SOURCE = `(params) => {
+  if (window.__siege === undefined) { window.__siege = { refs: [] }; }
+  const registry = window.__siege.refs;
   const roots = params.within === null
     ? [document]
     : Array.from(document.querySelectorAll(params.within));
@@ -76,11 +115,14 @@ const DESCRIBE_MATCHES_SOURCE = `(params) => {
     let text = '';
     element.childNodes.forEach((node) => {
       if (node.nodeType === 3) {
-        text += node.textContent || '';
+        text += node.nodeValue || '';
       }
     });
+    let registryIndex = registry.indexOf(element);
+    if (registryIndex === -1) { registry.push(element); registryIndex = registry.length - 1; }
     return {
       index,
+      ref: registryIndex + 1,
       within: nearest,
       text,
       rect: '(' + Math.round(rect.x) + ',' + Math.round(rect.y) + ') ' + Math.round(rect.width) + 'x' + Math.round(rect.height),
@@ -92,10 +134,8 @@ const NEAREST_NAMES_SOURCE = `() => Array.from(document.querySelectorAll('[data-
 
 export const playwrightSessionAdapter = async ({
   baseUrl,
-  // Accepted for signature parity with the lane boot broker's other process launches; `capture`
-  // takes a caller-resolved filePath directly, so this chunk's browser session has no read of its
-  // own home yet.
-  evidencePath: _evidencePath,
+  // Used for recordVideo.dir so screencast recordings land in the run's evidence directory.
+  evidencePath,
 }: {
   baseUrl: string;
   evidencePath: AbsoluteFilePath;
@@ -103,7 +143,10 @@ export const playwrightSessionAdapter = async ({
   process.env.PLAYWRIGHT_BROWSERS_PATH ??= path.join(os.homedir(), '.cache', 'ms-playwright');
 
   const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({ baseURL: baseUrl });
+  const context = await browser.newContext({
+    baseURL: baseUrl,
+    recordVideo: { dir: path.join(evidencePath, 'video') },
+  });
   // A real Ctrl+V is the only paste that arrives with isTrusted true, and it needs the clipboard
   // to be readable from the page's own origin.
   await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: baseUrl });
@@ -113,6 +156,18 @@ export const playwrightSessionAdapter = async ({
   const networkLines: ContentText[] = [];
   const websocketLines: ContentText[] = [];
   const linesBuild = listenersLayerAdapter();
+  const refRegistry = refRegistryLayerAdapter();
+  const keyReader = keyReadLayerAdapter();
+  const domReader = domReadLayerAdapter();
+  const keyPress = keyPressLayerAdapter();
+  const rootChecker = rootCheckLayerAdapter();
+  // See the header: a HOLDER, not a reassigned `let`, and the one piece of ref state Node keeps.
+  const mintState = { highest: 0 };
+  const videoState = { isRecording: false };
+
+  // Installed before the page's own script on EVERY document, so a navigation empties the registry
+  // by construction rather than by anyone remembering to clear it.
+  await page.addInitScript(refRegistry.initScriptSource());
 
   // Every listener below is armed HERE, once, before the page has navigated anywhere. A listener
   // attached when a read is asked for has already missed every message that read was asked about.
@@ -228,6 +283,18 @@ export const playwrightSessionAdapter = async ({
       });
     },
 
+    look: async ({ within }: { within: string | null }): Promise<KeyListing> => {
+      const scope = within === null ? null : selectorContract.parse(within);
+      const raw: unknown = await page.evaluate(keyReader.readSource({ within: scope }));
+      mintState.highest = Math.max(mintState.highest, keyReader.highestRefOf({ raw }));
+      return keyReader.toListing({ raw, within: scope });
+    },
+
+    refState: async ({ ref }: { ref: number }): Promise<RefResolution> => {
+      const raw: unknown = await page.evaluate(refRegistry.refStateSource({ ref }));
+      return refRegistry.toResolution({ raw, ref, highestMinted: mintState.highest });
+    },
+
     countMatches: async ({
       target,
       within,
@@ -257,8 +324,16 @@ export const playwrightSessionAdapter = async ({
       // comes back `undefined`. Embedding the params as JSON into a self-invoking call instead makes
       // the whole expression BE the call, so Playwright hands back its already-computed result.
       const params = JSON.stringify({ target, within: within ?? null });
-      const raw = await page.evaluate(`(${DESCRIBE_MATCHES_SOURCE})(${params})`);
-      return z.array(stepCandidateContract).parse(raw);
+      const raw: unknown = await page.evaluate(`(${DESCRIBE_MATCHES_SOURCE})(${params})`);
+      const candidates = z.array(stepCandidateContract).parse(raw);
+      // Describing candidates mints refs, exactly as `look` does, so the counter has to advance
+      // here too — otherwise a ref handed out by an ambiguity error would read as "never minted by
+      // this instance" the moment anyone tried to drive it.
+      mintState.highest = Math.max(
+        mintState.highest,
+        ...candidates.map((candidate) => candidate.ref ?? 0),
+      );
+      return candidates;
     },
 
     nearestNames: async ({
@@ -287,6 +362,56 @@ export const playwrightSessionAdapter = async ({
     }): Promise<void> => {
       const scoped = within === undefined ? target : `${within} ${target}`;
       await page.locator(scoped).click({ timeout: timeoutMs });
+    },
+
+    // Stamp, drive the stamp through the strict locator, unstamp — see `refRegistryLayerAdapter`'s
+    // own header for why a ref does not take the ElementHandle route here. The unstamp runs in a
+    // `finally` so a failed click still leaves the page as it found it; its own failure is logged
+    // rather than thrown, because replacing the step's real error with a cleanup error would hide
+    // the defect the walk actually hit.
+    clickRef: async ({ ref, timeoutMs }: { ref: number; timeoutMs: number }): Promise<void> => {
+      await page.evaluate(refRegistry.stampSource({ ref }));
+      try {
+        await page.locator(refRegistry.targetSelector()).click({ timeout: timeoutMs });
+      } finally {
+        await page.evaluate(refRegistry.unstampSource()).catch((error: unknown) => {
+          process.stderr.write(
+            `[playwright-session-adapter] unstamp after clickRef failed: ${String(error)}\n`,
+          );
+        });
+      }
+    },
+
+    fillRef: async ({
+      ref,
+      value,
+      timeoutMs,
+    }: {
+      ref: number;
+      value: string;
+      timeoutMs: number;
+    }): Promise<void> => {
+      await page.evaluate(refRegistry.stampSource({ ref }));
+      try {
+        await page.locator(refRegistry.targetSelector()).fill(value, { timeout: timeoutMs });
+      } finally {
+        await page.evaluate(refRegistry.unstampSource()).catch((error: unknown) => {
+          process.stderr.write(
+            `[playwright-session-adapter] unstamp after fillRef failed: ${String(error)}\n`,
+          );
+        });
+      }
+    },
+
+    boxRef: async ({ ref }: { ref: number }): Promise<BoxReading> => {
+      const raw: unknown = await page.evaluate(refRegistry.boxSource({ ref }));
+      return boxReadingContract.parse(raw);
+    },
+
+    pressKey: async ({ press }: { press: string }): Promise<KeyReading> => {
+      await page.keyboard.press(press);
+      const raw: unknown = await page.evaluate(keyPress.focusReadSource());
+      return keyPress.toReading({ press, rawFocused: raw });
     },
 
     fillMatch: async ({
@@ -321,8 +446,22 @@ export const playwrightSessionAdapter = async ({
         .waitFor({ state: locatorStateContract.parse(state), timeout: timeoutMs });
     },
 
+    waitForPredicate: async ({
+      source,
+      timeoutMs,
+    }: {
+      source: string;
+      timeoutMs: number;
+    }): Promise<void> => {
+      await page.waitForFunction(source, undefined, { timeout: timeoutMs });
+    },
+
     capture: async ({ filePath }: { filePath: string }): Promise<void> => {
       await page.screenshot({ path: filePath, animations: 'disabled', caret: 'hide' });
+    },
+
+    captureLive: async ({ filePath }: { filePath: string }): Promise<void> => {
+      await page.screenshot({ path: filePath, animations: 'allow' });
     },
 
     evaluateSource: async ({ source }: { source: string }): Promise<ContentText> => {
@@ -339,6 +478,105 @@ export const playwrightSessionAdapter = async ({
       networkLines.slice(fromIndex),
     readWebsocketSince: ({ fromIndex }: { fromIndex: number }): readonly ContentText[] =>
       websocketLines.slice(fromIndex),
+
+    readDom: async ({
+      target,
+      fields,
+      text,
+    }: {
+      target: string;
+      fields: readonly DomField[] | null;
+      text: DomTextMode | null;
+    }): Promise<DomReading> => {
+      const raw: unknown = await page.evaluate(domReader.readSource({ target, text }));
+      return domReader.toReading({ raw, fields });
+    },
+
+    checkRootPresent: async (): Promise<boolean> => {
+      const raw: unknown = await page.evaluate(rootChecker.checkSource());
+      return rootChecker.toResult({ raw });
+    },
+
+    setViewport: async ({ width, height }: { width: number; height: number }): Promise<void> => {
+      await viewportSetLayerAdapter({ page, width, height });
+    },
+
+    addInitScript: async ({ source }: { source: string }): Promise<void> => {
+      await initScriptAddLayerAdapter({ page, source });
+    },
+
+    readStorage: async ({ prefix }: { prefix: string }): Promise<StorageReading> =>
+      storageReadLayerAdapter({ page, prefix }),
+
+    clearStorage: async (): Promise<void> => {
+      await page.evaluate(() => {
+        window.localStorage.clear();
+        window.sessionStorage.clear();
+      });
+    },
+
+    pasteMatch: async ({
+      target,
+      within,
+      filePath,
+      value,
+      timeoutMs,
+    }: {
+      target: string;
+      within?: string;
+      filePath: string | null;
+      value: string | null;
+      timeoutMs: number;
+    }): Promise<void> => {
+      await pasteLayerAdapter({
+        page,
+        target,
+        within: within ?? null,
+        filePath,
+        value,
+        timeoutMs,
+      });
+    },
+
+    pasteRef: async ({
+      ref,
+      filePath,
+      value,
+      timeoutMs,
+    }: {
+      ref: number;
+      filePath: string | null;
+      value: string | null;
+      timeoutMs: number;
+    }): Promise<void> => {
+      await pasteLayerAdapter({
+        page,
+        ref,
+        filePath,
+        value,
+        timeoutMs,
+      });
+    },
+
+    videoAction: async ({ action }: { action: VideoAction }): Promise<VideoResult> => {
+      if (action === 'start') {
+        videoState.isRecording = true;
+        return videoResultContract.parse({
+          status: 'started',
+          path: null,
+        });
+      }
+
+      videoState.isRecording = false;
+      const video = page.video();
+      const videoPath =
+        (video === null ? null : await video.path()) ?? path.join(evidencePath, 'video');
+
+      return videoResultContract.parse({
+        status: 'stopped',
+        path: videoPath,
+      });
+    },
 
     bufferLengths: (): BufferLengths => ({
       consoleLines: bufferLineCountContract.parse(consoleLines.length),

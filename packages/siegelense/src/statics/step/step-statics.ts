@@ -1,9 +1,10 @@
 /**
- * PURPOSE: The step vocabulary's own knobs — every step verb this repo ships, grouped by whether a
- * verb ACTS on the page (and therefore captures unasked), TARGETS one (and therefore participates in
- * the ambiguity rule), or needs a BROWSER at all — plus the two defaults a caller gets when it omits
- * them from a step or a batch. `stepVerbContract` derives its enum from `verbs.all` rather than
- * retyping the list, so a new verb arriving in a later chunk never leaves two lists to keep in sync.
+ * PURPOSE: The step vocabulary's own knobs — the step verbs that ship, grouped by whether a verb
+ * ACTS on the page (and therefore captures unasked), CAPTURES beside its own reading, or TARGETS an
+ * element (and therefore participates in the ambiguity rule), plus the two defaults a caller gets
+ * when it omits them from a step or a batch. `stepVerbContract` derives its enum from `verbs.all`
+ * rather than retyping the list, so a verb arriving in a later chunk never leaves two lists to keep
+ * in sync.
  *
  * USAGE:
  * stepStatics.verbs.all;
@@ -15,25 +16,77 @@
 
 export const stepStatics = {
   verbs: {
-    // siegelense-tooling.md line 2365's "Steps that exist today and are kept" table, narrowed
-    // to what this chunk ships — `look`, `key`, `paste`, `box`, `dom`, `storage`, `file`,
-    // `console`, `network` and `ws` are the ones Part 7 defers to a later chunk. `seed` is the
-    // first member that runs a recipe rather than driving a page.
-    all: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval', 'seed'],
-    // goto, click and type change the page, so every one of them captures a shot unasked —
-    // "Every acting step captures unasked" (chunk-02-driver-and-batch.md §2).
-    acting: ['goto', 'click', 'type'],
-    // waitFor, click and type are the three members whose step carries a `target`
-    // selector, so all three are subject to the ambiguity rule: one match proceeds, AMBIGUOUS
-    // throws carrying the candidates, NO MATCH throws naming the near misses
-    // (siegelense-tooling.md line 1961).
-    targeting: ['waitFor', 'click', 'type'],
-    // A step in this list acts on or reads a live Playwright page, so it errors by NAME against a
+    // siegelense-tooling.md line 2557's "Steps that exist today and are kept" table, narrowed to
+    // the verbs built so far — `key`, `paste`, `box`, `dom`, `storage` and `file`, and the other
+    // new ones at line 2585, are what Part 7 still defers.
+    all: [
+      'goto',
+      'waitFor',
+      'click',
+      'type',
+      'screenshot',
+      'eval',
+      'look',
+      'box',
+      'dom',
+      'seed',
+      'until',
+      'key',
+      'health',
+      'resize',
+      'request',
+      'before',
+      'file',
+      'storage',
+      'paste',
+      'hold',
+      'video',
+      'snapshot',
+      'reset',
+    ],
+    // goto, click, type, key, resize and paste CHANGE the page. `look` does not, which is why it is not here — but it
+    // still captures, through `capturing` below.
+    acting: ['goto', 'click', 'type', 'key', 'resize', 'paste'],
+    // Which verbs resolve a shot path, and therefore capture. `acting` plus `look`: "Returns the
+    // KEY inline and writes the SHOT, returning its path" (siegelense-tooling.md line 2587). Kept
+    // apart from `acting` rather than folded into it, because `acting` also answers "did this step
+    // change the page", and a reading step that answered yes to that would be a lie in every place
+    // that asks.
+    capturing: ['goto', 'click', 'type', 'look', 'key', 'health', 'resize', 'paste', 'hold'],
+    // The members whose step carries a `target` selector or a `ref`, so each is subject to the
+    // ambiguity rule: one match proceeds, AMBIGUOUS throws carrying the candidates, NO MATCH throws
+    // naming the near misses (siegelense-tooling.md line 2109). A `ref` can never be ambiguous — it
+    // binds to one element — but it resolves through the same door, which is what keeps one place
+    // deciding whether a step may act at all.
+    targeting: ['waitFor', 'click', 'type', 'paste'],
+    // Which verbs act on or read a live Playwright page, so each errors by NAME against a
     // browserless spec rather than answering an empty key (siegelense-tooling.md lines 1613,
-    // 2128-2130). `seed` runs a recipe against the instance directly and never touches a page, so
-    // it stays out of this list — adding it here would make the one verb built to work without a
-    // browser refuse itself on the browserless lane it exists for.
-    browser: ['goto', 'waitFor', 'click', 'type', 'screenshot', 'eval'],
+    // 2128-2130). `seed` is the first verb that is NOT one: it touches disk and HTTP and never a
+    // screen — "a recipe touches STATE, never a screen" (siegelense-recipes.md line 471) — so it
+    // runs against `dungeonmaster-api` exactly as it runs against a browsered lane. `until`
+    // sits outside this list too, for a different reason: only its `file` form needs no browser,
+    // while its `visible`/`predicate`/`console`/`response` forms do — that split happens PER FORM
+    // inside `stepUntilBroker` itself, not here, so this list stays "every member needs a browser
+    // for every form" rather than "sometimes".
+    browser: [
+      'goto',
+      'waitFor',
+      'click',
+      'type',
+      'screenshot',
+      'eval',
+      'look',
+      'box',
+      'dom',
+      'key',
+      'health',
+      'resize',
+      'before',
+      'storage',
+      'paste',
+      'hold',
+      'video',
+    ],
   },
   defaults: {
     // A batch stops on its first failing step unless the caller sets `stopOn: 'never'`

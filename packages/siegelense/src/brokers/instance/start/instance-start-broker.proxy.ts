@@ -17,9 +17,16 @@ import {
   NetworkPortStub,
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
-import type { FilePath, NetworkPort } from '@dungeonmaster/shared/contracts';
+import type { FilePath, NetworkPort, TimeoutMs } from '@dungeonmaster/shared/contracts';
 
+import { capacityReadBroker } from '../../capacity/read/capacity-read-broker';
+import { capacityReadBrokerProxy } from '../../capacity/read/capacity-read-broker.proxy';
+import { CapacityAnswerStub } from '../../../contracts/capacity-answer/capacity-answer.stub';
+import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.proxy';
 import { instanceReserveBrokerProxy } from '../reserve/instance-reserve-broker.proxy';
+import { profileBootRecordBrokerProxy } from '../../profile/boot-record/profile-boot-record-broker.proxy';
+import { recipeSeedRunBrokerProxy } from '../../recipe/seed-run/recipe-seed-run-broker.proxy';
+import { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/boot-failure-marker.stub';
 import { instanceKillBrokerProxy } from '../kill/instance-kill-broker.proxy';
 import { bootLockAcquireBrokerProxy } from '../../boot-lock/acquire/boot-lock-acquire-broker.proxy';
 import { bootLockReleaseBrokerProxy } from '../../boot-lock/release/boot-lock-release-broker.proxy';
@@ -43,6 +50,7 @@ import type { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { laneSpecStatics } from '../../../statics/lane-spec/lane-spec-statics';
+import { profileStatics } from '../../../statics/profile/profile-statics';
 
 type InstanceId = ReturnType<typeof InstanceIdStub>;
 type Registry = ReturnType<typeof RegistryStub>;
@@ -106,6 +114,7 @@ export const instanceStartBrokerProxy = (): {
     instanceId: InstanceId;
     evidencePath: FilePath;
     registry: Registry;
+    idleTimeoutMs?: TimeoutMs;
   }) => void;
   setupHappyBootWithQueuedMs: (params: {
     instanceId: InstanceId;
@@ -120,20 +129,38 @@ export const instanceStartBrokerProxy = (): {
     registry: Registry;
     nowMs: number;
   }) => void;
+  setupBootFailureMarkerAppears: (params: {
+    instanceId: InstanceId;
+    evidencePath: FilePath;
+    registry: Registry;
+    driverMessage: string;
+  }) => void;
+  stageInstanceReleaseWriteFails: (params: { error: Error }) => void;
   getWriteOrder: () => readonly FilePath[];
   getBootLockReleasedPaths: () => unknown[];
+  getLastRegistryWriteContent: () => unknown;
   getStderrMessages: () => readonly ReturnType<typeof ContentTextStub>[];
   mintInstanceId: () => InstanceId;
   setupStaleReap: (params: { staleInstanceId: InstanceId }) => void;
   stageLaneSpec: (params: { specName: SpecName; spec: LaneSpec }) => void;
   stageProcessReachable: (params: { url: string }) => void;
   stageProcessUnreachable: (params: { url: string }) => void;
+  setupCapacityRefusal: (params: { specName: SpecName; why: string }) => void;
 } => {
   // Created to satisfy enforce-proxy-child-creation; their onceFor-based semantic setup methods
   // are never called, since every path here resolves through the REAL pathJoin passthrough (see
   // the note above) rather than through a one-shot stub any of these would queue.
   instanceReserveBrokerProxy();
+  // instanceReleaseBroker (called on every failed-boot path, defect 2) composes real
+  // registryUpdateBroker underneath — the SAME generic writeFile/readFile mocks staged below
+  // already satisfy it, matching how instanceReserveBroker's own registryUpdateBroker call runs
+  // real against these identical mocks.
+  instanceReleaseBrokerProxy();
   registryReadBrokerProxy();
+  // Constructed for enforce-proxy-child-creation only. capacityReadBroker itself is staged directly
+  // below, so none of the three reads this proxy composes ever runs; anything its own construction
+  // queues onto the shared pathJoin mock is absorbed by stageBoot's drain.
+  capacityReadBrokerProxy();
   bootLockAcquireBrokerProxy();
   bootLockReleaseBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
@@ -143,6 +170,14 @@ export const instanceStartBrokerProxy = (): {
   laneSpecHashBrokerProxy();
   cwdResolveBrokerProxy();
   pathJoinAdapterProxy();
+  // Constructed for enforce-proxy-child-creation. Its own setup methods are never called here: the
+  // boot record's path is keyed by the spec's REAL content hash, which no test in this file names,
+  // so the write below is addressed by a predicate on the boots directory instead.
+  profileBootRecordBrokerProxy();
+  // Constructed for enforce-proxy-child-creation. `--seed` is `null` in every case in this file,
+  // so `recipeSeedRunBroker` is never reached; a case that seeds would stage this proxy's own
+  // book and lane answers instead.
+  recipeSeedRunBrokerProxy();
   // instanceStartBroker's opportunistic stale-reap calls instanceKillBroker directly (chunk-2
   // plan: "cleanup will call the same broker" — kill IS the reap primitive), so its proxy is a
   // real child-proxy composition, not a phantom one, and its OWN setupDriverUnreachableNoHeartbeat
@@ -169,6 +204,16 @@ export const instanceStartBrokerProxy = (): {
   const accessHandle: MockHandle = registerMock({ fn: access });
   const createServerHandle: MockHandle = registerMock({ fn: createServer });
 
+  // instanceStartBroker asks `capacity` whether the machine can hold another instance before it
+  // reserves one. It is staged DIRECTLY rather than composed: capacityReadBroker's own reads
+  // (registry, host, profile tree) would each queue onto the shared pathJoin and fs mocks this file
+  // already hand-counts, and what every test here needs from it is a single number. The
+  // constructor-level catch-all is the permissive answer — every scenario in this file is a machine
+  // with room — so only the refusal cases below describe a call of their own, at a strictly more
+  // specific address.
+  const capacityHandle: MockHandle = registerMock({ fn: capacityReadBroker });
+  capacityHandle.calledWith([]).resolves(CapacityAnswerStub());
+
   registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(MINTED_UUID_VALUE);
   const dateNowHandle = registerSpyOn({ object: Date, method: 'now' });
   dateNowHandle.calledWith([]).returns(EpochMsStub().valueOf());
@@ -188,6 +233,15 @@ export const instanceStartBrokerProxy = (): {
   writeHandle.calledWith([REGISTRY_TMP_PATH_ABS]).resolves(undefined);
   writeHandle.calledWith([REGISTRY_LOCK_PATH_ABS]).resolves(undefined);
   writeHandle.calledWith([BOOT_LOCK_PATH_ABS]).resolves(undefined);
+  // The boot profile record a successful boot writes. Addressed by a predicate rather than a
+  // literal path because its directory is the spec's real sha256 content hash — a value no test
+  // here names, and one that changes the moment a lane spec does. A literal `calledWith([path])`
+  // staged elsewhere still outranks this, so it shadows nothing.
+  writeHandle
+    .calledWith([
+      (candidate: unknown): boolean => String(candidate).includes(profileStatics.dirs.boots),
+    ])
+    .resolves(undefined);
   // registryLockReleaseBroker unlinks unconditionally once registryUpdateBroker's write finishes
   // (no heldBy check, unlike boot.lock's release) — staged sticky for every happy-path reserve.
   unlinkHandle.calledWith([REGISTRY_LOCK_PATH_ABS]).resolves(undefined);
@@ -219,10 +273,12 @@ export const instanceStartBrokerProxy = (): {
     instanceId,
     evidencePath,
     registry,
+    idleTimeoutMs,
   }: {
     instanceId: InstanceId;
     evidencePath: FilePath;
     registry: Registry;
+    idleTimeoutMs?: TimeoutMs;
   }): void => {
     // Drains the onceFor entries boot-lock-acquire-broker.proxy.ts and
     // boot-lock-release-broker.proxy.ts queued unconditionally at construction time (see the note
@@ -252,7 +308,14 @@ export const instanceStartBrokerProxy = (): {
 
     spawnProxy.succeeds({
       command: process.execPath,
-      args: [expectedDriverBinPath, 'siegelense', 'driver', '--instance', instanceId],
+      args: [
+        expectedDriverBinPath,
+        'siegelense',
+        'driver',
+        '--instance',
+        instanceId,
+        ...(idleTimeoutMs === undefined ? [] : ['--idle-timeout-ms', String(idleTimeoutMs)]),
+      ],
       pid: 4821,
     });
   };
@@ -260,8 +323,8 @@ export const instanceStartBrokerProxy = (): {
   // `laneSpecStatics.specs` is typed `as const` (readonly at the TYPE level only — nothing here
   // freezes it at runtime), and `laneSpecFindBroker` itself reads through this SAME widened-type
   // alias rather than `Reflect.set` (confined to *-guard.ts/*-contract.ts) to register the value a
-  // test builds. Adding a NEW key here — never overwriting 'dungeonmaster-web' or
-  // 'dungeonmaster-headless' — keeps every OTHER test's use of the real built-ins untouched
+  // test builds. Adding a NEW key here — never overwriting 'dungeonmaster-stack' or
+  // 'dungeonmaster-api' — keeps every OTHER test's use of the real built-ins untouched
   // regardless of run order within this file.
   const registerLaneSpec = ({ specName, spec }: { specName: SpecName; spec: LaneSpec }): void => {
     const mutableSpecs: Record<SpecName, LaneSpec> = laneSpecStatics.specs;
@@ -269,8 +332,12 @@ export const instanceStartBrokerProxy = (): {
   };
 
   return {
-    setupHappyBoot: ({ instanceId, evidencePath, registry }): void => {
-      stageBoot({ instanceId, evidencePath, registry });
+    setupHappyBoot: ({ instanceId, evidencePath, registry, idleTimeoutMs }): void => {
+      stageBoot(
+        idleTimeoutMs === undefined
+          ? { instanceId, evidencePath, registry }
+          : { instanceId, evidencePath, registry, idleTimeoutMs },
+      );
 
       const socketPath = AbsoluteFilePathStub({
         value: `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`,
@@ -329,8 +396,10 @@ export const instanceStartBrokerProxy = (): {
       const socketPath = AbsoluteFilePathStub({
         value: `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`,
       });
+      const evidencePathAbs = AbsoluteFilePathStub({ value: String(evidencePath) });
       pollProxy.setupNeverAnswers({
         socketPath,
+        evidencePath: evidencePathAbs,
         nowMs,
         deadlineMs: nowMs + driverStatics.boot.defaultTimeoutMs,
       });
@@ -347,11 +416,58 @@ export const instanceStartBrokerProxy = (): {
       // cares about.
     },
 
+    setupBootFailureMarkerAppears: ({
+      instanceId,
+      evidencePath,
+      registry,
+      driverMessage,
+    }: {
+      instanceId: InstanceId;
+      evidencePath: FilePath;
+      registry: Registry;
+      driverMessage: string;
+    }): void => {
+      stageBoot({ instanceId, evidencePath, registry });
+
+      const socketPath = AbsoluteFilePathStub({
+        value: `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`,
+      });
+      const evidencePathAbs = AbsoluteFilePathStub({ value: String(evidencePath) });
+      pollProxy.setupFailureMarkerAppears({
+        socketPath,
+        evidencePath: evidencePathAbs,
+        marker: BootFailureMarkerStub({ message: ContentTextStub({ value: driverMessage }) }),
+      });
+
+      // The driver never got as far as writing a boot lock in this scenario either — it dies
+      // before laneBootBroker's own success path stamps anything — so releasing boot.lock reads
+      // the same acquired-by-this-instance shape the timeout path above stages.
+      readHandle
+        .calledWith([BOOT_LOCK_PATH_ABS])
+        .resolves(JSON.stringify({ heldBy: instanceId, heldByPid: '4821', acquiredAtMs: 0 }));
+      unlinkHandle.calledWith([BOOT_LOCK_PATH_ABS]).resolves(undefined);
+    },
+
+    // Reserve's own write (state: 'alive') always lands first and must keep succeeding — only the
+    // SECOND write to registry.json.tmp (instanceReleaseBroker's, after the boot fails) is made to
+    // fail, via a queued pair of one-shots on the SAME shared writeFile mock every registry broker
+    // in this file shares.
+    stageInstanceReleaseWriteFails: ({ error }: { error: Error }): void => {
+      writeHandle.onceFor([REGISTRY_TMP_PATH_ABS]).resolves(undefined);
+      writeHandle.onceFor([REGISTRY_TMP_PATH_ABS]).rejects(error);
+    },
+
     getWriteOrder: (): readonly FilePath[] =>
       writeHandle.callsMatching([]).map((call) => filePathContract.parse(String(call[0]))),
 
     getBootLockReleasedPaths: (): unknown[] =>
       unlinkHandle.callsMatching([BOOT_LOCK_PATH_ABS]).map((call) => call[0]),
+
+    getLastRegistryWriteContent: (): unknown => {
+      const calls = writeHandle.callsMatching([REGISTRY_TMP_PATH_ABS]);
+      const lastCall = calls[calls.length - 1];
+      return lastCall === undefined ? undefined : JSON.parse(String(lastCall[1]));
+    },
 
     getStderrMessages: (): readonly ReturnType<typeof ContentTextStub>[] =>
       stderrHandle.callsMatching([]).map((call) => ContentTextStub({ value: String(call[0]) })),
@@ -369,6 +485,16 @@ export const instanceStartBrokerProxy = (): {
 
     stageProcessUnreachable: ({ url }: { url: string }): void => {
       readyWaitProxy.setupUnreachable({ url });
+    },
+
+    // Addressed by the spec name the broker really passes, which outranks the permissive catch-all
+    // staged in the constructor. `suggested: 0` is the one condition instanceStartBroker refuses on,
+    // and `why` is carried into CapacityRefusedError verbatim, so a test asserts the sentence it
+    // staged here rather than a message this proxy wrote.
+    setupCapacityRefusal: ({ specName, why }: { specName: SpecName; why: string }): void => {
+      capacityHandle
+        .calledWith([{ specName }])
+        .resolves(CapacityAnswerStub({ suggested: 0, why, profile: null }));
     },
 
     setupStaleReap: ({ staleInstanceId }: { staleInstanceId: InstanceId }): void => {

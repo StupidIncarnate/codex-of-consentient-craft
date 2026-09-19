@@ -6,13 +6,14 @@ import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { RunResultStub } from '../../../contracts/run-result/run-result.stub';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
+import { runAnswerRenderTransformer } from '../../../transformers/run-answer-render/run-answer-render-transformer';
 
 import { SiegelenseRunResponder } from './siegelense-run-responder';
 import { SiegelenseRunResponderProxy } from './siegelense-run-responder.proxy';
 
 describe('SiegelenseRunResponder', () => {
   describe('a two-step batch against a known instance', () => {
-    it('VALID: {--steps with a two-step batch} => writes the complete RunResult as one JSON document', async () => {
+    it('VALID: {--steps with a two-step batch} => writes the concise human summary by default', async () => {
       const proxy = SiegelenseRunResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const registry = RegistryStub({
@@ -31,13 +32,13 @@ describe('SiegelenseRunResponder', () => {
       });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
-        `${JSON.stringify(runResult, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+        runAnswerRenderTransformer({ result: runResult }),
       ]);
     });
   });
 
   describe('the written document', () => {
-    it('VALID: {the written document} => carries an index and shots and NO step payloads', async () => {
+    it('VALID: {--json passed} => writes the complete RunResult as raw JSON', async () => {
       const proxy = SiegelenseRunResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const registry = RegistryStub({
@@ -48,12 +49,18 @@ describe('SiegelenseRunResponder', () => {
       proxy.stageRunResult({ result: runResult });
 
       await SiegelenseRunResponder({
-        args: ['--instance', instanceId, '--steps', JSON.stringify([{ step: 'goto', path: '/' }])],
+        args: [
+          '--instance',
+          instanceId,
+          '--steps',
+          JSON.stringify([{ step: 'goto', path: '/' }]),
+          '--json',
+        ],
       });
 
-      const [written] = proxy.getStdoutWrites();
-
-      expect(JSON.parse(String(written))).toStrictEqual(runResult);
+      expect(proxy.getStdoutWrites()).toStrictEqual([
+        `${JSON.stringify(runResult, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+      ]);
     });
   });
 

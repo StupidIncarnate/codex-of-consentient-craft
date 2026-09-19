@@ -11,7 +11,7 @@
  *
  * USAGE:
  * await SiegelenseResultsResponder({ query: ResultsQueryStub() });
- * // Writes the ResultsAnswer as one JSON document to stdout
+ * // Writes the ResultsAnswer as a concise human view (or raw JSON when json: true) to stdout
  */
 
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
@@ -20,15 +20,20 @@ import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { resultsReadBroker } from '../../../brokers/results/read/results-read-broker';
 import type { ResultsQuery } from '../../../contracts/results-query/results-query-contract';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
+import { resultsAnswerRenderTransformer } from '../../../transformers/results-answer-render/results-answer-render-transformer';
 
 export const SiegelenseResultsResponder = async ({
   query,
+  json = false,
 }: {
   query: ResultsQuery;
+  json?: boolean;
 }): Promise<AdapterResult> => {
   const answer = await resultsReadBroker({ query });
   process.stdout.write(
-    `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+    json
+      ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
+      : resultsAnswerRenderTransformer({ answer }),
   );
   return adapterResultContract.parse({ success: true });
 };

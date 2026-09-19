@@ -9,7 +9,7 @@
  *
  * USAGE:
  * throw new FakeAgentCliRequiredError({
- *   specName: 'dungeonmaster-headless',
+ *   specName: 'dungeonmaster-api',
  *   missing: [{ name: 'CLAUDE_CLI_PATH', hint: 'a stub Claude CLI binary' }],
  * });
  * // Throws error naming the spec and, for each missing variable, what to set it to

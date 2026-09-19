@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "dungeonmaster": {
+      "command": "node",
+      "args": [
+        "-e",
+        "require('@dungeonmaster/mcp')"
+      ]
+    }
+  }
+}

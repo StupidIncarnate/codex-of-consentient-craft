@@ -1,3 +1,5 @@
+import { TimeoutMsStub } from '@dungeonmaster/shared/contracts';
+
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 
 import { DriverIdleWaitLayerResponder } from './driver-idle-wait-layer-responder';
@@ -29,6 +31,30 @@ describe('DriverIdleWaitLayerResponder', () => {
       const wasKilled = await DriverIdleWaitLayerResponder({ killSignal });
 
       expect(wasKilled).toBe(true);
+    });
+  });
+
+  describe('a caller raised the idle ceiling', () => {
+    it('VALID: {idleTimeoutMs: 1_800_000, nowMs past the DEFAULT 900s deadline but before the raised one} => keeps waiting instead of tearing down', async () => {
+      const proxy = DriverIdleWaitLayerResponderProxy();
+      proxy.setupLaneReadyWithIdleTimeout({
+        nowMs: EpochMsStub({ value: 1_000 }),
+        idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+      });
+      // 901_000 is past the DEFAULT deadline (1_000 + 900_000) but well before the raised one
+      // (1_000 + 1_800_000 = 1_801_000) — resolving false here would mean the override never
+      // reached the deadline computation.
+      proxy.stageNow({ ms: EpochMsStub({ value: 901_000 }) });
+      const killSignal = new Promise<true>(() => {
+        // Never resolves — only the scheduled sleep is observed.
+      });
+
+      DriverIdleWaitLayerResponder({ killSignal }).catch((error: unknown) => {
+        throw error;
+      });
+      await Promise.resolve();
+
+      expect(proxy.getScheduledMs()).toBe(1_801_000 - 901_000);
     });
   });
 

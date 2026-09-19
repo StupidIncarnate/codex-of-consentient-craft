@@ -1,13 +1,18 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { SelectorStub } from '../../../contracts/selector/selector.stub';
+import { StepFilePathStub } from '../../../contracts/step-file-path/step-file-path.stub';
 import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 
 import { runVerbLayerBroker } from './run-verb-layer-broker';
 import { runVerbLayerBrokerProxy } from './run-verb-layer-broker.proxy';
+
+// Every case below drives a browser verb; `recordBinding` only ever fires for `seed`, which has
+// its own coverage in step-seed-broker.test.ts.
+const NOOP = (): void => undefined;
 
 describe('runVerbLayerBroker', () => {
   describe('a targeting step resolves before acting', () => {
@@ -16,7 +21,14 @@ describe('runVerbLayerBroker', () => {
       const { lane, callOrder } = proxy.sessionWithOneMatch();
       const step = StepStub({ step: 'click', target: SelectorStub() });
 
-      await runVerbLayerBroker({ lane, step, index: StepIndexStub(), shotPath: null });
+      await runVerbLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub(),
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
 
       expect(callOrder()).toStrictEqual(['countMatches', 'clickMatch']);
     });
@@ -26,9 +38,33 @@ describe('runVerbLayerBroker', () => {
       const { lane, callOrder } = proxy.sessionWithOneMatch();
       const step = StepStub({ step: 'type', target: SelectorStub(), value: ContentTextStub() });
 
-      await runVerbLayerBroker({ lane, step, index: StepIndexStub(), shotPath: null });
+      await runVerbLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub(),
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
 
       expect(callOrder()).toStrictEqual(['countMatches', 'fillMatch']);
+    });
+
+    it('VALID: {paste, one match} => calls countMatches before pasteMatch', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane, callOrder } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'paste', target: SelectorStub(), value: ContentTextStub() });
+
+      await runVerbLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub(),
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(callOrder()).toStrictEqual(['countMatches', 'pasteMatch']);
     });
 
     it('VALID: {waitFor, one match} => calls countMatches before waitForMatch', async () => {
@@ -36,9 +72,36 @@ describe('runVerbLayerBroker', () => {
       const { lane, callOrder } = proxy.sessionWithOneMatch();
       const step = StepStub({ step: 'waitFor', target: SelectorStub() });
 
-      await runVerbLayerBroker({ lane, step, index: StepIndexStub(), shotPath: null });
+      await runVerbLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub(),
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
 
       expect(callOrder()).toStrictEqual(['countMatches', 'waitForMatch']);
+    });
+
+    it('VALID: {box, live ref} => resolves refState then calls boxRef', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane, callOrder } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'box', ref: 26 });
+
+      const result = await runVerbLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub(),
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(callOrder()).toStrictEqual(['refState', 'boxRef']);
+      expect(result).toBe(
+        '{"ref":26,"x":607,"y":472,"width":66,"height":27,"viewport":{"width":1280,"height":720},"visible":true,"inViewport":true}',
+      );
     });
   });
 
@@ -53,6 +116,8 @@ describe('runVerbLayerBroker', () => {
         step,
         index: StepIndexStub(),
         shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
       }).then(
         (): never => {
           throw new Error('Expected runVerbLayerBroker to reject');
@@ -77,10 +142,74 @@ describe('runVerbLayerBroker', () => {
         step,
         index: StepIndexStub(),
         shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
       });
 
       expect(result).toBe(path);
       expect(callOrder()).toStrictEqual([]);
+    });
+
+    it('VALID: {dom} => calls readDom directly without resolving and returns rendered JSON', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane, callOrder } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'dom', target: SelectorStub() });
+
+      const result = await runVerbLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub(),
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(callOrder()).toStrictEqual(['readDom']);
+      expect(result).toBe(
+        '{"count":1,"showing":1,"capped":false,"note":null,"nodes":[{"tagName":"button","testId":"SUBMIT_BTN","className":"btn primary","childCount":0,"display":"inline-block","visibility":"visible","opacity":"1","rect":{"x":10,"y":20,"width":100,"height":50},"text":"Submit","attrs":[],"value":null}]}',
+      );
+    });
+
+    it('VALID: {key} => calls pressKey and returns rendered key result', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane, callOrder } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'key', press: ContentTextStub({ value: 'Enter' }) });
+
+      const result = await runVerbLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub(),
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(callOrder()).toStrictEqual([]);
+      expect(result).toBe('pressed "Enter" — nothing focused');
+    });
+  });
+
+  describe('a browser verb against a browserless lane', () => {
+    it('ERROR: {click, lane.browser === null} => refuses by NAME rather than acting on nothing', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.browserlessLane();
+      const step = StepStub({ step: 'click', target: SelectorStub() });
+
+      const error = await runVerbLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub(),
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      }).then(
+        (): never => {
+          throw new Error('Expected runVerbLayerBroker to reject');
+        },
+        (caught: unknown): Error => caught as Error,
+      );
+
+      expect(error.name).toBe('BrowserStepUnsupportedError');
     });
   });
 
@@ -91,7 +220,14 @@ describe('runVerbLayerBroker', () => {
       const step = StepStub({ step: 'screenshot' });
       const index = StepIndexStub({ value: 3 });
 
-      const error = await runVerbLayerBroker({ lane, step, index, shotPath: null }).then(
+      const error = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      }).then(
         (): never => {
           throw new Error('Expected runVerbLayerBroker to reject');
         },
@@ -112,7 +248,14 @@ describe('runVerbLayerBroker', () => {
       const step = StepStub({ step: 'seed' });
       const index = StepIndexStub({ value: 1 });
 
-      const reading = await runVerbLayerBroker({ lane, step, index, shotPath: null });
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
 
       expect(JSON.parse(reading)).toStrictEqual({ guild: { id: 'g1' } });
       expect(getSeedRunCallArgs()).toStrictEqual([
@@ -125,6 +268,284 @@ describe('runVerbLayerBroker', () => {
           },
         ],
       ]);
+    });
+  });
+
+  describe('a health step', () => {
+    it('VALID: {health} => routes to stepHealthBroker and returns health reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'health' });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe(
+        'HEALTHY   root present · not blank · console clean · no 5xx · server log clean',
+      );
+    });
+  });
+
+  describe('a resize step', () => {
+    it('VALID: {resize} => routes to stepResizeBroker and returns resize reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'resize', width: 1280, height: 720 });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('resized to 1280x720');
+    });
+  });
+
+  describe('a request step', () => {
+    it('VALID: {request, browserless lane} => routes to stepRequestBroker and returns reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.browserlessLane();
+      const step = StepStub({
+        step: 'request',
+        method: 'GET',
+        path: '/api/guilds',
+      });
+      const index = StepIndexStub({ value: 1 });
+
+      proxy.setupRequestResponse({
+        url: 'http://127.0.0.1:34172/api/guilds',
+        status: 200,
+        statusText: 'OK',
+        body: [{ id: 'guild-1' }],
+      });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('200 OK — [{"id":"guild-1"}]');
+    });
+  });
+
+  describe('a before step', () => {
+    it('VALID: {before} => routes to stepBeforeBroker and returns before reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({
+        step: 'before',
+        source: ContentTextStub({ value: 'window.__x = 1;' }),
+      });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('installed init script (15 chars)');
+    });
+  });
+
+  describe('a file step', () => {
+    it('VALID: {file, browserless lane} => routes to stepFileBroker and returns file content', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.browserlessLane();
+      const step = StepStub({
+        step: 'file',
+        path: StepFilePathStub({ value: 'api-server.log' }),
+      });
+      const index = StepIndexStub({ value: 1 });
+
+      proxy.setupFileExists({
+        filePath: AbsoluteFilePathStub({ value: `${lane.homePath}/api-server.log` }),
+        content: 'server listening on port 3000',
+      });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('server listening on port 3000');
+    });
+  });
+
+  describe('a storage step', () => {
+    it('VALID: {storage} => routes to stepStorageBroker and returns storage reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({
+        step: 'storage',
+        prefix: 'dm-',
+      });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('{"origin":"http://localhost:3000","local":{},"session":{}}');
+    });
+  });
+
+  describe('a paste step', () => {
+    it('VALID: {paste} => routes to stepPasteBroker and returns paste reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({
+        step: 'paste',
+        target: SelectorStub({ value: '[data-testid="INPUT"]' }),
+        value: ContentTextStub({ value: 'hello' }),
+      });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('pasted "hello" into [data-testid="INPUT"]');
+    });
+  });
+
+  describe('a hold step', () => {
+    it('VALID: {hold} => routes to stepHoldBroker and returns hold reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({
+        step: 'hold',
+        frames: 2,
+        everyMs: 1000,
+      });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe(
+        '{"frames":2,"differing":0,"verdict":"NOTHING CHANGED across 1s","shots":["/tmp/dm-siege-stub-evidence/step1_frame1.png","/tmp/dm-siege-stub-evidence/step1_frame2.png"]}',
+      );
+    });
+  });
+
+  describe('a video step', () => {
+    it('VALID: {video, action: "start"} => routes to stepVideoBroker and returns video recording started', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'video', action: 'start' });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('video recording started');
+    });
+
+    it('VALID: {video, action: "stop"} => routes to stepVideoBroker and returns video recording stopped', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'video', action: 'stop' });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('video recording stopped — saved to evidence/video');
+    });
+  });
+
+  describe('a snapshot step', () => {
+    it('VALID: {snapshot, as: "clean"} => routes to stepSnapshotBroker and returns recorded reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      proxy.setupSnapshotEmptyStore({ homePath: lane.homePath });
+      const step = StepStub({ step: 'snapshot', as: 'clean' });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe('snapshot "clean" recorded');
+    });
+  });
+
+  describe('a reset step', () => {
+    it('VALID: {reset, level: "page"} => routes to stepResetBroker and returns reset reading', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'reset', level: 'page', to: null });
+      const index = StepIndexStub({ value: 1 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(reading).toBe(
+        '{"restored":"page","undid":{"files":0,"added":0,"modified":0,"removed":0},"NOT_cleared":["disk","server memory"]}',
+      );
     });
   });
 });

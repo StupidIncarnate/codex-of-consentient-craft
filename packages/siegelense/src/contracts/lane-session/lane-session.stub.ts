@@ -47,6 +47,9 @@ export const LaneSessionStub = ({
       dataProps.evidencePath ?? '/tmp/dm-siege-stub-evidence',
     ),
     baseUrl: contentTextContract.parse(dataProps.baseUrl ?? 'http://127.0.0.1:0'),
+    apiBaseUrl: contentTextContract.parse(
+      dataProps.apiBaseUrl ?? dataProps.baseUrl ?? 'http://127.0.0.1:0',
+    ),
     pgids:
       dataProps.pgids === undefined
         ? [ProcessGroupIdStub()]

@@ -349,6 +349,16 @@ the bad case; small batches cover the rest. Say this out loud rather than discov
 
 ### Addressing: a listing, not a selector
 
+> **Status: DELIVERED** — `look` returns the key as a tree: indentation is scope, every row carries an
+> element-bound ref, and the four columns land with the flag vocabulary, the `[n/m]` duplicate marker and
+> the duplicate-testId line. Own text nodes only, never `textContent`. `look { within }` is rung 2, and
+> ref driving on `click` and `type` ships with it. Driven against a real lane: the ambiguous-click dead
+> end reproduces byte-identically and now carries a ref on each candidate, in the message AND in the
+> structured `candidates` array; following it (`click ref 20`) resolves and acts; a ref used after a
+> navigation answers `STALE REF … boundary crossed: navigation` rather than resolving to the wrong
+> element · NOT YET: `box { ref }` (rung 3), `dom { target }` (rung 4), the numbered map (deferred by this
+> spec's own words, and ABSENT rather than null), `compare`'s `elements` delta, and `waitFor { ref }`
+
 **Problem.** A selector is a guess and a wrong guess is invisible: `count: 0` reads exactly like "the element is
 missing", which is itself a defect. So a wrong selector either manufactures a false finding or gets shrugged past. This
 repo already solved the identical problem for code search —
@@ -605,6 +615,8 @@ shifts is worse than no ref.
 also the untested mitigation for a page holding a long transcript: read it a region at a time rather than whole.
 
 ### `dom` is the ESCAPE HATCH, and the ladder above it has four rungs
+
+> **Status: DELIVERED** — all four rungs of the reading ladder are built and driven: 1) `look`, 2) `look { within }`, 3) `box { ref }`, 4) `dom { target, fields, text }`. `dom` defaults to own text (`text: 'own'`), supports `text: 'full'`, field projections (`count`, `rect`, `text`, `attrs`, etc.), pure count projection, and a self-reporting cap (100).
 
 **The hatch has to exist.** A key is a shaped reading, and a shaped reading always leaves something out — an attribute
 nobody anticipated, a value the key truncated, the exact text of a message a unit quotes word for word. Without a way
@@ -978,6 +990,9 @@ It reappears in exactly one place: the list handed to the person at the end.
 
 ### Survival: what a stress tester needs and the verifier does not
 
+> **Status: DELIVERED** — `health` step verb delivered: one reading with one verdict line (`HEALTHY`, `DEGRADED`, `DOWN`) composing root presence (`#root`), page blankness from screenshot, console error count, 5xx network count, and server log errors, plus a capture shot with stamped blank/pixelChange. Driven on a real web instance across HEALTHY, DEGRADED, and DOWN states, and verified to refuse loudly on headless.
+
+
 **Problem.** The two minions claim different things:
 
 |               | Claims                                    | Needs a pair around            |
@@ -1020,6 +1035,8 @@ browserless spec. `siege-verification-remainder.md` Part 4 holds the full verifi
 ROLE half of this section.
 
 ### Resetting: three layers, and a reset must say which one it touched
+
+> **Status: DELIVERED**
 
 **Problem.** A stress tester runs many attacks against one instance. Attack 1 corrupts something; attack 2 then starts
 from corrupted state and measures nothing. So every attack needs a known starting point — and "reset" is currently one
@@ -1931,6 +1948,18 @@ that one does not.
 
 ## Part 6 — The recipe book
 
+> **Status: DELIVERED** — both recipes execute. `guild-with-three-quests` is `production` fidelity and
+> earns the word: it POSTs a guild, POSTs three quests and walks seven PATCHes along
+> `questStatusTransitionsStatics`, the same walk `questHydrateBroker` performs, deliberately avoiding
+> `POST /:id/start` because that also spawns the orchestration loop and would leave the fixture moving.
+> `session-with-nested-subagent` is `direct`, writes the transcript shape into the mock CLI's queue, and
+> declares what it mirrors. `seed` runs one from inside a batch and binds its ids under `as:`, which later
+> steps read back; an unresolvable binding stops the batch and names itself rather than interpolating a
+> literal. `start --seed` fills the manifest's `seeded`. A recipe is handed `{ apiBaseUrl, homePath }`,
+> strict, so it has no field a DOM handle could live in · NOT YET: the `production` recipe has no
+> shared-instance integration suite (Part 7 item 3a), and it is not repeatable inside one instance — its
+> guild path is fixed, which is what keeps it deterministic
+
 ### The tool is `siegelense`, and its recipes live beside it
 
 > **Status: PARTIAL (chunk 1)** — both real workspace packages at their exact paths, subpath-importable barrels measured msw-free, `init` scaffolding `packages/siegelense-recipes/`, and an empty one being a real answer · NOT YET: the `dungeonmaster siegelense` command, the `siegelense <name>` subcommands and the recipe listing
@@ -2256,6 +2285,18 @@ form a session editing the package will actually read**, plus the two that live 
 > tools · NOT YET: a `dungeonmaster siegelense <name>` subcommand for any of the seven, and `capacity`, `profile`,
 > `prune`, `snapshots`, `recipes`, `docs`
 
+> **Status: DELIVERED** — all THIRTEEN calls route. `capacity`, `profile`, `prune`, `snapshots`, `recipes` and
+> `docs` join the seven, each built against this section's own words and driven at a terminal;
+> `siegelenseHelpStatics.index.notBuiltYet` is now empty and the index omits that block entirely rather than
+> printing a bare heading. `cleanup` gained `assetsAged` through the same reclaim path `prune` uses, and
+> `start` gained the hard refusal this section promises — it throws when `capacity` answers `suggested: 0`,
+> before minting a reservation, so a refused boot leaves no registry row and no claimed port pair · NOT YET,
+> and stated here because reachability is not depth: `prune` cannot check the `open-issue` citation kind (no
+> record in this repo carries an instance or run id, so it is declared a permanent gap and named in
+> `unresolved[]` on every answer); `snapshots` returns only automatic rows until the `snapshot` STEP VERB
+> exists; `recipes` declares states nothing can create until `seed` exists; `compare` still lacks `elements`,
+> which waits on `look`
+
 > **Status: PARTIAL (chunk 4)** — the surface claim in this heading's own words now holds for all seven built
 > calls: `dungeonmaster siegelense start`, `run`, `results`, `kill`, `status`, `cleanup` and `compare`, each routed
 > through `SiegelenseFlow`'s `CALL_ROUTES` map (`siegelense-flow.ts:71-102`), with `--help` at both the index and
@@ -2538,7 +2579,7 @@ kill { instance: 'inst_7f3a' }
 
 ### Steps that exist today and are kept
 
-> **Status: PARTIAL (chunk 2)** — six of the thirteen ship: `goto`, `waitFor`, `click`, `type`, `screenshot`, `eval` — confirmed exhaustively in `step-statics.ts`'s `verbs.all`; ambiguity throws; `end` is gone, replaced by the instance-level `kill` · NOT YET: `key`, `paste`, `box`, `dom`, `storage`, `file`
+> **Status: DELIVERED** — all twelve kept verbs ship: `goto`, `waitFor`, `click`, `type`, `screenshot`, `eval`, `box`, `dom`, `key`, `file`, `storage`, `paste` — confirmed exhaustively in `step-statics.ts`'s `verbs.all` (19 verbs total with `look`, `seed`, `until`, `health`, `resize`, `request`, `before`); ambiguity throws; `end` is gone, replaced by the instance-level `kill`; `box { ref }` delivers exact element geometry and viewport visibility off element-bound refs, guarded by `stepTargetResolveBroker`; `dom` delivers structured element projection with row/text caps; `key` delivers keyboard input via `page.keyboard.press` and focus tracking (`document.activeElement`); `file` reads a home-relative path from the lane's throwaway home or evidence directory with path traversal guard and `StepFileNotFoundError` on missing files; `storage` reads browser storage (`localStorage` and `sessionStorage`) matching key prefix, returning origin and storage maps; `paste` delivers real clipboard paste (`ControlOrMeta+V` with `isTrusted: true`) for text and files into element refs or targets, capturing unasked.
 
 All keep their behaviour except that ambiguity now throws.
 
@@ -2572,6 +2613,8 @@ results queries now. `end` becomes the instance-level `kill`.
 
 ### Steps that are new
 
+> **Status: DELIVERED** — all eleven new step verbs ship: `look`, `box`, `dom`, `seed`, `until`, `health`, `resize`, `request`, `before`, `hold`, `video`, `snapshot`, and `reset` (all 23 verbs complete). `before` delivers init script execution ahead of page scripts via Playwright `addInitScript` · `request` delivers direct HTTP client against lane.apiBaseUrl with status/error handling and headless support · `resize` delivers dynamic viewport sizing via `session.setViewport` (`setViewportSize`), ContentText reading `resized to <width>x<height>`, capturing unasked with 100% layout shift recorded on dimension changes and refusing on headless · `health` delivers one reading with one verdict line (`HEALTHY`, `DEGRADED`, `DOWN`) inspecting root presence (`#root`), page blankness, console errors, 5xx network responses, and server log errors, capturing a shot and stamping blank/pixelChange · `until` carries all five forms — `visible`, `predicate`, `console`, `response` and `file` · `box` reports exact geometry off element-bound refs · `dom` provides selectable node readings with field projection, own-text default and a 100-element self-reporting cap · `hold` delivers live non-settlement frame comparison · `video` records screencast across batch · `snapshot` captures named manual state checkpoints · `reset` rolls back across `page`, `state`, and `instance` levels · verified by reading `brokers/step/` and by driving against a real lane.
+
 **`look`** — addressing. Returns the KEY inline and writes the SHOT, returning its path. **The MAP is optional and ships
 later** — `look { map: true }` requests it once it exists, and until then the field is simply absent rather than empty.
 Part 7 defers it deliberately: the one trial arm that had a map rendered three and opened none.
@@ -2589,11 +2632,15 @@ Part 7 defers it deliberately: the one trial arm that had a map rendered three a
 
 **`before`** — runs a script ahead of the page's own. The substrate for every other injection.
 
+> **Status: DELIVERED** — runs a script ahead of the page's own via Playwright's `addInitScript`. The script persists across subsequent navigations within the session. Refuses by name on browserless specs (`dungeonmaster-headless`) with `BrowserStepUnsupportedError`. Driven and disk-verified across multiple navigations.
+
 ```
 { step: 'before', source: 'window.__intervals=[];const o=setInterval;setInterval=(...a)=>{window.__intervals.push(a[1]);return o(...a)}' }
 ```
 
 **`health`** — one reading, one verdict line. The stress tester's counterpart to the key.
+
+> **Status: DELIVERED** — delivers one reading with one verdict line (`HEALTHY`, `DEGRADED`, `DOWN`) composing root presence (`#root`), page blankness from screenshot, console error count, 5xx network count, and server log errors, plus a capture shot with stamped blank/pixelChange. Driven on a real web instance across HEALTHY, DEGRADED, and DOWN states, and verified to refuse loudly on headless.
 
 ```
 { step: 'health' }
@@ -2606,6 +2653,8 @@ Blankness appears here AND on every capture's `blank` field, deliberately: this 
 unasked.
 
 **`reset`** — takes a level, reports the diff it undid.
+ 
+> **Status: DELIVERED** — delivers three reset levels ('page', 'state', 'instance'): 'page' clears browser localStorage/sessionStorage and refuses on headless; 'state' rewinds instance throwaway home files to a named snapshot and reports diff undid ({ files, added, modified, removed }) while preserving evidence/logs and clearing browser storage; 'instance' clears state and optionally reseeds via recipe. Driven on real web and headless instances with disk verification.
 
 ```
 { step: 'reset', level: 'page' }
@@ -2621,6 +2670,8 @@ every measurement after it is against a state nobody intended.
 
 **`snapshot`** — marks a point `reset` can return to. NAMED, because a cycle makes several, and placeable anywhere in a
 batch.
+
+> **Status: DELIVERED** — captures named state snapshots via `snapshotCaptureBroker` (`{ step: 'snapshot', as: '<name>' }`), saving payload into instance snapshot store and indexing with `manual: true`. Driven on a real web instance with disk verification via `dungeonmaster siegelense snapshots`, tested for reserved suffix rejection (`:start`/`:end`), and verified to run browserless on headless.
 
 ```
 { step: 'snapshot', as: 'clean' }
@@ -2666,6 +2717,8 @@ point matters.
 **`hold`** — N frames at an interval, reporting which differ. Detects NON-SETTLEMENT, never motion quality. Runs LIVE,
 unlike every comparison capture.
 
+> **Status: DELIVERED** — captures N frames live (`animations: 'allow'`), delays between frames with `asyncDelayAdapter`, compares consecutive frames using `shotChangeReadBroker`, and reports `{ frames, differing, verdict, shots }`. Driven on a real web instance across frames with disk verification of frame captures, and verified to refuse loudly on headless.
+
 ```
 { step: 'hold', frames: 4, everyMs: 1500 }
 → { frames: 4, differing: 0, verdict: 'NOTHING CHANGED across 4.5s', shots: [...] }
@@ -2678,6 +2731,8 @@ changing after seconds is the stuck-loader case.
 **`video`** — a screencast across a batch, for a HUMAN to watch and for the evidence trail. No step reads it back and no
 verdict is taken from it.
 
+> **Status: DELIVERED** — records screencast across batch (`recordVideo: { dir: path.join(evidencePath, 'video') }`), returning `'video recording started'` on `{ step: 'video', action: 'start' }` and `'video recording stopped — saved to <path>'` on `{ step: 'video', action: 'stop' }`. Driven on a real web instance with `.webm` file presence in instance evidence, and verified to refuse loudly on headless.
+
 ```
 { step: 'video', action: 'start' }   …steps…   { step: 'video', action: 'stop' }
 ```
@@ -2689,6 +2744,8 @@ verdict is taken from it.
 ```
 
 **`resize`** — one viewport is the only one anything has ever been walked at.
+
+> **Status: DELIVERED** — delivers dynamic viewport sizing via `session.setViewport` (`setViewportSize`), ContentText reading `resized to <width>x<height>`, capturing unasked with 100% layout shift recorded on dimension changes and refusing on headless with `BrowserStepUnsupportedError`. Driven against live web and headless instances.
 
 ```
 { step: 'resize', width: 1280, height: 1024 }

@@ -1,6 +1,7 @@
 /**
  * PURPOSE: Creates or merges dungeonmaster hooks into .claude/settings.json for a target project.
  * Re-runs are idempotent and additive: any prior dungeonmaster-* hook entries are stripped before the freshly-generated set is appended, so newly-added hook types (e.g. a new PostToolUse) land on every subsequent `dungeonmaster init` without manual cleanup.
+ * Also configures Antigravity in .agents/ and symlinks AGENTS.md -> CLAUDE.md.
  *
  * USAGE:
  * const result = await InstallCreateSettingsResponder({ context });
@@ -18,6 +19,7 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsEnsureWriteAdapter } from '../../../adapters/fs/ensure-write/fs-ensure-write-adapter';
+import { installAgentsSetupBroker } from '../../../brokers/install/agents-setup/install-agents-setup-broker';
 import type { ClaudeSettings } from '../../../contracts/claude-settings/claude-settings-contract';
 import { dungeonmasterHooksCreatorTransformer } from '../../../transformers/dungeonmaster-hooks-creator/dungeonmaster-hooks-creator-transformer';
 import { upsertDungeonmasterHookListTransformer } from '../../../transformers/upsert-dungeonmaster-hook-list/upsert-dungeonmaster-hook-list-transformer';
@@ -45,6 +47,8 @@ export const InstallCreateSettingsResponder = async ({
     .catch(() => null);
 
   const dungeonmasterHooks = dungeonmasterHooksCreatorTransformer();
+
+  await installAgentsSetupBroker({ targetProjectRoot: context.targetProjectRoot });
 
   if (existingSettings) {
     const existingHooks = existingSettings.hooks ?? {};
