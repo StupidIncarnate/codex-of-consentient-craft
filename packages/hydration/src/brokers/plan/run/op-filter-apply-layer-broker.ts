@@ -84,6 +84,7 @@ export const opFilterApplyLayerBroker = async ({
       where: JSON.stringify(narrowedWhere),
       expect: op.expect,
       matchedCount: matchedRecords.length,
+      candidates: matchedRecords,
     });
   }
 

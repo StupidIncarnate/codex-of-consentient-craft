@@ -62,6 +62,37 @@ describe('opFilterApplyLayerBroker', () => {
         /^recipe "guild-mid-execution": ingredient "operation" filter where \{"role":"riftcarver"\} expected "some" but matched 0 row\(s\)$/u,
       );
     });
+
+    it('INVALID: {query resolves multiple rows under expect "one"} => throws HydrationFilterExpectationError with candidates', async () => {
+      opFilterApplyLayerBrokerProxy();
+      const records: Record<string, unknown>[] = [];
+      records.push({ id: 'op-1', role: 'riftcarver' });
+      records.push({ id: 'op-2', role: 'riftcarver' });
+      const config = IngredientConfigStub({
+        name: 'operation',
+        routes: { write: (): unknown => undefined, query: (): unknown => records },
+      });
+      const op = OpFilterStub({ where: { role: 'riftcarver' }, expect: 'one', ops: [] });
+      const state = HydrationRunStateStub({});
+
+      const caughtError = (await opFilterApplyLayerBroker({
+        op,
+        target: HydrationTargetStub({}),
+        config,
+        state,
+      }).catch((error: unknown) => error)) as HydrationFilterExpectationError;
+
+      expect({
+        name: caughtError.name,
+        message: caughtError.message,
+        candidates: caughtError.candidates,
+      }).toStrictEqual({
+        name: 'HydrationFilterExpectationError',
+        message:
+          'recipe "guild-mid-execution": ingredient "operation" filter where {"role":"riftcarver"} expected "one" but matched 2 row(s)\nCandidates (2):\n  [0]: {"id":"op-1","role":"riftcarver"}\n  [1]: {"id":"op-2","role":"riftcarver"}',
+        candidates: records,
+      });
+    });
   });
 
   describe('a filter over rows a TRANSITION in the same walk just minted', () => {
