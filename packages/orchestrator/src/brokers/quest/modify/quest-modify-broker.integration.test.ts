@@ -49,7 +49,7 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
       baseName: BaseNameStub({ value: 'modify-concurrent-distinct-items' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
-    envHarness.seedQuestRepoPackages({
+    await envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
       sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
@@ -102,7 +102,7 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
       baseName: BaseNameStub({ value: 'modify-concurrent-same-item' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
-    envHarness.seedQuestRepoPackages({
+    await envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
       sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
@@ -161,7 +161,7 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
       baseName: BaseNameStub({ value: 'modify-concurrent-preserves-earlier' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
-    envHarness.seedQuestRepoPackages({
+    await envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
       sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
@@ -235,7 +235,7 @@ describe('questModifyBroker vs questOperationsUpdateBroker (integration — real
       baseName: BaseNameStub({ value: 'modify-vs-operations-update-race' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
-    envHarness.seedQuestRepoPackages({
+    await envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
       sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
@@ -312,7 +312,7 @@ describe('questModifyBroker vs the dedicated pause pipeline (integration — rea
       baseName: BaseNameStub({ value: 'modify-bare-pause-leaves-item-running' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
-    envHarness.seedQuestRepoPackages({
+    await envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
       sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),

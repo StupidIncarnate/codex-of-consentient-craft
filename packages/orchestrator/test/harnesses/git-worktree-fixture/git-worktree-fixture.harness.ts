@@ -16,6 +16,7 @@
  * });
  * await git.createBranchAt({ repoPath, branchName: FileNameStub({ value: 'master' }) });
  */
+import * as fs from 'fs';
 import {
   accessSync,
   chmodSync,
@@ -26,7 +27,6 @@ import {
   readFileSync,
   readlinkSync,
   realpathSync,
-  symlinkSync,
   writeFileSync,
 } from 'fs';
 import { join } from 'path';
@@ -112,13 +112,16 @@ export const gitWorktreeFixtureHarness = (): {
     repoPath: AbsoluteFilePath;
     workspacePackages: readonly FileName[];
     hoistedDep: { packageName: FileName; depName: FileName };
-  }) => void;
+  }) => Promise<void>;
   // Adds ONE additional @dungeonmaster scope entry whose stored target names a packages/ directory
   // that was never created, alongside whatever writeWorkspaceNodeModulesFixture already wrote for
   // the real workspacePackages — so a suite can prove one dangling workspace link doesn't stop the
   // other, valid links from populating. Must run AFTER writeWorkspaceNodeModulesFixture, which is
   // what creates the @dungeonmaster scope directory this reaches into.
-  writeBrokenWorkspaceLink: (params: { repoPath: AbsoluteFilePath; packageName: FileName }) => void;
+  writeBrokenWorkspaceLink: (params: {
+    repoPath: AbsoluteFilePath;
+    packageName: FileName;
+  }) => Promise<void>;
   captureGitArgv: (params: {
     captureDir: AbsoluteFilePath;
   }) => Promise<{ restore: () => void; readArgvLog: () => readonly ErrorMessage[] }>;
@@ -313,7 +316,7 @@ export const gitWorktreeFixtureHarness = (): {
       const { output } = await runGit({ repoPath, args: ['worktree', 'list'] });
       return errorMessageContract.parse(output);
     },
-    writeWorkspaceNodeModulesFixture: ({
+    writeWorkspaceNodeModulesFixture: async ({
       repoPath,
       workspacePackages,
       hoistedDep,
@@ -321,28 +324,33 @@ export const gitWorktreeFixtureHarness = (): {
       repoPath: AbsoluteFilePath;
       workspacePackages: readonly FileName[];
       hoistedDep: { packageName: FileName; depName: FileName };
-    }): void => {
+    }): Promise<void> => {
       const nodeModules = join(repoPath, 'node_modules');
-      mkdirSync(nodeModules, { recursive: true });
+      await fs.promises.mkdir(nodeModules, { recursive: true });
 
       const thirdPartyDir = join(nodeModules, 'zod');
-      mkdirSync(thirdPartyDir, { recursive: true });
-      writeFileSync(
+      await fs.promises.mkdir(thirdPartyDir, { recursive: true });
+      await fs.promises.writeFile(
         join(thirdPartyDir, 'package.json'),
         JSON.stringify({ name: 'zod', version: '1.0.0' }),
       );
 
       const binDir = join(nodeModules, '.bin');
-      mkdirSync(binDir, { recursive: true });
+      await fs.promises.mkdir(binDir, { recursive: true });
       const jestShim = join(binDir, 'jest');
-      writeFileSync(jestShim, '#!/bin/sh\necho fixture-jest\n');
-      chmodSync(jestShim, SHIM_MODE);
+      await fs.promises.writeFile(jestShim, '#!/bin/sh\necho fixture-jest\n');
+      await fs.promises.chmod(jestShim, SHIM_MODE);
 
       const scopeDir = join(nodeModules, '@dungeonmaster');
-      mkdirSync(scopeDir, { recursive: true });
-      for (const packageName of workspacePackages) {
-        symlinkSync(join('..', '..', 'packages', packageName), join(scopeDir, packageName));
-      }
+      await fs.promises.mkdir(scopeDir, { recursive: true });
+      await Promise.all(
+        workspacePackages.map(async (packageName) =>
+          fs.promises.symlink(
+            join('..', '..', 'packages', packageName),
+            join(scopeDir, packageName),
+          ),
+        ),
+      );
 
       const hoistedDepDir = join(
         repoPath,
@@ -351,21 +359,24 @@ export const gitWorktreeFixtureHarness = (): {
         'node_modules',
         hoistedDep.depName,
       );
-      mkdirSync(hoistedDepDir, { recursive: true });
-      writeFileSync(
+      await fs.promises.mkdir(hoistedDepDir, { recursive: true });
+      await fs.promises.writeFile(
         join(hoistedDepDir, 'package.json'),
         JSON.stringify({ name: hoistedDep.depName, version: '1.0.0' }),
       );
     },
-    writeBrokenWorkspaceLink: ({
+    writeBrokenWorkspaceLink: async ({
       repoPath,
       packageName,
     }: {
       repoPath: AbsoluteFilePath;
       packageName: FileName;
-    }): void => {
+    }): Promise<void> => {
       const scopeDir = join(repoPath, 'node_modules', '@dungeonmaster');
-      symlinkSync(join('..', '..', 'packages', packageName), join(scopeDir, packageName));
+      await fs.promises.symlink(
+        join('..', '..', 'packages', packageName),
+        join(scopeDir, packageName),
+      );
     },
     captureGitArgv: async ({
       captureDir,

@@ -15,7 +15,7 @@ import { ArrayIndexStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 export const orchestrationQueueHarness = (): {
   beforeEach: () => void;
   afterEach: () => void;
-  createDirs: (params: { baseDir: GuildPath }) => {
+  initDirs: (params: { baseDir: GuildPath }) => {
     claudeQueueDir: FilePath;
     wardQueueDir: FilePath;
   };
@@ -24,12 +24,6 @@ export const orchestrationQueueHarness = (): {
 } => {
   const counters = new Map<FilePath, ReturnType<typeof ArrayIndexStub>>();
 
-  const makeDir = (baseDir: GuildPath, name: 'claude-queue' | 'ward-queue'): FilePath => {
-    const dir = path.join(baseDir, name);
-    fs.mkdirSync(dir, { recursive: true });
-    return FilePathStub({ value: dir });
-  };
-
   return {
     beforeEach: (): void => {
       counters.clear();
@@ -37,17 +31,23 @@ export const orchestrationQueueHarness = (): {
     afterEach: (): void => {
       counters.clear();
     },
-    createDirs: ({
+    initDirs: ({
       baseDir,
     }: {
       baseDir: GuildPath;
     }): {
       claudeQueueDir: FilePath;
       wardQueueDir: FilePath;
-    } => ({
-      claudeQueueDir: makeDir(baseDir, 'claude-queue'),
-      wardQueueDir: makeDir(baseDir, 'ward-queue'),
-    }),
+    } => {
+      const claudeQueueDir = path.join(baseDir, 'claude-queue');
+      const wardQueueDir = path.join(baseDir, 'ward-queue');
+      fs.mkdirSync(claudeQueueDir, { recursive: true });
+      fs.mkdirSync(wardQueueDir, { recursive: true });
+      return {
+        claudeQueueDir: FilePathStub({ value: claudeQueueDir }),
+        wardQueueDir: FilePathStub({ value: wardQueueDir }),
+      };
+    },
 
     enqueue: ({ queueDir, response }: { queueDir: FilePath; response: unknown }): void => {
       const key = FilePathStub({ value: queueDir });

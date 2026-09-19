@@ -55,7 +55,7 @@ describe('questPauseBroker (integration — real disk, real concurrency)', () =>
       baseName: BaseNameStub({ value: 'pause-concurrent-double-submit' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
-    envHarness.seedQuestRepoPackages({
+    await envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
       sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
@@ -131,7 +131,7 @@ describe('questPauseBroker (integration — real disk, real concurrency)', () =>
       baseName: BaseNameStub({ value: 'pause-resume-restamp-race' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
-    envHarness.seedQuestRepoPackages({
+    await envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
       sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),

@@ -93,7 +93,7 @@ describe('gitDiffCommittedBroker (integration) — real git worktree isolation',
     });
 
     // An uncommitted edit to a TRACKED file. It belongs to `--uncommitted`, so it must not appear.
-    git.writeUncommittedFile({
+    await git.writeUncommittedFile({
       cwd: repoPath,
       relativePath: GitRelativePathStub({ value: 'base.txt' }),
       content: 'edited but never committed\n',

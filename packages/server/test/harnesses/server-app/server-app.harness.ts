@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 /**
  * PURPOSE: Provides test environment setup and helpers for server flow integration tests
  *
@@ -17,7 +18,6 @@ import {
   readFileSync,
   readdirSync,
   statSync,
-  symlinkSync,
 } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -103,7 +103,7 @@ export const serverAppHarness = (): {
     guildId: string;
     questFolder: string;
     quest: unknown;
-  }) => void;
+  }) => Promise<void>;
   // Domain-state seeding through the recipe framework's quest ingredient — the `write` route
   // (questWriteRouteBroker -> questPersistDirectBroker), against a `DmTarget` built from an
   // already-`setupTestHome`'d dungeonmasterHome. `guildId` is a literal, unregistered string (no
@@ -135,11 +135,11 @@ export const serverAppHarness = (): {
   // Writes a REAL file to a real `images` directory in a fresh temp dir — a bytes-match-disk claim
   // can't be settled against a mocked read, so a test that serves an image over HTTP and diffs the
   // response against the file needs a genuine file on a genuine filesystem.
-  seedImageFile: (params: { baseName: string; fileName: string; bytes: Uint8Array }) => {
+  seedImageFile: (params: { baseName: string; fileName: string; bytes: Uint8Array }) => Promise<{
     imagePath: FilePath;
     dirPath: FilePath;
     cleanup: () => void;
-  };
+  }>;
   // Reach for THIS over seedImageFile when the test is about where a path RESOLVES rather than what
   // it holds: it seeds a real symlink inside a real images directory pointing at a real file
   // outside it, plus an ordinary sibling file inside that same directory as the control.
@@ -150,12 +150,12 @@ export const serverAppHarness = (): {
     targetBytes: Uint8Array;
     siblingFileName: string;
     siblingBytes: Uint8Array;
-  }) => {
+  }) => Promise<{
     symlinkPath: FilePath;
     targetPath: FilePath;
     siblingPath: FilePath;
     cleanup: () => void;
-  };
+  }>;
   // Strips write permission from the quest's OWN directory (not the file — questPersistBroker
   // writes atomically via temp-file-then-rename, and a rename only needs write permission on the
   // DIRECTORY that holds both names, so chmod'ing quest.json itself would not stop the write).
@@ -268,7 +268,7 @@ export const serverAppHarness = (): {
   // the same way mcp-server.harness.ts's seedQuest does for the MCP subprocess suite. The
   // orchestrator's quest lookup globs guilds/*/quests/*/quest.json — it does not require the
   // guild to be registered in config.json first.
-  const seedQuest = ({
+  const seedQuest = async ({
     dungeonmasterHome,
     guildId,
     questFolder,
@@ -278,10 +278,10 @@ export const serverAppHarness = (): {
     guildId: string;
     questFolder: string;
     quest: unknown;
-  }): void => {
+  }): Promise<void> => {
     const questDir = join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
-    mkdirSync(questDir, { recursive: true });
-    writeFileSync(join(questDir, 'quest.json'), JSON.stringify(quest, null, 2));
+    await fs.promises.mkdir(questDir, { recursive: true });
+    await fs.promises.writeFile(join(questDir, 'quest.json'), JSON.stringify(quest, null, 2));
   };
 
   const seedQuestFields = async ({
@@ -349,7 +349,7 @@ export const serverAppHarness = (): {
   // fixture is shaped like the files this route actually exists to serve. `dirPath` is that images
   // directory, so a caller can build a path to a file that was never written, for the missing-file
   // case.
-  const seedImageFile = ({
+  const seedImageFile = async ({
     baseName,
     fileName,
     bytes,
@@ -357,16 +357,16 @@ export const serverAppHarness = (): {
     baseName: string;
     fileName: string;
     bytes: Uint8Array;
-  }): { imagePath: FilePath; dirPath: FilePath; cleanup: () => void } => {
+  }): Promise<{ imagePath: FilePath; dirPath: FilePath; cleanup: () => void }> => {
     const rootPath = join(tmpdir(), `${baseName}-${randomUUID().slice(0, 8)}`);
     const dirPath = join(rootPath, locationsStatics.quest.imagesDir);
-    mkdirSync(dirPath, { recursive: true });
-    writeFileSync(
+    await fs.promises.mkdir(dirPath, { recursive: true });
+    await fs.promises.writeFile(
       join(rootPath, locationsStatics.quest.questFile),
       QUEST_FILE_EXISTENCE_ONLY_CONTENT,
     );
     const imagePath = join(dirPath, fileName);
-    writeFileSync(imagePath, bytes);
+    await fs.promises.writeFile(imagePath, bytes);
 
     return {
       imagePath: FilePathStub({ value: imagePath }),
@@ -387,7 +387,7 @@ export const serverAppHarness = (): {
   // proves a refusal of the link is caused by where the link POINTS, not by where the fixture
   // happens to live. Mocking realpath instead would only ever prove the mock, so this fixture has
   // to be a genuine link the kernel resolves.
-  const seedSymlinkEscapingImagesDir = ({
+  const seedSymlinkEscapingImagesDir = async ({
     baseName,
     linkFileName,
     targetFileName,
@@ -401,33 +401,33 @@ export const serverAppHarness = (): {
     targetBytes: Uint8Array;
     siblingFileName: string;
     siblingBytes: Uint8Array;
-  }): {
+  }): Promise<{
     symlinkPath: FilePath;
     targetPath: FilePath;
     siblingPath: FilePath;
     cleanup: () => void;
-  } => {
+  }> => {
     const rootPath = join(tmpdir(), `${baseName}-${randomUUID().slice(0, 8)}`);
 
     const imagesDirPath = join(rootPath, locationsStatics.quest.imagesDir);
     const outsideDirPath = join(rootPath, OUTSIDE_IMAGES_DIR_NAME);
-    mkdirSync(imagesDirPath, { recursive: true });
-    mkdirSync(outsideDirPath, { recursive: true });
+    await fs.promises.mkdir(imagesDirPath, { recursive: true });
+    await fs.promises.mkdir(outsideDirPath, { recursive: true });
     // Only the images directory's own parent gets one: `outside` deliberately stays a
     // non-quest-folder, so the escaping link has nowhere legitimate to land.
-    writeFileSync(
+    await fs.promises.writeFile(
       join(rootPath, locationsStatics.quest.questFile),
       QUEST_FILE_EXISTENCE_ONLY_CONTENT,
     );
 
     const targetPath = join(outsideDirPath, targetFileName);
-    writeFileSync(targetPath, targetBytes);
+    await fs.promises.writeFile(targetPath, targetBytes);
 
     const symlinkPath = join(imagesDirPath, linkFileName);
-    symlinkSync(targetPath, symlinkPath);
+    await fs.promises.symlink(targetPath, symlinkPath);
 
     const siblingPath = join(imagesDirPath, siblingFileName);
-    writeFileSync(siblingPath, siblingBytes);
+    await fs.promises.writeFile(siblingPath, siblingBytes);
 
     return {
       symlinkPath: FilePathStub({ value: symlinkPath }),

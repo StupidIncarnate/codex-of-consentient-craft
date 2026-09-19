@@ -435,7 +435,7 @@ describe('QuestFlow', () => {
         baseName: BaseNameStub({ value: 'qf-gate-flows-approved-ok' }),
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
-      envHarness.seedQuestRepoPackages({
+      await envHarness.seedQuestRepoPackages({
         repoRoot: testbed.guildPath,
         locations: ['./packages/web', './packages/server'],
       });
@@ -2065,7 +2065,7 @@ describe('QuestFlow', () => {
       // the guild gets path === repo root === testbed dir.
       const repoRoot = GuildPathStub({ value: testbed.guildPath });
       envHarness.setupHome({ tempDir: repoRoot });
-      envHarness.writeRepoRootMarker({ repoRoot });
+      await envHarness.writeRepoRootMarker({ repoRoot });
       const cwd = envHarness.chdirInto({ dir: repoRoot });
 
       const result = await QuestFlow.mcpCreate({ userRequest });
@@ -2108,7 +2108,7 @@ describe('QuestFlow', () => {
       });
       const repoRoot = GuildPathStub({ value: testbed.guildPath });
       envHarness.setupHome({ tempDir: repoRoot });
-      envHarness.writeRepoRootMarker({ repoRoot });
+      await envHarness.writeRepoRootMarker({ repoRoot });
 
       // Pre-register a guild whose path equals the repo root.
       const existing = await GuildAddResponder({
@@ -2154,7 +2154,7 @@ describe('QuestFlow', () => {
       envHarness.setupHome({ tempDir: repoRoot });
       // .dungeonmaster.json lives ONLY at the repo root, so cwdResolveBroker walking up from the
       // subfolder resolves to the repo root.
-      envHarness.writeRepoRootMarker({ repoRoot });
+      await envHarness.writeRepoRootMarker({ repoRoot });
 
       const ancestor = await GuildAddResponder({
         name: GuildNameStub({ value: 'Ancestor Guild' }),

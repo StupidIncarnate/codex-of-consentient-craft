@@ -13,7 +13,8 @@
  * harness.seedDir({ packageRoot, relativePath: 'node_modules/.vite-64001', daysOld: 5 });
  * harness.exists({ packageRoot, relativePath: 'node_modules/.vite-64001' });
  */
-import { mkdirSync, writeFileSync, utimesSync, existsSync, readdirSync } from 'fs';
+import { existsSync, readdirSync } from 'fs';
+import fsPromises from 'fs/promises';
 import { join } from 'path';
 
 import { FileNameStub, FilePathStub } from '@dungeonmaster/shared/contracts';
@@ -26,12 +27,12 @@ export const e2eArtifactsHarness = (): {
     packageRoot: AbsoluteFilePath;
     relativePath: string;
     daysOld: number;
-  }) => void;
+  }) => Promise<void>;
   seedFile: (params: {
     packageRoot: AbsoluteFilePath;
     relativePath: string;
     daysOld: number;
-  }) => void;
+  }) => Promise<void>;
   exists: (params: { packageRoot: AbsoluteFilePath; relativePath: string }) => boolean;
   listRoot: (params: { packageRoot: AbsoluteFilePath }) => ReturnType<typeof FileNameStub>[];
 } => {
@@ -47,24 +48,24 @@ export const e2eArtifactsHarness = (): {
   // utimes takes SECONDS since the epoch, not milliseconds. Handing it Date.now() dates everything
   // ~55,000 years into the future, which reads as newer than every TTL and turns every deletion
   // assertion in the test into a false pass.
-  const backdate = ({ path, daysOld }: { path: string; daysOld: number }): void => {
+  const backdate = async ({ path, daysOld }: { path: string; daysOld: number }): Promise<void> => {
     const when = Date.now() / 1000 - daysOld * DAY_SECONDS;
-    utimesSync(path, when, when);
+    await fsPromises.utimes(path, when, when);
   };
 
   return {
-    seedDir: ({ packageRoot, relativePath, daysOld }): void => {
+    seedDir: async ({ packageRoot, relativePath, daysOld }): Promise<void> => {
       const path = String(absolute({ packageRoot, relativePath }));
-      mkdirSync(path, { recursive: true });
-      writeFileSync(join(path, 'seed'), 'x');
+      await fsPromises.mkdir(path, { recursive: true });
+      await fsPromises.writeFile(join(path, 'seed'), 'x');
       // Age the directory AFTER writing into it. A write bumps the parent's mtime, which would
       // undo the backdating and leave the fixture looking brand new.
-      backdate({ path, daysOld });
+      await backdate({ path, daysOld });
     },
-    seedFile: ({ packageRoot, relativePath, daysOld }): void => {
+    seedFile: async ({ packageRoot, relativePath, daysOld }): Promise<void> => {
       const path = String(absolute({ packageRoot, relativePath }));
-      writeFileSync(path, '{}');
-      backdate({ path, daysOld });
+      await fsPromises.writeFile(path, '{}');
+      await backdate({ path, daysOld });
     },
     exists: ({ packageRoot, relativePath }): boolean =>
       existsSync(String(absolute({ packageRoot, relativePath }))),

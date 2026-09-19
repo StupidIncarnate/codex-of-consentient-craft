@@ -77,7 +77,7 @@ describe('OrchestrationDispatchFlow', () => {
           heldAt: new Date(nowMs - HOUR_MS).toISOString(),
           resumeAt: new Date(nowMs + HOUR_MS).toISOString(),
         });
-        harness.seedDispatch({ tempDir, mode: 'paused', hold: standingHold });
+        await harness.seedDispatch({ tempDir, mode: 'paused', hold: standingHold });
 
         const played = await OrchestrationDispatchFlow.play({});
         const persisted = harness.readDispatch({ tempDir });
@@ -111,7 +111,13 @@ describe('OrchestrationDispatchFlow', () => {
         const hourAt = nowMs - (nowMs % HOUR_MS) - TWO_HOURS_MS;
         // Nothing calibrated and nothing spent, so the only thing the guardrail pass after the
         // pause can do is lift the hold — which is the half of this test it owns.
-        harness.seedLedger({ tempDir, fiveHour: null, sevenDay: null, hourAt, tokens: NO_SPEND });
+        await harness.seedLedger({
+          tempDir,
+          fiveHour: null,
+          sevenDay: null,
+          hourAt,
+          tokens: NO_SPEND,
+        });
         const standingHold = DispatchHoldStub({
           reason: 'approaching-limit',
           window: 'seven-day',
@@ -119,7 +125,7 @@ describe('OrchestrationDispatchFlow', () => {
           heldAt: new Date(nowMs - HOUR_MS).toISOString(),
           resumeAt: new Date(nowMs - FIVE_MINUTES_MS).toISOString(),
         });
-        harness.seedDispatch({ tempDir, mode: 'paused', hold: standingHold });
+        await harness.seedDispatch({ tempDir, mode: 'paused', hold: standingHold });
 
         await OrchestrationDispatchFlow.play({});
         const pausedState = await OrchestrationDispatchFlow.pause();

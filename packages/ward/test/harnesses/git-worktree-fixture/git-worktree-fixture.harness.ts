@@ -19,7 +19,7 @@
  * await git.pushBranch({ cwd: repoPath, branchName: GitBranchNameStub({ value: 'main' }) });
  * await git.commitFile({ cwd: repoPath, relativePath: GitRelativePathStub({ value: 'a.txt' }), content: 'hi\n' });
  */
-import { mkdirSync, writeFileSync } from 'fs';
+import { mkdirSync, promises as fsPromises, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 
 import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
@@ -64,7 +64,7 @@ export const wardGitWorktreeFixtureHarness = (): {
     cwd: AbsoluteFilePath;
     relativePath: GitRelativePath;
     content: string;
-  }) => void;
+  }) => Promise<void>;
 } => {
   const runGit = async ({
     cwd,
@@ -155,7 +155,7 @@ export const wardGitWorktreeFixtureHarness = (): {
       await runGit({ cwd, args: ['commit', '-m', `commit ${relativePath}`] });
     },
 
-    writeUncommittedFile: ({
+    writeUncommittedFile: async ({
       cwd,
       relativePath,
       content,
@@ -163,10 +163,10 @@ export const wardGitWorktreeFixtureHarness = (): {
       cwd: AbsoluteFilePath;
       relativePath: GitRelativePath;
       content: string;
-    }): void => {
+    }): Promise<void> => {
       const targetPath = join(cwd, relativePath);
-      mkdirSync(dirname(targetPath), { recursive: true });
-      writeFileSync(targetPath, content);
+      await fsPromises.mkdir(dirname(targetPath), { recursive: true });
+      await fsPromises.writeFile(targetPath, content);
     },
   };
 };

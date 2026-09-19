@@ -65,7 +65,7 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
           folder: `001-bad-status-${status}`,
           status,
         });
-        seeder.seed({ tempDir: testbed.guildPath, quest });
+        await seeder.seed({ tempDir: testbed.guildPath, quest });
 
         const before = await questHelper.reload({ questId });
 
@@ -121,7 +121,7 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
         worktreePath: AbsoluteFilePathStub({ value: '/tmp/already-recorded-worktree' }),
         operations: [OperationItemStub({ role: 'ward', status: 'pending', locked: true })],
       });
-      seeder.seed({ tempDir: testbed.guildPath, quest, guildId: guild.id });
+      await seeder.seed({ tempDir: testbed.guildPath, quest, guildId: guild.id });
 
       await OrchestrationStartResponder({ questId });
 
@@ -177,7 +177,7 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
         title: HOSTILE_TITLE,
         status: 'approved',
       });
-      seeder.seed({ tempDir: testbed.guildPath, quest, guildId: guild.id });
+      await seeder.seed({ tempDir: testbed.guildPath, quest, guildId: guild.id });
 
       const existingBranchShaBefore = await git.gitRevParseOrNull({
         repoPath,

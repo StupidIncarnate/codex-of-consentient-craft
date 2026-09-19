@@ -58,36 +58,20 @@ const QUIET_WINDOW_MS = ElapsedMsStub({ value: 500 });
 
 export const rateLimitsWatcherHarness = (): {
   begin: ({ name }: { name: BaseName }) => { tempDir: GuildPath; end: () => Promise<void> };
-  writeSnapshot: ({
-    tempDir,
-    snapshot,
-  }: {
-    tempDir: GuildPath;
-    snapshot: RateLimitsSnapshot;
-  }) => void;
-  writeRaw: ({ tempDir, content }: { tempDir: GuildPath; content: string }) => void;
-  seedLedger: ({
-    tempDir,
-    fiveHour,
-    sevenDay,
-    hourAt,
-    tokens,
-  }: {
+  writeSnapshot: (params: { tempDir: GuildPath; snapshot: RateLimitsSnapshot }) => Promise<void>;
+  writeRaw: (params: { tempDir: GuildPath; content: string }) => Promise<void>;
+  seedLedger: (params: {
     tempDir: GuildPath;
     fiveHour: number | null;
     sevenDay: number | null;
     hourAt: number;
     tokens: number;
-  }) => void;
-  seedDispatch: ({
-    tempDir,
-    mode,
-    hold,
-  }: {
+  }) => Promise<void>;
+  seedDispatch: (params: {
     tempDir: GuildPath;
     mode: DispatchState['mode'];
     hold?: DispatchHold;
-  }) => void;
+  }) => Promise<void>;
   readDispatch: ({ tempDir }: { tempDir: GuildPath }) => PersistedDispatchState;
   awaitHoldDetail: ({ tempDir, detail }: { tempDir: GuildPath; detail: string }) => Promise<void>;
   awaitHoldCleared: ({ tempDir }: { tempDir: GuildPath }) => Promise<void>;
@@ -115,25 +99,31 @@ export const rateLimitsWatcherHarness = (): {
   };
 } => {
   const core = {
-    writeSnapshot: ({
+    writeSnapshot: async ({
       tempDir,
       snapshot,
     }: {
       tempDir: GuildPath;
       snapshot: RateLimitsSnapshot;
-    }): void => {
-      fs.writeFileSync(path.join(tempDir, SNAPSHOT_FILENAME), JSON.stringify(snapshot));
+    }): Promise<void> => {
+      await fs.promises.writeFile(path.join(tempDir, SNAPSHOT_FILENAME), JSON.stringify(snapshot));
     },
 
-    writeRaw: ({ tempDir, content }: { tempDir: GuildPath; content: string }): void => {
-      fs.writeFileSync(path.join(tempDir, SNAPSHOT_FILENAME), content);
+    writeRaw: async ({
+      tempDir,
+      content,
+    }: {
+      tempDir: GuildPath;
+      content: string;
+    }): Promise<void> => {
+      await fs.promises.writeFile(path.join(tempDir, SNAPSHOT_FILENAME), content);
     },
 
     // One hour of measured spend and the two LEARNED CEILINGS, stamped NOW so the scan takes its
     // throttle path and hands this file straight back. Only `tokens` (input tokens) carries a
     // count, because its weight is 1 — the weighted total the guardrail divides by a ceiling is
     // then the number the test passed in, with no arithmetic in the scenario file to get wrong.
-    seedLedger: ({
+    seedLedger: async ({
       tempDir,
       fiveHour,
       sevenDay,
@@ -145,8 +135,8 @@ export const rateLimitsWatcherHarness = (): {
       sevenDay: number | null;
       hourAt: number;
       tokens: number;
-    }): void => {
-      fs.writeFileSync(
+    }): Promise<void> => {
+      await fs.promises.writeFile(
         path.join(tempDir, USAGE_LEDGER_FILENAME),
         JSON.stringify({
           buckets: {
@@ -159,7 +149,7 @@ export const rateLimitsWatcherHarness = (): {
       );
     },
 
-    seedDispatch: ({
+    seedDispatch: async ({
       tempDir,
       mode,
       hold,
@@ -167,8 +157,8 @@ export const rateLimitsWatcherHarness = (): {
       tempDir: GuildPath;
       mode: DispatchState['mode'];
       hold?: DispatchHold;
-    }): void => {
-      fs.writeFileSync(
+    }): Promise<void> => {
+      await fs.promises.writeFile(
         path.join(tempDir, DISPATCH_STATE_FILENAME),
         JSON.stringify({
           mode,

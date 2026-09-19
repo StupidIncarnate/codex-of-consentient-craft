@@ -45,7 +45,7 @@ describe('RateLimitsFlow', () => {
     'VALID: {snapshot file present at bootstrap} => its content is never published, because the ledger is the only source',
     async () => {
       const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-watch' }) });
-      harness.writeSnapshot({ tempDir, snapshot: RateLimitsSnapshotStub() });
+      await harness.writeSnapshot({ tempDir, snapshot: RateLimitsSnapshotStub() });
 
       const collector = harness.collectRateLimitsUpdated();
 
@@ -70,7 +70,7 @@ describe('RateLimitsFlow', () => {
     'ERROR: {malformed JSON in snapshot file} => state stays null and parse error is logged to stderr without firing rate-limits-updated event',
     async () => {
       const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-bad-json' }) });
-      harness.writeRaw({ tempDir, content: 'not json at all' });
+      await harness.writeRaw({ tempDir, content: 'not json at all' });
 
       const handler = jest.fn();
       const subscription = harness.subscribeRateLimitsUpdated({ handler });
@@ -131,8 +131,14 @@ describe('RateLimitsFlow', () => {
         const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-raise' }) });
         const nowMs = Date.now();
         const hourAt = nowMs - (nowMs % HOUR_MS) - TWO_HOURS_MS;
-        harness.seedLedger({ tempDir, fiveHour: null, sevenDay: QUOTA, hourAt, tokens: SPEND_90 });
-        harness.seedDispatch({ tempDir, mode: 'paused' });
+        await harness.seedLedger({
+          tempDir,
+          fiveHour: null,
+          sevenDay: QUOTA,
+          hourAt,
+          tokens: SPEND_90,
+        });
+        await harness.seedDispatch({ tempDir, mode: 'paused' });
 
         const played = await OrchestrationDispatchFlow.play({});
         const playedAtMs = Date.now();
@@ -176,8 +182,14 @@ describe('RateLimitsFlow', () => {
         const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-under' }) });
         const nowMs = Date.now();
         const hourAt = nowMs - (nowMs % HOUR_MS) - TWO_HOURS_MS;
-        harness.seedLedger({ tempDir, fiveHour: null, sevenDay: QUOTA, hourAt, tokens: SPEND_89 });
-        harness.seedDispatch({ tempDir, mode: 'paused' });
+        await harness.seedLedger({
+          tempDir,
+          fiveHour: null,
+          sevenDay: QUOTA,
+          hourAt,
+          tokens: SPEND_89,
+        });
+        await harness.seedDispatch({ tempDir, mode: 'paused' });
 
         await OrchestrationDispatchFlow.play({});
         RateLimitsFlow.bootstrap();
@@ -205,8 +217,14 @@ describe('RateLimitsFlow', () => {
         const hourAt = nowMs - (nowMs % HOUR_MS) - TWO_HOURS_MS;
         // Ten times what every other test here calls a full quota. With nothing calibrated there is
         // no denominator, so there is no percentage and no hold at any spend at all.
-        harness.seedLedger({ tempDir, fiveHour: null, sevenDay: null, hourAt, tokens: SPEND_HUGE });
-        harness.seedDispatch({ tempDir, mode: 'paused' });
+        await harness.seedLedger({
+          tempDir,
+          fiveHour: null,
+          sevenDay: null,
+          hourAt,
+          tokens: SPEND_HUGE,
+        });
+        await harness.seedDispatch({ tempDir, mode: 'paused' });
 
         await OrchestrationDispatchFlow.play({});
         RateLimitsFlow.bootstrap();
@@ -233,8 +251,14 @@ describe('RateLimitsFlow', () => {
         const nowMs = Date.now();
         // Two hours old, so this one hour of spend sits inside BOTH windows, at 95% of each.
         const hourAt = nowMs - (nowMs % HOUR_MS) - TWO_HOURS_MS;
-        harness.seedLedger({ tempDir, fiveHour: QUOTA, sevenDay: QUOTA, hourAt, tokens: SPEND_95 });
-        harness.seedDispatch({ tempDir, mode: 'node-playing' });
+        await harness.seedLedger({
+          tempDir,
+          fiveHour: QUOTA,
+          sevenDay: QUOTA,
+          hourAt,
+          tokens: SPEND_95,
+        });
+        await harness.seedDispatch({ tempDir, mode: 'node-playing' });
 
         RateLimitsFlow.bootstrap();
         await harness.awaitHoldDetail({ tempDir, detail: DETAIL_95 });
@@ -264,7 +288,7 @@ describe('RateLimitsFlow', () => {
       'VALID: {a hold standing and get-next-step polled} => returns idle naming the window and the resume time, and writes no mcp heartbeat',
       async () => {
         const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-idle' }) });
-        harness.seedDispatch({
+        await harness.seedDispatch({
           tempDir,
           mode: 'paused',
           hold: DispatchHoldStub({
@@ -303,8 +327,14 @@ describe('RateLimitsFlow', () => {
         // Ten hours old: still inside the seven-day window, already outside the five-hour one, so
         // the five-hour reading this pass takes is zero.
         const hourAt = nowMs - (nowMs % HOUR_MS) - TEN_HOURS_MS;
-        harness.seedLedger({ tempDir, fiveHour: QUOTA, sevenDay: null, hourAt, tokens: SPEND_95 });
-        harness.seedDispatch({
+        await harness.seedLedger({
+          tempDir,
+          fiveHour: QUOTA,
+          sevenDay: null,
+          hourAt,
+          tokens: SPEND_95,
+        });
+        await harness.seedDispatch({
           tempDir,
           mode: 'paused',
           hold: DispatchHoldStub({
@@ -340,8 +370,14 @@ describe('RateLimitsFlow', () => {
         const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-rehold' }) });
         const nowMs = Date.now();
         const hourAt = nowMs - (nowMs % HOUR_MS) - TWO_HOURS_MS;
-        harness.seedLedger({ tempDir, fiveHour: null, sevenDay: QUOTA, hourAt, tokens: SPEND_95 });
-        harness.seedDispatch({
+        await harness.seedLedger({
+          tempDir,
+          fiveHour: null,
+          sevenDay: QUOTA,
+          hourAt,
+          tokens: SPEND_95,
+        });
+        await harness.seedDispatch({
           tempDir,
           mode: 'node-playing',
           hold: DispatchHoldStub({
@@ -381,10 +417,16 @@ describe('RateLimitsFlow', () => {
         const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-429' }) });
         const nowMs = Date.now();
         const hourAt = nowMs - (nowMs % HOUR_MS) - TWO_HOURS_MS;
-        harness.seedLedger({ tempDir, fiveHour: null, sevenDay: QUOTA, hourAt, tokens: SPEND_95 });
+        await harness.seedLedger({
+          tempDir,
+          fiveHour: null,
+          sevenDay: QUOTA,
+          hourAt,
+          tokens: SPEND_95,
+        });
         // A 429 hold carries no reading behind it — its resumeAt is a flat thirty-minute wait, and
         // what happens when that wait runs out is the whole question here.
-        harness.seedDispatch({
+        await harness.seedDispatch({
           tempDir,
           mode: 'node-playing',
           hold: DispatchHoldStub({
@@ -424,7 +466,13 @@ describe('RateLimitsFlow', () => {
         const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-standing' }) });
         const nowMs = Date.now();
         const hourAt = nowMs - (nowMs % HOUR_MS) - TWO_HOURS_MS;
-        harness.seedLedger({ tempDir, fiveHour: null, sevenDay: QUOTA, hourAt, tokens: SPEND_10 });
+        await harness.seedLedger({
+          tempDir,
+          fiveHour: null,
+          sevenDay: QUOTA,
+          hourAt,
+          tokens: SPEND_10,
+        });
         const standingHold = DispatchHoldStub({
           reason: 'approaching-limit',
           window: 'seven-day',
@@ -432,7 +480,7 @@ describe('RateLimitsFlow', () => {
           heldAt: new Date(nowMs - HOUR_MS).toISOString(),
           resumeAt: new Date(nowMs + HOUR_MS).toISOString(),
         });
-        harness.seedDispatch({ tempDir, mode: 'node-playing', hold: standingHold });
+        await harness.seedDispatch({ tempDir, mode: 'node-playing', hold: standingHold });
 
         const before = harness.readDispatch({ tempDir });
 
@@ -462,8 +510,14 @@ describe('RateLimitsFlow', () => {
         const nowMs = Date.now();
         const hourAt = nowMs - (nowMs % HOUR_MS) - TEN_HOURS_MS;
         // BOTH windows are calibrated, so a five-hour breach would be visible if there were one.
-        harness.seedLedger({ tempDir, fiveHour: QUOTA, sevenDay: QUOTA, hourAt, tokens: SPEND_95 });
-        harness.seedDispatch({ tempDir, mode: 'node-playing' });
+        await harness.seedLedger({
+          tempDir,
+          fiveHour: QUOTA,
+          sevenDay: QUOTA,
+          hourAt,
+          tokens: SPEND_95,
+        });
+        await harness.seedDispatch({ tempDir, mode: 'node-playing' });
 
         RateLimitsFlow.bootstrap();
         await harness.awaitHoldDetail({ tempDir, detail: DETAIL_95 });
