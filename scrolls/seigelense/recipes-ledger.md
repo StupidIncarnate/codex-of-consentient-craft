@@ -282,3 +282,14 @@ wide, not merely "the case with the fewest ancestors."
 
 No case in B1–B8 is `BLOCKED` — every one was driven, at tier 1 (B3, B6, B7's op-tree halves), tier 2
 (B1's compile half, B2, B5), or tier 3 (B1's link-resolution half, B4, B8).
+
+## Round C — composition pairs and triples (`recipes-chunk-12-combinatorial-rounds.md`, §8)
+
+Full report in `scrolls/seigelense/rounds/round-c-report.md`. All 19 cases driven.
+
+### Resolutions landed this session
+- **C18 (verb on removed handle)**: Refused at pre-flight check 6 (`REMOVED REFS`) in `planPreflightBroker` throwing `HydrationRemovedHandleVerbError`. `planFoldWritesTransformer` fences folding across `remove`.
+- **C13 (ambiguity candidates)**: `HydrationFilterExpectationError` carries `candidates: readonly unknown[]` and renders them in error message when `matchedCount > 1`. `opFilterApplyLayerBroker` passes `matchedRecords`.
+- **C5 (transitions post-setRaw)**: `opSetApplyLayerBroker` passes raw `from` to `reach` with safe diagnostic formatting in `HydrationTransitionRefusedError`. `reach` owns path feasibility.
+- **C6 (removing parent with children)**: `opRemoveApplyLayerBroker` cascades in-memory eviction of all `${op.ref}/` descendant references and cleans up plan-created child rows in reverse-depth order before removing parent.
+- **C19 (nested create in filter)**: Resolved in `opFilterApplyLayerBroker` by resolving routes and config from nested op's own declared ingredient.

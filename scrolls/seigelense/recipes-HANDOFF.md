@@ -142,16 +142,18 @@ npx tsx --conditions=source scrolls/seigelense/rounds/round-c/<file>.ts
 
 **Fixed this session:** a `fromSaved` naming a field its record never declares now refuses at pre-flight
 (A5). A `create` nested in a `filter` now resolves against its own ingredient rather than the enclosing
-filter's, which was silently running the wrong ingredient's routes (C19).
+filter's, which was silently running the wrong ingredient's routes (C19). Verbs on a removed handle
+now refuse at pre-flight with `HydrationRemovedHandleVerbError` and folding is fenced across remove (C18).
+Ambiguity refusals in `HydrationFilterExpectationError` carry matched candidates in `candidates` and in the
+message (C13). Transitions after `setRaw` pass the raw value to `reach` with safe diagnostic formatting
+in `HydrationTransitionRefusedError` (C5). `remove()` cascades in-memory eviction of all descendant
+references and cleans up plan-created child rows in reverse-depth order (C6). Chunk 8 item E3
+(reference substitution across steps) is completely delivered and verified through live siege runs.
 
 **Open, worst first:**
 
 | Case | What is true | Why it matters |
 |---|---|---|
-| **C18** | Nothing refuses a verb on a handle whose row an earlier `remove()` deleted. A transition `set` fabricates a ghost record with no id; a plain-field `set` folds into the create, so the row is born carrying the later value and then removed | Silent, and it produces a world that cannot occur |
-| **C6** | Removing a parent orphans its children. There is no cascade | The natural remove-route implementation produces the orphan |
-| **C13** | The ambiguity refusal throws correctly but its constructor cannot carry the matched rows, though the rule says the error carries the candidates | Half-met rule |
-| **C5** | After `setRaw`, a later `set`'s `reach` is handed the raw value as `from`, never checked against the ingredient's own `to` list | |
 | **C3, C11, C12** | A repeated `saveRecordAs` name silently keeps the last row, never refused at pre-flight | The spec documents last-wins, so this may be confirmation rather than defect — decide it |
 | **A9** | A `set` with no `transitions` declared consults no gate and carries no `transition` key — indistinguishable from `setRaw` | |
 | **A4** | A `fields` contract wider than the entity lets the extra field travel to the write route, and the reported result hides it | |
