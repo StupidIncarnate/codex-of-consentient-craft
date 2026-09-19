@@ -115,6 +115,8 @@ module.exports = [
       '@dungeonmaster-local/no-bare-location-literals': 'error',
       '@dungeonmaster-local/no-hardcoded-package-names': 'error',
       '@dungeonmaster-local/ban-locator-pick': 'error',
+      '@dungeonmaster-local/ban-sync-seeding-methods': 'warn',
+      '@dungeonmaster-local/ban-direct-io-in-test-scenarios': 'warn',
       // 'eslint-comments/no-unlimited-disable': 'error',
       // 'eslint-comments/no-use': ['error', { allow: [] }],
     },
@@ -159,6 +161,8 @@ module.exports = [
       '@dungeonmaster-local/no-bare-location-literals': 'error',
       '@dungeonmaster-local/no-hardcoded-package-names': 'error',
       '@dungeonmaster-local/ban-locator-pick': 'error',
+      '@dungeonmaster-local/ban-sync-seeding-methods': 'warn',
+      '@dungeonmaster-local/ban-direct-io-in-test-scenarios': 'warn',
     },
   },
   // Test file-specific overrides (from dungeonmaster test config)
