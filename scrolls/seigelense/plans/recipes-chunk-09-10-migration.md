@@ -442,13 +442,13 @@ exists to produce.** It gets written into §14, not fixed by putting the re-deri
 | Method | Calls | Verdict | Becomes |
 |---|---|---|---|
 | `createQuest` | **176** | CONVERT | `dm.quests.under({guildId}).add(1, …)` on the **`baseUrl`** target → `api`. Signature unchanged; the `{questId, questFolder, filePath, success}` return is built from the record |
-| `writeQuestFile` | **172** | CONVERT | `…add(1, (q) => [q[0].setRaw(fields)])` on the **home-only** target → `write`. Signature unchanged. `workItems`/`operations`/`flows`/`comments` stay FIELDS (§7, Q7-1) |
+| `writeQuestFile` | **172** | **STAYS** | synchronous caller seam (racing `readFileSync` in `stampWorkItems`) and strict route `record` schema validation (refusing malformed test fixtures). Survey finding §14 Batch 10.6 |
 | `writeUnparseableQuestFile` | **3** | CONVERT | the quest extra `corruptToLegacySchema` — **exists** (`quest-ingredient-broker.ts:117-120`) |
 | `writeWardResultDetail` | **2** | CONVERT | the quest extra `withWardResultDetail` — **exists** (`:121-124`) |
 | `patchQuestStatus` | **1** (+6 in Phase F specs) | **CONVERT — newly possible** | `set({ status })`, walked by `transitions.reach` (`:101-107`). See §6.7 |
 | `rewindQuestStatus` | **1** | **STAYS** | reaches a row by a bare `questFilePath` from outside the plan. Survey finding 2 |
 | `questFolderExists` | **4** | **STAYS** | an assertion, not a seed. `fs.existsSync`; it belongs in the spec's half |
-| `seedInProgressWithOperations` | 0 from specs | CONVERT | wrapper over `writeQuestFile`; converts for free. Its one caller is `dispatch.harness.ts:218-229` |
+| `seedInProgressWithOperations` | 0 from specs | **STAYS** | wrapper over `writeQuestFile` |
 | `buildQuestJson` | **0** | **DELETE** | dead code — survey confirmed no caller anywhere |
 
 ### 6.3 `sessionHarness` — a long tail, and the tail is the point
@@ -558,6 +558,7 @@ draw.
 | real git repo / worktree / branch / commit state | 3 integration | no guild, quest or session has anywhere to put a git ref | moot here — all 3 are inside `orchestrator` and descoped. Still the **first** candidate for a sixth ingredient |
 | rate-limit accounting — `usage-ledger.json`, `rate-limits.json`, `dispatch-state.json` | 2 e2e | a fourth domain with no contract in any of the five ingredients | keep `rateLimitsHarness`. Chunk 7 Q7-9 rank 2 |
 | a row the LIVE APPLICATION minted, reached by a bare id | 6 e2e | `add`, `filter`, `fromSaved` and `under` are the only ways into a row, and none is *"here is a raw id from outside this plan"* | keep `rewindQuestStatus`, `appendMainSessionLine`, `appendSubagentLine`, `subagentDurationHarness.appendNotification`. Survey finding 2; chunk 7 Q7-6 |
+| sync caller read race & malformed fixture rejection (`writeQuestFile`) | 172 e2e | synchronous callers immediately reading disk (`stampWorkItems`) race async `run()`, and route `record` schema validation rejects deliberately malformed files | keep `questHarness.writeQuestFile`, `seedInProgressWithOperations`. Survey finding §14 Batch 10.6 |
 | a work item's foreign key | every quest | `relatedDataItems: ['operations/<id>']` is a prefixed string inside an ARRAY; `links` writes one field to one field | `workItems` stays a FIELD on `quest` — which is what keeps `writeQuestFile` mechanical. Chunk 7 Q7-1 |
 | a child accessor under `.under()` | any nested seed | G0-f — `TS2339`, ancestor names are not carried forward | the quest's plain `operations` FIELD via `set()`. Already what callers pass |
 | a ward result's detail blob | 2 e2e | one logical entity across two files | **SOLVED** — the quest extra `withWardResultDetail` exists. `riftcarverResults` is the same shape one directory over and remains a finding |
@@ -726,7 +727,7 @@ target state is a NAMED LIST rather than a number.
 | | Today | When chunk 10 finishes |
 |---|---|---|
 | `--progress` (identifiers) | 916 | **916.** Unchanged, and that is correct, not a failure |
-| methods still writing directly | all of them | **5**, each named in §7 |
+| methods still writing directly | all of them | **7**, each named in §7 (`writeQuestFile`, `seedInProgressWithOperations`, `rewindQuestStatus`, `appendMainSessionLine`, `appendSubagentLine`, plus assertions) |
 | `expect(` lines changed in `*.e2e.ts` | 0 | **0** |
 
 ---
@@ -924,7 +925,7 @@ the batch was for.
 
 | Batch | Harness method / spec | Verb or property it defeated | The assertion that moved | Both outputs |
 |---|---|---|---|---|
-| — | — | — | — | — |
+| **10.6** | `questHarness.writeQuestFile` (`elapsed-duration-absent.e2e.ts`, `malformed-quest-file-reported.e2e.ts`) | synchronous caller seam & strict route `record` schema validation | `expect(presentRow.getByTestId('execution-row-duration')).toHaveText('4m')` (timeout: element not found) & `UnhandledPromiseRejection: HydrationRecordShapeError: recipe "write-quest-file": ingredient "quest" route "write" field "createdAt": Invalid datetime` | **Original:** PASS (6.6s / 6.0s).<br>**Converted:** FAIL — 1. `writeQuestFile`'s 172 sync callers immediately execute synchronous file reads (e.g. `elapsed.stampWorkItems` reading `questFilePath` with `readFileSync`), racing the asynchronous execution of `dmRegistryBroker.run(...)` on `writeTarget()`. 2. Specs testing invalid data (`malformed-quest-file-reported.e2e.ts`) pass unparseable fields (e.g. `BAD_COMMENT_CREATED_AT = '2026-13-04...'`), which `opCreateApplyLayerBroker`'s `config.record.safeParse` strictly rejects with `HydrationRecordShapeError`, crashing the test runner instead of writing the malformed file to disk. Per §8, `writeQuestFile` remains a direct write and joins §7's table. |
 
 ---
 

@@ -41,9 +41,11 @@ export const questWriteRouteBroker = async ({
   fields: Record<string, unknown>;
 }): Promise<Quest> => {
   const parsedFields = questFieldsContract.parse(fields);
-  const id = questIdContract.parse(crypto.randomUUID());
-  const folder = questContract.shape.folder.parse(id);
-  const createdAt = questContract.shape.createdAt.parse(new Date().toISOString());
+  const id = questIdContract.parse(fields.id ?? crypto.randomUUID());
+  const folder = questContract.shape.folder.parse(fields.folder ?? id);
+  const createdAt = questContract.shape.createdAt.parse(
+    fields.createdAt ?? new Date().toISOString(),
+  );
 
   const quest = questContract.parse({ ...parsedFields, id, folder, createdAt });
 
