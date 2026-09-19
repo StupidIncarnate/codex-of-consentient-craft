@@ -44,19 +44,8 @@ export const guildHarness = ({
 
   const dmTarget = dmTargetHarness({ baseURL: resolvedBaseUrl, request });
 
-  const deleteGuild = async ({ guild }: { guild: GuildRecord }): Promise<void> => {
-    await request.delete(`/api/guilds/${String(guild.id)}`);
-  };
-
   const cleanGuilds = async (): Promise<void> => {
-    const response = await request.get('/api/guilds');
-    const data: unknown = await response.json();
-    const guilds = Array.isArray(data) ? (data as GuildRecord[]) : [];
-    // Sequential deletes: concurrent DELETEs corrupt config.json (race on read-modify-write)
-    await guilds.reduce(async (prev, guild) => {
-      await prev;
-      await deleteGuild({ guild });
-    }, Promise.resolve());
+    await dmTarget.beforeEach();
   };
 
   const createGuild = async ({
