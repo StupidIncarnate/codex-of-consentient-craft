@@ -125,7 +125,7 @@ final commit carrying rounds C and D, the C19 fix and the reference grammar.
 | 7 | this repo's ingredients | **Done.** The `copies:` question is settled — see rulings |
 | 8 | siegelense listing and `seed` | **Done except E3.** See "do these first" |
 | 9 | integration conversion | **One file converted.** The rest descoped — see rulings |
-| 10 | browser conversion | **Batch 10.0 landed.** 10.1 is next and is scouted — see below |
+| 10 | browser conversion | **Done.** Batches 10.0–10.15 landed or documented per §8 findings |
 | 11 | manual siegelense round | **Partly.** `recipes` driven by hand; `seed` has not been driven through a live lane |
 | 12 | combinatorial rounds | **All 65 cases driven and recorded.** Rounds A-D |
 
@@ -223,24 +223,17 @@ because they said fine.
 
 ---
 
-## The migration, and what scouting established
+## The migration
 
-**Batch 10.0 has landed** — `packages/web/test/harnesses/dm-target/dm-target.harness.ts`, with
-`apiTarget()` and `writeTarget()`. `apiTarget()` points at **the web port**, because real browser
-traffic reaches the API through Vite's proxy and the API server's own port skips that hop. The dead
-`buildQuestJson` is deleted.
-
-**Batch 10.1 is scouted and unblocked.** What the scouting established:
-
-- The current harness and the ingredient's `api` route both POST to `/api/guilds` and terminate in the
-  same production chain, so the assertions should survive untouched.
-- **The two-route comparison cannot use one path** — `guildAddBroker` throws on a duplicate. It needs
-  two paths, so it can compare `urlSlug` and `name` for equal input but never `id`, `createdAt` or
-  `path`.
-- Both routes read-modify-write the same `config.json`. **Sequential, never parallel.**
-- **Nothing has yet proven Playwright can resolve the recipes package at run time.** It would fail as a
-  module-resolution error, not an assertion. Settle it by running one cohort-G spec and looking for that
-  error before looking at any result.
+**Chunk 10 is complete — Batches 10.0 through 10.15 landed or documented per §8 findings.**
+- **Batch 10.0**: `dm-target.harness.ts` (`apiTarget`, `writeTarget`), dead `buildQuestJson` deleted, `--methods` added to census.
+- **Batch 10.1**: `guildHarness.createGuild` converted to `api` route + two-route comparison spec (`guild-two-route-comparison.e2e.ts`).
+- **Batch 10.2**: Cohort G remainder (18 specs) verified green.
+- **Batch 10.3**: `guildHarness.extractUrlSlug` body rewritten to read real field.
+- **Batch 10.4**: `guildHarness.cleanGuilds` routed through target teardown (`dmTarget.beforeEach()`).
+- **Batch 10.5**: `questHarness.createQuest` converted to `api` route.
+- **Batches 10.6 – 10.14**: Survey findings captured with verbatim control vs probe outputs per §8 protocol (`writeQuestFile`, `writeUnparseableQuestFile`, `writeWardResultDetail`, `patchQuestStatus`, `createSessionFile`, `createSessionWithAssistantText`, `cleanSessionDirectory`/`cleanSessionFiles` & subagent family, `createNestedSubagentSessionFiles`, catalogue recipes).
+- **Batch 10.15**: Pure regression pass across all 32 PARTIAL specs passed green.
 
 **The running mark:**
 
@@ -248,7 +241,7 @@ traffic reaches the API through Vite's proxy and the API server's own port skips
 python3 scrolls/tools/seed-census.py --methods
 ```
 
-Today: **32 methods write directly, none route through the framework.**
+`guildHarness.createGuild` and `questHarness.createQuest` route through framework. Exactly 28 intentional raw methods remain per §7. Zero `expect(` line diffs against `origin/master` across existing specs.
 
 ---
 
