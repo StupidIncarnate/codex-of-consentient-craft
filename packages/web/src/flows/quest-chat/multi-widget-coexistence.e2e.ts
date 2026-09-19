@@ -50,7 +50,7 @@ test.describe('Multi-widget coexistence', () => {
 
     // 1. Write a measured reading so the rate-limits stack renders. Input tokens weigh 1, so 5500
     //    against a 10000 five-hour ceiling is 55%, and against a 18333 seven-day one is 30%.
-    rateLimits.writeLedger({
+    await rateLimits.writeLedger({
       spendTokens: RATE_LIMIT_SPEND,
       fiveHourCeiling: RATE_LIMIT_FIVE_HOUR_CEILING,
       sevenDayCeiling: RATE_LIMIT_SEVEN_DAY_CEILING,
@@ -83,7 +83,7 @@ test.describe('Multi-widget coexistence', () => {
     });
     const primaryQuestId = String(primary.questId);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: primaryQuestId,
       questFolder: String(primary.questFolder),
       questFilePath: String(primary.filePath),
@@ -111,7 +111,7 @@ test.describe('Multi-widget coexistence', () => {
     });
     const queuedQuestId = String(queued.questId);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: queuedQuestId,
       questFolder: String(queued.questFolder),
       questFilePath: String(queued.filePath),

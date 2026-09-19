@@ -55,7 +55,7 @@ test.describe('Paused quest: pending work items with sessionId stay expandable',
     const questFilePath = created.filePath;
 
     const codeweaverOpId = '00000000-0000-4000-8000-0000000000c2';
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),

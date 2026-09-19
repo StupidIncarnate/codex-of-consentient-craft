@@ -255,7 +255,7 @@ export const commentQueueLifecycleHarness = ({
         });
         const target = which === 'first' ? seeded.first : seeded.second;
         target.questId = String(created.questId);
-        quests.writeQuestFile({
+        await quests.writeQuestFile({
           questId: target.questId,
           questFolder: String(created.questFolder),
           questFilePath: String(created.filePath),

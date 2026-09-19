@@ -90,7 +90,7 @@ test.describe('Composer send — images and a rejected send', () => {
 
     // Precondition, not the mutation under test — moves the quest out from under the already-open
     // tab. The send that meets the moved status is a real keypress in the real composer, below.
-    followup.setQuestStatusOnDisk({ questFilePath, status: MOVED_TO_STATUS });
+    await followup.setQuestStatusOnDisk({ questFilePath, status: MOVED_TO_STATUS });
 
     // Before-state, captured while the composer still holds real content — the control that stops
     // every "unchanged after rejection" assertion below from passing vacuously against an
@@ -187,7 +187,7 @@ test.describe('Composer send — images and a rejected send', () => {
     await composer.pasteImage({ dataUrl: String(dataUrl2) });
     await expect(page.getByTestId('CHAT_PANEL').getByTestId('CHAT_INPUT_THUMBNAIL')).toHaveCount(2);
 
-    followup.setQuestStatusOnDisk({ questFilePath, status: MOVED_TO_STATUS });
+    await followup.setQuestStatusOnDisk({ questFilePath, status: MOVED_TO_STATUS });
 
     // Wipes the draft that typing/pasting above already wrote, so the send below starts from a
     // genuinely empty draft store — the precondition this unit is about.
@@ -240,7 +240,7 @@ test.describe('Composer send — images and a rejected send', () => {
     });
     const questId = String(created.questId);
     const questFilePath = String(created.filePath);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath,
@@ -315,7 +315,7 @@ test.describe('Composer send — images and a rejected send', () => {
     });
     const questId = String(created.questId);
     const questFilePath = String(created.filePath);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath,

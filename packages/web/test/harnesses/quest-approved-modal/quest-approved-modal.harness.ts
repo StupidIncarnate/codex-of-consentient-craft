@@ -92,7 +92,7 @@ export const questApprovedModalHarness = ({
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,

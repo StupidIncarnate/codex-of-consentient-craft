@@ -58,7 +58,7 @@ test.describe('Clarification Design Decisions', () => {
     // Seed at 'explore_flows' — ChaosWhisperer's clarification flow writes
     // designDecisions via modify-quest, and the per-status input allowlist only
     // permits designDecisions during the spec-exploration phases.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder,
       questFilePath,
@@ -159,7 +159,7 @@ test.describe('Clarification Design Decisions', () => {
     const questFilePath = created.filePath;
     const { questFolder } = created;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder,
       questFilePath,

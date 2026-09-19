@@ -236,7 +236,7 @@ export const stickyHeaderHarness = ({
         userRequest: 'Build the sticky header feature',
       });
 
-      quests.writeQuestFile({
+      await quests.writeQuestFile({
         questId: String(created.questId),
         questFolder: String(created.questFolder),
         questFilePath: String(created.filePath),

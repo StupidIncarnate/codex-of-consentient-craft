@@ -45,7 +45,7 @@ test.describe('Pause/Resume emits lifecycle events', () => {
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -118,7 +118,7 @@ test.describe('Pause/Resume emits lifecycle events', () => {
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,

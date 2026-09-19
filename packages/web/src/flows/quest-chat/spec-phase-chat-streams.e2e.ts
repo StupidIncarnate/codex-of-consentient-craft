@@ -51,7 +51,7 @@ test.describe('Spec-phase intake conversation streams into the chat panel', () =
 
     // A bug-hunt quest mid-intake: still at explore_flows, with its bughunt work item in_progress
     // and carrying the session the user is talking to.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(created.filePath),

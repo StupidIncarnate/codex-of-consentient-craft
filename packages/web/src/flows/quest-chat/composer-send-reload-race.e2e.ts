@@ -74,7 +74,7 @@ test.describe('Composer send — a page reload racing an accepted response must 
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

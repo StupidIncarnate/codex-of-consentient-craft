@@ -171,7 +171,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
       title: 'Subagent Duration Frozen Figure Band Quest',
       userRequest: 'Build the feature',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -377,7 +377,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
       userRequest: 'Build the feature',
     });
     const questFilePath = String(created.filePath);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath,
@@ -407,7 +407,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
     // The panel's shared clock only threads to a row when the WORK ITEM itself carries a
     // `startedAt` (`hasRunningWorkItem` in execution-panel-widget.tsx) — a field `writeQuestFile`
     // never writes. Stamping it here is what makes CLOCK_WI's chain actually see `now`.
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: CLOCK_WI, startedAt: CLOCK_TASK_TOOL_USE_AT }],
     });
@@ -484,7 +484,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
       title: 'Subagent Duration Frozen Figure Duration-Ms Branch Quest',
       userRequest: 'Build the feature',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

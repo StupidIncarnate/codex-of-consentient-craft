@@ -62,7 +62,7 @@ test.describe('Composer send — images reach the agent', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -141,7 +141,7 @@ test.describe('Composer send — images reach the agent', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -234,7 +234,7 @@ test.describe('Composer send — images reach the agent', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -326,7 +326,7 @@ test.describe('Composer send — images reach the agent', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -413,7 +413,7 @@ test.describe('Composer send — images reach the agent', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -511,7 +511,7 @@ test.describe('Composer send — images reach the agent', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -609,7 +609,7 @@ test.describe('Composer send — images reach the agent', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -895,7 +895,7 @@ test.describe('Composer send — images reach the agent', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

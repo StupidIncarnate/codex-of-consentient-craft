@@ -49,7 +49,7 @@ test.describe('Abandoned quest with only a chaoswhisperer work item still shows 
     // `skipped` while transitioning the quest to `abandoned`. A quest abandoned
     // during the chaoswhisperer phase therefore lands with EXACTLY this shape on
     // disk: one chaoswhisperer work item, status `skipped`, sessionId stamped.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),

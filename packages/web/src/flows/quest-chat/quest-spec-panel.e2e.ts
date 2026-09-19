@@ -47,7 +47,7 @@ test.describe('Quest Spec Panel', () => {
     const questFilePath = created.filePath;
 
     // Overwrite quest.json with desired test data
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder,
       questFilePath,

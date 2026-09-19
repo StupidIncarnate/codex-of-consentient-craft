@@ -87,7 +87,7 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -117,7 +117,7 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     // running-elapsed-on-work-item-row:observable:check-no-elapsed-without-started-at and
     // running-elapsed-on-work-item-row:branch:started-at-absent — the two units share one
     // assertion shape (absent count 0 beside present count 1 reading 4m).
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: PRESENT_WI, startedAt: STARTED_AT_240S }],
     });
@@ -164,7 +164,7 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -199,7 +199,7 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [
         { id: STATUS_MATRIX_CONTROL_WI, startedAt: STARTED_AT_240S },
@@ -285,7 +285,7 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -313,7 +313,7 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     // Only NOT_RUNNING_WI is stamped — NO_STARTED_AT_WI is left exactly as writeQuestFile wrote
     // it, with no startedAt at all. Neither row is in_progress, so hasRunningWorkItem stays false
     // and the shared tick's setInterval must never register.
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: NOT_RUNNING_WI, startedAt: STARTED_AT_240S }],
     });
@@ -378,7 +378,7 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -412,7 +412,7 @@ test.describe('Live elapsed duration on in-progress execution rows: absent branc
 
     // One shared startedAt across all three — the three different OUTCOMES (no figure, 4m, 10m)
     // are what proves which branch each row took, not three different spans.
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [
         { id: FAILED_WI, startedAt: STARTED_AT_240S },

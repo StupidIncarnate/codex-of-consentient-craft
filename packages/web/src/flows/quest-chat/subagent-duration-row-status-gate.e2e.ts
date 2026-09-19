@@ -100,7 +100,7 @@ test.describe('Sub-agent chain duration is gated by the owning row status, not b
       title: 'Subagent Duration Row Status Gate Quest',
       userRequest: 'Build the feature',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -216,7 +216,7 @@ test.describe('Sub-agent chain duration is gated by the owning row status, not b
       title: 'Subagent Duration No Start Quest',
       userRequest: 'Build the feature',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

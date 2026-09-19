@@ -74,7 +74,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
     });
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -96,7 +96,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
     // A startedAt on the hosting row is what flips hasRunningWorkItem so the panel's shared
     // interval is actually enabled — without it `now` reads once at mount but never ticks, and the
     // row would never pick up the notification's own tick-independent freeze either.
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: RUNNING_WI, startedAt: TASK_TOOL_USE_AT }],
     });
@@ -193,7 +193,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
     });
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -212,7 +212,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: RUNNING_WI, startedAt: TASK_TOOL_USE_AT }],
     });

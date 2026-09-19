@@ -41,7 +41,7 @@ test.describe('Home page session click routing', () => {
       title: 'Routing Quest',
       userRequest: 'Build the quest feature',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

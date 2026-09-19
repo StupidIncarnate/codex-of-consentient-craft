@@ -314,7 +314,7 @@ export const subagentLaunchOrderHarness = ({
         userRequest: 'Build the shared slice',
       });
 
-      quests.writeQuestFile({
+      await quests.writeQuestFile({
         questId: String(created.questId),
         questFolder: String(created.questFolder),
         questFilePath: String(created.filePath),

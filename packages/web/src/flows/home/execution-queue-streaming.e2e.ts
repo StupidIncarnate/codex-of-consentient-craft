@@ -64,7 +64,7 @@ test.describe('Execution Queue Streaming', () => {
     });
     const questId1 = String(created1.questId);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: questId1,
       questFolder: String(created1.questFolder),
       questFilePath: String(created1.filePath),
@@ -140,7 +140,7 @@ test.describe('Execution Queue Streaming', () => {
     });
     const questId2 = String(created2.questId);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: questId2,
       questFolder: String(created2.questFolder),
       questFilePath: String(created2.filePath),

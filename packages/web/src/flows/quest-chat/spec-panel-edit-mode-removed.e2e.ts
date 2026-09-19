@@ -84,7 +84,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
       userRequest: 'Prove the deleted edit mode left everything else standing',
     });
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -101,7 +101,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     // index/identity, not by "the only one with that name"). Two benign entries alone can't
     // distinguish "the right one" from "the first one"; this can't pass by luck on a wrongly-scoped
     // selector OR a wrongly-ordered render either.
-    specReadonly.seedDesignDecisionsAndTooling({
+    await specReadonly.seedDesignDecisionsAndTooling({
       questFilePath: String(created.filePath),
       designDecisions: [
         DesignDecisionStub({
@@ -221,7 +221,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
       userRequest: 'Prove the abandon confirm step survives',
     });
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -274,7 +274,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
       userRequest: 'Prove no stray edit-mode button appears even with a disabled APPROVE',
     });
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -322,7 +322,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
       userRequest: 'Build the feature',
     });
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -369,7 +369,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
 
     // No specReadonly.seedDesignDecisionsAndTooling call — questHarness.writeQuestFile defaults
     // designDecisions and toolingRequirements to [].
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -426,7 +426,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
         userRequest: 'Prove ACTION_BAR holds APPROVE-only at this status',
       });
 
-      quests.writeQuestFile({
+      await quests.writeQuestFile({
         questId: String(created.questId),
         questFolder: String(created.questFolder),
         questFilePath: String(created.filePath),
@@ -476,7 +476,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
         userRequest: 'Prove ACTION_BAR holds zero buttons at this status',
       });
 
-      quests.writeQuestFile({
+      await quests.writeQuestFile({
         questId: String(created.questId),
         questFolder: String(created.questFolder),
         questFilePath: String(created.filePath),

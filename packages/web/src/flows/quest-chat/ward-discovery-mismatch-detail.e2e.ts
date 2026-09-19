@@ -58,7 +58,7 @@ test.describe('Failed ward row shows discovery-mismatch detail (all checks pass/
     const wardOpId = '00000000-0000-4000-8000-0000000000d2';
     const discoveredFile = 'packages/web/src/flows/home/quest-delete-from-root.e2e.ts';
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),

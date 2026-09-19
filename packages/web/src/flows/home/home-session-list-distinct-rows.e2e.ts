@@ -53,7 +53,7 @@ test.describe('Home content list — quest rows vs session rows by filter', () =
       userRequest: 'Same quest userRequest used across sessions',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

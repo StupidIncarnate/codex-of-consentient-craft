@@ -42,7 +42,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -93,7 +93,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -144,7 +144,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -195,7 +195,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -256,7 +256,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,

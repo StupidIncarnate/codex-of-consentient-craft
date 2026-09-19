@@ -73,7 +73,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -147,7 +147,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [
         { id: MOUNT_WI, startedAt: '2026-01-01T11:56:00.000Z' }, // T-240s => 4m
@@ -238,7 +238,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -265,7 +265,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
 
     // Only PRESENT_WI is stamped — ABSENT_WI is left exactly as writeQuestFile wrote it, with no
     // startedAt at all, which is the branch this test exists to prove.
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: PRESENT_WI, startedAt: '2026-01-01T11:56:00.000Z' }], // T-240s => 4m
     });
@@ -318,7 +318,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -343,7 +343,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [
         { id: RUNNING_WI, startedAt: SHARED_STARTED_AT },
@@ -397,7 +397,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -422,7 +422,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [
         { id: UNDER_WI, startedAt: '2026-01-01T11:59:30.000Z' }, // T-30s => <1m
@@ -480,7 +480,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -505,7 +505,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [
         { id: UNDER_WI, startedAt: '2026-01-01T11:00:01.000Z' }, // T-3599s => 59m

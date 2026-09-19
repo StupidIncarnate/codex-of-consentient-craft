@@ -291,7 +291,7 @@ export const commentQueueSendHarness = ({
         questFilePath: String(created.filePath),
       });
 
-      quests.writeQuestFile({
+      await quests.writeQuestFile({
         questId: seeded.questId,
         questFolder: seeded.questFolder,
         questFilePath: seeded.questFilePath,

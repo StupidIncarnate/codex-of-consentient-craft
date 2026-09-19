@@ -53,7 +53,7 @@ test.describe('Execution panel: active (in_progress) row stays collapsed when us
     // 1:1 to a codeweaver operation item. Status `in_progress` ensures the row triggers the
     // auto-expand effect under test; the row name resolves from the operation `text`.
     const codeweaverOpId = '00000000-0000-4000-8000-0000000000c1';
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),

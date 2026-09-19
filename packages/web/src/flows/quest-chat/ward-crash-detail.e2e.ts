@@ -56,7 +56,7 @@ test.describe('Failed ward row shows crash detail (no structured errors)', () =>
     const wardOpId = '00000000-0000-4000-8000-0000000000d1';
     const crashStdout = 'FATAL: jest failed to run @dungeonmaster/shared integration suite';
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),

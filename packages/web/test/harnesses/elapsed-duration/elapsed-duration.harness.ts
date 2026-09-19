@@ -9,7 +9,7 @@
  *
  * USAGE:
  * const elapsed = elapsedDurationHarness({ page });
- * elapsed.stampWorkItems({
+ * await elapsed.stampWorkItems({
  *   questFilePath,
  *   items: [{ id: workItemId, startedAt: '2026-01-01T11:56:00.000Z' }],
  * });
@@ -17,7 +17,7 @@
  * const counts = await elapsed.readIntervalCounts();
  * // { registered: 1, cleared: 0, live: 1 }
  */
-import { appendFileSync, readFileSync, writeFileSync } from 'fs';
+import { appendFileSync, promises as fsPromises } from 'fs';
 import { dirname } from 'path';
 
 import type { Page } from '@playwright/test';
@@ -58,7 +58,7 @@ export const elapsedDurationHarness = ({
   // numbers at runtime; only the written TYPE ANNOTATION widens.
   readIntervalCounts: () => Promise<{ registered: unknown; cleared: unknown; live: unknown }>;
 } => {
-  const stampWorkItems = ({
+  const stampWorkItems = async ({
     questFilePath,
     items,
   }: {
@@ -69,8 +69,10 @@ export const elapsedDurationHarness = ({
       completedAt?: string;
       status?: string;
     }[];
-  }): void => {
-    const persisted = JSON.parse(readFileSync(questFilePath, 'utf8')) as PersistedQuestInput;
+  }): Promise<void> => {
+    const persisted = JSON.parse(
+      await fsPromises.readFile(questFilePath, 'utf8'),
+    ) as PersistedQuestInput;
     const workItems = Array.isArray(persisted.workItems)
       ? (persisted.workItems as PersistedWorkItemInput[])
       : [];
@@ -88,7 +90,7 @@ export const elapsedDurationHarness = ({
       };
     });
 
-    writeFileSync(
+    await fsPromises.writeFile(
       questFilePath,
       JSON.stringify({ ...persisted, workItems: stamped }, null, JSON_INDENT),
     );

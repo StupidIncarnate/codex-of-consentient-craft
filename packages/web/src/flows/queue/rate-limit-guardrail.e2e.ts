@@ -31,7 +31,7 @@ test.describe('The rate-limit guardrail on the queue page', () => {
     request,
   }) => {
     await guildHarness({ request }).cleanGuilds();
-    rateLimits.writeLedger({
+    await rateLimits.writeLedger({
       spendTokens: CALM_SPEND,
       fiveHourCeiling: CALM_FIVE_HOUR_CEILING,
       sevenDayCeiling: CALM_SEVEN_DAY_CEILING,
@@ -59,7 +59,7 @@ test.describe('The rate-limit guardrail on the queue page', () => {
   }) => {
     await guildHarness({ request }).cleanGuilds();
     // A machine that has never been refused has no denominator, however much it has spent.
-    rateLimits.writeLedger({
+    await rateLimits.writeLedger({
       spendTokens: SPENT_SPEND,
       fiveHourCeiling: null,
       sevenDayCeiling: null,
@@ -84,7 +84,7 @@ test.describe('The rate-limit guardrail on the queue page', () => {
     request,
   }) => {
     await guildHarness({ request }).cleanGuilds();
-    rateLimits.writeLedger({
+    await rateLimits.writeLedger({
       spendTokens: CALM_SPEND,
       fiveHourCeiling: CALM_FIVE_HOUR_CEILING,
       sevenDayCeiling: CALM_SEVEN_DAY_CEILING,
@@ -104,7 +104,7 @@ test.describe('The rate-limit guardrail on the queue page', () => {
       (req) => req.method() === 'GET' && req.url().includes('/api/orchestration/dispatch'),
     );
 
-    rateLimits.writeLedger({
+    await rateLimits.writeLedger({
       spendTokens: SPENT_SPEND,
       fiveHourCeiling: SPENT_FIVE_HOUR_CEILING,
       sevenDayCeiling: SPENT_SEVEN_DAY_CEILING,
@@ -124,7 +124,7 @@ test.describe('The rate-limit guardrail on the queue page', () => {
     request,
   }) => {
     await guildHarness({ request }).cleanGuilds();
-    rateLimits.writeLedger({
+    await rateLimits.writeLedger({
       spendTokens: CALM_SPEND,
       fiveHourCeiling: CALM_FIVE_HOUR_CEILING,
       sevenDayCeiling: CALM_SEVEN_DAY_CEILING,
@@ -144,7 +144,7 @@ test.describe('The rate-limit guardrail on the queue page', () => {
     request,
   }) => {
     await guildHarness({ request }).cleanGuilds();
-    rateLimits.writeLedger({
+    await rateLimits.writeLedger({
       spendTokens: CALM_SPEND,
       fiveHourCeiling: CALM_FIVE_HOUR_CEILING,
       sevenDayCeiling: CALM_SEVEN_DAY_CEILING,
@@ -164,7 +164,7 @@ test.describe('The rate-limit guardrail on the queue page', () => {
 
     await expect(toggle).toHaveText('PAUSE');
 
-    rateLimits.writeLedger({
+    await rateLimits.writeLedger({
       spendTokens: SPENT_SPEND,
       fiveHourCeiling: SPENT_FIVE_HOUR_CEILING,
       sevenDayCeiling: SPENT_SEVEN_DAY_CEILING,

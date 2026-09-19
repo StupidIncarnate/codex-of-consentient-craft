@@ -396,7 +396,7 @@ export const persistedCommentsHarness = ({
       .toLowerCase()
       .replace(/\s+/gu, '-');
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: seeded.questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

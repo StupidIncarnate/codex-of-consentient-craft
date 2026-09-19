@@ -17,7 +17,7 @@
  *   'execution-panel-tab-followup', 'execution-panel-tab-execution', 'execution-panel-tab-spec',
  * ]);
  */
-import { appendFileSync, readFileSync, writeFileSync } from 'fs';
+import { appendFileSync, readFileSync, promises as fsPromises } from 'fs';
 import { dirname } from 'path';
 
 import type { APIRequestContext, Page } from '@playwright/test';
@@ -100,7 +100,11 @@ export const followupHarness = ({
     sessionId: string;
     turns: readonly { role: 'user' | 'assistant'; text: string }[];
   }) => Promise<void>;
-  streamAssistantTurn: (params: { sessionId: string; text: string; order: number }) => Promise<void>;
+  streamAssistantTurn: (params: {
+    sessionId: string;
+    text: string;
+    order: number;
+  }) => Promise<void>;
   transcriptHasText: (params: { text: string }) => Promise<boolean>;
   transcriptOrder: (params: { candidates: readonly string[] }) => Promise<ContentText[]>;
   isTurnInFlight: () => Promise<boolean>;
@@ -148,7 +152,7 @@ export const followupHarness = ({
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),
@@ -165,7 +169,10 @@ export const followupHarness = ({
         unknown
       >;
       questJson.worktreePath = worktreePath;
-      writeFileSync(String(questFilePath), JSON.stringify(questJson, null, JSON_INDENT));
+      await fsPromises.writeFile(
+        String(questFilePath),
+        JSON.stringify(questJson, null, JSON_INDENT),
+      );
     }
 
     await nav.navigateToQuest({ urlSlug: String(urlSlug), questId: String(questId) });
@@ -210,19 +217,19 @@ export const followupHarness = ({
   // STALE: it was opened while the quest was still follow-up-chatable, and the quest moved on
   // underneath it. It is never the mutation under test — the message that meets the moved status
   // is always typed into the real composer.
-  const setQuestStatusOnDisk = ({
+  const setQuestStatusOnDisk = async ({
     questFilePath,
     status,
   }: {
     questFilePath: string;
     status: string;
-  }): void => {
+  }): Promise<void> => {
     const questJson = JSON.parse(readFileSync(questFilePath, 'utf8')) as Record<
       PropertyKey,
       unknown
     >;
     questJson.status = status;
-    writeFileSync(questFilePath, JSON.stringify(questJson, null, JSON_INDENT));
+    await fsPromises.writeFile(questFilePath, JSON.stringify(questJson, null, JSON_INDENT));
 
     // questFilePath shape: <DUNGEONMASTER_HOME>/guilds/<guildId>/quests/<questFolder>/quest.json —
     // four levels up is DUNGEONMASTER_HOME, where the event outbox lives.

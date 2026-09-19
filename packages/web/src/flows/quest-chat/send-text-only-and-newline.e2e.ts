@@ -58,7 +58,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -132,7 +132,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -186,7 +186,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -247,7 +247,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -322,7 +322,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -406,7 +406,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     });
     const questId = String(created.questId);
     const questFilePath = String(created.filePath);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath,

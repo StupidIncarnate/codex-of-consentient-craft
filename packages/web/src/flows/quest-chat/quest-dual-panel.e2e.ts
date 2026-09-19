@@ -57,7 +57,7 @@ test.describe('Quest Dual Panel', () => {
     const { questFolder } = created;
 
     // Overwrite quest.json with desired test data
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder,
       questFilePath,
@@ -145,7 +145,7 @@ test.describe('Quest Dual Panel', () => {
     const { questFolder } = created;
 
     // Overwrite quest.json with desired test data
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder,
       questFilePath,
@@ -235,7 +235,7 @@ test.describe('Quest Dual Panel', () => {
     const { questFolder } = created;
 
     // Overwrite quest.json with desired test data
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder,
       questFilePath,
@@ -291,7 +291,7 @@ test.describe('Quest Dual Panel', () => {
     const { questFolder } = created;
 
     // Overwrite quest.json with flows for the spec panel
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder,
       questFilePath,
@@ -349,7 +349,7 @@ test.describe('Quest Dual Panel', () => {
     const { questFolder } = created;
 
     // Overwrite quest.json with flows for the spec panel
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder,
       questFilePath,

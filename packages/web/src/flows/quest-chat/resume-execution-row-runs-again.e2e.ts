@@ -83,7 +83,7 @@ test.describe('Resuming a quest shows the previously in_progress execution row r
     // already done and must never move. WI1 sits `pending` with a retained sessionId: exactly what
     // quest-pause-broker leaves on disk for a work item that WAS `in_progress` when the quest was
     // paused (pause resets in_progress -> pending immediately, keeping sessionId).
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),

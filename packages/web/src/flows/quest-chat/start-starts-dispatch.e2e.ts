@@ -69,7 +69,7 @@ test.describe('Begin Quest starts the dispatch queue', () => {
     const { questId, questFolder } = created;
 
     // The state Begin Quest is offered from: the observables gate passed, nothing dispatched yet.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder,
       questFilePath: created.filePath,

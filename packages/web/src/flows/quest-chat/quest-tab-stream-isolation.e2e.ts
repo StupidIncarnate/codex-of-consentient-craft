@@ -68,7 +68,7 @@ test.describe('Two tabs on one guild each see only their own quest stream', () =
       userRequest: 'Beta request',
     });
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(createdA.questId),
       questFolder: String(createdA.questFolder),
       questFilePath: String(createdA.filePath),
@@ -83,7 +83,7 @@ test.describe('Two tabs on one guild each see only their own quest stream', () =
         },
       ],
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(createdB.questId),
       questFolder: String(createdB.questFolder),
       questFilePath: String(createdB.filePath),

@@ -72,7 +72,7 @@ test.describe('The subagent-chain duration figure is placed and styled like exec
       title: 'Subagent Duration Placement Quest',
       userRequest: 'Build the feature',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -145,7 +145,7 @@ test.describe('The subagent-chain duration figure is placed and styled like exec
       userRequest: 'Build the feature',
     });
     const questFilePath = String(created.filePath);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath,
@@ -162,7 +162,7 @@ test.describe('The subagent-chain duration figure is placed and styled like exec
 
     // execution-row-duration only renders with a startedAt AND an honest end point — here, `now`
     // while the row is in_progress.
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: STYLE_WI, startedAt: TASK_TOOL_USE_AT }],
     });

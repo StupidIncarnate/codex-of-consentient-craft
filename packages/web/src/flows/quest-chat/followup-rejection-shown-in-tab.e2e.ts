@@ -106,7 +106,7 @@ test.describe('FOLLOW-UP status rejection is shown in the tab', () => {
       await followup.pressFollowup();
 
       // Precondition, not the mutation under test.
-      followup.setQuestStatusOnDisk({ questFilePath: String(questFilePath), status });
+      await followup.setQuestStatusOnDisk({ questFilePath: String(questFilePath), status });
 
       // The tab is gated on having been pressed, never on quest status, so it is still the surface
       // the rejection has to land on — and reading it here keeps the send from racing a tab that
@@ -145,7 +145,7 @@ test.describe('FOLLOW-UP status rejection is shown in the tab', () => {
     });
 
     await followup.pressFollowup();
-    followup.setQuestStatusOnDisk({
+    await followup.setQuestStatusOnDisk({
       questFilePath: String(questFilePath),
       status: USER_REACHABLE_REJECTED_STATUS,
     });

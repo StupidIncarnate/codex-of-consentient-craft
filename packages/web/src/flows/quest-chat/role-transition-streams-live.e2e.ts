@@ -101,7 +101,7 @@ test.describe('The role after the carve streams into the execution panel with no
     });
     const { questId, questFolder } = created;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(created.filePath),

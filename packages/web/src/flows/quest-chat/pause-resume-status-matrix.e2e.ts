@@ -91,7 +91,7 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
       const { questId, questFolder } = created;
       const questFilePath = created.filePath;
 
-      quests.writeQuestFile({
+      await quests.writeQuestFile({
         questId: String(questId),
         questFolder: String(questFolder),
         questFilePath: String(questFilePath),

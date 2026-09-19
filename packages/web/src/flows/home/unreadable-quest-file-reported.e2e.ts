@@ -45,7 +45,7 @@ test.describe('Unreadable quest file is reported on homebase', () => {
       title: 'Legacy schema quest',
       userRequest: 'Written by an older schema',
     });
-    quests.writeUnparseableQuestFile({
+    await quests.writeUnparseableQuestFile({
       questId: String(legacy.questId),
       questFolder: String(legacy.questFolder),
       questFilePath: String(legacy.filePath),
@@ -130,7 +130,7 @@ test.describe('Unreadable quest file is reported on homebase', () => {
       title: 'Legacy schema quest',
       userRequest: 'Written by an older schema',
     });
-    quests.writeUnparseableQuestFile({
+    await quests.writeUnparseableQuestFile({
       questId: String(legacy.questId),
       questFolder: String(legacy.questFolder),
       questFilePath: String(legacy.filePath),

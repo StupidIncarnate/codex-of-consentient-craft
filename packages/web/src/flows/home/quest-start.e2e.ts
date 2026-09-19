@@ -43,7 +43,7 @@ test.describe('Quest Start Pipeline', () => {
     const questFilePath = created.filePath;
     const { questFolder } = created;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder,
       questFilePath,
@@ -115,7 +115,7 @@ test.describe('Quest Start Pipeline', () => {
     const questFilePath = created.filePath;
     const { questFolder } = created;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder,
       questFilePath,

@@ -88,7 +88,7 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     // BugHunt intake work item is still `in_progress` (the chat phase never marks itself complete —
     // Start is what promotes it), and the ledger holds nothing but its intake item. The harness's
     // default flows satisfy the one thing the `approved` gate still measures.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -254,7 +254,7 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     });
     const questId = String(created.questId);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -305,7 +305,7 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     // state the crash window above leaves, and it is what a reload re-arms the modal on. Rebuilding
     // the file through writeQuestFile instead would hand the second Start a ledger the fixture
     // authored, which is the one thing this test must not measure.
-    quests.rewindQuestStatus({ questFilePath: String(created.filePath), status: 'approved' });
+    await quests.rewindQuestStatus({ questFilePath: String(created.filePath), status: 'approved' });
 
     await nav.navigateToQuest({ urlSlug, questId });
 

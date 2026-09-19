@@ -135,7 +135,7 @@ test.describe('Resume starts the dispatch queue', () => {
     });
     const { questId, questFolder } = created;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath: created.filePath,

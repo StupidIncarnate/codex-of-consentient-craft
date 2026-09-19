@@ -41,7 +41,7 @@ test.describe('Operations ledger in the quest spec panel', () => {
       userRequest: 'Build the feature',
     });
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

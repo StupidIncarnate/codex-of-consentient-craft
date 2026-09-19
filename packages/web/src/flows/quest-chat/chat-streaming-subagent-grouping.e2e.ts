@@ -56,7 +56,7 @@ test.describe('Streaming sub-agent grouping (stdout snake_case tool_use_result)'
       title: 'Streaming Subagent Quest',
       userRequest: 'Stream sub-agent via stdout',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: created.questFolder,
       questFilePath: created.filePath,

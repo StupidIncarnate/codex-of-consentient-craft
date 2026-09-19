@@ -23,7 +23,7 @@
  *
  * USAGE:
  * const rateLimits = rateLimitsHarness();
- * rateLimits.writeLedger({ spendTokens: 4200, fiveHourCeiling: 10_000, sevenDayCeiling: 21_000 });
+ * await rateLimits.await writeLedger({ spendTokens: 4200, fiveHourCeiling: 10_000, sevenDayCeiling: 21_000 });
  */
 import * as fs from 'fs';
 import * as path from 'path';
@@ -64,7 +64,7 @@ export const rateLimitsHarness = (): {
   // One hour of spend, stamped into the CURRENT hour's bucket so it sits inside both windows, and
   // recorded as input tokens because their weight is 1 — the weighted total the percentage is
   // computed from is then exactly `spendTokens`.
-  const writeLedger = ({
+  const writeLedger = async ({
     spendTokens,
     fiveHourCeiling,
     sevenDayCeiling,
@@ -72,11 +72,11 @@ export const rateLimitsHarness = (): {
     spendTokens: number;
     fiveHourCeiling: number | null;
     sevenDayCeiling: number | null;
-  }): void => {
+  }): Promise<void> => {
     const nowMs = Date.now();
     const ledgerPath = resolveHomeFile({ filename: LEDGER_FILENAME });
-    fs.mkdirSync(path.dirname(ledgerPath), { recursive: true });
-    fs.writeFileSync(
+    await fs.promises.mkdir(path.dirname(ledgerPath), { recursive: true });
+    await fs.promises.writeFile(
       ledgerPath,
       JSON.stringify(
         UsageLedgerStub({
@@ -96,13 +96,13 @@ export const rateLimitsHarness = (): {
     );
   };
 
-  const reset = (): void => {
+  const reset = async (): Promise<void> => {
     fs.rmSync(resolveHomeFile({ filename: SNAPSHOT_FILENAME }), { force: true });
     writeLedger({ spendTokens: 0, fiveHourCeiling: null, sevenDayCeiling: null });
 
     const statePath = resolveHomeFile({ filename: DISPATCH_STATE_FILENAME });
-    fs.mkdirSync(path.dirname(statePath), { recursive: true });
-    fs.writeFileSync(
+    await fs.promises.mkdir(path.dirname(statePath), { recursive: true });
+    await fs.promises.writeFile(
       statePath,
       `${JSON.stringify(DispatchStateStub({ mode: 'paused', hold: null }))}\n`,
     );
@@ -113,10 +113,10 @@ export const rateLimitsHarness = (): {
 
     afterEach: reset,
 
-    writeSnapshot: ({ snapshot }: { snapshot: RateLimitsSnapshot }): void => {
+    writeSnapshot: async ({ snapshot }: { snapshot: RateLimitsSnapshot }): Promise<void> => {
       const snapshotPath = resolveHomeFile({ filename: SNAPSHOT_FILENAME });
-      fs.mkdirSync(path.dirname(snapshotPath), { recursive: true });
-      fs.writeFileSync(snapshotPath, JSON.stringify(snapshot));
+      await fs.promises.mkdir(path.dirname(snapshotPath), { recursive: true });
+      await fs.promises.writeFile(snapshotPath, JSON.stringify(snapshot));
     },
 
     writeLedger,

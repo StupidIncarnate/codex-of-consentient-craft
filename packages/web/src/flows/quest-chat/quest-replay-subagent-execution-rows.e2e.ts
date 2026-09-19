@@ -63,7 +63,7 @@ test.describe('Per-work-item replay reads `<sessionId>/subagents/agent-<agentId>
 
     const codeweaverWorkItemId = 'e2e00000-0000-4000-8000-000000000022';
     const codeweaverOpId = '00000000-0000-4000-8000-0000000000c6';
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),

@@ -92,7 +92,7 @@ test.describe('Composer send — images ride the chat route', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -174,7 +174,7 @@ test.describe('Composer send — images ride the chat route', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -258,7 +258,7 @@ test.describe('Composer send — images ride the chat route', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -334,7 +334,7 @@ test.describe('Composer send — images ride the chat route', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -410,7 +410,7 @@ test.describe('Composer send — images ride the chat route', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -530,7 +530,7 @@ test.describe('Composer send — images ride the chat route', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -636,7 +636,7 @@ test.describe('Composer send — images ride the chat route', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -745,7 +745,7 @@ test.describe('Composer send — images ride the chat route', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -829,7 +829,7 @@ test.describe('Composer send — images ride the chat route', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -966,7 +966,7 @@ test.describe('Composer send — images ride the chat route', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -1057,7 +1057,7 @@ test.describe('Composer send — images ride the chat route', () => {
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

@@ -47,7 +47,7 @@ test.describe('Quest Approve Button', () => {
     const questFilePath = created.filePath;
 
     // Overwrite quest.json with desired status, work items, and flows
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,

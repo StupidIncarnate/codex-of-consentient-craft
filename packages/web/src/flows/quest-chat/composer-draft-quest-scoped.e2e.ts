@@ -60,7 +60,7 @@ test.describe('Composer draft — scoped per quest, never leaks across a navigat
       userRequest: 'Build feature',
     });
     const questIdA = String(createdA.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: questIdA,
       questFolder: String(createdA.questFolder),
       questFilePath: String(createdA.filePath),
@@ -83,7 +83,7 @@ test.describe('Composer draft — scoped per quest, never leaks across a navigat
       userRequest: 'Build feature',
     });
     const questIdB = String(createdB.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: questIdB,
       questFolder: String(createdB.questFolder),
       questFilePath: String(createdB.filePath),
@@ -148,7 +148,7 @@ test.describe('Composer draft — scoped per quest, never leaks across a navigat
       userRequest: 'Build feature',
     });
     const questIdA = String(createdA.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: questIdA,
       questFolder: String(createdA.questFolder),
       questFilePath: String(createdA.filePath),
@@ -171,7 +171,7 @@ test.describe('Composer draft — scoped per quest, never leaks across a navigat
       userRequest: 'Build feature',
     });
     const questIdB = String(createdB.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: questIdB,
       questFolder: String(createdB.questFolder),
       questFilePath: String(createdB.filePath),

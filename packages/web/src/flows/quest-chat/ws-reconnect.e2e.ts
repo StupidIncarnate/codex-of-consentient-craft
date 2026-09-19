@@ -107,7 +107,7 @@ test.describe('WS Reconnect', () => {
     });
     const { questId, questFolder, filePath: questFilePath } = created;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder,
       questFilePath,

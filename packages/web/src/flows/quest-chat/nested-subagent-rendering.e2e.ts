@@ -57,7 +57,7 @@ test.describe('Nested sub-agent renders recursively (live streaming + reload rep
       title: 'Nested Subagent Live Quest',
       userRequest: 'Stream nested sub-agents',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -265,7 +265,7 @@ test.describe('Nested sub-agent renders recursively (live streaming + reload rep
       title: 'Nested Subagent Reload Quest',
       userRequest: 'Replay nested sub-agents',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

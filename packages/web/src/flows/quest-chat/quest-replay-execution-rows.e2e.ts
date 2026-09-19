@@ -54,7 +54,7 @@ test.describe('Quest reload replays per-work-item entries onto execution rows', 
 
     const codeweaverWorkItemId = 'e2e00000-0000-4000-8000-000000000011';
     const codeweaverOpId = '00000000-0000-4000-8000-0000000000c5';
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),

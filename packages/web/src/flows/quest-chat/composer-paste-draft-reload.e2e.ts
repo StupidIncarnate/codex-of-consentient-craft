@@ -76,7 +76,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -158,7 +158,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -230,7 +230,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -283,7 +283,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -339,7 +339,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -414,7 +414,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -490,7 +490,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -568,7 +568,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -648,7 +648,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -726,7 +726,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -818,7 +818,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       userRequest: 'Build feature',
     });
     const questIdA = String(createdA.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: questIdA,
       questFolder: String(createdA.questFolder),
       questFilePath: String(createdA.filePath),
@@ -878,7 +878,7 @@ test.describe('Composer paste — draft persists across reload and restores into
       userRequest: 'Build feature',
     });
     const questIdB = String(createdB.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: questIdB,
       questFolder: String(createdB.questFolder),
       questFilePath: String(createdB.filePath),
@@ -980,7 +980,7 @@ test.describe('Composer paste — a draft database missing its store heals itsel
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

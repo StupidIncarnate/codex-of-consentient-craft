@@ -69,7 +69,7 @@ test.describe('Two Task-dispatched rows that share one parent /dumpster-launch s
 
     const codeweaverOneId = 'e2e00000-0000-4000-8000-000000000031';
     const codeweaverTwoId = 'e2e00000-0000-4000-8000-000000000032';
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),

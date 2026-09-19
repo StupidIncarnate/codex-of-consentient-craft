@@ -55,7 +55,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -164,7 +164,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -185,7 +185,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
 
     // A startedAt on the hosting row is what flips hasRunningWorkItem so the panel's shared
     // interval is actually enabled — without it `now` still reads once at mount but never ticks.
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: RUNNING_WI, startedAt: '2026-01-01T11:56:00.000Z' }],
     });
@@ -280,7 +280,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -367,7 +367,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,

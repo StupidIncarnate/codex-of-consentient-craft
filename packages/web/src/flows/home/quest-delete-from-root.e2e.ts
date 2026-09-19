@@ -48,7 +48,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
     const questFilePath = String(created.filePath);
 
     // paused => deletable. The skull renders only for deletable statuses.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath,
@@ -125,7 +125,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
     const questId = String(created.questId);
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath,
@@ -188,7 +188,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
     const questFilePath = String(created.filePath);
 
     // The list snapshot the row renders from is `paused` (deletable) — so the skull shows.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -215,7 +215,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
     // its cached `paused` snapshot (the binding only refetches on refresh()), so the skull's
     // popover stays open and Banish is still clickable — exactly the render-then-go-active
     // race the error-toast branch exists for.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,

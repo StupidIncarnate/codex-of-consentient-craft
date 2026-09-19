@@ -4,9 +4,9 @@
  * USAGE:
  * const quests = questHarness({ request });
  * const created = await quests.createQuest({ guildId: 'abc', title: 'My Quest', userRequest: 'Build it' });
- * quests.writeQuestFile({ questId: 'id', questFolder: 'folder', questFilePath: '/path', status: 'complete', workItems: [...] });
+ * await quests.writeQuestFile({ questId: 'id', questFolder: 'folder', questFilePath: '/path', status: 'complete', workItems: [...] });
  */
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, promises as fsPromises } from 'fs';
 import { dirname, join } from 'path';
 
 import type { APIRequestContext } from '@playwright/test';
@@ -194,19 +194,25 @@ export const questHarness = ({
     worktreePath?: string;
     branchName?: string;
     baseBranch?: string;
-  }) => void;
+  }) => Promise<void>;
   writeUnparseableQuestFile: (params: {
     questId: string;
     questFolder: string;
     questFilePath: string;
-  }) => void;
+  }) => Promise<void>;
+  tamperQuestUnparseableFile: (params: {
+    questId: string;
+    questFolder: string;
+    questFilePath: string;
+  }) => Promise<void>;
   writeWardResultDetail: (params: {
     questFilePath: string;
     wardResultId: string;
     detail: Record<PropertyKey, unknown>;
-  }) => void;
+  }) => Promise<void>;
   patchQuestStatus: (params: { questId: string; status: string }) => Promise<void>;
-  rewindQuestStatus: (params: { questFilePath: string; status: string }) => void;
+  rewindQuestStatus: (params: { questFilePath: string; status: string }) => Promise<void>;
+  tamperQuestStatusRewind: (params: { questFilePath: string; status: string }) => Promise<void>;
   questFolderExists: (params: { questFilePath: string }) => boolean;
   seedInProgressWithOperations: (params: {
     questId: string;
@@ -227,7 +233,7 @@ export const questHarness = ({
     firstWorkItemSessionId?: string;
     flowriderScopeSignedOff?: boolean;
     worktreePath?: string;
-  }) => void;
+  }) => Promise<void>;
 } => {
   const resolvedBaseUrl =
     baseURL ??
@@ -268,7 +274,7 @@ export const questHarness = ({
     };
   };
 
-  const writeQuestFile = ({
+  const writeQuestFile = async ({
     questId,
     questFolder,
     questFilePath,
@@ -347,7 +353,7 @@ export const questHarness = ({
     worktreePath?: string;
     branchName?: string;
     baseBranch?: string;
-  }): void => {
+  }): Promise<void> => {
     const seededPlanningNotes: PlanningNotesInput = planningNotes ?? {};
     const baseFlows: FlowInput[] = flows ?? DEFAULT_FLOWS;
     const seededFlows: FlowInput[] = questFlowObservableSeedTransformer({
@@ -444,7 +450,7 @@ export const questHarness = ({
       })),
     };
 
-    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
+    await fsPromises.writeFile(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
 
     // Append a quest-modified event to the outbox so the HTTP server's quest-driven
     // watcher reactor reconciles immediately, just like questPersistBroker does in
@@ -456,7 +462,7 @@ export const questHarness = ({
     const dungeonmasterHome = dirname(dirname(dirname(dirname(questFilePath))));
     const outboxPath = `${dungeonmasterHome}/event-outbox.jsonl`;
     const outboxLine = `${JSON.stringify({ questId, timestamp: new Date().toISOString() })}\n`;
-    appendFileSync(outboxPath, outboxLine);
+    await fsPromises.appendFile(outboxPath, outboxLine);
   };
 
   // Writes a quest.json that questContract REJECTS, into a real quest folder the guild's
@@ -464,7 +470,7 @@ export const questHarness = ({
   // no longer in workItemRoleContract plus relatedDataItems as bare uuids instead of the
   // `{collection}/{id}` shape. Used to prove one such file cannot take the whole guild's quest
   // list — and therefore the dispatcher's active-quest scan — down with it.
-  const writeUnparseableQuestFile = ({
+  const tamperQuestUnparseableFile = async ({
     questId,
     questFolder,
     questFilePath,
@@ -472,7 +478,7 @@ export const questHarness = ({
     questId: string;
     questFolder: string;
     questFilePath: string;
-  }): void => {
+  }): Promise<void> => {
     const quest = {
       id: questId,
       folder: questFolder,
@@ -501,10 +507,10 @@ export const questHarness = ({
       ],
     };
 
-    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
+    await fsPromises.writeFile(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
   };
 
-  const writeWardResultDetail = ({
+  const writeWardResultDetail = async ({
     questFilePath,
     wardResultId,
     detail,
@@ -512,12 +518,12 @@ export const questHarness = ({
     questFilePath: string;
     wardResultId: string;
     detail: Record<PropertyKey, unknown>;
-  }): void => {
+  }): Promise<void> => {
     // The server's ward-detail endpoint reads <questFolder>/ward-results/<id>.json. The quest
     // folder is the directory holding quest.json.
     const wardResultsDir = join(dirname(questFilePath), 'ward-results');
-    mkdirSync(wardResultsDir, { recursive: true });
-    writeFileSync(
+    await fsPromises.mkdir(wardResultsDir, { recursive: true });
+    await fsPromises.writeFile(
       join(wardResultsDir, `${wardResultId}.json`),
       JSON.stringify(detail, null, JSON_INDENT),
     );
@@ -542,19 +548,24 @@ export const questHarness = ({
   // the server produced and the fixture only needs to move the quest back across a gate:
   // writeQuestFile rebuilds a quest from its own defaults, so round-tripping a server-written quest
   // through it silently drops everything its parameter list does not name.
-  const rewindQuestStatus = ({
+  const tamperQuestStatusRewind = async ({
     questFilePath,
     status,
   }: {
     questFilePath: string;
     status: string;
-  }): void => {
-    const persisted = JSON.parse(readFileSync(questFilePath, 'utf8')) as PersistedQuestInput;
+  }): Promise<void> => {
+    const persisted = JSON.parse(
+      await fsPromises.readFile(questFilePath, 'utf8'),
+    ) as PersistedQuestInput;
 
-    writeFileSync(questFilePath, JSON.stringify({ ...persisted, status }, null, JSON_INDENT));
+    await fsPromises.writeFile(
+      questFilePath,
+      JSON.stringify({ ...persisted, status }, null, JSON_INDENT),
+    );
 
     const dungeonmasterHome = dirname(dirname(dirname(dirname(questFilePath))));
-    appendFileSync(
+    await fsPromises.appendFile(
       `${dungeonmasterHome}/event-outbox.jsonl`,
       `${JSON.stringify({ questId: String(persisted.id), timestamp: new Date().toISOString() })}\n`,
     );
@@ -570,7 +581,7 @@ export const questHarness = ({
   // the first operation item (relatedDataItems: ['operations/<op0.id>']) — mirroring a quest whose
   // Start Quest transition already seeded the relay. The first operation item is expected to be
   // `in_progress` and the linked work item `pending` (dispatch pre-stamps it in_progress on spawn).
-  const seedInProgressWithOperations = ({
+  const seedInProgressWithOperations = async ({
     questId,
     questFolder,
     questFilePath,
@@ -610,13 +621,13 @@ export const questHarness = ({
     // really run — in the worktree, writing their session JSONL under the worktree's own path
     // encoding.
     worktreePath?: string;
-  }): void => {
+  }): Promise<void> => {
     const [firstOp] = operations;
     if (firstOp === undefined) {
       throw new Error('seedInProgressWithOperations requires at least one operation');
     }
 
-    writeQuestFile({
+    await writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -644,10 +655,12 @@ export const questHarness = ({
   return {
     createQuest,
     writeQuestFile,
-    writeUnparseableQuestFile,
+    writeUnparseableQuestFile: tamperQuestUnparseableFile,
+    tamperQuestUnparseableFile,
     writeWardResultDetail,
     patchQuestStatus,
-    rewindQuestStatus,
+    rewindQuestStatus: tamperQuestStatusRewind,
+    tamperQuestStatusRewind,
     questFolderExists,
     seedInProgressWithOperations,
   };

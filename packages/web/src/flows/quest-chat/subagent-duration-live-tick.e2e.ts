@@ -74,7 +74,7 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
       userRequest: 'Build the feature',
     });
     const questFilePath = String(created.filePath);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath,
@@ -93,7 +93,7 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: RUNNING_WI, startedAt: FOUR_MIN_TASK_AT }],
     });
@@ -159,7 +159,7 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
       userRequest: 'Build the feature',
     });
     const questFilePath = String(created.filePath);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath,
@@ -178,7 +178,7 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: RUNNING_WI, startedAt: ONE_MIN_TASK_AT }],
     });
@@ -292,7 +292,7 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
       userRequest: 'Build the feature',
     });
     const questFilePath = String(created.filePath);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath,
@@ -311,7 +311,7 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: RUNNING_WI, startedAt: FROZEN_TASK_AT }],
     });
@@ -413,7 +413,7 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
       userRequest: 'Build the feature',
     });
     const questFilePath = String(created.filePath);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath,
@@ -432,7 +432,7 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: RUNNING_WI, startedAt: THREE_MIN_TASK_AT }],
     });

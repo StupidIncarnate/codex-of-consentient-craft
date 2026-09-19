@@ -101,7 +101,7 @@ test.describe('Per-work-item LIVE streaming reads `<sessionId>/subagents/agent-<
     // as `null`, hiding the entries and breaking the text assertion. The Node dispatcher
     // is paused by default in e2e (it never auto-plays after boot), so no get-next-step
     // orphan-reset runs to demote the in_progress row back to pending.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),

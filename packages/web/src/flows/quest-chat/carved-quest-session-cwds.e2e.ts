@@ -156,7 +156,7 @@ test.describe('A carved quest renders the transcripts on both sides of its carve
     // The ledger a carved quest carries once its first codeweaver is running: riftcarver complete at
     // the head, the intake work item force-completed by Start, the codeweaver cell in flight. The
     // `sessions` rows are what a real run appends as each session is stamped.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(created.filePath),

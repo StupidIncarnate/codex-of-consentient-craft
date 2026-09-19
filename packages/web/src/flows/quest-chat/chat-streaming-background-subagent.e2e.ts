@@ -58,7 +58,7 @@ test.describe('Streaming sub-agent grouping (run_in_background — agent JSONL g
       title: 'BG Subagent Streaming Quest',
       userRequest: 'Stream a backgrounded sub-agent',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: created.questFolder,
       questFilePath: created.filePath,

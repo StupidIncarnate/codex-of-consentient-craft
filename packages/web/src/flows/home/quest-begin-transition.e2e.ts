@@ -81,7 +81,7 @@ test.describe('Quest Begin Transition', () => {
 
     // Overwrite quest.json with the desired status. The ledger stays empty — the flows the harness
     // seeds are the whole of what the observables gate measures, and the APPROVE button follows it.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -190,7 +190,7 @@ test.describe('Quest Begin Transition', () => {
     // Chaoswhisperer starts as 'pending' — matches real quest data where
     // the spec phase never explicitly marks the work item complete.
     // The OrchestrationStartResponder must promote it to 'complete' on quest start.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -317,7 +317,7 @@ test.describe('Quest Begin Transition', () => {
     const { questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -437,7 +437,7 @@ test.describe('Quest Begin Transition', () => {
     const { questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,

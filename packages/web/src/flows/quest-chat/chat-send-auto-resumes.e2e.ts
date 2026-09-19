@@ -54,7 +54,7 @@ test.describe('Chat send auto-resumes paused quest', () => {
     // The quest-harness writer does not expose pausedAtStatus directly — we seed at
     // explore_flows, call the pause endpoint once to set the pausedAtStatus snapshot,
     // then let the test exercise the auto-resume-on-send flow.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),
