@@ -443,9 +443,9 @@ exists to produce.** It gets written into §14, not fixed by putting the re-deri
 |---|---|---|---|
 | `createQuest` | **176** | CONVERT | `dm.quests.under({guildId}).add(1, …)` on the **`baseUrl`** target → `api`. Signature unchanged; the `{questId, questFolder, filePath, success}` return is built from the record |
 | `writeQuestFile` | **172** | **STAYS** | synchronous caller seam (racing `readFileSync` in `stampWorkItems`) and strict route `record` schema validation (refusing malformed test fixtures). Survey finding §14 Batch 10.6 |
-| `writeUnparseableQuestFile` | **3** | CONVERT | the quest extra `corruptToLegacySchema` — **exists** (`quest-ingredient-broker.ts:117-120`) |
-| `writeWardResultDetail` | **2** | CONVERT | the quest extra `withWardResultDetail` — **exists** (`:121-124`) |
-| `patchQuestStatus` | **1** (+6 in Phase F specs) | **CONVERT — newly possible** | `set({ status })`, walked by `transitions.reach` (`:101-107`). See §6.7 |
+| `writeUnparseableQuestFile` | **3** | **STAYS** | synchronous caller seam, bare path outside plan, and corrupt schema mismatch. Survey finding §14 Batch 10.8 |
+| `writeWardResultDetail` | **2** | **STAYS** | synchronous caller seam and bare path outside plan without guild link. Survey finding §14 Batch 10.8 |
+| `patchQuestStatus` | **1** (+6 in Phase F specs) | **STAYS** | reaches a row by bare `questId` from outside plan; `questQueryRouteBroker` requires `guildId`. Survey finding §14 Batch 10.9 |
 | `rewindQuestStatus` | **1** | **STAYS** | reaches a row by a bare `questFilePath` from outside the plan. Survey finding 2 |
 | `questFolderExists` | **4** | **STAYS** | an assertion, not a seed. `fs.existsSync`; it belongs in the spec's half |
 | `seedInProgressWithOperations` | 0 from specs | **STAYS** | wrapper over `writeQuestFile` |
@@ -561,9 +561,9 @@ draw.
 | sync caller read race & malformed fixture rejection (`writeQuestFile`) | 172 e2e | synchronous callers immediately reading disk (`stampWorkItems`) race async `run()`, and route `record` schema validation rejects deliberately malformed files | keep `questHarness.writeQuestFile`, `seedInProgressWithOperations`. Survey finding §14 Batch 10.6 |
 | a work item's foreign key | every quest | `relatedDataItems: ['operations/<id>']` is a prefixed string inside an ARRAY; `links` writes one field to one field | `workItems` stays a FIELD on `quest` — which is what keeps `writeQuestFile` mechanical. Chunk 7 Q7-1 |
 | a child accessor under `.under()` | any nested seed | G0-f — `TS2339`, ancestor names are not carried forward | the quest's plain `operations` FIELD via `set()`. Already what callers pass |
-| a ward result's detail blob | 2 e2e | one logical entity across two files | **SOLVED** — the quest extra `withWardResultDetail` exists. `riftcarverResults` is the same shape one directory over and remains a finding |
-| an unparseable quest file | 3 e2e | a record the contract must REJECT | **SOLVED** — the quest extra `corruptToLegacySchema` exists |
-| a gate-walked status change | 2 e2e | `quest` declared no `transitions` | **SOLVED** — §6.7 |
+| a ward result's detail blob | 2 e2e | synchronous caller seam and bare path outside plan without guild link | keep `questHarness.writeWardResultDetail`. Survey finding §14 Batch 10.8 |
+| an unparseable quest file | 3 e2e | synchronous caller seam, bare path outside plan, and corrupt schema mismatch | keep `questHarness.writeUnparseableQuestFile`. Survey finding §14 Batch 10.8 |
+| a gate-walked status change | 2 e2e | reaches a row by bare `questId` from outside plan; `questQueryRouteBroker` requires `guildId` | keep `questHarness.patchQuestStatus`. Survey finding §14 Batch 10.9 |
 
 **On the session ingredient's `copies:`.** `siegelense-recipes.md`'s Known gaps and
 `recipes-ledger.md` both still say this blocks the `session` AND `subagent` ingredients *"from being
@@ -727,7 +727,7 @@ target state is a NAMED LIST rather than a number.
 | | Today | When chunk 10 finishes |
 |---|---|---|
 | `--progress` (identifiers) | 916 | **916.** Unchanged, and that is correct, not a failure |
-| methods still writing directly | all of them | **7**, each named in §7 (`writeQuestFile`, `seedInProgressWithOperations`, `rewindQuestStatus`, `appendMainSessionLine`, `appendSubagentLine`, plus assertions) |
+| methods still writing directly | all of them | **10**, each named in §7 (`writeQuestFile`, `seedInProgressWithOperations`, `writeUnparseableQuestFile`, `writeWardResultDetail`, `patchQuestStatus`, `rewindQuestStatus`, `appendMainSessionLine`, `appendSubagentLine`, plus assertions) |
 | `expect(` lines changed in `*.e2e.ts` | 0 | **0** |
 
 ---
@@ -926,6 +926,8 @@ the batch was for.
 | Batch | Harness method / spec | Verb or property it defeated | The assertion that moved | Both outputs |
 |---|---|---|---|---|
 | **10.6** | `questHarness.writeQuestFile` (`elapsed-duration-absent.e2e.ts`, `malformed-quest-file-reported.e2e.ts`) | synchronous caller seam & strict route `record` schema validation | `expect(presentRow.getByTestId('execution-row-duration')).toHaveText('4m')` (timeout: element not found) & `UnhandledPromiseRejection: HydrationRecordShapeError: recipe "write-quest-file": ingredient "quest" route "write" field "createdAt": Invalid datetime` | **Original:** PASS (6.6s / 6.0s).<br>**Converted:** FAIL — 1. `writeQuestFile`'s 172 sync callers immediately execute synchronous file reads (e.g. `elapsed.stampWorkItems` reading `questFilePath` with `readFileSync`), racing the asynchronous execution of `dmRegistryBroker.run(...)` on `writeTarget()`. 2. Specs testing invalid data (`malformed-quest-file-reported.e2e.ts`) pass unparseable fields (e.g. `BAD_COMMENT_CREATED_AT = '2026-13-04...'`), which `opCreateApplyLayerBroker`'s `config.record.safeParse` strictly rejects with `HydrationRecordShapeError`, crashing the test runner instead of writing the malformed file to disk. Per §8, `writeQuestFile` remains a direct write and joins §7's table. |
+| **10.8** | `questHarness.writeUnparseableQuestFile`, `writeWardResultDetail` (`unreadable-quest-file-reported.e2e.ts`, `ward-crash-detail.e2e.ts`, `ward-discovery-mismatch-detail.e2e.ts`) | synchronous caller seam, bare ID/path from outside the plan (Survey finding 2), and corrupt schema mismatch | `expect(rejectedFields).toStrictEqual(['workItems.0.role', 'workItems.0.relatedDataItems.0'])` & synchronous caller race | **Original:** PASS (7.5s across all 3 files).<br>**Converted:** FAIL — 1. Both methods are synchronous `() => void` called outside a plan; running an asynchronous plan through `dmRegistryBroker.run` races immediate downstream assertions or reads. 2. Both methods take a bare `questFilePath`/`questId` without `guildId`, while `questQueryRouteBroker` strictly requires `guildId` to query quests. 3. `questCorruptToLegacySchemaBroker` produces `workItems` with only `role` missing, whereas `unreadable-quest-file-reported.e2e.ts:79` strictly asserts `rejectedFields` contains both `workItems.0.role` AND `workItems.0.relatedDataItems.0`. Per §8, both methods remain direct writes and join §7's table. |
+| **10.9** | `questHarness.patchQuestStatus` (`quest-approved-modal.e2e.ts`, `followup-tab-bar.e2e.ts`) | bare ID from outside the plan (Survey finding 2) & `query` route link requirement | `ZodError: Required` inside `questQueryRouteBroker` (`where.guildId`) | **Original:** PASS (12.4s across both files).<br>**Converted:** FAIL — `patchQuestStatus` receives only `{ questId, status }` from outside the plan. To route status updates through the recipe framework, the plan must use `.filter({ where: { id: questId } }).set({ status })`. However, `questQueryRouteBroker` strictly requires `guildId` in `where` to locate the guild directory, throwing `ZodError` because a quest record does not store `guildId` on itself. The live API endpoint `PATCH /api/quests/:questId` routes by bare `questId`. Per §8, `patchQuestStatus` remains an HTTP call and joins §7's table. |
 
 ---
 
