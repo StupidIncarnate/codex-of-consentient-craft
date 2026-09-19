@@ -52,7 +52,12 @@ export const opSetApplyLayerBroker = async ({
       throw new HydrationTransitionRefusedError({
         recipeName: state.recipeName,
         ingredientName,
-        from: String(from),
+        from:
+          typeof from === 'string'
+            ? from
+            : typeof from === 'number' || typeof from === 'boolean'
+              ? String(from)
+              : JSON.stringify(from),
         to: String(to),
         gateMessage: cause instanceof Error ? cause.message : String(cause),
       });

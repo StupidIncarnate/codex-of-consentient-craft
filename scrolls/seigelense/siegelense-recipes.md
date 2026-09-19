@@ -1010,6 +1010,8 @@ produced, which an attack walk sometimes wants.
 q[1].setRaw({ status: 'finished' }),
 ```
 
+A transition `set()` following a `setRaw()` passes the raw value to `reach` as `from`. If the raw value cannot reach `to` under the ingredient's transition graph, `reach` refuses and the runner raises `HydrationTransitionRefusedError`. The framework does not check `from` against `transitions.to` (which lists only target states); path feasibility belongs to `reach`.
+
 **`filter({ where, expect })`** — selects rows that exist at RUN time. No index, no `add`. `expect`
 defaults to `'some'`; the contract also accepts `'one'` and `'any'`.
 

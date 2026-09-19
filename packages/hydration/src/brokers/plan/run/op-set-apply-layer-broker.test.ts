@@ -8,6 +8,7 @@ import { HydrationRunStateStub } from '../../../contracts/hydration-run-state/hy
 import { RowRefStub } from '../../../contracts/row-ref/row-ref.stub';
 import { opSaveRecordApplyLayerBroker } from './op-save-record-apply-layer-broker';
 import { OpSaveRecordStub } from '../../../contracts/op-save-record/op-save-record.stub';
+import { HydrationTransitionRefusedError } from '../../../errors/hydration-transition-refused/hydration-transition-refused-error';
 
 describe('opSetApplyLayerBroker', () => {
   describe('walking a transition — reach receives both ends and the row', () => {
@@ -219,6 +220,78 @@ describe('opSetApplyLayerBroker', () => {
       expect(state.records.get(RowRefStub({ value: 'quest[0:0]' }))).toStrictEqual({
         title: 'Quest 1',
       });
+    });
+  });
+
+  describe('calling transition set on a row lacking the transition field', () => {
+    it('ERROR: {transition set on a row lacking transition field and reach refuses} => throws HydrationTransitionRefusedError with from "undefined" and gateMessage', async () => {
+      opSetApplyLayerBrokerProxy();
+      const config = IngredientConfigStub({
+        name: 'quest',
+        transitions: TransitionSpecStub({
+          field: 'status',
+          to: ['created', 'in_progress'],
+          reach: (): unknown => {
+            throw new Error('row does not contain transition field "status"');
+          },
+        }),
+      });
+      const state = HydrationRunStateStub({ recipeName: 'guild-mid-execution' as never });
+      state.records.set(RowRefStub({ value: 'quest[0:0]' }), { title: 'Quest 1' });
+      const op = OpSetStub({
+        ref: 'quest[0:0]',
+        written: {},
+        transition: { field: 'status', to: 'in_progress' },
+      });
+
+      await expect(
+        opSetApplyLayerBroker({ op, target: HydrationTargetStub({}), config, state }),
+      ).rejects.toThrow(HydrationTransitionRefusedError);
+
+      await expect(
+        opSetApplyLayerBroker({ op, target: HydrationTargetStub({}), config, state }),
+      ).rejects.toThrow(
+        /^recipe "guild-mid-execution": ingredient "quest" cannot go to "in_progress" from "undefined": row does not contain transition field "status"$/u,
+      );
+    });
+  });
+
+  describe('transition set after setRaw', () => {
+    it('ERROR: {row carries raw value and reach throws} => reach receives raw from and error is wrapped in HydrationTransitionRefusedError', async () => {
+      opSetApplyLayerBrokerProxy();
+      let receivedFrom: unknown = null;
+      const target = HydrationTargetStub({});
+      const config = IngredientConfigStub({
+        name: 'quest',
+        transitions: TransitionSpecStub({
+          field: 'status',
+          to: ['created', 'in_progress'],
+          reach: ({ from }: { from: unknown }): unknown => {
+            receivedFrom = from;
+            throw new Error('cannot walk from finished to in_progress');
+          },
+        }),
+      });
+      const state = HydrationRunStateStub({ recipeName: 'guild-mid-execution' as never });
+      state.records.set(RowRefStub({ value: 'quest[0:0]' }), {
+        status: 'finished',
+        title: 'Quest 1',
+      });
+      const op = OpSetStub({
+        ref: 'quest[0:0]',
+        written: {},
+        transition: { field: 'status', to: 'in_progress' },
+      });
+
+      await expect(opSetApplyLayerBroker({ op, target, config, state })).rejects.toThrow(
+        HydrationTransitionRefusedError,
+      );
+
+      await expect(opSetApplyLayerBroker({ op, target, config, state })).rejects.toThrow(
+        /^recipe "guild-mid-execution": ingredient "quest" cannot go to "in_progress" from "finished": cannot walk from finished to in_progress$/u,
+      );
+
+      expect(receivedFrom).toBe('finished');
     });
   });
 });
