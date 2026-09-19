@@ -24,7 +24,7 @@ test.describe('Session without Quest (read-only view)', () => {
     await guildHarness({ request }).createGuild({ name: 'Orphan Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-orphan-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Past chat with no quest',
     });

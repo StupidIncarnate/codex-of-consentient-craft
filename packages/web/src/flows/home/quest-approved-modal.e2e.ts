@@ -20,7 +20,7 @@ const modalHarness = questApprovedModalHarness({ sessions, guildPath: GUILD_PATH
 test.describe('Quest Approved Modal', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: modal appears when quest transitions to approved status via WS', async ({

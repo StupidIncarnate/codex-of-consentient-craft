@@ -15,7 +15,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Replay sub-agent grouping (file-sourced: main JSONL + subagent JSONL on disk)', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   // The ONLY difference between this test and chat-streaming-subagent-grouping.e2e.ts is
@@ -47,7 +47,7 @@ test.describe('Replay sub-agent grouping (file-sourced: main JSONL + subagent JS
     // tool_use line and the completion user tool_result (with tool_use_result.agentId
     // linking to the real internal id). The subagent file is keyed by that real id and
     // contains the sub-agent's own stream.
-    sessions.createSubagentSessionFiles({
+    await sessions.createSubagentSessionFiles({
       sessionId,
       agentId,
       toolUseId: taskToolUseId,
@@ -130,7 +130,7 @@ test.describe('Replay sub-agent grouping (file-sourced: main JSONL + subagent JS
     const SUBAGENT_MARKER = 'INFLIGHT_REPLAY_INNER_MARKER_xyz';
     const USER_MESSAGE = 'Run the gap minion';
 
-    sessions.createInFlightSubagentSessionFiles({
+    await sessions.createInFlightSubagentSessionFiles({
       sessionId,
       agentId,
       toolUseId: taskToolUseId,
@@ -237,7 +237,7 @@ test.describe('Replay sub-agent grouping (file-sourced: main JSONL + subagent JS
       completed: false,
     };
 
-    sessions.createMultiSubagentSessionFiles({
+    await sessions.createMultiSubagentSessionFiles({
       sessionId,
       userMessage: USER_MESSAGE,
       subagents: [subAlpha, subBeta, subGamma],

@@ -53,7 +53,7 @@ test.describe('Transcript image overlay', () => {
     });
 
     const sessionId = `e2e-session-overlay-branch-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE')).toHaveCount(1, {
@@ -99,7 +99,7 @@ test.describe('Transcript image overlay', () => {
     });
 
     const sessionId = `e2e-session-overlay-correct-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const secondUrl = String(images.buildExpectedImageUrl({ imagePath: String(second.imagePath) }));
 
@@ -137,7 +137,7 @@ test.describe('Transcript image overlay', () => {
     });
 
     const sessionId = `e2e-session-overlay-width-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE')).toHaveCount(1, {
@@ -200,7 +200,7 @@ test.describe('Transcript image overlay', () => {
     });
 
     const sessionId = `e2e-session-overlay-max-height-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE')).toHaveCount(1, {
@@ -246,7 +246,7 @@ test.describe('Transcript image overlay', () => {
     });
 
     const sessionId = `e2e-session-overlay-wide-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE')).toHaveCount(1, {
@@ -293,7 +293,7 @@ test.describe('Transcript image overlay', () => {
     });
 
     const sessionId = `e2e-session-overlay-tall-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE')).toHaveCount(1, {
@@ -342,7 +342,7 @@ test.describe('Transcript image overlay', () => {
     });
 
     const sessionId = `e2e-session-overlay-close-visible-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE')).toHaveCount(1, {
@@ -383,7 +383,7 @@ test.describe('Transcript image overlay', () => {
     });
 
     const sessionId = `e2e-session-overlay-escape-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE')).toHaveCount(1, {
@@ -424,7 +424,7 @@ test.describe('Transcript image overlay', () => {
     });
 
     const sessionId = `e2e-session-overlay-click-outside-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE')).toHaveCount(1, {
@@ -471,7 +471,7 @@ test.describe('Transcript image overlay', () => {
     });
 
     const sessionId = `e2e-session-overlay-close-button-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE')).toHaveCount(1, {

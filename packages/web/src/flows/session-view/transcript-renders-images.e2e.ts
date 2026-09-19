@@ -45,7 +45,10 @@ test.describe('Transcript renders images', () => {
     await expect(page.getByTestId('CHAT_INPUT')).toHaveCount(1);
 
     const orphanSessionId = `e2e-session-transcript-panel-${Date.now()}`;
-    sessions.createSessionFile({ sessionId: orphanSessionId, userMessage: 'Placeholder message' });
+    await sessions.createSessionFile({
+      sessionId: orphanSessionId,
+      userMessage: 'Placeholder message',
+    });
 
     await nav.navigateToSession({ urlSlug, sessionId: orphanSessionId });
     await expect(page.getByTestId('CHAT_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -66,7 +69,7 @@ test.describe('Transcript renders images', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-session-transcript-frame-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Placeholder message' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Placeholder message' });
 
     const replay = images.recordReplayFrames({ page });
 
@@ -115,7 +118,7 @@ test.describe('Transcript renders images', () => {
     });
 
     const sessionId = `e2e-session-transcript-two-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const firstUrl = String(images.buildExpectedImageUrl({ imagePath: String(first.imagePath) }));
     const secondUrl = String(images.buildExpectedImageUrl({ imagePath: String(second.imagePath) }));
@@ -183,7 +186,7 @@ test.describe('Transcript renders images', () => {
     });
 
     const sessionId = `e2e-session-transcript-order-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const expectedUrl = String(
       images.buildExpectedImageUrl({ imagePath: String(seeded.imagePath) }),
@@ -224,7 +227,7 @@ test.describe('Transcript renders images', () => {
     const content = images.appendImagesPromptTrailer({ content: String(preSentinel) });
 
     const sessionId = `e2e-session-transcript-trailer-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE')).toHaveCount(1, { timeout: PANEL_TIMEOUT });

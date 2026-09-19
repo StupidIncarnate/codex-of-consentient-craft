@@ -36,7 +36,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
     // folder lives — so the delete must not touch it.
     const stamp = Date.now();
     const sessionId = `e2e-delete-session-${stamp}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the deletable quest' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the deletable quest' });
 
     const questTitle = 'Quest To Banish';
     const created = await quests.createQuest({

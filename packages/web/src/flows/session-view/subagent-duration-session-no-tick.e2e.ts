@@ -42,7 +42,7 @@ test.describe('The session transcript route never grows its own elapsed-tick clo
 
     // No `notification` field at all — the only shape a tick would exist to serve, since a chain
     // that already has an end point has nothing left for a clock to advance.
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: SESSION_ID,
       agentId: AGENT_ID,
       taskToolUseId: TOOL_USE_ID,
@@ -98,7 +98,7 @@ test.describe('The session transcript route never grows its own elapsed-tick clo
     const NOTIFICATION_AT = '2026-09-10T02:00:45.000Z';
     const REPORTED_DURATION_MS = 270_000;
 
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: SESSION_ID,
       agentId: AGENT_ID,
       taskToolUseId: TOOL_USE_ID,

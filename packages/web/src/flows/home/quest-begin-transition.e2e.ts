@@ -51,7 +51,7 @@ test.describe('Quest Begin Transition', () => {
     dispatch.holdQueueWithMcpHeartbeat();
 
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: clicking Begin Quest sends POST to /start and transitions the quest to in_progress', async ({
@@ -67,7 +67,7 @@ test.describe('Quest Begin Transition', () => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
     const sessionId = `e2e-begin-transition-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     // Create quest via API to get the server-resolved file path
     const created = await questHarness({ request }).createQuest({
@@ -176,7 +176,7 @@ test.describe('Quest Begin Transition', () => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
     const sessionId = `e2e-exec-roles-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await questHarness({ request }).createQuest({
       guildId,
@@ -306,7 +306,7 @@ test.describe('Quest Begin Transition', () => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
     const sessionId = `e2e-relay-graph-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await questHarness({ request }).createQuest({
       guildId,
@@ -426,7 +426,7 @@ test.describe('Quest Begin Transition', () => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
     const sessionId = `e2e-carve-on-relay-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await questHarness({ request }).createQuest({
       guildId,

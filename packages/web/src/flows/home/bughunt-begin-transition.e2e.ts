@@ -57,7 +57,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Bug-hunt Begin Quest transition', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {bug-hunt quest approved through the UI} => Begin Quest POSTs /start, the quest reaches in_progress, and the execution panel replaces the spec panel', async ({
@@ -72,7 +72,10 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     const guildId = String(guild.id);
     const urlSlug = guilds.extractUrlSlug({ guild });
     const sessionId = `e2e-bughunt-begin-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'The clarify panel commits too early' });
+    await sessions.createSessionFile({
+      sessionId,
+      userMessage: 'The clarify panel commits too early',
+    });
 
     const created = await quests.createQuest({
       guildId,
@@ -239,7 +242,10 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     const guildId = String(guild.id);
     const urlSlug = guilds.extractUrlSlug({ guild });
     const sessionId = `e2e-bughunt-restart-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'The clarify panel commits too early' });
+    await sessions.createSessionFile({
+      sessionId,
+      userMessage: 'The clarify panel commits too early',
+    });
 
     const created = await quests.createQuest({
       guildId,

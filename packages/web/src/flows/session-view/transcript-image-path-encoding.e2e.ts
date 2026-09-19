@@ -48,7 +48,7 @@ test.describe('Transcript image path encoding', () => {
     });
 
     const sessionId = `e2e-session-encoding-url-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const expectedUrl = String(
       images.buildExpectedImageUrl({ imagePath: String(seeded.imagePath) }),
@@ -83,7 +83,7 @@ test.describe('Transcript image path encoding', () => {
     });
 
     const sessionId = `e2e-session-encoding-get-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const routePrefix = String(images.buildImagesRouteUrl({ query: 'path=' }));
     const responsePromise = page.waitForResponse((response) =>
@@ -129,7 +129,7 @@ test.describe('Transcript image path encoding', () => {
     });
 
     const sessionId = `e2e-session-encoding-space-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const routePrefix = String(images.buildImagesRouteUrl({ query: 'path=' }));
     const responsePromise = page.waitForResponse((response) =>
@@ -175,7 +175,7 @@ test.describe('Transcript image path encoding', () => {
     });
 
     const sessionId = `e2e-session-encoding-ampersand-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const routePrefix = String(images.buildImagesRouteUrl({ query: 'path=' }));
     const responsePromise = page.waitForResponse((response) =>
@@ -223,7 +223,7 @@ test.describe('Transcript image path encoding', () => {
     });
 
     const sessionId = `e2e-session-encoding-hash-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const routePrefix = String(images.buildImagesRouteUrl({ query: 'path=' }));
     const responsePromise = page.waitForResponse((response) =>
@@ -269,7 +269,7 @@ test.describe('Transcript image path encoding', () => {
     });
 
     const sessionId = `e2e-session-encoding-question-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const routePrefix = String(images.buildImagesRouteUrl({ query: 'path=' }));
     const responsePromise = page.waitForResponse((response) =>
@@ -315,7 +315,7 @@ test.describe('Transcript image path encoding', () => {
     });
 
     const sessionId = `e2e-session-encoding-percent-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const routePrefix = String(images.buildImagesRouteUrl({ query: 'path=' }));
     const responsePromise = page.waitForResponse((response) =>
@@ -361,7 +361,7 @@ test.describe('Transcript image path encoding', () => {
     });
 
     const sessionId = `e2e-session-encoding-plus-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const routePrefix = String(images.buildImagesRouteUrl({ query: 'path=' }));
     const responsePromise = page.waitForResponse((response) =>
@@ -407,7 +407,7 @@ test.describe('Transcript image path encoding', () => {
     });
 
     const sessionId = `e2e-session-encoding-nonascii-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const routePrefix = String(images.buildImagesRouteUrl({ query: 'path=' }));
     const responsePromise = page.waitForResponse((response) =>

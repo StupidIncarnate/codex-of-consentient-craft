@@ -34,7 +34,7 @@ test.describe('Home page session click routing', () => {
     // so the server's session list correlation populates `questId`/`questTitle`
     // on the SessionListItem the row is rendered from.
     const sessionId = `e2e-quest-row-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the quest feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the quest feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -96,7 +96,7 @@ test.describe('Home page session click routing', () => {
 
     // No quest references this session — it stays an orphan session row, no QUEST badge.
     const sessionId = `e2e-orphan-row-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Just a chat, no quest' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Just a chat, no quest' });
 
     await page.goto('/');
     await page.waitForResponse(

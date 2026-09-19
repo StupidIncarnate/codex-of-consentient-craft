@@ -9,7 +9,7 @@
  *
  * USAGE:
  * const subagentDuration = subagentDurationHarness({ guildPath: GUILD_PATH });
- * subagentDuration.seedChain({
+ * await subagentDuration.seedChain({
  *   sessionId: 'e2e-subagent-duration-001',
  *   agentId: 'realagent001',
  *   taskToolUseId: 'toolu_subagent_duration_001',
@@ -19,7 +19,7 @@
  * // Writes <sessionId>.jsonl (kickoff + Task tool_use + completion tool_result) and
  * // <sessionId>/subagents/agent-<agentId>.jsonl (a stub body), with no notification line.
  *
- * subagentDuration.appendNotification({
+ * await subagentDuration.appendNotification({
  *   sessionId: 'e2e-subagent-duration-001',
  *   agentId: 'realagent001',
  *   taskToolUseId: 'toolu_subagent_duration_001',
@@ -109,8 +109,8 @@ export const subagentDurationHarness = ({
 }: {
   guildPath: string;
 }): {
-  beforeEach: () => void;
-  afterEach: () => void;
+  beforeEach: () => Promise<void>;
+  afterEach: () => Promise<void>;
   seedChain: (params: {
     sessionId: string;
     agentId: string;
@@ -118,14 +118,14 @@ export const subagentDurationHarness = ({
     taskDescription: string;
     taskToolUseAt: string;
     notification?: { at: string; durationMs?: number };
-  }) => void;
+  }) => Promise<void>;
   appendNotification: (params: {
     sessionId: string;
     agentId: string;
     taskToolUseId: string;
     at: string;
     durationMs?: number;
-  }) => void;
+  }) => Promise<void>;
   seedNestedChain: (params: {
     sessionId: string;
     outerAgentId: string;
@@ -138,7 +138,7 @@ export const subagentDurationHarness = ({
     innerDescription: string;
     innerTaskToolUseAt: string;
     innerNotification?: { at: string; durationMs?: number };
-  }) => void;
+  }) => Promise<void>;
 } => {
   const getJsonlDir = (): AbsoluteFilePath =>
     claudePathSlugEncoderTransformer({
@@ -146,11 +146,11 @@ export const subagentDurationHarness = ({
       projectPath: AbsoluteFilePathStub({ value: guildPath }),
     });
 
-  const cleanSessionDirectory = (): void => {
-    fs.rmSync(getJsonlDir(), { recursive: true, force: true });
+  const cleanSessionDirectory = async (): Promise<void> => {
+    await fs.promises.rm(getJsonlDir(), { recursive: true, force: true });
   };
 
-  const writeSubagentStub = ({
+  const writeSubagentStub = async ({
     jsonlDir,
     sessionId,
     agentId,
@@ -162,19 +162,19 @@ export const subagentDurationHarness = ({
     agentId: string;
     at: string;
     text: string;
-  }): void => {
+  }): Promise<void> => {
     const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
-    fs.mkdirSync(subagentDir, { recursive: true });
+    await fs.promises.mkdir(subagentDir, { recursive: true });
     const line = JSON.stringify({
       ...AssistantTextStreamLineStub({
         message: { role: 'assistant', content: [{ type: 'text', text }] },
       }),
       timestamp: at,
     });
-    fs.writeFileSync(path.join(subagentDir, `agent-${agentId}.jsonl`), `${line}\n`);
+    await fs.promises.writeFile(path.join(subagentDir, `agent-${agentId}.jsonl`), `${line}\n`);
   };
 
-  const seedChain = ({
+  const seedChain = async ({
     sessionId,
     agentId,
     taskToolUseId,
@@ -188,7 +188,7 @@ export const subagentDurationHarness = ({
     taskDescription: string;
     taskToolUseAt: string;
     notification?: { at: string; durationMs?: number };
-  }): void => {
+  }): Promise<void> => {
     const jsonlDir = getJsonlDir();
     const kickoffAt = offsetIso({ at: taskToolUseAt, ms: -KICKOFF_LEAD_MS });
     const completedAt = offsetIso({ at: taskToolUseAt, ms: COMPLETION_LAG_MS });
@@ -240,10 +240,13 @@ export const subagentDurationHarness = ({
           ]),
     ];
 
-    fs.mkdirSync(jsonlDir, { recursive: true });
-    fs.writeFileSync(path.join(jsonlDir, `${sessionId}.jsonl`), `${mainLines.join('\n')}\n`);
+    await fs.promises.mkdir(jsonlDir, { recursive: true });
+    await fs.promises.writeFile(
+      path.join(jsonlDir, `${sessionId}.jsonl`),
+      `${mainLines.join('\n')}\n`,
+    );
 
-    writeSubagentStub({
+    await writeSubagentStub({
       jsonlDir,
       sessionId,
       agentId,
@@ -252,7 +255,7 @@ export const subagentDurationHarness = ({
     });
   };
 
-  const appendNotification = ({
+  const appendNotification = async ({
     sessionId,
     agentId,
     taskToolUseId,
@@ -264,16 +267,16 @@ export const subagentDurationHarness = ({
     taskToolUseId: string;
     at: string;
     durationMs?: number;
-  }): void => {
+  }): Promise<void> => {
     const jsonlDir = getJsonlDir();
-    fs.mkdirSync(jsonlDir, { recursive: true });
+    await fs.promises.mkdir(jsonlDir, { recursive: true });
     const line = buildNotificationLine({
       agentId,
       taskToolUseId,
       at,
       ...(durationMs === undefined ? {} : { durationMs }),
     });
-    fs.appendFileSync(path.join(jsonlDir, `${sessionId}.jsonl`), `${line}\n`);
+    await fs.promises.appendFile(path.join(jsonlDir, `${sessionId}.jsonl`), `${line}\n`);
   };
 
   // Outer chain lives in the MAIN session file, exactly like seedChain. The inner chain is
@@ -283,7 +286,7 @@ export const subagentDurationHarness = ({
   // outer sub-agent is what dispatched the inner one. Caller must pass outerTaskToolUseAt strictly
   // before innerTaskToolUseAt: collectSubagentChainsTransformer splices the nested chain in at the
   // position of the Task that launched it, which only exists once the outer chain itself does.
-  const seedNestedChain = ({
+  const seedNestedChain = async ({
     sessionId,
     outerAgentId,
     outerToolUseId,
@@ -307,7 +310,7 @@ export const subagentDurationHarness = ({
     innerDescription: string;
     innerTaskToolUseAt: string;
     innerNotification?: { at: string; durationMs?: number };
-  }): void => {
+  }): Promise<void> => {
     const jsonlDir = getJsonlDir();
     const kickoffAt = offsetIso({ at: outerTaskToolUseAt, ms: -KICKOFF_LEAD_MS });
     const outerCompletedAt = offsetIso({ at: outerTaskToolUseAt, ms: OUTER_COMPLETION_LAG_MS });
@@ -360,11 +363,14 @@ export const subagentDurationHarness = ({
           ]),
     ];
 
-    fs.mkdirSync(jsonlDir, { recursive: true });
-    fs.writeFileSync(path.join(jsonlDir, `${sessionId}.jsonl`), `${mainLines.join('\n')}\n`);
+    await fs.promises.mkdir(jsonlDir, { recursive: true });
+    await fs.promises.writeFile(
+      path.join(jsonlDir, `${sessionId}.jsonl`),
+      `${mainLines.join('\n')}\n`,
+    );
 
     const outerSubagentDir = path.join(jsonlDir, sessionId, 'subagents');
-    fs.mkdirSync(outerSubagentDir, { recursive: true });
+    await fs.promises.mkdir(outerSubagentDir, { recursive: true });
 
     const outerLines = [
       JSON.stringify({
@@ -413,12 +419,12 @@ export const subagentDurationHarness = ({
           ]),
     ];
 
-    fs.writeFileSync(
+    await fs.promises.writeFile(
       path.join(outerSubagentDir, `agent-${outerAgentId}.jsonl`),
       `${outerLines.join('\n')}\n`,
     );
 
-    writeSubagentStub({
+    await writeSubagentStub({
       jsonlDir,
       sessionId,
       agentId: innerAgentId,

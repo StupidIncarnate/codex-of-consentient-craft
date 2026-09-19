@@ -23,7 +23,7 @@ test.describe('Quest Detail Navigation', () => {
     await guildHarness({ request }).createGuild({ name: 'Test Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-detail-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Build something',
     });
@@ -45,7 +45,7 @@ test.describe('Quest Detail Navigation', () => {
     await guildHarness({ request }).createGuild({ name: 'Back Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-back-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Test back',
     });

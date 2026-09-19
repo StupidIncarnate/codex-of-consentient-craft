@@ -14,7 +14,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Quest Approve Button', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: clicking APPROVE sends PATCH with next status transition', async ({
@@ -31,7 +31,7 @@ test.describe('Quest Approve Button', () => {
     const nav = navigationHarness({ page });
 
     const sessionId = `e2e-session-approve-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Build the feature',
     });
