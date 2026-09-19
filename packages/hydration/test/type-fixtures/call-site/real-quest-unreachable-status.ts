@@ -7,7 +7,7 @@
  * suite proves the rule only against a stand-in nobody ships.
  */
 import { entryChainTransformer } from '../../../src/transformers/entry-chain/entry-chain-transformer';
-import { questIngredientBroker } from '@dungeonmaster/siegelense-recipes/brokers';
+import { questIngredientBroker } from '@dungeonmaster/hydration-recipes/brokers';
 
 const dm = entryChainTransformer({ registry: { quests: questIngredientBroker } });
 

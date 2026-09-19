@@ -24,12 +24,10 @@ const ROUTED_CALL_NAME_SET = new Set(Object.keys(siegelenseHelpStatics.calls));
 const NOT_BUILT_CALL_NAMES = siegelenseCallStatics.calls.names.filter(
   (name) => !ROUTED_CALL_NAME_SET.has(name),
 );
-const NOT_BUILT_REFUSAL_SUFFIX = `is a siegelense call but is not built yet. Built calls: ${BUILT_CALL_NAMES.join(', ')}.\n`;
-// Same list SiegelenseFlow's own USAGE derives from — a second hand-typed copy here is the exact
-// staleness this seam test exists to catch, not commit.
 const UNKNOWN_SUBCOMMAND_STDERR =
   'Error: Unknown siegelense subcommand: statuss\n\n' +
-  `Usage: dungeonmaster siegelense [--help | ${BUILT_CALL_NAMES.join(' | ')}]\n`;
+  'Usage: dungeonmaster siegelense [--help | start | run | results | kill | capacity | status | ' +
+  'cleanup | prune | compare | profile | snapshots | recipes | docs | driver --instance <instanceId>]\n';
 // Same two lists and the same arithmetic siegelenseHelpRenderTransformer performs over them, so
 // landing a call updates this alongside the renderer instead of leaving a literal behind for the
 // next one to go stale against.
