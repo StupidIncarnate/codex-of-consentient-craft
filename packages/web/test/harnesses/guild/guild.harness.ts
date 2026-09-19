@@ -81,9 +81,7 @@ export const guildHarness = ({
     String(guild.id) as GuildId;
 
   const extractUrlSlug = ({ guild }: { guild: GuildRecord }): UrlSlug =>
-    String(guild.urlSlug ?? guild.name)
-      .toLowerCase()
-      .replace(/\s+/gu, '-') as UrlSlug;
+    String(guild.urlSlug) as UrlSlug;
 
   return {
     beforeEach: cleanGuilds,
