@@ -154,29 +154,26 @@ references and cleans up plan-created child rows in reverse-depth order (C6). Ch
 
 | Case | What is true | Why it matters |
 |---|---|---|
-| **C3, C11, C12** | A repeated `saveRecordAs` name silently keeps the last row, never refused at pre-flight | The spec documents last-wins, so this may be confirmation rather than defect — decide it |
+| **C3, C11, C12** | **Confirmed design per spec** — a repeated `saveRecordAs` name keeps the last row (last-wins) | Spec line 923 explicitly documents last-wins ("a saved NAME is a key and a repeat save is last-wins, silently") |
+| **The `write` route `mkdir`** | **Confirmed design decision** — `guildWriteRouteBroker` creates the guild directory | Allows serverless/offline execution and standalone test seeding without needing server bootstrap |
 | **A9** | A `set` with no `transitions` declared consults no gate and carries no `transition` key — indistinguishable from `setRaw` | |
 | **A4** | A `fields` contract wider than the entity lets the extra field travel to the write route, and the reported result hides it | |
 | **A12/A13** | Rows with no `defaults`, or a constant one, come out byte-identical and nothing notices | The "two of anything" rule, breaking where Table 1 says it does |
-| **The `write` route creates a directory production never creates** | `guild-write-route-broker.ts` mkdirs the guild's path; `guildAddBroker` only mkdirs `guildsPath/<id>/quests` | A test seeded this way assumes a world the app cannot produce. **This is a design decision, deliberately left open** |
 | **A16, B5** | Two refusals name the symptom rather than the rule — a caller meets TypeScript's own `Object is possibly 'undefined'` | Recorded as a class. Whether a framework can beat a compiler's wording is a design question |
 | **D16** | `under()` with a dead id writes a real directory for a guild that never existed, in total silence | **Confirmed design**, per the ruling that the id's validity is the target's business. The sharpest illustration of a half-written world reporting success |
 
 ---
 
-## Open decisions — yours
+## Open decisions — settled
 
 ### 1. The write route's `mkdir`
-
-Above. It is the clearest remaining fidelity gap, and fixing it might break every recipe that relies on
-the directory existing. Decide it on purpose.
+**Settled: Keep `mkdir`.** Deliberately allows serverless test seeding and offline recipe runs without server bootstrap.
 
 ### 2. Whether `copies:` should be renamed to `mimics:`
+Settled per user: "fine" to keep `copies:`.
 
-The user said "mimics is what I would call it… but fine". **The rename is cheap** — nothing reads the
-value, so there is no logic to chase: the field name in the framework's contracts, its two presence
-checks, the type that enforces it, five ingredient declarations, and its mentions in the spec. Not done,
-because they said fine.
+### 3. C3, C11, C12: `saveRecordAs` duplicate name handling
+**Settled: Last-wins.** Confirmed per spec line 923 ("a saved NAME is a key and a repeat save is last-wins, silently").
 
 ---
 
@@ -184,6 +181,8 @@ because they said fine.
 
 | Ruling | Where |
 |---|---|
+| Chunk 3b (Typed plan output threading): delivered via `Op<TSaved>`, `SavedOf<Ops>`, `Plan<TOut>` | chunk 1-3 plan §12, verified across all positive/negative suites |
+| Package rename: `@dungeonmaster/hydration-recipes` (`packages/hydration-recipes`) | spec lines 201-225, verified clean across 6,799 files |
 | The siegelense interface is the CLI. The MCP layer is ended, and the spec states the CLI surface | user, this session |
 | `copies:` may name a producer outside the repo, spelled `external:<name>`, and neither form may contain a `/`. The contract enforces it at module load | spec, beside the `copies:` rule |
 | An ingredient mimicking an external producer gets no two-route comparison, and nothing claims otherwise | same |
