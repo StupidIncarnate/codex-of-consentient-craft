@@ -1019,7 +1019,7 @@ defaults to `'some'`; the contract also accepts `'one'` and `'any'`.
 g[0].quests.filter({ where: { status: 'queued' } }).remove(),
 ```
 
-**`remove()`** — deletes a row, or every row a filter matched.
+**`remove()`** — deletes a row, or every row a filter matched. Removing a parent cascades removal of plan-created child records in memory (evicting all descendant references) and executes child `remove` routes in reverse-depth order before the parent's `remove` route is called. Target persistence (e.g. directory deletions or database constraints) handles external child storage.
 
 ```ts
 q[1].remove(),

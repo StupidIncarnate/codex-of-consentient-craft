@@ -163,6 +163,7 @@ export const opFilterApplyLayerBroker = async ({
             op: nestedOp,
             target,
             config: nestedConfig,
+            ingredients: [...configByName.values()],
             state: currentState,
           });
         }

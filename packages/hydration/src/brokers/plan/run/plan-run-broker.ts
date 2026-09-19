@@ -81,7 +81,7 @@ export const planRunBroker = async ({
       const ingredientName = rowRefIngredientTransformer({ rowRef: op.ref });
       const config = configByName.get(ingredientName);
       if (config !== undefined) {
-        await opRemoveApplyLayerBroker({ op, target, config, state });
+        await opRemoveApplyLayerBroker({ op, target, config, ingredients, state });
       }
       return;
     }
