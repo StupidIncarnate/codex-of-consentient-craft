@@ -5,9 +5,6 @@ looking at cahce, cause of expires. We need to see when this happens in the ui
 
 # Set the cache for agents/subagents to 1hr
 
-right now, most is set to 5min is claude and gemini. This is costly, so need to bump everything to an our and have an
-install bit that makes sure this is the case in user directors in case I switch computers
-
 ## 2ndary
 
 - This leads to the question of, are harnesses viable from anthropic and google anymore? I have an orchastrator that

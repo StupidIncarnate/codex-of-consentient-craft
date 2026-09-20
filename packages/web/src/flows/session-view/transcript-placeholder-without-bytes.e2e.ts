@@ -36,7 +36,7 @@ test.describe('Transcript placeholder without bytes', () => {
     const requests = images.recordImagesRequests({ page });
 
     const sessionId = `e2e-session-placeholder-bare-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: BARE_PLACEHOLDER_CONTENT });
+    await sessions.createSessionFile({ sessionId, userMessage: BARE_PLACEHOLDER_CONTENT });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE_BROKEN')).toHaveCount(1, {
@@ -66,7 +66,7 @@ test.describe('Transcript placeholder without bytes', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-session-placeholder-order-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Before [Pasted Image 1] After' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Before [Pasted Image 1] After' });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE_BROKEN')).toHaveCount(1, {
@@ -94,7 +94,7 @@ test.describe('Transcript placeholder without bytes', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-session-placeholder-geometry-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Before [Pasted Image 1] After' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Before [Pasted Image 1] After' });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE_BROKEN')).toHaveCount(1, {

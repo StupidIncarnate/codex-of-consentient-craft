@@ -48,7 +48,7 @@ test.describe('Transcript image request count', () => {
     });
 
     const sessionId = `e2e-session-request-count-once-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const expectedUrl = String(
       images.buildExpectedImageUrl({ imagePath: String(seeded.imagePath) }),
@@ -102,7 +102,7 @@ test.describe('Transcript image request count', () => {
     });
 
     const sessionId = `e2e-session-request-count-per-bubble-${Date.now()}`;
-    sessions.createMultiEntrySessionFile({
+    await sessions.createMultiEntrySessionFile({
       sessionId,
       lines: [
         JSON.stringify(

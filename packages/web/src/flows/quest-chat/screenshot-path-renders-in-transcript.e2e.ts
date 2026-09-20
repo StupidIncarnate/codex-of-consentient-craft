@@ -75,7 +75,7 @@ test.describe('A typed screenshot path renders like any other pasted image', () 
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

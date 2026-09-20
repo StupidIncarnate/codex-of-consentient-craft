@@ -10,6 +10,7 @@ import { QuestTitleBarWidgetProxy } from '../quest-title-bar/quest-title-bar-wid
 import { ContractsLayerWidgetProxy } from './contracts-layer-widget.proxy';
 import { DesignDecisionsLayerWidgetProxy } from './design-decisions-layer-widget.proxy';
 import { FlowsLayerWidgetProxy } from './flows-layer-widget.proxy';
+import { UserRequestLayerWidgetProxy } from './user-request-layer-widget.proxy';
 
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 
@@ -60,6 +61,7 @@ export const QuestSpecPanelWidgetProxy = (): {
   QuestTitleBarWidgetProxy();
   ContractsLayerWidgetProxy();
   DesignDecisionsLayerWidgetProxy();
+  UserRequestLayerWidgetProxy();
   const flowsProxy = FlowsLayerWidgetProxy();
   const queueBarProxy = CommentQueueBarWidgetProxy();
 

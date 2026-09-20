@@ -455,7 +455,7 @@ test.describe('Transcript image path encoding', () => {
     });
 
     const sessionId = `e2e-session-encoding-servedurl-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const expectedUrl = String(
       images.buildExpectedImageUrl({ imagePath: String(seeded.imagePath) }),

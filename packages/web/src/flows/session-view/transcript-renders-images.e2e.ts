@@ -265,7 +265,7 @@ test.describe('Transcript renders images', () => {
     });
 
     const sessionId = `e2e-session-transcript-inline-render-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const expectedUrl = String(
       images.buildExpectedImageUrl({ imagePath: String(seeded.imagePath) }),

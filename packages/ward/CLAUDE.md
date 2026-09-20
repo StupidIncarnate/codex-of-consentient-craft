@@ -225,6 +225,15 @@ a smaller scale: one 40-file `web` batch reported 8.5s wall on an adapter whose 
 each neighbouring batch of the same sweep named a different arbitrary file. Before optimising any file this
 list names, check `ward detail <runId>` for its per-test durations.
 
+**On lint, believe the first number less than the table above suggests.** Rule time carries the TypeScript
+program's CHECKING as well: the type-aware rules pull types lazily while they run, so a file is charged for
+whatever part of the type graph it reaches first, and how much that is depends on which files share its
+batch. `dm-registry-broker.test.ts` is 81 lines and was measured three ways on one unchanged tree — 25.8ms
+inside its own 338-file package run, 844ms as the only file in its batch, 2920ms during a whole-repo sweep.
+Contention scales the batch on top of that: those 338 files summed 5188ms of rule time alone and 18_137ms
+during the sweep. So a lint file the slow list names is worth re-measuring on its own package before
+reading it as a cost at all.
+
 ## How File Scoping Works
 
 Ward has three file scoping mechanisms: passthrough (`--`), committed (`--committed`), and uncommitted

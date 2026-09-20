@@ -2,7 +2,7 @@
  * PURPOSE: Defines when ward calls a file slow. One number per thing a check can actually measure —
  * reach for `testWarnMs` for a jest unit suite, `integrationTestWarnMs` for a jest integration
  * suite, `lintRulesWarnMs` for eslint's rule work, and `warnMs` only for a check that gives no
- * per-file breakdown at all. `allowed` names the individual files that may exceed their bar.
+ * per-file breakdown at all.
  *
  * USAGE:
  * slowFileThresholdStatics.threshold.testWarnMs;
@@ -26,17 +26,22 @@ export const slowFileThresholdStatics = {
     // running at once, contended multi-installer suites clear in 8-9 seconds. Ten clears contended
     // multi-installer runs and still catches an integration test doing runaway work.
     integrationTestWarnMs: 10_000,
-    // Summed eslint rule time plus fix, with the TypeScript program build left out. Measured over
-    // a whole-repo lint of all 7758 files: median 14ms, 90th percentile 50ms, 99th 219ms, and a
-    // top file at 1148ms with the next at 778ms.
+    // Summed eslint rule time plus fix. It does NOT exclude the cost of the TypeScript program:
+    // the type-aware rules pull types lazily as they run, so whichever file first reaches a part
+    // of the type graph is charged with checking it. That charge belongs to the batch, not to the
+    // file, and it moves between runs. `dm-registry-broker.test.ts` is an 81-line file measured at
+    // 25.8ms inside its own 338-file package run, 844ms as the only file in its batch, and 2920ms
+    // during a whole-repo sweep — the same bytes all three times.
     //
-    // TWO SECONDS, not the one the jest bars use, because rule time roughly doubles under CPU
-    // contention — one 40-file batch's worst file went 335ms to 636ms at 3x oversubscription —
-    // and a flagged file FAILS the run. At one second the gate named zero files on one whole-repo
-    // run and one on the next, the same tree both times, which reports the machine rather than the
-    // code. Two clears twice the worst healthy file and still catches anything that doubles past
-    // it.
-    lintRulesWarnMs: 2000,
+    // CPU contention then scales the whole batch on top of that: those same 338 files summed
+    // 5188ms of rule time alone and 18_137ms during the sweep.
+    //
+    // FOUR SECONDS, which clears the worst figure the two effects together have produced here
+    // (2920ms) and sits far above the same contended sweep's 99th percentile (278ms across 2115
+    // files). A flagged file FAILS the run, so this bar buys headroom rather than sensitivity: an
+    // absolute per-file bar cannot tell a genuinely costly file from the one that happened to
+    // absorb the type-check, and only a batch-relative gate could.
+    lintRulesWarnMs: 4000,
     // A browser spec navigates, waits for real paint and talks to a real server, so it cannot be
     // held to the jest bar. Playwright reports execution time per test and excludes browser boot,
     // so this is still test-body time and not startup.

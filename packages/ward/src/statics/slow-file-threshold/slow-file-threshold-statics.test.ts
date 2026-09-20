@@ -6,7 +6,7 @@ describe('slowFileThresholdStatics', () => {
       warnMs: 5000,
       testWarnMs: 1000,
       integrationTestWarnMs: 10_000,
-      lintRulesWarnMs: 2000,
+      lintRulesWarnMs: 4000,
       e2eTestWarnMs: 15_000,
     });
   });
@@ -23,7 +23,7 @@ describe('slowFileThresholdStatics', () => {
     );
   });
 
-  it('VALID: the lint bar => is stricter than wall, because it excludes the program build', () => {
+  it('VALID: the lint bar => sits under the wall bar, because rule time is one part of a wall time', () => {
     expect(slowFileThresholdStatics.threshold.lintRulesWarnMs).toBeLessThan(
       slowFileThresholdStatics.threshold.warnMs,
     );

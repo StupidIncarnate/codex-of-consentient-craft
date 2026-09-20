@@ -357,7 +357,7 @@ test.describe('Transcript broken image', () => {
       ],
     });
     const sessionId = `e2e-session-broken-render-box-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const expectedUrl = String(
       images.buildExpectedImageUrl({ imagePath: String(seeded.imagePath) }),

@@ -45,7 +45,7 @@ test.describe('Transcript inline layout', () => {
       segments: [{ text: 'A' }, { imagePath: String(seeded.imagePath), ordinal: 1 }, { text: 'B' }],
     });
     const sessionId = `e2e-session-inline-same-line-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE')).toHaveCount(1, { timeout: PANEL_TIMEOUT });
@@ -89,7 +89,7 @@ test.describe('Transcript inline layout', () => {
       segments: [{ text: 'A' }, { imagePath: String(seeded.imagePath), ordinal: 1 }, { text: 'B' }],
     });
     const sessionId = `e2e-session-inline-text-continues-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE')).toHaveCount(1, { timeout: PANEL_TIMEOUT });
