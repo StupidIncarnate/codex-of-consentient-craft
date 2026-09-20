@@ -34,6 +34,12 @@
       "require": "./dist/transformers.js",
       "types": "./dist/transformers.d.ts"
     },
+    "./responders": {
+      "source": "./responders.ts",
+      "import": "./dist/responders.js",
+      "require": "./dist/responders.js",
+      "types": "./dist/responders.d.ts"
+    },
     "./testing": {
       "source": "./testing.ts",
       "import": "./dist/testing.js",

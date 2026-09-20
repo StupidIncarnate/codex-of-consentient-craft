@@ -39,9 +39,9 @@ const recipesListingShape = z.array(
 );
 
 describe('the exports @dungeonmaster/siegelense reads off this package', () => {
-  it('VALID: {} => the module carries exactly the three names the convention declares', () => {
+  it('VALID: {} => the module carries the convention exports plus StartHydrationRecipes', () => {
     expect(Object.keys(hydrationRecipesIndex).sort()).toStrictEqual(
-      Object.values(recipesConventionStatics.exports).sort(),
+      [...Object.values(recipesConventionStatics.exports), 'StartHydrationRecipes'].sort(),
     );
   });
 
@@ -120,5 +120,28 @@ describe('the exports @dungeonmaster/siegelense reads off this package', () => {
         description: 'one session under an existing guild, holding a nested sub-agent chain',
       },
     ]);
+  });
+});
+
+describe('the StartHydrationRecipes startup export', () => {
+  it('VALID: {} => exposes listing and seed methods with expected arities', () => {
+    expect({
+      listingArity: hydrationRecipesIndex.StartHydrationRecipes.listing.length,
+      seedArity: hydrationRecipesIndex.StartHydrationRecipes.seed.length,
+    }).toStrictEqual({
+      listingArity: 0,
+      seedArity: 1,
+    });
+  });
+
+  it('VALID: {} => StartHydrationRecipes.listing() returns recipes listing matching shape', () => {
+    const listing = hydrationRecipesIndex.StartHydrationRecipes.listing();
+
+    expect(listing.map((entry) => entry.recipeName)).toStrictEqual([
+      'guild-mid-execution',
+      'quest-advances-one-step',
+      'session-with-nested-chain',
+    ]);
+    expect(recipesListingShape.parse(listing)).toStrictEqual(listing);
   });
 });

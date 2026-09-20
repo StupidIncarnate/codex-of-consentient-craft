@@ -15,8 +15,8 @@ Re-architect `@dungeonmaster/hydration-recipes` to strictly conform to Dungeonma
 
 | Batch | Description | Status |
 |-------|-------------|--------|
-| **Batch 1** | Recipes Catalog, Directory Reorganization, and Dynamic Brokers | Completed |
-| **Batch 2** | Responders, Flows, and Startup in `packages/hydration-recipes` | Pending |
+| **Batch 1** | Recipes Catalog, Directory Reorganization, and Dynamic Brokers | Completed ✅ |
+| **Batch 2** | Responders, Flows, and Startup in `packages/hydration-recipes` | Completed ✅ |
 | **Batch 3** | `@dungeonmaster/shared`, `siegelense`, and Test Harness Decoupling | Pending |
 | **Batch 4** | ESLint Rule in `@dungeonmaster/eslint-plugin` | Pending |
 | **Batch 5** | Verification, Build, and Whole-Branch Ward Verification | Pending |
@@ -35,8 +35,8 @@ Re-architect `@dungeonmaster/hydration-recipes` to strictly conform to Dungeonma
 - [x] **1.3 Reviewer**: Audit diff, run scoped ward on Batch 1 files.
 
 ### Batch 2: Responders, Flows, and Startup
-- [ ] **2.1 Planner**: Validate responder and startup rules via `get-folder-detail({ folderType: 'responders' })` and `get-folder-detail({ folderType: 'startup' })`.
-- [ ] **2.2 Worker**:
+- [x] **2.1 Planner**: Validate responder and startup rules via `get-folder-detail({ folderType: 'responders' })` and `get-folder-detail({ folderType: 'startup' })`.
+- [x] **2.2 Worker**:
   - Implement `src/responders/recipes/listing/recipes-listing-responder.ts` (+ proxy, test).
   - Implement `src/responders/recipes/seed/recipes-seed-responder.ts` (+ proxy, test).
   - Create `src/responders.ts` barrel.
