@@ -23,11 +23,11 @@ The walkthrough proceeds across three phases covering all 13 subcommands in a re
 2. **`siegelense capacity`**
    * *Purpose*: Probe host system capacity (RAM, CPU, free disk space, headroom) to ensure safe instance allocation before opening pools.
    * *Complete Arguments*:
-     * `--spec <specName>` *(optional)*: Name of the lane spec to calculate capacity against (`dungeonmaster-stack` or `dungeonmaster-api`). Defaults to `dungeonmaster-stack`.
+     * `--spec <specName>` *(required)*: Name of the lane spec to calculate capacity against (`dungeonmaster-stack` or `dungeonmaster-api`). Required because capacity calculation depends on spec footprint.
      * `--pool <n>` *(optional)*: Anticipated pool size to evaluate division against sample groups without averaging across different sizes.
      * `--json` *(optional)*: Outputs raw JSON structure instead of human summary.
    ```bash
-   dungeonmaster siegelense capacity
+   dungeonmaster siegelense capacity --spec dungeonmaster-stack
    dungeonmaster siegelense capacity --spec dungeonmaster-stack --pool 3
    ```
 
@@ -265,5 +265,6 @@ The walkthrough proceeds across three phases covering all 13 subcommands in a re
 | **DEF-10** | `siegelense status` | Status should default to filtering to the last 6 hours (`--since 6hr`) on the fleet listing instead of unbounded history. Viewing all historical instances requires explicitly passing `--since beginning`. Update contracts, transformers, brokers, responders, and tests. | Subagent (`Status Since Default and Beginning Option`) | **Completed** ✅ |
 | **DEF-11** | `siegelense recipes` | `recipes` still defaults to JSON output and still expects `--human`. Align with DEF-09 standard: output human text view by default (`recipesAnswerRenderTransformer`), eliminate `--human` flag, and only output JSON when `--json` is explicitly passed. | Subagent (`Recipes Human View Default`) | **Completed** ✅ |
 | **DEF-12** | `siegelense recipes` / packages | Delete orphaned `packages/siegelense-recipes/` directory. Update `packages/siegelense` (`recipeLocationStatics`, location brokers, error messages, and tests) to point to `packages/hydration-recipes` (`@dungeonmaster/hydration-recipes`). | Subagent (`Hydration Recipes Rename Cleanup`) | **Completed** ✅ |
+| **DEF-13** | `siegelense capacity` | `capacity` needs to require `--spec <specName>` instead of allowing a bare invocation. Refuse when `--spec` is omitted with an informative error listing known lane specs and USAGE. | Subagent (`Capacity Require Spec Subagent`) | **Completed** ✅ |
 
 ---

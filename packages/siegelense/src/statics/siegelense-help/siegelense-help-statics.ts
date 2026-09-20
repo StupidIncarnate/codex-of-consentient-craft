@@ -253,14 +253,14 @@ export const siegelenseHelpStatics = {
     capacity: {
       summary:
         'siegelense capacity — how many instances this machine can take right now. Ask before opening a pool. Starts nothing.',
-      synopsis: 'dungeonmaster siegelense capacity [--spec <specName>] [--pool <n>] [--json]',
+      synopsis: 'dungeonmaster siegelense capacity --spec <specName> [--pool <n>] [--json]',
       flags: [
         {
           name: '--spec',
           value: '<specName>',
-          required: false,
+          required: true,
           description:
-            'the lane spec to price. Omitted, the browsered dungeonmaster-stack spec is assumed — the more expensive of the two built-ins, so a bare call answers conservatively. The why sentence names whichever spec was read.',
+            'the lane spec to calculate capacity against. Capacity calculation depends on spec footprint.',
         },
         {
           name: '--pool',

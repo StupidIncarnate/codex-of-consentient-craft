@@ -2,17 +2,17 @@ import { capacityArgsParseTransformer } from './capacity-args-parse-transformer'
 
 describe('capacityArgsParseTransformer', () => {
   describe('the bare form', () => {
-    it('EMPTY: {args: []} => returns both fields null and isJson false, so the broker reads its knobs', () => {
-      expect(capacityArgsParseTransformer({ args: [] })).toStrictEqual({
-        specName: null,
-        poolSize: null,
-        isJson: false,
-      });
+    it('EMPTY: {args: []} => refuses because --spec is required', () => {
+      expect(() => capacityArgsParseTransformer({ args: [] })).toThrow(
+        /^--spec is required: name the lane spec to calculate capacity against. Capacity calculation depends on spec footprint.\n\nUsage: dungeonmaster siegelense capacity --spec <specName> \[--pool <n>\] \[--json\]/u,
+      );
     });
 
-    it('VALID: {args: ["--json"]} => --json sets isJson to true', () => {
-      expect(capacityArgsParseTransformer({ args: ['--json'] })).toStrictEqual({
-        specName: null,
+    it('VALID: {args: ["--spec", "dungeonmaster-stack", "--json"]} => --json sets isJson to true', () => {
+      expect(
+        capacityArgsParseTransformer({ args: ['--spec', 'dungeonmaster-stack', '--json'] }),
+      ).toStrictEqual({
+        specName: 'dungeonmaster-stack',
         poolSize: null,
         isJson: true,
       });
@@ -20,12 +20,12 @@ describe('capacityArgsParseTransformer', () => {
 
     it('INVALID: {args: ["--human"]} => --human is refused as an unknown flag', () => {
       expect(() => capacityArgsParseTransformer({ args: ['--human'] })).toThrow(
-        /^Unknown flag: --human\n\nAccepted flags: --spec, --pool, --json/u,
+        /^Unknown flag: --human\n\nAccepted flags: --spec, --pool, --json\n\nUsage: dungeonmaster siegelense capacity --spec <specName> \[--pool <n>\] \[--json\]/u,
       );
     });
   });
 
-  describe('both flags named', () => {
+  describe('flags named', () => {
     it('VALID: {--spec dungeonmaster-api --pool 3} => parses both through with isJson false', () => {
       expect(
         capacityArgsParseTransformer({
@@ -34,12 +34,10 @@ describe('capacityArgsParseTransformer', () => {
       ).toStrictEqual({ specName: 'dungeonmaster-api', poolSize: 3, isJson: false });
     });
 
-    it('VALID: {--pool 1 alone} => the spec stays null while the pool is read', () => {
-      expect(capacityArgsParseTransformer({ args: ['--pool', '1'] })).toStrictEqual({
-        specName: null,
-        poolSize: 1,
-        isJson: false,
-      });
+    it('INVALID: {--pool 1 alone} => refuses because --spec is required', () => {
+      expect(() => capacityArgsParseTransformer({ args: ['--pool', '1'] })).toThrow(
+        /^--spec is required/u,
+      );
     });
 
     it('VALID: {--spec alone} => the pool stays null while the spec is read', () => {
@@ -65,13 +63,19 @@ describe('capacityArgsParseTransformer', () => {
     });
 
     it('INVALID: {--pool zero} => refuses under the flag with the contract’s own message', () => {
-      expect(() => capacityArgsParseTransformer({ args: ['--pool', '0'] })).toThrow(
-        /^--pool: .*greater than 0/u,
-      );
+      expect(() =>
+        capacityArgsParseTransformer({
+          args: ['--spec', 'dungeonmaster-stack', '--pool', '0'],
+        }),
+      ).toThrow(/^--pool: .*greater than 0/u);
     });
 
     it('INVALID: {--pool abc} => refuses under the flag rather than dividing by NaN', () => {
-      expect(() => capacityArgsParseTransformer({ args: ['--pool', 'abc'] })).toThrow(/^--pool: /u);
+      expect(() =>
+        capacityArgsParseTransformer({
+          args: ['--spec', 'dungeonmaster-stack', '--pool', 'abc'],
+        }),
+      ).toThrow(/^--pool: /u);
     });
 
     it('INVALID: {a positional argument} => refuses and says values follow their own flag', () => {

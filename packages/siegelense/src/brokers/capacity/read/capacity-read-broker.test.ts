@@ -363,7 +363,7 @@ describe('capacityReadBroker', () => {
   });
 
   describe('a spec nothing has ever run', () => {
-    it('EMPTY: {samples: [], specName: null} => suggested 2, profile null, and a why that says the pair profiles itself', async () => {
+    it('EMPTY: {samples: []} => suggested 2, profile null, and a why that says the pair profiles itself', async () => {
       const proxy = capacityReadBrokerProxy();
       proxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
       proxy.setupMachineReading({
@@ -386,7 +386,10 @@ describe('capacityReadBroker', () => {
       });
       proxy.setupNow({ nowMs: NOW_MS });
 
-      const answer = await capacityReadBroker({ specName: null, poolSize: null });
+      const answer = await capacityReadBroker({
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        poolSize: null,
+      });
 
       expect(answer).toStrictEqual({
         suggested: 2,

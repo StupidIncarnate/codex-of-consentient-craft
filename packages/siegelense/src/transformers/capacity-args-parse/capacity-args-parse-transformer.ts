@@ -1,19 +1,14 @@
 /**
- * PURPOSE: Reads `dungeonmaster siegelense capacity`'s argv into a `CapacityArgs`. BOTH flags are
- * optional, unlike `profileArgsParseTransformer`'s required `--spec`: the spec's own form is the
- * bare `capacity {}` (siegelense-tooling.md line 2505), so an absent flag parses to `null` and the
- * broker reads its knob rather than refusing. Reach for this over `profileArgsParseTransformer` even
- * though both name a spec — `profile` reports one spec's measurements and has no defensible default,
- * while `capacity` answers a question about the MACHINE and stays askable with nothing typed.
+ * PURPOSE: Reads `dungeonmaster siegelense capacity`'s argv into a `CapacityArgs`. `--spec` is
+ * REQUIRED: capacity calculation depends on spec footprint, so an absent flag is refused naming the flag.
  *
  * `--pool` is what makes the never-average rule operable from a terminal: it is the size of the pool
- * the caller is about to open, and the sample group matching it is the one the division uses (line
- * 2526). `--json` outputs raw JSON instead of the default human summary. `--human` is accepted
- * silently as an explicit affirmation of the default.
+ * the caller is about to open, and the sample group matching it is the one the division uses.
+ * `--json` outputs raw JSON instead of the default human summary.
  *
  * USAGE:
- * capacityArgsParseTransformer({ args: [] });
- * // Returns { specName: null, poolSize: null, isJson: false } as CapacityArgs
+ * capacityArgsParseTransformer({ args: ['--spec', 'dungeonmaster-stack'] });
+ * // Returns { specName: 'dungeonmaster-stack', poolSize: null, isJson: false } as CapacityArgs
  */
 
 import { capacityArgsContract } from '../../contracts/capacity-args/capacity-args-contract';
@@ -28,7 +23,7 @@ const SPEC_FLAG = '--spec';
 const POOL_FLAG = '--pool';
 const VALUE_FLAGS = [SPEC_FLAG, POOL_FLAG] as const;
 const KNOWN_FLAGS = [SPEC_FLAG, POOL_FLAG, siegelenseOutputStatics.flags.json] as const;
-const USAGE = 'Usage: dungeonmaster siegelense capacity [--spec <specName>] [--pool <n>] [--json]';
+const USAGE = 'Usage: dungeonmaster siegelense capacity --spec <specName> [--pool <n>] [--json]';
 
 export const capacityArgsParseTransformer = ({
   args,
@@ -65,13 +60,18 @@ export const capacityArgsParseTransformer = ({
   }
 
   const rawSpecName = flagValueReadTransformer({ args, flag: SPEC_FLAG });
-  const specName =
-    rawSpecName === null
-      ? null
-      : flagContractParseTransformer({
-          flag: SPEC_FLAG,
-          parse: () => specNameContract.parse(rawSpecName),
-        });
+
+  if (rawSpecName === null) {
+    throw new Error(
+      `${SPEC_FLAG} is required: name the lane spec to calculate capacity against. ` +
+        `Capacity calculation depends on spec footprint.\n\n${USAGE}`,
+    );
+  }
+
+  const specName = flagContractParseTransformer({
+    flag: SPEC_FLAG,
+    parse: () => specNameContract.parse(rawSpecName),
+  });
 
   const rawPoolSize = flagValueReadTransformer({ args, flag: POOL_FLAG });
   const poolSize =

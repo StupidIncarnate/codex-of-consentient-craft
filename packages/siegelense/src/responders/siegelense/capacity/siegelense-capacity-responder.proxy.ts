@@ -7,7 +7,7 @@
  *
  * USAGE:
  * const proxy = SiegelenseCapacityResponderProxy();
- * proxy.stageAnswer({ specName: null, poolSize: null, answer });
+ * proxy.stageAnswer({ specName: SpecNameStub(), poolSize: null, answer });
  */
 
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
@@ -24,7 +24,7 @@ type SpecName = ReturnType<typeof SpecNameStub>;
 
 export const SiegelenseCapacityResponderProxy = (): {
   stageAnswer: (params: {
-    specName: SpecName | null;
+    specName: SpecName;
     poolSize: ProfilePoolSize | null;
     answer: CapacityAnswer;
   }) => void;
@@ -44,7 +44,7 @@ export const SiegelenseCapacityResponderProxy = (): {
       poolSize,
       answer,
     }: {
-      specName: SpecName | null;
+      specName: SpecName;
       poolSize: ProfilePoolSize | null;
       answer: CapacityAnswer;
     }): void => {

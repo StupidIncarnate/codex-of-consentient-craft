@@ -20,8 +20,8 @@
  * composing test stages them in the order the real calls consume them.
  *
  * USAGE:
- * await capacityReadBroker({ specName: null, poolSize: null });
- * // Returns the CapacityAnswer for the default spec against the policy ceiling's pool size
+ * await capacityReadBroker({ specName, poolSize: null });
+ * // Returns the CapacityAnswer for the spec against the policy ceiling's pool size
  */
 
 import { capacityAnswerContract } from '../../../contracts/capacity-answer/capacity-answer-contract';
@@ -31,7 +31,6 @@ import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { profilePoolSizeContract } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
 import type { ProfilePoolSize } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
-import { specNameContract } from '../../../contracts/spec-name/spec-name-contract';
 import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { isReservedRegistryEntryGuard } from '../../../guards/is-reserved-registry-entry/is-reserved-registry-entry-guard';
 import { isStaleRegistryEntryGuard } from '../../../guards/is-stale-registry-entry/is-stale-registry-entry-guard';
@@ -49,10 +48,9 @@ export const capacityReadBroker = async ({
   specName,
   poolSize,
 }: {
-  specName: SpecName | null;
+  specName: SpecName;
   poolSize: ProfilePoolSize | null;
 }): Promise<CapacityAnswer> => {
-  const resolvedSpecName = specName ?? specNameContract.parse(capacityStatics.defaults.specName);
   // The pool a caller has not named is the largest one policy allows, so the group read is the most
   // CONTENDED the profile holds. Spec lines 1504-1507: a peak measured solo is optimistic for a pool
   // of three, and computing against the optimistic figure is the expensive mistake.
@@ -61,7 +59,7 @@ export const capacityReadBroker = async ({
 
   const registry = await registryReadBroker();
   const machine = await machineReadBroker();
-  const specProfile = await profileReadBroker({ specName: resolvedSpecName });
+  const specProfile = await profileReadBroker({ specName });
 
   const nowMs = epochMsContract.parse(Date.now());
   const liveEntries = registry.instances.filter(
@@ -87,7 +85,7 @@ export const capacityReadBroker = async ({
     suggested: suggestion.suggested,
     ceiling: suggestion.ceiling,
     why: capacityWhyRenderTransformer({
-      specName: resolvedSpecName,
+      specName,
       profile,
       suggestion,
       freeMemMB: machine.freeMemMB,

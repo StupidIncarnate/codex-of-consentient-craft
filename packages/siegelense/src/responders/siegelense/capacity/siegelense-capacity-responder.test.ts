@@ -11,7 +11,7 @@ import { SiegelenseCapacityResponderProxy } from './siegelense-capacity-responde
 
 describe('SiegelenseCapacityResponder', () => {
   describe('the default human summary form', () => {
-    it('EMPTY: {specName: null, poolSize: null} => writes the CapacityAnswer as human summary by default', async () => {
+    it('VALID: {specName: SpecNameStub(), poolSize: null} => writes the CapacityAnswer as human summary by default', async () => {
       const proxy = SiegelenseCapacityResponderProxy();
       const answer = CapacityAnswerStub({
         suggested: 2,
@@ -22,9 +22,12 @@ describe('SiegelenseCapacityResponder', () => {
         measured: CapacityMeasuredStub(),
         profile: CapacityProfileStub(),
       });
-      proxy.stageAnswer({ specName: null, poolSize: null, answer });
+      proxy.stageAnswer({ specName: SpecNameStub(), poolSize: null, answer });
 
-      const result = await SiegelenseCapacityResponder({ specName: null, poolSize: null });
+      const result = await SiegelenseCapacityResponder({
+        specName: SpecNameStub(),
+        poolSize: null,
+      });
 
       expect(result).toStrictEqual({ success: true });
       expect(proxy.getStdoutWrites()).toStrictEqual([capacityAnswerRenderTransformer({ answer })]);
@@ -41,10 +44,10 @@ describe('SiegelenseCapacityResponder', () => {
         measured: CapacityMeasuredStub(),
         profile: CapacityProfileStub(),
       });
-      proxy.stageAnswer({ specName: null, poolSize: null, answer });
+      proxy.stageAnswer({ specName: SpecNameStub(), poolSize: null, answer });
 
       const result = await SiegelenseCapacityResponder({
-        specName: null,
+        specName: SpecNameStub(),
         poolSize: null,
         human: true,
       });
@@ -66,10 +69,10 @@ describe('SiegelenseCapacityResponder', () => {
         measured: CapacityMeasuredStub(),
         profile: CapacityProfileStub(),
       });
-      proxy.stageAnswer({ specName: null, poolSize: null, answer });
+      proxy.stageAnswer({ specName: SpecNameStub(), poolSize: null, answer });
 
       const result = await SiegelenseCapacityResponder({
-        specName: null,
+        specName: SpecNameStub(),
         poolSize: null,
         isJson: true,
       });
@@ -91,10 +94,10 @@ describe('SiegelenseCapacityResponder', () => {
         measured: CapacityMeasuredStub(),
         profile: CapacityProfileStub(),
       });
-      proxy.stageAnswer({ specName: null, poolSize: null, answer });
+      proxy.stageAnswer({ specName: SpecNameStub(), poolSize: null, answer });
 
       const result = await SiegelenseCapacityResponder({
-        specName: null,
+        specName: SpecNameStub(),
         poolSize: null,
         human: false,
       });
@@ -144,9 +147,9 @@ describe('SiegelenseCapacityResponder', () => {
           'no measured profile for dungeonmaster-stack, so the default pair of 2 profiles itself; ' +
           'free RAM 5320MB less 512MB headroom; nothing else up',
       });
-      proxy.stageAnswer({ specName: null, poolSize: null, answer });
+      proxy.stageAnswer({ specName: SpecNameStub(), poolSize: null, answer });
 
-      await SiegelenseCapacityResponder({ specName: null, poolSize: null });
+      await SiegelenseCapacityResponder({ specName: SpecNameStub(), poolSize: null });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([capacityAnswerRenderTransformer({ answer })]);
     });
