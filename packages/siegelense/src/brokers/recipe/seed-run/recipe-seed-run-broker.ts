@@ -31,7 +31,7 @@ export const recipeSeedRunBroker = async ({
 }): Promise<SeedResult> => {
   const entryPath = await recipesLocateBroker();
   const recipesModule = await runtimeDynamicImportAdapter({ path: entryPath });
-  const seedRunExportName = recipesConventionStatics.exports.seedRun;
+  const seedRunExportName = recipesConventionStatics.exports.seed;
   const seedRunExport =
     typeof recipesModule === 'object' && recipesModule !== null
       ? (recipesModule as Record<PropertyKey, unknown>)[seedRunExportName]

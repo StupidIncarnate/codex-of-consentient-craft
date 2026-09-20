@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Imports the located recipes package's compiled entry and turns its
- * `recipesListingBuildBroker` export into a parsed `RecipesListing`. Everything this reads off the
+ * `RecipesListingResponder` export into a parsed `RecipesListing`. Everything this reads off the
  * imported module is `unknown` until `recipesListingContract` parses it — siegelense may import
  * neither `@dungeonmaster/hydration` nor `@dungeonmaster/hydration-recipes` (`siegelense-recipes.md`'s
  * "Three packages, and what may cross between them" table — "neither of the others"), so the
@@ -28,7 +28,7 @@ export const recipesReadBroker = async (): Promise<RecipesListing> => {
   const entryPath = await recipesLocateBroker();
   const recipesModule = await runtimeDynamicImportAdapter({ path: entryPath });
 
-  const listingExportName = recipesConventionStatics.exports.listingBuild;
+  const listingExportName = recipesConventionStatics.exports.listing;
   const listingBuildExport =
     typeof recipesModule === 'object' && recipesModule !== null
       ? (recipesModule as Record<PropertyKey, unknown>)[listingExportName]

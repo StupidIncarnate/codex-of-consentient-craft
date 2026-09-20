@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Represents an error when a repo's compiled recipes entry does not export
- * `recipesConventionStatics.exports.listingBuild` as a function — the export absent entirely
+ * `recipesConventionStatics.exports.listing` as a function — the export absent entirely
  * (`found` is `"undefined"`) or present as the wrong type. Distinct from
  * `RecipesBuildMissingError`: that one fires when the compiled file itself is absent, this one
  * fires once the file has loaded, because a built package can still be malformed.
@@ -8,7 +8,7 @@
  * USAGE:
  * throw new RecipesListingExportInvalidError({
  *   entryPath: '/repo/packages/hydration-recipes/dist/index.js',
- *   exportName: 'recipesListingBuildBroker',
+ *   exportName: 'RecipesListingResponder',
  *   found: 'undefined',
  * });
  * // Throws error naming the entry path, the export name, and what was found instead of a function

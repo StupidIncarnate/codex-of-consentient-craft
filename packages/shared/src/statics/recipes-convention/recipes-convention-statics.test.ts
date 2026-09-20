@@ -12,8 +12,8 @@ describe('recipesConventionStatics', () => {
       },
       exports: {
         manifest: 'recipesManifest',
-        listingBuild: 'recipesListingBuildBroker',
-        seedRun: 'recipesSeedRunBroker',
+        listing: 'RecipesListingResponder',
+        seed: 'RecipesSeedResponder',
       },
     });
   });

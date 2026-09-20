@@ -25,10 +25,7 @@ import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { questFlowObservableSeedTransformer } from '@dungeonmaster/testing/transformers/quest-flow-observable-seed';
 import { dmTargetHarness } from '../dm-target/dm-target.harness';
-import {
-  dmRegistryBroker,
-  recipesHydrationCreateBroker,
-} from '@dungeonmaster/hydration-recipes/brokers';
+import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
 
 const { recipe } = recipesHydrationCreateBroker();
 const QUEST_SAVE_NAME = 'quest';

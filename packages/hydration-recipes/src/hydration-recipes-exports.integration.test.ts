@@ -39,28 +39,34 @@ const recipesListingShape = z.array(
 );
 
 describe('the exports @dungeonmaster/siegelense reads off this package', () => {
-  it('VALID: {} => the module carries the convention exports plus StartHydrationRecipes', () => {
+  it('VALID: {} => the module carries the convention exports plus StartHydrationRecipes and framework brokers', () => {
     expect(Object.keys(hydrationRecipesIndex).sort()).toStrictEqual(
-      [...Object.values(recipesConventionStatics.exports), 'StartHydrationRecipes'].sort(),
+      [
+        ...Object.values(recipesConventionStatics.exports),
+        'StartHydrationRecipes',
+        'dmRegistryBroker',
+        'recipesHydrationCreateBroker',
+        'questIngredientBroker',
+      ].sort(),
     );
   });
 
-  it('VALID: {} => the export named by exports.listingBuild takes zero arguments', () => {
-    const listingExport = hydrationRecipesIndex[recipesConventionStatics.exports.listingBuild];
+  it('VALID: {} => the export named by exports.listing takes zero arguments', () => {
+    const listingExport = hydrationRecipesIndex[recipesConventionStatics.exports.listing];
     const declaredArity = listingExport.length;
 
     expect(declaredArity).toStrictEqual(0);
   });
 
-  it('VALID: {} => the export named by exports.seedRun takes exactly one argument', () => {
-    const seedRunExport = hydrationRecipesIndex[recipesConventionStatics.exports.seedRun];
+  it('VALID: {} => the export named by exports.seed takes exactly one argument', () => {
+    const seedRunExport = hydrationRecipesIndex[recipesConventionStatics.exports.seed];
     const declaredArity = seedRunExport.length;
 
     expect(declaredArity).toStrictEqual(1);
   });
 
   it('VALID: {} => calling it returns the real listing, matching the shape siegelense parses', () => {
-    const listingExport = hydrationRecipesIndex[recipesConventionStatics.exports.listingBuild];
+    const listingExport = hydrationRecipesIndex[recipesConventionStatics.exports.listing];
 
     const listing = listingExport();
 

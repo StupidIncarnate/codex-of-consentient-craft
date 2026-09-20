@@ -75,7 +75,7 @@ export const stepSeedBrokerProxy = (): {
 
     stagesListing: ({ listing }: { listing: unknown }): void => {
       stageEntry();
-      moduleExports[recipesConventionStatics.exports.listingBuild] = (): unknown => listing;
+      moduleExports[recipesConventionStatics.exports.listing] = (): unknown => listing;
     },
 
     stagesSeedRun: ({ result }: { result: unknown }): { getCallArgs: () => readonly unknown[] } => {
@@ -84,13 +84,13 @@ export const stepSeedBrokerProxy = (): {
         typeof result === 'function'
           ? jest.fn().mockImplementation(result as (...args: readonly unknown[]) => unknown)
           : jest.fn().mockResolvedValue(result);
-      moduleExports[recipesConventionStatics.exports.seedRun] = seedRunMock;
+      moduleExports[recipesConventionStatics.exports.seed] = seedRunMock;
       return { getCallArgs: (): readonly unknown[] => seedRunMock.mock.calls };
     },
 
     stagesSeedRunThrows: ({ error }: { error: Error }): void => {
       stageEntry();
-      moduleExports[recipesConventionStatics.exports.seedRun] = jest.fn().mockRejectedValue(error);
+      moduleExports[recipesConventionStatics.exports.seed] = jest.fn().mockRejectedValue(error);
     },
   };
 };

@@ -9,10 +9,7 @@
  */
 import type { APIRequestContext } from '@playwright/test';
 
-import {
-  dmRegistryBroker,
-  recipesHydrationCreateBroker,
-} from '@dungeonmaster/hydration-recipes/brokers';
+import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
 import { guildFieldsContract } from '@dungeonmaster/hydration-recipes/contracts';
 import type { GuildId, UrlSlug } from '@dungeonmaster/shared/contracts';
 import { environmentStatics } from '@dungeonmaster/shared/statics';

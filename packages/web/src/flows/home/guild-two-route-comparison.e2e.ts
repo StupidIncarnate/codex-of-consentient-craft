@@ -5,10 +5,7 @@
 import { z } from 'zod';
 
 import { guildContract } from '@dungeonmaster/shared/contracts';
-import {
-  dmRegistryBroker,
-  recipesHydrationCreateBroker,
-} from '@dungeonmaster/hydration-recipes/brokers';
+import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
 import { guildFieldsContract } from '@dungeonmaster/hydration-recipes/contracts';
 
 import { test, expect } from '../../../test/harnesses/e2e-fixtures';

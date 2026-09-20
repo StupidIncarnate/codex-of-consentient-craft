@@ -44,10 +44,7 @@ import {
   questIdContract,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, pastedImageStatics } from '@dungeonmaster/shared/statics';
-import {
-  dmRegistryBroker,
-  recipesHydrationCreateBroker,
-} from '@dungeonmaster/hydration-recipes/brokers';
+import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
 import { dmTargetContract, guildFieldsContract } from '@dungeonmaster/hydration-recipes/contracts';
 import type { QuestFields } from '@dungeonmaster/hydration-recipes/contracts';
 

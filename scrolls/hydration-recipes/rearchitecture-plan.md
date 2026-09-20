@@ -17,7 +17,7 @@ Re-architect `@dungeonmaster/hydration-recipes` to strictly conform to Dungeonma
 |-------|-------------|--------|
 | **Batch 1** | Recipes Catalog, Directory Reorganization, and Dynamic Brokers | Completed ✅ |
 | **Batch 2** | Responders, Flows, and Startup in `packages/hydration-recipes` | Completed ✅ |
-| **Batch 3** | `@dungeonmaster/shared`, `siegelense`, and Test Harness Decoupling | Pending |
+| **Batch 3** | `@dungeonmaster/shared`, `siegelense`, and Test Harness Decoupling | In Progress |
 | **Batch 4** | ESLint Rule in `@dungeonmaster/eslint-plugin` | Pending |
 | **Batch 5** | Verification, Build, and Whole-Branch Ward Verification | Pending |
 
@@ -46,8 +46,8 @@ Re-architect `@dungeonmaster/hydration-recipes` to strictly conform to Dungeonma
 - [ ] **2.3 Reviewer**: Audit diff, run scoped ward on Batch 2 files.
 
 ### Batch 3: Shared Statics, Siegelense, and Test Harness Decoupling
-- [ ] **3.1 Planner**: Inventory all external call sites to `@dungeonmaster/hydration-recipes/brokers`.
-- [ ] **3.2 Worker**:
+- [x] **3.1 Planner**: Inventory all external call sites to `@dungeonmaster/hydration-recipes/brokers`.
+- [x] **3.2 Worker**:
   - Update `packages/shared/src/statics/recipes-convention/recipes-convention-statics.ts` to reference responders.
   - Update `packages/siegelense` (`recipes-read-broker.ts`, `recipe-seed-run-broker.ts`) to use responders.
   - Refactor `packages/server/test/harnesses/server-app/server-app.harness.ts` to use responders.

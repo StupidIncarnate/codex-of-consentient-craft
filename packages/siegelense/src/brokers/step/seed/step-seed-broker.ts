@@ -3,7 +3,7 @@
  * listing alone — an unknown recipe name, params handed to a recipe whose `inputKeys` is empty, a
  * params key the listing does not name, or a declared key the listing names that `params` never
  * supplies — before importing anything that writes, then dynamically imports the recipes package's
- * own `recipesSeedRunBroker` export and runs it against the lane's home and base URL. A recipe's own
+ * own `RecipesSeedResponder` export and runs it against the lane's home and base URL. A recipe's own
  * `inputs` schema is the other half of validation (every VALUE, once every declared key is present);
  * it lives on the other side of the import and this file never re-implements it — a value-level
  * refusal (a supplied value the schema rejects) propagates from that call uncaught.
@@ -79,7 +79,7 @@ export const stepSeedBroker = async ({
 
   const entryPath = await recipesLocateBroker();
   const recipesModule = await runtimeDynamicImportAdapter({ path: entryPath });
-  const seedRunExportName = recipesConventionStatics.exports.seedRun;
+  const seedRunExportName = recipesConventionStatics.exports.seed;
   const seedRunExport =
     typeof recipesModule === 'object' && recipesModule !== null
       ? (recipesModule as Record<PropertyKey, unknown>)[seedRunExportName]

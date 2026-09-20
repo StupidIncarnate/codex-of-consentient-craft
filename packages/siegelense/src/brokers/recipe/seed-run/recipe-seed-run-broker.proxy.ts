@@ -80,7 +80,7 @@ export const recipeSeedRunBrokerProxy = (): {
         guildSlug: ContentTextStub({ value: guild.urlSlug ?? 'siege-guild' }),
         questId: firstQuestId,
       });
-      moduleExports[recipesConventionStatics.exports.seedRun] = jest.fn().mockResolvedValue(result);
+      moduleExports[recipesConventionStatics.exports.seed] = jest.fn().mockResolvedValue(result);
     },
   };
 };

@@ -25,7 +25,7 @@ describe('recipesReadBroker', () => {
 
       proxy.setupModule({
         entryPath: FilePathStub({ value: ENTRY_PATH }),
-        moduleExports: { [recipesConventionStatics.exports.listingBuild]: () => [entryA, entryB] },
+        moduleExports: { [recipesConventionStatics.exports.listing]: () => [entryA, entryB] },
       });
 
       const result = await recipesReadBroker();
@@ -40,7 +40,7 @@ describe('recipesReadBroker', () => {
 
       proxy.setupModule({
         entryPath: FilePathStub({ value: ENTRY_PATH }),
-        moduleExports: { [recipesConventionStatics.exports.listingBuild]: () => [] },
+        moduleExports: { [recipesConventionStatics.exports.listing]: () => [] },
       });
 
       const result = await recipesReadBroker();
@@ -61,7 +61,7 @@ describe('recipesReadBroker', () => {
       await expect(recipesReadBroker()).rejects.toStrictEqual(
         new RecipesListingExportInvalidError({
           entryPath: ENTRY_PATH,
-          exportName: recipesConventionStatics.exports.listingBuild,
+          exportName: recipesConventionStatics.exports.listing,
           found: 'undefined',
         }),
       );
@@ -74,13 +74,13 @@ describe('recipesReadBroker', () => {
 
       proxy.setupModule({
         entryPath: FilePathStub({ value: ENTRY_PATH }),
-        moduleExports: { [recipesConventionStatics.exports.listingBuild]: 'not-a-function' },
+        moduleExports: { [recipesConventionStatics.exports.listing]: 'not-a-function' },
       });
 
       await expect(recipesReadBroker()).rejects.toStrictEqual(
         new RecipesListingExportInvalidError({
           entryPath: ENTRY_PATH,
-          exportName: recipesConventionStatics.exports.listingBuild,
+          exportName: recipesConventionStatics.exports.listing,
           found: 'string',
         }),
       );
@@ -94,7 +94,7 @@ describe('recipesReadBroker', () => {
       proxy.setupModule({
         entryPath: FilePathStub({ value: ENTRY_PATH }),
         moduleExports: {
-          [recipesConventionStatics.exports.listingBuild]: () => [
+          [recipesConventionStatics.exports.listing]: () => [
             {
               recipeName: 'guild-mid-execution',
               description: 'one guild holding three quests',
