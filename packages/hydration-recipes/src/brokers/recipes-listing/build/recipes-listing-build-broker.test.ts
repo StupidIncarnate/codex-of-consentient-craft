@@ -12,9 +12,14 @@ describe('recipesListingBuildBroker', () => {
       const listing = recipesListingBuildBroker();
 
       expect(listing.map((entry) => entry.recipeName)).toStrictEqual([
+        'guild-empty',
+        'guild-with-three-quests',
         'guild-mid-execution',
         'quest-advances-one-step',
+        'quest-completed',
+        'session-single-turn',
         'session-with-nested-chain',
+        'guild-active-suite',
       ]);
     });
   });

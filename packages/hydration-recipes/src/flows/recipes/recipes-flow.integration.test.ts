@@ -16,13 +16,18 @@ const QUEST3_NAME = SavedRecordNameStub({ value: 'quest3' });
 
 describe('RecipesFlow', () => {
   describe('listing()', () => {
-    it('VALID: {} => returns all three registered recipes', () => {
+    it('VALID: {} => returns all 8 registered recipes', () => {
       const listing = RecipesFlow.listing();
 
       expect(listing.map((entry) => entry.recipeName)).toStrictEqual([
+        'guild-empty',
+        'guild-with-three-quests',
         'guild-mid-execution',
         'quest-advances-one-step',
+        'quest-completed',
+        'session-single-turn',
         'session-with-nested-chain',
+        'guild-active-suite',
       ]);
     });
   });
@@ -32,7 +37,7 @@ describe('RecipesFlow', () => {
       await expect(
         RecipesFlow.seed({ recipeName: 'no-such-recipe', home: UNUSED_HOME }),
       ).rejects.toThrow(
-        /^recipesSeedRunBroker: unknown recipe 'no-such-recipe' — known recipes: guild-mid-execution, quest-advances-one-step, session-with-nested-chain$/u,
+        /^recipesSeedRunBroker: unknown recipe 'no-such-recipe' — known recipes: guild-empty, guild-with-three-quests, guild-mid-execution, quest-advances-one-step, quest-completed, session-single-turn, session-with-nested-chain, guild-active-suite$/u,
       );
     });
   });

@@ -22,7 +22,7 @@ describe('recipesSeedRunBroker', () => {
       await expect(
         recipesSeedRunBroker({ recipeName: 'no-such-recipe', home: UNUSED_HOME }),
       ).rejects.toThrow(
-        /^recipesSeedRunBroker: unknown recipe 'no-such-recipe' — known recipes: guild-mid-execution, quest-advances-one-step, session-with-nested-chain$/u,
+        /^recipesSeedRunBroker: unknown recipe 'no-such-recipe' — known recipes: guild-empty, guild-with-three-quests, guild-mid-execution, quest-advances-one-step, quest-completed, session-single-turn, session-with-nested-chain, guild-active-suite$/u,
       );
     });
   });

@@ -1,130 +1,46 @@
 /**
- * PURPOSE: The `guild-with-three-quests` recipe, executable — produces one guild holding three
- * quests, one in_progress, at fidelity: production. Reach for this over other recipes when
- * testing full HTTP orchestration against the lane API.
+ * PURPOSE: The `guild-with-three-quests` recipe — one guild holding three quests: one created,
+ * one in_progress, and one complete. Reach for this over other recipes when testing multi-quest
+ * state progression under a single guild.
  *
  * USAGE:
- * await recipesGuildWithThreeQuestsBroker({ context });
- * // Returns { guildId, guildSlug, questId } — the ids the server minted
+ * const plan = recipesGuildWithThreeQuestsBroker();
+ * const result = await dmRegistryBroker.run(plan, target);
  */
 
-import { fsMkdirAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import {
-  absoluteFilePathContract,
-  addQuestResultContract,
-  contentTextContract,
-  filePathContract,
-  guildContract,
-  modifyQuestResultContract,
-} from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
+import { questFieldsContract } from '../../../contracts/quest-fields/quest-fields-contract';
+import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
+import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
 
-import { fetchJsonAdapter } from '../../../adapters/fetch/json/fetch-json-adapter';
-import { recipeResultContract } from '../../../contracts/recipe-result/recipe-result-contract';
-import type { RecipeResult } from '../../../contracts/recipe-result/recipe-result-contract';
-import type { RecipeContext } from '../../../contracts/recipe-context/recipe-context-contract';
-import { recipeHttpStatics } from '../../../statics/recipe-http/recipe-http-statics';
-import { seedFixtureStatics } from '../../../statics/seed-fixture/seed-fixture-statics';
+const { recipe } = recipesHydrationCreateBroker();
 
-export const recipesGuildWithThreeQuestsBroker = async ({
-  context,
-}: {
-  context: RecipeContext;
-}): Promise<RecipeResult> => {
-  const guildPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [context.homePath, seedFixtureStatics.guild.pathSegment] }),
-  );
-  await fsMkdirAdapter({ filepath: filePathContract.parse(guildPath) });
+const QUEST_COUNT = 3;
 
-  const guildsUrl = contentTextContract.parse(
-    `${context.apiBaseUrl}${recipeHttpStatics.routes.guilds}`,
-  );
-  const guild = guildContract.parse(
-    await fetchJsonAdapter({
-      url: guildsUrl,
-      method: contentTextContract.parse(recipeHttpStatics.methods.post),
-      body: { name: seedFixtureStatics.guild.name, path: guildPath },
-    }),
-  );
-
-  const { urlSlug } = guild;
-  if (urlSlug === undefined) {
-    throw new Error(
-      `guild-with-three-quests: POST ${recipeHttpStatics.routes.guilds} answered a guild with no urlSlug, so the recipe cannot return the route segment every seeded URL is built from. Guild id: ${guild.id}`,
-    );
-  }
-
-  const questsUrl = contentTextContract.parse(
-    `${context.apiBaseUrl}${recipeHttpStatics.routes.quests}`,
-  );
-
-  const questIds: ContentText[] = [];
-  await seedFixtureStatics.quest.titles.reduce(async (previous, title) => {
-    await previous;
-
-    const added = addQuestResultContract.parse(
-      await fetchJsonAdapter({
-        url: questsUrl,
-        method: contentTextContract.parse(recipeHttpStatics.methods.post),
-        body: {
-          guildId: guild.id,
-          title,
-          userRequest: seedFixtureStatics.quest.userRequest,
-        },
-      }),
-    );
-
-    if (added.questId === undefined) {
-      throw new Error(
-        `guild-with-three-quests: POST ${recipeHttpStatics.routes.quests} answered no questId for "${title}": ${JSON.stringify(added)}`,
-      );
-    }
-
-    questIds.push(contentTextContract.parse(added.questId));
-  }, Promise.resolve());
-
-  const inProgressQuestId = questIds[seedFixtureStatics.quest.inProgressIndex];
-  if (inProgressQuestId === undefined) {
-    throw new Error(
-      `guild-with-three-quests: no quest at index ${String(seedFixtureStatics.quest.inProgressIndex)} — ${String(questIds.length)} were created`,
-    );
-  }
-
-  const questUrl = contentTextContract.parse(
-    `${context.apiBaseUrl}${recipeHttpStatics.routes.quests}/${inProgressQuestId}`,
-  );
-
-  await seedFixtureStatics.quest.statusWalk.reduce(async (previous, status) => {
-    await previous;
-
-    const carriesFlows = status === seedFixtureStatics.quest.flowsAtStatus;
-    const modified = modifyQuestResultContract.parse(
-      await fetchJsonAdapter({
-        url: questUrl,
-        method: contentTextContract.parse(recipeHttpStatics.methods.patch),
-        body: {
-          questId: inProgressQuestId,
-          status,
-          ...(carriesFlows
-            ? {
-                flows: seedFixtureStatics.quest.flows,
-                packagesAffected: seedFixtureStatics.quest.packagesAffected,
-              }
-            : {}),
-        },
-      }),
-    );
-
-    if (!modified.success) {
-      throw new Error(
-        `guild-with-three-quests: PATCH to status "${status}" on quest ${inProgressQuestId} was refused: ${modified.error ?? 'no reason given'}`,
-      );
-    }
-  }, Promise.resolve());
-
-  return recipeResultContract.parse({
-    guildId: guild.id,
-    guildSlug: urlSlug,
-    questId: inProgressQuestId,
-  });
-};
+export const recipesGuildWithThreeQuestsBroker = recipe(
+  {
+    name: 'guild-with-three-quests',
+    description: 'one guild holding three quests: one created, one in_progress, and one complete',
+  },
+  () => [
+    dmRegistryBroker.guilds.add(1, (g) => [
+      g[0].quests.add(QUEST_COUNT, (q) => [
+        q[0].setRaw({
+          status: questFieldsContract.shape.status.parse('created'),
+          title: questFieldsContract.shape.title.parse('Setup Database'),
+        }),
+        q[1].setRaw({
+          status: questFieldsContract.shape.status.parse('in_progress'),
+          title: questFieldsContract.shape.title.parse('Implement Authentication'),
+        }),
+        q[2].setRaw({
+          status: questFieldsContract.shape.status.parse('complete'),
+          title: questFieldsContract.shape.title.parse('Scaffold Architecture'),
+        }),
+        q[0].saveRecordAs({ name: 'questCreated' }),
+        q[1].saveRecordAs({ name: 'questInProgress' }),
+        q[2].saveRecordAs({ name: 'questComplete' }),
+      ]),
+      g[0].saveRecordAs({ name: 'guild' }),
+    ]),
+  ],
+);

@@ -4,16 +4,86 @@ import { recipesCatalogBrokerProxy } from './recipes-catalog-broker.proxy';
 
 describe('recipesCatalogBroker', () => {
   describe('catalog entries', () => {
-    it('VALID: {} => returns 3 registered recipes in catalog', () => {
+    it('VALID: {} => returns 8 registered recipes in catalog', () => {
       recipesCatalogBrokerProxy();
 
       const entries = recipesCatalogBroker();
 
       expect(entries.map((entry) => entry.recipeName)).toStrictEqual([
+        'guild-empty',
+        'guild-with-three-quests',
         'guild-mid-execution',
         'quest-advances-one-step',
+        'quest-completed',
+        'session-single-turn',
         'session-with-nested-chain',
+        'guild-active-suite',
       ]);
+    });
+  });
+
+  describe('guild-empty entry', () => {
+    it('VALID: probeListing() => returns serverless runs, makes and empty inputKeys', () => {
+      recipesCatalogBrokerProxy();
+
+      const entry = recipesCatalogBroker().find(
+        (candidate) => candidate.recipeName === 'guild-empty',
+      );
+
+      expect(entry?.probeListing()).toStrictEqual({
+        runs: { serverless: true },
+        makes: [{ ingredient: 'guild', count: 1 }],
+        inputKeys: [],
+      });
+    });
+
+    it('INVALID: execute({ params: { extra: "param" } }) => throws takes no params error', async () => {
+      recipesCatalogBrokerProxy();
+
+      const entry = recipesCatalogBroker().find(
+        (candidate) => candidate.recipeName === 'guild-empty',
+      );
+
+      await expect(
+        entry?.execute({
+          params: { extra: 'param' },
+          target: DmTargetStub(),
+        }),
+      ).rejects.toThrow(/recipe 'guild-empty' takes no params, got: extra/u);
+    });
+  });
+
+  describe('guild-with-three-quests entry', () => {
+    it('VALID: probeListing() => returns serverless runs, makes and empty inputKeys', () => {
+      recipesCatalogBrokerProxy();
+
+      const entry = recipesCatalogBroker().find(
+        (candidate) => candidate.recipeName === 'guild-with-three-quests',
+      );
+
+      expect(entry?.probeListing()).toStrictEqual({
+        runs: { serverless: true },
+        makes: [
+          { ingredient: 'guild', count: 1 },
+          { ingredient: 'quest', count: 3 },
+        ],
+        inputKeys: [],
+      });
+    });
+
+    it('INVALID: execute({ params: { extra: "param" } }) => throws takes no params error', async () => {
+      recipesCatalogBrokerProxy();
+
+      const entry = recipesCatalogBroker().find(
+        (candidate) => candidate.recipeName === 'guild-with-three-quests',
+      );
+
+      await expect(
+        entry?.execute({
+          params: { extra: 'param' },
+          target: DmTargetStub(),
+        }),
+      ).rejects.toThrow(/recipe 'guild-with-three-quests' takes no params, got: extra/u);
     });
   });
 
@@ -89,6 +159,78 @@ describe('recipesCatalogBroker', () => {
     });
   });
 
+  describe('quest-completed entry', () => {
+    it('VALID: probeListing() => returns serverless runs, makes and empty inputKeys', () => {
+      recipesCatalogBrokerProxy();
+
+      const entry = recipesCatalogBroker().find(
+        (candidate) => candidate.recipeName === 'quest-completed',
+      );
+
+      expect(entry?.probeListing()).toStrictEqual({
+        runs: { serverless: true },
+        makes: [
+          { ingredient: 'guild', count: 1 },
+          { ingredient: 'quest', count: 1 },
+          { ingredient: 'operation', count: 2 },
+        ],
+        inputKeys: [],
+      });
+    });
+
+    it('INVALID: execute({ params: { extra: "param" } }) => throws takes no params error', async () => {
+      recipesCatalogBrokerProxy();
+
+      const entry = recipesCatalogBroker().find(
+        (candidate) => candidate.recipeName === 'quest-completed',
+      );
+
+      await expect(
+        entry?.execute({
+          params: { extra: 'param' },
+          target: DmTargetStub(),
+        }),
+      ).rejects.toThrow(/recipe 'quest-completed' takes no params, got: extra/u);
+    });
+  });
+
+  describe('session-single-turn entry', () => {
+    it('VALID: probeListing() => returns serverless runs, makes and guildPath inputKey', () => {
+      recipesCatalogBrokerProxy();
+
+      const entry = recipesCatalogBroker().find(
+        (candidate) => candidate.recipeName === 'session-single-turn',
+      );
+
+      expect({
+        hasInputs: entry?.inputs !== undefined,
+        listing: entry?.probeListing(),
+      }).toStrictEqual({
+        hasInputs: true,
+        listing: {
+          runs: { serverless: true },
+          makes: [{ ingredient: 'session', count: 1 }],
+          inputKeys: ['guildPath'],
+        },
+      });
+    });
+
+    it('INVALID: execute({ params: {} }) => throws refused params error', async () => {
+      recipesCatalogBrokerProxy();
+
+      const entry = recipesCatalogBroker().find(
+        (candidate) => candidate.recipeName === 'session-single-turn',
+      );
+
+      await expect(
+        entry?.execute({
+          params: {},
+          target: DmTargetStub(),
+        }),
+      ).rejects.toThrow(/recipe 'session-single-turn' refused params/u);
+    });
+  });
+
   describe('session-with-nested-chain entry', () => {
     it('VALID: probeListing() => returns serverless runs, makes and guildPath inputKey', () => {
       recipesCatalogBrokerProxy();
@@ -123,6 +265,42 @@ describe('recipesCatalogBroker', () => {
           target: DmTargetStub(),
         }),
       ).rejects.toThrow(/recipe 'session-with-nested-chain' refused params/u);
+    });
+  });
+
+  describe('guild-active-suite entry', () => {
+    it('VALID: probeListing() => returns serverless runs, makes and empty inputKeys', () => {
+      recipesCatalogBrokerProxy();
+
+      const entry = recipesCatalogBroker().find(
+        (candidate) => candidate.recipeName === 'guild-active-suite',
+      );
+
+      expect(entry?.probeListing()).toStrictEqual({
+        runs: { serverless: true },
+        makes: [
+          { ingredient: 'guild', count: 1 },
+          { ingredient: 'quest', count: 2 },
+          { ingredient: 'session', count: 1 },
+          { ingredient: 'subagent', count: 1 },
+        ],
+        inputKeys: [],
+      });
+    });
+
+    it('INVALID: execute({ params: { extra: "param" } }) => throws takes no params error', async () => {
+      recipesCatalogBrokerProxy();
+
+      const entry = recipesCatalogBroker().find(
+        (candidate) => candidate.recipeName === 'guild-active-suite',
+      );
+
+      await expect(
+        entry?.execute({
+          params: { extra: 'param' },
+          target: DmTargetStub(),
+        }),
+      ).rejects.toThrow(/recipe 'guild-active-suite' takes no params, got: extra/u);
     });
   });
 
