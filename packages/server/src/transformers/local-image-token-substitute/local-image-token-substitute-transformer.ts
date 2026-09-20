@@ -16,7 +16,7 @@
  * USAGE:
  * localImageTokenSubstituteTransformer({
  *   message: 'before /tmp/snip.png after',
- *   matches: [{ path: '/tmp/snip.png', ordinal }],
+ *   matches: [{ path: '/tmp/snip.png', matchedText: '/tmp/snip.png', ordinal }],
  *   copiedPathByOrdinal: new Map([[ordinal, copiedPath]]),
  * });
  * // Returns branded UserMessage with the source path replaced by '![Pasted Image 1](<copiedPath>)'
@@ -47,7 +47,11 @@ export const localImageTokenSubstituteTransformer = ({
   let cursor = 0;
 
   for (const match of matches) {
-    let occurrenceStart = message.indexOf(match.path, cursor);
+    // `matchedText`, never `path` — they diverge for a quoted or backslash-escaped path, and it is
+    // the span the MESSAGE spent that has to come out, quotes and escapes included. Searching for
+    // `path` there would find nothing (the escaped form) or land inside the quotes and leave them
+    // wrapped around the token (the quoted form).
+    let occurrenceStart = message.indexOf(match.matchedText, cursor);
     while (
       occurrenceStart !== -1 &&
       message.slice(
@@ -55,17 +59,21 @@ export const localImageTokenSubstituteTransformer = ({
         occurrenceStart,
       ) === ALREADY_TOKENISED_PREFIX
     ) {
-      occurrenceStart = message.indexOf(match.path, occurrenceStart + 1);
+      occurrenceStart = message.indexOf(match.matchedText, occurrenceStart + 1);
     }
 
     if (occurrenceStart === -1) {
       continue;
     }
 
-    const occurrenceEnd = occurrenceStart + match.path.length;
+    const occurrenceEnd = occurrenceStart + match.matchedText.length;
     const copiedPath = copiedPathByOrdinal.get(match.ordinal);
+    // A skipped match is put back EXACTLY as the message wrote it — quotes and escapes and all —
+    // so a send the copy step refused reads back character for character as the user typed it.
     const replacement =
-      copiedPath === undefined ? match.path : `![Pasted Image ${match.ordinal}](${copiedPath})`;
+      copiedPath === undefined
+        ? match.matchedText
+        : `![Pasted Image ${match.ordinal}](${copiedPath})`;
 
     rebuilt += message.slice(cursor, occurrenceStart) + replacement;
     cursor = occurrenceEnd;

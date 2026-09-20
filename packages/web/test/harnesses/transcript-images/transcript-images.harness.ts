@@ -86,6 +86,45 @@ const READ_CHAT_MESSAGE_IMAGE_NATURAL_WIDTH_BROWSER_FN = (params: { index: numbe
   return image.naturalWidth;
 };
 
+// Mirrors READ_IMAGE_CONTENT_LAYER_CHILDREN_BROWSER_FN for the quest spec panel's pinned USER
+// REQUEST block: UserRequestLayerWidget renders the same text/image/broken-image segment shapes as
+// IMAGE_CONTENT_LAYER, but under its own container testid (USER_REQUEST_TEXT) and its own
+// per-segment testids (USER_REQUEST_TEXT_SEGMENT / USER_REQUEST_IMAGE / USER_REQUEST_IMAGE_BROKEN).
+const READ_USER_REQUEST_CHILDREN_BROWSER_FN = () => {
+  const layer = document.querySelector('[data-testid="USER_REQUEST_TEXT"]');
+  if (layer === null) {
+    throw new Error('transcript-images harness: USER_REQUEST_TEXT not found');
+  }
+  return Array.from(layer.children).map((child) => ({
+    tag: child.tagName.toLowerCase(),
+    text: child.textContent ?? '',
+    testId: child.getAttribute('data-testid') ?? '',
+    src: child.tagName.toLowerCase() === 'img' ? (child.getAttribute('src') ?? '') : '',
+  }));
+};
+
+// USER_REQUEST_TEXT's whole textContent — mirrors READ_IMAGE_CONTENT_LAYER_TEXT_BROWSER_FN.
+const READ_USER_REQUEST_TEXT_BROWSER_FN = () => {
+  const layer = document.querySelector('[data-testid="USER_REQUEST_TEXT"]');
+  if (layer === null) {
+    throw new Error('transcript-images harness: USER_REQUEST_TEXT not found');
+  }
+  return layer.textContent ?? '';
+};
+
+// Mirrors READ_CHAT_MESSAGE_IMAGE_NATURAL_WIDTH_BROWSER_FN, targeting the pinned request's own
+// <img> rather than a transcript bubble's — the two widgets never share a DOM node.
+const READ_USER_REQUEST_IMAGE_NATURAL_WIDTH_BROWSER_FN = (params: { index: number }) => {
+  const images = document.querySelectorAll('[data-testid="USER_REQUEST_IMAGE"]');
+  const image = images[params.index];
+  if (!(image instanceof HTMLImageElement)) {
+    throw new Error(
+      `transcript-images harness: USER_REQUEST_IMAGE not found at index ${String(params.index)}`,
+    );
+  }
+  return image.naturalWidth;
+};
+
 // getComputedStyle is what resolves the widget's `${overlayMaxHeightPercent}vh` inline style into
 // an absolute px string — the raw style attribute would still read "90vh", proving nothing about
 // what the browser actually laid out.
@@ -475,6 +514,10 @@ export const transcriptImagesHarness = (): {
   appendImagesPromptTrailer: (params: { content: string }) => unknown;
   getPromptInstructionText: () => unknown;
   buildExpectedImageUrl: (params: { imagePath: string }) => unknown;
+  // Sibling to buildExpectedImageUrl for imageTokenServeUrlTransformer's ROOT-RELATIVE build (no
+  // host:port stamped in) — the shape UserRequestLayerWidget's <img src> actually carries, per that
+  // transformer's own header on why it differs from the orchestrator's absolute-URL rewrite.
+  buildExpectedUserRequestImageSrc: (params: { imagePath: string }) => unknown;
   // The independent reference value transcript-image-path-encoding.e2e.ts checks the real wire
   // value against — computed with the SAME built-in encodeURIComponent the transformer under test
   // calls, but from this test-side harness rather than by importing that transformer, so a real
@@ -527,6 +570,11 @@ export const transcriptImagesHarness = (): {
   readBubbleChildren: (params: { page: Page }) => Promise<readonly unknown[]>;
   readBubbleText: (params: { page: Page }) => Promise<unknown>;
   readNaturalWidth: (params: { page: Page; index: number }) => Promise<unknown>;
+  // Sibling trio to the three above, scoped to the quest spec panel's pinned USER REQUEST block
+  // (USER_REQUEST_TEXT) rather than a transcript bubble's IMAGE_CONTENT_LAYER.
+  readUserRequestChildren: (params: { page: Page }) => Promise<readonly unknown[]>;
+  readUserRequestText: (params: { page: Page }) => Promise<unknown>;
+  readUserRequestImageNaturalWidth: (params: { page: Page; index: number }) => Promise<unknown>;
   recordReplayFrames: (params: { page: Page }) => { getFrames: () => readonly unknown[] };
   recordConsoleErrors: (params: { page: Page }) => { getErrors: () => readonly unknown[] };
   // Installed BEFORE the send: a MutationObserver-backed sequence of {bubbleCount,
@@ -731,6 +779,9 @@ export const transcriptImagesHarness = (): {
       return `http://${environmentStatics.hostname}:${port}${pastedImageStatics.serveRoutePath}?path=${encodeURIComponent(imagePath)}`;
     },
 
+    buildExpectedUserRequestImageSrc: ({ imagePath }: { imagePath: string }): unknown =>
+      `${pastedImageStatics.serveRoutePath}?path=${encodeURIComponent(imagePath)}`,
+
     buildExpectedRawPathQueryValue: ({ imagePath }: { imagePath: string }): unknown =>
       encodeURIComponent(imagePath),
 
@@ -912,6 +963,21 @@ export const transcriptImagesHarness = (): {
 
     readNaturalWidth: async ({ page, index }: { page: Page; index: number }): Promise<unknown> =>
       page.evaluate(READ_CHAT_MESSAGE_IMAGE_NATURAL_WIDTH_BROWSER_FN, { index }),
+
+    readUserRequestChildren: async ({ page }: { page: Page }): Promise<readonly unknown[]> =>
+      page.evaluate(READ_USER_REQUEST_CHILDREN_BROWSER_FN),
+
+    readUserRequestText: async ({ page }: { page: Page }): Promise<unknown> =>
+      page.evaluate(READ_USER_REQUEST_TEXT_BROWSER_FN),
+
+    readUserRequestImageNaturalWidth: async ({
+      page,
+      index,
+    }: {
+      page: Page;
+      index: number;
+    }): Promise<unknown> =>
+      page.evaluate(READ_USER_REQUEST_IMAGE_NATURAL_WIDTH_BROWSER_FN, { index }),
 
     // Must be called BEFORE navigation — page.on('websocket') only sees sockets opened after it is
     // registered, and the replay-history frame fires the instant the socket opens.

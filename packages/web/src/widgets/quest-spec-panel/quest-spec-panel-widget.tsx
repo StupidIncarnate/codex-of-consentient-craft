@@ -43,6 +43,7 @@ import { QuestTitleBarWidget } from '../quest-title-bar/quest-title-bar-widget';
 import { ContractsLayerWidget } from './contracts-layer-widget';
 import { DesignDecisionsLayerWidget } from './design-decisions-layer-widget';
 import { FlowsLayerWidget } from './flows-layer-widget';
+import { UserRequestLayerWidget } from './user-request-layer-widget';
 
 const APPROVE_LABEL = 'APPROVE' as ButtonLabel;
 const SCROLLABLE_STYLE = { flex: 1, overflowY: 'auto' as const, padding: 16 };
@@ -198,14 +199,7 @@ export const QuestSpecPanelWidget = ({
               >
                 USER REQUEST
               </Text>
-              <Text
-                ff="monospace"
-                size={HEADER_FONT_SIZE}
-                style={{ color: colors.text, whiteSpace: 'pre-wrap' }}
-                data-testid="USER_REQUEST_TEXT"
-              >
-                {quest.userRequest}
-              </Text>
+              <UserRequestLayerWidget userRequest={quest.userRequest} />
             </Box>
           ) : null}
 

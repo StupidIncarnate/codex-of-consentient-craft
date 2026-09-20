@@ -1305,7 +1305,7 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      await harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
       const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-local-image-source-kept-fixture',
@@ -1352,7 +1352,7 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      await harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
       const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-local-image-copy-survives-fixture',
@@ -1408,7 +1408,7 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      await harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
       // A distinct extension from the uploaded bitmap's ('png') is what lets this test tell the
       // two written files apart afterward without parsing the prompt it is trying to prove.
@@ -1476,7 +1476,7 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      await harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
       const message = 'plain text with no screenshot path at all';
 
@@ -1540,7 +1540,7 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      await harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
       const message = 'relative ./shot.png bare shot.png url https://example.com/a.png done';
 
@@ -1591,7 +1591,7 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      await harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
       // A real seeded directory with a real sibling file — only `never-written.png` itself is
       // absent, so the miss is "this file", never "this whole tree".
@@ -1653,7 +1653,7 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      await harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
       // Not uuid-shaped, unlike the copy's own name — a copy that reused the source name would
       // pass the uuid-shape check below only by accident of extension.
@@ -1719,7 +1719,7 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      await harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
       // Four distinct extensions and four distinct byte arrays — a swapped ordinal-to-file mapping
       // reads identical to correct behavior when every fixture shares one extension, and only the
@@ -1811,7 +1811,7 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      await harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
       const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-already-tokenised-fixture',
@@ -1868,7 +1868,7 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      await harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
       // A distinct extension from the uploaded bitmaps' ('png') is what lets this test tell the
       // screenshot's own written file apart from theirs without parsing the prompt it exists to
@@ -1946,7 +1946,7 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      await harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
       const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-cap-both-kinds-fixture',
@@ -2029,7 +2029,7 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      await harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
       const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-unreadable-file-fixture',
@@ -2095,7 +2095,7 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      await harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
       const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-copy-fails-fixture',
@@ -2161,7 +2161,7 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      await harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
       const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-source-and-copy-survive-fixture',

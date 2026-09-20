@@ -51,19 +51,31 @@ describe('webConfigStatics', () => {
         draftImageStoreName: 'dungeonmaster-chat-draft-images',
         brokenThumbnailSizePx: 32,
         inlineImageMaxHeightPx: 200,
+        userRequestThumbnailMaxHeightPx: 72,
         overlayWidthPercent: 75,
         overlayMaxHeightPercent: 90,
       },
     });
   });
 
-  it('VALID: exported value => pastedImage group carries all five keys and values', () => {
+  it('VALID: exported value => pastedImage group carries every key and value', () => {
     expect(webConfigStatics.pastedImage).toStrictEqual({
       draftImageStoreName: 'dungeonmaster-chat-draft-images',
       brokenThumbnailSizePx: 32,
       inlineImageMaxHeightPx: 200,
+      userRequestThumbnailMaxHeightPx: 72,
       overlayWidthPercent: 75,
       overlayMaxHeightPercent: 90,
     });
+  });
+
+  // The pinned request block is capped at 120px and scrolls. A thumbnail as tall as the transcript
+  // one fills it, so the words the reader came for scroll out of sight — the whole reason this
+  // second cap exists rather than reusing the first.
+  it('VALID: exported value => the user-request thumbnail is shorter than the transcript one', () => {
+    const { userRequestThumbnailMaxHeightPx, inlineImageMaxHeightPx } =
+      webConfigStatics.pastedImage;
+
+    expect(userRequestThumbnailMaxHeightPx).toBeLessThan(inlineImageMaxHeightPx);
   });
 });

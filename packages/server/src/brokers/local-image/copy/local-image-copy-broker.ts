@@ -41,7 +41,12 @@ export const localImageCopyBroker = async ({
 
         // Minted synchronously, before the read below's await — so the mint order always matches
         // match order rather than whichever match's read happens to resolve first.
-        const extension = match.path.slice(match.path.lastIndexOf('.') + 1);
+        //
+        // Lowercased: the scan folds case, so a `Shot.PNG` is admitted here, and naming the copy
+        // `<uuid>.PNG` would put a capitalised extension into a filename nothing but this line ever
+        // chooses. The serve route lowercases before reading its content-type map either way, so
+        // this changes no behaviour there — it keeps the quest's images directory uniform.
+        const extension = match.path.slice(match.path.lastIndexOf('.') + 1).toLowerCase();
         const destination = absoluteFilePathContract.parse(
           pathJoinAdapter({ paths: [imagesDirPath, `${crypto.randomUUID()}.${extension}`] }),
         );

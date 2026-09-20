@@ -21,6 +21,64 @@ describe('localImageTokenSubstituteTransformer', () => {
     });
   });
 
+  // The quotes and the escapes belong to the SPAN, not to the path — so they have to leave with
+  // it. A transformer that searched for `path` instead would find nothing in the escaped message,
+  // and in the quoted one would splice the token between two orphaned quote marks.
+  describe('a quoted or escaped path takes its quotes and escapes with it', () => {
+    it('VALID: {message holds a double-quoted path with spaces} => the quotes are replaced along with the path', () => {
+      const ordinal = PastedImageOrdinalStub({ value: 1 });
+      const match = LocalImagePathMatchStub({
+        path: '/tmp/Screen Shot.png',
+        matchedText: '"/tmp/Screen Shot.png"',
+        ordinal,
+      });
+      const copiedPath = AbsoluteFilePathStub({ value: '/home/q/images/abc.png' });
+
+      const result = localImageTokenSubstituteTransformer({
+        message: 'before "/tmp/Screen Shot.png" after',
+        matches: [match],
+        copiedPathByOrdinal: new Map([[ordinal, copiedPath]]),
+      });
+
+      expect(result).toBe('before ![Pasted Image 1](/home/q/images/abc.png) after');
+    });
+
+    it('VALID: {message holds a backslash-escaped path} => the escaped run is replaced whole', () => {
+      const ordinal = PastedImageOrdinalStub({ value: 1 });
+      const match = LocalImagePathMatchStub({
+        path: '/tmp/Screen Shot.png',
+        matchedText: '/tmp/Screen\\ Shot.png',
+        ordinal,
+      });
+      const copiedPath = AbsoluteFilePathStub({ value: '/home/q/images/abc.png' });
+
+      const result = localImageTokenSubstituteTransformer({
+        message: 'before /tmp/Screen\\ Shot.png after',
+        matches: [match],
+        copiedPathByOrdinal: new Map([[ordinal, copiedPath]]),
+      });
+
+      expect(result).toBe('before ![Pasted Image 1](/home/q/images/abc.png) after');
+    });
+
+    it('VALID: {a quoted path the copy step skipped} => the quotes come back exactly as written', () => {
+      const ordinal = PastedImageOrdinalStub({ value: 1 });
+      const match = LocalImagePathMatchStub({
+        path: '/tmp/Screen Shot.png',
+        matchedText: '"/tmp/Screen Shot.png"',
+        ordinal,
+      });
+
+      const result = localImageTokenSubstituteTransformer({
+        message: 'before "/tmp/Screen Shot.png" after',
+        matches: [match],
+        copiedPathByOrdinal: new Map(),
+      });
+
+      expect(result).toBe('before "/tmp/Screen Shot.png" after');
+    });
+  });
+
   describe('an unresolved path reaches the agent verbatim', () => {
     it('VALID: {message: "before /tmp/snip.png after", one match, no entry in copiedPathByOrdinal} => the path is untouched, character for character', () => {
       const ordinal = PastedImageOrdinalStub({ value: 1 });

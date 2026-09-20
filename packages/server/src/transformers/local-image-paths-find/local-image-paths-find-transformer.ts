@@ -7,7 +7,7 @@
  *
  * USAGE:
  * localImagePathsFindTransformer({ message: 'See /tmp/a.png', startOrdinal: 1 });
- * // Returns [{ path: '/tmp/a.png', ordinal: 1 }]
+ * // Returns [{ path: '/tmp/a.png', matchedText: '/tmp/a.png', ordinal: 1 }]
  */
 
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
@@ -20,6 +20,13 @@ import type { LocalImagePathMatch } from '../../contracts/local-image-path-match
 // `(` right before the path, but only the token puts `](` there.
 const ALREADY_TOKENISED_PREFIX = '](';
 
+// What a backslash-escaped space looks like in the message, and what it stands for on disk. The
+// bare alternative of `localImagePathPattern` admits these so a dragged-in screenshot path is
+// matched whole; the filesystem knows nothing about the escape, so it is undone before the copy
+// step ever sees the path.
+const ESCAPED_SPACE = '\\ ';
+const PLAIN_SPACE = ' ';
+
 export const localImagePathsFindTransformer = ({
   message,
   startOrdinal,
@@ -27,9 +34,12 @@ export const localImagePathsFindTransformer = ({
   message: string;
   startOrdinal: number;
 }): readonly LocalImagePathMatch[] => {
-  const pattern = new RegExp(pastedImageStatics.localImagePathPattern, 'gu');
+  const pattern = new RegExp(
+    pastedImageStatics.localImagePathPattern,
+    pastedImageStatics.localImagePathPatternFlags,
+  );
 
-  const acceptedPaths = Array.from(message.matchAll(pattern))
+  const accepted = Array.from(message.matchAll(pattern))
     .filter((match) => {
       const { index } = match;
       const precedingChar = index === 0 ? '' : (message[index - 1] ?? '');
@@ -37,10 +47,22 @@ export const localImagePathsFindTransformer = ({
       const twoBefore = message.slice(Math.max(0, index - ALREADY_TOKENISED_PREFIX.length), index);
       return isBoundary && twoBefore !== ALREADY_TOKENISED_PREFIX;
     })
-    .map((match) => match[0]);
+    .map((match) => {
+      // Groups 1, 2 and 3 are the double-quoted, single-quoted and bare alternatives of
+      // `localImagePathPattern`, in its own declared order — exactly one of them is set per match.
+      // Only the bare one can carry escapes, so only it is unescaped; a quoted path's backslash is
+      // an ordinary character the shell never touched.
+      const [matchedText, doubleQuoted, singleQuoted, bare] = match;
+      const quoted = doubleQuoted ?? singleQuoted;
 
-  return acceptedPaths
-    .map((path, position) => ({ path, ordinal: startOrdinal + position }))
+      return {
+        path: quoted ?? (bare ?? matchedText).replaceAll(ESCAPED_SPACE, PLAIN_SPACE),
+        matchedText,
+      };
+    });
+
+  return accepted
+    .map((found, position) => ({ ...found, ordinal: startOrdinal + position }))
     .filter((candidate) => candidate.ordinal <= pastedImageStatics.maxImagesPerMessage)
     .map((candidate) => localImagePathMatchContract.parse(candidate));
 };

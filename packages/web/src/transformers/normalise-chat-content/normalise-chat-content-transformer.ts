@@ -42,8 +42,16 @@ export const normaliseChatContentTransformer = ({ content }: { content: string }
     ordinalFreeMarker,
   );
 
+  // `localImagePathPatternFlags`, not a hand-written 'gu': the server's scan folds case and admits
+  // quoted and backslash-escaped paths, and a reduction here that did not would leave the
+  // optimistic copy of a `.PNG` — or of a quoted screenshot path — reducing to something the
+  // delivered copy never reduces to, so the two would never compare equal and the bubble would
+  // double.
   const withoutLocalPaths = withoutBarePlaceholders.replace(
-    new RegExp(pastedImageStatics.localImagePathPattern, 'gu'),
+    new RegExp(
+      pastedImageStatics.localImagePathPattern,
+      pastedImageStatics.localImagePathPatternFlags,
+    ),
     ordinalFreeMarker,
   );
 

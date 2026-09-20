@@ -64,6 +64,12 @@ export const webConfigStatics = {
     // and buries the transcript under one message. The overlay (opened on click) remains the only
     // full-size view.
     inlineImageMaxHeightPx: 200,
+    // Caps the thumbnail the quest spec panel's pinned USER REQUEST block renders. Smaller than
+    // `inlineImageMaxHeightPx` because that block is itself capped, at 120px with its own
+    // scrollbar: a transcript-sized image there fills the block and pushes the request's own words
+    // out of view, so the one line of text the reader came for needs a picture that leaves room
+    // beside it.
+    userRequestThumbnailMaxHeightPx: 72,
     // The full-size overlay's width as a share of the viewport width. The image is constrained
     // to this, so it is never wider than the browser
     overlayWidthPercent: 75,
