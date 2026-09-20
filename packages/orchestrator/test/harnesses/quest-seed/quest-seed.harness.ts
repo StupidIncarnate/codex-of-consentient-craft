@@ -8,13 +8,20 @@
  * // already registered in config.json, so a broker that resolves the guild (guildGetBroker,
  * // questRepoRootBroker) finds it instead of a folder-name id nothing in config recognizes.
  */
-import * as fs from 'fs';
-import * as path from 'path';
-
+import {
+  absoluteFilePathContract,
+  guildIdContract,
+  questContract,
+  questIdContract,
+} from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
+import { dmTargetContract } from '@dungeonmaster/hydration-recipes/contracts';
+import type { QuestFields } from '@dungeonmaster/hydration-recipes/contracts';
 
-const JSON_INDENT_SPACES = 2;
 const GUILD_ID = '00000000-0000-0000-0000-000000000001';
+
+const { recipe } = recipesHydrationCreateBroker();
 
 export const questSeedHarness = (): {
   seed: (params: {
@@ -32,11 +39,24 @@ export const questSeedHarness = (): {
     quest: ReturnType<typeof QuestStub>;
     guildId?: string;
   }): Promise<void> => {
-    const questDir = path.join(tempDir, 'guilds', guildId, 'quests', quest.folder);
-    await fs.promises.mkdir(questDir, { recursive: true });
-    await fs.promises.writeFile(
-      path.join(questDir, 'quest.json'),
-      JSON.stringify(quest, null, JSON_INDENT_SPACES),
-    );
+    const target = dmTargetContract.parse({
+      home: absoluteFilePathContract.parse(tempDir),
+      claudeHome: absoluteFilePathContract.parse(tempDir),
+    });
+
+    const plan = recipe(
+      { name: 'orchestrator-seed-quest', description: 'seed quest via write route' },
+      () => [
+        dmRegistryBroker.quests.under({ guildId: guildIdContract.parse(guildId) }).add(1, (q) => [
+          q[0].setRaw({
+            ...quest,
+            id: questIdContract.parse(quest.id),
+            folder: questContract.shape.folder.parse(quest.folder),
+          } as Partial<QuestFields>),
+        ]),
+      ],
+    )();
+
+    await dmRegistryBroker.run(plan, target);
   },
 });
