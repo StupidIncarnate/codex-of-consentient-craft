@@ -37,6 +37,8 @@ Qwin 3.8B or 27B or Bonsai 2 27B.
 
 Need this for image processing anyway for one project.
 
+scrolls/hardware-spec-local-inference-server.md
+
 # Dungeonmaster is gonna need a generic chatter for quick fixes
 
 Im having to reach for harnesses for quick fixes cause I know I dont need a full quest. I need either a third quest type
