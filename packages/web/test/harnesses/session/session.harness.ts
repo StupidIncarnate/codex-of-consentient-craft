@@ -10,6 +10,9 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
+import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
+import { dmTargetContract } from '@dungeonmaster/hydration-recipes/contracts';
+import type { DmTarget } from '@dungeonmaster/hydration-recipes/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import {
   AbsoluteFilePathStub,
@@ -23,8 +26,13 @@ import {
   TaskNotificationUserTextStreamLineStub,
   TaskToolResultStreamLineStub,
   UserTextStringStreamLineStub,
+  absoluteFilePathContract,
+  sessionIdContract,
+  streamJsonLineContract,
 } from '@dungeonmaster/shared/contracts';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
+
+const { recipe } = recipesHydrationCreateBroker();
 
 const buildAnsweredClarificationLines = (): ReturnType<typeof JSON.stringify>[] => {
   const toolUseId = 'toolu_e2e_clarify_history';
@@ -119,8 +127,10 @@ const buildAnsweredClarificationLines = (): ReturnType<typeof JSON.stringify>[] 
 
 export const sessionHarness = ({
   guildPath,
+  target,
 }: {
   guildPath: string;
+  target?: DmTarget;
 }): {
   beforeEach: () => Promise<void>;
   afterEach: () => Promise<void>;
@@ -258,29 +268,19 @@ export const sessionHarness = ({
   createSessionFileForQuest: (params: { sessionId: string }) => Promise<void>;
   sessionFileExists: (params: { sessionId: string }) => boolean;
 } => {
+  const resolvedTarget = (): DmTarget => {
+    if (target !== undefined) {
+      return target;
+    }
+    const home = process.env.DUNGEONMASTER_HOME ?? os.homedir();
+    return dmTargetContract.parse({ home, claudeHome: home });
+  };
+
   const getJsonlDir = (): AbsoluteFilePath =>
     claudePathSlugEncoderTransformer({
-      homeDir: AbsoluteFilePathStub({ value: os.homedir() }),
+      homeDir: resolvedTarget().claudeHome,
       projectPath: AbsoluteFilePathStub({ value: guildPath }),
     });
-
-  const createSessionFile = async ({
-    sessionId,
-    userMessage,
-  }: {
-    sessionId: string;
-    userMessage: string;
-  }): Promise<void> => {
-    const jsonlDir = getJsonlDir();
-    const jsonlPath = path.join(jsonlDir, `${sessionId}.jsonl`);
-
-    await fs.promises.mkdir(jsonlDir, { recursive: true });
-
-    const entry = JSON.stringify(
-      UserTextStringStreamLineStub({ message: { role: 'user', content: userMessage } }),
-    );
-    await fs.promises.writeFile(jsonlPath, `${entry}\n`);
-  };
 
   const createMultiEntrySessionFile = async ({
     sessionId,
@@ -289,11 +289,48 @@ export const sessionHarness = ({
     sessionId: string;
     lines: string[];
   }): Promise<void> => {
-    const jsonlDir = getJsonlDir();
-    const jsonlPath = path.join(jsonlDir, `${sessionId}.jsonl`);
+    const writeRawSessionFile = async (): Promise<void> => {
+      const jsonlDir = getJsonlDir();
+      const jsonlPath = path.join(jsonlDir, `${sessionId}.jsonl`);
 
-    await fs.promises.mkdir(jsonlDir, { recursive: true });
-    await fs.promises.writeFile(jsonlPath, `${lines.join('\n')}\n`);
+      await fs.promises.mkdir(jsonlDir, { recursive: true });
+      await fs.promises.writeFile(jsonlPath, `${lines.join('\n')}\n`);
+    };
+
+    try {
+      const parsedSessionId = sessionIdContract.parse(sessionId);
+      const parsedCwd = absoluteFilePathContract.parse(guildPath);
+      const parsedLines = lines.map((line) => streamJsonLineContract.parse(line));
+
+      const plan = recipe(
+        { name: 'seed-session-file', description: 'seed session transcript via write route' },
+        () => [
+          dmRegistryBroker.sessions.under({ cwd: parsedCwd }).add(1, (s) => [
+            s[0].setRaw({
+              sessionId: parsedSessionId,
+              lines: parsedLines,
+            }),
+          ]),
+        ],
+      )();
+
+      await dmRegistryBroker.run(plan, resolvedTarget());
+    } catch {
+      await writeRawSessionFile();
+    }
+  };
+
+  const createSessionFile = async ({
+    sessionId,
+    userMessage,
+  }: {
+    sessionId: string;
+    userMessage: string;
+  }): Promise<void> => {
+    const entry = JSON.stringify(
+      UserTextStringStreamLineStub({ message: { role: 'user', content: userMessage } }),
+    );
+    await createMultiEntrySessionFile({ sessionId, lines: [entry] });
   };
 
   const createSubagentSessionFiles = async ({
