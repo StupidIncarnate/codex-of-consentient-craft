@@ -7,7 +7,7 @@
  *
  * USAGE:
  * throw new RecipesListingExportInvalidError({
- *   entryPath: '/repo/packages/siegelense-recipes/dist/index.js',
+ *   entryPath: '/repo/packages/hydration-recipes/dist/index.js',
  *   exportName: 'recipesListingBuildBroker',
  *   found: 'undefined',
  * });
@@ -30,7 +30,7 @@ export class RecipesListingExportInvalidError extends Error {
   }) {
     super(
       `${entryPath} does not export "${exportName}" as a function (found ${found}). ` +
-        `If packages/siegelense-recipes/index.ts does not export "${exportName}", add it there. If it already does, the compiled entry is stale — run "npm run build --workspace=@dungeonmaster/siegelense-recipes" to rebuild it.`,
+        `If packages/hydration-recipes/index.ts does not export "${exportName}", add it there. If it already does, the compiled entry is stale — run "npm run build --workspace=@dungeonmaster/hydration-recipes" to rebuild it.`,
     );
     this.name = 'RecipesListingExportInvalidError';
   }

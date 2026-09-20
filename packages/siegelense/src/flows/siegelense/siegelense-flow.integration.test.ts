@@ -209,7 +209,7 @@ describe('SiegelenseFlow', () => {
     });
   });
 
-  // `packages/siegelense-recipes/dist/index.js` is compiled output from a sibling package this
+  // `packages/hydration-recipes/dist/index.js` is compiled output from a sibling package this
   // chunk does not build, so `recipesLocateBroker` (C2) — real fs I/O against that exact path —
   // resolves or rejects differently depending on that package's own build state. What holds in
   // EITHER state, and what these two tests assert: `recipes` always reaches the real recipes
@@ -265,7 +265,7 @@ describe('SiegelenseFlow', () => {
 
     it('INVALID: {args: ["recipes", "--bogus"]} => rejects the unknown flag before reaching the responder', async () => {
       await expect(SiegelenseFlow({ args: ['recipes', '--bogus'] })).rejects.toThrow(
-        /^Unknown flag: --bogus\n\n[\s\S]*Accepted flags: --json, --human\n\nUsage: dungeonmaster siegelense recipes \[--json\] \[--human\]$/u,
+        /^Unknown flag: --bogus\n\n[\s\S]*Accepted flags: --json\n\nUsage: dungeonmaster siegelense recipes \[--json\]$/u,
       );
     });
   });
@@ -1484,7 +1484,7 @@ describe('SiegelenseFlow', () => {
         });
       });
 
-      it('VALID: {args: recipes} => raw JSON output by default', async () => {
+      it('VALID: {args: recipes} => the operator block by default', async () => {
         const writes: ReturnType<typeof ContentTextStub>[] = [];
         const originalWrite = process.stdout.write.bind(process.stdout);
         process.stdout.write = ((chunk: string): boolean => {
@@ -1498,58 +1498,17 @@ describe('SiegelenseFlow', () => {
 
         const [wholeOutput] = writes;
 
-        expect(JSON.parse(wholeOutput!)).toStrictEqual({
-          recipes: [
-            {
-              recipeName: 'guild-mid-execution',
-              description:
-                'one guild holding three quests, the first running with its riftcarver item dropped',
-              inputKeys: [],
-              runs: { serverless: true },
-              makes: [
-                { ingredient: 'guild', count: 1 },
-                { ingredient: 'quest', count: 3 },
-                { ingredient: 'operation', count: 'varies' },
-              ],
-            },
-            {
-              recipeName: 'quest-advances-one-step',
-              description:
-                'one quest under an existing guild, its ledger already one operation along — the first item complete and the second running',
-              inputKeys: ['guildId'],
-              runs: { serverless: true },
-              makes: [{ ingredient: 'quest', count: 1 }],
-            },
-            {
-              recipeName: 'session-with-nested-chain',
-              description: 'one session under an existing guild, holding a nested sub-agent chain',
-              inputKeys: ['guildPath'],
-              runs: { serverless: true },
-              makes: [{ ingredient: 'session', count: 1 }],
-            },
-          ],
-        });
-      });
-
-      it("VALID: {args: recipes --human} => the operator block, naming each fidelity's own risk", async () => {
-        const writes: ReturnType<typeof ContentTextStub>[] = [];
-        const originalWrite = process.stdout.write.bind(process.stdout);
-        process.stdout.write = ((chunk: string): boolean => {
-          writes.push(ContentTextStub({ value: chunk }));
-          return true;
-        }) as unknown as typeof process.stdout.write;
-
-        await SiegelenseFlow({ args: ['recipes', '--human'] });
-
-        process.stdout.write = originalWrite;
-
-        const [wholeOutput] = writes;
-
         expect(wholeOutput!.split('\n').slice(0, 3)).toStrictEqual([
           '  guild-mid-execution',
           '    one guild holding three quests, the first running with its riftcarver item dropped',
           '    inputs:  none',
         ]);
+      });
+
+      it('INVALID: {args: recipes --human} => rejects --human as an unknown flag', async () => {
+        await expect(SiegelenseFlow({ args: ['recipes', '--human'] })).rejects.toThrow(
+          /^Unknown flag: --human/u,
+        );
       });
 
       it('INVALID: {args: recipes --instance <id>} => rejects the selector, a catalogue having nothing to narrow by', async () => {

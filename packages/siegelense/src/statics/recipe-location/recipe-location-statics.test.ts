@@ -2,10 +2,10 @@ import { recipeLocationStatics } from './recipe-location-statics';
 
 describe('recipeLocationStatics', () => {
   describe('packageDir', () => {
-    it('VALID: {packageDir} => names packages/siegelense-recipes as both segments and one relative path', () => {
+    it('VALID: {packageDir} => names packages/hydration-recipes as both segments and one relative path', () => {
       expect(recipeLocationStatics.packageDir).toStrictEqual({
-        segments: ['packages', 'siegelense-recipes'],
-        relative: 'packages/siegelense-recipes',
+        segments: ['packages', 'hydration-recipes'],
+        relative: 'packages/hydration-recipes',
       });
     });
 

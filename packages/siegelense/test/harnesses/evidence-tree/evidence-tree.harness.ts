@@ -457,7 +457,7 @@ export const evidenceTreeHarness = (): {
       socketPath: null,
       ports: PortPairStub({ api: 40_001, web: 40_002 }),
       state: 'killed',
-      reservedAtMs: EpochMsStub(),
+      reservedAtMs: EpochMsStub({ value: Date.now() - 600_000 }),
       bootedAtMs: null,
       lastBeatMs: null,
       prunedAtMs: null,

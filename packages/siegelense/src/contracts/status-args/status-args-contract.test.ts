@@ -36,6 +36,22 @@ describe('statusArgsContract', () => {
         human: true,
       });
     });
+
+    it('VALID: {instanceId: null, since: "beginning", human: true} => beginning parses', () => {
+      const args = StatusArgsStub({
+        instanceId: null,
+        since: 'beginning',
+        human: true,
+      });
+
+      const result = statusArgsContract.parse(args);
+
+      expect(result).toStrictEqual({
+        instanceId: null,
+        since: 'beginning',
+        human: true,
+      });
+    });
   });
 
   describe('invalid args', () => {

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Resolves the absolute path of the recipes package — `<repoRoot>/packages/siegelense-recipes`.
+ * PURPOSE: Resolves the absolute path of the recipes package — `<repoRoot>/packages/hydration-recipes`.
  * Reach for this over `locationsRootPathFindBroker`, which answers for the siegelense HOME (the shared
  * registry and instance assets on this machine): recipes are SOURCE, committed with the repo, and a
  * repo checked out twice has two recipe books and one registry. The repo root is resolved from the
@@ -8,7 +8,7 @@
  *
  * USAGE:
  * await locationsRecipesPackagePathFindBroker();
- * // Returns AbsoluteFilePath '<repoRoot>/packages/siegelense-recipes'
+ * // Returns AbsoluteFilePath '<repoRoot>/packages/hydration-recipes'
  */
 
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';

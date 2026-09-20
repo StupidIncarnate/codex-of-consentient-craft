@@ -3,7 +3,7 @@
  * call but is not built yet" fall-through and the named "--human is not implemented" refusal, both
  * plain `Error`s thrown BEFORE the call ever reaches `recipesLocateBroker` — from every outcome the
  * real recipes pipeline itself can produce. `recipesLocateBroker` checks the sibling
- * `siegelense-recipes` package's compiled `dist/index.js` with real fs I/O, so
+ * `hydration-recipes` package's compiled `dist/index.js` with real fs I/O, so
  * `SiegelenseFlow({ args: ['recipes'] })` resolves or rejects differently depending on that
  * package's own build state; `reachedPipeline` reports the one thing true in either state — the
  * call passed SiegelenseFlow's own routing — so a caller of this harness never has to branch on

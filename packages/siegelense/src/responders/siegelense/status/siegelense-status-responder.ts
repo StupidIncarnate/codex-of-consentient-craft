@@ -35,12 +35,12 @@ import { statusAnswerRenderTransformer } from '../../../transformers/status-answ
 export const SiegelenseStatusResponder = async ({
   instanceId,
   branch = null,
-  since = null,
+  since = instanceId === null ? '6h' : null,
   human = true,
 }: {
   instanceId: InstanceId | null;
   branch?: string | null | undefined;
-  since?: '1h' | '6h' | '1d' | null | undefined;
+  since?: '1h' | '6h' | '1d' | 'beginning' | null | undefined;
   human?: boolean | undefined;
 }): Promise<AdapterResult> => {
   const answer = await statusReadBroker({ instanceId, branch, since });

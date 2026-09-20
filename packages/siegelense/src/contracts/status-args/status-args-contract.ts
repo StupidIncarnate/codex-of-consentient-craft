@@ -21,7 +21,7 @@ export const statusArgsContract = z
   .object({
     instanceId: instanceIdContract.nullable(),
     branch: contentTextContract.nullable().optional(),
-    since: z.enum(['1h', '6h', '1d']).nullable().optional(),
+    since: z.enum(['1h', '6h', '1d', 'beginning']).nullable().optional(),
     human: z.boolean(),
   })
   .strict();

@@ -487,5 +487,200 @@ describe('statusReadBroker', () => {
         },
       ]);
     });
+
+    it('VALID: {since filter beginning retains instance active 7h ago} => older instances are not filtered out', async () => {
+      const proxy = statusReadBrokerProxy();
+      const nowMs = 1_700_001_000_000;
+      const idRecent = InstanceIdStub({ value: 'inst_00000001' });
+      const idOld = InstanceIdStub({ value: 'inst_00000002' });
+      const entryRecent = RegistryEntryStub({
+        id: idRecent,
+        branch: 'main',
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        state: 'alive',
+        bootedAtMs: EpochMsStub({ value: nowMs - 60_000 }),
+        lastBeatMs: EpochMsStub({ value: nowMs - 1000 }),
+      });
+      const entryOld = RegistryEntryStub({
+        id: idOld,
+        branch: 'main',
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        state: 'alive',
+        bootedAtMs: EpochMsStub({ value: nowMs - 25_200_000 }),
+        lastBeatMs: EpochMsStub({ value: nowMs - 25_200_000 }),
+      });
+      const registry = RegistryStub({ instances: [entryRecent, entryOld] });
+
+      proxy.setupNow({ nowMs });
+      proxy.setupRegistryResolution({ registry });
+      proxy.setupInstanceStateResolution({ registry });
+      proxy.setupInstanceStateResolution({ registry });
+
+      proxy.setupMachineReading({
+        freeMemBytes: 980 * 1_048_576,
+        totalMemBytes: 16_000 * 1_048_576,
+        coreCount: 8,
+        loadAvg: [7.9, 6.2, 4.1],
+        diskBavail: 512_000,
+        diskBsize: 4096,
+        vmstatContent: 'nr_free_pages 100\noom_kill 2\n',
+      });
+
+      const evidencePathRecent = FilePathStub({
+        value: `${ROOT_PATH_VALUE}/unowned/instances/${idRecent}`,
+      });
+      proxy.setupEvidenceDir({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        evidencePath: evidencePathRecent,
+      });
+      proxy.setupHeartbeatMissing({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        evidencePath: evidencePathRecent,
+      });
+      proxy.setupRunsDirPathJoin({ evidencePath: evidencePathRecent });
+      proxy.setupRunsDirEntries({ evidencePath: evidencePathRecent, entries: [] });
+      proxy.setupProcListing({ pids: [] });
+
+      const evidencePathOld = FilePathStub({
+        value: `${ROOT_PATH_VALUE}/unowned/instances/${idOld}`,
+      });
+      proxy.setupEvidenceDir({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        evidencePath: evidencePathOld,
+      });
+      proxy.setupHeartbeatMissing({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        evidencePath: evidencePathOld,
+      });
+      proxy.setupRunsDirPathJoin({ evidencePath: evidencePathOld });
+      proxy.setupRunsDirEntries({ evidencePath: evidencePathOld, entries: [] });
+      proxy.setupShutdownReasonPathJoin({ evidencePath: evidencePathOld });
+      proxy.setupShutdownReasonMissing({ evidencePath: evidencePathOld });
+      proxy.setupProcListing({ pids: [] });
+
+      const result = await statusReadBroker({ instanceId: null, since: 'beginning' });
+
+      expect(result.instances).toStrictEqual([
+        {
+          id: idRecent,
+          state: 'alive',
+          specName: 'dungeonmaster-stack',
+          uptime: '1m',
+          lastBeat: '1s',
+          runs: 0,
+          rssMB: 0,
+          rssAtLastBeat: null,
+          lastStep: null,
+          orphans: [],
+          evidence: null,
+          likelyCause: null,
+          branch: 'main',
+          evidenceComplete: true,
+        },
+        {
+          id: idOld,
+          state: 'dead',
+          specName: 'dungeonmaster-stack',
+          uptime: null,
+          lastBeat: '7h',
+          runs: 0,
+          rssMB: null,
+          rssAtLastBeat: null,
+          lastStep: null,
+          orphans: [],
+          evidence: null,
+          likelyCause: 'rss unavailable at last beat; kernel OOM kills since boot: 2',
+          branch: 'main',
+          evidenceComplete: true,
+        },
+      ]);
+    });
+
+    it('VALID: {default fleet listing with no since specified} => filters out instance active 7h ago, keeping instance active within 6h', async () => {
+      const proxy = statusReadBrokerProxy();
+      const nowMs = 1_700_001_000_000;
+      const idRecent = InstanceIdStub({ value: 'inst_00000001' });
+      const idOld = InstanceIdStub({ value: 'inst_00000002' });
+      const entryRecent = RegistryEntryStub({
+        id: idRecent,
+        branch: 'main',
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        state: 'alive',
+        bootedAtMs: EpochMsStub({ value: nowMs - 60_000 }),
+        lastBeatMs: EpochMsStub({ value: nowMs - 1000 }),
+      });
+      const entryOld = RegistryEntryStub({
+        id: idOld,
+        branch: 'main',
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        state: 'alive',
+        bootedAtMs: EpochMsStub({ value: nowMs - 25_200_000 }),
+        lastBeatMs: EpochMsStub({ value: nowMs - 25_200_000 }),
+      });
+      const registry = RegistryStub({ instances: [entryRecent, entryOld] });
+
+      proxy.setupNow({ nowMs });
+      proxy.setupRegistryResolution({ registry });
+      proxy.setupInstanceStateResolution({ registry });
+      proxy.setupInstanceStateResolution({ registry });
+
+      proxy.setupMachineReading({
+        freeMemBytes: 980 * 1_048_576,
+        totalMemBytes: 16_000 * 1_048_576,
+        coreCount: 8,
+        loadAvg: [7.9, 6.2, 4.1],
+        diskBavail: 512_000,
+        diskBsize: 4096,
+        vmstatContent: 'nr_free_pages 100\noom_kill 2\n',
+      });
+
+      const evidencePathRecent = FilePathStub({
+        value: `${ROOT_PATH_VALUE}/unowned/instances/${idRecent}`,
+      });
+      proxy.setupEvidenceDir({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        evidencePath: evidencePathRecent,
+      });
+      proxy.setupHeartbeatMissing({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        evidencePath: evidencePathRecent,
+      });
+      proxy.setupRunsDirPathJoin({ evidencePath: evidencePathRecent });
+      proxy.setupRunsDirEntries({ evidencePath: evidencePathRecent, entries: [] });
+      proxy.setupProcListing({ pids: [] });
+
+      const result = await statusReadBroker({ instanceId: null });
+
+      expect(result.instances).toStrictEqual([
+        {
+          id: idRecent,
+          state: 'alive',
+          specName: 'dungeonmaster-stack',
+          uptime: '1m',
+          lastBeat: '1s',
+          runs: 0,
+          rssMB: 0,
+          rssAtLastBeat: null,
+          lastStep: null,
+          orphans: [],
+          evidence: null,
+          likelyCause: null,
+          branch: 'main',
+          evidenceComplete: true,
+        },
+      ]);
+    });
   });
 });

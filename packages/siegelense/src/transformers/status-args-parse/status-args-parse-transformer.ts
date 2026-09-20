@@ -35,7 +35,7 @@ const KNOWN_FLAGS = [
   siegelenseOutputStatics.flags.json,
 ] as const;
 const USAGE =
-  'Usage: dungeonmaster siegelense status [--instance <instanceId>] [--branch <name>] [--since <1hr|6hr|1day>] [--json]';
+  'Usage: dungeonmaster siegelense status [--instance <instanceId>] [--branch <name>] [--since <1hr|6hr|1day|beginning>] [--json]';
 
 export const statusArgsParseTransformer = ({ args }: { args: readonly string[] }): StatusArgs => {
   for (let i = 0; i < args.length; i++) {
@@ -79,7 +79,7 @@ export const statusArgsParseTransformer = ({ args }: { args: readonly string[] }
   const rawBranch = flagValueReadTransformer({ args, flag: BRANCH_FLAG });
   const rawSince = flagValueReadTransformer({ args, flag: SINCE_FLAG });
 
-  let since: '1h' | '6h' | '1d' | null = null;
+  let since: '1h' | '6h' | '1d' | 'beginning' | null = null;
   if (rawSince !== null) {
     if (rawSince === '1h' || rawSince === '1hr') {
       since = '1h';
@@ -87,11 +87,15 @@ export const statusArgsParseTransformer = ({ args }: { args: readonly string[] }
       since = '6h';
     } else if (rawSince === '1d' || rawSince === '1day') {
       since = '1d';
+    } else if (rawSince === 'beginning') {
+      since = 'beginning';
     } else {
       throw new Error(
-        `--since: Only coarse-grained time windows are allowed (1hr, 6hr, 1day). Granular intervals are refused to prevent granular abuse.`,
+        `--since: Only coarse-grained time windows are allowed (1hr, 6hr, 1day, beginning). Granular intervals are refused to prevent granular abuse.`,
       );
     }
+  } else if (instanceId === null) {
+    since = '6h';
   }
 
   const human = !args.includes(siegelenseOutputStatics.flags.json);

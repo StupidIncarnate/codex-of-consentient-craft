@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Resolves and runs a recipe dynamically without statically importing
- * '@dungeonmaster/siegelense-recipes'.
+ * '@dungeonmaster/hydration-recipes'.
  *
  * USAGE:
  * await recipeSeedRunBroker({ recipe, apiBaseUrl, homePath, parameters });

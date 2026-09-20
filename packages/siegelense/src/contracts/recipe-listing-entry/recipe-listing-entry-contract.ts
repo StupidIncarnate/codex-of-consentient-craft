@@ -2,7 +2,7 @@
  * PURPOSE: Parses ONE recipe's row of the compiled recipes package's listing — the recipe's own
  * name, description and declared input keys, paired with the `runs`/`makes` shape
  * `dmRegistryBroker.listing(plan)` computes off its plan. siegelense may import neither
- * `@dungeonmaster/hydration` nor `@dungeonmaster/siegelense-recipes` (`siegelense-recipes.md`'s
+ * `@dungeonmaster/hydration` nor `@dungeonmaster/hydration-recipes` (`siegelense-recipes.md`'s
  * "Three packages, and what may cross between them" table — "neither of the others"), so a
  * dynamically imported module's entry is `unknown` until this parses it. `.strict()` for the
  * same reason every `stepContract` member is: a key the producing side added and this side has not

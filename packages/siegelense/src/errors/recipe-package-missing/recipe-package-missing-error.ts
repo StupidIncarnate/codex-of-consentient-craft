@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Thrown when `dungeonmaster siegelense recipes` finds no `packages/siegelense-recipes/`
+ * PURPOSE: Thrown when `dungeonmaster siegelense recipes` finds no `packages/hydration-recipes/`
  * at all. It exists so that answer never reads like an EMPTY one: an empty package says "no recipes
  * yet", an absent package can only say "something is wrong", and a tool that answered `[]` for both
  * cannot tell "you have written none" from "you have not installed this" — the `count: 0` ambiguity
@@ -8,7 +8,7 @@
  * list and is not an error at all.
  *
  * USAGE:
- * throw new RecipePackageMissingError({ expectedPath: '/repo/packages/siegelense-recipes' });
+ * throw new RecipePackageMissingError({ expectedPath: '/repo/packages/hydration-recipes' });
  * // Throws error naming the path and how to create it
  */
 export class RecipePackageMissingError extends Error {

@@ -43,11 +43,11 @@ const SINCE_WINDOWS_MS = {
 export const statusReadBroker = async ({
   instanceId,
   branch = null,
-  since = null,
+  since = instanceId === null ? '6h' : null,
 }: {
   instanceId: InstanceId | null;
   branch?: string | null;
-  since?: '1h' | '6h' | '1d' | null;
+  since?: '1h' | '6h' | '1d' | 'beginning' | null;
 }): Promise<StatusAnswer> => {
   // Resolved BEFORE machineReadBroker: machineOomCountBroker's own '/proc' + 'vmstat' join is left
   // to pathJoinAdapter's real-passthrough default (safe only once nothing else is pending on that
@@ -73,7 +73,7 @@ export const statusReadBroker = async ({
 
   const nowMs = epochMsContract.parse(Date.now());
 
-  if (since !== null) {
+  if (since !== null && since !== 'beginning') {
     const windowMs = SINCE_WINDOWS_MS[since];
     entryStatePairs = entryStatePairs.filter((pair) => {
       const activityMs = pair.entry.lastBeatMs ?? pair.entry.reservedAtMs;

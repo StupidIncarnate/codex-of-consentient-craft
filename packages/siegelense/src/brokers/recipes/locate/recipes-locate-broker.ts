@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Resolves this repo's `siegelense-recipes` package to its compiled entry path, and tells
+ * PURPOSE: Resolves this repo's `hydration-recipes` package to its compiled entry path, and tells
  * apart the two ways that resolution can fail — the package directory absent (the convention was
  * never adopted here; `dungeonmaster init` is the fix) versus present but its `dist/index.js`
  * absent (adopted but never compiled; a build is the fix). Reach for this before any dynamic
@@ -8,7 +8,7 @@
  *
  * USAGE:
  * const entryPath = await recipesLocateBroker();
- * // Returns AbsoluteFilePath — '<repoRoot>/packages/siegelense-recipes/dist/index.js'
+ * // Returns AbsoluteFilePath — '<repoRoot>/packages/hydration-recipes/dist/index.js'
  */
 
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';

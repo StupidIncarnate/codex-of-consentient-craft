@@ -2,7 +2,7 @@
  * PURPOSE: Imports the located recipes package's compiled entry and turns its
  * `recipesListingBuildBroker` export into a parsed `RecipesListing`. Everything this reads off the
  * imported module is `unknown` until `recipesListingContract` parses it — siegelense may import
- * neither `@dungeonmaster/hydration` nor `@dungeonmaster/siegelense-recipes` (`siegelense-recipes.md`'s
+ * neither `@dungeonmaster/hydration` nor `@dungeonmaster/hydration-recipes` (`siegelense-recipes.md`'s
  * "Three packages, and what may cross between them" table — "neither of the others"), so the
  * compiler never saw the shape crossing this boundary and a cast here would be trusting a payload
  * nobody checked. No caching: node's own module cache already makes a repeated `import()` of the

@@ -5,16 +5,16 @@ import { locationsRecipesPackagePathFindBrokerProxy } from './locations-recipes-
 
 describe('locationsRecipesPackagePathFindBroker', () => {
   describe('the cwd is the repo root', () => {
-    it('VALID: {cwd: /repo} => returns /repo/packages/siegelense-recipes', async () => {
+    it('VALID: {cwd: /repo} => returns /repo/packages/hydration-recipes', async () => {
       const proxy = locationsRecipesPackagePathFindBrokerProxy();
       proxy.setupRepoRootAtCwd({
         cwdPath: '/repo',
-        packagePath: FilePathStub({ value: '/repo/packages/siegelense-recipes' }),
+        packagePath: FilePathStub({ value: '/repo/packages/hydration-recipes' }),
       });
 
       const result = await locationsRecipesPackagePathFindBroker();
 
-      expect(result).toBe('/repo/packages/siegelense-recipes');
+      expect(result).toBe('/repo/packages/hydration-recipes');
     });
   });
 
@@ -24,12 +24,12 @@ describe('locationsRecipesPackagePathFindBroker', () => {
       proxy.setupRepoRootInParent({
         cwdPath: '/repo/packages/web/src',
         repoRoot: '/repo',
-        packagePath: FilePathStub({ value: '/repo/packages/siegelense-recipes' }),
+        packagePath: FilePathStub({ value: '/repo/packages/hydration-recipes' }),
       });
 
       const result = await locationsRecipesPackagePathFindBroker();
 
-      expect(result).toBe('/repo/packages/siegelense-recipes');
+      expect(result).toBe('/repo/packages/hydration-recipes');
     });
   });
 
@@ -39,12 +39,12 @@ describe('locationsRecipesPackagePathFindBroker', () => {
       proxy.setupRepoRootInParent({
         cwdPath: '/home/dev/their-app/apps/api',
         repoRoot: '/home/dev/their-app',
-        packagePath: FilePathStub({ value: '/home/dev/their-app/packages/siegelense-recipes' }),
+        packagePath: FilePathStub({ value: '/home/dev/their-app/packages/hydration-recipes' }),
       });
 
       const result = await locationsRecipesPackagePathFindBroker();
 
-      expect(result).toBe('/home/dev/their-app/packages/siegelense-recipes');
+      expect(result).toBe('/home/dev/their-app/packages/hydration-recipes');
     });
   });
 });

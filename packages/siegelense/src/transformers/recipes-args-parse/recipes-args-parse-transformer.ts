@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Reads `dungeonmaster siegelense recipes`'s argv into a `RecipesArgs`. Every flag but
- * `--json` and `--human` refuses — `recipes` needs no `--instance`, because it lists what states CAN
+ * `--json` refuses — `recipes` needs no `--instance`, because it lists what states CAN
  * be created rather than reporting on one that is running (siegelense-recipes.md's "The calls this
  * document uses" section, "No instance needed") — carrying both that reason AND the canonical
  * positional-argument sentence its siblings all carry, so a stray positional argument states both why
@@ -8,7 +8,7 @@
  *
  * USAGE:
  * recipesArgsParseTransformer({ args: [] });
- * // Returns { human: false } as RecipesArgs
+ * // Returns { human: true } as RecipesArgs
  */
 
 import {
@@ -17,17 +17,14 @@ import {
 } from '../../contracts/recipes-args/recipes-args-contract';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 
-const KNOWN_FLAGS = [
-  siegelenseOutputStatics.flags.json,
-  siegelenseOutputStatics.flags.human,
-] as const;
+const KNOWN_FLAGS = [siegelenseOutputStatics.flags.json] as const;
 const RECIPES_TAKES_NO_INSTANCE =
   'Takes no instance. `recipes` lists what states can be created, not what a running instance is doing — no instance is needed to answer it.';
-const USAGE = 'Usage: dungeonmaster siegelense recipes [--json] [--human]';
+const USAGE = 'Usage: dungeonmaster siegelense recipes [--json]';
 
 export const recipesArgsParseTransformer = ({ args }: { args: readonly string[] }): RecipesArgs => {
   for (const arg of args) {
-    if (arg === siegelenseOutputStatics.flags.json || arg === siegelenseOutputStatics.flags.human) {
+    if (arg === siegelenseOutputStatics.flags.json) {
       continue;
     }
 
@@ -44,7 +41,7 @@ export const recipesArgsParseTransformer = ({ args }: { args: readonly string[] 
     );
   }
 
-  const human = args.includes(siegelenseOutputStatics.flags.human);
+  const human = !args.includes(siegelenseOutputStatics.flags.json);
 
   return recipesArgsContract.parse({ human });
 };

@@ -1,7 +1,7 @@
 /**
- * PURPOSE: The surface `dungeonmaster siegelense recipes [--json] [--human]` serves — one JSON
- * document on stdout by default (the raw `RecipesAnswer`), or the per-recipe block
- * `recipesAnswerRenderTransformer` renders when `human` is true. Takes no `instanceId`: `recipes`
+ * PURPOSE: The surface `dungeonmaster siegelense recipes [--json]` serves — the per-recipe block
+ * `recipesAnswerRenderTransformer` renders by default, or one JSON document on stdout (the raw
+ * `RecipesAnswer`) when `human` is false. Takes no `instanceId`: `recipes`
  * lists what states CAN be created, not what a running instance is doing (siegelense-recipes.md's
  * "The calls this document uses" section, "No instance needed"), so — unlike
  * `SiegelenseStatusResponder` — this responder never resolves or touches a live instance. Wraps
@@ -15,11 +15,11 @@
  * and re-format the message that is already the one an operator reads.
  *
  * USAGE:
+ * await SiegelenseRecipesResponder();
+ * // Writes one block per recipe, or 'no recipes declared yet' when the listing is empty
+ *
  * await SiegelenseRecipesResponder({ human: false });
  * // Writes the RecipesAnswer as one JSON document
- *
- * await SiegelenseRecipesResponder({ human: true });
- * // Writes one block per recipe, or 'no recipes declared yet' when the listing is empty
  */
 
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
@@ -30,13 +30,11 @@ import { recipesAnswerContract } from '../../../contracts/recipes-answer/recipes
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { recipesAnswerRenderTransformer } from '../../../transformers/recipes-answer-render/recipes-answer-render-transformer';
 
-export const SiegelenseRecipesResponder = async (
-  {
-    human,
-  }: {
-    human: boolean;
-  } = { human: false },
-): Promise<AdapterResult> => {
+export const SiegelenseRecipesResponder = async ({
+  human = true,
+}: {
+  human?: boolean;
+} = {}): Promise<AdapterResult> => {
   const recipes = await recipesReadBroker();
   const answer = recipesAnswerContract.parse({ recipes });
   process.stdout.write(

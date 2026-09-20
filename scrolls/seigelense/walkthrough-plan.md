@@ -36,20 +36,22 @@ The walkthrough proceeds across three phases covering all 13 subcommands in a re
    * *Complete Arguments*:
      * `--instance <instanceId>` *(optional)*: Inspect a specific instance in full detail (metrics, logs, surviving orphans, likely cause of death if killed).
      * `--branch <name>` *(optional)*: Filter the fleet listing to instances created on a specific git branch.
-     * `--since <1hr|6hr|1day>` *(optional)*: Coarse-grained time filter to show only instances created/active within the last hour, 6 hours, or 1 day (rejects finer granularities to prevent abuse).
+     * `--since <1hr|6hr|1day|beginning>` *(optional)*: Coarse-grained time filter to show only instances created/active within the last hour, 6 hours, 1 day, or from the beginning. Defaults to `6hr` (`6h`) for the fleet listing. Pass `--since beginning` to show all instances.
      * `--json` *(optional)*: Outputs raw JSON structure instead of formatted table.
    ```bash
    dungeonmaster siegelense status
    dungeonmaster siegelense status --branch main
    dungeonmaster siegelense status --since 6hr
+   dungeonmaster siegelense status --since beginning
    ```
 
 4. **`siegelense cleanup`**
-   * *Purpose*: Sweep stale instances, release abandoned ports/locks, and age out expired assets. Outputs human-readable summary by default.
+   * *Purpose*: Sweep stale instances, release abandoned ports/locks, and age out expired assets. Outputs human-readable summary by default. Always recheck `siegelense status` as a followup step to verify that swept resources and removed instances are reflected in the registry.
    * *Complete Arguments*:
      * `--json` *(optional)*: Outputs raw JSON structure instead of human summary.
    ```bash
    dungeonmaster siegelense cleanup
+   dungeonmaster siegelense status
    ```
 
 5. **`siegelense recipes`**
@@ -109,7 +111,14 @@ The walkthrough proceeds across three phases covering all 13 subcommands in a re
    dungeonmaster siegelense run --instance <instanceId> --steps '[{"step":"goto","path":"/"},{"step":"look"},{"step":"screenshot","name":"homepage"}]'
    ```
 
-10. **`siegelense results` (Run 1 Evidence)**
+10. **`siegelense status --instance <instanceId>` (Run 1 Followup Status Check)**
+    * *Purpose*: Recheck instance status immediately following Run 1 to verify that `runs` incremented from `0` to `1`, `lastStep` recorded the final step in the batch, and instance memory/health remain stable.
+    * *Complete Arguments*: Same as Command 8 (`--instance <instanceId>`).
+    ```bash
+    dungeonmaster siegelense status --instance <instanceId>
+    ```
+
+11. **`siegelense results` (Run 1 Evidence)**
     * *Purpose*: Query the resulting evidence off disk (step readings, element key map, screenshot metadata, console buffer).
     * *Complete Arguments*:
       * `--instance <instanceId>` *(required)*: The instance ID whose evidence is queried.
@@ -130,7 +139,7 @@ The walkthrough proceeds across three phases covering all 13 subcommands in a re
     dungeonmaster siegelense results --instance <instanceId> --run run_1 --step 2
     ```
 
-11. **`siegelense snapshots`**
+12. **`siegelense snapshots`**
     * *Purpose*: Inspect any available snapshot restore points for the instance.
     * *Complete Arguments*:
       * `--instance <instanceId>` *(required)*: The instance ID whose snapshots are listed.
@@ -139,14 +148,21 @@ The walkthrough proceeds across three phases covering all 13 subcommands in a re
     dungeonmaster siegelense snapshots --instance <instanceId>
     ```
 
-12. **`siegelense run` (Run 2: Subsequent Action / Mutation)**
+13. **`siegelense run` (Run 2: Subsequent Action / Mutation)**
     * *Purpose*: Submit a second batch of steps on the same timeline (e.g. clicking or typing) to generate a second run.
     * *Complete Arguments*: Same as Command 9 (`--instance`, `--steps`, `--steps-file`, `--stop-on`).
     ```bash
     dungeonmaster siegelense run --instance <instanceId> --steps '[{"step":"look"}]'
     ```
 
-13. **`siegelense compare`**
+14. **`siegelense status --instance <instanceId>` (Run 2 Followup Status Check)**
+    * *Purpose*: Recheck instance status immediately following Run 2 to verify that `runs` incremented from `1` to `2` and `lastStep` reflects the second run.
+    * *Complete Arguments*: Same as Command 8 (`--instance <instanceId>`).
+    ```bash
+    dungeonmaster siegelense status --instance <instanceId>
+    ```
+
+15. **`siegelense compare`**
     * *Purpose*: Compare the index delta between `run_1` and `run_2` across the instance timeline.
     * *Complete Arguments*:
       * `--instance <instanceId>` *(required)*: The instance ID holding both runs.
@@ -161,7 +177,7 @@ The walkthrough proceeds across three phases covering all 13 subcommands in a re
 
 ### Phase 2: Teardown, Post-Mortem & Storage Management
 
-14. **`siegelense kill`**
+16. **`siegelense kill`**
     * *Purpose*: Gracefully stop the running instance, release ports, and remove the throwaway home while preserving evidence.
     * *Complete Arguments*:
       * `--instance <instanceId>` *(required)*: The instance ID to terminate.
@@ -170,7 +186,7 @@ The walkthrough proceeds across three phases covering all 13 subcommands in a re
     dungeonmaster siegelense kill --instance <instanceId>
     ```
 
-15. **`siegelense status --instance <instanceId>` (Post-Kill)**
+17. **`siegelense status --instance <instanceId>` (Post-Kill)**
     * *Purpose*: Verify the instance state transitioned to `killed` in the registry without being deleted.
     * *Complete Arguments*:
       * `--instance <instanceId>` *(required)*: The terminated instance ID.
@@ -178,14 +194,14 @@ The walkthrough proceeds across three phases covering all 13 subcommands in a re
     dungeonmaster siegelense status --instance <instanceId>
     ```
 
-16. **`siegelense results` (Post-Kill Off-Disk Verification)**
+18. **`siegelense results` (Post-Kill Off-Disk Verification)**
     * *Purpose*: Demonstrate that evidence remains queryable off disk even after the instance has terminated.
-    * *Complete Arguments*: Same as Command 10 (`--instance`, `--run`, `--kind`, etc.).
+    * *Complete Arguments*: Same as Command 11 (`--instance`, `--run`, `--kind`, etc.).
     ```bash
     dungeonmaster siegelense results --instance <instanceId> --run run_1
     ```
 
-17. **`siegelense prune`**
+19. **`siegelense prune`**
     * *Purpose*: Inspect and reclaim asset space (screenshots, stored traces) from completed instances.
     * *Complete Arguments*:
       * `--instance <instanceId>` *(optional)*: Reclaim assets for a specific instance only.
@@ -197,11 +213,19 @@ The walkthrough proceeds across three phases covering all 13 subcommands in a re
     dungeonmaster siegelense prune --older-than 1h
     ```
 
-18. **`siegelense cleanup`**
+20. **`siegelense cleanup`**
     * *Purpose*: Perform final fleet maintenance and reap aged entries. Outputs human-readable summary by default.
     * *Complete Arguments*: Same as Command 4 (`--json`).
     ```bash
     dungeonmaster siegelense cleanup
+    ```
+
+21. **`siegelense status` (Post-Cleanup Fleet Verification)**
+    * *Purpose*: Recheck fleet status immediately following cleanup to verify that reaped instances, abandoned locks, and cleaned assets are reflected in the registry.
+    * *Complete Arguments*: Same as Command 3.
+    ```bash
+    dungeonmaster siegelense status
+    dungeonmaster siegelense status --since beginning
     ```
 
 ---
@@ -219,8 +243,9 @@ The walkthrough proceeds across three phases covering all 13 subcommands in a re
    * On each command, execution pauses for the user to ask questions, examine state, or direct follow-up actions.
    * The assistant advances to the next command **only when the user explicitly prompts: "next cmd"**.
 4. **Defect Tracking & Subagent Delegation**:
-   * Any issue, design defect, or discrepancy identified during the walkthrough is recorded in the Defect Ledger below.
-   * Background subagents are immediately dispatched to implement the fix and verify it with scoped ward while we proceed with the walkthrough.
+   * Whenever the user mentions changes, requests tweaks, or identifies defects/discrepancies during the walkthrough, they must immediately be recorded in the Defect Ledger below.
+   * Every recorded defect is delegated to a dedicated background subagent to implement and verify with scoped ward while the walkthrough proceeds without interruption.
+   * **No Inline Fixes by the Walkthrough Driver**: The primary LLM running the walkthrough for the user **MUST NOT fix code or defects themselves**. Fixing things inline blocks the turn, delays responses, and significantly slows down the user's walkthrough experience. The driver's role is strictly to record the defect in the ledger, dispatch the background subagent, and keep the walkthrough moving seamlessly.
 
 ---
 
@@ -237,5 +262,8 @@ The walkthrough proceeds across three phases covering all 13 subcommands in a re
 | **DEF-07** | `siegelense` lane specs | Rename lane specs from `dungeonmaster-web` to `dungeonmaster-stack` and `dungeonmaster-headless` to `dungeonmaster-api`. Update all contracts, statics, docs, error messages, and tests. | Subagent (`Spec Renamer Subagent`) | **Completed** ✅ |
 | **DEF-08** | `siegelense status` & bare fleet tables | Render all human table displays using clean Unicode box-drawing borders (`┌─┬─┐`, `│`, `├─┼─┤`, `└─┴─┘`) with dynamically aligned column widths instead of unaligned tabs or naive spaces. | Subagent (`Box Table Display Formatter`) | **Completed** ✅ |
 | **DEF-09** | All commands (`siegelense *`) | Universal Human-First Output: All commands output token-efficient human-readable views by default. Eliminate `--human` flag everywhere; use only `--json` for explicit raw JSON output. | Subagents (4 parts across all subcommands) | **Completed** ✅ |
+| **DEF-10** | `siegelense status` | Status should default to filtering to the last 6 hours (`--since 6hr`) on the fleet listing instead of unbounded history. Viewing all historical instances requires explicitly passing `--since beginning`. Update contracts, transformers, brokers, responders, and tests. | Subagent (`Status Since Default and Beginning Option`) | **Completed** ✅ |
+| **DEF-11** | `siegelense recipes` | `recipes` still defaults to JSON output and still expects `--human`. Align with DEF-09 standard: output human text view by default (`recipesAnswerRenderTransformer`), eliminate `--human` flag, and only output JSON when `--json` is explicitly passed. | Subagent (`Recipes Human View Default`) | **Completed** ✅ |
+| **DEF-12** | `siegelense recipes` / packages | Delete orphaned `packages/siegelense-recipes/` directory. Update `packages/siegelense` (`recipeLocationStatics`, location brokers, error messages, and tests) to point to `packages/hydration-recipes` (`@dungeonmaster/hydration-recipes`). | Subagent (`Hydration Recipes Rename Cleanup`) | **Completed** ✅ |
 
 ---
