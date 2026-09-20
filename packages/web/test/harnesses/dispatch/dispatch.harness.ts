@@ -215,7 +215,7 @@ export const dispatchHarness = ({
       worktreePath,
     }) => {
       const created = await quests.createQuest({ guildId, title, userRequest });
-      quests.seedInProgressWithOperations({
+      await quests.seedInProgressWithOperations({
         questId: String(created.questId),
         questFolder: String(created.questFolder),
         questFilePath: String(created.filePath),

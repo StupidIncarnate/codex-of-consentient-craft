@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": "./",
+    "outDir": "./dist",
+    "declaration": true,
+    "declarationMap": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./.ward/build.tsbuildinfo"
+  },
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.proxy.ts",
+    "**/*.stub.ts",
+    "**/*.harness.ts",
+    "test/**",
+    "src/.test-tmp/**",
+    "src/_lint-testbed/**"
+  ]
+}

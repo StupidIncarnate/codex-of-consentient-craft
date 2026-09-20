@@ -49,7 +49,7 @@ describe('HookSubagentStopFlow', () => {
   const transcripts = transcriptHarness();
 
   it('VALID: {agent_transcript_path = work-item agent without signal-back} => blocks the stop', async () => {
-    const agentTranscriptPath = transcripts.write({ contents: workItemAgentLine });
+    const agentTranscriptPath = await transcripts.write({ contents: workItemAgentLine });
 
     const result = await HookSubagentStopFlow({
       inputData: JSON.stringify(
@@ -63,7 +63,7 @@ describe('HookSubagentStopFlow', () => {
   });
 
   it('VALID: {agent_transcript_path = work-item agent WITH signal-back} => allows the stop', async () => {
-    const agentTranscriptPath = transcripts.write({
+    const agentTranscriptPath = await transcripts.write({
       contents: [workItemAgentLine, signalBackLine].join('\n'),
     });
 
@@ -79,8 +79,8 @@ describe('HookSubagentStopFlow', () => {
   });
 
   it('VALID: {agent_transcript_path set, transcript_path is the unrelated parent} => reads agent_transcript_path and blocks', async () => {
-    const agentTranscriptPath = transcripts.write({ contents: workItemAgentLine });
-    const parentTranscriptPath = transcripts.write({ contents: parentSessionLine });
+    const agentTranscriptPath = await transcripts.write({ contents: workItemAgentLine });
+    const parentTranscriptPath = await transcripts.write({ contents: parentSessionLine });
 
     const result = await HookSubagentStopFlow({
       inputData: JSON.stringify(
@@ -97,7 +97,7 @@ describe('HookSubagentStopFlow', () => {
   });
 
   it('VALID: {no agent_transcript_path} => falls back to transcript_path', async () => {
-    const transcriptPath = transcripts.write({ contents: workItemAgentLine });
+    const transcriptPath = await transcripts.write({ contents: workItemAgentLine });
 
     const result = await HookSubagentStopFlow({
       inputData: JSON.stringify(SubagentStopHookDataStub({ transcript_path: transcriptPath })),

@@ -8,6 +8,7 @@ describe('EslintPluginFlow', () => {
       expect(Object.keys(plugin.rules).sort()).toStrictEqual([
         'ban-adhoc-types',
         'ban-anonymous-jsx-in-map',
+        'ban-dom-handles-in-ingredients',
         'ban-fetch-in-proxies',
         'ban-flattened-contract-params',
         'ban-inline-helpers-in-test-scenarios',
@@ -15,6 +16,7 @@ describe('EslintPluginFlow', () => {
         'ban-jest-mock-in-tests',
         'ban-negated-matchers',
         'ban-node-builtins-in-test-scenarios',
+        'ban-nondeterminism-in-ingredients',
         'ban-not-to-throw',
         'ban-object-keys-in-expect',
         'ban-page-route-in-e2e',
@@ -38,6 +40,7 @@ describe('EslintPluginFlow', () => {
         'enforce-file-metadata',
         'enforce-folder-return-types',
         'enforce-harness-patterns',
+        'enforce-hydration-recipes-structure',
         'enforce-implementation-colocation',
         'enforce-import-dependencies',
         'enforce-jest-mocked-usage',

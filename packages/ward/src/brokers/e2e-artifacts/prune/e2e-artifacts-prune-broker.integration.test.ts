@@ -29,14 +29,14 @@ describe('e2eArtifactsPruneBroker (integration)', () => {
     // Every age sits a clean 2x either side of the window it is grading, so neither a rounding
     // error nor a slow testbed can decide the result: the cache window is one day, the evidence
     // window two.
-    harness.seedDir({ packageRoot, relativePath: STALE_CACHE, daysOld: 2 });
-    harness.seedDir({ packageRoot, relativePath: FRESH_CACHE, daysOld: 0.5 });
-    harness.seedDir({ packageRoot, relativePath: RECENT_TRACE, daysOld: 1 });
-    harness.seedDir({ packageRoot, relativePath: OLD_TRACE, daysOld: 4 });
+    await harness.seedDir({ packageRoot, relativePath: STALE_CACHE, daysOld: 2 });
+    await harness.seedDir({ packageRoot, relativePath: FRESH_CACHE, daysOld: 0.5 });
+    await harness.seedDir({ packageRoot, relativePath: RECENT_TRACE, daysOld: 1 });
+    await harness.seedDir({ packageRoot, relativePath: OLD_TRACE, daysOld: 4 });
     // Playwright's DEFAULT outputDir naming, from a repo that never adopted per-port paths. This
     // fixture is what grades the blast radius.
-    harness.seedDir({ packageRoot, relativePath: FOREIGN_TRACE, daysOld: 60 });
-    harness.seedFile({ packageRoot, relativePath: OLD_REPORT, daysOld: 4 });
+    await harness.seedDir({ packageRoot, relativePath: FOREIGN_TRACE, daysOld: 60 });
+    await harness.seedFile({ packageRoot, relativePath: OLD_REPORT, daysOld: 4 });
 
     await e2eArtifactsPruneBroker({ packageRoot });
 

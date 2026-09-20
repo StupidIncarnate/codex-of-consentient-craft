@@ -1,0 +1,396 @@
+/**
+ * PURPOSE: The step verbs a `run` batch carries as DATA rather than as separate MCP tools
+ * (siegelense-tooling.md line 26 — "the TOOL surface is bounded and the STEP surface is open").
+ * A `z.discriminatedUnion('step', …)` rather than one object with ten optional fields, so an invalid
+ * combination — a `goto` carrying a `ref`, a `click` with no handle at all — is rejected by THIS
+ * contract instead of surfacing three steps later inside a broker. Every member is `.strict()`: a
+ * plain Zod object silently STRIPS an unrecognized key rather than rejecting it, and a field that
+ * belongs to a different verb — or a misspelled one — is otherwise gone with no signal, the same
+ * clean-looking-result failure siegelense-tooling.md line 2204 bans for a stored `ref`. Reach for
+ * this over `stepVerbContract` whenever the value is a whole step a batch will run; StepVerb only
+ * names which verb it is.
+ *
+ * **A driving step takes a `target` OR a `ref`, never both and never neither.** The two are
+ * different KINDS of handle rather than two spellings of one: a `target` plus a `within` is durable
+ * and means the same element the next time anyone runs it, so it is what belongs in a saved batch,
+ * while a `ref` is minted by one `look` against one page state on one instance and is for driving
+ * right now (line 2168). Accepting both would let a caller write a step whose two handles disagree,
+ * and the tool would then have to pick — which is the no-pick rule broken at the contract layer.
+ *
+ * USAGE:
+ * stepContract.parse({ step: 'click', target: '[data-testid="GUILD_ADD"]' });
+ * // Returns the 'click' member of the Step union, with `node` and `expect` filled in
+ *
+ * stepContract.parse({ step: 'look', within: 'SUBAGENT_CHAIN' });
+ * // Returns the 'look' member, scoped to one region — rung 2 of the reading ladder
+ *
+ * stepContract.parse({ step: 'seed', recipe: 'session-with-nested-subagent', guild: '{g.guildId}', as: 's' });
+ * // Returns the 'seed' member, with the recipe's own parameters kept as top-level keys
+ *
+ * stepContract.parse({ step: 'until', visible: '[data-testid="SUBAGENT_CHAIN"]', timeoutMs: 20000 });
+ * // Returns the 'until' member, waiting on the ONE condition field the caller set
+ */
+
+import { z } from 'zod';
+
+import {
+  contentTextContract,
+  fileNameContract,
+  timeoutMsContract,
+} from '@dungeonmaster/shared/contracts';
+
+import { domFieldContract } from '../dom-field/dom-field-contract';
+import { domTextModeContract } from '../dom-text-mode/dom-text-mode-contract';
+import { httpMethodContract } from '../http-method/http-method-contract';
+import { locatorStateContract } from '../locator-state/locator-state-contract';
+import { nodeLabelContract } from '../node-label/node-label-contract';
+import { recipeInputKeyContract } from '../recipe-input-key/recipe-input-key-contract';
+import { recipeNameContract } from '../recipe-name/recipe-name-contract';
+import { refContract } from '../ref/ref-contract';
+import { selectorContract } from '../selector/selector-contract';
+import { stepOutputNameContract } from '../step-output-name/step-output-name-contract';
+import { stepRefContract } from '../step-ref/step-ref-contract';
+import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-statics';
+import { stepExpectationContract } from '../step-expectation/step-expectation-contract';
+import { stepFilePathContract } from '../step-file-path/step-file-path-contract';
+import { stepStatics } from '../../statics/step/step-statics';
+import { holdStatics } from '../../statics/hold/hold-statics';
+import { storageStatics } from '../../statics/storage/storage-statics';
+import { untilConsolePatternContract } from '../until-console-pattern/until-console-pattern-contract';
+import { untilFilePathContract } from '../until-file-path/until-file-path-contract';
+import { untilResponseContract } from '../until-response/until-response-contract';
+import { snapshotNameContract } from '../snapshot-name/snapshot-name-contract';
+import { resetLevelContract } from '../reset-level/reset-level-contract';
+import { urlPathContract } from '../url-path/url-path-contract';
+import { videoActionContract } from '../video-action/video-action-contract';
+
+const HANDLE_MESSAGE =
+  'a driving step takes exactly one handle: a `target` selector — durable, meaning the same element on the next run, so it is what belongs in a saved batch — or a `ref`, which one `look` minted against this instance and this page state and which is for driving right now. Try { "step": "click", "target": "[data-testid=PIXEL_BTN]", "within": "[data-testid=GUILD_LIST]" } or { "step": "click", "ref": 23 }';
+
+const UNTIL_CONDITION_MESSAGE =
+  'an `until` step waits on exactly one condition, never zero and never two: `visible` — a selector that has not rendered yet, { "step": "until", "visible": "[data-testid=SUBAGENT_CHAIN]", "timeoutMs": 20000 }; `predicate` — a page expression that must become truthy, { "step": "until", "predicate": "document.querySelectorAll(\'[data-testid=QUEST_ROW]\').length === 3" }; `console` — a regex SOURCE string matched against a console line\'s text, { "step": "until", "console": "hydrated" }; `response` — a network exchange by method and a path substring, { "step": "until", "response": { "method": "POST", "path": "/api/quests" }, "timeoutMs": 15000 }; or `file` — a path resolved against the lane\'s home, { "step": "until", "file": "guilds/<id>/quests/<id>/quest.json", "timeoutMs": 10000 }';
+
+export const stepContract = z
+  .discriminatedUnion('step', [
+    z
+      .object({
+        step: z.literal('goto'),
+        // A reference is admitted alongside a literal path because a seed mints ids no file
+        // contains (siegelense-recipes.md:2090-2091) — `{s.nested.url}` does not start with `/`, so
+        // `urlPathContract` alone would refuse it. Resolving the reference into a real path is a run's
+        // job (holding earlier steps' outputs), not this contract's.
+        path: urlPathContract.or(stepRefContract),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('waitFor'),
+        target: selectorContract,
+        within: selectorContract.nullable().default(null),
+        state: locatorStateContract,
+        timeoutMs: timeoutMsContract.nullable().default(null),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('click'),
+        target: selectorContract.nullable().default(null),
+        within: selectorContract.nullable().default(null),
+        ref: refContract.nullable().default(null),
+        timeoutMs: timeoutMsContract.nullable().default(null),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('type'),
+        target: selectorContract.nullable().default(null),
+        within: selectorContract.nullable().default(null),
+        ref: refContract.nullable().default(null),
+        value: contentTextContract,
+        timeoutMs: timeoutMsContract.nullable().default(null),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('screenshot'),
+        // Playwright picks the image format off the path's extension and refuses a path carrying
+        // none, with `path: unsupported mime type "null"` — a message naming neither the step nor
+        // the field the caller typed. The extension is a real constraint rather than a formatting
+        // preference: every reader of this tree decodes PNG (`shotBlankReadBroker`,
+        // `shotChangeReadBroker`, and `compare`'s pixel path), so refusing here is what keeps a
+        // capture readable by the calls that exist to read it.
+        name: fileNameContract.refine(
+          (candidate) => candidate.endsWith(evidenceFileStatics.extensions.shot),
+          {
+            message: `a screenshot name must end in "${evidenceFileStatics.extensions.shot}" — the capture is a PNG and every call that reads one decodes it as such. Try { "step": "screenshot", "name": "after-create${evidenceFileStatics.extensions.shot}" }`,
+          },
+        ),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('eval'),
+        source: contentTextContract,
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('look'),
+        // The scope, and the ONLY knob this verb takes. It accepts the spec's own shorthand — a
+        // bare testId, `within: 'SUBAGENT_CHAIN'` (line 2593) — as well as the explicit
+        // `[data-testid="…"]` form every other step uses and the ambiguity error prints;
+        // `withinSelectorNormaliseTransformer` is what makes both reach the same element, so a
+        // session copying a scope out of an error and a session writing the spec's shorthand are
+        // never one silent element-tag match apart.
+        within: selectorContract.nullable().default(null),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('box'),
+        ref: refContract,
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('dom'),
+        target: selectorContract,
+        fields: z.array(domFieldContract).readonly().nullable().default(null),
+        text: domTextModeContract.nullable().default(null),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('seed'),
+        recipe: recipeNameContract,
+        // Its own object, never flattened onto the step — a recipe input named `as`, `step` or
+        // `recipe` would shadow the step's own keys, and the collision would be silent
+        // (siegelense-tooling.md lines 882-883).
+        params: z.record(recipeInputKeyContract, z.unknown()).nullable().default(null),
+        as: stepOutputNameContract.nullable().default(null),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('until'),
+        // Exactly one of these five is non-null — enforced below on the union's own
+        // `.superRefine`, next to the handle rule, for the same reason: a `.refine()` returns a
+        // ZodEffects and `z.discriminatedUnion` accepts only ZodObjects.
+        visible: selectorContract.nullable().default(null),
+        response: untilResponseContract.nullable().default(null),
+        file: untilFilePathContract.nullable().default(null),
+        predicate: contentTextContract.nullable().default(null),
+        console: untilConsolePatternContract.nullable().default(null),
+        timeoutMs: timeoutMsContract.nullable().default(null),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('key'),
+        press: contentTextContract,
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('health'),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('resize'),
+        width: z.number().int().positive().brand<'PositiveNumber'>(),
+        height: z.number().int().positive().brand<'PositiveNumber'>(),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('request'),
+        method: httpMethodContract.default('GET'),
+        path: z.string().brand<'HttpRequestPath'>(),
+        body: z.unknown().optional(),
+        headers: z.record(z.string().brand<'HttpHeaderValue'>()).optional(),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('before'),
+        source: contentTextContract,
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('file'),
+        path: stepFilePathContract,
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('storage'),
+        prefix: z
+          .string()
+          .brand<'StoragePrefix'>()
+          .default(storageStatics.defaults.prefix as never),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('paste'),
+        target: selectorContract.nullable().default(null),
+        within: selectorContract.nullable().default(null),
+        ref: refContract.nullable().default(null),
+        filePath: z.string().brand<'PasteFilePath'>().nullable().default(null),
+        value: contentTextContract.nullable().default(null),
+        timeoutMs: timeoutMsContract.nullable().default(null),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('hold'),
+        frames: z
+          .number()
+          .int()
+          .min(holdStatics.defaults.minFrames)
+          .brand<'HoldFrames'>()
+          .default(holdStatics.defaults.frames as never),
+        everyMs: z
+          .number()
+          .int()
+          .positive()
+          .brand<'HoldEveryMs'>()
+          .default(holdStatics.defaults.everyMs as never),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('video'),
+        action: videoActionContract,
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('snapshot'),
+        as: snapshotNameContract,
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+    z
+      .object({
+        step: z.literal('reset'),
+        level: resetLevelContract.default('state'),
+        to: snapshotNameContract.nullable().default(null),
+        reseed: contentTextContract.nullable().default(null),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
+  ])
+  // `.refine()` returns a ZodEffects and `z.discriminatedUnion` accepts only ZodObjects, so the
+  // cross-field handle rule rides the UNION rather than the two members it governs. It reads the
+  // discriminator itself to stay narrow: `goto` carries neither field and must never be graded
+  // against a rule about handles. `until`'s own exactly-one-condition rule rides the same union
+  // for the identical reason.
+  .superRefine((step, context) => {
+    if (step.step === 'reset') {
+      if (step.level === 'state' && step.to === null) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'a reset step with level "state" requires an explicit "to" snapshot name',
+          path: ['to'],
+        });
+      }
+      return;
+    }
+
+    if (step.step === 'click' || step.step === 'type') {
+      if ((step.target === null) === (step.ref === null)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: HANDLE_MESSAGE,
+          path: ['target'],
+        });
+      }
+      return;
+    }
+
+    if (step.step === 'paste') {
+      if (step.target === null && step.ref === null) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'a paste step requires at least one target handle: target or ref',
+          path: ['target'],
+        });
+      }
+      if (step.filePath === null && step.value === null) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'a paste step requires at least one payload: filePath or value',
+          path: ['value'],
+        });
+      }
+      return;
+    }
+
+    if (step.step !== 'until') {
+      return;
+    }
+
+    const conditionCount = [
+      step.visible,
+      step.response,
+      step.file,
+      step.predicate,
+      step.console,
+    ].filter((value) => value !== null).length;
+    if (conditionCount !== 1) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: UNTIL_CONDITION_MESSAGE,
+        path: ['visible'],
+      });
+    }
+  });
+
+export type Step = z.infer<typeof stepContract>;

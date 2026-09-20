@@ -40,7 +40,7 @@ test.describe('Spec-phase intake conversation streams into the chat panel', () =
     const guildId = guilds.extractGuildId({ guild });
 
     const sessionId = `e2e-spec-phase-chat-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'The rows do not render' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'The rows do not render' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -51,7 +51,7 @@ test.describe('Spec-phase intake conversation streams into the chat panel', () =
 
     // A bug-hunt quest mid-intake: still at explore_flows, with its bughunt work item in_progress
     // and carrying the session the user is talking to.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(created.filePath),
@@ -90,7 +90,7 @@ test.describe('Spec-phase intake conversation streams into the chat panel', () =
     await expect
       .poll(
         async () => {
-          sessions.appendMainSessionLine({ sessionId, line: assistantLine });
+          await sessions.appendMainSessionLine({ sessionId, line: assistantLine });
           return page.getByText(ASSISTANT_TEXT).first().isVisible();
         },
         { timeout: STREAM_TIMEOUT },

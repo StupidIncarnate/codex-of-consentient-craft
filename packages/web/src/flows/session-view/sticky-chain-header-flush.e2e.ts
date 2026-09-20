@@ -17,7 +17,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('A chain header on the chat surface pins flush with the top of the transcript', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {scrolled into a sub-agent chain} => its header pins at the scrollport top, not below the panel inset', async ({

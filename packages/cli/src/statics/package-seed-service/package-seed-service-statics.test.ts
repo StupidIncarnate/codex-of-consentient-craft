@@ -18,6 +18,7 @@ describe('packageSeedServiceStatics', () => {
         jestKind: 'node',
         e2eEligible: false,
         exportsDot: false,
+        needsMswTransform: false,
       });
     });
 
@@ -55,6 +56,7 @@ describe('packageSeedServiceStatics', () => {
         jestKind: 'node',
         e2eEligible: false,
         exportsDot: false,
+        needsMswTransform: true,
       });
     });
 
@@ -93,6 +95,7 @@ describe('packageSeedServiceStatics', () => {
         jestKind: 'node',
         e2eEligible: false,
         exportsDot: true,
+        needsMswTransform: true,
       });
     });
 

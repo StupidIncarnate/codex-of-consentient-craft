@@ -1,0 +1,69 @@
+{
+  "name": "@dungeonmaster/hydration-recipes",
+  "version": "0.1.0",
+  "description": "hydration-recipes package",
+  "private": true,
+  "exports": {
+    ".": {
+      "source": "./index.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./contracts": {
+      "source": "./contracts.ts",
+      "import": "./dist/contracts.js",
+      "require": "./dist/contracts.js",
+      "types": "./dist/contracts.d.ts"
+    },
+    "./statics": {
+      "source": "./statics.ts",
+      "import": "./dist/statics.js",
+      "require": "./dist/statics.js",
+      "types": "./dist/statics.d.ts"
+    },
+    "./brokers": {
+      "source": "./brokers.ts",
+      "import": "./dist/brokers.js",
+      "require": "./dist/brokers.js",
+      "types": "./dist/brokers.d.ts"
+    },
+    "./transformers": {
+      "source": "./transformers.ts",
+      "import": "./dist/transformers.js",
+      "require": "./dist/transformers.js",
+      "types": "./dist/transformers.d.ts"
+    },
+    "./responders": {
+      "source": "./responders.ts",
+      "import": "./dist/responders.js",
+      "require": "./dist/responders.js",
+      "types": "./dist/responders.d.ts"
+    },
+    "./testing": {
+      "source": "./testing.ts",
+      "import": "./dist/testing.js",
+      "require": "./dist/testing.js",
+      "types": "./dist/testing.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:clean": "rm -rf dist .ward/build.tsbuildinfo && npm run build",
+    "test": "dungeonmaster-ward --only test",
+    "typecheck": "dungeonmaster-ward --only typecheck",
+    "lint": "dungeonmaster-ward --only lint",
+    "ward": "dungeonmaster-ward"
+  },
+  "dependencies": {
+    "@dungeonmaster/hydration": "*",
+    "@dungeonmaster/orchestrator": "*",
+    "@dungeonmaster/shared": "*",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@dungeonmaster/testing": "*",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  }
+}

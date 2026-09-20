@@ -94,7 +94,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
     // row's own reportedDurationMs, so the two precedence sources are never accidentally equal —
     // load-bearing for the RED FIRST proof: inverting the transformer's precedence ternary makes
     // every one of these five rows read its gap band instead of its reportedDurationMs band.
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: DU9033_SESSION_ID,
       agentId: 'ffdu9033agent',
       taskToolUseId: 'toolu_ff_du9033',
@@ -103,7 +103,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
       // gap 200000ms (3m20s) => band "3m", never "<1m"
       notification: { at: '2026-09-10T01:03:20.000Z', durationMs: 9033 },
     });
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: DU270K_SESSION_ID,
       agentId: 'ffdu270kagent',
       taskToolUseId: 'toolu_ff_du270k',
@@ -112,7 +112,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
       // gap 45000ms (45s) => band "<1m", never "4m"
       notification: { at: '2026-09-10T02:00:45.000Z', durationMs: 270_000 },
     });
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: DU3600K_SESSION_ID,
       agentId: 'ffdu3600kagent',
       taskToolUseId: 'toolu_ff_du3600k',
@@ -121,7 +121,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
       // gap 150000ms (2m30s) => band "2m", never "1h"
       notification: { at: '2026-09-10T03:02:30.000Z', durationMs: 3_600_000 },
     });
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: DU4380K_SESSION_ID,
       agentId: 'ffdu4380kagent',
       taskToolUseId: 'toolu_ff_du4380k',
@@ -130,7 +130,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
       // gap 2000000ms (33m20s) => band "33m", never "1h13m"
       notification: { at: '2026-09-10T04:33:20.000Z', durationMs: 4_380_000 },
     });
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: WINS_SESSION_ID,
       agentId: 'ffwinsagent',
       taskToolUseId: 'toolu_ff_wins',
@@ -140,7 +140,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
       notification: { at: '2026-09-10T10:10:00.000Z', durationMs: 270_000 },
     });
     // No durationMs on the remaining three — the gap IS the figure, so nothing to invert against.
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: GAP430_SESSION_ID,
       agentId: 'ffgap430agent',
       taskToolUseId: 'toolu_ff_gap430',
@@ -148,7 +148,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
       taskToolUseAt: '2026-09-10T06:00:00.000Z',
       notification: { at: '2026-09-10T06:04:30.000Z' },
     });
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: GAP30_SESSION_ID,
       agentId: 'ffgap30agent',
       taskToolUseId: 'toolu_ff_gap30',
@@ -156,7 +156,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
       taskToolUseAt: '2026-09-10T07:00:00.000Z',
       notification: { at: '2026-09-10T07:00:30.000Z' },
     });
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: GAPNEG_SESSION_ID,
       agentId: 'ffgapnegagent',
       taskToolUseId: 'toolu_ff_gapneg',
@@ -171,7 +171,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
       title: 'Subagent Duration Frozen Figure Band Quest',
       userRequest: 'Build the feature',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -350,7 +350,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
     // 4m so the two strings prove the notification was actually consulted rather than ignored.
     const CLOCK_TASK_TOOL_USE_AT = '2026-09-10T12:50:00.000Z';
 
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: REPORTED_SESSION_ID,
       agentId: 'ffbranchreported',
       taskToolUseId: 'toolu_ff_branch_reported',
@@ -363,7 +363,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
     // `in_progress` — it is the sole thing under test needing a real clock threaded, and it is the
     // ONLY active sessionId-bearing work item in this quest, so no other row's session is at risk
     // from the orphan-reset sweep described at the top of this file.
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: CLOCK_SESSION_ID,
       agentId: 'ffbranchclock',
       taskToolUseId: 'toolu_ff_branch_clock',
@@ -377,7 +377,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
       userRequest: 'Build the feature',
     });
     const questFilePath = String(created.filePath);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath,
@@ -407,7 +407,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
     // The panel's shared clock only threads to a row when the WORK ITEM itself carries a
     // `startedAt` (`hasRunningWorkItem` in execution-panel-widget.tsx) — a field `writeQuestFile`
     // never writes. Stamping it here is what makes CLOCK_WI's chain actually see `now`.
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: CLOCK_WI, startedAt: CLOCK_TASK_TOOL_USE_AT }],
     });
@@ -462,7 +462,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
     const SHARED_TASK_AT = '2026-09-10T05:00:00.000Z';
     const SHARED_NOTIFICATION_AT = '2026-09-10T05:10:00.000Z'; // +600000ms
 
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: TAGGED_SESSION_ID,
       agentId: 'ffbranchtagged',
       taskToolUseId: 'toolu_ff_branch_tagged',
@@ -470,7 +470,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
       taskToolUseAt: SHARED_TASK_AT,
       notification: { at: SHARED_NOTIFICATION_AT, durationMs: 270_000 },
     });
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: UNTAGGED_SESSION_ID,
       agentId: 'ffbranchuntagged',
       taskToolUseId: 'toolu_ff_branch_untagged',
@@ -484,7 +484,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
       title: 'Subagent Duration Frozen Figure Duration-Ms Branch Quest',
       userRequest: 'Build the feature',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

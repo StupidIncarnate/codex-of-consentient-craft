@@ -61,11 +61,11 @@ export const warpgateHarness = ({
     status: string;
     warpgateStatus: string;
     tavernkeeperSessionId?: string;
-  }) => void;
+  }) => Promise<void>;
   seedFollowupTurns: (params: {
     sessionId: string;
     turns: readonly { role: 'user' | 'assistant'; text: string }[];
-  }) => void;
+  }) => Promise<void>;
 } => {
   const guilds = guildHarness({ request });
   const quests = questHarness({ request });
@@ -134,7 +134,7 @@ export const warpgateHarness = ({
   // item itself at the caller's status, its linked warpgate operation item, and — only when
   // `tavernkeeperSessionId` is passed — a tavernkeeper item bound to that session so the
   // FOLLOW-UP tab's transcript resolves via `entriesBySession`.
-  const seedWarpgateQuest = ({
+  const seedWarpgateQuest = async ({
     questId,
     questFolder,
     questFilePath,
@@ -150,8 +150,8 @@ export const warpgateHarness = ({
     status: string;
     warpgateStatus: string;
     tavernkeeperSessionId?: string;
-  }): void => {
-    quests.writeQuestFile({
+  }): Promise<void> => {
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -195,14 +195,14 @@ export const warpgateHarness = ({
   // Multi-turn tavernkeeper session so the FOLLOW-UP tab has >=2 PRIOR turns to survive a
   // status change — one turn alone cannot distinguish "the transcript survived" from "the last
   // message survived".
-  const seedFollowupTurns = ({
+  const seedFollowupTurns = async ({
     sessionId,
     turns,
   }: {
     sessionId: string;
     turns: readonly { role: 'user' | 'assistant'; text: string }[];
-  }): void => {
-    sessions.createMultiEntrySessionFile({
+  }): Promise<void> => {
+    await sessions.createMultiEntrySessionFile({
       sessionId,
       lines: turns.map((turn) =>
         JSON.stringify(

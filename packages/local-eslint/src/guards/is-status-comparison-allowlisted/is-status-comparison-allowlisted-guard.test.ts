@@ -16,6 +16,7 @@ describe('isStatusComparisonAllowlistedGuard', () => {
       '/repo/packages/shared/src/statics/quest-status-transitions/quest-status-transitions-statics.ts',
       '/repo/packages/orchestrator/src/transformers/quest-completeness-for-transition/quest-completeness-for-transition-transformer.ts',
       '/repo/packages/orchestrator/src/statics/quest-hydrate-strategy/quest-hydrate-strategy-statics.ts',
+      '/repo/packages/hydration-recipes/src/statics/quest-transition-target-statuses/quest-transition-target-statuses-statics.ts',
     ] as const)('VALID: {filename: %s} => returns true', (filename) => {
       expect(isStatusComparisonAllowlistedGuard({ filename })).toBe(true);
     });

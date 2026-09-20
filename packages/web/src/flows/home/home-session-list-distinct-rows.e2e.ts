@@ -40,9 +40,9 @@ test.describe('Home content list — quest rows vs session rows by filter', () =
     const summaryC = 'Refactor session-list-broker to dedupe quest rows';
     const questTitle = 'Same Quest, Different Sessions';
 
-    sessions.createSessionFile({ sessionId: sessionA, userMessage: summaryA });
-    sessions.createSessionFile({ sessionId: sessionB, userMessage: summaryB });
-    sessions.createSessionFile({ sessionId: sessionC, userMessage: summaryC });
+    await sessions.createSessionFile({ sessionId: sessionA, userMessage: summaryA });
+    await sessions.createSessionFile({ sessionId: sessionB, userMessage: summaryB });
+    await sessions.createSessionFile({ sessionId: sessionC, userMessage: summaryC });
 
     // ONE quest file whose workItems reference all three sessionIds. The user-stated
     // invariant: "Quests Only" mode is one-to-one with quest files on disk — so
@@ -53,7 +53,7 @@ test.describe('Home content list — quest rows vs session rows by filter', () =
       userRequest: 'Same quest userRequest used across sessions',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

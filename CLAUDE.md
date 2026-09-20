@@ -35,6 +35,21 @@ This is a **published npm package** (`dungeonmaster`). When users install it in 
 logic directly in these startup files - don't move it to brokers (the CLI orchestration layer handles
 discovery/execution).
 
+## MCP and Agent Module Resolution Architecture
+
+`dungeonmaster init` configures MCP for both **Claude Code** (`.mcp.json` at repo root) and **Antigravity** (`.agents/plugins/dungeonmaster/mcp_config.json`) through `dungeonmasterConfigCreatorTransformer`.
+
+### Four Resolution Scenarios
+
+1. **Dogfood In This Monorepo:** MCP executes THIS checkout's compiled output (`packages/mcp/dist/src/index.js`), never a globally installed npm package.
+2. **Isolated Worktrees (`worktrees/<name>`):** Worktrees carved via `create-worktree` execute the worktree's own compiled output (`worktrees/<name>/packages/mcp/dist/src/index.js`) without bleeding into the root checkout or global.
+3. **Consumer Repos with Local `node_modules`:** Projects initialized with `dungeonmaster init` and `npm install` resolve to `<consumerRepo>/node_modules/@dungeonmaster/mcp`.
+4. **Consumer Repos with Global Install Only:** When `dungeonmaster` is installed globally (`npm install -g dungeonmaster`) and run in a repo with no local `node_modules`, MCP falls back to the global npm root (`npm root -g`).
+
+### Resolution Precedence Rule
+
+Local module resolution always takes precedence over global. Node's `require('@dungeonmaster/mcp')` traverses up from `process.cwd()` to find the nearest `node_modules/@dungeonmaster/mcp` (resolving the workspace symlink in this repo and worktrees, or local installed packages in consumer repos). If and only if local resolution fails, it falls back to the global npm prefix (`npm root -g`).
+
 ## Runtime Configuration
 
 All runtime knobs (port, devCommand, buildCommand) live in `.dungeonmaster.json` at repo root. No `.env` files.
@@ -104,7 +119,7 @@ import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing
 const testbed = installTestbedCreateBroker({
   baseName: BaseNameStub({ value: 'my-test' }),
 });
-// testbed.projectPath - isolated temp directory in /tmp
+// testbed.guildPath - isolated temp directory in /tmp
 // testbed.cleanup() - removes temp directory
 ```
 

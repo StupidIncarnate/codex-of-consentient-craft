@@ -75,7 +75,7 @@ describe('AgentPromptFlow', () => {
         relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
       });
       const quest = QuestStub({ operations: [operation], workItems: [workItem] });
-      seeder.seed({ tempDir: testbed.guildPath, quest });
+      await seeder.seed({ tempDir: testbed.guildPath, quest });
 
       const result = await AgentPromptFlow.get({
         agent: 'codeweaver',
@@ -113,7 +113,7 @@ describe('AgentPromptFlow', () => {
       const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
       const workItem = WorkItemStub({ id: workItemId });
       const quest = QuestStub({ workItems: [workItem] });
-      seeder.seed({ tempDir: testbed.guildPath, quest });
+      await seeder.seed({ tempDir: testbed.guildPath, quest });
 
       const promise = AgentPromptFlow.get({
         agent: 'non-existent-agent',
@@ -136,7 +136,7 @@ describe('AgentPromptFlow', () => {
       const workItemId = QuestWorkItemIdStub({ value: 'dddddddd-3333-4222-9333-444444444444' });
       const workItem = WorkItemStub({ id: workItemId, role: 'codeweaver', relatedDataItems: [] });
       const quest = QuestStub({ workItems: [workItem] });
-      seeder.seed({ tempDir: testbed.guildPath, quest });
+      await seeder.seed({ tempDir: testbed.guildPath, quest });
 
       const promise = AgentPromptFlow.get({
         agent: 'codeweaver',

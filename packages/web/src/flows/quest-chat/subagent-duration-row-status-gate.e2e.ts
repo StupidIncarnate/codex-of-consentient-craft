@@ -73,21 +73,21 @@ test.describe('Sub-agent chain duration is gated by the owning row status, not b
     });
     const guildId = guilds.extractGuildId({ guild });
 
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: RUNNING_SESSION_ID,
       agentId: RUNNING_AGENT_ID,
       taskToolUseId: RUNNING_TOOL_USE_ID,
       taskDescription: CHAIN_DESCRIPTION,
       taskToolUseAt: TASK_TOOL_USE_AT,
     });
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: COMPLETE_SESSION_ID,
       agentId: COMPLETE_AGENT_ID,
       taskToolUseId: COMPLETE_TOOL_USE_ID,
       taskDescription: CHAIN_DESCRIPTION,
       taskToolUseAt: TASK_TOOL_USE_AT,
     });
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: FAILED_SESSION_ID,
       agentId: FAILED_AGENT_ID,
       taskToolUseId: FAILED_TOOL_USE_ID,
@@ -100,7 +100,7 @@ test.describe('Sub-agent chain duration is gated by the owning row status, not b
       title: 'Subagent Duration Row Status Gate Quest',
       userRequest: 'Build the feature',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -205,7 +205,7 @@ test.describe('Sub-agent chain duration is gated by the owning row status, not b
     // "a chain with no Task tool-use entry" the browser can actually reach — see
     // collect-subagent-chains-transformer.ts:137, which always stamps taskToolUse on any chain it
     // builds, so no browser-reachable chain ever carries a null one.
-    sessions.createSubagentTailOnly({
+    await sessions.createSubagentTailOnly({
       sessionId: NO_START_SESSION_ID,
       agentId: NO_START_AGENT_ID,
       assistantText: NO_START_BODY_TEXT,
@@ -216,7 +216,7 @@ test.describe('Sub-agent chain duration is gated by the owning row status, not b
       title: 'Subagent Duration No Start Quest',
       userRequest: 'Build the feature',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

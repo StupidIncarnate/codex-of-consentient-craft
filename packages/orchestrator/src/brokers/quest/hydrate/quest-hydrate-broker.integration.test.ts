@@ -96,7 +96,7 @@ describe('questHydrateBroker', () => {
       baseName: BaseNameStub({ value: 'hydrate-minimal-in-progress' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
-    envHarness.seedQuestRepoPackages({
+    await envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
       sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
@@ -144,7 +144,7 @@ describe('questHydrateBroker', () => {
       baseName: BaseNameStub({ value: 'hydrate-verify-tail' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
-    envHarness.seedQuestRepoPackages({
+    await envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
       sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),

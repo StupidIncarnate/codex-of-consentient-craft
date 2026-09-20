@@ -96,7 +96,7 @@ test.describe('FOLLOW-UP reply streams into the tab', () => {
       const sessionId = `e2e-followup-stream-${status}`;
 
       // The transcript file has to exist before the tail attaches — it tails from `end`.
-      followup.seedTavernkeeperSession({
+      await followup.seedTavernkeeperSession({
         sessionId,
         turns: [{ role: 'assistant', text: PRIOR_ASSISTANT_TURN }],
       });
@@ -147,7 +147,7 @@ test.describe('FOLLOW-UP reply streams into the tab', () => {
       await expect
         .poll(
           async () => {
-            followup.streamAssistantTurn({ sessionId, text: FIRST_STREAMED_TURN, order: 0 });
+            await followup.streamAssistantTurn({ sessionId, text: FIRST_STREAMED_TURN, order: 0 });
             return followup.transcriptHasText({ text: FIRST_STREAMED_TURN });
           },
           { timeout: FIRST_TURN_TIMEOUT },
@@ -160,7 +160,7 @@ test.describe('FOLLOW-UP reply streams into the tab', () => {
       expect(await followup.isTurnInFlight()).toBe(true);
       expect(await followup.transcriptHasText({ text: SECOND_STREAMED_TURN })).toBe(false);
 
-      followup.streamAssistantTurn({ sessionId, text: SECOND_STREAMED_TURN, order: 1 });
+      await followup.streamAssistantTurn({ sessionId, text: SECOND_STREAMED_TURN, order: 1 });
 
       await expect(
         page.getByTestId('CHAT_MESSAGE').filter({ hasText: SECOND_STREAMED_TURN }),

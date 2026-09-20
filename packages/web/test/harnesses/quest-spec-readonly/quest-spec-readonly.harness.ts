@@ -6,15 +6,15 @@
  *
  * USAGE:
  * const specReadonly = questSpecReadonlyHarness();
- * quests.writeQuestFile({ questId, questFolder, questFilePath, status: 'review_design', workItems });
- * specReadonly.seedDesignDecisionsAndTooling({
+ * await quests.writeQuestFile({ questId, questFolder, questFilePath, status: 'review_design', workItems });
+ * await specReadonly.seedDesignDecisionsAndTooling({
  *   questFilePath,
  *   designDecisions: [DesignDecisionStub({ id: 'dd-one' }), DesignDecisionStub({ id: 'dd-two' })],
  *   toolingRequirements: [ToolingRequirementStub({ id: 'tool-one' }), ToolingRequirementStub({ id: 'tool-two' })],
  * });
  * // quest.json on disk now carries both arrays; re-navigating (or a fresh mount) renders them
  */
-import { readFileSync, writeFileSync } from 'fs';
+import { promises as fsPromises } from 'fs';
 
 import type { DesignDecision, ToolingRequirement } from '@dungeonmaster/shared/contracts';
 
@@ -25,9 +25,9 @@ export const questSpecReadonlyHarness = (): {
     questFilePath: string;
     designDecisions: DesignDecision[];
     toolingRequirements: ToolingRequirement[];
-  }) => void;
+  }) => Promise<void>;
 } => {
-  const seedDesignDecisionsAndTooling = ({
+  const seedDesignDecisionsAndTooling = async ({
     questFilePath,
     designDecisions,
     toolingRequirements,
@@ -35,11 +35,14 @@ export const questSpecReadonlyHarness = (): {
     questFilePath: string;
     designDecisions: DesignDecision[];
     toolingRequirements: ToolingRequirement[];
-  }): void => {
-    const quest = JSON.parse(readFileSync(questFilePath, 'utf8')) as Record<PropertyKey, unknown>;
+  }): Promise<void> => {
+    const quest = JSON.parse(await fsPromises.readFile(questFilePath, 'utf8')) as Record<
+      PropertyKey,
+      unknown
+    >;
     quest.designDecisions = designDecisions;
     quest.toolingRequirements = toolingRequirements;
-    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
+    await fsPromises.writeFile(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
   };
 
   return { seedDesignDecisionsAndTooling };

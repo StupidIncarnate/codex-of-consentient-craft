@@ -138,6 +138,7 @@ describe('questGetSummaryBroker', () => {
           { id: 'tooling-error', notes: [] },
           { id: 'out-of-scope', notes: [] },
           { id: 'walk-reset', notes: [] },
+          { id: 'walked', notes: [] },
         ],
       });
     });

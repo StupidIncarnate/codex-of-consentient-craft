@@ -9,7 +9,7 @@ describe('locationLiteralStatics', () => {
 
   describe('excludedLiterals', () => {
     it('VALID: excludedLiterals => equals the non-path-meaning list in declared order', () => {
-      expect(locationLiteralStatics.excludedLiterals).toStrictEqual(['node_modules']);
+      expect(locationLiteralStatics.excludedLiterals).toStrictEqual(['node_modules', 'siegelense']);
     });
   });
 

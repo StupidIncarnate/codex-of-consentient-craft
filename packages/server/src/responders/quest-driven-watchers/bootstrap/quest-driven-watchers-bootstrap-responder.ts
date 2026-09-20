@@ -34,6 +34,11 @@ export const QuestDrivenWatchersBootstrapResponder = async (): Promise<{
   const chain: { promise: Promise<unknown> } = { promise: Promise.resolve() };
 
   const outboxResult = await orchestratorOutboxWatchAdapter({
+    // THE SINGLE OWNER of emptying `event-outbox.jsonl`. `StartServer` runs this bootstrap once per
+    // HTTP server boot and an MCP child never reaches it, so this is the one place a truncate is
+    // both bounded (once per boot) and safe to name. It is also the only bound on the file's growth
+    // — nothing rotates or trims it. No other watcher may pass this flag.
+    resetOnStart: true,
     onQuestChanged: (): void => {
       chain.promise = chain.promise
         .then(

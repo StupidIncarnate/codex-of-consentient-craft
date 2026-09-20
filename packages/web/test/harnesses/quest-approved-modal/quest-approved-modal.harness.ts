@@ -82,7 +82,7 @@ export const questApprovedModalHarness = ({
     const guild = await guilds.createGuild({ name: guildName, path: guildPath });
     const guildId = String(guild.id);
 
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
       guildId,
@@ -92,7 +92,7 @@ export const questApprovedModalHarness = ({
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,

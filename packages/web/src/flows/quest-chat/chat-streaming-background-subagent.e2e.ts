@@ -23,7 +23,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Streaming sub-agent grouping (run_in_background — agent JSONL grows past parent CLI exit)', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {Task tool_result with isAsync + status: async_launched, sub-agent JSONL appended after parent end_turn} => sub-agent chain shows the late-arriving entry', async ({
@@ -43,13 +43,13 @@ test.describe('Streaming sub-agent grouping (run_in_background — agent JSONL g
     const LATE_MARKER = 'BG_SUBAGENT_LATE_MARKER_post';
 
     // Pre-create the main session JSONL so the session URL resolves.
-    sessions.createSessionFile({ sessionId, userMessage: 'Launch background agent' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Launch background agent' });
 
     // Pre-seed the sub-agent JSONL with one entry — this mirrors the small slice of
     // sub-agent activity Claude CLI has already written by the time the parent receives
     // the `async_launched` tool_result on stdout. The streaming sub-agent tail's
     // `initialDrain` is expected to deliver this line before parent CLI exit.
-    sessions.createSubagentTailOnly({ sessionId, agentId, assistantText: INITIAL_MARKER });
+    await sessions.createSubagentTailOnly({ sessionId, agentId, assistantText: INITIAL_MARKER });
 
     // Bind the session to a quest so the workspace renders the live chat view.
     const quests = questHarness({ request });
@@ -58,7 +58,7 @@ test.describe('Streaming sub-agent grouping (run_in_background — agent JSONL g
       title: 'BG Subagent Streaming Quest',
       userRequest: 'Stream a backgrounded sub-agent',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: created.questFolder,
       questFilePath: created.filePath,
@@ -177,7 +177,7 @@ test.describe('Streaming sub-agent grouping (run_in_background — agent JSONL g
     // Under the buggy lifecycle (handle.stop() called in onComplete), the watcher is
     // dead and this line never reaches the wire. With the fix, the watcher stays
     // alive and the LATE_MARKER reaches the chain.
-    sessions.appendSubagentLine({
+    await sessions.appendSubagentLine({
       sessionId,
       agentId,
       line: JSON.stringify(

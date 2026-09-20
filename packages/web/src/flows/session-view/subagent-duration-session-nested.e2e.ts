@@ -31,7 +31,7 @@ test.describe('Session transcript sub-agent chain duration: flat chain vs. a cha
     const sessionId = 'e2e-subagent-duration-session-flat-001';
     const TASK_DESCRIPTION = 'Session flat chain does the sub-agent work';
 
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId,
       agentId: 'sessionflatagent',
       taskToolUseId: 'toolu_session_flat_001',
@@ -77,7 +77,7 @@ test.describe('Session transcript sub-agent chain duration: flat chain vs. a cha
     // outerTaskToolUseAt strictly precedes innerTaskToolUseAt — collectSubagentChainsTransformer
     // splices the nested chain in at the position of the Task that launched it, which only exists
     // once the outer chain itself does (see seedNestedChain's own header comment).
-    subagentDuration.seedNestedChain({
+    await subagentDuration.seedNestedChain({
       sessionId,
       outerAgentId: 'sessionnested1outer',
       outerToolUseId: 'toolu_session_nested_outer',

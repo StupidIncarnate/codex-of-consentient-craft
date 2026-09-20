@@ -13,6 +13,7 @@ import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adap
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { settingsPermissionsAddBrokerProxy } from '../../../brokers/settings/permissions-add/settings-permissions-add-broker.proxy';
+import { agentsPluginCreateBrokerProxy } from '../../../brokers/agents/plugin-create/agents-plugin-create-broker.proxy';
 import {
   FileContentsStub,
   PathSegmentStub,
@@ -41,6 +42,7 @@ export const InstallConfigCreateResponderProxy = (): {
   const readProxy = fsReadFileAdapterProxy();
   const writeProxy = fsWriteFileAdapterProxy();
   const settingsProxy = settingsPermissionsAddBrokerProxy();
+  const agentsProxy = agentsPluginCreateBrokerProxy();
 
   // Mirrors the responder's own configPath/settingsPath computation — including its FilePath ->
   // PathSegment re-brand — so the read/write/settings addresses below match what the responder
@@ -83,6 +85,9 @@ export const InstallConfigCreateResponderProxy = (): {
         targetProjectRoot: pathSegmentContract.parse(targetProjectRoot),
         settingsPath: claudeSettingsPathFor({ targetProjectRoot }),
       });
+      agentsProxy.setupSuccess({
+        targetProjectRoot: pathSegmentContract.parse(targetProjectRoot),
+      });
     },
 
     setupFileReadError: ({ targetProjectRoot }: { targetProjectRoot: FilePath }): void => {
@@ -94,6 +99,9 @@ export const InstallConfigCreateResponderProxy = (): {
       settingsProxy.setupNoExistingSettings({
         targetProjectRoot: pathSegmentContract.parse(targetProjectRoot),
         settingsPath: claudeSettingsPathFor({ targetProjectRoot }),
+      });
+      agentsProxy.setupSuccess({
+        targetProjectRoot: pathSegmentContract.parse(targetProjectRoot),
       });
     },
 

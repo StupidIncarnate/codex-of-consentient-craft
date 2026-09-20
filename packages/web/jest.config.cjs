@@ -18,7 +18,9 @@ module.exports = {
     url: 'http://localhost',
   },
   roots: ['<rootDir>/src', '<rootDir>/test'],
-  setupFiles: ['<rootDir>/src/__mocks__/jsdom-polyfills.cjs'],
+  // The base entry rides along: a plain override would drop the sandbox dungeonmaster home it sets
+  // before this package's own test files import anything.
+  setupFiles: [...baseConfig.setupFiles, '<rootDir>/src/__mocks__/jsdom-polyfills.cjs'],
   setupFilesAfterEnv: [
     '<rootDir>/../../packages/testing/src/jest.setup.js',
     // Source, not dist: the specs reach `endpointMock` through `@dungeonmaster/testing`, which the

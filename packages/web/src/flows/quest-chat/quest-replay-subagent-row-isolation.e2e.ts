@@ -16,7 +16,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Two Task-dispatched rows that share one parent /dumpster-launch session must NOT cross-render each other transcripts', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {two codeweaver workItems, same parent sessionId, distinct agentIds} => the FIRST codeweaver row shows ONLY its own subagent text, not the second row transcript', async ({
@@ -44,16 +44,16 @@ test.describe('Two Task-dispatched rows that share one parent /dumpster-launch s
     const subagentTextOne = 'FIRST_CODEWEAVER_SUBAGENT_TEXT_alpha';
     const subagentTextTwo = 'SECOND_CODEWEAVER_SUBAGENT_TEXT_beta';
 
-    sessions.createSessionWithAssistantText({ sessionId: chaosSessionId, text: chaosText });
+    await sessions.createSessionWithAssistantText({ sessionId: chaosSessionId, text: chaosText });
     // Seed two distinct sub-agent JSONLs under the SAME parent session folder:
     //   <parentSessionId>/subagents/agent-<realAgentIdOne>.jsonl  → subagentTextOne
     //   <parentSessionId>/subagents/agent-<realAgentIdTwo>.jsonl  → subagentTextTwo
-    sessions.createSubagentTailOnly({
+    await sessions.createSubagentTailOnly({
       sessionId: parentSessionId,
       agentId: realAgentIdOne,
       assistantText: subagentTextOne,
     });
-    sessions.createSubagentTailOnly({
+    await sessions.createSubagentTailOnly({
       sessionId: parentSessionId,
       agentId: realAgentIdTwo,
       assistantText: subagentTextTwo,
@@ -69,7 +69,7 @@ test.describe('Two Task-dispatched rows that share one parent /dumpster-launch s
 
     const codeweaverOneId = 'e2e00000-0000-4000-8000-000000000031';
     const codeweaverTwoId = 'e2e00000-0000-4000-8000-000000000032';
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),

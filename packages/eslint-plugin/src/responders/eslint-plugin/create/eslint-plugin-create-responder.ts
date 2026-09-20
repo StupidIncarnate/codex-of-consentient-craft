@@ -23,6 +23,7 @@ import { ruleEnforceProxyPatternsBroker } from '../../../brokers/rule/enforce-pr
 import { ruleEnforceTestColocationBroker } from '../../../brokers/rule/enforce-test-colocation/rule-enforce-test-colocation-broker';
 import { ruleEnforceTestCreationOfProxyBroker } from '../../../brokers/rule/enforce-test-creation-of-proxy/rule-enforce-test-creation-of-proxy-broker';
 import { ruleEnforceTestProxyImportsBroker } from '../../../brokers/rule/enforce-test-proxy-imports/rule-enforce-test-proxy-imports-broker';
+import { ruleEnforceHydrationRecipesStructureBroker } from '../../../brokers/rule/enforce-hydration-recipes-structure/rule-enforce-hydration-recipes-structure-broker';
 import { ruleEnforceImplementationColocationBroker } from '../../../brokers/rule/enforce-implementation-colocation/rule-enforce-implementation-colocation-broker';
 import { ruleForbidNonExportedFunctionsBroker } from '../../../brokers/rule/forbid-non-exported-functions/rule-forbid-non-exported-functions-broker';
 import { ruleForbidTypeReexportBroker } from '../../../brokers/rule/forbid-type-reexport/rule-forbid-type-reexport-broker';
@@ -65,6 +66,8 @@ import { ruleRequireValidationOnUntypedPropertyAccessBroker } from '../../../bro
 import { ruleEnforceProxyParamBindingBroker } from '../../../brokers/rule/enforce-proxy-param-binding/rule-enforce-proxy-param-binding-broker';
 import { ruleBanFlattenedContractParamsBroker } from '../../../brokers/rule/ban-flattened-contract-params/rule-ban-flattened-contract-params-broker';
 import { ruleBanAnonymousJsxInMapBroker } from '../../../brokers/rule/ban-anonymous-jsx-in-map/rule-ban-anonymous-jsx-in-map-broker';
+import { ruleBanDomHandlesInIngredientsBroker } from '../../../brokers/rule/ban-dom-handles-in-ingredients/rule-ban-dom-handles-in-ingredients-broker';
+import { ruleBanNondeterminismInIngredientsBroker } from '../../../brokers/rule/ban-nondeterminism-in-ingredients/rule-ban-nondeterminism-in-ingredients-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 
@@ -88,6 +91,7 @@ export const EslintPluginCreateResponder = (): {
     readonly 'enforce-test-colocation': EslintRule;
     readonly 'enforce-test-creation-of-proxy': EslintRule;
     readonly 'enforce-test-proxy-imports': EslintRule;
+    readonly 'enforce-hydration-recipes-structure': EslintRule;
     readonly 'enforce-implementation-colocation': EslintRule;
     readonly 'forbid-non-exported-functions': EslintRule;
     readonly 'forbid-type-reexport': EslintRule;
@@ -130,6 +134,8 @@ export const EslintPluginCreateResponder = (): {
     readonly 'enforce-proxy-param-binding': EslintRule;
     readonly 'ban-flattened-contract-params': EslintRule;
     readonly 'ban-anonymous-jsx-in-map': EslintRule;
+    readonly 'ban-dom-handles-in-ingredients': EslintRule;
+    readonly 'ban-nondeterminism-in-ingredients': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
@@ -156,6 +162,7 @@ export const EslintPluginCreateResponder = (): {
       'enforce-test-colocation': ruleEnforceTestColocationBroker(),
       'enforce-test-creation-of-proxy': ruleEnforceTestCreationOfProxyBroker(),
       'enforce-test-proxy-imports': ruleEnforceTestProxyImportsBroker(),
+      'enforce-hydration-recipes-structure': ruleEnforceHydrationRecipesStructureBroker(),
       'enforce-implementation-colocation': ruleEnforceImplementationColocationBroker(),
       'forbid-non-exported-functions': ruleForbidNonExportedFunctionsBroker(),
       'forbid-type-reexport': ruleForbidTypeReexportBroker(),
@@ -200,6 +207,8 @@ export const EslintPluginCreateResponder = (): {
       'enforce-proxy-param-binding': ruleEnforceProxyParamBindingBroker(),
       'ban-flattened-contract-params': ruleBanFlattenedContractParamsBroker(),
       'ban-anonymous-jsx-in-map': ruleBanAnonymousJsxInMapBroker(),
+      'ban-dom-handles-in-ingredients': ruleBanDomHandlesInIngredientsBroker(),
+      'ban-nondeterminism-in-ingredients': ruleBanNondeterminismInIngredientsBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),

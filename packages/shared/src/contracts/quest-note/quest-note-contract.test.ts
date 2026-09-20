@@ -19,6 +19,94 @@ describe('questNoteContract', () => {
     });
   });
 
+  describe('walked note', () => {
+    it('VALID: {kind: walked, instanceId, runId} => parses, and the ids come back branded', () => {
+      const result = questNoteContract.parse({
+        id: 'walked-login-flow-path-3',
+        kind: 'walked',
+        role: 'siegemaster-verifier',
+        workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+        flowId: 'login-flow',
+        instanceId: 'inst_9b2c1234',
+        runId: 'run_2',
+        summary: 'Path 3 walked: entry → guild selected → quest open → row expanded',
+        detail: '6 units signed, 1 issue raised.',
+        at: '2026-09-14T00:00:00.000Z',
+      });
+
+      expect(result).toStrictEqual({
+        id: 'walked-login-flow-path-3',
+        kind: 'walked',
+        role: 'siegemaster-verifier',
+        workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+        flowId: 'login-flow',
+        instanceId: 'inst_9b2c1234',
+        runId: 'run_2',
+        summary: 'Path 3 walked: entry → guild selected → quest open → row expanded',
+        detail: '6 units signed, 1 issue raised.',
+        at: '2026-09-14T00:00:00.000Z',
+      });
+    });
+
+    it('INVALID: {kind: walked, instanceId: "not-an-instance-id"} => throws, naming the instance id shape', () => {
+      expect(() =>
+        questNoteContract.parse({
+          id: 'walked-login-flow-path-3',
+          kind: 'walked',
+          role: 'siegemaster-verifier',
+          workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+          instanceId: 'not-an-instance-id',
+          runId: 'run_2',
+          summary: 'Path 3 walked',
+          detail: '6 units signed.',
+          at: '2026-09-14T00:00:00.000Z',
+        }),
+      ).toThrow(/invalid_string/u);
+    });
+
+    it('INVALID: {kind: walked, runId: "not-a-run-id"} => throws, naming the run id shape', () => {
+      expect(() =>
+        questNoteContract.parse({
+          id: 'walked-login-flow-path-3',
+          kind: 'walked',
+          role: 'siegemaster-verifier',
+          workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+          instanceId: 'inst_9b2c1234',
+          runId: 'not-a-run-id',
+          summary: 'Path 3 walked',
+          detail: '6 units signed.',
+          at: '2026-09-14T00:00:00.000Z',
+        }),
+      ).toThrow(/invalid_string/u);
+    });
+
+    it('VALID: {instanceId: null, runId: null} => parses, so a note reloaded off disk with a cleared pair still validates', () => {
+      const result = questNoteContract.parse({
+        id: 'open-question-comment-anchor-scope',
+        kind: 'open-question',
+        role: 'siegemaster',
+        workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        instanceId: null,
+        runId: null,
+        summary: 'Should a stale anchor notify per box or once per batch?',
+        detail: 'The batch send drops boxes whose node id no longer exists in the flow.',
+        at: '2026-01-01T00:00:00.000Z',
+      });
+
+      expect(result).toStrictEqual({
+        id: 'open-question-comment-anchor-scope',
+        kind: 'open-question',
+        role: 'siegemaster',
+        workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        instanceId: null,
+        runId: null,
+        summary: 'Should a stale anchor notify per box or once per batch?',
+        detail: 'The batch send drops boxes whose node id no longer exists in the flow.',
+        at: '2026-01-01T00:00:00.000Z',
+      });
+    });
+  });
+
   describe('quest-wide note', () => {
     it('VALID: {flowId and unitId omitted} => parses, because a tooling failure is not scoped to a flow', () => {
       expect(

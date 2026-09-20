@@ -15,7 +15,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Execution Panel Pause/Resume Button', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {status: in_progress} => PAUSE button visible in execution panel', async ({
@@ -32,7 +32,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-pause-btn-in-progress-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
       guildId,
@@ -42,7 +42,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -83,7 +83,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-pause-btn-paused-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
       guildId,
@@ -93,7 +93,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -134,7 +134,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-pause-btn-blocked-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
       guildId,
@@ -144,7 +144,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -185,7 +185,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-click-pause-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
       guildId,
@@ -195,7 +195,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -246,7 +246,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-click-resume-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
       guildId,
@@ -256,7 +256,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,

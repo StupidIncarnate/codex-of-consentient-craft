@@ -137,7 +137,7 @@ export const subagentLaunchOrderHarness = ({
   // Agent tool_use, gets an immediate acknowledgement back carrying NO `toolUseResult`, and carries
   // on talking while B runs. A itself is a normal awaited Task, so its own completion tool_result in
   // the main session does carry one — the two correlation paths side by side, as on a real quest.
-  const seedSession = ({
+  const seedSession = async ({
     sessionId,
     parentRealAgentId,
     nestedRealAgentId,
@@ -145,8 +145,8 @@ export const subagentLaunchOrderHarness = ({
     sessionId: string;
     parentRealAgentId: string;
     nestedRealAgentId: string;
-  }): void => {
-    sessions.createMultiEntrySessionFile({
+  }): Promise<void> => {
+    await sessions.createMultiEntrySessionFile({
       sessionId,
       lines: [
         JSON.stringify({
@@ -191,7 +191,7 @@ export const subagentLaunchOrderHarness = ({
       ],
     });
 
-    sessions.createSubagentTailMultiEntry({
+    await sessions.createSubagentTailMultiEntry({
       sessionId,
       agentId: parentRealAgentId,
       lines: [
@@ -265,7 +265,7 @@ export const subagentLaunchOrderHarness = ({
       ],
     });
 
-    sessions.createSubagentTailMultiEntry({
+    await sessions.createSubagentTailMultiEntry({
       sessionId,
       agentId: nestedRealAgentId,
       lines: [
@@ -302,7 +302,7 @@ export const subagentLaunchOrderHarness = ({
       const stamp = String(Date.now());
       const sessionId = `e2e-launch-order-${stamp}`;
 
-      seedSession({
+      await seedSession({
         sessionId,
         parentRealAgentId: `launchparent${stamp}`,
         nestedRealAgentId: `launchnested${stamp}`,
@@ -314,7 +314,7 @@ export const subagentLaunchOrderHarness = ({
         userRequest: 'Build the shared slice',
       });
 
-      quests.writeQuestFile({
+      await quests.writeQuestFile({
         questId: String(created.questId),
         questFolder: String(created.questFolder),
         questFilePath: String(created.filePath),

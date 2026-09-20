@@ -15,8 +15,10 @@
  */
 import type { APIRequestContext, Page } from '@playwright/test';
 
+import type { SessionId } from '@dungeonmaster/shared/contracts';
 import {
   AssistantReadToolUseStreamLineStub,
+  SessionIdStub,
   SuccessfulToolResultStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -153,12 +155,12 @@ export const stickyHeaderHarness = ({
   // Both surfaces read the same seeded session, so the chain shape is built once. Chain A holds a
   // tall report, a CLOSED tool call, and the nested chain B — so one fixture exercises the outer
   // pin, the recursive pin, and the closed-row negative together.
-  const seedNestedChainSession = () => {
-    const sessionId = `e2e-sticky-${Date.now()}`;
+  const seedNestedChainSession = async (): Promise<SessionId> => {
+    const sessionId = SessionIdStub({ value: `e2e-sticky-${Date.now()}` });
     const parentRealAgentId = `stickyparent${Date.now()}`;
     const nestedRealAgentId = `stickynested${Date.now()}`;
 
-    sessions.createNestedSubagentSessionFiles({
+    await sessions.createNestedSubagentSessionFiles({
       sessionId,
       parentRealAgentId,
       nestedRealAgentId,
@@ -175,7 +177,7 @@ export const stickyHeaderHarness = ({
     // chain A (offset 10s), so the pair sorts INSIDE chain A rather than after it — as a sibling
     // BELOW the nested chain, which is where a closed row has to sit for the negative case to
     // mean anything: it is the last thing in the transcript while three headers above it pin.
-    sessions.appendSubagentLine({
+    await sessions.appendSubagentLine({
       sessionId,
       agentId: parentRealAgentId,
       line: JSON.stringify({
@@ -196,7 +198,7 @@ export const stickyHeaderHarness = ({
         timestamp: new Date('2026-05-13T20:00:06.000Z').toISOString(),
       }),
     });
-    sessions.appendSubagentLine({
+    await sessions.appendSubagentLine({
       sessionId,
       agentId: parentRealAgentId,
       line: JSON.stringify({
@@ -228,7 +230,7 @@ export const stickyHeaderHarness = ({
       const quests = questHarness({ request });
       const nav = navigationHarness({ page });
       const guild = await guilds.createGuild({ name: guildName, path: guildPath });
-      const sessionId = seedNestedChainSession();
+      const sessionId = await seedNestedChainSession();
 
       const created = await quests.createQuest({
         guildId: String(guild.id),
@@ -236,7 +238,7 @@ export const stickyHeaderHarness = ({
         userRequest: 'Build the sticky header feature',
       });
 
-      quests.writeQuestFile({
+      await quests.writeQuestFile({
         questId: String(created.questId),
         questFolder: String(created.questFolder),
         questFilePath: String(created.filePath),
@@ -271,7 +273,7 @@ export const stickyHeaderHarness = ({
       const guilds = guildHarness({ request });
       const nav = navigationHarness({ page });
       const guild = await guilds.createGuild({ name: guildName, path: guildPath });
-      const sessionId = seedNestedChainSession();
+      const sessionId = await seedNestedChainSession();
 
       scrollportTestId = CHAT_SCROLLPORT;
       await nav.navigateToSession({

@@ -59,8 +59,6 @@ describe('QuestFlow', () => {
     it('VALID: {quest carrying two comments — one bare-node-anchored, one observable-anchored} => the JSON response includes the full comments array unchanged, anchors intact', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-comments-get' });
       const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
-      const questId = 'server-http-comment-quest';
-      const questFolder = '001-server-http-comment-quest';
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       const flow = FlowStub({
@@ -84,18 +82,18 @@ describe('QuestFlow', () => {
         observableId: 'login-redirects-to-dashboard' as never,
         text: 'Anchored to an observable, must survive same as the bare-node comment' as never,
       });
-      const quest = QuestStub({
-        id: questId as never,
-        folder: questFolder as never,
-        status: 'flows_approved' as never,
-        flows: [flow],
-        comments: [bareComment, observableComment],
+      const quest = await harness.seedQuestFields({
+        dungeonmasterHome,
+        guildId,
+        fields: {
+          status: 'flows_approved' as never,
+          flows: [flow],
+          comments: [bareComment, observableComment],
+        },
       });
 
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder, quest });
-
       const app = QuestFlow();
-      const response = await app.request(`/api/quests/${questId}`);
+      const response = await app.request(`/api/quests/${quest.id}`);
       const body: unknown = await response.json();
 
       restore();
@@ -145,8 +143,6 @@ describe('QuestFlow', () => {
     it('VALID: {quest with one signed terminal, one siegemaster-added observable, an unsigned branch and two notes} => 200 carrying per-track counts, the drift row, the unconfirmable debt and every note group', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-summary-get' });
       const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
-      const questId = 'server-http-summary-quest';
-      const questFolder = '001-server-http-summary-quest';
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       const flowriderConfirmed = SignoffStub({
@@ -198,19 +194,20 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      const quest = QuestStub({
-        id: questId as never,
-        folder: questFolder as never,
-        status: 'in_progress' as never,
-        flows: [flow],
-        planningNotes: {
-          blightLedger: [],
-          questNotes: [openQuestionNote, toolingErrorNote],
-          operationPlans: [],
+      const quest = await harness.seedQuestFields({
+        dungeonmasterHome,
+        guildId,
+        fields: {
+          status: 'in_progress' as never,
+          flows: [flow],
+          planningNotes: {
+            blightLedger: [],
+            questNotes: [openQuestionNote, toolingErrorNote],
+            operationPlans: [],
+          },
         },
       });
-
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder, quest });
+      const questId = quest.id;
 
       const app = QuestFlow();
       const response = await app.request(`/api/quests/${questId}/summary`);
@@ -267,6 +264,7 @@ describe('QuestFlow', () => {
           { id: 'tooling-error', notes: [harness.toPlain(toolingErrorNote)] },
           { id: 'out-of-scope', notes: [] },
           { id: 'walk-reset', notes: [] },
+          { id: 'walked', notes: [] },
         ],
       });
     });
@@ -279,14 +277,10 @@ describe('QuestFlow', () => {
       const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
-      harness.seedQuest({
+      await harness.seedQuestFields({
         dungeonmasterHome,
         guildId,
-        questFolder: '001-server-http-summary-decoy',
-        quest: QuestStub({
-          id: 'server-http-summary-decoy' as never,
-          folder: '001-server-http-summary-decoy' as never,
-        }),
+        fields: {},
       });
 
       const app = QuestFlow();
@@ -517,8 +511,6 @@ describe('QuestFlow', () => {
     it('EMPTY: {comments: []} => delegates to QuestCommentBatchResponder, returns 400 empty-batch, and leaves the quest comments array untouched', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-comments-empty-batch' });
       const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
-      const questId = 'server-http-empty-batch-quest';
-      const questFolder = '001-server-http-empty-batch-quest';
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       const flow = FlowStub({
@@ -532,15 +524,16 @@ describe('QuestFlow', () => {
         nodeId: 'start' as never,
         text: 'Pre-existing comment that must survive a rejected empty batch' as never,
       });
-      const quest = QuestStub({
-        id: questId as never,
-        folder: questFolder as never,
-        status: 'flows_approved' as never,
-        flows: [flow],
-        comments: [existingComment],
+      const quest = await harness.seedQuestFields({
+        dungeonmasterHome,
+        guildId,
+        fields: {
+          status: 'flows_approved' as never,
+          flows: [flow],
+          comments: [existingComment],
+        },
       });
-
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder, quest });
+      const questId = quest.id;
 
       const app = QuestFlow();
       const response = await app.request(`/api/quests/${questId}/comments`, {
@@ -589,8 +582,6 @@ describe('QuestFlow', () => {
     it('INVALID: {entry with a 300-char unbroken garbage token as flowId} => returns 400 naming the entry fields, distinct from the empty-batch message, and leaves the quest comments array untouched', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-comments-malformed' });
       const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
-      const questId = 'server-http-malformed-entry-quest';
-      const questFolder = '001-server-http-malformed-entry-quest';
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
       // Uppercase leading character violates flowId's kebab-case regex; the rest pads it out
       // to an unbroken 300-char token — the fixture is both malformed AND hostile-length.
@@ -607,15 +598,16 @@ describe('QuestFlow', () => {
         nodeId: 'start' as never,
         text: 'Pre-existing comment that must survive a rejected malformed batch' as never,
       });
-      const quest = QuestStub({
-        id: questId as never,
-        folder: questFolder as never,
-        status: 'flows_approved' as never,
-        flows: [flow],
-        comments: [existingComment],
+      const quest = await harness.seedQuestFields({
+        dungeonmasterHome,
+        guildId,
+        fields: {
+          status: 'flows_approved' as never,
+          flows: [flow],
+          comments: [existingComment],
+        },
       });
-
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder, quest });
+      const questId = quest.id;
 
       const app = QuestFlow();
       const response = await app.request(`/api/quests/${questId}/comments`, {
@@ -644,8 +636,6 @@ describe('QuestFlow', () => {
     it('EDGE: {quest on disk carries no chaoswhisperer or glyphsmith work item with a sessionId} => returns 404 and persists no comments', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-comments-no-session' });
       const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
-      const questId = 'server-http-no-session-quest';
-      const questFolder = '001-server-http-no-session-quest';
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       const flow = FlowStub({
@@ -653,15 +643,16 @@ describe('QuestFlow', () => {
         nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never })],
         edges: [],
       });
-      const quest = QuestStub({
-        id: questId as never,
-        folder: questFolder as never,
-        status: 'flows_approved' as never,
-        flows: [flow],
-        workItems: [],
+      const quest = await harness.seedQuestFields({
+        dungeonmasterHome,
+        guildId,
+        fields: {
+          status: 'flows_approved' as never,
+          flows: [flow],
+          workItems: [],
+        },
       });
-
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder, quest });
+      const questId = quest.id;
 
       const app = QuestFlow();
       const response = await app.request(`/api/quests/${questId}/comments`, {
@@ -718,17 +709,6 @@ describe('QuestFlow', () => {
         const restore = harness.setupTestHome({ baseName: 'quest-flow-comments-stale' });
         const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
         const cli = harness.configureFakeClaudeCli();
-        const questId = 'server-http-stale-anchor-quest';
-        const questFolder = '001-server-http-stale-anchor-quest';
-
-        // A REAL guild, registered via the orchestrator's own public API — guildGetBroker (invoked
-        // deep inside chatSpawnBroker on any path that reaches a resume) needs it in config.json;
-        // seedQuest's glob-based quest lookup alone does not require this.
-        const guild = await harness.registerRealGuild({
-          name: 'Stale Anchor Guild',
-          path: dungeonmasterHome,
-        });
-        const guildId = String(guild.id);
 
         const flow = FlowStub({
           id: 'login-flow' as never,
@@ -736,22 +716,28 @@ describe('QuestFlow', () => {
           edges: [],
         });
         seededSessionId = SessionIdStub({ value: 'bbbbbbbb-2222-4222-8222-444444444444' });
-        seededQuest = QuestStub({
-          id: questId as never,
-          folder: questFolder as never,
-          status: 'flows_approved' as never,
-          flows: [flow],
-          workItems: [
-            WorkItemStub({
-              id: QuestWorkItemIdStub({ value: 'aaaaaaaa-2222-4222-8222-444444444444' }),
-              role: 'chaoswhisperer',
-              status: 'in_progress',
-              sessionId: seededSessionId,
-            }),
-          ],
+        // A REAL guild, registered through the guild ingredient's own `write` route
+        // (StartOrchestrator.addGuild) — guildGetBroker (invoked deep inside chatSpawnBroker on
+        // any path that reaches a resume) needs it in config.json.
+        const seeded = await harness.seedGuildAndQuestFields({
+          dungeonmasterHome,
+          guildName: 'Stale Anchor Guild',
+          guildPath: dungeonmasterHome,
+          fields: {
+            status: 'flows_approved' as never,
+            flows: [flow],
+            workItems: [
+              WorkItemStub({
+                id: QuestWorkItemIdStub({ value: 'aaaaaaaa-2222-4222-8222-444444444444' }),
+                role: 'chaoswhisperer',
+                status: 'in_progress',
+                sessionId: seededSessionId,
+              }),
+            ],
+          },
         });
-
-        harness.seedQuest({ dungeonmasterHome, guildId, questFolder, quest: seededQuest });
+        seededQuest = seeded.quest;
+        const questId = seededQuest.id;
 
         const app = QuestFlow();
         staleResponse = await app.request(`/api/quests/${questId}/comments`, {
@@ -835,8 +821,6 @@ describe('QuestFlow', () => {
     it('ERROR: {quest directory stripped of write permission after a valid quest+session are seeded} => POST returns 500 prefixed "Failed to persist comment batch: ", carrying no chatProcessId', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-comments-persist-fail' });
       const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
-      const questId = 'server-http-persist-fail-quest';
-      const questFolder = '001-server-http-persist-fail-quest';
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       const flow = FlowStub({
@@ -844,26 +828,27 @@ describe('QuestFlow', () => {
         nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never })],
         edges: [],
       });
-      const quest = QuestStub({
-        id: questId as never,
-        folder: questFolder as never,
-        status: 'flows_approved' as never,
-        flows: [flow],
-        workItems: [
-          WorkItemStub({
-            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-4444-4222-8222-444444444444' }),
-            role: 'chaoswhisperer',
-            status: 'in_progress',
-            sessionId: SessionIdStub({ value: 'bbbbbbbb-4444-4222-8222-444444444444' }),
-          }),
-        ],
+      const quest = await harness.seedQuestFields({
+        dungeonmasterHome,
+        guildId,
+        fields: {
+          status: 'flows_approved' as never,
+          flows: [flow],
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: 'aaaaaaaa-4444-4222-8222-444444444444' }),
+              role: 'chaoswhisperer',
+              status: 'in_progress',
+              sessionId: SessionIdStub({ value: 'bbbbbbbb-4444-4222-8222-444444444444' }),
+            }),
+          ],
+        },
       });
-
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder, quest });
+      const questId = quest.id;
       const readOnlyDir = harness.makeQuestDirectoryReadOnly({
         dungeonmasterHome,
         guildId,
-        questFolder,
+        questFolder: quest.folder,
       });
 
       const app = QuestFlow();
@@ -900,25 +885,24 @@ describe('QuestFlow', () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-chat-images-two-distinct' });
       const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
       const cli = harness.configureFakeClaudeCli();
-      const guild = await harness.registerRealGuild({
-        name: 'Chat Images Guild — Two Distinct',
-        path: dungeonmasterHome,
-      });
-      const guildId = String(guild.id);
-      const questId = 'server-http-chat-images-two-distinct';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-6001-4222-8222-444444444444' });
-      const quest = QuestStub({
-        id: questId as never,
-        workItems: [
-          WorkItemStub({
-            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-6001-4222-8222-444444444444' }),
-            role: 'chaoswhisperer',
-            status: 'in_progress',
-            sessionId,
-          }),
-        ],
+      const seeded = await harness.seedGuildAndQuestFields({
+        dungeonmasterHome,
+        guildName: 'Chat Images Guild — Two Distinct',
+        guildPath: dungeonmasterHome,
+        fields: {
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: 'aaaaaaaa-6001-4222-8222-444444444444' }),
+              role: 'chaoswhisperer',
+              status: 'in_progress',
+              sessionId,
+            }),
+          ],
+        },
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      const guildId = String(seeded.guild.id);
+      const questId = seeded.quest.id;
 
       const app = QuestFlow();
       const response = await app.request(`/api/quests/${questId}/chat`, {
@@ -960,25 +944,24 @@ describe('QuestFlow', () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-chat-images-cap' });
       const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
       const cli = harness.configureFakeClaudeCli();
-      const guild = await harness.registerRealGuild({
-        name: 'Chat Images Guild — Cap',
-        path: dungeonmasterHome,
-      });
-      const guildId = String(guild.id);
-      const questId = 'server-http-chat-images-cap';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-6002-4222-8222-444444444444' });
-      const quest = QuestStub({
-        id: questId as never,
-        workItems: [
-          WorkItemStub({
-            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-6002-4222-8222-444444444444' }),
-            role: 'chaoswhisperer',
-            status: 'in_progress',
-            sessionId,
-          }),
-        ],
+      const seeded = await harness.seedGuildAndQuestFields({
+        dungeonmasterHome,
+        guildName: 'Chat Images Guild — Cap',
+        guildPath: dungeonmasterHome,
+        fields: {
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: 'aaaaaaaa-6002-4222-8222-444444444444' }),
+              role: 'chaoswhisperer',
+              status: 'in_progress',
+              sessionId,
+            }),
+          ],
+        },
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      const guildId = String(seeded.guild.id);
+      const questId = seeded.quest.id;
 
       const app = QuestFlow();
       const overCapImages = Array.from(
@@ -1022,25 +1005,24 @@ describe('QuestFlow', () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-chat-images-dir-created' });
       const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
       const cli = harness.configureFakeClaudeCli();
-      const guild = await harness.registerRealGuild({
-        name: 'Chat Images Guild — Dir Created',
-        path: dungeonmasterHome,
-      });
-      const guildId = String(guild.id);
-      const questId = 'server-http-chat-images-dir-created';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-6003-4222-8222-444444444444' });
-      const quest = QuestStub({
-        id: questId as never,
-        workItems: [
-          WorkItemStub({
-            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-6003-4222-8222-444444444444' }),
-            role: 'chaoswhisperer',
-            status: 'in_progress',
-            sessionId,
-          }),
-        ],
+      const seeded = await harness.seedGuildAndQuestFields({
+        dungeonmasterHome,
+        guildName: 'Chat Images Guild — Dir Created',
+        guildPath: dungeonmasterHome,
+        fields: {
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: 'aaaaaaaa-6003-4222-8222-444444444444' }),
+              role: 'chaoswhisperer',
+              status: 'in_progress',
+              sessionId,
+            }),
+          ],
+        },
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      const guildId = String(seeded.guild.id);
+      const questId = seeded.quest.id;
 
       const dirBefore = harness.readImagesDir({ dungeonmasterHome, guildId, questId });
 
@@ -1067,25 +1049,24 @@ describe('QuestFlow', () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-chat-images-not-recreated' });
       const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
       const cli = harness.configureFakeClaudeCli();
-      const guild = await harness.registerRealGuild({
-        name: 'Chat Images Guild — Not Recreated',
-        path: dungeonmasterHome,
-      });
-      const guildId = String(guild.id);
-      const questId = 'server-http-chat-images-not-recreated';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-6004-4222-8222-444444444444' });
-      const quest = QuestStub({
-        id: questId as never,
-        workItems: [
-          WorkItemStub({
-            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-6004-4222-8222-444444444444' }),
-            role: 'chaoswhisperer',
-            status: 'in_progress',
-            sessionId,
-          }),
-        ],
+      const seeded = await harness.seedGuildAndQuestFields({
+        dungeonmasterHome,
+        guildName: 'Chat Images Guild — Not Recreated',
+        guildPath: dungeonmasterHome,
+        fields: {
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: 'aaaaaaaa-6004-4222-8222-444444444444' }),
+              role: 'chaoswhisperer',
+              status: 'in_progress',
+              sessionId,
+            }),
+          ],
+        },
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      const guildId = String(seeded.guild.id);
+      const questId = seeded.quest.id;
 
       const app = QuestFlow();
       const firstResponse = await app.request(`/api/quests/${questId}/chat`, {
@@ -1128,25 +1109,24 @@ describe('QuestFlow', () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-chat-images-identical' });
       const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
       const cli = harness.configureFakeClaudeCli();
-      const guild = await harness.registerRealGuild({
-        name: 'Chat Images Guild — Identical',
-        path: dungeonmasterHome,
-      });
-      const guildId = String(guild.id);
-      const questId = 'server-http-chat-images-identical';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-6005-4222-8222-444444444444' });
-      const quest = QuestStub({
-        id: questId as never,
-        workItems: [
-          WorkItemStub({
-            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-6005-4222-8222-444444444444' }),
-            role: 'chaoswhisperer',
-            status: 'in_progress',
-            sessionId,
-          }),
-        ],
+      const seeded = await harness.seedGuildAndQuestFields({
+        dungeonmasterHome,
+        guildName: 'Chat Images Guild — Identical',
+        guildPath: dungeonmasterHome,
+        fields: {
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: 'aaaaaaaa-6005-4222-8222-444444444444' }),
+              role: 'chaoswhisperer',
+              status: 'in_progress',
+              sessionId,
+            }),
+          ],
+        },
       });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      const guildId = String(seeded.guild.id);
+      const questId = seeded.quest.id;
 
       const dataBase64 = 'Zmlyc3QtaW1hZ2U=';
       const app = QuestFlow();
@@ -1196,25 +1176,24 @@ describe('QuestFlow', () => {
         const restore = harness.setupTestHome({ baseName: 'quest-flow-chat-images-hostile' });
         const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
         const cli = harness.configureFakeClaudeCli();
-        const guild = await harness.registerRealGuild({
-          name: 'Chat Images Guild — Hostile',
-          path: dungeonmasterHome,
-        });
-        const guildId = String(guild.id);
-        const questId = 'server-http-chat-images-hostile';
         const sessionId = SessionIdStub({ value: 'bbbbbbbb-6006-4222-8222-444444444444' });
-        const quest = QuestStub({
-          id: questId as never,
-          workItems: [
-            WorkItemStub({
-              id: QuestWorkItemIdStub({ value: 'aaaaaaaa-6006-4222-8222-444444444444' }),
-              role: 'chaoswhisperer',
-              status: 'in_progress',
-              sessionId,
-            }),
-          ],
+        const seeded = await harness.seedGuildAndQuestFields({
+          dungeonmasterHome,
+          guildName: 'Chat Images Guild — Hostile',
+          guildPath: dungeonmasterHome,
+          fields: {
+            workItems: [
+              WorkItemStub({
+                id: QuestWorkItemIdStub({ value: 'aaaaaaaa-6006-4222-8222-444444444444' }),
+                role: 'chaoswhisperer',
+                status: 'in_progress',
+                sessionId,
+              }),
+            ],
+          },
         });
-        harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+        const guildId = String(seeded.guild.id);
+        const questId = seeded.quest.id;
 
         const app = QuestFlow();
         const response = await app.request(`/api/quests/${questId}/chat`, {
@@ -1249,27 +1228,25 @@ describe('QuestFlow', () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-chat-images-no-session' });
       const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
       const cli = harness.configureFakeClaudeCli();
-      const guild = await harness.registerRealGuild({
-        name: 'Chat Images Guild — No Session',
-        path: dungeonmasterHome,
+      // The write route mints a UUID `id`/`folder` for every seeded quest, which is what
+      // isQuestFolderGuard (the quest LIST broker's directory filter, distinct from the
+      // single-quest GET path used elsewhere in this file) needs to discover it below.
+      const seeded = await harness.seedGuildAndQuestFields({
+        dungeonmasterHome,
+        guildName: 'Chat Images Guild — No Session',
+        guildPath: dungeonmasterHome,
+        fields: {
+          workItems: [
+            WorkItemStub({
+              id: QuestWorkItemIdStub({ value: 'aaaaaaaa-6007-4222-8222-444444444444' }),
+              role: 'chaoswhisperer',
+              status: 'complete',
+            }),
+          ],
+        },
       });
-      const guildId = String(guild.id);
-      // UUID-shaped, unlike this describe block's other fixtures — isQuestFolderGuard (the quest
-      // LIST broker's directory filter, distinct from the single-quest GET path used elsewhere in
-      // this file) only recognizes a UUID or a legacy `NNN-` prefix as a real quest folder, and
-      // this test's own list-endpoint assertion below needs the seeded quest to be discoverable.
-      const questId = 'cccccccc-6007-4222-8222-444444444444';
-      const quest = QuestStub({
-        id: questId as never,
-        workItems: [
-          WorkItemStub({
-            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-6007-4222-8222-444444444444' }),
-            role: 'chaoswhisperer',
-            status: 'complete',
-          }),
-        ],
-      });
-      harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
+      const guildId = String(seeded.guild.id);
+      const questId = seeded.quest.id;
 
       const app = QuestFlow();
       const response = await app.request(`/api/quests/${questId}/chat`, {
@@ -1330,7 +1307,7 @@ describe('QuestFlow', () => {
       });
       harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
-      const seeded = harness.seedImageFile({
+      const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-local-image-source-kept-fixture',
         fileName: 'local-screenshot.png',
         bytes: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 1, 2, 3, 4, 5, 6, 7, 8]),
@@ -1377,7 +1354,7 @@ describe('QuestFlow', () => {
       });
       harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
-      const seeded = harness.seedImageFile({
+      const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-local-image-copy-survives-fixture',
         fileName: 'deleted-screenshot.png',
         bytes: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 9, 8, 7, 6, 5, 4, 3, 2]),
@@ -1435,7 +1412,7 @@ describe('QuestFlow', () => {
 
       // A distinct extension from the uploaded bitmap's ('png') is what lets this test tell the
       // two written files apart afterward without parsing the prompt it is trying to prove.
-      const seeded = harness.seedImageFile({
+      const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-local-image-trailer-once-fixture',
         fileName: 'trailer-screenshot.jpg',
         bytes: new Uint8Array([255, 216, 255, 224, 1, 2, 3, 4]),
@@ -1618,7 +1595,7 @@ describe('QuestFlow', () => {
 
       // A real seeded directory with a real sibling file — only `never-written.png` itself is
       // absent, so the miss is "this file", never "this whole tree".
-      const seeded = harness.seedImageFile({
+      const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-missing-file-fixture',
         fileName: 'placeholder.png',
         bytes: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]),
@@ -1680,7 +1657,7 @@ describe('QuestFlow', () => {
 
       // Not uuid-shaped, unlike the copy's own name — a copy that reused the source name would
       // pass the uuid-shape check below only by accident of extension.
-      const seeded = harness.seedImageFile({
+      const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-no-images-key-fixture',
         fileName: 'a-screenshot.png',
         bytes: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 42, 43, 44, 45]),
@@ -1747,22 +1724,22 @@ describe('QuestFlow', () => {
       // Four distinct extensions and four distinct byte arrays — a swapped ordinal-to-file mapping
       // reads identical to correct behavior when every fixture shares one extension, and only the
       // byte comparison below would catch it.
-      const one = harness.seedImageFile({
+      const one = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-every-shape-one',
         fileName: 'one.png',
         bytes: new Uint8Array([1, 2, 3, 4]),
       });
-      const two = harness.seedImageFile({
+      const two = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-every-shape-two',
         fileName: 'two.jpg',
         bytes: new Uint8Array([5, 6, 7, 8]),
       });
-      const three = harness.seedImageFile({
+      const three = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-every-shape-three',
         fileName: 'three.gif',
         bytes: new Uint8Array([9, 10, 11, 12]),
       });
-      const four = harness.seedImageFile({
+      const four = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-every-shape-four',
         fileName: 'four.webp',
         bytes: new Uint8Array([13, 14, 15, 16]),
@@ -1836,7 +1813,7 @@ describe('QuestFlow', () => {
       });
       harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
-      const seeded = harness.seedImageFile({
+      const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-already-tokenised-fixture',
         fileName: 'already-tokenised.png',
         bytes: new Uint8Array([137, 80, 78, 71]),
@@ -1896,7 +1873,7 @@ describe('QuestFlow', () => {
       // A distinct extension from the uploaded bitmaps' ('png') is what lets this test tell the
       // screenshot's own written file apart from theirs without parsing the prompt it exists to
       // prove.
-      const seeded = harness.seedImageFile({
+      const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-ordinal-continues-fixture',
         fileName: 'ordinal-screenshot.jpg',
         bytes: new Uint8Array([255, 216, 255, 224, 1, 2, 3, 4]),
@@ -1971,7 +1948,7 @@ describe('QuestFlow', () => {
       });
       harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
-      const seeded = harness.seedImageFile({
+      const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-cap-both-kinds-fixture',
         fileName: 'over-cap-screenshot.jpg',
         bytes: new Uint8Array([255, 216, 255, 224, 9, 8, 7, 6]),
@@ -2054,7 +2031,7 @@ describe('QuestFlow', () => {
       });
       harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
-      const seeded = harness.seedImageFile({
+      const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-unreadable-file-fixture',
         fileName: 'unreadable-screenshot.png',
         bytes: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]),
@@ -2120,7 +2097,7 @@ describe('QuestFlow', () => {
       });
       harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
-      const seeded = harness.seedImageFile({
+      const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-copy-fails-fixture',
         fileName: 'copy-fails-screenshot.png',
         bytes: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]),
@@ -2186,7 +2163,7 @@ describe('QuestFlow', () => {
       });
       harness.seedQuest({ dungeonmasterHome, guildId, questFolder: questId, quest });
 
-      const seeded = harness.seedImageFile({
+      const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-source-and-copy-survive-fixture',
         fileName: 'survives-screenshot.png',
         bytes: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 11, 22, 33, 44]),

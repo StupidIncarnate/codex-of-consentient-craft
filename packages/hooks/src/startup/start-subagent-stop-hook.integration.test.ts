@@ -45,7 +45,7 @@ describe('start-subagent-stop-hook', () => {
   });
 
   it('VALID: {work-item agent transcript without signal-back} => exit 0 with a block decision', async () => {
-    const transcriptPath = transcripts.write({ contents: workItemAgentLine });
+    const transcriptPath = await transcripts.write({ contents: workItemAgentLine });
     const hookData = SubagentStopHookDataStub({ agent_transcript_path: transcriptPath });
 
     const result = await persistentRunner.runHook({ hookData });
@@ -63,7 +63,7 @@ describe('start-subagent-stop-hook', () => {
   });
 
   it('VALID: {work-item agent transcript with signal-back} => exit 0 with empty stdout', async () => {
-    const transcriptPath = transcripts.write({
+    const transcriptPath = await transcripts.write({
       contents: [workItemAgentLine, signalBackLine].join('\n'),
     });
     const hookData = SubagentStopHookDataStub({ agent_transcript_path: transcriptPath });

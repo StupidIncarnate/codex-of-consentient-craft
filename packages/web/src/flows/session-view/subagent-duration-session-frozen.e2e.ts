@@ -42,7 +42,7 @@ test.describe('A finished sub-agent chain in a session transcript freezes on its
     // gap 45s lands in band `<1m`; reportedDurationMs 270000 lands in band `4m` — the two
     // precedence sources land in DIFFERENT bands, so a figure reading `<1m` proves the gap won
     // instead of the report (subagent-chain-widget.test.tsx:1683 pins 270000ms => '4m').
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: SESSION_ID,
       agentId: AGENT_ID,
       taskToolUseId: TASK_TOOL_USE_ID,

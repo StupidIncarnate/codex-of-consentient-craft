@@ -136,7 +136,7 @@ export const commentQueueLifecycleHarness = ({
   }) => Promise<void>;
   readQueue: (params: { which: 'first' | 'second' }) => Promise<unknown>;
   rawQueue: (params: { which: 'first' | 'second' }) => Promise<unknown>;
-  seededRawQueue: (params: { which: 'first' | 'second' }) => unknown;
+  getSeededRawQueue: (params: { which: 'first' | 'second' }) => unknown;
   hasQueueKey: (params: { which: 'first' | 'second' }) => Promise<boolean>;
   queueBar: () => Locator;
   queueCount: () => Locator;
@@ -242,7 +242,7 @@ export const commentQueueLifecycleHarness = ({
         .replace(/\s+/gu, '-');
 
       const sessionId = `e2e-session-comment-lifecycle-${Date.now()}`;
-      sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+      await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
       // Sequential by construction: each quest awaits the previous one's chain link, so both POSTs
       // land in authoring order and `first` is always the earlier-created quest.
@@ -255,7 +255,7 @@ export const commentQueueLifecycleHarness = ({
         });
         const target = which === 'first' ? seeded.first : seeded.second;
         target.questId = String(created.questId);
-        quests.writeQuestFile({
+        await quests.writeQuestFile({
           questId: target.questId,
           questFolder: String(created.questFolder),
           questFilePath: String(created.filePath),
@@ -335,7 +335,7 @@ export const commentQueueLifecycleHarness = ({
     // The exact bytes writeQueue put in that quest's key, so an "untouched" assertion compares the
     // whole stored array byte-for-byte rather than merely counting what survived. Synchronous: this
     // reads what the harness itself wrote, never the browser.
-    seededRawQueue: ({ which }: { which: 'first' | 'second' }): unknown =>
+    getSeededRawQueue: ({ which }: { which: 'first' | 'second' }): unknown =>
       questFor({ which }).seedRaw,
 
     hasQueueKey: async ({ which }: { which: 'first' | 'second' }): Promise<boolean> =>

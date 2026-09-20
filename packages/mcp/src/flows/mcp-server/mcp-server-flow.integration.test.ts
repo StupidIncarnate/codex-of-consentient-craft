@@ -96,6 +96,22 @@ describe('McpServerFlow', () => {
 
       expect(toolsWithBadSchema).toStrictEqual([]);
     });
+
+    it('VALID: {tools/list} => no tool name starts with "siegelense-"', async () => {
+      const request = mcp.buildToolListRequest();
+
+      const response = await client.sendRequest(request);
+
+      expect(response.error).toBe(undefined);
+
+      const result = ToolListResultStub(response.result as never);
+
+      const siegelenseToolNames = result.tools
+        .map((tool) => tool.name)
+        .filter((name) => name.startsWith('siegelense-'));
+
+      expect(siegelenseToolNames).toStrictEqual([]);
+    });
   });
 
   describe('tools/call with get-architecture', () => {
@@ -276,7 +292,7 @@ describe('McpServerFlow', () => {
         userRequest: 'Testing storage consistency' as never,
       });
 
-      mcp.seedQuest({
+      await mcp.seedQuest({
         dungeonmasterHome: client.dungeonmasterHome,
         guildId,
         questFolder,
@@ -322,7 +338,7 @@ describe('McpServerFlow', () => {
         userRequest: 'Testing modify flow' as never,
       });
 
-      mcp.seedQuest({
+      await mcp.seedQuest({
         dungeonmasterHome: client.dungeonmasterHome,
         guildId,
         questFolder,
@@ -452,7 +468,7 @@ describe('McpServerFlow', () => {
         userRequest: 'Testing isError not set on success' as never,
       });
 
-      mcp.seedQuest({
+      await mcp.seedQuest({
         dungeonmasterHome: client.dungeonmasterHome,
         guildId,
         questFolder,
@@ -539,7 +555,7 @@ describe('McpServerFlow', () => {
           comments: [markupComment, newlineComment, otherFlowComment],
         });
 
-        mcp.seedQuest({
+        await mcp.seedQuest({
           dungeonmasterHome: client.dungeonmasterHome,
           guildId: GUILD_ID,
           questFolder,
@@ -605,7 +621,7 @@ describe('McpServerFlow', () => {
           comments: [existingComment],
         });
 
-        mcp.seedQuest({
+        await mcp.seedQuest({
           dungeonmasterHome: client.dungeonmasterHome,
           guildId: GUILD_ID,
           questFolder,
@@ -666,7 +682,7 @@ describe('McpServerFlow', () => {
           comments: [existingComment],
         });
 
-        mcp.seedQuest({
+        await mcp.seedQuest({
           dungeonmasterHome: client.dungeonmasterHome,
           guildId: GUILD_ID,
           questFolder,
@@ -732,7 +748,7 @@ describe('McpServerFlow', () => {
           comments: [orphanComment],
         });
 
-        mcp.seedQuest({
+        await mcp.seedQuest({
           dungeonmasterHome: client.dungeonmasterHome,
           guildId: GUILD_ID,
           questFolder,
@@ -803,7 +819,7 @@ describe('McpServerFlow', () => {
           comments: [deletedComment, siblingComment],
         });
 
-        mcp.seedQuest({
+        await mcp.seedQuest({
           dungeonmasterHome: client.dungeonmasterHome,
           guildId: GUILD_ID,
           questFolder,
@@ -865,7 +881,7 @@ describe('McpServerFlow', () => {
           comments: [observableComment, nodeComment],
         });
 
-        mcp.seedQuest({
+        await mcp.seedQuest({
           dungeonmasterHome: client.dungeonmasterHome,
           guildId: GUILD_ID,
           questFolder,
@@ -936,7 +952,7 @@ describe('McpServerFlow', () => {
           comments: [commentA, commentB],
         });
 
-        mcp.seedQuest({
+        await mcp.seedQuest({
           dungeonmasterHome: client.dungeonmasterHome,
           guildId: GUILD_ID,
           questFolder,
@@ -994,7 +1010,7 @@ describe('McpServerFlow', () => {
           comments: [comment],
         });
 
-        mcp.seedQuest({
+        await mcp.seedQuest({
           dungeonmasterHome: client.dungeonmasterHome,
           guildId: GUILD_ID,
           questFolder,
@@ -1063,7 +1079,7 @@ describe('McpServerFlow', () => {
             comments: [hostileComment],
           });
 
-          mcp.seedQuest({
+          await mcp.seedQuest({
             dungeonmasterHome: client.dungeonmasterHome,
             guildId: GUILD_ID,
             questFolder,
@@ -1109,7 +1125,7 @@ describe('McpServerFlow', () => {
           comments: [hostileComment],
         });
 
-        mcp.seedQuest({
+        await mcp.seedQuest({
           dungeonmasterHome: client.dungeonmasterHome,
           guildId: GUILD_ID,
           questFolder,
@@ -1156,7 +1172,7 @@ describe('McpServerFlow', () => {
             comments: [hostileComment],
           });
 
-          mcp.seedQuest({
+          await mcp.seedQuest({
             dungeonmasterHome: client.dungeonmasterHome,
             guildId: GUILD_ID,
             questFolder,
@@ -1201,7 +1217,7 @@ describe('McpServerFlow', () => {
           comments: [hostileComment],
         });
 
-        mcp.seedQuest({
+        await mcp.seedQuest({
           dungeonmasterHome: client.dungeonmasterHome,
           guildId: GUILD_ID,
           questFolder,
@@ -1278,7 +1294,7 @@ describe('McpServerFlow', () => {
           comments: [comment],
         });
 
-        mcp.seedQuest({
+        await mcp.seedQuest({
           dungeonmasterHome: client.dungeonmasterHome,
           guildId: GUILD_ID,
           questFolder,
@@ -1338,7 +1354,7 @@ describe('McpServerFlow', () => {
           comments: [doomedComment],
         });
 
-        mcp.seedQuest({
+        await mcp.seedQuest({
           dungeonmasterHome: client.dungeonmasterHome,
           guildId: GUILD_ID,
           questFolder,
@@ -1415,7 +1431,7 @@ describe('McpServerFlow', () => {
           comments: [comment],
         });
 
-        mcp.seedQuest({
+        await mcp.seedQuest({
           dungeonmasterHome: client.dungeonmasterHome,
           guildId: GUILD_ID,
           questFolder,
@@ -1558,7 +1574,7 @@ describe('McpServerFlow', () => {
         ],
       });
 
-      mcp.seedQuest({
+      await mcp.seedQuest({
         dungeonmasterHome: client.dungeonmasterHome,
         guildId: RESET_GUILD_ID,
         questFolder,
@@ -1669,7 +1685,7 @@ describe('McpServerFlow', () => {
         ],
       });
 
-      mcp.seedQuest({
+      await mcp.seedQuest({
         dungeonmasterHome: client.dungeonmasterHome,
         guildId: RESET_GUILD_ID,
         questFolder,
@@ -1777,7 +1793,7 @@ describe('McpServerFlow', () => {
         },
       });
 
-      mcp.seedQuest({
+      await mcp.seedQuest({
         dungeonmasterHome: client.dungeonmasterHome,
         guildId: SUMMARY_GUILD_ID,
         questFolder,

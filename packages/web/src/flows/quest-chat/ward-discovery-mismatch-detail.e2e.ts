@@ -22,7 +22,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Failed ward row shows discovery-mismatch detail (all checks pass/skip)', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {blocked quest, failed ward linked to a mismatch-only ward-result} => expanded WARD row shows DISCOVERY MISMATCH + discovered files', async ({
@@ -39,7 +39,7 @@ test.describe('Failed ward row shows discovery-mismatch detail (all checks pass/
     const guildId = String(guild.id);
 
     const chaosSessionId = `e2e-ward-mismatch-chaos-${Date.now()}`;
-    sessions.createSessionWithAssistantText({
+    await sessions.createSessionWithAssistantText({
       sessionId: chaosSessionId,
       text: 'Spec captured during streaming',
     });
@@ -58,7 +58,7 @@ test.describe('Failed ward row shows discovery-mismatch detail (all checks pass/
     const wardOpId = '00000000-0000-4000-8000-0000000000d2';
     const discoveredFile = 'packages/web/src/flows/home/quest-delete-from-root.e2e.ts';
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),
@@ -99,7 +99,7 @@ test.describe('Failed ward row shows discovery-mismatch detail (all checks pass/
     // The mismatch-only detail blob: every check pass/skip, but the e2e check carries
     // `discoveryMismatch: true` plus the discovered-but-unprocessed file list — the sole reason
     // the run exited 1.
-    quests.writeWardResultDetail({
+    await quests.writeWardResultDetail({
       questFilePath: String(questFilePath),
       wardResultId,
       detail: {

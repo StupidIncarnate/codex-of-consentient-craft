@@ -51,7 +51,7 @@ test.describe('Quest Begin Transition', () => {
     dispatch.holdQueueWithMcpHeartbeat();
 
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: clicking Begin Quest sends POST to /start and transitions the quest to in_progress', async ({
@@ -67,7 +67,7 @@ test.describe('Quest Begin Transition', () => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
     const sessionId = `e2e-begin-transition-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     // Create quest via API to get the server-resolved file path
     const created = await questHarness({ request }).createQuest({
@@ -81,7 +81,7 @@ test.describe('Quest Begin Transition', () => {
 
     // Overwrite quest.json with the desired status. The ledger stays empty — the flows the harness
     // seeds are the whole of what the observables gate measures, and the APPROVE button follows it.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -176,7 +176,7 @@ test.describe('Quest Begin Transition', () => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
     const sessionId = `e2e-exec-roles-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await questHarness({ request }).createQuest({
       guildId,
@@ -190,7 +190,7 @@ test.describe('Quest Begin Transition', () => {
     // Chaoswhisperer starts as 'pending' — matches real quest data where
     // the spec phase never explicitly marks the work item complete.
     // The OrchestrationStartResponder must promote it to 'complete' on quest start.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -306,7 +306,7 @@ test.describe('Quest Begin Transition', () => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
     const sessionId = `e2e-relay-graph-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await questHarness({ request }).createQuest({
       guildId,
@@ -317,7 +317,7 @@ test.describe('Quest Begin Transition', () => {
     const { questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -426,7 +426,7 @@ test.describe('Quest Begin Transition', () => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
     const sessionId = `e2e-carve-on-relay-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await questHarness({ request }).createQuest({
       guildId,
@@ -437,7 +437,7 @@ test.describe('Quest Begin Transition', () => {
     const { questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,

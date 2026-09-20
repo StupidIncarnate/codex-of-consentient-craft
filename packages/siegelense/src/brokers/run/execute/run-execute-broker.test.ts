@@ -1,0 +1,1368 @@
+import { ContentTextStub, FileNameStub, GuildStub } from '@dungeonmaster/shared/contracts';
+
+import { BufferEntryStub } from '../../../contracts/buffer-entry/buffer-entry.stub';
+import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
+import { LocatorStateStub } from '../../../contracts/locator-state/locator-state.stub';
+import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
+import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
+import { SelectorStub } from '../../../contracts/selector/selector.stub';
+import { StepExpectationStub } from '../../../contracts/step-expectation/step-expectation.stub';
+import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
+import { StepStub } from '../../../contracts/step/step.stub';
+import { StopOnStub } from '../../../contracts/stop-on/stop-on.stub';
+import { UntilResponseStub } from '../../../contracts/until-response/until-response.stub';
+import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
+import { locationsShotPathFindBroker } from '../../locations/shot-path-find/locations-shot-path-find-broker';
+
+import { runExecuteBroker } from './run-execute-broker';
+import { runExecuteBrokerProxy } from './run-execute-broker.proxy';
+
+const gotoBatch = ({ count }: { count: number }): ReturnType<typeof StepStub>[] =>
+  Array.from({ length: count }, (_unused, position) =>
+    StepStub({ step: 'goto', path: UrlPathStub({ value: `/step-${String(position + 1)}` }) }),
+  );
+
+const gotoBatchWithExpectationAtThree = ({
+  stepExpectation,
+}: {
+  stepExpectation: ReturnType<typeof StepExpectationStub>;
+}): ReturnType<typeof StepStub>[] => [
+  StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
+  StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-2' }) }),
+  StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-3' }), expect: stepExpectation }),
+  StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-4' }) }),
+  StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-5' }) }),
+];
+
+describe('runExecuteBroker', () => {
+  describe('a clean batch', () => {
+    it('VALID: {five ok steps} => status done, stepsRun 5, stoppedAt null', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const lane = proxy.cleanLane();
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 5 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({
+        status: 'done',
+        stepsRun: 5,
+        stoppedAt: null,
+      });
+    });
+  });
+
+  describe('a failing step, default stopOn', () => {
+    it('VALID: {step 3 fails, stopOn error} => status failed, stepsRun 3, stoppedAt names step 3 and its verb, steps 4 and 5 never dispatched', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      const { shotsDir } = proxy.stagePaths({ runId });
+      const { lane, gotoCallCount } = proxy.laneFailingOnPath({
+        failingPath: '/step-3',
+        error: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 5 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({
+        status: 'failed',
+        stepsRun: 3,
+        stoppedAt: {
+          step: 3,
+          verb: 'goto',
+          error: 'AMBIGUOUS: 2 elements match [data-testid="X"]',
+          candidates: [],
+        },
+      });
+      expect(gotoCallCount()).toBe(3);
+      // The failing step (3) still captured its evidence, and that shot must reach RunResult.shots —
+      // the whole point of this defect: a screenshot written to disk but filtered out because the
+      // failure reading hardcoded shot: null.
+      expect(result.shots.map((shot) => [shot.step, shot.path])).toStrictEqual([
+        [1, locationsShotPathFindBroker({ shotsDir, step: StepIndexStub({ value: 1 }) })],
+        [2, locationsShotPathFindBroker({ shotsDir, step: StepIndexStub({ value: 2 }) })],
+        [3, locationsShotPathFindBroker({ shotsDir, step: StepIndexStub({ value: 3 }) })],
+      ]);
+    });
+  });
+
+  describe('a failing step, stopOn never', () => {
+    it('VALID: {step 3 fails, stopOn never} => status failed, stepsRun 5, stoppedAt still names step 3 (where it would have stopped), and the later steps DO run', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane, gotoCallCount } = proxy.laneFailingOnPath({
+        failingPath: '/step-3',
+        error: new Error('boom'),
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 5 }),
+        stopOn: StopOnStub({ value: 'never' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({
+        status: 'failed',
+        stepsRun: 5,
+        stoppedAt: { step: 3, verb: 'goto', error: 'boom', candidates: [] },
+      });
+      expect(gotoCallCount()).toBe(5);
+    });
+  });
+
+  describe('an expect: error step that fails as intended', () => {
+    it('VALID: {step 3 declares expect error and fails} => the batch never stops on it', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane, gotoCallCount } = proxy.laneFailingOnPath({
+        failingPath: '/step-3',
+        error: new Error('boom'),
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatchWithExpectationAtThree({
+          stepExpectation: StepExpectationStub({ value: 'error' }),
+        }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({ status: result.status, stepsRun: result.stepsRun }).toStrictEqual({
+        status: 'done',
+        stepsRun: 5,
+      });
+      expect(gotoCallCount()).toBe(5);
+    });
+  });
+
+  describe('an expect: error step that succeeds instead', () => {
+    it('INVALID: {step 3 declares expect error and succeeds} => reported as a finding that stops the batch', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const lane = proxy.cleanLane();
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatchWithExpectationAtThree({
+          stepExpectation: StepExpectationStub({ value: 'error' }),
+        }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({
+        status: 'failed',
+        stepsRun: 3,
+        stoppedAt: {
+          step: 3,
+          verb: 'goto',
+          error: "step 3 (goto) declared expect: 'error' but succeeded: /step-3",
+          candidates: [],
+        },
+      });
+    });
+  });
+
+  describe('a goto failure whose message merely names "timeout"', () => {
+    it('VALID: {step 2 fails, message contains the word "timeout"} => status failed, not timeout — the signal is the error TYPE, never the rendered text', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane } = proxy.laneFailingOnPath({
+        failingPath: '/step-2',
+        error: new Error(
+          'step 2 waitFor on [data-testid="SUBAGENT_CHAIN"] never resolved after 10000ms: Timeout 10000ms exceeded',
+        ),
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 5 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({ status: result.status, stoppedAt: result.stoppedAt }).toStrictEqual({
+        status: 'failed',
+        stoppedAt: {
+          step: 2,
+          verb: 'goto',
+          error:
+            'step 2 waitFor on [data-testid="SUBAGENT_CHAIN"] never resolved after 10000ms: Timeout 10000ms exceeded',
+          candidates: [],
+        },
+      });
+    });
+  });
+
+  describe('a hung waitFor, default stopOn', () => {
+    it('VALID: {step 2 waitFor never resolves, stopOn error} => status timeout, step 3 never dispatched, stoppedAt names the step, the verb and the target', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane, gotoCallCount } = proxy.laneHangingOnWaitFor({
+        error: new Error('Timeout 30000ms exceeded'),
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
+          StepStub({
+            step: 'waitFor',
+            target: SelectorStub(),
+            state: LocatorStateStub({ value: 'visible' }),
+          }),
+          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-3' }) }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({
+        status: 'timeout',
+        stepsRun: 2,
+        stoppedAt: {
+          step: 2,
+          verb: 'waitFor',
+          error:
+            'visible [data-testid="GUILD_ADD"] never resolved in 30000ms: Error: Timeout 30000ms exceeded',
+          candidates: [],
+        },
+      });
+      expect(gotoCallCount()).toBe(1);
+    });
+  });
+
+  describe('a hung waitFor, stopOn never', () => {
+    it('VALID: {step 2 waitFor never resolves, stopOn never} => status timeout, stepsRun 3, and step 3 DOES run', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane, gotoCallCount } = proxy.laneHangingOnWaitFor({
+        error: new Error('Timeout 30000ms exceeded'),
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
+          StepStub({
+            step: 'waitFor',
+            target: SelectorStub(),
+            state: LocatorStateStub({ value: 'visible' }),
+          }),
+          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-3' }) }),
+        ],
+        stopOn: StopOnStub({ value: 'never' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({
+        status: 'timeout',
+        stepsRun: 3,
+        stoppedAt: {
+          step: 2,
+          verb: 'waitFor',
+          error:
+            'visible [data-testid="GUILD_ADD"] never resolved in 30000ms: Error: Timeout 30000ms exceeded',
+          candidates: [],
+        },
+      });
+      expect(gotoCallCount()).toBe(2);
+    });
+  });
+
+  describe('a waitFor that hits its ceiling under expect: error', () => {
+    it("VALID: {step 2 waitFor never resolves, expect: 'error'} => the batch does not stop and status is done", async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane, gotoCallCount } = proxy.laneHangingOnWaitFor({
+        error: new Error('Timeout 30000ms exceeded'),
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
+          StepStub({
+            step: 'waitFor',
+            target: SelectorStub(),
+            state: LocatorStateStub({ value: 'visible' }),
+            expect: 'error',
+          }),
+          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-3' }) }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({
+        status: 'done',
+        stepsRun: 3,
+        stoppedAt: null,
+      });
+      expect(gotoCallCount()).toBe(2);
+    });
+  });
+
+  describe('until { response } after a click in the SAME run', () => {
+    // The real drive's own repro: `[{ click }, { until: response POST /api/guilds }]` never
+    // observed the response, because `stepUntilBroker` read `fromIndex` off a fresh
+    // `session.bufferLengths()` at the `until` step's own start — by then the click's own POST was
+    // already in the buffer, so the scan started AFTER it. `browserWindowStart` is computed ONCE,
+    // before the whole step loop, so this proves the fix without a live browser: the click's POST
+    // must still resolve the very next step.
+    it('VALID: {click fires the POST, until { response } is the next step} => resolves rather than timing out', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane } = proxy.laneClickTriggersNetworkLine();
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'click', target: SelectorStub() }),
+          StepStub({
+            step: 'until',
+            response: UntilResponseStub({ method: 'POST', path: '/api/guilds' }),
+            timeoutMs: 1000,
+          }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({
+        status: 'done',
+        stepsRun: 2,
+        stoppedAt: null,
+      });
+    });
+  });
+
+  describe('until { response } against a match from a PREVIOUS run', () => {
+    // The other half of the fix: reading from the RUN's own window, not the step's, must never
+    // let a match from an EARLIER run satisfy an `until` in THIS run. Run 1's click fires the same
+    // POST; run 2 asks `until { response }` alone, against the SAME lane (one browser session,
+    // exactly as a real driver's lane persists across `run` calls) — the match sits before run 2's
+    // own window, so it still times out, and the note now names it as belonging to an earlier run.
+    // `timeoutMs: 0` — never a real poll wait — because every proxy composed through
+    // `runExecuteBrokerProxy()` shares ONE `Date.now` mock, pinned by `stepDispatchBrokerProxy`'s
+    // own constructor to a fixed value for the whole file; a positive timeout would poll forever
+    // against a clock that never advances, since the ceiling check (`Date.now() < deadlineAtMs`)
+    // never becomes false. `deadlineAtMs = startedAtMs + 0` equals `startedAtMs` under that same
+    // pinned clock, so the ceiling is hit on the FIRST synchronous check, with no wait at all.
+    it('ERROR: {run 1 fires the POST, run 2 alone asks until { response }} => still times out, the note naming an earlier run', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const firstRunId = RunIdStub({ value: 'run_1' });
+      const secondRunId = RunIdStub({ value: 'run_2' });
+      proxy.stagePaths({ runId: firstRunId });
+      proxy.stagePaths({ runId: secondRunId });
+      const { lane } = proxy.laneClickTriggersNetworkLine();
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId: firstRunId,
+        steps: [StepStub({ step: 'click', target: SelectorStub() })],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId: secondRunId,
+        steps: [
+          StepStub({
+            step: 'until',
+            response: UntilResponseStub({ method: 'POST', path: '/api/guilds' }),
+            timeoutMs: 0,
+          }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({ status: result.status, stoppedAt: result.stoppedAt }).toStrictEqual({
+        status: 'timeout',
+        stoppedAt: {
+          step: 1,
+          verb: 'until',
+          error:
+            "response POST /api/guilds never resolved in 0ms — 0 of 0 network lines since this step began matched. A match DID arrive earlier in this instance's buffer, 1 line before this run's own window began — it belongs to an earlier run, not this one: read it back with `results --kind network --since boot`.",
+          candidates: [],
+        },
+      });
+    });
+  });
+
+  describe('the transcript, flushed per step', () => {
+    it('VALID: {five steps} => step N is dispatched only once the previous N-1 lines are already flushed', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      const { transcript } = proxy.stagePaths({ runId });
+      const { lane, snapshotsAtEachStep } = proxy.laneRecordingTranscriptGrowth({
+        transcriptPath: transcript,
+      });
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 5 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      // Five snapshots, one per step, each equal to the number of lines already flushed the
+      // instant THAT step's own action fired — [0,1,2,3,4] is a stronger proof than a final tally
+      // ever could be: a buffered implementation would report the SAME total ([0,0,0,0,0], all
+      // taken before anything was written) rather than growing one entry at a time.
+      expect(snapshotsAtEachStep()).toStrictEqual([0, 1, 2, 3, 4]);
+    });
+  });
+
+  describe('the stored return', () => {
+    it('VALID: {a completed run} => the whole RunResult is written to runs/run_N.json', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      const { storedReturn } = proxy.stagePaths({ runId });
+      const lane = proxy.cleanLane();
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 2 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(proxy.storedReturnWrite({ storedReturnPath: storedReturn })).toBe(
+        `${JSON.stringify(result)}\n`,
+      );
+    });
+  });
+
+  describe('two runs on one lane', () => {
+    it('VALID: {run_1 then run_2} => the second run restarts step numbering at 1 and its shots are under runs/run_2/', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const firstRunId = RunIdStub({ value: 'run_1' });
+      const secondRunId = RunIdStub({ value: 'run_2' });
+      proxy.stagePaths({ runId: firstRunId });
+      const secondPaths = proxy.stagePaths({ runId: secondRunId });
+      const firstLane = proxy.cleanLane();
+      const secondLane = proxy.cleanLane();
+
+      await runExecuteBroker({
+        lane: firstLane,
+        instanceId: InstanceIdStub(),
+        runId: firstRunId,
+        steps: gotoBatch({ count: 2 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+      const secondResult = await runExecuteBroker({
+        lane: secondLane,
+        instanceId: InstanceIdStub(),
+        runId: secondRunId,
+        steps: gotoBatch({ count: 2 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const expectedFirstShotPath = locationsShotPathFindBroker({
+        shotsDir: secondPaths.shotsDir,
+        step: StepIndexStub({ value: 1 }),
+      });
+      const expectedSecondShotPath = locationsShotPathFindBroker({
+        shotsDir: secondPaths.shotsDir,
+        step: StepIndexStub({ value: 2 }),
+      });
+
+      expect({
+        stepsRun: secondResult.stepsRun,
+        shots: secondResult.shots.map((shot) => [shot.step, shot.path]),
+      }).toStrictEqual({
+        stepsRun: 2,
+        shots: [
+          [1, expectedFirstShotPath],
+          [2, expectedSecondShotPath],
+        ],
+      });
+    });
+  });
+
+  describe('an instance with history from an earlier run', () => {
+    it('VALID: {run 2 index} => counts only the lines that arrived after run 1 ended, not the total', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_2' });
+      proxy.stagePaths({ runId });
+      const lane = proxy.laneWithBrowserHistory({
+        consoleStart: ReadingCountStub({ value: 10 }),
+        networkStart: ReadingCountStub({ value: 3 }),
+        newConsoleLines: [
+          ContentTextStub({
+            value: JSON.stringify({
+              at: 1,
+              kind: 'console',
+              type: 'error',
+              text: 'x',
+              url: '',
+              line: 0,
+            }),
+          }),
+        ],
+        newNetworkLines: [],
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(result.index.console).toStrictEqual({ errors: 1, warnings: 0 });
+    });
+  });
+
+  describe('shot policy on a clean run', () => {
+    it('VALID: {five ok steps} => first and last shots open, middles closed', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const lane = proxy.cleanLane();
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 5 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(result.shots.map((shot) => [shot.step, shot.open, shot.why])).toStrictEqual([
+        [1, true, 'start'],
+        [2, false, null],
+        [3, false, null],
+        [4, false, null],
+        [5, true, 'end'],
+      ]);
+    });
+  });
+
+  describe('shot policy on a failing run', () => {
+    it("VALID: {step 3 declares expect error and succeeds} => the failing step's shot is open with why 'failed'", async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const lane = proxy.cleanLane();
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatchWithExpectationAtThree({
+          stepExpectation: StepExpectationStub({ value: 'error' }),
+        }),
+        stopOn: StopOnStub({ value: 'never' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(result.shots.map((shot) => [shot.step, shot.open, shot.why])).toStrictEqual([
+        [1, true, 'start'],
+        [2, false, null],
+        [3, true, 'failed'],
+        [4, false, null],
+        [5, true, 'end'],
+      ]);
+    });
+  });
+
+  describe('the buffers, flushed per step and tagged with this run', () => {
+    it('VALID: {a two-step run} => console.jsonl received exactly the lines each step produced, each tagged with its own step', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane } = proxy.laneWithGrowingConsoleBuffer();
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 2 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const entries = proxy
+        .writtenBufferEntriesFor({ kind: 'console' })
+        .map((raw) => BufferEntryStub(raw as never));
+
+      expect(
+        entries.map((entry) => ({ runId: entry.runId, step: entry.step, text: entry.text })),
+      ).toStrictEqual([
+        { runId: 'run_1', step: 1, text: '{"line":0}' },
+        { runId: 'run_1', step: 2, text: '{"line":1}' },
+      ]);
+    });
+
+    it('EMPTY: {a run whose steps produce nothing} => no buffer write happens', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const lane = proxy.cleanLane();
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 2 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(proxy.bufferAppendCallCountFor({ kind: 'console' })).toStrictEqual(
+        ReadingCountStub({ value: 0 }),
+      );
+    });
+  });
+
+  describe('lines arriving between two runs', () => {
+    it('VALID: {a console line arrives after run_1 ends} => flushed at run_2 start with runId null and step null', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const firstRunId = RunIdStub({ value: 'run_1' });
+      const secondRunId = RunIdStub({ value: 'run_2' });
+      proxy.stagePaths({ runId: firstRunId });
+      proxy.stagePaths({ runId: secondRunId });
+      const { lane, pushConsoleLine } = proxy.laneWithGrowingConsoleBuffer();
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId: firstRunId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      pushConsoleLine({ text: ContentTextStub({ value: '{"betweenRuns":true}' }) });
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId: secondRunId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const entries = proxy
+        .writtenBufferEntriesFor({ kind: 'console' })
+        .map((raw) => BufferEntryStub(raw as never));
+      const betweenRunsEntries = entries.filter((entry) => entry.text === '{"betweenRuns":true}');
+
+      expect(
+        betweenRunsEntries.map((entry) => ({ runId: entry.runId, step: entry.step })),
+      ).toStrictEqual([{ runId: null, step: null }]);
+    });
+  });
+
+  describe("a run's shots carry their step's own perception fields", () => {
+    it('VALID: {two steps, one measured change} => each ShotListing carries the pixelChange and blank its step measured', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      const { shotsDir } = proxy.stagePaths({ runId });
+      const lane = proxy.cleanLane();
+      const firstShotPath = locationsShotPathFindBroker({
+        shotsDir,
+        step: StepIndexStub({ value: 1 }),
+      });
+      const secondShotPath = locationsShotPathFindBroker({
+        shotsDir,
+        step: StepIndexStub({ value: 2 }),
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 2 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(
+        result.shots.map((shot) => ({
+          step: shot.step,
+          path: shot.path,
+          pixelChange: shot.pixelChange,
+          blank: shot.blank,
+        })),
+      ).toStrictEqual([
+        { step: 1, path: firstShotPath, pixelChange: null, blank: false },
+        { step: 2, path: secondShotPath, pixelChange: '0%', blank: false },
+      ]);
+    });
+  });
+
+  describe('a screenshot step', () => {
+    it('VALID: {goto then screenshot with a caller name} => the shot writes at the caller-supplied name inside the run directory, and the acting step still captures unasked at its own step-indexed name', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const evidencePath = proxy.evidencePath();
+      const { lane, captureCalls } = proxy.laneCapturingShots();
+      const shotName = FileNameStub({ value: 'after-create.png' });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
+          StepStub({ step: 'screenshot', name: shotName }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const expectedActingShotPath = `${String(evidencePath)}/runs/run_1/step1.png`;
+      const expectedNamedShotPath = `${String(evidencePath)}/runs/run_1/after-create.png`;
+
+      expect({ status: result.status, stepsRun: result.stepsRun }).toStrictEqual({
+        status: 'done',
+        stepsRun: 2,
+      });
+      expect(result.shots.map((shot) => [shot.step, String(shot.path)])).toStrictEqual([
+        [1, expectedActingShotPath],
+        [2, expectedNamedShotPath],
+      ]);
+      // The seam: `session.capture` — the actual write — received the SAME two paths RunResult
+      // reports, in the same order. Asserting only `result.shots` would still pass if the dispatcher
+      // captured to one path but reported another.
+      expect(captureCalls().map((path) => String(path))).toStrictEqual([
+        expectedActingShotPath,
+        expectedNamedShotPath,
+      ]);
+    });
+
+    it('VALID: {a batch of only a screenshot step} => never throws for a missing shotPath, the defect this fix removes', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane } = proxy.laneCapturingShots();
+      const shotName = FileNameStub({ value: 'lone-shot.png' });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [StepStub({ step: 'screenshot', name: shotName })],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({ status: result.status, stoppedAt: result.stoppedAt }).toStrictEqual({
+        status: 'done',
+        stoppedAt: null,
+      });
+    });
+
+    it('VALID: {the same caller-supplied name in run_1 and run_2} => each run keeps its own shot under its own run directory', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const firstRunId = RunIdStub({ value: 'run_1' });
+      const secondRunId = RunIdStub({ value: 'run_2' });
+      proxy.stagePaths({ runId: firstRunId });
+      proxy.stagePaths({ runId: secondRunId });
+      const evidencePath = proxy.evidencePath();
+      const shotName = FileNameStub({ value: 'shot.png' });
+
+      const firstResult = await runExecuteBroker({
+        lane: proxy.laneCapturingShots().lane,
+        instanceId: InstanceIdStub(),
+        runId: firstRunId,
+        steps: [StepStub({ step: 'screenshot', name: shotName })],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+      const secondResult = await runExecuteBroker({
+        lane: proxy.laneCapturingShots().lane,
+        instanceId: InstanceIdStub(),
+        runId: secondRunId,
+        steps: [StepStub({ step: 'screenshot', name: shotName })],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect([
+        String(firstResult.shots[0]?.path),
+        String(secondResult.shots[0]?.path),
+      ]).toStrictEqual([
+        `${String(evidencePath)}/runs/run_1/shot.png`,
+        `${String(evidencePath)}/runs/run_2/shot.png`,
+      ]);
+    });
+  });
+
+  describe('the repo-local shot path', () => {
+    it('VALID: {a .siegelense symlink at the repo root} => the shot RunResult reports and the path session.capture actually wrote to are the same repo-local address', async () => {
+      const proxy = runExecuteBrokerProxy();
+      proxy.stageRepoLinkPresent();
+      const runId = RunIdStub({ value: 'run_1' });
+      const evidencePath = proxy.homeRootedEvidencePath();
+      proxy.stagePaths({ runId, evidencePath });
+      const { lane, captureCalls } = proxy.laneCapturingShots({ evidencePath });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const expectedShotPath = `${String(proxy.repoLocalEvidencePath())}/runs/run_1/step1.png`;
+
+      // The complete string, not a startsWith on a fragment: packages/siegelense/CLAUDE.md's
+      // "every path handed back is repo-local, through <repoRoot>/.siegelense" is a claim about
+      // the WHOLE path, and a fragment match would still pass if the tail after the repo root
+      // silently drifted from what the write actually used.
+      expect(result.shots.map((shot) => String(shot.path))).toStrictEqual([expectedShotPath]);
+      // The seam: session.capture — the actual write — landed at the SAME repo-local address
+      // RunResult reports. Asserting only result.shots would still pass if the write kept
+      // targeting the real home path while only the report was swapped for the repo-local one.
+      expect(captureCalls().map((path) => String(path))).toStrictEqual([expectedShotPath]);
+    });
+
+    it('VALID: {no .siegelense symlink at the repo root} => the shot path stays the real home-rooted one, unchanged from before this resolution existed', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      const { shotsDir } = proxy.stagePaths({ runId });
+      const lane = proxy.cleanLane();
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      const expectedShotPath = locationsShotPathFindBroker({
+        shotsDir,
+        step: StepIndexStub({ value: 1 }),
+      });
+
+      expect(result.shots.map((shot) => shot.path)).toStrictEqual([expectedShotPath]);
+    });
+  });
+
+  describe('the automatic snapshot pair', () => {
+    it('VALID: {one run} => captures run_1:start before the batch and run_1:end after it, both manual false', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const lane = proxy.cleanLane();
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 2 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(proxy.capturedSnapshotCalls()).toStrictEqual([
+        { homePath: '/tmp/dm-siege-stub', name: 'run_1:start', manual: false },
+        { homePath: '/tmp/dm-siege-stub', name: 'run_1:end', manual: false },
+      ]);
+    });
+
+    it('VALID: {two runs on one instance} => four automatic captures, run_1:start, run_1:end, run_2:start, run_2:end', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const instanceId = InstanceIdStub();
+      const firstRunId = RunIdStub({ value: 'run_1' });
+      const secondRunId = RunIdStub({ value: 'run_2' });
+      proxy.stagePaths({ runId: firstRunId });
+      proxy.stagePaths({ runId: secondRunId });
+      const lane = proxy.cleanLane();
+
+      await runExecuteBroker({
+        lane,
+        instanceId,
+        runId: firstRunId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+      await runExecuteBroker({
+        lane,
+        instanceId,
+        runId: secondRunId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(proxy.capturedSnapshotCalls()).toStrictEqual([
+        { homePath: '/tmp/dm-siege-stub', name: 'run_1:start', manual: false },
+        { homePath: '/tmp/dm-siege-stub', name: 'run_1:end', manual: false },
+        { homePath: '/tmp/dm-siege-stub', name: 'run_2:start', manual: false },
+        { homePath: '/tmp/dm-siege-stub', name: 'run_2:end', manual: false },
+      ]);
+    });
+
+    it('VALID: {three steps} => the start half has already landed when step 1 dispatches, and no second capture lands until the batch is over', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane, snapshotCountAtEachStep } = proxy.laneRecordingSnapshotGrowth();
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 3 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(snapshotCountAtEachStep()).toStrictEqual([1, 1, 1]);
+    });
+
+    it('VALID: {a failing batch} => still captures the end half, so a failed run is a point you can return to', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_3' });
+      proxy.stagePaths({ runId });
+      const { lane } = proxy.laneFailingOnPath({
+        failingPath: '/step-3',
+        error: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
+      });
+
+      await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 5 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(proxy.capturedSnapshotCalls()).toStrictEqual([
+        { homePath: '/tmp/dm-siege-stub', name: 'run_3:start', manual: false },
+        { homePath: '/tmp/dm-siege-stub', name: 'run_3:end', manual: false },
+      ]);
+    });
+
+    it('ERROR: {a capture that fails} => the batch still reports done with every step run', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      proxy.failSnapshotCapture({ error: new Error('ENOSPC: no space left on device') });
+      const lane = proxy.cleanLane();
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 3 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({ status: 'done', stepsRun: 3, stoppedAt: null });
+    });
+  });
+
+  describe('reference substitution between steps', () => {
+    const API_PORT = 41001;
+    const API = `http://dungeonmaster.localhost:${String(API_PORT)}`;
+    const GUILD_ID = '7306b468-0f2d-4a5e-9c3b-2d1e8f0a6b41';
+    const MINTED_QUEST_IDS = [
+      'aaaaaaaa-1111-4111-8111-111111111111',
+      'bbbbbbbb-2222-4222-8222-222222222222',
+      'cccccccc-3333-4333-8333-333333333333',
+    ];
+
+    it("VALID: {seed as 'g', then goto '/{g.guild.urlSlug}'} => the goto step navigates to the slug the seed actually minted", async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      proxy.seedBookPresent();
+      proxy.seedLaneAnswers({
+        apiBaseUrl: ContentTextStub({ value: API }),
+        guild: GuildStub({
+          id: GUILD_ID,
+          name: 'Siege Guild',
+          path: '/tmp/dm-siege-inst_seed/siege-repo',
+          urlSlug: 'siege-guild',
+        }),
+        questIds: MINTED_QUEST_IDS.map((value) => ContentTextStub({ value })),
+      });
+      const { lane, gotoPaths } = proxy.laneRecordingGotoPaths({ apiPort: API_PORT });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'seed', recipe: 'guild-with-three-quests', as: 'g' }),
+          StepStub({ step: 'goto', path: '/{g.guild.urlSlug}' }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(result.status).toBe('done');
+      expect(gotoPaths()).toStrictEqual(['/siege-guild']);
+    });
+
+    it("VALID: {seed as 'g', then seed with params {guildPath:'{g.guild.path}'}} => the second seed entry receives the first seed's real path", async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      proxy.seedBookPresent();
+      const seedRun = proxy.seedLaneAnswers({
+        apiBaseUrl: ContentTextStub({ value: API }),
+        guild: GuildStub({
+          id: GUILD_ID,
+          name: 'Siege Guild',
+          path: '/tmp/dm-siege-inst_seed/siege-repo',
+          urlSlug: 'siege-guild',
+        }),
+        questIds: MINTED_QUEST_IDS.map((value) => ContentTextStub({ value })),
+      });
+      const { lane } = proxy.laneRecordingGotoPaths({ apiPort: API_PORT });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'seed', recipe: 'guild-with-three-quests', as: 'g' }),
+          StepStub({
+            step: 'seed',
+            recipe: 'session-with-nested-subagent',
+            params: { guildPath: '{g.guild.path}' },
+          }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(result.status).toBe('done');
+
+      const paramsList = (seedRun.getCallArgs() as readonly [{ params: unknown }][]).map(
+        ([call]) => call.params,
+      );
+
+      expect(paramsList).toStrictEqual([
+        null,
+        {
+          guildPath: '/tmp/dm-siege-inst_seed/siege-repo',
+        },
+      ]);
+    });
+
+    it("VALID: {two seeds, both with as:} => the second reference resolves against the second step's own output, not the first's", async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      proxy.seedBookPresent();
+      proxy.seedLaneAnswers({
+        apiBaseUrl: ContentTextStub({ value: API }),
+        guild: GuildStub({
+          id: GUILD_ID,
+          name: 'First Guild',
+          path: '/tmp/first-guild',
+          urlSlug: 'first-guild',
+        }),
+        questIds: MINTED_QUEST_IDS.map((value) => ContentTextStub({ value })),
+        secondGuild: GuildStub({
+          id: '88888888-8888-4888-8888-888888888888',
+          name: 'Second Guild',
+          path: '/tmp/second-guild',
+          urlSlug: 'second-guild',
+        }),
+      });
+      const { lane, gotoPaths } = proxy.laneRecordingGotoPaths({ apiPort: API_PORT });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'seed', recipe: 'guild-with-three-quests', as: 'g' }),
+          StepStub({ step: 'seed', recipe: 'guild-with-three-quests', as: 'g' }),
+          StepStub({ step: 'goto', path: '/{g.guild.urlSlug}' }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(result.status).toBe('done');
+      expect(gotoPaths()).toStrictEqual(['/second-guild']);
+    });
+
+    it('INVALID: {a reference in step 1} => the batch stops at step 1 with a message naming that nothing has been named yet', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane, gotoPaths } = proxy.laneRecordingGotoPaths({ apiPort: API_PORT });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'goto', path: '/{g.guild.urlSlug}' }),
+          StepStub({ step: 'goto', path: '/never-reached' }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAt: result.stoppedAt,
+      }).toStrictEqual({
+        status: 'failed',
+        stepsRun: 1,
+        stoppedAt: {
+          step: 1,
+          verb: 'goto',
+          error: 'cannot resolve reference {g.guild.urlSlug} — nothing has been named yet',
+          candidates: [],
+        },
+      });
+      expect(gotoPaths()).toStrictEqual([]);
+    });
+
+    it('VALID: {a step whose fields carry no reference} => the step is dispatched with its fields unchanged', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane } = proxy.laneRecordingGotoPaths({ apiPort: API_PORT });
+
+      const parsedStep = StepStub({ step: 'goto', path: '/guilds' });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [parsedStep],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(result.status).toBe('done');
+      expect(proxy.dispatchedSteps()).toStrictEqual([parsedStep]);
+    });
+  });
+});

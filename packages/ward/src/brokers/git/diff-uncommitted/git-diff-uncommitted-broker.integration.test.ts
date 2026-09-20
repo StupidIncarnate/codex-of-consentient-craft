@@ -29,7 +29,7 @@ describe('gitDiffUncommittedBroker (integration) — real working tree, tracked 
     });
 
     // An edit to a TRACKED file. `git diff` reports this one.
-    git.writeUncommittedFile({
+    await git.writeUncommittedFile({
       cwd: repoPath,
       relativePath: GitRelativePathStub({ value: 'base.txt' }),
       content: 'base edited but never committed\n',
@@ -37,7 +37,7 @@ describe('gitDiffUncommittedBroker (integration) — real working tree, tracked 
 
     // A file git has never seen. `git diff` reports NOTHING for it — this is the whole reason the
     // broker takes a second reading.
-    git.writeUncommittedFile({
+    await git.writeUncommittedFile({
       cwd: repoPath,
       relativePath: GitRelativePathStub({ value: 'brand-new.ts' }),
       content: 'export const brandNew = 2;\n',
@@ -68,12 +68,12 @@ describe('gitDiffUncommittedBroker (integration) — real working tree, tracked 
       content: 'dist/\n',
     });
 
-    git.writeUncommittedFile({
+    await git.writeUncommittedFile({
       cwd: repoPath,
       relativePath: GitRelativePathStub({ value: 'dist/generated.js' }),
       content: 'module.exports = {};\n',
     });
-    git.writeUncommittedFile({
+    await git.writeUncommittedFile({
       cwd: repoPath,
       relativePath: GitRelativePathStub({ value: 'src/real.ts' }),
       content: 'export const real = 1;\n',

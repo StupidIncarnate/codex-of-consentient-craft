@@ -16,7 +16,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Abandoned quest with only a chaoswhisperer work item still shows the chaos transcript', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {abandoned quest, only chaoswhisperer work item with sessionId} => execution panel surfaces the replayed chaos transcript', async ({
@@ -35,7 +35,7 @@ test.describe('Abandoned quest with only a chaoswhisperer work item still shows 
     const chaosSessionId = `e2e-abandoned-chaos-${Date.now()}`;
     const chaosText = 'Chaoswhisperer transcript that must survive abandon';
 
-    sessions.createSessionWithAssistantText({ sessionId: chaosSessionId, text: chaosText });
+    await sessions.createSessionWithAssistantText({ sessionId: chaosSessionId, text: chaosText });
 
     const created = await quests.createQuest({
       guildId,
@@ -49,7 +49,7 @@ test.describe('Abandoned quest with only a chaoswhisperer work item still shows 
     // `skipped` while transitioning the quest to `abandoned`. A quest abandoned
     // during the chaoswhisperer phase therefore lands with EXACTLY this shape on
     // disk: one chaoswhisperer work item, status `skipped`, sessionId stamped.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),

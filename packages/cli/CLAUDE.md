@@ -7,6 +7,8 @@ The CLI package provides the `dungeonmaster` binary:
 - `dungeonmaster init` - Discovers all packages and runs their `StartInstall` functions to set up devDependencies
 - `dungeonmaster create-package` - Scaffolds a new workspace package (see below)
 - `dungeonmaster statusline-tap` - Reads Claude Code's statusline payload on stdin, records rate limits, echoes it back
+- `dungeonmaster siegelense driver --instance <id>` - Launches the siegelense driver process for one instance;
+  `dungeonmaster siegelense` bare prints the fleet registry as a table for a person at a terminal
 - `dungeonmaster` (default) - Launches the HTTP server and opens the web UI in a browser
 
 ## Key Files
@@ -57,6 +59,37 @@ is what catches it.
 **The config values come from what the packages on disk actually carry, not from the prose.**
 `statics/package-scaffold-config/package-scaffold-config-statics.ts` holds them and its header names the three that a
 hand-copied config gets wrong.
+
+## `dungeonmaster siegelense`
+
+Every call is `dungeonmaster siegelense <call>`. The names that route to a responder are the keys of
+`siegelenseHelpStatics.calls` (`packages/siegelense/src/statics/siegelense-help/siegelense-help-statics.ts`);
+every other name in the closed set `siegelenseCallStatics.calls.names`
+(`packages/siegelense/src/statics/siegelense-call/siegelense-call-statics.ts`) answers "is a
+siegelense call but is not built yet", naming the ones that are, rather than "unknown subcommand" —
+a caller typing one of the not-yet-built names read it in the spec, so the honest answer is "not
+yet", not "unknown". `dungeonmaster siegelense --help` prints the index (one line per built call,
+then the not-built ones); `dungeonmaster siegelense <call> --help` prints that call's flags, refusals
+and example.
+
+**`CliSiegelenseResponder` validates nothing, and must stay that way.** It forwards `args` verbatim
+into a dynamic import of `@dungeonmaster/siegelense/startup`. `SiegelenseFlow`'s route table, keyed by
+the same names `siegelenseHelpStatics.calls` holds, is the single source of truth for which
+subcommand exists and what its flags are — a second copy of that list in this responder is exactly
+what shipped `status` and `cleanup` fully built and fully tested, yet untypeable.
+
+The import is dynamic, never static: a static import would pull Playwright — a peer dependency of
+`@dungeonmaster/siegelense`, needed only to boot a browser lane — into the esbuild bundle that becomes
+`dist/bin/dungeonmaster.js`, the binary every consumer installs whether or not they ever run a
+siegelense call.
+
+Every built call renders a concise, token-efficient human-readable view by default. Passing `--json`
+writes the raw JSON document to stdout instead. Unrecognised flags write nothing to stdout and exit 1
+with an error listing the accepted flags for that command.
+
+`packages/cli/bin/cli-entry.integration.test.ts` is the seam test, spawning the real binary through
+`cliBinHarness` — every other siegelense test in the repo starts at `SiegelenseFlow` or below, so only
+a process spawned above `CliSiegelenseResponder` can prove the gate itself stays open.
 
 ## Architecture
 

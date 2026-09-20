@@ -1,0 +1,79 @@
+import { laneSpecStatics } from './lane-spec-statics';
+
+describe('laneSpecStatics', () => {
+  describe('the complete built-in spec set', () => {
+    it('VALID: {laneSpecStatics.specs} => asserts every field of both built-in specs', () => {
+      expect(laneSpecStatics.specs).toStrictEqual({
+        'dungeonmaster-stack': {
+          name: 'dungeonmaster-stack',
+          processes: [
+            {
+              name: 'api',
+              command: 'npm',
+              args: ['run', 'dev:no-watch', '--workspace=@dungeonmaster/server'],
+              portRole: 'api',
+              readyPath: '/api/guilds',
+              logFileName: 'api-server.log',
+              env: {
+                DUNGEONMASTER_HOME: '{home}',
+                HOME: '{home}',
+                FAKE_CLAUDE_QUEUE_DIR: '{claudeQueueDir}',
+                FAKE_WARD_QUEUE_DIR: '{wardQueueDir}',
+                E2E_SIGNAL_BACK_HTTP: '1',
+                DUNGEONMASTER_RATE_LIMITS_POLL_MS: '500',
+              },
+            },
+            {
+              name: 'web',
+              command: 'npm',
+              args: ['run', 'dev', '--workspace=@dungeonmaster/web'],
+              portRole: 'web',
+              readyPath: '/',
+              logFileName: 'web-server.log',
+              env: { DUNGEONMASTER_WEB_PORT: '{webPort}' },
+            },
+          ],
+          browser: true,
+          bootTimeoutMs: 180_000,
+          env: { DUNGEONMASTER_PORT: '{apiPort}' },
+          requiresFakeAgentCli: true,
+        },
+        'dungeonmaster-api': {
+          name: 'dungeonmaster-api',
+          processes: [
+            {
+              name: 'api',
+              command: 'npm',
+              args: ['run', 'dev:no-watch', '--workspace=@dungeonmaster/server'],
+              portRole: 'api',
+              readyPath: '/api/guilds',
+              logFileName: 'api-server.log',
+              env: {
+                DUNGEONMASTER_HOME: '{home}',
+                HOME: '{home}',
+                FAKE_CLAUDE_QUEUE_DIR: '{claudeQueueDir}',
+                FAKE_WARD_QUEUE_DIR: '{wardQueueDir}',
+                E2E_SIGNAL_BACK_HTTP: '1',
+                DUNGEONMASTER_RATE_LIMITS_POLL_MS: '500',
+              },
+            },
+          ],
+          browser: false,
+          bootTimeoutMs: 180_000,
+          env: { DUNGEONMASTER_PORT: '{apiPort}' },
+          requiresFakeAgentCli: true,
+        },
+      });
+    });
+  });
+
+  describe('the browserless spec does not drift from the browsered one', () => {
+    it("VALID: {dungeonmaster-api.processes} => is dungeonmaster-stack's processes filtered on portRole 'api'", () => {
+      const webApiProcesses = laneSpecStatics.specs['dungeonmaster-stack'].processes.filter(
+        (process) => process.portRole === 'api',
+      );
+
+      expect(laneSpecStatics.specs['dungeonmaster-api'].processes).toStrictEqual(webApiProcesses);
+    });
+  });
+});

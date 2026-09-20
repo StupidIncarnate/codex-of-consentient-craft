@@ -71,7 +71,7 @@ test.describe('Transcript entry replaces the optimistic bubble it matches', () =
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-transcript-replaces-optimistic-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -83,7 +83,7 @@ test.describe('Transcript entry replaces the optimistic bubble it matches', () =
     // persistent tail for a work item isActiveWorkItemStatusGuard calls active. `/api/quests/:id/chat`
     // itself has no status gate at all (it resolves by role + sessionId, since chat work items never
     // reach a terminal status), so this doesn't change how the send/resume behaves.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

@@ -18,6 +18,7 @@ describe('packageSeedFrontendStatics', () => {
         jestKind: 'tsx-jsdom',
         e2eEligible: true,
         exportsDot: false,
+        needsMswTransform: false,
       });
     });
 
@@ -51,6 +52,7 @@ describe('packageSeedFrontendStatics', () => {
         jestKind: 'tsx-node',
         e2eEligible: true,
         exportsDot: false,
+        needsMswTransform: false,
       });
     });
 

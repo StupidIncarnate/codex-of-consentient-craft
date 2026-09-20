@@ -22,16 +22,16 @@ const sessionsEmpty = sessionHarness({ guildPath: EMPTY_GUILD_PATH });
 test.describe('Guild Selection & Session Loading', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessionsA.cleanSessionFiles();
-    sessionsB.cleanSessionFiles();
-    sessionsEmpty.cleanSessionFiles();
+    await sessionsA.cleanSessionFiles();
+    await sessionsB.cleanSessionFiles();
+    await sessionsEmpty.cleanSessionFiles();
   });
 
   test('VALID: click guild loads its session list', async ({ page, request }) => {
     await guildHarness({ request }).createGuild({ name: 'Guild A', path: GUILD_A_PATH });
 
     const sessionId = `e2e-session-guild-a-${Date.now()}`;
-    sessionsA.createSessionFile({
+    await sessionsA.createSessionFile({
       sessionId,
       userMessage: 'Quest Alpha session',
     });
@@ -66,11 +66,11 @@ test.describe('Guild Selection & Session Loading', () => {
     const sessionIdA = `e2e-session-a-${Date.now()}`;
     const sessionIdB = `e2e-session-b-${Date.now()}`;
 
-    sessionsA.createSessionFile({
+    await sessionsA.createSessionFile({
       sessionId: sessionIdA,
       userMessage: 'Alpha session',
     });
-    sessionsB.createSessionFile({
+    await sessionsB.createSessionFile({
       sessionId: sessionIdB,
       userMessage: 'Beta session',
     });

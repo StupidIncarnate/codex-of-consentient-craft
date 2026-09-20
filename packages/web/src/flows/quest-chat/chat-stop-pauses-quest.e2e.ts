@@ -48,7 +48,7 @@ test.describe('Chat STOP pauses quest', () => {
 
     // Pre-seed session JSONL so navigating to /session/:sessionId doesn't 404.
     const sessionId = `e2e-chat-stop-pauses-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -62,7 +62,7 @@ test.describe('Chat STOP pauses quest', () => {
     // The quest-session linkage is what makes the widget's `questWithContent` truthy,
     // which in turn routes the chat STOP button to `questPauseBroker` instead of the
     // generic chat-stop broker.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),

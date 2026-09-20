@@ -36,7 +36,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
     // folder lives — so the delete must not touch it.
     const stamp = Date.now();
     const sessionId = `e2e-delete-session-${stamp}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the deletable quest' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the deletable quest' });
 
     const questTitle = 'Quest To Banish';
     const created = await quests.createQuest({
@@ -48,7 +48,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
     const questFilePath = String(created.filePath);
 
     // paused => deletable. The skull renders only for deletable statuses.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath,
@@ -125,7 +125,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
     const questId = String(created.questId);
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath,
@@ -188,7 +188,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
     const questFilePath = String(created.filePath);
 
     // The list snapshot the row renders from is `paused` (deletable) — so the skull shows.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -215,7 +215,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
     // its cached `paused` snapshot (the binding only refetches on refresh()), so the skull's
     // popover stays open and Banish is still clickable — exactly the render-then-go-active
     // race the error-toast branch exists for.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,

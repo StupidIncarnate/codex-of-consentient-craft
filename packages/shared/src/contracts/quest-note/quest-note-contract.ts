@@ -22,6 +22,16 @@
  * `flowId` and `unitId` are optional because the scope of a note varies: a tooling error can be
  * quest-wide, a walk-reset is per-flow, and an open question is often about one verification unit.
  * `summary` is the one line a reader scans; `detail` is what the next session needs to act on it.
+ *
+ * `instanceId` and `runId` are `.nullish()`, not `.optional()` — this contract also parses
+ * `quest.json` straight off disk (via `questContract`'s `planningNotes.questNotes` array), not only
+ * a value this file just built, so it accepts an explicit `null` the same as plain omission rather
+ * than rejecting a file that carries one. They carry no kind restriction here: every existing note
+ * kind has always parsed with them absent, and only a `walked` note is expected to set them. Typed
+ * fields rather than prose in `detail` is the whole point — a `WALKED` line is one of the citations
+ * `prune` and `cleanup` refuse to delete evidence over, and a resolver cannot match an id buried in
+ * a sentence. They are the SHARED-side brand (`siegeInstanceIdContract`/`siegeRunIdContract`, not
+ * siegelense's own) — see those contracts' headers for why shared cannot import siegelense's.
  */
 
 import { z } from 'zod';
@@ -30,6 +40,8 @@ import { flowIdContract } from '../flow-id/flow-id-contract';
 import { questNoteIdContract } from '../quest-note-id/quest-note-id-contract';
 import { questNoteKindContract } from '../quest-note-kind/quest-note-kind-contract';
 import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
+import { siegeInstanceIdContract } from '../siege-instance-id/siege-instance-id-contract';
+import { siegeRunIdContract } from '../siege-run-id/siege-run-id-contract';
 
 export const questNoteContract = z.object({
   id: questNoteIdContract,
@@ -49,6 +61,19 @@ export const questNoteContract = z.object({
     .brand<'QuestNoteUnitId'>()
     .optional()
     .describe('Present when the note is scoped to one verification unit within the flow.'),
+  instanceId: siegeInstanceIdContract
+    .nullish()
+    .describe(
+      'The siegelense driver instance that walked this path. Present on a `walked` note; absent on ' +
+        'every other kind. `.nullish()` because this contract also parses `quest.json` straight off ' +
+        'disk, not only a fresh write.',
+    ),
+  runId: siegeRunIdContract
+    .nullish()
+    .describe(
+      'The run, within `instanceId`, that walked this path. Present exactly when `instanceId` is — ' +
+        'together they are what `prune` and `cleanup` resolve a `WALKED` citation against.',
+    ),
   summary: z
     .string()
     .min(1)

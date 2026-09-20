@@ -11,25 +11,24 @@
 export const sessionSnippetStatics = {
   discover: `## discover Tool
 
-\`discover\` is the ONLY way to search this codebase. Native Glob, Grep, Search, and Find tools — plus shell \`grep\`/\`find\`/\`sed\` — are blocked by hooks. \`discover\`, \`get-project-map\` and \`get-project-inventory\` are MCP **tools**: load them via \`ToolSearch\`, never as shell commands or skills.
+\`discover\` is the ONLY way to search this codebase. Native Glob, Grep, Search, and Find tools — plus shell \`grep\`/\`find\`/\`sed\` — are blocked by hooks. \`discover\`, \`get-project-map\` and \`get-project-inventory\` are MCP **tools**: load them via \`ToolSearch\` (Claude Code) or \`call_mcp_tool\` under server \`dungeonmaster_dungeonmaster\` (Antigravity), never as shell commands or skills.
 
 **\`discover\` is step THREE, never step one.** \`get-project-map({ packages: [...] })\` is a package's bird's-eye view and \`get-project-inventory({ packageName })\` lists all it holds; \`discover\` globs into what one of those named. Reach for it first and you are guessing a path; a wrong glob returns nothing, which reads exactly like a package that holds nothing. \`<dungeonmaster-searchStrategy>\` has the order.
 
 | Param | Type | Description |
 |-------|------|-------------|
 | \`glob\` | string? | File path pattern. Example: \`"packages/hooks/src/guards/**"\` |
-| \`grep\` | string? | Content regex. Identifier patterns (2+ tokens, no metachars) match across kebab/snake/camel/Pascal by default. Single tokens stay literal. |
+| \`grep\` | string? | Content regex. Multi-token patterns match across kebab/snake/camel/Pascal by default; single stay literal. |
 | \`verbose\` | boolean? | Show signatures, companions. Default: false |
 | \`context\` | number? | Lines around grep hits. Default: 0 |
 | \`strict\` | boolean? | Disable cross-convention matching. Default: false |
 
-A \`glob\` call returns a folder tree: one line per file, with its folder type and purpose. \`verbose: true\` returns JSON with signatures, companions and usage.
+A \`glob\` call returns a folder tree with folder type and purpose. \`verbose: true\` returns JSON with signatures, companions and usage.
 
 ### Call forms
 
 \`\`\`
 discover({ glob: "packages/*/src/startup/**" })
-discover({ glob: "packages/{web,server}/src/widgets/**" })
 discover({ glob: "packages/hooks/src/guards/**", verbose: true })
 discover({ grep: "fileSize|timeout", context: 2 })
 discover({ glob: "packages/hooks/**", grep: "isNew" })

@@ -54,8 +54,8 @@ test.describe('Two tabs on one guild each see only their own quest stream', () =
 
     const sessionA = `e2e-tab-iso-a-${Date.now()}`;
     const sessionB = `e2e-tab-iso-b-${Date.now()}`;
-    sessions.createSessionFile({ sessionId: sessionA, userMessage: 'Alpha request' });
-    sessions.createSessionFile({ sessionId: sessionB, userMessage: 'Beta request' });
+    await sessions.createSessionFile({ sessionId: sessionA, userMessage: 'Alpha request' });
+    await sessions.createSessionFile({ sessionId: sessionB, userMessage: 'Beta request' });
 
     const createdA = await quests.createQuest({
       guildId: String(guildId),
@@ -68,7 +68,7 @@ test.describe('Two tabs on one guild each see only their own quest stream', () =
       userRequest: 'Beta request',
     });
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(createdA.questId),
       questFolder: String(createdA.questFolder),
       questFilePath: String(createdA.filePath),
@@ -83,7 +83,7 @@ test.describe('Two tabs on one guild each see only their own quest stream', () =
         },
       ],
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(createdB.questId),
       questFolder: String(createdB.questFolder),
       questFilePath: String(createdB.filePath),
@@ -130,7 +130,7 @@ test.describe('Two tabs on one guild each see only their own quest stream', () =
     await expect
       .poll(
         async () => {
-          sessions.appendMainSessionLine({ sessionId: sessionA, line: lineA });
+          await sessions.appendMainSessionLine({ sessionId: sessionA, line: lineA });
           return tabA.getByText(TEXT_A).first().isVisible();
         },
         { timeout: STREAM_TIMEOUT },
@@ -140,7 +140,7 @@ test.describe('Two tabs on one guild each see only their own quest stream', () =
     await expect
       .poll(
         async () => {
-          sessions.appendMainSessionLine({ sessionId: sessionB, line: lineB });
+          await sessions.appendMainSessionLine({ sessionId: sessionB, line: lineB });
           return tabB.getByText(TEXT_B).first().isVisible();
         },
         { timeout: STREAM_TIMEOUT },
@@ -149,7 +149,7 @@ test.describe('Two tabs on one guild each see only their own quest stream', () =
 
     // Quest A dispatches a sub-agent. Claude CLI writes the Task launch into the parent JSONL and
     // the prompt verbatim as line 0 of the sub-agent's own file, which is what pairs the two.
-    sessions.appendMainSessionLine({
+    await sessions.appendMainSessionLine({
       sessionId: sessionA,
       line: JSON.stringify(
         AssistantTaskToolUseStreamLineStub({
@@ -172,7 +172,7 @@ test.describe('Two tabs on one guild each see only their own quest stream', () =
       ),
     });
 
-    sessions.createSubagentTailMultiEntry({
+    await sessions.createSubagentTailMultiEntry({
       sessionId: sessionA,
       agentId: SUBAGENT_AGENT_ID,
       lines: [

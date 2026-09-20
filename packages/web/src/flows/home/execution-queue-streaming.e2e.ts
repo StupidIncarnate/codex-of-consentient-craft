@@ -55,7 +55,7 @@ test.describe('Execution Queue Streaming', () => {
     // 3. Seed the first quest at 'approved' with a codeweaver operation item so start is allowed
     //    and the relay seed has a first actionable operation to link a work item to.
     const sessionId1 = `e2e-session-queue-stream-${Date.now()}-1`;
-    sessions.createSessionFile({ sessionId: sessionId1, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId: sessionId1, userMessage: 'Build the feature' });
 
     const created1 = await quests.createQuest({
       guildId,
@@ -64,7 +64,7 @@ test.describe('Execution Queue Streaming', () => {
     });
     const questId1 = String(created1.questId);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: questId1,
       questFolder: String(created1.questFolder),
       questFilePath: String(created1.filePath),
@@ -131,7 +131,7 @@ test.describe('Execution Queue Streaming', () => {
     //    The second quest can live under the same guild — it just needs a
     //    unique sessionId and its own approved quest file with a codeweaver operation.
     const sessionId2 = `e2e-session-queue-stream-${Date.now()}-2`;
-    sessions.createSessionFile({ sessionId: sessionId2, userMessage: 'Add second feature' });
+    await sessions.createSessionFile({ sessionId: sessionId2, userMessage: 'Add second feature' });
 
     const created2 = await quests.createQuest({
       guildId,
@@ -140,7 +140,7 @@ test.describe('Execution Queue Streaming', () => {
     });
     const questId2 = String(created2.questId);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: questId2,
       questFolder: String(created2.questFolder),
       questFilePath: String(created2.filePath),

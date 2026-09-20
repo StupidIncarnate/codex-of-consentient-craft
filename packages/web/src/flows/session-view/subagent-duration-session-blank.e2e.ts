@@ -38,14 +38,14 @@ test.describe('A session-transcript sub-agent chain with no landed completion no
     const NO_NOTIF_DESCRIPTION = 'Sub-agent work with no notification landed';
     const NOTIF_DESCRIPTION = 'Sub-agent work with a landed notification';
 
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: NO_NOTIF_SESSION_ID,
       agentId: 'blanknonotifagent',
       taskToolUseId: 'toolu_blank_no_notif',
       taskDescription: NO_NOTIF_DESCRIPTION,
       taskToolUseAt: TASK_TOOL_USE_AT,
     });
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: NOTIF_SESSION_ID,
       agentId: 'blanknotifagent',
       taskToolUseId: 'toolu_blank_notif',
@@ -115,7 +115,7 @@ test.describe('A session-transcript sub-agent chain with no landed completion no
     const NO_TASK_SESSION_ID = 'e2e-sd-blank-no-task-line';
     const ASSISTANT_TEXT = 'No sub-agent was ever dispatched for this reply.';
 
-    sessions.createSessionWithAssistantText({
+    await sessions.createSessionWithAssistantText({
       sessionId: NO_TASK_SESSION_ID,
       text: ASSISTANT_TEXT,
     });

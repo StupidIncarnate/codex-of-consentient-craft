@@ -49,5 +49,27 @@ describe('index', () => {
       expect(stderrSpy.callsMatching([])).toStrictEqual([['MCP server error: String error\n']]);
       expect(exitSpy.callsMatching([])).toStrictEqual([[1]]);
     });
+
+    it('VALID: {SIGTERM signal} => exits with code 0', async () => {
+      const proxy = indexProxy();
+      const { exitSpy } = proxy.captureProcessInteractions();
+
+      await proxy.loadIndexWithStartupBehavior(async () => {});
+
+      proxy.simulateSignal({ signal: 'SIGTERM' });
+
+      expect(exitSpy.callsMatching([])).toStrictEqual([[0]]);
+    });
+
+    it('VALID: {SIGINT signal} => exits with code 0', async () => {
+      const proxy = indexProxy();
+      const { exitSpy } = proxy.captureProcessInteractions();
+
+      await proxy.loadIndexWithStartupBehavior(async () => {});
+
+      proxy.simulateSignal({ signal: 'SIGINT' });
+
+      expect(exitSpy.callsMatching([])).toStrictEqual([[0]]);
+    });
   });
 });

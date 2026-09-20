@@ -17,7 +17,7 @@
  *   'execution-panel-tab-followup', 'execution-panel-tab-execution', 'execution-panel-tab-spec',
  * ]);
  */
-import { appendFileSync, readFileSync, writeFileSync } from 'fs';
+import { appendFileSync, readFileSync, promises as fsPromises } from 'fs';
 import { dirname } from 'path';
 
 import type { APIRequestContext, Page } from '@playwright/test';
@@ -92,15 +92,19 @@ export const followupHarness = ({
   }) => Promise<{ questId: QuestId; questFilePath: FilePath; urlSlug: UrlSlug }>;
   reopen: (params: { urlSlug: string; questId: string }) => Promise<void>;
   reloadQuestPage: () => Promise<void>;
-  setQuestStatusOnDisk: (params: { questFilePath: string; status: string }) => void;
+  setQuestStatusOnDisk: (params: { questFilePath: string; status: string }) => Promise<void>;
   pressFollowup: () => Promise<void>;
   sendFollowupMessage: (params: { text: string }) => Promise<void>;
   errorMessages: () => Promise<ContentText[]>;
   seedTavernkeeperSession: (params: {
     sessionId: string;
     turns: readonly { role: 'user' | 'assistant'; text: string }[];
-  }) => void;
-  streamAssistantTurn: (params: { sessionId: string; text: string; order: number }) => void;
+  }) => Promise<void>;
+  streamAssistantTurn: (params: {
+    sessionId: string;
+    text: string;
+    order: number;
+  }) => Promise<void>;
   transcriptHasText: (params: { text: string }) => Promise<boolean>;
   transcriptOrder: (params: { candidates: readonly string[] }) => Promise<ContentText[]>;
   isTurnInFlight: () => Promise<boolean>;
@@ -148,7 +152,7 @@ export const followupHarness = ({
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),
@@ -165,7 +169,10 @@ export const followupHarness = ({
         unknown
       >;
       questJson.worktreePath = worktreePath;
-      writeFileSync(String(questFilePath), JSON.stringify(questJson, null, JSON_INDENT));
+      await fsPromises.writeFile(
+        String(questFilePath),
+        JSON.stringify(questJson, null, JSON_INDENT),
+      );
     }
 
     await nav.navigateToQuest({ urlSlug: String(urlSlug), questId: String(questId) });
@@ -210,19 +217,19 @@ export const followupHarness = ({
   // STALE: it was opened while the quest was still follow-up-chatable, and the quest moved on
   // underneath it. It is never the mutation under test — the message that meets the moved status
   // is always typed into the real composer.
-  const setQuestStatusOnDisk = ({
+  const setQuestStatusOnDisk = async ({
     questFilePath,
     status,
   }: {
     questFilePath: string;
     status: string;
-  }): void => {
+  }): Promise<void> => {
     const questJson = JSON.parse(readFileSync(questFilePath, 'utf8')) as Record<
       PropertyKey,
       unknown
     >;
     questJson.status = status;
-    writeFileSync(questFilePath, JSON.stringify(questJson, null, JSON_INDENT));
+    await fsPromises.writeFile(questFilePath, JSON.stringify(questJson, null, JSON_INDENT));
 
     // questFilePath shape: <DUNGEONMASTER_HOME>/guilds/<guildId>/quests/<questFolder>/quest.json —
     // four levels up is DUNGEONMASTER_HOME, where the event outbox lives.
@@ -249,16 +256,16 @@ export const followupHarness = ({
   // both on replay and while a turn streams. Callers seed it BEFORE navigating, because
   // subscribe-quest replays it as soon as the browser binds the quest, and because the quest-driven
   // watcher tails it from `end` (a file that does not exist yet has no `end` to tail from).
-  const seedTavernkeeperSession = ({
+  const seedTavernkeeperSession = async ({
     sessionId,
     turns,
   }: {
     sessionId: string;
     turns: readonly { role: 'user' | 'assistant'; text: string }[];
-  }): void => {
+  }): Promise<void> => {
     const sessions = sessionHarness({ guildPath });
     const baseEpoch = new Date(SESSION_BASE_EPOCH_ISO).getTime();
-    sessions.createMultiEntrySessionFile({
+    await sessions.createMultiEntrySessionFile({
       sessionId,
       lines: turns.map((turn, index) =>
         JSON.stringify({
@@ -279,7 +286,7 @@ export const followupHarness = ({
   // is produced, while `test/harnesses/claude-mock/bin/claude` writes the whole file once at exit —
   // so a spec that needs a partially-written transcript mid-run has to write the lines itself. The
   // held-back queue response keeps the child alive around it, so the run really is still going.
-  const streamAssistantTurn = ({
+  const streamAssistantTurn = async ({
     sessionId,
     text,
     order,
@@ -287,14 +294,14 @@ export const followupHarness = ({
     sessionId: string;
     text: string;
     order: number;
-  }): void => {
+  }): Promise<void> => {
     const sessions = sessionHarness({ guildPath });
     const streamedAt = new Date(
       new Date(SESSION_BASE_EPOCH_ISO).getTime() +
         STREAMED_TURN_BASE_OFFSET_MS +
         order * STREAMED_TURN_INTERVAL_MS,
     ).toISOString();
-    sessions.appendMainSessionLine({
+    await sessions.appendMainSessionLine({
       sessionId,
       line: JSON.stringify({
         ...AssistantTextStreamLineStub({

@@ -57,7 +57,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Bug-hunt Begin Quest transition', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {bug-hunt quest approved through the UI} => Begin Quest POSTs /start, the quest reaches in_progress, and the execution panel replaces the spec panel', async ({
@@ -72,7 +72,10 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     const guildId = String(guild.id);
     const urlSlug = guilds.extractUrlSlug({ guild });
     const sessionId = `e2e-bughunt-begin-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'The clarify panel commits too early' });
+    await sessions.createSessionFile({
+      sessionId,
+      userMessage: 'The clarify panel commits too early',
+    });
 
     const created = await quests.createQuest({
       guildId,
@@ -85,7 +88,7 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     // BugHunt intake work item is still `in_progress` (the chat phase never marks itself complete —
     // Start is what promotes it), and the ledger holds nothing but its intake item. The harness's
     // default flows satisfy the one thing the `approved` gate still measures.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -239,7 +242,10 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     const guildId = String(guild.id);
     const urlSlug = guilds.extractUrlSlug({ guild });
     const sessionId = `e2e-bughunt-restart-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'The clarify panel commits too early' });
+    await sessions.createSessionFile({
+      sessionId,
+      userMessage: 'The clarify panel commits too early',
+    });
 
     const created = await quests.createQuest({
       guildId,
@@ -248,7 +254,7 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     });
     const questId = String(created.questId);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -299,7 +305,7 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     // state the crash window above leaves, and it is what a reload re-arms the modal on. Rebuilding
     // the file through writeQuestFile instead would hand the second Start a ledger the fixture
     // authored, which is the one thing this test must not measure.
-    quests.rewindQuestStatus({ questFilePath: String(created.filePath), status: 'approved' });
+    await quests.rewindQuestStatus({ questFilePath: String(created.filePath), status: 'approved' });
 
     await nav.navigateToQuest({ urlSlug, questId });
 

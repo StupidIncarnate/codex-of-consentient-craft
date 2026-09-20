@@ -137,11 +137,11 @@ test.describe('A carved quest renders the transcripts on both sides of its carve
 
     // The two transcripts, each written in the encoding the session that produced it really ran
     // under.
-    guildSessions.createSessionWithAssistantText({
+    await guildSessions.createSessionWithAssistantText({
       sessionId: INTAKE_SESSION_ID,
       text: INTAKE_TEXT,
     });
-    worktreeSessions.createSessionWithAssistantText({
+    await worktreeSessions.createSessionWithAssistantText({
       sessionId: CODEWEAVER_SESSION_ID,
       text: CODEWEAVER_TEXT,
     });
@@ -156,7 +156,7 @@ test.describe('A carved quest renders the transcripts on both sides of its carve
     // The ledger a carved quest carries once its first codeweaver is running: riftcarver complete at
     // the head, the intake work item force-completed by Start, the codeweaver cell in flight. The
     // `sessions` rows are what a real run appends as each session is stamped.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(created.filePath),
@@ -318,7 +318,7 @@ test.describe('A carved quest renders the transcripts on both sides of its carve
     await expect
       .poll(
         async () => {
-          worktreeSessions.appendMainSessionLine({
+          await worktreeSessions.appendMainSessionLine({
             sessionId: CODEWEAVER_SESSION_ID,
             line: liveLine,
           });

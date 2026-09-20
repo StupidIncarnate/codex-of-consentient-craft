@@ -64,7 +64,7 @@ test.describe('Status Badges & Visual', () => {
     await guildHarness({ request }).createGuild({ name: 'Status Guild', path: STATUS_GUILD_PATH });
 
     const sessionId = `e2e-session-visual-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Test status',
     });

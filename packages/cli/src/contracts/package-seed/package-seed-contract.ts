@@ -10,7 +10,7 @@
  * const seed = packageSeedContract.parse({
  *   barrel: { fileName: 'statics.ts', exportPaths: ['./src/statics/__NAME__/__NAME__-statics'] },
  *   dependencies: {}, bin: {}, compilerOptions: {}, extraInclude: [], buildRootDir: null,
- *   jestKind: 'node', e2eEligible: false, exportsDot: false,
+ *   jestKind: 'node', e2eEligible: false, exportsDot: false, needsMswTransform: false,
  *   files: [{ path: 'src/statics/__NAME__/__NAME__-statics.ts', contents: '...' }],
  * });
  * // Returns validated PackageSeed
@@ -37,6 +37,12 @@ export const packageSeedContract = z.object({
   jestKind: z.enum(['node', 'tsx-node', 'tsx-jsdom']),
   e2eEligible: z.boolean(),
   exportsDot: z.boolean(),
+  // True picks `jestConfigNodeIntegration` over `jestConfigNode` in
+  // packageScaffoldConfigStatics — the variant carrying the transformIgnorePatterns +
+  // transform pair `@dungeonmaster/testing`'s root barrel needs (its `installTestbedCreateBroker`
+  // pulls in msw's ESM). Only a type whose seed ships a `flows/`/`startup/` file needs it, since
+  // integration tests are the only place a scaffolded package writes today.
+  needsMswTransform: z.boolean(),
   files: z.array(
     z.object({
       path: pathSegmentContract,

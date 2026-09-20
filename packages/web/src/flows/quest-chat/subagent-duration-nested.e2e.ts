@@ -55,7 +55,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -82,7 +82,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     // before the main loop reaches the inner file's body entry — the arrangement every OTHER
     // passing chain fixture in this codebase gets by staggering timestamps instead, which this
     // harness's fixed same-timestamp stub does not allow.
-    subagentDuration.seedNestedChain({
+    await subagentDuration.seedNestedChain({
       sessionId,
       outerAgentId: 'nestedcount1outer',
       outerToolUseId: 'toolu_nested_count_outer',
@@ -164,7 +164,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -185,14 +185,14 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
 
     // A startedAt on the hosting row is what flips hasRunningWorkItem so the panel's shared
     // interval is actually enabled — without it `now` still reads once at mount but never ticks.
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: RUNNING_WI, startedAt: '2026-01-01T11:56:00.000Z' }],
     });
 
     // Agent ids named so the outer's own subagent file sorts alphabetically before the inner's —
     // see the comment on the first test's seedNestedChain call for why the tie forces this.
-    subagentDuration.seedNestedChain({
+    await subagentDuration.seedNestedChain({
       sessionId,
       outerAgentId: 'nestedindependent1outer',
       outerToolUseId: 'toolu_nested_independent_outer',
@@ -280,7 +280,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -301,7 +301,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
 
     // Agent ids named so the outer's own subagent file sorts alphabetically before the inner's —
     // see the comment on the first test's seedNestedChain call for why the tie forces this.
-    subagentDuration.seedNestedChain({
+    await subagentDuration.seedNestedChain({
       sessionId,
       outerAgentId: 'nestedhasstart1outer',
       outerToolUseId: 'toolu_nested_has_start_outer',
@@ -367,7 +367,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -388,7 +388,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
 
     // Agent ids named so the outer's own subagent file sorts alphabetically before the inner's —
     // see the comment on the first test's seedNestedChain call for why the tie forces this.
-    subagentDuration.seedNestedChain({
+    await subagentDuration.seedNestedChain({
       sessionId,
       outerAgentId: 'nestedchaintonested1outer',
       outerToolUseId: 'toolu_nested_chain_to_nested_outer',

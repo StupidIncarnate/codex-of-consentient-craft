@@ -23,7 +23,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Streaming sub-agent grouping (stdout snake_case tool_use_result)', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {streamed Agent tool_use followed by user tool_result with tool_use_result.agentId (snake_case)} => sub-agent chain groups its sub-agent tail entries', async ({
@@ -42,11 +42,11 @@ test.describe('Streaming sub-agent grouping (stdout snake_case tool_use_result)'
     const SUBAGENT_MARKER = 'SUBAGENT_INNER_MARKER_xyz';
 
     // Pre-create the existing main session JSONL so the session URL resolves.
-    sessions.createSessionFile({ sessionId, userMessage: 'Kick off test' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Kick off test' });
 
     // Pre-create the sub-agent JSONL that chatSubagentTailBroker will read ONCE the
     // foreground Agent tool_use is correlated and the tail starts.
-    sessions.createSubagentTailOnly({ sessionId, agentId, assistantText: SUBAGENT_MARKER });
+    await sessions.createSubagentTailOnly({ sessionId, agentId, assistantText: SUBAGENT_MARKER });
 
     // Seed a quest bound to this session so the page renders the interactive chat
     // (not the read-only orphan-session view that hides the chat input).
@@ -56,7 +56,7 @@ test.describe('Streaming sub-agent grouping (stdout snake_case tool_use_result)'
       title: 'Streaming Subagent Quest',
       userRequest: 'Stream sub-agent via stdout',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: created.questFolder,
       questFilePath: created.filePath,

@@ -64,81 +64,118 @@ describe('ImagesFlow', () => {
     const MALFORMED_CASES = [
       [
         'path traversal segments',
-        () => ({
-          queryString: `?${PATH_PARAM}=${encodeURIComponent('/a/../../../../etc/passwd')}`,
-          cleanup: () => {},
-        }),
+
+        async () => {
+          await Promise.resolve();
+          return {
+            queryString: `?${PATH_PARAM}=${encodeURIComponent('/a/../../../../etc/passwd')}`,
+            cleanup: () => {},
+          };
+        },
         null,
       ],
       [
         'null byte in decoded path',
-        () => ({
-          queryString: `?${PATH_PARAM}=${encodeURIComponent(`/tmp/quest${String.fromCharCode(0)}.png`)}`,
-          cleanup: () => {},
-        }),
+
+        async () => {
+          await Promise.resolve();
+          return {
+            queryString: `?${PATH_PARAM}=${encodeURIComponent(`/tmp/quest${String.fromCharCode(0)}.png`)}`,
+            cleanup: () => {},
+          };
+        },
         null,
       ],
       [
         'newline in decoded path',
-        () => ({
-          queryString: `?${PATH_PARAM}=${encodeURIComponent('/tmp/quest\n.png')}`,
-          cleanup: () => {},
-        }),
+
+        async () => {
+          await Promise.resolve();
+          return {
+            queryString: `?${PATH_PARAM}=${encodeURIComponent('/tmp/quest\n.png')}`,
+            cleanup: () => {},
+          };
+        },
         null,
       ],
       [
         'carriage return in decoded path',
-        () => ({
-          queryString: `?${PATH_PARAM}=${encodeURIComponent('/tmp/quest\r.png')}`,
-          cleanup: () => {},
-        }),
+
+        async () => {
+          await Promise.resolve();
+          return {
+            queryString: `?${PATH_PARAM}=${encodeURIComponent('/tmp/quest\r.png')}`,
+            cleanup: () => {},
+          };
+        },
         null,
       ],
       [
         'relative path',
-        () => ({
-          queryString: `?${PATH_PARAM}=${encodeURIComponent('relative/img.png')}`,
-          cleanup: () => {},
-        }),
+
+        async () => {
+          await Promise.resolve();
+          return {
+            queryString: `?${PATH_PARAM}=${encodeURIComponent('relative/img.png')}`,
+            cleanup: () => {},
+          };
+        },
         null,
       ],
       [
         'missing parameter',
-        () => ({
-          queryString: '',
-          cleanup: () => {},
-        }),
+
+        async () => {
+          await Promise.resolve();
+          return {
+            queryString: '',
+            cleanup: () => {},
+          };
+        },
         null,
       ],
       [
         'empty parameter',
-        () => ({
-          queryString: `?${PATH_PARAM}=`,
-          cleanup: () => {},
-        }),
+
+        async () => {
+          await Promise.resolve();
+          return {
+            queryString: `?${PATH_PARAM}=`,
+            cleanup: () => {},
+          };
+        },
         null,
       ],
       [
         'over-long path',
-        () => ({
-          // absolute, so every earlier guard check passes; only the length check can refuse it
-          queryString: `?${PATH_PARAM}=${encodeURIComponent(`/tmp/${'a'.repeat(imageServeStatics.maxPathLength)}.png`)}`,
-          cleanup: () => {},
-        }),
+
+        async () => {
+          await Promise.resolve();
+          return {
+            // absolute, so every earlier guard check passes; only the length check can refuse it
+            queryString: `?${PATH_PARAM}=${encodeURIComponent(`/tmp/${'a'.repeat(imageServeStatics.maxPathLength)}.png`)}`,
+            cleanup: () => {},
+          };
+        },
         null,
       ],
       [
         'non-image extension',
-        () => ({
-          queryString: `?${PATH_PARAM}=${encodeURIComponent('/etc/passwd')}`,
-          cleanup: () => {},
-        }),
+
+        async () => {
+          await Promise.resolve();
+          return {
+            queryString: `?${PATH_PARAM}=${encodeURIComponent('/etc/passwd')}`,
+            cleanup: () => {},
+          };
+        },
         null,
       ],
       [
         'missing file',
-        () => {
-          const { dirPath, cleanup } = harness.seedImageFile({
+
+        async () => {
+          const { dirPath, cleanup } = await harness.seedImageFile({
             baseName: 'images-flow-missing-file',
             fileName: 'seed.png',
             bytes: PNG_SIGNATURE_BYTES,
@@ -156,7 +193,7 @@ describe('ImagesFlow', () => {
       'VALID: {a real .%s file on disk} => returns 200 with bytes matching disk and Content-Type %s',
       async (extension, expectedContentType, bytes) => {
         const app = ImagesFlow();
-        const { imagePath, cleanup } = harness.seedImageFile({
+        const { imagePath, cleanup } = await harness.seedImageFile({
           baseName: `images-flow-${extension}`,
           fileName: `pasted.${extension}`,
           bytes,
@@ -183,7 +220,7 @@ describe('ImagesFlow', () => {
       app.route('', ImagesFlow());
       app.get('*', (c) => c.json({ fellThrough: true }));
 
-      const { imagePath, cleanup } = harness.seedImageFile({
+      const { imagePath, cleanup } = await harness.seedImageFile({
         baseName: 'images-flow-mount-order',
         fileName: 'pasted.png',
         bytes: PNG_SIGNATURE_BYTES,
@@ -210,7 +247,7 @@ describe('ImagesFlow', () => {
     // both rows are asserted together rather than the link alone.
     it('INVALID: {a symlink inside the images directory pointing at a file outside it} => 404 with zero bytes, while a plain sibling in that same directory still answers 200', async () => {
       const app = ImagesFlow();
-      const { symlinkPath, siblingPath, cleanup } = harness.seedSymlinkEscapingImagesDir({
+      const { symlinkPath, siblingPath, cleanup } = await harness.seedSymlinkEscapingImagesDir({
         baseName: 'images-flow-symlink-escape',
         linkFileName: 'escape.png',
         targetFileName: 'secret.png',
@@ -248,7 +285,7 @@ describe('ImagesFlow', () => {
       'INVALID: %s => answers 404 with zero bytes and no content-type header',
       async (_caseName, buildCase, expectedContentType) => {
         const app = ImagesFlow();
-        const { queryString, cleanup } = buildCase();
+        const { queryString, cleanup } = await buildCase();
 
         const response = await app.request(`${apiRoutesStatics.images.serve}${queryString}`);
         const bytes = await response.arrayBuffer();

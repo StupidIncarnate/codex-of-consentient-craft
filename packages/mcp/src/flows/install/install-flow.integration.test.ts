@@ -12,6 +12,7 @@ import {
   FileContentStub,
 } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { dungeonmasterConfigCreatorTransformer } from '../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 import { InstallFlow } from './install-flow';
 
 describe('InstallFlow', () => {
@@ -47,13 +48,7 @@ describe('InstallFlow', () => {
       expect(configContent).toBe(
         JSON.stringify(
           {
-            mcpServers: {
-              dungeonmaster: {
-                type: 'stdio',
-                command: 'node',
-                args: ['node_modules/@dungeonmaster/mcp/dist/src/index.js'],
-              },
-            },
+            mcpServers: dungeonmasterConfigCreatorTransformer(),
           },
           null,
           2,
@@ -105,6 +100,7 @@ describe('InstallFlow', () => {
                 'Bash(git merge-base:*)',
                 'mcp__claude-in-chrome',
                 'Bash(curl:*)',
+                'Bash(dungeonmaster siegelense:*)',
                 'Bash(kill:*)',
                 'Bash(lsof:*)',
                 'Bash(ps:*)',

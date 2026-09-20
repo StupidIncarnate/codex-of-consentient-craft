@@ -11,6 +11,12 @@
       "require": "./dist/src/index.js",
       "types": "./dist/src/index.d.ts"
     },
+    "./brokers": {
+      "source": "./brokers.ts",
+      "import": "./dist/brokers.js",
+      "require": "./dist/brokers.js",
+      "types": "./dist/brokers.d.ts"
+    },
     "./testing": {
       "source": "./testing.ts",
       "import": "./dist/testing.js",

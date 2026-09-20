@@ -24,6 +24,7 @@ import {
   type ImportEdge,
 } from '../../../contracts/import-edge/import-edge-contract';
 import { importStatementsExtractTransformer } from '../../../transformers/import-statements-extract/import-statements-extract-transformer';
+import { locationsStatics } from '../../../statics/locations/locations-statics';
 import { listTsFilesLayerBroker } from './list-ts-files-layer-broker';
 import { readFileLayerBroker } from './read-file-layer-broker';
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
@@ -43,7 +44,7 @@ export const importEdgesLayerBroker = ({
   const packageEntries = safeReaddirLayerBroker({ dirPath: packagesDir });
   const knownPackageNames = new Set<ContentText>();
   for (const entry of packageEntries) {
-    if (entry.isDirectory() && entry.name !== 'CLAUDE.md') {
+    if (entry.isDirectory() && entry.name !== locationsStatics.repoRoot.claudeMd) {
       knownPackageNames.add(contentTextContract.parse(entry.name));
     }
   }

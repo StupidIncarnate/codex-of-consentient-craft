@@ -66,7 +66,7 @@ test.describe('Composer send — a page reload racing an accepted response must 
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-composer-send-reload-race-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
       guildId: String(guildId),
@@ -74,7 +74,7 @@ test.describe('Composer send — a page reload racing an accepted response must 
       userRequest: 'Build feature',
     });
     const questId = String(created.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

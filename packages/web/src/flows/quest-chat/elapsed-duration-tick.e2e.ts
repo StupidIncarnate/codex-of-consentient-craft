@@ -50,7 +50,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -68,7 +68,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: RUNNING_WI, startedAt: '2026-01-01T11:56:00.000Z' }], // T-240s => 4m
     });
@@ -121,7 +121,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -146,7 +146,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [
         { id: FIRST_WI, startedAt: SHARED_STARTED_AT },
@@ -210,7 +210,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -235,7 +235,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [
         { id: SURVIVOR_WI, startedAt: SHARED_STARTED_AT },
@@ -269,7 +269,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     // stampWorkItems just wrote and push it — stampWorkItems' own outbox line, written by THIS
     // Node process rather than by questPersistBroker, does not reliably wake the outbox watcher
     // for a client that subscribed before the write landed.
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: STOPPED_WI, status: 'complete', completedAt: FIXED_NOW }],
     });
@@ -312,7 +312,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -337,7 +337,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [
         { id: RUNNING_WI, startedAt: '2026-01-01T11:56:00.000Z' }, // T-240s => 4m
@@ -402,7 +402,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -434,7 +434,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [
         { id: FOUR_MIN_WI, startedAt: '2026-01-01T11:56:00.000Z' }, // T-240s => 4m
@@ -496,7 +496,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -514,7 +514,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: RUNNING_WI, startedAt: '2026-01-01T11:56:00.000Z' }], // T-240s => 4m
     });
@@ -574,7 +574,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -590,7 +590,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: ROW_WI, startedAt: '2026-01-01T11:56:00.000Z' }], // T-240s => 4m
     });
@@ -631,7 +631,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
     // path to re-read the file elapsed.stampWorkItems just wrote and push it, without going
     // around the change under test: the browser still receives the update over the websocket,
     // and every assertion below still measures what that frame produced.
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: ROW_WI, status: 'complete', completedAt: '2026-01-01T12:01:00.000Z' }],
     });

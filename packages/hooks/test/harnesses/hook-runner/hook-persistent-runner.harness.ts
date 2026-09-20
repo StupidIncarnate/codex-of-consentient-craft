@@ -35,7 +35,9 @@ type HookName =
   | 'start-pre-folder-detail-hook'
   | 'start-pre-search-hook'
   | 'start-session-snippet-hook'
-  | 'start-subagent-stop-hook';
+  | 'start-subagent-stop-hook'
+  | 'start-agy-pre-tool-hook'
+  | 'start-agy-stop-hook';
 
 const WORKER_PATH = path.join(__dirname, 'hook-persistent-worker.ts');
 

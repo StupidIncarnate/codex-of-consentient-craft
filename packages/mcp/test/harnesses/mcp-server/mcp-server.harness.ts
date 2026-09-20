@@ -43,7 +43,7 @@ export const mcpServerHarness = (): {
     guildId: string;
     questFolder: string;
     quest: unknown;
-  }) => void;
+  }) => Promise<void>;
   readQuestFile: (params: {
     dungeonmasterHome: GuildPath;
     guildId: string;
@@ -223,7 +223,7 @@ export const mcpServerHarness = (): {
     };
   };
 
-  const seedQuest = ({
+  const seedQuest = async ({
     dungeonmasterHome,
     guildId,
     questFolder,
@@ -233,10 +233,10 @@ export const mcpServerHarness = (): {
     guildId: string;
     questFolder: string;
     quest: unknown;
-  }): void => {
+  }): Promise<void> => {
     const questDir = path.join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
-    fs.mkdirSync(questDir, { recursive: true });
-    fs.writeFileSync(
+    await fs.promises.mkdir(questDir, { recursive: true });
+    await fs.promises.writeFile(
       path.join(questDir, 'quest.json'),
       JSON.stringify(quest, null, JSON_INDENT_SPACES),
     );

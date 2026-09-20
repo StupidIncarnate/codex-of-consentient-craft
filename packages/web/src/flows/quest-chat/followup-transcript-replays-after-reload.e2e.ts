@@ -56,7 +56,7 @@ test.describe('FOLLOW-UP transcript replays after a reload', () => {
   }) => {
     const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
 
-    followup.seedTavernkeeperSession({
+    await followup.seedTavernkeeperSession({
       sessionId: SESSION_ID,
       turns: [
         { role: 'user', text: FIRST_USER_TURN },

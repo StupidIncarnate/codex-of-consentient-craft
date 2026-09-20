@@ -47,7 +47,7 @@ test.describe('Nested sub-agent renders recursively (live streaming + reload rep
     const realAgentIdB = 'nestedrealagentb';
 
     // Pre-create the main session JSONL so the session URL resolves.
-    sessions.createSessionFile({ sessionId, userMessage: 'Kick off nested test' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Kick off nested test' });
 
     // Seed a quest bound to this session so the page renders the interactive chat (not the
     // read-only orphan-session view that hides the chat input).
@@ -57,7 +57,7 @@ test.describe('Nested sub-agent renders recursively (live streaming + reload rep
       title: 'Nested Subagent Live Quest',
       userRequest: 'Stream nested sub-agents',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -247,7 +247,7 @@ test.describe('Nested sub-agent renders recursively (live streaming + reload rep
     // (nested marker). The replay broker's three-pass pre-scan resolves both realAgentId
     // translations plus the nested parent-chain link before emitting entries in timestamp
     // order, so chain B reparents under chain A.
-    sessions.createNestedSubagentSessionFiles({
+    await sessions.createNestedSubagentSessionFiles({
       sessionId,
       parentRealAgentId: 'nestedrealparenta',
       nestedRealAgentId: 'nestedrealchildb',
@@ -265,7 +265,7 @@ test.describe('Nested sub-agent renders recursively (live streaming + reload rep
       title: 'Nested Subagent Reload Quest',
       userRequest: 'Replay nested sub-agents',
     });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

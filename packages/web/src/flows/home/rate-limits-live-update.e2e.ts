@@ -23,12 +23,12 @@ test.describe('Rate Limits Live Update', () => {
     //    nothing the card reads — it is the file the orchestrator's poller diffs, and a change to
     //    it is the only thing that emits `rate-limits-updated`, which is the event this binding
     //    re-fetches on. Both are written, because this spec is about the wake, not the reading.
-    rateLimits.writeLedger({
+    await rateLimits.writeLedger({
       spendTokens: INITIAL_SPEND,
       fiveHourCeiling: FIVE_HOUR_CEILING,
       sevenDayCeiling: SEVEN_DAY_CEILING,
     });
-    rateLimits.writeSnapshot({
+    await rateLimits.writeSnapshot({
       snapshot: RateLimitsSnapshotStub({
         fiveHour: RateLimitWindowStub({ usedPercentage: 42 }),
         sevenDay: RateLimitWindowStub({ usedPercentage: 20 }),
@@ -48,12 +48,12 @@ test.describe('Rate Limits Live Update', () => {
     //    rate-limits-updated via orchestrationEventsState, the server's in-memory relay loop
     //    broadcasts it to every WS client, and the web binding re-fetches the ledger-derived
     //    reading on that event.
-    rateLimits.writeLedger({
+    await rateLimits.writeLedger({
       spendTokens: UPDATED_SPEND,
       fiveHourCeiling: FIVE_HOUR_CEILING,
       sevenDayCeiling: SEVEN_DAY_CEILING,
     });
-    rateLimits.writeSnapshot({
+    await rateLimits.writeSnapshot({
       snapshot: RateLimitsSnapshotStub({
         fiveHour: RateLimitWindowStub({ usedPercentage: 81 }),
         sevenDay: RateLimitWindowStub({ usedPercentage: 39 }),

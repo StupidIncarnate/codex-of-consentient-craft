@@ -491,7 +491,7 @@ export const commentBoxHarness = ({
       const guildId = String(guild.id);
 
       const sessionId = `e2e-session-comment-${Date.now()}`;
-      sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+      await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
       const created = await quests.createQuest({
         guildId,
@@ -503,7 +503,7 @@ export const commentBoxHarness = ({
       // withSession false drops the sessionId from the chaoswhisperer work item — the role stays,
       // so the ONLY difference between the two seeds is the sessionId itself, which is what makes
       // "execution state does not gate the comment affordance" assertable.
-      quests.writeQuestFile({
+      await quests.writeQuestFile({
         questId: seeded.questId,
         questFolder: String(created.questFolder),
         questFilePath: String(created.filePath),

@@ -857,6 +857,25 @@ describe('codeweaverPromptStatics', () => {
     });
   });
 
+  // THE SPEC SETTLES INTENT AND THE CODE SETTLES FACT, and a session that collapses the two fails in
+  // both directions: it reads a change off its own map and counts it as landed, or it re-derives a
+  // required value out of the flow and asserts a number the implementation never returns. The
+  // sentence is spelled identically in the flowrider and siegemaster prompts, nothing typechecks
+  // that, and this pin plus its two siblings are what hold the wording together.
+  it('VALID: served template => splits intent from fact at the step that reads the diff', () => {
+    expect({
+      maxim: hasIn({
+        needle: '**Trust the plan for what it intended, verify the code for what is done.**',
+        text: TEMPLATE,
+      }),
+      namesBothSides: hasIn({
+        needle:
+          'Your flow and your map say what this cell was FOR. The diff is the only thing that says what exists.',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({ maxim: true, namesBothSides: true });
+  });
+
   // THE SHARED PACKAGE'S NAME CANNOT BE WRITTEN DOWN HERE — every repo picks its own (`shared`,
   // `shared-core`, `shared-ui`), so the prompt sends the session to `get-project-map` and has it
   // match on the `[library]` KIND, which is the one property every repo's version shares. The

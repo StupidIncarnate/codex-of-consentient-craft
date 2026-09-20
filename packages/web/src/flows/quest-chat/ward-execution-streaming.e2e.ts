@@ -47,7 +47,7 @@ test.describe.skip('Ward Execution Streaming', () => {
     });
     const guildId = String(guild.id);
     const sessionId = `e2e-ward-mini-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Test ward streaming' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Test ward streaming' });
 
     // Create quest via API to get the server-resolved file path
     const created = await questHarness({ request }).createQuest({
@@ -69,7 +69,7 @@ test.describe.skip('Ward Execution Streaming', () => {
     // POST /start transitions the quest to in_progress and kicks the orchestration loop,
     // which picks up the pending ward directly.
     const quests = questHarness({ request });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -199,7 +199,7 @@ test.describe.skip('Ward Execution Streaming', () => {
     });
     const guildId = String(guild.id);
     const sessionId = `e2e-ward-floor-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Test ward streaming' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Test ward streaming' });
 
     // Create quest via API to get the server-resolved file path
     const created = await questHarness({ request }).createQuest({
@@ -224,7 +224,7 @@ test.describe.skip('Ward Execution Streaming', () => {
     // POST /start transitions to in_progress; the loop skips the already-complete items
     // and dispatches the ready floor-boss ward.
     const quests = questHarness({ request });
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder,
       questFilePath,

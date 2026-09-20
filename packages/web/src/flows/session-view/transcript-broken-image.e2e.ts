@@ -62,7 +62,7 @@ test.describe('Transcript broken image', () => {
       segments: [{ imagePath: String(seeded.imagePath), ordinal: 1 }],
     });
     const sessionId = `e2e-session-broken-not-readable-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const expectedUrl = String(
       images.buildExpectedImageUrl({ imagePath: String(seeded.imagePath) }),
@@ -101,7 +101,7 @@ test.describe('Transcript broken image', () => {
       segments: [{ text: 'A' }, { imagePath: String(seeded.imagePath), ordinal: 1 }, { text: 'B' }],
     });
     const sessionId = `e2e-session-broken-order-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE_BROKEN')).toHaveCount(1, {
@@ -137,7 +137,7 @@ test.describe('Transcript broken image', () => {
       segments: [{ imagePath: String(seeded.imagePath), ordinal: 1 }],
     });
     const sessionId = `e2e-session-broken-size-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE_BROKEN')).toHaveCount(1, {
@@ -186,7 +186,7 @@ test.describe('Transcript broken image', () => {
       ],
     });
     const sessionId = `e2e-session-broken-mixed-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE_BROKEN')).toHaveCount(1, {
@@ -225,7 +225,7 @@ test.describe('Transcript broken image', () => {
       ],
     });
     const sessionId = `e2e-session-broken-terminal-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     const expectedUrl = String(
       images.buildExpectedImageUrl({ imagePath: String(seeded.imagePath) }),
@@ -287,7 +287,7 @@ test.describe('Transcript broken image', () => {
       segments: [{ imagePath: String(seeded.imagePath), ordinal: 1 }],
     });
     const sessionId = `e2e-session-tall-image-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: String(content) });
+    await sessions.createSessionFile({ sessionId, userMessage: String(content) });
 
     await nav.navigateToSession({ urlSlug, sessionId });
     await expect(page.getByTestId('CHAT_MESSAGE_IMAGE')).toHaveCount(1, { timeout: PANEL_TIMEOUT });

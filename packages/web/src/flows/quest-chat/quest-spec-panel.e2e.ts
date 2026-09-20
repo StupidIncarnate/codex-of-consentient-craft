@@ -31,7 +31,7 @@ test.describe('Quest Spec Panel', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-spec-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Build the feature',
     });
@@ -47,7 +47,7 @@ test.describe('Quest Spec Panel', () => {
     const questFilePath = created.filePath;
 
     // Overwrite quest.json with desired test data
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder,
       questFilePath,

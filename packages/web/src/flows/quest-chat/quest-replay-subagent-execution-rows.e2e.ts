@@ -16,7 +16,7 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 test.describe('Per-work-item replay reads `<sessionId>/subagents/agent-<agentId>.jsonl` for Task-dispatched rows', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {codeweaver workItem carries sessionId+agentId} => its execution row shows replayed subagent text, NOT main session content', async ({
@@ -41,13 +41,13 @@ test.describe('Per-work-item replay reads `<sessionId>/subagents/agent-<agentId>
     const chaosText = 'Chaos summary';
     const subagentText = 'Codeweaver subagent replayed assistant text';
 
-    sessions.createSessionWithAssistantText({ sessionId: chaosSessionId, text: chaosText });
+    await sessions.createSessionWithAssistantText({ sessionId: chaosSessionId, text: chaosText });
     // Seed ONLY the sub-agent JSONL at `<parentSessionId>/subagents/agent-<realAgentId>.jsonl`.
     // No top-level `<parentSessionId>.jsonl` is needed for this test — the agentId-scoped
     // replay path reads only the matching subagent file (main session emission is skipped
     // when agentId is supplied) so the assertion that subagentText appears proves the
     // chat-history-replay-broker honored the agentId filter.
-    sessions.createSubagentTailOnly({
+    await sessions.createSubagentTailOnly({
       sessionId: parentSessionId,
       agentId: realAgentId,
       assistantText: subagentText,
@@ -63,7 +63,7 @@ test.describe('Per-work-item replay reads `<sessionId>/subagents/agent-<agentId>
 
     const codeweaverWorkItemId = 'e2e00000-0000-4000-8000-000000000022';
     const codeweaverOpId = '00000000-0000-4000-8000-0000000000c6';
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),

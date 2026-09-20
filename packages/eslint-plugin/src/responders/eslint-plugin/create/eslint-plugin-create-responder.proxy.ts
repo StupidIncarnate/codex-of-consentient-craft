@@ -30,6 +30,7 @@ import { ruleEnforceProxyPatternsBrokerProxy } from '../../../brokers/rule/enfor
 import { ruleEnforceTestColocationBrokerProxy } from '../../../brokers/rule/enforce-test-colocation/rule-enforce-test-colocation-broker.proxy';
 import { ruleEnforceTestCreationOfProxyBrokerProxy } from '../../../brokers/rule/enforce-test-creation-of-proxy/rule-enforce-test-creation-of-proxy-broker.proxy';
 import { ruleEnforceTestProxyImportsBrokerProxy } from '../../../brokers/rule/enforce-test-proxy-imports/rule-enforce-test-proxy-imports-broker.proxy';
+import { ruleEnforceHydrationRecipesStructureBrokerProxy } from '../../../brokers/rule/enforce-hydration-recipes-structure/rule-enforce-hydration-recipes-structure-broker.proxy';
 import { ruleEnforceImplementationColocationBrokerProxy } from '../../../brokers/rule/enforce-implementation-colocation/rule-enforce-implementation-colocation-broker.proxy';
 import { ruleForbidNonExportedFunctionsBrokerProxy } from '../../../brokers/rule/forbid-non-exported-functions/rule-forbid-non-exported-functions-broker.proxy';
 import { ruleForbidTypeReexportBrokerProxy } from '../../../brokers/rule/forbid-type-reexport/rule-forbid-type-reexport-broker.proxy';
@@ -72,6 +73,8 @@ import { ruleRequireValidationOnUntypedPropertyAccessBrokerProxy } from '../../.
 import { ruleEnforceProxyParamBindingBrokerProxy } from '../../../brokers/rule/enforce-proxy-param-binding/rule-enforce-proxy-param-binding-broker.proxy';
 import { ruleBanFlattenedContractParamsBrokerProxy } from '../../../brokers/rule/ban-flattened-contract-params/rule-ban-flattened-contract-params-broker.proxy';
 import { ruleBanAnonymousJsxInMapBrokerProxy } from '../../../brokers/rule/ban-anonymous-jsx-in-map/rule-ban-anonymous-jsx-in-map-broker.proxy';
+import { ruleBanDomHandlesInIngredientsBrokerProxy } from '../../../brokers/rule/ban-dom-handles-in-ingredients/rule-ban-dom-handles-in-ingredients-broker.proxy';
+import { ruleBanNondeterminismInIngredientsBrokerProxy } from '../../../brokers/rule/ban-nondeterminism-in-ingredients/rule-ban-nondeterminism-in-ingredients-broker.proxy';
 import { configDungeonmasterBrokerProxy } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy';
 import { EslintPluginCreateResponder } from './eslint-plugin-create-responder';
 
@@ -96,6 +99,7 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleEnforceTestColocationBrokerProxy();
   ruleEnforceTestCreationOfProxyBrokerProxy();
   ruleEnforceTestProxyImportsBrokerProxy();
+  ruleEnforceHydrationRecipesStructureBrokerProxy();
   ruleEnforceImplementationColocationBrokerProxy();
   ruleForbidNonExportedFunctionsBrokerProxy();
   ruleForbidTypeReexportBrokerProxy();
@@ -138,6 +142,8 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleEnforceProxyParamBindingBrokerProxy();
   ruleBanFlattenedContractParamsBrokerProxy();
   ruleBanAnonymousJsxInMapBrokerProxy();
+  ruleBanDomHandlesInIngredientsBrokerProxy();
+  ruleBanNondeterminismInIngredientsBrokerProxy();
   configDungeonmasterBrokerProxy();
 
   return {

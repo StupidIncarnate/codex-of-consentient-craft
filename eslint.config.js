@@ -52,11 +52,28 @@ module.exports = [
       '.git/**',
       'v1/**',
       'worktrees/**',
+      '.siegelense/**',
       'scripts/**',
       '**/*.d.ts',
       '*.md',
       '**/*.md',
       '**/ts-jest/**',
+      // typescriptProgramDiagnosticsAdapter's own test fixtures carry a deliberate compiler
+      // error so its test can assert on a real diagnostic — the adapter grades them directly,
+      // so lint must skip them the same way it will skip the chunk-3 negative fixture tree.
+      'packages/hydration/test/adapter-fixtures/**',
+      // The declaration half of the negative type suite: each fixture holds exactly one
+      // deliberate compile error (a malformed ingredient declaration), graded directly by
+      // `typescriptProgramDiagnosticsAdapter`, never by this package's own lint or typecheck.
+      'packages/hydration/test/type-fixtures/declaration/**',
+      // The call-site half of the negative type suite: each fixture holds exactly one
+      // deliberate compile error (a wrong chain call), graded directly by
+      // `typescriptProgramDiagnosticsAdapter`, never by this package's own lint or typecheck.
+      'packages/hydration/test/type-fixtures/call-site/**',
+      // The positive fixture tree must compile clean under the adapter's own real tsc run;
+      // it carries no deliberate error, but it is excluded the same way as its case-group
+      // siblings so only that one mechanism ever grades it.
+      'packages/hydration/test/type-fixtures/positive/**',
     ],
   },
   // Configuration for TypeScript files
@@ -67,7 +84,9 @@ module.exports = [
       '**/jest.config.js',
       'jest.config.base.js',
       '**/jest-config-base.js',
-      '**/jest.setup.js',
+      // Every jest setup entry, not just the one: these are plain CJS that no package tsconfig
+      // includes, so typed linting cannot parse them.
+      '**/jest.setup*.js',
       '**/configs/**/*.js',
     ],
     languageOptions: {
@@ -95,6 +114,9 @@ module.exports = [
       '@dungeonmaster-local/ban-quest-status-literals': 'error',
       '@dungeonmaster-local/no-bare-location-literals': 'error',
       '@dungeonmaster-local/no-hardcoded-package-names': 'error',
+      '@dungeonmaster-local/ban-locator-pick': 'error',
+      '@dungeonmaster-local/ban-sync-seeding-methods': 'warn',
+      '@dungeonmaster-local/ban-direct-io-in-test-scenarios': 'warn',
       // 'eslint-comments/no-unlimited-disable': 'error',
       // 'eslint-comments/no-use': ['error', { allow: [] }],
     },
@@ -138,6 +160,9 @@ module.exports = [
       '@dungeonmaster-local/ban-quest-status-literals': 'error',
       '@dungeonmaster-local/no-bare-location-literals': 'error',
       '@dungeonmaster-local/no-hardcoded-package-names': 'error',
+      '@dungeonmaster-local/ban-locator-pick': 'error',
+      '@dungeonmaster-local/ban-sync-seeding-methods': 'error',
+      '@dungeonmaster-local/ban-direct-io-in-test-scenarios': 'off',
     },
   },
   // Test file-specific overrides (from dungeonmaster test config)
@@ -195,10 +220,32 @@ module.exports = [
       '@dungeonmaster/ban-primitives': 'off',
     },
   },
+  // The hydration framework's generic type machinery declares things like `N extends number` and
+  // `of: string` — bare primitives in type position, which this rule refuses everywhere it is on.
+  // Scoped to the whole package, not to a handful of folders: contracts/ and transformers/ carry
+  // that machinery, and so do the brokers that declare it against a caller's own generics
+  // (ingredient-declare, registry-create, recipe-declare, hydration-create) — narrowing the glob
+  // to today's folders only means the next file that needs it fails lint on arrival.
+  {
+    files: ['packages/hydration/src/**'],
+    rules: {
+      '@dungeonmaster/ban-primitives': 'off',
+    },
+  },
   {
     files: ['packages/shared/@types.ts'],
     rules: {
       '@dungeonmaster/forbid-type-reexport': 'off',
+    },
+  },
+  // The standard type-testing `Equal<A, B>` idiom compares two function types, each generic over a
+  // single unconstrained `T` used exactly once — that single use is the whole mechanism (it is what
+  // makes `unknown` and `any` distinguishable, unlike `A extends B ? B extends A ? ... `). The rule
+  // cannot tell this from an accidentally-unused type parameter; scoped to the one file that needs it.
+  {
+    files: ['packages/hydration/test/type-fixtures/expect.ts'],
+    rules: {
+      '@typescript-eslint/no-unnecessary-type-parameters': 'off',
     },
   },
   /**

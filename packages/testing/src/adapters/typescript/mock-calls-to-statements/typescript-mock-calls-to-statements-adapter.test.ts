@@ -275,6 +275,33 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       ]);
     });
 
+    it('VALID: {mockCall for process module} => uses Object.assign and Object.create instead of spread', () => {
+      typescriptMockCallsToStatementsAdapterProxy();
+
+      const mockCall = MockCallStub({
+        moduleName: ModuleNameStub({ value: 'process' }),
+        factory: null,
+        sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
+        identifierNames: [IdentifierNameStub({ value: 'kill' })],
+      });
+
+      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const statements = typescriptMockCallsToStatementsAdapter({
+        mockCalls: [mockCall],
+        nodeFactory,
+      });
+
+      const printer = ts.createPrinter();
+      const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
+      const outputs = statements.map((s) =>
+        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+      );
+
+      expect(outputs).toStrictEqual([
+        '// Auto-hoisted from: test.proxy.ts\njest.mock("process", () => Object.assign(Object.create(jest.requireActual("process")), { kill: jest.fn() }));',
+      ]);
+    });
+
     it('VALID: {mockCall with multiple identifierNames} => returns factory with all identifiers', () => {
       typescriptMockCallsToStatementsAdapterProxy();
 

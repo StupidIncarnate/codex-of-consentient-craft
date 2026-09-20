@@ -358,7 +358,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
 
     // The real server-side mutation: the beta node genuinely no longer exists on the flow, so
     // the route's own anchor resolution rejects it for real — no stubbed 409.
-    send.makeNodeBetaStale();
+    await send.makeNodeBetaStale();
     await send.clickSendButton();
 
     await expect(page.getByText(STALE_BETA_NOTICE)).toBeVisible({ timeout: SEND_TIMEOUT });
@@ -387,7 +387,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
 
     // A real 500: quest.json is overwritten with a shape questContract rejects, so the route's
     // own quest-load call throws for real and its catch block is what turns that into a 500.
-    send.corruptQuestFile();
+    await send.corruptQuestFile();
     await send.clickSendButton();
 
     // The SEND button re-enabling (its `sending` state resets in the widget's `.finally()`) is
@@ -405,7 +405,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
     await expect(page.locator('[role="alert"]')).toHaveCount(0);
 
     // Restore the exact quest state the first attempt had, then let a real 200 clear the queue.
-    send.restoreQuestFile();
+    await send.restoreQuestFile();
     send.queueClaudeResponse({ text: 'Retrying now that the quest loads again' });
     await send.clickSendButton();
 
@@ -581,7 +581,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
     const beforePrune = await send.readQueue();
     const expectedSurvivors = beforePrune.filter((entry) => entry.nodeId !== SEND_NODE_BETA_ID);
 
-    send.makeNodeBetaStale();
+    await send.makeNodeBetaStale();
     await send.clickSendButton();
     await expect(send.queueCount()).toHaveText('2 COMMENTS QUEUED', { timeout: SEND_TIMEOUT });
     await expect(send.sendButton()).toBeEnabled({ timeout: SEND_TIMEOUT });

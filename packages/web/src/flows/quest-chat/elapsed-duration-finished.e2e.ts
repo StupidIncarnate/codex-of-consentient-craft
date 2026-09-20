@@ -63,7 +63,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -102,7 +102,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [
         // check-finished-under-minute: a 12s span reads '<1m', never '0m' or '12s'.
@@ -185,7 +185,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -203,7 +203,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: RUNNING_WI, startedAt: STARTED_AT }],
     });
@@ -229,7 +229,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     // path to re-read the file elapsed.stampWorkItems just wrote and push it, without going
     // around the change under test: the browser still receives the update over the websocket,
     // and every assertion below still measures what that frame produced.
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: RUNNING_WI, status: 'complete', completedAt: COMPLETED_AT }],
     });
@@ -272,7 +272,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -290,7 +290,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: COMPLETED_WI, startedAt: STARTED_AT, completedAt: COMPLETED_AT }],
     });
@@ -350,7 +350,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -377,7 +377,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
 
     // One shared startedAt across both rows: the differing labels below — not the destination —
     // are what proves which branch each row took. Both reach compute-elapsed regardless.
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [
         { id: COMPLETED_WI, startedAt: SHARED_STARTED_AT, completedAt: COMPLETED_AT },
@@ -433,7 +433,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -449,7 +449,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: ROW_WI, startedAt: STARTED_AT }],
     });
@@ -475,7 +475,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     // path to re-read the file elapsed.stampWorkItems just wrote and push it, without going
     // around the change under test: the browser still receives the update over the websocket,
     // and every assertion below still measures what that frame produced.
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: ROW_WI, status: 'complete', completedAt: COMPLETED_AT }],
     });
@@ -516,7 +516,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -532,7 +532,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: ROW_WI, startedAt: STARTED_AT }],
     });
@@ -558,7 +558,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     // path to re-read the file elapsed.stampWorkItems just wrote and push it, without going
     // around the change under test: the browser still receives the update over the websocket,
     // and every assertion below still measures what that frame produced.
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: ROW_WI, status: 'complete', completedAt: COMPLETED_AT }],
     });
@@ -599,7 +599,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -615,7 +615,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: ROW_WI, startedAt: STARTED_AT }],
     });
@@ -641,7 +641,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     // path to re-read the file elapsed.stampWorkItems just wrote and push it, without going
     // around the change under test: the browser still receives the update over the websocket,
     // and every assertion below still measures what that frame produced.
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: ROW_WI, status: 'complete', completedAt: COMPLETED_AT }],
     });

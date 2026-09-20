@@ -48,7 +48,7 @@ describe('preStampInProgressLayerBroker (integration — real disk, real concurr
       baseName: BaseNameStub({ value: 'pre-stamp-pause-race' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
-    envHarness.seedQuestRepoPackages({
+    await envHarness.seedQuestRepoPackages({
       repoRoot: testbed.guildPath,
       locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
       sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),

@@ -52,7 +52,7 @@ test.describe('Dispatch with an unparseable sibling quest file', () => {
       title: 'Legacy schema quest',
       userRequest: 'Written by an older schema',
     });
-    quests.writeUnparseableQuestFile({
+    await quests.writeUnparseableQuestFile({
       questId: String(legacy.questId),
       questFolder: String(legacy.questFolder),
       questFilePath: String(legacy.filePath),

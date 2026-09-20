@@ -4,22 +4,32 @@
  * USAGE:
  * const quests = questHarness({ request });
  * const created = await quests.createQuest({ guildId: 'abc', title: 'My Quest', userRequest: 'Build it' });
- * quests.writeQuestFile({ questId: 'id', questFolder: 'folder', questFilePath: '/path', status: 'complete', workItems: [...] });
+ * await quests.writeQuestFile({ questId: 'id', questFolder: 'folder', questFilePath: '/path', status: 'complete', workItems: [...] });
  */
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { dirname, join } from 'path';
+import { existsSync, promises as fsPromises } from 'fs';
+import { basename, dirname, join } from 'path';
 
 import type { APIRequestContext } from '@playwright/test';
 
 import {
-  addQuestResultContract,
+  guildIdContract,
+  filePathContract,
+  questContract,
+  questIdContract,
+  type Quest,
   type QuestId,
   type FilePath,
   type WorkItemRole,
 } from '@dungeonmaster/shared/contracts';
+import { dungeonmasterHomeStatics, environmentStatics } from '@dungeonmaster/shared/statics';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { questFlowObservableSeedTransformer } from '@dungeonmaster/testing/transformers/quest-flow-observable-seed';
+import { dmTargetHarness } from '../dm-target/dm-target.harness';
+import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
+
+const { recipe } = recipesHydrationCreateBroker();
+const QUEST_SAVE_NAME = 'quest';
 
 const JSON_INDENT = 2;
 const CREATED_AT_INTERVAL_MS = 1000;
@@ -121,8 +131,10 @@ const DEFAULT_FLOWS_FLOWRIDER_SIGNED: FlowInput[] = [
 ];
 
 export const questHarness = ({
+  baseURL,
   request,
 }: {
+  baseURL?: string;
   request: APIRequestContext;
 }): {
   createQuest: (params: {
@@ -131,6 +143,7 @@ export const questHarness = ({
     userRequest: string;
   }) => Promise<{ questId: QuestId; questFolder: QuestId; filePath: FilePath; success: boolean }>;
   writeQuestFile: (params: {
+    guildId?: string;
     questId: string;
     questFolder: string;
     questFilePath: string;
@@ -180,40 +193,26 @@ export const questHarness = ({
     worktreePath?: string;
     branchName?: string;
     baseBranch?: string;
-  }) => void;
+  }) => Promise<void>;
   writeUnparseableQuestFile: (params: {
     questId: string;
     questFolder: string;
     questFilePath: string;
-  }) => void;
+  }) => Promise<void>;
+  tamperQuestUnparseableFile: (params: {
+    questId: string;
+    questFolder: string;
+    questFilePath: string;
+  }) => Promise<void>;
   writeWardResultDetail: (params: {
     questFilePath: string;
     wardResultId: string;
     detail: Record<PropertyKey, unknown>;
-  }) => void;
+  }) => Promise<void>;
   patchQuestStatus: (params: { questId: string; status: string }) => Promise<void>;
-  rewindQuestStatus: (params: { questFilePath: string; status: string }) => void;
+  rewindQuestStatus: (params: { questFilePath: string; status: string }) => Promise<void>;
+  tamperQuestStatusRewind: (params: { questFilePath: string; status: string }) => Promise<void>;
   questFolderExists: (params: { questFilePath: string }) => boolean;
-  buildQuestJson: (params: {
-    questId: string;
-    questFolder: string;
-    status: string;
-    workItems: {
-      id: string;
-      role: string;
-      sessionId: string;
-      status?: string;
-    }[];
-    operations?: {
-      id: string;
-      role: string;
-      text: string;
-      status: string;
-      locked?: boolean;
-      wardMode?: string;
-      packageNames?: string[];
-    }[];
-  }) => Record<PropertyKey, unknown>;
   seedInProgressWithOperations: (params: {
     questId: string;
     questFolder: string;
@@ -233,8 +232,14 @@ export const questHarness = ({
     firstWorkItemSessionId?: string;
     flowriderScopeSignedOff?: boolean;
     worktreePath?: string;
-  }) => void;
+  }) => Promise<void>;
 } => {
+  const resolvedBaseUrl =
+    baseURL ??
+    process.env.DUNGEONMASTER_BASE_URL ??
+    `http://${environmentStatics.hostname}:${process.env.DUNGEONMASTER_WEB_PORT ?? String(Number(process.env.DUNGEONMASTER_PORT ?? '5737') + 1)}`;
+  const dmTarget = dmTargetHarness({ baseURL: resolvedBaseUrl, request });
+
   const createQuest = async ({
     guildId,
     title,
@@ -244,24 +249,32 @@ export const questHarness = ({
     title: string;
     userRequest: string;
   }): Promise<{ questId: QuestId; questFolder: QuestId; filePath: FilePath; success: boolean }> => {
-    const response = await request.post('/api/quests', {
-      data: { guildId, title, userRequest },
-    });
-    const result = addQuestResultContract.parse(await response.json());
-    if (!result.questFolder || !result.filePath) {
-      throw new Error(
-        `createQuest API did not return questFolder/filePath: ${JSON.stringify(result)}`,
-      );
-    }
+    const plan = recipe({ name: 'seed-quest', description: 'seed one quest via api route' }, () => [
+      dmRegistryBroker.quests.under({ guildId: guildIdContract.parse(guildId) }).add(1, (q) => [
+        q[0].set({
+          title: questContract.shape.title.parse(title),
+          userRequest: questContract.shape.userRequest.parse(userRequest),
+        }),
+        q[0].saveRecordAs({ name: QUEST_SAVE_NAME }),
+      ]),
+    ])();
+    const result = await dmRegistryBroker.run(plan, dmTarget.apiTarget());
+    const quest = (result as Record<PropertyKey, unknown>)[QUEST_SAVE_NAME] as Quest;
+    const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+    const questFolderPath = `${dungeonmasterHome}/${dungeonmasterHomeStatics.paths.guildsDir}/${guildId}/${dungeonmasterHomeStatics.paths.questsDir}/${quest.folder}`;
+    const filePath = filePathContract.parse(
+      `${questFolderPath}/${dungeonmasterHomeStatics.paths.questFile}`,
+    );
     return {
-      success: result.success,
-      questId: result.questId!,
-      questFolder: result.questFolder as unknown as QuestId,
-      filePath: result.filePath as FilePath,
+      success: true,
+      questId: quest.id,
+      questFolder: quest.folder as unknown as QuestId,
+      filePath,
     };
   };
 
-  const writeQuestFile = ({
+  const writeQuestFile = async ({
+    guildId,
     questId,
     questFolder,
     questFilePath,
@@ -283,6 +296,7 @@ export const questHarness = ({
     branchName,
     baseBranch,
   }: {
+    guildId?: string;
     questId: string;
     questFolder: string;
     questFilePath: string;
@@ -340,14 +354,14 @@ export const questHarness = ({
     worktreePath?: string;
     branchName?: string;
     baseBranch?: string;
-  }): void => {
+  }): Promise<void> => {
     const seededPlanningNotes: PlanningNotesInput = planningNotes ?? {};
     const baseFlows: FlowInput[] = flows ?? DEFAULT_FLOWS;
     const seededFlows: FlowInput[] = questFlowObservableSeedTransformer({
       flows: baseFlows,
       status,
     });
-    const quest = {
+    const rawQuest = {
       id: questId,
       folder: questFolder,
       title,
@@ -437,19 +451,55 @@ export const questHarness = ({
       })),
     };
 
-    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
+    const writeRawQuestFile = async (raw: Record<PropertyKey, unknown>): Promise<void> => {
+      await fsPromises.mkdir(dirname(questFilePath), { recursive: true });
+      await fsPromises.writeFile(questFilePath, JSON.stringify(raw, null, JSON_INDENT));
 
-    // Append a quest-modified event to the outbox so the HTTP server's quest-driven
-    // watcher reactor reconciles immediately, just like questPersistBroker does in
-    // production. Without this, the reactor depends on its 3s fallback poll to notice
-    // the new workItem.sessionId stamp — racing the LIVE_MARKER assertion's 10s
-    // visibility timeout in quest-streaming-subagent-execution-rows.spec.ts.
-    // questFilePath shape: <DUNGEONMASTER_HOME>/guilds/<guildId>/quests/<questFolder>/quest.json
-    // walk up four levels to reach DUNGEONMASTER_HOME, then append `event-outbox.jsonl`.
-    const dungeonmasterHome = dirname(dirname(dirname(dirname(questFilePath))));
-    const outboxPath = `${dungeonmasterHome}/event-outbox.jsonl`;
-    const outboxLine = `${JSON.stringify({ questId, timestamp: new Date().toISOString() })}\n`;
-    appendFileSync(outboxPath, outboxLine);
+      // Append a quest-modified event to the outbox so the HTTP server's quest-driven
+      // watcher reactor reconciles immediately, just like questPersistBroker does in
+      // production. Without this, the reactor depends on its 3s fallback poll to notice
+      // the new workItem.sessionId stamp — racing the LIVE_MARKER assertion's 10s
+      // visibility timeout in quest-streaming-subagent-execution-rows.spec.ts.
+      // questFilePath shape: <DUNGEONMASTER_HOME>/guilds/<guildId>/quests/<questFolder>/quest.json
+      // walk up four levels to reach DUNGEONMASTER_HOME, then append `event-outbox.jsonl`.
+      const dungeonmasterHome = dirname(dirname(dirname(dirname(questFilePath))));
+      const outboxPath = `${dungeonmasterHome}/event-outbox.jsonl`;
+      const outboxLine = `${JSON.stringify({ questId, timestamp: new Date().toISOString() })}\n`;
+      await fsPromises.appendFile(outboxPath, outboxLine);
+    };
+
+    const inferredGuildId = guildId ?? basename(dirname(dirname(dirname(questFilePath))));
+    const parsedGuildIdResult = guildIdContract.safeParse(inferredGuildId);
+    const parsedQuestResult = questContract.safeParse(rawQuest);
+
+    if (!parsedGuildIdResult.success || !parsedQuestResult.success) {
+      await writeRawQuestFile(rawQuest);
+      return;
+    }
+
+    const resolvedGuildId = parsedGuildIdResult.data;
+    const parsedQuest = parsedQuestResult.data;
+
+    try {
+      const questPayload = {
+        ...parsedQuest,
+        id: questIdContract.parse(questId),
+        folder: questContract.shape.folder.parse(questFolder),
+      };
+
+      const plan = recipe(
+        { name: 'write-quest-file', description: 'write quest file via dmRegistryBroker' },
+        () => [
+          dmRegistryBroker.quests
+            .under({ guildId: resolvedGuildId })
+            .add(1, (q) => [q[0].setRaw(questPayload)]),
+        ],
+      )();
+
+      await dmRegistryBroker.run(plan, dmTarget.writeTarget());
+    } catch {
+      await writeRawQuestFile(rawQuest);
+    }
   };
 
   // Writes a quest.json that questContract REJECTS, into a real quest folder the guild's
@@ -457,7 +507,7 @@ export const questHarness = ({
   // no longer in workItemRoleContract plus relatedDataItems as bare uuids instead of the
   // `{collection}/{id}` shape. Used to prove one such file cannot take the whole guild's quest
   // list — and therefore the dispatcher's active-quest scan — down with it.
-  const writeUnparseableQuestFile = ({
+  const tamperQuestUnparseableFile = async ({
     questId,
     questFolder,
     questFilePath,
@@ -465,7 +515,7 @@ export const questHarness = ({
     questId: string;
     questFolder: string;
     questFilePath: string;
-  }): void => {
+  }): Promise<void> => {
     const quest = {
       id: questId,
       folder: questFolder,
@@ -494,10 +544,10 @@ export const questHarness = ({
       ],
     };
 
-    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
+    await fsPromises.writeFile(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
   };
 
-  const writeWardResultDetail = ({
+  const writeWardResultDetail = async ({
     questFilePath,
     wardResultId,
     detail,
@@ -505,12 +555,12 @@ export const questHarness = ({
     questFilePath: string;
     wardResultId: string;
     detail: Record<PropertyKey, unknown>;
-  }): void => {
+  }): Promise<void> => {
     // The server's ward-detail endpoint reads <questFolder>/ward-results/<id>.json. The quest
     // folder is the directory holding quest.json.
     const wardResultsDir = join(dirname(questFilePath), 'ward-results');
-    mkdirSync(wardResultsDir, { recursive: true });
-    writeFileSync(
+    await fsPromises.mkdir(wardResultsDir, { recursive: true });
+    await fsPromises.writeFile(
       join(wardResultsDir, `${wardResultId}.json`),
       JSON.stringify(detail, null, JSON_INDENT),
     );
@@ -535,19 +585,24 @@ export const questHarness = ({
   // the server produced and the fixture only needs to move the quest back across a gate:
   // writeQuestFile rebuilds a quest from its own defaults, so round-tripping a server-written quest
   // through it silently drops everything its parameter list does not name.
-  const rewindQuestStatus = ({
+  const tamperQuestStatusRewind = async ({
     questFilePath,
     status,
   }: {
     questFilePath: string;
     status: string;
-  }): void => {
-    const persisted = JSON.parse(readFileSync(questFilePath, 'utf8')) as PersistedQuestInput;
+  }): Promise<void> => {
+    const persisted = JSON.parse(
+      await fsPromises.readFile(questFilePath, 'utf8'),
+    ) as PersistedQuestInput;
 
-    writeFileSync(questFilePath, JSON.stringify({ ...persisted, status }, null, JSON_INDENT));
+    await fsPromises.writeFile(
+      questFilePath,
+      JSON.stringify({ ...persisted, status }, null, JSON_INDENT),
+    );
 
     const dungeonmasterHome = dirname(dirname(dirname(dirname(questFilePath))));
-    appendFileSync(
+    await fsPromises.appendFile(
       `${dungeonmasterHome}/event-outbox.jsonl`,
       `${JSON.stringify({ questId: String(persisted.id), timestamp: new Date().toISOString() })}\n`,
     );
@@ -559,95 +614,11 @@ export const questHarness = ({
   const questFolderExists = ({ questFilePath }: { questFilePath: string }): boolean =>
     existsSync(dirname(questFilePath));
 
-  const buildQuestJson = ({
-    questId,
-    questFolder,
-    status,
-    workItems,
-    operations = [],
-  }: {
-    questId: string;
-    questFolder: string;
-    status: string;
-    workItems: {
-      id: string;
-      role: string;
-      sessionId: string;
-      status?: string;
-    }[];
-    operations?: {
-      id: string;
-      role: string;
-      text: string;
-      status: string;
-      locked?: boolean;
-      wardMode?: string;
-      packageNames?: string[];
-    }[];
-  }): Record<PropertyKey, unknown> => ({
-    id: questId,
-    folder: questFolder,
-    title: 'E2E Quest',
-    status,
-    createdAt: new Date().toISOString(),
-    workItems: workItems.map((wi) => ({
-      id: wi.id,
-      role: wi.role,
-      status: wi.status ?? 'complete',
-      spawnerType: 'agent',
-      sessionId: wi.sessionId,
-      createdAt: new Date().toISOString(),
-      relatedDataItems: [],
-      dependsOn: [],
-    })),
-    operations: operations.map((op) => ({
-      id: op.id,
-      role: op.role,
-      text: op.text,
-      status: op.status,
-      locked: op.locked ?? false,
-      packageNames:
-        op.packageNames ?? (op.role === 'codeweaver' ? DEFAULT_CODEWEAVER_PACKAGE_NAMES : []),
-      ...(op.wardMode === undefined ? {} : { wardMode: op.wardMode }),
-    })),
-    userRequest: 'Build the feature',
-    designDecisions: [],
-    steps: [],
-    toolingRequirements: [],
-    contracts: [],
-    flows: [
-      {
-        id: 'harness-flow',
-        name: 'Harness Flow',
-        flowType: 'runtime',
-        entryPoint: 'start',
-        exitPoints: ['end'],
-        nodes: [
-          {
-            id: 'start',
-            label: 'Start',
-            type: 'state',
-            packages: ['auth-service'],
-            observables: [],
-          },
-          {
-            id: 'end',
-            label: 'End',
-            type: 'terminal',
-            packages: ['auth-service'],
-            observables: [],
-          },
-        ],
-        edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
-      },
-    ],
-  });
-
   // Seeds a quest directly to `in_progress` with an operations ledger + ONE work item linked 1:1 to
   // the first operation item (relatedDataItems: ['operations/<op0.id>']) — mirroring a quest whose
   // Start Quest transition already seeded the relay. The first operation item is expected to be
   // `in_progress` and the linked work item `pending` (dispatch pre-stamps it in_progress on spawn).
-  const seedInProgressWithOperations = ({
+  const seedInProgressWithOperations = async ({
     questId,
     questFolder,
     questFilePath,
@@ -687,13 +658,13 @@ export const questHarness = ({
     // really run — in the worktree, writing their session JSONL under the worktree's own path
     // encoding.
     worktreePath?: string;
-  }): void => {
+  }): Promise<void> => {
     const [firstOp] = operations;
     if (firstOp === undefined) {
       throw new Error('seedInProgressWithOperations requires at least one operation');
     }
 
-    writeQuestFile({
+    await writeQuestFile({
       questId,
       questFolder,
       questFilePath,
@@ -721,12 +692,13 @@ export const questHarness = ({
   return {
     createQuest,
     writeQuestFile,
-    writeUnparseableQuestFile,
+    writeUnparseableQuestFile: tamperQuestUnparseableFile,
+    tamperQuestUnparseableFile,
     writeWardResultDetail,
     patchQuestStatus,
-    rewindQuestStatus,
+    rewindQuestStatus: tamperQuestStatusRewind,
+    tamperQuestStatusRewind,
     questFolderExists,
-    buildQuestJson,
     seedInProgressWithOperations,
   };
 };

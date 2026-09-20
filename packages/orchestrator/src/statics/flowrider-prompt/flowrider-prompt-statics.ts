@@ -242,6 +242,9 @@ which reads exactly like a package with nothing in it.
 Then read the code your flow runs through. You need to know the exact value each unit claims — the
 string, the status, the count, the order, the bound — before you can tell a sub-agent what to assert.
 
+**Trust the plan for what it intended, verify the code for what is done.** The unit's own words say
+what has to be true. The implementation is the only thing that says what value actually comes back.
+
 Then choose the layer for each unit, using **Modality — chosen per OBSERVABLE, never per flow** below.
 
 **Dispatch explorer sub-agents where the code is too large to read yourself.** Ask each for specific

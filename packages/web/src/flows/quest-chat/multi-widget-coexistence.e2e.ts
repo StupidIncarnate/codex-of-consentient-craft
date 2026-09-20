@@ -50,7 +50,7 @@ test.describe('Multi-widget coexistence', () => {
 
     // 1. Write a measured reading so the rate-limits stack renders. Input tokens weigh 1, so 5500
     //    against a 10000 five-hour ceiling is 55%, and against a 18333 seven-day one is 30%.
-    rateLimits.writeLedger({
+    await rateLimits.writeLedger({
       spendTokens: RATE_LIMIT_SPEND,
       fiveHourCeiling: RATE_LIMIT_FIVE_HOUR_CEILING,
       sevenDayCeiling: RATE_LIMIT_SEVEN_DAY_CEILING,
@@ -74,7 +74,7 @@ test.describe('Multi-widget coexistence', () => {
     //       (isRecoverable is false for review_flows), so the only queue entry
     //       is the queued quest explicitly started below.
     const sessionId1 = `e2e-session-mwc-primary-${Date.now()}`;
-    sessions.createSessionFile({ sessionId: sessionId1, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId: sessionId1, userMessage: 'Build the feature' });
 
     const primary = await quests.createQuest({
       guildId,
@@ -83,7 +83,7 @@ test.describe('Multi-widget coexistence', () => {
     });
     const primaryQuestId = String(primary.questId);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: primaryQuestId,
       questFolder: String(primary.questFolder),
       questFilePath: String(primary.filePath),
@@ -102,7 +102,7 @@ test.describe('Multi-widget coexistence', () => {
     //    The queue bar (QUEST_QUEUE_BAR_COLLAPSED_LABEL) only renders when there
     //    is at least one entry in the execution queue — POST /start enqueues it.
     const sessionId2 = `e2e-session-mwc-queued-${Date.now()}`;
-    sessions.createSessionFile({ sessionId: sessionId2, userMessage: 'Add second feature' });
+    await sessions.createSessionFile({ sessionId: sessionId2, userMessage: 'Add second feature' });
 
     const queued = await quests.createQuest({
       guildId,
@@ -111,7 +111,7 @@ test.describe('Multi-widget coexistence', () => {
     });
     const queuedQuestId = String(queued.questId);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: queuedQuestId,
       questFolder: String(queued.questFolder),
       questFilePath: String(queued.filePath),

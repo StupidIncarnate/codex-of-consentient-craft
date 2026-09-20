@@ -16,9 +16,9 @@ import { mockFunctionNameContract } from '../../../contracts/mock-function-name/
 import type { MockHandle } from '../../../contracts/mock-handle/mock-handle-contract';
 import type { MockStaging } from '../../../contracts/mock-staging/mock-staging-contract';
 import type { StagedCall } from '../../../contracts/staged-call/staged-call-contract';
+import { mockStagingCreateMiddleware } from '../../../middleware/mock-staging-create/mock-staging-create-middleware';
 import { mockArgsMatchTransformer } from '../../../transformers/mock-args-match/mock-args-match-transformer';
 import { mockStagedBestMatchTransformer } from '../../../transformers/mock-staged-best-match/mock-staged-best-match-transformer';
-import { mockStagingCreateTransformer } from '../../../transformers/mock-staging-create/mock-staging-create-transformer';
 import { mockUnmatchedCallMessageTransformer } from '../../../transformers/mock-unmatched-call-message/mock-unmatched-call-message-transformer';
 
 type MockFunction = (...args: never[]) => unknown;
@@ -87,7 +87,7 @@ export const jestRegisterMockAdapter = ({ fn }: { fn: MockFunction }): MockHandl
       staged.push(record);
       stagedByMock.set(mock, staged);
 
-      return mockStagingCreateTransformer({ record });
+      return mockStagingCreateMiddleware({ record });
     },
     onceFor: (args: readonly unknown[]): MockStaging => {
       const staging = handle.calledWith(args);

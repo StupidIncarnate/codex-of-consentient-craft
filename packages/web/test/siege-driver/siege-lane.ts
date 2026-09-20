@@ -27,7 +27,7 @@ import type { Page, Response as PlaywrightResponse } from '@playwright/test';
 import { netFreePortPairAdapter } from '@dungeonmaster/shared/adapters';
 import { contentTextContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText, FilePath, NetworkPort } from '@dungeonmaster/shared/contracts';
-import { environmentStatics } from '@dungeonmaster/shared/statics';
+import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 
 // A cold Vite pre-bundle of the whole shared surface plus a tsx boot of the API server is the
 // slowest thing here; 180s is generous enough that a loaded machine does not report a boot
@@ -78,8 +78,8 @@ export const siegeLane = async ({
   const homePath = filePathContract.parse(
     path.join(os.tmpdir(), `dm-siege-${laneName}-${String(process.pid)}`),
   );
-  const claudeQueueDir = path.join(homePath, 'claude-queue');
-  const wardQueueDir = path.join(homePath, 'ward-queue');
+  const claudeQueueDir = path.join(homePath, locationsStatics.siegelense.claudeQueueDir);
+  const wardQueueDir = path.join(homePath, locationsStatics.siegelense.wardQueueDir);
   const laneDir = filePathContract.parse(path.join(REPO_ROOT, 'tmp', 'siege', laneName));
   const screenshotDir = filePathContract.parse(path.join(laneDir, 'screenshots'));
 
@@ -87,8 +87,8 @@ export const siegeLane = async ({
   fs.mkdirSync(wardQueueDir, { recursive: true });
   fs.mkdirSync(screenshotDir, { recursive: true });
 
-  const apiLogFd = fs.openSync(path.join(laneDir, 'api-server.log'), 'a');
-  const webLogFd = fs.openSync(path.join(laneDir, 'web-server.log'), 'a');
+  const apiLogFd = fs.openSync(path.join(laneDir, locationsStatics.siegelense.apiLog), 'a');
+  const webLogFd = fs.openSync(path.join(laneDir, locationsStatics.siegelense.webLog), 'a');
 
   // `dev:no-watch`, never `dev`. The server's `dev` is `tsx watch --conditions=source`, which puts
   // every packages/*/src file in this repo into its module graph — one save anywhere restarts the

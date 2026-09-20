@@ -27,7 +27,7 @@ const sessions = wireHarnessLifecycle({
 test.describe('FOLLOW-UP tab transcript survives being stopped for a merge', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
-    sessions.cleanSessionDirectory();
+    await sessions.cleanSessionDirectory();
   });
 
   test('VALID: {2 prior FOLLOW-UP turns, then Merge pressed} => both prior turns still render in the FOLLOW-UP tab afterward', async ({
@@ -42,7 +42,7 @@ test.describe('FOLLOW-UP tab transcript survives being stopped for a merge', () 
     });
 
     const tavernkeeperSessionId = `e2e-tavernkeeper-${Date.now()}`;
-    warpgate.seedFollowupTurns({
+    await warpgate.seedFollowupTurns({
       sessionId: tavernkeeperSessionId,
       turns: [
         { role: 'user', text: FIRST_USER_TURN },
@@ -54,7 +54,7 @@ test.describe('FOLLOW-UP tab transcript survives being stopped for a merge', () 
 
     // A quest already blocked — mergeable AND followup-chatable at once, so this one test can
     // open the transcript, then swap to the tab that carries the real Merge button.
-    warpgate.seedWarpgateQuest({
+    await warpgate.seedWarpgateQuest({
       questId,
       questFolder,
       questFilePath,

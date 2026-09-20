@@ -32,7 +32,7 @@ test.describe('Quest WS Update', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-ws-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Build the feature',
     });
@@ -48,7 +48,7 @@ test.describe('Quest WS Update', () => {
 
     // Seed at 'explore_flows' so the subsequent PATCH that adds flows passes the
     // per-status input allowlist (created status only permits title + status).
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder,
       questFilePath,
@@ -105,7 +105,7 @@ test.describe('Quest WS Update', () => {
     const guildId = String(guild.id);
 
     const sessionId = `e2e-session-ws-inc-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Build the feature',
     });
@@ -121,7 +121,7 @@ test.describe('Quest WS Update', () => {
 
     // Seed at 'flows_approved' so the subsequent PATCH that adds another flow
     // passes the per-status input allowlist (approved status only permits status).
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder,
       questFilePath,

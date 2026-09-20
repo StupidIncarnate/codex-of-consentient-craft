@@ -17,7 +17,7 @@ test.describe('Rate Limits Snapshot', () => {
   test('VALID: {a ledger with both windows calibrated} => both rate-limit cards render with formatted text', async ({
     page,
   }) => {
-    rateLimits.writeLedger({
+    await rateLimits.writeLedger({
       spendTokens: SPEND,
       fiveHourCeiling: FIVE_HOUR_CEILING,
       sevenDayCeiling: SEVEN_DAY_CEILING,
@@ -33,7 +33,7 @@ test.describe('Rate Limits Snapshot', () => {
   test('EMPTY: {nothing measured and no ceiling learned} => rate-limits stack does not render', async ({
     page,
   }) => {
-    rateLimits.writeLedger({ spendTokens: 0, fiveHourCeiling: null, sevenDayCeiling: null });
+    await rateLimits.writeLedger({ spendTokens: 0, fiveHourCeiling: null, sevenDayCeiling: null });
 
     await page.goto('/');
 

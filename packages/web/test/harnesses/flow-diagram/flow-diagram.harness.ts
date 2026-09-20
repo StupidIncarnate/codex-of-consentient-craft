@@ -403,7 +403,7 @@ export const flowDiagramHarness = ({
       const guildId = String(guild.id);
 
       const sessionId = `e2e-session-diagram-${Date.now()}`;
-      sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+      await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
       const created = await quests.createQuest({
         guildId,
@@ -415,7 +415,7 @@ export const flowDiagramHarness = ({
       // flow diagram) renders directly on load. An already-approved quest also surfaces the
       // Begin Quest modal on load, which is dismissed below so its overlay doesn't intercept
       // diagram interaction clicks.
-      quests.writeQuestFile({
+      await quests.writeQuestFile({
         questId: String(created.questId),
         questFolder: String(created.questFolder),
         questFilePath: String(created.filePath),

@@ -33,7 +33,7 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
       initialBranchName: FileNameStub({ value: 'main' }),
       packageNames: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
     });
-    git.writeWorkspaceNodeModulesFixture({
+    await git.writeWorkspaceNodeModulesFixture({
       repoPath,
       workspacePackages: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
       hoistedDep: {
@@ -120,7 +120,7 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
       initialBranchName: FileNameStub({ value: 'main' }),
       packageNames: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
     });
-    git.writeWorkspaceNodeModulesFixture({
+    await git.writeWorkspaceNodeModulesFixture({
       repoPath,
       workspacePackages: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
       hoistedDep: {

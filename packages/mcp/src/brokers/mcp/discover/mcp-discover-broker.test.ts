@@ -383,7 +383,7 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {grep PascalCase, no strict} => cross-convention matches kebab content via tree output', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({
-        value: `${process.cwd()}/src/contracts/orchestration-event-type-contract.ts`,
+        value: `${process.cwd()}/packages/mcp/src/contracts/orchestration-event-type-contract.ts`,
       });
       const contents = FileContentsStub({
         value: `export const orchestrationEventTypeContract = z.enum(['x', 'y']);`,
@@ -433,6 +433,29 @@ describe('mcpDiscoverBroker', () => {
         ].join('\n'),
         count: 0,
       });
+    });
+  });
+
+  describe('rootPath override', () => {
+    it('VALID: {rootPath: a worktree path} => scans from rootPath, not the server cwd', async () => {
+      const brokerProxy = mcpDiscoverBrokerProxy();
+      const rootPath = FilePathStub({ value: '/repo/worktrees/siegelense' });
+      const filepath = FilePathStub({
+        value: '/repo/worktrees/siegelense/src/brokers/step/step-run-broker.ts',
+      });
+      const pattern = GlobPatternStub({
+        value: '/repo/worktrees/siegelense/packages/siegelense/src/brokers/step/**',
+      });
+      const contents = FileContentsStub({ value: 'export const stepRunBroker = () => true;' });
+
+      brokerProxy.setupFileDiscoveryAtRoot({ rootPath, filepath, contents, pattern });
+
+      const result = await mcpDiscoverBroker({
+        input: DiscoverInputStub({ glob: 'packages/siegelense/src/brokers/step/**' as never }),
+        rootPath,
+      });
+
+      expect(result.count).toBe(1);
     });
   });
 });

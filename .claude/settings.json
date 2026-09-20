@@ -1,4 +1,10 @@
 {
+  "env": {
+    "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
+  },
+  "crossSessionInbound": "refuse",
+  "promptCacheTtl": "1h",
+  "subagentPromptCacheTtl": "1h",
   "attribution": {
     "commit": "Claude'd it up in here!",
     "pr": ""
@@ -367,10 +373,9 @@
       "Bash(python3:*)",
       "Bash(git rev-parse:*)",
       "Bash(git merge-base:*)",
-      "mcp__dungeonmaster__create-worktree"
+      "mcp__dungeonmaster__create-worktree",
+      "Bash(dungeonmaster siegelense:*)"
     ],
-    "deny": [
-      "Bash(sed:*)"
-    ]
+    "deny": ["Bash(sed:*)"]
   }
 }

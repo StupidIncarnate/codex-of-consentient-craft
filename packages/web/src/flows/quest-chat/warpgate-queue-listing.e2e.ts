@@ -43,14 +43,14 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
     // duration of the test — the SECOND quest a non-vacuous "is X listed" check needs, per
     // execution-queue-streaming.e2e.ts's own pattern for keeping an entry stable.
     const sessionIdA = `e2e-queue-a-${Date.now()}`;
-    sessions.createSessionFile({ sessionId: sessionIdA, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId: sessionIdA, userMessage: 'Build the feature' });
     const createdA = await quests.createQuest({
       guildId,
       title: 'Queue Listing Quest A',
       userRequest: 'Build the feature',
     });
     const questIdA = String(createdA.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: questIdA,
       questFolder: String(createdA.questFolder),
       questFilePath: String(createdA.filePath),
@@ -85,7 +85,7 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
     // listener removes it for), then merged for real via the Merge route — the same
     // OrchestrationMergeResponder the UI's Teleport with Booty button calls.
     const sessionIdB = `e2e-queue-b-${Date.now()}`;
-    sessions.createSessionFile({ sessionId: sessionIdB, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId: sessionIdB, userMessage: 'Build the feature' });
     const createdB = await quests.createQuest({
       guildId,
       title: 'Queue Listing Quest B',
@@ -94,7 +94,7 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
     const questIdB = String(createdB.questId);
     const questFolderB = String(createdB.questFolder);
     const questFilePathB = String(createdB.filePath);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: questIdB,
       questFolder: questFolderB,
       questFilePath: questFilePathB,
@@ -118,7 +118,7 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
     });
     await request.post(`/api/quests/${questIdB}/start`);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: questIdB,
       questFolder: questFolderB,
       questFilePath: questFilePathB,
@@ -154,7 +154,7 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
       userRequest: 'Build the feature',
     });
     const questIdC = String(createdC.questId);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: questIdC,
       questFolder: String(createdC.questFolder),
       questFilePath: String(createdC.filePath),

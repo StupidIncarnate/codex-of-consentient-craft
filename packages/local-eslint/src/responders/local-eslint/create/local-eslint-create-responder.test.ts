@@ -7,7 +7,10 @@ describe('LocalEslintCreateResponder', () => {
       const plugin = proxy.callResponder();
 
       expect(Object.keys(plugin.rules).sort()).toStrictEqual([
+        'ban-direct-io-in-test-scenarios',
+        'ban-locator-pick',
         'ban-quest-status-literals',
+        'ban-sync-seeding-methods',
         'no-bare-location-literals',
         'no-hardcoded-package-names',
       ]);
@@ -53,6 +56,50 @@ describe('LocalEslintCreateResponder', () => {
       const plugin = proxy.callResponder();
 
       expect(plugin.rules['no-hardcoded-package-names'].create).toStrictEqual(expect.any(Function));
+    });
+
+    it('VALID: {} => returns ban-locator-pick rule with problem type', () => {
+      const proxy = LocalEslintCreateResponderProxy();
+      const plugin = proxy.callResponder();
+
+      expect(plugin.rules['ban-locator-pick'].meta.type).toBe('problem');
+    });
+
+    it('VALID: {} => returns ban-locator-pick rule with create function', () => {
+      const proxy = LocalEslintCreateResponderProxy();
+      const plugin = proxy.callResponder();
+
+      expect(plugin.rules['ban-locator-pick'].create).toStrictEqual(expect.any(Function));
+    });
+
+    it('VALID: {} => returns ban-sync-seeding-methods rule with problem type', () => {
+      const proxy = LocalEslintCreateResponderProxy();
+      const plugin = proxy.callResponder();
+
+      expect(plugin.rules['ban-sync-seeding-methods'].meta.type).toBe('problem');
+    });
+
+    it('VALID: {} => returns ban-sync-seeding-methods rule with create function', () => {
+      const proxy = LocalEslintCreateResponderProxy();
+      const plugin = proxy.callResponder();
+
+      expect(plugin.rules['ban-sync-seeding-methods'].create).toStrictEqual(expect.any(Function));
+    });
+
+    it('VALID: {} => returns ban-direct-io-in-test-scenarios rule with problem type', () => {
+      const proxy = LocalEslintCreateResponderProxy();
+      const plugin = proxy.callResponder();
+
+      expect(plugin.rules['ban-direct-io-in-test-scenarios'].meta.type).toBe('problem');
+    });
+
+    it('VALID: {} => returns ban-direct-io-in-test-scenarios rule with create function', () => {
+      const proxy = LocalEslintCreateResponderProxy();
+      const plugin = proxy.callResponder();
+
+      expect(plugin.rules['ban-direct-io-in-test-scenarios'].create).toStrictEqual(
+        expect.any(Function),
+      );
     });
   });
 });

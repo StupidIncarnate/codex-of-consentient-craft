@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 /**
  * PURPOSE: Provides test environment setup and helpers for server flow integration tests
  *
@@ -17,24 +18,53 @@ import {
   readFileSync,
   readdirSync,
   statSync,
-  symlinkSync,
 } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
 import { z } from 'zod';
 
+import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { Base64ImageData, FileName, FilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import type {
+  Base64ImageData,
+  FileName,
+  FilePath,
+  Guild,
+  Quest,
+  QuestId,
+} from '@dungeonmaster/shared/contracts';
 import {
   fileNameContract,
   FilePathStub,
+  guildIdContract,
   GuildNameStub,
   GuildPathStub,
   pastedImageUploadContract,
   questIdContract,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, pastedImageStatics } from '@dungeonmaster/shared/statics';
+import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
+import { dmTargetContract, guildFieldsContract } from '@dungeonmaster/hydration-recipes/contracts';
+import type { QuestFields } from '@dungeonmaster/hydration-recipes/contracts';
+
+// `recipe()` is stateless (packages/hydration-recipes/CLAUDE.md — confirmed by reading
+// hydration-create-broker.ts: neither ingredient() nor recipe() touches registeredIngredients),
+// so a fresh recipesHydrationCreateBroker() call here is fine even though execution goes through
+// dmRegistryBroker.run — only registry()/run() must share one instance, and dmRegistryBroker
+// already carries that pairing.
+const { recipe } = recipesHydrationCreateBroker();
+
+// This harness is the one legal path a `flows/`-folder integration test has to the recipe
+// framework (scrolls/seigelense/siegelense-recipes.md). `enforce-import-dependencies`
+// (packages/eslint-plugin) restricts every file classified `flows/` — colocated integration
+// tests included, no carve-out for test files — to `contracts, transformers, guards, statics,
+// errors, flows, responders, hono, ...`; `@dungeonmaster/hydration-recipes` exposes its runner
+// only as `dmRegistryBroker`, a `brokers/`-suffixed export, and has no `responders` subpath. A
+// file under `test/harnesses/` is not classified into any architecture folder type, so it is the
+// only place in this package that can import a broker on the recipe framework's behalf.
+const QUEST_SAVE_NAME = SavedRecordNameStub({ value: 'quest' });
+const GUILD_SAVE_NAME = SavedRecordNameStub({ value: 'guild' });
 
 // The directory a seeded symlink escapes INTO. Deliberately not `locationsStatics.quest.*`: the
 // whole point of the fixture is that this name is not one the confinement check recognises.
@@ -74,15 +104,43 @@ export const serverAppHarness = (): {
     guildId: string;
     questFolder: string;
     quest: unknown;
-  }) => void;
+  }) => Promise<void>;
+  // Domain-state seeding through the recipe framework's quest ingredient — the `write` route
+  // (questWriteRouteBroker -> questPersistDirectBroker), against a `DmTarget` built from an
+  // already-`setupTestHome`'d dungeonmasterHome. `guildId` is a literal, unregistered string (no
+  // real guild row): the quest ingredient's `links` are satisfied via `.under({ guildId })`
+  // rather than an ancestor `guilds.add()`, matching what the raw `seedQuest` write above did —
+  // a quest folder under an arbitrary guildId, no config.json entry. Every field goes through
+  // `setRaw`, never `set`: `status` is the quest ingredient's one `transitions` field, and a real
+  // walk either throws on this write-only target (reaching `in_progress` needs a server) or runs
+  // gates this hand-built content was never meant to satisfy. `id`/`folder` are minted by the
+  // write route and are never part of `fields` — read them off the returned record, never chosen.
+  seedQuestFields: (params: {
+    dungeonmasterHome: string;
+    guildId: string;
+    fields: Partial<QuestFields>;
+  }) => Promise<Quest>;
+  // Same as seedQuestFields, but the quest hangs off a REAL guild created through the guild
+  // ingredient's own `write` route (StartOrchestrator.addGuild) — for a caller that needs
+  // guildGetBroker (chatSpawnBroker's own dependency) to resolve the guild for real. `guildPath`
+  // is passed straight through `set()`: an already-absolute path (this file always passes
+  // dungeonmasterHome itself) survives guildPathDeriveTransformer unchanged, so the guild's
+  // directory — and therefore a resumed chat's spawn cwd — is EXACTLY dungeonmasterHome, matching
+  // what registerRealGuild used to produce by calling StartOrchestrator.addGuild directly.
+  seedGuildAndQuestFields: (params: {
+    dungeonmasterHome: string;
+    guildName: string;
+    guildPath: string;
+    fields: Partial<QuestFields>;
+  }) => Promise<{ guild: Guild; quest: Quest }>;
   // Writes a REAL file to a real `images` directory in a fresh temp dir — a bytes-match-disk claim
   // can't be settled against a mocked read, so a test that serves an image over HTTP and diffs the
   // response against the file needs a genuine file on a genuine filesystem.
-  seedImageFile: (params: { baseName: string; fileName: string; bytes: Uint8Array }) => {
+  seedImageFile: (params: { baseName: string; fileName: string; bytes: Uint8Array }) => Promise<{
     imagePath: FilePath;
     dirPath: FilePath;
     cleanup: () => void;
-  };
+  }>;
   // Reach for THIS over seedImageFile when the test is about where a path RESOLVES rather than what
   // it holds: it seeds a real symlink inside a real images directory pointing at a real file
   // outside it, plus an ordinary sibling file inside that same directory as the control.
@@ -93,12 +151,12 @@ export const serverAppHarness = (): {
     targetBytes: Uint8Array;
     siblingFileName: string;
     siblingBytes: Uint8Array;
-  }) => {
+  }) => Promise<{
     symlinkPath: FilePath;
     targetPath: FilePath;
     siblingPath: FilePath;
     cleanup: () => void;
-  };
+  }>;
   // Strips write permission from the quest's OWN directory (not the file — questPersistBroker
   // writes atomically via temp-file-then-rename, and a rename only needs write permission on the
   // DIRECTORY that holds both names, so chmod'ing quest.json itself would not stop the write).
@@ -205,6 +263,20 @@ export const serverAppHarness = (): {
     process.env.DUNGEONMASTER_HOME = tempDir;
     mkdirSync(tempDir, { recursive: true });
     writeFileSync(join(tempDir, 'config.json'), JSON.stringify({ guilds: [] }));
+    // A ledger stamped NOW, so usageLedgerScanBroker takes its throttle path instead of walking the
+    // developer's own ~/.claude/projects. `packages/testing/src/jest.setup-home.js` carries the full
+    // reasoning and seeds the same pair into the process-wide sandbox home; every harness that
+    // re-points DUNGEONMASTER_HOME at a fresh directory owes it again, because a new directory has
+    // no ledger and the default one is stamped at the epoch.
+    writeFileSync(
+      join(tempDir, 'usage-ledger.json'),
+      JSON.stringify({
+        buckets: {},
+        cursors: {},
+        ceilings: { fiveHour: null, sevenDay: null },
+        updatedAt: new Date().toISOString(),
+      }),
+    );
 
     return (): void => {
       if (savedDungeonmasterHome === undefined) {
@@ -222,7 +294,7 @@ export const serverAppHarness = (): {
   // the same way mcp-server.harness.ts's seedQuest does for the MCP subprocess suite. The
   // orchestrator's quest lookup globs guilds/*/quests/*/quest.json — it does not require the
   // guild to be registered in config.json first.
-  const seedQuest = ({
+  const seedQuest = async ({
     dungeonmasterHome,
     guildId,
     questFolder,
@@ -232,10 +304,70 @@ export const serverAppHarness = (): {
     guildId: string;
     questFolder: string;
     quest: unknown;
-  }): void => {
+  }): Promise<void> => {
     const questDir = join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
-    mkdirSync(questDir, { recursive: true });
-    writeFileSync(join(questDir, 'quest.json'), JSON.stringify(quest, null, 2));
+    await fs.promises.mkdir(questDir, { recursive: true });
+    await fs.promises.writeFile(join(questDir, 'quest.json'), JSON.stringify(quest, null, 2));
+  };
+
+  const seedQuestFields = async ({
+    dungeonmasterHome,
+    guildId,
+    fields,
+  }: {
+    dungeonmasterHome: string;
+    guildId: string;
+    fields: Partial<QuestFields>;
+  }): Promise<Quest> => {
+    const target = dmTargetContract.parse({
+      home: dungeonmasterHome,
+      claudeHome: dungeonmasterHome,
+    });
+    const plan = recipe({ name: 'seed-quest-fields', description: 'one seeded quest' }, () => [
+      dmRegistryBroker.quests
+        .under({ guildId: guildIdContract.parse(guildId) })
+        .add(1, (q) => [q[0].setRaw(fields), q[0].saveRecordAs({ name: QUEST_SAVE_NAME })]),
+    ])();
+    const result = await dmRegistryBroker.run(plan, target);
+    return result[QUEST_SAVE_NAME] as Quest;
+  };
+
+  const seedGuildAndQuestFields = async ({
+    dungeonmasterHome,
+    guildName,
+    guildPath,
+    fields,
+  }: {
+    dungeonmasterHome: string;
+    guildName: string;
+    guildPath: string;
+    fields: Partial<QuestFields>;
+  }): Promise<{ guild: Guild; quest: Quest }> => {
+    const target = dmTargetContract.parse({
+      home: dungeonmasterHome,
+      claudeHome: dungeonmasterHome,
+    });
+    const plan = recipe(
+      { name: 'seed-guild-and-quest-fields', description: 'one guild holding one seeded quest' },
+      () => [
+        dmRegistryBroker.guilds.add(1, (g) => [
+          g[0].set({
+            name: guildFieldsContract.shape.name.parse(guildName),
+            path: guildFieldsContract.shape.path.parse(guildPath),
+          }),
+          g[0].saveRecordAs({ name: GUILD_SAVE_NAME }),
+          g[0].quests.add(1, (q) => [
+            q[0].setRaw(fields),
+            q[0].saveRecordAs({ name: QUEST_SAVE_NAME }),
+          ]),
+        ]),
+      ],
+    )();
+    const result = await dmRegistryBroker.run(plan, target);
+    return {
+      guild: result[GUILD_SAVE_NAME] as unknown as Guild,
+      quest: result[QUEST_SAVE_NAME] as unknown as Quest,
+    };
   };
 
   // Writes `bytes` to a real file inside a real `images` directory under a fresh temp dir — the
@@ -243,7 +375,7 @@ export const serverAppHarness = (): {
   // fixture is shaped like the files this route actually exists to serve. `dirPath` is that images
   // directory, so a caller can build a path to a file that was never written, for the missing-file
   // case.
-  const seedImageFile = ({
+  const seedImageFile = async ({
     baseName,
     fileName,
     bytes,
@@ -251,16 +383,16 @@ export const serverAppHarness = (): {
     baseName: string;
     fileName: string;
     bytes: Uint8Array;
-  }): { imagePath: FilePath; dirPath: FilePath; cleanup: () => void } => {
+  }): Promise<{ imagePath: FilePath; dirPath: FilePath; cleanup: () => void }> => {
     const rootPath = join(tmpdir(), `${baseName}-${randomUUID().slice(0, 8)}`);
     const dirPath = join(rootPath, locationsStatics.quest.imagesDir);
-    mkdirSync(dirPath, { recursive: true });
-    writeFileSync(
+    await fs.promises.mkdir(dirPath, { recursive: true });
+    await fs.promises.writeFile(
       join(rootPath, locationsStatics.quest.questFile),
       QUEST_FILE_EXISTENCE_ONLY_CONTENT,
     );
     const imagePath = join(dirPath, fileName);
-    writeFileSync(imagePath, bytes);
+    await fs.promises.writeFile(imagePath, bytes);
 
     return {
       imagePath: FilePathStub({ value: imagePath }),
@@ -281,7 +413,7 @@ export const serverAppHarness = (): {
   // proves a refusal of the link is caused by where the link POINTS, not by where the fixture
   // happens to live. Mocking realpath instead would only ever prove the mock, so this fixture has
   // to be a genuine link the kernel resolves.
-  const seedSymlinkEscapingImagesDir = ({
+  const seedSymlinkEscapingImagesDir = async ({
     baseName,
     linkFileName,
     targetFileName,
@@ -295,33 +427,33 @@ export const serverAppHarness = (): {
     targetBytes: Uint8Array;
     siblingFileName: string;
     siblingBytes: Uint8Array;
-  }): {
+  }): Promise<{
     symlinkPath: FilePath;
     targetPath: FilePath;
     siblingPath: FilePath;
     cleanup: () => void;
-  } => {
+  }> => {
     const rootPath = join(tmpdir(), `${baseName}-${randomUUID().slice(0, 8)}`);
 
     const imagesDirPath = join(rootPath, locationsStatics.quest.imagesDir);
     const outsideDirPath = join(rootPath, OUTSIDE_IMAGES_DIR_NAME);
-    mkdirSync(imagesDirPath, { recursive: true });
-    mkdirSync(outsideDirPath, { recursive: true });
+    await fs.promises.mkdir(imagesDirPath, { recursive: true });
+    await fs.promises.mkdir(outsideDirPath, { recursive: true });
     // Only the images directory's own parent gets one: `outside` deliberately stays a
     // non-quest-folder, so the escaping link has nowhere legitimate to land.
-    writeFileSync(
+    await fs.promises.writeFile(
       join(rootPath, locationsStatics.quest.questFile),
       QUEST_FILE_EXISTENCE_ONLY_CONTENT,
     );
 
     const targetPath = join(outsideDirPath, targetFileName);
-    writeFileSync(targetPath, targetBytes);
+    await fs.promises.writeFile(targetPath, targetBytes);
 
     const symlinkPath = join(imagesDirPath, linkFileName);
-    symlinkSync(targetPath, symlinkPath);
+    await fs.promises.symlink(targetPath, symlinkPath);
 
     const siblingPath = join(imagesDirPath, siblingFileName);
-    writeFileSync(siblingPath, siblingBytes);
+    await fs.promises.writeFile(siblingPath, siblingBytes);
 
     return {
       symlinkPath: FilePathStub({ value: symlinkPath }),
@@ -548,6 +680,8 @@ export const serverAppHarness = (): {
     setupTestHome,
     toPlain,
     seedQuest,
+    seedQuestFields,
+    seedGuildAndQuestFields,
     seedImageFile,
     seedSymlinkEscapingImagesDir,
     makeQuestDirectoryReadOnly,

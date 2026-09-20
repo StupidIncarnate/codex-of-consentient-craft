@@ -2,6 +2,7 @@ import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contra
 
 import { WardConfigStub } from '../../../contracts/ward-config/ward-config.stub';
 import { fileScopeEmptyStatics } from '../../../statics/file-scope-empty/file-scope-empty-statics';
+import { gitScopeDroppedPathsStatics } from '../../../statics/git-scope-dropped-paths/git-scope-dropped-paths-statics';
 import { noFilesProcessedStatics } from '../../../statics/no-files-processed/no-files-processed-statics';
 import { pathNotFoundStatics } from '../../../statics/path-not-found/path-not-found-statics';
 
@@ -145,6 +146,73 @@ describe('commandRunBroker', () => {
           `${pathNotFoundStatics.heading}\n  packages/wardd/src/typo.ts\n\n${pathNotFoundStatics.guidance}\n`,
         ],
         exitCode: 1,
+        exitCalls: [],
+      });
+    });
+  });
+
+  // A PATH GIT NAMES THAT HAS SINCE BEEN DELETED IS NOT THE CALLER BEING WRONG. `--committed` diffs
+  // merge-base against HEAD alone — it has no idea what the working tree currently holds — so a file
+  // this branch's own commits already added or modified stays in its answer even after an
+  // uncommitted `rm`, and staging that deletion changes nothing because `--committed` never reads
+  // the index either. Reproduced live: this branch's own HEAD commit deletes a file `--committed`
+  // still named, and `git add -A` first did not help.
+  describe('git-derived file scope naming a path that has been deleted', () => {
+    it('VALID: {uncommitted resolves to one surviving and one deleted file} => runs checks on the survivor and reports the drop', async () => {
+      process.exitCode = 0;
+      const proxy = commandRunBrokerProxy();
+      proxy.setupSinglePackagePass();
+      proxy.setupUncommittedWithSurvivingAndDeletedFile();
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub({ uncommitted: true });
+
+      await commandRunBroker({ config, rootPath });
+
+      // THE SURVIVOR REACHES THE SAME CHECK RUN `src/index.ts` ALONE DOES in the sibling scenario
+      // below (`setupUncommittedWithOneEditedFile`) — same scope, same stubbed discovery, same
+      // DISCOVERY MISMATCH noise and exit code. What is under test is the FIRST line: the drop
+      // happened and named the right path instead of refusing the whole run.
+      expect(proxy.getStdoutCalls()).toStrictEqual([
+        `${gitScopeDroppedPathsStatics.heading}\n  src/gone.ts\n\n`,
+        [
+          'run: 1739625600000-a38e',
+          'lint:      WARN  0 files run',
+          'typecheck: WARN  0 files run, 1 discovered  DISCOVERY MISMATCH',
+          '  only discovered: discovered.ts',
+          'integration: WARN  0 files run, 1 discovered  DISCOVERY MISMATCH',
+          '  only discovered: discovered.ts',
+          '',
+        ].join('\n'),
+        '\nDISCOVERY MISMATCH — ward discovered files that were not processed (or vice versa). Every test must run; an unrun test is a hidden regression. This run is FAILING until each mismatch below is investigated and resolved at the root cause:\n  - typecheck\n  - integration\n\nFor each check above: read the "only processed" / "only discovered" lines in the summary, then determine WHY discovery and processing diverged (e.g. test runner config drift from ward\'s discovery globs, untyped imports pulling in dist files, files matching a pattern they shouldn\'t, missing config exclusions). Fix the root cause — do not paper over the mismatch by adjusting ward\'s discovery to match the buggy state.\n',
+      ]);
+    });
+
+    // THE SURVIVING-PATHS CASE PROVES THE DROP DID NOT REFUSE THE RUN; this one proves dropping
+    // every path lands on the SAME empty-scope answer a clean tree gets — exit 0, and the summary
+    // line `resultToSummaryTransformer` would print for an executed run is absent, so nothing here
+    // could be misread as a pass.
+    it('EMPTY: {uncommitted resolves to only a deleted file} => lands on the empty-scope answer, exits 0, and is not reported as a pass', async () => {
+      process.exitCode = 0;
+      const proxy = commandRunBrokerProxy();
+      proxy.setupSinglePackagePass();
+      proxy.setupUncommittedWithOnlyDeletedFile();
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub({ uncommitted: true });
+
+      await commandRunBroker({ config, rootPath });
+
+      expect({
+        stdoutCalls: proxy.getStdoutCalls(),
+        exitCode: process.exitCode,
+        exitCalls: proxy.getExitCalls(),
+      }).toStrictEqual({
+        stdoutCalls: [
+          `${gitScopeDroppedPathsStatics.heading}\n  src/gone.ts\n\n`,
+          `${fileScopeEmptyStatics.message}\n`,
+        ],
+        exitCode: 0,
         exitCalls: [],
       });
     });

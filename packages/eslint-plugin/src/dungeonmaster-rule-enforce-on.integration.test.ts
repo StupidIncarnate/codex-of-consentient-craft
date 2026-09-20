@@ -216,7 +216,7 @@ describe('dungeonmasterRuleEnforceOnStatics integration', () => {
       expect(rulesWithoutFsOps).toStrictEqual([]);
     });
 
-    it('VALID: all post-edit rules count => matches expected 4 rules', () => {
+    it('VALID: all post-edit rules count => matches expected 5 rules', () => {
       const postEditRules = getAllPostEditRules();
 
       expect(postEditRules).toStrictEqual([
@@ -224,6 +224,7 @@ describe('dungeonmasterRuleEnforceOnStatics integration', () => {
         ['@dungeonmaster/enforce-proxy-child-creation', 'post-edit'],
         ['@dungeonmaster/enforce-implementation-colocation', 'post-edit'],
         ['@dungeonmaster/enforce-test-colocation', 'post-edit'],
+        ['@dungeonmaster/enforce-hydration-recipes-structure', 'post-edit'],
       ]);
     });
   });
@@ -237,10 +238,10 @@ describe('dungeonmasterRuleEnforceOnStatics integration', () => {
       expect(totalCount).toBe(Number(preEditCount) + Number(postEditCount));
     });
 
-    it('VALID: pre-edit count => 66 rules (10 third-party + 56 @dungeonmaster)', () => {
+    it('VALID: pre-edit count => 68 rules (10 third-party + 58 @dungeonmaster)', () => {
       const preEditCount = getPreEditRuleCount();
 
-      expect(preEditCount).toBe(66);
+      expect(preEditCount).toBe(68);
     });
   });
 

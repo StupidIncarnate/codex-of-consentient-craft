@@ -41,7 +41,7 @@ test.describe('Observables approval gate (Gate #2)', () => {
       userRequest: 'Build the feature',
     });
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -100,7 +100,7 @@ test.describe('Observables approval gate (Gate #2)', () => {
       userRequest: 'Build the feature',
     });
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

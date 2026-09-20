@@ -66,7 +66,7 @@ test.describe('Live elapsed duration on in-progress execution rows: pause and re
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -95,7 +95,7 @@ test.describe('Live elapsed duration on in-progress execution rows: pause and re
     const underStartedAt = new Date(realNowMs - UNDER_MINUTE_OFFSET_MS).toISOString();
     const minutesStartedAt = new Date(realNowMs - MINUTES_OFFSET_MS).toISOString();
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [
         { id: UNDER_WI, startedAt: underStartedAt },
@@ -172,7 +172,7 @@ test.describe('Live elapsed duration on in-progress execution rows: pause and re
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -190,7 +190,7 @@ test.describe('Live elapsed duration on in-progress execution rows: pause and re
 
     const hoursStartedAt = new Date(Date.now() - HOURS_OFFSET_MS).toISOString();
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: HOUR_WI, startedAt: hoursStartedAt }],
     });

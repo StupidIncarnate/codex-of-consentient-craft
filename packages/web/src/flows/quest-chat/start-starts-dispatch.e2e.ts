@@ -59,7 +59,7 @@ test.describe('Begin Quest starts the dispatch queue', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     const sessionId = `e2e-session-start-dispatch-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
       guildId,
@@ -69,7 +69,7 @@ test.describe('Begin Quest starts the dispatch queue', () => {
     const { questId, questFolder } = created;
 
     // The state Begin Quest is offered from: the observables gate passed, nothing dispatched yet.
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder,
       questFilePath: created.filePath,

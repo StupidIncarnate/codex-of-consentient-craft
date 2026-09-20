@@ -31,7 +31,7 @@ test.describe('Warpgate row and MERGING header', () => {
       title: HOSTILE_UNBROKEN_TITLE,
     });
 
-    warpgate.seedWarpgateQuest({
+    await warpgate.seedWarpgateQuest({
       questId,
       questFolder,
       questFilePath,

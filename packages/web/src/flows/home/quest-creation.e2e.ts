@@ -20,7 +20,7 @@ test.describe('Session Creation', () => {
     await guildHarness({ request }).createGuild({ name: 'Quest Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-first-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Build a feature',
     });
@@ -43,12 +43,14 @@ test.describe('Session Creation', () => {
       { sessionId: `e2e-session-3-${now}`, message: 'Third task' },
     ];
 
-    for (const s of sessionList) {
-      sessions.createSessionFile({
-        sessionId: s.sessionId,
-        userMessage: s.message,
-      });
-    }
+    await Promise.all(
+      sessionList.map(async (s) =>
+        sessions.createSessionFile({
+          sessionId: s.sessionId,
+          userMessage: s.message,
+        }),
+      ),
+    );
 
     await page.goto('/');
     await page.getByText('Multi Session Guild').click();
@@ -63,7 +65,7 @@ test.describe('Session Creation', () => {
     await guildHarness({ request }).createGuild({ name: 'Click Guild', path: GUILD_PATH });
 
     const sessionId = `e2e-session-click-${Date.now()}`;
-    sessions.createSessionFile({
+    await sessions.createSessionFile({
       sessionId,
       userMessage: 'Check click',
     });

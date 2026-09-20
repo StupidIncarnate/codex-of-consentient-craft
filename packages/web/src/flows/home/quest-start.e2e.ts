@@ -32,7 +32,7 @@ test.describe('Quest Start Pipeline', () => {
     });
     const guildId = String(guild.id);
     const sessionId = `e2e-session-start-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await questHarness({ request }).createQuest({
       guildId,
@@ -43,7 +43,7 @@ test.describe('Quest Start Pipeline', () => {
     const questFilePath = created.filePath;
     const { questFolder } = created;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder,
       questFilePath,
@@ -104,7 +104,7 @@ test.describe('Quest Start Pipeline', () => {
     });
     const guildId = String(guild.id);
     const sessionId = `e2e-session-pipeline-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
+    await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await questHarness({ request }).createQuest({
       guildId,
@@ -115,7 +115,7 @@ test.describe('Quest Start Pipeline', () => {
     const questFilePath = created.filePath;
     const { questFolder } = created;
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder,
       questFilePath,

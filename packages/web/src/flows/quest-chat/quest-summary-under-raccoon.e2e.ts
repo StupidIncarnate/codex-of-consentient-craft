@@ -124,7 +124,7 @@ test.describe('Quest summary joins the raccoon in the execution activity column'
     });
     const questId = String(created.questId);
 
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

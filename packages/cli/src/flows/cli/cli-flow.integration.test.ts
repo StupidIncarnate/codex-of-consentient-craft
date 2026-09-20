@@ -5,10 +5,19 @@ import {
   FileContentStub,
 } from '@dungeonmaster/testing';
 import { FileContentsStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { siegelenseHelpStatics } from '@dungeonmaster/siegelense/statics';
 
 import { cliStatuslineHarness } from '../../../test/harnesses/cli-statusline/cli-statusline.harness';
 
+import { CliSiegelenseResponder } from '../../responders/cli/siegelense/cli-siegelense-responder';
 import { CliFlow } from './cli-flow';
+
+type BuiltSiegelenseCall = keyof typeof siegelenseHelpStatics.calls;
+
+// Derived from the same statics the spawned seam test (packages/cli/bin/cli-entry.integration.test.ts)
+// reads — never a second hardcoded list — so this fast, in-process check and that slow, spawned one
+// can never silently drift apart on which calls are built.
+const BUILT_CALL_NAMES = Object.keys(siegelenseHelpStatics.calls) as readonly BuiltSiegelenseCall[];
 
 describe('CliFlow', () => {
   describe('command routing', () => {
@@ -33,6 +42,39 @@ describe('CliFlow', () => {
       testbed.cleanup();
 
       expect(packageJsonContent).toMatch(/^\s*"devDependencies": \{$/mu);
+    });
+  });
+
+  describe('a word that is not a command', () => {
+    // Never asserts the SERVE path by calling it: reaching CliServeResponder binds
+    // `dungeonmaster.port` and opens a browser, so a test proving "it did not serve" by serving is
+    // the bug it is meant to catch. The throw is what proves the fallthrough is closed.
+    it('ERROR: {command: "seigelense"} => refuses by name rather than falling through to the server', async () => {
+      await expect(
+        CliFlow({
+          command: 'seigelense',
+          args: [],
+          context: {
+            targetProjectRoot: FilePathStub({ value: '/repo' }),
+            dungeonmasterRoot: FilePathStub({ value: '/dungeonmaster' }),
+          },
+        }),
+      ).rejects.toThrow(
+        'Unknown command: seigelense. Commands: init, start, statusline-tap, create-package, siegelense.',
+      );
+    });
+
+    it('ERROR: {command: "--help"} => refuses and lists the commands, rather than booting a server', async () => {
+      await expect(
+        CliFlow({
+          command: '--help',
+          args: [],
+          context: {
+            targetProjectRoot: FilePathStub({ value: '/repo' }),
+            dungeonmasterRoot: FilePathStub({ value: '/dungeonmaster' }),
+          },
+        }),
+      ).rejects.toThrow(/^Unknown command: --help\. Commands: /u);
     });
   });
 
@@ -236,5 +278,81 @@ describe('CliFlow', () => {
 
       expect(packagesDir).toBe(null);
     });
+  });
+
+  describe('command routing - siegelense', () => {
+    const harness = cliStatuslineHarness();
+
+    // `CliSiegelenseResponder` reaches `@dungeonmaster/siegelense/startup` through a real dynamic
+    // import — never mocked here, see that file's own header for why. ts-jest transpiles that
+    // module's whole graph on first touch, and Jest attributes a lazily-compiled import's cost to
+    // whichever `it` triggers it, not to the suite. `beforeAll` runs outside every `it`'s own
+    // measured window, so paying that one-time cost here — result discarded — keeps it off whichever
+    // test happens to run first, the same fixture-cost pattern `get-testing-patterns` names for a
+    // spawned child or a compiled module graph.
+    beforeAll(async () => {
+      const stdout = harness.captureStdout();
+      await CliSiegelenseResponder({ args: [] });
+      stdout.restore();
+    });
+
+    it('VALID: {command: "siegelense", args: []} => routes through the real dynamic import to the fleet responder and reports an empty registry', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'cli-flow-siegelense-bare' }),
+      });
+      const env = harness.setupHome({ tempDir: testbed.guildPath });
+      const stdout = harness.captureStdout();
+
+      await CliFlow({
+        command: 'siegelense',
+        args: [],
+        context: {
+          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
+        },
+      });
+
+      stdout.restore();
+      const stdoutOutput = stdout.getOutput();
+
+      env.restore();
+      testbed.cleanup();
+
+      expect(stdoutOutput).toStrictEqual(['No siegelense instances running.\n']);
+    });
+
+    // Beside the bare-invocation test above, driving the same real dynamic import — the cheaper
+    // half of the seam test: a fast, unit-speed check that reads the first line the same way the
+    // slow, spawned check in cli-entry.integration.test.ts does, so a renderer or routing
+    // regression shows up here first.
+    it.each(BUILT_CALL_NAMES)(
+      "VALID: {command: \"siegelense\", args: ['%s', '--help']} => routes through the real dynamic import to that call's help page",
+      async (call) => {
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: `cli-flow-siegelense-help-${call}` }),
+        });
+        const env = harness.setupHome({ tempDir: testbed.guildPath });
+        const stdout = harness.captureStdout();
+
+        await CliFlow({
+          command: 'siegelense',
+          args: [call, '--help'],
+          context: {
+            targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
+            dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
+          },
+        });
+
+        stdout.restore();
+        const stdoutOutput = stdout.getOutput();
+
+        env.restore();
+        testbed.cleanup();
+
+        const [firstWrite] = stdoutOutput;
+
+        expect(String(firstWrite).split('\n')[0]).toBe(siegelenseHelpStatics.calls[call].summary);
+      },
+    );
   });
 });

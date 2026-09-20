@@ -37,6 +37,10 @@ describe('start-install integration', () => {
       const parsed = JSON.parse(settingsContent!) as Record<PropertyKey, unknown>;
 
       expect(parsed).toStrictEqual({
+        crossSessionInbound: 'refuse',
+        promptCacheTtl: '1h',
+        subagentPromptCacheTtl: '1h',
+        env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
             {
@@ -229,6 +233,10 @@ describe('start-install integration', () => {
       const parsed = JSON.parse(settingsContent!) as Record<PropertyKey, unknown>;
 
       expect(parsed).toStrictEqual({
+        crossSessionInbound: 'refuse',
+        promptCacheTtl: '1h',
+        subagentPromptCacheTtl: '1h',
+        env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         tools: { Write: { enabled: true } },
         hooks: {
           PreToolUse: [
@@ -432,6 +440,10 @@ describe('start-install integration', () => {
       // Prior solo dungeonmaster-pre-edit-lint entry stripped; freshly-generated set re-appended
       // INCLUDING the new PostToolUse hook that wasn't in the prior settings — proves additive re-install.
       expect(parsed).toStrictEqual({
+        crossSessionInbound: 'refuse',
+        promptCacheTtl: '1h',
+        subagentPromptCacheTtl: '1h',
+        env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
             {
@@ -633,6 +645,10 @@ describe('start-install integration', () => {
       const parsed = JSON.parse(settingsContent!) as Record<PropertyKey, unknown>;
 
       expect(parsed).toStrictEqual({
+        crossSessionInbound: 'refuse',
+        promptCacheTtl: '1h',
+        subagentPromptCacheTtl: '1h',
+        env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
             { hooks: [{ command: 'existing-hook' }] },
@@ -789,6 +805,70 @@ describe('start-install integration', () => {
             { hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }] },
           ],
         },
+      });
+    });
+
+    describe('Antigravity setup', () => {
+      it('VALID: creates .agents/hooks.json, skills.json, plugins/dungeonmaster/rules/AGENTS.md and writes AGENTS.md', async () => {
+        const testbed = installTestbedCreateBroker({
+          baseName: BaseNameStub({ value: 'agents-setup' }),
+        });
+
+        testbed.writeFile({
+          relativePath: RelativePathStub({ value: 'CLAUDE.md' }),
+          content: FileContentStub({ value: '# Claude guidelines\n' }),
+        });
+
+        const result = await StartInstall({
+          context: {
+            targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
+            dungeonmasterRoot: FilePathStub({ value: testbed.dungeonmasterPath }),
+          },
+        });
+
+        expect(result.success).toBe(true);
+
+        const hooksContent = testbed.readFile({
+          relativePath: RelativePathStub({ value: '.agents/hooks.json' }),
+        });
+        const skillsContent = testbed.readFile({
+          relativePath: RelativePathStub({ value: '.agents/skills.json' }),
+        });
+        const rulesContent = testbed.readFile({
+          relativePath: RelativePathStub({
+            value: '.agents/plugins/dungeonmaster/rules/AGENTS.md',
+          }),
+        });
+        const agentsMdContent = testbed.readFile({
+          relativePath: RelativePathStub({ value: 'AGENTS.md' }),
+        });
+
+        testbed.cleanup();
+
+        const parsedHooks = JSON.parse(hooksContent!) as Record<PropertyKey, unknown>;
+
+        expect(parsedHooks).toStrictEqual({
+          'dungeonmaster-guard': {
+            PreToolUse: [
+              {
+                matcher: 'run_command|replace_file_content|write_to_file|grep_search|find_by_name',
+                hooks: [{ type: 'command', command: 'dungeonmaster-agy-pre-tool' }],
+              },
+            ],
+            Stop: [{ type: 'command', command: 'dungeonmaster-agy-stop' }],
+          },
+        });
+
+        const parsedSkills = JSON.parse(skillsContent!) as Record<PropertyKey, unknown>;
+
+        expect(parsedSkills).toStrictEqual({
+          entries: [{ path: '.claude/skills' }],
+        });
+
+        expect(rulesContent!.startsWith('# Dungeonmaster Operating Rules\n\n')).toBe(true);
+        expect(agentsMdContent).toBe(
+          '# Agent Guidelines\n\nGo read [CLAUDE.md](file://./CLAUDE.md) to get context on the project and repo before doing any other exploratory work.\n\n## Antigravity MCP Calling\n\nAll Dungeonmaster MCP tools (`get-project-map`, `discover`, `get-architecture`, `run-ward`, etc.) are available via `call_mcp_tool` under server `dungeonmaster_dungeonmaster`.\n',
+        );
       });
     });
   });

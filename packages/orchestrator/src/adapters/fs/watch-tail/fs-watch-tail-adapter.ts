@@ -234,6 +234,21 @@ export const fsWatchTailAdapter = ({
 
     state.reading = true;
 
+    // A file SHORTER than where we last read is a file that was replaced or emptied — the quest
+    // outbox's single-owner boot reset is the case in this repo. Every later append then lands
+    // BELOW `state.position`, so without this reset the tail opens past the end on every change
+    // event and never delivers another line. Reading from 0 costs a replay of exactly what has
+    // been written since the truncation, which is the whole remaining file.
+    try {
+      if (statSync(filePath).size < state.position) {
+        state.position = 0;
+      }
+    } catch (sizeError: unknown) {
+      // No `state.stopped` re-check here, unlike the settle handlers below: this runs synchronously
+      // after the guard at the top of this callback, so nothing can have flipped it in between.
+      onError({ error: sizeError });
+    }
+
     const stream = createReadStream(filePath, {
       start: state.position,
       encoding: 'utf8',

@@ -27,7 +27,7 @@ test.describe('Warpgate merging is pauseable and abandonable, and pausing it lea
       title: 'Warpgate Pause Quest',
     });
 
-    warpgate.seedWarpgateQuest({
+    await warpgate.seedWarpgateQuest({
       questId,
       questFolder,
       questFilePath,

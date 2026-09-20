@@ -59,7 +59,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
     const REPORTED_DURATION_MS = 4_380_000; // 4380s = 73min = 1h13m
 
     // Seeded with NO notification: appendNotification below is what drives the arrival mid-test.
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: SESSION_ID,
       agentId: AGENT_ID,
       taskToolUseId: TOOL_USE_ID,
@@ -74,7 +74,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
     });
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -96,7 +96,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
     // A startedAt on the hosting row is what flips hasRunningWorkItem so the panel's shared
     // interval is actually enabled — without it `now` reads once at mount but never ticks, and the
     // row would never pick up the notification's own tick-independent freeze either.
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: RUNNING_WI, startedAt: TASK_TOOL_USE_AT }],
     });
@@ -125,7 +125,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
     // persist-and-broadcast path to re-read the file and push it over the websocket —
     // elapsed-duration-tick.e2e.ts:627-646 documents why a raw cross-process append alone does not
     // reliably wake a watcher a browser already subscribed through.
-    subagentDuration.appendNotification({
+    await subagentDuration.appendNotification({
       sessionId: SESSION_ID,
       agentId: AGENT_ID,
       taskToolUseId: TOOL_USE_ID,
@@ -178,7 +178,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
     // Seeded with NO notification, exactly as the duration-ms case above: appendNotification below
     // omits durationMs entirely (never an empty tag), which is what routes this test onto the
     // timestamp-gap arm instead.
-    subagentDuration.seedChain({
+    await subagentDuration.seedChain({
       sessionId: SESSION_ID,
       agentId: AGENT_ID,
       taskToolUseId: TOOL_USE_ID,
@@ -193,7 +193,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
     });
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
-    quests.writeQuestFile({
+    await quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath,
@@ -212,7 +212,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
       ],
     });
 
-    elapsed.stampWorkItems({
+    await elapsed.stampWorkItems({
       questFilePath,
       items: [{ id: RUNNING_WI, startedAt: TASK_TOOL_USE_AT }],
     });
@@ -235,7 +235,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
     await expect(chainDuration).toHaveText('1m');
 
     // Walk path P5: the arriving notification omits durationMs entirely.
-    subagentDuration.appendNotification({
+    await subagentDuration.appendNotification({
       sessionId: SESSION_ID,
       agentId: AGENT_ID,
       taskToolUseId: TOOL_USE_ID,
