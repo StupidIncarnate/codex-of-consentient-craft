@@ -26,6 +26,10 @@ describe('InstallCreateSettingsResponder', () => {
       const written = JSON.parse(String(proxy.getWrittenContent())) as Record<PropertyKey, unknown>;
 
       expect(written).toStrictEqual({
+        crossSessionInbound: 'refuse',
+        promptCacheTtl: '1h',
+        subagentPromptCacheTtl: '1h',
+        env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
             {
@@ -234,6 +238,10 @@ describe('InstallCreateSettingsResponder', () => {
 
       expect(written).toStrictEqual({
         tools: { Write: { enabled: true } },
+        crossSessionInbound: 'refuse',
+        promptCacheTtl: '1h',
+        subagentPromptCacheTtl: '1h',
+        env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
             {
@@ -452,6 +460,10 @@ describe('InstallCreateSettingsResponder', () => {
       // set is re-appended — INCLUDING the new PostToolUse hook that the prior settings didn't have.
       // Proves additive re-install for new hook types.
       expect(written).toStrictEqual({
+        crossSessionInbound: 'refuse',
+        promptCacheTtl: '1h',
+        subagentPromptCacheTtl: '1h',
+        env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
             {
@@ -646,6 +658,10 @@ describe('InstallCreateSettingsResponder', () => {
       const written = JSON.parse(String(proxy.getWrittenContent())) as Record<PropertyKey, unknown>;
 
       expect(written).toStrictEqual({
+        crossSessionInbound: 'refuse',
+        promptCacheTtl: '1h',
+        subagentPromptCacheTtl: '1h',
+        env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
             { hooks: [{ command: 'existing-hook' }] },
@@ -822,6 +838,206 @@ describe('InstallCreateSettingsResponder', () => {
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }],
             },
+          ],
+        },
+      });
+    });
+  });
+
+  describe('existing settings with their own session defaults', () => {
+    it('VALID: {existing promptCacheTtl, crossSessionInbound and env var} => keeps every value already set and fills only the absent ones', async () => {
+      const proxy = InstallCreateSettingsResponderProxy();
+
+      proxy.setupExistingSettings({
+        content: FileContentsStub({
+          value: JSON.stringify(
+            {
+              crossSessionInbound: 'accept',
+              promptCacheTtl: '5m',
+              env: { EXISTING_VAR: 'kept' },
+            },
+            null,
+            2,
+          ),
+        }),
+      });
+
+      const result = await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/hooks',
+        success: true,
+        action: 'merged',
+        message: 'Merged hooks into existing settings',
+      });
+
+      const written = JSON.parse(String(proxy.getWrittenContent())) as Record<PropertyKey, unknown>;
+
+      // crossSessionInbound and promptCacheTtl keep the consumer's values, subagentPromptCacheTtl
+      // was absent so the default lands, and env gains the subagent model WITHOUT losing
+      // EXISTING_VAR — the three outcomes the spread order in the responder has to produce.
+      expect(written).toStrictEqual({
+        crossSessionInbound: 'accept',
+        promptCacheTtl: '5m',
+        subagentPromptCacheTtl: '1h',
+        env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet', EXISTING_VAR: 'kept' },
+        hooks: {
+          PreToolUse: [
+            {
+              matcher: 'Write|Edit|MultiEdit',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-edit-lint' }],
+            },
+            {
+              matcher: 'Bash',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
+            },
+            {
+              matcher: 'Grep|Glob|Search|Find',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
+            },
+            {
+              matcher: 'Write',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-folder-detail' }],
+            },
+          ],
+          PostToolUse: [
+            {
+              matcher: 'AskUserQuestion',
+              hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
+            },
+          ],
+          SessionStart: [
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+            },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet reportingFindings' },
+              ],
+            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }] },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet modifyingCodeGuidance',
+                },
+              ],
+            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
+            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet commentDiscipline',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet buildDiscipline',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet worktrees',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
+          ],
+          SubagentStart: [
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+            },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet reportingFindings' },
+              ],
+            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }] },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet modifyingCodeGuidance',
+                },
+              ],
+            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet wardDiscipline' }],
+            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
+            {
+              hooks: [
+                { type: 'command', command: 'dungeonmaster-session-snippet backgroundTasks' },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet commentDiscipline',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet buildDiscipline',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet worktrees',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
+          ],
+          SubagentStop: [{ hooks: [{ type: 'command', command: 'dungeonmaster-subagent-stop' }] }],
+          WorktreeCreate: [
+            { hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }] },
           ],
         },
       });

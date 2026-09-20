@@ -37,6 +37,10 @@ describe('start-install integration', () => {
       const parsed = JSON.parse(settingsContent!) as Record<PropertyKey, unknown>;
 
       expect(parsed).toStrictEqual({
+        crossSessionInbound: 'refuse',
+        promptCacheTtl: '1h',
+        subagentPromptCacheTtl: '1h',
+        env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
             {
@@ -229,6 +233,10 @@ describe('start-install integration', () => {
       const parsed = JSON.parse(settingsContent!) as Record<PropertyKey, unknown>;
 
       expect(parsed).toStrictEqual({
+        crossSessionInbound: 'refuse',
+        promptCacheTtl: '1h',
+        subagentPromptCacheTtl: '1h',
+        env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         tools: { Write: { enabled: true } },
         hooks: {
           PreToolUse: [
@@ -432,6 +440,10 @@ describe('start-install integration', () => {
       // Prior solo dungeonmaster-pre-edit-lint entry stripped; freshly-generated set re-appended
       // INCLUDING the new PostToolUse hook that wasn't in the prior settings — proves additive re-install.
       expect(parsed).toStrictEqual({
+        crossSessionInbound: 'refuse',
+        promptCacheTtl: '1h',
+        subagentPromptCacheTtl: '1h',
+        env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
             {
@@ -633,6 +645,10 @@ describe('start-install integration', () => {
       const parsed = JSON.parse(settingsContent!) as Record<PropertyKey, unknown>;
 
       expect(parsed).toStrictEqual({
+        crossSessionInbound: 'refuse',
+        promptCacheTtl: '1h',
+        subagentPromptCacheTtl: '1h',
+        env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
             { hooks: [{ command: 'existing-hook' }] },

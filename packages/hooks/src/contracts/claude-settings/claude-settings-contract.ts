@@ -66,10 +66,24 @@ const permissionsConfigContract = z.object({
   deny: z.array(permissionStringContract).optional(),
 });
 
+const envValueContract = z.string().brand<'EnvValue'>();
+
+const envConfigContract = z.record(envValueContract);
+
+const promptCacheTtlContract = z.enum(['5m', '1h']);
+
+// 'accept' is a legal value of this key, but only in a user's own settings — Claude Code lets a
+// settings file TIGHTEN the key and never loosen it, so a repo writing 'accept' is ignored.
+const crossSessionInboundContract = z.enum(['accept', 'hold', 'refuse']);
+
 export const claudeSettingsContract = z
   .object({
     hooks: hooksConfigContract.optional(),
     permissions: permissionsConfigContract.optional(),
+    env: envConfigContract.optional(),
+    crossSessionInbound: crossSessionInboundContract.optional(),
+    promptCacheTtl: promptCacheTtlContract.optional(),
+    subagentPromptCacheTtl: promptCacheTtlContract.optional(),
   })
   .passthrough();
 
@@ -87,6 +101,10 @@ export type SubagentStopHook = z.infer<typeof subagentStopHookContract>;
 export type HookMatcher = z.infer<typeof hookMatcherContract>;
 export type PermissionsConfig = z.infer<typeof permissionsConfigContract>;
 export type PermissionString = z.infer<typeof permissionStringContract>;
+export type EnvConfig = z.infer<typeof envConfigContract>;
+export type EnvValue = z.infer<typeof envValueContract>;
+export type PromptCacheTtl = z.infer<typeof promptCacheTtlContract>;
+export type CrossSessionInbound = z.infer<typeof crossSessionInboundContract>;
 
 /**
  * Union of every hook-list entry kind dungeonmaster writes into a settings.json hook array

@@ -1,11 +1,16 @@
 /**
  * PURPOSE: Creates or merges dungeonmaster hooks into .claude/settings.json for a target project.
  * Re-runs are idempotent and additive: any prior dungeonmaster-* hook entries are stripped before the freshly-generated set is appended, so newly-added hook types (e.g. a new PostToolUse) land on every subsequent `dungeonmaster init` without manual cleanup.
- * Also configures Antigravity in .agents/ and symlinks AGENTS.md -> CLAUDE.md.
+ * Also writes the root-level session defaults from `sessionDefaultsCreatorTransformer`, configures Antigravity in .agents/ and symlinks AGENTS.md -> CLAUDE.md.
  *
  * USAGE:
  * const result = await InstallCreateSettingsResponder({ context });
  * // 'created' on fresh project, 'merged' on existing settings (preserves third-party entries).
+ *
+ * The session defaults spread UNDER the consumer's own settings, so every one of those keys lands
+ * on a fresh install and yields to whatever the consumer sets afterwards. `hooks` is the opposite
+ * and spreads last, because dungeonmaster owns its own hook entries outright. `env` sits between
+ * the two: it merges key by key, so the consumer's variables survive alongside the one added here.
  */
 
 import {
@@ -22,6 +27,7 @@ import { fsEnsureWriteAdapter } from '../../../adapters/fs/ensure-write/fs-ensur
 import { installAgentsSetupBroker } from '../../../brokers/install/agents-setup/install-agents-setup-broker';
 import type { ClaudeSettings } from '../../../contracts/claude-settings/claude-settings-contract';
 import { dungeonmasterHooksCreatorTransformer } from '../../../transformers/dungeonmaster-hooks-creator/dungeonmaster-hooks-creator-transformer';
+import { sessionDefaultsCreatorTransformer } from '../../../transformers/session-defaults-creator/session-defaults-creator-transformer';
 import { upsertDungeonmasterHookListTransformer } from '../../../transformers/upsert-dungeonmaster-hook-list/upsert-dungeonmaster-hook-list-transformer';
 
 const PACKAGE_NAME = '@dungeonmaster/hooks';
@@ -47,6 +53,7 @@ export const InstallCreateSettingsResponder = async ({
     .catch(() => null);
 
   const dungeonmasterHooks = dungeonmasterHooksCreatorTransformer();
+  const sessionDefaults = sessionDefaultsCreatorTransformer();
 
   await installAgentsSetupBroker({ targetProjectRoot: context.targetProjectRoot });
 
@@ -54,7 +61,9 @@ export const InstallCreateSettingsResponder = async ({
     const existingHooks = existingSettings.hooks ?? {};
 
     const mergedSettings: ClaudeSettings = {
+      ...sessionDefaults,
       ...existingSettings,
+      env: { ...sessionDefaults.env, ...existingSettings.env },
       hooks: {
         ...existingHooks,
         PreToolUse: upsertDungeonmasterHookListTransformer({
@@ -99,6 +108,7 @@ export const InstallCreateSettingsResponder = async ({
   }
 
   const newSettings: ClaudeSettings = {
+    ...sessionDefaults,
     hooks: dungeonmasterHooks,
   };
 

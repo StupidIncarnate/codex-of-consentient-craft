@@ -33,6 +33,10 @@ describe('InstallFlow', () => {
       const parsed = JSON.parse(settingsContent!) as Record<PropertyKey, unknown>;
 
       expect(parsed).toStrictEqual({
+        crossSessionInbound: 'refuse',
+        promptCacheTtl: '1h',
+        subagentPromptCacheTtl: '1h',
+        env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
             {
@@ -241,6 +245,10 @@ describe('InstallFlow', () => {
       });
 
       expect(settings).toStrictEqual({
+        crossSessionInbound: 'refuse',
+        promptCacheTtl: '1h',
+        subagentPromptCacheTtl: '1h',
+        env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
             {
