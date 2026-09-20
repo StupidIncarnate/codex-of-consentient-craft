@@ -1,6 +1,5 @@
 ---
 description: Orchestrate execution of a plan via dedicated subagents, structured pacing, and 4-minute cache check-ins
-allowed-tools: mcp__dungeonmaster__*, Bash, Read, Write, Edit, Task, invoke_subagent, send_message, manage_task, schedule
 ---
 
 # Autonomous Subagent Orchestration Process
@@ -90,6 +89,3 @@ For each batch in the plan:
       ▼
 5. Orchestrator Commits Batch & Updates Plan Document Progress Table
 ```
-
-Execute the plan passed via user arguments:
-$ARGUMENTS
