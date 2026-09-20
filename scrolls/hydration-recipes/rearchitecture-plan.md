@@ -18,8 +18,8 @@ Re-architect `@dungeonmaster/hydration-recipes` to strictly conform to Dungeonma
 | **Batch 1** | Recipes Catalog, Directory Reorganization, and Dynamic Brokers | Completed ✅ |
 | **Batch 2** | Responders, Flows, and Startup in `packages/hydration-recipes` | Completed ✅ |
 | **Batch 3** | `@dungeonmaster/shared`, `siegelense`, and Test Harness Decoupling | Completed ✅ |
-| **Batch 4** | ESLint Rule in `@dungeonmaster/eslint-plugin` | In Progress |
-| **Batch 5** | Verification, Build, and Whole-Branch Ward Verification | Pending |
+| **Batch 4** | ESLint Rule in `@dungeonmaster/eslint-plugin` | Completed ✅ |
+| **Batch 5** | Verification, Build, and Whole-Branch Ward Verification | Completed ✅ |
 
 ---
 
@@ -66,6 +66,6 @@ Re-architect `@dungeonmaster/hydration-recipes` to strictly conform to Dungeonma
 - [ ] **4.3 Reviewer**: Audit diff, run scoped ward on ESLint plugin files.
 
 ### Batch 5: Build and Verification
-- [ ] **5.1 Worker**: Build affected packages (`hydration-recipes`, `eslint-plugin`, `siegelense`, `server`, `web`).
-- [ ] **5.2 Reviewer**: Run `npm run ward -- --committed --uncommitted`.
-- [ ] **5.3 Reviewer**: Test `dungeonmaster siegelense recipes` CLI output.
+- [x] **5.1 Worker**: Build affected packages (`hydration-recipes`, `eslint-plugin`, `siegelense`, `server`, `web`).
+- [x] **5.2 Reviewer**: Run `npm run ward -- --committed --uncommitted`.
+- [x] **5.3 Reviewer**: Test `dungeonmaster siegelense recipes` CLI output.

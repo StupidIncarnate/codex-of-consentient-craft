@@ -16,13 +16,12 @@
  */
 import { recipeManifestContract } from '@dungeonmaster/hydration/contracts';
 
-import { recipesCatalogBroker } from './src/brokers/recipes/catalog/recipes-catalog-broker';
+import { RecipesListingResponder } from './responders';
 
 export const recipesManifest = recipeManifestContract.parse(
-  recipesCatalogBroker().map(({ recipeName, description, inputs }) => ({
+  RecipesListingResponder().map(({ recipeName, description }) => ({
     recipeName,
     description,
-    ...(inputs === undefined ? {} : { inputs }),
   })),
 );
 

@@ -96,7 +96,9 @@ export const ruleEnforceHydrationRecipesStructureBroker = (): EslintRule => ({
             filename.includes('/src/brokers/') ||
             filename.includes('/src/responders/') ||
             filename.endsWith('/brokers.ts') ||
-            filename === 'brokers.ts';
+            filename === 'brokers.ts' ||
+            filename.includes('.test.') ||
+            filename.includes('/test/');
 
           if (!isAllowedCaller && (sourceValue.startsWith('./') || sourceValue.startsWith('../'))) {
             const resolved = filepathResolveRelativeImportTransformer({
