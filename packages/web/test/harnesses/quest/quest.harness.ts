@@ -7,7 +7,7 @@
  * await quests.writeQuestFile({ questId: 'id', questFolder: 'folder', questFilePath: '/path', status: 'complete', workItems: [...] });
  */
 import { existsSync, promises as fsPromises } from 'fs';
-import { dirname, join } from 'path';
+import { basename, dirname, join } from 'path';
 
 import type { APIRequestContext } from '@playwright/test';
 
@@ -15,6 +15,7 @@ import {
   guildIdContract,
   filePathContract,
   questContract,
+  questIdContract,
   type Quest,
   type QuestId,
   type FilePath,
@@ -142,6 +143,7 @@ export const questHarness = ({
     userRequest: string;
   }) => Promise<{ questId: QuestId; questFolder: QuestId; filePath: FilePath; success: boolean }>;
   writeQuestFile: (params: {
+    guildId?: string;
     questId: string;
     questFolder: string;
     questFilePath: string;
@@ -272,6 +274,7 @@ export const questHarness = ({
   };
 
   const writeQuestFile = async ({
+    guildId,
     questId,
     questFolder,
     questFilePath,
@@ -293,6 +296,7 @@ export const questHarness = ({
     branchName,
     baseBranch,
   }: {
+    guildId?: string;
     questId: string;
     questFolder: string;
     questFilePath: string;
@@ -357,7 +361,7 @@ export const questHarness = ({
       flows: baseFlows,
       status,
     });
-    const quest = {
+    const rawQuest = {
       id: questId,
       folder: questFolder,
       title,
@@ -447,19 +451,55 @@ export const questHarness = ({
       })),
     };
 
-    await fsPromises.writeFile(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
+    const writeRawQuestFile = async (raw: Record<PropertyKey, unknown>): Promise<void> => {
+      await fsPromises.mkdir(dirname(questFilePath), { recursive: true });
+      await fsPromises.writeFile(questFilePath, JSON.stringify(raw, null, JSON_INDENT));
 
-    // Append a quest-modified event to the outbox so the HTTP server's quest-driven
-    // watcher reactor reconciles immediately, just like questPersistBroker does in
-    // production. Without this, the reactor depends on its 3s fallback poll to notice
-    // the new workItem.sessionId stamp — racing the LIVE_MARKER assertion's 10s
-    // visibility timeout in quest-streaming-subagent-execution-rows.spec.ts.
-    // questFilePath shape: <DUNGEONMASTER_HOME>/guilds/<guildId>/quests/<questFolder>/quest.json
-    // walk up four levels to reach DUNGEONMASTER_HOME, then append `event-outbox.jsonl`.
-    const dungeonmasterHome = dirname(dirname(dirname(dirname(questFilePath))));
-    const outboxPath = `${dungeonmasterHome}/event-outbox.jsonl`;
-    const outboxLine = `${JSON.stringify({ questId, timestamp: new Date().toISOString() })}\n`;
-    await fsPromises.appendFile(outboxPath, outboxLine);
+      // Append a quest-modified event to the outbox so the HTTP server's quest-driven
+      // watcher reactor reconciles immediately, just like questPersistBroker does in
+      // production. Without this, the reactor depends on its 3s fallback poll to notice
+      // the new workItem.sessionId stamp — racing the LIVE_MARKER assertion's 10s
+      // visibility timeout in quest-streaming-subagent-execution-rows.spec.ts.
+      // questFilePath shape: <DUNGEONMASTER_HOME>/guilds/<guildId>/quests/<questFolder>/quest.json
+      // walk up four levels to reach DUNGEONMASTER_HOME, then append `event-outbox.jsonl`.
+      const dungeonmasterHome = dirname(dirname(dirname(dirname(questFilePath))));
+      const outboxPath = `${dungeonmasterHome}/event-outbox.jsonl`;
+      const outboxLine = `${JSON.stringify({ questId, timestamp: new Date().toISOString() })}\n`;
+      await fsPromises.appendFile(outboxPath, outboxLine);
+    };
+
+    const inferredGuildId = guildId ?? basename(dirname(dirname(dirname(questFilePath))));
+    const parsedGuildIdResult = guildIdContract.safeParse(inferredGuildId);
+    const parsedQuestResult = questContract.safeParse(rawQuest);
+
+    if (!parsedGuildIdResult.success || !parsedQuestResult.success) {
+      await writeRawQuestFile(rawQuest);
+      return;
+    }
+
+    const resolvedGuildId = parsedGuildIdResult.data;
+    const parsedQuest = parsedQuestResult.data;
+
+    try {
+      const questPayload = {
+        ...parsedQuest,
+        id: questIdContract.parse(questId),
+        folder: questContract.shape.folder.parse(questFolder),
+      };
+
+      const plan = recipe(
+        { name: 'write-quest-file', description: 'write quest file via dmRegistryBroker' },
+        () => [
+          dmRegistryBroker.quests
+            .under({ guildId: resolvedGuildId })
+            .add(1, (q) => [q[0].setRaw(questPayload)]),
+        ],
+      )();
+
+      await dmRegistryBroker.run(plan, dmTarget.writeTarget());
+    } catch {
+      await writeRawQuestFile(rawQuest);
+    }
   };
 
   // Writes a quest.json that questContract REJECTS, into a real quest folder the guild's
