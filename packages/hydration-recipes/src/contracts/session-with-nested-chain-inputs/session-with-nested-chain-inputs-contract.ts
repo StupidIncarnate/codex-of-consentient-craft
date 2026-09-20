@@ -5,7 +5,7 @@
  * `cwd` field uses, which is why the recipe itself re-parses before calling `.under()`). Reach for
  * this over `guildId`, which Part 5's own worked example uses: THIS repo's session ingredient
  * links to its guild via `{ of: 'guild', as: 'cwd', from: 'path' }`, so the value `.under()` needs
- * is the guild's `path`, not its `id` — see `session-with-nested-chain-recipe-broker.ts`'s own
+ * is the guild's `path`, not its `id` — see `recipes-session-with-nested-chain-broker.ts`'s own
  * header for the full finding.
  *
  * USAGE:

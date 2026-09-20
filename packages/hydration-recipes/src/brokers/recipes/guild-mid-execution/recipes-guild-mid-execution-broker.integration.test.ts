@@ -3,14 +3,11 @@ import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts';
 
 import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-target.harness';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
-import { guildMidExecutionRecipeBroker } from './guild-mid-execution-recipe-broker';
+import { recipesGuildMidExecutionBroker } from './recipes-guild-mid-execution-broker';
 
 type Guild = ReturnType<typeof GuildStub>;
 type Quest = ReturnType<typeof QuestStub>;
 
-// `run` MUST come off `dmRegistryBroker`, never a fresh `recipesHydrationCreateBroker()` call —
-// see `dm-registry-broker.ts`'s own header for why a second instance's `run` cannot see the
-// ingredients THIS registry named.
 const { run } = dmRegistryBroker;
 
 const GUILD_NAME = SavedRecordNameStub({ value: 'guild' });
@@ -18,13 +15,13 @@ const QUEST1_NAME = SavedRecordNameStub({ value: 'quest1' });
 const QUEST2_NAME = SavedRecordNameStub({ value: 'quest2' });
 const QUEST3_NAME = SavedRecordNameStub({ value: 'quest3' });
 
-describe('guildMidExecutionRecipeBroker', () => {
+describe('recipesGuildMidExecutionBroker', () => {
   describe('the manifest identity chunk 8 reads off this same export', () => {
     it('VALID: {} => carries its verbatim name, description, and no inputs', () => {
       expect({
-        recipeName: guildMidExecutionRecipeBroker.recipeName,
-        description: guildMidExecutionRecipeBroker.description,
-        inputs: guildMidExecutionRecipeBroker.inputs,
+        recipeName: recipesGuildMidExecutionBroker.recipeName,
+        description: recipesGuildMidExecutionBroker.description,
+        inputs: recipesGuildMidExecutionBroker.inputs,
       }).toStrictEqual({
         recipeName: 'guild-mid-execution',
         description:
@@ -38,13 +35,13 @@ describe('guildMidExecutionRecipeBroker', () => {
     const fileTarget = fileTargetHarness();
 
     it('VALID: {} => saves exactly guild, quest1, quest2 and quest3', async () => {
-      const result = await run(guildMidExecutionRecipeBroker(), fileTarget.target());
+      const result = await run(recipesGuildMidExecutionBroker(), fileTarget.target());
 
       expect(Object.keys(result).sort()).toStrictEqual(['guild', 'quest1', 'quest2', 'quest3']);
     });
 
     it('VALID: {} => the guild record carries the derived name and a real url slug', async () => {
-      const result = await run(guildMidExecutionRecipeBroker(), fileTarget.target());
+      const result = await run(recipesGuildMidExecutionBroker(), fileTarget.target());
       const guild = result[GUILD_NAME] as unknown as Guild;
 
       expect({ name: guild.name, urlSlug: guild.urlSlug }).toStrictEqual({
@@ -54,7 +51,7 @@ describe('guildMidExecutionRecipeBroker', () => {
     });
 
     it('VALID: {} => the three quests read back with the titles defaults(index) and set() produced', async () => {
-      const result = await run(guildMidExecutionRecipeBroker(), fileTarget.target());
+      const result = await run(recipesGuildMidExecutionBroker(), fileTarget.target());
       const quest1 = result[QUEST1_NAME] as unknown as Quest;
       const quest2 = result[QUEST2_NAME] as unknown as Quest;
       const quest3 = result[QUEST3_NAME] as unknown as Quest;
@@ -67,7 +64,7 @@ describe('guildMidExecutionRecipeBroker', () => {
     });
 
     it('VALID: {} => on disk, the first quest is in_progress with the riftcarver operation dropped from its ledger', async () => {
-      const result = await run(guildMidExecutionRecipeBroker(), fileTarget.target());
+      const result = await run(recipesGuildMidExecutionBroker(), fileTarget.target());
       const guild = result[GUILD_NAME] as unknown as Guild;
       const quest1 = result[QUEST1_NAME] as unknown as Quest;
 
@@ -84,7 +81,7 @@ describe('guildMidExecutionRecipeBroker', () => {
     });
 
     it("VALID: {} => on disk, the second and third quests' ledgers stay empty — the scope rule", async () => {
-      const result = await run(guildMidExecutionRecipeBroker(), fileTarget.target());
+      const result = await run(recipesGuildMidExecutionBroker(), fileTarget.target());
       const guild = result[GUILD_NAME] as unknown as Guild;
       const quest2 = result[QUEST2_NAME] as unknown as Quest;
       const quest3 = result[QUEST3_NAME] as unknown as Quest;

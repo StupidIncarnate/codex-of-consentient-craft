@@ -1,25 +1,13 @@
 /**
  * PURPOSE: The `guild-mid-execution` recipe — one guild holding three quests, the first running
- * with its riftcarver operation dropped from the ledger. This is Part 5's own worked composition
- * example, proved against this repo's real ingredients rather than left as a doc snippet.
- *
- * The quest ingredient declares `transitions` on `status` now, so `set({ status: … })` WALKS —
- * `in_progress` through the real relay-seeding route, which needs a server this recipe's own
- * integration test does not have. "Running" here is deliberately built the OTHER way instead:
- * `setRaw({ status: 'in_progress', … })` writes the field with no walk, and the ledger is seeded
- * directly through the `operation` ingredient's own `add`, never through a transition that would
- * have minted it. `created` is off the ingredient's own `to` list too (nothing ever transitions
- * BACK to a row's starting value), so `all`'s own status write uses `setRaw` for the same reason.
- * The end state Part 5 describes is unchanged; only how this recipe reaches it is.
- *
- * `q[0].operations.filter({ where: { role: 'riftcarver' }, expect: 'one' }).remove()` is the
- * specification's own headline `filter` example, and this is what proves it against a real
- * ledger this recipe seeded rather than one a transition minted.
+ * with its riftcarver operation dropped from the ledger. Reach for this over other recipes when
+ * testing guild and quest orchestration mid-flight.
  *
  * USAGE:
- * const plan = guildMidExecutionRecipeBroker();
- * const result = await run(plan, target);
+ * const plan = recipesGuildMidExecutionBroker();
+ * const result = await dmRegistryBroker.run(plan, target);
  */
+
 import { guildMidExecutionStatics } from '../../../statics/guild-mid-execution/guild-mid-execution-statics';
 import { operationFieldsContract } from '../../../contracts/operation-fields/operation-fields-contract';
 import { questFieldsContract } from '../../../contracts/quest-fields/quest-fields-contract';
@@ -28,7 +16,7 @@ import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/rec
 
 const { recipe } = recipesHydrationCreateBroker();
 
-export const guildMidExecutionRecipeBroker = recipe(
+export const recipesGuildMidExecutionBroker = recipe(
   {
     name: 'guild-mid-execution',
     description:
@@ -37,10 +25,6 @@ export const guildMidExecutionRecipeBroker = recipe(
   () => [
     dmRegistryBroker.guilds.add(1, (g) => [
       g[0].quests.add(guildMidExecutionStatics.counts.quests, (q, all) => [
-        // `status` has no zod default on `questContract` (unlike `operations`/`workItems`), and
-        // the quest ingredient's own `defaults(index)` mints `created` — every row still needs an
-        // explicit value here since `created` is off `transitions.to`, so `all.setRaw()` runs
-        // first and a per-row `.setRaw()` can still override it.
         all.setRaw({ status: questFieldsContract.shape.status.parse('created') }),
         q[0].setRaw({
           status: questFieldsContract.shape.status.parse('in_progress'),

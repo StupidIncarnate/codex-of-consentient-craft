@@ -5,17 +5,14 @@ import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dun
 import { laneApiHarness } from '../../../../test/harnesses/lane-api/lane-api.harness';
 import { transcriptHarness } from '../../../../test/harnesses/transcript/transcript.harness';
 import { RecipeContextStub } from '../../../contracts/recipe-context/recipe-context.stub';
-import { sessionWithNestedSubagentSeedBroker } from './session-with-nested-subagent-seed-broker';
+import { recipesSessionWithNestedSubagentBroker } from './recipes-session-with-nested-subagent-broker';
 
 const GUILD_ID = '7306b468-0f2d-4a5e-9c3b-2d1e8f0a6b41';
 const SESSION_ID = 'a1b2c3d4-0000-4000-8000-000000000001';
 const OUTER_AGENT_ID = 'a1b2c3d4-0000-4000-8000-0000000000a1';
 const NESTED_AGENT_ID = 'a1b2c3d4-0000-4000-8000-0000000000b2';
 
-describe('sessionWithNestedSubagentSeedBroker against a real filesystem', () => {
-  // A real HTTP server for the one route the recipe reads, and a real temp filesystem it writes
-  // into. A `direct` recipe is pure `fs` and tests under `installTestbedCreateBroker` with its own
-  // temp dir (siegelense-recipes.md line 578).
+describe('recipesSessionWithNestedSubagentBroker against a real filesystem', () => {
   const laneApi = laneApiHarness();
   const transcripts = transcriptHarness();
 
@@ -26,13 +23,11 @@ describe('sessionWithNestedSubagentSeedBroker against a real filesystem', () => 
     const guildPath = `${testbed.guildPath}/siege-repo`;
     laneApi.serveGuild({ id: GUILD_ID, path: guildPath, urlSlug: 'siege-guild' });
 
-    const result = await sessionWithNestedSubagentSeedBroker({
+    const result = await recipesSessionWithNestedSubagentBroker({
       context: RecipeContextStub({ apiBaseUrl: laneApi.baseUrl(), homePath: testbed.guildPath }),
       guild: GuildIdStub({ value: GUILD_ID }),
     });
 
-    // The directory the SERVER's own reader computes for this guild — derived from a temp path
-    // nothing hardcoded, so a recipe filing under the wrong guild lands nowhere near it.
     const transcriptDir = claudePathSlugEncoderTransformer({
       homeDir: AbsoluteFilePathStub({ value: testbed.guildPath }),
       projectPath: AbsoluteFilePathStub({ value: guildPath }),
@@ -71,10 +66,7 @@ describe('sessionWithNestedSubagentSeedBroker against a real filesystem', () => 
       `agent-${OUTER_AGENT_ID}.jsonl`,
       `agent-${NESTED_AGENT_ID}.jsonl`,
     ]);
-    // The outer Task's completion is in the MAIN file and names the OUTER agent.
     expect(mainCompletions).toStrictEqual([null, null, OUTER_AGENT_ID]);
-    // The nested Task's completion is in the OUTER AGENT's file and names the NESTED agent. That
-    // placement is what makes this a chain nested inside a chain rather than two sibling chains.
     expect(outerCompletions).toStrictEqual([null, null, NESTED_AGENT_ID]);
     expect(outerTexts).toStrictEqual([
       'OUTER CHAIN BODY — written before the nested chain was launched.',
@@ -99,7 +91,7 @@ describe('sessionWithNestedSubagentSeedBroker against a real filesystem', () => 
     const guildPath = `${testbed.guildPath}/siege-repo`;
     laneApi.serveGuild({ id: GUILD_ID, path: guildPath, urlSlug: 'siege-guild' });
 
-    await sessionWithNestedSubagentSeedBroker({
+    await recipesSessionWithNestedSubagentBroker({
       context: RecipeContextStub({ apiBaseUrl: laneApi.baseUrl(), homePath: testbed.guildPath }),
       guild: GuildIdStub({ value: GUILD_ID }),
     });
@@ -114,7 +106,7 @@ describe('sessionWithNestedSubagentSeedBroker against a real filesystem', () => 
       relativePath: `${relativeDir}/${SESSION_ID}.jsonl`,
     });
 
-    await sessionWithNestedSubagentSeedBroker({
+    await recipesSessionWithNestedSubagentBroker({
       context: RecipeContextStub({ apiBaseUrl: laneApi.baseUrl(), homePath: testbed.guildPath }),
       guild: GuildIdStub({ value: GUILD_ID }),
     });

@@ -1,7 +1,3 @@
-// PURPOSE: Proxy for guild-with-three-quests-seed-broker — stages the lane API's answers at the
-// fetch boundary and the mkdir at the fs boundary, so the recipe's own HTTP sequencing runs real.
-// USAGE: const proxy = guildWithThreeQuestsSeedBrokerProxy(); proxy.laneAnswers({ apiBaseUrl, guild, questIds });
-
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { fsMkdirAdapterProxy, pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
@@ -10,7 +6,7 @@ import { fetchJsonAdapterProxy } from '../../../adapters/fetch/json/fetch-json-a
 import { recipeHttpStatics } from '../../../statics/recipe-http/recipe-http-statics';
 import { seedFixtureStatics } from '../../../statics/seed-fixture/seed-fixture-statics';
 
-export const guildWithThreeQuestsSeedBrokerProxy = (): {
+export const recipesGuildWithThreeQuestsBrokerProxy = (): {
   laneAnswers: (params: {
     apiBaseUrl: ContentText;
     guild: unknown;
@@ -26,8 +22,6 @@ export const guildWithThreeQuestsSeedBrokerProxy = (): {
   requestLines: () => readonly ContentText[];
 } => {
   const fetchProxy = fetchJsonAdapterProxy();
-  // Both take their own defaults: mkdir succeeds for any unaddressed path, and pathJoin passes
-  // through to the real `path.join`, so the guild path the recipe builds is a genuine one.
   fsMkdirAdapterProxy();
   pathJoinAdapterProxy();
 
@@ -47,8 +41,6 @@ export const guildWithThreeQuestsSeedBrokerProxy = (): {
         body: guild,
       });
 
-      // Three POSTs to the SAME url must answer three DIFFERENT quest ids, so each is a one-shot
-      // staged in order rather than a shared catch-all handing the same id back three times.
       questIds.forEach((questId) => {
         fetchProxy.answersOnce({
           url: `${apiBaseUrl}${recipeHttpStatics.routes.quests}`,
@@ -89,8 +81,6 @@ export const guildWithThreeQuestsSeedBrokerProxy = (): {
       });
     },
 
-    // Every request body the recipe sent, in order, already JSON-parsed — what a test asserts the
-    // recipe actually asked the app to do.
     requestBodies: (): readonly unknown[] =>
       fetchProxy.allRequests().map((call) => {
         const [, init] = call;
@@ -98,7 +88,6 @@ export const guildWithThreeQuestsSeedBrokerProxy = (): {
         return typeof body === 'string' ? JSON.parse(body) : null;
       }),
 
-    // `<METHOD> <url>` per request, in order — the sequence itself, without the bodies.
     requestLines: (): readonly ContentText[] =>
       fetchProxy.allRequests().map((call) => {
         const [url, init] = call;

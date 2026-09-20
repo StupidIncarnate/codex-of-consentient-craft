@@ -4,8 +4,8 @@
 
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
-import { guildWithThreeQuestsSeedBrokerProxy } from '../../guild-with-three-quests/seed/guild-with-three-quests-seed-broker.proxy';
-import { sessionWithNestedSubagentSeedBrokerProxy } from '../../session-with-nested-subagent/seed/session-with-nested-subagent-seed-broker.proxy';
+import { recipesGuildWithThreeQuestsBrokerProxy } from '../../recipes/guild-with-three-quests/recipes-guild-with-three-quests-broker.proxy';
+import { recipesSessionWithNestedSubagentBrokerProxy } from '../../recipes/session-with-nested-subagent/recipes-session-with-nested-subagent-broker.proxy';
 
 export const recipeRunBrokerProxy = (): {
   guildLaneAnswers: (params: {
@@ -21,8 +21,8 @@ export const recipeRunBrokerProxy = (): {
   filesWritten: () => readonly unknown[];
   requestLines: () => readonly ContentText[];
 } => {
-  const guildProxy = guildWithThreeQuestsSeedBrokerProxy();
-  const sessionProxy = sessionWithNestedSubagentSeedBrokerProxy();
+  const guildProxy = recipesGuildWithThreeQuestsBrokerProxy();
+  const sessionProxy = recipesSessionWithNestedSubagentBrokerProxy();
 
   return {
     guildLaneAnswers: ({

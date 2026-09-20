@@ -39,16 +39,10 @@
  */
 import { recipeManifestContract } from '@dungeonmaster/hydration/contracts';
 
-import { guildMidExecutionRecipeBroker } from './src/brokers/guild-mid-execution/recipe/guild-mid-execution-recipe-broker';
-import { questAdvancesOneStepRecipeBroker } from './src/brokers/quest-advances-one-step/recipe/quest-advances-one-step-recipe-broker';
-import { sessionWithNestedChainRecipeBroker } from './src/brokers/session-with-nested-chain/recipe/session-with-nested-chain-recipe-broker';
+import { recipesCatalogBroker } from './src/brokers/recipes/catalog/recipes-catalog-broker';
 
 export const recipesManifest = recipeManifestContract.parse(
-  [
-    guildMidExecutionRecipeBroker,
-    questAdvancesOneStepRecipeBroker,
-    sessionWithNestedChainRecipeBroker,
-  ].map(({ recipeName, description, inputs }) => ({
+  recipesCatalogBroker().map(({ recipeName, description, inputs }) => ({
     recipeName,
     description,
     ...(inputs === undefined ? {} : { inputs }),

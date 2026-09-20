@@ -9,7 +9,8 @@
  */
 
 export * from './src/brokers/recipe/run/recipe-run-broker.proxy';
-export * from './src/brokers/guild-with-three-quests/seed/guild-with-three-quests-seed-broker.proxy';
-export * from './src/brokers/session-with-nested-subagent/seed/session-with-nested-subagent-seed-broker.proxy';
+export * from './src/brokers/recipes/guild-with-three-quests/recipes-guild-with-three-quests-broker.proxy';
+export * from './src/brokers/recipes/session-with-nested-subagent/recipes-session-with-nested-subagent-broker.proxy';
+export * from './src/brokers/recipes/catalog/recipes-catalog-broker.proxy';
 export * from './src/adapters/fetch/json/fetch-json-adapter.proxy';
 export * from './src/adapters/fs/write-text/fs-write-text-adapter.proxy';

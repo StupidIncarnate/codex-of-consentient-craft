@@ -1,9 +1,3 @@
-// PURPOSE: Proxy for session-with-nested-subagent-seed-broker — stages `GET /api/guilds` at the
-// fetch boundary and the three transcript writes at the fs boundary, so the recipe's own path
-// encoding and line building run real, then reads each written file back through
-// `transcriptLinesReadTransformer` so a test asserts typed values rather than casting JSON.
-// USAGE: const proxy = sessionWithNestedSubagentSeedBrokerProxy(); proxy.laneAnswers({ apiBaseUrl, guilds, transcriptPaths });
-
 import { fileContentsContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
@@ -12,7 +6,7 @@ import { fsWriteTextAdapterProxy } from '../../../adapters/fs/write-text/fs-writ
 import { recipeHttpStatics } from '../../../statics/recipe-http/recipe-http-statics';
 import { transcriptLinesReadTransformer } from '../../../transformers/transcript-lines-read/transcript-lines-read-transformer';
 
-export const sessionWithNestedSubagentSeedBrokerProxy = (): {
+export const recipesSessionWithNestedSubagentBrokerProxy = (): {
   laneAnswers: (params: {
     apiBaseUrl: ContentText;
     guilds: unknown;
@@ -60,8 +54,6 @@ export const sessionWithNestedSubagentSeedBrokerProxy = (): {
         contents: fileContentsContract.parse(String(writeProxy.writtenTo({ filePath }))),
       }).map((line) => line.timestamp),
 
-    // `null` for a line that is not a Task completion, so the ARRAY shows where the completions
-    // sit rather than only how many there are.
     completionAgentIdsIn: ({ filePath }: { filePath: AbsoluteFilePath }): readonly unknown[] =>
       transcriptLinesReadTransformer({
         contents: fileContentsContract.parse(String(writeProxy.writtenTo({ filePath }))),

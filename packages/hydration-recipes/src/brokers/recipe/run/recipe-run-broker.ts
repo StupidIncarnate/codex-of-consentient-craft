@@ -24,8 +24,8 @@ import type { RecipeContext } from '../../../contracts/recipe-context/recipe-con
 import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
 import type { RecipeResult } from '../../../contracts/recipe-result/recipe-result-contract';
 import { recipeBookStatics } from '../../../statics/recipe-book/recipe-book-statics';
-import { guildWithThreeQuestsSeedBroker } from '../../guild-with-three-quests/seed/guild-with-three-quests-seed-broker';
-import { sessionWithNestedSubagentSeedBroker } from '../../session-with-nested-subagent/seed/session-with-nested-subagent-seed-broker';
+import { recipesGuildWithThreeQuestsBroker } from '../../recipes/guild-with-three-quests/recipes-guild-with-three-quests-broker';
+import { recipesSessionWithNestedSubagentBroker } from '../../recipes/session-with-nested-subagent/recipes-session-with-nested-subagent-broker';
 
 export const recipeRunBroker = async ({
   name,
@@ -37,11 +37,11 @@ export const recipeRunBroker = async ({
   parameters: Record<string, ContentText>;
 }): Promise<RecipeResult> => {
   if (name === recipeBookStatics.names.guildWithThreeQuests) {
-    return guildWithThreeQuestsSeedBroker({ context });
+    return recipesGuildWithThreeQuestsBroker({ context });
   }
 
   if (name === recipeBookStatics.names.sessionWithNestedSubagent) {
-    return sessionWithNestedSubagentSeedBroker({
+    return recipesSessionWithNestedSubagentBroker({
       context,
       guild: guildIdContract.parse(contentTextContract.parse(parameters.guild)),
     });

@@ -1,8 +1,8 @@
 import { ContentTextStub, GuildStub } from '@dungeonmaster/shared/contracts';
 
 import { RecipeContextStub } from '../../../contracts/recipe-context/recipe-context.stub';
-import { guildWithThreeQuestsSeedBroker } from './guild-with-three-quests-seed-broker';
-import { guildWithThreeQuestsSeedBrokerProxy } from './guild-with-three-quests-seed-broker.proxy';
+import { recipesGuildWithThreeQuestsBroker } from './recipes-guild-with-three-quests-broker';
+import { recipesGuildWithThreeQuestsBrokerProxy } from './recipes-guild-with-three-quests-broker.proxy';
 
 const API = 'http://dungeonmaster.localhost:41001';
 const HOME = '/tmp/dm-siege-inst_seed';
@@ -12,18 +12,16 @@ const IN_PROGRESS_QUEST_ID = 'bbbbbbbb-2222-4222-8222-222222222222';
 const USER_REQUEST =
   'Seeded by the guild-with-three-quests recipe. Nothing here was written by an agent.';
 
-// Ids nothing in the recipe could have invented: it sends no id at all, so a returned value equal
-// to one of these can only have come back off a response.
 const MINTED_QUEST_IDS = [
   'aaaaaaaa-1111-4111-8111-111111111111',
   IN_PROGRESS_QUEST_ID,
   'cccccccc-3333-4333-8333-333333333333',
 ];
 
-describe('guildWithThreeQuestsSeedBroker', () => {
+describe('recipesGuildWithThreeQuestsBroker', () => {
   describe('the ids it returns', () => {
     it('VALID: {context} => returns the guild id, slug and the MIDDLE quest id the server minted', async () => {
-      const proxy = guildWithThreeQuestsSeedBrokerProxy();
+      const proxy = recipesGuildWithThreeQuestsBrokerProxy();
       proxy.laneAnswers({
         apiBaseUrl: ContentTextStub({ value: API }),
         guild: GuildStub({
@@ -35,7 +33,7 @@ describe('guildWithThreeQuestsSeedBroker', () => {
         questIds: MINTED_QUEST_IDS.map((value) => ContentTextStub({ value })),
       });
 
-      const result = await guildWithThreeQuestsSeedBroker({
+      const result = await recipesGuildWithThreeQuestsBroker({
         context: RecipeContextStub({ apiBaseUrl: API, homePath: HOME }),
       });
 
@@ -49,7 +47,7 @@ describe('guildWithThreeQuestsSeedBroker', () => {
 
   describe('what it asks the app to do', () => {
     it('VALID: {context} => one guild POST, three quest POSTs, seven PATCHes, in that order', async () => {
-      const proxy = guildWithThreeQuestsSeedBrokerProxy();
+      const proxy = recipesGuildWithThreeQuestsBrokerProxy();
       proxy.laneAnswers({
         apiBaseUrl: ContentTextStub({ value: API }),
         guild: GuildStub({
@@ -61,7 +59,7 @@ describe('guildWithThreeQuestsSeedBroker', () => {
         questIds: MINTED_QUEST_IDS.map((value) => ContentTextStub({ value })),
       });
 
-      await guildWithThreeQuestsSeedBroker({
+      await recipesGuildWithThreeQuestsBroker({
         context: RecipeContextStub({ apiBaseUrl: API, homePath: HOME }),
       });
 
@@ -83,7 +81,7 @@ describe('guildWithThreeQuestsSeedBroker', () => {
     });
 
     it('VALID: {context} => the guild POST and the three quest POSTs carry their exact bodies', async () => {
-      const proxy = guildWithThreeQuestsSeedBrokerProxy();
+      const proxy = recipesGuildWithThreeQuestsBrokerProxy();
       proxy.laneAnswers({
         apiBaseUrl: ContentTextStub({ value: API }),
         guild: GuildStub({
@@ -95,7 +93,7 @@ describe('guildWithThreeQuestsSeedBroker', () => {
         questIds: MINTED_QUEST_IDS.map((value) => ContentTextStub({ value })),
       });
 
-      await guildWithThreeQuestsSeedBroker({
+      await recipesGuildWithThreeQuestsBroker({
         context: RecipeContextStub({ apiBaseUrl: API, homePath: HOME }),
       });
 
@@ -108,7 +106,7 @@ describe('guildWithThreeQuestsSeedBroker', () => {
     });
 
     it('VALID: {context} => the seven PATCH bodies walk created to in_progress, flows on the review_flows edge alone', async () => {
-      const proxy = guildWithThreeQuestsSeedBrokerProxy();
+      const proxy = recipesGuildWithThreeQuestsBrokerProxy();
       proxy.laneAnswers({
         apiBaseUrl: ContentTextStub({ value: API }),
         guild: GuildStub({
@@ -120,7 +118,7 @@ describe('guildWithThreeQuestsSeedBroker', () => {
         questIds: MINTED_QUEST_IDS.map((value) => ContentTextStub({ value })),
       });
 
-      await guildWithThreeQuestsSeedBroker({
+      await recipesGuildWithThreeQuestsBroker({
         context: RecipeContextStub({ apiBaseUrl: API, homePath: HOME }),
       });
 
@@ -176,7 +174,7 @@ describe('guildWithThreeQuestsSeedBroker', () => {
 
   describe('refusals', () => {
     it('ERROR: {guild answered with no urlSlug} => throws naming the guild id', async () => {
-      const proxy = guildWithThreeQuestsSeedBrokerProxy();
+      const proxy = recipesGuildWithThreeQuestsBrokerProxy();
       proxy.guildAnswers({
         apiBaseUrl: ContentTextStub({ value: API }),
         guild: {
@@ -188,7 +186,7 @@ describe('guildWithThreeQuestsSeedBroker', () => {
       });
 
       await expect(
-        guildWithThreeQuestsSeedBroker({
+        recipesGuildWithThreeQuestsBroker({
           context: RecipeContextStub({ apiBaseUrl: API, homePath: HOME }),
         }),
       ).rejects.toThrow(
@@ -197,7 +195,7 @@ describe('guildWithThreeQuestsSeedBroker', () => {
     });
 
     it('ERROR: {a PATCH answered success: false} => throws naming the status and the reason', async () => {
-      const proxy = guildWithThreeQuestsSeedBrokerProxy();
+      const proxy = recipesGuildWithThreeQuestsBrokerProxy();
       proxy.laneAnswers({
         apiBaseUrl: ContentTextStub({ value: API }),
         guild: GuildStub({
@@ -215,7 +213,7 @@ describe('guildWithThreeQuestsSeedBroker', () => {
       });
 
       await expect(
-        guildWithThreeQuestsSeedBroker({
+        recipesGuildWithThreeQuestsBroker({
           context: RecipeContextStub({ apiBaseUrl: API, homePath: HOME }),
         }),
       ).rejects.toThrow(

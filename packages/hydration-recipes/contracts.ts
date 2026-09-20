@@ -70,3 +70,9 @@ export * from './src/contracts/guild-listing/guild-listing.stub';
 
 export * from './src/contracts/transcript-line/transcript-line-contract';
 export * from './src/contracts/transcript-line/transcript-line.stub';
+
+export * from './src/contracts/recipe-catalog-entry/recipe-catalog-entry-contract';
+export * from './src/contracts/recipe-catalog-entry/recipe-catalog-entry.stub';
+
+export * from './src/contracts/recipe-input-key/recipe-input-key-contract';
+export * from './src/contracts/recipe-input-key/recipe-input-key.stub';

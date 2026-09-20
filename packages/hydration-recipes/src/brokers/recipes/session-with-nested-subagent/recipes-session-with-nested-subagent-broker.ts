@@ -1,31 +1,11 @@
 /**
- * PURPOSE: The `session-with-nested-subagent` recipe, executable — `produces: one session
- * transcript holding an outer sub-agent chain with one chain nested inside it, both finished`, at
- * `fidelity: direct`. It writes the three JSONL files itself, because there is no app endpoint that
- * writes a Claude session transcript: the Claude CLI does, and the lane runs a MOCK of that CLI
- * which is a queue CONSUMER rather than a writer. That is exactly what `direct` declares, and why
- * this recipe is the one carrying `mirrors:`.
- *
- * Two halves of the mirror, and both are production code rather than a shape somebody typed:
- * `claudePathSlugEncoderTransformer` decides WHERE (the same transformer the server's own session
- * reader resolves through, so the recipe cannot drift from where the app looks), and the
- * stream-line contract stubs in `@dungeonmaster/shared/contracts` decide WHAT each line is — the
- * repo's own rule for anything constructing Claude CLI JSONL. A contract change therefore breaks
- * this recipe in the same ward run as the change.
- *
- * `guild` is taken EXPLICITLY, as an id, and resolved to that guild's own path through
- * `GET /api/guilds` — "a recipe that silently requires a prior one is the ordering folklore that
- * kills a step catalogue, and a parameter is the fix" (siegelense-recipes.md line 281). Reading
- * over HTTP is not a fidelity question: `fidelity` is a claim about how state is CREATED.
- *
- * The three files reproduce the arrangement the replay reader keys on: the outer Task's completion
- * sits in the MAIN file naming the outer agent, and the nested Task's completion sits in the OUTER
- * AGENT's own file naming the nested agent — which is what tags it as a nested parent-chain
- * candidate rather than a second top-level chain. The outer agent writes its own text BEFORE it
- * launches the nested one, so the nested chain is the last thing in the outer chain's rendered body.
+ * PURPOSE: The `session-with-nested-subagent` recipe, executable — produces one session
+ * transcript holding an outer sub-agent chain with one chain nested inside it, both finished, at
+ * fidelity: direct. Reach for this over other recipes when testing sub-agent transcript nesting
+ * and replay parsing.
  *
  * USAGE:
- * await sessionWithNestedSubagentSeedBroker({ context, guild: '7306b468-…' });
+ * await recipesSessionWithNestedSubagentBroker({ context, guild: '7306b468-…' });
  * // Writes the three JSONL files and returns { sessionId, 'sessions.outer', 'sessions.nested' }
  */
 
@@ -54,7 +34,7 @@ import { recipeHttpStatics } from '../../../statics/recipe-http/recipe-http-stat
 import { seedFixtureStatics } from '../../../statics/seed-fixture/seed-fixture-statics';
 import { transcriptTimestampTransformer } from '../../../transformers/transcript-timestamp/transcript-timestamp-transformer';
 
-export const sessionWithNestedSubagentSeedBroker = async ({
+export const recipesSessionWithNestedSubagentBroker = async ({
   context,
   guild,
 }: {
@@ -87,9 +67,6 @@ export const sessionWithNestedSubagentSeedBroker = async ({
 
   const fixture = seedFixtureStatics.session;
 
-  // The SAME transformer the server's own session reader resolves through — this is the LOCATION
-  // half of `mirrors:`. `homePath` is the lane's throwaway home, which is `HOME` for the api
-  // process, so `os.homedir()` inside the server lands on this same directory.
   const transcriptDir = claudePathSlugEncoderTransformer({
     homeDir: context.homePath,
     projectPath: absoluteFilePathContract.parse(owningGuild.path),
@@ -132,8 +109,6 @@ export const sessionWithNestedSubagentSeedBroker = async ({
         }),
       },
     }),
-    // The outer Task's completion, in the MAIN file: `toolUseResult.agentId` is what pairs the
-    // outer agent's own file back to this tool_use id.
     streamLineToJsonLineTransformer({
       streamLine: {
         ...TaskToolResultStreamLineStub({
@@ -201,9 +176,6 @@ export const sessionWithNestedSubagentSeedBroker = async ({
         }),
       },
     }),
-    // The nested Task's completion lives in the OUTER agent's file, not the main one. That is the
-    // one placement difference between "a second top-level chain" and "a chain nested inside the
-    // first", and it is the whole claim this recipe's `produces:` makes.
     streamLineToJsonLineTransformer({
       streamLine: {
         ...TaskToolResultStreamLineStub({
@@ -265,10 +237,6 @@ export const sessionWithNestedSubagentSeedBroker = async ({
     contents: fileContentsContract.parse(`${nestedLines.join('\n')}\n`),
   });
 
-  // Both chains live in ONE transcript, so both render at ONE route — the outer chain on the page,
-  // the nested chain inside it. The two names are kept apart because the spec's own worked batch
-  // reads `{s.sessions.nested}` back (siegelense-tooling.md line 2922), and because a recipe that
-  // put the two chains in two sessions would fill them differently without changing any caller.
   const sessionRoute = `/${urlSlug}/session/${fixture.sessionId}`;
 
   return recipeResultContract.parse({
