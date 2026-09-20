@@ -17,8 +17,8 @@ Re-architect `@dungeonmaster/hydration-recipes` to strictly conform to Dungeonma
 |-------|-------------|--------|
 | **Batch 1** | Recipes Catalog, Directory Reorganization, and Dynamic Brokers | Completed ✅ |
 | **Batch 2** | Responders, Flows, and Startup in `packages/hydration-recipes` | Completed ✅ |
-| **Batch 3** | `@dungeonmaster/shared`, `siegelense`, and Test Harness Decoupling | In Progress |
-| **Batch 4** | ESLint Rule in `@dungeonmaster/eslint-plugin` | Pending |
+| **Batch 3** | `@dungeonmaster/shared`, `siegelense`, and Test Harness Decoupling | Completed ✅ |
+| **Batch 4** | ESLint Rule in `@dungeonmaster/eslint-plugin` | In Progress |
 | **Batch 5** | Verification, Build, and Whole-Branch Ward Verification | Pending |
 
 ---
@@ -56,8 +56,8 @@ Re-architect `@dungeonmaster/hydration-recipes` to strictly conform to Dungeonma
 - [ ] **3.3 Reviewer**: Audit diff, run scoped ward on Batch 3 files.
 
 ### Batch 4: ESLint Rule Enforcement
-- [ ] **4.1 Planner**: Inspect `@dungeonmaster/eslint-plugin` rules and configuration.
-- [ ] **4.2 Worker**:
+- [x] **4.1 Planner**: Inspect `@dungeonmaster/eslint-plugin` rules and configuration.
+- [x] **4.2 Worker**:
   - Create `rule-enforce-hydration-recipes-structure-broker.ts` in `packages/eslint-plugin` (+ proxy, test).
   - Guard: only fire if `packages/hydration-recipes` exists in repo.
   - Ban: report any import matching `@dungeonmaster/hydration-recipes/brokers*`.

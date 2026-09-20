@@ -75,6 +75,7 @@ describe('dungeonmasterRuleEnforceOnStatics', () => {
       '@dungeonmaster/enforce-proxy-child-creation': 'post-edit',
       '@dungeonmaster/enforce-implementation-colocation': 'post-edit',
       '@dungeonmaster/enforce-test-colocation': 'post-edit',
+      '@dungeonmaster/enforce-hydration-recipes-structure': 'post-edit',
     });
   });
 });

@@ -216,7 +216,7 @@ describe('dungeonmasterRuleEnforceOnStatics integration', () => {
       expect(rulesWithoutFsOps).toStrictEqual([]);
     });
 
-    it('VALID: all post-edit rules count => matches expected 4 rules', () => {
+    it('VALID: all post-edit rules count => matches expected 5 rules', () => {
       const postEditRules = getAllPostEditRules();
 
       expect(postEditRules).toStrictEqual([
@@ -224,6 +224,7 @@ describe('dungeonmasterRuleEnforceOnStatics integration', () => {
         ['@dungeonmaster/enforce-proxy-child-creation', 'post-edit'],
         ['@dungeonmaster/enforce-implementation-colocation', 'post-edit'],
         ['@dungeonmaster/enforce-test-colocation', 'post-edit'],
+        ['@dungeonmaster/enforce-hydration-recipes-structure', 'post-edit'],
       ]);
     });
   });

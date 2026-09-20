@@ -30,6 +30,7 @@ import { ruleEnforceProxyPatternsBrokerProxy } from '../../../brokers/rule/enfor
 import { ruleEnforceTestColocationBrokerProxy } from '../../../brokers/rule/enforce-test-colocation/rule-enforce-test-colocation-broker.proxy';
 import { ruleEnforceTestCreationOfProxyBrokerProxy } from '../../../brokers/rule/enforce-test-creation-of-proxy/rule-enforce-test-creation-of-proxy-broker.proxy';
 import { ruleEnforceTestProxyImportsBrokerProxy } from '../../../brokers/rule/enforce-test-proxy-imports/rule-enforce-test-proxy-imports-broker.proxy';
+import { ruleEnforceHydrationRecipesStructureBrokerProxy } from '../../../brokers/rule/enforce-hydration-recipes-structure/rule-enforce-hydration-recipes-structure-broker.proxy';
 import { ruleEnforceImplementationColocationBrokerProxy } from '../../../brokers/rule/enforce-implementation-colocation/rule-enforce-implementation-colocation-broker.proxy';
 import { ruleForbidNonExportedFunctionsBrokerProxy } from '../../../brokers/rule/forbid-non-exported-functions/rule-forbid-non-exported-functions-broker.proxy';
 import { ruleForbidTypeReexportBrokerProxy } from '../../../brokers/rule/forbid-type-reexport/rule-forbid-type-reexport-broker.proxy';
@@ -98,6 +99,7 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleEnforceTestColocationBrokerProxy();
   ruleEnforceTestCreationOfProxyBrokerProxy();
   ruleEnforceTestProxyImportsBrokerProxy();
+  ruleEnforceHydrationRecipesStructureBrokerProxy();
   ruleEnforceImplementationColocationBrokerProxy();
   ruleForbidNonExportedFunctionsBrokerProxy();
   ruleForbidTypeReexportBrokerProxy();

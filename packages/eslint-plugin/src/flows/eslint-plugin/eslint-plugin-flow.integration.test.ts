@@ -40,6 +40,7 @@ describe('EslintPluginFlow', () => {
         'enforce-file-metadata',
         'enforce-folder-return-types',
         'enforce-harness-patterns',
+        'enforce-hydration-recipes-structure',
         'enforce-implementation-colocation',
         'enforce-import-dependencies',
         'enforce-jest-mocked-usage',

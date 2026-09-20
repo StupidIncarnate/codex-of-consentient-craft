@@ -23,6 +23,7 @@ import { ruleEnforceProxyPatternsBroker } from '../../../brokers/rule/enforce-pr
 import { ruleEnforceTestColocationBroker } from '../../../brokers/rule/enforce-test-colocation/rule-enforce-test-colocation-broker';
 import { ruleEnforceTestCreationOfProxyBroker } from '../../../brokers/rule/enforce-test-creation-of-proxy/rule-enforce-test-creation-of-proxy-broker';
 import { ruleEnforceTestProxyImportsBroker } from '../../../brokers/rule/enforce-test-proxy-imports/rule-enforce-test-proxy-imports-broker';
+import { ruleEnforceHydrationRecipesStructureBroker } from '../../../brokers/rule/enforce-hydration-recipes-structure/rule-enforce-hydration-recipes-structure-broker';
 import { ruleEnforceImplementationColocationBroker } from '../../../brokers/rule/enforce-implementation-colocation/rule-enforce-implementation-colocation-broker';
 import { ruleForbidNonExportedFunctionsBroker } from '../../../brokers/rule/forbid-non-exported-functions/rule-forbid-non-exported-functions-broker';
 import { ruleForbidTypeReexportBroker } from '../../../brokers/rule/forbid-type-reexport/rule-forbid-type-reexport-broker';
@@ -90,6 +91,7 @@ export const EslintPluginCreateResponder = (): {
     readonly 'enforce-test-colocation': EslintRule;
     readonly 'enforce-test-creation-of-proxy': EslintRule;
     readonly 'enforce-test-proxy-imports': EslintRule;
+    readonly 'enforce-hydration-recipes-structure': EslintRule;
     readonly 'enforce-implementation-colocation': EslintRule;
     readonly 'forbid-non-exported-functions': EslintRule;
     readonly 'forbid-type-reexport': EslintRule;
@@ -160,6 +162,7 @@ export const EslintPluginCreateResponder = (): {
       'enforce-test-colocation': ruleEnforceTestColocationBroker(),
       'enforce-test-creation-of-proxy': ruleEnforceTestCreationOfProxyBroker(),
       'enforce-test-proxy-imports': ruleEnforceTestProxyImportsBroker(),
+      'enforce-hydration-recipes-structure': ruleEnforceHydrationRecipesStructureBroker(),
       'enforce-implementation-colocation': ruleEnforceImplementationColocationBroker(),
       'forbid-non-exported-functions': ruleForbidNonExportedFunctionsBroker(),
       'forbid-type-reexport': ruleForbidTypeReexportBroker(),
