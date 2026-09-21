@@ -23,12 +23,14 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { QuestWorkInput } from '../../../contracts/quest-work-input/quest-work-input-contract';
+import { questWorkInstanceContract } from '../../../contracts/quest-work-instance/quest-work-instance-contract';
 import { questWorkRecordResultContract } from '../../../contracts/quest-work-record-result/quest-work-record-result-contract';
 import type { QuestWorkRecordResult } from '../../../contracts/quest-work-record-result/quest-work-record-result-contract';
 import { isStepMintableOnRequestGuard } from '../../../guards/is-step-mintable-on-request/is-step-mintable-on-request-guard';
 import { questWorkOutcomeDeriveTransformer } from '../../../transformers/quest-work-outcome-derive/quest-work-outcome-derive-transformer';
 import { workItemFamilyResolveTransformer } from '../../../transformers/work-item-family-resolve/work-item-family-resolve-transformer';
 import { workItemLinkedOperationResolveTransformer } from '../../../transformers/work-item-linked-operation-resolve/work-item-linked-operation-resolve-transformer';
+import { laneKillBroker } from '../../lane/kill/lane-kill-broker';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
 import { questWithModifyLockBroker } from '../with-modify-lock/quest-with-modify-lock-broker';
@@ -100,6 +102,19 @@ export const questWorkRecordBroker = async ({
           patch: { declaredWord: derived, declaredReason: payload.reason },
           nowAt,
         });
+
+        // The ROUTER opened this lane before dispatch and closes it here, on the SAME turn the
+        // work item records — whatever the outcome word, `wall` included, since a session that hit
+        // an environment wall still owns the lane it was handed. `laneKillBroker` is idempotent on
+        // siegelense's own side, so a redelivered record is safe; a re-mint never reaches this
+        // instance id at all, because a continuation is a FRESH work item with its own `start` call
+        // and its own instance.
+        if (workItem.needsLane === true) {
+          const parsedInstance = questWorkInstanceContract.safeParse(workItem.payload?.instance);
+          if (parsedInstance.success) {
+            await laneKillBroker({ instanceId: parsedInstance.data.instanceId });
+          }
+        }
 
         return questWorkRecordResultContract.parse({ kind: 'outcome', word: derived });
       }

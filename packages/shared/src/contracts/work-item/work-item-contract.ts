@@ -126,6 +126,14 @@ export const workItemContract = z.object({
   // `declaredWord` is an argument rather than a derivation: it is pure and cannot read a live call.
   requestedStep: stepNameContract.optional(),
   requestedReason: z.string().min(1).brand<'RequestReason'>().optional(),
+  // Copied off the minting step's config (`agentFlowStatics.<family>.steps.<step>.needsLane`) by
+  // `questRouteScopeBroker` at mint time. `true` means the ROUTER starts a siegelense instance
+  // before this item dispatches and kills it when the item records — the session never owns that
+  // lifecycle. `.optional()` rather than `.default(false)`, matching `wardMode`/`packageNames`:
+  // work items are the most numerous array on a quest, and a step that never needs a lane (nearly
+  // every one) must not materialise `needsLane: false` onto every row on every re-parse. Read as
+  // `workItem.needsLane === true`, never as a falsy check.
+  needsLane: z.boolean().optional(),
 });
 
 export type WorkItem = z.infer<typeof workItemContract>;

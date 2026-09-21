@@ -10,6 +10,7 @@ import { registerMock, registerModuleMock } from '@dungeonmaster/testing/registe
 import { worktreeEnsureQuestBranchBrokerProxy } from '../../worktree/ensure-quest-branch/worktree-ensure-quest-branch-broker.proxy';
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
 import { QuestResumeTriggerStub } from '../../../contracts/quest-resume-trigger/quest-resume-trigger.stub';
+import { laneProvisionBatchBrokerProxy } from '../../lane/provision-batch/lane-provision-batch-broker.proxy';
 import { questActiveQuestsBrokerProxy } from '../active-quests/quest-active-quests-broker.proxy';
 import { questAdvanceBrokerProxy } from '../advance/quest-advance-broker.proxy';
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
@@ -104,9 +105,12 @@ export const scanOnceLayerBrokerProxy = (): {
   // Registered for enforce-proxy-child-creation only: questCwdResolveBroker is module-mocked
   // below (per-questId addressing, see the comment on that registerModuleMock call), and
   // recoverProxy already registers questBlockOnFailureBrokerProxy, which is what
-  // blockOnMissingWorktreeLayerBroker calls under the hood.
+  // blockOnMissingWorktreeLayerBroker calls under the hood. laneProvisionBatchBroker's own early
+  // return for a non-`needsLane` batch — every scenario in this suite — touches neither capacity
+  // nor start, so nothing here needs its setup methods.
   questCwdResolveBrokerProxy();
   blockOnMissingWorktreeLayerBrokerProxy();
+  laneProvisionBatchBrokerProxy();
   // Stages the git spawns beneath the real shared restore step so a scan that reaches it runs for
   // real all the way down to `child_process.spawn`, instead of being told the answer by a stub.
   const ensureQuestBranchProxy = worktreeEnsureQuestBranchBrokerProxy();

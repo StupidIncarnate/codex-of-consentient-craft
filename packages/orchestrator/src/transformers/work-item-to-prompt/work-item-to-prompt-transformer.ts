@@ -15,8 +15,11 @@
  * prompt to a file, which hands the session a path instead of its instructions and reports no
  * failure.
  *
- * TWO EXTRAS SURVIVE, and each is a value no tool call returns at all: the base branch for
- * warpgate, and the failed ward result + blob path for spiritmender.
+ * THREE EXTRAS SURVIVE, and each is a value no tool call returns at all: the base branch for
+ * warpgate, the failed ward result + blob path for spiritmender, and the instance id for a
+ * `needsLane` step — the ROUTER started that instance and recorded it onto
+ * `workItem.payload.instance` before this item ever dispatched, so the id it substitutes is
+ * exactly what the router owns, never a session's own guess at a lane it never opened.
  *
  * **Path discrimination — minion vs role:** the agent name is run through
  * `workItemRoleContract.safeParse`. If it fails, the caller is one of the parent-summoned minions
@@ -50,6 +53,7 @@ import { isChatWorkItemRoleGuard, isCommandWorkItemRoleGuard } from '@dungeonmas
 
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { agentRoleContract } from '../../contracts/agent-role/agent-role-contract';
+import { questWorkInstanceContract } from '../../contracts/quest-work-instance/quest-work-instance-contract';
 import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name-to-prompt-transformer';
 import { roleToPromptTemplateTransformer } from '../role-to-prompt-template/role-to-prompt-template-transformer';
 
@@ -150,6 +154,25 @@ export const workItemToPromptTransformer = ({
         contentTextContract.parse(
           `Ward detail blob: <questFolder>/ward-results/${String(latestFailedWard.id)}.json`,
         ),
+      );
+    }
+  }
+
+  // The instance id, on a `needsLane` step only — the third conditional extra, on the same pattern
+  // as warpgate's `Base branch` above. The ROUTER started this instance and recorded it onto
+  // `workItem.payload.instance` (`questWorkInstanceContract`'s shape) BEFORE this item ever
+  // dispatched, so a live record is the ordinary case; a `needsLane` item with none yet renders no
+  // line here rather than a placeholder. ONLY THE ID RENDERS — never `baseUrl`, which a walker
+  // fetches for itself through `get-quest-work`'s `instance` row. Rendering the manifest itself
+  // here risks the degenerate case this file's own rule guards against everywhere else: a nullable
+  // field stringified unconditionally reads back as the literal text "null", exactly what
+  // `Base branch`'s own guard above exists to avoid.
+  if (workItem.needsLane === true) {
+    const parsedInstance = questWorkInstanceContract.safeParse(workItem.payload?.instance);
+    if (parsedInstance.success) {
+      parts.push(
+        contentTextContract.parse(''),
+        contentTextContract.parse(`Instance ID: ${String(parsedInstance.data.instanceId)}`),
       );
     }
   }

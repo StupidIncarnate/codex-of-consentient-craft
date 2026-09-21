@@ -8,6 +8,9 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { WorkPlanBatchStub } from '../../../contracts/work-plan-batch/work-plan-batch.stub';
+import { WorkPlanPayloadSiegemasterStub } from '../../../contracts/work-plan-payload-siegemaster/work-plan-payload-siegemaster.stub';
+import { WorkPlanPieceStub } from '../../../contracts/work-plan-piece/work-plan-piece.stub';
 import { WorkPlanStub } from '../../../contracts/work-plan/work-plan.stub';
 import { questRouteScopeBroker } from './quest-route-scope-broker';
 import { questRouteScopeBrokerProxy } from './quest-route-scope-broker.proxy';
@@ -15,7 +18,9 @@ import { questRouteScopeBrokerProxy } from './quest-route-scope-broker.proxy';
 const CODEWEAVER_OP_ID = 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479';
 const RIFTCARVER_OP_ID = 'b1b2c3d4-58cc-4372-a567-0e02b2c3d479';
 const SECOND_CELL_OP_ID = 'c1b2c3d4-58cc-4372-a567-0e02b2c3d479';
+const SIEGEMASTER_OP_ID = 'd1b2c3d4-58cc-4372-a567-0e02b2c3d479';
 const PLAN_WORK_ITEM_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+const SIEGEMASTER_PLAN_WORK_ITEM_ID = 'f57ac10b-58cc-4372-a567-0e02b2c3d479';
 const CARVE_WORK_ITEM_ID = 'e47ac10b-58cc-4372-a567-0e02b2c3d479';
 const MINTED_WORK_ITEM_ID = '00000000-0000-4000-8000-000000000000';
 
@@ -58,6 +63,16 @@ const RIFTCARVER_SCOPE = OperationItemStub({
   status: 'in_progress',
   locked: true,
   flowIds: [],
+  packageNames: [],
+});
+
+const SIEGEMASTER_SCOPE = OperationItemStub({
+  id: SIEGEMASTER_OP_ID,
+  role: 'siegemaster',
+  text: 'Siegemaster: hand-drive this flow — flow: send-flow',
+  status: 'in_progress',
+  locked: false,
+  flowIds: ['send-flow'],
   packageNames: [],
 });
 
@@ -111,6 +126,67 @@ describe('questRouteScopeBroker', () => {
         mintedUnits: [['send-flow:observable:check-badge-count-text']],
         mintedDependsOn: [[PLAN_WORK_ITEM_ID]],
         mintedRefs: [[`operations/${CODEWEAVER_OP_ID}`]],
+      });
+    });
+
+    it('VALID: {a drained siegemaster `plan` step declaring done, a plan cutting one `happyWalk` piece} => mints it with needsLane: true, copied off the step config', async () => {
+      const proxy = questRouteScopeBrokerProxy();
+      proxy.setupPassthrough();
+
+      const quest = QuestStub({
+        packagesAffected: [WEB_PACKAGE],
+        flows: [SEND_FLOW],
+        operations: [SIEGEMASTER_SCOPE],
+        workItems: [
+          WorkItemStub({
+            id: SIEGEMASTER_PLAN_WORK_ITEM_ID,
+            role: 'siegemaster',
+            status: 'complete',
+            step: 'plan',
+            relatedDataItems: [`operations/${SIEGEMASTER_OP_ID}`],
+            declaredWord: 'done',
+          }),
+        ],
+      });
+
+      proxy.setupQuest({ quest });
+      proxy.setupPlan({
+        quest,
+        operationItemId: SIEGEMASTER_SCOPE.id,
+        plan: WorkPlanStub({
+          operationItemId: SIEGEMASTER_OP_ID,
+          family: 'siegemaster',
+          batches: [
+            WorkPlanBatchStub({
+              pieces: [
+                WorkPlanPieceStub({
+                  id: 'pc-happy',
+                  step: 'happyWalk',
+                  assignedUnitIds: ['send-flow:observable:check-badge-count-text'],
+                  contextUnitIds: [],
+                  payload: WorkPlanPayloadSiegemasterStub(),
+                }),
+              ],
+            }),
+          ],
+        }),
+      });
+
+      const result = await questRouteScopeBroker({ questId: quest.id });
+
+      const persisted = proxy.getPersistedQuest();
+      const minted = persisted.workItems.filter(
+        (item) => item.id !== SIEGEMASTER_PLAN_WORK_ITEM_ID,
+      );
+
+      expect({
+        result,
+        mintedSteps: minted.map((item) => String(item.step)),
+        mintedNeedsLane: minted.map((item) => item.needsLane === true),
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        mintedSteps: ['happyWalk'],
+        mintedNeedsLane: [true],
       });
     });
   });

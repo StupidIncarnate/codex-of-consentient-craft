@@ -19,6 +19,7 @@ import { agentPromptClassificationStatics } from '../../statics/agent-prompt-cla
 import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name-to-prompt-transformer';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
+import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 import { workItemToPromptTransformer } from './work-item-to-prompt-transformer';
@@ -792,6 +793,193 @@ describe('workItemToPromptTransformer', () => {
       expect(result.prompt).toBe(
         spiritmenderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       );
+    });
+
+    describe('instance id pass-through is a needsLane-only extra', () => {
+      // Mirrors the warpgate baseBranch pattern above: the ROUTER recorded the instance onto
+      // `workItem.payload.instance` before this item ever dispatched, and this is the half of that
+      // record that actually renders — a walker's prompt otherwise has no id to substitute into its
+      // own `get-quest-work` calls.
+      it('VALID: {needsLane: true, payload.instance recorded} => appends an Instance ID line', () => {
+        const questId = QuestIdStub({ value: 'my-quest' });
+        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-1414-4222-9333-444444444444' });
+        const operationId = OperationItemIdStub({ value: 'bbbbbbbb-1414-4222-9333-444444444444' });
+        const operation = OperationItemStub({
+          id: operationId,
+          role: 'siegemaster',
+          text: 'siegemaster: hand-drive this flow',
+          status: 'in_progress',
+        });
+        const workItem = WorkItemStub({
+          id: workItemId,
+          role: 'siegemaster',
+          needsLane: true,
+          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+          payload: {
+            instance: {
+              instanceId: 'inst_7f3a9c21',
+              baseUrl: 'http://localhost:34173',
+              apiUrl: null,
+              home: '/tmp/dm-siege-inst_7f3a9c21',
+              logs: {
+                api: '/repo/.siegelense/g1/instances/inst_7f3a9c21/api-server.log',
+                web: '/repo/.siegelense/g1/instances/inst_7f3a9c21/web-server.log',
+              },
+            },
+          },
+        });
+        const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+        const result = workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: AgentPromptNameStub({ value: 'siegemaster' }),
+        });
+
+        const expectedArgs = [
+          `Quest ID: ${String(questId)}`,
+          `Work Item ID: ${String(workItemId)}`,
+          `Operation Item ID: ${String(operationId)}`,
+          'Your operation item: [siegemaster] siegemaster: hand-drive this flow',
+          '',
+          'Instance ID: inst_7f3a9c21',
+        ].join('\n');
+
+        expect(result.prompt).toBe(
+          siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        );
+      });
+
+      it('EDGE: {needsLane: true, start returned baseUrl: null} => renders the same Instance ID line, no literal "null" anywhere', () => {
+        const questId = QuestIdStub({ value: 'my-quest' });
+        const workItemId = QuestWorkItemIdStub({ value: 'cccccccc-1414-4222-9333-444444444444' });
+        const operationId = OperationItemIdStub({ value: 'dddddddd-1414-4222-9333-444444444444' });
+        const operation = OperationItemStub({
+          id: operationId,
+          role: 'siegemaster',
+          text: 'siegemaster: hand-drive this flow',
+          status: 'in_progress',
+        });
+        const workItem = WorkItemStub({
+          id: workItemId,
+          role: 'siegemaster',
+          needsLane: true,
+          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+          payload: {
+            instance: {
+              instanceId: 'inst_7f3a9c21',
+              baseUrl: null,
+              apiUrl: null,
+              home: '/tmp/dm-siege-inst_7f3a9c21',
+              logs: {
+                api: '/repo/.siegelense/g1/instances/inst_7f3a9c21/api-server.log',
+                web: '/repo/.siegelense/g1/instances/inst_7f3a9c21/web-server.log',
+              },
+            },
+          },
+        });
+        const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+        const result = workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: AgentPromptNameStub({ value: 'siegemaster' }),
+        });
+
+        const expectedArgs = [
+          `Quest ID: ${String(questId)}`,
+          `Work Item ID: ${String(workItemId)}`,
+          `Operation Item ID: ${String(operationId)}`,
+          'Your operation item: [siegemaster] siegemaster: hand-drive this flow',
+          '',
+          'Instance ID: inst_7f3a9c21',
+        ].join('\n');
+
+        expect(result.prompt).toBe(
+          siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        );
+      });
+
+      it('EMPTY: {needsLane: true, no payload.instance yet} => omits the Instance ID line entirely', () => {
+        const questId = QuestIdStub({ value: 'my-quest' });
+        const workItemId = QuestWorkItemIdStub({ value: 'eeeeeeee-1414-4222-9333-444444444444' });
+        const operationId = OperationItemIdStub({ value: 'ffffffff-1414-4222-9333-444444444444' });
+        const operation = OperationItemStub({
+          id: operationId,
+          role: 'siegemaster',
+          text: 'siegemaster: hand-drive this flow',
+          status: 'in_progress',
+        });
+        const workItem = WorkItemStub({
+          id: workItemId,
+          role: 'siegemaster',
+          needsLane: true,
+          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        });
+        const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+        const result = workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: AgentPromptNameStub({ value: 'siegemaster' }),
+        });
+
+        const expectedArgs = [
+          `Quest ID: ${String(questId)}`,
+          `Work Item ID: ${String(workItemId)}`,
+          `Operation Item ID: ${String(operationId)}`,
+          'Your operation item: [siegemaster] siegemaster: hand-drive this flow',
+        ].join('\n');
+
+        expect(result.prompt).toBe(
+          siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        );
+      });
+
+      it('EDGE: {needsLane not set} => omits the Instance ID line even with a stray payload.instance', () => {
+        const questId = QuestIdStub({ value: 'my-quest' });
+        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-1515-4222-9333-444444444444' });
+        const operationId = OperationItemIdStub({ value: 'bbbbbbbb-1515-4222-9333-444444444444' });
+        const operation = OperationItemStub({
+          id: operationId,
+          role: 'codeweaver',
+          text: 'codeweaver: build this slice',
+          status: 'in_progress',
+        });
+        const workItem = WorkItemStub({
+          id: workItemId,
+          role: 'codeweaver',
+          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+          payload: {
+            instance: {
+              instanceId: 'inst_7f3a9c21',
+              baseUrl: 'http://localhost:34173',
+              apiUrl: null,
+              home: '/tmp/dm-siege-inst_7f3a9c21',
+              logs: {
+                api: '/repo/.siegelense/g1/instances/inst_7f3a9c21/api-server.log',
+                web: '/repo/.siegelense/g1/instances/inst_7f3a9c21/web-server.log',
+              },
+            },
+          },
+        });
+        const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+        const result = workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+        });
+
+        const expectedArgs = [
+          `Quest ID: ${String(questId)}`,
+          `Work Item ID: ${String(workItemId)}`,
+          `Operation Item ID: ${String(operationId)}`,
+          'Your operation item: [codeweaver] codeweaver: build this slice',
+        ].join('\n');
+
+        expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.split('$ARGUMENTS').join(expectedArgs));
+      });
     });
 
     describe('missing operations reference', () => {

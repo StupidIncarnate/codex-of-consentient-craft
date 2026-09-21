@@ -8,6 +8,7 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { QuestWorkInstanceStub } from '../../../contracts/quest-work-instance/quest-work-instance.stub';
 import { questWorkRecordBroker } from './quest-work-record-broker';
 import { questWorkRecordBrokerProxy } from './quest-work-record-broker.proxy';
 
@@ -78,6 +79,83 @@ describe('questWorkRecordBroker', () => {
         declaredWord: 'empty',
         declaredReason: 'no piece was cut this pass',
       });
+    });
+
+    it("VALID: {needsLane item with a recorded instance, word: 'done'} => kills the lane it started", async () => {
+      const proxy = questWorkRecordBrokerProxy();
+      proxy.setupLaneKill();
+      const instance = QuestWorkInstanceStub();
+      const workItem = WorkItemStub({
+        id: WORK_ITEM_ID,
+        role: 'siegemaster',
+        step: 'happyWalk',
+        needsLane: true,
+        assignedUnitIds: [],
+        observations: [],
+        payload: { instance },
+      });
+      const quest = QuestStub({ id: QUEST_ID, workItems: [workItem] });
+      proxy.setupQuestFound({ quest });
+
+      const result = await questWorkRecordBroker({
+        questId: QUEST_ID,
+        workItemId: WORK_ITEM_ID,
+        payload: { kind: 'outcome', word: 'done', reason: 'both walks reported clean' } as never,
+      });
+
+      expect(result).toStrictEqual({ kind: 'outcome', word: 'done' });
+      expect(proxy.getKilledInstanceIds()).toStrictEqual([instance.instanceId]);
+    });
+
+    it("VALID: {needsLane item with a recorded instance, word: 'wall'} => kills the lane, whatever the outcome", async () => {
+      const proxy = questWorkRecordBrokerProxy();
+      proxy.setupLaneKill();
+      const instance = QuestWorkInstanceStub();
+      const workItem = WorkItemStub({
+        id: WORK_ITEM_ID,
+        role: 'siegemaster',
+        step: 'happyWalk',
+        needsLane: true,
+        assignedUnitIds: [],
+        observations: [],
+        payload: { instance },
+      });
+      const quest = QuestStub({ id: QUEST_ID, workItems: [workItem] });
+      proxy.setupQuestFound({ quest });
+
+      const result = await questWorkRecordBroker({
+        questId: QUEST_ID,
+        workItemId: WORK_ITEM_ID,
+        payload: {
+          kind: 'outcome',
+          word: 'wall',
+          reason: 'the driver never answered ping',
+        } as never,
+      });
+
+      expect(result).toStrictEqual({ kind: 'outcome', word: 'wall' });
+      expect(proxy.getKilledInstanceIds()).toStrictEqual([instance.instanceId]);
+    });
+
+    it("VALID: {not a needsLane item, word: 'done'} => never touches the lane broker at all", async () => {
+      const proxy = questWorkRecordBrokerProxy();
+      const workItem = WorkItemStub({
+        id: WORK_ITEM_ID,
+        role: 'codeweaver',
+        assignedUnitIds: [],
+        observations: [],
+      });
+      const quest = QuestStub({ id: QUEST_ID, workItems: [workItem] });
+      proxy.setupQuestFound({ quest });
+
+      const result = await questWorkRecordBroker({
+        questId: QUEST_ID,
+        workItemId: WORK_ITEM_ID,
+        payload: { kind: 'outcome', word: 'done', reason: 'the cell is complete' } as never,
+      });
+
+      expect(result).toStrictEqual({ kind: 'outcome', word: 'done' });
+      expect(proxy.getKilledInstanceIds()).toStrictEqual([]);
     });
 
     it('ERROR: {assigned units contradict the declared word} => throws naming them, persists nothing', async () => {

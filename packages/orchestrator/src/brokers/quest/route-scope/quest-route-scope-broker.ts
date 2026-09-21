@@ -250,6 +250,12 @@ export const questRouteScopeBroker = async ({
           ...(item.pieceId === undefined ? {} : { pieceId: item.pieceId }),
           ...(item.payload === undefined ? {} : { payload: item.payload }),
           ...(item.mintedBy === undefined ? {} : { mintedBy: item.mintedBy }),
+          // Copied off the step config by mintNextActionTransformer, spent by the lane broker at
+          // dispatch and by workItemToPromptTransformer's instance-id line — never re-derived from
+          // agentFlowStatics downstream. Omitted rather than `needsLane: false`, matching
+          // `wardMode`/`packageNames` below: work items are the most numerous array on a quest, and
+          // the near-universal case (no lane) must not materialise onto every row.
+          ...(item.needsLane ? { needsLane: true } : {}),
           ...(operation.wardMode === undefined ? {} : { wardMode: operation.wardMode }),
           ...(operation.packageNames.length === 0 ? {} : { packageNames: operation.packageNames }),
         }),

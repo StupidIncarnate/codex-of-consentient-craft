@@ -39,7 +39,6 @@
  */
 
 import {
-  absoluteFilePathContract,
   contentTextContract,
   filePathContract,
   flowEdgeIdContract,
@@ -72,6 +71,7 @@ import { z } from 'zod';
 
 import { agentFamilyNameContract } from '../agent-family-name/agent-family-name-contract';
 import { commitShaContract } from '../commit-sha/commit-sha-contract';
+import { questWorkInstanceContract } from '../quest-work-instance/quest-work-instance-contract';
 import { recipeIdContract } from '../recipe-id/recipe-id-contract';
 import { wardCheckTypeContract } from '../ward-check-type/ward-check-type-contract';
 import { workPlanPieceContract } from '../work-plan-piece/work-plan-piece-contract';
@@ -167,19 +167,6 @@ const questWorkWard = z.object({
   failingPaths: z.array(filePathContract).default([]),
 });
 
-// Field names copied verbatim from siegelense's own `instanceManifestContract`, so the router can
-// record across without a rename; the orchestrator cannot import that contract (siegelense is not
-// among its dependencies), so this is a deliberate restatement of the subset a walker uses.
-// `baseUrl` STAYS NULLABLE: a browserless spec binds no web port, so `null` means "this spec never
-// claimed a web surface", never "the surface failed to come up".
-const questWorkInstance = z.object({
-  instanceId: siegeInstanceIdContract,
-  baseUrl: z.string().min(1).brand<'InstanceBaseUrl'>().nullable(),
-  apiUrl: z.string().min(1).brand<'InstanceApiUrl'>().nullable(),
-  home: absoluteFilePathContract,
-  logs: z.object({ api: filePathContract, web: filePathContract }),
-});
-
 // An attack is an ABSENCE claim, and an absence is only evidence against a known-good reading taken
 // first — so an antagonist is served the happy walk's own run, resolved from its piece's
 // `baselineFor`.
@@ -217,7 +204,7 @@ export const questWorkViewContract = z.object({
   ward: questWorkWard.nullable(),
   riftcarverLogPath: filePathContract.nullable(),
   git: questWorkGit,
-  instance: questWorkInstance.nullable(),
+  instance: questWorkInstanceContract.nullable(),
   baseline: questWorkBaseline.nullable(),
   truncated: z.array(questWorkTruncation).default([]),
 });
@@ -231,6 +218,6 @@ export type QuestWorkRecipe = z.infer<typeof questWorkRecipe>;
 export type QuestWorkCommit = z.infer<typeof questWorkCommit>;
 export type QuestWorkGit = z.infer<typeof questWorkGit>;
 export type QuestWorkWard = z.infer<typeof questWorkWard>;
-export type QuestWorkInstance = z.infer<typeof questWorkInstance>;
+export type { QuestWorkInstance } from '../quest-work-instance/quest-work-instance-contract';
 export type QuestWorkBaseline = z.infer<typeof questWorkBaseline>;
 export type QuestWorkTruncation = z.infer<typeof questWorkTruncation>;

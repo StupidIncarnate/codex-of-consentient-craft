@@ -4,6 +4,7 @@ import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
+import { laneKillBrokerProxy } from '../../lane/kill/lane-kill-broker.proxy';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
@@ -24,6 +25,11 @@ export const questWorkRecordBrokerProxy = (): {
   queueNextQuestRead: (params: { quest: Quest }) => void;
   setupQuestNotFound: () => void;
   getPersistedQuests: () => readonly unknown[];
+  // Stages the lane's `kill` call for an `outcome` record on a `needsLane` item. Not called by a
+  // test whose work item is not `needsLane` — the broker never reaches the dynamic import at all
+  // in that case, so nothing needs to be staged for it.
+  setupLaneKill: () => void;
+  getKilledInstanceIds: () => readonly unknown[];
 } => {
   questFindQuestPathBrokerProxy();
   const findQuestPathMock = registerMock({ fn: questFindQuestPathBroker });
@@ -38,6 +44,7 @@ export const questWorkRecordBrokerProxy = (): {
   // can dispatch to; only the first's accessor is read from below.
   const patchProxy = workItemPatchLayerBrokerProxy();
   invalidationApplyLayerBrokerProxy();
+  const killProxy = laneKillBrokerProxy();
 
   registerSpyOn({ object: Date.prototype, method: 'toISOString' })
     .calledWith([])
@@ -71,5 +78,11 @@ export const questWorkRecordBrokerProxy = (): {
     },
 
     getPersistedQuests: (): readonly unknown[] => patchProxy.getPersistedQuests(),
+
+    setupLaneKill: (): void => {
+      killProxy.setupStopped({ stopped: true });
+    },
+
+    getKilledInstanceIds: (): readonly unknown[] => killProxy.getKilledInstanceIds(),
   };
 };

@@ -12,6 +12,7 @@ import { isAnyAgentRunningQuestStatusGuard } from '@dungeonmaster/shared/guards'
 import type { ActiveQuestFacade } from '../../../contracts/active-quest-facade/active-quest-facade-contract';
 import type { NextStep } from '../../../contracts/next-step/next-step-contract';
 import { questResumeTriggerContract } from '../../../contracts/quest-resume-trigger/quest-resume-trigger-contract';
+import { laneProvisionBatchBroker } from '../../lane/provision-batch/lane-provision-batch-broker';
 import { worktreeEnsureQuestBranchBroker } from '../../worktree/ensure-quest-branch/worktree-ensure-quest-branch-broker';
 import { questActiveQuestsBroker } from '../active-quests/quest-active-quests-broker';
 import { questAdvanceBroker } from '../advance/quest-advance-broker';
@@ -72,6 +73,11 @@ export const scanOnceLayerBroker = async ({
   // this quest actually lands on, and a null step is not yet an answer — it is the input to the
   // resolutions underneath it.
   let step = computeNextStepFromQuestLayerBroker({ quest });
+  // Tracks whichever quest object actually PRODUCED `step` — the original read, or a recovered,
+  // rerouted, or advance-refreshed copy from one of the branches below. The lane broker looks
+  // work items up by id off this quest, and a copy whose `workItems` does not carry the id `step`
+  // named would answer as if the item were not `needsLane` at all.
+  let questForStep = quest;
 
   if (step === null) {
     const recovery = await recoverOrphanedWorkItemsLayerBroker({ quest });
@@ -87,6 +93,7 @@ export const scanOnceLayerBroker = async ({
     }
 
     step = computeNextStepFromQuestLayerBroker({ quest: recovery.quest });
+    questForStep = recovery.quest;
   }
 
   if (step === null) {
@@ -108,6 +115,9 @@ export const scanOnceLayerBroker = async ({
         rerouted.success && rerouted.quest
           ? computeNextStepFromQuestLayerBroker({ quest: rerouted.quest })
           : null;
+      if (rerouted.success && rerouted.quest) {
+        questForStep = rerouted.quest;
+      }
     }
   }
 
@@ -120,6 +130,19 @@ export const scanOnceLayerBroker = async ({
       refreshed.success && refreshed.quest
         ? computeNextStepFromQuestLayerBroker({ quest: refreshed.quest })
         : null;
+    if (refreshed.success && refreshed.quest) {
+      questForStep = refreshed.quest;
+    }
+  }
+
+  // A `spawn-agents` step whose batch `needsLane` gets the ROUTER's lane lifecycle here, before
+  // anything is handed back to either dispatcher: bounded by `siegelense capacity`'s `suggested`
+  // reading, and a lane started + recorded onto `payload.instance` for each surviving item. Uses
+  // `questForStep`, never a fresh read — `step` may have been resolved against a recovered,
+  // rerouted, or advance-minted copy whose `workItems` the original `quest` binding does not
+  // carry, and the lane broker looks work items up by id off whatever quest it is handed.
+  if (step !== null && step.type === 'spawn-agents') {
+    step = await laneProvisionBatchBroker({ quest: questForStep, step });
   }
 
   // The quest's own recorded worktree, not a guild-path-derived fallback. A `repo-root`

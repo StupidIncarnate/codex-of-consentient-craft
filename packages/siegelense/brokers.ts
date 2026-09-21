@@ -12,6 +12,8 @@ export * from './src/brokers/instance/start/instance-start-broker';
 export * from './src/brokers/instance/run/instance-run-broker';
 export * from './src/brokers/instance/kill/instance-kill-broker';
 
+export * from './src/brokers/capacity/read/capacity-read-broker';
+
 export * from './src/brokers/registry/read/registry-read-broker';
 export * from './src/brokers/registry/write/registry-write-broker';
 export * from './src/brokers/registry/lock-release/registry-lock-release-broker';
