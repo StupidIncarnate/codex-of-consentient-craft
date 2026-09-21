@@ -291,7 +291,7 @@ describe('agentFlowStatics', () => {
             handler: 'ward',
             args: ['--committed', '--uncommitted'],
             maxVisits: 3,
-            routes: { done: 'sweepOut', empty: 'sweepOut', unmet: 'repair' },
+            routes: { done: 'sweepOut', empty: 'sweepOut', unmet: 'repair', wall: '@blocked' },
           },
           repair: {
             role: 'worker',

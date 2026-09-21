@@ -280,7 +280,7 @@ export const agentFlowStatics = {
       // the spread, or the shared one wins.
       ward: {
         ...CLOSE_OUT.ward,
-        routes: { done: 'sweepOut', empty: 'sweepOut', unmet: 'repair' },
+        routes: { done: 'sweepOut', empty: 'sweepOut', unmet: 'repair', wall: '@blocked' },
       },
       sweepOut: {
         role: 'worker',
