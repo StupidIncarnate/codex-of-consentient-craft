@@ -27,13 +27,12 @@ describe('signalBackInputContract', () => {
       });
     });
 
-    it('VALID: {signal: "complete", operationItemId, operationStatus: "done"} => parses done outcome', () => {
+    it('VALID: {signal: "complete", operationItemId} => parses with the operation item id alone', () => {
       const result = signalBackInputContract.parse({
         questId,
         workItemId,
         signal: 'complete',
         operationItemId,
-        operationStatus: 'done',
       });
 
       expect(result).toStrictEqual({
@@ -41,35 +40,14 @@ describe('signalBackInputContract', () => {
         workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
         signal: 'complete',
         operationItemId: 'cccccccc-1111-4222-9333-444444444444',
-        operationStatus: 'done',
       });
     });
 
-    it('VALID: {signal: "complete", operationItemId, operationStatus: "partial"} => parses partial outcome', () => {
+    it('VALID: {blockedReason, no operationItemId} => parses, because the refinement tying it to operationStatus is gone', () => {
       const result = signalBackInputContract.parse({
         questId,
         workItemId,
         signal: 'complete',
-        operationItemId,
-        operationStatus: 'partial',
-      });
-
-      expect(result).toStrictEqual({
-        questId: 'aaaaaaaa-1111-4222-9333-444444444444',
-        workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
-        signal: 'complete',
-        operationItemId: 'cccccccc-1111-4222-9333-444444444444',
-        operationStatus: 'partial',
-      });
-    });
-
-    it('VALID: {operationStatus: "blocked", blockedReason} => parses the environment-wall outcome', () => {
-      const result = signalBackInputContract.parse({
-        questId,
-        workItemId,
-        signal: 'complete',
-        operationItemId,
-        operationStatus: 'blocked',
         blockedReason: 'git commit is denied in this dispatched session',
       });
 
@@ -77,8 +55,6 @@ describe('signalBackInputContract', () => {
         questId: 'aaaaaaaa-1111-4222-9333-444444444444',
         workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
         signal: 'complete',
-        operationItemId: 'cccccccc-1111-4222-9333-444444444444',
-        operationStatus: 'blocked',
         blockedReason: 'git commit is denied in this dispatched session',
       });
     });
@@ -96,48 +72,16 @@ describe('signalBackInputContract', () => {
     });
   });
 
-  describe('blocked outcome requires its reason', () => {
-    it('INVALID: {operationStatus: "blocked", no blockedReason} => throws so the user is never left an unexplained block', () => {
+  describe('blockedReason validates on its own, unrefined', () => {
+    it('EMPTY: {blockedReason: ""} => throws because an empty reason explains nothing', () => {
       expect(() =>
         signalBackInputContract.parse({
           questId,
           workItemId,
           signal: 'complete',
-          operationItemId,
-          operationStatus: 'blocked',
-        }),
-      ).toThrow(/operationStatus 'blocked' requires blockedReason/u);
-    });
-
-    it('EMPTY: {operationStatus: "blocked", blockedReason: ""} => throws because an empty reason explains nothing', () => {
-      expect(() =>
-        signalBackInputContract.parse({
-          questId,
-          workItemId,
-          signal: 'complete',
-          operationItemId,
-          operationStatus: 'blocked',
           blockedReason: '',
         }),
       ).toThrow(/String must contain at least 1 character/u);
-    });
-
-    it('VALID: {operationStatus: "partial", blockedReason absent} => parses; only blocked demands a reason', () => {
-      const result = signalBackInputContract.parse({
-        questId,
-        workItemId,
-        signal: 'complete',
-        operationItemId,
-        operationStatus: 'partial',
-      });
-
-      expect(result).toStrictEqual({
-        questId: 'aaaaaaaa-1111-4222-9333-444444444444',
-        workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
-        signal: 'complete',
-        operationItemId: 'cccccccc-1111-4222-9333-444444444444',
-        operationStatus: 'partial',
-      });
     });
   });
 
@@ -217,17 +161,20 @@ describe('signalBackInputContract', () => {
       }).toThrow(/Invalid uuid/u);
     });
 
-    it('INVALID: {operationStatus: "failed"} => throws validation error because failed is not a supported operation outcome', () => {
-      expect(() => {
-        signalBackInputContract.parse({
-          questId,
-          workItemId,
-          signal: 'complete',
-          operationItemId,
-          operationStatus: 'failed',
-        });
-      }).toThrow(/Invalid enum value/u);
-    });
+    it.each(['done', 'partial', 'blocked'] as const)(
+      'INVALID: {operationStatus: "%s"} => throws Unrecognized key error because operationStatus no longer exists on the contract',
+      (value) => {
+        expect(() => {
+          signalBackInputContract.parse({
+            questId,
+            workItemId,
+            signal: 'complete',
+            operationItemId,
+            operationStatus: value,
+          } as never);
+        }).toThrow(/Unrecognized key/u);
+      },
+    );
 
     it('INVALID: {summary: "removed field"} => throws Unrecognized key error because summary no longer exists on the contract', () => {
       expect(() => {

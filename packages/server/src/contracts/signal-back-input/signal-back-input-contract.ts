@@ -1,10 +1,10 @@
 /**
  * PURPOSE: Defines the input schema for the env-gated HTTP signal-back endpoint — mirrors the
- * MCP signal-back tool's input so the same relay outcome (done/partial) can be applied over HTTP.
+ * MCP signal-back tool's input.
  *
  * USAGE:
- * const input = signalBackInputContract.parse({ signal: 'complete', questId, workItemId, operationItemId, operationStatus: 'done' });
- * // Returns validated signal-back input — the session-terminal marker plus the operation outcome
+ * const input = signalBackInputContract.parse({ signal: 'complete', questId, workItemId, operationItemId });
+ * // Returns validated signal-back input — the session-terminal marker
  */
 import { z } from 'zod';
 
@@ -15,40 +15,22 @@ import {
   questWorkItemIdContract,
 } from '@dungeonmaster/shared/contracts';
 
-// `complete` is the sole signal kind (session-terminal marker); the outcome rides on the call as
-// operationStatus and the handler applies it server-side (authoritative): 'done' marks the linked
-// operation item complete and advances; 'partial' marks it complete AND appends a "pt N"
-// continuation item a fresh session continues; 'blocked' also appends the continuation but halts
-// the quest immediately with `blockedReason` recorded. questId + workItemId are required so the
-// handler routes on explicit ids rather than inferring from process state.
+// `complete` is the sole signal kind (session-terminal marker). questId + workItemId are required
+// so the handler routes on explicit ids rather than inferring from process state.
 export const signalBackInputContract = z
   .object({
     questId: questIdContract.describe('The quest the signalling agent is working on'),
     workItemId: questWorkItemIdContract.describe(
       'The work item the signalling agent was dispatched against',
     ),
-    signal: z
-      .literal('complete')
-      .describe('Session-terminal marker — the only signal kind. The outcome is operationStatus'),
+    signal: z.literal('complete').describe('Session-terminal marker — the only signal kind'),
     operationItemId: operationItemIdContract
       .describe('The operation item this session worked (from the operations ledger)')
       .optional(),
-    operationStatus: z
-      .enum(['done', 'partial', 'blocked'])
-      .describe(
-        "Outcome of the operation item: 'done' = scope complete (advance); 'partial' = more remains (the orchestrator marks this item complete and appends a pt N continuation); 'blocked' = an environment wall no fresh session of this role could pass (requires blockedReason; halts the quest for the user)",
-      )
-      .optional(),
     blockedReason: blockedReasonContract
-      .describe(
-        "Why this role cannot proceed without the user — required when operationStatus is 'blocked'",
-      )
+      .describe('Why this role cannot proceed without the user')
       .optional(),
   })
-  .strict()
-  .refine(
-    (input) => input.operationStatus !== 'blocked' || input.blockedReason !== undefined,
-    "operationStatus 'blocked' requires blockedReason — the user needs to know what wall to clear",
-  );
+  .strict();
 
 export type SignalBackInput = z.infer<typeof signalBackInputContract>;

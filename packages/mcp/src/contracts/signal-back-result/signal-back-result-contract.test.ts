@@ -22,14 +22,13 @@ describe('signalBackResultContract', () => {
       });
     });
 
-    it('VALID: {success: true, signal: complete with operationItemId + operationStatus} => parses signal with operation outcome', () => {
+    it('VALID: {success: true, signal: complete with operationItemId} => parses signal with the operation item id', () => {
       const operationItemId = OperationItemIdStub({
         value: 'cccccccc-1111-4222-9333-444444444444',
       });
       const signal = SignalBackInputStub({
         signal: 'complete',
         operationItemId,
-        operationStatus: 'done',
       });
       const input = SignalBackResultStub({ success: true, signal });
 
@@ -42,7 +41,6 @@ describe('signalBackResultContract', () => {
           workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
           signal: 'complete',
           operationItemId: 'cccccccc-1111-4222-9333-444444444444',
-          operationStatus: 'done',
         },
       });
     });

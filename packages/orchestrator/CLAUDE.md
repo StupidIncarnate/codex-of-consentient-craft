@@ -1279,45 +1279,30 @@ yet.
 
 ## Signal System
 
-Agents report via the `signal-back` MCP tool. `complete` is the SOLE signal kind — a session-terminal marker. The
-operation OUTCOME rides on the same call as `operationStatus` (`signalBackInputContract`: `signal: 'complete'`,
-`operationItemId?`, `operationStatus?: 'done' | 'partial' | 'blocked'`, `blockedReason?` — `failed` is explicitly
-rejected). The live handler is `quest-handle-signal-back-responder.ts`, which applies the outcome server-side
-(authoritative — an agent cannot forget to patch the ledger, because agents never write it).
+Agents report via the `signal-back` MCP tool. `complete` is the SOLE signal kind — a session-terminal marker.
+`signalBackInputContract` validates `signal: 'complete'` plus an optional `operationItemId` and `blockedReason` —
+`failed` is explicitly rejected, and `.strict()` refuses any other key. The live handler is
+`quest-handle-signal-back-responder.ts`, which applies the work item's terminal outcome server-side (authoritative
+— an agent cannot forget to patch the ledger, because agents never write it).
 
 **One gate runs BEFORE any mutation**, and it THROWS rather than returning — the error rides the awaited `signal-back`
 path back through the MCP tool to the agent, where it is visible and actionable, instead of being swallowed as a
 success. Because nothing is persisted on a refusal, the session simply fixes what the message names and signals again;
 the work item and its operation item are exactly as they were.
 
-**Commit-before-signal gate — on `done`, `partial` AND `blocked` alike.** For every role that changes code
-(`CODE_CHANGING_ROLES` = `agentPromptClassificationStatics.operatorRoleNames` plus `spiritmender` and `warpgate`), the
-responder resolves the quest's cwd and refuses while the worktree still carries uncommitted changes. The measurement is
-`gitWorkingTreeFilesBroker`, which unions `git diff HEAD --name-only` with `git ls-files --others --exclude-standard`:
-a bare diff reports TRACKED paths only, so the net-new files a sub-agent just wrote — the ones most likely to carry the
-defect — would be invisible and a dirty tree would read as clean. The question is **"is the tree clean", never "did you
-make a commit"**: `git commit --allow-empty` satisfies it, so a pass that legitimately changed nothing still signals. A
-quest with no worktree of its own (hydrated, or seeded before worktrees) SKIPS the check rather than failing it — that
-is a real state, not a violation. Both COMMAND roles are absent because they are terminal by exit code and never reach
-`signal-back` at all; every chat role is absent because a conversation produces a spec, not a commit. Membership is
-READ from `operatorRoleNames` rather than listed, so a fourth operator role is covered the day it is added — the same
-reason `isChatWorkItemRoleGuard` reads `workItemRoleStatics.chat` instead of growing an `||` chain.
+**Unmarked-unit gate — on every outcome, for every role.** `signalGateTransformer` compares the signalling work
+item's `assignedUnitIds` against `observations[].unitId` and refuses the call while any assigned id carries no
+observation. A mark's VALUE is irrelevant — `met`, `cant-meet` and `unmet` all count as marked, only the absence of
+an entry counts — so a unit the layer cannot settle (`cant-meet`) or cannot make pass (`unmet`) clears the gate
+exactly as `met` does. The refusal message is the deliverable: it names every unmarked unit alongside its text, so
+the session can act on it in the same turn instead of spending a round trip re-fetching what it means, and it
+closes by telling the session that `unmet` is free and mints its successor — the answer to a session padding marks
+to get past the gate. A session marks a unit through `quest-work` and re-fetches the full outstanding set past the
+gate's inline preview through `get-quest-work`.
 
-This is a computed gate rather than a line in the operating rules because the prose version was measured and found
-wanting: a session died ONE gate short of its commit holding a fully verified, twice-green artifact, the re-carve
-destroyed it, and the slice cost 101 minutes of wall-clock for 11 minutes of real work with no trace in `quest.json`
-that any of it happened. It binds `blocked` too — a blocked quest hands its work forward through git exactly as a
-finished one does, so the outcome that halts is the one that most needs the work durable first.
-
-**The gate is satisfied by construction rather than by the operator's own commit.** Each operator's reviewer commits
-the pass, so a dirty tree at signal time is either scratch a sub-agent left behind or work that reviewer did not
-commit. The operator may not clear it by committing — it cannot judge what is sitting there — so its recording step
-runs `git status` and hands every listed path to ONE more reviewer on a `SWEEP:` brief, which opens each path, deletes
-what is scratch, keeps what is real, and commits under `sweep: <what survived>`. **A sweep goes to a REVIEWER, never to
-a code-writing sub-agent**: deciding a path is scratch and leaving it out of the commit are one judgement. Still dirty
-after that, a SECOND sweep reviewer is told to commit every remaining path whatever it is, under
-`sweep: uncommitted remainder` — a commit always clears the tree, which is what gets the operator to a state it can
-signal from.
+Nothing at signal time reads the worktree. Every session reaches its signal with a dirty tree by construction — no
+work-item role commits its own changes — and `gitWorkingTreeFilesBroker` stays in service of the reviewer's pass,
+the worker's live DO-NOT-TOUCH set, and the fixer's view of what a walk left behind, none of which is this gate.
 
 Then, in order:
 

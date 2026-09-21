@@ -5,7 +5,7 @@
  * MCP client.
  *
  * USAGE:
- * const result = await QuestSignalBackResponder({ params: { questId: 'abc' }, body: { workItemId, signal: 'complete', operationStatus: 'done' } });
+ * const result = await QuestSignalBackResponder({ params: { questId: 'abc' }, body: { workItemId, signal: 'complete' } });
  * // Returns { status: 200, data: { ok: true } } or { status: 400/500, data: { error } }
  */
 
@@ -36,15 +36,13 @@ export const QuestSignalBackResponder = async ({
       });
     }
 
-    const { questId, workItemId, signal, operationItemId, operationStatus, blockedReason } =
-      parsed.data;
+    const { questId, workItemId, signal, operationItemId, blockedReason } = parsed.data;
 
     await orchestratorHandleSignalBackAdapter({
       questId,
       workItemId,
       signal,
       ...(operationItemId === undefined ? {} : { operationItemId }),
-      ...(operationStatus === undefined ? {} : { operationStatus }),
       ...(blockedReason === undefined ? {} : { blockedReason }),
     });
 

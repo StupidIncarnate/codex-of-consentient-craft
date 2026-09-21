@@ -2,6 +2,7 @@ import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing
 import {
   AbsoluteFilePathStub,
   BaseBranchNameStub,
+  BlockedReasonStub,
   ErrorMessageStub,
   FileContentsStub,
   FileNameStub,
@@ -447,17 +448,17 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
   }, 30_000);
 });
 
-// §4.3 of the post-mortem measured a session dying ONE gate short of its commit while holding a
-// fully verified, twice-green artifact — the re-carve destroyed it, 101 minutes of wall clock for
-// 11 minutes of work, with no trace in quest.json that any of it happened. These drive the real
-// responder against a REAL git worktree, because `git ls-files --others` is the half of the
-// measurement no unit-level fake can prove.
-describe('QuestHandleSignalBackResponder (integration) — commit-before-signal gate', () => {
+// A worker that just wrote four files reaches signal time with a dirty tree by construction —
+// nobody commits before signalling any more. These drive the real responder against a REAL git
+// worktree carrying an uncommitted net-new file, because `git ls-files --others` is the half of
+// the measurement no unit-level fake can prove — the regression guard against re-adding the
+// deleted commit-before-signal gate.
+describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no longer gates completion', () => {
   const envHarness = orchestrationEnvironmentHarness();
   const questHelper = orchestrationQuestHarness();
   const git = gitWorktreeFixtureHarness();
 
-  it('ERROR: {codeweaver done, worktree carrying an uncommitted net-new file} => throws naming that path and persists NOTHING', async () => {
+  it('VALID: {codeweaver done, worktree carrying an uncommitted net-new file} => the signal succeeds and the outcome applies', async () => {
     const testbed = installTestbedCreateBroker({
       baseName: BaseNameStub({ value: 'sb-dirty-tree' }),
     });
@@ -485,7 +486,7 @@ describe('QuestHandleSignalBackResponder (integration) — commit-before-signal 
     });
 
     // Never committed and never `git add`ed — exactly the shape of a net-new file a worker just
-    // wrote, and exactly what `git diff HEAD --name-only` alone would report as a clean tree.
+    // wrote, which the deleted gate's bare `git diff HEAD --name-only` half would have missed.
     const strayPath = RepoRelativePathStub({ value: 'packages/shared/stray-broker.ts' });
     git.dirtyTrackedFile({
       repoPath: worktreePath,
@@ -500,17 +501,6 @@ describe('QuestHandleSignalBackResponder (integration) — commit-before-signal 
       questId,
       worktreePath,
       branchName,
-      planningNotes: QuestStub({
-        planningNotes: {
-          blightLedger: [
-            QuestBlightLedgerEntryStub({
-              itemId: REVIEW_ITEM_ID,
-              workItemId: cwWorkItemId,
-              createdAt: new Date().toISOString(),
-            }),
-          ],
-        },
-      }).planningNotes,
       operations: [
         OperationItemStub({
           id: cwOpId,
@@ -532,12 +522,10 @@ describe('QuestHandleSignalBackResponder (integration) — commit-before-signal 
       ],
     });
 
-    const before = await questHelper.readQuestFileRaw({ questId });
     const seeded = await questHelper.reload({ questId });
 
-    // The gate only binds on a quest whose OWN worktree resolves and whose tree really is dirty, so
-    // both preconditions are asserted rather than assumed: a seed that dropped worktreePath, or a
-    // stray file git never saw, would make the refusal below unreachable and this test vacuous.
+    // The regression guard only means something if the tree really is dirty when the call
+    // succeeds, so the precondition is asserted rather than assumed.
     expect({
       seededWorktreePath: String(seeded.worktreePath),
       porcelain: String(await git.gitStatusPorcelain({ repoPath: worktreePath })),
@@ -546,29 +534,30 @@ describe('QuestHandleSignalBackResponder (integration) — commit-before-signal 
       porcelain: `?? ${String(strayPath)}`,
     });
 
-    await expect(
-      QuestHandleSignalBackResponder({
-        questId,
-        workItemId: cwWorkItemId,
-        signal: 'complete',
-        operationItemId: cwOpId,
-        operationStatus: 'done',
-      }),
-    ).rejects.toThrow(
-      new RegExp(
-        `signal-back refused: the quest worktree still carries 1 uncommitted change\\(s\\).*- ${String(strayPath)}.*Commit this round`,
-        'su',
-      ),
-    );
+    const result = await QuestHandleSignalBackResponder({
+      questId,
+      workItemId: cwWorkItemId,
+      signal: 'complete',
+      operationItemId: cwOpId,
+      operationStatus: 'done',
+    });
 
-    const after = await questHelper.readQuestFileRaw({ questId });
+    const after = await questHelper.reload({ questId });
 
     testbed.cleanup();
 
-    expect(String(after)).toBe(String(before));
+    expect({
+      responderResult: result,
+      operationStatus: after.operations.find((op) => op.id === cwOpId)?.status,
+      workItemStatus: after.workItems.find((wi) => wi.id === cwWorkItemId)?.status,
+    }).toStrictEqual({
+      responderResult: { success: true },
+      operationStatus: 'complete',
+      workItemStatus: 'complete',
+    });
   }, 30_000);
 
-  it("ERROR: {codeweaver 'blocked' on the same dirty worktree} => refused too, because a blocked quest hands its work forward through git as well", async () => {
+  it("VALID: {codeweaver 'blocked' on the same dirty worktree} => also succeeds, because nothing reads the tree on any outcome", async () => {
     const testbed = installTestbedCreateBroker({
       baseName: BaseNameStub({ value: 'sb-dirty-blocked' }),
     });
@@ -630,42 +619,37 @@ describe('QuestHandleSignalBackResponder (integration) — commit-before-signal 
       ],
     });
 
-    const before = await questHelper.readQuestFileRaw({ questId });
     const seeded = await questHelper.reload({ questId });
 
-    // Same precondition as the `done` case: the gate only binds on a quest whose OWN worktree
-    // resolves, so a seed that dropped worktreePath would make the refusal below unreachable.
     expect(String(seeded.worktreePath)).toBe(String(worktreePath));
 
-    await expect(
-      QuestHandleSignalBackResponder({
-        questId,
-        workItemId: cwWorkItemId,
-        signal: 'complete',
-        operationItemId: cwOpId,
-        operationStatus: 'blocked',
+    const result = await QuestHandleSignalBackResponder({
+      questId,
+      workItemId: cwWorkItemId,
+      signal: 'complete',
+      operationItemId: cwOpId,
+      operationStatus: 'blocked',
+      blockedReason: BlockedReasonStub({
+        value: 'the CI token this round needs is not on this machine',
       }),
-    ).rejects.toThrow(
-      /signal-back refused: the quest worktree still carries 1 uncommitted change/u,
-    );
+    });
 
-    const after = await questHelper.readQuestFileRaw({ questId });
-    const reloaded = await questHelper.reload({ questId });
+    const after = await questHelper.reload({ questId });
 
     testbed.cleanup();
 
     expect({
-      unchanged: String(after) === String(before),
-      questStatus: reloaded.status,
-      workItemStatus: reloaded.workItems.find((wi) => wi.id === cwWorkItemId)?.status,
+      responderResult: result,
+      questStatus: after.status,
+      workItemStatus: after.workItems.find((wi) => wi.id === cwWorkItemId)?.status,
     }).toStrictEqual({
-      unchanged: true,
-      questStatus: 'in_progress',
-      workItemStatus: 'in_progress',
+      responderResult: { success: true },
+      questStatus: 'blocked',
+      workItemStatus: 'failed',
     });
   }, 30_000);
 
-  it('VALID: {codeweaver done, freshly carved worktree with nothing uncommitted} => the gate clears and the outcome applies', async () => {
+  it('VALID: {codeweaver done, freshly carved worktree with nothing uncommitted} => also succeeds — a clean tree was never required either', async () => {
     const testbed = installTestbedCreateBroker({
       baseName: BaseNameStub({ value: 'sb-clean-tree' }),
     });

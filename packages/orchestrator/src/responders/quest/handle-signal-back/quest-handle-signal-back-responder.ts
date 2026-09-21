@@ -20,10 +20,12 @@
  *   Spending the budget on sessions that provably cannot succeed is exactly what this outcome
  *   exists to prevent.
  *
- * On EVERY outcome — `done`, `partial` and `blocked` alike — a role that changes code is refused
- * while the quest's own worktree still carries uncommitted changes, tracked or untracked. A
- * `blocked` quest hands its work forward through git exactly as a finished one does, so the
- * outcome that halts is the one that most needs the work durable first.
+ * Before any of that outcome logic runs, `signalGateTransformer` (story 14) checks this work
+ * item's `assignedUnitIds` against its `observations[]`: any assigned unit carrying no observation
+ * refuses the call outright, naming every unmarked unit in the thrown message, so the session
+ * marks it and signals again. The check runs once idempotency has ruled out a redelivery and
+ * before anything is persisted, so a refusal leaves the work item and its operation item exactly
+ * as they were.
  *
  * Work-item-terminal + operation-complete + the optional pt N land in ONE persist
  * (questOperationsUpdateBroker), so a crash is all-or-nothing; afterwards questAdvanceBroker
@@ -57,37 +59,13 @@ import {
   isTerminalWorkItemStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
-import { gitWorkingTreeFilesBroker } from '../../../brokers/git/working-tree-files/git-working-tree-files-broker';
 import { questAdvanceBroker } from '../../../brokers/quest/advance/quest-advance-broker';
 import { questBlockOnFailureBroker } from '../../../brokers/quest/block-on-failure/quest-block-on-failure-broker';
-import { questCwdResolveBroker } from '../../../brokers/quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questOperationsUpdateBroker } from '../../../brokers/quest/operations-update/quest-operations-update-broker';
 import { operationPtChainTransformer } from '../../../transformers/operation-pt-chain/operation-pt-chain-transformer';
-import { agentPromptClassificationStatics } from '../../../statics/agent-prompt-classification/agent-prompt-classification-statics';
+import { signalGateTransformer } from '../../../transformers/signal-gate/signal-gate-transformer';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
-
-// How many outstanding unit ids (or dirty paths) to name inline before deferring to the tool that
-// lists the rest. Enough to act on directly for a nearly-finished flow or diff, short of dumping
-// 144 ids into a tool error.
-const OUTSTANDING_PREVIEW_LIMIT = 15;
-
-// The five roles that run a planner/worker/reviewer round over an operation item. Read from
-// `agentPromptClassificationStatics` rather than listed here, so a role added to it joins
-// CODE_CHANGING_ROLES below automatically — the same reason `isChatWorkItemRoleGuard` reads
-// `workItemRoleStatics.chat` instead of growing an `||` chain.
-const OPERATOR_ROLES = agentPromptClassificationStatics.operatorRoleNames;
-
-// Every role whose session ends by CHANGING CODE, and therefore owes a commit before it signals.
-// The five operator roles plus the two bespoke-prompt workers that also write code and commit.
-// Both COMMAND roles (`workItemRoleStatics.command` — `ward`, `riftcarver`) are absent because they
-// are terminal by exit code and never reach signal-back at all; every chat role is absent because a
-// conversation produces a spec, not a commit.
-const CODE_CHANGING_ROLES: ReadonlySet<OperationItem['role']> = new Set([
-  ...OPERATOR_ROLES,
-  'spiritmender',
-  'warpgate',
-]);
 
 export const QuestHandleSignalBackResponder = async ({
   questId,
@@ -137,68 +115,13 @@ export const QuestHandleSignalBackResponder = async ({
     return adapterResultContract.parse({ success: true });
   }
 
-  // The linked operation item, resolved ONCE ahead of every pre-mutation gate below: the signal's
-  // explicit operationItemId wins, else the work item's own `operations/<id>` ref. A work item with
-  // no link (legacy/chat) is gated by nothing and simply terminates.
-  const preGateRef = signaledItem.relatedDataItems
-    .map((ref) => String(ref))
-    .find((ref) => ref.startsWith('operations/'));
-  const preGateId = operationItemId === undefined ? preGateRef?.split('/')[1] : operationItemId;
-  const gatedOperation = result.quest.operations.find((operation) => operation.id === preGateId);
-
-  // COMMIT-BEFORE-SIGNAL GATE — runs BEFORE any mutation, so a refusal leaves the work item and its
-  // operation item exactly as they were and the session can commit and signal again.
-  //
-  // This is a GATE rather than a line in the operating rules because the post-mortem measured what
-  // a prose instruction is worth here: §4.3 has a session dying ONE gate short of its commit while
-  // holding a fully verified, twice-green artifact. The re-carve destroyed it — 101 minutes of
-  // wall-clock for 11 minutes of work, with no trace in quest.json that any of it ever happened.
-  // A computed consequence bolted to the exact parameter holds; the same sentence in a prompt does
-  // not.
-  //
-  // It applies on `done`, `partial` AND `blocked` alike: a blocked quest hands its work forward
-  // through git exactly as a finished one does, so the outcome that halts is the one that most
-  // needs the work durable first.
-  //
-  // The measurement is `gitWorkingTreeFilesBroker`, which unions `git diff HEAD --name-only` with
-  // `git ls-files --others --exclude-standard` — a bare diff reports TRACKED paths only, so the
-  // net-new files a worker just wrote (the ones most likely to carry the defect) would be invisible
-  // to it and a dirty tree would read as clean.
-  //
-  // The question is "is the tree clean", never "did you make a commit": `git commit --allow-empty`
-  // satisfies it, so a round that legitimately changed nothing still signals. And a quest with no
-  // worktree of its own — a hydrated quest, or one seeded before worktrees — SKIPS the check
-  // rather than failing it: that is a real state, not a violation.
-  //
-  // `undefined` means the signalling role owes no git measurement at all — a chat role or a
-  // COMMAND role never resolves a cwd and therefore never pays this gate's git cost.
-  const resolution =
-    gatedOperation !== undefined && CODE_CHANGING_ROLES.has(gatedOperation.role)
-      ? await questCwdResolveBroker({ questId })
-      : undefined;
-
-  if (resolution?.kind === 'worktree') {
-    const dirtyPaths = await gitWorkingTreeFilesBroker({ cwd: resolution.cwd });
-
-    if (dirtyPaths.length > 0) {
-      throw new Error(
-        [
-          `signal-back refused: the quest worktree still carries ${String(dirtyPaths.length)} uncommitted change(s), so the work this signal reports is not in history yet and the next session inherits a dirty tree it did not write.`,
-          '',
-          'Uncommitted paths:',
-          ...dirtyPaths.slice(0, OUTSTANDING_PREVIEW_LIMIT).map((path) => `  - ${String(path)}`),
-          ...(dirtyPaths.length > OUTSTANDING_PREVIEW_LIMIT
-            ? [
-                `  … and ${String(dirtyPaths.length - OUTSTANDING_PREVIEW_LIMIT)} more — run \`git status\` in the worktree for the full list.`,
-              ]
-            : []),
-          '',
-          'Do ONE of these, then signal again:',
-          '  1. Commit this round in the quest worktree. This gate asks whether the TREE IS CLEAN, never whether you made a commit — `git commit --allow-empty` satisfies it, so a round that changed nothing still signals.',
-          '  2. Discard what you did not mean to keep (`git restore` / `git clean`) so the tree is clean either way.',
-        ].join('\n'),
-      );
-    }
+  // UNMARKED-UNIT GATE — runs BEFORE any mutation, so a refusal leaves the work item and its
+  // operation item exactly as they were and the session can mark and signal again. Denominator is
+  // `workItem.assignedUnitIds`; story 14 owns the arithmetic and the refusal text, which rides
+  // back to the agent verbatim.
+  const gateResult = signalGateTransformer({ quest: result.quest, workItemId });
+  if (!gateResult.ok) {
+    throw new Error(gateResult.message);
   }
 
   // Object holder (not a bare `let`): the flag is assigned inside the update callback, which

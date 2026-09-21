@@ -13,13 +13,13 @@ const operationItemId = OperationItemIdStub({ value: 'cccccccc-1111-4222-9333-44
 
 describe('QuestSignalBackResponder', () => {
   describe('successful signal', () => {
-    it('VALID: {questId, workItemId, signal, operationItemId, operationStatus: done} => returns 200 { ok: true }', async () => {
+    it('VALID: {questId, workItemId, signal, operationItemId} => returns 200 { ok: true }', async () => {
       const proxy = QuestSignalBackResponderProxy();
       proxy.setupSignalBack({ questId, workItemId, result: AdapterResultStub() });
 
       const result = await proxy.callResponder({
         params: { questId },
-        body: { workItemId, signal: 'complete', operationItemId, operationStatus: 'done' },
+        body: { workItemId, signal: 'complete', operationItemId },
       });
 
       expect(result).toStrictEqual({
@@ -43,13 +43,18 @@ describe('QuestSignalBackResponder', () => {
       });
     });
 
-    it('VALID: {questId, workItemId, signal, operationStatus: partial} => returns 200 { ok: true }', async () => {
+    it('VALID: {questId, workItemId, signal, blockedReason} => returns 200 { ok: true }', async () => {
       const proxy = QuestSignalBackResponderProxy();
       proxy.setupSignalBack({ questId, workItemId, result: AdapterResultStub() });
 
       const result = await proxy.callResponder({
         params: { questId },
-        body: { workItemId, signal: 'complete', operationItemId, operationStatus: 'partial' },
+        body: {
+          workItemId,
+          signal: 'complete',
+          operationItemId,
+          blockedReason: 'the CI token this round needs is not on this machine',
+        },
       });
 
       expect(result).toStrictEqual({
@@ -130,12 +135,12 @@ describe('QuestSignalBackResponder', () => {
       });
     });
 
-    it('INVALID: {operationStatus: nope} => returns 400 with error', async () => {
+    it('INVALID: {operationStatus present} => returns 400 with error, because operationStatus is no longer an accepted field', async () => {
       const proxy = QuestSignalBackResponderProxy();
 
       const result = await proxy.callResponder({
         params: { questId },
-        body: { workItemId, signal: 'complete', operationItemId, operationStatus: 'nope' },
+        body: { workItemId, signal: 'complete', operationItemId, operationStatus: 'done' },
       });
 
       expect(result).toStrictEqual({

@@ -1,5 +1,8 @@
 import {
   BlockedReasonStub,
+  FlowNodeStub,
+  FlowObservableStub,
+  FlowStub,
   OperationItemIdStub,
   OperationItemStub,
   QuestBlightLedgerEntryStub,
@@ -7,6 +10,7 @@ import {
   QuestPackageEntryStub,
   QuestStub,
   QuestWorkItemIdStub,
+  UnitObservationStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 import { workItemRoleStatics } from '@dungeonmaster/shared/statics';
@@ -25,8 +29,7 @@ const OP3_ID = '33333333-3333-4333-8333-333333333333';
 const CONTINUATION_UUID = 'c1c2c3c4-d5d6-4e7f-8a9b-0c1d2e3f4a5b';
 const ADVANCE_UUID = '99999999-9999-4999-8999-999999999999';
 
-// The (fictional) changed file the commit-before-signal gate tests below stage as an uncommitted
-// path, and the file the sample blightLedger disposition below names.
+// The (fictional) changed file the sample blightLedger disposition below names.
 const BLIGHT_FILE = 'packages/orchestrator/src/foo/foo-broker.ts';
 
 // A quest fixture's review history. Spread into `planningNotes` explicitly at each site rather than
@@ -40,13 +43,9 @@ const REVIEW_LEDGER = [
 ];
 
 // The five roles that run a planner/worker/reviewer round, read from the same static the responder
-// reads, so a role added there is swept into the 'done' happy-path matrix and the
-// commit-before-signal matrix below automatically instead of going untested.
+// reads, so a role added there is swept into the 'done' happy-path matrix below automatically
+// instead of going untested.
 const REVIEWED_ROLES = agentPromptClassificationStatics.operatorRoleNames;
-
-// The two roles outside that list whose session still writes code and therefore still owes a clean
-// tree before it signals — the other half of the commit-before-signal matrix.
-const NON_REVIEWED_COMMITTING_ROLES = ['spiritmender', 'warpgate'] as const;
 
 type SlotManagerRole = keyof typeof slotManagerStatics;
 type PtBudgetRole = Exclude<SlotManagerRole, 'ward' | 'orphanRecovery'>;
@@ -83,6 +82,29 @@ const PACKAGES_AFFECTED = [
     packageType: 'http-backend',
   }),
 ];
+
+// The unmarked-unit gate's fixtures below: a one-node flow whose single observable mints the real
+// `<flowId>:<kind>:<localId>` unit id a fixture must use — a bare local id like `obs-3` tests a
+// join that never happens in production.
+const GATE_FLOW = FlowStub({
+  id: 'send-flow',
+  name: 'Send Flow',
+  flowType: 'runtime',
+  nodes: [
+    FlowNodeStub({
+      id: 'compose',
+      label: 'Compose',
+      observables: [
+        FlowObservableStub({
+          id: 'scan-finds-every-path',
+          description: 'scanning the text finds every absolute path in the draft',
+        }),
+      ],
+    }),
+  ],
+  edges: [],
+});
+const GATE_UNIT_ID = 'send-flow:observable:scan-finds-every-path';
 
 describe('QuestHandleSignalBackResponder', () => {
   describe('signal failures surface (never silently drop the signal)', () => {
@@ -487,58 +509,16 @@ describe('QuestHandleSignalBackResponder', () => {
     });
   });
 
-  // §4.3 of the post-mortem measured a session dying ONE gate short of its commit while holding a
-  // fully verified, twice-green artifact: the re-carve destroyed it, 101 minutes of wall clock for
-  // 11 minutes of work, with no trace in quest.json that any of it happened. The check is "is the
-  // tree clean", never "did you make a commit".
-  describe('commit-before-signal gate — a code-changing role is refused while its worktree is dirty', () => {
-    it.each([...REVIEWED_ROLES, ...NON_REVIEWED_COMMITTING_ROLES])(
-      "ERROR: {%s item, tracked modification uncommitted, 'done'} => refused, and the message names the dirty path",
-      async (role) => {
-        const proxy = QuestHandleSignalBackResponderProxy();
-        const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
-        proxy.setupQuest({
-          quest: QuestStub({
-            planningNotes: { blightLedger: REVIEW_LEDGER },
-            operations: [
-              OperationItemStub({ id: OP1_ID, role, text: 'round one', status: 'in_progress' }),
-            ],
-            workItems: [
-              WorkItemStub({
-                id: itemId,
-                role,
-                status: 'in_progress',
-                relatedDataItems: [`operations/${OP1_ID}`],
-              }),
-            ],
-          }),
-        });
-        proxy.setupWorktree({ trackedFiles: [BLIGHT_FILE], untrackedFiles: [] });
-
-        await expect(
-          QuestHandleSignalBackResponder({
-            questId: QuestIdStub({ value: 'add-auth' }),
-            workItemId: itemId,
-            signal: 'complete',
-            operationStatus: 'done',
-          }),
-        ).rejects.toThrow(
-          new RegExp(
-            `signal-back refused: the quest worktree still carries 1 uncommitted change\\(s\\).*- ${BLIGHT_FILE}.*Commit this round`,
-            'su',
-          ),
-        );
-      },
-    );
-
-    // The case a bare `git diff` misses entirely: every net-new file a worker just wrote is
-    // untracked, so a gate reading the tracked half alone comes back clean on the dirtiest tree.
-    it("ERROR: {codeweaver item, ONLY untracked additions, 'done'} => refused naming the untracked path", async () => {
+  // A worker that just wrote four files reaches signal time with a dirty tree by construction —
+  // nobody commits before signalling any more (see the story doc for why the gate that used to
+  // check this is gone rather than scoped). What replaces it checks MARKS, not the tree.
+  describe('the unmarked-unit gate — refuses before any mutation, on any role', () => {
+    it('ERROR: {codeweaver item, one assigned unit with no observation} => refused, the message names the unit, and nothing is persisted', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       proxy.setupQuest({
         quest: QuestStub({
-          planningNotes: { blightLedger: REVIEW_LEDGER },
+          flows: [GATE_FLOW],
           operations: [
             OperationItemStub({
               id: OP1_ID,
@@ -553,11 +533,12 @@ describe('QuestHandleSignalBackResponder', () => {
               role: 'codeweaver',
               status: 'in_progress',
               relatedDataItems: [`operations/${OP1_ID}`],
+              assignedUnitIds: [GATE_UNIT_ID],
+              observations: [],
             }),
           ],
         }),
       });
-      proxy.setupWorktree({ trackedFiles: [], untrackedFiles: [BLIGHT_FILE] });
 
       await expect(
         QuestHandleSignalBackResponder({
@@ -567,246 +548,115 @@ describe('QuestHandleSignalBackResponder', () => {
           operationStatus: 'done',
         }),
       ).rejects.toThrow(
-        new RegExp(
-          `signal-back refused: the quest worktree still carries 1 uncommitted change\\(s\\).*- ${BLIGHT_FILE}`,
-          'su',
-        ),
+        new RegExp(`REFUSED: 1 of your 1 assigned units are unmarked.*${GATE_UNIT_ID}`, 'su'),
       );
+
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([]);
     });
 
-    // A blocked quest hands its work forward through git exactly as a finished one does, so the
-    // outcome that halts is the one that most needs the work durable first.
-    it("ERROR: {codeweaver item, dirty tree, 'blocked'} => refused too, and nothing is persisted", async () => {
+    it("VALID: {codeweaver item, its one assigned unit marked 'met'} => the gate passes and the outcome applies normally", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const quest = QuestStub({
+        flows: [GATE_FLOW],
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'in_progress',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            assignedUnitIds: [GATE_UNIT_ID],
+            observations: [UnitObservationStub({ unitId: GATE_UNIT_ID, mark: 'met' })],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'in_progress',
+        flows: [GATE_FLOW],
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'complete',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            assignedUnitIds: [GATE_UNIT_ID],
+            observations: [UnitObservationStub({ unitId: GATE_UNIT_ID, mark: 'met' })],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
+    });
+
+    // FAILS IF the gate ran before idempotency: this terminal work item carries an assigned unit
+    // with no observation, so a live gate call would throw naming it. Returning success instead is
+    // the proof that idempotency short-circuits before the gate is ever reached — zero gate calls.
+    it('EDGE: {work item already terminal, carries an unmarked assigned unit} => success and zero persists, because idempotency runs before the gate', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       proxy.setupQuest({
         quest: QuestStub({
-          planningNotes: { blightLedger: REVIEW_LEDGER },
+          flows: [GATE_FLOW],
           operations: [
             OperationItemStub({
               id: OP1_ID,
               role: 'codeweaver',
               text: 'core: config adapter',
-              status: 'in_progress',
+              status: 'complete',
             }),
           ],
           workItems: [
             WorkItemStub({
               id: itemId,
               role: 'codeweaver',
-              status: 'in_progress',
+              status: 'complete',
               relatedDataItems: [`operations/${OP1_ID}`],
+              assignedUnitIds: [GATE_UNIT_ID],
+              observations: [],
+              completedAt: FIXED_TIMESTAMP,
+              actualSignal: 'complete',
             }),
           ],
         }),
       });
-      proxy.setupWorktree({ trackedFiles: [BLIGHT_FILE], untrackedFiles: [] });
 
-      await expect(
-        QuestHandleSignalBackResponder({
-          questId: QuestIdStub({ value: 'add-auth' }),
-          workItemId: itemId,
-          signal: 'complete',
-          operationStatus: 'blocked',
-          blockedReason: BlockedReasonStub({
-            value: 'the CI token this round needs is not on this machine',
-          }),
-        }),
-      ).rejects.toThrow(
-        /signal-back refused: the quest worktree still carries 1 uncommitted change/u,
-      );
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
 
+      expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllPersistedQuests()).toStrictEqual([]);
-    });
-
-    it("VALID: {codeweaver item, clean worktree, 'done'} => accepted, and the git read ran inside the WORKTREE", async () => {
-      const proxy = QuestHandleSignalBackResponderProxy();
-      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
-      const quest = QuestStub({
-        planningNotes: { blightLedger: REVIEW_LEDGER },
-        operations: [
-          OperationItemStub({
-            id: OP1_ID,
-            role: 'codeweaver',
-            text: 'core: config adapter',
-            status: 'in_progress',
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: itemId,
-            role: 'codeweaver',
-            status: 'in_progress',
-            relatedDataItems: [`operations/${OP1_ID}`],
-          }),
-        ],
-      });
-      const questAfterOutcome = QuestStub({
-        status: 'complete',
-        planningNotes: { blightLedger: REVIEW_LEDGER },
-        operations: [
-          OperationItemStub({
-            id: OP1_ID,
-            role: 'codeweaver',
-            text: 'core: config adapter',
-            status: 'complete',
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: itemId,
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: [`operations/${OP1_ID}`],
-            completedAt: FIXED_TIMESTAMP,
-            actualSignal: 'complete',
-          }),
-        ],
-        updatedAt: FIXED_TIMESTAMP,
-      });
-      proxy.setupSignalFlow({ quest, questAfterOutcome });
-      proxy.setupWorktree({ trackedFiles: [], untrackedFiles: [] });
-
-      const result = await QuestHandleSignalBackResponder({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workItemId: itemId,
-        signal: 'complete',
-        operationStatus: 'done',
-      });
-
-      expect(result).toStrictEqual({ success: true });
-      expect(proxy.getGitSpawnedArgsList()).toStrictEqual([
-        ['diff', 'HEAD', '--name-only'],
-        ['ls-files', '--others', '--exclude-standard'],
-      ]);
-    });
-
-    // A hydrated quest, or one seeded before worktrees, resolves to the repo root rather than a
-    // worktree of its own. That is a real state, not a violation — so the gate skips entirely and
-    // never reaches git, which is what the empty spawn list proves.
-    it("VALID: {codeweaver item, quest with no resolvable worktree, 'done'} => accepted with no git command run at all", async () => {
-      const proxy = QuestHandleSignalBackResponderProxy();
-      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
-      const quest = QuestStub({
-        planningNotes: { blightLedger: REVIEW_LEDGER },
-        operations: [
-          OperationItemStub({
-            id: OP1_ID,
-            role: 'codeweaver',
-            text: 'core: config adapter',
-            status: 'in_progress',
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: itemId,
-            role: 'codeweaver',
-            status: 'in_progress',
-            relatedDataItems: [`operations/${OP1_ID}`],
-          }),
-        ],
-      });
-      const questAfterOutcome = QuestStub({
-        status: 'complete',
-        planningNotes: { blightLedger: REVIEW_LEDGER },
-        operations: [
-          OperationItemStub({
-            id: OP1_ID,
-            role: 'codeweaver',
-            text: 'core: config adapter',
-            status: 'complete',
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: itemId,
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: [`operations/${OP1_ID}`],
-            completedAt: FIXED_TIMESTAMP,
-            actualSignal: 'complete',
-          }),
-        ],
-        updatedAt: FIXED_TIMESTAMP,
-      });
-      proxy.setupSignalFlow({ quest, questAfterOutcome });
-
-      const result = await QuestHandleSignalBackResponder({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workItemId: itemId,
-        signal: 'complete',
-        operationStatus: 'done',
-      });
-
-      expect(result).toStrictEqual({ success: true });
-      expect(proxy.getGitSpawnedArgsList()).toStrictEqual([]);
-    });
-
-    // Ward and riftcarver never call signal-back at all, and a chat role commits nothing — so
-    // neither pays the git cost, which the empty spawn list is what proves.
-    it("VALID: {ward item, dirty worktree staged, 'done'} => accepted, because a COMMAND role is outside the gate and never reaches git", async () => {
-      const proxy = QuestHandleSignalBackResponderProxy();
-      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
-      const quest = QuestStub({
-        operations: [
-          OperationItemStub({
-            id: OP1_ID,
-            role: 'ward',
-            text: 'Ward gate (full monorepo)',
-            status: 'in_progress',
-            locked: true,
-            wardMode: 'full',
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: itemId,
-            role: 'ward',
-            status: 'in_progress',
-            spawnerType: 'command',
-            relatedDataItems: [`operations/${OP1_ID}`],
-            wardMode: 'full',
-          }),
-        ],
-      });
-      const questAfterOutcome = QuestStub({
-        status: 'complete',
-        operations: [
-          OperationItemStub({
-            id: OP1_ID,
-            role: 'ward',
-            text: 'Ward gate (full monorepo)',
-            status: 'complete',
-            locked: true,
-            wardMode: 'full',
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: itemId,
-            role: 'ward',
-            status: 'complete',
-            spawnerType: 'command',
-            relatedDataItems: [`operations/${OP1_ID}`],
-            wardMode: 'full',
-            completedAt: FIXED_TIMESTAMP,
-            actualSignal: 'complete',
-          }),
-        ],
-        updatedAt: FIXED_TIMESTAMP,
-      });
-      proxy.setupSignalFlow({ quest, questAfterOutcome });
-      proxy.setupWorktree({ trackedFiles: [BLIGHT_FILE], untrackedFiles: [] });
-
-      const result = await QuestHandleSignalBackResponder({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workItemId: itemId,
-        signal: 'complete',
-        operationStatus: 'done',
-      });
-
-      expect(result).toStrictEqual({ success: true });
-      expect(proxy.getGitSpawnedArgsList()).toStrictEqual([]);
     });
   });
 

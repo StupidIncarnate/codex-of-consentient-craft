@@ -30,12 +30,11 @@ describe('signalBackBroker', () => {
       });
     });
 
-    it('VALID: {signal: "complete", operationItemId, operationStatus: "done"} => returns validated signal with operation outcome', () => {
+    it('VALID: {signal: "complete", operationItemId} => returns validated signal with the operation item id', () => {
       signalBackBrokerProxy();
       const input = SignalBackInputStub({
         signal: 'complete',
         operationItemId,
-        operationStatus: 'done',
       });
 
       const result = signalBackBroker({ input });
@@ -47,29 +46,6 @@ describe('signalBackBroker', () => {
           workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
           signal: 'complete',
           operationItemId: 'cccccccc-1111-4222-9333-444444444444',
-          operationStatus: 'done',
-        },
-      });
-    });
-
-    it('VALID: {signal: "complete", operationItemId, operationStatus: "partial"} => returns validated signal with partial outcome', () => {
-      signalBackBrokerProxy();
-      const input = SignalBackInputStub({
-        signal: 'complete',
-        operationItemId,
-        operationStatus: 'partial',
-      });
-
-      const result = signalBackBroker({ input });
-
-      expect(result).toStrictEqual({
-        success: true,
-        signal: {
-          questId: 'aaaaaaaa-1111-4222-9333-444444444444',
-          workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
-          signal: 'complete',
-          operationItemId: 'cccccccc-1111-4222-9333-444444444444',
-          operationStatus: 'partial',
         },
       });
     });
@@ -133,6 +109,22 @@ describe('signalBackBroker', () => {
             workItemId,
             signal: 'complete',
             summary: 'Task finished',
+          } as never,
+        }),
+      ).toThrow(/Unrecognized key/u);
+    });
+
+    it('ERROR: {removed field operationStatus} => throws Unrecognized key error because operationStatus no longer exists on the contract', () => {
+      signalBackBrokerProxy();
+
+      expect(() =>
+        signalBackBroker({
+          input: {
+            questId,
+            workItemId,
+            signal: 'complete',
+            operationItemId,
+            operationStatus: 'done',
           } as never,
         }),
       ).toThrow(/Unrecognized key/u);

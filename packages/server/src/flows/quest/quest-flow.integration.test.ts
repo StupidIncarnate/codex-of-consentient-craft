@@ -478,7 +478,7 @@ describe('QuestFlow', () => {
       const response = await app.request(`/api/quests/${questId}/signal-back`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ workItemId, signal: 'complete', operationStatus: 'done' }),
+        body: JSON.stringify({ workItemId, signal: 'complete' }),
       });
 
       restore();
