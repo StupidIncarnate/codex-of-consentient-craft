@@ -29,6 +29,7 @@ describe('InstallCreateSettingsResponder', () => {
         crossSessionInbound: 'refuse',
         promptCacheTtl: '1h',
         subagentPromptCacheTtl: '1h',
+        promptSuggestionEnabled: false,
         env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
@@ -241,6 +242,7 @@ describe('InstallCreateSettingsResponder', () => {
         crossSessionInbound: 'refuse',
         promptCacheTtl: '1h',
         subagentPromptCacheTtl: '1h',
+        promptSuggestionEnabled: false,
         env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
@@ -463,6 +465,7 @@ describe('InstallCreateSettingsResponder', () => {
         crossSessionInbound: 'refuse',
         promptCacheTtl: '1h',
         subagentPromptCacheTtl: '1h',
+        promptSuggestionEnabled: false,
         env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
@@ -661,6 +664,7 @@ describe('InstallCreateSettingsResponder', () => {
         crossSessionInbound: 'refuse',
         promptCacheTtl: '1h',
         subagentPromptCacheTtl: '1h',
+        promptSuggestionEnabled: false,
         env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
@@ -845,7 +849,7 @@ describe('InstallCreateSettingsResponder', () => {
   });
 
   describe('existing settings with their own session defaults', () => {
-    it('VALID: {existing promptCacheTtl, crossSessionInbound and env var} => keeps every value already set and fills only the absent ones', async () => {
+    it('VALID: {existing promptCacheTtl, crossSessionInbound, promptSuggestionEnabled and env var} => keeps every value already set and fills only the absent ones', async () => {
       const proxy = InstallCreateSettingsResponderProxy();
 
       proxy.setupExistingSettings({
@@ -854,6 +858,7 @@ describe('InstallCreateSettingsResponder', () => {
             {
               crossSessionInbound: 'accept',
               promptCacheTtl: '5m',
+              promptSuggestionEnabled: true,
               env: { EXISTING_VAR: 'kept' },
             },
             null,
@@ -878,13 +883,15 @@ describe('InstallCreateSettingsResponder', () => {
 
       const written = JSON.parse(String(proxy.getWrittenContent())) as Record<PropertyKey, unknown>;
 
-      // crossSessionInbound and promptCacheTtl keep the consumer's values, subagentPromptCacheTtl
-      // was absent so the default lands, and env gains the subagent model WITHOUT losing
-      // EXISTING_VAR — the three outcomes the spread order in the responder has to produce.
+      // crossSessionInbound, promptCacheTtl and promptSuggestionEnabled keep the consumer's values,
+      // subagentPromptCacheTtl was absent so the default lands, and env gains the subagent model
+      // WITHOUT losing EXISTING_VAR — the three outcomes the spread order in the responder has to
+      // produce.
       expect(written).toStrictEqual({
         crossSessionInbound: 'accept',
         promptCacheTtl: '5m',
         subagentPromptCacheTtl: '1h',
+        promptSuggestionEnabled: true,
         env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet', EXISTING_VAR: 'kept' },
         hooks: {
           PreToolUse: [

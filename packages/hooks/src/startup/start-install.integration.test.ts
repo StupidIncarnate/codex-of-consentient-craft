@@ -40,6 +40,7 @@ describe('start-install integration', () => {
         crossSessionInbound: 'refuse',
         promptCacheTtl: '1h',
         subagentPromptCacheTtl: '1h',
+        promptSuggestionEnabled: false,
         env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
@@ -236,6 +237,7 @@ describe('start-install integration', () => {
         crossSessionInbound: 'refuse',
         promptCacheTtl: '1h',
         subagentPromptCacheTtl: '1h',
+        promptSuggestionEnabled: false,
         env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         tools: { Write: { enabled: true } },
         hooks: {
@@ -443,6 +445,7 @@ describe('start-install integration', () => {
         crossSessionInbound: 'refuse',
         promptCacheTtl: '1h',
         subagentPromptCacheTtl: '1h',
+        promptSuggestionEnabled: false,
         env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
@@ -648,6 +651,7 @@ describe('start-install integration', () => {
         crossSessionInbound: 'refuse',
         promptCacheTtl: '1h',
         subagentPromptCacheTtl: '1h',
+        promptSuggestionEnabled: false,
         env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [

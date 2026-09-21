@@ -84,6 +84,7 @@ export const claudeSettingsContract = z
     crossSessionInbound: crossSessionInboundContract.optional(),
     promptCacheTtl: promptCacheTtlContract.optional(),
     subagentPromptCacheTtl: promptCacheTtlContract.optional(),
+    promptSuggestionEnabled: z.boolean().optional(),
   })
   .passthrough();
 
