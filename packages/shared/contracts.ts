@@ -512,6 +512,20 @@ export * from './src/contracts/signoff/signoff.stub';
 export * from './src/contracts/flow-off-map-signoff/flow-off-map-signoff-contract';
 export * from './src/contracts/flow-off-map-signoff/flow-off-map-signoff.stub';
 
+// Unit Observation Contracts (the generic mark — met/cant-meet/unmet — that a session records
+// against one unit, replacing the three separate sign-off tracks above)
+export * from './src/contracts/unit-id/unit-id-contract';
+export * from './src/contracts/unit-id/unit-id.stub';
+
+export * from './src/contracts/unit-mark/unit-mark-contract';
+export * from './src/contracts/unit-mark/unit-mark.stub';
+
+export * from './src/contracts/unit-observation-fields/unit-observation-fields-contract';
+export * from './src/contracts/unit-observation-fields/unit-observation-fields.stub';
+
+export * from './src/contracts/unit-observation/unit-observation-contract';
+export * from './src/contracts/unit-observation/unit-observation.stub';
+
 // Quest Note Contracts (the durable side channel on quest.planningNotes.questNotes — open
 // questions, tooling failures, out-of-scope observations, walk resets and walked-path records,
 // none of which close a unit)
