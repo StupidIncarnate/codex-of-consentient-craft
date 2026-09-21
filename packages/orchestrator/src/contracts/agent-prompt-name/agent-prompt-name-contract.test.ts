@@ -5,8 +5,8 @@ import { AgentPromptNameStub } from './agent-prompt-name.stub';
 
 describe('agentPromptNameContract', () => {
   describe('valid names', () => {
-    // Derived from the statics the enum is BUILT from, never a hand-copied list — a name added
-    // there without a case here would otherwise go untested the day it lands.
+    // Derived from the statics roster rather than a hand-copied list — a name added there stays
+    // covered without this file changing.
     it.each(agentPromptClassificationStatics.promptNames)(
       'VALID: {value: "%s"} => parses successfully',
       (value) => {
@@ -19,56 +19,28 @@ describe('agentPromptNameContract', () => {
         'chaoswhisperer-gap-minion',
       );
     });
+
+    // THE SET IS NO LONGER CLOSED. Prompts are config swapped in and out, so a quest that ran under
+    // a prompt name nobody declares still has to LOAD — only `agentNameToPromptTransformer` refuses
+    // an unknown name, and only at DISPATCH.
+    it('VALID: {value: "a-prompt-nobody-declared"} => parses successfully', () => {
+      expect(agentPromptNameContract.parse('a-prompt-nobody-declared')).toBe(
+        'a-prompt-nobody-declared',
+      );
+    });
   });
 
   describe('invalid names', () => {
-    // THE GENERIC TRIO IS GONE, AND THAT IS WHAT THESE THREE PIN. Every minion prompt is now one
-    // file carrying its parent's subject matter, so a bare `planner-minion` names nothing. A stale
-    // MCP server or a prompt that still spells one of these would be refused here rather than
-    // served an unparameterized template — which is the failure the old `$DISCIPLINE` design
-    // could produce and this one cannot.
-    it.each(['planner-minion', 'worker-minion', 'reviewer-minion'])(
-      'INVALID: {value: "%s"} => throws validation error (a minion is named for its parent now)',
-      (value) => {
-        expect(() => {
-          agentPromptNameContract.parse(value);
-        }).toThrow(/Invalid enum value/u);
-      },
-    );
-
-    // Every earlier shape of this system, kept so a stale server serving one is a hard failure
-    // rather than a silent miss: the per-parent minion families the generic trio replaced, and the
-    // standards-review roles the pass's own reviewer absorbed.
-    it.each([
-      'pathseeker-surface',
-      'lawbringer',
-      'lawbringer-minion',
-      'blightwarden',
-      'blightwarden-group-minion',
-      'blightwarden-crosscut-minion',
-      'blightwarden-deadcode-minion',
-      'blightscout',
-      'codeweaver-piece-minion',
-      'flowrider-authoring-minion',
-      'flowrider-coverage-minion',
-      'siegemaster-walker-minion',
-      'siegemaster-test-audit-minion',
-    ])('INVALID: {value: "%s"} => throws validation error (removed name)', (value) => {
-      expect(() => {
-        agentPromptNameContract.parse(value);
-      }).toThrow(/Invalid enum value/u);
-    });
-
-    it('INVALID: {value: "unknown-agent"} => throws validation error', () => {
-      expect(() => {
-        agentPromptNameContract.parse('unknown-agent');
-      }).toThrow(/Invalid enum value/u);
-    });
-
-    it('INVALID: {value: ""} => throws validation error', () => {
+    it('EMPTY: {value: ""} => throws validation error', () => {
       expect(() => {
         agentPromptNameContract.parse('');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/String must contain at least 1 character/u);
+    });
+
+    it('INVALID: {value: 123} => throws validation error', () => {
+      expect(() => {
+        agentPromptNameContract.parse(123 as never);
+      }).toThrow(/Expected string/u);
     });
   });
 });

@@ -390,12 +390,16 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
   `flowEvidenceContractStatics`, whose `authoringMarkdown` half goes into the flowrider PROMPT and whose judging half
   goes into `flowrider-reviewer`.
 
-  The valid names are the `agentPromptNameContract` enum; `agentPromptClassificationStatics` classifies which are
-  parent-summoned minions vs orchestrator-dispatched relay roles, and carries `operatorRoleNames` — the three roles
-  that own an operation item and brief sub-agents for it, read by the prompt renderer and the signal-back gate rather
-  than listed at each call site. `agentNameToPromptTransformer` is an exhaustive TABLE mapping each name to its statics
-  + model; **nothing is interpolated there**, because each prompt holds its own text, and a
-  `satisfies Record<AgentPromptName, unknown>` is what fails the build when a name is added without a prompt behind it.
+  The valid names are `agentPromptClassificationStatics.promptNames` — `agentPromptNameContract` brands an OPEN
+  string rather than a closed enum, so a quest that ran under a renamed prompt name still loads.
+  `agentPromptClassificationStatics` also classifies which names are parent-summoned minions vs
+  orchestrator-dispatched relay roles, and carries `operatorRoleNames` — the three roles that own an operation item
+  and brief sub-agents for it, read by the prompt renderer and the signal-back gate rather than listed at each call
+  site. `agentNameToPromptTransformer` is a TABLE mapping each name to its statics + model, with no `satisfies`
+  clause left to check it — a branded, non-literal string gives TypeScript no finite key set to check an object
+  literal's keys against; **nothing is interpolated there**, because each prompt holds its own text, and a name
+  added without a prompt behind it is caught at DISPATCH instead, by a runtime
+  `if (!(agent in AGENT_PROMPTS))` throw naming it.
   `tavernkeeper-prompt-statics.ts` is deliberately absent from all three lists: the follow-up chat is served by the chat
   prompt path (`chatPromptBuildTransformer`), not by `get-agent-prompt`. There are no `.claude/agents/*.md` files for
   these agents.

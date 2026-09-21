@@ -11,13 +11,18 @@
  * NOTHING IS INTERPOLATED HERE. Every prompt is one file holding its own text, so this transformer
  * looks a name up and returns it.
  *
- * A TABLE RATHER THAN A SWITCH, and the `satisfies` is what keeps that safe. `Record<AgentPromptName,
- * unknown>` is exhaustive over the same union a `never` default checked: a name added to
- * `agentPromptClassificationStatics.promptNames` without a prompt behind it fails to compile here,
- * and a key that is not a valid name fails the object literal's excess-property check. `unknown` is
- * the value type on purpose — the branded contract fields would need raw `string` to describe, and
- * `as const` preserves each entry's real type for the reads below regardless of what `satisfies`
- * compares against.
+ * A TABLE, WITH NO `satisfies` CLAUSE LEFT TO KEEP IT SAFE. `agentPromptNameContract` is an OPEN
+ * branded string now — a quest that ran under a renamed prompt still has to LOAD — and a branded,
+ * non-literal string has no finite key set for `Record<AgentPromptName, unknown>` to check an object
+ * literal's keys against: TypeScript refuses every key as excess rather than falling back to an
+ * index signature the way it does for bare `string` (confirmed against this repo's own tsconfig; a
+ * bare `string` key fares no better, since a raw `string` type outside a function parameter trips
+ * `@dungeonmaster/ban-primitives`). So the compile-time exhaustiveness this table carried while the
+ * contract was a closed enum is GONE, not preserved under another name — a name added to the roster
+ * with no row here no longer fails to build. The missing-row case is caught at DISPATCH instead: the
+ * `agent in AGENT_PROMPTS` check below is a REAL runtime test (the object's keys are a closed set;
+ * `agent`'s type is not), and the throw names the name rather than letting `entry.model` fail against
+ * `undefined`. `as const` still preserves each entry's real type for the reads below.
  *
  * MODELS ARE READ, NEVER LITERAL, for the roles. `roleToModelStatics` is what the CLI `--model` flag
  * resolves through — `buildSpawnInstructionLayerBroker` sets no model, so every real dispatch falls
@@ -92,14 +97,21 @@ const AGENT_PROMPTS = {
     model: roleToModelStatics.warpgate,
     template: warpgatePromptStatics.prompt.template,
   },
-} as const satisfies Record<AgentPromptName, unknown>;
+} as const;
 
 export const agentNameToPromptTransformer = ({
   agent,
 }: {
   agent: AgentPromptName;
 }): AgentPromptResult => {
-  const entry = AGENT_PROMPTS[agent];
+  if (!(agent in AGENT_PROMPTS)) {
+    throw new Error(
+      `Unknown agent prompt name: '${agent}'. No prompt is registered for it in AGENT_PROMPTS — ` +
+        'check agentPromptClassificationStatics.promptNames and this table still agree.',
+    );
+  }
+
+  const entry = AGENT_PROMPTS[agent as keyof typeof AGENT_PROMPTS];
 
   return agentPromptResultContract.parse({
     name: agent,

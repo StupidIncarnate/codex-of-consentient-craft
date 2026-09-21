@@ -1,5 +1,6 @@
 import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 
+import { AgentPromptNameStub } from '../../contracts/agent-prompt-name/agent-prompt-name.stub';
 import { agentPromptClassificationStatics } from '../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
@@ -15,15 +16,23 @@ import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spi
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 import { agentNameToPromptTransformer } from './agent-name-to-prompt-transformer';
 
-type PromptName = Parameters<typeof agentNameToPromptTransformer>[0]['agent'];
+// The literal union of today's roster, pulled out of the tuple type without an indexed-access
+// `[number]` (banned by `@dungeonmaster/ban-primitives` outside a function parameter).
+type PromptName = typeof agentPromptClassificationStatics.promptNames extends readonly (infer U)[]
+  ? U
+  : never;
 
 // What each served name is supposed to come back with, stated ONCE here and read live off the
 // statics rather than copied — a prompt edited in its own file has to keep passing without this
 // file being touched, or the assertion pins a stale copy instead of the served text.
 //
-// `satisfies Record<PromptName, unknown>` is the same exhaustiveness the transformer's own table
-// carries: a name added to `agentPromptClassificationStatics.promptNames` with no entry here fails
-// to compile, so the case list below can never quietly skip a new prompt.
+// `satisfies Record<PromptName, unknown>` is THIS FILE's own exhaustiveness check, kept separate
+// from the transformer's now that `agentPromptNameContract` is an open branded string:
+// `AGENT_PROMPTS`'s own `satisfies Record<AgentPromptName, unknown>` no longer forces every roster
+// name to carry a row — a non-literal branded string has no finite key set to check against, so a
+// name with no row now fails only at DISPATCH (the throw exercised below). Deriving `PromptName`
+// from the STATICS roster instead of from the contract keeps THIS list exhaustive regardless: a name
+// added to `agentPromptClassificationStatics.promptNames` with no entry here still fails to compile.
 //
 // MODELS. The ROLE names read `roleToModelStatics` instead of restating a literal, because that map
 // is what the CLI `--model` flag resolves through at spawn time — `get-agent-prompt` only REPORTS
@@ -81,8 +90,8 @@ const EXPECTED_BY_NAME = {
   },
 } as const satisfies Record<PromptName, unknown>;
 
-// The case list is DERIVED from the name list the contract itself is built from, so an eleventh
-// prompt is covered the day it is added rather than the day someone remembers this file.
+// The case list is DERIVED from the name list the contract's roster carries, so an eleventh prompt
+// is covered the day it is added rather than the day someone remembers this file.
 const EVERY_PROMPT_CASE = agentPromptClassificationStatics.promptNames.map(
   (name) => [name, EXPECTED_BY_NAME[name].model, EXPECTED_BY_NAME[name].prompt] as const,
 );
@@ -92,7 +101,9 @@ describe('agentNameToPromptTransformer', () => {
     it.each(EVERY_PROMPT_CASE)(
       'VALID: {agent: %s} => returns that name own template, on that name own model',
       (name, model, prompt) => {
-        expect(agentNameToPromptTransformer({ agent: name })).toStrictEqual({
+        expect(
+          agentNameToPromptTransformer({ agent: AgentPromptNameStub({ value: name }) }),
+        ).toStrictEqual({
           name,
           model,
           prompt,
@@ -109,7 +120,9 @@ describe('agentNameToPromptTransformer', () => {
     it.each(agentPromptClassificationStatics.promptNames)(
       'VALID: {agent: %s} => served prompt still carries exactly one $ARGUMENTS for its caller',
       (name) => {
-        const { prompt } = agentNameToPromptTransformer({ agent: name });
+        const { prompt } = agentNameToPromptTransformer({
+          agent: AgentPromptNameStub({ value: name }),
+        });
 
         expect(prompt.split('$ARGUMENTS').length - 1).toBe(1);
       },
@@ -121,7 +134,9 @@ describe('agentNameToPromptTransformer', () => {
     it.each(agentPromptClassificationStatics.promptNames)(
       'VALID: {agent: %s} => served prompt carries no $DISCIPLINE or $MY_DISCIPLINE token',
       (name) => {
-        const { prompt } = agentNameToPromptTransformer({ agent: name });
+        const { prompt } = agentNameToPromptTransformer({
+          agent: AgentPromptNameStub({ value: name }),
+        });
 
         expect({
           discipline: prompt.split('$DISCIPLINE').length - 1,
@@ -139,7 +154,9 @@ describe('agentNameToPromptTransformer', () => {
     it.each(agentPromptClassificationStatics.minionNames)(
       'VALID: {agent: %s} => served MCP block stays within the verbatim budget',
       (minionName) => {
-        const { name, model, prompt } = agentNameToPromptTransformer({ agent: minionName });
+        const { name, model, prompt } = agentNameToPromptTransformer({
+          agent: AgentPromptNameStub({ value: minionName }),
+        });
 
         const servedBlock = JSON.stringify(
           { name, model, prompt: prompt.replace('$ARGUMENTS', () => 'Quest ID: my-quest') },
@@ -150,5 +167,21 @@ describe('agentNameToPromptTransformer', () => {
         expect(servedBlock.length).toBeLessThanOrEqual(mcpToolResultStatics.maxVerbatimChars);
       },
     );
+  });
+
+  // The contract no longer closes the set (see agent-prompt-name-contract.ts), so a name with no
+  // row in AGENT_PROMPTS reaches this transformer instead of dying at parse time. This is the one
+  // place that still refuses it — loudly, by name, rather than dispatching a session against
+  // `undefined.model`.
+  describe('an unknown prompt name is refused at dispatch, loudly and by name', () => {
+    it("ERROR: {agent: 'a-prompt-nobody-declared'} => throws naming the unknown name", () => {
+      expect(() => {
+        agentNameToPromptTransformer({
+          agent: AgentPromptNameStub({ value: 'a-prompt-nobody-declared' }),
+        });
+      }).toThrow(
+        "Unknown agent prompt name: 'a-prompt-nobody-declared'. No prompt is registered for it in AGENT_PROMPTS — check agentPromptClassificationStatics.promptNames and this table still agree.",
+      );
+    });
   });
 });

@@ -829,7 +829,10 @@ describe('workItemToPromptTransformer', () => {
   });
 
   describe('errors', () => {
-    it('ERROR: {agent: unknown name} => throws ZodError', () => {
+    // The contract no longer closes the set (agentPromptNameContract is an open branded string), so
+    // an unknown agent name PARSES here and falls to the minion branch, which reaches
+    // agentNameToPromptTransformer — the one place that still refuses it, loudly, by name.
+    it('ERROR: {agent: unknown name} => throws naming the unknown name', () => {
       const workItem = WorkItemStub();
       const quest = QuestStub({ workItems: [workItem] });
 
@@ -839,7 +842,9 @@ describe('workItemToPromptTransformer', () => {
           workItem,
           agentName: 'unknown-agent',
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(
+        "Unknown agent prompt name: 'unknown-agent'. No prompt is registered for it in AGENT_PROMPTS — check agentPromptClassificationStatics.promptNames and this table still agree.",
+      );
     });
   });
 

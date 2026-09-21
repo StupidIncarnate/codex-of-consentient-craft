@@ -10,8 +10,11 @@
  * agentPromptClassificationStatics.minionNames.includes(name);
  * // Returns true if the agent prompt name is a parent-summoned minion.
  *
- * `promptNames` and `roleNames` are the source `agentPromptNameContract` and `agentRoleContract`
- * build their enums from, so the lists cannot drift apart.
+ * `roleNames` is still the source `agentRoleContract` builds its five-member enum from.
+ * `agentPromptNameContract` no longer builds an enum from `promptNames` at all — it accepts any
+ * non-empty string, so a quest that ran under a renamed prompt still LOADS. `promptNames` is now the
+ * RUNTIME roster `agentNameToPromptTransformer` checks a dispatched name against, throwing loudly, by
+ * name, on one this list — and its own `AGENT_PROMPTS` table — do not carry.
  *
  * EVERY PROMPT IS ONE FILE, AND ITS NAME SAYS WHOSE IT IS. There is no generic template and no
  * discipline pack. The three operator roles — `codeweaver`, `flowrider`, `siegemaster` — brief
