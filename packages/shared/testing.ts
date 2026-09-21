@@ -60,6 +60,7 @@ export * from './src/brokers/locations/design-scaffold-path-find/locations-desig
 export * from './src/brokers/locations/quest-folder-path-find/locations-quest-folder-path-find-broker.proxy';
 export * from './src/brokers/locations/quest-images-path-find/locations-quest-images-path-find-broker.proxy';
 export * from './src/brokers/locations/ward-results-path-find/locations-ward-results-path-find-broker.proxy';
+export * from './src/brokers/locations/planned-work-path-find/locations-planned-work-path-find-broker.proxy';
 export * from './src/brokers/locations/claude-session-file-path-find/locations-claude-session-file-path-find-broker.proxy';
 export * from './src/brokers/locations/claude-sessions-dir-find/locations-claude-sessions-dir-find-broker.proxy';
 export * from './src/brokers/locations/rate-limits-snapshot-path-find/locations-rate-limits-snapshot-path-find-broker.proxy';

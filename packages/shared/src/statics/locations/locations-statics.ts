@@ -81,6 +81,7 @@ export const locationsStatics = {
     designDir: 'design',
     questFile: 'quest.json',
     imagesDir: 'images',
+    plannedWorkDir: 'planned-work',
   },
   userHome: {
     claude: {
