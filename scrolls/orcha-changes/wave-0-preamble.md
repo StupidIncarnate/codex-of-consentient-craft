@@ -25,11 +25,19 @@ repo and in every sub-agent. Do not go looking for them, and do not re-derive wh
 
 ## The three layers
 
-| Layer | Who | Owns |
-|---|---|---|
-| **0 — the conductor** | one long-lived session | the PR, the branch, wave gating, every bare ward, every build, the four open questions |
-| **1 — a wave agent** | one per wave | its wave file. It either does the briefs itself or fans them out |
-| **2 — a worker** | dispatched by a wave agent | 1–3 files, one brief, no dispatching of its own |
+| Layer | Who | Owns | Writes code? |
+|---|---|---|---|
+| **0 — the conductor** | one long-lived session | the PR, the branch, wave gating, every bare ward, every build, the four open questions | no |
+| **1 — a wave orchestrator** | one per wave | its wave file: decide, brief, verify, commit | **no** |
+| **2 — a worker** | dispatched by a wave orchestrator | 1–3 files, one brief, dispatches nothing | yes |
+
+**Layer 1 orchestrates. It does not do the work.** Every brief in every wave file goes to a layer-2
+worker, including the three in wave 1 and the four in wave 4. A wave orchestrator that opens an editor
+has become a worker with a to-do list, and the second layer of orchestration is gone for that wave —
+along with the thing it was for, which is that somebody is reading returns instead of producing them.
+
+**Only layer 2 writes production code.** That is the line, and it is the same line the epic itself is
+built on: the orchestrator runs the loop, the dispatched session does the work.
 
 **Depth stops at layer 2.** A worker launches nothing. Three layers is already one more than this repo
 has ever run, and the reason the limit is hard is that a layer-3 agent's failure reaches layer 0 as
@@ -44,7 +52,7 @@ has ever run, and the reason the limit is hard is that a layer-3 agent's failure
 | | Only layer 0 | Why |
 |---|---|---|
 | **run a build** | yes | a build rewrites every package's compiled output with no lock. One run lost seven ward integration tests to `TS2307` because a package's `dist` was absent for a few seconds. **Nothing in this epic needs one** — ward and the dev server read TypeScript source |
-| **run a bare `npm run ward`** | yes | whoever runs one owns every failure in it, including ones they did not cause. A wave agent running one inherits the whole repo |
+| **run a bare `npm run ward`** | yes | whoever runs one owns every failure in it, including ones they did not cause. A wave orchestrator running one inherits the whole repo |
 | **answer an open question** | yes | a session that answers one itself has invented a design decision. Send it up and wait |
 | **commit** | layer 0 and layer 1 | **a layer-2 worker NEVER commits.** Twelve concurrent sub-agent commits in one worktree were measured here: three landed, nine died on `Unable to create index.lock` |
 
@@ -66,28 +74,42 @@ will spend its whole context finding out whether your red is its problem.
 
 ---
 
-## Layer 1: do it yourself, or fan out?
+## Layer 1: how you fan out, not whether
 
-**Fan out when the briefs are file-disjoint AND mechanical. Do it yourself when they share a design
-decision.**
+**You always fan out. What varies is the batch and how hard you verify between batches.** Two shapes,
+and picking the wrong one is the commonest way a wave goes bad.
 
-| Wave | Call | Why |
+| Shape | Use it when | How it runs |
 |---|---|---|
-| 1 shapes | **yourself**, all three | the graph grammar is one decision and the whole epic is written against it |
-| 2 engine | **yourself** | the router's four-question order is the heart. Nothing else matters if it is wrong |
-| 3 tools | **mostly yourself**; 3C can go out | `get-quest-work`'s return shape is a design call that 19 prompts depend on |
-| 4 cutover | **yourself**, serially | four briefs that hand each other a compiling tree |
-| 5 sign-offs | **fan out, 1–3 files per worker** | the one genuinely mechanical wave |
-| 6 prompts | **fan out, one prompt per worker** | each is budgeted against a 50,000-char ceiling. Two in one session means one gets the leftover context |
-| 7 UI | **fan out**, except 7A | 7A has a silent failure mode and deserves your own attention |
-| 8 independent | **fan out** | small and unrelated to each other |
+| **Serial, reviewed** | the briefs share a design decision, or each hands the next a compiling tree | **decide the shared thing FIRST and put it in the brief.** Dispatch one worker. Read its return, verify it against the brief, commit. Only then dispatch the next |
+| **Parallel batches** | the briefs are file-disjoint and mechanical | dispatch a batch, wait, read every return, commit the batch. Then the next |
 
-**Why 1–3 files, and not "a sensible batch".** An agent handed a large batch optimises for throughput
+| Wave | Shape | Why |
+|---|---|---|
+| 1 shapes | serial, reviewed | the graph grammar is ONE decision. You make it, then three workers build to it — three workers each deciding part of it will diverge |
+| 2 engine | serial, reviewed | the router's four-question order is the heart. Nothing else matters if it is wrong, so you read every line that comes back |
+| 3 tools | serial, reviewed | `get-quest-work`'s return shape is a design call 19 prompts depend on. Settle it, brief it, then 3B and 3C can go out together |
+| 4 cutover | serial, reviewed | four briefs that hand each other a compiling tree. A batch here leaves nobody holding the middle state |
+| 5 sign-offs | parallel, 1–3 files per worker | the one genuinely mechanical wave |
+| 6 prompts | parallel, one prompt per worker | each is budgeted against a 50,000-char ceiling. Two in one session means one gets the leftover context |
+| 7 UI | parallel, with 7A dispatched alone and read closely | 7A has a silent failure mode, so its return needs more from you than the others |
+| 8 independent | parallel | small and unrelated to each other |
+
+**"Serial, reviewed" is still orchestration — it is the harder kind.** The design decision is yours to
+make and yours to write into the brief. What you must not do is make it by writing the code and letting
+the shape fall out; then nothing is briefed, the next worker cannot read what you decided, and you are
+the only place the reasoning lives.
+
+**Why 1–3 files, and not "a sensible batch".** A worker handed a large batch optimises for throughput
 over correctness and invents evasions — extracting violations to variables, `[\s\S]*` wildcards — that
 pass lint without improving anything. That is measured in this repo, not a worry.
 
 **Use `model: "sonnet"` for waves 5, 6 and 8.** Apply-the-contract work does not need opus, and these
-waves can spawn dozens of workers. Reserve opus for yourself and for the reviewer and planner prompts.
+waves spawn dozens of workers. Opus is for you and for the reviewer and planner prompt workers.
+
+**Read every return against the brief, never at face value.** A worker reporting green on work it did
+not do is the failure this repo has been bitten by, repeatedly and by name. Open what it says it wrote.
+If its `DONE` line was checkable, check it — that is why the briefs are written that way.
 
 ---
 
@@ -113,7 +135,9 @@ that.** Do not let it write an expected value from the code it is about to chang
 
 ## The 30-minute tick
 
-**Every orchestrator — layer 0, and any layer-1 agent that has fanned out — runs on a 30-minute loop.**
+**Every orchestrator runs on a 30-minute loop — layer 0, and every layer-1 wave orchestrator.** Layer 1
+always has workers out, so this always applies to you. A layer-2 worker sets no loop; it does its
+brief and returns.
 
 ```
 /loop 30m <your standing instruction>
@@ -176,9 +200,12 @@ does not exist, say that and name where you looked. Do not build it anyway.
 
 ---
 
-## Before you write any code
+## Before you write any code — layer 2 only
 
-**Once per session, including every worker:**
+**Layers 0 and 1 write no production code, so this section is for a worker.** A wave orchestrator that
+finds itself calling `get-folder-detail` is about to do a worker's job.
+
+**Once per session:**
 
 - `get-architecture` — folder types, import rules, how to write the file itself
 - `get-testing-patterns` — the proxy pattern, mock boundaries, assertion rules

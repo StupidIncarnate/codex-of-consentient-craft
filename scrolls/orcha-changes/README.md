@@ -1,9 +1,12 @@
 # The orchestrator step engine — the dispatch plan
 
 **Start at [`wave-0-preamble.md`](wave-0-preamble.md), whatever layer you are on.** It has the three
-layers, who is allowed to build and ward and commit, when a wave agent fans out instead of doing the
-work itself, the 30-minute supervision tick, and the handoff shape. This file is the map; that one is
-how to walk it.
+layers, who is allowed to build and ward and commit, how a wave orchestrator fans its briefs out, the
+30-minute supervision tick, and the handoff shape. This file is the map; that one is how to walk it.
+
+**Two layers of orchestration.** The conductor launches one orchestrator per wave; that orchestrator
+dispatches a worker per brief. **Only the workers write code** — a wave orchestrator decides, briefs,
+verifies and commits.
 
 **One PR. Many sessions.** This directory exists to chunk the work in
 `scrolls/orchestrator-step-engine-plan.md` into briefs a single agent session can hold, run and hand
