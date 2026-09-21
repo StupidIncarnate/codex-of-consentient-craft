@@ -178,4 +178,19 @@ describe('computeReadyWorkItemsLayerBroker', () => {
 
     expect(result).toStrictEqual([item]);
   });
+
+  // `queued` is deps-satisfied but already committed to a role group and awaiting slot dispatch —
+  // it is claimed, not eligible. Only `pending` clears `isPendingWorkItemStatusGuard`.
+  it('VALID: {role: codeweaver, status: queued, no deps} => excluded from the ready set (already claimed)', () => {
+    computeReadyWorkItemsLayerBrokerProxy();
+    const item = WorkItemStub({
+      id: QuestWorkItemIdStub({ value: 'aaacccc0-1111-4222-9333-444444444444' }),
+      role: 'codeweaver',
+      status: 'queued',
+    });
+
+    const result = computeReadyWorkItemsLayerBroker({ workItems: [item] });
+
+    expect(result).toStrictEqual([]);
+  });
 });

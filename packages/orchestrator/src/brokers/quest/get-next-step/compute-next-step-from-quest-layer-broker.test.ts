@@ -249,6 +249,267 @@ describe('computeNextStepFromQuestLayerBroker', () => {
     });
   });
 
+  it('VALID: {four ready codeweaver cells, no interdependency} => spawn-agents dispatches all four, in dispatch order', () => {
+    computeNextStepFromQuestLayerBrokerProxy();
+    const questId = QuestIdStub({ value: 'q-four-cells' });
+    const cw1Id = QuestWorkItemIdStub({ value: 'ffff0001-1111-4222-9333-444444444444' });
+    const cw2Id = QuestWorkItemIdStub({ value: 'ffff0002-1111-4222-9333-444444444444' });
+    const cw3Id = QuestWorkItemIdStub({ value: 'ffff0003-1111-4222-9333-444444444444' });
+    const cw4Id = QuestWorkItemIdStub({ value: 'ffff0004-1111-4222-9333-444444444444' });
+    const quest = QuestStub({
+      id: questId,
+      workItems: [
+        // Deliberately out of createdAt order — proves the batch follows DISPATCH order, not
+        // array order.
+        WorkItemStub({
+          id: cw3Id,
+          role: 'codeweaver',
+          status: 'pending',
+          createdAt: '2024-01-15T10:00:03.000Z',
+        }),
+        WorkItemStub({
+          id: cw1Id,
+          role: 'codeweaver',
+          status: 'pending',
+          createdAt: '2024-01-15T10:00:01.000Z',
+        }),
+        WorkItemStub({
+          id: cw4Id,
+          role: 'codeweaver',
+          status: 'pending',
+          createdAt: '2024-01-15T10:00:04.000Z',
+        }),
+        WorkItemStub({
+          id: cw2Id,
+          role: 'codeweaver',
+          status: 'pending',
+          createdAt: '2024-01-15T10:00:02.000Z',
+        }),
+      ],
+    });
+
+    const result = computeNextStepFromQuestLayerBroker({ quest });
+
+    expect(result).toStrictEqual({
+      type: 'spawn-agents',
+      agents: [
+        {
+          questId,
+          role: 'codeweaver',
+          workItemId: cw1Id,
+          taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cw1Id}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cw1Id}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+        },
+        {
+          questId,
+          role: 'codeweaver',
+          workItemId: cw2Id,
+          taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cw2Id}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cw2Id}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+        },
+        {
+          questId,
+          role: 'codeweaver',
+          workItemId: cw3Id,
+          taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cw3Id}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cw3Id}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+        },
+        {
+          questId,
+          role: 'codeweaver',
+          workItemId: cw4Id,
+          taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cw4Id}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cw4Id}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+        },
+      ],
+    });
+  });
+
+  it('VALID: {codeweaver queued alongside two ready codeweavers} => spawn-agents dispatches only the two ready items, queued excluded', () => {
+    computeNextStepFromQuestLayerBrokerProxy();
+    const questId = QuestIdStub({ value: 'q-queued-excluded' });
+    const queuedId = QuestWorkItemIdStub({ value: 'ddd10001-1111-4222-9333-444444444444' });
+    const cw1Id = QuestWorkItemIdStub({ value: 'ddd10002-1111-4222-9333-444444444444' });
+    const cw2Id = QuestWorkItemIdStub({ value: 'ddd10003-1111-4222-9333-444444444444' });
+    const quest = QuestStub({
+      id: questId,
+      workItems: [
+        WorkItemStub({ id: queuedId, role: 'codeweaver', status: 'queued' }),
+        WorkItemStub({
+          id: cw1Id,
+          role: 'codeweaver',
+          status: 'pending',
+          createdAt: '2024-01-15T10:00:01.000Z',
+        }),
+        WorkItemStub({
+          id: cw2Id,
+          role: 'codeweaver',
+          status: 'pending',
+          createdAt: '2024-01-15T10:00:02.000Z',
+        }),
+      ],
+    });
+
+    const result = computeNextStepFromQuestLayerBroker({ quest });
+
+    expect(result).toStrictEqual({
+      type: 'spawn-agents',
+      agents: [
+        {
+          questId,
+          role: 'codeweaver',
+          workItemId: cw1Id,
+          taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cw1Id}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cw1Id}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+        },
+        {
+          questId,
+          role: 'codeweaver',
+          workItemId: cw2Id,
+          taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cw2Id}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cw2Id}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+        },
+      ],
+    });
+  });
+
+  it('VALID: {ward ready alongside three ready codeweavers} => returns run-ward alone, never batched with the agents', () => {
+    computeNextStepFromQuestLayerBrokerProxy();
+    const questId = QuestIdStub({ value: 'q-ward-plus-agents' });
+    const wardId = QuestWorkItemIdStub({ value: 'aaa10001-1111-4222-9333-444444444444' });
+    const cw1Id = QuestWorkItemIdStub({ value: 'aaa10002-1111-4222-9333-444444444444' });
+    const cw2Id = QuestWorkItemIdStub({ value: 'aaa10003-1111-4222-9333-444444444444' });
+    const cw3Id = QuestWorkItemIdStub({ value: 'aaa10004-1111-4222-9333-444444444444' });
+    const quest = QuestStub({
+      id: questId,
+      workItems: [
+        WorkItemStub({ id: cw1Id, role: 'codeweaver', status: 'pending' }),
+        WorkItemStub({
+          id: wardId,
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          wardMode: 'committed',
+        }),
+        WorkItemStub({ id: cw2Id, role: 'codeweaver', status: 'pending' }),
+        WorkItemStub({ id: cw3Id, role: 'codeweaver', status: 'pending' }),
+      ],
+    });
+
+    const result = computeNextStepFromQuestLayerBroker({ quest });
+
+    expect(result).toStrictEqual({
+      type: 'run-ward',
+      questId,
+      workItemId: wardId,
+      mode: 'committed',
+    });
+  });
+
+  it('VALID: {riftcarver ready alongside three ready codeweavers} => returns run-riftcarver alone, no spawn-agents', () => {
+    computeNextStepFromQuestLayerBrokerProxy();
+    const questId = QuestIdStub({ value: 'q-riftcarver-plus-agents' });
+    const carveId = QuestWorkItemIdStub({ value: 'bbb10001-1111-4222-9333-444444444444' });
+    const cw1Id = QuestWorkItemIdStub({ value: 'bbb10002-1111-4222-9333-444444444444' });
+    const cw2Id = QuestWorkItemIdStub({ value: 'bbb10003-1111-4222-9333-444444444444' });
+    const cw3Id = QuestWorkItemIdStub({ value: 'bbb10004-1111-4222-9333-444444444444' });
+    const quest = QuestStub({
+      id: questId,
+      workItems: [
+        WorkItemStub({ id: cw1Id, role: 'codeweaver', status: 'pending' }),
+        WorkItemStub({ id: cw2Id, role: 'codeweaver', status: 'pending' }),
+        WorkItemStub({
+          id: carveId,
+          role: 'riftcarver',
+          status: 'pending',
+          spawnerType: 'command',
+        }),
+        WorkItemStub({ id: cw3Id, role: 'codeweaver', status: 'pending' }),
+      ],
+    });
+
+    const result = computeNextStepFromQuestLayerBroker({ quest });
+
+    expect(result).toStrictEqual({
+      type: 'run-riftcarver',
+      questId,
+      workItemId: carveId,
+    });
+  });
+
+  it('VALID: {three of four upstream codeweaver cells complete, ward depends on all four} => spawn-agents dispatches the one remaining cell, not run-ward (join has not fired)', () => {
+    computeNextStepFromQuestLayerBrokerProxy();
+    const questId = QuestIdStub({ value: 'q-join-not-yet' });
+    const cw1Id = QuestWorkItemIdStub({ value: 'ccc20001-1111-4222-9333-444444444444' });
+    const cw2Id = QuestWorkItemIdStub({ value: 'ccc20002-1111-4222-9333-444444444444' });
+    const cw3Id = QuestWorkItemIdStub({ value: 'ccc20003-1111-4222-9333-444444444444' });
+    const cw4Id = QuestWorkItemIdStub({ value: 'ccc20004-1111-4222-9333-444444444444' });
+    const wardId = QuestWorkItemIdStub({ value: 'ccc20005-1111-4222-9333-444444444444' });
+    const quest = QuestStub({
+      id: questId,
+      workItems: [
+        WorkItemStub({ id: cw1Id, role: 'codeweaver', status: 'complete' }),
+        WorkItemStub({ id: cw2Id, role: 'codeweaver', status: 'complete' }),
+        WorkItemStub({ id: cw3Id, role: 'codeweaver', status: 'complete' }),
+        // The one that hasn't recorded yet — the join must not fire without it.
+        WorkItemStub({ id: cw4Id, role: 'codeweaver', status: 'pending' }),
+        WorkItemStub({
+          id: wardId,
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          wardMode: 'committed',
+          dependsOn: [cw1Id, cw2Id, cw3Id, cw4Id],
+        }),
+      ],
+    });
+
+    const result = computeNextStepFromQuestLayerBroker({ quest });
+
+    expect(result).toStrictEqual({
+      type: 'spawn-agents',
+      agents: [
+        {
+          questId,
+          role: 'codeweaver',
+          workItemId: cw4Id,
+          taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cw4Id}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cw4Id}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+        },
+      ],
+    });
+  });
+
+  it('VALID: {all four upstream codeweaver cells complete, ward depends on all four} => run-ward fires (join complete on the LAST recording)', () => {
+    computeNextStepFromQuestLayerBrokerProxy();
+    const questId = QuestIdStub({ value: 'q-join-fires' });
+    const cw1Id = QuestWorkItemIdStub({ value: 'ccc30001-1111-4222-9333-444444444444' });
+    const cw2Id = QuestWorkItemIdStub({ value: 'ccc30002-1111-4222-9333-444444444444' });
+    const cw3Id = QuestWorkItemIdStub({ value: 'ccc30003-1111-4222-9333-444444444444' });
+    const cw4Id = QuestWorkItemIdStub({ value: 'ccc30004-1111-4222-9333-444444444444' });
+    const wardId = QuestWorkItemIdStub({ value: 'ccc30005-1111-4222-9333-444444444444' });
+    const quest = QuestStub({
+      id: questId,
+      workItems: [
+        WorkItemStub({ id: cw1Id, role: 'codeweaver', status: 'complete' }),
+        WorkItemStub({ id: cw2Id, role: 'codeweaver', status: 'complete' }),
+        WorkItemStub({ id: cw3Id, role: 'codeweaver', status: 'complete' }),
+        // The fourth and final recording — this is what makes the join fire.
+        WorkItemStub({ id: cw4Id, role: 'codeweaver', status: 'complete' }),
+        WorkItemStub({
+          id: wardId,
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          wardMode: 'committed',
+          dependsOn: [cw1Id, cw2Id, cw3Id, cw4Id],
+        }),
+      ],
+    });
+
+    const result = computeNextStepFromQuestLayerBroker({ quest });
+
+    expect(result).toStrictEqual({
+      type: 'run-ward',
+      questId,
+      workItemId: wardId,
+      mode: 'committed',
+    });
+  });
+
   describe('bug-hunt dispatch walk', () => {
     it('VALID: {codeweaver pending} => spawn-agents codeweaver first', () => {
       computeNextStepFromQuestLayerBrokerProxy();

@@ -53,7 +53,15 @@ export const computeNextStepFromQuestLayerBroker = ({
     });
   }
 
-  const batch = selectBatchLayerBroker({ ready });
+  // `selected` is the router's decision (`NextAction.batch` —
+  // packages/orchestrator/src/contracts/next-action/next-action-contract.ts) and is not yet wired
+  // to this ledger relay. Until it is, every ready item IS the selection: selectBatchLayerBroker
+  // still owns turning ids into the WorkItem[] batch, in ready's dispatch order, rather than this
+  // broker re-deriving it.
+  const batch = selectBatchLayerBroker({
+    ready,
+    selected: ready.map((item) => item.id),
+  });
   if (batch.length === 0) {
     return null;
   }

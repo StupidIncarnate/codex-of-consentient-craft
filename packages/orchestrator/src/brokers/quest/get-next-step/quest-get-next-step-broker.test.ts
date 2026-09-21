@@ -123,7 +123,7 @@ describe('questGetNextStepBroker', () => {
       expect(setActive).toHaveBeenCalledWith({ questId });
     });
 
-    it('VALID: {ready codeweaver + ready spiritmender with no deps} => returns only the first one (single agent rule)', async () => {
+    it('ERROR: {ready codeweaver + ready spiritmender with no deps} => throws (never parallel-dispatch different roles)', async () => {
       const proxy = questGetNextStepBrokerProxy();
       const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
@@ -144,22 +144,12 @@ describe('questGetNextStepBroker', () => {
       });
       const activeQuest = ActiveQuestFacadeStub();
 
-      const result = await questGetNextStepBroker({
-        activeQuest,
-        longPollTotalMs: 0,
-      });
-
-      expect(result).toStrictEqual({
-        type: 'spawn-agents',
-        agents: [
-          {
-            questId,
-            role: 'codeweaver',
-            workItemId: cwId,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cwId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
-          },
-        ],
-      });
+      await expect(
+        questGetNextStepBroker({
+          activeQuest,
+          longPollTotalMs: 0,
+        }),
+      ).rejects.toThrow(/batch mixes roles/u);
     });
 
     it('VALID: {ready spiritmender} => single spawn-agents', async () => {
