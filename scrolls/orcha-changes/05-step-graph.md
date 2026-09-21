@@ -97,7 +97,32 @@ outcome. **The fold is PER STEP**, which matters once a step's pieces run in sev
 
 ## BUILD
 
-New: `packages/orchestrator/src/statics/agent-flow/agent-flow-statics.ts`
+| New file | |
+|---|---|
+| `packages/orchestrator/src/statics/agent-flow/agent-flow-statics.ts` | the config |
+| `packages/orchestrator/src/statics/agent-flow/agent-flow-statics.test.ts` | colocated, required. `statics/` needs no proxy file |
+
+### What `statics/` demands here, before you write a line
+
+| Rule | Here |
+|---|---|
+| `statics/<domain>/<domain>-statics.ts`, one level deep, with a colocated `-statics.test.ts` | the two paths above |
+| PURPOSE + USAGE JSDoc **above the imports**, never above the export | copy the voice of `signoff-track-eligibility-statics.ts:1–30` — the closest thing in the repo, a structured config whose header explains each entry as a decision rather than restating the keys |
+| one export, `as const`, no conditionals, no primitives at the ROOT | every root key here is a family object, so `enforce-grouped-statics` is satisfied |
+| a module-level `const` spread in but never exported is allowed | `packages/config/src/statics/framework-presets-data/framework-presets-data-statics.ts:11` declares `const FRONTEND_BASE_PRESET`, `:107` spreads it. `CLOSE_OUT` is that exact shape and passes the same lint |
+
+**No zod contract validates this file, and none is to be added.** Every statics file in this repo is a
+bare `as const` — `roleToModelStatics`, `slotManagerStatics`, `wardCommandStatics` and
+`signoffTrackEligibilityStatics` all are. Three things hold the shape instead: `as const`, the
+colocated pin test, and story 06's checker. A contract would be a fourth copy of the same facts and
+the one most likely to drift.
+
+**The only type this file exports is derived from the literal.**
+`export type AgentFamilyName = keyof typeof agentFlowStatics;` — precedent
+`packages/orchestrator/src/statics/smoketest-prompts/smoketest-prompts-statics.ts:77`,
+`export type SmoketestPromptName = keyof typeof smoketestPromptsStatics;`. Do not hand-write a
+`StepDefinition` interface: `statics/` forbids inline types, and `as const` already gives every
+reader the exact literal type of every step.
 
 ```ts
 const CLOSE_OUT = {
@@ -111,8 +136,10 @@ const CLOSE_OUT = {
     role: 'reviewer', kind: 'deterministic', handler: 'ward',
     args: ['--committed', '--uncommitted'], maxVisits: 3,
     // `empty` is a 0-file scope: green by exit code, but nothing was graded.
-    // No `wall` — a deterministic step exits green, red or empty. Only `repair` can wall.
-    routes: { done: '@done', empty: '@done', unmet: 'repair' },
+    // `wall` is a CRASH — ward never reported on the code, so a spiritmender has nothing
+    // to fix and the next run crashes the same way. quest-run-ward-broker.ts:249-253
+    // already blocks on it today, for that reason.
+    routes: { done: '@done', empty: '@done', unmet: 'repair', wall: '@blocked' },
   },
   repair: {
     role: 'worker', kind: 'prompt', prompt: 'spiritmender', model: 'sonnet', maxVisits: 3,
@@ -256,11 +283,10 @@ export const agentFlowStatics = {
     entry: 'gate',
     steps: {
       // No args — a bare ward is every check over the whole monorepo.
-      // Deterministic: it exits green, red or empty. It cannot hit a wall,
-      // so it declares no `wall` route. Only its repair can.
+      // Same four outcomes as the family gate, crash included.
       gate: {
         role: 'reviewer', kind: 'deterministic', handler: 'ward', args: [], maxVisits: 3,
-        routes: { done: '@done', empty: '@done', unmet: 'repair' },
+        routes: { done: '@done', empty: '@done', unmet: 'repair', wall: '@blocked' },
       },
       // A repair here writes code, and this graph has no CLOSE_OUT, so it needs its own
       // commit. Without one the quest reaches @complete with the fix uncommitted, and
@@ -306,27 +332,199 @@ export const agentFlowStatics = {
       },
     },
   },
-}
-```
+} as const;
+
+export type AgentFamilyName = keyof typeof agentFlowStatics;
 ```
 
-**Two field names carry weight that is easy to miss.** `mintableOnRequest` tells story 06's
+---
+
+## Every field, and who reads it
+
+Nothing outside this table may appear on a step. Each field has exactly one reader, and a field
+nobody reads is a field that silently means nothing.
+
+| Field | Shape | Declared on | Read by |
+|---|---|---|---|
+| `entry` | a key of the same family's `steps` | every family | story 22, when a scope is first minted |
+| `steps` | a record keyed by STEP NAME — free-form, since `stepNameContract` (story 02) is a branded string and not an enum | every family | all of them |
+| `role` | `'planner' \| 'worker' \| 'reviewer'` | every step, deterministic ones included | story 12 (which units the step is assigned), story 13 (how its outcome derives) |
+| `kind` | `'prompt' \| 'deterministic'` | every step | story 13 — a deterministic step is outside the unit gate; story 22 — which dispatcher runs it |
+| `prompt` | a name `agentPromptNameContract` accepts. Story 03 opened that to any non-empty string, so a typo PARSES and only story 06 catches it | `kind: 'prompt'` only | story 22, through `agentNameToPromptTransformer` |
+| `handler` | one of `commit` · `ward` · `riftcarver` · `cleanup` | `kind: 'deterministic'` only | story 20 |
+| `model` | `'opus' \| 'sonnet'` | `kind: 'prompt'` only | story 22 → the CLI `--model` flag |
+| `args` | `string[]`, passed VERBATIM | `ward` and `riftcarver` steps. `commit` and `cleanup` declare none | story 20 |
+| `routes` | a PARTIAL map of the four outcome words to a step key, `@done`, or `@blocked`. A step may declare none of `done` / `empty` | every step | story 15 |
+| `maxVisits` | positive integer | every step | story 15 — see below |
+| `mintableOnRequest` | `true`, or absent | `recipe`, `read` | story 06 (reachability), story 17 (which steps a `request` payload may name) |
+| `needsLane` | `true`, or absent | `happyWalk`, `adversarial` | story 23 |
+| `maxConcurrent` | `{ limit: number, counts: 'browser-pieces' }` | flowrider's `work`, and nothing else | story 15. A piece is a browser walk iff any of its units has `layer: 'browser'` |
+
+**`mintableOnRequest` and `needsLane` carry weight that is easy to miss.** The first tells story 06's
 reachability check that a step nothing routes to is still reachable — a running session asks for it.
-`needsLane: true` means the ROUTER starts a siegelense instance before dispatching that work item and
-kills it when the item records; the step declares no number, because how many may run at once is
-measured off `siegelense capacity` rather than guessed (story 23).
+The second means the ROUTER starts a siegelense instance before dispatching that work item and kills
+it when the item records; the step declares no number, because how many may run at once is measured
+off `siegelense capacity` rather than guessed (story 23).
+
+---
+
+## `maxVisits` is a ceiling on a count NOTHING STORES — settled here
+
+This is the one field in the config that names state, and that state is not a field anywhere in the
+chain. Story 02 adds four work-item fields — `step`, `observations`, `pieceId`, `payload` — and no
+counter. **That is correct. Do not add one, and do not ask story 02 to.**
+
+**The count is DERIVED, at the moment the router is about to mint:**
+
+> the number of work items on this SCOPE — the ones whose `relatedDataItems` holds this operation
+> item's `operations/<id>` ref — whose `step` equals this step's key.
+
+Both halves already exist. `relatedDataItems` is how a work item names its scope today
+(`packages/shared/src/contracts/work-item/work-item-contract.ts:35–40` states the ref and the
+strict-1:1 invariant story 22 retires), and `step` is exactly what story 02 puts beside it. So a
+visit count is a filter over a ledger the router is reading anyway.
+
+**Every other budget in this repo is counted the same way**, which is why deriving is the convention
+rather than a shortcut. `packages/orchestrator/src/statics/slot-manager/slot-manager-statics.ts` says
+so at `riftcarver.maxRetries`: *"the chain is counted from the ledger's own role-filtered history
+rather than from one item's pt continuations."*
+
+**This story declares the ceiling and nothing else.** Enforcement is story 15's — its `DONE WHEN`
+already carries *"`maxVisits` exhaustion blocks, naming the step"*.
+
+---
+
+## Every `prompt:` above, checked against the tree
+
+`agentNameToPromptTransformer`
+(`packages/orchestrator/src/transformers/agent-name-to-prompt/agent-name-to-prompt-transformer.ts:46–95`)
+is the table that resolves a name, and `agentPromptClassificationStatics.promptNames` is the roster
+behind it. **Four of the fifteen names in this config resolve today. Eleven are story 25's.**
+
+| `prompt:` | Today | Story 25 |
+|---|---|---|
+| `codeweaver-planner` | — | 25a, NEW |
+| `codeweaver-worker` | — | 25b, NEW |
+| `codeweaver-reviewer` | **exists** — `statics/codeweaver-reviewer/`, served at sonnet | 25c, REWRITTEN |
+| `flowrider-planner` | — | 25d, NEW |
+| `flowrider-worker` | — | 25e, NEW |
+| `flowrider-reviewer` | **exists** — `statics/flowrider-reviewer/`, served at sonnet | 25f, REWRITTEN |
+| `siege-planner` | — | 25g, NEW |
+| `siege-happy-walker` | — | 25h, ADAPTED from `statics/siegemaster-verifier/` |
+| `siege-adversarial-walker` | — | 25i, ADAPTED from `statics/siegemaster-stress/` |
+| `siege-happy-fixer` | — | 25j, NEW |
+| `siege-adversarial-fixer` | — | 25k, NEW |
+| `recipe-maker` | — | 25l, NEW |
+| `siegemaster-reader` | — | 25m, NEW |
+| `spiritmender` | **exists** — `statics/spiritmender-prompt/`, served at sonnet | 25n, REWRITTEN |
+| `warpgate` | **exists** — `statics/warpgate-prompt/`, served at opus | 25o, REWRITTEN |
+
+**A name story 25 has not written yet is not a failure of THIS story**, because nothing here
+dispatches. Story 06's rule 8 is what turns a dangling name into a red, and it lands after this one.
+Registering a name in `agentPromptClassificationStatics` is story 25q's and not yours.
+
+**The `model:` values above deliberately disagree with what two of those four are served at today.**
+`codeweaver-reviewer` and `flowrider-reviewer` are sonnet MINIONS today
+(`agent-name-to-prompt-transformer.ts:56–59` and `:65–68`) and are `model: 'opus'` reviewer STEPS
+here. A reviewer is now a dispatched session assigned its scope's whole in-scope set, which is the
+same reasoning `roleToModelStatics` gives for the operator roles — *"it plans what it hands out,
+judges what comes back against the files it opened, and decides whether its scope is done"*. Do not
+"correct" them back to sonnet.
+
+`OPEN` — **`warpgate`'s model.** This config says `opus`, matching `roleToModelStatics.warpgate`
+today; story 25's own table row 25o says `sonnet`. They cannot both stand. This story holds `opus`
+until the epic author rules otherwise; whoever writes 25o must not silently pick the other.
+
+---
+
+## Every `handler:` above — story 20 builds these four and no others
+
+| `handler:` | Steps declaring it | `args` |
+|---|---|---|
+| `commit` | `CLOSE_OUT.commit`, `wardFull.commit`, `riftcarver.commit` | none |
+| `ward` | `CLOSE_OUT.ward` (and siegemaster's override of it), `wardFull.gate` | `['--committed', '--uncommitted']` on the family gates; `[]` on `wardFull.gate` |
+| `riftcarver` | `riftcarver.carve` | `[]` |
+| `cleanup` | `siegemaster.sweepIn`, `siegemaster.sweepOut` | none |
+
+That is exactly story 20's set. **A fifth handler name in this config is a bug in this config**, not
+a request to story 20.
+
+---
+
+## The spread override, and the two ways to get it wrong
+
+`{ ...CLOSE_OUT, ward: { … } }` is legal TypeScript. So is `{ ward: { … }, ...CLOSE_OUT }`.
+**Neither the compiler nor `no-dupe-keys` reports either** — a spread beside an explicit key is not a
+duplicate key. The later entry wins, and that is the whole mechanism.
+
+The pattern already lives in a statics file here and passes lint today:
+`packages/config/src/statics/framework-presets-data/framework-presets-data-statics.ts:162–168`
+spreads `FRONTEND_BASE_PRESET` and then overrides four of its keys.
+
+| Mistake | What ships |
+|---|---|
+| the `ward` entry placed BEFORE `...CLOSE_OUT` | the shared `ward` wins, siegemaster routes `done: '@done'`, `sweepOut` never runs, and every siege pass leaks siegelense instances |
+| the override written as a whole fresh entry instead of `...CLOSE_OUT.ward` plus `routes` | `handler`, `args` and `maxVisits` drift from the shared trio — the exact thing `CLOSE_OUT` exists to prevent |
+
+So assert the RESOLVED value, and assert the shared one in the SAME test. A single assertion on
+siegemaster's `ward` passes just as happily when `CLOSE_OUT` was never spread at all:
+
+```ts
+expect(agentFlowStatics.siegemaster.steps.ward.routes.done).toBe('sweepOut');
+expect(agentFlowStatics.codeweaver.steps.ward.routes.done).toBe('@done');
+expect(agentFlowStatics.siegemaster.steps.ward.args).toStrictEqual(['--committed', '--uncommitted']);
+expect(agentFlowStatics.siegemaster.steps.repair.prompt).toBe('spiritmender');
+```
+
+---
+
+## How every step is reached — the answer story 06 must find
+
+Story 06 walks these graphs and flags a step nothing reaches. Stating the expected answer here is
+what makes a failure there a finding about the CONFIG rather than about the checker.
+
+**Reachability.** Every step in all six graphs is reached by some route from its family's `entry` —
+`unmet` and `wall` routes count, not just `done`. The only exceptions are `recipe` (flowrider and
+siegemaster) and `read` (siegemaster), both of which declare `mintableOnRequest`. **There is no
+other exemption and none is to be added.** `adversarial` in particular needs no flag: `happyWalk`
+routes to it.
+
+**Steps that declare no `done` route.** Five, and each must be reached only by an `unmet` route or by
+a request, because an undeclared outcome returns to the minter and only those two have one:
+
+| Step | Its only inbound |
+|---|---|
+| `CLOSE_OUT.repair` (all three code-changing families) | `ward`'s `unmet` |
+| `siegemaster.fixHappy` | `happyWalk`'s `unmet` |
+| `siegemaster.fixAdversarial` | `adversarial`'s `unmet` |
+| `recipe` (flowrider, siegemaster) | a request |
+| `read` (siegemaster) | a request |
+
+**`wardFull.repair` and `riftcarver.repair` DO declare `done: 'commit'`, and must keep it.** Those
+two graphs get no `CLOSE_OUT`, so nothing else commits the fix — and the commit routes back to the
+gate that sent the repair, so the fix is re-graded rather than assumed.
 
 ---
 
 ## DONE WHEN
 
+`npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/statics/agent-flow/agent-flow-statics.ts packages/orchestrator/src/statics/agent-flow/agent-flow-statics.test.ts`
+exits 0, and:
+
 | Assert | |
 |---|---|
-| the statics pins | a change to a graph should be a visible diff on a test, not a silent edit |
-| **`CLOSE_OUT` is spread into exactly the three code-changing families**, and `riftcarver`, `wardFull` and `warpgate` each declare their own steps | this is the gap that produced two of the config's comments. `riftcarver` and `wardFull` run a `repair` and get no `CLOSE_OUT`, so each needs its OWN `commit` step, or a spiritmender's fix reaches `@complete` uncommitted and `warpgate`'s `git merge --squash` drops it |
-| siegemaster's `ward` entry OVERRIDES the spread one, and the override comes AFTER the spread | spread order is the whole mechanism. Get it backwards and the shared `ward` wins, `sweepOut` never runs, and every siege pass leaks instances |
-| every `prompt:` value is a name `agentNameToPromptTransformer` can resolve, OR is listed in story 25 as one to be written | a dangling prompt is a step that dispatches against nothing |
-| `happyWalk` routes to `adversarial`, not to `commit` | that route IS the two-phase rule. If it points at `commit`, the antagonist has no baseline |
+| `agent-flow-statics.test.ts` pins the WHOLE object with one `toStrictEqual` | a change to a graph should be a visible diff on a test, not a silent edit. `role-to-model-statics.test.ts` is the shape: one whole-object pin, then one `VALID:`-prefixed test per property worth stating in its own right |
+| the family keys are exactly `codeweaver`, `flowrider`, `siegemaster`, `wardFull`, `riftcarver`, `warpgate` | |
+| **`CLOSE_OUT` resolves into exactly `codeweaver`, `flowrider` and `siegemaster`** — assert each holds a `repair` step whose `prompt` is `spiritmender` and that `wardFull`, `riftcarver` and `warpgate` do not | this is the gap that produced two of the config's comments |
+| `agentFlowStatics.wardFull.steps.commit.routes.done === 'gate'` and `agentFlowStatics.riftcarver.steps.commit.routes.done === 'carve'` | `riftcarver` and `wardFull` run a `repair` and get no `CLOSE_OUT`, so each needs its OWN `commit`, routed back to its own gate — otherwise a spiritmender's fix reaches `@complete` uncommitted and `warpgate`'s `git merge --squash` drops it |
+| **the four assertions in "The spread override" above, in ONE test** | any one of them alone passes when `CLOSE_OUT` was never spread |
+| `agentFlowStatics.siegemaster.steps.happyWalk.routes.done === 'adversarial'` | that route IS the two-phase rule. Point it at `commit` and the antagonist has no baseline |
+| every `prompt:` value appears in the story-25 table above, and the four marked **exists** resolve through `agentNameToPromptTransformer` today | a dangling prompt is a step that dispatches against nothing |
+| every `handler:` value is one of `commit` / `ward` / `riftcarver` / `cleanup` | |
+| exactly `recipe` and `read` carry `mintableOnRequest`; exactly `happyWalk` and `adversarial` carry `needsLane`; exactly `flowrider.work` carries `maxConcurrent` | each of the three has a reader in a later story, and a fourth step carrying one silently changes that story's behaviour |
+| every step carries `maxVisits`, and every value is a positive integer | story 06's rule 6 needs one on every cycle; declaring it on every step is cheaper than proving which steps sit on one |
+| no step carries a key outside "Every field, and who reads it" | |
+| the exported type is `keyof typeof agentFlowStatics` and nothing hand-written | `statics/` forbids inline types |
 
 ---
 
@@ -336,5 +534,10 @@ measured off `siegelense capacity` rather than guessed (story 23).
 |---|---|
 | write the reachability check | story 06 |
 | write any prompt | story 25 |
+| register a prompt name in `agentPromptClassificationStatics` or `agentNameToPromptTransformer` | story 25q, and it goes last |
 | write any handler | story 20 |
 | wire this to dispatch | story 22 |
+| add a zod contract for a step | nothing. Statics here are `as const` plus a colocated pin test — see the convention table under BUILD |
+| add a visit COUNTER to the work item | nothing. The count is derived; story 02's four fields are complete |
+| add a `"./statics"` export subpath to `packages/orchestrator/package.json` | story 06. It is the caller that needs to reach this file from another package, and its `OPEN` carries the decision |
+| touch `roleToModelStatics` or delete `questTypeRegistryStatics` | story 24 |

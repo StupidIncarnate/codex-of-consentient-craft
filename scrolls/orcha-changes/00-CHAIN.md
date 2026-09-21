@@ -107,6 +107,17 @@ No I/O, no wiring. Each is a transformer over shapes phases A and B built.
 **This is the cutover.** Before story 20 nothing new is reachable from a running quest; after story 24
 the old path is gone.
 
+**One window in the chain has no environment-wall halt, and it is deliberate.** Story 19 removes
+`operationStatus`, whose `blocked` value is today the only thing that drives `isEnvironmentWall`, the
+`failed` work-item write and `questBlockOnFailureBroker`. Story 15's router decides the halt instead,
+and story 22 is what wires it. So between 19 and 22 a quest that hits a wall keeps dispatching.
+
+**Nothing real is at risk, because nothing real runs mid-chain** — the whole PR is built in one
+worktree and no live quest is dispatched against the intermediate states. It is recorded here so that
+whoever sees it in a test fixture knows it is the chain's own shape rather than a defect, and so
+nobody "fixes" it by reordering. **If a live quest ever must run between those two stories, it cannot
+be walled, and that is the reason to finish 22 first.**
+
 | # | Story | Unlocks |
 |---|---|---|
 | [20](20-deterministic-handlers.md) | `commit`, `ward`, `riftcarver`, `cleanup` as handlers, with `args` | 22 |
@@ -197,6 +208,127 @@ You will get these from `get-architecture` too, but they are the ones most often
 **Nothing below the conductor runs git at all** — not a write, not a read. One worktree has one
 `index.lock`; twelve concurrent sub-agent commits were measured in this repo with three landing and
 nine dying on `Unable to create index.lock`.
+
+## Two layers, and where the second one applies
+
+Most of this chain is two layers, not three. For stories 01–24, the conductor dispatches one session
+per story and reads its return directly — there is no middle layer.
+
+**Only stories 25–28 are sets.** Each is a fan-out, so each gets an orchestrator between the conductor
+and its workers — one per set.
+
+| Layer | Who | Writes code? |
+|---|---|---|
+| conductor | one long-lived session, the whole chain | no |
+| set orchestrator (25–28 only) | one per set | no |
+| story session (01–24) / worker (25–28) | dispatched per story, or per item in a set | yes |
+
+**Only the session actually holding a story or a set item writes code.** A set orchestrator that opens
+an editor has become a worker with a to-do list — the second layer is gone for that set, along with the
+thing it was for: someone reading returns instead of producing them.
+
+## Fan-out shapes, for the sets in 25–28
+
+A set orchestrator always fans out; what varies is the batch and how hard it verifies between batches.
+
+| Shape | Use it when | How it runs |
+|---|---|---|
+| Serial, reviewed | items share a design decision, or one hands the next a compiling tree | decide the shared thing first, put it in the brief, dispatch one worker, read its return against the brief, only then dispatch the next |
+| Parallel batches | items are file-disjoint and mechanical | dispatch a batch, wait, read every return, verify. Then the next batch |
+
+| Set | Shape | Why |
+|---|---|---|
+| 25 prompts | parallel, one session per prompt | each prompt is budgeted against its own char ceiling — two in one session means one gets the leftover context |
+| 26 signoff-retirement | parallel, 1–3 files per session | file-disjoint and mechanical |
+| 27 UI | row identity and the projection first, serial and reviewed — then the seven broken surfaces in parallel | the projection is one shared decision; a surface fix has a silent failure mode, so its return needs a close read |
+| 28 independent | parallel | small and unrelated to each other |
+
+## What a story — or a set — hands back
+
+A story session, and a set orchestrator reporting for its set, use this shape. The conductor gates and
+commits; it does neither itself, and has no route to what changed except what the report says.
+
+```
+STORY <n> — <done | blocked>      (a set orchestrator gives its set number instead)
+
+LANDED     <one line: what is now true>
+NOT DONE   <blocked only — what is left, and what you learned>
+PATHS      <every path touched, for the conductor's commit message>
+WARD       npm run ward -- -- <those paths> → exit 0
+BLOCKED ON <an open question, quoted, and which story or item it stops>
+```
+
+**`PATHS` is not bookkeeping.** The conductor writes one commit per numbered entry and has no other
+route to what actually changed — it did not do the work and does not go looking with `git status`.
+
+**Never paste a file back.** The conductor can `Read` a path and pay once; a quoted file is paid three
+times. Cite `path:line` with the line verbatim.
+
+**`NOTHING FOUND` is a real answer.** If a story turns out to already be done, or describes code that
+does not exist, say that and name where you looked. Do not build it anyway.
+
+## The per-story gate, as a loop
+
+Already a rule in the table above; here it is as the loop the conductor runs — once per numbered entry
+in the chain, story or set alike:
+
+```
+1  a story session (or a set orchestrator) hands back   "story N — done"
+2  npm run ward -- --committed --uncommitted                 ← conductor only, timeout 600000
+3  red?    → dispatch a fresh session scoped to the failure. Not a patch written by the conductor
+4  green?  → git commit, one commit per numbered entry
+5  next entry
+```
+
+...and after 28, once:
+
+```
+npm run ward
+```
+
+**One commit per numbered entry, not per worker inside a set.** A set hands back once, with every
+worker's paths folded into its `PATHS` line.
+
+**A 0-file git scope runs NOTHING.** `--committed --uncommitted` says so and exits 0 — if an entry
+produced no tracked change, the gate is empty, not green. Read what it says, not just the exit code.
+
+## The 30-minute supervision tick
+
+The conductor runs on a 30-minute loop for as long as the chain runs. A set orchestrator (25–28) runs
+one too, for as long as its workers are out. A story session, or a worker inside a set, sets no
+loop — it does its work and returns.
+
+```
+/loop 30m <your standing instruction>
+```
+
+**The tick is a supervision tick, not a keep-alive**, with three jobs in this order:
+
+1. **What came back?** Read it against the brief or the story file. Do not take a claim at face
+   value — a session reporting green on work it did not do is the failure this repo has been bitten by,
+   repeatedly and by name.
+2. **Is anything stuck?** A hung session never notifies, and that is the case the loop exists for — the
+   harness re-invokes you when a tracked agent finishes, so the loop is the fallback, not the primary
+   signal.
+3. **Dispatch the next entry, or report up.**
+
+**Keeping the context cache warm is a side effect worth having, not the reason.** Thirty minutes sits
+inside the prompt-cache window either way, so the tick costs nothing it does not already earn as
+supervision. Set `noop: true` on a tick where nothing changed, so consecutive quiet ticks collapse in
+the terminal instead of scrolling.
+
+## Ending a turn without losing work
+
+Two different mechanics, and getting them backwards strands work silently.
+
+| Still running when a session stops | What happens |
+|---|---|
+| a background **command** — a ward, a build, an install | it dies part-way, the report reads clean, and nothing tells you. Never end a turn with one running |
+| a dispatched **agent** — a story session, a set worker | fine. Its notification re-enters the session that dispatched it, which is why the 30-minute tick is a fallback rather than a poll |
+
+**Never `sleep` a fixed duration and assume something finished. Never `tail` an output file. Never
+re-run a command to find out whether the first one did.** Wait on the condition — a bounded loop that
+returns the moment its marker appears.
 
 ## Open questions the conductor owns
 
