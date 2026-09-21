@@ -6,6 +6,16 @@ AFTER     nothing, mostly — two exceptions noted below
 MODEL     sonnet
 ```
 
+**PLAN THIS SET BEFORE YOU DISPATCH ANYTHING.** Settle the session list, the shape, the order, the
+shared decisions, file disjointness and what is blocked — then report all six to the conductor before
+the first worker goes out. `00-CHAIN.md`, "A set orchestrator PLANS before it dispatches anything",
+says what each one means and what to do when planning shows this file is wrong.
+
+**This set starts as parallel** — three unrelated bodies of work. **Two things your plan must catch:**
+`verifyByHuman`'s four sessions have an internal order and one of them waits on set 26; and 28d needs
+story 02's `step` field, so it is the one part of this set that is not independent. One `OPEN`
+question blocks 28c-1 — send it up before spending that worker.
+
 **Start this at the same time as story 01.**
 
 ---

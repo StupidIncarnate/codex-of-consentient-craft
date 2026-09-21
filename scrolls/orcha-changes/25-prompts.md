@@ -8,6 +8,17 @@ AFTER     18 — every one begins with `get-quest-work` and none can be written 
 PACKAGE   @dungeonmaster/orchestrator
 ```
 
+**PLAN THIS SET BEFORE YOU DISPATCH ANYTHING.** Settle the session list, the shape, the order, the
+shared decisions, file disjointness and what is blocked — then report all six to the conductor before
+the first worker goes out. `00-CHAIN.md`, "A set orchestrator PLANS before it dispatches anything",
+says what each one means and what to do when planning shows this file is wrong.
+
+**This set starts as parallel**, because each prompt owns its own directory and its own char budget.
+**Two things your plan must settle before any of that is true:** 25p writes the shared blocks eight
+siblings interpolate, so it goes FIRST and alone; and 25q deletes the three operator prompts that
+25a–25i are cutting FROM, so it goes LAST. Three `OPEN` questions in this file block 25g, 25l and 25i
+specifically — send them up before spending those workers.
+
 **One session per prompt, and that is not over-splitting.** Each is budgeted against a
 50,000-character ceiling, and today's operator prompts are already 44,301 and 49,216 bytes.
 

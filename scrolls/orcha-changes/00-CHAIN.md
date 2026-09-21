@@ -201,7 +201,7 @@ You will get these from `get-architecture` too, but they are the ones most often
 
 | | |
 |---|---|
-| **the conductor** | carves the worktree, dispatches stories in order, runs `npm run ward -- --committed --uncommitted` after each one, commits when it is green, and runs one bare `npm run ward` at the end. It is the only session that commits, builds, or runs a git-scoped ward |
+| **the conductor** | carves the worktree, dispatches stories in order, runs `npm run ward -- --committed --uncommitted` after each one, commits when it is green, and runs one bare `npm run ward` at the end. **Dispatching a SET, it says "plan before you dispatch" and waits for the plan** — see below. It is the only session that commits, builds, or runs a git-scoped ward |
 | **a story session** | one story. Writes code, wards its own paths, signals. Runs no git |
 | **a set session** (25–28) | one item out of a set's list, under that set's template |
 
@@ -227,21 +227,60 @@ and its workers — one per set.
 an editor has become a worker with a to-do list — the second layer is gone for that set, along with the
 thing it was for: someone reading returns instead of producing them.
 
-## Fan-out shapes, for the sets in 25–28
+## A set orchestrator PLANS before it dispatches anything
 
-A set orchestrator always fans out; what varies is the batch and how hard it verifies between batches.
+**The conductor says this when it hands over a set, and waits for the plan before the first worker
+goes out.** It is one line in the dispatch brief:
+
+> Read set N and plan it before you dispatch anything. Come back with the session list, the order, and
+> what you had to decide. Then start.
+
+**Why, with the evidence from cutting these sets rather than an argument.** Every one of these was
+found by someone planning story 26 instead of dispatching it:
+
+| What planning caught | What dispatching first would have cost |
+|---|---|
+| **one session defines the step-scoped shape and the other thirty read it** | thirty workers each inventing it, and thirty files that disagree |
+| **one session's `AFTER` was inverted** — it re-points a read, so it must PRECEDE the delete, not follow it | a worker deleting a file another worker is still reading from |
+| **`signoffTrackEligibilityStatics` has NINE production readers, not "its last two"** as the set file said | a slicing built on the wrong count, breaking the typecheck for files four other sessions own — each of them seeing a red tree they did not cause |
+
+**The plan is proportional — a CONFIRMATION where the set file already did the work, a DERIVATION
+where it did not.** Set 26 ships a numbered list with real paths per session, so its plan is a check.
+Set 28 is three unrelated bodies of work with no list at all, so its plan builds one. Judge which you
+are holding before you spend time on it.
+
+**What a plan has to settle, whichever kind it is:**
+
+| | |
+|---|---|
+| **the session list** | one line each, with the 1–3 paths it owns |
+| **the shape** | serial-reviewed, parallel, or serial-then-parallel. The table below is the starting point, not the answer — your plan confirms or changes it |
+| **the order** | what must precede what, and why. A set with no ordering constraint says so explicitly rather than leaving it unstated |
+| **the shared decisions** | anything more than one worker needs to agree on. **Make each one yourself and put it in the brief.** A shared decision left to the workers is the same decision made N different ways |
+| **file disjointness** | no two workers in one batch touching one file. This is the check the whole fan-out rests on |
+| **what is blocked** | an `OPEN` in the set file, or a question the code does not answer. **Send it up before spending a worker on it** — a worker that answers a design question has invented one |
+
+### The two shapes, and where each set starts
 
 | Shape | Use it when | How it runs |
 |---|---|---|
-| Serial, reviewed | items share a design decision, or one hands the next a compiling tree | decide the shared thing first, put it in the brief, dispatch one worker, read its return against the brief, only then dispatch the next |
-| Parallel batches | items are file-disjoint and mechanical | dispatch a batch, wait, read every return, verify. Then the next batch |
+| **Serial, reviewed** | items share a design decision, or one hands the next a compiling tree | decide the shared thing first, put it in the brief, dispatch one worker, read its return against the brief, only then dispatch the next |
+| **Parallel batches** | items are file-disjoint and mechanical | dispatch a batch, wait, read every return, verify. Then the next batch |
 
-| Set | Shape | Why |
+| Set | Starts as | Why |
 |---|---|---|
-| 25 prompts | parallel, one session per prompt | each prompt is budgeted against its own char ceiling — two in one session means one gets the leftover context |
-| 26 signoff-retirement | parallel, 1–3 files per session | file-disjoint and mechanical |
-| 27 UI | row identity and the projection first, serial and reviewed — then the seven broken surfaces in parallel | the projection is one shared decision; a surface fix has a silent failure mode, so its return needs a close read |
-| 28 independent | parallel | small and unrelated to each other |
+| 25 prompts | **parallel**, one session per prompt | each is budgeted against its own char ceiling — two in one session means one gets the leftover context. They own separate directories, so disjointness is structural |
+| 26 sign-offs | **serial for ONE, then parallel** | session 1 splits `signoffTrackEligibilityStatics` into its surviving scope half, and the other thirty READ that result. Dispatch them together and thirty workers invent thirty shapes. After session 1 lands it is file-disjoint and mechanical |
+| 27 UI | **serial for TWO, then parallel** | row identity and the projection are each one shared decision. Row identity also has a silent failure mode — nothing errors when it is wrong — so its return needs the closest read in the whole chain |
+| 28 independent | **parallel** | three unrelated bodies of work. Only `verifyByHuman`'s four sessions have an internal order, and one of them waits on set 26 |
+
+**A plan is a message back to the conductor, not a document.** Do not write a file. The conductor
+reads it, and it becomes the record of why the set ran the way it did.
+
+**If planning shows the set file is wrong — a bad slicing, a missing session, an ordering that cannot
+work — report that and stop.** Do not re-cut the set yourself. The set file is shared with the
+conductor and with anything that reads the chain, and a set orchestrator quietly re-cutting it makes
+the file and the run disagree.
 
 ## What a story — or a set — hands back
 

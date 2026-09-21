@@ -6,6 +6,16 @@ AFTER     11 (which added the step-keyed scope) · merges WITH 24
 MODEL     sonnet — this is apply-the-contract work across many files
 ```
 
+**PLAN THIS SET BEFORE YOU DISPATCH ANYTHING.** Settle the session list, the shape, the order, the
+shared decisions, file disjointness and what is blocked — then report all six to the conductor before
+the first worker goes out. `00-CHAIN.md`, "A set orchestrator PLANS before it dispatches anything",
+says what each one means and what to do when planning shows this file is wrong.
+
+**This set starts as serial for ONE, then parallel**, and getting that wrong is the whole risk here.
+Session 1 splits `signoffTrackEligibilityStatics` into its surviving scope half, and **the other
+thirty READ that result.** Dispatch them together and thirty workers invent thirty shapes. After
+session 1 lands, the rest are file-disjoint and mechanical.
+
 **The largest set and the least interesting, which is exactly why it goes wrong.**
 
 ---
