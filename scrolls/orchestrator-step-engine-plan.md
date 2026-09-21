@@ -3540,114 +3540,48 @@ and each now needs a prompt-text check before anyone removes it.
 
 ---
 
-## Order of work
+## Order of work, and who does it
 
-One cutover. This is the order that keeps the tree compiling.
+**The work is chunked into agent-session briefs in `scrolls/orcha-changes/`.** That directory holds
+the waves, what runs in parallel, which files each session owns, and what each one must assert. It is
+the dispatch plan; this document is the spec it is written against.
 
-1. **The shapes.** Both graphs, the plan contract, the work-item additions, the path constants — plus
-   the reachability check, written alongside the graphs rather than after them, so a bad graph cannot
-   be committed in the first place.
-2. **The engine.** The signal gate, observation state, and the router — with unit tests against a stub
-   dispatcher. This is the heart; nothing else matters if it is wrong.
-3. **The two tools, end to end.** `get-quest-work` first, because thirteen prompts cannot be written
-   until it is settled what step one returns.
-4. Rewrite `docs/quest-role-paths.md`. The integration tests assert against it.
-5. Wire advance, signal-back, the selector, ward and riftcarver onto the router. Delete the splices,
-   and delete the commit-before-signal gate. **Wire `siegelense capacity` here too**, since it is the
-   selector's bound for a `needsLane` step — and check
-   `scrolls/seigelense/remaining-build-items.md` first, because siegelense is not finished and this
-   depends on the parts that are.
-6. Prompts: nine new, two adapted, **four** rewritten (two reviewers plus `spiritmender` and
-   `warpgate`), five deleted, one wording fix, plus the shared sad-path block. Every one is written
-   against the prompt map in §8 and the rulebook in §9, not invented at authoring time. **The siege
-   prompts and the `packages/web/test/siege-driver/` delete cut over together** — that delete is
-   `scrolls/seigelense/remaining-build-items.md` §18, and every siege prompt today drives the lane
-   it removes.
-   **Budget each against `maxVerbatimChars` BEFORE writing it** — the new worker carries the operating
-   rules plus seven constant brief blocks plus the sad-path block, and the new reviewer carries today's
-   344 lines plus `standardsReviewConcernsStatics` plus the seam walk. Over the ceiling the result
-   spills to a file and the session holds a path instead of its instructions, with nothing reporting a
-   failure.
-7. Retire the sign-off tracks across all 77 files.
-8. **`verifyByHuman`, §10 — one pass or not at all.** The contract field, the in-scope filter, the
-   shared prompt block, the citation kind and the panel. It lands after step 7 because 10b is one more
-   value in the scoping data step 7 re-keys, and after step 6 because 10c is a block three prompts
-   interpolate. Half of it leaves an unclosable unit visible to a session that will invent a mark for
-   it.
-9. **Delete `glyphsmith`** — the role, its prompt, and the chat path that launches it, keeping the
-   design stage and `design_approved`. Independent of everything above, so it can land in any order.
-10. The defects.
+**Read `scrolls/orcha-changes/README.md` first.** The short version:
+
+| Wave | What |
+|---|---|
+| 1 | the shapes — both graphs, the plan-file contract, three work-item fields, the reachability check |
+| 2 | the engine — observation state, the signal gate, the router |
+| 3 | the two tools — `get-quest-work`, `quest-work`, and the `signal-back` changes |
+| 4 | the cutover — advance, the selector, the deterministic handlers, capacity, the deletions |
+| 5 | retire the sign-off tracks, keeping the scoping half re-keyed onto the step |
+| 6 | nineteen prompts, one session each, every one budgeted before it is written |
+| 7 | the UI — row identity, the projection, the churn view, seven broken surfaces |
+| 8 | independent: `glyphsmith`, six defects, the whole `verifyByHuman` slice |
+
+**Waves 1 to 4 are serial and small.** They are the interesting design work and the least of the
+volume. **Waves 5, 6 and 7 are where the hours are**, and all three run at once because they touch
+three disjoint trees. Wave 8 starts today.
+
+**One cutover, one PR.** Nothing in here merges on its own. The wave boundaries exist so a session can
+hold its brief, not so a chunk can ship.
 
 ---
 
 ## Verification
 
-Tests-green is necessary, not sufficient. Repo policy is that the browser is the verdict.
+**The per-session assertions live with the briefs**, in each wave file's `ASSERT` line, because that is
+what a dispatched session reads. Four things hold across all of them:
 
-1. **Unit — the gate first.** A step with one unmarked unit cannot signal; with all marked it can; a
-   planner with none assigned can; a planner writing `met` is refused and writing `cant-meet` on a unit
-   it assigned to no piece is allowed. Then observation state: a unit's current mark is the one on the
-   most recent work item ASSIGNED it — not the most recent mark anywhere — earlier work items stay
-   readable and unedited, and an `invalidation` re-opens a flow's units onto a fresh session. Then the router: every route on every step in all six graphs,
-   `done`/`unmet`/`empty`/`wall` derived correctly from marks, `maxVisits` exhaustion, an unknown step
-   id, an outcome a step does not declare, a piece's `routes` override, and the batch fold at every
-   precedence pair. The three-question order specifically: `unmet` beats an unstarted batch, and an
-   unstarted batch beats `routes.done` — with a case where all three are true at once. The riftcarver
-   and ward handlers: each `worktreePrepareStepStatics` class mapped to its word, permission-denied
-   overriding to `wall`. The markdown renderer: **an observable claimed by no piece must be visible in
-   the output** — assert on the rendered text.
-2. **Integration** — one operation item end to end per family shape, with a stub dispatcher. Assert the
-   **work items minted and their order**, not that a callback fired.
-   - *codeweaver*: plan → two parallel pieces → review marks two units `unmet` → a worker minted
-     carrying exactly those two → review `done` → operation complete.
-   - *flowrider*: a piece's `surface` reaches the worker's rendered prompt **verbatim**, and two units
-     on one spec file carry different `layer` values.
-   - *siegemaster*: walk marks `unmet` → fixer minted on those units → fixer `done` → back to the walk
-     carrying only those → clean. Assert the return happened with **no `done` route declared**, and
-     that an adversarial `unmet` reaches `fixAdversarial` and never `fixHappy`. Off-map families
-     allocated one per round; a family with no round marked `cant-meet` by the planner — the one case
-     where a planner may mark — **and that mark lands on the planner's own work item**, so the unit
-     reads as settled rather than unclaimed. Then the concurrency case: two walkers running at once,
-     and the happy walker must NOT derive `unmet` on the off-map unit the adversarial walk holds.
-   - *the two phases*: given a plan holding two `happyWalk` pieces and two `adversarial` pieces,
-     assert **no `adversarial` work item is minted until BOTH happy pieces have recorded** — and that
-     the adversarial item carries the instance id and run id of the happy piece its `baselineFor`
-     names. Then the negative: a plan whose batch mixes a `happyWalk` piece and an `adversarial` piece
-     is REJECTED whole, and so is an `adversarial` piece whose `baselineFor` names a piece in the same
-     batch or a later one.
-   - *router-owned instances*: assert the router called `start` before dispatching each `needsLane`
-     work item, that the instance id reached the rendered prompt, and that **`kill` ran when the work
-     item recorded — including when it recorded `wall`**, which is the case a session-owned close
-     could never reach. Then `sweepIn` and `sweepOut`: both appear as work items, the first before
-     `plan` and the last after `ward`, and an all-operational quest that routes `plan → empty` still
-     reaches `sweepOut`.
-   - *ward gates*: assert the handler was invoked with the step's `args` **verbatim** — that is the one
-     thing between a branch ward and a full one now. Then: a red mints a `repair` scoped to that
-     family, the repair returns to the ward with no declared route, a spent `maxVisits` blocks, and
-     `wardFull` runs once after every family has drained — never per cell.
-   - *the family graph*: a family routes to the next one only when **every** fanned-out scope completes
-     — nine codeweaver cells route once, on the ninth. `empty` routes on when a fan-out produced no
-     scopes (a quest with no UI flows seeds no flowrider). And the one that will bite if it is wrong:
-     **a drained ledger mid-run must NOT derive `complete`** — only reaching `@complete` in the graph
-     does. A step-graph cycle is enough to produce that state; no family back-edge is declared, so
-     none is asserted.
-   - *on-request steps*: a planner's `request` for `recipe` mints it and returns to that planner, with
-     no route declared either way. Then the case that matters: a **worker** requesting one mid-piece
-     resumes as a fresh work item carrying the same units, and the recipe names it got back are on it.
-   - *the projection*: given a graph and a mid-run state, it renders the remaining path; after a
-     back-edge it renders the new one. Assert on the rendered output, not on a call.
-   - Sad paths on each: a wall at every step, a spent `maxVisits`, a mid-run amendment, an orphaned step
-     resumed.
-3. **End to end** — a real quest in this repo through the Node dispatcher. A blank panel or a frozen
-   spinner is a failure even if `quest.status` reads `complete`. **But that check is not sufficient
-   here, and it is worth saying why:** the row-identity defect produces a panel that is neither blank
-   nor frozen and is still broken. So assert the specific thing — **every row on screen is
-   distinguishable from every other**, by scope and step, with no two rows carrying the same name.
-   Then: live output on each concurrent row without the scroll fighting itself, the churn view showing
-   what each work item marked, and a loop-back redrawing the projection rather than appending to it.
-   **The progress figure is not asserted to rise.** It cannot: the denominator grows as families are
-   routed to, and a rework edge raises both numbers, so the ratio genuinely falls. Assert instead that
-   it never exceeds 1, that it is recomputed from the projection rather than the ledger, and that
-   `AWAITING PLAN` never fires for a quest with a running session.
-4. **Ward** — `npm run ward -- --uncommitted` iterating to exit 0, then one bare `npm run ward`. This
-   touches `shared` contracts, so the whole repo typechecks.
+1. **Assert BEHAVIOUR, not wiring.** A test proving a callback was PASSED is what let the missing
+   output-streaming bug ship. Assert the work items minted and their order, the rendered text, the
+   value measured.
+2. **Tests-green is necessary, not sufficient.** Repo policy is that the browser is the verdict — a
+   blank panel or a frozen spinner is a failure even if `quest.status` reads `complete`. **And that
+   check alone is not enough here**: the row-identity defect in wave 7 produces a panel that is
+   neither blank nor frozen and is still broken.
+3. **After they pass, READ the assertions** and confirm each one asserts a real value. A test that
+   passes while asserting "rendered" or "was called" is a false positive and is worse than no test.
+4. **Ward**: `npm run ward -- --uncommitted` iterating to exit 0 per session, then one bare
+   `npm run ward` per wave, run by whoever is coordinating rather than by a session.
+
