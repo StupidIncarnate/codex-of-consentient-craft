@@ -58,6 +58,37 @@ describe('wardDetailContract', () => {
       });
     });
 
+    it('VALID: {check status fail with a project error path} => keeps status and filePath together', () => {
+      const detail = WardDetailStub({
+        checks: [
+          {
+            checkType: 'typecheck',
+            status: 'fail',
+            projectResults: [
+              {
+                status: 'fail',
+                errors: [{ filePath: 'packages/orchestrator/src/a.ts', message: 'TS2322' }],
+              },
+            ],
+          },
+        ],
+      });
+
+      const check = detail.checks?.[0];
+
+      expect({
+        checkType: check?.checkType,
+        status: check?.status,
+        projectStatus: check?.projectResults?.[0]?.status,
+        filePath: check?.projectResults?.[0]?.errors?.[0]?.filePath,
+      }).toStrictEqual({
+        checkType: 'typecheck',
+        status: 'fail',
+        projectStatus: 'fail',
+        filePath: 'packages/orchestrator/src/a.ts',
+      });
+    });
+
     it('EMPTY: {empty object} => parses to checks undefined', () => {
       const result = wardDetailContract.parse({});
 

@@ -86,6 +86,7 @@ describe('InstallFlow', () => {
                 'mcp__dungeonmaster__get-quest-summary',
                 'mcp__dungeonmaster__create-worktree',
                 'mcp__dungeonmaster__quest-work',
+                'mcp__dungeonmaster__get-quest-work',
                 'Bash(git status:*)',
                 'Bash(git log:*)',
                 'Bash(git diff:*)',

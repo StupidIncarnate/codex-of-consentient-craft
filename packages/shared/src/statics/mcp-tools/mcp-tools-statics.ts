@@ -42,6 +42,7 @@ export const mcpToolsStatics = {
       'get-quest-summary',
       'create-worktree',
       'quest-work',
+      'get-quest-work',
     ] as const,
   },
 } as const;

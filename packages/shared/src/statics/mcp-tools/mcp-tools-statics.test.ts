@@ -35,6 +35,7 @@ describe('mcpToolsStatics', () => {
           'get-quest-summary',
           'create-worktree',
           'quest-work',
+          'get-quest-work',
         ],
       },
     });

@@ -11,10 +11,9 @@
 import { Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
 
-import type { QuestId, WardResult } from '@dungeonmaster/shared/contracts';
+import type { QuestId, WardDetail, WardResult } from '@dungeonmaster/shared/contracts';
 
 import { questWardDetailBroker } from '../../brokers/quest/ward-detail/quest-ward-detail-broker';
-import type { WardDetail } from '../../contracts/ward-detail/ward-detail-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { wardDetailToDisplayLinesTransformer } from '../../transformers/ward-detail-to-display-lines/ward-detail-to-display-lines-transformer';
 

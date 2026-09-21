@@ -161,4 +161,9 @@ export const smoketestProbeArgsStatics = {
     summary: 'mcp-quest-work-not-in-mcp-suite',
     note: "quest-work applies against a real work item's real assigned units, plan file and operations ledger — a shape the single-agent MCP probe harness (one quest, one throwaway work item, no flow graph, no plan) cannot build for any of the six payload kinds without fabricating state the harness has no way to unwind. Its lifecycle belongs to the orchestration suite's.",
   },
+  'get-quest-work': {
+    mode: 'skip-from-suite',
+    summary: 'mcp-get-quest-work-not-in-mcp-suite',
+    note: "get-quest-work reads a real work item's linked operation item, its family's step graph, its plan file and the git state of the quest's own worktree — the same shape quest-work writes into, and the same shape the single-agent MCP probe harness cannot build. Its lifecycle belongs to the orchestration suite's.",
+  },
 } as const;

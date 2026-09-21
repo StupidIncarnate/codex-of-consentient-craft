@@ -14,6 +14,7 @@ import { getBlightChecklistInputContract } from '../../contracts/get-blight-chec
 import { getNextStepInputContract } from '../../contracts/get-next-step-input/get-next-step-input-contract';
 import { getQaChecklistInputContract } from '../../contracts/get-qa-checklist-input/get-qa-checklist-input-contract';
 import { getQuestPlanningNotesInputContract } from '../../contracts/get-quest-planning-notes-input/get-quest-planning-notes-input-contract';
+import { getQuestWorkInputContract } from '../../contracts/get-quest-work-input/get-quest-work-input-contract';
 // The MCP-local get-quest contract, NOT the shared one: it adds `format`, which QuestHandleResponder
 // parses. Generating the advertised schema from the shared contract left `format` unadvertised while
 // the responder still read it, so a caller following an instruction to pass it sent a key the
@@ -70,6 +71,7 @@ const createWorktreeSchema = zodToJsonSchema(
   jsonSchemaOptions,
 );
 const questWorkSchema = zodToJsonSchema(questWorkInputContract as never, jsonSchemaOptions);
+const getQuestWorkSchema = zodToJsonSchema(getQuestWorkInputContract as never, jsonSchemaOptions);
 
 export const QuestFlow = (): ToolRegistration[] => [
   {
@@ -203,5 +205,12 @@ export const QuestFlow = (): ToolRegistration[] => [
       "The single write surface every LLM step calls, across six payload kinds carried on `payload.kind`: `plan` (a planner's batches of pieces plus plannerMarks), `observations` (per-unit met/cant-meet/unmet marks with evidence, replacing this work item's own set), `amendment` (a whole replacement plan, never a patch, when the run reveals the plan is wrong), `outcome` (the declared word — done/unmet/empty/wall — and its reason, legal ONLY on a step holding no assigned units; a step holding units has its outcome DERIVED from its marks instead), `invalidation` (a siege fixer's flowId and reason, re-opening every unit on that flow — the bulk lever `reset-flow-signoffs` was), and `request` (a step this work item is blocked on and why — must be `mintableOnRequest: true` in your own family graph). Every refusal THROWS with a message naming exactly what to fix; nothing is persisted on a refusal, so fix what the message names and call again." as never,
     inputSchema: questWorkSchema as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'quest-work' as never, args }),
+  },
+  {
+    name: 'get-quest-work' as never,
+    description:
+      "The ONE startup call every LLM step makes. Pass `workItemId` and you get EVERYTHING this session needs to start, in one shape: your family, your step and its role, your scope (the flow and packages this item covers, plus the operation item's own text), the units you were ASSIGNED and the ones your step is answerable for — each with its verbatim text, the surface to check it at, its graph anchor and whatever the record already says about it — your piece and its planner notes, the notes running sessions left, the mark that caused you to exist, your flow rendered, your walk paths, your uncommitted and committed paths, the failing ward result with its check types and paths, the carve log, your git context and your lane. No session runs git, reads a plan file or enumerates a flow for itself after this. Pass `operationItemId` instead and you get that item's whole PLAN as markdown — the batches in the order they will execute, each piece with the units it claims, and a coverage table naming every in-scope unit NO piece claims, which is the defect a planner most needs to see and the one a JSON plan cannot show. Never pass both: they answer different questions and the call is refused rather than resolved by precedence." as never,
+    inputSchema: getQuestWorkSchema as never,
+    handler: async ({ args }) => QuestHandleResponder({ tool: 'get-quest-work' as never, args }),
   },
 ];

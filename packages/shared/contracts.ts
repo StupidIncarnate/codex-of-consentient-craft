@@ -366,6 +366,8 @@ export * from './src/contracts/ward-mode/ward-mode-contract';
 export * from './src/contracts/ward-mode/ward-mode.stub';
 export * from './src/contracts/ward-result/ward-result-contract';
 export * from './src/contracts/ward-result/ward-result.stub';
+export * from './src/contracts/ward-detail/ward-detail-contract';
+export * from './src/contracts/ward-detail/ward-detail.stub';
 
 export * from './src/contracts/riftcarver-result/riftcarver-result-contract';
 export * from './src/contracts/riftcarver-result/riftcarver-result.stub';

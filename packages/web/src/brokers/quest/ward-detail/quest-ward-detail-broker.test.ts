@@ -1,6 +1,4 @@
-import { QuestIdStub, WardResultStub } from '@dungeonmaster/shared/contracts';
-
-import { WardDetailStub } from '../../../contracts/ward-detail/ward-detail.stub';
+import { QuestIdStub, WardDetailStub, WardResultStub } from '@dungeonmaster/shared/contracts';
 
 import { questWardDetailBroker } from './quest-ward-detail-broker';
 import { questWardDetailBrokerProxy } from './quest-ward-detail-broker.proxy';

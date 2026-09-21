@@ -1,9 +1,8 @@
 import { screen, waitFor } from '@testing-library/react';
 
-import { QuestIdStub, WardResultStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub, WardDetailStub, WardResultStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-import { WardDetailStub } from '../../contracts/ward-detail/ward-detail.stub';
 
 import { WardResultRowLayerWidget } from './ward-result-row-layer-widget';
 import { WardResultRowLayerWidgetProxy } from './ward-result-row-layer-widget.proxy';

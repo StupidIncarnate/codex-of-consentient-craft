@@ -29,6 +29,7 @@ import { QuestGetBlightChecklistResponder } from '../../responders/quest/get-bli
 import { QuestGetNextStepResponder } from '../../responders/quest/get-next-step/quest-get-next-step-responder';
 import { QuestGetPlanningNotesResponder } from '../../responders/quest/get-planning-notes/quest-get-planning-notes-responder';
 import { QuestGetQaChecklistResponder } from '../../responders/quest/get-qa-checklist/quest-get-qa-checklist-responder';
+import { QuestGetQuestWorkResponder } from '../../responders/quest/get-quest-work/quest-get-quest-work-responder';
 import { QuestGetServerConfigResponder } from '../../responders/quest/get-server-config/quest-get-server-config-responder';
 import { QuestGetSummaryResponder } from '../../responders/quest/get-summary/quest-get-summary-responder';
 import { QuestHandleSignalBackResponder } from '../../responders/quest/handle-signal-back/quest-handle-signal-back-responder';
@@ -58,6 +59,9 @@ type GetSummaryResult = Awaited<ReturnType<typeof QuestGetSummaryResponder>>;
 
 type GetQaChecklistParams = Parameters<typeof QuestGetQaChecklistResponder>[0];
 type GetQaChecklistResult = Awaited<ReturnType<typeof QuestGetQaChecklistResponder>>;
+
+type GetQuestWorkParams = Parameters<typeof QuestGetQuestWorkResponder>[0];
+type GetQuestWorkResult = Awaited<ReturnType<typeof QuestGetQuestWorkResponder>>;
 
 type GetBlightChecklistParams = Parameters<typeof QuestGetBlightChecklistResponder>[0];
 type GetBlightChecklistResult = Awaited<ReturnType<typeof QuestGetBlightChecklistResponder>>;
@@ -135,6 +139,17 @@ export const QuestFlow = {
       questId,
       ...(operationItemId !== undefined && { operationItemId }),
       ...(flowId !== undefined && { flowId }),
+    }),
+
+  getQuestWork: async ({
+    questId,
+    workItemId,
+    operationItemId,
+  }: GetQuestWorkParams): Promise<GetQuestWorkResult> =>
+    QuestGetQuestWorkResponder({
+      questId,
+      ...(workItemId !== undefined && { workItemId }),
+      ...(operationItemId !== undefined && { operationItemId }),
     }),
 
   getBlightChecklist: async ({

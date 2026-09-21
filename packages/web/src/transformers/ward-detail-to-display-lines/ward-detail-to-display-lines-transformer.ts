@@ -16,7 +16,8 @@
  * // Returns [] when detail does not parse or contains no failures.
  */
 
-import { wardDetailContract } from '../../contracts/ward-detail/ward-detail-contract';
+import { wardDetailContract } from '@dungeonmaster/shared/contracts';
+
 import { wardDetailLineContract } from '../../contracts/ward-detail-line/ward-detail-line-contract';
 import type { WardDetailLine } from '../../contracts/ward-detail-line/ward-detail-line-contract';
 

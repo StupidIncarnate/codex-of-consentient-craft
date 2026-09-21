@@ -1,0 +1,70 @@
+import type { StubArgument } from '@dungeonmaster/shared/@types';
+
+import { questWorkViewContract } from './quest-work-view-contract';
+import type { QuestWorkView } from './quest-work-view-contract';
+
+export const QuestWorkViewStub = ({ ...props }: StubArgument<QuestWorkView> = {}): QuestWorkView =>
+  questWorkViewContract.parse({
+    questId: 'add-auth',
+    workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+    family: 'codeweaver',
+    step: 'work',
+    role: 'worker',
+    scope: {
+      flowId: 'send-flow',
+      packageNames: ['web'],
+      operationItemId: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+      operationItemText: 'build the send flow — package: web · flow: send-flow',
+    },
+    assignedUnits: [
+      {
+        unitId: 'send-flow:terminal:forward-unchanged',
+        kind: 'terminal',
+        text: 'the message is forwarded unchanged',
+        surface: 'the end state itself',
+        nodeId: 'forward-unchanged',
+        edgeId: null,
+        observableType: null,
+        verifyByReading: false,
+        mark: null,
+        evidence: null,
+        toSettle: null,
+        markedBy: null,
+        markedAt: null,
+      },
+    ],
+    inScopeUnits: [
+      {
+        unitId: 'send-flow:terminal:forward-unchanged',
+        kind: 'terminal',
+        text: 'the message is forwarded unchanged',
+        surface: 'the end state itself',
+        nodeId: 'forward-unchanged',
+        edgeId: null,
+        observableType: null,
+        verifyByReading: false,
+        mark: null,
+        evidence: null,
+        toSettle: null,
+        markedBy: null,
+        markedAt: null,
+      },
+    ],
+    flows: [],
+    walkPaths: [],
+    pathsTruncated: false,
+    piece: null,
+    plannerNotes: [],
+    sessionNotes: [],
+    mintingObservation: null,
+    recipes: [],
+    uncommittedPaths: [],
+    committedPaths: [],
+    ward: null,
+    riftcarverLogPath: null,
+    git: { baseBranch: null, worktreePath: null, baseRef: null },
+    instance: null,
+    baseline: null,
+    truncated: [],
+    ...props,
+  });

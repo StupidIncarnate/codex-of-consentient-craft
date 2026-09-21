@@ -1,13 +1,16 @@
 /**
- * PURPOSE: Validates the subset of the on-disk ward-result detail JSON the web renders — the
+ * PURPOSE: Validates the subset of the on-disk ward-result detail JSON its readers act on — the
  * per-check, per-file lint/typecheck errors and per-suite test failures, plus the per-check/
  * per-project `status`, `projectFolder`, and (crash-only) `rawOutput` used to render a failing
  * project that produced no structured errors. A check ward flagged with `discoveryMismatch` also
  * carries per-project `filesCount` / `discoveredCount` and the `onlyDiscovered` / `onlyProcessed`
- * file lists, used to render the discovery-mismatch breakdown. The orchestrator writes
- * this blob to <questFolder>/ward-results/<wardResultId>.json and the server relays it verbatim
- * over the ward-detail-response WebSocket frame as `detail: unknown`; this contract is what the
- * web safe-parses that unknown into before flattening it into display lines.
+ * file lists, used to render the discovery-mismatch breakdown.
+ *
+ * It lives in `shared` because BOTH sides read the same blob: `web` safe-parses the
+ * `detail: unknown` the server relays over the ward-detail-response WebSocket frame, and the
+ * orchestrator reads `<questFolder>/ward-results/<wardResultId>.json` to tell `get-quest-work`
+ * which check types went red and which paths they named. Neither package may own the shape — the
+ * orchestrator cannot import `web`, and a second copy drifts the day ward emits a new key.
  *
  * USAGE:
  * const parsed = wardDetailContract.safeParse(detail);

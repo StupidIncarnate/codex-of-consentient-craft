@@ -238,6 +238,26 @@ export const StartOrchestrator = {
       ...(flowId !== undefined && { flowId }),
     }),
 
+  // MCP-driven get-quest-work — the ONE startup call every LLM step makes. `workItemId` serves
+  // everything that session needs to start; `operationItemId` serves the whole plan as markdown for
+  // a planner's review-before-signing read. Passing both is refused rather than resolved by
+  // precedence: they answer different questions, and letting one win silently answers a question
+  // the caller did not ask.
+  getQuestWork: async ({
+    questId,
+    workItemId,
+    operationItemId,
+  }: {
+    questId: string;
+    workItemId?: string;
+    operationItemId?: string;
+  }): Promise<Awaited<ReturnType<typeof QuestFlow.getQuestWork>>> =>
+    QuestFlow.getQuestWork({
+      questId,
+      ...(workItemId !== undefined && { workItemId }),
+      ...(operationItemId !== undefined && { operationItemId }),
+    }),
+
   // `scope` rides all the way out to the MCP tool because a reviewer running inside its
   // parent's turn is graded on the WORKING TREE, while a caller auditing a landed commit wants
   // `commit` and one auditing the whole branch wants `quest` — a caller that could not name the

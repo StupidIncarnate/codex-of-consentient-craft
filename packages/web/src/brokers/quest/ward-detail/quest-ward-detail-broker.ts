@@ -7,11 +7,10 @@
  * // Returns WardDetail (checks[] with per-file errors / per-suite test failures)
  */
 
-import type { QuestId, WardResult } from '@dungeonmaster/shared/contracts';
+import { wardDetailContract } from '@dungeonmaster/shared/contracts';
+import type { QuestId, WardDetail, WardResult } from '@dungeonmaster/shared/contracts';
 
 import { fetchGetAdapter } from '../../../adapters/fetch/get/fetch-get-adapter';
-import { wardDetailContract } from '../../../contracts/ward-detail/ward-detail-contract';
-import type { WardDetail } from '../../../contracts/ward-detail/ward-detail-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questWardDetailBroker = async ({
