@@ -334,6 +334,92 @@ describe('workPlanValidateTransformer', () => {
 
       expect(result).toStrictEqual([]);
     });
+
+    it("INVALID: {assigned unit sits on the plan's own flow but a sibling package's node} => refuses with check 5", () => {
+      // Both nodes tagged, one per package — an UNTAGGED node's units stay in scope for every cell
+      // (qa-units-in-package-scope-transformer.ts:87), so a fixture leaving one bare would pass
+      // without ever exercising the package filter this test targets.
+      const cellFlow = FlowStub({
+        id: 'cell-flow',
+        nodes: [
+          FlowNodeStub({
+            id: 'web-cell-node',
+            label: 'Web cell node',
+            packages: ['@dungeonmaster/web'],
+            observables: [
+              FlowObservableStub({
+                id: 'web-cell-thing',
+                type: 'ui-state',
+                description: 'a thing the web cell owns',
+                package: '@dungeonmaster/web',
+              }),
+            ],
+          }),
+          FlowNodeStub({
+            id: 'server-cell-node',
+            label: 'Server cell node',
+            packages: ['@dungeonmaster/server'],
+            observables: [
+              FlowObservableStub({
+                id: 'server-cell-thing',
+                type: 'api-call',
+                description: 'a thing the server cell owns',
+                package: '@dungeonmaster/server',
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+      const serverCellOperationItem = OperationItemStub({
+        role: 'codeweaver',
+        flowIds: ['cell-flow'],
+        packageNames: ['@dungeonmaster/server'],
+      });
+      const quest = QuestStub({
+        flows: [cellFlow],
+        packagesAffected: [
+          ...packagesAffected,
+          QuestPackageEntryStub({
+            name: '@dungeonmaster/server',
+            location: './packages/server',
+            packageType: 'http-backend',
+          }),
+        ],
+        operations: [serverCellOperationItem],
+      });
+      const plan = WorkPlanStub({
+        flowId: 'cell-flow',
+        packageNames: ['@dungeonmaster/server'],
+        batches: [
+          WorkPlanBatchStub({
+            pieces: [
+              WorkPlanPieceStub({
+                assignedUnitIds: ['cell-flow:observable:web-cell-thing'],
+                contextUnitIds: [],
+                payload: WorkPlanPayloadCodeweaverStub({
+                  files: [WorkPlanFileEntryStub({ path: './packages/server/src/thing.ts' })],
+                  units: [
+                    WorkPlanCodeweaverUnitStub({ unitId: 'cell-flow:observable:web-cell-thing' }),
+                  ],
+                }),
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = workPlanValidateTransformer({ quest, workItem, plan });
+
+      expect(result).toStrictEqual([
+        {
+          pieceId: 'pc-badge',
+          check: 5,
+          message:
+            "pc-badge: assigned unit 'cell-flow:observable:web-cell-thing' is not in scope for operation item 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479'",
+        },
+      ]);
+    });
   });
 
   describe('check 6 — no unit is claimed by two pieces in the same batch', () => {

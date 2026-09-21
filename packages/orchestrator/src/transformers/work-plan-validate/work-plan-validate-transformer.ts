@@ -33,9 +33,8 @@ import { workPlanValidationFailureContract } from '../../contracts/work-plan-val
 import type { WorkPlanValidationFailure } from '../../contracts/work-plan-validation-failure/work-plan-validation-failure-contract';
 import { agentFlowStatics } from '../../statics/agent-flow/agent-flow-statics';
 import { workPlanValidationCheckStatics } from '../../statics/work-plan-validation-check/work-plan-validation-check-statics';
-import { operationSignoffScopeTransformer } from '../operation-signoff-scope/operation-signoff-scope-transformer';
-import { qaChecklistBuildTransformer } from '../qa-checklist-build/qa-checklist-build-transformer';
 import { qaUnitEnumerateTransformer } from '../qa-unit-enumerate/qa-unit-enumerate-transformer';
+import { stepInScopeUnitsTransformer } from '../step-in-scope-units/step-in-scope-units-transformer';
 import { workPlanQuestUnitIdsTransformer } from '../work-plan-quest-unit-ids/work-plan-quest-unit-ids-transformer';
 
 const OPERATIONS_REF_PREFIX = 'operations/';
@@ -143,27 +142,34 @@ export const workPlanValidateTransformer = ({
     });
   });
 
-  // Check 5: every ASSIGNED unit is IN SCOPE for this operation item. Context units are exempt — a
-  // context unit is by definition a unit from somewhere else. Family-level scope only; never
-  // step-level, and never waits on the step-narrowing transformer stories 11/12 add later.
-  const operationItem = quest.operations.find(
+  // Check 5: every ASSIGNED unit is IN SCOPE for this operation item's OWN STEP. Context units stay
+  // exempt — a context unit is by definition a unit from somewhere else, and checking it against this
+  // scope would reject exactly the case it exists for. `stepInScopeUnitsTransformer` applies BOTH the
+  // package narrowing and the flow narrowing per piece, closing the gap the old flow-only derivation
+  // left open: a codeweaver piece scoped to `server` can no longer claim a `web` unit on the same
+  // flow. A step that declares its own scope (siege `adversarial`) is held to it; a `worker`/`planner`
+  // step (no declared scope, which is what a planner's pieces mostly are) inherits its family's whole
+  // in-scope set, still package-narrowed.
+  //
+  // `stepInScopeUnitsTransformer` throws when `operationItemId` resolves to no ledger item — its
+  // documented caller-bug signal. But this validator's whole job is turning a malformed SUBMITTED plan
+  // into a `WorkPlanValidationFailure[]`, never an unhandled exception, and a plan can name any
+  // `operationItemId` at all — including one absent from `quest.operations` (a case check 1 already
+  // reports separately when it also mismatches the submitting work item's own ref). So existence is
+  // checked directly here, with the same ledger lookup the old derivation used, rather than reaching
+  // the throw: an absent operation item produces no legal units for every piece instead.
+  const operationItemExistsOnLedger = quest.operations.some(
     (candidate) => String(candidate.id) === String(parsedPlan.operationItemId),
   );
-  const scope =
-    operationItem === undefined ? null : operationSignoffScopeTransformer({ quest, operationItem });
-  const legalUnitIds = new Set(
-    scope === null
-      ? []
-      : scope.flows.flatMap((scopeFlow) =>
-          qaChecklistBuildTransformer({
-            flow: scopeFlow,
-            packagesAffected: quest.packagesAffected,
-            packageNames: scope.packageNames,
-            track: scope.track,
-          }).items.map((item) => String(item.id)),
-        ),
-  );
   allPieces.forEach(({ piece }) => {
+    const legalUnitIdList = operationItemExistsOnLedger
+      ? stepInScopeUnitsTransformer({
+          quest,
+          operationItemId: parsedPlan.operationItemId,
+          step: piece.step,
+        }).map((unitId) => String(unitId))
+      : [];
+    const legalUnitIds = new Set(legalUnitIdList);
     piece.assignedUnitIds.forEach((unitId) => {
       if (!legalUnitIds.has(String(unitId))) {
         failures.push(
