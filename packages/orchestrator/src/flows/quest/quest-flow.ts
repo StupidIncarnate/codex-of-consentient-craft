@@ -42,6 +42,7 @@ import { QuestMonitorWatcherStartResponder } from '../../responders/quest/monito
 import { QuestResetFlowSignoffsResponder } from '../../responders/quest/reset-flow-signoffs/quest-reset-flow-signoffs-responder';
 import { QuestRunRiftcarverResponder } from '../../responders/quest/run-riftcarver/quest-run-riftcarver-responder';
 import { QuestRunWardResponder } from '../../responders/quest/run-ward/quest-run-ward-responder';
+import { QuestWorkResponder } from '../../responders/quest/work/quest-work-responder';
 
 type AddParams = Parameters<typeof QuestUserAddResponder>[0];
 type AddResult = Awaited<ReturnType<typeof QuestUserAddResponder>>;
@@ -92,6 +93,9 @@ type RunRiftcarverResult = Awaited<ReturnType<typeof QuestRunRiftcarverResponder
 
 type HandleSignalBackParams = Parameters<typeof QuestHandleSignalBackResponder>[0];
 type HandleSignalBackResult = Awaited<ReturnType<typeof QuestHandleSignalBackResponder>>;
+
+type WorkParams = Parameters<typeof QuestWorkResponder>[0];
+type WorkResult = Awaited<ReturnType<typeof QuestWorkResponder>>;
 
 type GetServerConfigResult = ReturnType<typeof QuestGetServerConfigResponder>;
 
@@ -215,6 +219,9 @@ export const QuestFlow = {
     }),
 
   getServerConfig: (): GetServerConfigResult => QuestGetServerConfigResponder(),
+
+  work: async ({ questId, workItemId, payload }: WorkParams): Promise<WorkResult> =>
+    QuestWorkResponder({ questId, workItemId, payload }),
 
   findBySessionId: async ({ sessionId }: FindBySessionIdParams): Promise<FindBySessionIdResult> =>
     QuestFindBySessionIdResponder({ sessionId }),

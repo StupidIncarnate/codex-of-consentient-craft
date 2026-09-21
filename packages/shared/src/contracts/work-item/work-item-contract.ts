@@ -111,6 +111,21 @@ export const workItemContract = z.object({
   // originating piece's payload onto what it mints, so a later plan amendment cannot rewrite
   // what a session already ran against.
   payload: z.record(z.unknown()).optional(),
+  // Set by `quest-work`'s `outcome` payload — legal ONLY on a work item holding no assigned units,
+  // where there is nothing for the record to derive an outcome FROM. `nextActionTransformer` takes
+  // this as its `declaredWord`/`hitWall` arguments rather than deriving them, because it is pure and
+  // synchronous and cannot read a live call — "the work tool writes them and this reads them, and a
+  // pure function cannot go and look" (`next-action-transformer.ts`'s own header). Inlined as a
+  // literal tuple rather than importing `@dungeonmaster/orchestrator`'s `stepOutcomeContract`:
+  // `shared` is the base package and may not depend on anything above it, the same reason every
+  // package keeps its own local `isoTimestampContract` instead of importing one.
+  declaredWord: z.enum(['done', 'unmet', 'empty', 'wall']).optional(),
+  declaredReason: z.string().min(1).brand<'OutcomeReason'>().optional(),
+  // Set by `quest-work`'s `request` payload — the step this work item is blocked on, and why.
+  // `nextActionTransformer` takes this as its `request` argument for the identical reason
+  // `declaredWord` is an argument rather than a derivation: it is pure and cannot read a live call.
+  requestedStep: stepNameContract.optional(),
+  requestedReason: z.string().min(1).brand<'RequestReason'>().optional(),
 });
 
 export type WorkItem = z.infer<typeof workItemContract>;

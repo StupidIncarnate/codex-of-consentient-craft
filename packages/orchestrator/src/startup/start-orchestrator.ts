@@ -530,6 +530,19 @@ export const StartOrchestrator = {
   // MCP-driven get-server-config (slash commands resolve baseUrl + port)
   getServerConfig: (): QuestGetServerConfigResult => QuestFlow.getServerConfig(),
 
+  // MCP-driven quest-work — the single write surface every LLM step calls, across its six
+  // payload kinds (plan, observations, amendment, outcome, invalidation, request).
+  questWork: async ({
+    questId,
+    workItemId,
+    payload,
+  }: {
+    questId: string;
+    workItemId: string;
+    payload: unknown;
+  }): Promise<Awaited<ReturnType<typeof QuestFlow.work>>> =>
+    QuestFlow.work({ questId, workItemId, payload }),
+
   // Reverse lookup: sessionId -> QuestId (or null when no quest's chaoswhisperer workItem
   // has this sessionId). Used by the HTTP server's GET /api/quests/by-session/:sessionId
   // endpoint so the PostToolUse hook can find the quest to PATCH design decisions onto.

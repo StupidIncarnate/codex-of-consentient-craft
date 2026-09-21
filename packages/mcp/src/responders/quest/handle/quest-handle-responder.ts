@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Handles quest-related MCP tool calls (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist, reset-flow-signoffs, get-quest-summary, create-worktree)
+ * PURPOSE: Handles quest-related MCP tool calls (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist, reset-flow-signoffs, get-quest-summary, create-worktree, quest-work)
  *
  * USAGE:
  * const result = await QuestHandleResponder({ tool: ToolNameStub({ value: 'get-quest' }), args: { questId: 'abc' } });
@@ -25,6 +25,7 @@ import { QaChecklistLayerResponder } from './qa-checklist-layer-responder';
 import { QuestSummaryLayerResponder } from './quest-summary-layer-responder';
 import { ResetFlowSignoffsLayerResponder } from './reset-flow-signoffs-layer-responder';
 import { RunRiftcarverLayerResponder } from './run-riftcarver-layer-responder';
+import { QuestWorkLayerResponder } from './quest-work-layer-responder';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { toolNameContract } from '../../../contracts/tool-name/tool-name-contract';
@@ -56,6 +57,7 @@ const layerResponders = new Map<
   [toolNameContract.parse('get-quest-summary'), QuestSummaryLayerResponder],
   [toolNameContract.parse('run-riftcarver'), RunRiftcarverLayerResponder],
   [toolNameContract.parse('create-worktree'), CreateWorktreeLayerResponder],
+  [toolNameContract.parse('quest-work'), QuestWorkLayerResponder],
 ]);
 
 export const QuestHandleResponder = async ({

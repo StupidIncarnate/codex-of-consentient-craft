@@ -908,4 +908,86 @@ describe('workItemContract', () => {
       ]);
     });
   });
+
+  describe('declaredWord and declaredReason', () => {
+    it("VALID: {declaredWord: 'empty', declaredReason} => round-trips", () => {
+      const item = WorkItemStub({
+        declaredWord: 'empty',
+        declaredReason: 'no piece was in scope this pass',
+      });
+
+      const result = workItemContract.parse(item);
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'pending',
+        spawnerType: 'agent',
+        relatedDataItems: [],
+        dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
+        attempt: 0,
+        maxAttempts: 1,
+        retryCount: 0,
+        createdAt: '2024-01-15T10:00:00.000Z',
+        declaredWord: 'empty',
+        declaredReason: 'no piece was in scope this pass',
+      });
+    });
+
+    it("INVALID: {declaredWord: 'blocked'} => throws, not one of the four words", () => {
+      expect(() => {
+        workItemContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          declaredWord: 'blocked',
+        });
+      }).toThrow(/Invalid enum value/u);
+    });
+  });
+
+  describe('requestedStep and requestedReason', () => {
+    it('VALID: {requestedStep, requestedReason} => round-trips', () => {
+      const item = WorkItemStub({
+        requestedStep: 'recipe',
+        requestedReason: 'the send-flow seed is missing',
+      });
+
+      const result = workItemContract.parse(item);
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'pending',
+        spawnerType: 'agent',
+        relatedDataItems: [],
+        dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
+        attempt: 0,
+        maxAttempts: 1,
+        retryCount: 0,
+        createdAt: '2024-01-15T10:00:00.000Z',
+        requestedStep: 'recipe',
+        requestedReason: 'the send-flow seed is missing',
+      });
+    });
+
+    it('INVALID: {requestedReason: ""} => throws validation error', () => {
+      expect(() => {
+        workItemContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          requestedReason: '',
+        });
+      }).toThrow(/too_small|String must contain at least 1/u);
+    });
+  });
 });

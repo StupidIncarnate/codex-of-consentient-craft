@@ -1881,6 +1881,7 @@ describe('McpServerFlow', () => {
       'ask-user-question',
       'reset-flow-signoffs',
       'get-quest-summary',
+      'quest-work',
       // Mutating actions, not reference content
       'modify-quest',
       'start-quest',

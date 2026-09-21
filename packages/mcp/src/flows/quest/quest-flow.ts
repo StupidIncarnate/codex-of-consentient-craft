@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist, create-quest, get-next-step, run-ward, run-riftcarver, get-server-config, reset-flow-signoffs, get-quest-summary, create-worktree)
+ * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist, create-quest, get-next-step, run-ward, run-riftcarver, get-server-config, reset-flow-signoffs, get-quest-summary, create-worktree, quest-work)
  *
  * USAGE:
  * const registrations = QuestFlow();
- * // Returns 17 ToolRegistration objects that delegate to QuestHandleResponder
+ * // Returns ToolRegistration objects that delegate to QuestHandleResponder
  */
 
 import { zodToJsonSchema } from 'zod-to-json-schema';
@@ -25,6 +25,7 @@ import { listQuestsInputContract } from '../../contracts/list-quests-input/list-
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { resetFlowSignoffsInputContract } from '../../contracts/reset-flow-signoffs-input/reset-flow-signoffs-input-contract';
 import { runRiftcarverInputContract } from '../../contracts/run-riftcarver-input/run-riftcarver-input-contract';
+import { questWorkInputContract } from '../../contracts/quest-work-input/quest-work-input-contract';
 import { runWardInputContract } from '../../contracts/run-ward-input/run-ward-input-contract';
 import { startQuestInputContract } from '../../contracts/start-quest-input/start-quest-input-contract';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
@@ -68,6 +69,7 @@ const createWorktreeSchema = zodToJsonSchema(
   createWorktreeInputContract as never,
   jsonSchemaOptions,
 );
+const questWorkSchema = zodToJsonSchema(questWorkInputContract as never, jsonSchemaOptions);
 
 export const QuestFlow = (): ToolRegistration[] => [
   {
@@ -194,5 +196,12 @@ export const QuestFlow = (): ToolRegistration[] => [
       "Creates an isolated git worktree at `worktrees/<name>` and returns its absolute path. This is the ONLY sanctioned way to get a worktree, and the tree it returns has four properties a hand-rolled `git worktree add` silently lacks: it sits under the repo's own `worktrees/`, its `node_modules` is mirrored so every command inside it resolves the worktree's OWN packages, its compiled output is seeded so ward, the hooks and the CLI can run there at all, and every link in it is audited to prove none resolves back into the main checkout. A worktree missing any of those looks completely normal until a run comes back green against code it never saw. IDEMPOTENT: asking twice for one name verifies and hands back the same tree rather than carving a second, which also makes this the call that REPAIRS a half-built one. Claude Code's own worktree command is blocked in this repo and names this tool." as never,
     inputSchema: createWorktreeSchema as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'create-worktree' as never, args }),
+  },
+  {
+    name: 'quest-work' as never,
+    description:
+      "The single write surface every LLM step calls, across six payload kinds carried on `payload.kind`: `plan` (a planner's batches of pieces plus plannerMarks), `observations` (per-unit met/cant-meet/unmet marks with evidence, replacing this work item's own set), `amendment` (a whole replacement plan, never a patch, when the run reveals the plan is wrong), `outcome` (the declared word — done/unmet/empty/wall — and its reason, legal ONLY on a step holding no assigned units; a step holding units has its outcome DERIVED from its marks instead), `invalidation` (a siege fixer's flowId and reason, re-opening every unit on that flow — the bulk lever `reset-flow-signoffs` was), and `request` (a step this work item is blocked on and why — must be `mintableOnRequest: true` in your own family graph). Every refusal THROWS with a message naming exactly what to fix; nothing is persisted on a refusal, so fix what the message names and call again." as never,
+    inputSchema: questWorkSchema as never,
+    handler: async ({ args }) => QuestHandleResponder({ tool: 'quest-work' as never, args }),
   },
 ];

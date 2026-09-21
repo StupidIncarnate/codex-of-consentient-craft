@@ -156,4 +156,9 @@ export const smoketestProbeArgsStatics = {
     summary: 'mcp-create-worktree-not-in-mcp-suite',
     note: 'create-worktree carves a REAL git branch and worktree under the guild repo, mirrors node_modules into it and copies every compiled dist across — minutes of filesystem and git mutation the smoketest harness has no way to unwind, and a probe that ran twice would hand back the first run’s tree rather than proving anything new. The worktree lifecycle it belongs to is the orchestration suite’s, through riftcarver.',
   },
+  'quest-work': {
+    mode: 'skip-from-suite',
+    summary: 'mcp-quest-work-not-in-mcp-suite',
+    note: "quest-work applies against a real work item's real assigned units, plan file and operations ledger — a shape the single-agent MCP probe harness (one quest, one throwaway work item, no flow graph, no plan) cannot build for any of the six payload kinds without fabricating state the harness has no way to unwind. Its lifecycle belongs to the orchestration suite's.",
+  },
 } as const;
