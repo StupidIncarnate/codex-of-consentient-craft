@@ -27,9 +27,8 @@ They stop at a build chunk the work went well past, and every one of them unders
 
 | Part                      | Items             | What it covers                                                                                                           |
 |---------------------------|-------------------|--------------------------------------------------------------------------------------------------------------------------|
-| **The prompts**           | 1, 21             | the biggest gap. No siege prompt knows the tool exists                                                                   |
-| **Spec-side work**        | 17                | quest-record fields, the checklist, one role that does not exist, and operational flows moving off siege                 |
-| **The human-check route** | 2                 | a whole settlement route, nothing built                                                                                  |
+| **Moved out**             | 1, 2, 21, most of 17 | every prompt and orchestration change. They are the plan's §9 and §10 now; each item here is a pointer                 |
+| **Spec-side work**        | 17e               | two surfaces folded into generic entries                                                                                 |
 | **The oddities file**     | 3                 | durable driving knowledge, nothing built                                                                                 |
 | **The recipe framework**  | 4, 5, 7, 8, 12    | two missing verbs, a route nobody has run, three values the app randomises on screen, defects in this repo's own recipes |
 | **The migration**         | 6                 | about two-thirds done, with a measurable running mark                                                                    |
@@ -39,20 +38,22 @@ They stop at a build chunk the work went well past, and every one of them unders
 | **Product defects**       | 22                | two live bugs the trial measured, both with a named mechanism                                                            |
 | **Do not rebuild**        | 23                | things recorded as missing that are in fact done                                                                         |
 
+**The prompt and orchestration work lives in `scrolls/orchestrator-step-engine-plan.md`**, which
+rewrites every one of these prompts as a step in a routed graph. Every `plan §…` below points there.
+This file is the siegelense TOOL's remaining work. The item numbers below keep their gaps
+deliberately: a dozen items cite each other by number, and renumbering would break every one of those
+pointers silently.
+
 ## What order to do this in
 
-**Item 18 first, with item 1.** Everything else is additive to the files item 18 moves, so doing it
-late means doing those items twice — and the prompts in item 1 currently drive the mechanism item 18
-replaces. Cut them over together.
+**Item 18 first, with the plan's step 6.** Everything else here is additive to the files item 18
+moves, so doing it late means doing those items twice — and every siege prompt today drives the
+mechanism item 18 replaces. Cut them over together.
 
 **Then items 13 and 14**, the element delta and settle-based stepping. They are the two functional gaps
 the rest of the tool leans on: the element delta because four separate mechanisms are incomplete
 without it, and settle because a clock-based step makes the same batch produce different findings on
 different days.
-
-**Item 2 is a vertical slice** — a contract field, a denominator rule, a filter, a shared prompt block,
-a citation kind and a web panel. Do it in one pass or not at all; half of it leaves an unclosable unit
-visible to an agent that will invent a verdict for it.
 
 **Items 6 and 7 are independent** and can run beside anything.
 
@@ -79,329 +80,34 @@ Three pieces close that gap.
 3. **The role prompts** — the rules that tell siegemaster and its sub-agents how to use the first two.
 
 **The tool and the recipe book are largely built. The role prompts are not wired to either of them.**
-That is the single biggest gap in this document.
+That third piece is the orchestrator plan's, §9. **The first two are what this file tracks**, and the
+rest of it is their remaining work.
 
 ---
 
-## 1. The prompt layer does not know siegelense exists
+## 1. The prompt layer — MOVED
 
-**This is the headline finding.** Four siege prompts exist in `packages/orchestrator/src/statics/`:
+**Every prompt rule that was here now lives in the orchestrator plan, §9** — the whole siege role
+rulebook, the recipe-provisioning role, `siegemaster-reader`, the fixer rules, the `docs` scopes and
+the registration points. It moved because the plan is what rewrites these prompts, and a rule split
+across two documents is a rule one of them drifts from.
 
-| Prompt                            | What it is             |
-|-----------------------------------|------------------------|
-| `siegemaster-prompt-statics.ts`   | the operator           |
-| `siegemaster-verifier-statics.ts` | the happy-path walker  |
-| `siegemaster-stress-statics.ts`   | the adversarial walker |
-| `siegemaster-reviewer-statics.ts` | grades repairs         |
-
-A search across every orchestrator prompt for the words `siegelense`, `recipe` and `instance`
-returns nothing. All four prompts are built around an older, separate mechanism called a **lane** — a
-file-command-driven trio of headless Chromium, an API server and Vite, living in
-`packages/web/test/siege-driver/`. None of them can call the tool that was built, and **item 18
-deletes that directory**, which is why these two items cut over together.
-
-So every item below is a prompt that must be written or rewritten.
-
-### 1a. The GUIDE-WRITER provisions the recipes, and it does not exist in this shape
-
-Phase zero of a pass. The operator dispatches ONE role, and that role writes the guide AND provisions
-every recipe the walks will need. This is the session the tool's `docs { for: 'planning' }` scope
-already addresses as "the planner".
-
-**Why the operator cannot do it itself:** the operator's tool block forbids it from driving anything —
-no browser, no `curl`, no CLI. Proving a recipe means running it against a live instance and reading
-the state back. So the work has to be dispatched.
-
-**Why it is ONE role and not two.** The guide's `SEEDING` heading and the recipe set answer the same
-question: how a walk reaches the state each path starts from. Split them, and one session writes the
-heading while another owns the thing it cites — which is a drift with nothing watching it. What has to
-go is the guide-writer's mandate as it stands today: "change no file but the guide, run no test, start
-no server" forbids exactly the work that proves a recipe.
-
-**Its deliverable is a COMPLETE recipe set for its whole domain, proven by running it.** Every path
-through every flow its operator owns gets a SETUP — the runnable batch that carries a fresh instance
-to that path's entry state — every setup names only recipes that exist, and every one of those recipes
-is run during this pass. A path left without a proven setup is a path no walk may be sent down, so a
-gap here does not degrade the pass — it removes coverage from it.
-
-What the guide-writer does, walk by walk:
-
-1. Read the checklist's `## WALK PATHS` — every route through the flow.
-2. For each path, work out the state that makes it reachable.
-3. Match those states against existing recipes.
-4. **Make every recipe the set is missing.** Two routes, and step 3's answer picks between them:
-   where existing ingredients compose to the state, the guide-writer writes the recipe itself in a
-   few lines; where the state needs an entity nothing declares yet, it launches ONE **`guide-recipe-writer`** per
-   missing recipe (1b below). Neither route is optional, and "no recipe
-   covers this path" is not an outcome this role may return.
-5. **Run every recipe the set uses — the ones it wrote and the ones it found alike — as the SEQUENCE
-   the setup submits**, against a throwaway instance, and confirm it lands where it claims. Not
-   each recipe alone; the sequence, end to end.
-6. Write the path's setup into the guide, keyed to the path.
-
-**Step 5 is the one that cannot be skipped.** An unproven recipe does not fail loudly, it manufactures
-false defects. A recipe that claims two rows and seeds one leaves the verifier looking at a one-row
-list. The verifier reports a defect correctly. A fixer is briefed against a symptom that does not
-exist and hunts in working code. A whole round is spent and nothing in the record says the seed was
-the problem.
-
-The quieter version is worse. A recipe seeding *one* of something an assertion must tell apart makes
-"the right one" and "the first one" the same value, so an off-by-index bug passes and the clean result
-means nothing.
-
-**It runs every recipe it uses, not only the ones it wrote.** An ingredient's `write` route mimics a
-shape production owns and can drift from it silently. Nothing about that drift touches the feature
-under test, so nothing else catches it.
-
-**What it produces — one setup per path, runnable, already run once:**
-
-```
-PATH 3   entry → guild selected → quest open → row expanded → chain rendered
-  SETUP                                      ← reaching the path's entry state
-    seed  guild-mid-execution                              as: g
-    seed  quest-mid-execution  guild:{g.guild.id}          as: q
-    goto  /{g.guild.urlSlug}/quest/{q.quest.id}
-    click [data-testid="EXECUTION_ROW_0"]                  ← no recipe covers this; it is a step
-  MID-WALK                                   ← seeds that fire PARTWAY, not at the start
-    at node  chain-rendered:
-      seed  subagent-chain-arrives  quest:{q.questId}
-  VERIFIED  run_7 · 2026-09-14 · setup reached the entry, every plan's output asserted
-```
-
-Three properties that shape has to hold:
-
-- **The setup is a runnable batch, not prose.** It is submitted to a walk, not described and
-  re-derived.
-- **It mixes recipes and driving steps.** A row that must be expanded before the thing under test
-  exists is not seeding, and no recipe should pretend it is.
-- **Mid-walk seeds are keyed to the node they fire at**, not appended to the end. A mid-walk seed
-  recorded as part of the setup silently turns a live-update test into a fresh-render test.
-
-**`VERIFIED` names the run that proved it** — the id of a run where it worked, and a date. A setup
-with no `VERIFIED` line is a path no walk may be sent down.
-
-**Its outputs split:**
-
-| Output              | Where it lives             | Why                                                                 |
-|---------------------|----------------------------|---------------------------------------------------------------------|
-| the per-path setups | `.quest-plans/`, per quest | they describe this flow's routes and mean nothing to the next quest |
-| any recipe it wrote | the committed recipe book  | a state worth creating once is worth creating again                 |
-
-### 1b. The guide-writer's one sub-agent, which does not exist
-
-The guide-writer reads almost no implementation itself. It has a whole flow's worth of paths to get
-through, and reading the quest contract and the work-item shape to write one recipe would spend the
-context the remaining paths need. So it launches a **`guide-recipe-writer`**.
-
-**One `guide-recipe-writer` per recipe.** Three recipes missing is three launches, not one agent
-handed three jobs. An agent given a batch optimises for getting through the batch, and the thing it
-drops first is the colocated test — which is the only evidence the recipe works.
-
-**That agent owns its recipe end to end, including the diagnosis when it fails.** It writes the recipe,
-and when the guide-writer's step-5 run does not land, the SAME agent works out why and repairs it. A
-failing recipe is never passed to a second agent: the one that wrote it is already holding the
-production writer it read, the `routes` it declared and the `copies:` it filled, and a fresh agent
-pays to re-read all of it before it can say anything. A recipe that already existed and failed gets a
-`guide-recipe-writer` of its own on the same terms.
-
-| The recipe is                                   | What the guide-writer supplies                                                                                           | What comes back                                                                                                  |
-|-------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
-| **missing**                                     | the state in the flow's own words, the package likely owning it, the recipes already nearby                              | whether existing ingredients compose to it; otherwise a new ingredient, its test, its `routes` and its `copies:` |
-| **failing** — it ran in step 5 and did not land | the recipe, the plan it produced, the failing ingredient's `routes` and `copies:`, and the readings from the failing run | what changed, the fix, and whether the break is really a finding about the app                                   |
-
-Rules the prompt has to carry:
-
-- **A `guide-recipe-writer`'s first question is whether existing recipes already compose to the
-  state.** A new recipe where two compose makes the book worse while looking productive.
-- **The `guide-recipe-writer` fills `copies:`**, because it has just read the production writer. Left
-  for later it is a guess, and a wrong `copies:` pointer makes the drift test assert against the wrong
-  thing — worse than no pointer, because it passes.
-- **A `guide-recipe-writer` is briefed in the flow's words, never from an implementation detail.**
-  Handed the code to start from, it writes a recipe for whatever the code happens to do. The
-  guide-writer decides what state every walk starts from, so it has to stay answerable to the spec.
-- **The diagnosis brief carries the readings from the run that failed.** Otherwise it is "this is
-  broken, go look" rather than a diagnosis starting from a measured symptom.
-- **A break that turns out to be production changing shape is a finding about the app**, not a recipe
-  patch. It becomes an observable.
-- **Writing a recipe is not worth a launch; writing an ingredient is.** A recipe is composition and
-  the guide-writer writes one itself in a few lines. An ingredient means reading the production
-  writer, declaring `links`, `routes` and `copies:`, and proving it with a colocated test.
-- **Two at a time.** One agent per recipe makes disjointness structural — no two of them ever hold the
-  same file — so the cap is no longer about collisions. What it bounds is how many returns the
-  guide-writer has to read and re-prove in one go, which is the same reason siegemaster's own prompt
-  already caps two fixers. Depth stops here: a `guide-recipe-writer` launches nothing.
-- **Every return ends with the GUIDE-WRITER re-running the setup.** A sub-agent's claim that its
-  recipe works is not evidence, and that is as true of a repair as of a first draft.
-
-A `guide-recipe-writer` diagnosing its own recipe is bounded by the route that failed:
-
-| Route that failed | The diagnosis is                                                                         |
-|-------------------|------------------------------------------------------------------------------------------|
-| `write`           | find the `copies:` target and diff what it writes now against what the ingredient writes |
-| `api`             | the real code path changed — a route, a payload contract, a status. Read the handler     |
-| `recording`       | the recording is of a version that no longer exists. Re-capture, do not patch            |
-
-**That third row is not performable today, and 5c is where that gets settled.** Nothing on a
-`recording` route records which version it was captured against, so "of a version that no longer
-exists" is a conclusion with nothing behind it. Write this row into the prompt only once 5c has given
-a recording something to check.
-
-A two-route ingredient narrows it further before anyone reads anything: run both routes and compare.
-Agreeing routes mean the drift is not here; disagreeing ones name the field that moved.
-
-### 1c. The guide's three headings still derive what something durable now answers
-
-All three headings exist and all three are the old design.
-
-| Heading    | What it says today                                                                                                        | What it must become                                              |
-|------------|---------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
-| `SEEDING`  | "how to create the data each path needs, as commands or requests that actually work" — the writer derives it              | cite the path→recipe mapping this same role just proved in 1a    |
-| `CONTROLS` | "the test id or selector for every control the paths touch"                                                               | cite the **key** — the text tree of the screen the tool produces |
-| `TRAPS`    | "what has bitten here before — timing, a fixture that lies, a control that needs scrolling into view" — derived per quest | point at the committed oddities file (item 3 below)              |
-
-All three exist because a walk needs something it has to work out. All three stop being work once
-something durable answers.
-
-### 1d. Operator rules — none present, two actively contradicted
-
-| Rule                                                                                                        | State today                                                                                                                                                                        |
-|-------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Call `cleanup` at the START of the pass and again at the END                                                | not present; no cleanup concept in the prompt                                                                                                                                      |
-| Open by fetching `docs { for: 'operating' }` rather than carrying the tool's rules in the prompt            | not present. 1g has the whole family and the measurement                                                                                                                           |
-| Run the pass in TWO PHASES — every happy walk, then a STAMP, then every adversarial walk, never interleaved | **contradicted.** `siegemaster-prompt-statics.ts:340` dispatches the verifier and stress tester together: "Both go out in ONE message, one `Agent` call each — that is the round." |
-| No phase advances while any instance is in an unknown state                                                 | not present; no instance state machine, only lanes                                                                                                                                 |
-| After an instance death the OPERATOR owns cleanup: `status`, reap orphans, re-read `capacity`, re-dispatch  | **contradicted.** `siegemaster-prompt-statics.ts:150` gives recovery to the minion: "the minion that started it starts a fresh one under a new name, never you"                    |
-| Refuse to dispatch a walk down a path whose recipe is missing or unproven                                   | not present; no recipe concept in the prompt                                                                                                                                       |
-
-The reasons, in short: two bookends of `cleanup` make the first `capacity` reading honest and catch
-what this pass leaked, without a daemon watching continuously. Fetching `docs` gives one source for
-the tool's rules and a scope that cannot accidentally teach the operator to drive. The two-phase split
-makes a clean baseline structural rather than a special case. Advancing while instances are unknown
-hands the antagonists a machine already under pressure — and pressure is the first thing they measure.
-The operator is the only session that knows which instances are legitimately alive, so it is the only
-one with standing to kill anything.
-
-### 1e. Fixer rules — two built, two missing, one contradicted
-
-| Rule                                                                                | State today                                                                                                                           |
-|-------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| `RED FIRST` — watch a real test fail against unchanged source, for the right reason | **built**, verbatim at `siegemaster-prompt-statics.ts:667`                                                                            |
-| Cap two fixers, only over a disjoint file set                                       | **built**, verbatim at `siegemaster-prompt-statics.ts:374`                                                                            |
-| A fixer touches no instance it did not start                                        | **built** under the old vocabulary — the fixer starts zero lanes, period                                                              |
-| A fixer RE-RUNS THE SETUP on a fresh instance                                       | **contradicted.** `siegemaster-prompt-statics.ts:674` forbids it from touching any lane "not start, not stop, not restart, not drive" |
-| A fixer writes the e2e using the same recipes the setup named                       | missing; no recipe concept                                                                                                            |
-
-The last one is the point of the whole recipe book for a fixer. **The hard part of writing a
-regression e2e was always the setup.** A recipe returns a plan, an ingredient's `write` route is pure
-`fs` and its `api` route is a `fetch`, so the state a walk ran against and the state its regression
-test runs against come from the same plan handed two different targets. The alternative is what
-happens today: the fixer re-derives the setup in the e2e's own idiom, gets it subtly different, and
-the test passes against a state the walk never saw.
-
-The plumbing for this is already built (see item 4). Only the instruction is missing.
-
-**One dependency this rule has on the tool:** `results` must still answer for a killed instance,
-flagged as gone, and reading it must start nothing. The walker's instance is gone by the time a fixer
-reads its record. Without that, a fixer holding a run id finds it resolves to nothing, and the handoff
-depends on the walker having hand-copied every reading.
-
-### 1f. New prompts have to be registered
-
-`agent-prompt-classification-statics.ts:36` holds the exhaustive roster of served prompt names. It
-lists eleven. `guide-recipe-writer` has to be added there, or `get-agent-prompt` cannot serve it. It
-also needs a row in `agentPromptClassificationStatics.minionNames` and one in
-`agentNameToPromptTransformer` — sonnet, like every minion.
-
-**The guide-writer itself has to become a served prompt, and that is a change.** It is inline prose
-today inside `siegemaster-prompt-statics.ts`, briefing a generic
-`Agent(subagent_type: "general-purpose")`. A generic brief cannot carry what 1a and 1b now put on this
-role — the recipe set, the run discipline, and a named sub-agent of its own — so it needs the same
-three registration points. The "fixer" stays inline prose; nothing here changes it.
-
-### 1g. The tool serves a doc per role, and no prompt fetches one
-
-**Seven scopes ship.** `siegelense-call-statics.ts:36` pins them, and `docs-statics.ts` gives each its
-own audience line and its own subject. **Not one orchestrator prompt fetches any of them.** Measured:
-the word `docs` appears in zero of the 55 statics files under `packages/orchestrator/src/statics/`.
-
-**Every prompt in the siegemaster family opens by fetching its own scope** rather than carrying the
-tool's rules inline. That buys one source for how the tool behaves, and a vocabulary bounded by the
-role: the operating scope carries no browser verb at all, which is what stops the session that
-dispatches from starting to drive.
-
-| Prompt                                    | Fetches                     | That scope's audience, in its own words                                                                |
-|-------------------------------------------|-----------------------------|--------------------------------------------------------------------------------------------------------|
-| `siegemaster` — the operator              | `docs { for: 'operating' }` | "the session that opens and closes a pool of instances and assigns tasks to other agents"              |
-| the guide-writer (1a)                     | `docs { for: 'planning' }`  | "the session that writes the test sequence and proves that the application reaches its starting state" |
-| `siegemaster-verifier` — the happy walker | `docs { for: 'walking' }`   | "the session driving a browser against one instance and recording what it reads"                       |
-| `siegemaster-stress` — the antagonist     | `docs { for: 'attacking' }` | "the session running attacks against one instance and measuring what breaks"                           |
-| the fixer (1e)                            | `docs { for: 'fixing' }`    | "the session that arrives after the walk is over and the instance is gone"                             |
-
-**The fixer is the one row that is not a served prompt**, and 1f keeps it that way. Its fetch is
-carried in the operator's brief instead — one line telling a generic sub-agent to open
-`docs { for: 'fixing' }` before it touches anything. The scope still has exactly one reader; what
-differs is where the instruction lives.
-
-**Two scopes have no prompt, and for different reasons.** `driving` addresses "a session nobody
-orchestrated — no quest dispatched you, and no dispatcher is watching". There is nothing to put it in,
-because the session that needs it was dispatched by nobody and fetches it itself; item 21i says the
-same thing from the other end. **`operational` is the other, and it is now a live question** — 17d
-moves operational flows off siegemaster's track, so the role that would have fetched that scope is not
-being built. 9c has what to do about it.
-
-**Three prompts in the family fetch nothing, and each absence is load-bearing:**
-
-| Prompt                          | Why no scope                                                                                                                                             |
-|---------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `siegemaster-reviewer`          | it grades repairs by reading and re-drives nothing — a fresh verifier does that                                                                          |
-| `siegemaster-reader` (17c, 21a) | it opens files. It calls no tool, starts no instance and holds no pool slot, so the driving vocabulary would only be a route to misuse                   |
-| `guide-recipe-writer` (1b)      | it reads the production writer and writes an ingredient plus its colocated test. The guide-writer is the session that runs the setup against an instance |
-
-**A prompt and its scope are one edit.** Adding a role means adding its scope, and a role fetching a
-scope written for a different audience is worse than fetching none: it arrives holding verbs its
-tool block forbids, and the first thing it does with them is the thing its own prompt refuses.
+**What the plan cannot know, and this file keeps:** the prompts and
+`packages/web/test/siege-driver/` cut over together. Item 18 deletes that directory, and every siege
+prompt today drives the lane it removes.
 
 ---
 
-## 2. The `verifyByHuman` settlement route — nothing built
+## 2. The `verifyByHuman` settlement route — MOVED
 
-**The problem.** Some acceptance criteria cannot be automated at all — "the transition should be
-smooth". If the author writes one with no flag, all three verification tracks each pay to discover it
-cannot be automated, and each either signs it `unconfirmable` or invents a verdict. The user sees
-neither.
+**The whole vertical slice is now the orchestrator plan, §10** — the contract flag, the in-scope
+filter, the shared prompt block, the citation kind and the panel a person ticks. It moved because the
+denominator half is one more value in the scoping data that plan re-keys, and because two of its three
+readers (`get-qa-checklist`, the three sign-off tracks) do not survive that plan at all.
 
-**The fix is one flag, set at spec time by the author, read by three parties.** ChaosWhisperer marks
-an observable human-check while authoring it, exactly as it already marks one `verifyByReading`. The
-author flags it; the denominators drop the unit so no track carries something it can never close; the
-walker gathers the evidence and routes it to a list for a person.
-
-| Item                                                                                                                                                                   | State today                                                                                                                   |
-|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
-| **2a.** `verifyByHuman: true` on `flowObservableContract`, beside the existing `verifyByReading`                                                                       | not built. `verifyByReading` exists at `flow-observable-contract.ts:76`; `verifyByHuman` appears nowhere in `packages/`       |
-| **2b.** A human-check route in `signoffTrackEligibilityStatics`, so each track's denominator drops those units                                                         | not built. `verificationMethods` lists only `['test', 'reading']` (line 138) and `['test']` for flowrider and siegemaster     |
-| **2c.** A shared prompt block holding the "can anything automate this?" decision table, interpolated into ChaosWhisperer's prompt AND siegemaster's from one source    | not built. The pattern to copy is `standardsReviewConcernsStatics`, which is already interpolated into three reviewer prompts |
-| **2d.** Only ChaosWhisperer and BugHunt may set the flag                                                                                                               | not built — see the note below                                                                                                |
-| **2e.** Once a quest reaches `in_progress`, filter `verifyByHuman` observables out of every work-item view: `get-quest`, `get-qa-checklist`, and the brief transformer | not built; no filter of any kind exists                                                                                       |
-| **2f.** The end-of-quest list handed to the person, carrying the human-check observables and their evidence                                                            | not built — item 17f has the detail                                                                                           |
-| **2g.** A citation kind holding a video a `verifyByHuman` item names, so it survives until the quest closes                                                            | not built — item 15a says why it cannot wait                                                                                  |
-
-**On 2d — the existing rule for `verifyByReading` is prompt text only.** `packages/orchestrator/CLAUDE.md:851`
-states "Only ChaosWhisperer and BugHunt can set this", and `dumpster-create-prompt-statics.ts:158`
-instructs the ChaosWhisperer session. No guard and no contract refinement enforces it. Matching that
-precedent means writing prompt text; enforcing it properly means a new mechanism. **Decide which, and
-if it is the second, apply it to both flags.**
-
-**Why 2e is stronger than just dropping the unit from a denominator.** An agent that can see a unit it
-cannot close does not skip it. It reaches for the nearest thing it *can* measure — a proxy assertion,
-a change-detector, a `toSettle` naming an action nobody will take — and now the quest carries a test
-pinning the wrong thing plus a session that spent a pass on it. An observable nothing downstream can
-act on is context that can only mislead, so it must not travel.
-
-**The shared-block rule applies with force to 2c.** The orchestrator's own prompt-editing rules say a
-shared block is a contract on every prompt that interpolates it. A table that drifts between the
-author's copy and the walker's copy produces the worst case available: a criterion ChaosWhisperer
-flagged as human-only that siegemaster believes is testable, so neither settles it and neither reports
-it missing.
+**Item 15a below depends on it**, and that dependency now crosses documents: the video-citation kind
+is §10g there, and a screencast a human-check unit names rots on the two-day retention window without
+it.
 
 ---
 
@@ -435,8 +141,8 @@ to.
 | a round that finds an entry WRONG reports it                                             | an oddity nobody corrects is worse than none, because every walk after it trusts it                                                                                        |
 | each entry says whether it is a genuine platform quirk or something that should be fixed | "click the wrapper" usually means the hit area is wrong, which is a real defect for a real user with a real mouse. The second kind gets an observable rather than an entry |
 
-Pieces needed: the file itself, its entry contract, the read path, the append path, and the `TRAPS`
-rewrite in 1c. Its home is `.dungeonmaster-assets/`, which does not exist in the checkout yet — **19a creates it**, by
+Pieces needed: the file itself, its entry contract, the read path, the append path, and pointing the
+guide's `TRAPS` heading at it — which is the plan's §9b. Its home is `.dungeonmaster-assets/`, which does not exist in the checkout yet — **19a creates it**, by
 moving the `.siegelense` link under it. Two occupants, and they need opposite
 git treatment: the link is ignored, this file is committed. 19a has the trap that follows from that.
 
@@ -453,7 +159,7 @@ git treatment: the link is ignored, this file is committed. 19a has the trap tha
 | **4c** | Let a caller supply `createdAt` and `updatedAt` to `questHydrateBroker`                                                                                         | one field, threaded          |
 | **4d** | Write a two-route comparison test for every ingredient declaring both routes. One exists; it covers `guild`                                                     | one test per ingredient      |
 | **4e** | Make something read `copies:`, find the app code it names, and compare the ingredient against it. Today nothing does                                            | a real mechanism             |
-| **4f** | Make the guide-writer seed each recipe twice and compare the two screens. This is the only one of the six that finds the problem in a repo nobody here has seen | a step in 1a, waiting on 13a |
+| **4f** | Make the recipe-provisioning session seed each recipe twice and compare the two screens. This is the only one of the six that finds the problem in a repo nobody here has seen | a step in 1a, waiting on 13a |
 
 **4a, 4b and 4c are this repo's own bugs and fix only this repo. 4f is the one that ships.** The rest
 of this section is why.
@@ -569,7 +275,7 @@ generated and then displayed** — the third case in the table above, named, wit
 mentioning a guild. The comparison does not need to know what it is looking at. That is the whole
 reason it travels.
 
-**Where it goes: the guide-writer's step 5** (1a). That step already runs every setup once against a
+**Where it goes: `recipe-maker`'s step 5** — the plan's §9b. That step already runs every setup once against a
 throwaway instance. Running it twice and comparing is the same work plus one comparison, and it is the
 only moment in a pass that already holds both a proven setup and an instance to run it in.
 
@@ -851,18 +557,22 @@ gives it its own audience — "a session verifying a flow that has no screen, wh
 verification track there is" — and its own subject: the headless lane, reading server logs, and the
 `request` / `file` / `until { file }` steps.
 
-**But 17d just took away its reader.** Operational flows leave siegemaster's track, so no siege role
-fetches this scope any more, and its audience line now describes a session nobody builds. Two live
-options, and this pass picks one:
+**Two of the seven scopes have lost their reader, and this one is the second.** Operational flows
+leave siegemaster's track (the plan's §9h), so no siege step fetches `operational` any more, and its
+audience line now describes a session nobody builds. `operating` lost its reader the same way — the
+plan deletes the operator that scope addresses. Three live options, and one pass picks all three:
 
 | Option                                       | What it means                                                                                                                                                                                                                                                                                          |
 |----------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Delete the scope**                         | the honest reading if nothing browserless is ever walked. It goes out of `siegelense-call-statics.ts:36` and out of `docs-statics.ts`, and the seven becomes six                                                                                                                                       |
-| **Keep it for the whole-quest off-map item** | 17d's improvement is that an all-operational quest now takes ONE whole-quest off-map item. That item still attacks a running system through `request` and `file`, with no flow and no screen — which is what this scope describes. If that is where it lands, the audience line is rewritten to say so |
+| **Delete `operational`**                     | the honest reading if nothing browserless is ever walked. It goes out of `siegelense-call-statics.ts:36` and out of `docs-statics.ts`, and the seven becomes six                                                                                                                                       |
+| **Keep it for the whole-quest off-map item** | an all-operational quest falls back to ONE whole-quest off-map item. That item still attacks a running system through `request` and `file`, with no flow and no screen — which is what this scope describes. If that is where it lands, the audience line is rewritten to say so                        |
+| **Decide `operating` alongside it**          | it addresses "the session that opens and closes a pool of instances and assigns tasks to other agents". Under the plan each walker starts its own instance and the router reads `capacity`, so nobody is that session — plan §9g                                                                       |
 
-**The second is the likelier answer**, because the browserless lane spec, the `request` and `file`
-steps and the content-hash profile are all built and all still needed by that item. Decide it with
-17d, not separately.
+**The second is the likelier answer for `operational`**, because the browserless lane spec, the
+`request` and `file` steps and the content-hash profile are all built and all still needed by that
+item. **But the whole-quest off-map item is an OPEN question in the plan, not a settled one** — its
+siege planner returns `empty` on an all-operational quest and mints no such item. Settle that first;
+this follows from it.
 
 ---
 
@@ -1101,14 +811,14 @@ refuses rather than pruning to make room. What is missing:
 | Citation                                 | State                                                                                                                                                                                                                        |
 |------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | a `VERIFIED` line naming a run           | resolves                                                                                                                                                                                                                     |
-| an open quest's `WALKED` line            | resolves — the `walked` questNote kind is built (see 17a)                                                                                                                                                                    |
+| an open quest's `WALKED` line            | resolves — the `walked` questNote kind is built (plan §9l makes its ids required)                                                                                                                                                                    |
 | an open issue naming an instance and run | **a hardcoded permanent gap.** `citation-resolve-broker.ts:39` — "not checked: no issue record exists to check". It is declared in `unresolved[]` on every answer rather than silently skipped, which is the honest handling |
-| a `verifyByHuman` item naming a video    | **the kind does not exist**, because `verifyByHuman` does not exist (item 2)                                                                                                                                                 |
+| a `verifyByHuman` item naming a video    | **the kind does not exist**, because `verifyByHuman` does not exist (plan §10)                                                                                                                                                 |
 
 The fourth one matters more than it looks. **A `verifyByHuman` unit hands a person a `.webm` and a
 question, and that list reaches them at quest END** — so a screencast deleted on the two-day video
-window is a link that rots before the only reader it has. Whoever builds item 2 has to add this
-citation kind with it.
+window is a link that rots before the only reader it has. Whoever builds the plan's §10 has to add
+this citation kind with it — it is §10g there.
 
 **15b. Free disk is measured and never gates anything.** `capacity` and `status` both report
 `freeDiskMB`, but `start` does not check it, and neither `snapshot-capture-broker.ts` nor
@@ -1177,134 +887,30 @@ families need.** The mechanism for injection exists; it covers two binaries.
 
 ## 17. Spec-side work the tool is waiting on
 
-**17a. The `walked` questNote kind is built; nothing requires it.** `questNoteKindContract` holds
-`walked`, and `questNoteContract` carries typed `instanceId` and `runId` beside the prose — which is
-what lets `prune` and `cleanup` resolve a `WALKED` citation mechanically instead of matching an id
-buried in a sentence.
+**17a–17d and 17f–17h MOVED to the orchestrator plan.** Each was a prompt or an orchestration
+change rather than a tool gap:
 
-What is missing is the requirement. Both fields are `.nullish()`, no refinement forces a `walked` note
-to carry them, and nothing on the quest record requires a walk to record one at all.
+| Was | Now |
+|-----|-----|
+| **17a.** a `walked` questNote must carry its instance and run id | plan §9l |
+| **17b.** nothing prints the owning node id an antagonist needs | plan §8, the `get-quest-work` endpoint table. `get-qa-checklist` is deleted there, so the node id is served on every unit |
+| **17c.** `siegemaster-reader` does not exist | plan §9c, and it is a step in that plan's siegemaster graph |
+| **17d.** operational flows leave siegemaster's track; codeweaver's reviewer settles them | plan §9h, with the fan-out rule in §4 |
+| **17f.** the `(human-check)` panel | plan §10h |
+| **17g.** the declared-value enumeration has drifted between author and reviewer | plan §9i |
+| **17h.** motion quality is asked for and no session can deliver it | plan §10, which is the route it gets cut to |
 
-**Every path walked carries the instance and run that walked it, a CLEAN walk included**, because that
-id is the proof the path was driven rather than claimed — the same thing a setup's `VERIFIED` line
-does one level down. And it is the only handle anything has on that walk's evidence: the tool keeps the
-run for its retention window and offers no way to find it without the id. Nothing browses.
-
-**17b. `get-qa-checklist` still does not print the owning node id.**
-`qa-checklist-to-text-transformer.ts:237` renders the unit row and interpolates no node. The verifier
-prompt still states the gap in its own words at `siegemaster-verifier-statics.ts:408`: "Nothing tells
-you which node an observable hangs on except the flow you read… your brief does not carry it and the
-checklist does not print it."
-
-Every sign-off pays that lookup. **It is now the value two mechanisms read**, not one: a step carries an
-optional `node:` label (built), and an antagonist fetches the baseline of the node it is attacking.
-
-**17c. `siegemaster-reader` does not exist.** A minion that opens the source files a walk must not,
-returning values with `file:line` against each. **It removes the last reason a walker opens a source
-file, which is the one thing the three-arm trial proved destroys the pass.**
-
-The guide's `OFF-SCREEN` heading exists at `siegemaster-prompt-statics.ts:302` and still tells a
-generic sub-agent what to go and find. With a reader it becomes that reader's answers instead.
-
-Registration needed in three places, none of which has it: `agentPromptNameContract`,
-`agentPromptClassificationStatics.minionNames`, and a row in `agentNameToPromptTransformer` — sonnet,
-like every minion. It gets no `docs` scope, and that absence is the point: it calls no tool, starts no
-instance and holds no pool slot, so handing it the vocabulary for driving a browser would be a mistake.
-
-**17d. Operational flows leave siegemaster's track entirely, and codeweaver's reviewer settles them.**
-No `siegemaster-operational` role is built — **and none should be.**
-
-**An operational flow has nothing to walk, and the contract already says so.**
-`flow-type-contract.ts:12-14`: "An operational flow is a one-time task sequence executed by the
-engineer or Codeweaver to achieve a state change — refactor sweep, infrastructure setup, lint rule
-registration. It is verified by Siegemaster checking the final state, not by walking paths." A
-one-time sequence has no paths, and its final state is a fact about the source tree — this file is
-gone, this import is there, this rule is registered.
-
-**That is a READING, and this repo already has a track for readings.** `verifyByReading` marks exactly
-this kind of criterion — "an import that must be there, a literal that must not be inlined, a symbol
-that must be gone" — and it is already settled by codeweaver's reviewer opening the file, and already
-drops out of flowrider's and siegemaster's denominators. The routing machinery is built and proven; an
-operational flow's units go down the same road.
-
-**Codeweaver is already on those flows, which is what makes this cheap.** Its ledger fans out by (package, flow) CELL
-across BOTH flow types (`fanOutBy: 'implementation'`), and the flow-type contract
-names Codeweaver as the thing that EXECUTES an operational sequence in the first place. Its reviewer
-already opens every file the pass produced.
-
-**What changes:**
-
-| Change                                                                            | Where                                                                                   |
-|-----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
-| Siegemaster's `flowTypes` drops to `['runtime']`, matching flowrider              | `signoffTrackEligibilityStatics.byTrack`                                                |
-| An all-operational quest seeds no siegemaster per-flow item and no flowrider item | the ledger fan-out follows the same statics, so this needs no separate edit             |
-| `codeweaverSignoff` becomes the settling verdict for an operational unit          | `signoffTrackEligibilityStatics`, plus the codeweaver and `codeweaver-reviewer` prompts |
-
-**This makes the off-map story BETTER, which is worth seeing before anyone worries about it.**
-Siegemaster is the only role carrying `off-map` in its `unitKinds`, and the rule is that with no
-eligible flow at all it keeps ONE whole-quest item. Today an all-operational quest HAS eligible
-siegemaster flows, so off-map gets spread across operational flow walks that cannot reach it. Restrict
-siegemaster to runtime flows and that same quest now has no eligible flow, so it takes the whole-quest
-item instead — and `hostile-input` and `perf` get settled once, properly, against the running system.
-
-**The cost is INDEPENDENCE, not liveness.** There was never anything to drive, so nothing is lost
-there. What is lost is the separation: the flow-type contract names Codeweaver as the thing that
-EXECUTES an operational sequence, and this makes Codeweaver's own reviewer the thing that confirms it
-landed. Siegemaster exists to check the product against the spec without reading the source that
-implements it, and an operational unit no longer gets that second pair of eyes.
-
-**Two things keep it honest, and both should be written down with the change:**
-
-| Guard                                                                                                                                   | Why                                                                                                                                                                                                                                  |
-|-----------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| The reviewer states the final state it OBSERVED, path by path, not that the sequence "ran"                                              | a one-time sequence has no re-run to check. The only evidence is the tree afterwards, so the sign-off names what is on disk — `deleted X`, `Y imports Z at line N` — and a `confirmed` with no such line is the failure this invites |
-| A unit whose final state the reviewer cannot see from the tree is `unconfirmable`, never confirmed on the sequence having been followed | "I did the steps" is the executor grading its own work, which is precisely what the lost independence would otherwise cost                                                                                                           |
-
-**Also update the contract's own comment.** `flow-type-contract.ts:13-14` says an operational flow "is
-verified by Siegemaster checking the final state". After this change it is not.
+**One of them changed shape in the move, and it is worth knowing which.** 17d's best consequence —
+that an all-operational quest falls back to ONE whole-quest off-map item, so `hostile-input` and
+`perf` get settled once against the running system — is recorded in that plan as an OPEN question,
+because its siege planner returns `empty` on such a quest instead. 9c below still turns on that
+answer.
 
 **17e. Two of the four surfaces it needs are folded into generic entries.**
 `qaCheckSurfaceStatics` lists `process-state` and `environment` as named surfaces. It has no distinct
 surface for a log tail beyond the instance's own two server logs — only a generic `log-output` — and
 none for a named elapsed figure, which sits inside a generic `performance` entry.
 
-**17f. The `(human-check)` panel does not exist**, and cannot until item 2 ships. It needs every
-`verifyByHuman` unit with its `toSettle` instruction, its repo-local evidence links, an outstanding
-count, and **a control that takes the person's verdict.** A list a person can read and cannot tick is a
-list nobody works.
-
-It is the only place such a unit reappears. Once the quest is `in_progress` they are filtered from
-every work item's view, so with no panel the expectation is invisible everywhere.
-
-**17g. The declared-value enumeration is duplicated and has already drifted.** Confirmed, and the drift
-is the dangerous direction — **the author's list is narrower than the reviewer's**, and the author is
-the only role that may set the flag:
-
-| Copy                                                      | Says                                                                                                                             |
-|-----------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
-| `dumpster-create-prompt-statics.ts:163` (the author)      | "A font size, a colour token, a class name, a border, a padding, an animation duration, a typeface…"                             |
-| `chaoswhisperer-gap-minion-statics.ts:191` (the reviewer) | "a font size, a colour **or colour token**, a class name, a typeface, a border, a padding **or margin**, an animation duration…" |
-
-A raw colour and a margin are declared values the reviewer catches and the author never flags. Extract
-one interpolated statics, add the siege consequence to its rationale, and give it to both.
-
-**And `siegemaster-prompt-statics.ts` has no rule at all for an unflagged declared-value observable.**
-The rule exists and the gap is on the walker — it meets one of these and has nothing telling it what to
-do.
-
-**17h. Motion quality is still asked for and no session can deliver it.**
-`siegemaster-verifier-statics.ts:321` lists "a transition jumps or flickers" beside truncation and
-overlap, which ARE measurable.
-
-**A model cannot grade animation.** Four frames 1.5 seconds apart cannot distinguish a clean 300ms
-transition from a janky one, frame drops are invisible at that sampling rate, a two-frame flicker falls
-between samples, and `video` produces a file no model watches. Every comparison capture is frozen
-(`animations: 'disabled'`, `caret: 'hide'`) precisely so `pixelChange` is not noise — so the tool
-cannot see motion even in principle.
-
-**A rule nobody can follow does not get ignored — it gets answered with an invented adjective**, which
-is exactly what the prompt's own "search your own draft for 'confirmed', 'held', 'as expected'"
-discipline exists to catch. Cut it, and route it to the human-check list instead.
 
 ---
 
@@ -1334,7 +940,7 @@ the repo:
 
 | Referrer                                                                         | What it does                                                                                                                                                                                                                                                                                                                         | What the delete needs                                                                                                                                                                                 |
 |----------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `siegemaster-verifier-statics.ts`, `siegemaster-stress-statics.ts`               | the two walker prompts drive the lane by name                                                                                                                                                                                                                                                                                        | rewritten in item 1 — which is why these two items cut over together                                                                                                                                  |
+| `siegemaster-verifier-statics.ts`, `siegemaster-stress-statics.ts`               | the two walker prompts drive the lane by name                                                                                                                                                                                                                                                                                        | rewritten by the plan's step 6 — which is why that step and this item cut over together                                                                                                              |
 | six files in `packages/siegelense`                                               | cite the prototype as the measured shape they generalise from, **several by line number** — `playwright-session-adapter` ("lines 204-341"), `lane-boot-broker` ("lines 59–368"), `driver-idle-wait-layer-responder` ("lines 153-171"), `driver-statics` (five separate citations), plus `lane-spec-contract` and `lane-spec-statics` | see below — this is the one that needs a decision                                                                                                                                                     |
 | `packages/orchestrator/CLAUDE.md`                                                | describes the lane's location in three places                                                                                                                                                                                                                                                                                        | rewrite to name the tool                                                                                                                                                                              |
 | `playbook/smoketest-instances.md`, `playbook/smoketest-orchastrator.md`          | runbooks telling a person to run `npx tsx packages/web/test/siege-driver/siege-driver.ts p1`                                                                                                                                                                                                                                         | rewrite, or a human following them hits a missing file                                                                                                                                                |
@@ -1349,7 +955,7 @@ the citation and keep the RULE it was justifying — "SIGTERM, then this long a 
 the durable half; "matches KILL_GRACE_MS in the measured prototype" is the half that rots.
 
 **Order matters here.** Everything else in this document is additive to the files this item moves. **Doing this item
-first means doing all of them twice; doing it last means the prompt rewrite in item 1
+first means doing all of them twice; doing it last means the plan's prompt rewrite
 is written against a mechanism about to be replaced.** Cut the prompts and the lane spec over together.
 
 **This item gets no help from lint, and that is measured.** `siege-lane.ts` passes
@@ -1448,198 +1054,26 @@ scrolls that is not in here is gone with them.
 
 ---
 
-## 21. The rest of the role rulebook
+## 21. The role rulebook — MOVED
 
-Item 1 covers the operator, the guide-writer and the fixer. These are the roles it did not
-reach. **All of it is prompt text, and none of it exists.**
+**All of it is now the orchestrator plan, §9** — the nine rules missing from the happy walker, the
+nine missing from the antagonist, the five-step rule for an implementation-detail unit,
+`siegemaster-reader`, the fixer rules, the operator rules that no longer have an operator, the spec
+authors' two rules, and the note that `docs { for: 'driving' }` already serves the unowned session.
 
-**One role is entirely new** — `siegemaster-reader` in 21a — needing a prompt plus registration in
-`agentPromptNameContract`, `agentPromptClassificationStatics.minionNames` and a row in
-`agentNameToPromptTransformer`. 21b was a second one until 17d moved operational flows off this track
-altogether; it is now the rules that moved with them.
+**Four of those rules were settled differently in the move, and this file records how**, because each
+one changes what the siegelense tool is called by and when:
 
-### 21a. `siegemaster-reader` — opens the files so no walker has to
+| The rule as written here | How the plan settled it |
+|--------------------------|--------------------------|
+| every happy walk, then a STAMP, then every adversarial walk, never interleaved | **kept, as a route.** `happyWalk` routes to `adversarial`, and a step's `done` fires only when every piece at it has drained. The STAMP is that route firing, and a plan batch mixing the two steps is refused |
+| the antagonist's dispatch carries the happy walk's instance and run id as its baseline | **kept.** An `adversarial` piece names `baselineFor`, the router resolves it to that happy piece's work item, and serves both ids |
+| a fixer re-runs the setup on a fresh instance | **decided against.** A fixer proves its work through ward; the RE-WALK is the live proof, and it runs on the walker the fixer's `done` returns to |
+| `cleanup` at the start and end of a pass, and somebody owning instance hygiene after a death | **the orchestrator's, not a session's.** `sweepIn` and `sweepOut` are deterministic steps calling `cleanup`, and the ROUTER calls `start` and `kill` around every work item that needs an instance — it was already reading `capacity`, and a reader that does not also spend is a split the two halves drift across |
 
-*Returns values. Drives nothing. Signs nothing. Dispatches nothing.*
-
-**The problem it solves.** A walker may not open a source file — 21c makes that absolute, and the
-trial measured why. But some units name a value only source holds: "the list caps at the configured
-maximum", "the default timeout". **A walk told "read no source" facing one of those either breaks the
-rule or stalls, and breaking it is what actually happens.**
-
-**What it does, in one example:**
-
-> Unit: *the quest list caps at the configured maximum.*
-> The walker drives the app and counts 50 rows. Is 50 the right number? It lives in
-> `questListStatics.ts:12`, which the walker may not open.
-> The reader returns one line — `quest list cap  50  questListStatics.ts:12` — and the walker measures
-> what it counted against it, having never read the list's implementation.
-
-**It hands over the CONFIGURED VALUE, never what the screen should show.** "The cap is 50" is a
-reading. "The list should show 50 rows" is the verdict, and handing a walker that just moves the
-contamination one session upstream.
-
-**When it runs — two cadences, and the second is why it is its own role:**
-
-| When                                      | Why                                                                                                                                                                                    |
-|-------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Once in phase zero, before the first walk | the operator dispatches it against everything the guide's `OFF-SCREEN` heading lists, and its answers go into every brief                                                              |
-| On demand, mid-pass                       | a reading is one value for one unit, and a walk reaches that need at any point. The guide is written once per flow before any round, so a mid-walk value has nowhere else to come from |
-
-| Rule                                                                                                | Why                                                                                                                                                                                                                    |
-|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| It is the ONLY session on a siege pass that opens a source file                                     | a walker that opens one holds it for the rest of the walk. The trial measured what that produces: six correct verdicts reached with the expected values known in advance, and no independent look anywhere in the pass |
-| Every value it returns carries `file:line`                                                          | a value with no provenance cannot be told from one a session remembered, and the walker citing it cannot check it without doing the reading this role exists to prevent                                                |
-| **It returns a LOCATION or a CONFIGURATION — never an EXPECTED VALUE the unit should have carried** | handing that forward launders the contamination through one more session. The walk still measures the system against what the code intends, and now it is invisible, because it arrived as a fact in a brief           |
-| A unit whose expected value exists only in source is a `questNotes` open question                   | that is a spec defect — the unit is under-specified                                                                                                                                                                    |
-| It touches no instance and holds no pool slot                                                       | it reads files, so it runs beside anything, including a full pool of walks                                                                                                                                             |
-
-What it hands back replaces the `OFF-SCREEN` heading's instructions with its answers:
-
-```
-OFF-SCREEN
-  quest list cap          50      questListStatics.ts:12
-  default guild slug      siege-1 guild-create-broker.ts:88
-  outbox path             .dungeonmaster/event-outbox.jsonl   quest-persist-broker.ts:41
-```
-
-### 21b. The codeweaver reviewer takes the operational units
-
-**There is no operational siege role, and 17d is the decision.** Operational flows leave siegemaster's
-track; `codeweaver-reviewer` settles their units, on the cells codeweaver already owns there. What
-follows is the rules that move with them.
-
-*One role is new here, not two: only `siegemaster-reader` in 21a.*
-
-| Rule                                                                                                   | Why                                                                                                                                                                                                     |
-|--------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| An operational unit is settled by `codeweaverSignoff`, and no siege verdict is expected on it          | a unit no track can close is one an agent invents a verdict for — the same reason `verifyByHuman` is filtered out of every work-item view                                                               |
-| A runtime flow's non-browser units stay with the BROWSER walker                                        | reaching a log line that only exists after four clicks needs the path driven. That is one more step in a batch already there, against a whole second walk. This does NOT move to codeweaver             |
-| **The evidence is the TREE — a path that is gone, an import that is there, a rule that is registered** | an operational flow is a one-time sequence, so there is no run to observe and no picture to take. Its final state is a filesystem fact, and that fact is the whole verdict                              |
-| The repo's "the browser UI is the verdict" rule is untouched                                           | that rule governs a flow that HAS a UI. An operational flow has none, and its verdict is the state the sequence left behind                                                                             |
-| **The sign-off names the state it read, path by path — never that the sequence was followed**          | "I did the steps" is the executor grading its own work, and Codeweaver is the executor. `deleted X` and `Y imports Z at line N` are checkable by the next reader; "the refactor sweep completed" is not |
-
-**That last row is what the change costs, and 17d says why.** Nothing is lost in liveness, because
-there was never anything to drive. What is lost is independence — the same session's chain now both
-runs the sequence and confirms it — and a sign-off that names the state on disk is what keeps that
-survivable.
-
-### 21c. The happy walker's prompt is missing nine rules
-
-`siegemaster-verifier-statics.ts` exists. These rules are not in it:
-
-| Rule                                                                                                           | Why                                                                                                                                                                                                             |
-|----------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **A walker opens NO source file, for any reason.** What only source can answer arrives as a value in its brief | see the contradiction below                                                                                                                                                                                     |
-| **Selectors come from the running page, not from test files**                                                  | the trial's arm B read the e2e specs and learned the answers before driving. That removes the reason siegemaster runs at all                                                                                    |
-| **The KEY is the default reading. `dom` is the escape hatch: last, expensive, narrow target**                  | the one measured cost in this design — `dom` on `body *` returned 58 nodes whose first entry carried an entire stylesheet. The prompt carries that one line; `docs { for: 'walking' }` carries the whole ladder |
-| **An observable naming a className or any implementation detail is settled on what a PERSON would see**        | see 21d below                                                                                                                                                                                                   |
-| **Every PATH walked is recorded with its instance id and run id — a CLEAN walk included**                      | see 17a. The clean walk is the one an issue-only rule leaves unevidenced                                                                                                                                        |
-| A walk that sees its instance stop checks `status` BEFORE writing anything down                                | a dead driver leaves a blank screen, and "the page went blank" is exactly what a walker is trained to report. A fixer briefed against it hunts a rendering bug that never existed                               |
-| A slow `start` is a QUEUE, not a hang — never a `wall`                                                         | the tool admits one boot at a time, so the third walk in a pool waits out two. `queuedMs` says so, and a session reporting a wall over it halts a quest for nothing                                             |
-| A dead instance is `rework` with the `status` output — never self-healed, never `wall`                         | `wall` means no session of any role could pass. A crash is not that. A minion self-healing is a session acting on a third of the picture                                                                        |
-| A DRIVER death is never a finding about the app; an API-SERVER death may be                                    | a leak or an unbounded allocation that kills the server is a real defect, recorded WITH the server log as well as bubbled up                                                                                    |
-
-**The two prompts contradict each other today, and the walker's own copy wins.**
-
-| Prompt                                                   | Says                                                                                                                                                                                                                                                   |
-|----------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `siegemaster-verifier-statics.ts:222` — the walker's own | "**Read the implementation only for a value a unit names indirectly** — 'the configured cap', 'the default timeout' — where the number lives in the code and the unit does not spell it out. Use `discover` to find the symbol and `Read` to open it." |
-| `siegemaster-prompt-statics.ts:226` — the operator's     | an observable marked `(read-check)` "is settled by opening a source file, **which no round can do**"                                                                                                                                                   |
-
-The operator believes no round opens source. The walker is told how to. **The walker's copy is the one
-the walking session reads**, so source gets opened.
-
-This is what the reader role in 21a exists to close, and the two have to land together. **A walk told
-"read no source" with a unit that needs a file opened either breaks the rule or stalls, and the first
-is what actually happens.**
-
-### 21d. The five-step rule for an implementation-detail observable
-
-**Siegemaster has no rule for an UNFLAGGED one, and that is where the false pass lives.** Its prompt
-handles the flagged case correctly at `siegemaster-prompt-statics.ts:226` and says nothing about a
-className observable that reached its list. **Signing one on the class alone is the cheapest false pass
-in this system** — the class is present, the stylesheet rule was deleted, the row is not red, the unit
-reads `confirmed`, and nothing in the record says the screen was never looked at.
-
-Give the walker these five steps, in order:
-
-1. **Ask what a person would SEE if it were true.** "The failed row is red", "the active tab is
-   underlined". That sentence is the real observable and it is the one to settle.
-2. **Measure that, RELATIONALLY.** The failed row's computed background differs from a non-failed
-   row's. That needs the seed to produce **two of the thing the assertion must tell apart**, which the
-   recipe book already requires for its own reasons.
-3. **Read the class too, through `dom`** — `fields: ['className']`, narrow target. It corroborates; it
-   does not settle.
-4. **Record both.** A class present with the paint wrong is a finding, and a stronger one than either
-   half alone.
-5. **Where no painted consequence can be named at all**, the unit is a read-check that reached the
-   wrong track. That is a `questNotes` open question — siegemaster may ADD an observable and may not
-   reflag one.
-
-### 21e. The antagonist's prompt is missing nine rules
-
-`siegemaster-stress-statics.ts` exists. **One principle generates almost all of these: the verifier
-measures against the UNIT, the antagonist measures against a BASELINE.** A verifier asks whether the
-screen shows the value its unit names, so its comparison is to a sentence in the spec. An antagonist
-claims an ABSENCE — I attacked this and it did not fall over — and an absence is only evidence against
-a known-good reading taken before the attack.
-
-| Rule                                                                                                            | Why                                                                                                                                                                                                                           |
-|-----------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **It compares against a BASELINE, never the unit, and `health` is its fixed-shape reading**                     | `health` is its counterpart to the key: one shape, so two readings can be held against each other                                                                                                                             |
-| **Its dispatch CARRIES the baseline** — the happy walk's instance id and run id for the path it is attacking    | "inherits a verified-clean baseline" was a property with no mechanism. The operator holds both ids after the stamp, and handing them over is one line in a brief                                                              |
-| It READS that baseline with `results`, which starts nothing — and looks for NO baseline it was not handed       | reading a finished run needs no instance, so "touch none you did not start" does not forbid it. What it forbids is finding "some earlier walk of something similar", which is how a tainted baseline gets in                  |
-| **On a SAD path the baseline is the ERROR rendered correctly, usually a toast**                                 | comparing a failure branch against a happy screen reports the toast as damage. The inverse is worse: the app swallows the error, nothing paints, `pixelChange` reads `0%`, and "nothing changed" is written down as *it held* |
-| A transient baseline — a toast, a flash message — is a PRESENCE question, never a pixel diff                    | it auto-dismisses, so a frame comparison against it reports a difference that is only timing. "Was the toast there, with that text" is a `look` at the key                                                                    |
-| **Three key columns are ITS columns**: `maxlength`/`pattern` in `attrs`, `live`/`alert`, and `invalid`          | the declared cap is what it measures against, the live region is where a proper refusal LANDS, and `invalid` is the app stating its own verdict on the input — read, never assumed                                            |
-| Each attack declares the reset level it needs                                                                   | `instance` destroys any uptime, monotonic or append-only measurement, so it cannot share a batch with a unit measuring one                                                                                                    |
-| **Every attack is recorded with the instance id and run id that ran it, held or not**                           | an absence with nothing behind it is the least checkable claim in this system                                                                                                                                                 |
-| It is the role most likely to have CAUSED an instance death, which is exactly why it must not judge that itself | it corrupts and exhausts on purpose, so an OOM it triggered is a plausible finding rather than background noise                                                                                                               |
-
-### 21f. The antagonist has no way to run on an operational flow
-
-**17d settles this, and the answer is that it never has to.** The antagonist is a browser role — its
-whole vocabulary is `paste`, `key` and `click`, and the three key columns 21e makes its own (`maxlength`/`pattern`,
-`live`/`alert`, `invalid`) are all properties of a rendered control. With
-siegemaster restricted to runtime flows, an operational flow is never handed to it at all.
-
-**Off-map coverage is not what pays for that.** The seven families are properties of the BUILT SYSTEM
-rather than of any drawn flow, and siegemaster keeps ONE whole-quest item whenever it has no eligible
-flow. An all-operational quest now hits that case exactly, so `hostile-input` and `perf` are settled
-once on the whole-quest item — which is a better home than spreading them across screenless flow
-walks, and is the improvement 17d records.
-
-**One rule the antagonist's prompt still needs:** handed an operational flow anyway, it answers
-`rework` naming the mis-route, and never improvises. It always has `request` and `file`, so it can
-always do SOMETHING — and that something is an attack nobody scoped, signed against a family the
-whole-quest item was going to settle properly.
-
-### 21g. Two operator rules item 1 did not carry
-
-| Rule                                                                                                               | Why                                                                                                                                                                                                                             |
-|--------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **A crashed minion is answered by a FRESH walk on a fresh instance — never by reading the dead run to salvage it** | a verdict assembled out of half a run plus a second run is not a walk. `status` says why it died, which decides the pool size; an issue the walk had already written down keeps its own evidence and goes to a fixer regardless |
-| **A `siegemaster-reader` runs before the first walk, and its values go into every brief**                          | it is what lets the walker rule in 21c be absolute. A walk told "read no source" with a unit that needs a file opened either breaks the rule or stalls, and the first is what actually happens                                  |
-
-### 21h. The spec authors — ChaosWhisperer and BugHunt
-
-Most of this is item 2. Two rules it did not carry:
-
-| Rule                                                                                                                        | Why                                                                                                                                                                                |
-|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **An observable naming an IMPLEMENTATION — a className, a hook, a prop — is a READ-CHECK, authored with `verifyByReading`** | a class name is the mechanism behind something a person sees, never the thing itself, and it can move to an inline style or a generated hash without the outcome changing          |
-| **Phrase the observable as what a PERSON would see** — "the failed row is red", not "the row has `.failed`"                 | an observable written in the implementation's words hands a walk the mechanism instead of the outcome, which does to it automatically what reading source did to the trial's arm B |
-| The human-check category stays NARROW: motion quality and taste, nothing else                                               | contrast, alignment and clipping are computable, and a model can judge an error message's clarity. A long list is a list nobody works                                              |
-
-### 21i. Not a gap — the unowned session is already served
-
-A session nobody dispatched — a developer's own, or one told to drive the app — needs its own rules:
-`capacity` before starting, `start` queues, `kill` is mandatory because nothing else will do it, its
-instance is filed under `unowned/` with no quest reference protecting its evidence, and `start` hands
-back the id and the evidence directory because nothing lists and nothing searches.
-
-**`docs { for: 'driving' }` is built and carries this.** No prompt work needed.
+**One consequence lands on the tool rather than on a prompt.** `start` and `kill` now have exactly one
+caller — the orchestrator — and the walking and attacking `docs` scopes must stop teaching either
+verb. A walker holding them will use them the first time something looks wrong.
 
 ---
 
@@ -1735,7 +1169,7 @@ surviving them.**
 | `packages/hydration-recipes` might be in the root `dependencies`               | it is absent, and `siegelense-recipes-not-shipped.integration.test.ts` pins the absence                                                                                                             |
 | `POST /api/tooling/smoketest/run` registers unconditionally                    | `tooling-flow.ts:21` gates it behind `TOOLING_SMOKETEST_HTTP` at registration, with an absence test asserting 404                                                                                   |
 | `registry-lock-acquire-broker.ts` reads every failed lock read as absence      | it checks `cause.code === 'ENOENT'` specifically and rethrows anything else, with a test proving no loop                                                                                            |
-| A `walked` kind on `questNotes` with typed ids                                 | built — `questNoteKindContract` holds `walked`, and `questNoteContract` carries typed `instanceId` and `runId`. Item 17a is only about making them required                                         |
+| A `walked` kind on `questNotes` with typed ids                                 | built — `questNoteKindContract` holds `walked`, and `questNoteContract` carries typed `instanceId` and `runId`. The plan's §9l is only about making them required                                       |
 | Seven of thirteen calls are built; six refuse by name                          | all thirteen route as `dungeonmaster siegelense <name>`, and the MCP layer is deleted                                                                                                               |
 | Twelve step verbs kept, eleven new ones pending                                | all 23 ship, including `look`, `seed`, `until`, `health`, `hold`, `video`, `snapshot`, `reset`, `before`, `request` and `resize`                                                                    |
 | The key's flags are a design                                                   | all 20 are computed, including `not-tabbable` as an honestly-labelled proxy and `invisible opacity:0`                                                                                               |
