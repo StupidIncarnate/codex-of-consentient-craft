@@ -6,9 +6,6 @@ fan-out of small mechanical sessions, not one story.
 **Model: sonnet.** The repo's own guidance: use sonnet for large mechanical fan-outs, reserve opus for
 the orchestrator and genuinely hard debugging.
 
-**Spec:** plan §"Retiring the sign-off tracks retires two different things, and only one should go",
-plus §"The two blast radii, measured".
-
 ---
 
 ## Read this before slicing the wave
@@ -60,9 +57,6 @@ is a hand-kept copy, so it drifts silently rather than failing — nothing ties 
 ## The brief every session in this wave gets
 
 ```
-READ      plan §"Retiring the sign-off tracks retires two different things" — the TABLE,
-          because half of this statics survives
-          scrolls/orcha-changes/wave-5-signoffs.md, this file, for what your neighbours own
 OWNS      <1-3 exact paths, plus their colocated tests>
 NO TOUCH  every other path in the table above. Somebody else has it open right now
 DONE      the three sign-off fields are gone from your files, the SCOPING data is read

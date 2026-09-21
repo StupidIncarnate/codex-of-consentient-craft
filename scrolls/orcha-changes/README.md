@@ -14,10 +14,13 @@ tree.
 `scrolls/orchestrator-step-engine-plan.md` into briefs a single agent session can hold, run and hand
 off — not into things that ship separately. Nothing here merges on its own.
 
-**The plan is the spec, and these files do not repeat it.** A brief says what to read, which files it
-owns, what it may not touch, and what "done" means. Every `§n` is a pointer into the plan. Copy a rule
-out of the plan into a brief and you have made two copies of it, which is exactly what this repo spent
-a session removing from the siegelense scroll.
+**Each wave file stands on its own.** It carries the whole spec its briefs need — the config blocks,
+the contracts, the step maps, the rules — so a worker session reads one file and works. Nothing here
+sends you to a 3,500-line document to find the four paragraphs that matter.
+
+`scrolls/orchestrator-step-engine-plan.md` is the design ARGUMENT behind these — why the shape is this
+shape, what it replaces, what was traded away. Read it to understand the system; you do not need it to
+do the work.
 
 ## The rules are in wave 0, not here
 
@@ -81,9 +84,9 @@ rather than impossible, and the sign-off number is what sizes the largest wave i
 
 | Question | Blocks | Where |
 |---|---|---|
-| Who writes an INGREDIENT — a step, or a sub-agent? And how does one `request` mint three at once? | wave 6, `recipe-maker` | plan §9b |
-| Does an all-operational quest get ONE whole-quest off-map item, or does siege close `empty`? | wave 6, `siege-planner` and the antagonist | plan §9e |
-| Is author-only on `verifyByReading` / `verifyByHuman` prompt text, or a real mechanism? | wave 8, `verifyByHuman` | plan §10d |
+| Who writes an INGREDIENT — a step, or a sub-agent? And how does one `request` mint three at once? | wave 6, `recipe-maker` | wave-6-prompts.md, the recipe-maker rules |
+| Does an all-operational quest get ONE whole-quest off-map item, or does siege close `empty`? | wave 6, `siege-planner` and the antagonist | wave-6-prompts.md, the antagonist rules |
+| Is author-only on `verifyByReading` / `verifyByHuman` prompt text, or a real mechanism? | wave 8, `verifyByHuman` | wave-8-independent.md, 8C-1 |
 | The `operational` docs scope — deleted, or re-pointed at the whole-quest off-map item? | wave 6, siege | `scrolls/seigelense/remaining-build-items.md` §9c |
 
 ## The brief shape

@@ -10,7 +10,6 @@ engine waits on it. Six of these are single-session and small.
 ## 8A — delete `glyphsmith`
 
 ```
-READ      plan §3b ("`glyphsmith` is deleted, and the design STAGE stays")
 OWNS      packages/orchestrator/src/statics/glyphsmith-prompt/   — 3,721 bytes
           the design-chat-start responder
           web's design-session broker
@@ -31,7 +30,6 @@ entirely, so it can land in any order.
 ## 8B — six defects, each its own small session
 
 ```
-READ      plan §"Defects fixed in the same pass"
 ```
 
 | Defect | Where | Fix |
@@ -59,7 +57,6 @@ a mark for it. Roughly four sessions, coordinated, and they are listed together 
 together.
 
 ```
-READ      plan §10, all of it
 ```
 
 | | Session owns | Note |

@@ -6,8 +6,6 @@ this wave runs beside waves 5 and 6 without collision.
 
 **Model: sonnet**, except 7A.
 
-**Spec:** plan §"The UI" in full.
-
 ---
 
 ## Verified safe — do not audit these again
@@ -25,7 +23,6 @@ the diagram nothing. Home, sidebars, session view, rate limits, the image pipeli
 ### 7A — row identity, and why nothing will report it broken
 
 ```
-READ      plan §"The one that will be missed"
 OWNS      the execution panel's row naming and grouping
 DONE      rows are grouped under their SCOPE, and every row on screen is distinguishable
           from every other
@@ -51,7 +48,6 @@ nor frozen. That is why the assertion above is specific.
 ### 7B — the projection: what probably happens next
 
 ```
-READ      plan §"The config is the map. The ledger is the record. The UI is a projection."
 OWNS      a new transformer — graph plus current state, walked forward — and its view
 DONE      the projection renders the likely remainder, recomputes as sessions land, and
           REDRAWS on a back-edge rather than being wrong
@@ -88,7 +84,6 @@ caller, built for exactly this. Find it before writing a second one.
 ### 7D — the seven broken surfaces
 
 ```
-READ      plan §"What breaks" — the table
 OWNS      the unclaimed-operations tail · the progress counter · the COVERAGE section ·
           the UNCONFIRMABLE debt list · the ward-mode tag · the retry badge ·
           the DETAILS-tab ledger
@@ -131,7 +126,7 @@ OWNS      a back-edge badge · a planned-versus-actual view · a step-args displ
           a live `unmet` list near the execution rows · a concurrency readout ·
           a step-name-unknown fallback
 DONE      each renders, and the fallback does not throw
-ASSERT    the fallback first: §7 of the plan promises unrecognised step names LOAD, and
+ASSERT    the fallback first: wave 1 opened the step-name contract so unrecognised names LOAD, and
           today the row renderer indexes a closed record unguarded. That is a crash, not a
           blank
 ```

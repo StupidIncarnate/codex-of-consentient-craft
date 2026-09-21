@@ -46,9 +46,9 @@ TypeScript source.
 1. **This file.** Your layer, and the rules that bind it.
 2. **`README.md`** — the wave table, the dependency order, and the four open questions.
 3. **Your own `wave-N-*.md`** — your briefs, with their `OWNS` and `ASSERT` lines.
-4. **`../orchestrator-step-engine-plan.md`, the sections your brief cites — and nothing wider.** It is
-   3,500 lines. A brief names `§3b` or `§9d` because that is the part you need. Reading the whole
-   thing spends the context your work needs.
+4. **Nothing else.** Each wave file carries the whole spec its briefs need — the config blocks, the
+   contracts, the step maps, the rules. `../orchestrator-step-engine-plan.md` is the design argument
+   behind them and is not required reading for doing the work.
 
 **The session snippets arrive on their own** — `<dungeonmaster-ward>`, `<dungeonmaster-discover>`,
 `<dungeonmaster-buildDiscipline>` and the rest are already in your context at session start, in this
