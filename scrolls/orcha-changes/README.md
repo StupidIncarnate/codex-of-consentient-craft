@@ -1,12 +1,14 @@
 # The orchestrator step engine — the dispatch plan
 
 **Start at [`wave-0-preamble.md`](wave-0-preamble.md), whatever layer you are on.** It has the three
-layers, who is allowed to build and ward and commit, how a wave orchestrator fans its briefs out, the
-30-minute supervision tick, and the handoff shape. This file is the map; that one is how to walk it.
+layers, the worktree this runs in, the per-wave ward-and-commit gate, how a wave orchestrator fans its
+briefs out, the 30-minute supervision tick, and the handoff shape. This file is the map; that one is
+how to walk it.
 
-**Two layers of orchestration.** The conductor launches one orchestrator per wave; that orchestrator
-dispatches a worker per brief. **Only the workers write code** — a wave orchestrator decides, briefs,
-verifies and commits.
+**Two layers of orchestration, in one worktree.** The conductor launches one orchestrator per wave;
+that orchestrator dispatches a worker per brief. **Only the workers write code**, and **only the
+conductor commits** — a wave orchestrator decides, briefs, verifies and hands back an uncommitted
+tree.
 
 **One PR. Many sessions.** This directory exists to chunk the work in
 `scrolls/orchestrator-step-engine-plan.md` into briefs a single agent session can hold, run and hand
@@ -19,8 +21,8 @@ a session removing from the siegelense scroll.
 
 ## The rules are in wave 0, not here
 
-The tree is green when you stop · ward your own paths, never bare · you do not build · a layer-2
-worker never commits · an open question goes up, never gets answered locally.
+The tree is green when you stop · ward your own paths, never git-scoped and never bare · you do not
+build · nothing below layer 0 runs git at all · an open question goes up, never gets answered locally.
 [`wave-0-preamble.md`](wave-0-preamble.md) has each one with the measured failure behind it.
 
 ## The waves

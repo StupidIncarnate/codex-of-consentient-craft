@@ -3,8 +3,41 @@
 **Point a session at this file first, whatever layer it is on.** It says who does what, who is allowed
 to do the dangerous things, and how a session hands its work to the next one.
 
-**The work is one PR.** Nothing here merges on its own, and no wave is "shipped". The wave boundaries
-exist so a session can hold its brief.
+**The work is one PR, in one worktree.** Nothing here merges on its own, and no wave is "shipped". The
+wave boundaries exist so a session can hold its brief, and so layer 0 has somewhere to commit.
+
+---
+
+## Where this runs — a worktree, carved one way
+
+**Layer 0 carves it, once, before wave 1:**
+
+```
+mcp__dungeonmaster__create-worktree({ name: "<something>" })
+```
+
+**That is the ONLY tool that makes one.** It returns a path under `worktrees/` with `node_modules`
+hardlinked, the compiled output copied across, and every link verified to resolve inside the tree.
+Claude Code's own worktree command is refused by a hook naming this tool, and a hand-assembled
+`git worktree add` gives you a tree where nothing resolves — no `node_modules`, no binaries, so ward
+cannot start.
+
+**Every session in this epic runs inside that path**, layer 0 included. Nobody works in the root
+checkout.
+
+**Three traps, and the second one reaches outside the worktree:**
+
+| | |
+|---|---|
+| **build nothing in a fresh worktree** | `create-worktree` already did it — `git worktree add` checks out TRACKED files and `dist` is gitignored, so the tool `cp -a`s the main checkout's `dist` across at carve time |
+| **never `npm rebuild` inside one** | `node_modules` is hardlinked, so a package's files and the main checkout's are the same bytes. node-gyp writes its output THROUGH the existing path, so the build lands in the main checkout and every other worktree at once. Rebuild in the main checkout instead; every worktree gets the result through that same hardlink. Installing is safe — npm replaces a package directory, which breaks the link cleanly |
+| **a worktree is NOT hermetic** | it sits under the main checkout, so node's walk-up escapes it. Move a package's compiled output aside inside the worktree and resolution keeps climbing until it finds the main checkout's copy — a typecheck that should have failed then passes, and reads back as "the premise was wrong" |
+
+**Wave 3 has a build in it, and it is layer 0's.** `get-quest-work` and `quest-work` are MCP tools, and
+MCP executes compiled output — this worktree's own `packages/mcp/dist/src/index.js`. So after wave 3
+lands, **layer 0 builds `@dungeonmaster/mcp` and reconnects the MCP** before anything can exercise
+those tools. Nothing else in the epic needs a build: ward, the dev server and every test read
+TypeScript source.
 
 ---
 
@@ -27,8 +60,8 @@ repo and in every sub-agent. Do not go looking for them, and do not re-derive wh
 
 | Layer | Who | Owns | Writes code? |
 |---|---|---|---|
-| **0 — the conductor** | one long-lived session | the PR, the branch, wave gating, every bare ward, every build, the four open questions | no |
-| **1 — a wave orchestrator** | one per wave | its wave file: decide, brief, verify, commit | **no** |
+| **0 — the conductor** | one long-lived session | the worktree, the PR, wave gating, **every commit**, every ward gate, every build, the four open questions | no |
+| **1 — a wave orchestrator** | one per wave | its wave file: decide, brief, verify, hand back | **no** |
 | **2 — a worker** | dispatched by a wave orchestrator | 1–3 files, one brief, dispatches nothing | yes |
 
 **Layer 1 orchestrates. It does not do the work.** Every brief in every wave file goes to a layer-2
@@ -51,13 +84,54 @@ has ever run, and the reason the limit is hard is that a layer-3 agent's failure
 
 | | Only layer 0 | Why |
 |---|---|---|
-| **run a build** | yes | a build rewrites every package's compiled output with no lock. One run lost seven ward integration tests to `TS2307` because a package's `dist` was absent for a few seconds. **Nothing in this epic needs one** — ward and the dev server read TypeScript source |
-| **run a bare `npm run ward`** | yes | whoever runs one owns every failure in it, including ones they did not cause. A wave orchestrator running one inherits the whole repo |
+| **commit** | yes | **nobody else commits, at any layer.** One worktree has one `index.lock`. Twelve concurrent sub-agent commits were measured here: three landed, nine died on `Unable to create index.lock`. One committer makes that impossible rather than unlikely |
+| **run a build** | yes | a build rewrites every package's compiled output with no lock. One run lost seven ward integration tests to `TS2307` because a package's `dist` was absent for a few seconds. Only wave 3's MCP build is needed at all |
+| **run a git-scoped or bare ward** | yes | `--committed`, `--uncommitted` and a bare run all grade work you did not do, and whoever runs one owns every failure in it |
 | **answer an open question** | yes | a session that answers one itself has invented a design decision. Send it up and wait |
-| **commit** | layer 0 and layer 1 | **a layer-2 worker NEVER commits.** Twelve concurrent sub-agent commits in one worktree were measured here: three landed, nine died on `Unable to create index.lock` |
 
 Everyone else: **ward your own paths only.** `npm run ward -- -- <the files you touched>`, repo-relative,
 no `./`, every path a FILE rather than a directory. Give it `timeout: 600000`.
+
+**This is why nothing below layer 0 runs git at all** — not a write, not a read. It is a cleaner rule
+than "no git writes", easier to check, and it is the same rule the epic itself lands on for its own
+sessions.
+
+---
+
+## The per-wave gate — layer 0's loop
+
+**A wave is not finished when its orchestrator hands back. It is finished when it is committed.**
+
+```
+1  wave orchestrator hands back            "wave N — done"
+2  npm run ward -- --committed --uncommitted    ← layer 0, timeout 600000
+3  red?  → back to the wave orchestrator with the failure, scoped. Not to a worker
+4  green? → git commit, one commit per wave
+5  next wave
+```
+
+...and after the last wave, **once**:
+
+```
+npm run ward
+```
+
+**Why the git-scoped pair per wave, and a bare run only at the end.** `--committed` and `--uncommitted`
+combine to cover the whole branch — everything landed so far plus everything still in the tree — so
+each wave's gate is also a regression pass over every wave before it. That is the check that catches
+wave 5 breaking something wave 2 built. The bare run is wider still and belongs at the end, because it
+grades packages nobody in this epic touched.
+
+**Neither flag accepts `--only`, `--onlyTests` or `-- <files>`.** If you need to narrow a red, re-run it
+as `npm run ward -- --only <types> -- <files>` and iterate there; the pair is the gate, not the
+debugging tool.
+
+**One thing that reads as green and is not.** A 0-file git scope runs NOTHING — ward says so and exits
+0. If a wave produced no tracked change, that pair is **empty, not green**, and it has proved nothing
+about the wave. Read what it says, not just the exit code.
+
+**Run it ONCE per tree state.** A fix makes a new state, so re-running after one is fine. Re-running
+the same checks hoping for a different answer is not.
 
 ---
 
@@ -81,8 +155,8 @@ and picking the wrong one is the commonest way a wave goes bad.
 
 | Shape | Use it when | How it runs |
 |---|---|---|
-| **Serial, reviewed** | the briefs share a design decision, or each hands the next a compiling tree | **decide the shared thing FIRST and put it in the brief.** Dispatch one worker. Read its return, verify it against the brief, commit. Only then dispatch the next |
-| **Parallel batches** | the briefs are file-disjoint and mechanical | dispatch a batch, wait, read every return, commit the batch. Then the next |
+| **Serial, reviewed** | the briefs share a design decision, or each hands the next a compiling tree | **decide the shared thing FIRST and put it in the brief.** Dispatch one worker. Read its return, verify it against the brief. Only then dispatch the next |
+| **Parallel batches** | the briefs are file-disjoint and mechanical | dispatch a batch, wait, read every return, verify. Then the next |
 
 | Wave | Shape | Why |
 |---|---|---|
@@ -178,19 +252,27 @@ returns the moment its marker appears.
 
 ## Handing a wave back to layer 0
 
+**You hand back an UNCOMMITTED tree.** Layer 0 gates it and commits it; you never do either.
+
 ```
 WAVE <n> — <done | blocked>
 
-LANDED     <brief id> — <the commit sha, one line on what is now true>
+LANDED     <brief id> — <one line on what is now true>
            <brief id> — …
 
 NOT DONE   <brief id> — <what is left, and what you learned>
 
-TREE       npm run ward -- -- <paths> → exit 0
-           (a bare run is layer 0's, not yours)
+PATHS      <every path this wave touched, for layer 0's commit message>
+
+TREE       npm run ward -- -- <those paths> → exit 0
+           (the --committed --uncommitted gate is layer 0's, not yours)
 
 BLOCKED ON <an open question, quoted, and which brief it stops>
 ```
+
+**`PATHS` is not bookkeeping.** Layer 0 writes one commit per wave and has no other route to what the
+wave actually changed, because it did not do the work and does not run `git status` looking for
+surprises.
 
 **Never paste a file back.** Layer 0 can `Read` the path and pay once; a quoted file is paid three
 times. Cite `path:line` with the line verbatim, and let them open it.
