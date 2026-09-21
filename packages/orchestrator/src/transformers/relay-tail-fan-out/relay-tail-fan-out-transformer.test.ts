@@ -8,7 +8,7 @@ import {
   QuestPackageEntryStub,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
-import { questTypeRegistryStatics, textDisplaySymbolsStatics } from '@dungeonmaster/shared/statics';
+import { questFlowStatics, textDisplaySymbolsStatics } from '@dungeonmaster/shared/statics';
 import { questFlowSliceTransformer } from '@dungeonmaster/shared/transformers';
 
 import { relayTailFanOutTransformer } from './relay-tail-fan-out-transformer';
@@ -17,32 +17,22 @@ import { relayTailFanOutTransformer } from './relay-tail-fan-out-transformer';
 // prefix filter over the render picks it up too.
 const SLICE_LEGEND_LINES = textDisplaySymbolsStatics.flowSliceLegendLines;
 
-// Read off the registry rather than retyped, so a text edit there fails these by assertion instead
-// of leaving them asserting a string the relay no longer seeds. Selected by ROLE rather than by
-// position: a positional pick (`relayTail[0]`, `startImplementationOps[0]`) silently starts pointing
-// at a different seed the moment the registry gains, loses, or reorders an entry ahead of it — which
-// is exactly what happened when `riftcarver` became the new head of `startImplementationOps`. The
-// trailing `!` is safe: each predicate matches exactly one seed in the registry, and
-// `noUncheckedIndexedAccess` has no way to know that from the predicate alone.
-const WARD_ENTRY = questTypeRegistryStatics.feature.relayTail.find(
-  (entry) => entry.role === 'ward' && entry.wardMode === 'committed',
-)!;
-const FLOWRIDER_ENTRY = questTypeRegistryStatics.feature.relayTail.find(
-  (entry) => entry.role === 'flowrider',
-)!;
-const SIEGEMASTER_ENTRY = questTypeRegistryStatics.feature.relayTail.find(
-  (entry) => entry.role === 'siegemaster',
-)!;
-const CODEWEAVER_ENTRY = questTypeRegistryStatics.feature.startImplementationOps.find(
-  (entry) => entry.role === 'codeweaver',
-)!;
+// Read off the family graph rather than retyped, so a text edit there fails these by assertion
+// instead of leaving them asserting a string the relay no longer mints. The families are keyed, so
+// each is named directly.
+const FAMILIES = questFlowStatics.feature.families;
 
-// Every tail seed that fans out at all, so the case list is the registry's own rather than one role
-// picked out of it — a third tail operator is covered here the day it is seeded. Used for the cut
-// every flow-fanned role makes IDENTICALLY (an all-runtime quest); where the roles diverge, each
-// gets its own named case below, because what differs there is the whole point of the test.
-const FLOW_SLICED_ENTRIES = questTypeRegistryStatics.feature.relayTail.filter(
-  (entry) => 'fanOutBy' in entry,
+const WARD_FULL_ENTRY = FAMILIES.wardFull;
+const FLOWRIDER_ENTRY = FAMILIES.flowrider;
+const SIEGEMASTER_ENTRY = FAMILIES.siegemaster;
+const CODEWEAVER_ENTRY = FAMILIES.codeweaver;
+
+// Every family that fans out PER FLOW, so the case list is the graph's own rather than one role
+// picked out of it — a third flow-sliced operator is covered here the day it is declared. Used for
+// the cut every flow-fanned role makes IDENTICALLY (an all-runtime quest); where the roles diverge,
+// each gets its own named case below, because what differs there is the whole point of the test.
+const FLOW_SLICED_ENTRIES = Object.values(FAMILIES).filter(
+  (entry) => 'fanOutBy' in entry && entry.fanOutBy === 'flow',
 );
 
 const WEB_PACKAGE = QuestPackageEntryStub({
@@ -710,10 +700,10 @@ describe('relayTailFanOutTransformer', () => {
         ],
       });
 
-      const result = relayTailFanOutTransformer({ entry: WARD_ENTRY, quest });
+      const result = relayTailFanOutTransformer({ entry: WARD_FULL_ENTRY, quest });
 
       expect(result).toStrictEqual([
-        { text: 'Ward gate (committed files)', flowIds: [], packageNames: [] },
+        { text: 'Ward gate (full monorepo)', flowIds: [], packageNames: [] },
       ]);
     });
   });

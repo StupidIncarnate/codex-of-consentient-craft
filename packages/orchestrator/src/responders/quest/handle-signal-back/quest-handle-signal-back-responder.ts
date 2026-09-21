@@ -1,40 +1,38 @@
 /**
  * PURPOSE: Responder invoked after a sub-agent's `signal-back` MCP call is validated. `complete` is
- * the sole signal kind (session-terminal marker); the operation OUTCOME rides on the call as
- * `operationStatus` and is applied here server-side (authoritative — an agent cannot forget to
- * patch the ledger, because agents never write the ledger at all):
+ * the sole signal kind, and a SESSION REPORTS, IT NEVER ROUTES: what the session did is already on
+ * the record, written through `quest-work` — its marks on each assigned unit, and optionally an
+ * outcome word, a request or an invalidation. This responder marks the WORK ITEM terminal.
  *
- * - `operationStatus: 'done'` (or absent) → the linked operation item is marked `complete`.
- * - `operationStatus: 'partial'` → the linked operation item is marked `complete` AND a
- *   "pt N: {text}" continuation item (same role, locked flag preserved) is appended immediately
- *   after it — duplicate-on-partial keeps the strict 1:1 operation-item↔work-item invariant and an
- *   immutable pt audit trail instead of reverting a shared item's status. For a locked (verify
- *   tail) role the pt chain is bounded by `slotManagerStatics.<role>.maxAttempts`; a spent chain
- *   blocks the quest via questBlockOnFailureBroker instead of appending.
- * - `operationStatus: 'blocked'` → an environment wall (a denied command, a missing credential, an
- *   unreachable service) that no fresh session of the same role could pass. The item is marked
- *   `complete` and a continuation is appended exactly as for `partial`, so a resume re-dispatches
- *   this same scope — but the work item is marked `failed` carrying `blockedReason` as its
- *   `errorMessage`, and the quest blocks IMMEDIATELY. The pt budget does NOT gate this append: the
- *   block is itself the bound, and skipping the append would silently drop the operation on resume.
- *   Spending the budget on sessions that provably cannot succeed is exactly what this outcome
- *   exists to prevent.
+ * WHO MOVES THE SCOPE IS DECIDED BY `workItem.step`, and getting that wrong is invisible:
  *
- * Before any of that outcome logic runs, `signalGateTransformer` (story 14) checks this work
- * item's `assignedUnitIds` against its `observations[]`: any assigned unit carrying no observation
- * refuses the call outright, naming every unmarked unit in the thrown message, so the session
- * marks it and signals again. The check runs once idempotency has ruled out a redelivery and
- * before anything is persisted, so a refusal leaves the work item and its operation item exactly
- * as they were.
+ * - A work item carrying a STEP belongs to `questRouteScopeBroker`, which the dispatch scan calls on
+ *   its next pass (`scan-once-layer-broker`) and which takes the step's own route — the next step's
+ *   batch, the scope completing plus the next family's scopes minted, or a halt. So NOTHING on the
+ *   ledger is touched here beyond the work item. Completing the linked operation item would end the
+ *   whole scope on its FIRST signal: a codeweaver signalling at the end of `plan` would never reach
+ *   `work`, `review`, `commit` or `ward`, and the next family would open behind it.
+ * - A work item carrying NO step runs no step graph — a role no family carries (`spiritmender`, a
+ *   chat role), or a ledger seeded before the graph. Nothing will ever route it, so its linked
+ *   operation item completes here, in the same atomic persist, and `questAdvanceBroker` opens the
+ *   next scope.
  *
- * Work-item-terminal + operation-complete + the optional pt N land in ONE persist
- * (questOperationsUpdateBroker), so a crash is all-or-nothing; afterwards questAdvanceBroker
- * creates the next work item. Agents have no failure signal for work they could have done — they
- * fix their own problems and move forward; the only other failure concept is a ward exit-code red,
- * handled in quest-run-ward-broker.
+ * Before any of that, `signalGateTransformer` checks this work item's `assignedUnitIds` against its
+ * `observations[]`: any assigned unit carrying no observation refuses the call outright, naming every
+ * unmarked unit in the thrown message, so the session marks it and signals again. The check runs once
+ * idempotency has ruled out a redelivery and before anything is persisted, so a refusal leaves the
+ * work item and its operation item exactly as they were.
+ *
+ * Agents have no failure signal for work they could have done — a unit a session could not settle is
+ * marked `unmet` through `quest-work`, and the router mints a successor scoped to exactly those
+ * units.
+ *
+ * `operationStatus` HAS NO WRITER LEFT: both `signalBackInputContract` copies (mcp and server)
+ * dropped the field, so it always arrives `undefined` and the `partial` pt-continuation ladder and
+ * the environment-wall halt below are unreachable from a real signal.
  *
  * USAGE:
- * await QuestHandleSignalBackResponder({ questId, workItemId, signal: 'complete', operationItemId, operationStatus: 'done' });
+ * await QuestHandleSignalBackResponder({ questId, workItemId, signal: 'complete', operationItemId });
  */
 
 import type {
@@ -133,6 +131,10 @@ export const QuestHandleSignalBackResponder = async ({
   // `blocked` with every row green and no `errorMessage` anywhere naming why.
   const blockedOnSpentPtChain: { value: boolean; reason?: ErrorMessage } = { value: false };
   const isEnvironmentWall = operationStatus === 'blocked';
+  // Read ONCE, off the same item the gate above graded, and spent in both places the scope could be
+  // moved from — the persist below and the advance after it. A work item's `step` is written at mint
+  // and never rewritten, so the pre-lock read and the callback's re-read cannot disagree about it.
+  const runsStepGraph = signaledItem.step !== undefined;
 
   await questOperationsUpdateBroker({
     questId,
@@ -168,7 +170,11 @@ export const QuestHandleSignalBackResponder = async ({
       const linkedId = operationItemId === undefined ? linkedRef?.split('/')[1] : operationItemId;
       const linkedOperation = quest.operations.find((operation) => operation.id === linkedId);
 
-      if (linkedOperation === undefined || linkedOperation.status === 'complete') {
+      // The scope is the ROUTER's the moment this item runs a step graph, so the terminal work item
+      // is the whole of this persist. `questRouteScopeBroker` picks the scope up on the dispatch
+      // scan's next pass — it is the only thing that can read the step's route, and it needs the
+      // scope still `in_progress` to find it at all.
+      if (runsStepGraph || linkedOperation === undefined || linkedOperation.status === 'complete') {
         return { workItems: nextWorkItems };
       }
 
@@ -238,9 +244,6 @@ export const QuestHandleSignalBackResponder = async ({
               locked: linkedOperation.locked,
               flowIds: linkedOperation.flowIds,
               packageNames: linkedOperation.packageNames,
-              ...(linkedOperation.wardMode === undefined
-                ? {}
-                : { wardMode: linkedOperation.wardMode }),
             }),
           ]
         : [];
@@ -274,7 +277,14 @@ export const QuestHandleSignalBackResponder = async ({
     return adapterResultContract.parse({ success: true });
   }
 
-  await questAdvanceBroker({ questId });
+  // ENTERING the next scope belongs to whoever COMPLETED the last one. A stepped scope is still open
+  // here, so advance would find the first `pending` operation item — the family's next cell — and
+  // open it alongside a scope that has only finished one of its steps, running two scopes of one
+  // family at once. The dispatch scan's own advance self-heal is what enters the next scope once the
+  // router really has completed this one.
+  if (!runsStepGraph) {
+    await questAdvanceBroker({ questId });
+  }
 
   return adapterResultContract.parse({ success: true });
 };

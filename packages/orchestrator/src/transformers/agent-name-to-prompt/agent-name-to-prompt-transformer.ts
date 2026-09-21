@@ -1,7 +1,8 @@
 /**
- * PURPOSE: Resolves an agent prompt name to the result `get-agent-prompt` serves. Reach for this
- * when you hold a NAME; reach for `roleToPromptTemplateTransformer` when you hold an `AgentRole` and
- * want only the template text, because that one's exhaustiveness is keyed on the narrower role union.
+ * PURPOSE: Resolves an agent prompt name to the result `get-agent-prompt` serves — the ONE table
+ * every served prompt resolves through, for a relay role and a parent-summoned minion alike. Reach
+ * for `workItemToPromptTransformer` instead when you hold a WORK ITEM and want the prompt with its
+ * operation context already substituted in.
  *
  * USAGE:
  * agentNameToPromptTransformer({ agent: agentPromptNameContract.parse('codeweaver') });

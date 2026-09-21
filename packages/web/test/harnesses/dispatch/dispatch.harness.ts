@@ -83,7 +83,13 @@ export const dispatchHarness = ({
       text: string;
       status: string;
       locked?: boolean;
-      wardMode?: string;
+      // Seeds this scope its own work item (the first operation's comes from `firstWorkItemId`),
+      // chained on the previous one so the relay dispatches the ledger serially. A scope with no
+      // seeded item is left for `questAdvanceBroker` to enter at its family's ENTRY step.
+      workItemId?: string;
+      // The `agentFlowStatics` step that seeded work item carries. Omit it for a scope that runs no
+      // step graph — its own `signal-back` completes it, and no family route fires behind it.
+      step?: string;
     }[];
     firstWorkItemId: string;
     firstWorkItemStatus?: string;
@@ -101,7 +107,7 @@ export const dispatchHarness = ({
   queueScript: (params: {
     script: {
       role: string;
-      outcome: 'done' | 'partial' | 'green' | 'red';
+      outcome: 'done' | 'green' | 'red';
       // The assistant text this step's agent emits. Give two steps DIFFERENT text and a spec can
       // tell one role's transcript from the next one's — which is what an assertion about a role
       // TRANSITION needs, and what the shared default text cannot express.
@@ -111,7 +117,7 @@ export const dispatchHarness = ({
   }) => void;
   playAndDrive: (params: {
     questId: string;
-    script: { role: string; outcome: 'done' | 'partial' | 'green' | 'red'; text?: string }[];
+    script: { role: string; outcome: 'done' | 'green' | 'red'; text?: string }[];
     agentLineDelayMs?: number;
   }) => Promise<void>;
   holdQueueWithMcpHeartbeat: () => void;
@@ -147,14 +153,19 @@ export const dispatchHarness = ({
     );
   };
 
-  // Split the script FIFO into the claude queue (agent outcomes: done/partial) and the ward queue
-  // (ward outcomes: green/red). The relay dispatches ONE work item at a time, so FIFO order maps
-  // each outcome to the matching dispatch.
+  // Split the script FIFO into the claude queue (an agent session, which signals `done` and
+  // nothing else) and the ward queue (an exit code: green/red). The relay dispatches ONE work item
+  // at a time, so FIFO order maps each outcome to the matching dispatch.
+  //
+  // `done` IS THE ONLY AGENT OUTCOME A QUEUED RESPONSE CAN SPELL, because `signal-back` carries no
+  // outcome word: the four words ride on `quest-work`, which this fake CLI has no MCP client to
+  // call. The continuation a `partial` used to mint is now the ward red splice (green/red below)
+  // and the router's `unmet` re-mint.
   const queueScript = ({
     script,
     agentLineDelayMs,
   }: {
-    script: { role: string; outcome: 'done' | 'partial' | 'green' | 'red'; text?: string }[];
+    script: { role: string; outcome: 'done' | 'green' | 'red'; text?: string }[];
     // Milliseconds the fake CLI waits between the stream lines it emits, which is what decides
     // how long its work item reads `in_progress`. At the 10 ms default a whole dispatch —
     // spawn, three lines, signal-back — lands inside ~30 ms, so a spec asserting that a row is
@@ -163,11 +174,11 @@ export const dispatchHarness = ({
     agentLineDelayMs?: number;
   }): void => {
     for (const step of script) {
-      if (step.outcome === 'done' || step.outcome === 'partial') {
+      if (step.outcome === 'done') {
         claudeMock.queueResponse({
           response: SimpleTextResponseStub({
             sessionId: `e2e-dispatch-session-${nextUnique()}`,
-            signalBack: { operationStatus: step.outcome },
+            signalBack: true,
             ...(agentLineDelayMs === undefined ? {} : { delayMs: agentLineDelayMs }),
             ...(step.text === undefined ? {} : { text: step.text }),
           }),

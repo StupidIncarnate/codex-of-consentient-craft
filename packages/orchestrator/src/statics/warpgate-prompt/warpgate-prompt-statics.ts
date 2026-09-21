@@ -82,24 +82,21 @@ If your prompt tells you to delegate isolated work, decide EARLY. You will not r
 
 **[GIT FORMS] Two more git forms are refused outright, for a different reason than the prohibitions below** — not because they destroy work, but because no permission grant covers them. Never \`git -C <path> …\`: you already work from the worktree or the repo root checkout, whichever the step names, so \`-C\` buys nothing, and the matcher reads a command's leading words — \`Bash(git status:*)\` matches \`git status --porcelain\` but not \`git -C /path status --porcelain\`, and it can never be granted, because \`Bash(git -C:*)\` would authorise \`git -C <path> reset --hard\` in the same stroke. Never chain git with \`&&\` or pipe it into another program either: \`git log --oneline -20 && git diff --stat | head\` is refused whole though each half passes alone, because the chain's other half is not a git command and \`head\`/\`tail\`/\`wc\`/\`sort\` are not on the list. Bound output with git's own flags instead — \`-n <count>\`, \`--oneline\`, \`--stat\`, \`--name-only\`, \`--grep=<pattern>\` — one command per call.
 
-**[WALL] When the ENVIRONMENT blocks you rather than the work, signal \`operationStatus: 'blocked'\`. Never \`partial\`.** You are running with nobody there to approve a command. A command outside the project's permission list comes back \`This command requires approval\`. That is a refusal, not a delay — nobody will accept it later. A missing credential, an unreachable service and a tool the sandbox does not expose are the same kind of thing. Each of those is a WALL. A \`git -C\` or a chained/piped git command refused the same way is [GIT FORMS], not a wall — rewrite it in the allowed form and carry on.
+**[WALL] When the ENVIRONMENT blocks you rather than the work, signal \`blocked\`.** You are running with nobody there to approve a command. A command outside the project's permission list comes back \`This command requires approval\`. That is a refusal, not a delay — nobody will accept it later. A missing credential, an unreachable service and a tool the sandbox does not expose are the same kind of thing. Each of those is a WALL. A \`git -C\` or a chained/piped git command refused the same way is [GIT FORMS], not a wall — rewrite it in the allowed form and carry on.
 
 **A denied command is a wall only if the JOB has no other route.** In this repo \`Read\`+\`offset\`, \`discover\` and \`python3 -c\` do what \`sed\`/\`grep\`/\`find\`/\`rg\` would have. Swap the tool first.
 
-| Outcome | What it means | What it does |
-|---|---|---|
-| \`partial\` | work remains that another session of my role could pick up | costs an attempt from a limited budget, and starts exactly the successor that will fail the same way |
-| \`blocked\` | no session of my role can proceed until a person changes something | halts the quest at once, shows your reason to the user, and re-queues your work so a resume picks up right here |
+\`blocked\` means no session of your role can proceed until a person changes something: it halts the quest, shows your reason to the user, and re-queues your work so a resume picks up right here.
 
 Include a \`blockedReason\` naming the wall AND what the user must change:
 
 \`\`\`
-signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'blocked', blockedReason: 'git commit is denied in this dispatched session (no approver); add Bash(git commit:*) to .claude/settings.json permissions.allow' })
+signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', blockedReason: 'git commit is denied in this dispatched session (no approver); add Bash(git commit:*) to .claude/settings.json permissions.allow' })
 \`\`\`
 
-**"No session of my role could pass" is a claim about a FRESH session.** Each dispatch is its own process with its own MCP child, so per-session state is not global. A stale server is a wall for THIS session only, and so is a module loaded before your fix landed. A wall that a re-dispatch clears is \`partial\`.
+**"No session of my role could pass" is a claim about a FRESH session.** Each dispatch is its own process with its own MCP child, so per-session state is not global. A stale server is a wall for THIS session only, and so is a module loaded before your fix landed. Swap the tool or wait out a re-dispatch rather than signalling \`blocked\` for something a fresh session clears.
 
-**[CLEAN TREE] Commit whatever you finished before you signal, whatever you are about to signal.** \`signal-back\` refuses \`done\`, \`partial\` and \`blocked\` alike while the worktree carries uncommitted changes, tracked or untracked. A wall does not cancel the work it leaves behind. \`blocked\` also marks your work item \`failed\`, which renders as a red row rather than a clean handoff — and a blocked quest hands its work forward through git exactly as a finished one does.
+**[CLEAN TREE] Commit whatever you finished before you signal, whatever you are about to signal.** \`signal-back\` refuses \`done\` and \`blocked\` alike while the worktree carries uncommitted changes, tracked or untracked. A wall does not cancel the work it leaves behind. \`blocked\` also marks your work item \`failed\`, which renders as a red row rather than a clean handoff — and a blocked quest hands its work forward through git exactly as a finished one does.
 
 ## Hard prohibitions
 
@@ -221,8 +218,7 @@ situation from a conflict during intake. It takes a different answer.
 
 ### 7. Signal the outcome
 
-Signal \`complete\` with \`operationStatus: 'done'\` once the merge is committed on base in the
-repo root checkout.
+Signal \`complete\` once the merge is committed on base in the repo root checkout.
 
 A commit gate runs before that signal. The gate measures a DIFFERENT tree, the quest's WORKTREE.
 It refuses every outcome while that tree carries uncommitted changes, tracked or untracked. It
@@ -232,12 +228,12 @@ Step 4 already left the worktree clean, so the gate normally passes with nothing
 **If a signal comes back refused as dirty, run \`git status\` in the quest worktree. Not in the
 repo root you are standing in.**
 
-Signal \`complete\` with \`operationStatus: 'blocked'\` only when you cannot resolve something
-yourself. Give a \`blockedReason\` NAMING THE SPECIFIC FILES. Name the exact paths you could not
-reconcile, or the uncommitted repo-root paths that checking out base would destroy.
+Signal \`complete\` with a \`blockedReason\` only when you cannot resolve something yourself. Give a
+\`blockedReason\` NAMING THE SPECIFIC FILES. Name the exact paths you could not reconcile, or the
+uncommitted repo-root paths that checking out base would destroy.
 
 \`\`\`
-signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'done' })
+signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID' })
 \`\`\`
 
 ## Operation Context

@@ -101,11 +101,6 @@ export const smoketestProbeArgsStatics = {
     args: { questId: '{{questId}}' },
     summary: 'mcp-get-quest-planning-notes-probe-ok',
   },
-  'get-qa-checklist': {
-    mode: 'call',
-    args: { questId: '{{questId}}' },
-    summary: 'mcp-get-qa-checklist-probe-ok',
-  },
   'get-blight-checklist': {
     mode: 'call',
     args: { questId: '{{questId}}' },
@@ -140,11 +135,6 @@ export const smoketestProbeArgsStatics = {
     mode: 'call',
     args: {},
     summary: 'mcp-get-server-config-probe-ok',
-  },
-  'reset-flow-signoffs': {
-    mode: 'skip-from-suite',
-    summary: 'mcp-reset-flow-signoffs-not-in-mcp-suite',
-    note: "reset-flow-signoffs DESTROYS sign-offs on a live flow, and it only succeeds for a siegemaster work item whose operation item declares that flow — a shape the single-agent MCP probe harness (one quest, one throwaway work item, no flow graph) cannot build. The walk lifecycle it belongs to is the orchestration suite's.",
   },
   'get-quest-summary': {
     mode: 'call',

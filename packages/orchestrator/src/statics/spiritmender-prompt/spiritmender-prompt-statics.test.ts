@@ -1,5 +1,3 @@
-import { slotManagerStatics } from '../slot-manager/slot-manager-statics';
-
 import { spiritmenderPromptStatics } from './spiritmender-prompt-statics';
 
 // PROSE COMPARES IGNORE WRAPPING. `template` is bound with every whitespace run — spaces,
@@ -101,30 +99,23 @@ describe('spiritmenderPromptStatics', () => {
     });
   });
 
-  // The "no failure" claim is true of work the session could have done, and of nothing else. Stated
-  // as an absolute it brackets the embedded [WALL] rule that MANDATES `blocked` on an environment
-  // wall, and a spiritmender reading it as written signals `partial` on a ward red that is
-  // environmental. The ward broker's spliced item is `locked`. The chain then burns to its budget.
-  // The quest blocks anyway, three sessions after [WALL] would have halted it in one. Each of the
-  // two statements is therefore pinned WITH its exception clause.
-  it('VALID: template => scopes "no failure" to work it could have done, and defers the wall to [WALL]', () => {
+  // The "no failure, no partial" claim is true of work the session could have done, and of nothing
+  // else. Stated as an absolute it brackets the embedded [WALL] rule that MANDATES `blocked` on an
+  // environment wall, so both statements are pinned WITH their exception clause.
+  it('VALID: template => scopes "no failure, no partial" to work it could have done, and defers the wall to [WALL]', () => {
     expect({
-      noFailedSignalForWorkItCouldHaveDone: template.includes(
-        '**You have no `failed` signal for work you could have done.** Every error in the blob is yours to fix or to hand forward.',
+      noFailedOrPartialSignalForWorkItCouldHaveDone: template.includes(
+        '**You have no `failed` signal for work you could have done, and no `partial` signal either — that outcome no longer exists.**',
       ),
       namesWallAsTheException: template.includes(
-        '[WALL] below is the one exception. It covers an ENVIRONMENT wall only — a denied command, a missing binary, an unreachable service.',
-      ),
-      namesTheCostOfGettingItWrong: template.includes(
-        'Signal `blocked` for one of those, once. Three `partial`s instead put three sessions in front of a wall none of them can pass.',
+        '[WALL] below is the one exception. It covers an ENVIRONMENT wall only — a denied command, a missing binary, an unreachable service. Signal `blocked` for one of those.',
       ),
       theSecondStatementIsScopedToo: template.includes(
         "The one exception is [WALL]'s environment wall. That one is `blocked`.",
       ),
     }).toStrictEqual({
-      noFailedSignalForWorkItCouldHaveDone: true,
+      noFailedOrPartialSignalForWorkItCouldHaveDone: true,
       namesWallAsTheException: true,
-      namesTheCostOfGettingItWrong: true,
       theSecondStatementIsScopedToo: true,
     });
   });
@@ -156,18 +147,23 @@ describe('spiritmenderPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  // `partial` must read as a bounded chain, not an unbounded one. A `partial` creates a locked
-  // "pt N" spiritmender item. slotManagerStatics.spiritmender.maxAttempts then bounds that chain.
-  // A spent chain BLOCKS the quest rather than continuing it. Stated as "a fresh session picks up"
-  // alone, `partial` reads as an unbounded chain.
-  it('VALID: template => bounds a partial by the spiritmender pt-chain budget', () => {
-    const needle = `**Spend a \`partial\` only on scope you genuinely could not reach.** A \`partial\` is not free. The orchestrator added your item to the ledger as a locked item. A locked item bounds its pt chain at ${String(slotManagerStatics.spiritmender.maxAttempts)} attempts. Once that chain is spent, the quest BLOCKS for the user rather than getting a fresh session.`;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
+  // `partial` no longer exists as a signal outcome — the contract that validates `signal-back`
+  // input is `.strict()` and declares no operation-outcome field at all, so a prompt telling the
+  // session to send one, or claiming a bounded "pt N" chain off it, describes a call the tool
+  // refuses outright. The template still SAYS the outcome is retired (see the "no `partial` signal
+  // either" sentence near the top), so this checks for the stale IMPERATIVE forms, not the word.
+  it('VALID: template => carries no operationStatus field and no pt-chain budget claim', () => {
+    expect({
+      operationStatus: template.includes('operationStatus'),
+      ptChainBudget: template.includes('pt chain'),
+      spendAPartial: template.includes('Spend a `partial`'),
+      signalPartialImperative: template.includes('Signal `partial`'),
+    }).toStrictEqual({
+      operationStatus: false,
+      ptChainBudget: false,
+      spendAPartial: false,
+      signalPartialImperative: false,
+    });
   });
 
   it('VALID: template => leaves the repo-wide re-verification to the fresh ward operation item', () => {
@@ -218,15 +214,9 @@ describe('spiritmenderPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: template => signals done when the named failures are fixed and scoped ward is green', () => {
+  it('VALID: template => signals the same bare complete call whether the fix is whole or partial', () => {
     expect(spiritmenderPromptStatics.prompt.template).toMatch(
-      /^signal-back\(\{ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'done' \}\)$/mu,
-    );
-  });
-
-  it('VALID: template => signals partial with a committed handoff when scope remains', () => {
-    expect(spiritmenderPromptStatics.prompt.template).toMatch(
-      /^signal-back\(\{ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'partial' \}\)$/mu,
+      /^signal-back\(\{ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID' \}\)$/mu,
     );
   });
 
@@ -261,7 +251,9 @@ describe('spiritmenderPromptStatics', () => {
       ),
       delegationSpike: template.includes('You delegate LOOKING and CHECKING.'),
       delegationLeafBan: template.includes('You are the last agent in this chain.'),
-      wallRole: template.includes("signal `operationStatus: 'blocked'`. Never `partial`."),
+      wallRole: template.includes(
+        '[WALL] When the ENVIRONMENT blocks you rather than the work, signal `blocked`.',
+      ),
       wallMinion: template.includes('report it. Do not work around it.'),
       gitFormsRule: template.includes(
         '[GIT FORMS] Two git forms are refused whatever the verb, and both have a working substitute.',

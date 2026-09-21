@@ -6,7 +6,6 @@ import {
   FlowEdgeStub,
   FlowNodeStub,
   FlowObservableStub,
-  FlowOffMapSignoffStub,
   FlowStub,
   GuildNameStub,
   GuildPathStub,
@@ -1395,7 +1394,128 @@ describe('QuestFlow', () => {
             questId,
             role: 'flowrider',
             workItemId: flowWorkItem!.id,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "flowrider",\n  workItemId: "${String(flowWorkItem!.id)}",\n  questId: "${String(questId)}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${String(questId)}",\n  workItemId: "${String(flowWorkItem!.id)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial" | "blocked"\n}).`,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "flowrider",\n  workItemId: "${String(flowWorkItem!.id)}",\n  questId: "${String(questId)}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${String(questId)}",\n  workItemId: "${String(flowWorkItem!.id)}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${String(questId)}",\n  workItemId: "${String(flowWorkItem!.id)}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${String(questId)}",\n  workItemId: "${String(flowWorkItem!.id)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
+          },
+        ],
+      });
+    }, 30_000);
+  });
+
+  // A STEPPED scope is the router's, and the signal is only a session-terminal marker on ONE work
+  // item of it. This drives the real dispatch scan (QuestFlow.getNextStep -> scanOnceLayerBroker ->
+  // questRouteScopeBroker) against a ledger whose work item carries a `step`, which is the shape
+  // every quest seeded since the step graph landed has and the shape no integration test covered.
+  describe('operations relay — a stepped scope advances through its step graph', () => {
+    it('VALID: {codeweaver at step `plan` signals complete} => the scope stays in_progress, the scan mints its `work` step on the SAME scope, and the flowrider family is never opened', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-relay-stepped' }),
+      });
+      envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000c3' });
+      const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f3' });
+      const planWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        operations: [
+          OperationItemStub({
+            id: cwOpId,
+            role: 'codeweaver',
+            text: 'build core',
+            status: 'in_progress',
+            locked: false,
+          }),
+          OperationItemStub({
+            id: flowOpId,
+            role: 'flowrider',
+            text: 'verify flows',
+            status: 'pending',
+            locked: true,
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: planWorkItemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            spawnerType: 'agent',
+            relatedDataItems: [`operations/${String(cwOpId)}`],
+            dependsOn: [],
+            createdAt: new Date().toISOString(),
+            // The entry step questAdvanceBroker stamps for the codeweaver family, and the word the
+            // planner recorded through `quest-work` — `plan`'s `done` route is `work`.
+            step: 'plan',
+            declaredWord: 'done',
+          }),
+        ],
+      });
+
+      await QuestFlow.handleSignalBack({
+        questId,
+        workItemId: planWorkItemId,
+        signal: 'complete',
+      });
+
+      const afterSignal = await questHelper.reload({ questId });
+      const nextStep = await QuestFlow.getNextStep();
+      const afterScan = await questHelper.reload({ questId });
+      const mintedWorkItem = afterScan.workItems.find((wi) => wi.id !== planWorkItemId);
+
+      testbed.cleanup();
+
+      // The signal alone terminalizes ONE work item and touches nothing else: the scope is still
+      // open at `plan`, and nothing has been minted for it or for the next family.
+      expect({
+        operations: afterSignal.operations.map((op) => ({ role: op.role, status: op.status })),
+        workItems: afterSignal.workItems.map((wi) => ({
+          id: wi.id,
+          status: wi.status,
+          step: wi.step,
+        })),
+      }).toStrictEqual({
+        operations: [
+          { role: 'codeweaver', status: 'in_progress' },
+          { role: 'flowrider', status: 'pending' },
+        ],
+        workItems: [{ id: planWorkItemId, status: 'complete', step: 'plan' }],
+      });
+
+      // The scan routes the scope to the NEXT STEP of the same family — a second work item on the
+      // same operations ref, at `work`, chained behind the plan item. The flowrider scope is
+      // untouched: a family's scopes are minted when the previous family drains, not on a signal.
+      expect({
+        operations: afterScan.operations.map((op) => ({ role: op.role, status: op.status })),
+        workItemCount: afterScan.workItems.length,
+        mintedRole: mintedWorkItem?.role,
+        mintedStep: mintedWorkItem?.step,
+        mintedStatus: mintedWorkItem?.status,
+        mintedLink: mintedWorkItem?.relatedDataItems,
+        mintedDependsOn: mintedWorkItem?.dependsOn,
+      }).toStrictEqual({
+        operations: [
+          { role: 'codeweaver', status: 'in_progress' },
+          { role: 'flowrider', status: 'pending' },
+        ],
+        workItemCount: 2,
+        mintedRole: 'codeweaver',
+        mintedStep: 'work',
+        mintedStatus: 'pending',
+        mintedLink: [`operations/${String(cwOpId)}`],
+        mintedDependsOn: [planWorkItemId],
+      });
+
+      // And the dispatch that comes back is that `work` session, not a flowrider one.
+      expect(nextStep).toStrictEqual({
+        type: 'spawn-agents',
+        agents: [
+          {
+            questId,
+            role: 'codeweaver',
+            workItemId: mintedWorkItem!.id,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${String(mintedWorkItem!.id)}",\n  questId: "${String(questId)}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${String(questId)}",\n  workItemId: "${String(mintedWorkItem!.id)}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${String(questId)}",\n  workItemId: "${String(mintedWorkItem!.id)}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${String(questId)}",\n  workItemId: "${String(mintedWorkItem!.id)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
           },
         ],
       });
@@ -1523,7 +1643,6 @@ describe('QuestFlow', () => {
             text: 'ward (committed)',
             status: 'pending',
             locked: true,
-            wardMode: 'committed',
           }),
         ],
         workItems: [
@@ -1600,212 +1719,6 @@ describe('QuestFlow', () => {
     }, 30_000);
   });
 
-  // The walk-reset lever. It is a read-modify-write OUTSIDE questModifyBroker, so the only way to
-  // prove it takes the lock and persists (rather than mutating an in-memory copy nobody re-reads)
-  // is to drive it against a real quest.json and reload from disk.
-  describe('reset-flow-signoffs — Siegemaster clears its own track on ONE flow', () => {
-    it('VALID: {siegemaster item declaring the flow} => the reloaded quest has no siegemasterSignoff on that flow, keeps every flowriderSignoff, leaves a second flow untouched, and carries a walk-reset note', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-walk-reset' }),
-      });
-      envHarness.setupHome({ tempDir: testbed.guildPath });
-
-      const { questId } = await questHelper.createGuildAndQuest({ testbed });
-
-      const siegeOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d1' });
-      const siegeWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-
-      const flowriderSignoff = SignoffStub({
-        evidence: 'packages/web/src/flows/login/login.e2e.ts:31 — red without the redirect',
-      });
-      const siegemasterSignoff = SignoffStub({
-        evidence: 'walked it against the dev server — landed on /dashboard',
-        workItemId: siegeWorkItemId,
-        at: '2026-01-02T00:00:00.000Z',
-      });
-
-      await questHelper.seedInProgressRelay({
-        questId,
-        flows: [
-          FlowStub({
-            id: 'login-flow',
-            nodes: [
-              FlowNodeStub({
-                id: 'login-page',
-                label: 'Login Page',
-                flowriderSignoff,
-                siegemasterSignoff,
-                observables: [
-                  FlowObservableStub({
-                    id: 'login-redirects-to-dashboard',
-                    flowriderSignoff,
-                    siegemasterSignoff,
-                  }),
-                ],
-              }),
-            ],
-            edges: [],
-            offMapSignoffs: [FlowOffMapSignoffStub({ id: 'concurrency', siegemasterSignoff })],
-          }),
-          FlowStub({
-            id: 'signup-flow',
-            name: 'Signup Flow',
-            entryPoint: '/signup',
-            exitPoints: ['/welcome'],
-            nodes: [
-              FlowNodeStub({
-                id: 'signup-page',
-                label: 'Signup Page',
-                flowriderSignoff,
-                siegemasterSignoff,
-              }),
-            ],
-            edges: [],
-          }),
-        ],
-        operations: [
-          OperationItemStub({
-            id: siegeOpId,
-            role: 'siegemaster',
-            text: 'Siegemaster: manual QA — flow: login-flow',
-            status: 'in_progress',
-            locked: true,
-            flowIds: ['login-flow'],
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: siegeWorkItemId,
-            role: 'siegemaster',
-            status: 'in_progress',
-            spawnerType: 'agent',
-            relatedDataItems: [`operations/${String(siegeOpId)}`],
-            dependsOn: [],
-            createdAt: new Date().toISOString(),
-          }),
-        ],
-      });
-
-      const result = await QuestFlow.resetFlowSignoffs({
-        questId,
-        workItemId: siegeWorkItemId,
-        flowId: 'login-flow',
-        reason: 'Fixed the redirect guard the walk exposed, so every sign-off here is stale.',
-      });
-
-      const afterReset = await questHelper.reload({ questId });
-      const loginFlow = afterReset.flows.find((flow) => String(flow.id) === 'login-flow')!;
-      const signupFlow = afterReset.flows.find((flow) => String(flow.id) === 'signup-flow')!;
-      const loginNode = loginFlow.nodes[0]!;
-
-      testbed.cleanup();
-
-      expect(result.success).toBe(true);
-      expect({
-        loginNodeSiegemaster: loginNode.siegemasterSignoff,
-        loginNodeFlowrider: loginNode.flowriderSignoff,
-        loginObservableSiegemaster: loginNode.observables[0]!.siegemasterSignoff,
-        loginObservableFlowrider: loginNode.observables[0]!.flowriderSignoff,
-        loginOffMapSiegemaster: loginFlow.offMapSignoffs[0]!.siegemasterSignoff,
-        signupNodeSiegemaster: signupFlow.nodes[0]!.siegemasterSignoff,
-        signupNodeFlowrider: signupFlow.nodes[0]!.flowriderSignoff,
-        notes: afterReset.planningNotes.questNotes.map((note) => ({
-          id: String(note.id),
-          kind: note.kind,
-          flowId: String(note.flowId),
-          detail: String(note.detail),
-        })),
-      }).toStrictEqual({
-        loginNodeSiegemaster: undefined,
-        loginNodeFlowrider: flowriderSignoff,
-        loginObservableSiegemaster: undefined,
-        loginObservableFlowrider: flowriderSignoff,
-        loginOffMapSiegemaster: undefined,
-        signupNodeSiegemaster: siegemasterSignoff,
-        signupNodeFlowrider: flowriderSignoff,
-        notes: [
-          {
-            id: 'walk-reset-login-flow-1',
-            kind: 'walk-reset',
-            flowId: 'login-flow',
-            detail: 'Fixed the redirect guard the walk exposed, so every sign-off here is stale.',
-          },
-        ],
-      });
-    }, 30_000);
-
-    it('INVALID: {flow the operation item does not declare} => refused, and the quest file is byte-identical afterwards', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-walk-reset-scope' }),
-      });
-      envHarness.setupHome({ tempDir: testbed.guildPath });
-
-      const { questId } = await questHelper.createGuildAndQuest({ testbed });
-
-      const siegeOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d2' });
-      const siegeWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-      const siegemasterSignoff = SignoffStub({
-        evidence: 'walked the signup path by hand',
-        workItemId: siegeWorkItemId,
-        at: '2026-01-02T00:00:00.000Z',
-      });
-
-      await questHelper.seedInProgressRelay({
-        questId,
-        flows: [
-          FlowStub({
-            id: 'signup-flow',
-            name: 'Signup Flow',
-            entryPoint: '/signup',
-            exitPoints: ['/welcome'],
-            nodes: [FlowNodeStub({ id: 'signup-page', label: 'Signup Page', siegemasterSignoff })],
-            edges: [],
-          }),
-        ],
-        operations: [
-          OperationItemStub({
-            id: siegeOpId,
-            role: 'siegemaster',
-            text: 'Siegemaster: manual QA — flow: login-flow',
-            status: 'in_progress',
-            locked: true,
-            flowIds: ['login-flow'],
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: siegeWorkItemId,
-            role: 'siegemaster',
-            status: 'in_progress',
-            spawnerType: 'agent',
-            relatedDataItems: [`operations/${String(siegeOpId)}`],
-            dependsOn: [],
-            createdAt: new Date().toISOString(),
-          }),
-        ],
-      });
-
-      const before = await questHelper.readQuestFileRaw({ questId });
-
-      const result = await QuestFlow.resetFlowSignoffs({
-        questId,
-        workItemId: siegeWorkItemId,
-        flowId: 'signup-flow',
-        reason: 'Trying to reset a flow this session does not own.',
-      });
-
-      const after = await questHelper.readQuestFileRaw({ questId });
-
-      testbed.cleanup();
-
-      expect(result).toStrictEqual({
-        success: false,
-        error: `reset-flow-signoffs: flow signup-flow is outside the scope of work item ${String(siegeWorkItemId)}, whose operation item ${String(siegeOpId)} covers login-flow — nothing was reset`,
-      });
-      expect(String(after)).toBe(String(before));
-    }, 30_000);
-  });
-
   describe('ward operation item — green advances the relay', () => {
     it('VALID: {ward exits 0} => ward operation item completes and advance dispatches the next verify role', async () => {
       const testbed = installTestbedCreateBroker({
@@ -1828,7 +1741,6 @@ describe('QuestFlow', () => {
             text: 'ward (committed)',
             status: 'in_progress',
             locked: true,
-            wardMode: 'committed',
           }),
           OperationItemStub({
             id: flowOpId,
@@ -1844,7 +1756,6 @@ describe('QuestFlow', () => {
             role: 'ward',
             status: 'in_progress',
             spawnerType: 'command',
-            wardMode: 'committed',
             relatedDataItems: [`operations/${String(wardOpId)}`],
             dependsOn: [],
             createdAt: new Date().toISOString(),
@@ -1864,7 +1775,6 @@ describe('QuestFlow', () => {
       const wardRun = await QuestFlow.runWard({
         questId,
         workItemId: wardWorkItemId,
-        mode: 'committed',
       });
 
       const afterWard = await QuestGetResponder({ questId });
@@ -1916,7 +1826,6 @@ describe('QuestFlow', () => {
             text: 'ward (committed)',
             status: 'in_progress',
             locked: true,
-            wardMode: 'committed',
           }),
           OperationItemStub({
             id: flowOpId,
@@ -1932,7 +1841,6 @@ describe('QuestFlow', () => {
             role: 'ward',
             status: 'in_progress',
             spawnerType: 'command',
-            wardMode: 'committed',
             relatedDataItems: [`operations/${String(wardOpId)}`],
             dependsOn: [],
             createdAt: new Date().toISOString(),
@@ -1971,7 +1879,6 @@ describe('QuestFlow', () => {
       const wardRun = await QuestFlow.runWard({
         questId,
         workItemId: wardWorkItemId,
-        mode: 'committed',
       });
 
       const afterRed = await QuestGetResponder({ questId });
@@ -1987,9 +1894,11 @@ describe('QuestFlow', () => {
           role: op.role,
           status: op.status,
         })),
-        freshWardMode: afterRed
+        // The fresh ward is the SAME scope continued, which its `pt N:` text is what now says.
+        freshWardText: afterRed
           .quest!.operations.filter((op) => op.role === 'ward')
-          .find((op) => op.id !== wardOpId)?.wardMode,
+          .find((op) => op.id !== wardOpId)
+          ?.text.toString(),
         wardWorkItemStatus: afterRed.quest!.workItems.find((wi) => wi.id === wardWorkItemId)
           ?.status,
         spiritWorkItemStatus: spiritWorkItem?.status,
@@ -2003,7 +1912,7 @@ describe('QuestFlow', () => {
           { role: 'ward', status: 'pending' },
           { role: 'flowrider', status: 'pending' },
         ],
-        freshWardMode: 'committed',
+        freshWardText: 'pt 2: ward (committed)',
         wardWorkItemStatus: 'failed',
         spiritWorkItemStatus: 'pending',
         spiritWorkItemLink: [`operations/${String(spiritOp!.id)}`],

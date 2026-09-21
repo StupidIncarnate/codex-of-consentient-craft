@@ -34,7 +34,6 @@ const WARD_FULL_COMPLETE = OperationItemStub({
   id: 'c3d4e5f6-58cc-4372-a567-0e02b2c3d479',
   role: 'ward',
   text: 'Ward gate (full monorepo)',
-  wardMode: 'full',
   status: 'complete',
   locked: true,
 });
@@ -250,32 +249,6 @@ describe('workItemsToQuestStatusTransformer', () => {
       expect(result).toBe('in_progress');
     });
 
-    it("VALID: {all items terminal, a complete role:'ward' wardMode:'committed' scope and no full one} => in_progress", () => {
-      const item = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
-        role: 'ward',
-        status: 'complete',
-      });
-
-      const result = workItemsToQuestStatusTransformer({
-        workItems: [item],
-        operations: [
-          OperationItemStub({
-            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
-            role: 'ward',
-            text: 'Ward gate (committed files)',
-            wardMode: 'committed',
-            status: 'complete',
-            locked: true,
-          }),
-        ],
-        currentStatus: 'in_progress',
-        questType: 'feature',
-      });
-
-      expect(result).toBe('in_progress');
-    });
-
     it('VALID: {all items terminal, a wardFull scope still pending} => in_progress', () => {
       const item = WorkItemStub({
         id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
@@ -289,7 +262,6 @@ describe('workItemsToQuestStatusTransformer', () => {
             id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
             role: 'ward',
             text: 'Ward gate (full monorepo)',
-            wardMode: 'full',
             status: 'pending',
             locked: true,
           }),

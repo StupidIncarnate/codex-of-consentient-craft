@@ -81,7 +81,6 @@ describe('OperationsLedgerWidget', () => {
           role: 'ward',
           text: 'verify: ward',
           status: 'pending',
-          wardMode: 'committed',
         }),
       ];
 
@@ -92,45 +91,6 @@ describe('OperationsLedgerWidget', () => {
       const roles = screen.queryAllByTestId('OPERATIONS_LEDGER_ROW_ROLE').map((r) => r.textContent);
 
       expect(roles).toStrictEqual(['[CODEWEAVER]', '[WARD]']);
-    });
-  });
-
-  describe('ward mode', () => {
-    it('VALID: {ward item with wardMode: "full"} => renders ward mode suffix', () => {
-      OperationsLedgerWidgetProxy();
-      const operations = [
-        OperationItemStub({
-          id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d421',
-          role: 'ward',
-          text: 'verify: full ward',
-          status: 'pending',
-          wardMode: 'full',
-        }),
-      ];
-
-      mantineRenderAdapter({
-        ui: <OperationsLedgerWidget operations={operations} flows={[]} />,
-      });
-
-      expect(screen.getByTestId('OPERATIONS_LEDGER_ROW_WARD_MODE').textContent).toBe('(full)');
-    });
-
-    it('EMPTY: {item without wardMode} => does not render ward mode element', () => {
-      OperationsLedgerWidgetProxy();
-      const operations = [
-        OperationItemStub({
-          id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d431',
-          role: 'codeweaver',
-          text: 'build the broker',
-          status: 'pending',
-        }),
-      ];
-
-      mantineRenderAdapter({
-        ui: <OperationsLedgerWidget operations={operations} flows={[]} />,
-      });
-
-      expect(screen.queryByTestId('OPERATIONS_LEDGER_ROW_WARD_MODE')).toBe(null);
     });
   });
 
@@ -223,7 +183,7 @@ describe('OperationsLedgerWidget', () => {
   });
 
   describe('row content', () => {
-    it('VALID: {single complete ward item with wardMode} => full row text combines marker, role, text, and mode', () => {
+    it('VALID: {single complete ward item} => full row text combines marker, role, and text', () => {
       const proxy = OperationsLedgerWidgetProxy();
       const operations = [
         OperationItemStub({
@@ -231,7 +191,6 @@ describe('OperationsLedgerWidget', () => {
           role: 'ward',
           text: 'verify: ward',
           status: 'complete',
-          wardMode: 'committed',
         }),
       ];
 
@@ -241,7 +200,7 @@ describe('OperationsLedgerWidget', () => {
 
       const rows = proxy.getLedgerRows();
 
-      expect(rows.map((r) => r.textContent)).toStrictEqual(['[x][WARD]verify: ward(committed)']);
+      expect(rows.map((r) => r.textContent)).toStrictEqual(['[x][WARD]verify: ward']);
     });
 
     it('VALID: {per-flow flowrider item} => full row text puts the flow name BEFORE the description', () => {

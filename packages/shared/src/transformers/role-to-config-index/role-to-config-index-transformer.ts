@@ -1,7 +1,8 @@
 /**
  * PURPOSE: Maps a work item role to its position index in the floor config array for sorting.
- *   A role can map to more than one config entry (the ward role spans both the MINI BOSS and FLOOR BOSS
- *   floors); pass the resolved floorName to disambiguate so each ward mode sorts to its own floor.
+ *   A role can map to more than one config entry (the ward role spans both the MINI BOSS and FLOOR
+ *   BOSS floors); pass a `floorName` to pick one of them. Reach for `wardAwareConfigIndexTransformer`
+ *   rather than this one when the input is a work item — it knows which floor a ward item is on.
  *
  * USAGE:
  * roleToConfigIndexTransformer({role: 'codeweaver'});

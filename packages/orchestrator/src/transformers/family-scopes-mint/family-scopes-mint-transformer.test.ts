@@ -223,8 +223,8 @@ describe('familyScopesMintTransformer', () => {
     });
   });
 
-  describe('wardFull resolves to the FULL gate seed, never the committed one', () => {
-    it("VALID: {family: 'wardFull'} => one scope carrying wardMode: 'full' and the full-monorepo text", () => {
+  describe('wardFull, the one family whose key is not its role name', () => {
+    it("VALID: {family: 'wardFull'} => one scope carrying role 'ward' and the full-monorepo text", () => {
       const proxy = familyScopesMintTransformerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -240,7 +240,6 @@ describe('familyScopesMintTransformer', () => {
           text: 'Ward gate (full monorepo)',
           status: 'pending',
           locked: true,
-          wardMode: 'full',
           flowIds: [],
           packageNames: [],
         }),
@@ -330,7 +329,7 @@ describe('familyScopesMintTransformer', () => {
       expect(() =>
         familyScopesMintTransformer({ quest: QuestStub({ flows: [] }), family: 'warpgate' }),
       ).toThrow(
-        /^familyScopesMintTransformer: quest type 'feature' seeds no scope for family 'warpgate' \(role 'warpgate'\) — a family with no seed is appended at merge rather than routed to$/u,
+        /^familyScopesMintTransformer: quest type 'feature' declares no routable family 'warpgate' — the routable families are: riftcarver, codeweaver, flowrider, siegemaster, wardFull$/u,
       );
     });
   });

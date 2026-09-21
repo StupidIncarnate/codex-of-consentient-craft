@@ -17,16 +17,10 @@ import { wardAwareConfigIndexTransformer } from '../ward-aware-config-index/ward
 
 export const workItemsInDispatchOrderTransformer = ({
   workItems,
-  allWorkItems,
 }: {
   workItems: WorkItem[];
-  allWorkItems?: WorkItem[];
 }): WorkItem[] => {
-  const unfilteredItems = allWorkItems ?? workItems;
   const itemMap = new Map<WorkItem['id'], WorkItem>(workItems.map((item) => [item.id, item]));
-  const allItemMap = new Map<WorkItem['id'], WorkItem>(
-    unfilteredItems.map((item) => [item.id, item]),
-  );
 
   const depths = computeWorkItemDepthsTransformer({ items: workItems, itemMap });
 
@@ -35,8 +29,8 @@ export const workItemsInDispatchOrderTransformer = ({
     const depthB = depths.get(b.id) ?? 0;
     if (depthA !== depthB) return depthA - depthB;
 
-    const configA = wardAwareConfigIndexTransformer({ workItem: a, allItemMap });
-    const configB = wardAwareConfigIndexTransformer({ workItem: b, allItemMap });
+    const configA = wardAwareConfigIndexTransformer({ workItem: a });
+    const configB = wardAwareConfigIndexTransformer({ workItem: b });
     if (configA !== configB) return configA - configB;
 
     return a.createdAt.localeCompare(b.createdAt);

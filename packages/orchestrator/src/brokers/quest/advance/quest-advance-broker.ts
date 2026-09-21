@@ -41,7 +41,6 @@ import {
 } from '@dungeonmaster/shared/guards';
 
 import { agentFlowStatics } from '../../../statics/agent-flow/agent-flow-statics';
-import { familyLedgerKeyTransformer } from '../../../transformers/family-ledger-key/family-ledger-key-transformer';
 import { workItemFamilyResolveTransformer } from '../../../transformers/work-item-family-resolve/work-item-family-resolve-transformer';
 import { questOperationsUpdateBroker } from '../operations-update/quest-operations-update-broker';
 
@@ -82,15 +81,10 @@ export const questAdvanceBroker = async ({
         .at(-1);
 
       const family = workItemFamilyResolveTransformer({ quest, operationItem: nextOperation });
-      // `wardMode` is what separates the FULL gate from the COMMITTED one, which shares its role and
-      // belongs to no family at all. The family resolver matches on role alone, so without this the
-      // committed gate would be stamped with `wardFull`'s entry step and dispatch as a bare ward
-      // over the whole monorepo.
+      // A role no family carries — `spiritmender`, a chat role — runs no step graph and is stamped
+      // with no step at all.
       const entryStep =
-        family === undefined ||
-        familyLedgerKeyTransformer({ family }).wardMode !== nextOperation.wardMode
-          ? undefined
-          : GRAPH_BY_FAMILY.get(String(family))?.entry;
+        family === undefined ? undefined : GRAPH_BY_FAMILY.get(String(family))?.entry;
 
       const newWorkItem: WorkItem = workItemContract.parse({
         id: questWorkItemIdContract.parse(crypto.randomUUID()),
@@ -107,7 +101,6 @@ export const questAdvanceBroker = async ({
         dependsOn: lastSatisfying === undefined ? [] : [lastSatisfying.id],
         maxAttempts: 1,
         createdAt: new Date().toISOString(),
-        ...(nextOperation.wardMode === undefined ? {} : { wardMode: nextOperation.wardMode }),
         // The item's package slice travels with the session it is dispatched to. Omitted when the
         // operation declares none, which means "scoped to the whole quest" — writing an empty array
         // onto every work item would say the opposite while costing file size on every re-parse.

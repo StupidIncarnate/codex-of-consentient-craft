@@ -968,20 +968,21 @@ describe('codeweaverPromptStatics', () => {
     }).toStrictEqual({ fetchLine: true, neverAddYours: true });
   });
 
-  // THE ORCHESTRATOR OWNS THE LEDGER; THIS SESSION ONLY REPORTS AN OUTCOME ON IT — `operationStatus`
-  // is what carries that outcome on the one `signal-back` call this role ever makes.
-  it('VALID: served template => signals complete carrying operationStatus done or blocked', () => {
+  // THE ORCHESTRATOR OWNS THE LEDGER; THIS SESSION ONLY REPORTS ITS TERMINAL SIGNAL — the contract
+  // is `.strict()` and carries no outcome field, so `signal: 'complete'` is the whole of it.
+  it('VALID: served template => signals complete with no operationStatus, blockedReason only on a wall', () => {
     expect({
       done: hasIn({
         needle:
-          "signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'done' })",
+          "signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID' })",
         text: TEMPLATE,
       }),
       blocked: hasIn({
-        needle: "operationStatus: 'blocked', blockedReason:",
+        needle: "operationItemId: 'OPERATION_ITEM_ID', blockedReason:",
         text: TEMPLATE,
       }),
-    }).toStrictEqual({ done: true, blocked: true });
+      noOperationStatus: TEMPLATE.includes('operationStatus'),
+    }).toStrictEqual({ done: true, blocked: true, noOperationStatus: false });
   });
 
   // THIS ROLE READS CODE AND JUDGES A DIFF; IT NEITHER GRADES A TEST SUITE NOR THE STANDING

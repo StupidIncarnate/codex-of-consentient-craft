@@ -7,9 +7,9 @@
  * const response = await GetQuestWorkLayerResponder({ args });
  * // Returns ToolResponse carrying the view as JSON, or the plan as RAW markdown
  *
- * THE PLAN SHAPE IS RETURNED AS RAW TEXT, never JSON-wrapped. `QaChecklistLayerResponder` says why:
- * JSON-stringifying already-rendered text escapes every newline and roughly doubles a payload whose
- * whole value is being cheap enough to read.
+ * THE PLAN SHAPE IS RETURNED AS RAW TEXT, never JSON-wrapped. JSON-stringifying already-rendered
+ * text escapes every newline and roughly doubles a payload whose whole value is being cheap enough
+ * to read.
  *
  * A refusal is NOT caught into a `{ success: false }` body upstream of this layer — the orchestrator
  * responder throws on every refusal. This layer's own try/catch is the ONE place that turns that

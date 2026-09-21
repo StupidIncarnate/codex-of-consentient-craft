@@ -6,9 +6,9 @@
  * const response = await BlightChecklistLayerResponder({ args });
  * // Returns ToolResponse carrying the rendered checklist, or the JSON error shape
  *
- * Split out of QuestHandleResponder as a layer, mirroring qa-checklist-layer-responder: that
- * responder is one long tool switch and adding this branch inline pushed it past the complexity
- * ceiling.
+ * Split out of QuestHandleResponder as a layer, mirroring its other colocated layer responders:
+ * that responder is one long tool switch and adding this branch inline pushed it past the
+ * complexity ceiling.
  */
 
 import { orchestratorGetBlightChecklistAdapter } from '../../../adapters/orchestrator/get-blight-checklist/orchestrator-get-blight-checklist-adapter';

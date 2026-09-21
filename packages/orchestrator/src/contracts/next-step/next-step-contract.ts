@@ -4,7 +4,7 @@
  * USAGE:
  * nextStepContract.parse({ type: 'idle' });
  * nextStepContract.parse({ type: 'spawn-agents', agents: [SpawnInstruction, ...] });
- * nextStepContract.parse({ type: 'run-ward', questId, workItemId, mode: 'committed' });
+ * nextStepContract.parse({ type: 'run-ward', questId, workItemId });
  * nextStepContract.parse({ type: 'run-riftcarver', questId, workItemId });
  * nextStepContract.parse({ type: 'run-step', questId, workItemId, handler: 'commit', args: [] });
  * // Returns: NextStep variant
@@ -12,11 +12,7 @@
 
 import { z } from 'zod';
 
-import {
-  questIdContract,
-  questWorkItemIdContract,
-  wardModeContract,
-} from '@dungeonmaster/shared/contracts';
+import { questIdContract, questWorkItemIdContract } from '@dungeonmaster/shared/contracts';
 
 import { idleReasonContract } from '../idle-reason/idle-reason-contract';
 import { runStepContract } from '../run-step/run-step-contract';
@@ -28,15 +24,15 @@ export const nextStepContract = z.discriminatedUnion('type', [
     agents: z.array(spawnInstructionContract),
   }),
   z.object({
+    // `wardFull` is the only family whose role is `ward`, so this variant always means the full
+    // monorepo gate. A family's own committed ward is a deterministic STEP and dispatches as
+    // `run-step`, carrying its scope in the step's own `args`.
     type: z.literal('run-ward'),
     questId: questIdContract,
     workItemId: questWorkItemIdContract,
-    mode: wardModeContract,
   }),
   z.object({
-    // The other command role. It carries no mode: ward grades a tree that already exists and needs
-    // to be told which slice, where a carve has exactly one job and reads its own scope off the
-    // quest.
+    // The other command role, and it reads its own scope off the quest.
     type: z.literal('run-riftcarver'),
     questId: questIdContract,
     workItemId: questWorkItemIdContract,

@@ -1,4 +1,4 @@
-import { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
+import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { dumpsterCreatePromptStatics } from '../dumpster-create-prompt/dumpster-create-prompt-statics';
 import { dumpsterHuntPromptStatics } from '../dumpster-hunt-prompt/dumpster-hunt-prompt-statics';
@@ -171,7 +171,7 @@ describe('slashCommandsStatics', () => {
 
     it('VALID: dumpsterHunt.fileName => matches the registry intake filename for bug-hunt', () => {
       expect(slashCommandsStatics.dumpsterHunt.fileName).toBe(
-        questTypeRegistryStatics['bug-hunt'].intakeSlashCommandFileName,
+        questFlowStatics['bug-hunt'].intakeSlashCommandFileName,
       );
     });
 
@@ -295,9 +295,9 @@ describe('slashCommandsStatics', () => {
       expect(foundSlice).toBe(needle);
     });
 
-    it('VALID: dumpsterLaunch.body => instructs calling run-ward with questId/workItemId/mode', () => {
+    it('VALID: dumpsterLaunch.body => instructs calling run-ward with questId/workItemId and NO scope argument', () => {
       const needle =
-        'mcp__dungeonmaster__run-ward({ questId: result.questId, workItemId: result.workItemId, mode: result.mode })';
+        'mcp__dungeonmaster__run-ward({ questId: result.questId, workItemId: result.workItemId })';
       const { body } = slashCommandsStatics.dumpsterLaunch;
       const foundIndex = body.indexOf(needle);
       const foundSlice = body.slice(foundIndex, foundIndex + needle.length);

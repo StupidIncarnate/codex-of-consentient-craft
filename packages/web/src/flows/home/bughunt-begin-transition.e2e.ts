@@ -1,4 +1,4 @@
-import { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
+import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -15,39 +15,37 @@ const IN_PROGRESS_TIMEOUT = 10_000;
 const HTTP_OK = 200;
 
 // A bug-hunt quest is born from `/dumpster-hunt` with its intake already on the ledger:
-// questCreateBroker reads questTypeRegistryStatics['bug-hunt'].initialWorkItemRole ('bughunt') and
-// seeds ONE locked operation item plus the work item that carries the intake session. That pair is
-// what these tests reproduce — a feature quest's counterpart is a `chaoswhisperer` item, and the
+// questCreateBroker reads questFlowStatics['bug-hunt'].initialWorkItemRole ('bughunt') and seeds
+// ONE locked operation item plus the work item that carries the intake session. That pair is what
+// these tests reproduce — a feature quest's counterpart is a `chaoswhisperer` item, and the
 // difference is the whole reason this file exists beside quest-begin-transition.e2e.ts.
 const BUGHUNT_OP_ID = '00000000-0000-4000-8000-0000000000d1';
 const BUGHUNT_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-0000000000d2';
 const BUGHUNT_OP_TEXT = 'Author spec + implementation plan';
 
-// DERIVED from the registry, never spelled out: a hardcoded
-// ['bughunt','riftcarver','codeweaver','ward','flowrider','siegemaster','ward'] still passes if
-// questBuildRelayGraphBroker seeds a list it matched by role name rather than one it read off the
-// quest's own type. Bug-hunt shares the feature relay wholesale — the `riftcarver` carve, the
-// `codeweaver` build (neither carries fanOutBy at this seed-list level, so each fans to exactly one
-// entry here), then relayTail's ward(committed) -> flowrider -> siegemaster -> ward(full).
-const BUG_HUNT_REGISTRY = questTypeRegistryStatics['bug-hunt'];
+// DERIVED from the flow statics, never spelled out: a hardcoded ['bughunt', 'riftcarver'] still
+// passes if questBuildRelayGraphBroker seeds a role it matched by name rather than one it read off
+// the quest's own type. Start mints the ENTRY family's scopes and nothing else
+// (questBuildRelayGraphBroker), so right after Start the ledger holds exactly the intake role plus
+// the entry family's own role — every later family is minted only once the relay routes to it.
+const BUG_HUNT_FLOW = questFlowStatics['bug-hunt'];
+const ENTRY_FAMILY_ROLE = String(BUG_HUNT_FLOW.families[BUG_HUNT_FLOW.entry].role);
 const EXPECTED_BUG_HUNT_LEDGER_ROLES = [
-  String(BUG_HUNT_REGISTRY.initialWorkItemRole),
-  ...BUG_HUNT_REGISTRY.startImplementationOps.map((seed) => String(seed.role)),
-  ...BUG_HUNT_REGISTRY.relayTail.map((seed) => String(seed.role)),
+  String(BUG_HUNT_FLOW.initialWorkItemRole),
+  ENTRY_FAMILY_ROLE,
 ];
-// Whatever the feature tail carries that bug-hunt's does not — nothing today, since the two quest
-// types share one relay tail, but this stays derived so a role added to feature alone tomorrow is
-// still caught without this test needing an edit.
-const FEATURE_ONLY_ROLES = questTypeRegistryStatics.feature.relayTail
-  .map((seed) => String(seed.role))
+// Every family bug-hunt shares with feature but does not seed at Start — the proof that Start mints
+// the entry family alone rather than the whole relay tail.
+const FEATURE_ONLY_ROLES = Object.values(questFlowStatics.feature.families)
+  .map((family) => String(family.role))
   .filter((role) => !EXPECTED_BUG_HUNT_LEDGER_ROLES.includes(role));
 // The relay seeds ONE work item — for the first actionable operation item, which is the carve at
 // the head of the ledger — alongside the intake item already on the quest. Derived from the same
-// registry entry so a quest type that changes what it puts first is picked up here rather than
+// flow statics entry so a quest type that changes what it puts first is picked up here rather than
 // asserted against a name typed in by hand.
 const EXPECTED_BUG_HUNT_WORK_ITEM_ROLES = [
-  String(BUG_HUNT_REGISTRY.initialWorkItemRole),
-  String(BUG_HUNT_REGISTRY.startImplementationOps[0].role),
+  String(BUG_HUNT_FLOW.initialWorkItemRole),
+  ENTRY_FAMILY_ROLE,
 ];
 
 const sessions = sessionHarness({ guildPath: GUILD_PATH });
@@ -180,14 +178,15 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     const questResponse = await request.get(`/api/quests/${questId}`);
     const questData = await questResponse.json();
 
-    // The seeded relay is read off questTypeRegistryStatics['bug-hunt'] rather than assumed
-    // identical to the feature tail. Asserted as the whole ordered list: a subset check ('contains a
-    // codeweaver') passes on a ledger that also grew a flowrider and a siegemaster, and the order is
-    // also what pins the carve to the HEAD of the relay — behind the intake item the fixture seeded
-    // and ahead of the codeweaver that builds in the tree it creates.
+    // The seeded relay is read off questFlowStatics['bug-hunt'] rather than assumed identical to
+    // the feature graph. Asserted as the whole ordered list: a subset check ('contains a
+    // riftcarver') passes on a ledger that also grew a codeweaver or a flowrider, and the order is
+    // also what pins the carve to the HEAD of the relay — behind the intake item the fixture seeded.
     expect(questData.quest.operations.map((op: { role: string }) => op.role)).toStrictEqual(
       EXPECTED_BUG_HUNT_LEDGER_ROLES,
     );
+    // Every later family — codeweaver, flowrider, siegemaster, ward, warpgate — is minted only once
+    // the relay routes to it, never up front at Start.
     for (const role of FEATURE_ONLY_ROLES) {
       expect(questData.quest.operations.some((op: { role: string }) => op.role === role)).toBe(
         false,

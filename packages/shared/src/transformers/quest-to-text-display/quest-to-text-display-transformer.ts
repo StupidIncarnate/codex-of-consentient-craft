@@ -170,7 +170,6 @@ export const questToTextDisplayTransformer = ({
     } else {
       for (const operation of quest.operations) {
         const lockedPart = operation.locked ? ' [locked]' : '';
-        const wardModePart = operation.wardMode === undefined ? '' : ` (${operation.wardMode})`;
         const flowsPart =
           operation.flowIds.length === 0
             ? ''
@@ -186,7 +185,7 @@ export const questToTextDisplayTransformer = ({
             : ` [packages: ${operation.packageNames.map((name) => String(name)).join(', ')}]`;
         parts.push(
           contentTextContract.parse(
-            `#${String(operation.id)}: [${operation.role}${wardModePart}] ${String(operation.text)} ${SYM.emDash} ${operation.status}${lockedPart}${flowsPart}${packagesPart}`,
+            `#${String(operation.id)}: [${operation.role}] ${String(operation.text)} ${SYM.emDash} ${operation.status}${lockedPart}${flowsPart}${packagesPart}`,
           ),
         );
       }

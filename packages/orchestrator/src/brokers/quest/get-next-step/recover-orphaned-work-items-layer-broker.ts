@@ -16,11 +16,17 @@
  *   `slotManagerStatics.orphanRecovery.maxResets` the crash loop is terminal and the quest blocks
  *   via questBlockOnFailureBroker.
  *
- *   RECONCILE SAFETY-NET: a work item terminal while its linked operation item is still
- *   pending/in_progress means a session finished but its signal never processed. Under the atomic
- *   signal handler this is unreachable (work-item-terminal + operation-complete are one persist) —
- *   kept as a defensive net only: the item flips back to pending (identity + resume marker kept)
- *   so it re-dispatches and re-signals.
+ *   A TERMINAL WORK ITEM IS NOT ORPHANED — IT FINISHED, and nothing here touches it whatever its
+ *   linked operation item reads. A scope stays `in_progress` across every step it runs, so a
+ *   terminal item under a live scope is the ordinary state between a step RECORDING its outcome
+ *   word (`questRunStepBroker` writes `declaredWord`; a session writes it through `quest-work`)
+ *   and `questRouteScopeBroker` READING that word on the next scan — which runs after this one in
+ *   `scan-once-layer-broker`. Reclaiming such an item re-runs finished work and the scope never
+ *   moves: the same deterministic step re-runs every scan until the reset budget blocks the quest.
+ *   Nor is there a lost signal to catch here: the signal handler writes work-item-terminal and
+ *   operation-complete in ONE persist, so a half-applied signal leaves the item `in_progress` —
+ *   the orphan case above — and a scope whose items have all gone terminal is the router's own
+ *   candidate, which reads the recorded word instead of re-dispatching the session that wrote it.
  *
  * USAGE:
  * const { quest: recovered, blocked } = await recoverOrphanedWorkItemsLayerBroker({ quest });
@@ -32,11 +38,8 @@
  */
 
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
-import {
-  isActiveWorkItemStatusGuard,
-  isTerminalWorkItemStatusGuard,
-} from '@dungeonmaster/shared/guards';
+import type { Quest } from '@dungeonmaster/shared/contracts';
+import { isActiveWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { questBlockOnFailureBroker } from '../block-on-failure/quest-block-on-failure-broker';
@@ -47,29 +50,10 @@ export const recoverOrphanedWorkItemsLayerBroker = async ({
 }: {
   quest: Quest;
 }): Promise<{ quest: Quest; blocked: boolean }> => {
-  const orphanedItems = quest.workItems.filter((item) =>
+  const toRecover = quest.workItems.filter((item) =>
     isActiveWorkItemStatusGuard({ status: item.status }),
   );
 
-  // Reconcile net: terminal work item + linked operation item still pending/in_progress =
-  // a finished session whose signal never applied. Re-dispatch it to re-signal.
-  const unappliedSignalItems = quest.workItems.filter((item) => {
-    if (!isTerminalWorkItemStatusGuard({ status: item.status })) {
-      return false;
-    }
-    const linkedRef = item.relatedDataItems
-      .map((ref) => String(ref))
-      .find((ref) => ref.startsWith('operations/'));
-    if (linkedRef === undefined) {
-      return false;
-    }
-    const linkedOperation = quest.operations.find(
-      (operation) => String(operation.id) === linkedRef.split('/')[1],
-    );
-    return linkedOperation !== undefined && linkedOperation.status === 'in_progress';
-  });
-
-  const toRecover: WorkItem[] = [...orphanedItems, ...unappliedSignalItems];
   if (toRecover.length === 0) {
     return { quest, blocked: false };
   }

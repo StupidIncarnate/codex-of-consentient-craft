@@ -71,13 +71,13 @@
  *    omitted, because "this track does not partition" is a claim, not a default.
  *
  * 5. PROVENANCE. A role that runs strictly AFTER a track cannot produce work that track was able to
- *    sign. The relay order is derived from `questTypeRegistryStatics.feature`: the intake role is
- *    `chaoswhisperer`, and `startImplementationOps` seeds ONE `codeweaver` item carrying
- *    `fanOutBy: 'implementation'` — the derived per-CELL ledger `relayTailFanOutTransformer`
- *    expands at Start, not a plan ChaosWhisperer authors. `relayTail` runs
- *    ward → flowrider → siegemaster → ward; the five standards concerns are reviewed by a reviewer
- *    INSIDE each committing session's own turn rather than by a relay role, so no standards review
- *    appears in this registry-derived order at all. `questBuildRelayGraphBroker` concatenates them
+ *    sign. The relay order is the family graph in `questFlowStatics.feature`: the intake role is
+ *    `chaoswhisperer`, and the `codeweaver` family carries `fanOutBy: 'implementation'` — the
+ *    derived per-CELL ledger `relayTailFanOutTransformer` expands when the graph routes to that
+ *    family, not a plan ChaosWhisperer authors. The graph then runs
+ *    codeweaver → flowrider → siegemaster → wardFull; the five standards concerns are reviewed by a
+ *    reviewer INSIDE each committing session's own turn rather than by a relay role, so no standards
+ *    review appears in this graph-derived order at all. `questBuildRelayGraphBroker` concatenates them
  *    as `[...settledExisting, ...implementationOps, ...tailOps]`, giving:
  *
  *        spec (present at approval) → chaoswhisperer → codeweaver → flowrider → siegemaster
@@ -99,9 +99,9 @@
  *    observable so that an absent field costs nothing on disk, and this list is where the absent
  *    case gets its name.
  *
- * BOTH QUEST TYPES RUN THIS RELAY. `questTypeRegistryStatics['bug-hunt']` seeds the same
- * `codeweaver` implementation item and the same flowrider/siegemaster tail, so every rule here
- * binds on a bug-hunt quest exactly as it does on a feature one.
+ * BOTH QUEST TYPES RUN THIS RELAY. `questFlowStatics['bug-hunt']` declares the same `codeweaver`
+ * family and the same flowrider/siegemaster/wardFull chain, so every rule here binds on a bug-hunt
+ * quest exactly as it does on a feature one.
  *
  * This is DATA only (statics may import statics, never contracts). `unitKinds` stays 1:1 with
  * `qaChecklistKindContract`'s options, the siegemaster `observableOrigins` 1:1 with

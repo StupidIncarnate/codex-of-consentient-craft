@@ -517,7 +517,6 @@ describe('QuestSpecPanelWidget', () => {
             role: 'ward',
             text: 'verify: ward',
             status: 'pending',
-            wardMode: 'full',
           }),
         ],
       });
@@ -537,7 +536,7 @@ describe('QuestSpecPanelWidget', () => {
       expect(proxy.hasOperationsSection()).toBe(true);
       expect(proxy.getOperationsLedgerRows().map((r) => r.textContent)).toStrictEqual([
         '[x][CODEWEAVER]build the broker',
-        '[ ][WARD]verify: ward(full)',
+        '[ ][WARD]verify: ward',
       ]);
     });
 

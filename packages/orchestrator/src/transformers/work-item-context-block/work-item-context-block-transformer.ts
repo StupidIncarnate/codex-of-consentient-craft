@@ -53,9 +53,5 @@ export const workItemContextBlockTransformer = ({
     );
   }
 
-  if (workItem.wardMode !== undefined) {
-    lines.push(`${labels.wardMode} ${workItem.wardMode}`);
-  }
-
   return promptTextContract.parse(lines.join('\n'));
 };

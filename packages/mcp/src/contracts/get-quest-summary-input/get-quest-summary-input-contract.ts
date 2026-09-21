@@ -9,7 +9,7 @@
  * sees coverage, mid-quest scope drift, every unconfirmable verdict and the side-channel notes in
  * ONE read. A `flowId` or `track` narrowing would let a caller ask for the slice it already
  * believes in and miss the hole it did not know about, which is the failure the tool exists to
- * remove — `get-qa-checklist` is the narrowable per-flow, per-track surface.
+ * remove — `get-quest-work` is the narrowable per-item surface.
  */
 
 import { z } from 'zod';

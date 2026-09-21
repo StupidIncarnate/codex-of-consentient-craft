@@ -12,9 +12,9 @@
  * with the contract in `@dungeonmaster/shared` so the text and the fields cannot drift apart —
  * exactly as `questToTextDisplayTransformer` does for `get-quest`'s text format.
  *
- * Split out of QuestHandleResponder as a layer, mirroring qa-checklist-layer-responder and
- * blight-checklist-layer-responder: that responder is one long tool switch and adding this branch
- * inline pushed it past the complexity ceiling.
+ * Split out of QuestHandleResponder as a layer, mirroring blight-checklist-layer-responder: that
+ * responder is one long tool switch and adding this branch inline pushed it past the complexity
+ * ceiling.
  */
 
 import { questSummaryToTextTransformer } from '@dungeonmaster/shared/transformers';

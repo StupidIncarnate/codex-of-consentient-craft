@@ -125,13 +125,12 @@ describe('questNodeDispatchLoopBroker', () => {
       expect(proxy.getRunWardCalls()).toStrictEqual([]);
     });
 
-    it('VALID: {run-ward step then idle} => runs ward with questId/workItemId/mode then recurses to idle', async () => {
+    it('VALID: {run-ward step then idle} => runs ward with questId/workItemId then recurses to idle', async () => {
       const proxy = questNodeDispatchLoopBrokerProxy();
       const wardStep = NextStepStub({
         type: 'run-ward',
         questId: 'add-auth',
         workItemId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        mode: 'committed',
       } as never);
       proxy.queueStep({ step: wardStep });
 
@@ -147,7 +146,6 @@ describe('questNodeDispatchLoopBroker', () => {
         {
           questId: 'add-auth',
           workItemId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-          mode: 'committed',
           // Ward's only route to a UI — the loop must hand it down, never drop it.
           onLine: expect.any(Function),
         },

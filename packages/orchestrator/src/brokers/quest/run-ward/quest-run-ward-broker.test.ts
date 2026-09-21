@@ -67,10 +67,9 @@ describe('questRunWardBroker', () => {
             OperationItemStub({
               id: WARD_OP_ID,
               role: 'ward',
-              text: 'verify build (committed)',
+              text: 'verify build',
               status: 'in_progress',
               locked: true,
-              wardMode: 'committed',
             }),
           ],
           workItems: [
@@ -80,7 +79,6 @@ describe('questRunWardBroker', () => {
               status: 'pending',
               spawnerType: 'command',
               relatedDataItems: [`operations/${WARD_OP_ID}`],
-              wardMode: 'committed',
             }),
           ],
         }),
@@ -94,7 +92,6 @@ describe('questRunWardBroker', () => {
       await questRunWardBroker({
         questId,
         workItemId,
-        mode: 'committed',
         onLine: (line: string) => {
           lines.push(line);
         },
@@ -115,10 +112,9 @@ describe('questRunWardBroker', () => {
             OperationItemStub({
               id: WARD_OP_ID,
               role: 'ward',
-              text: 'verify build (committed)',
+              text: 'verify build',
               status: 'in_progress',
               locked: true,
-              wardMode: 'committed',
             }),
           ],
           workItems: [
@@ -128,7 +124,6 @@ describe('questRunWardBroker', () => {
               status: 'pending',
               spawnerType: 'command',
               relatedDataItems: [`operations/${WARD_OP_ID}`],
-              wardMode: 'committed',
             }),
           ],
         }),
@@ -142,7 +137,6 @@ describe('questRunWardBroker', () => {
       await questRunWardBroker({
         questId,
         workItemId,
-        mode: 'committed',
         onLine: () => undefined,
       });
 
@@ -156,17 +150,16 @@ describe('questRunWardBroker', () => {
   });
 
   describe('GREEN — exit 0', () => {
-    it('VALID: {exitCode 0, runId, mode: committed} => wardResult appended, ward work item + operation complete, advance creates the flowrider work item (never another ward)', async () => {
+    it('VALID: {exitCode 0, runId} => wardResult appended, ward work item + operation complete, advance creates the flowrider work item (never another ward)', async () => {
       const questId = QuestIdStub();
       const workItemId = QuestWorkItemIdStub({ value: WARD_WORK_ITEM_ID });
       const runId = FileNameStub({ value: '1739625600000-a3f1' });
       const wardOp = OperationItemStub({
         id: WARD_OP_ID,
         role: 'ward',
-        text: 'verify build (committed)',
+        text: 'verify build',
         status: 'in_progress',
         locked: true,
-        wardMode: 'committed',
       });
       const flowriderOp = OperationItemStub({
         id: FLOWRIDER_OP_ID,
@@ -180,7 +173,6 @@ describe('questRunWardBroker', () => {
         status: 'in_progress',
         spawnerType: 'command',
         relatedDataItems: [`operations/${WARD_OP_ID}`],
-        wardMode: 'committed',
       });
       const proxy = questRunWardBrokerProxy();
       proxy.setupQuest({
@@ -200,7 +192,6 @@ describe('questRunWardBroker', () => {
       const result = await questRunWardBroker({
         questId,
         workItemId,
-        mode: 'committed',
         onLine: () => undefined,
       });
 
@@ -212,7 +203,6 @@ describe('questRunWardBroker', () => {
         wardResultId: WARD_RESULT_ID,
         lastWardRunId: runId,
       });
-      expect(proxy.getSpawnedWardArgs()).toStrictEqual(['run', '--committed']);
       expect(proxy.getPersistedQuest()).toStrictEqual(
         QuestStub({
           id: questId,
@@ -230,7 +220,6 @@ describe('questRunWardBroker', () => {
               startedAt: FIXED_TIMESTAMP,
               spawnerType: 'command',
               relatedDataItems: [`operations/${WARD_OP_ID}`, `wardResults/${WARD_RESULT_ID}`],
-              wardMode: 'committed',
               completedAt: FIXED_TIMESTAMP,
               lastWardRunId: runId,
             }),
@@ -251,24 +240,23 @@ describe('questRunWardBroker', () => {
               createdAt: FIXED_TIMESTAMP,
               exitCode: 0,
               runId: '1739625600000-a3f1',
-              wardMode: 'committed',
+              wardMode: 'full',
             }),
           ],
         }),
       );
     });
 
-    it('VALID: {exitCode 0, mode: full} => spawns [run] and stamps wardMode full on the wardResult', async () => {
+    it('VALID: {exitCode 0} => spawns [run] and stamps wardMode full on the wardResult', async () => {
       const questId = QuestIdStub();
       const workItemId = QuestWorkItemIdStub({ value: WARD_WORK_ITEM_ID });
       const runId = FileNameStub({ value: '1739625600000-bbbb' });
       const wardOp = OperationItemStub({
         id: WARD_OP_ID,
         role: 'ward',
-        text: 'verify build (full)',
+        text: 'verify build',
         status: 'in_progress',
         locked: true,
-        wardMode: 'full',
       });
       const wardItem = WorkItemStub({
         id: workItemId,
@@ -276,7 +264,6 @@ describe('questRunWardBroker', () => {
         status: 'in_progress',
         spawnerType: 'command',
         relatedDataItems: [`operations/${WARD_OP_ID}`],
-        wardMode: 'full',
       });
       const proxy = questRunWardBrokerProxy();
       proxy.setupQuest({
@@ -293,7 +280,7 @@ describe('questRunWardBroker', () => {
         detailJson: FileContentsStub({ value: WARD_DETAIL_JSON }),
       });
 
-      await questRunWardBroker({ questId, workItemId, mode: 'full', onLine: () => undefined });
+      await questRunWardBroker({ questId, workItemId, onLine: () => undefined });
 
       expect(proxy.getSpawnedWardArgs()).toStrictEqual(['run']);
       expect(proxy.getPersistedQuest()).toStrictEqual(
@@ -311,7 +298,6 @@ describe('questRunWardBroker', () => {
               startedAt: FIXED_TIMESTAMP,
               spawnerType: 'command',
               relatedDataItems: [`operations/${WARD_OP_ID}`, `wardResults/${WARD_RESULT_ID}`],
-              wardMode: 'full',
               completedAt: FIXED_TIMESTAMP,
               lastWardRunId: runId,
             }),
@@ -338,10 +324,9 @@ describe('questRunWardBroker', () => {
       const wardOp = OperationItemStub({
         id: WARD_OP_ID,
         role: 'ward',
-        text: 'verify build (committed)',
+        text: 'verify build',
         status: 'in_progress',
         locked: true,
-        wardMode: 'committed',
       });
       const flowriderOp = OperationItemStub({
         id: FLOWRIDER_OP_ID,
@@ -355,7 +340,6 @@ describe('questRunWardBroker', () => {
         status: 'in_progress',
         spawnerType: 'command',
         relatedDataItems: [`operations/${WARD_OP_ID}`],
-        wardMode: 'committed',
       });
       const proxy = questRunWardBrokerProxy();
       proxy.setupQuest({
@@ -372,7 +356,7 @@ describe('questRunWardBroker', () => {
         detailJson: FileContentsStub({ value: WARD_DETAIL_JSON }),
       });
 
-      await questRunWardBroker({ questId, workItemId, mode: 'committed', onLine: () => undefined });
+      await questRunWardBroker({ questId, workItemId, onLine: () => undefined });
 
       expect(proxy.getPersistedQuest()).toStrictEqual(
         QuestStub({
@@ -385,17 +369,16 @@ describe('questRunWardBroker', () => {
             OperationItemStub({
               id: SECOND_UUID,
               role: 'spiritmender',
-              text: `Spiritmender: fix ward (committed) failures — wardResult ${WARD_RESULT_ID}`,
+              text: `Spiritmender: fix ward failures — wardResult ${WARD_RESULT_ID}`,
               status: 'in_progress',
               locked: true,
             }),
             OperationItemStub({
               id: THIRD_UUID,
               role: 'ward',
-              text: 'pt 2: verify build (committed)',
+              text: 'pt 2: verify build',
               status: 'pending',
               locked: true,
-              wardMode: 'committed',
             }),
             flowriderOp,
           ],
@@ -407,7 +390,6 @@ describe('questRunWardBroker', () => {
               startedAt: FIXED_TIMESTAMP,
               spawnerType: 'command',
               relatedDataItems: [`operations/${WARD_OP_ID}`, `wardResults/${WARD_RESULT_ID}`],
-              wardMode: 'committed',
               completedAt: FIXED_TIMESTAMP,
               lastWardRunId: runId,
               errorMessage: 'ward_failed',
@@ -428,7 +410,7 @@ describe('questRunWardBroker', () => {
               createdAt: FIXED_TIMESTAMP,
               exitCode: 1,
               runId: '1739625600000-cccc',
-              wardMode: 'committed',
+              wardMode: 'full',
             }),
           ],
         }),
@@ -442,10 +424,9 @@ describe('questRunWardBroker', () => {
       const wardOp = OperationItemStub({
         id: WARD_OP_ID,
         role: 'ward',
-        text: 'verify build (committed)',
+        text: 'verify build',
         status: 'in_progress',
         locked: true,
-        wardMode: 'committed',
       });
       const wardItem = WorkItemStub({
         id: workItemId,
@@ -453,7 +434,6 @@ describe('questRunWardBroker', () => {
         status: 'in_progress',
         spawnerType: 'command',
         relatedDataItems: [`operations/${WARD_OP_ID}`],
-        wardMode: 'committed',
       });
       const proxy = questRunWardBrokerProxy();
       proxy.setupQuest({
@@ -473,7 +453,6 @@ describe('questRunWardBroker', () => {
       const result = await questRunWardBroker({
         questId,
         workItemId,
-        mode: 'committed',
         onLine: () => undefined,
       });
 
@@ -496,10 +475,9 @@ describe('questRunWardBroker', () => {
       const wardOp = OperationItemStub({
         id: WARD_OP_ID,
         role: 'ward',
-        text: 'verify build (committed)',
+        text: 'verify build',
         status: 'in_progress',
         locked: true,
-        wardMode: 'committed',
       });
       const flowriderOp = OperationItemStub({
         id: FLOWRIDER_OP_ID,
@@ -513,7 +491,6 @@ describe('questRunWardBroker', () => {
         status: 'in_progress',
         spawnerType: 'command',
         relatedDataItems: [`operations/${WARD_OP_ID}`],
-        wardMode: 'committed',
       });
       const pendingItem = WorkItemStub({
         id: PENDING_WORK_ITEM_ID,
@@ -538,7 +515,7 @@ describe('questRunWardBroker', () => {
         detailJson: FileContentsStub({ value: WARD_DETAIL_JSON }),
       });
 
-      await questRunWardBroker({ questId, workItemId, mode: 'committed', onLine: () => undefined });
+      await questRunWardBroker({ questId, workItemId, onLine: () => undefined });
 
       expect(proxy.getPersistedQuest()).toStrictEqual(
         QuestStub({
@@ -555,7 +532,6 @@ describe('questRunWardBroker', () => {
               startedAt: FIXED_TIMESTAMP,
               spawnerType: 'command',
               relatedDataItems: [`operations/${WARD_OP_ID}`, `wardResults/${WARD_RESULT_ID}`],
-              wardMode: 'committed',
               completedAt: FIXED_TIMESTAMP,
               lastWardRunId: runId,
               errorMessage: 'ward_crashed',
@@ -568,7 +544,7 @@ describe('questRunWardBroker', () => {
               createdAt: FIXED_TIMESTAMP,
               exitCode: wardExitCodeStatics.exitCodes.crash,
               runId: '1739625600000-ffff',
-              wardMode: 'committed',
+              wardMode: 'full',
             }),
           ],
         }),
@@ -577,22 +553,21 @@ describe('questRunWardBroker', () => {
   });
 
   describe('RED — chain at budget', () => {
-    it('VALID: {maxRetries red ward operations of this wardMode since last green} => no spiritmender/ward appended; quest blocked and pending items skipped', async () => {
+    it('VALID: {maxRetries red ward operations since last green} => no spiritmender/ward appended; quest blocked and pending items skipped', async () => {
       const questId = QuestIdStub();
       const workItemId = QuestWorkItemIdStub({ value: WARD_WORK_ITEM_ID });
       const runId = FileNameStub({ value: '1739625600000-eeee' });
-      // The failing ward is chain member #maxRetries of the changed-mode chain: every earlier
-      // chain member's linked ward work item FAILED (no green ward resets the count).
+      // The failing ward is chain member #maxRetries: every earlier chain member's linked ward
+      // work item FAILED (no green ward resets the count).
       const priorRedOps = Array.from(
         { length: slotManagerStatics.ward.maxRetries - 1 },
         (_, index) =>
           OperationItemStub({
             id: `cccccccc-0000-4000-8000-00000000000${index}`,
             role: 'ward',
-            text: 'verify build (committed)',
+            text: 'verify build',
             status: 'complete',
             locked: true,
-            wardMode: 'committed',
           }),
       );
       const priorRedItems = priorRedOps.map((operation, index) =>
@@ -602,16 +577,14 @@ describe('questRunWardBroker', () => {
           status: 'failed',
           spawnerType: 'command',
           relatedDataItems: [`operations/${String(operation.id)}`],
-          wardMode: 'committed',
         }),
       );
       const activeWardOp = OperationItemStub({
         id: WARD_OP_ID,
         role: 'ward',
-        text: 'verify build (committed)',
+        text: 'verify build',
         status: 'in_progress',
         locked: true,
-        wardMode: 'committed',
       });
       const flowriderOp = OperationItemStub({
         id: FLOWRIDER_OP_ID,
@@ -625,7 +598,6 @@ describe('questRunWardBroker', () => {
         status: 'in_progress',
         spawnerType: 'command',
         relatedDataItems: [`operations/${WARD_OP_ID}`],
-        wardMode: 'committed',
       });
       const pendingItem = WorkItemStub({
         id: PENDING_WORK_ITEM_ID,
@@ -650,7 +622,7 @@ describe('questRunWardBroker', () => {
         detailJson: FileContentsStub({ value: WARD_DETAIL_JSON }),
       });
 
-      await questRunWardBroker({ questId, workItemId, mode: 'committed', onLine: () => undefined });
+      await questRunWardBroker({ questId, workItemId, onLine: () => undefined });
 
       expect(proxy.getPersistedQuest()).toStrictEqual(
         QuestStub({
@@ -672,7 +644,6 @@ describe('questRunWardBroker', () => {
               startedAt: FIXED_TIMESTAMP,
               spawnerType: 'command',
               relatedDataItems: [`operations/${WARD_OP_ID}`, `wardResults/${WARD_RESULT_ID}`],
-              wardMode: 'committed',
               completedAt: FIXED_TIMESTAMP,
               lastWardRunId: runId,
               errorMessage: 'ward_failed',
@@ -685,7 +656,7 @@ describe('questRunWardBroker', () => {
               createdAt: FIXED_TIMESTAMP,
               exitCode: 1,
               runId: '1739625600000-eeee',
-              wardMode: 'committed',
+              wardMode: 'full',
             }),
           ],
         }),
@@ -701,10 +672,9 @@ describe('questRunWardBroker', () => {
       const wardOp = OperationItemStub({
         id: WARD_OP_ID,
         role: 'ward',
-        text: 'verify build (committed)',
+        text: 'verify build',
         status: 'in_progress',
         locked: true,
-        wardMode: 'committed',
         flowIds: ['login-flow'],
         packageNames: ['ui-app', 'api-service'],
       });
@@ -714,7 +684,6 @@ describe('questRunWardBroker', () => {
         status: 'in_progress',
         spawnerType: 'command',
         relatedDataItems: [`operations/${WARD_OP_ID}`],
-        wardMode: 'committed',
       });
       const proxy = questRunWardBrokerProxy();
       proxy.setupQuest({
@@ -731,24 +700,23 @@ describe('questRunWardBroker', () => {
         detailJson: FileContentsStub({ value: WARD_DETAIL_JSON }),
       });
 
-      await questRunWardBroker({ questId, workItemId, mode: 'committed', onLine: () => undefined });
+      await questRunWardBroker({ questId, workItemId, onLine: () => undefined });
 
       expect(proxy.getPersistedQuest().operations).toStrictEqual([
         OperationItemStub({ ...wardOp, status: 'complete' }),
         OperationItemStub({
           id: SECOND_UUID,
           role: 'spiritmender',
-          text: `Spiritmender: fix ward (committed) failures — wardResult ${WARD_RESULT_ID}`,
+          text: `Spiritmender: fix ward failures — wardResult ${WARD_RESULT_ID}`,
           status: 'in_progress',
           locked: true,
         }),
         OperationItemStub({
           id: THIRD_UUID,
           role: 'ward',
-          text: 'pt 2: verify build (committed)',
+          text: 'pt 2: verify build',
           status: 'pending',
           locked: true,
-          wardMode: 'committed',
           flowIds: ['login-flow'],
           packageNames: ['ui-app', 'api-service'],
         }),
@@ -756,38 +724,55 @@ describe('questRunWardBroker', () => {
     });
   });
 
-  describe('RED — chain respects wardMode boundaries', () => {
-    it('VALID: {maxRetries red full-mode ward operations, committed-mode ward fails} => full ops do not count; spiritmender + continuation still spliced', async () => {
+  describe('RED — chain respects a green reset', () => {
+    it('VALID: {maxRetries red ward operations before a green one, then a fresh red} => spiritmender + continuation still spliced — the green reset the chain instead of the earlier reds carrying over', async () => {
       const questId = QuestIdStub();
       const workItemId = QuestWorkItemIdStub({ value: WARD_WORK_ITEM_ID });
-      const runId = FileNameStub({ value: '1739625600000-ffff' });
-      const priorFullOps = Array.from({ length: slotManagerStatics.ward.maxRetries }, (_, index) =>
+      const runId = FileNameStub({ value: '1739625600000-gggg' });
+      // Enough reds BEFORE the green that, uncounted, they alone would already spend the budget —
+      // proving the chain length comes from AFTER the last green, not from the ledger's whole
+      // ward history.
+      // Distinct base text from activeWardOp below — operationPtChainTransformer chains on exact
+      // base-text equality, so giving these their own text keeps the pt-continuation numbering on
+      // activeWardOp's chain at 1, uncoupled from how many OTHER ward ops sit earlier on the ledger.
+      const priorRedOps = Array.from({ length: slotManagerStatics.ward.maxRetries }, (_, index) =>
         OperationItemStub({
           id: `cccccccc-0000-4000-8000-00000000000${index}`,
           role: 'ward',
-          text: 'verify build (full)',
+          text: 'earlier ward run',
           status: 'complete',
           locked: true,
-          wardMode: 'full',
         }),
       );
-      const priorFullItems = priorFullOps.map((operation, index) =>
+      const priorRedItems = priorRedOps.map((operation, index) =>
         WorkItemStub({
           id: `dddddddd-0000-4000-8000-00000000000${index}`,
           role: 'ward',
           status: 'failed',
           spawnerType: 'command',
           relatedDataItems: [`operations/${String(operation.id)}`],
-          wardMode: 'full',
         }),
       );
+      const greenOp = OperationItemStub({
+        id: 'eeeeeeee-0000-4000-8000-000000000000',
+        role: 'ward',
+        text: 'earlier ward run',
+        status: 'complete',
+        locked: true,
+      });
+      const greenItem = WorkItemStub({
+        id: 'ffffffff-0000-4000-8000-000000000000',
+        role: 'ward',
+        status: 'complete',
+        spawnerType: 'command',
+        relatedDataItems: [`operations/${String(greenOp.id)}`],
+      });
       const activeWardOp = OperationItemStub({
         id: WARD_OP_ID,
         role: 'ward',
-        text: 'verify build (committed)',
+        text: 'verify build',
         status: 'in_progress',
         locked: true,
-        wardMode: 'committed',
       });
       const wardItem = WorkItemStub({
         id: workItemId,
@@ -795,15 +780,14 @@ describe('questRunWardBroker', () => {
         status: 'in_progress',
         spawnerType: 'command',
         relatedDataItems: [`operations/${WARD_OP_ID}`],
-        wardMode: 'committed',
       });
       const proxy = questRunWardBrokerProxy();
       proxy.setupQuest({
         quest: QuestStub({
           id: questId,
           status: 'in_progress',
-          operations: [...priorFullOps, activeWardOp],
-          workItems: [...priorFullItems, wardItem],
+          operations: [...priorRedOps, greenOp, activeWardOp],
+          workItems: [...priorRedItems, greenItem, wardItem],
         }),
       });
       proxy.wardExits({
@@ -812,67 +796,27 @@ describe('questRunWardBroker', () => {
         detailJson: FileContentsStub({ value: WARD_DETAIL_JSON }),
       });
 
-      await questRunWardBroker({ questId, workItemId, mode: 'committed', onLine: () => undefined });
+      await questRunWardBroker({ questId, workItemId, onLine: () => undefined });
 
-      expect(proxy.getPersistedQuest()).toStrictEqual(
-        QuestStub({
-          id: questId,
+      expect(proxy.getPersistedQuest().operations).toStrictEqual([
+        ...priorRedOps,
+        greenOp,
+        OperationItemStub({ ...activeWardOp, status: 'complete' }),
+        OperationItemStub({
+          id: SECOND_UUID,
+          role: 'spiritmender',
+          text: `Spiritmender: fix ward failures — wardResult ${WARD_RESULT_ID}`,
           status: 'in_progress',
-          updatedAt: FIXED_TIMESTAMP,
-          operations: [
-            ...priorFullOps,
-            OperationItemStub({ ...activeWardOp, status: 'complete' }),
-            OperationItemStub({
-              id: SECOND_UUID,
-              role: 'spiritmender',
-              text: `Spiritmender: fix ward (committed) failures — wardResult ${WARD_RESULT_ID}`,
-              status: 'in_progress',
-              locked: true,
-            }),
-            OperationItemStub({
-              id: THIRD_UUID,
-              role: 'ward',
-              text: 'pt 2: verify build (committed)',
-              status: 'pending',
-              locked: true,
-              wardMode: 'committed',
-            }),
-          ],
-          workItems: [
-            ...priorFullItems,
-            WorkItemStub({
-              id: workItemId,
-              role: 'ward',
-              status: 'failed',
-              startedAt: FIXED_TIMESTAMP,
-              spawnerType: 'command',
-              relatedDataItems: [`operations/${WARD_OP_ID}`, `wardResults/${WARD_RESULT_ID}`],
-              wardMode: 'committed',
-              completedAt: FIXED_TIMESTAMP,
-              lastWardRunId: runId,
-              errorMessage: 'ward_failed',
-            }),
-            WorkItemStub({
-              id: FOURTH_UUID,
-              role: 'spiritmender',
-              status: 'pending',
-              spawnerType: 'agent',
-              relatedDataItems: [`operations/${SECOND_UUID}`],
-              dependsOn: [workItemId],
-              createdAt: FIXED_TIMESTAMP,
-            }),
-          ],
-          wardResults: [
-            WardResultStub({
-              id: WARD_RESULT_ID,
-              createdAt: FIXED_TIMESTAMP,
-              exitCode: 1,
-              runId: '1739625600000-ffff',
-              wardMode: 'committed',
-            }),
-          ],
+          locked: true,
         }),
-      );
+        OperationItemStub({
+          id: THIRD_UUID,
+          role: 'ward',
+          text: 'pt 2: verify build',
+          status: 'pending',
+          locked: true,
+        }),
+      ]);
     });
   });
 
@@ -884,10 +828,9 @@ describe('questRunWardBroker', () => {
       const wardOp = OperationItemStub({
         id: WARD_OP_ID,
         role: 'ward',
-        text: 'verify build (committed)',
+        text: 'verify build',
         status: 'complete',
         locked: true,
-        wardMode: 'committed',
       });
       const proxy = questRunWardBrokerProxy();
       proxy.setupQuest({
@@ -907,7 +850,6 @@ describe('questRunWardBroker', () => {
       const result = await questRunWardBroker({
         questId,
         workItemId,
-        mode: 'committed',
         onLine: () => undefined,
       });
 
@@ -932,7 +874,7 @@ describe('questRunWardBroker', () => {
               createdAt: FIXED_TIMESTAMP,
               exitCode: 0,
               runId: '1739625600000-abcd',
-              wardMode: 'committed',
+              wardMode: 'full',
             }),
           ],
         }),
@@ -956,10 +898,9 @@ describe('questRunWardBroker', () => {
             OperationItemStub({
               id: WARD_OP_ID,
               role: 'ward',
-              text: 'verify build (committed)',
+              text: 'verify build',
               status: 'in_progress',
               locked: true,
-              wardMode: 'committed',
             }),
           ],
           workItems: [
@@ -969,7 +910,6 @@ describe('questRunWardBroker', () => {
               status: 'pending',
               spawnerType: 'command',
               relatedDataItems: [`operations/${WARD_OP_ID}`],
-              wardMode: 'committed',
             }),
           ],
         }),
@@ -983,7 +923,6 @@ describe('questRunWardBroker', () => {
       await questRunWardBroker({
         questId,
         workItemId,
-        mode: 'committed',
         onLine: () => undefined,
       });
 
@@ -991,7 +930,7 @@ describe('questRunWardBroker', () => {
         wardArgs: proxy.getSpawnedWardArgs(),
         statusWrites: proxy.getPersistedWorkItemStatusesInWriteOrder({ workItemId }),
       }).toStrictEqual({
-        wardArgs: ['run', '--committed'],
+        wardArgs: ['run'],
         statusWrites: ['in_progress', 'complete'],
       });
     });
@@ -1031,7 +970,7 @@ describe('questRunWardBroker', () => {
       });
 
       await expect(
-        questRunWardBroker({ questId, workItemId, mode: 'committed', onLine: () => undefined }),
+        questRunWardBroker({ questId, workItemId, onLine: () => undefined }),
       ).rejects.toThrow(new Error(CODEWEAVER_REFUSAL_MESSAGE));
 
       expect({
@@ -1054,10 +993,9 @@ describe('questRunWardBroker', () => {
       const wardOp = OperationItemStub({
         id: WARD_OP_ID,
         role: 'ward',
-        text: 'verify build (committed)',
+        text: 'verify build',
         status: 'in_progress',
         locked: true,
-        wardMode: 'committed',
       });
       const wardItem = WorkItemStub({
         id: workItemId,
@@ -1065,7 +1003,6 @@ describe('questRunWardBroker', () => {
         status: 'in_progress',
         spawnerType: 'command',
         relatedDataItems: [`operations/${WARD_OP_ID}`],
-        wardMode: 'committed',
       });
       const proxy = questRunWardBrokerProxy();
       proxy.setupQuest({
@@ -1082,7 +1019,7 @@ describe('questRunWardBroker', () => {
         detailJson: FileContentsStub({ value: WARD_DETAIL_JSON }),
       });
 
-      await questRunWardBroker({ questId, workItemId, mode: 'committed', onLine: () => undefined });
+      await questRunWardBroker({ questId, workItemId, onLine: () => undefined });
 
       expect(proxy.getMkdirPaths()).toStrictEqual([`${QUEST_FOLDER_PATH}/ward-results`]);
       expect(proxy.getDetailWrites()).toStrictEqual([
@@ -1099,10 +1036,9 @@ describe('questRunWardBroker', () => {
       const wardOp = OperationItemStub({
         id: WARD_OP_ID,
         role: 'ward',
-        text: 'verify build (committed)',
+        text: 'verify build',
         status: 'in_progress',
         locked: true,
-        wardMode: 'committed',
       });
       const wardItem = WorkItemStub({
         id: workItemId,
@@ -1110,7 +1046,6 @@ describe('questRunWardBroker', () => {
         status: 'in_progress',
         spawnerType: 'command',
         relatedDataItems: [`operations/${WARD_OP_ID}`],
-        wardMode: 'committed',
       });
       const proxy = questRunWardBrokerProxy();
       proxy.setupQuest({
@@ -1126,7 +1061,6 @@ describe('questRunWardBroker', () => {
       const result = await questRunWardBroker({
         questId,
         workItemId,
-        mode: 'committed',
         onLine: () => undefined,
       });
 
@@ -1142,9 +1076,9 @@ describe('questRunWardBroker', () => {
       expect(proxy.getPersistedQuest()).toStrictEqual(
         QuestStub({
           id: questId,
-          // The only operation is the COMMITTED gate, which belongs to no family — a green run of
-          // it leaves the graph exactly where it was, so the derive stays in_progress.
-          status: 'in_progress',
+          // The only operation is the ward (wardFull) gate — a green run of it drains the family
+          // graph, so the derive flips complete.
+          status: 'complete',
           updatedAt: FIXED_TIMESTAMP,
           operations: [OperationItemStub({ ...wardOp, status: 'complete' })],
           workItems: [
@@ -1155,7 +1089,6 @@ describe('questRunWardBroker', () => {
               startedAt: FIXED_TIMESTAMP,
               spawnerType: 'command',
               relatedDataItems: [`operations/${WARD_OP_ID}`, `wardResults/${WARD_RESULT_ID}`],
-              wardMode: 'committed',
               completedAt: FIXED_TIMESTAMP,
             }),
           ],
@@ -1164,7 +1097,7 @@ describe('questRunWardBroker', () => {
               id: WARD_RESULT_ID,
               createdAt: FIXED_TIMESTAMP,
               exitCode: 0,
-              wardMode: 'committed',
+              wardMode: 'full',
             }),
           ],
         }),
@@ -1181,10 +1114,9 @@ describe('questRunWardBroker', () => {
       const wardOp = OperationItemStub({
         id: WARD_OP_ID,
         role: 'ward',
-        text: 'verify build (committed)',
+        text: 'verify build',
         status: 'in_progress',
         locked: true,
-        wardMode: 'committed',
       });
       const wardItem = WorkItemStub({
         id: workItemId,
@@ -1192,7 +1124,6 @@ describe('questRunWardBroker', () => {
         status: 'in_progress',
         spawnerType: 'command',
         relatedDataItems: [`operations/${WARD_OP_ID}`],
-        wardMode: 'committed',
       });
       const proxy = questRunWardBrokerProxy();
       proxy.setupQuest({
@@ -1210,7 +1141,7 @@ describe('questRunWardBroker', () => {
         detailJson: FileContentsStub({ value: WARD_DETAIL_JSON }),
       });
 
-      await questRunWardBroker({ questId, workItemId, mode: 'committed', onLine: () => undefined });
+      await questRunWardBroker({ questId, workItemId, onLine: () => undefined });
 
       expect(proxy.getSpawnedWardCwd()).toBe(worktreePath);
     });
@@ -1223,7 +1154,7 @@ describe('questRunWardBroker', () => {
       proxy.setupQuestWorktreeMissing({ worktreePath });
 
       await expect(
-        questRunWardBroker({ questId, workItemId, mode: 'committed', onLine: () => undefined }),
+        questRunWardBroker({ questId, workItemId, onLine: () => undefined }),
       ).rejects.toThrow(new RegExp(`worktree not found: ${worktreePath}`, 'u'));
 
       expect(proxy.getSpawnedWardArgs()).toBe(undefined);

@@ -11,12 +11,10 @@
  * const modified = await QuestFlow.modify({ questId, input });
  * const notes = await QuestFlow.getPlanningNotes({ questId });
  * const summary = await QuestFlow.getSummary({ questId });
- * const checklist = await QuestFlow.getQaChecklist({ questId, operationItemId });
  * const blightChecklist = await QuestFlow.getBlightChecklist({ questId });
- * const walkReset = await QuestFlow.resetFlowSignoffs({ questId, workItemId, flowId, reason });
  * const created = await QuestFlow.mcpCreate({ userRequest });
  * const next = await QuestFlow.getNextStep();
- * const wardResult = await QuestFlow.runWard({ questId, workItemId, mode });
+ * const wardResult = await QuestFlow.runWard({ questId, workItemId });
  * const riftcarverResult = await QuestFlow.runRiftcarver({ questId, workItemId });
  * const config = QuestFlow.getServerConfig();
  */
@@ -28,7 +26,6 @@ import { QuestGetResponder } from '../../responders/quest/get/quest-get-responde
 import { QuestGetBlightChecklistResponder } from '../../responders/quest/get-blight-checklist/quest-get-blight-checklist-responder';
 import { QuestGetNextStepResponder } from '../../responders/quest/get-next-step/quest-get-next-step-responder';
 import { QuestGetPlanningNotesResponder } from '../../responders/quest/get-planning-notes/quest-get-planning-notes-responder';
-import { QuestGetQaChecklistResponder } from '../../responders/quest/get-qa-checklist/quest-get-qa-checklist-responder';
 import { QuestGetQuestWorkResponder } from '../../responders/quest/get-quest-work/quest-get-quest-work-responder';
 import { QuestGetServerConfigResponder } from '../../responders/quest/get-server-config/quest-get-server-config-responder';
 import { QuestGetSummaryResponder } from '../../responders/quest/get-summary/quest-get-summary-responder';
@@ -40,7 +37,6 @@ import { QuestMcpCreateResponder } from '../../responders/quest/mcp-create/quest
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
 import { QuestRecordSessionResponder } from '../../responders/quest/record-session/quest-record-session-responder';
 import { QuestMonitorWatcherStartResponder } from '../../responders/quest/monitor-watcher-start/quest-monitor-watcher-start-responder';
-import { QuestResetFlowSignoffsResponder } from '../../responders/quest/reset-flow-signoffs/quest-reset-flow-signoffs-responder';
 import { QuestRunRiftcarverResponder } from '../../responders/quest/run-riftcarver/quest-run-riftcarver-responder';
 import { QuestRunWardResponder } from '../../responders/quest/run-ward/quest-run-ward-responder';
 import { QuestWorkResponder } from '../../responders/quest/work/quest-work-responder';
@@ -57,17 +53,11 @@ type GetPlanningNotesResult = Awaited<ReturnType<typeof QuestGetPlanningNotesRes
 type GetSummaryParams = Parameters<typeof QuestGetSummaryResponder>[0];
 type GetSummaryResult = Awaited<ReturnType<typeof QuestGetSummaryResponder>>;
 
-type GetQaChecklistParams = Parameters<typeof QuestGetQaChecklistResponder>[0];
-type GetQaChecklistResult = Awaited<ReturnType<typeof QuestGetQaChecklistResponder>>;
-
 type GetQuestWorkParams = Parameters<typeof QuestGetQuestWorkResponder>[0];
 type GetQuestWorkResult = Awaited<ReturnType<typeof QuestGetQuestWorkResponder>>;
 
 type GetBlightChecklistParams = Parameters<typeof QuestGetBlightChecklistResponder>[0];
 type GetBlightChecklistResult = Awaited<ReturnType<typeof QuestGetBlightChecklistResponder>>;
-
-type ResetFlowSignoffsParams = Parameters<typeof QuestResetFlowSignoffsResponder>[0];
-type ResetFlowSignoffsResult = Awaited<ReturnType<typeof QuestResetFlowSignoffsResponder>>;
 
 type RecordSessionParams = Parameters<typeof QuestRecordSessionResponder>[0];
 type RecordSessionResult = Awaited<ReturnType<typeof QuestRecordSessionResponder>>;
@@ -130,17 +120,6 @@ export const QuestFlow = {
   getSummary: async ({ questId }: GetSummaryParams): Promise<GetSummaryResult> =>
     QuestGetSummaryResponder({ questId }),
 
-  getQaChecklist: async ({
-    questId,
-    operationItemId,
-    flowId,
-  }: GetQaChecklistParams): Promise<GetQaChecklistResult> =>
-    QuestGetQaChecklistResponder({
-      questId,
-      ...(operationItemId !== undefined && { operationItemId }),
-      ...(flowId !== undefined && { flowId }),
-    }),
-
   getQuestWork: async ({
     questId,
     workItemId,
@@ -157,14 +136,6 @@ export const QuestFlow = {
     scope,
   }: GetBlightChecklistParams): Promise<GetBlightChecklistResult> =>
     QuestGetBlightChecklistResponder({ questId, ...(scope !== undefined && { scope }) }),
-
-  resetFlowSignoffs: async ({
-    questId,
-    workItemId,
-    flowId,
-    reason,
-  }: ResetFlowSignoffsParams): Promise<ResetFlowSignoffsResult> =>
-    QuestResetFlowSignoffsResponder({ questId, workItemId, flowId, reason }),
 
   list: async ({ guildId }: ListParams): Promise<ListResult> => QuestListResponder({ guildId }),
 
@@ -207,8 +178,8 @@ export const QuestFlow = {
 
   getNextStep: async (): Promise<GetNextStepResult> => QuestGetNextStepResponder(),
 
-  runWard: async ({ questId, workItemId, mode }: RunWardParams): Promise<RunWardResult> =>
-    QuestRunWardResponder({ questId, workItemId, mode }),
+  runWard: async ({ questId, workItemId }: RunWardParams): Promise<RunWardResult> =>
+    QuestRunWardResponder({ questId, workItemId }),
 
   runRiftcarver: async ({
     questId,

@@ -138,9 +138,6 @@ export const questHydrateBroker = async ({
             dependsOn: [],
             maxAttempts: 1,
             createdAt: now,
-            ...(firstActionable.wardMode === undefined
-              ? {}
-              : { wardMode: firstActionable.wardMode }),
             ...(blueprint.rolePromptOverrides[firstActionable.role] === undefined
               ? {}
               : { smoketestPromptOverride: blueprint.rolePromptOverrides[firstActionable.role] }),

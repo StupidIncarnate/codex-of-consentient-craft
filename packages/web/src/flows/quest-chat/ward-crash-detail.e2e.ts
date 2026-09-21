@@ -70,7 +70,6 @@ test.describe('Failed ward row shows crash detail (no structured errors)', () =>
           text: 'ward (committed)',
           status: 'in_progress',
           locked: true,
-          wardMode: 'committed',
         },
       ],
       workItems: [

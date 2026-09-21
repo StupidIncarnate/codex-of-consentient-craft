@@ -2,16 +2,8 @@ import { runWardInputContract } from './run-ward-input-contract';
 import { RunWardInputStub } from './run-ward-input.stub';
 
 describe('runWardInputContract', () => {
-  it('VALID: {questId, workItemId, mode: "changed"} => parses successfully', () => {
-    const input = RunWardInputStub({ mode: 'committed' });
-
-    const result = runWardInputContract.parse(input);
-
-    expect(result).toStrictEqual(input);
-  });
-
-  it('VALID: {questId, workItemId, mode: "full"} => parses successfully', () => {
-    const input = RunWardInputStub({ mode: 'full' });
+  it('VALID: {questId, workItemId} => parses successfully', () => {
+    const input = RunWardInputStub();
 
     const result = runWardInputContract.parse(input);
 
@@ -22,7 +14,6 @@ describe('runWardInputContract', () => {
     expect(() =>
       runWardInputContract.parse({
         workItemId: 'aaaaaaaa-1111-4222-9333-444444444444',
-        mode: 'committed',
       }),
     ).toThrow(/Required/u);
   });
@@ -31,19 +22,18 @@ describe('runWardInputContract', () => {
     expect(() =>
       runWardInputContract.parse({
         questId: 'aaaaaaaa-1111-4222-9333-444444444444',
-        mode: 'committed',
       }),
     ).toThrow(/Required/u);
   });
 
-  it('INVALID: {mode: "partial"} => throws', () => {
+  it('INVALID: {mode: "committed"} => throws (strict), because a ward run carries no scope argument', () => {
     expect(() =>
       runWardInputContract.parse({
         questId: 'aaaaaaaa-1111-4222-9333-444444444444',
         workItemId: 'bbbbbbbb-2222-4333-9444-555555555555',
-        mode: 'partial',
+        mode: 'committed',
       }),
-    ).toThrow(/Invalid enum value/u);
+    ).toThrow(/Unrecognized key/u);
   });
 
   it('INVALID: {extra key} => throws (strict)', () => {
@@ -51,7 +41,6 @@ describe('runWardInputContract', () => {
       runWardInputContract.parse({
         questId: 'aaaaaaaa-1111-4222-9333-444444444444',
         workItemId: 'bbbbbbbb-2222-4333-9444-555555555555',
-        mode: 'committed',
         extra: 'no',
       }),
     ).toThrow(/Unrecognized key/u);

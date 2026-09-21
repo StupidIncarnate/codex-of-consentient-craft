@@ -12,8 +12,8 @@
  *   by get-agent-prompt. One predicate keeps those call sites from drifting apart as roles are
  *   added; a new chat role is registered in workItemRoleStatics.chat once instead of in a dozen
  *   `||` chains.
- * WHEN-NOT-TO-USE: To decide whether a role executes ledger work — that is the quest type's
- *   `roles` list in questTypeRegistryStatics.
+ * WHEN-NOT-TO-USE: To decide whether a role executes ledger work — that is whether a family in
+ *   `questFlowStatics[questType].families` carries the role.
  */
 
 import type { WorkItemRole } from '../../contracts/work-item-role/work-item-role-contract';

@@ -29,7 +29,7 @@ import type {
   SessionId,
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
-import { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
+import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { questCreateBroker } from '../create/quest-create-broker';
 
@@ -50,7 +50,7 @@ export const questUserAddBroker = async ({
     // The create-time seed role is quest-type specific: feature seeds a chaoswhisperer chat item,
     // bug-hunt a bughunt one. Both are chat roles, so the session that created the quest has a
     // work item to be stamped on and the web can hook its chat panel to the live conversation.
-    const { initialWorkItemRole } = questTypeRegistryStatics[input.questType ?? 'feature'];
+    const { initialWorkItemRole } = questFlowStatics[input.questType ?? 'feature'];
 
     const initialWorkItems: WorkItem[] = [
       workItemContract.parse({

@@ -130,7 +130,6 @@ describe('OrchestrationMergeResponder', () => {
         text: 'Ward gate (committed)',
         status: 'in_progress',
         locked: true,
-        wardMode: 'committed',
       });
       const quest = QuestStub({
         id: questId,

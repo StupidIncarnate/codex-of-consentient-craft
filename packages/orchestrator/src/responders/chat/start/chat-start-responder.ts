@@ -16,7 +16,7 @@ import type {
   QuestWorkItemId,
   SessionId,
 } from '@dungeonmaster/shared/contracts';
-import { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
+import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -123,7 +123,7 @@ export const ChatStartResponder = async ({
         chatQuestId = result.quest.id;
         chatQuestType = result.quest.questType;
         const existingRole = workItemRoleContract.parse(
-          questTypeRegistryStatics[chatQuestType].initialWorkItemRole,
+          questFlowStatics[chatQuestType].initialWorkItemRole,
         );
         const intakeItem = result.quest.workItems.find((wi) => wi.role === existingRole);
         if (intakeItem) {
@@ -161,9 +161,7 @@ export const ChatStartResponder = async ({
   type StreamHandle = Awaited<ReturnType<typeof chatSpawnBroker>>['handle'];
   const streamHandleRef: { current: StreamHandle | null } = { current: null };
 
-  const chatRole = workItemRoleContract.parse(
-    questTypeRegistryStatics[chatQuestType].initialWorkItemRole,
-  );
+  const chatRole = workItemRoleContract.parse(questFlowStatics[chatQuestType].initialWorkItemRole);
 
   const spawnResult = await chatSpawnBroker({
     role: chatRole,

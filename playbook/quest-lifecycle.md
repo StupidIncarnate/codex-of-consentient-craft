@@ -64,7 +64,7 @@ is the record of what was built; the ledger is the plan/status; commit messages 
 
 - the verbatim `userRequest`, a placeholder `title`, `questType` (`feature` default, or `bug-hunt`);
 - a seeded **plan** operation item `{ role, text: "Author spec + implementation plan", status: in_progress, locked }`
-  (role from `questTypeRegistryStatics` — `chaoswhisperer` for feature, `bughunt` for bug-hunt);
+  (role from `questFlowStatics[questType].initialWorkItemRole` — `chaoswhisperer` for feature, `bughunt` for bug-hunt);
 - one seeded intake work item whose `relatedDataItems` is stitched to the plan item (`operations/<planId>`). **So
   every work item, from the first, carries an `operations/<id>` link.**
 
@@ -102,20 +102,20 @@ launch-ready state.
 
 The Web UI "Start Quest" button → `orchestration-start-responder`. It seeds the relay and flips status to `in_progress`
 (it spawns nothing — the active dispatcher picks the quest up on its next scan). `questBuildRelayGraphBroker`, reading
-`questTypeRegistryStatics[quest.questType]`, in one atomic `questOperationsUpdateBroker` persist:
+`questFlowStatics[quest.questType]`, in one atomic `questOperationsUpdateBroker` persist:
 
 1. Force-completes any non-complete intake (`chaoswhisperer` / `glyphsmith` / `bughunt`) operation item.
-2. Appends the type's `startImplementationOps` + the fixed verify tail (`relayTail`) as **pending** operation items
-   (locked, except the `codeweaver` seed). `codeweaver` becomes ONE ITEM PER PACKAGE; `flowrider` and `siegemaster`
-   each become ONE ITEM PER FLOW (of either flow type), because their work is strictly serial per flow and each flow
-   needs its own budget.
+2. Mints the ENTRY family's scopes and nothing else (`familyScopesMintTransformer`) as **pending** operation items —
+   one `riftcarver` scope. Every later family's scopes are cut the moment the graph routes to it: `codeweaver` becomes
+   ONE ITEM PER (PACKAGE, FLOW) CELL; `flowrider` and `siegemaster` each become ONE ITEM PER FLOW their own track
+   measures, because their work is strictly serial per flow and each flow needs its own budget.
 3. Creates ONE work item for the first actionable (`pending`) operation item, linked `operations/<id>`, depending on
    the completed chat work items.
 
-The seed is idempotent — a re-Start detects the already-appended locked ward tail and skips straight to the transition.
+The seed is idempotent — a re-Start detects that the entry family already holds scopes and skips straight to the transition.
 
-**The two quest types share ONE relay** — `questTypeRegistryStatics`' own colocated test asserts `startImplementationOps`,
-`relayTail` and `roles` are identical between `feature` and `bug-hunt`. The only difference is the INTAKE:
+**The two quest types share ONE graph** — `questFlowStatics`' own colocated test asserts the family sets are identical
+between `feature` and `bug-hunt`. The only difference is the INTAKE:
 
 - **feature** (`/dumpster-create`): seeds a `chaoswhisperer` chat item.
 - **bug-hunt** (`/dumpster-hunt`): seeds a `bughunt` chat item. Its spec shape is ONE FLOW PER BUG — the reproduction

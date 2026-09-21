@@ -25,7 +25,7 @@ import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-pr
 import { workItemToPromptTransformer } from './work-item-to-prompt-transformer';
 
 // Each operation-owning role has its OWN prompt file, and the relay path resolves it through
-// `roleToPromptTemplateTransformer`. There is no shared template and no placeholder left to
+// `agentNameToPromptTransformer`. There is no shared template and no placeholder left to
 // substitute beyond `$ARGUMENTS`: what tells a codeweaver dispatch from a siegemaster one is the
 // whole document, not one interpolated block. Each is read LIVE off its statics here — a copied
 // excerpt would drift the moment a prompt is edited, and every assertion below compares the entire
@@ -174,6 +174,98 @@ describe('workItemToPromptTransformer', () => {
         );
       },
     );
+  });
+
+  describe('the step names the prompt this serves', () => {
+    // The whole point of the re-key: this work item reads `role: 'ward'` because `ward` is the
+    // SCOPE it belongs to, and the command refusal above would otherwise answer for it — leaving
+    // the repair the red gate minted with no prompt to fetch. Its step declares `spiritmender`,
+    // and the two ward lines have to ride along or the session has nothing naming the failure.
+    it('VALID: {ward scope work item at the repair step} => serves the spiritmender prompt with the failed ward blob', () => {
+      const questId = QuestIdStub({ value: 'my-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-1212-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-1212-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'ward',
+        text: 'Ward gate (full monorepo)',
+        status: 'in_progress',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'ward',
+        step: 'repair',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const wardResult = WardResultStub({
+        id: 'cccccccc-1212-4222-9333-444444444444',
+        exitCode: 1,
+        wardMode: 'full',
+      });
+      const quest = QuestStub({
+        id: questId,
+        operations: [operation],
+        workItems: [workItem],
+        wardResults: [wardResult],
+      });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'spiritmender' }),
+      });
+
+      const expectedArgs = [
+        `Quest ID: ${String(questId)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [ward] Ward gate (full monorepo)',
+        '',
+        'Failed ward result: cccccccc-1212-4222-9333-444444444444 (mode: full)',
+        'Ward detail blob: <questFolder>/ward-results/cccccccc-1212-4222-9333-444444444444.json',
+      ].join('\n');
+
+      expect(result.prompt).toBe(
+        spiritmenderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
+    });
+
+    // The fallback branch, pinned at the value that makes it necessary: `codeweaver-worker` is one
+    // of the prompts the step graph names and nothing serves yet, so the work item's own role
+    // still decides — exactly as it does with no step graph at all.
+    it('VALID: {codeweaver scope work item at the work step} => serves the codeweaver prompt, because the step names one nothing serves', () => {
+      const questId = QuestIdStub({ value: 'my-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-1313-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-1313-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: 'core: config load+validate adapter',
+        status: 'in_progress',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        step: 'work',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+      });
+
+      const expectedArgs = [
+        `Quest ID: ${String(questId)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [codeweaver] core: config load+validate adapter',
+      ].join('\n');
+
+      expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
+    });
   });
 
   describe('chat roles (chaoswhisperer/glyphsmith are not served by get-agent-prompt)', () => {

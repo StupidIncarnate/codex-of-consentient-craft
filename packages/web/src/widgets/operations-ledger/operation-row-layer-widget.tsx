@@ -101,15 +101,6 @@ export const OperationRowLayerWidget = ({
           {operation.text}
         </Text>
       </Box>
-      {operation.wardMode ? (
-        <Text
-          ff="monospace"
-          data-testid="OPERATIONS_LEDGER_ROW_WARD_MODE"
-          style={{ fontSize: ROW_FONT_SIZE, color: colors.warning, flexShrink: 0 }}
-        >
-          ({operation.wardMode})
-        </Text>
-      ) : null}
     </Box>
   );
 };

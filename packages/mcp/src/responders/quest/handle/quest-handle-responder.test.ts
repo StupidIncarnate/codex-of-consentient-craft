@@ -1208,103 +1208,6 @@ describe('QuestHandleResponder', () => {
     });
   });
 
-  describe('reset-flow-signoffs', () => {
-    it('VALID: {questId, workItemId, flowId, reason} => dispatches to the reset layer responder and returns the report VERBATIM', async () => {
-      const proxy = QuestHandleResponderProxy();
-      proxy.setupResetFlowSignoffsReturns({
-        questId: 'test-quest-id',
-        flowId: 'login-flow',
-        result: {
-          success: true,
-          data: ContentTextStub({
-            value:
-              'Siegemaster walk reset for flow login-flow.\nCleared 4 siegemasterSignoff value(s).',
-          }),
-        },
-      });
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'reset-flow-signoffs' }),
-        args: {
-          questId: 'test-quest-id',
-          workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          flowId: 'login-flow',
-          reason: 'Fixed the redirect guard the walk exposed.',
-        },
-      });
-
-      expect(result).toStrictEqual({
-        content: [
-          {
-            type: 'text',
-            text: 'Siegemaster walk reset for flow login-flow.\nCleared 4 siegemasterSignoff value(s).',
-          },
-        ],
-      });
-    });
-
-    it('VALID: {all four fields} => forwards every one to the reset layer responder', async () => {
-      const proxy = QuestHandleResponderProxy();
-      proxy.setupResetFlowSignoffsReturns({
-        questId: 'test-quest-id',
-        flowId: 'login-flow',
-        result: { success: true, data: ContentTextStub({ value: 'ok' }) },
-      });
-
-      await proxy.callResponder({
-        tool: ToolNameStub({ value: 'reset-flow-signoffs' }),
-        args: {
-          questId: 'test-quest-id',
-          workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          flowId: 'login-flow',
-          reason: 'Fixed the redirect guard the walk exposed.',
-        },
-      });
-
-      expect(
-        proxy.getLastResetFlowSignoffsInput({ questId: 'test-quest-id', flowId: 'login-flow' }),
-      ).toStrictEqual({
-        questId: 'test-quest-id',
-        workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        flowId: 'login-flow',
-        reason: 'Fixed the redirect guard the walk exposed.',
-      });
-    });
-
-    it('ERROR: {adapter throws} => returns error response', async () => {
-      const proxy = QuestHandleResponderProxy();
-      proxy.setupResetFlowSignoffsThrows({
-        questId: 'test-quest-id',
-        flowId: 'login-flow',
-        error: new Error('Quest not found'),
-      });
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'reset-flow-signoffs' }),
-        args: {
-          questId: 'test-quest-id',
-          workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          flowId: 'login-flow',
-          reason: 'Fixed the redirect guard the walk exposed.',
-        },
-      });
-
-      expect(result).toStrictEqual({
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(
-              { success: false, error: 'Quest not found' },
-              null,
-              JSON_INDENT_SPACES,
-            ),
-          },
-        ],
-        isError: true,
-      });
-    });
-  });
-
   describe('create-worktree', () => {
     it('VALID: {name} => dispatches to the worktree layer responder and returns the path', async () => {
       const proxy = QuestHandleResponderProxy();
@@ -1611,7 +1514,7 @@ describe('QuestHandleResponder', () => {
   });
 
   describe('run-ward', () => {
-    it('VALID: {questId, workItemId, mode} => returns QuestRunWardResult JSON', async () => {
+    it('VALID: {questId, workItemId} => returns QuestRunWardResult JSON', async () => {
       const proxy = QuestHandleResponderProxy();
       const wardResult = proxy.buildRunWardResult();
       proxy.setupRunWardReturns({
@@ -1625,7 +1528,6 @@ describe('QuestHandleResponder', () => {
         args: {
           questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
           workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-          mode: 'committed',
         },
       });
 
@@ -1639,7 +1541,7 @@ describe('QuestHandleResponder', () => {
       });
     });
 
-    it('INVALID: {mode: "partial"} => throws validation error', async () => {
+    it('INVALID: {mode: "committed"} => throws validation error (ward takes no scope argument)', async () => {
       const proxy = QuestHandleResponderProxy();
 
       await expect(
@@ -1648,10 +1550,10 @@ describe('QuestHandleResponder', () => {
           args: {
             questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
             workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-            mode: 'partial',
+            mode: 'committed',
           },
         }),
-      ).rejects.toThrow(/Invalid enum value/u);
+      ).rejects.toThrow(/Unrecognized key/u);
     });
 
     it('ERROR: {adapter throws} => returns error response', async () => {
@@ -1667,7 +1569,6 @@ describe('QuestHandleResponder', () => {
         args: {
           questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
           workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-          mode: 'full',
         },
       });
 

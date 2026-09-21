@@ -1,9 +1,8 @@
 /**
  * PURPOSE: Validates the MCP-advertised shape of the `get-quest-work` tool call — the ONE startup
- * call every LLM step makes. Reach for this over `getQaChecklistInputContract` (its sibling folder):
- * that one scopes a coverage READ by operation item, where this one asks "what does THIS session
- * run", and its `operationItemId` form answers a different question again — whether the plan for the
- * whole scope is sound.
+ * call every LLM step makes. Its `workItemId` form asks "what does THIS session run", and its
+ * `operationItemId` form answers a different question — whether the plan for the whole scope is
+ * sound.
  *
  * USAGE:
  * getQuestWorkInputContract.parse({
@@ -13,9 +12,9 @@
  * // Returns: GetQuestWorkInput
  *
  * `.strict()` PLUS A REFINEMENT REFUSING BOTH IDS AND NEITHER. Both is a hard rejection rather than
- * a precedence rule, shaped on `getQaChecklistInputContract`'s own `superRefine`: letting one win
- * silently answers a question the caller did not ask. Neither is refused too — there is no
- * whole-quest browse form here, and a call that named no scope would have to guess one.
+ * a precedence rule: letting one win silently answers a question the caller did not ask. Neither is
+ * refused too — there is no whole-quest browse form here, and a call that named no scope would have
+ * to guess one.
  */
 
 import { z } from 'zod';

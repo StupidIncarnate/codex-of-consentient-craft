@@ -1,7 +1,25 @@
 /**
- * PURPOSE: Layer helper for questGetNextStepBroker — converts a single WorkItem + its quest's id
- * into a fully-formed SpawnInstruction, parsing the work-item role into an AgentRole and
+ * PURPOSE: Layer helper for questGetNextStepBroker — converts a single WorkItem + the quest holding
+ * it into a fully-formed SpawnInstruction, resolving the role the session is dispatched as and
  * interpolating the taskPrompt template.
+ *
+ * THE STEP NAMES THE ROLE, AND THE WORK ITEM'S OWN ROLE IS THE FALLBACK. A work item carries the
+ * role of its SCOPE, so a `repair` step inside a `ward` scope reads `role: 'ward'` — which
+ * `agentRoleContract` refuses, and the throw takes the whole dispatch scan down rather than one
+ * item. `stepDispatchRoleTransformer` reads the step's own `prompt` first, which for that item is
+ * `spiritmender`: a real role with a real registered prompt.
+ *
+ * THE FALLBACK IS TEMPORARY AND ENDS ON ITS OWN. Several prompts the step graph names are not
+ * registered — `codeweaver-planner`, `codeweaver-worker`, `recipe-maker`, `flowrider-planner`,
+ * `flowrider-worker`, `siegemaster-reader`, `siege-planner`, both siege walkers and both siege
+ * fixers — so a step naming one is dispatched on its work item's own role; re-keying
+ * unconditionally would throw on every codeweaver, flowrider and siegemaster dispatch instead.
+ * Register those prompts as roles `agentRoleContract` enumerates and the step-keyed branch takes
+ * them, with nothing here to edit. A DECLINED STEP PROMPT IS WRITTEN TO STDERR on the dispatch it
+ * happened on — the mechanism this package already uses for a decision that must not pass unseen
+ * (`questListBroker`'s skip line, `agentPromptGetBroker`'s start-ref line).
+ * `processDevLogAdapter` is the wrong instrument twice over: it belongs to the server package, and
+ * it is gated behind `VERBOSE=1`, which is silent by default.
  *
  * NEVER CLOBBER A SESSION. A retained `sessionId` is work already done, so ANY work item that has
  * one is re-dispatched as a resume (`resumeSessionId` + the resume-variant prompt) regardless of
@@ -32,11 +50,11 @@
  * a one-signal script into arbitrary work.
  *
  * USAGE:
- * const instruction = buildSpawnInstructionLayerBroker({ questId, workItem });
+ * const instruction = buildSpawnInstructionLayerBroker({ quest, workItem });
  * // Returns: SpawnInstruction — ready to embed in a NextStep spawn-agents response
  */
 
-import type { QuestId, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import {
   agentRoleContract,
@@ -44,15 +62,25 @@ import {
 } from '../../../contracts/agent-role/agent-role-contract';
 import type { SpawnInstruction } from '../../../contracts/spawn-instruction/spawn-instruction-contract';
 import { agentTaskPromptTransformer } from '../../../transformers/agent-task-prompt/agent-task-prompt-transformer';
+import { stepDispatchRoleTransformer } from '../../../transformers/step-dispatch-role/step-dispatch-role-transformer';
 
 export const buildSpawnInstructionLayerBroker = ({
-  questId,
+  quest,
   workItem,
 }: {
-  questId: QuestId;
+  quest: Quest;
   workItem: WorkItem;
 }): SpawnInstruction => {
-  const role: AgentRole = agentRoleContract.parse(workItem.role);
+  const questId = quest.id;
+  const { role: steppedRole, declinedPrompt } = stepDispatchRoleTransformer({ quest, workItem });
+
+  if (declinedPrompt !== null) {
+    process.stderr.write(
+      `[dispatch-role] work item ${String(workItem.id)} on quest ${String(questId)} runs step \`${String(workItem.step)}\`, whose prompt \`${String(declinedPrompt)}\` is not a dispatchable agent role — dispatching as \`${workItem.role}\` instead\n`,
+    );
+  }
+
+  const role: AgentRole = steppedRole ?? agentRoleContract.parse(workItem.role);
   const canResume = workItem.sessionId !== undefined && workItem.agentId === undefined;
   const override = workItem.smoketestPromptOverride;
   return {

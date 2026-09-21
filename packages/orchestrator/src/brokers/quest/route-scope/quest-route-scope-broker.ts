@@ -21,9 +21,8 @@
  * THE HALT IS PERFORMED AFTER THE PERSIST RETURNS, never inside the callback, for the same reason:
  * `questBlockOnFailureBroker` goes through `questModifyBroker`, which takes that same lock.
  *
- * A ROLE NO FAMILY CARRIES IS LEFT ALONE — `spiritmender`, a chat role, and the COMMITTED ward gate,
- * which shares its role with `wardFull` and is told apart by `wardMode`. None of them runs a step
- * graph, so each completes on its own signal exactly as before and this broker never touches it.
+ * A ROLE NO FAMILY CARRIES IS LEFT ALONE — `spiritmender` and the chat roles. Neither runs a step
+ * graph, so each completes on its own signal and this broker never touches it.
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
@@ -82,12 +81,7 @@ export const questRouteScopeBroker = async ({
 
     const family = workItemFamilyResolveTransformer({ quest: scanned, operationItem: operation });
 
-    // `wardMode` is what separates the FULL gate from the committed one, which carries the same
-    // role and belongs to no family at all.
-    if (
-      family === undefined ||
-      familyLedgerKeyTransformer({ family }).wardMode !== operation.wardMode
-    ) {
+    if (family === undefined) {
       return false;
     }
 
@@ -194,7 +188,7 @@ export const questRouteScopeBroker = async ({
         // `scope`, not `item`: the ledger-status lint rule keys on an identifier ending in `Item`
         // (and on the bare name `item`) and would read this as a WORK-item status.
         const familyDrained = completedOperations
-          .filter((scope) => scope.role === key.role && scope.wardMode === key.wardMode)
+          .filter((scope) => scope.role === key.role)
           .every((scope) => scope.status === 'complete');
 
         if (!familyDrained) {
@@ -253,10 +247,9 @@ export const questRouteScopeBroker = async ({
           // Copied off the step config by mintNextActionTransformer, spent by the lane broker at
           // dispatch and by workItemToPromptTransformer's instance-id line — never re-derived from
           // agentFlowStatics downstream. Omitted rather than `needsLane: false`, matching
-          // `wardMode`/`packageNames` below: work items are the most numerous array on a quest, and
-          // the near-universal case (no lane) must not materialise onto every row.
+          // `packageNames` below: work items are the most numerous array on a quest, and the
+          // near-universal case (no lane) must not materialise onto every row.
           ...(item.needsLane ? { needsLane: true } : {}),
-          ...(operation.wardMode === undefined ? {} : { wardMode: operation.wardMode }),
           ...(operation.packageNames.length === 0 ? {} : { packageNames: operation.packageNames }),
         }),
       );

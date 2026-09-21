@@ -16,15 +16,15 @@
  * wrong build tier, ahead of nothing it is actually depended upon by.
  *
  * USAGE:
- * relayTailFanOutTransformer({ entry: questTypeRegistryStatics.feature.relayTail[1], quest });
- * // Returns one slice per quest flow the seed's OWN role is measured over; the `implementation`
- * // seed returns one slice per (package, flow) cell instead
+ * relayTailFanOutTransformer({ entry: questFlowStatics.feature.families.flowrider, quest });
+ * // Returns one slice per quest flow the family's OWN role is measured over; the `implementation`
+ * // family returns one slice per (package, flow) cell instead
  */
 
 import { operationItemContract } from '@dungeonmaster/shared/contracts';
 import type { FlowId, OperationItem, PackageName, Quest } from '@dungeonmaster/shared/contracts';
 import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
-import type { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
+import type { questFlowStatics } from '@dungeonmaster/shared/statics';
 import {
   questContractSourceOwnerTransformer,
   questPackageEntryKindsTransformer,
@@ -32,15 +32,13 @@ import {
 
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 
-type RegistryEntry = (typeof questTypeRegistryStatics)[keyof typeof questTypeRegistryStatics];
+type QuestFlow = (typeof questFlowStatics)[keyof typeof questFlowStatics];
 
-// BOTH seed lists, not just the tail: `startImplementationOps` carries a `fanOutBy` too — the
-// codeweaver seed expands into the derived per-package ledger through this same transformer, so the
-// seeding broker mints implementation items and tail items with one call shape and still learns no
-// role name.
-type SeedList = RegistryEntry['relayTail'] | RegistryEntry['startImplementationOps'];
+type FamilyEntry = QuestFlow['families'][keyof QuestFlow['families']];
 
-type RelayTailEntry = SeedList extends readonly (infer Entry)[] ? Entry : never;
+// Only the families carrying a `text`. `warpgate` carries none: a merge is appended to the ledger at
+// the user's request rather than routed to, and its text lives in `warpgateOperationStatics`.
+export type RelayTailEntry = Extract<FamilyEntry, Record<'text', unknown>>;
 
 export type RelayTailSlice = Pick<OperationItem, 'text' | 'flowIds' | 'packageNames'>;
 
@@ -52,8 +50,8 @@ export const relayTailFanOutTransformer = ({
   quest: Quest;
 }): RelayTailSlice[] => {
   const textContract = operationItemContract.shape.text;
-  // Read with an `in` check rather than a "none" member, mirroring how `wardMode` is read at the
-  // seed site: an entry that fans out to exactly one item states nothing.
+  // Read with an `in` check rather than a "none" member, the same way `locked` is read at the mint
+  // site: a family that fans out to exactly one scope states nothing.
   const fanOutBy = 'fanOutBy' in entry ? entry.fanOutBy : undefined;
 
   if (fanOutBy === 'flow') {

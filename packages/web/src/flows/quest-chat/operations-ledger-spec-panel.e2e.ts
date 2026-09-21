@@ -59,7 +59,6 @@ test.describe('Operations ledger in the quest spec panel', () => {
           text: 'ward (committed)',
           status: 'pending',
           locked: true,
-          wardMode: 'committed',
         },
       ],
     });
@@ -92,8 +91,5 @@ test.describe('Operations ledger in the quest spec panel', () => {
       '[ ]',
       '[ ]',
     ]);
-    await expect(specPanel.getByTestId('OPERATIONS_LEDGER_ROW_WARD_MODE')).toHaveText(
-      '(committed)',
-    );
   });
 });

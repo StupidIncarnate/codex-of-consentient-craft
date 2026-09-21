@@ -16,9 +16,7 @@ import { CreateWorktreeLayerResponderProxy } from './create-worktree-layer-respo
 import { GetQuestLayerResponderProxy } from './get-quest-layer-responder.proxy';
 import { GetQuestWorkLayerResponderProxy } from './get-quest-work-layer-responder.proxy';
 import { QuestWorkLayerResponderProxy } from './quest-work-layer-responder.proxy';
-import { QaChecklistLayerResponderProxy } from './qa-checklist-layer-responder.proxy';
 import { QuestSummaryLayerResponderProxy } from './quest-summary-layer-responder.proxy';
-import { ResetFlowSignoffsLayerResponderProxy } from './reset-flow-signoffs-layer-responder.proxy';
 import { orchestratorGetServerConfigAdapterProxy } from '../../../adapters/orchestrator/get-server-config/orchestrator-get-server-config-adapter.proxy';
 import { orchestratorModifyQuestAdapterProxy } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter.proxy';
 import { orchestratorRunWardAdapterProxy } from '../../../adapters/orchestrator/run-ward/orchestrator-run-ward-adapter.proxy';
@@ -53,7 +51,6 @@ type ModifyQuestResult = ReturnType<typeof ModifyQuestResultStub>;
 type OrchestrationStatus = ReturnType<typeof OrchestrationStatusStub>;
 type GetPlanningNotesResult = Awaited<ReturnType<typeof StartOrchestrator.getPlanningNotes>>;
 type GetBlightChecklistResult = Awaited<ReturnType<typeof StartOrchestrator.getBlightChecklist>>;
-type ResetFlowSignoffsResult = Awaited<ReturnType<typeof StartOrchestrator.resetFlowSignoffs>>;
 type CreateWorktreeResult = Awaited<ReturnType<typeof StartOrchestrator.createWorktree>>;
 type GetQuestSummaryResult = Awaited<ReturnType<typeof StartOrchestrator.getQuestSummary>>;
 type NextStep = ReturnType<typeof NextStepStub>;
@@ -91,13 +88,6 @@ export const QuestHandleResponderProxy = (): {
   }) => void;
   setupGetBlightChecklistThrows: (params: { questId: string; error: Error }) => void;
   getLastGetBlightChecklistInput: (params: { questId: string }) => unknown;
-  setupResetFlowSignoffsReturns: (params: {
-    questId: string;
-    flowId: string;
-    result: ResetFlowSignoffsResult;
-  }) => void;
-  setupResetFlowSignoffsThrows: (params: { questId: string; flowId: string; error: Error }) => void;
-  getLastResetFlowSignoffsInput: (params: { questId: string; flowId: string }) => unknown;
   setupGetQuestSummaryReturns: (params: {
     questId: string;
     summary: GetQuestSummaryResult;
@@ -168,13 +158,11 @@ export const QuestHandleResponderProxy = (): {
   const listQuestsProxy = orchestratorListQuestsAdapterProxy();
   const listGuildsProxy = orchestratorListGuildsAdapterProxy();
   const getPlanningNotesProxy = orchestratorGetQuestPlanningNotesAdapterProxy();
-  QaChecklistLayerResponderProxy();
   // Composed for enforce-proxy-child-creation against the responder's own imports; the two work
   // tools stage nothing here, and each has its own colocated suite.
   GetQuestWorkLayerResponderProxy();
   QuestWorkLayerResponderProxy();
   const blightChecklistProxy = BlightChecklistLayerResponderProxy();
-  const resetFlowSignoffsProxy = ResetFlowSignoffsLayerResponderProxy();
   const questSummaryProxy = QuestSummaryLayerResponderProxy();
   const createQuestProxy = orchestratorCreateQuestAdapterProxy();
   const getNextStepProxy = orchestratorGetNextStepAdapterProxy();
@@ -304,38 +292,6 @@ export const QuestHandleResponderProxy = (): {
 
     getLastGetBlightChecklistInput: ({ questId }: { questId: string }): unknown =>
       blightChecklistProxy.getLastCalledInputFor({ questId }),
-
-    setupResetFlowSignoffsReturns: ({
-      questId,
-      flowId,
-      result,
-    }: {
-      questId: string;
-      flowId: string;
-      result: ResetFlowSignoffsResult;
-    }): void => {
-      resetFlowSignoffsProxy.setupReturns({ questId, flowId, result });
-    },
-
-    setupResetFlowSignoffsThrows: ({
-      questId,
-      flowId,
-      error,
-    }: {
-      questId: string;
-      flowId: string;
-      error: Error;
-    }): void => {
-      resetFlowSignoffsProxy.setupThrows({ questId, flowId, error });
-    },
-
-    getLastResetFlowSignoffsInput: ({
-      questId,
-      flowId,
-    }: {
-      questId: string;
-      flowId: string;
-    }): unknown => resetFlowSignoffsProxy.getLastCalledInputFor({ questId, flowId }),
 
     setupGetQuestSummaryReturns: ({
       questId,

@@ -192,7 +192,7 @@ describe('warpgatePromptStatics', () => {
   it('VALID: template => names the quest worktree as the tree the commit gate measures', () => {
     expect({
       doneIsTheCommittedMergeOnBase: template.includes(
-        "Signal `complete` with `operationStatus: 'done'` once the merge is committed on base in the repo root checkout.",
+        'Signal `complete` once the merge is committed on base in the repo root checkout.',
       ),
       gateMeasuresTheWorktree: template.includes(
         "A commit gate runs before that signal. The gate measures a DIFFERENT tree, the quest's WORKTREE. It refuses every outcome while that tree carries uncommitted changes, tracked or untracked. It refuses `done` and `blocked` alike. It never looks at the repo root at all.",
@@ -244,7 +244,9 @@ describe('warpgatePromptStatics', () => {
       ),
       delegationSpike: template.includes('You delegate LOOKING and CHECKING.'),
       delegationLeafBan: template.includes('You are the last agent in this chain.'),
-      wallRole: template.includes("signal `operationStatus: 'blocked'`. Never `partial`."),
+      wallRole: template.includes(
+        '[WALL] When the ENVIRONMENT blocks you rather than the work, signal `blocked`.',
+      ),
       wallMinion: template.includes('report it. Do not work around it.'),
       gitFormsRule: template.includes(
         '[GIT FORMS] Two more git forms are refused outright, for a different reason than the prohibitions below',

@@ -1,4 +1,4 @@
-import { questTypeRegistryStatics, signoffTracksStatics } from '@dungeonmaster/shared/statics';
+import { questFlowStatics, signoffTracksStatics } from '@dungeonmaster/shared/statics';
 
 import { signoffTrackEligibilityStatics } from './signoff-track-eligibility-statics';
 
@@ -6,18 +6,13 @@ type SignoffTrack = keyof typeof signoffTrackEligibilityStatics.byTrack;
 
 const TRACKS = Object.keys(signoffTrackEligibilityStatics.byTrack) as SignoffTrack[];
 
-// How the relay slices each track's items, read off the seed that mints them. A track fanned out BY
-// FLOW gets one item per flow, so its `flowIds` are a slice of the flow dimension and the gate must
-// read them.
-//
-// BOTH seed lists are read, not just `relayTail`: `codeweaver` is seeded on
-// `startImplementationOps` and is a denominator all the same, so scanning the tail alone would
-// resolve its fan-out to `undefined` and compare a real flow scope against nothing.
+// How the relay slices each track's items, read off the family that mints them. A track fanned out
+// BY FLOW gets one item per flow, so its `flowIds` are a slice of the flow dimension and the gate
+// must read them. `codeweaver` is a denominator too, and fans out by `implementation`.
 const FAN_OUT_BY_TRACK = new Map(
-  [
-    ...questTypeRegistryStatics.feature.startImplementationOps,
-    ...questTypeRegistryStatics.feature.relayTail,
-  ].flatMap((entry) => ('fanOutBy' in entry ? [[entry.role, entry.fanOutBy] as const] : [])),
+  Object.values(questFlowStatics.feature.families).flatMap((entry) =>
+    'fanOutBy' in entry ? [[entry.role, entry.fanOutBy] as const] : [],
+  ),
 );
 const FLOW_SCOPE_BY_FAN_OUT = new Map([
   ['flow', 'declared'],

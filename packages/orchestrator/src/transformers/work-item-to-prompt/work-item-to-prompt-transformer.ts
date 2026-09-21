@@ -21,6 +21,16 @@
  * `workItem.payload.instance` before this item ever dispatched, so the id it substitutes is
  * exactly what the router owns, never a session's own guess at a lane it never opened.
  *
+ * **The STEP names the role this serves, and `workItem.role` is the fallback.** A work item carries
+ * the role of its SCOPE, so a `repair` inside a `ward` scope reads `role: 'ward'` while its step
+ * declares `prompt: 'spiritmender'`. `stepDispatchRoleTransformer` resolves that, and the answer
+ * decides three things here: whether the command-role refusal below applies at all (a ward item at
+ * a PROMPT step does have a prompt to fetch), which role's conditional extras render — the failed
+ * ward result the repair session is being sent to fix — and which template is served. Where the
+ * step's prompt is one nothing serves yet, the fallback keeps today's behaviour; that decline is
+ * reported by `buildSpawnInstructionLayerBroker` on the dispatch that preceded this fetch, so it is
+ * never silent and is not reported twice.
+ *
  * **Path discrimination — minion vs role:** the agent name is run through
  * `workItemRoleContract.safeParse`. If it fails, the caller is one of the parent-summoned minions
  * and receives a minimal "Quest ID + Work Item ID" substitution; the parent briefs the context
@@ -53,9 +63,10 @@ import { isChatWorkItemRoleGuard, isCommandWorkItemRoleGuard } from '@dungeonmas
 
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { agentRoleContract } from '../../contracts/agent-role/agent-role-contract';
+import type { AgentRole } from '../../contracts/agent-role/agent-role-contract';
 import { questWorkInstanceContract } from '../../contracts/quest-work-instance/quest-work-instance-contract';
 import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name-to-prompt-transformer';
-import { roleToPromptTemplateTransformer } from '../role-to-prompt-template/role-to-prompt-template-transformer';
+import { stepDispatchRoleTransformer } from '../step-dispatch-role/step-dispatch-role-transformer';
 
 export const workItemToPromptTransformer = ({
   quest,
@@ -79,11 +90,15 @@ export const workItemToPromptTransformer = ({
     };
   }
 
+  const { role: steppedRole } = stepDispatchRoleTransformer({ quest, workItem });
+
   // Every COMMAND role, not `ward` alone. A command work item is run by the dispatcher itself and
   // has no prompt to fetch; matching the whole subset is what makes the refusal say so, instead of
   // letting the role fall through to `agentNameToPromptTransformer` and die on an agent name that
-  // was never meant to exist.
-  if (isCommandWorkItemRoleGuard({ role: workItem.role })) {
+  // was never meant to exist. The `steppedRole === null` clause is what confines it to the SCOPE
+  // role: a ward scope's `repair` step IS a spiritmender session and does have a prompt to fetch,
+  // so refusing it here would stall that scope forever with the ward it was minted to fix still red.
+  if (steppedRole === null && isCommandWorkItemRoleGuard({ role: workItem.role })) {
     throw new Error(
       `workItemToPromptTransformer: ${workItem.role} work items are dispatched as commands by the orchestrator, not via get-agent-prompt`,
     );
@@ -98,6 +113,13 @@ export const workItemToPromptTransformer = ({
       `workItemToPromptTransformer: role ${workItem.role} is not served by get-agent-prompt`,
     );
   }
+
+  // The role this session is actually dispatched as. Re-branding through `agentRoleContract` rather
+  // than relying on narrowing: the command and chat-role rejections above are guard calls, which
+  // return a plain boolean and so do not narrow the union. Parsing states the same invariant those
+  // throws already enforce, fails loudly if it is broken, and is what makes the name reaching the
+  // prompt table a role rather than any string.
+  const dispatchRole: AgentRole = steppedRole ?? agentRoleContract.parse(workItem.role);
 
   // Relay path: resolve the work item's linked operation item, whose id and text are two of the
   // four lines the block carries.
@@ -134,14 +156,17 @@ export const workItemToPromptTransformer = ({
   // being set at all: a quest reaches `merging` only after Start Quest recorded its git context,
   // but the field stays optional on the contract, so an unset value is omitted rather than
   // rendered as the literal string "undefined".
-  if (workItem.role === 'warpgate' && quest.baseBranch !== undefined) {
+  if (dispatchRole === 'warpgate' && quest.baseBranch !== undefined) {
     parts.push(
       contentTextContract.parse(''),
       contentTextContract.parse(`Base branch: ${String(quest.baseBranch)}`),
     );
   }
 
-  if (workItem.role === 'spiritmender') {
+  // Keyed on the DISPATCH role, which is how a `repair` step inside a ward scope gets the blob it
+  // was minted to fix: its work item reads `role: 'ward'`, and a spiritmender served without these
+  // two lines has nothing naming the failure.
+  if (dispatchRole === 'spiritmender') {
     const latestFailedWard = [...quest.wardResults]
       .filter((wardResult) => wardResult.exitCode !== 0)
       .at(-1);
@@ -177,11 +202,8 @@ export const workItemToPromptTransformer = ({
     }
   }
 
-  // Re-brand through agentRoleContract rather than relying on narrowing: the ward and chat-role
-  // rejections above are guard calls, which return a plain boolean and so do not narrow the union.
-  // Parsing states the same invariant the throws already enforce, and fails loudly if it is broken.
-  const template = roleToPromptTemplateTransformer({
-    role: agentRoleContract.parse(workItem.role),
+  const { prompt: template } = agentNameToPromptTransformer({
+    agent: agentPromptNameContract.parse(dispatchRole),
   });
 
   // Function replacement, not a string one: operation text is authored prose that can contain a

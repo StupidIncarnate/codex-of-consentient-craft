@@ -437,13 +437,13 @@ Still dirty after that, brief a second one and tell it to commit everything rema
 Once, as the last action of your turn.
 
 \`\`\`
-signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'done' })
+signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID' })
 \`\`\`
 
-\`blocked\` instead, when a \`wall\` sent you here:
+Add a \`blockedReason\`, naming the wall and what a person must change, when a \`wall\` sent you here:
 
 \`\`\`
-signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'blocked', blockedReason: '<the wall, and what a person must change to clear it>' })
+signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', blockedReason: '<the wall, and what a person must change to clear it>' })
 \`\`\`
 
 A refused \`signal-back\` arrives as an error on the call itself. It is not a crash and not something

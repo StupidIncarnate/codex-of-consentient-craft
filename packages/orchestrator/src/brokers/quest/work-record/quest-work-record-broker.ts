@@ -59,9 +59,8 @@ export const questWorkRecordBroker = async ({
 
       const workItem = quest.workItems.find((item) => item.id === workItemId);
       if (workItem === undefined) {
-        // `invalidation` carries this guard message VERBATIM from `questResetFlowSignoffsBroker`
-        // (`:72`, `reset-flow-signoffs:` swapped for `quest-work:`) — the other three kinds are new
-        // vocabulary this tool owns outright, so they read "recorded" rather than "reset".
+        // `invalidation` says "nothing was reset" because a reset is what it would have performed;
+        // the other kinds read "recorded", which is what they write.
         throw new Error(
           payload.kind === 'invalidation'
             ? `quest-work: work item ${workItemId} is not on quest ${questId} — nothing was reset`

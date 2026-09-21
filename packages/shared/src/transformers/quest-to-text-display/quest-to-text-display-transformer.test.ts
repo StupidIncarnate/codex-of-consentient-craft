@@ -499,7 +499,7 @@ describe('questToTextDisplayTransformer', () => {
       );
     });
 
-    it('VALID: {quest: with locked ward operation} => renders wardMode and locked marker', () => {
+    it('VALID: {quest: with locked ward operation} => renders the role and the locked marker', () => {
       const quest = QuestStub({
         operations: [
           OperationItemStub({
@@ -508,7 +508,6 @@ describe('questToTextDisplayTransformer', () => {
             text: 'ward gate' as never,
             status: 'in_progress',
             locked: true,
-            wardMode: 'committed',
           }),
         ],
       });
@@ -516,7 +515,7 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest });
 
       expect(result).toMatch(
-        /^#a1b2c3d4-58cc-4372-a567-0e02b2c3d479: \[ward \(committed\)\] ward gate — in_progress \[locked\]$/mu,
+        /^#a1b2c3d4-58cc-4372-a567-0e02b2c3d479: \[ward\] ward gate — in_progress \[locked\]$/mu,
       );
     });
 

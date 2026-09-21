@@ -157,6 +157,7 @@ export const questHarness = ({
       agentId?: string;
       status?: string;
       spawnerType?: string;
+      step?: string;
       dependsOn?: string[];
       relatedDataItems?: string[];
       insertedBy?: string;
@@ -164,7 +165,6 @@ export const questHarness = ({
       completedAt?: string;
       attempt?: number;
       maxAttempts?: number;
-      wardMode?: string;
     }[];
     steps?: { id: string; name: string }[];
     userRequest?: string;
@@ -186,7 +186,6 @@ export const questHarness = ({
       text: string;
       status: string;
       locked?: boolean;
-      wardMode?: string;
       packageNames?: string[];
     }[];
     sessions?: QuestSessionInput[];
@@ -224,8 +223,9 @@ export const questHarness = ({
       text: string;
       status: string;
       locked?: boolean;
-      wardMode?: string;
       packageNames?: string[];
+      workItemId?: string;
+      step?: string;
     }[];
     firstWorkItemId: string;
     firstWorkItemStatus?: string;
@@ -310,6 +310,10 @@ export const questHarness = ({
       agentId?: string;
       status?: string;
       spawnerType?: string;
+      // The `agentFlowStatics` step this item is running. A work item carrying one belongs to
+      // `questRouteScopeBroker`, which takes that step's own route; one carrying none runs no step
+      // graph at all and its own `signal-back` completes the scope it links to.
+      step?: string;
       dependsOn?: string[];
       relatedDataItems?: string[];
       insertedBy?: string;
@@ -317,7 +321,6 @@ export const questHarness = ({
       completedAt?: string;
       attempt?: number;
       maxAttempts?: number;
-      wardMode?: string;
     }[];
     steps?: { id: string; name: string }[];
     userRequest?: string;
@@ -339,7 +342,6 @@ export const questHarness = ({
       text: string;
       status: string;
       locked?: boolean;
-      wardMode?: string;
       packageNames?: string[];
     }[];
     // The quest's own session ledger. Seed a row per session whose transcript the spec expects to
@@ -376,6 +378,7 @@ export const questHarness = ({
         role: wi.role,
         status: wi.status ?? 'complete',
         spawnerType: wi.spawnerType ?? 'agent',
+        ...(wi.step === undefined ? {} : { step: wi.step }),
         ...(wi.sessionId === undefined ? {} : { sessionId: wi.sessionId }),
         ...(wi.agentId === undefined ? {} : { agentId: wi.agentId }),
         createdAt:
@@ -386,7 +389,6 @@ export const questHarness = ({
         maxAttempts: wi.maxAttempts ?? 1,
         ...(wi.insertedBy ? { insertedBy: wi.insertedBy } : {}),
         ...(wi.completedAt === undefined ? {} : { completedAt: wi.completedAt }),
-        ...(wi.wardMode === undefined ? {} : { wardMode: wi.wardMode }),
       })),
       userRequest,
       designDecisions: [],
@@ -447,7 +449,6 @@ export const questHarness = ({
         locked: op.locked ?? false,
         packageNames:
           op.packageNames ?? (op.role === 'codeweaver' ? DEFAULT_CODEWEAVER_PACKAGE_NAMES : []),
-        ...(op.wardMode === undefined ? {} : { wardMode: op.wardMode }),
       })),
     };
 
@@ -618,6 +619,13 @@ export const questHarness = ({
   // the first operation item (relatedDataItems: ['operations/<op0.id>']) — mirroring a quest whose
   // Start Quest transition already seeded the relay. The first operation item is expected to be
   // `in_progress` and the linked work item `pending` (dispatch pre-stamps it in_progress on spawn).
+  //
+  // A LATER operation gets a seeded work item too when it names its own `workItemId`, chained on the
+  // previous seeded item through `dependsOn` so the relay dispatches them one at a time in ledger
+  // order. That is what a ledger written up front needs: `questAdvanceBroker` opens ONE scope at a
+  // time and stamps every item it mints with its family's ENTRY step, so a scope left for advance to
+  // open is a scope the ROUTER then owns. Seeding the item is how a spec says "this scope runs no
+  // step graph"; omitting it is how a spec says "let advance enter this one at its entry step".
   const seedInProgressWithOperations = async ({
     questId,
     questFolder,
@@ -640,8 +648,12 @@ export const questHarness = ({
       text: string;
       status: string;
       locked?: boolean;
-      wardMode?: string;
       packageNames?: string[];
+      // Seeds this scope its OWN work item, beyond the first operation's. Chained on the previous
+      // seeded item, so the relay dispatches the ledger serially.
+      workItemId?: string;
+      // The step that work item carries. Omit it for a scope that runs no step graph.
+      step?: string;
     }[];
     firstWorkItemId: string;
     firstWorkItemStatus?: string;
@@ -664,6 +676,29 @@ export const questHarness = ({
       throw new Error('seedInProgressWithOperations requires at least one operation');
     }
 
+    const seededWorkItems = operations.flatMap((op, index) => {
+      const id = index === 0 ? firstWorkItemId : op.workItemId;
+      if (id === undefined) {
+        return [];
+      }
+
+      return [
+        {
+          id,
+          role: op.role,
+          status: index === 0 ? firstWorkItemStatus : 'pending',
+          spawnerType: isCommandWorkItemRoleGuard({ role: op.role as WorkItemRole })
+            ? 'command'
+            : 'agent',
+          relatedDataItems: [`operations/${op.id}`],
+          ...(op.step === undefined ? {} : { step: op.step }),
+          ...(index === 0 && firstWorkItemSessionId !== undefined
+            ? { sessionId: firstWorkItemSessionId }
+            : {}),
+        },
+      ];
+    });
+
     await writeQuestFile({
       questId,
       questFolder,
@@ -673,19 +708,11 @@ export const questHarness = ({
       operations,
       ...(flowriderScopeSignedOff ? { flows: DEFAULT_FLOWS_FLOWRIDER_SIGNED } : {}),
       ...(worktreePath === undefined ? {} : { worktreePath }),
-      workItems: [
-        {
-          id: firstWorkItemId,
-          role: firstOp.role,
-          status: firstWorkItemStatus,
-          spawnerType: isCommandWorkItemRoleGuard({ role: firstOp.role as WorkItemRole })
-            ? 'command'
-            : 'agent',
-          relatedDataItems: [`operations/${firstOp.id}`],
-          ...(firstWorkItemSessionId === undefined ? {} : { sessionId: firstWorkItemSessionId }),
-          ...(firstOp.wardMode === undefined ? {} : { wardMode: firstOp.wardMode }),
-        },
-      ],
+      workItems: seededWorkItems.map((workItem, index) => {
+        const previous = seededWorkItems[index - 1];
+
+        return previous === undefined ? workItem : { ...workItem, dependsOn: [previous.id] };
+      }),
     });
   };
 

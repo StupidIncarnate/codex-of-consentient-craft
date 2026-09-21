@@ -649,15 +649,19 @@ describe('siegemasterPromptStatics', () => {
     ).toBe(true);
   });
 
-  it('VALID: served template => signals complete carrying operationStatus done or blocked', () => {
+  it('VALID: served template => signals complete with no operationStatus, blockedReason only on a wall', () => {
     expect({
       done: hasIn({
         needle:
-          "signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'done' })",
+          "signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID' })",
         text: TEMPLATE,
       }),
-      blocked: hasIn({ needle: "operationStatus: 'blocked', blockedReason:", text: TEMPLATE }),
-    }).toStrictEqual({ done: true, blocked: true });
+      blocked: hasIn({
+        needle: "operationItemId: 'OPERATION_ITEM_ID', blockedReason:",
+        text: TEMPLATE,
+      }),
+      noOperationStatus: TEMPLATE.includes('operationStatus'),
+    }).toStrictEqual({ done: true, blocked: true, noOperationStatus: false });
   });
 
   // EACH ROUND RUNS IN TWO LANES OF ITS OWN, AND WHAT THIS OPERATOR ALLOCATES IS A NAME — the

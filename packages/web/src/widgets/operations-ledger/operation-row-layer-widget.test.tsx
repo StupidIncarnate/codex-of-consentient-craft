@@ -55,34 +55,6 @@ describe('OperationRowLayerWidget', () => {
     });
   });
 
-  describe('ward mode', () => {
-    it('VALID: {wardMode: "full"} => renders ward mode suffix', () => {
-      OperationRowLayerWidgetProxy();
-      const operation = OperationItemStub({
-        role: 'ward',
-        text: 'verify: full ward',
-        wardMode: 'full',
-      });
-
-      mantineRenderAdapter({
-        ui: <OperationRowLayerWidget operation={operation} flows={[]} />,
-      });
-
-      expect(screen.getByTestId('OPERATIONS_LEDGER_ROW_WARD_MODE').textContent).toBe('(full)');
-    });
-
-    it('EMPTY: {no wardMode} => does not render ward mode element', () => {
-      OperationRowLayerWidgetProxy();
-      const operation = OperationItemStub({ role: 'codeweaver', text: 'build the broker' });
-
-      mantineRenderAdapter({
-        ui: <OperationRowLayerWidget operation={operation} flows={[]} />,
-      });
-
-      expect(screen.queryByTestId('OPERATIONS_LEDGER_ROW_WARD_MODE')).toBe(null);
-    });
-  });
-
   describe('flow labels', () => {
     it('VALID: {one flowId} => names that flow on the row', () => {
       OperationRowLayerWidgetProxy();
@@ -156,22 +128,19 @@ describe('OperationRowLayerWidget', () => {
   });
 
   describe('row content', () => {
-    it('VALID: {complete ward item with wardMode} => full row text combines marker, role, text, and mode', () => {
+    it('VALID: {complete ward item} => full row text combines marker, role, and text', () => {
       OperationRowLayerWidgetProxy();
       const operation = OperationItemStub({
         role: 'ward',
         text: 'verify: ward',
         status: 'complete',
-        wardMode: 'committed',
       });
 
       mantineRenderAdapter({
         ui: <OperationRowLayerWidget operation={operation} flows={[]} />,
       });
 
-      expect(screen.getByTestId('OPERATIONS_LEDGER_ROW').textContent).toBe(
-        '[x][WARD]verify: ward(committed)',
-      );
+      expect(screen.getByTestId('OPERATIONS_LEDGER_ROW').textContent).toBe('[x][WARD]verify: ward');
     });
 
     it('VALID: {per-flow flowrider item} => full row text puts the flow name BEFORE the description', () => {

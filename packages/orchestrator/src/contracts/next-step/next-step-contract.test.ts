@@ -81,7 +81,7 @@ describe('nextStepContract', () => {
   });
 
   describe('run-ward variant', () => {
-    it('VALID: {type: run-ward, mode: committed} => parses successfully', () => {
+    it('VALID: {type: run-ward, questId, workItemId} => parses successfully', () => {
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
 
@@ -89,18 +89,19 @@ describe('nextStepContract', () => {
         type: 'run-ward',
         questId,
         workItemId,
-        mode: 'committed',
       });
 
       expect(result).toStrictEqual({
         type: 'run-ward',
         questId,
         workItemId,
-        mode: 'committed',
       });
     });
 
-    it('VALID: {type: run-ward, mode: full} => parses successfully', () => {
+    // `wardFull` is the only family whose role is `ward`, so this variant always means the whole
+    // monorepo and carries no scope of its own. A family's own committed ward is a deterministic
+    // STEP and arrives as `run-step`, with the scope in that step's `args`.
+    it('EDGE: {type: run-ward, mode: committed} => strips the scope key', () => {
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
 
@@ -108,14 +109,13 @@ describe('nextStepContract', () => {
         type: 'run-ward',
         questId,
         workItemId,
-        mode: 'full',
+        mode: 'committed',
       });
 
       expect(result).toStrictEqual({
         type: 'run-ward',
         questId,
         workItemId,
-        mode: 'full',
       });
     });
   });
@@ -175,23 +175,11 @@ describe('nextStepContract', () => {
       );
     });
 
-    it('INVALID: {type: run-ward, mode: partial} => throws enum error', () => {
-      expect(() =>
-        nextStepContract.parse({
-          type: 'run-ward',
-          questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-          workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
-          mode: 'partial',
-        }),
-      ).toThrow(/Invalid enum value/u);
-    });
-
     it('INVALID: {type: run-ward, missing questId} => throws Required', () => {
       expect(() =>
         nextStepContract.parse({
           type: 'run-ward',
           workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
-          mode: 'full',
         }),
       ).toThrow(/Required/u);
     });

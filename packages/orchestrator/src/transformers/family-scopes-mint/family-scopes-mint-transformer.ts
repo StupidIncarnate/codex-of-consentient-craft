@@ -22,9 +22,8 @@
 import { operationItemContract } from '@dungeonmaster/shared/contracts';
 import type { OperationItem, PackageName, Quest } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
-import { questFlowStatics, questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
+import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
-import { familyLedgerKeyTransformer } from '../family-ledger-key/family-ledger-key-transformer';
 import { relayTailFanOutTransformer } from '../relay-tail-fan-out/relay-tail-fan-out-transformer';
 
 export const familyScopesMintTransformer = ({
@@ -34,31 +33,28 @@ export const familyScopesMintTransformer = ({
   quest: Quest;
   family: string;
 }): OperationItem[] => {
-  const key = familyLedgerKeyTransformer({ family });
-  const registry = questTypeRegistryStatics[quest.questType];
-
-  // BOTH seed lists, matched on the family's own ledger key rather than by position: `wardMode` is
-  // what separates the full gate's seed from the committed one, and a positional pick starts naming
-  // a different seed the moment the registry gains or reorders an entry.
-  const seed = [...registry.startImplementationOps, ...registry.relayTail].find(
-    (entry) =>
-      entry.role === key.role &&
-      ('wardMode' in entry ? entry.wardMode : undefined) === key.wardMode,
+  // The family entry IS the seed: `questFlowStatics` carries the `role`, the `text` and the
+  // `fanOutBy` every scope is cut from, keyed by the family the router just routed to.
+  const familyEntry = new Map(Object.entries(questFlowStatics[quest.questType].families)).get(
+    family,
   );
 
-  if (seed === undefined) {
+  // A family with no `text` is appended at merge rather than routed to, so it mints nothing here.
+  if (familyEntry === undefined || !('text' in familyEntry)) {
     throw new Error(
-      `familyScopesMintTransformer: quest type '${quest.questType}' seeds no scope for family '${family}' (role '${key.role}') — a family with no seed is appended at merge rather than routed to`,
+      `familyScopesMintTransformer: quest type '${quest.questType}' declares no routable family '${family}' — the routable families are: ${Object.entries(
+        questFlowStatics[quest.questType].families,
+      )
+        .filter(([, entry]) => 'text' in entry)
+        .map(([name]) => name)
+        .join(', ')}`,
     );
   }
 
   // `locked` enrols a scope in its role's `slotManagerStatics` pt budget. It defaults TRUE and only
   // codeweaver sets it false, because the flows are the acceptance target and that chain has to stay
   // unbounded.
-  const familyEntry = new Map(Object.entries(questFlowStatics[quest.questType].families)).get(
-    family,
-  );
-  const locked = familyEntry !== undefined && 'locked' in familyEntry ? familyEntry.locked : true;
+  const locked = 'locked' in familyEntry ? familyEntry.locked : true;
 
   // Every package the quest's spine is tagged with, first-tagged order, deduplicated — the fallback
   // for a slice that names none of its own. Nobody authored these scopes, so the node tags are the
@@ -72,14 +68,13 @@ export const familyScopesMintTransformer = ({
     }
   }
 
-  return relayTailFanOutTransformer({ entry: seed, quest }).map((slice) =>
+  return relayTailFanOutTransformer({ entry: familyEntry, quest }).map((slice) =>
     operationItemContract.parse({
       id: crypto.randomUUID(),
-      role: seed.role,
+      role: familyEntry.role,
       text: slice.text,
       status: 'pending',
       locked,
-      ...('wardMode' in seed ? { wardMode: seed.wardMode } : {}),
       flowIds: slice.flowIds,
       // A COMMAND role is excluded from the spine fallback: `packageNames` exists to narrow an
       // AGENT's search to its slice, and the dispatcher runs a command itself with no prompt to
@@ -88,7 +83,7 @@ export const familyScopesMintTransformer = ({
       packageNames:
         slice.packageNames.length > 0
           ? slice.packageNames
-          : isCommandWorkItemRoleGuard({ role: seed.role })
+          : isCommandWorkItemRoleGuard({ role: familyEntry.role })
             ? []
             : [...spinePackages.values()],
     }),

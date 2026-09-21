@@ -18,15 +18,16 @@ export const claudeQueueResponseContract = z.object({
   lines: z.array(streamJsonLineContract),
   exitCode: exitCodeContract.optional(),
   delayMs: timeoutMsContract.optional(),
-  // E2E dispatch-loop driver: when present, the fake Claude CLI parses questId/workItemId from the
+  // E2E dispatch-loop driver: when true, the fake Claude CLI parses questId/workItemId from the
   // `-p` task prompt and POSTs the env-gated /api/quests/:questId/signal-back endpoint (awaited)
   // BEFORE it writes its JSONL + exits, so the operations relay advances before the child exit the
   // Node dispatcher awaits (an in_progress work item seen at scan is treated as orphaned).
-  signalBack: z
-    .object({
-      operationStatus: z.enum(['done', 'partial']),
-    })
-    .optional(),
+  //
+  // A FLAG, not an outcome. `signal-back` is a session-terminal marker: both its input contracts
+  // are `.strict()` and carry questId, workItemId, signal, operationItemId and blockedReason and
+  // nothing else, so there is no outcome word for a queued response to choose. A session's outcome
+  // rides on `quest-work`, which the fake CLI has no MCP client to call.
+  signalBack: z.boolean().optional(),
   // E2E restart driver: when true, the fake Claude CLI emits its lines (so sessionId stamps from the
   // init line) then blocks forever without exiting or signalling — the dispatch loop stays parked on
   // that child until the process is killed (server restart / pause).

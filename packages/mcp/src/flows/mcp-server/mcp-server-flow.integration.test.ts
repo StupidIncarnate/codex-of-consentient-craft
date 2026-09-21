@@ -10,7 +10,6 @@ import {
   DesignDecisionStub,
   FlowNodeStub,
   FlowObservableStub,
-  FlowOffMapSignoffStub,
   FlowStub,
   OperationItemStub,
   QuestCommentStub,
@@ -19,7 +18,6 @@ import {
   QuestStub,
   SignoffStub,
   ToolingRequirementStub,
-  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 import { mcpToolsStatics } from '@dungeonmaster/shared/statics';
 
@@ -1506,228 +1504,6 @@ describe('McpServerFlow', () => {
     });
   });
 
-  // Drives the REAL MCP boundary end-to-end for the walk-reset lever: spawned server subprocess,
-  // real orchestrator, real quest.json on disk. The layer-responder and broker unit tests both mock
-  // a layer, so this is the only place the registration, the dispatch branch, the ownership check
-  // and the persist are proven to be wired to each other.
-  describe('tools/call with reset-flow-signoffs', () => {
-    const RESET_GUILD_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
-    const RESET_WORK_ITEM_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
-    const RESET_OPERATION_ID = 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479';
-
-    it('VALID: {siegemaster work item, in-scope flow} => the persisted quest loses every siegemasterSignoff on that flow, keeps every flowriderSignoff, and gains one walk-reset note', async () => {
-      const questId = 'mcp-reset-flow-signoffs';
-      const questFolder = '001-mcp-reset-flow-signoffs';
-      const flowriderSignoff = SignoffStub({
-        evidence: 'packages/web/src/flows/login/login.e2e.ts:31 — red without the redirect',
-      });
-      const siegemasterSignoff = SignoffStub({
-        evidence: 'walked it against the dev server — landed on /dashboard',
-        workItemId: RESET_WORK_ITEM_ID,
-        at: '2026-01-02T00:00:00.000Z',
-      });
-      const quest = QuestStub({
-        id: questId as never,
-        folder: questFolder as never,
-        status: 'in_progress' as never,
-        flows: [
-          FlowStub({
-            id: 'login-flow' as never,
-            nodes: [
-              FlowNodeStub({
-                id: 'start' as never,
-                label: 'Start' as never,
-                flowriderSignoff,
-                siegemasterSignoff,
-                observables: [
-                  FlowObservableStub({
-                    id: 'login-redirects-to-dashboard' as never,
-                    flowriderSignoff,
-                    siegemasterSignoff,
-                  }),
-                ],
-              }),
-            ],
-            edges: [],
-            offMapSignoffs: [
-              FlowOffMapSignoffStub({ id: 'concurrency' as never, siegemasterSignoff }),
-            ],
-          }),
-        ],
-        operations: [
-          OperationItemStub({
-            id: RESET_OPERATION_ID as never,
-            role: 'siegemaster' as never,
-            text: 'Siegemaster: manual QA — flow: login-flow' as never,
-            status: 'in_progress' as never,
-            locked: true,
-            flowIds: ['login-flow'] as never,
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: RESET_WORK_ITEM_ID as never,
-            role: 'siegemaster' as never,
-            status: 'in_progress' as never,
-            relatedDataItems: [`operations/${RESET_OPERATION_ID}`] as never,
-          }),
-        ],
-      });
-
-      await mcp.seedQuest({
-        dungeonmasterHome: client.dungeonmasterHome,
-        guildId: RESET_GUILD_ID,
-        questFolder,
-        quest,
-      });
-
-      const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 7501 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
-        params: {
-          name: 'reset-flow-signoffs',
-          arguments: {
-            questId,
-            workItemId: RESET_WORK_ITEM_ID,
-            flowId: 'login-flow',
-            reason: 'Fixed the redirect guard the walk exposed, so every sign-off here is stale.',
-          },
-        },
-      });
-
-      const response = await client.sendRequest(request);
-
-      const persisted = QuestStub(
-        mcp.readQuestFile({
-          dungeonmasterHome: client.dungeonmasterHome,
-          guildId: RESET_GUILD_ID,
-          questFolder,
-        }) as never,
-      );
-      const persistedFlow = persisted.flows[0]!;
-      const persistedNode = persistedFlow.nodes[0]!;
-
-      expect(response.error).toBe(undefined);
-      expect({
-        nodeSiegemaster: persistedNode.siegemasterSignoff,
-        nodeFlowrider: persistedNode.flowriderSignoff,
-        observableSiegemaster: persistedNode.observables[0]!.siegemasterSignoff,
-        observableFlowrider: persistedNode.observables[0]!.flowriderSignoff,
-        offMapSiegemaster: persistedFlow.offMapSignoffs[0]!.siegemasterSignoff,
-        notes: persisted.planningNotes.questNotes.map((note) => ({
-          id: String(note.id),
-          kind: note.kind,
-          flowId: String(note.flowId),
-          detail: String(note.detail),
-        })),
-      }).toStrictEqual({
-        nodeSiegemaster: undefined,
-        nodeFlowrider: flowriderSignoff,
-        observableSiegemaster: undefined,
-        observableFlowrider: flowriderSignoff,
-        offMapSiegemaster: undefined,
-        notes: [
-          {
-            id: 'walk-reset-login-flow-1',
-            kind: 'walk-reset',
-            flowId: 'login-flow',
-            detail: 'Fixed the redirect guard the walk exposed, so every sign-off here is stale.',
-          },
-        ],
-      });
-    });
-
-    it('INVALID: {flow outside the caller scope} => the tool refuses and the persisted sign-offs are untouched', async () => {
-      const questId = 'mcp-reset-flow-signoffs-out-of-scope';
-      const questFolder = '001-mcp-reset-flow-signoffs-out-of-scope';
-      const siegemasterSignoff = SignoffStub({
-        evidence: 'walked the signup path by hand',
-        workItemId: RESET_WORK_ITEM_ID,
-        at: '2026-01-02T00:00:00.000Z',
-      });
-      const quest = QuestStub({
-        id: questId as never,
-        folder: questFolder as never,
-        status: 'in_progress' as never,
-        flows: [
-          FlowStub({
-            id: 'signup-flow' as never,
-            name: 'Signup Flow' as never,
-            entryPoint: '/signup' as never,
-            exitPoints: ['/welcome' as never],
-            nodes: [
-              FlowNodeStub({
-                id: 'start' as never,
-                label: 'Start' as never,
-                siegemasterSignoff,
-              }),
-            ],
-            edges: [],
-          }),
-        ],
-        operations: [
-          OperationItemStub({
-            id: RESET_OPERATION_ID as never,
-            role: 'siegemaster' as never,
-            text: 'Siegemaster: manual QA — flow: login-flow' as never,
-            status: 'in_progress' as never,
-            locked: true,
-            flowIds: ['login-flow'] as never,
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: RESET_WORK_ITEM_ID as never,
-            role: 'siegemaster' as never,
-            status: 'in_progress' as never,
-            relatedDataItems: [`operations/${RESET_OPERATION_ID}`] as never,
-          }),
-        ],
-      });
-
-      await mcp.seedQuest({
-        dungeonmasterHome: client.dungeonmasterHome,
-        guildId: RESET_GUILD_ID,
-        questFolder,
-        quest,
-      });
-
-      const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 7502 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
-        params: {
-          name: 'reset-flow-signoffs',
-          arguments: {
-            questId,
-            workItemId: RESET_WORK_ITEM_ID,
-            flowId: 'signup-flow',
-            reason: 'Trying to reset a flow this session does not own.',
-          },
-        },
-      });
-
-      const response = await client.sendRequest(request);
-      const result = ToolCallResultStub(response.result as never);
-
-      const persisted = QuestStub(
-        mcp.readQuestFile({
-          dungeonmasterHome: client.dungeonmasterHome,
-          guildId: RESET_GUILD_ID,
-          questFolder,
-        }) as never,
-      );
-
-      expect(result.isError).toBe(true);
-      expect(String(result.content[0]?.text)).toMatch(
-        /^\{\n {2}"success": false,\n {2}"error": "reset-flow-signoffs: flow signup-flow is outside the scope of work item aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa, whose operation item a1b2c3d4-58cc-4372-a567-0e02b2c3d479 covers login-flow — nothing was reset"\n\}$/u,
-      );
-      expect({
-        nodeSiegemaster: persisted.flows[0]!.nodes[0]!.siegemasterSignoff,
-        notes: persisted.planningNotes.questNotes,
-      }).toStrictEqual({ nodeSiegemaster: siegemasterSignoff, notes: [] });
-    });
-  });
-
   // Drives the REAL MCP boundary end-to-end for the summary: spawned server subprocess, real
   // orchestrator, real quest.json on disk. The layer responder and the renderer are unit-tested
   // against stubs, so this is the only place the registration, the dispatch Map entry, the
@@ -1872,14 +1648,12 @@ describe('McpServerFlow', () => {
       'get-quest',
       'get-quest-status',
       'get-quest-planning-notes',
-      'get-qa-checklist',
       'get-blight-checklist',
       'get-agent-prompt',
       'run-ward',
       'run-riftcarver',
       'create-worktree',
       'ask-user-question',
-      'reset-flow-signoffs',
       'get-quest-summary',
       'quest-work',
       'get-quest-work',

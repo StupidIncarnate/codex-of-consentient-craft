@@ -2,16 +2,16 @@
  * PURPOSE: Runs ward synchronously for one ward work item and applies the outcome to the
  * operations ledger. Ward is a first-class operation item: GREEN marks the linked ward operation
  * item complete and advances to the next item; RED marks it complete too, then appends a
- * spiritmender operation item plus a fresh ward continuation ("pt N", same wardMode) AFTER it —
- * so the next dispatched item is the spiritmender (never another ward back-to-back), and the
- * fresh ward re-verifies after the fix. The red chain is bounded: once the ward items of this
- * wardMode since the last green ward of the same mode reach `slotManagerStatics.ward.maxRetries`,
- * the quest blocks instead of appending another fix loop. A CRASH exit
+ * spiritmender operation item plus a fresh ward continuation ("pt N") AFTER it — so the next
+ * dispatched item is the spiritmender (never another ward back-to-back), and the fresh ward
+ * re-verifies after the fix. The red chain is bounded: once the ward items since the last green ward
+ * reach `slotManagerStatics.ward.maxRetries`, the quest blocks instead of appending another fix
+ * loop. A CRASH exit
  * (`wardExitCodeStatics.exitCodes.crash` — ward could not run a check at all) skips the fix loop
  * entirely and blocks immediately: there is no failing file to hand a spiritmender.
  *
  * USAGE:
- * const result = await questRunWardBroker({ questId, workItemId, mode: 'committed' });
+ * const result = await questRunWardBroker({ questId, workItemId });
  * // Spawns ward, persists the trimmed detail blob under quest-folder/ward-results/, appends a
  * //   WardResult ref to quest.wardResults, atomically applies work-item terminal status +
  * //   ledger mutation, calls advance, and returns { success, exitCode, wardResultId }.
@@ -27,9 +27,12 @@
  * with genuinely nowhere to send it pass `() => undefined` explicitly. See
  * `packages/shared/CLAUDE.md` → "Streaming Adapters".
  *
+ * IT ALWAYS GRADES THE WHOLE MONOREPO. `wardFull` is the only family whose role is `ward`, so a
+ * `run-ward` dispatch is always that family's gate; a family's own committed ward is a deterministic
+ * STEP and runs through `stepHandlerWardBroker` with the scope in that step's `args`.
+ *
  * Ward runs inside the quest's own worktree (or the legacy repo root for a quest recorded before
- * worktrees existed) — the same tree its file set has to describe, since a `--committed` run diffs
- * against origin's default branch from inside that tree.
+ * worktrees existed) — the same tree its file set has to describe.
  */
 
 import {
@@ -70,16 +73,15 @@ import { questModifyBroker } from '../modify/quest-modify-broker';
 import { questOperationsUpdateBroker } from '../operations-update/quest-operations-update-broker';
 
 const WARD_COMMAND = 'dungeonmaster-ward';
+const RUN_SUBCOMMAND = 'run';
 
 export const questRunWardBroker = async ({
   questId,
   workItemId,
-  mode,
   onLine,
 }: {
   questId: QuestId;
   workItemId: QuestWorkItemId;
-  mode: 'committed' | 'full';
   onLine: (line: string) => void;
 }): Promise<QuestRunWardResult> => {
   // Resolve the quest's cwd BEFORE any spawn or stamp. A quest whose recorded worktree is
@@ -136,11 +138,12 @@ export const questRunWardBroker = async ({
   });
 
   // 2. Spawn ward, streaming each stdout/stderr line to the caller as it arrives.
-  const args = mode === 'committed' ? ['run', '--committed'] : ['run'];
-
   const { exitCode: rawExitCode, output } = await childProcessSpawnStreamLinesAdapter({
     command: process.env.WARD_CLI_PATH ?? WARD_COMMAND,
-    args,
+    // No scope flag: `wardFull` is the only family whose role is `ward`, so this run always grades
+    // the whole monorepo. A family's own committed ward runs through `stepHandlerWardBroker` with
+    // the scope in its step's own `args`.
+    args: [RUN_SUBCOMMAND],
     cwd: startPath,
     onLine,
   });
@@ -173,7 +176,7 @@ export const questRunWardBroker = async ({
     createdAt: new Date().toISOString(),
     exitCode,
     ...(runId ? { runId: String(runId) } : {}),
-    wardMode: mode,
+    wardMode: 'full',
   });
 
   const wardResultsModifyResult = await questModifyBroker({
@@ -253,13 +256,11 @@ export const questRunWardBroker = async ({
         return { operations: completedOperations, workItems: nextWorkItems };
       }
 
-      // RED — bound the fix loop: count the ward operation items of this wardMode since the
-      // last GREEN ward of the same mode (a ward op is green when its linked ward work item
-      // completed). Reaching the budget blocks instead of appending another spiritmender+ward.
-      const sameModeWardOps = quest.operations.filter(
-        (operation) => operation.role === 'ward' && operation.wardMode === mode,
-      );
-      const lastGreenIndex = sameModeWardOps.reduce(
+      // RED — bound the fix loop: count the ward operation items since the last GREEN ward (a ward
+      // op is green when its linked ward work item completed). Reaching the budget blocks instead of
+      // appending another spiritmender+ward.
+      const wardOps = quest.operations.filter((operation) => operation.role === 'ward');
+      const lastGreenIndex = wardOps.reduce(
         (acc, operation, index) =>
           quest.workItems.some(
             (item) =>
@@ -273,7 +274,7 @@ export const questRunWardBroker = async ({
             : acc,
         -1,
       );
-      const redChainLength = sameModeWardOps.length - (lastGreenIndex + 1);
+      const redChainLength = wardOps.length - (lastGreenIndex + 1);
 
       if (redChainLength >= slotManagerStatics.ward.maxRetries) {
         blockedOnSpentWardChain.value = true;
@@ -283,7 +284,7 @@ export const questRunWardBroker = async ({
       const spiritmenderOp = operationItemContract.parse({
         id: crypto.randomUUID(),
         role: 'spiritmender',
-        text: `Spiritmender: fix ward (${mode}) failures — wardResult ${wardResultId}`,
+        text: `Spiritmender: fix ward failures — wardResult ${wardResultId}`,
         status: 'pending',
         locked: true,
       });
@@ -303,7 +304,6 @@ export const questRunWardBroker = async ({
         locked: true,
         flowIds: linkedOperation.flowIds,
         packageNames: linkedOperation.packageNames,
-        wardMode: mode,
       });
 
       const insertIndex =

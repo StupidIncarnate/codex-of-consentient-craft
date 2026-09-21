@@ -149,16 +149,26 @@ describe('claudeQueueResponseContract', () => {
       const result = claudeQueueResponseContract.parse({
         sessionId: SessionIdStub(),
         lines: [],
-        signalBack: { operationStatus: 'done' },
+        signalBack: true,
         hang: true,
       });
 
       expect(result).toStrictEqual({
         sessionId: SessionIdStub(),
         lines: [],
-        signalBack: { operationStatus: 'done' },
+        signalBack: true,
         hang: true,
       });
+    });
+
+    it('INVALID: {signalBack carrying an outcome word} => throws, because signal-back carries no outcome', () => {
+      expect(() => {
+        claudeQueueResponseContract.parse({
+          sessionId: SessionIdStub(),
+          lines: [],
+          signalBack: { operationStatus: 'done' },
+        });
+      }).toThrow(/Expected boolean/u);
     });
   });
 

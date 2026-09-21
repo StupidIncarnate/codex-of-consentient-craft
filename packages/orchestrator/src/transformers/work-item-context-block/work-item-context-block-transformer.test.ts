@@ -8,7 +8,7 @@ import {
 import { workItemContextBlockTransformer } from './work-item-context-block-transformer';
 
 describe('workItemContextBlockTransformer', () => {
-  it('VALID: {quest, workItem with no packagesAffected and no wardMode} => returns minimal context block', () => {
+  it('VALID: {quest, workItem with no packagesAffected} => returns minimal context block', () => {
     const workItem = WorkItemStub({
       id: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
       role: 'codeweaver',
@@ -31,49 +31,7 @@ describe('workItemContextBlockTransformer', () => {
     );
   });
 
-  it('VALID: {quest with packagesAffected, workItem with wardMode} => appends both lines', () => {
-    const workItem = WorkItemStub({
-      id: QuestWorkItemIdStub({ value: 'cccccccc-1111-4222-9333-444444444444' }),
-      role: 'ward',
-      wardMode: 'full',
-    });
-    const quest = QuestStub({
-      packagesAffected: [
-        QuestPackageEntryStub({
-          name: 'orchestrator',
-          location: './packages/orchestrator',
-          changeType: 'edit',
-          packageType: 'programmatic-service',
-        }),
-        QuestPackageEntryStub({
-          name: 'mcp',
-          location: './packages/mcp',
-          changeType: 'edit',
-          packageType: 'mcp-server',
-        }),
-      ],
-      workItems: [workItem],
-    });
-
-    const result = workItemContextBlockTransformer({ quest, workItem });
-
-    expect(result).toBe(
-      [
-        '',
-        '---',
-        '',
-        '## Work item context',
-        '',
-        `- questId: ${quest.id}`,
-        `- workItemId: ${workItem.id}`,
-        '- role: ward',
-        '- packagesAffected: orchestrator (edit, programmatic-service), mcp (edit, mcp-server)',
-        '- wardMode: full',
-      ].join('\n'),
-    );
-  });
-
-  it('VALID: {quest with packagesAffected only} => appends packagesAffected line but not wardMode', () => {
+  it('VALID: {quest with packagesAffected} => appends the packagesAffected line', () => {
     const workItem = WorkItemStub({
       id: QuestWorkItemIdStub({ value: 'dddddddd-1111-4222-9333-444444444444' }),
       role: 'flowrider',

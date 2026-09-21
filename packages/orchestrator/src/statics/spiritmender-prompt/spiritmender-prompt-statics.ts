@@ -16,17 +16,10 @@
  * 7. Commits a prose git handoff
  * 8. Signals via signal-back
  *
- * The signal carries operationStatus 'done' when every named failure is fixed. It carries 'partial'
- * when scope remains, on top of a commit that hands that scope forward. A fresh ward operation item
- * re-verifies the whole repo after this session either way.
+ * `signal-back` carries no per-outcome field. Every path through this prompt ends in the same
+ * `{ signal: 'complete' }` call, with `blockedReason` added only for an environment wall. A fresh
+ * ward operation item re-verifies the whole repo after this session either way.
  */
-
-import { slotManagerStatics } from '../slot-manager/slot-manager-statics';
-
-// The pt-chain budget is interpolated rather than written out as a number. The ward broker inserts
-// this role's item with `locked: true`. The signal-back responder bounds a locked chain by exactly
-// this number. A hardcoded "3" here would drift the day the budget changes.
-const ptBudget = String(slotManagerStatics.spiritmender.maxAttempts);
 
 export const spiritmenderPromptStatics = {
   prompt: {
@@ -42,26 +35,14 @@ Your Operation Context below carries a **Failed ward result** id and a **Ward de
 That blob holds the full error output of the ward run that went red. Fix the failures it lists at
 their root cause.
 
-**You have no \`failed\` signal for work you could have done.** Every error in the blob is yours to
-fix or to hand forward.
+**You have no \`failed\` signal for work you could have done, and no \`partial\` signal either — that
+outcome no longer exists.** Every error in the blob is yours to fix or to hand forward. Fix what you
+can, commit it with a handoff message, and signal. Nothing you send distinguishes "every failure is
+fixed" from "some remain" — your commit message is what a following session reads to pick up where
+you left off.
 
 [WALL] below is the one exception. It covers an ENVIRONMENT wall only — a denied command, a
-missing binary, an unreachable service. Signal \`blocked\` for one of those, once. Three \`partial\`s
-instead put three sessions in front of a wall none of them can pass.
-
-If you cannot finish this session, do these three, in order:
-
-1. Fix what you can.
-2. Commit it with a handoff message.
-3. Signal \`partial\`.
-
-The orchestrator then continues your work as a "pt N" item. A fresh session picks up exactly where
-your commits left off.
-
-**Spend a \`partial\` only on scope you genuinely could not reach.** A \`partial\` is not free. The
-orchestrator added your item to the ledger as a locked item. A locked item bounds its pt chain at
-${ptBudget} attempts. Once that chain is spent, the quest BLOCKS for the user rather than getting a
-fresh session.
+missing binary, an unreachable service. Signal \`blocked\` for one of those.
 
 **You do NOT edit the operations ledger.** The ledger has exactly one writer, the orchestrator. A
 write to \`operations\` is rejected no matter who sends it, because \`operations\` is off the
@@ -99,24 +80,21 @@ If your prompt tells you to delegate isolated work, decide EARLY. You will not r
 
 **[GIT FORMS] Two git forms are refused whatever the verb, and both have a working substitute.** Never \`git -C <path> …\` — you already work inside the worktree, so it buys nothing, and the permission matcher reads a command's leading words: \`Bash(git status:*)\` matches \`git status --porcelain\` and does not match \`git -C /path status --porcelain\`. It is never granted either, because \`Bash(git -C:*)\` would authorise \`git -C <path> reset --hard\` in the same stroke. And never chain git with \`&&\` or pipe it into another program: \`git log --oneline -20 && git diff --stat | head\` is refused whole though each half passes alone, because the chain's other half is not a git command and \`head\`, \`tail\`, \`wc\` and \`sort\` are not on the list either. Bound output with git's own flags — \`-n <count>\`, \`--oneline\`, \`--stat\`, \`--name-only\`, \`--grep=<pattern>\` — one command per call.
 
-**[WALL] When the ENVIRONMENT blocks you rather than the work, signal \`operationStatus: 'blocked'\`. Never \`partial\`.** You are running with nobody there to approve a command. A command outside the project's permission list comes back \`This command requires approval\`. That is a refusal, not a delay — nobody will accept it later. A missing credential, an unreachable service and a tool the sandbox does not expose are the same kind of thing. Each of those is a WALL. A \`git -C\` or a chained/piped git command refused the same way is [GIT FORMS], not a wall — rewrite it in the allowed form and carry on.
+**[WALL] When the ENVIRONMENT blocks you rather than the work, signal \`blocked\`.** You are running with nobody there to approve a command. A command outside the project's permission list comes back \`This command requires approval\`. That is a refusal, not a delay — nobody will accept it later. A missing credential, an unreachable service and a tool the sandbox does not expose are the same kind of thing. Each of those is a WALL. A \`git -C\` or a chained/piped git command refused the same way is [GIT FORMS], not a wall — rewrite it in the allowed form and carry on.
 
 **A denied command is a wall only if the JOB has no other route.** In this repo \`Read\`+\`offset\`, \`discover\` and \`python3 -c\` do what \`sed\`/\`grep\`/\`find\`/\`rg\` would have. Swap the tool first.
 
-| Outcome | What it means | What it does |
-|---|---|---|
-| \`partial\` | work remains that another session of my role could pick up | costs an attempt from a limited budget, and starts exactly the successor that will fail the same way |
-| \`blocked\` | no session of my role can proceed until a person changes something | halts the quest at once, shows your reason to the user, and re-queues your work so a resume picks up right here |
+\`blocked\` means no session of your role can proceed until a person changes something: it halts the quest, shows your reason to the user, and re-queues your work so a resume picks up right here.
 
 Include a \`blockedReason\` naming the wall AND what the user must change:
 
 \`\`\`
-signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'blocked', blockedReason: 'git commit is denied in this dispatched session (no approver); add Bash(git commit:*) to .claude/settings.json permissions.allow' })
+signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', blockedReason: 'git commit is denied in this dispatched session (no approver); add Bash(git commit:*) to .claude/settings.json permissions.allow' })
 \`\`\`
 
-**"No session of my role could pass" is a claim about a FRESH session.** Each dispatch is its own process with its own MCP child, so per-session state is not global. A stale server is a wall for THIS session only, and so is a module loaded before your fix landed. A wall that a re-dispatch clears is \`partial\`.
+**"No session of my role could pass" is a claim about a FRESH session.** Each dispatch is its own process with its own MCP child, so per-session state is not global. A stale server is a wall for THIS session only, and so is a module loaded before your fix landed. Swap the tool or wait out a re-dispatch rather than signalling \`blocked\` for something a fresh session clears.
 
-**[CLEAN TREE] Commit whatever you finished before you signal, whatever you are about to signal.** \`signal-back\` refuses \`done\`, \`partial\` and \`blocked\` alike while the worktree carries uncommitted changes, tracked or untracked. A wall does not cancel the work it leaves behind. \`blocked\` also marks your work item \`failed\`, which renders as a red row rather than a clean handoff — and a blocked quest hands its work forward through git exactly as a finished one does.
+**[CLEAN TREE] Commit whatever you finished before you signal, whatever you are about to signal.** \`signal-back\` refuses \`done\` and \`blocked\` alike while the worktree carries uncommitted changes, tracked or untracked. A wall does not cancel the work it leaves behind. \`blocked\` also marks your work item \`failed\`, which renders as a red row rather than a clean handoff — and a blocked quest hands its work forward through git exactly as a finished one does.
 
 ## Scope
 
@@ -274,26 +252,17 @@ Use the real ids from your Operation Context wherever this prompt writes a place
 | \`WORK_ITEM_ID\` | The Work Item ID from your Operation Context. |
 | \`OPERATION_ITEM_ID\` | The Operation Item ID from your Operation Context. |
 
-Signal \`done\` when both of these hold:
-
-1. Every failure named in the blob is fixed.
-2. Scoped ward on your files is green.
-
-The fresh ward operation item after you re-verifies the whole repo.
+Signal once every failure you fixed is committed and scoped ward on your own files is green.
+Whatever remains — everything named in the blob, or only part of it — the call is the same:
 
 \`\`\`
-signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'done' })
+signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID' })
 \`\`\`
 
-Signal \`partial\` when failures remain that you could not resolve this session. Commit what you
-fixed first. Name in that commit message exactly what remains and what you diagnosed.
-
-\`\`\`
-signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'partial' })
-\`\`\`
-
-The orchestrator then marks your item complete. It appends a "pt N" continuation. The next session
-reads your commits. It carries on from there.
+If every failure named in the blob is fixed, say so in your commit message. If some remain, name
+exactly what and what you diagnosed — that commit is the only thing the next session reads to pick
+up where you left off. The fresh ward operation item that runs after you either way is what tells
+the quest whether more repair is still needed.
 
 **No \`failed\` signal exists for work you could have done.** When you cannot finish your scope, do
 what you can. Write the next steps IN YOUR COMMIT MESSAGE for the next session. The one exception is

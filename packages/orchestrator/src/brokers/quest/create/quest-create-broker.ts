@@ -9,7 +9,7 @@
  * don't need a second persist+outbox event for the initial intake item:
  *   await questCreateBroker({ questId, guildId, input, initialWorkItems: [intakeItem] });
  *
- * PLAN OPERATION ITEM: every quest type names an intake agent in questTypeRegistryStatics
+ * PLAN OPERATION ITEM: every quest type names an intake agent in questFlowStatics
  * (feature's chaoswhisperer, bug-hunt's bughunt), so the create seeds ONE plan operation item
  * ({ role, text: 'Author spec + implementation plan', status: in_progress, locked }) and stitches
  * its operations/<id> ref into the caller-supplied intake work item — so EVERY work item, from the
@@ -34,7 +34,7 @@ import type {
   QuestId,
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
-import { locationsStatics, questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
+import { locationsStatics, questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { questPersistBroker } from '../persist/quest-persist-broker';
 import { questResolveQuestsPathBroker } from '../resolve-quests-path/quest-resolve-quests-path-broker';
@@ -60,7 +60,7 @@ export const questCreateBroker = async ({
   );
   await fsMkdirAdapter({ filepath: questFolderPath });
 
-  const { initialWorkItemRole } = questTypeRegistryStatics[input.questType ?? 'feature'];
+  const { initialWorkItemRole } = questFlowStatics[input.questType ?? 'feature'];
 
   const planOperationItem: OperationItem = operationItemContract.parse({
     id: crypto.randomUUID(),

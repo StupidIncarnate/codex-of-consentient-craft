@@ -47,7 +47,6 @@ describe('workItemContract', () => {
         errorMessage: 'verification_failed',
         summary: 'Implemented user fetch with tests',
         insertedBy: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        wardMode: 'committed',
       });
 
       const result = workItemContract.parse(item);
@@ -72,7 +71,6 @@ describe('workItemContract', () => {
         errorMessage: 'verification_failed',
         summary: 'Implemented user fetch with tests',
         insertedBy: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        wardMode: 'committed',
       });
     });
 
@@ -105,11 +103,10 @@ describe('workItemContract', () => {
       });
     });
 
-    it('VALID: ward item with wardMode full => parses successfully', () => {
+    it('VALID: ward item => parses successfully', () => {
       const item = WorkItemStub({
         role: 'ward',
         spawnerType: 'command',
-        wardMode: 'full',
       });
 
       const result = workItemContract.parse(item);
@@ -127,7 +124,6 @@ describe('workItemContract', () => {
         maxAttempts: 1,
         retryCount: 0,
         createdAt: '2024-01-15T10:00:00.000Z',
-        wardMode: 'full',
       });
     });
 
@@ -424,19 +420,6 @@ describe('workItemContract', () => {
           relatedDataItems: ['invalid-format'],
         });
       }).toThrow(/Must be \{collection\}\/\{id\}/u);
-    });
-
-    it('INVALID: {invalid wardMode} => throws validation error', () => {
-      expect(() => {
-        workItemContract.parse({
-          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          role: 'ward',
-          status: 'pending',
-          spawnerType: 'command',
-          createdAt: '2024-01-15T10:00:00.000Z',
-          wardMode: 'invalid',
-        });
-      }).toThrow(/Invalid enum value/u);
     });
 
     it('INVALID: {negative attempt} => throws validation error', () => {

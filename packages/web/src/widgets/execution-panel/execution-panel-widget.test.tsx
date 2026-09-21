@@ -168,7 +168,6 @@ describe('ExecutionPanelWidget', () => {
             role: 'ward',
             text: 'verify: ward',
             status: 'pending',
-            wardMode: 'committed',
           }),
         ],
         workItems: [
@@ -503,7 +502,6 @@ describe('ExecutionPanelWidget', () => {
             role: 'ward',
             text: 'verify: ward',
             status: 'complete',
-            wardMode: 'committed',
           }),
         ],
         workItems: [

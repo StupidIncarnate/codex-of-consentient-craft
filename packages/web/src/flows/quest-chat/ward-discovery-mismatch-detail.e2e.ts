@@ -72,7 +72,6 @@ test.describe('Failed ward row shows discovery-mismatch detail (all checks pass/
           text: 'ward (committed)',
           status: 'in_progress',
           locked: true,
-          wardMode: 'committed',
         },
       ],
       workItems: [

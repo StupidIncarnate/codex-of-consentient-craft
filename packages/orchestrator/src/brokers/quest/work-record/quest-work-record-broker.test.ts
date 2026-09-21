@@ -260,7 +260,7 @@ describe('questWorkRecordBroker', () => {
       );
     });
 
-    it("ERROR: {kind: invalidation, an unknown workItemId} => throws the reset-flow-signoffs :72 guard VERBATIM, 'nothing was reset'", async () => {
+    it("ERROR: {kind: invalidation, an unknown workItemId} => throws naming the work item, 'nothing was reset'", async () => {
       const proxy = questWorkRecordBrokerProxy();
       const quest = QuestStub({ id: QUEST_ID, workItems: [] });
       proxy.setupQuestFound({ quest });

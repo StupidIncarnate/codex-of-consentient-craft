@@ -1,8 +1,8 @@
 /**
  * PURPOSE: Names ONE of ward's check types — the word a repair session puts after `--only`. Reach
- * for this over `wardModeContract` (`@dungeonmaster/shared/contracts`): that one names WHICH ward
- * INVOCATION a command work item runs (`changed` / `full`), where this names a check WITHIN a run,
- * read back off the result detail blob's `checks[].checkType`.
+ * for this over a step's `args` (`agentFlowStatics`): those name the SCOPE a ward invocation grades,
+ * where this names a check WITHIN a run, read back off the result detail blob's
+ * `checks[].checkType`.
  *
  * USAGE:
  * wardCheckTypeContract.parse('typecheck');

@@ -447,7 +447,7 @@ describe('ChatStartResponder', () => {
   describe('existingQuestId resolution', () => {
     // chat-start-responder.ts's `else if (existingQuestId)` branch reassigns `chatQuestType`
     // from the looked-up quest and derives the intake role from
-    // `questTypeRegistryStatics[chatQuestType].initialWorkItemRole` before calling
+    // `questFlowStatics[chatQuestType].initialWorkItemRole` before calling
     // chatSpawnBroker with that role. A bug-hunt quest's intake item is a `bughunt` work item,
     // not `chaoswhisperer` — resolveChatQuestLayerBroker's existingQuestId branch throws
     // "Quest <id> has no <role> work item" when chatSpawnBroker is called with a role that has

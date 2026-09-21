@@ -5,15 +5,15 @@ import {
   QuestWorkItemIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
-import { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
+import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { questBuildRelayGraphBroker } from './quest-build-relay-graph-broker';
 import { questBuildRelayGraphBrokerProxy } from './quest-build-relay-graph-broker.proxy';
 import { IsoTimestampStub } from '../../../contracts/iso-timestamp/iso-timestamp.stub';
 
-type QuestTypeKey = keyof typeof questTypeRegistryStatics;
+type QuestTypeKey = keyof typeof questFlowStatics;
 
-const QUEST_TYPES = Object.keys(questTypeRegistryStatics) as readonly QuestTypeKey[];
+const QUEST_TYPES = Object.keys(questFlowStatics) as readonly QuestTypeKey[];
 
 const UUIDS = [
   '00000000-0000-4000-8000-000000000001',

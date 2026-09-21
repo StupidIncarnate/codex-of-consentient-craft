@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist, create-quest, get-next-step, run-ward, run-riftcarver, get-server-config, reset-flow-signoffs, get-quest-summary, create-worktree, quest-work)
+ * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-blight-checklist, create-quest, get-next-step, run-ward, run-riftcarver, get-server-config, get-quest-summary, create-worktree, quest-work)
  *
  * USAGE:
  * const registrations = QuestFlow();
@@ -12,7 +12,6 @@ import { createQuestInputContract } from '../../contracts/create-quest-input/cre
 import { createWorktreeInputContract } from '../../contracts/create-worktree-input/create-worktree-input-contract';
 import { getBlightChecklistInputContract } from '../../contracts/get-blight-checklist-input/get-blight-checklist-input-contract';
 import { getNextStepInputContract } from '../../contracts/get-next-step-input/get-next-step-input-contract';
-import { getQaChecklistInputContract } from '../../contracts/get-qa-checklist-input/get-qa-checklist-input-contract';
 import { getQuestPlanningNotesInputContract } from '../../contracts/get-quest-planning-notes-input/get-quest-planning-notes-input-contract';
 import { getQuestWorkInputContract } from '../../contracts/get-quest-work-input/get-quest-work-input-contract';
 // The MCP-local get-quest contract, NOT the shared one: it adds `format`, which QuestHandleResponder
@@ -24,7 +23,6 @@ import { getQuestStatusInputContract } from '../../contracts/get-quest-status-in
 import { getQuestSummaryInputContract } from '../../contracts/get-quest-summary-input/get-quest-summary-input-contract';
 import { listQuestsInputContract } from '../../contracts/list-quests-input/list-quests-input-contract';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
-import { resetFlowSignoffsInputContract } from '../../contracts/reset-flow-signoffs-input/reset-flow-signoffs-input-contract';
 import { runRiftcarverInputContract } from '../../contracts/run-riftcarver-input/run-riftcarver-input-contract';
 import { questWorkInputContract } from '../../contracts/quest-work-input/quest-work-input-contract';
 import { runWardInputContract } from '../../contracts/run-ward-input/run-ward-input-contract';
@@ -46,10 +44,6 @@ const getQuestPlanningNotesSchema = zodToJsonSchema(
   getQuestPlanningNotesInputContract as never,
   jsonSchemaOptions,
 );
-const getQaChecklistSchema = zodToJsonSchema(
-  getQaChecklistInputContract as never,
-  jsonSchemaOptions,
-);
 const getBlightChecklistSchema = zodToJsonSchema(
   getBlightChecklistInputContract as never,
   jsonSchemaOptions,
@@ -58,10 +52,6 @@ const createQuestSchema = zodToJsonSchema(createQuestInputContract as never, jso
 const getNextStepSchema = zodToJsonSchema(getNextStepInputContract as never, jsonSchemaOptions);
 const runWardSchema = zodToJsonSchema(runWardInputContract as never, jsonSchemaOptions);
 const runRiftcarverSchema = zodToJsonSchema(runRiftcarverInputContract as never, jsonSchemaOptions);
-const resetFlowSignoffsSchema = zodToJsonSchema(
-  resetFlowSignoffsInputContract as never,
-  jsonSchemaOptions,
-);
 const getQuestSummarySchema = zodToJsonSchema(
   getQuestSummaryInputContract as never,
   jsonSchemaOptions,
@@ -121,13 +111,6 @@ export const QuestFlow = (): ToolRegistration[] => [
       QuestHandleResponder({ tool: 'get-quest-planning-notes' as never, args }),
   },
   {
-    name: 'get-qa-checklist' as never,
-    description:
-      "Returns a quest's COMPLETE QA surface, enumerated deterministically from its flow graphs: every terminal, every labelled decision branch, every observable with its verbatim text and the surface to check it at, every off-map probe family, plus the walk paths — and which units are still outstanding. A Codeweaver, Flowrider or Siegemaster session — and the reviewer it summons — calls this instead of reading the spec and enumerating by hand. **Pass `operationItemId` — it IS the scope.** Everything the scope depends on already lives on that item (its role is the track, plus its flowIds and packageNames), so what comes back is the FULL set of units your track owns on this item, and REMAINING is the ones still carrying no sign-off on it. That is the work list, not a gate — nothing refuses your `done` over it. There is nothing else to pass and no way to widen it by accident. An item whose role has no sign-off track (spiritmender, warpgate) is told so plainly: its scope is the block already in its Operation Context. `flowId` alone is the un-scoped browse form for a caller that owns no operation item, and may never be combined with `operationItemId`." as never,
-    inputSchema: getQaChecklistSchema as never,
-    handler: async ({ args }) => QuestHandleResponder({ tool: 'get-qa-checklist' as never, args }),
-  },
-  {
     name: 'get-blight-checklist' as never,
     description:
       "Returns a quest's COMPLETE blight review surface, computed deterministically from a git diff: every changed file crossed with each applicable standards concern, paired with its per-unit disposition in quest.planningNotes.blightLedger — and which units still carry no disposition. The `scope` parameter chooses WHICH changes are measured — the uncommitted working tree, what is committed here but not yet pushed, the last commit alone, or the whole quest from its pinned baseRef. Those four are NOT interchangeable and answer four different questions: read `scope`'s own description for what each one measures, and pass the one YOUR prompt names. A quest with no pinned baseRef, or an empty diff, states that plainly rather than erroring." as never,
@@ -159,7 +142,7 @@ export const QuestFlow = (): ToolRegistration[] => [
   {
     name: 'run-ward' as never,
     description:
-      'Runs `npm run ward` synchronously in changed or full mode and persists the result onto the named work item. Blocks until ward exits.' as never,
+      'Runs `npm run ward` synchronously over the whole monorepo and persists the result onto the named work item. Blocks until ward exits.' as never,
     inputSchema: runWardSchema as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'run-ward' as never, args }),
   },
@@ -176,14 +159,6 @@ export const QuestFlow = (): ToolRegistration[] => [
       'Returns the dungeonmaster server config { baseUrl, port } so slash commands can point the browser at the running server.' as never,
     inputSchema: emptySchema as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'get-server-config' as never, args }),
-  },
-  {
-    name: 'reset-flow-signoffs' as never,
-    description:
-      "Clears Siegemaster's walk sign-offs across ONE flow so the walk can be redone honestly: every observable, node, edge and off-map probe family on that flow loses its `siegemasterSignoff`. Flowrider's track is never touched. Call this after fixing a defect the walk exposed — the sign-offs already written measured a system that has changed underneath them. The flow must be declared by the calling work item's operation item, and a `walk-reset` note carrying your reason and the cleared count is appended to quest.planningNotes.questNotes." as never,
-    inputSchema: resetFlowSignoffsSchema as never,
-    handler: async ({ args }) =>
-      QuestHandleResponder({ tool: 'reset-flow-signoffs' as never, args }),
   },
   {
     name: 'get-quest-summary' as never,

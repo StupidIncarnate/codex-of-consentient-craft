@@ -145,7 +145,7 @@ const exitCode = response.exitCode ?? 0;
 const delayMs = response.delayMs ?? 10;
 const sessionId = response.sessionId || null;
 // E2E dispatch-loop driver fields (see claude-queue-response-contract).
-const signalBack = response.signalBack || null;
+const signalBack = response.signalBack === true;
 const hang = response.hang === true;
 
 // Extract user message from -p argument (matches real Claude CLI behavior)
@@ -174,6 +174,13 @@ const SIGNAL_BACK_HOST = 'dungeonmaster.localhost';
 // exits — the dispatch loop awaits the exit and re-scans, and an in_progress work item seen at scan
 // is treated as orphaned. Using the node `http` module (not global fetch) keeps this independent of
 // the runtime Node version.
+//
+// THE BODY IS THE WHOLE SIGNAL. `signalBackInputContract` is `.strict()` on both the MCP and the
+// HTTP side and holds questId, workItemId, signal, operationItemId and blockedReason — nothing
+// else. A real session records its marks and its outcome word through `quest-work` BEFORE it
+// signals; this child has no MCP client, so it records neither, and the relay reads the signal
+// alone. Any extra key here comes back `400 Invalid signal-back input`, the work item never goes
+// terminal, and orphan recovery spends its three resets before the quest blocks.
 function postSignalBack() {
     return new Promise((resolve) => {
         const questId = parsePromptId('questId');
@@ -189,7 +196,6 @@ function postSignalBack() {
         const payload = JSON.stringify({
             workItemId,
             signal: 'complete',
-            operationStatus: signalBack.operationStatus,
         });
         const req = http.request(
             {
@@ -292,66 +298,9 @@ function appendJsonlSessionLine(line) {
     fs.appendFileSync(jsonlSessionPath, line + '\n');
 }
 
-// A real orchestrator session dispatches a reviewer-minion over its round's output, and that
-// minion writes its verdicts to `quest.planningNotes.blightLedger` via modify-quest. The
-// signal-back review-coverage gate refuses `operationStatus: 'done'` from any of the five
-// orchestrator roles until at least one disposition carries THAT work item's id — so a fake agent
-// that reports done has to leave the same trace, or every relay-driving spec is refused at the
-// gate rather than at the behaviour it is testing. Fired only for `done`: `partial` and `blocked`
-// are the honest escapes the gate does not bind.
-function postReviewDisposition() {
-    return new Promise((resolve) => {
-        const questId = parsePromptId('questId');
-        const workItemId = parsePromptId('workItemId');
-        const port = process.env.DUNGEONMASTER_PORT;
-        if (!questId || !workItemId || !port) {
-            resolve();
-            return;
-        }
-        const payload = JSON.stringify({
-            planningNotes: {
-                blightLedger: [
-                    {
-                        // Derived per work item so two rounds never collide on one ledger key —
-                        // the ledger REPLACES on itemId.
-                        itemId: `packages/fake/src/${workItemId}.ts:craft`,
-                        disposition: 'reviewed',
-                        evidence: 'fake Claude CLI reviewer-minion stand-in for an e2e dispatch',
-                        observedBy: 'reviewer-minion',
-                        workItemId,
-                    },
-                ],
-            },
-        });
-        const req = http.request(
-            {
-                host: SIGNAL_BACK_HOST,
-                port: Number(port),
-                path: `/api/quests/${questId}`,
-                method: 'PATCH',
-                headers: {
-                    'content-type': 'application/json',
-                    'content-length': Buffer.byteLength(payload),
-                },
-            },
-            (res) => {
-                res.on('data', () => {});
-                res.on('end', () => resolve());
-            },
-        );
-        req.on('error', (err) => {
-            process.stderr.write(`Fake Claude CLI: review-disposition PATCH failed: ${err.message}\n`);
-            resolve();
-        });
-        req.write(payload);
-        req.end();
-    });
-}
-
 // Runs once every queued stream line has been emitted. In hang mode the process blocks forever
-// (init line already emitted so sessionId stamps). Otherwise it optionally records a review
-// disposition and signals back (both awaited), then exits. The JSONL session file needs no write
-// here — every line it holds was appended as it was emitted.
+// (init line already emitted so sessionId stamps). Otherwise it signals back (awaited), then exits.
+// The JSONL session file needs no write here — every line it holds was appended as it was emitted.
 async function finish() {
     if (hang) {
         // Keep the event loop alive indefinitely — a restart spec kills this child.
@@ -360,9 +309,6 @@ async function finish() {
     }
 
     if (signalBack) {
-        if (signalBack.operationStatus === 'done') {
-            await postReviewDisposition();
-        }
         await postSignalBack();
     }
 

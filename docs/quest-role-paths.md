@@ -177,9 +177,9 @@ routes an outcome to `@blocked`, when a bounded loop is spent, or when orphan re
 
 A quest carries a `questType` (`feature` | `bug-hunt`, default `feature`). **`questFlowStatics`
 (`@dungeonmaster/shared/statics`) is the family graph** — which family the relay ENTERS at, and which
-family every OUTCOME of a family routes to. `questTypeRegistryStatics` still holds the per-type intake
-(the slash command and `initialWorkItemRole`) and the seed text and `fanOutBy` each family's scopes are
-cut from.
+family every OUTCOME of a family routes to. That same statics holds the per-type intake (the slash
+command and `initialWorkItemRole`) and the `role`, `text` and `fanOutBy` each family's scopes are cut
+from.
 
 **THE TWO TYPES SHARE ONE GRAPH**, and `questFlowStatics`' own colocated test asserts it. A bug-hunt's
 intake writes flows and observables exactly as a feature's does, so the same families verify them; what
@@ -779,9 +779,14 @@ The resume prompt leads with the fact that the session was KILLED, not paused: i
 mid-action, so the agent's last edit/command/commit may never have landed. It requires re-establishing
 real state (`git status`, re-read the files, re-run the check that was in flight) BEFORE any new work.
 
-A **reconcile net** in the same broker covers the case where a work item is terminal but its operation
-item is still `in_progress` with nothing else to run: flip the work item back to `pending` (keeping
-identity + resume marker) so it re-dispatches and re-signals.
+**A TERMINAL work item is never reclaimed**, whatever its operation item reads. A scope stays
+`in_progress` across every step it runs, so a terminal item under a live scope is the ordinary state
+between a step RECORDING its outcome word and `questRouteScopeBroker` READING it — and the router runs
+AFTER recovery in the same scan, so reclaiming the item re-runs finished work the router never gets to
+route: the same deterministic step re-runs every scan until the reset budget blocks the quest. A
+half-applied signal is not a case here either — the signal handler writes work-item-terminal and
+operation-complete in ONE persist, so a signal that never landed leaves the item `in_progress`, which is
+the orphan case above.
 
 An escalation ends the scan. `recoverOrphanedWorkItemsLayerBroker` returns `{ quest, blocked }`, and
 `scan-once-layer-broker` returns `null` on `blocked: true` instead of continuing to the router or the
@@ -985,6 +990,12 @@ dispatchable while the wreckage is still in place.
   and overwriting `sessionId` with a new id. `agentId` is the sole exception: it is stamped only
   alongside an MCP parent-loop `sessionId`, which is not the agent's own session to resume. Proven
   end-to-end in `dispatch-resumes-retained-session.e2e.ts` by reading the spawned child's real argv.
+- **ORPH-1b — A TERMINAL work item is never reclaimed.** Recovery reads `isActiveWorkItemStatusGuard`
+  and nothing else; the linked operation item's status is not consulted. A scope stays `in_progress`
+  across every step it runs, so a terminal item under a live scope is a step that RECORDED its word
+  waiting for `questRouteScopeBroker` to READ it — and the router runs after recovery in the same scan.
+  Guarded in `recover-orphaned-work-items-layer-broker.test.ts` → "a terminal work item is never
+  reclaimed".
 - **ORPH-2 — Bounded.** `retryCount ≥ orphanRecovery.maxResets` → `blocked`.
 - **ORPH-3 — An API overload never spends the budget.** A non-zero exit carrying a 529 /
   `overloaded_error` marker retries in place on `apiOverloadRetryStatics`' two-tier schedule with

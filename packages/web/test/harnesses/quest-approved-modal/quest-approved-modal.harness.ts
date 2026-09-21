@@ -43,7 +43,6 @@ export const questApprovedModalHarness = ({
       text: string;
       status: string;
       locked?: boolean;
-      wardMode?: string;
     }[];
   }) => Promise<{
     guild: Record<PropertyKey, unknown>;
@@ -69,7 +68,6 @@ export const questApprovedModalHarness = ({
       text: string;
       status: string;
       locked?: boolean;
-      wardMode?: string;
     }[];
   }): Promise<{
     guild: Record<PropertyKey, unknown>;

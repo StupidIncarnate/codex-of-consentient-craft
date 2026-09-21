@@ -94,25 +94,23 @@ describe('operationItemContract', () => {
       });
     });
 
-    it('VALID: {role: ward, wardMode: changed, locked: true} => parses ward item', () => {
+    it('VALID: {role: ward, locked: true} => parses ward item', () => {
       const item = OperationItemStub({
         role: 'ward',
-        text: 'ward (committed)',
+        text: 'Ward gate (full monorepo)',
         status: 'in_progress',
         locked: true,
         flowIds: [],
-        wardMode: 'committed',
       });
 
       expect(item).toStrictEqual({
         id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
         role: 'ward',
-        text: 'ward (committed)',
+        text: 'Ward gate (full monorepo)',
         status: 'in_progress',
         locked: true,
         flowIds: [],
         packageNames: [],
-        wardMode: 'committed',
       });
     });
 
@@ -161,12 +159,6 @@ describe('operationItemContract', () => {
       expect(() => {
         return OperationItemStub({ text: '' as never });
       }).toThrow(/too_small/u);
-    });
-
-    it('INVALID: {wardMode: partial-run} => throws validation error', () => {
-      expect(() => {
-        return OperationItemStub({ wardMode: 'partial-run' as never });
-      }).toThrow(/invalid_enum_value/u);
     });
 
     it('EMPTY: {packageNames: [""]} => throws validation error', () => {

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Handles quest-related MCP tool calls (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist, reset-flow-signoffs, get-quest-summary, create-worktree, quest-work, get-quest-work)
+ * PURPOSE: Handles quest-related MCP tool calls (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-blight-checklist, get-quest-summary, create-worktree, quest-work, get-quest-work)
  *
  * USAGE:
  * const result = await QuestHandleResponder({ tool: ToolNameStub({ value: 'get-quest' }), args: { questId: 'abc' } });
@@ -21,9 +21,7 @@ import { orchestratorListGuildsAdapter } from '../../../adapters/orchestrator/li
 import { BlightChecklistLayerResponder } from './blight-checklist-layer-responder';
 import { CreateWorktreeLayerResponder } from './create-worktree-layer-responder';
 import { GetQuestLayerResponder } from './get-quest-layer-responder';
-import { QaChecklistLayerResponder } from './qa-checklist-layer-responder';
 import { QuestSummaryLayerResponder } from './quest-summary-layer-responder';
-import { ResetFlowSignoffsLayerResponder } from './reset-flow-signoffs-layer-responder';
 import { RunRiftcarverLayerResponder } from './run-riftcarver-layer-responder';
 import { GetQuestWorkLayerResponder } from './get-quest-work-layer-responder';
 import { QuestWorkLayerResponder } from './quest-work-layer-responder';
@@ -52,9 +50,7 @@ const layerResponders = new Map<
   (params: { args: Record<string, unknown> }) => Promise<ToolResponse>
 >([
   [toolNameContract.parse('get-quest'), GetQuestLayerResponder],
-  [toolNameContract.parse('get-qa-checklist'), QaChecklistLayerResponder],
   [toolNameContract.parse('get-blight-checklist'), BlightChecklistLayerResponder],
-  [toolNameContract.parse('reset-flow-signoffs'), ResetFlowSignoffsLayerResponder],
   [toolNameContract.parse('get-quest-summary'), QuestSummaryLayerResponder],
   [toolNameContract.parse('run-riftcarver'), RunRiftcarverLayerResponder],
   [toolNameContract.parse('create-worktree'), CreateWorktreeLayerResponder],
@@ -362,10 +358,10 @@ export const QuestHandleResponder = async ({
   }
 
   if (tool === 'run-ward') {
-    const { questId, workItemId, mode } = runWardInputContract.parse(args);
+    const { questId, workItemId } = runWardInputContract.parse(args);
 
     try {
-      const result = await orchestratorRunWardAdapter({ questId, workItemId, mode });
+      const result = await orchestratorRunWardAdapter({ questId, workItemId });
       return {
         content: [
           {

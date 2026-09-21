@@ -11,17 +11,20 @@
  * agentStepNodeContract.safeParse(stepNode).data?.handler;
  * // Returns the handler a `kind: 'deterministic'` step runs, or undefined for a prompt step
  *
- * `kind`, `handler` AND `args` ARE DECLARED because the DISPATCHER reads them. A deterministic step
- * is not spawned as a session at all — it runs its handler through `stepHandlerRunBroker`, and the
- * `args` a ward step declares (`['--committed', '--uncommitted']`, or `[]` for the full gate) ride
- * that call verbatim. Everything else a step node carries — `prompt`, `routes`, `maxVisits`,
- * `needsLane`, `maxConcurrent` — has exactly one reader inside the router and stays undeclared
- * behind `.passthrough()`, because a second copy of a shape the `as const` already pins is the copy
- * that drifts.
+ * `kind`, `handler`, `args` AND `prompt` ARE DECLARED because the DISPATCHER reads them. A
+ * deterministic step is not spawned as a session at all — it runs its handler through
+ * `stepHandlerRunBroker`, and the `args` a ward step declares (`['--committed', '--uncommitted']`,
+ * or `[]` for the full gate) ride that call verbatim. A `kind: 'prompt'` step is spawned as a
+ * session, and its `prompt` is what `stepDispatchRoleTransformer` keys that session's ROLE on —
+ * the scope role its work item carries is the wrong answer for a `repair` inside a `ward` scope.
+ * Everything else a step node carries — `routes`, `maxVisits`, `needsLane`, `maxConcurrent` — has
+ * exactly one reader inside the router and stays undeclared behind `.passthrough()`, because a
+ * second copy of a shape the `as const` already pins is the copy that drifts.
  */
 
 import { z } from 'zod';
 
+import { agentPromptNameContract } from '../agent-prompt-name/agent-prompt-name-contract';
 import { stepHandlerNameContract } from '../step-handler-name/step-handler-name-contract';
 
 export const agentStepNodeContract = z
@@ -30,6 +33,7 @@ export const agentStepNodeContract = z
     kind: z.enum(['prompt', 'deterministic']),
     handler: stepHandlerNameContract.optional(),
     args: z.array(z.string().brand<'StepHandlerArg'>()).optional(),
+    prompt: agentPromptNameContract.optional(),
   })
   .passthrough();
 

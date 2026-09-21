@@ -572,7 +572,7 @@ declares a `role` (`planner`/`worker`/`reviewer`), a `kind` (`prompt`/`determini
 ceiling and a route per outcome word.
 
 `quest.operations` is one **SCOPE** per entry — a family's slice of the quest, `{ id, role, text, status,
-locked, wardMode?, flowIds, packageNames }` (`operationItemContract`).
+locked, flowIds, packageNames }` (`operationItemContract`).
 
 **The ledger has exactly ONE writer: the orchestrator**, and it is minted **LAZILY**. `operations` is off
 the modify-quest allowlist entirely — ChaosWhisperer never authors it and no execution agent ever writes
@@ -774,10 +774,10 @@ step the router mints on that scope, one per piece inside a parallel step. `step
   `workItemRoleStatics.command` (`['ward', 'riftcarver']`), is data rather than a `role === 'ward'`
   ternary, because a ternary has to be found and edited at every dispatch site and a missed site hands
   the role to `agentRoleContract`, which throws on a name it does not enumerate. The family is resolved
-  through `questFlowStatics` and its `wardMode` compared, so the COMMITTED ward gate — which shares
-  `role: 'ward'` with `wardFull` and belongs to no family — is stamped with NO step. Advance is called
-  from BOTH the signal-back handler AND the dispatch scan's self-heal, and its **resume guard** makes it
-  act only on a `pending` item with NO linked work item.
+  through `questFlowStatics`, and `wardFull` is the only family whose role is `ward`, so a ward scope
+  needs nothing to disambiguate it. A role no family carries (`spiritmender`, a chat role) is stamped
+  with NO step. Advance is called from BOTH the signal-back handler AND the dispatch scan's self-heal,
+  and its **resume guard** makes it act only on a `pending` item with NO linked work item.
 - **Move a scope** (`questRouteScopeBroker`): the first `in_progress` scope whose work items have ALL
   gone terminal. It reads that scope's plan file ABOVE the lock, calls the pure `nextActionTransformer`
   inside `questOperationsUpdateBroker`'s synchronous callback, and persists the answer — the next step's
@@ -969,9 +969,9 @@ none of these".
 
 A quest carries a `questType` (`feature` | `bug-hunt`, default `feature`). **`questFlowStatics` is the
 family graph** — the `entry` family and every family's routes — and it is SHARED byte for byte between
-the two types, which `questFlowStatics`' own colocated test asserts. `questTypeRegistryStatics` holds
-what differs plus the seed text and `fanOutBy` each family's scopes are cut from: the intake slash
-command, the create-time seed role (`initialWorkItemRole`), and the execution `roles`.
+the two types, which `questFlowStatics`' own colocated test asserts. That same statics carries what
+differs — the intake slash command and the create-time seed role (`initialWorkItemRole`) — alongside
+the `role`, `text` and `fanOutBy` each family's scopes are cut from.
 
 **THE TWO TYPES SHARE ONE GRAPH.** A bug-hunt's intake writes flows and observables exactly as a
 feature's does, so the same families verify them:
@@ -1008,8 +1008,7 @@ What differs between the two types is the INTAKE, and nothing else:
   id/label/type/packages/observables and has nowhere else to put them, so the prompts that write them and
   the prompts that read them must spell them identically.
 
-Adding a type = one `questFlowStatics` entry, one `questTypeRegistryStatics` entry, and the type added
-to `questTypeContract`.
+Adding a type = one `questFlowStatics` entry, and the type added to `questTypeContract`.
 
 ## Agent Roles
 
@@ -1023,7 +1022,7 @@ open. `wall` is reserved for an environment wall outside any session's reach and
 of every family, halting the quest for the user rather than spawning a successor that hits the same wall. Quest
 status is then derived from the family graph's position.
 
-The relay role set per quest type is `questTypeRegistryStatics[type].roles`. The `agentRoleContract` enumerates the
+The relay role set per quest type is the `role` on each family in `questFlowStatics[type].families`. The `agentRoleContract` enumerates the
 Claude-dispatched agent roles (`codeweaver`, `flowrider`, `siegemaster`, `spiritmender`, `warpgate`) — the first three
 are `agentPromptClassificationStatics.operatorRoleNames`; `spiritmender` and `warpgate` keep bespoke prompts and brief
 nobody. No minion name is ever also a role, since `agentPromptClassificationStatics.roleNames` and `.minionNames` are
@@ -1145,11 +1144,11 @@ mirror + typecheck against the developer's own checkout — precisely the work h
 
 ### Warpgate — the one ledger item appended after the relay has drained
 
-Every other operation item is derived/seeded at Start (`questBuildRelayGraphBroker` reading
-`questTypeRegistryStatics` — including the codeweaver items themselves, via `fanOutBy: 'implementation'`). Warpgate
+Every other operation item is minted when the family graph routes to its family (`familyScopesMintTransformer`
+reading `questFlowStatics` — including the codeweaver items themselves, via `fanOutBy: 'implementation'`). Warpgate
 is neither: `OrchestrationMergeResponder`
 appends it when the user presses "Teleport with Booty (Merge)" on a quest that is already `complete` or `blocked`
-(`isMergeableQuestStatusGuard`). Because its text has no home in the registry, it lives in `warpgateOperationStatics`.
+(`isMergeableQuestStatusGuard`). Because its family carries no `text`, its text lives in `warpgateOperationStatics`.
 Once appended it dispatches exactly like any other relay role — `get-next-step` → Task ()/headless child →
 `get-agent-prompt` → `signal-back`.
 

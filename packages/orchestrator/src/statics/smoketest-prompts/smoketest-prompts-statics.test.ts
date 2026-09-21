@@ -12,15 +12,15 @@ describe('smoketestPromptsStatics', () => {
     );
   });
 
-  it('VALID: {signalDone} => emits complete with operationStatus done', () => {
+  it('VALID: {signalDone} => emits a bare complete signal', () => {
     expect(smoketestPromptsStatics.signalDone).toBe(
-      'Do exactly one thing and nothing else: Call "mcp__dungeonmaster__signal-back" with { "questId": "{{questId}}", "workItemId": "{{workItemId}}", "signal": "complete", "operationStatus": "done" }. Do not output anything else.',
+      'Do exactly one thing and nothing else: Call "mcp__dungeonmaster__signal-back" with { "questId": "{{questId}}", "workItemId": "{{workItemId}}", "signal": "complete" }. Do not output anything else.',
     );
   });
 
-  it('VALID: {signalPartial} => emits complete with operationStatus partial', () => {
+  it('VALID: {signalPartial} => emits the same bare complete signal as signalDone', () => {
     expect(smoketestPromptsStatics.signalPartial).toBe(
-      'Do exactly one thing and nothing else: Call "mcp__dungeonmaster__signal-back" with { "questId": "{{questId}}", "workItemId": "{{workItemId}}", "signal": "complete", "operationStatus": "partial" }. Do not output anything else.',
+      'Do exactly one thing and nothing else: Call "mcp__dungeonmaster__signal-back" with { "questId": "{{questId}}", "workItemId": "{{workItemId}}", "signal": "complete" }. Do not output anything else.',
     );
   });
 

@@ -401,7 +401,6 @@ describe('QuestHandleSignalBackResponder', () => {
             text: 'Ward gate (full monorepo)',
             status: 'in_progress',
             locked: true,
-            wardMode: 'full',
           }),
         ],
         workItems: [
@@ -411,7 +410,6 @@ describe('QuestHandleSignalBackResponder', () => {
             status: 'in_progress',
             spawnerType: 'command',
             relatedDataItems: [`operations/${OP1_ID}`],
-            wardMode: 'full',
           }),
         ],
       });
@@ -424,7 +422,6 @@ describe('QuestHandleSignalBackResponder', () => {
             text: 'Ward gate (full monorepo)',
             status: 'complete',
             locked: true,
-            wardMode: 'full',
           }),
         ],
         workItems: [
@@ -434,7 +431,6 @@ describe('QuestHandleSignalBackResponder', () => {
             status: 'complete',
             spawnerType: 'command',
             relatedDataItems: [`operations/${OP1_ID}`],
-            wardMode: 'full',
             completedAt: FIXED_TIMESTAMP,
             actualSignal: 'complete',
           }),
@@ -498,6 +494,67 @@ describe('QuestHandleSignalBackResponder', () => {
         updatedAt: FIXED_TIMESTAMP,
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
+    });
+  });
+
+  describe('a work item running a step graph leaves its whole scope to the router', () => {
+    // The scope has to still be `in_progress` when the dispatch scan next runs, or
+    // questRouteScopeBroker cannot find it to route — and advance must not open the family's next
+    // cell behind a scope that has finished exactly one of its steps.
+    it('VALID: {codeweaver item at step `plan`, a pending cell behind it} => ONE persist terminalizes the work item alone; the operation item stays in_progress and no work item is minted', async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const cell1 = OperationItemStub({
+        id: OP1_ID,
+        role: 'codeweaver',
+        text: 'core: config adapter',
+        status: 'in_progress',
+      });
+      const cell2 = OperationItemStub({
+        id: OP2_ID,
+        role: 'codeweaver',
+        text: 'core: config broker',
+        status: 'pending',
+      });
+      const quest = QuestStub({
+        operations: [cell1, cell2],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            step: 'plan',
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'in_progress',
+        operations: [cell1, cell2],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            step: 'plan',
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupAdvanceUuids({ ids: [ADVANCE_UUID] });
 
       const result = await QuestHandleSignalBackResponder({
         questId: QuestIdStub({ value: 'add-auth' }),
@@ -940,7 +997,7 @@ describe('QuestHandleSignalBackResponder', () => {
       expect(proxy.getPersistedQuestAt({ index: 0 })).toStrictEqual(questAfterOutcome);
     });
 
-    it("VALID: {locked ward item with wardMode: 'committed'} => continuation preserves locked AND wardMode", async () => {
+    it('VALID: {locked ward item} => continuation preserves locked', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const quest = QuestStub({
@@ -948,10 +1005,9 @@ describe('QuestHandleSignalBackResponder', () => {
           OperationItemStub({
             id: OP1_ID,
             role: 'ward',
-            text: 'Ward gate (committed files)',
+            text: 'Ward gate (full monorepo)',
             status: 'in_progress',
             locked: true,
-            wardMode: 'committed',
           }),
         ],
         workItems: [
@@ -961,7 +1017,6 @@ describe('QuestHandleSignalBackResponder', () => {
             status: 'in_progress',
             spawnerType: 'command',
             relatedDataItems: [`operations/${OP1_ID}`],
-            wardMode: 'committed',
           }),
         ],
       });
@@ -970,18 +1025,16 @@ describe('QuestHandleSignalBackResponder', () => {
           OperationItemStub({
             id: OP1_ID,
             role: 'ward',
-            text: 'Ward gate (committed files)',
+            text: 'Ward gate (full monorepo)',
             status: 'complete',
             locked: true,
-            wardMode: 'committed',
           }),
           OperationItemStub({
             id: CONTINUATION_UUID,
             role: 'ward',
-            text: 'pt 2: Ward gate (committed files)',
+            text: 'pt 2: Ward gate (full monorepo)',
             status: 'pending',
             locked: true,
-            wardMode: 'committed',
           }),
         ],
         workItems: [
@@ -991,7 +1044,6 @@ describe('QuestHandleSignalBackResponder', () => {
             status: 'complete',
             spawnerType: 'command',
             relatedDataItems: [`operations/${OP1_ID}`],
-            wardMode: 'committed',
             completedAt: FIXED_TIMESTAMP,
             actualSignal: 'complete',
           }),

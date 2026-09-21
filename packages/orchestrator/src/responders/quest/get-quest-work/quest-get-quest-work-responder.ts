@@ -1,9 +1,8 @@
 /**
  * PURPOSE: Serves the ONE startup call every LLM step makes, across its two call shapes — a work
  * item gets everything that session needs to start, an operation item gets the whole plan as
- * markdown for a planner's review-before-signing read. Reach for this over
- * `QuestGetQaChecklistResponder`: that one enumerates a flow for a renderer, and this one answers
- * "what am I, what was I assigned, and what did the sessions before me leave".
+ * markdown for a planner's review-before-signing read. This answers "what am I, what was I
+ * assigned, and what did the sessions before me leave" — not a flow's raw checklist.
  *
  * USAGE:
  * await QuestGetQuestWorkResponder({ questId, workItemId });

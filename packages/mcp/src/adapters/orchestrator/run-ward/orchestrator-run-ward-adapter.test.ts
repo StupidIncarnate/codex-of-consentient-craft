@@ -6,7 +6,7 @@ import { orchestratorRunWardAdapterProxy } from './orchestrator-run-ward-adapter
 
 describe('orchestratorRunWardAdapter', () => {
   describe('successful run', () => {
-    it('VALID: {questId, workItemId, mode} => returns QuestRunWardResult', async () => {
+    it('VALID: {questId, workItemId} => returns QuestRunWardResult', async () => {
       const proxy = orchestratorRunWardAdapterProxy();
       const expected = QuestRunWardResultStub();
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
@@ -17,7 +17,6 @@ describe('orchestratorRunWardAdapter', () => {
       const result = await orchestratorRunWardAdapter({
         questId,
         workItemId,
-        mode: 'committed',
       });
 
       expect(result).toStrictEqual(expected);
@@ -36,7 +35,6 @@ describe('orchestratorRunWardAdapter', () => {
         orchestratorRunWardAdapter({
           questId,
           workItemId,
-          mode: 'full',
         }),
       ).rejects.toThrow(/Ward spawn failed/u);
     });

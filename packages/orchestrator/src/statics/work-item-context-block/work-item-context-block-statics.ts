@@ -16,6 +16,5 @@ export const workItemContextBlockStatics = {
     role: '- role:',
     packagesAffected: '- packagesAffected:',
     packageNames: '- packageNames:',
-    wardMode: '- wardMode:',
   },
 } as const;

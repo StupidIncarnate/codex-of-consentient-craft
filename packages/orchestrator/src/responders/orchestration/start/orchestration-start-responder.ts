@@ -82,16 +82,12 @@ export const OrchestrationStartResponder = async ({
   // the graph routes to it, so there is no tail on the ledger to detect and a check looking for one
   // answers `false` forever — re-seeding the entry family on every Start. The entry family's own
   // scopes are the evidence a previous Start got as far as the relay seed; matched through
-  // `familyLedgerKeyTransformer` rather than by comparing `role` to the family key, because two of
-  // the six keys are not role names.
+  // `familyLedgerKeyTransformer` rather than by comparing `role` to the family key, because
+  // `wardFull` is not a role name.
   const entryKey = familyLedgerKeyTransformer({
     family: questFlowStatics[quest.questType].entry,
   });
-  const hasExistingRelay = quest.operations.some(
-    (operation) =>
-      operation.role === entryKey.role &&
-      (entryKey.wardMode === undefined || operation.wardMode === entryKey.wardMode),
-  );
+  const hasExistingRelay = quest.operations.some((operation) => operation.role === entryKey.role);
 
   // Mark any non-complete chat work items (chaoswhisperer/glyphsmith/bughunt) as complete. The
   // spec phase is done by the time the user clicks "Begin Quest", but the work item status is

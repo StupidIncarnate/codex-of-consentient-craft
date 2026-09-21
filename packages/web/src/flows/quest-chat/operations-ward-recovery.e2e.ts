@@ -8,18 +8,32 @@ const GUILD_PATH = '/tmp/dm-e2e-operations-ward-recovery';
 const PANEL_TIMEOUT = 10_000;
 const RELAY_TIMEOUT = 25_000;
 const LEDGER_TIMEOUT = 15_000;
-const OPERATIONS_PREFIX = 'operations/';
 
-// Fixed operation-item ids for the seeded ledger. The spiritmender + fresh-ward continuation ids
-// are minted server-side (crypto.randomUUID), so the recovery ordering is proven against
-// quest.operations, not pre-known ids.
-const WARD_OP = '00000000-0000-4000-8000-0000000000a1';
+// The gate's work item is the one neither case names: `questAdvanceBroker` mints it once the scope
+// ahead of it drains, which is what stamps it with the wardFull family's entry step and flips its
+// operation item to `in_progress` — the status `questRouteScopeBroker` needs to see the scope at
+// all.
 const FLOW_OP = '00000000-0000-4000-8000-0000000000f1';
-const FIRST_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-000000000010';
+const WARD_OP = '00000000-0000-4000-8000-0000000000a1';
+const FLOW_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-000000000010';
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 
-test.describe('Ward as an operation (advance on green, spiritmender-first recovery on red)', () => {
+// THE RECOVERY IS THE STEP GRAPH'S OWN LOOP, not a spliced operation. `agentFlowStatics.wardFull`
+// declares `gate --unmet--> repair --done--> commit --done--> gate`, so a red gate mints a repair
+// work item on the SAME scope and the fresh gate that follows it is another work item on that same
+// scope — the ledger gains no operation item at all. The `pt N` continuation the ledger used to
+// grow is reachable only through `questRunWardBroker`, which answers a ward work item carrying NO
+// step; a gate work item carrying one is dispatched as a `run-step` and routed by
+// `questRouteScopeBroker` instead.
+//
+// THE GATE IS THE LEDGER'S LAST SCOPE. `wardFull` is the only family whose edge reaches
+// `@complete`, and `familyGraphCompleteDetectTransformer` derives the quest complete the moment
+// every `role: 'ward'` scope is complete — so a gate sitting anywhere but last ends the quest with
+// scopes still outstanding. The flowrider scope ahead of it carries no step, which is what keeps it
+// out of the router: a stepped agent scope that completes drains its family, and the family graph
+// then mints the NEXT family's scopes on top of the ledger this spec seeded.
+test.describe('Ward as an operation (advance on green, step-graph repair loop on red)', () => {
   // Each case runs the full relay (real in-process ward runs + fake-CLI children) plus the
   // deadline-bounded poll, past the 10s default per-test budget.
   test.describe.configure({ timeout: 60_000 });
@@ -33,7 +47,7 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
     await dispatchHarness({ request, guildPath: GUILD_PATH }).afterEach();
   });
 
-  test('VALID: {ledger [ward(committed), flowrider] driven green/done/done} => ward completes and advances to the flowrider; no spiritmender inserted', async ({
+  test('VALID: {ledger [flowrider, ward(full)] driven done/green} => the gate takes its `done` edge, its scope completes on that ONE work item and the quest reaches complete; no repair minted', async ({
     page,
     request,
   }) => {
@@ -50,22 +64,16 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
       title: 'Ward Green Advance Quest',
       userRequest: 'Build the feature',
       operations: [
+        { id: FLOW_OP, role: 'flowrider', text: 'verify flows', status: 'in_progress' },
         {
           id: WARD_OP,
           role: 'ward',
-          text: 'ward (committed)',
-          status: 'in_progress',
+          text: 'Ward gate (full monorepo)',
+          status: 'pending',
           locked: true,
-          wardMode: 'committed',
         },
-        { id: FLOW_OP, role: 'flowrider', text: 'verify flows', status: 'pending', locked: true },
       ],
-      firstWorkItemId: FIRST_WORK_ITEM_ID,
-      // The advance target is driven to `done`, and signal-back refuses that while any verification
-      // unit on the quest's runtime flows carries no `flowriderSignoff`. Seed the sign-offs a real
-      // flowrider session writes before it signals, so the ward advance this spec is about is not
-      // masked by a refusal on the item it advances TO.
-      flowriderScopeSignedOff: true,
+      firstWorkItemId: FLOW_WORK_ITEM_ID,
     });
 
     await nav.navigateToQuest({ urlSlug, questId: String(questId) });
@@ -73,9 +81,8 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // BEFORE: one numbered list — the work item minted for the ward operation, then the flowrider
-    // operation no work item has claimed yet. The ward row is named by its operation text, which is
-    // where its (committed) mode reads.
+    // BEFORE: one numbered list — the flowrider work item, then the gate's. The gate row is named by
+    // its operation text, which is where its whole-monorepo scope reads.
     //
     // Both read PENDING. The ledger box this replaced drew OPERATION status, which flips to
     // `in_progress` when a work item is minted; a row draws WORK-ITEM status, which stays `pending`
@@ -88,22 +95,23 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
       },
     );
     await expect(rows.getByTestId('execution-row-role-badge')).toHaveText([
-      '[WARD]',
       '[FLOWRIDER]',
+      '[WARD]',
     ]);
-    await expect(rows.filter({ hasText: 'ward (committed)' })).toHaveCount(1);
+    await expect(rows.filter({ hasText: 'Ward gate (full monorepo)' })).toHaveCount(1);
 
     await dispatch.playAndDrive({
       questId: String(questId),
       script: [
-        { role: 'ward', outcome: 'green' },
         { role: 'flowrider', outcome: 'done' },
+        { role: 'ward', outcome: 'green' },
       ],
     });
 
-    // A green ward marks its operation item complete and advances straight to the next pending
-    // role (the flowrider). No spiritmender/fresh-ward pair is spliced (that is the red path only)
-    // and nothing is appended beside either item — the ledger ends at exactly the two seeded rows.
+    // A green gate takes `gate`'s `done` edge to `@done`, which completes the scope; `wardFull` then
+    // drains and the family graph reaches `@complete`. No repair step is minted (that is the `unmet`
+    // edge only) and no spiritmender operation is spliced — the ledger ends at exactly the two
+    // seeded rows.
     const finalQuest = await dispatch.waitForQuest({
       questId: String(questId),
       timeoutMs: RELAY_TIMEOUT,
@@ -119,24 +127,37 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
       finalQuest.operations.map((op) => ({
         role: String(op.role),
         status: op.status,
-        wardMode: op.wardMode ?? null,
       })),
     ).toStrictEqual([
-      { role: 'ward', status: 'complete', wardMode: 'committed' },
-      { role: 'flowrider', status: 'complete', wardMode: null },
+      { role: 'flowrider', status: 'complete' },
+      { role: 'ward', status: 'complete' },
     ]);
 
-    // AFTER (UI): both rows read DONE; no spiritmender recovery pair appeared.
+    // The gate scope carries exactly ONE work item, at `gate`. A repair would have been a second
+    // work item on this same scope at `repair`, so the step list IS the "no recovery ran" assertion —
+    // a count of operation items could not see it, because the step-graph loop appends none.
+    expect(
+      finalQuest.workItems.map((wi) => ({
+        role: String(wi.role),
+        step: wi.step === undefined ? null : String(wi.step),
+        status: wi.status,
+      })),
+    ).toStrictEqual([
+      { role: 'flowrider', step: null, status: 'complete' },
+      { role: 'ward', step: 'gate', status: 'complete' },
+    ]);
+
+    // AFTER (UI): both rows read DONE; no recovery row appeared.
     await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(['DONE', 'DONE'], {
       timeout: LEDGER_TIMEOUT,
     });
     await expect(rows.getByTestId('execution-row-role-badge')).toHaveText([
-      '[WARD]',
       '[FLOWRIDER]',
+      '[WARD]',
     ]);
   });
 
-  test('VALID: {ledger [ward(committed), flowrider] driven red/done/green/done} => red splices a spiritmender + fresh ward, dispatches the SPIRITMENDER next (never a ward back-to-back), then converges', async ({
+  test('VALID: {ledger [flowrider, ward(full)] driven done/red/done/green} => the red gate routes `unmet` to a repair, the repair commits and returns to a FRESH gate on the same scope (never a gate back-to-back), then converges', async ({
     page,
     request,
   }) => {
@@ -153,22 +174,21 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
       title: 'Ward Red Recovery Quest',
       userRequest: 'Build the feature',
       operations: [
+        { id: FLOW_OP, role: 'flowrider', text: 'verify flows', status: 'in_progress' },
         {
           id: WARD_OP,
           role: 'ward',
-          text: 'ward (committed)',
-          status: 'in_progress',
+          text: 'Ward gate (full monorepo)',
+          status: 'pending',
           locked: true,
-          wardMode: 'committed',
         },
-        { id: FLOW_OP, role: 'flowrider', text: 'verify flows', status: 'pending', locked: true },
       ],
-      firstWorkItemId: FIRST_WORK_ITEM_ID,
-      // The tail item is driven to `done`, and signal-back refuses that while any verification unit
-      // on the quest's runtime flows carries no `flowriderSignoff`. Seed the sign-offs a real
-      // flowrider session writes before it signals, so the recovery ordering this spec is about is
-      // not masked by a refusal on the item the chain converges to.
-      flowriderScopeSignedOff: true,
+      firstWorkItemId: FLOW_WORK_ITEM_ID,
+      // `wardFull`'s `commit` step runs a real `git commit` in the quest's cwd, and with no
+      // `worktreePath` recorded `questCwdResolveBroker` falls back to the repo root — the one
+      // checkout nothing in a test may write to. The guild path is a throwaway directory of this
+      // spec's own.
+      worktreePath: GUILD_PATH,
     });
 
     await nav.navigateToQuest({ urlSlug, questId: String(questId) });
@@ -177,7 +197,7 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
     // Both PENDING for the same reason as the green case above: a row draws WORK-ITEM status, and
-    // the dispatcher is paused in every e2e test, so a minted work item has not run yet.
+    // the dispatcher is paused in every e2e test, so a seeded work item has not run yet.
     const rows = executionPanel.getByTestId('execution-row-layer-widget');
     await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(
       ['PENDING', 'PENDING'],
@@ -187,92 +207,74 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
     );
 
     // All four outcomes are queued up front so no dispatched work item ever finds an empty queue
-    // (an under-queued spiritmender spawn would exit red-on-empty with no signal-back and churn
-    // orphan-recovery to `blocked`). The relay is serial, so FIFO maps outcomes to dispatches:
-    //   ward#1 -> red         (splice spiritmender + fresh ward, advance to the spiritmender)
-    //   spiritmender -> done
-    //   ward#2 (fresh) -> green
+    // (an under-queued spawn would exit red-on-empty with no signal-back and churn orphan-recovery
+    // to `blocked`). The relay is serial, so FIFO maps outcomes to dispatches:
     //   flowrider -> done
+    //   gate#1    -> red    (routes `unmet` to `repair`)
+    //   repair    -> done   (routes `done` to `commit`, which routes `done` back to `gate`)
+    //   gate#2    -> green
     await dispatch.playAndDrive({
       questId: String(questId),
       script: [
+        { role: 'flowrider', outcome: 'done' },
         { role: 'ward', outcome: 'red' },
         { role: 'spiritmender', outcome: 'done' },
         { role: 'ward', outcome: 'green' },
-        { role: 'flowrider', outcome: 'done' },
       ],
     });
 
+    // The recovery left the LEDGER untouched: still exactly the two seeded operation items, both
+    // complete. Everything the red produced is a work item on the ward scope.
     const finalQuest = await dispatch.waitForQuest({
       questId: String(questId),
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.status === 'complete' &&
-        quest.operations.length === 4 &&
+        quest.operations.length === 2 &&
         quest.operations.every((op) => op.status === 'complete') &&
-        quest.workItems.length === 4,
+        quest.workItems.length === 5,
     });
 
-    // The red ward marked its own operation complete, then spliced a spiritmender operation PLUS a
-    // fresh ward continuation ("pt 2", same (committed) mode) immediately AFTER it — the spiritmender
-    // sits BETWEEN the two ward items in ledger order, so the fixpoint never loops ward->ward. The
-    // ledger ends at four items: nothing is appended beside a completing session.
     expect(
       finalQuest.operations.map((op) => ({
         role: String(op.role),
         status: op.status,
-        wardMode: op.wardMode ?? null,
       })),
     ).toStrictEqual([
-      { role: 'ward', status: 'complete', wardMode: 'committed' },
-      { role: 'spiritmender', status: 'complete', wardMode: null },
-      { role: 'ward', status: 'complete', wardMode: 'committed' },
-      { role: 'flowrider', status: 'complete', wardMode: null },
-    ]);
-
-    // Dispatch order (each work item ordered by its linked operation's ledger position) proves the
-    // NEXT work item after the failed ward was the spiritmender — not another ward. The first ward
-    // work item is `failed` (red); every later item ran and completed. Never two ward work items
-    // back-to-back without a spiritmender between them.
-    const opIndexById = new Map(finalQuest.operations.map((op, index) => [String(op.id), index]));
-    const orderedWorkItems = finalQuest.workItems
-      .map((wi) => {
-        const ref = wi.relatedDataItems
-          .map((r) => String(r))
-          .find((r) => r.startsWith(OPERATIONS_PREFIX));
-        return {
-          role: String(wi.role),
-          status: wi.status,
-          index: opIndexById.get(String(ref).slice(OPERATIONS_PREFIX.length)) ?? -1,
-        };
-      })
-      .sort((a, b) => a.index - b.index);
-    expect(orderedWorkItems.map((wi) => ({ role: wi.role, status: wi.status }))).toStrictEqual([
-      { role: 'ward', status: 'failed' },
-      { role: 'spiritmender', status: 'complete' },
-      { role: 'ward', status: 'complete' },
       { role: 'flowrider', status: 'complete' },
+      { role: 'ward', status: 'complete' },
     ]);
 
-    // AFTER (UI): the list grew live to four rows — the red ward, the spliced spiritmender, the
-    // fresh ward, and the flowrider. Both ward rows keep their (committed) mode, which they carry
-    // in the operation text they are named by (the continuation reads "pt 2: ward (committed)").
+    // The step sequence IS the recovery, and position is the assertion: `repair` sits BETWEEN the
+    // two `gate` items, so the loop never runs a gate back-to-back, and `commit` sits between the
+    // repair and the fresh gate, so the fix the repair made is on the branch before the gate grades
+    // it again. `toStrictEqual` on an array compares element-by-element, so the order is what is
+    // being proved.
+    expect(
+      finalQuest.workItems.map((wi) => ({
+        role: String(wi.role),
+        step: wi.step === undefined ? null : String(wi.step),
+      })),
+    ).toStrictEqual([
+      { role: 'flowrider', step: null },
+      { role: 'ward', step: 'gate' },
+      { role: 'ward', step: 'repair' },
+      { role: 'ward', step: 'commit' },
+      { role: 'ward', step: 'gate' },
+    ]);
+
+    // AFTER (UI): the list grew live to five rows — the flowrider, the red gate, the repair, its
+    // commit, and the fresh gate that came back green.
     await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(
-      ['FAILED', 'DONE', 'DONE', 'DONE'],
+      ['DONE', 'DONE', 'DONE', 'DONE', 'DONE'],
       { timeout: LEDGER_TIMEOUT },
     );
     await expect(rows.getByTestId('execution-row-role-badge')).toHaveText([
-      '[WARD]',
-      '[SPIRITMENDER]',
-      '[WARD]',
       '[FLOWRIDER]',
+      '[WARD]',
+      '[WARD]',
+      '[WARD]',
+      '[WARD]',
     ]);
-    // Scoped to the WARD rows by their role badge, not by the operation text alone: the spliced
-    // spiritmender is NAMED after the ward it repairs — `Spiritmender: fix ward (committed)
-    // failures — wardResult <id>` — so a bare `hasText: 'ward (committed)'` matches three rows and
-    // proves nothing about which of them is a ward.
-    const wardRows = rows.filter({ hasText: '[WARD]' });
-    await expect(wardRows).toHaveCount(2);
-    await expect(wardRows.filter({ hasText: '(committed)' })).toHaveCount(2);
   });
 });

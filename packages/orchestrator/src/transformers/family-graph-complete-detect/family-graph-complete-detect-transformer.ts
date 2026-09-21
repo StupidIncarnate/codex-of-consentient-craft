@@ -64,11 +64,7 @@ export const familyGraphCompleteDetectTransformer = ({
     }
 
     const key = familyLedgerKeyTransformer({ family });
-    const scopes = operations.filter(
-      (operation) =>
-        operation.role === key.role &&
-        (key.wardMode === undefined || operation.wardMode === key.wardMode),
-    );
+    const scopes = operations.filter((operation) => operation.role === key.role);
 
     return scopes.length > 0 && scopes.every((operation) => operation.status === 'complete');
   });

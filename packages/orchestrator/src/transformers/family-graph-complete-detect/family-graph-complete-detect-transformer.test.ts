@@ -13,7 +13,6 @@ const WARD_FULL_COMPLETE = OperationItemStub({
   id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
   role: 'ward',
   text: 'Ward gate (full monorepo)',
-  wardMode: 'full',
   status: 'complete',
   locked: true,
 });
@@ -81,28 +80,6 @@ describe('familyGraphCompleteDetectTransformer', () => {
     });
   });
 
-  describe('the committed ward gate belongs to no family', () => {
-    it("EDGE: {a complete role:'ward' wardMode:'committed' scope and nothing else} => false", () => {
-      expect(
-        familyGraphCompleteDetectTransformer({
-          operations: [
-            CODEWEAVER_COMPLETE,
-            OperationItemStub({
-              id: 'd4e5f6a7-58cc-4372-a567-0e02b2c3d479',
-              role: 'ward',
-              text: 'Ward gate (committed files)',
-              wardMode: 'committed',
-              status: 'complete',
-              locked: true,
-            }),
-          ],
-          questType: 'feature',
-          questFlowStatics,
-        }),
-      ).toBe(false);
-    });
-  });
-
   describe('a terminal family whose scopes have not all landed', () => {
     it('VALID: {one wardFull scope at pending} => false', () => {
       expect(
@@ -112,7 +89,6 @@ describe('familyGraphCompleteDetectTransformer', () => {
               id: 'e5f6a7b8-58cc-4372-a567-0e02b2c3d479',
               role: 'ward',
               text: 'Ward gate (full monorepo)',
-              wardMode: 'full',
               status: 'pending',
               locked: true,
             }),
@@ -132,7 +108,6 @@ describe('familyGraphCompleteDetectTransformer', () => {
               id: 'f6a7b8c9-58cc-4372-a567-0e02b2c3d479',
               role: 'ward',
               text: 'pt 2: Ward gate (full monorepo)',
-              wardMode: 'full',
               status: 'pending',
               locked: true,
             }),

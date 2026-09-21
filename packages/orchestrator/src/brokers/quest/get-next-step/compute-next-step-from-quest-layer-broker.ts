@@ -82,7 +82,6 @@ export const computeNextStepFromQuestLayerBroker = ({
       type: 'run-ward',
       questId: quest.id,
       workItemId: commandItem.id,
-      mode: commandItem.wardMode ?? 'committed',
     });
   }
 
@@ -100,8 +99,6 @@ export const computeNextStepFromQuestLayerBroker = ({
     return null;
   }
 
-  const agents = batch.map((workItem) =>
-    buildSpawnInstructionLayerBroker({ questId: quest.id, workItem }),
-  );
+  const agents = batch.map((workItem) => buildSpawnInstructionLayerBroker({ quest, workItem }));
   return nextStepContract.parse({ type: 'spawn-agents', agents });
 };

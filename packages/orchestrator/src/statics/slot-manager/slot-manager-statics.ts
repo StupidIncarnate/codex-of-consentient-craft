@@ -47,9 +47,8 @@ export const slotManagerStatics = {
     maxRoundsPerSession: 3,
   },
   ward: {
-    // Red-ward chain budget: the count of ward operation items of one wardMode since the last
-    // green ward of that mode. Reaching it blocks the quest instead of appending another
-    // spiritmender + fresh-ward pair.
+    // Red-ward chain budget: the count of ward operation items since the last GREEN ward.
+    // Reaching it blocks the quest instead of appending another spiritmender + fresh-ward pair.
     maxRetries: 3,
   },
   riftcarver: {

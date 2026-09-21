@@ -90,16 +90,15 @@ describe('questAdvanceBroker', () => {
       );
     });
 
-    it('VALID: {pending ward op with wardMode changed, empty workItems} => command work item with wardMode copied and dependsOn []', async () => {
+    it('VALID: {pending ward op, empty workItems} => command work item entering the gate step with dependsOn []', async () => {
       const proxy = questAdvanceBrokerProxy();
       proxy.setupUuids({ ids: ['99999999-9999-4999-8999-999999999999'] });
 
       const wardOp = OperationItemStub({
         id: '11111111-1111-4111-8111-111111111111',
         role: 'ward',
-        text: 'Ward gate (committed files)',
+        text: 'Ward gate (full monorepo)',
         status: 'pending',
-        wardMode: 'committed',
       });
 
       const quest = QuestStub({
@@ -126,9 +125,8 @@ describe('questAdvanceBroker', () => {
             OperationItemStub({
               id: '11111111-1111-4111-8111-111111111111',
               role: 'ward',
-              text: 'Ward gate (committed files)',
+              text: 'Ward gate (full monorepo)',
               status: 'in_progress',
-              wardMode: 'committed',
             }),
           ],
           workItems: [
@@ -139,8 +137,8 @@ describe('questAdvanceBroker', () => {
               spawnerType: 'command',
               relatedDataItems: ['operations/11111111-1111-4111-8111-111111111111'],
               dependsOn: [],
-              wardMode: 'committed',
               createdAt: '2024-01-15T10:00:00.000Z',
+              step: 'gate',
             }),
           ],
           updatedAt: '2024-01-15T10:00:00.000Z',
@@ -150,7 +148,7 @@ describe('questAdvanceBroker', () => {
 
     // The second member of `workItemRoleStatics.command`. An `agent` spawnerType here would send
     // the carve down the Task/headless-child path, where agentRoleContract throws on the name.
-    it('VALID: {pending riftcarver op at the head of the ledger} => command work item with no wardMode and dependsOn []', async () => {
+    it('VALID: {pending riftcarver op at the head of the ledger} => command work item with dependsOn []', async () => {
       const proxy = questAdvanceBrokerProxy();
       proxy.setupUuids({ ids: ['99999999-9999-4999-8999-999999999999'] });
 

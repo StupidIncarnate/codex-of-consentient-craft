@@ -3,7 +3,7 @@
  * output onto the chat bus so the workspace shows the run live.
  *
  * USAGE:
- * const result = await QuestRunWardResponder({ questId, workItemId, mode: 'committed' });
+ * const result = await QuestRunWardResponder({ questId, workItemId });
  * // Returns: QuestRunWardResult — { success, exitCode, wardResultId, lastWardRunId? }
  *
  * Ward is `spawnerType: 'command'` and has no sessionId, so the JSONL watcher — which keys on
@@ -23,16 +23,13 @@ import { commandChatOutputEmitTransformer } from '../../../transformers/command-
 export const QuestRunWardResponder = async ({
   questId,
   workItemId,
-  mode,
 }: {
   questId: QuestId;
   workItemId: QuestWorkItemId;
-  mode: 'committed' | 'full';
 }): Promise<QuestRunWardResult> =>
   questRunWardBroker({
     questId,
     workItemId,
-    mode,
     onLine: (line: string): void => {
       orchestrationEventsState.emit(
         commandChatOutputEmitTransformer({ questId, workItemId, line }),

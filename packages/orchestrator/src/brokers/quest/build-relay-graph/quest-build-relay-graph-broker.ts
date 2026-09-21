@@ -102,7 +102,6 @@ export const questBuildRelayGraphBroker = ({
     maxAttempts: 1,
     createdAt: now,
     ...(entryStep === undefined ? {} : { step: stepNameContract.parse(entryStep) }),
-    ...(firstActionable.wardMode === undefined ? {} : { wardMode: firstActionable.wardMode }),
   });
 
   return {

@@ -9,7 +9,7 @@
  * codeweaver op items DERIVED at Start → the operations-relay chain). 'bug-hunt' is the regression
  * pipeline, whose intake draws the repro as a flow and then runs that SAME relay. The active type
  * selects the intake slash command and the create-time seed role; everything after riftcarver is
- * shared — see questTypeRegistryStatics.
+ * shared — see questFlowStatics.
  */
 
 import { z } from 'zod';

@@ -218,26 +218,6 @@ export const StartOrchestrator = {
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getSummary>>> =>
     QuestFlow.getSummary({ questId }),
 
-  // `operationItemId` IS the scope: the item carries the track (its `role`), its `flowIds` and its
-  // `packageNames`, and the same derivation every reader of this coverage uses turns them into a
-  // denominator. It replaced three hand-passed arguments that each let a caller ask a DIFFERENT
-  // question from the one this scope answers, every one of them failing by over-reporting so the
-  // remainder never emptied, with nothing naming the cause.
-  getQaChecklist: async ({
-    questId,
-    operationItemId,
-    flowId,
-  }: {
-    questId: string;
-    operationItemId?: string;
-    flowId?: string;
-  }): Promise<Awaited<ReturnType<typeof QuestFlow.getQaChecklist>>> =>
-    QuestFlow.getQaChecklist({
-      questId,
-      ...(operationItemId !== undefined && { operationItemId }),
-      ...(flowId !== undefined && { flowId }),
-    }),
-
   // MCP-driven get-quest-work — the ONE startup call every LLM step makes. `workItemId` serves
   // everything that session needs to start; `operationItemId` serves the whole plan as markdown for
   // a planner's review-before-signing read. Passing both is refused rather than resolved by
@@ -270,21 +250,6 @@ export const StartOrchestrator = {
     scope?: 'quest' | 'commit' | 'working-tree' | 'unpushed';
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getBlightChecklist>>> =>
     QuestFlow.getBlightChecklist({ questId, ...(scope !== undefined && { scope }) }),
-
-  // MCP-driven reset-flow-signoffs — clears Siegemaster's sign-offs across ONE flow so the walk
-  // can be redone honestly after a fix. Flowrider's track is never touched.
-  resetFlowSignoffs: async ({
-    questId,
-    workItemId,
-    flowId,
-    reason,
-  }: {
-    questId: string;
-    workItemId: string;
-    flowId: string;
-    reason: string;
-  }): Promise<Awaited<ReturnType<typeof QuestFlow.resetFlowSignoffs>>> =>
-    QuestFlow.resetFlowSignoffs({ questId, workItemId, flowId, reason }),
 
   modifyQuest: async ({
     questId,
@@ -514,12 +479,10 @@ export const StartOrchestrator = {
   runWard: async ({
     questId,
     workItemId,
-    mode,
   }: {
     questId: QuestId;
     workItemId: QuestWorkItemId;
-    mode: 'committed' | 'full';
-  }): Promise<QuestRunWardResult> => QuestFlow.runWard({ questId, workItemId, mode }),
+  }): Promise<QuestRunWardResult> => QuestFlow.runWard({ questId, workItemId }),
 
   // MCP-driven run-riftcarver (synchronous branch + worktree + preflight typecheck, then persist)
   runRiftcarver: async ({

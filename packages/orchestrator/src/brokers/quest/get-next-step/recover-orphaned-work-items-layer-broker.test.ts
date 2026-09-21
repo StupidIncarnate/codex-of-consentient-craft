@@ -239,24 +239,23 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
     });
   });
 
-  describe('reconcile net (terminal item, operation still in_progress)', () => {
-    it('VALID: {complete work item linked to an in_progress operation, sessionId kept} => flips it back to pending with resume: true', async () => {
+  describe('a terminal work item is never reclaimed', () => {
+    it('VALID: {complete gate work item carrying its recorded word, linked scope still in_progress} => returns quest unchanged and persists nothing', async () => {
       const proxy = recoverOrphanedWorkItemsLayerBrokerProxy();
       const operationId = OperationItemIdStub({ value: 'bbbb2222-58cc-4372-a567-0e02b2c3d479' });
       const itemId = QuestWorkItemIdStub({ value: 'abc12345-1111-4222-9333-444444444444' });
-      const sessionId = SessionIdStub({ value: '1c4d8f1c-3e38-48c9-bdec-22b61883b473' });
       const quest = QuestStub({
-        id: QuestIdStub({ value: 'q-unapplied-signal' }),
+        id: QuestIdStub({ value: 'q-step-recorded' }),
         status: 'in_progress',
-        operations: [
-          OperationItemStub({ id: operationId, role: 'codeweaver', status: 'in_progress' }),
-        ],
+        operations: [OperationItemStub({ id: operationId, role: 'ward', status: 'in_progress' })],
         workItems: [
           WorkItemStub({
             id: itemId,
-            role: 'codeweaver',
+            role: 'ward',
             status: 'complete',
-            sessionId,
+            spawnerType: 'command',
+            step: 'gate',
+            declaredWord: 'done',
             relatedDataItems: [`operations/${operationId}` as never],
           }),
         ],
@@ -265,31 +264,56 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
 
       const result = await recoverOrphanedWorkItemsLayerBroker({ quest });
 
-      const persisted = proxy.getLastPersistedQuest();
-      const persistedItem = persisted.workItems.find((item) => item.id === itemId);
+      expect(result).toStrictEqual({ quest, blocked: false });
+      expect(proxy.getAllPersistedContents()).toStrictEqual([]);
+      expect(proxy.getBlockCalls()).toStrictEqual([]);
+    });
 
-      expect({
-        localWorkItems: result.quest.workItems,
-        persistedStatus: persistedItem?.status,
-        persistedResume: persistedItem?.resume,
-        persistedRetryCount: persistedItem?.retryCount,
-        persistedSessionId: persistedItem?.sessionId,
-      }).toStrictEqual({
-        localWorkItems: [
+    it('VALID: {complete work item and a live orphan, both under one in_progress scope} => reclaims the orphan alone', async () => {
+      const proxy = recoverOrphanedWorkItemsLayerBrokerProxy();
+      const operationId = OperationItemIdStub({ value: 'cccc3333-58cc-4372-a567-0e02b2c3d479' });
+      const doneId = QuestWorkItemIdStub({ value: 'a1b2c3d4-1111-4222-9333-444444444444' });
+      const orphanId = QuestWorkItemIdStub({ value: 'b2c3d4e5-1111-4222-9333-444444444444' });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'q-mixed-scope' }),
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({ id: operationId, role: 'codeweaver', status: 'in_progress' }),
+        ],
+        workItems: [
           WorkItemStub({
-            id: itemId,
+            id: doneId,
             role: 'codeweaver',
-            status: 'pending',
-            sessionId,
-            resume: true,
+            status: 'complete',
+            step: 'plan',
+            declaredWord: 'done',
+            relatedDataItems: [`operations/${operationId}` as never],
+          }),
+          WorkItemStub({
+            id: orphanId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            step: 'work',
             relatedDataItems: [`operations/${operationId}` as never],
           }),
         ],
-        persistedStatus: 'pending',
-        persistedResume: true,
-        persistedRetryCount: 1,
-        persistedSessionId: sessionId,
       });
+      proxy.setupModifyForQuest({ quest });
+
+      await recoverOrphanedWorkItemsLayerBroker({ quest });
+
+      const persisted = proxy.getLastPersistedQuest();
+
+      expect(
+        persisted.workItems.map((item) => ({
+          id: item.id,
+          status: item.status,
+          retryCount: item.retryCount,
+        })),
+      ).toStrictEqual([
+        { id: doneId, status: 'complete', retryCount: 0 },
+        { id: orphanId, status: 'pending', retryCount: 1 },
+      ]);
     });
   });
 

@@ -16,11 +16,18 @@ describe('familyLedgerKeyTransformer', () => {
     );
   });
 
-  describe('the two families whose key is not a role name read back', () => {
-    it("VALID: {family: 'wardFull'} => { role: 'ward', wardMode: 'full' }, so the committed gate is not matched", () => {
+  describe('the one family whose key is not a role name read back', () => {
+    it("VALID: {family: 'wardFull'} => { role: 'ward' }, the role no family key spells", () => {
       expect(familyLedgerKeyTransformer({ family: 'wardFull' })).toStrictEqual({
         role: 'ward',
-        wardMode: 'full',
+      });
+    });
+  });
+
+  describe('a family whose key IS its role name', () => {
+    it("VALID: {family: 'codeweaver'} => { role: 'codeweaver' }", () => {
+      expect(familyLedgerKeyTransformer({ family: 'codeweaver' })).toStrictEqual({
+        role: 'codeweaver',
       });
     });
 
@@ -31,16 +38,8 @@ describe('familyLedgerKeyTransformer', () => {
     });
   });
 
-  describe('a family whose key IS its role name', () => {
-    it("VALID: {family: 'codeweaver'} => { role: 'codeweaver' } with no wardMode narrowing", () => {
-      expect(familyLedgerKeyTransformer({ family: 'codeweaver' })).toStrictEqual({
-        role: 'codeweaver',
-      });
-    });
-  });
-
   describe('a name that is a role but not a family', () => {
-    it("INVALID: {family: 'ward'} => throws naming every family, because the committed gate belongs to none", () => {
+    it("INVALID: {family: 'ward'} => throws naming every family, because 'ward' is the ROLE and 'wardFull' is the family", () => {
       expect(() => familyLedgerKeyTransformer({ family: 'ward' })).toThrow(
         /^familyLedgerKeyTransformer: no ledger key for family 'ward' — the families are: riftcarver, codeweaver, flowrider, siegemaster, wardFull, warpgate$/u,
       );

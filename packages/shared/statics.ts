@@ -33,7 +33,6 @@ export * from './src/statics/project-map-headline-frontend-react/project-map-hea
 export * from './src/statics/rate-limit/rate-limit-statics';
 export * from './src/statics/banned-jest-matchers/banned-jest-matchers-statics';
 export * from './src/statics/guild-name-small-words/guild-name-small-words-statics';
-export * from './src/statics/quest-type-registry/quest-type-registry-statics';
 export * from './src/statics/quest-flow/quest-flow-statics';
 export * from './src/statics/work-item-role/work-item-role-statics';
 

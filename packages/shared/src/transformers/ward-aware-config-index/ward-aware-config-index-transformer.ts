@@ -1,32 +1,35 @@
 /**
- * PURPOSE: Computes the floor-config sort index for a work item, resolving which of the two ward
- *   floor entries ('MINI BOSS' or 'FLOOR BOSS') applies for a ward work item based on its wardMode.
- *   Extracts the disambiguation logic so sort comparators can call it without an inline local helper
- *   (which @dungeonmaster/no-nested-functions forbids).
+ * PURPOSE: Computes the floor-config sort index for a work item, resolving the FLOOR BOSS entry for
+ *   a ward work item. Reach for this over calling `roleToConfigIndexTransformer` straight from a
+ *   sort comparator: `ward` is the one role the floor config lists twice, and resolving it inline
+ *   would need a local helper, which `@dungeonmaster/no-nested-functions` forbids.
  *
  * USAGE:
- * wardAwareConfigIndexTransformer({ workItem: wardItem, allItemMap });
- * // Returns: ConfigIndex for the ward's floor — either MINI BOSS (4) or FLOOR BOSS (10)
- * wardAwareConfigIndexTransformer({ workItem: codeweaverItem, allItemMap });
- * // Returns: ConfigIndex for FORGE (2)
+ * wardAwareConfigIndexTransformer({ workItem: wardItem });
+ * // Returns: ConfigIndex of the FLOOR BOSS entry
+ * wardAwareConfigIndexTransformer({ workItem: codeweaverItem });
+ * // Returns: ConfigIndex for FORGE
+ *
+ * EVERY `role: 'ward'` WORK ITEM IS A FLOOR BOSS. `wardFull` is the only family whose role is `ward`,
+ * so a ward work item is always that family's scope. A `ward` STEP inside a code-changing family
+ * never reaches here — its work item carries the ROLE OF ITS SCOPE (`codeweaver`, `flowrider`,
+ * `siegemaster`), never `ward`.
  */
 
 import type { WorkItem } from '@dungeonmaster/shared/contracts';
 
 import type { ConfigIndex } from '../../contracts/config-index/config-index-contract';
-import { resolveWardFloorNameTransformer } from '../resolve-ward-floor-name/resolve-ward-floor-name-transformer';
+import { floorNameContract } from '../../contracts/floor-name/floor-name-contract';
 import { roleToConfigIndexTransformer } from '../role-to-config-index/role-to-config-index-transformer';
+
+const WARD_FLOOR_NAME = 'FLOOR BOSS';
 
 export const wardAwareConfigIndexTransformer = ({
   workItem,
-  allItemMap,
 }: {
   workItem: WorkItem;
-  allItemMap: Map<WorkItem['id'], WorkItem>;
 }): ConfigIndex =>
   roleToConfigIndexTransformer({
     role: workItem.role,
-    ...(workItem.role === 'ward'
-      ? { floorName: resolveWardFloorNameTransformer({ workItem, allItemMap }) }
-      : {}),
+    ...(workItem.role === 'ward' ? { floorName: floorNameContract.parse(WARD_FLOOR_NAME) } : {}),
   });

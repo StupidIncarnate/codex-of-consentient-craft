@@ -11,7 +11,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import {
   qaOffMapProbeStatics,
-  questTypeRegistryStatics,
+  questFlowStatics,
   workItemRoleStatics,
 } from '@dungeonmaster/shared/statics';
 
@@ -143,19 +143,13 @@ const PACKAGE_ROUTING_ON_MAP_UNITS = [
   'login-flow:observable:shows-form',
 ];
 
-// The Flowrider tail seed, read off the registry rather than restated, so the per-flow items the
+// The Flowrider family, read off the graph rather than restated, so the per-flow items the
 // flow-slice tests measure are the ones `fanOutBy: 'flow'` actually mints.
-const FLOWRIDER_TAIL_ENTRY = questTypeRegistryStatics.feature.relayTail.filter(
-  (entry) => entry.role === 'flowrider',
-);
+const FLOWRIDER_TAIL_ENTRY = [questFlowStatics.feature.families.flowrider];
 
-// The Codeweaver implementation seed, for the same reason: the per-PACKAGE items the package-name
-// tests measure are the ones `fanOutBy: 'implementation'` actually mints, not a hand-built
-// approximation of them.
-const CODEWEAVER_IMPLEMENTATION_ENTRY =
-  questTypeRegistryStatics.feature.startImplementationOps.filter(
-    (entry) => entry.role === 'codeweaver',
-  );
+// The Codeweaver family, for the same reason: the per-PACKAGE items the package-name tests measure
+// are the ones `fanOutBy: 'implementation'` actually mints, not a hand-built approximation of them.
+const CODEWEAVER_IMPLEMENTATION_ENTRY = [questFlowStatics.feature.families.codeweaver];
 
 // Two runtime flows landing in the SAME package — the shape that seeds two per-flow items whose
 // package tags are identical, so the flow list is the only thing telling them apart. Measuring

@@ -126,7 +126,6 @@ export const questNodeDispatchLoopBroker = async ({
     await questRunWardBroker({
       questId: wardQuestId,
       workItemId: wardWorkItemId,
-      mode: step.mode,
       onLine: (line: string): void => {
         onWardLine({ questId: wardQuestId, workItemId: wardWorkItemId, line });
       },
