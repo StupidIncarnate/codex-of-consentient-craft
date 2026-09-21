@@ -1943,6 +1943,18 @@ describe('questModifyBroker', () => {
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'in_progress',
+        // The wardFull gate is the family the graph routes `@complete` from, so its scope has to be
+        // on the ledger and landed for any write to derive a finished quest.
+        operations: [
+          OperationItemStub({
+            id: 'c3d4e5f6-58cc-4372-a567-0e02b2c3d479',
+            role: 'ward',
+            text: 'Ward gate (full monorepo)',
+            wardMode: 'full',
+            locked: true,
+            status: 'complete',
+          }),
+        ],
         workItems: [item1, item2],
       });
 

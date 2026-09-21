@@ -132,6 +132,7 @@ export const questOperationsUpdateBroker = async ({
           workItems: nextWorkItems,
           operations: nextOperations,
           currentStatus: quest.status,
+          questType: quest.questType,
         }),
         updatedAt: new Date().toISOString(),
       });

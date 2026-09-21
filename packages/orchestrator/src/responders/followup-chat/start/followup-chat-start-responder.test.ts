@@ -1,6 +1,7 @@
 import {
   AbsoluteFilePathStub,
   GuildIdStub,
+  OperationItemStub,
   QuestIdStub,
   QuestStub,
   SessionIdStub,
@@ -91,6 +92,8 @@ describe('FollowupChatStartResponder', () => {
         spawnerType: 'agent',
         dependsOn: [],
         relatedDataItems: [],
+        assignedUnitIds: [],
+        observations: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 0,
@@ -114,7 +117,18 @@ describe('FollowupChatStartResponder', () => {
           folder: `quest-2-${status}`,
           status,
           workItems: [],
-          operations: [],
+          // A landed wardFull scope is what holds `complete` in place: the family graph reached
+          // `@complete`, so a follow-up chat re-deriving the status finds the same answer.
+          operations: [
+            OperationItemStub({
+              id: 'c3d4e5f6-58cc-4372-a567-0e02b2c3d479',
+              role: 'ward',
+              text: 'Ward gate (full monorepo)',
+              wardMode: 'full',
+              locked: true,
+              status: 'complete',
+            }),
+          ],
           worktreePath,
         });
 
@@ -184,6 +198,8 @@ describe('FollowupChatStartResponder', () => {
           spawnerType: 'agent',
           dependsOn: [],
           relatedDataItems: [],
+          assignedUnitIds: [],
+          observations: [],
           attempt: 0,
           maxAttempts: 1,
           retryCount: 0,

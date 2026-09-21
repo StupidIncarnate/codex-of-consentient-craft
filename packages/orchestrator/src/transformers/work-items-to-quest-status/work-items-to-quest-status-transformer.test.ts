@@ -28,6 +28,17 @@ const PRESERVED_STATUSES = STATUS_KEYS.filter((status) => {
   );
 });
 
+// The scope whose PRESENCE is the proof the family graph reached `@complete`: a `wardFull` scope is
+// on the ledger only because siegemaster's `done` routed the relay to it.
+const WARD_FULL_COMPLETE = OperationItemStub({
+  id: 'c3d4e5f6-58cc-4372-a567-0e02b2c3d479',
+  role: 'ward',
+  text: 'Ward gate (full monorepo)',
+  wardMode: 'full',
+  status: 'complete',
+  locked: true,
+});
+
 describe('workItemsToQuestStatusTransformer', () => {
   describe('preserved statuses (owned by something other than work-item state)', () => {
     it.each(PRESERVED_STATUSES)(
@@ -42,6 +53,7 @@ describe('workItemsToQuestStatusTransformer', () => {
           workItems: [activeItem],
           operations: [OperationItemStub({ status: 'pending' })],
           currentStatus: status,
+          questType: 'feature',
         });
 
         expect(result).toBe(status);
@@ -61,6 +73,7 @@ describe('workItemsToQuestStatusTransformer', () => {
         workItems: [activeItem],
         operations: [OperationItemStub({ role: 'warpgate', status: 'in_progress' })],
         currentStatus: 'merging',
+        questType: 'feature',
       });
 
       expect(result).toBe('merging');
@@ -83,6 +96,7 @@ describe('workItemsToQuestStatusTransformer', () => {
           }),
         ],
         currentStatus: 'merging',
+        questType: 'feature',
       });
 
       expect(result).toBe('merged');
@@ -110,6 +124,7 @@ describe('workItemsToQuestStatusTransformer', () => {
           }),
         ],
         currentStatus: 'merging',
+        questType: 'feature',
       });
 
       expect(result).toBe('merging');
@@ -131,6 +146,7 @@ describe('workItemsToQuestStatusTransformer', () => {
         workItems: [completeItem, failedSink],
         operations: [OperationItemStub({ role: 'warpgate', status: 'complete' })],
         currentStatus: 'merging',
+        questType: 'feature',
       });
 
       expect(result).toBe('blocked');
@@ -154,6 +170,7 @@ describe('workItemsToQuestStatusTransformer', () => {
         workItems: [failedSink, warpgateItem],
         operations: [OperationItemStub({ role: 'warpgate', status: 'complete' })],
         currentStatus: 'merging',
+        questType: 'feature',
       });
 
       expect(result).toBe('merged');
@@ -176,14 +193,15 @@ describe('workItemsToQuestStatusTransformer', () => {
         workItems: [completeItem, failedSink],
         operations: [OperationItemStub({ status: 'complete' })],
         currentStatus: 'in_progress',
+        questType: 'feature',
       });
 
       expect(result).toBe('blocked');
     });
   });
 
-  describe('all work items terminal — ledger decides the outcome', () => {
-    it('VALID: {all items complete, all operations complete} => complete', () => {
+  describe('all work items terminal — the family graph decides the outcome', () => {
+    it('VALID: {all items complete, a complete wardFull scope on the ledger} => complete', () => {
       const item = WorkItemStub({
         id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
         status: 'complete',
@@ -196,11 +214,91 @@ describe('workItemsToQuestStatusTransformer', () => {
             id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
             status: 'complete',
           }),
+          WARD_FULL_COMPLETE,
         ],
         currentStatus: 'in_progress',
+        questType: 'feature',
       });
 
       expect(result).toBe('complete');
+    });
+
+    // The one that bites if the completion claim is wrong. `work ⇄ review` and
+    // `happyWalk ⇄ fixHappy` are cycles, so between two passes the ledger is legitimately empty and
+    // every work item terminal — the run has not reached `wardFull` and nothing on the ledger says
+    // so except the absence of a scope for it.
+    it('VALID: {every codeweaver scope complete, every work item terminal, NO wardFull scope} => in_progress', () => {
+      const item = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        role: 'codeweaver',
+        status: 'complete',
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [item],
+        operations: [
+          OperationItemStub({
+            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+            role: 'codeweaver',
+            status: 'complete',
+          }),
+        ],
+        currentStatus: 'in_progress',
+        questType: 'feature',
+      });
+
+      expect(result).toBe('in_progress');
+    });
+
+    it("VALID: {all items terminal, a complete role:'ward' wardMode:'committed' scope and no full one} => in_progress", () => {
+      const item = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        role: 'ward',
+        status: 'complete',
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [item],
+        operations: [
+          OperationItemStub({
+            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+            role: 'ward',
+            text: 'Ward gate (committed files)',
+            wardMode: 'committed',
+            status: 'complete',
+            locked: true,
+          }),
+        ],
+        currentStatus: 'in_progress',
+        questType: 'feature',
+      });
+
+      expect(result).toBe('in_progress');
+    });
+
+    it('VALID: {all items terminal, a wardFull scope still pending} => in_progress', () => {
+      const item = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        status: 'complete',
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [item],
+        operations: [
+          OperationItemStub({
+            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+            role: 'ward',
+            text: 'Ward gate (full monorepo)',
+            wardMode: 'full',
+            status: 'pending',
+            locked: true,
+          }),
+        ],
+        currentStatus: 'in_progress',
+        questType: 'feature',
+      });
+
+      expect(result).toBe('in_progress');
     });
 
     it('VALID: {all items terminal, one operation still pending} => in_progress (no false complete between sessions)', () => {
@@ -225,6 +323,7 @@ describe('workItemsToQuestStatusTransformer', () => {
           }),
         ],
         currentStatus: 'in_progress',
+        questType: 'feature',
       });
 
       expect(result).toBe('in_progress');
@@ -240,6 +339,7 @@ describe('workItemsToQuestStatusTransformer', () => {
         workItems: [item],
         operations: [OperationItemStub({ status: 'in_progress' })],
         currentStatus: 'in_progress',
+        questType: 'feature',
       });
 
       expect(result).toBe('in_progress');
@@ -260,6 +360,7 @@ describe('workItemsToQuestStatusTransformer', () => {
         workItems: [completeItem, failedSink],
         operations: [OperationItemStub({ status: 'complete' })],
         currentStatus: 'in_progress',
+        questType: 'feature',
       });
 
       expect(result).toBe('blocked');
@@ -277,12 +378,13 @@ describe('workItemsToQuestStatusTransformer', () => {
         workItems: [failedSink],
         operations: [OperationItemStub({ status: 'pending' })],
         currentStatus: 'in_progress',
+        questType: 'feature',
       });
 
       expect(result).toBe('in_progress');
     });
 
-    it('VALID: {failed item superseded by a retry via insertedBy, ledger drained} => complete', () => {
+    it('VALID: {failed item superseded by a retry via insertedBy, graph at @complete} => complete', () => {
       const failedId = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
       });
@@ -295,14 +397,15 @@ describe('workItemsToQuestStatusTransformer', () => {
 
       const result = workItemsToQuestStatusTransformer({
         workItems: [failedItem, retryItem],
-        operations: [OperationItemStub({ status: 'complete' })],
+        operations: [OperationItemStub({ status: 'complete' }), WARD_FULL_COMPLETE],
         currentStatus: 'in_progress',
+        questType: 'feature',
       });
 
       expect(result).toBe('complete');
     });
 
-    it('VALID: {failed item overtaken by a completed dependent, ledger drained} => complete', () => {
+    it('VALID: {failed item overtaken by a completed dependent, graph at @complete} => complete', () => {
       // The failed item is depended on by a complete item, so it is NOT a sink — the pipeline
       // progressed past it and completion keys on the sink.
       const failedId = QuestWorkItemIdStub({
@@ -317,8 +420,9 @@ describe('workItemsToQuestStatusTransformer', () => {
 
       const result = workItemsToQuestStatusTransformer({
         workItems: [failedItem, overtakingItem],
-        operations: [OperationItemStub({ status: 'complete' })],
+        operations: [OperationItemStub({ status: 'complete' }), WARD_FULL_COMPLETE],
         currentStatus: 'in_progress',
+        questType: 'feature',
       });
 
       expect(result).toBe('complete');
@@ -336,6 +440,7 @@ describe('workItemsToQuestStatusTransformer', () => {
         workItems: [activeItem],
         operations: [OperationItemStub({ status: 'complete' })],
         currentStatus: 'in_progress',
+        questType: 'feature',
       });
 
       expect(result).toBe('in_progress');
@@ -358,6 +463,7 @@ describe('workItemsToQuestStatusTransformer', () => {
         workItems: [failedItem, deadEndedItem],
         operations: [OperationItemStub({ status: 'complete' })],
         currentStatus: 'in_progress',
+        questType: 'feature',
       });
 
       expect(result).toBe('blocked');
@@ -378,6 +484,7 @@ describe('workItemsToQuestStatusTransformer', () => {
         workItems: [failedItem, deadEndedItem],
         operations: [OperationItemStub({ status: 'pending' })],
         currentStatus: 'in_progress',
+        questType: 'feature',
       });
 
       expect(result).toBe('in_progress');
@@ -398,6 +505,7 @@ describe('workItemsToQuestStatusTransformer', () => {
         workItems: [completeItem, dispatchableItem],
         operations: [OperationItemStub({ status: 'complete' })],
         currentStatus: 'in_progress',
+        questType: 'feature',
       });
 
       expect(result).toBe('in_progress');
@@ -405,11 +513,25 @@ describe('workItemsToQuestStatusTransformer', () => {
   });
 
   describe('empty work items', () => {
-    it('EMPTY: {workItems: [], operations: []} => complete (vacuous all-terminal, drained ledger)', () => {
+    // An empty ledger names no family at all, so nothing has reached `@complete` and the vacuous
+    // all-terminal reading is not a finish.
+    it('EMPTY: {workItems: [], operations: []} => in_progress', () => {
       const result = workItemsToQuestStatusTransformer({
         workItems: [],
         operations: [],
         currentStatus: 'in_progress',
+        questType: 'feature',
+      });
+
+      expect(result).toBe('in_progress');
+    });
+
+    it('EMPTY: {workItems: [], a complete wardFull scope} => complete', () => {
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [],
+        operations: [WARD_FULL_COMPLETE],
+        currentStatus: 'in_progress',
+        questType: 'feature',
       });
 
       expect(result).toBe('complete');
@@ -420,6 +542,7 @@ describe('workItemsToQuestStatusTransformer', () => {
         workItems: [],
         operations: [OperationItemStub({ status: 'pending' })],
         currentStatus: 'in_progress',
+        questType: 'feature',
       });
 
       expect(result).toBe('in_progress');
@@ -444,6 +567,7 @@ describe('workItemsToQuestStatusTransformer', () => {
         workItems: [completeItem, appendedItem],
         operations: [OperationItemStub({ status: 'complete' })],
         currentStatus: 'complete',
+        questType: 'feature',
       });
 
       expect(result).toBe('in_progress');
@@ -462,8 +586,9 @@ describe('workItemsToQuestStatusTransformer', () => {
 
       const result = workItemsToQuestStatusTransformer({
         workItems: [completeItem, tavernkeeperItem],
-        operations: [OperationItemStub({ status: 'complete' })],
+        operations: [OperationItemStub({ status: 'complete' }), WARD_FULL_COMPLETE],
         currentStatus: 'complete',
+        questType: 'feature',
       });
 
       expect(result).toBe('complete');
@@ -485,6 +610,7 @@ describe('workItemsToQuestStatusTransformer', () => {
         workItems: [completeItem, warpgateItem],
         operations: [OperationItemStub({ status: 'complete' })],
         currentStatus: 'complete',
+        questType: 'feature',
       });
 
       expect(result).toBe('in_progress');
@@ -506,6 +632,7 @@ describe('workItemsToQuestStatusTransformer', () => {
         workItems: [mergedWorkItem, tavernkeeperItem],
         operations: [OperationItemStub({ role: 'warpgate', status: 'complete' })],
         currentStatus: 'merged',
+        questType: 'feature',
       });
 
       expect(result).toBe('merged');

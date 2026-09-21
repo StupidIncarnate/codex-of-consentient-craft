@@ -1,13 +1,22 @@
 /**
- * PURPOSE: Derive quest execution status from work item states and the operations ledger
+ * PURPOSE: Derive quest execution status from work item states, the operations ledger, and the
+ * position the family graph has reached. Reach for this over reading `quest.status`: this is what
+ * decides whether a quest is running, finished, merged or halted on every ledger and work-item
+ * write, and it is the only place that decision is made.
  *
  * USAGE:
- * workItemsToQuestStatusTransformer({ workItems, operations, currentStatus });
+ * workItemsToQuestStatusTransformer({ workItems, operations, currentStatus, questType });
  * // Returns: QuestStatus
+ *
+ * `complete` means THE FAMILY GRAPH REACHED `@complete`, never that the ledger drained. A drained
+ * ledger is an ordinary mid-run state under a graph that can cycle — `work ⇄ review` is legitimately
+ * empty between two passes — so `familyGraphCompleteDetectTransformer` owns that question and the
+ * ledger's remaining job here is the two FAILURE roll-ups.
  */
 
 import type {
   OperationItem,
+  Quest,
   QuestStatus,
   WorkItem,
   WorkItemRole,
@@ -22,7 +31,9 @@ import {
   isTerminalWorkItemStatusGuard,
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
-import { workItemRoleStatics } from '@dungeonmaster/shared/statics';
+import { questFlowStatics, workItemRoleStatics } from '@dungeonmaster/shared/statics';
+
+import { familyGraphCompleteDetectTransformer } from '../family-graph-complete-detect/family-graph-complete-detect-transformer';
 
 // Roles whose work items this transformer ignores when deriving quest status — see the filter
 // below for why each excluded role qualifies.
@@ -34,10 +45,12 @@ export const workItemsToQuestStatusTransformer = ({
   workItems,
   operations,
   currentStatus,
+  questType,
 }: {
   workItems: WorkItem[];
   operations: OperationItem[];
   currentStatus: QuestStatus;
+  questType: Quest['questType'];
 }): QuestStatus => {
   // Statuses owned by something other than work-item state are never derived over: the
   // pre-execution spec lifecycle, an explicit user pause, a deliberate abandon, a block
@@ -60,8 +73,9 @@ export const workItemsToQuestStatusTransformer = ({
   }
 
   // While the merge is still running the quest stays `merging` rather than falling through to
-  // `in_progress`; once its work items are terminal AND the ledger is drained it becomes
-  // `merged` rather than `complete`.
+  // `in_progress`; once its work items are terminal AND the graph has reached its terminal it
+  // becomes `merged` rather than `complete`. The `warpgate` family routes `done` to `@complete`
+  // exactly as `wardFull` does, so the graph question needs no branch of its own here.
   const runningStatus: QuestStatus = currentStatus === 'merging' ? 'merging' : 'in_progress';
   const drainedStatus: QuestStatus = currentStatus === 'merging' ? 'merged' : 'complete';
 
@@ -101,22 +115,29 @@ export const workItemsToQuestStatusTransformer = ({
       !dependedOnIds.has(item.id),
   );
 
-  // The operations ledger is the plan record: while ANY operation item is still pending or
-  // in_progress the quest is NOT done, even when every work item is momentarily terminal —
-  // that window is exactly "last session finished, advance has not created the next work item
-  // yet" (advance runs after the signal handler's atomic persist, and ward completion happens
-  // inside quest-run-ward-broker). Deriving `complete` there would terminalize the quest and
-  // stop the scan before the relay advances.
+  // A live operation item is what the two FAILURE roll-ups below weigh: a failure the relay has
+  // already spliced a successor for (a spiritmender plus a fresh ward) is not a halt, because
+  // advance still has something to dispatch. It says nothing about whether the quest FINISHED —
+  // that is the graph's question, not the ledger's.
   const hasPendingOperations = operations.some((operation) => operation.status !== 'complete');
 
-  // Every item terminal => the quest is done ONLY when the ledger agrees: `blocked` when a sink
-  // failure was never recovered, `drainedStatus` when the ledger is drained, `runningStatus`
-  // while operation items remain (advance creates the next work item).
+  // The completion claim, and the ONLY one: the run is done when a family routing to `@complete`
+  // holds scopes and every one of them landed. A drained ledger proves nothing — `work ⇄ review`
+  // is a cycle and is legitimately empty between two passes.
+  const graphComplete = familyGraphCompleteDetectTransformer({
+    operations,
+    questType,
+    questFlowStatics,
+  });
+
+  // Every item terminal => `blocked` when a sink failure was never recovered, `drainedStatus` when
+  // the family graph reached its terminal, `runningStatus` otherwise (the relay has further families
+  // to route to, and advance creates the next work item).
   if (derivationWorkItems.every((item) => isTerminalWorkItemStatusGuard({ status: item.status }))) {
     if (hasUnresolvedSinkFailure && !hasPendingOperations) {
       return 'blocked';
     }
-    return hasPendingOperations ? runningStatus : drainedStatus;
+    return graphComplete ? drainedStatus : runningStatus;
   }
 
   // Something is still running => runningStatus.

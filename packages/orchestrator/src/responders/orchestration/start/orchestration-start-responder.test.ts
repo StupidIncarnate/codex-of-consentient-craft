@@ -283,6 +283,8 @@ describe('OrchestrationStartResponder', () => {
           maxAttempts: 1,
           retryCount: 0,
           createdAt: FIXED_TIMESTAMP,
+          observations: [],
+          assignedUnitIds: [],
         },
       ]);
     });
@@ -485,6 +487,8 @@ describe('OrchestrationStartResponder', () => {
           maxAttempts: 1,
           retryCount: 0,
           createdAt: FIXED_TIMESTAMP,
+          observations: [],
+          assignedUnitIds: [],
         },
       ]);
     });
@@ -783,6 +787,8 @@ describe('OrchestrationStartResponder', () => {
           maxAttempts: 1,
           retryCount: 0,
           createdAt: FIXED_TIMESTAMP,
+          observations: [],
+          assignedUnitIds: [],
         },
       ]);
     });

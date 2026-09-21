@@ -185,14 +185,19 @@ describe('registryCreateBroker', () => {
 
       // The absolute import(...) path TypeScript prints to disambiguate `Ingredient` embeds this
       // checkout's own filesystem location, so it is matched with a wildcard rather than asserted
-      // literally — everything else in the message is asserted exactly, anchored start to end.
+      // literally. TS's own `defaultMaximumTruncationLength` (160, a per-type character budget) then
+      // spends that budget on the printed path itself, so a longer checkout path — this worktree's
+      // `worktrees/<name>/` segment included — shifts WHERE the ellipsis lands inside the object
+      // literal (mid `readonly fields: …` here, vs. cutting right after `readonly` in a deeper
+      // checkout). The wildcard starts right after the fixed `description` text for that reason —
+      // everything else in the message is asserted exactly, anchored start to end.
       expect(result).toStrictEqual([
         {
           file: DANGLING_LINK,
           line: LineCountStub({ value: 29 }),
           code: 2345,
           message: expect.stringMatching(
-            /^Argument of type '\{ orphans: import\(".*"\)\.Ingredient<\{ readonly name: "orphan"; readonly description: "a row linking to an ingredient no registry will ever hold"; readonly fields: [^']*?\.\.\.' is not assignable to parameter of type '\{ orphans: import\(".*"\)\.Ingredient<\{ readonly name: "orphan"; readonly description: "a row linking to an ingredient no registry will ever hold"; readonly fields: [^']*?\.\.\.'\. {3}Property 'LINK_NAMES_AN_UNREGISTERED_INGREDIENT' is missing in type '\{ orphans: Ingredient<\{ readonly name: "orphan"; readonly description: "a row linking to an ingredient no registry will ever hold"; readonly fields: ZodType<\{ status: "queued" \| "accepted" \| "underway" \| "stalled" \| "finished"; title: string & BRAND<\.\.\.>; \}, ZodTypeDef, \{ \.\.\.; \}>; readonly record: ZodObject<\.\.\.>; re\.\.\.' but required in type '\{ LINK_NAMES_AN_UNREGISTERED_INGREDIENT: "no-such-ingredient"; \}'\.$/u,
+            /^Argument of type '\{ orphans: import\(".*"\)\.Ingredient<\{ readonly name: "orphan"; readonly description: "a row linking to an ingredient no registry will ever hold";[^']*?\.\.\.' is not assignable to parameter of type '\{ orphans: import\(".*"\)\.Ingredient<\{ readonly name: "orphan"; readonly description: "a row linking to an ingredient no registry will ever hold";[^']*?\.\.\.'\. {3}Property 'LINK_NAMES_AN_UNREGISTERED_INGREDIENT' is missing in type '\{ orphans: Ingredient<\{ readonly name: "orphan"; readonly description: "a row linking to an ingredient no registry will ever hold"; readonly fields: ZodType<\{ status: "queued" \| "accepted" \| "underway" \| "stalled" \| "finished"; title: string & BRAND<\.\.\.>; \}, ZodTypeDef, \{ \.\.\.; \}>; readonly record: ZodObject<\.\.\.>; re\.\.\.' but required in type '\{ LINK_NAMES_AN_UNREGISTERED_INGREDIENT: "no-such-ingredient"; \}'\.$/u,
           ),
         },
       ]);

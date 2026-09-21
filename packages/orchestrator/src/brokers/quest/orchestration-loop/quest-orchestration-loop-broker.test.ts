@@ -1,6 +1,7 @@
 import {
   FilePathStub,
   GuildIdStub,
+  OperationItemStub,
   ProcessIdStub,
   QuestIdStub,
   QuestStub,
@@ -26,6 +27,18 @@ describe('questOrchestrationLoopBroker', () => {
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
+        // A quest is complete when the family graph reached `@complete`, which is the wardFull
+        // scope landing — work items going terminal is the other half of the test, not the whole.
+        operations: [
+          OperationItemStub({
+            id: 'c3d4e5f6-58cc-4372-a567-0e02b2c3d479',
+            role: 'ward',
+            text: 'Ward gate (full monorepo)',
+            wardMode: 'full',
+            locked: true,
+            status: 'complete',
+          }),
+        ],
         workItems: [
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
@@ -207,6 +220,18 @@ describe('questOrchestrationLoopBroker', () => {
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
+        // A quest is complete when the family graph reached `@complete`, which is the wardFull
+        // scope landing — work items going terminal is the other half of the test, not the whole.
+        operations: [
+          OperationItemStub({
+            id: 'c3d4e5f6-58cc-4372-a567-0e02b2c3d479',
+            role: 'ward',
+            text: 'Ward gate (full monorepo)',
+            wardMode: 'full',
+            locked: true,
+            status: 'complete',
+          }),
+        ],
         workItems: [
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),

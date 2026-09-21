@@ -1141,9 +1141,9 @@ describe('questRunWardBroker', () => {
       expect(proxy.getPersistedQuest()).toStrictEqual(
         QuestStub({
           id: questId,
-          // The only operation completed green — the ledger is drained, so the derive flips
-          // complete.
-          status: 'complete',
+          // The only operation is the COMMITTED gate, which belongs to no family — a green run of
+          // it leaves the graph exactly where it was, so the derive stays in_progress.
+          status: 'in_progress',
           updatedAt: FIXED_TIMESTAMP,
           operations: [OperationItemStub({ ...wardOp, status: 'complete' })],
           workItems: [

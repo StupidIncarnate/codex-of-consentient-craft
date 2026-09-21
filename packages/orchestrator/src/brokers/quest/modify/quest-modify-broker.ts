@@ -503,6 +503,7 @@ export const questModifyBroker = async ({
             workItems: quest.workItems,
             operations: quest.operations,
             currentStatus: quest.status,
+            questType: quest.questType,
           });
           if (!isQuestBlockedQuestStatusGuard({ status: derivedStatus })) {
             quest.status = derivedStatus;

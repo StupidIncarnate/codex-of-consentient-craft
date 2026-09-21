@@ -140,10 +140,14 @@ describe('questOperationsUpdateBroker', () => {
   });
 
   describe('terminal-operation complete derivation', () => {
-    it('VALID: {last operation completes, all work items terminal} => persisted status derives to complete', async () => {
+    it('VALID: {the wardFull gate completes, all work items terminal} => persisted status derives to complete', async () => {
       const proxy = questOperationsUpdateBrokerProxy();
       const runningOp = OperationItemStub({
         id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+        role: 'ward',
+        text: 'Ward gate (full monorepo)',
+        wardMode: 'full',
+        locked: true,
         status: 'in_progress',
       });
       const terminalItem = WorkItemStub({
@@ -165,6 +169,10 @@ describe('questOperationsUpdateBroker', () => {
           operations: [
             OperationItemStub({
               id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+              role: 'ward',
+              text: 'Ward gate (full monorepo)',
+              wardMode: 'full',
+              locked: true,
               status: 'complete',
             }),
           ],
@@ -181,6 +189,10 @@ describe('questOperationsUpdateBroker', () => {
           operations: [
             OperationItemStub({
               id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+              role: 'ward',
+              text: 'Ward gate (full monorepo)',
+              wardMode: 'full',
+              locked: true,
               status: 'complete',
             }),
           ],
@@ -602,7 +614,7 @@ describe('questOperationsUpdateBroker', () => {
       const expectedQuest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
-        status: 'complete',
+        status: 'in_progress',
         operations: [completedOp],
         workItems: [completedItem],
         riftcarverResults: [riftcarverResult],
@@ -675,6 +687,10 @@ describe('questOperationsUpdateBroker', () => {
       });
       const opTwo = OperationItemStub({
         id: 'b2c3d4e5-58cc-4372-a567-0e02b2c3d479',
+        role: 'ward',
+        text: 'Ward gate (full monorepo)',
+        wardMode: 'full',
+        locked: true,
         status: 'pending',
       });
       const quest = QuestStub({
@@ -718,6 +734,10 @@ describe('questOperationsUpdateBroker', () => {
               }),
               OperationItemStub({
                 id: 'b2c3d4e5-58cc-4372-a567-0e02b2c3d479',
+                role: 'ward',
+                text: 'Ward gate (full monorepo)',
+                wardMode: 'full',
+                locked: true,
                 status: 'complete',
               }),
             ],
@@ -737,8 +757,8 @@ describe('questOperationsUpdateBroker', () => {
 
       expect(persistsSeenBySecondUpdate).toStrictEqual([firstPersist]);
 
-      // Both writes landed, in order: first derives in_progress (opTwo pending), second
-      // drains the ledger over empty work items and derives complete.
+      // Both writes landed, in order: first derives in_progress (the wardFull gate still pending),
+      // second completes that gate and so derives complete.
       expect(proxy.getAllPersistedQuests().map(({ status }) => status)).toStrictEqual([
         'in_progress',
         'complete',

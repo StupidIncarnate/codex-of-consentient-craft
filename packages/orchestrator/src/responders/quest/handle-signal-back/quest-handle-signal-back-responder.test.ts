@@ -191,7 +191,7 @@ describe('QuestHandleSignalBackResponder', () => {
         ],
       });
       const questAfterOutcome = QuestStub({
-        status: 'complete',
+        status: 'in_progress',
         operations: [completedOp],
         workItems: [
           WorkItemStub({
@@ -337,7 +337,7 @@ describe('QuestHandleSignalBackResponder', () => {
           ],
         });
         const questAfterOutcome = QuestStub({
-          status: 'complete',
+          status: 'in_progress',
           planningNotes: { blightLedger: REVIEW_LEDGER },
           operations: [
             OperationItemStub({ id: OP1_ID, role, text: 'round one', status: 'complete' }),
@@ -1410,7 +1410,7 @@ describe('QuestHandleSignalBackResponder', () => {
         ],
       });
       const questAfterOutcome = QuestStub({
-        status: 'complete',
+        status: 'in_progress',
         operations: [],
         workItems: [
           WorkItemStub({

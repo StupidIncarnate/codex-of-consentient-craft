@@ -129,6 +129,7 @@ export const questOrchestrationLoopBroker = async ({
       workItems: quest.workItems,
       operations: quest.operations,
       currentStatus: quest.status,
+      questType: quest.questType,
     });
     process.stderr.write(
       `[orchestration-loop] quest=${questId} decision: all work items terminal -> quest status ${newStatus}\n`,
@@ -294,6 +295,7 @@ export const questOrchestrationLoopBroker = async ({
           workItems: updatedResult.quest.workItems,
           operations: updatedResult.quest.operations,
           currentStatus: updatedResult.quest.status,
+          questType: updatedResult.quest.questType,
         });
         if (newStatus !== updatedResult.quest.status) {
           await questModifyBroker({

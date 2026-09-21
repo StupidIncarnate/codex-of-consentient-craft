@@ -1330,7 +1330,9 @@ describe('questRunRiftcarverBroker', () => {
       // The recreated worktree's own HEAD reads back as HEAD_SHA, and the quest keeps
       // RECORDED_BASE_REF anyway — the fork point is written exactly once, ever.
       expect(proxy.getPersistedQuest().baseRef).toBe(RECORDED_BASE_REF);
-      expect(proxy.getPersistedQuest().status).toBe('complete');
+      // A green carve advances the relay rather than ending it: the family graph is still short of
+      // the wardFull scope that routes it to `@complete`.
+      expect(proxy.getPersistedQuest().status).toBe('in_progress');
     });
 
     it('VALID: {branch + worktree recorded, directory GONE, branch STILL in git} => attaches to the existing branch without -b, does not block, still typechecks, and keeps the recorded baseRef', async () => {
@@ -1386,7 +1388,9 @@ describe('questRunRiftcarverBroker', () => {
       // Re-attaching must not move the review base: the recorded fork point survives byte-identical
       // even though the reattached worktree's own HEAD reads back as a different sha.
       expect(proxy.getPersistedQuest().baseRef).toBe(RECORDED_BASE_REF);
-      expect(proxy.getPersistedQuest().status).toBe('complete');
+      // A green carve advances the relay rather than ending it: the family graph is still short of
+      // the wardFull scope that routes it to `@complete`.
+      expect(proxy.getPersistedQuest().status).toBe('in_progress');
     });
 
     it('VALID: {branch + worktree recorded, directory GONE, branch STILL in git} => prunes the stale registration, adds WITHOUT -b, and still runs the typecheck', async () => {

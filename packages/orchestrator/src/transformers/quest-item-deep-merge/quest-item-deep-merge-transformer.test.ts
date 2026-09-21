@@ -212,6 +212,7 @@ describe('questItemDeepMergeTransformer', () => {
         nodes: [existingNode],
         edges: [existingEdge],
         offMapSignoffs: [],
+        recipes: [],
       });
     });
   });

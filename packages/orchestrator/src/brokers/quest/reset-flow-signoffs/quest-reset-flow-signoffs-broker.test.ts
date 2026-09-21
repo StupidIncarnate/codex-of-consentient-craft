@@ -255,6 +255,7 @@ describe('questResetFlowSignoffsBroker', () => {
               // Down to the bare family id: siegemaster's is the only column a family has, so the
               // reset leaves nothing behind on it.
               offMapSignoffs: [{ id: 'concurrency' }],
+              recipes: [],
             },
             UNTOUCHED_OTHER_FLOW,
           ],
@@ -273,6 +274,8 @@ describe('questResetFlowSignoffsBroker', () => {
               maxAttempts: 1,
               retryCount: 0,
               createdAt: '2024-01-15T10:00:00.000Z',
+              observations: [],
+              assignedUnitIds: [],
             },
           ],
           wardResults: [],
