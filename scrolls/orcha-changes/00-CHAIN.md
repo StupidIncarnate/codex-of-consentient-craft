@@ -61,7 +61,7 @@ Everything additive. No existing code changes behaviour.
 | # | Story | Unlocks |
 |---|---|---|
 | [01](01-observation-record.md) | the observation record — `unitId`, three marks, `toSettle` | 02, 10, 17 |
-| [02](02-work-item-fields.md) | four fields on `workItemContract` | 10, 15, 17, 18 |
+| [02](02-work-item-fields.md) | six fields on `workItemContract`, one on `flowContract` | 10, 14, 15, 17, 18, 21, 22 |
 | [03](03-step-name-contract.md) | `agentPromptNameContract` opens to free strings | 05 |
 | [04](04-family-graph.md) | `questFlowStatics` — which family runs next | 06, 16, 22 |
 | [05](05-step-graph.md) | `agentFlowStatics` — what happens inside one family | 06, 13, 15, 20 |
@@ -133,9 +133,9 @@ These are fan-outs, not single sessions. Each file holds a template plus the lis
 | # | Set | Size |
 |---|---|---|
 | [25](25-prompts.md) | nineteen prompts, one session each | 19 sessions |
-| [26](26-signoff-retirement.md) | retire three fields across every reader | ~12 sessions |
+| [26](26-signoff-retirement.md) | retire three fields across every reader | **31 sessions**, measured |
 | [27](27-ui.md) | row identity, the projection, seven broken surfaces | ~7 sessions |
-| [28](28-independent.md) | `glyphsmith`, six defects, `verifyByHuman` | ~9 sessions |
+| [28](28-independent.md) | `glyphsmith`, six defects, `verifyByHuman` | ~12 sessions |
 
 **25 can be WRITTEN as soon as 18 is green**, before the cutover lands — a prompt is text. What it
 cannot do is run before the steps exist. **26 must merge with 24**, because 24 deletes the tools that
@@ -339,4 +339,4 @@ Each blocks one story. A session that answers one itself has invented a design d
 | Who writes a hydration INGREDIENT — its own step, or a sub-agent of `recipe-maker`? And how does one `request` mint three at once? | 25, the `recipe-maker` prompt |
 | Does an all-operational quest get ONE whole-quest off-map item, or does siege just close `empty`? | 25, `siege-planner` and the antagonist |
 | Is "only ChaosWhisperer and BugHunt may set this flag" prompt text, or a real mechanism? Today `verifyByReading` has no guard behind it | 28, `verifyByHuman` |
-| Re-measure the two blast radii before scheduling 26 | 26 |
+| ~~Re-measure the two blast radii~~ — **DONE.** `workItems` is 98 files, sign-off FIELDS are 39, the wider sign-off vocabulary 76. The plan's 77/77 was a copy-paste and its "sign-offs are the larger unknown" is backwards | — |

@@ -10,9 +10,9 @@ PACKAGE   @dungeonmaster/shared
 MODEL     sonnet
 ```
 
-**This is an additive change to a file with 77 readers**, plus one field on `flowContract`. Every
+**This is an additive change to a file with 98 readers**, plus one field on `flowContract`. Every
 field is optional or defaulted, so nothing existing changes shape and no reader needs touching. Keep
-it that way — the moment one of these becomes required, this story grows by 77 files.
+it that way — the moment one of these becomes required, this story grows by 98 files.
 
 **Two fields below were not in the original cut of this story — `assignedUnitIds` and `mintedBy`.**
 Stories 14 and 15 each independently need a field `workItemContract` does not have and neither can
@@ -26,9 +26,24 @@ kind of change: additive, optional, nothing reads it yet.
 
 ---
 
+## The 98 is measured, and it corrects the design doc
+
+The design plan reports 77 non-test source files for `quest.workItems` **and 77 for sign-offs** — the
+same figure for two different surfaces, which was suspicious rather than impossible. It was a
+copy-paste. Measured independently, twice:
+
+| Surface | Real | Plan said |
+|---|---|---|
+| `quest.workItems` readers | **98** | 77 |
+| the three sign-off FIELDS — what story 26 deletes | **39** | 77 |
+| sign-off VOCABULARY, the wider rename surface | 76 | 77 |
+
+**So the plan's conclusion is backwards.** It calls the sign-off retirement "the larger unknown of the
+two". It is half the size of the work-item surface, not larger.
+
 ## Why the work item is not being split
 
-`quest.workItems` is read in 77 non-test source files and written through 17 call sites that each
+`quest.workItems` is read in **98** non-test source files and written through 17 call sites that each
 depend on one atomic rename being the commit point. Moving the array, or splitting it into a second
 file, is expensive and buys nothing. **Adding six optional fields to it is cheap.** The planner's
 forecast — which WOULD bloat `quest.json` without limit — goes to its own file instead, in story 07.
@@ -261,7 +276,7 @@ home and never the evidence directory"*).
 
 | Assert | Why it is the one that matters |
 |---|---|
-| **a `quest.json` fixture with NONE of the six fields parses** | 77 readers and every quest on disk. If this fails, the change is not additive and you have broken every existing quest |
+| **a `quest.json` fixture with NONE of the six fields parses** | 98 readers and every quest on disk. If this fails, the change is not additive and you have broken every existing quest |
 | a work item with all six round-trips | the happy case |
 | `observations` and `assignedUnitIds` both default to `[]` on an absent key | so a reader can iterate without a null check |
 | `step: 'a-step-nobody-declared'` PARSES | story 03's rule, exercised here. Dispatch rejects it later; the contract must not |
@@ -282,7 +297,7 @@ row — the same reason the existing `startedAt` field is `.nullish()` and not `
 | Do not | It is |
 |---|---|
 | make any of the six work-item fields, or `flow.recipes`, required | never. They stay optional/defaulted |
-| update any of the 77 readers | nothing needs it — that is the point |
+| update any of the 98 readers | nothing needs it — that is the point |
 | define the per-family payload shapes | story 07 |
 | write the thing that READS `observations` or `assignedUnitIds` | stories 10 and 14 |
 | write the router that WRITES `assignedUnitIds` / `mintedBy` | story 15 |

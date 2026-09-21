@@ -57,11 +57,14 @@ glyphsmith alone — both branches above resolve to it and nothing else does. Re
 has no producer left. **Decide whether the prefix value goes with it, and say which in the commit**; a
 dangling enum member is how the next reader concludes the role is still reachable.
 
-**A prior ownership bug, worth knowing before this session starts.** Story 25 (prompts) originally
-claimed `glyphsmith-prompt/` too, and corrected itself: `scrolls/orcha-changes/25-prompts.md:1505` —
+**Ownership is settled, not just uncontested.** Story 25 (prompts) originally claimed
+`glyphsmith-prompt/` too — an ownership bug, since fixed: `scrolls/orcha-changes/25-prompts.md:1505` —
 *"`glyphsmith-prompt/` is NOT yours — it was, and that was an ownership bug. Story 28a owns it, and"* —
-so this directory is uncontested now, but check that story 25's own file still reflects the correction
-before assuming no overlap.
+and story 25q now deletes four prompt directories rather than five, with its own `NO TOUCH` line
+pointing back here. **28a owns `packages/orchestrator/src/statics/glyphsmith-prompt/` outright,
+alongside the ~30 other files below, and nothing else in this chain deletes any of it.** 28a is
+independent of the whole chain and may run at any time — this session never has to wonder whether
+story 25 got there first.
 
 **`design_approved` independence confirmed.** It is a quest STATUS value
 (`questStatusTransitionsStatics`), set by a `User approves designs` action per `orchestrator/CLAUDE.md`'s
