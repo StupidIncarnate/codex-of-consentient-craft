@@ -67,6 +67,10 @@ export * from './src/statics/quest-stage-mapping/quest-stage-mapping-statics';
 // quest forks from, consumed by baseBranchNameContract to build its enum.
 export * from './src/statics/base-branch/base-branch-statics';
 
+// The closed outcome-word vocabulary a routed graph's route key may use — read by
+// graphReachabilityViolationsTransformer's rule 5.
+export * from './src/statics/graph-outcome-word/graph-outcome-word-statics';
+
 // Package KIND build tiers — the primary sort key for the derived codeweaver ledger, ahead of the
 // manifest-derived packageGraph depth, which is inverted across an HTTP seam (this repo's server
 // depends on web to serve its bundle, so Kahn ranks the browser package ahead of the backend it

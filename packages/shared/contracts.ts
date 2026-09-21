@@ -808,3 +808,10 @@ export * from './src/contracts/usage-bucket/usage-bucket-contract';
 export * from './src/contracts/usage-bucket/usage-bucket.stub';
 export * from './src/contracts/usage-ledger/usage-ledger-contract';
 export * from './src/contracts/usage-ledger/usage-ledger.stub';
+
+// Routed Graph Contracts (the shape both the family graph and each step graph satisfy, walked by
+// graphReachabilityViolationsTransformer)
+export * from './src/contracts/routed-graph-node-key/routed-graph-node-key-contract';
+export * from './src/contracts/routed-graph-node-key/routed-graph-node-key.stub';
+export * from './src/contracts/routed-graph/routed-graph-contract';
+export * from './src/contracts/routed-graph/routed-graph.stub';

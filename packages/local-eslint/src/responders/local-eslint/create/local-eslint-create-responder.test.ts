@@ -11,6 +11,7 @@ describe('LocalEslintCreateResponder', () => {
         'ban-locator-pick',
         'ban-quest-status-literals',
         'ban-sync-seeding-methods',
+        'graph-reachability',
         'no-bare-location-literals',
         'no-hardcoded-package-names',
       ]);
@@ -100,6 +101,20 @@ describe('LocalEslintCreateResponder', () => {
       expect(plugin.rules['ban-direct-io-in-test-scenarios'].create).toStrictEqual(
         expect.any(Function),
       );
+    });
+
+    it('VALID: {} => returns graph-reachability rule with problem type', () => {
+      const proxy = LocalEslintCreateResponderProxy();
+      const plugin = proxy.callResponder();
+
+      expect(plugin.rules['graph-reachability'].meta.type).toBe('problem');
+    });
+
+    it('VALID: {} => returns graph-reachability rule with create function', () => {
+      const proxy = LocalEslintCreateResponderProxy();
+      const plugin = proxy.callResponder();
+
+      expect(plugin.rules['graph-reachability'].create).toStrictEqual(expect.any(Function));
     });
   });
 });

@@ -135,3 +135,7 @@ export * from './src/transformers/quest-flow-slice/quest-flow-slice-transformer'
 // One SESSION -> the cwd it ran in, off the quest's own ledger. Shared by the replay read and the
 // live-tail read so the two cannot disagree about where a transcript lives.
 export * from './src/transformers/quest-session-cwd/quest-session-cwd-transformer';
+
+// The graph walk both the lint rule and server boot call — a config a route cannot reach, or that
+// reaches no terminal, is a quest that silently stalls rather than one that errors.
+export * from './src/transformers/graph-reachability-violations/graph-reachability-violations-transformer';

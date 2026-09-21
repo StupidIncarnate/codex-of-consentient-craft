@@ -117,6 +117,7 @@ module.exports = [
       '@dungeonmaster-local/ban-locator-pick': 'error',
       '@dungeonmaster-local/ban-sync-seeding-methods': 'warn',
       '@dungeonmaster-local/ban-direct-io-in-test-scenarios': 'warn',
+      '@dungeonmaster-local/graph-reachability': 'error',
       // 'eslint-comments/no-unlimited-disable': 'error',
       // 'eslint-comments/no-use': ['error', { allow: [] }],
     },
@@ -163,6 +164,7 @@ module.exports = [
       '@dungeonmaster-local/ban-locator-pick': 'error',
       '@dungeonmaster-local/ban-sync-seeding-methods': 'error',
       '@dungeonmaster-local/ban-direct-io-in-test-scenarios': 'off',
+      '@dungeonmaster-local/graph-reachability': 'error',
     },
   },
   // Test file-specific overrides (from dungeonmaster test config)

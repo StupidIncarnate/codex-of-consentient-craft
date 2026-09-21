@@ -24,3 +24,8 @@ export { questDeleteBroker } from './src/brokers/quest/delete/quest-delete-broke
 export { questGetBroker } from './src/brokers/quest/get/quest-get-broker';
 export { questListBroker } from './src/brokers/quest/list/quest-list-broker';
 export { questModifyBroker } from './src/brokers/quest/modify/quest-modify-broker';
+
+// Graph reachability — the server-boot half of story 06's safety net (the family graph AND all
+// six step graphs; the lint half checks the family graph alone, since local-eslint cannot reach
+// agentFlowStatics)
+export { graphReachabilityCheckBroker } from './src/brokers/graph-reachability/check/graph-reachability-check-broker';

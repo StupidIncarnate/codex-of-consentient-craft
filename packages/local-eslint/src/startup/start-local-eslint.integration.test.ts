@@ -10,6 +10,7 @@ describe('StartLocalEslint', () => {
         'ban-locator-pick',
         'ban-quest-status-literals',
         'ban-sync-seeding-methods',
+        'graph-reachability',
         'no-bare-location-literals',
         'no-hardcoded-package-names',
       ]);
