@@ -160,6 +160,12 @@ export * from './src/contracts/design-decision-id/design-decision-id.stub';
 export * from './src/contracts/flow-id/flow-id-contract';
 export * from './src/contracts/flow-id/flow-id.stub';
 
+export * from './src/contracts/flow-recipe-name/flow-recipe-name-contract';
+export * from './src/contracts/flow-recipe-name/flow-recipe-name.stub';
+
+export * from './src/contracts/flow-recipe/flow-recipe-contract';
+export * from './src/contracts/flow-recipe/flow-recipe.stub';
+
 // Flow Contracts
 export * from './src/contracts/flow/flow-contract';
 export * from './src/contracts/flow/flow.stub';
@@ -366,6 +372,12 @@ export * from './src/contracts/riftcarver-result/riftcarver-result.stub';
 
 export * from './src/contracts/quest-session/quest-session-contract';
 export * from './src/contracts/quest-session/quest-session.stub';
+
+export * from './src/contracts/step-name/step-name-contract';
+export * from './src/contracts/step-name/step-name.stub';
+
+export * from './src/contracts/piece-id/piece-id-contract';
+export * from './src/contracts/piece-id/piece-id.stub';
 
 export * from './src/contracts/work-item/work-item-contract';
 export * from './src/contracts/work-item/work-item.stub';

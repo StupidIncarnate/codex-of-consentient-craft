@@ -1,5 +1,7 @@
 import { QuestStub } from '../quest/quest.stub';
 import { RelatedDataItemStub } from '../related-data-item/related-data-item.stub';
+import { UnitIdStub } from '../unit-id/unit-id.stub';
+import { UnitObservationStub } from '../unit-observation/unit-observation.stub';
 import { workItemContract } from './work-item-contract';
 import { WorkItemStub } from './work-item.stub';
 
@@ -17,6 +19,8 @@ describe('workItemContract', () => {
         spawnerType: 'agent',
         relatedDataItems: [],
         dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 0,
@@ -56,6 +60,8 @@ describe('workItemContract', () => {
         sessionId: 'session-abc',
         relatedDataItems: ['operations/f47ac10b-58cc-4372-a567-0e02b2c3d479'],
         dependsOn: ['f47ac10b-58cc-4372-a567-0e02b2c3d479'],
+        observations: [],
+        assignedUnitIds: [],
         attempt: 1,
         maxAttempts: 3,
         retryCount: 2,
@@ -90,6 +96,8 @@ describe('workItemContract', () => {
         agentId: 'acd35f7b7763e33e8',
         relatedDataItems: [],
         dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 0,
@@ -113,6 +121,8 @@ describe('workItemContract', () => {
         spawnerType: 'command',
         relatedDataItems: [],
         dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 0,
@@ -139,6 +149,8 @@ describe('workItemContract', () => {
         spawnerType: 'agent',
         relatedDataItems: ['wardResults/a1b2c3d4-e5f6-7890-abcd-ef1234567890'],
         dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 0,
@@ -161,6 +173,8 @@ describe('workItemContract', () => {
         spawnerType: 'agent',
         relatedDataItems: ['operations/a1b2c3d4-58cc-4372-a567-0e02b2c3d479'],
         dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 0,
@@ -186,6 +200,8 @@ describe('workItemContract', () => {
         sessionId: 'b2c3d4e5-58cc-4372-a567-0e02b2c3d479',
         relatedDataItems: [],
         dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 0,
@@ -209,6 +225,8 @@ describe('workItemContract', () => {
         spawnerType: 'agent',
         relatedDataItems: [],
         dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 0,
@@ -233,6 +251,8 @@ describe('workItemContract', () => {
         spawnerType: 'agent',
         relatedDataItems: [],
         dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 0,
@@ -261,6 +281,8 @@ describe('workItemContract', () => {
         spawnerType: 'agent',
         relatedDataItems: [],
         dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 0,
@@ -284,6 +306,8 @@ describe('workItemContract', () => {
         spawnerType: 'agent',
         relatedDataItems: [],
         dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 0,
@@ -307,6 +331,8 @@ describe('workItemContract', () => {
         spawnerType: 'agent',
         relatedDataItems: [],
         dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 0,
@@ -524,6 +550,8 @@ describe('workItemContract', () => {
         spawnerType: 'agent',
         relatedDataItems: [],
         dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 0,
@@ -574,6 +602,8 @@ describe('workItemContract', () => {
         spawnerType: 'agent',
         relatedDataItems: [],
         dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 0,
@@ -611,6 +641,8 @@ describe('workItemContract', () => {
         spawnerType: 'agent',
         relatedDataItems: [],
         dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 0,
@@ -648,6 +680,8 @@ describe('workItemContract', () => {
           spawnerType: 'agent',
           relatedDataItems: [],
           dependsOn: [],
+          observations: [],
+          assignedUnitIds: [],
           attempt: 0,
           maxAttempts: 1,
           retryCount: 0,
@@ -672,6 +706,8 @@ describe('workItemContract', () => {
         spawnerType: 'agent',
         relatedDataItems: [],
         dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 3,
@@ -691,6 +727,8 @@ describe('workItemContract', () => {
         spawnerType: 'agent',
         relatedDataItems: [],
         dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 0,
@@ -723,6 +761,151 @@ describe('workItemContract', () => {
           retryCount: 1.5,
         });
       }).toThrow(/integer/u);
+    });
+  });
+
+  describe('step, observations, pieceId, assignedUnitIds, mintedBy, payload', () => {
+    it('VALID: {all six new fields} => round-trips', () => {
+      const item = WorkItemStub({
+        step: 'work',
+        observations: [UnitObservationStub()],
+        pieceId: 'pc-1',
+        assignedUnitIds: [UnitIdStub()],
+        mintedBy: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        payload: { surface: 'checkout', layer: 'unit' },
+      });
+
+      const result = workItemContract.parse(item);
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'pending',
+        spawnerType: 'agent',
+        relatedDataItems: [],
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 1,
+        retryCount: 0,
+        createdAt: '2024-01-15T10:00:00.000Z',
+        step: 'work',
+        observations: [
+          {
+            unitId: 'send-flow:observable:check-badge-count-text',
+            mark: 'met',
+            evidence:
+              'packages/x/src/a-transformer.test.ts:42 — flips to red when the guard returns true',
+            at: '2026-01-01T00:00:00.000Z',
+          },
+        ],
+        pieceId: 'pc-1',
+        assignedUnitIds: ['send-flow:observable:check-badge-count-text'],
+        mintedBy: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        payload: { surface: 'checkout', layer: 'unit' },
+      });
+    });
+
+    it("VALID: {step: 'a-step-nobody-declared'} => parses, since the step graph is free-form and only dispatch rejects an unknown step", () => {
+      const item = WorkItemStub({ step: 'a-step-nobody-declared' });
+
+      const result = workItemContract.parse(item);
+
+      expect(result.step).toBe('a-step-nobody-declared');
+    });
+
+    it('VALID: {mintedBy: a questWorkItemIdContract-shaped id} => round-trips', () => {
+      const item = WorkItemStub({ mintedBy: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+
+      const result = workItemContract.parse(item);
+
+      expect(result.mintedBy).toBe('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
+    });
+
+    it('EMPTY: {no mintedBy} => the key is absent rather than defaulted', () => {
+      const item = WorkItemStub();
+
+      const result = workItemContract.parse(item);
+
+      expect(result.mintedBy).toBe(undefined);
+    });
+
+    it('EMPTY: {no observations or assignedUnitIds key} => both default to an empty array', () => {
+      const result = workItemContract.parse({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'pending',
+        spawnerType: 'agent',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'pending',
+        spawnerType: 'agent',
+        relatedDataItems: [],
+        dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
+        attempt: 0,
+        maxAttempts: 1,
+        retryCount: 0,
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+    });
+
+    it('INVALID: {mintedBy: "not-a-uuid"} => throws validation error', () => {
+      expect(() => {
+        workItemContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          mintedBy: 'not-a-uuid',
+        });
+      }).toThrow(/Invalid uuid/u);
+    });
+
+    it('INVALID: {pieceId: ""} => throws validation error', () => {
+      expect(() => {
+        workItemContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          pieceId: '',
+        });
+      }).toThrow(/too_small|String must contain at least 1/u);
+    });
+
+    // `questContract.workItems` is `z.array(workItemContract)`, so a legacy work item — one of the
+    // 98 readers' worth already on disk, minted before this story — is parsed through zod's own
+    // array-element parse, not through a direct `workItemContract.parse()` call. If any of the six
+    // new fields were required rather than optional/defaulted, this element parse fails, which
+    // fails the whole `questContract` parse, which blanks every row of the quest, not just this one.
+    it('VALID: {a quest whose only work item carries none of the six new fields} => the whole quest still parses', () => {
+      const quest = QuestStub({
+        workItems: [WorkItemStub()],
+      });
+
+      expect(quest.workItems).toStrictEqual([
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [],
+          dependsOn: [],
+          observations: [],
+          assignedUnitIds: [],
+          attempt: 0,
+          maxAttempts: 1,
+          retryCount: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+      ]);
     });
   });
 });

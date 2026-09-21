@@ -11,11 +11,15 @@ import { z } from 'zod';
 import { agentIdContract } from '../agent-id/agent-id-contract';
 import { fileNameContract } from '../file-name/file-name-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
+import { pieceIdContract } from '../piece-id/piece-id-contract';
 import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
 import { relatedDataItemContract } from '../related-data-item/related-data-item-contract';
 import { sessionIdContract } from '../session-id/session-id-contract';
 import { spawnerTypeContract } from '../spawner-type/spawner-type-contract';
+import { stepNameContract } from '../step-name/step-name-contract';
 import { streamSignalKindContract } from '../stream-signal-kind/stream-signal-kind-contract';
+import { unitIdContract } from '../unit-id/unit-id-contract';
+import { unitObservationContract } from '../unit-observation/unit-observation-contract';
 import { wardModeContract } from '../ward-mode/ward-mode-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 import { workItemStatusContract } from '../work-item-status/work-item-status-contract';
@@ -37,6 +41,8 @@ export const workItemContract = z.object({
   // ref linking it to its operation item on the quest operations ledger, and each operation
   // item is worked by exactly ONE work item over its life (strict 1:1 — never re-linked,
   // never status-reverted). Ward items may additionally carry a `wardResults/<id>` ref.
+  // Story 22 retires this strict 1:1 invariant — do not treat it as still true once that
+  // story lands.
   relatedDataItems: z.array(relatedDataItemContract).default([]),
   dependsOn: z.array(questWorkItemIdContract).default([]),
   attempt: z.number().int().nonnegative().brand<'Attempt'>().default(0),
@@ -80,6 +86,31 @@ export const workItemContract = z.object({
   smoketestPromptOverride: z.string().min(1).brand<'PromptText'>().optional(),
   smoketestExpectedSignal: streamSignalKindContract.optional(),
   actualSignal: streamSignalKindContract.optional(),
+  step: stepNameContract.optional(),
+  // One entry per unit this work item was ASSIGNED — not a shared log sessions append to. Each
+  // session gets a fresh, complete set that freezes when the step signals; a re-mint writes its
+  // own set of the same units from scratch rather than amending its predecessor's.
+  observations: z.array(unitObservationContract).default([]),
+  pieceId: pieceIdContract.optional(),
+  // What this work item was ASSIGNED, as distinct from what it MARKED (`observations`). The
+  // router (story 15) WRITES this on every work item it mints; story 14's signal gate READS it
+  // and refuses to let a session signal while any id here has no matching
+  // `observations[].unitId`. Cannot be derived from the piece's own `assignedUnitIds` (that is
+  // INTENT, re-filtered at dispatch) or from `payload.units[]` (not every family's payload has
+  // one) — see story 02's own text for the full reasoning.
+  assignedUnitIds: z.array(unitIdContract).default([]),
+  // The return edge: which work item's `unmet` marks or `request` caused this one to exist.
+  // Deliberately NOT `insertedBy` — that field already means "supersedes a failed item" for the
+  // `pt N` continuation chain, and `work-items-to-quest-status-transformer` reads it to derive
+  // quest completion; reusing it here would make an ordinary mark-minted rework loop read as a
+  // resolved failure.
+  mintedBy: questWorkItemIdContract.optional(),
+  // The typed, per-family half of a brief — deliberately `z.record(z.unknown())`: the
+  // per-family shapes live on the plan-file contract (story 07), and duplicating them here would
+  // make `shared` depend on a shape only the orchestrator cares about. The router copies the
+  // originating piece's payload onto what it mints, so a later plan amendment cannot rewrite
+  // what a session already ran against.
+  payload: z.record(z.unknown()).optional(),
 });
 
 export type WorkItem = z.infer<typeof workItemContract>;

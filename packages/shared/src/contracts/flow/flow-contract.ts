@@ -19,6 +19,7 @@ import { flowEdgeContract } from '../flow-edge/flow-edge-contract';
 import { flowIdContract } from '../flow-id/flow-id-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
 import { flowOffMapSignoffContract } from '../flow-off-map-signoff/flow-off-map-signoff-contract';
+import { flowRecipeContract } from '../flow-recipe/flow-recipe-contract';
 import { flowTypeContract } from '../flow-type/flow-type-contract';
 
 export const flowContract = z.object({
@@ -31,6 +32,11 @@ export const flowContract = z.object({
   nodes: z.array(flowNodeContract).default([]),
   edges: z.array(flowEdgeContract).default([]),
   offMapSignoffs: z.array(flowOffMapSignoffContract).default([]),
+  // Seed recipes a planner proved for this flow — an ID-BEARING ARRAY exactly like
+  // `offMapSignoffs` above, for the same merge-upsert reason. Nothing in phase A–C of this
+  // change creates an entry here; story 08 validates it, story 18 serves it, story 27 renders
+  // it.
+  recipes: z.array(flowRecipeContract).default([]),
 });
 
 export type Flow = z.infer<typeof flowContract>;

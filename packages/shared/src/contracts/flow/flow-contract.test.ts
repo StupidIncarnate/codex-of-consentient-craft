@@ -1,6 +1,7 @@
 import { FlowEdgeStub } from '../flow-edge/flow-edge.stub';
 import { FlowNodeStub } from '../flow-node/flow-node.stub';
 import { FlowOffMapSignoffStub } from '../flow-off-map-signoff/flow-off-map-signoff.stub';
+import { FlowRecipeStub } from '../flow-recipe/flow-recipe.stub';
 import { SignoffStub } from '../signoff/signoff.stub';
 import { flowContract } from './flow-contract';
 import { FlowStub } from './flow.stub';
@@ -19,6 +20,7 @@ describe('flowContract', () => {
         nodes: [],
         edges: [],
         offMapSignoffs: [],
+        recipes: [],
       });
     });
 
@@ -74,6 +76,7 @@ describe('flowContract', () => {
         nodes: [],
         edges: [],
         offMapSignoffs: [],
+        recipes: [],
       });
     });
   });
@@ -128,6 +131,34 @@ describe('flowContract', () => {
             workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
             at: '2026-01-02T00:00:00.000Z',
           },
+        },
+      ]);
+    });
+  });
+
+  describe('recipes', () => {
+    it('EMPTY: {without recipes field} => defaults to an empty array, the shape a flow proving none carries', () => {
+      const result = flowContract.parse({
+        id: 'login-flow',
+        name: 'Login Flow',
+        flowType: 'runtime',
+        entryPoint: '/login',
+        exitPoints: ['/dashboard'],
+      });
+
+      expect(result.recipes).toStrictEqual([]);
+    });
+
+    it('VALID: {one recipes[] entry} => round-trips, keyed by its own id', () => {
+      const flow = FlowStub({
+        recipes: [FlowRecipeStub({ id: 'pc-walk-1', instanceId: 'inst_7f3a9c21', runId: 'run_2' })],
+      });
+
+      expect(flow.recipes).toStrictEqual([
+        {
+          id: 'pc-walk-1',
+          instanceId: 'inst_7f3a9c21',
+          runId: 'run_2',
         },
       ]);
     });
