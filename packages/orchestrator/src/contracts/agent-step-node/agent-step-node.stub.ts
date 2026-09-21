@@ -6,5 +6,6 @@ import type { AgentStepNode } from './agent-step-node-contract';
 export const AgentStepNodeStub = ({ ...props }: StubArgument<AgentStepNode> = {}): AgentStepNode =>
   agentStepNodeContract.parse({
     role: 'worker',
+    kind: 'prompt',
     ...props,
   });

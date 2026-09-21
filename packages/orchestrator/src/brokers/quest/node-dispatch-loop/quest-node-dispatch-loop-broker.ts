@@ -2,22 +2,23 @@
  * PURPOSE: The Node-run orchestration loop — drives the SAME get-next-step state machine that
  * /dumpster-launch polls, but dispatches by spawning headless Claude CLI children instead of
  * Task() sub-agents. One recursion per dispatch decision: spawn-agents → spawn the batch and
- * await exits; run-ward / run-riftcarver → run that command synchronously; idle → return control to the runner (which
- * re-kicks on wake events — no sleep-polling). isPlaying() is read TWICE per iteration — before
- * the scan and again after it, because the scan long-polls and can return work that only appeared
- * after a pause. That pair is the graceful pause point: in-flight children finish, nothing new
- * dispatches.
+ * await exits; run-step / run-ward / run-riftcarver → run that command synchronously; idle → return
+ * control to the runner (which re-kicks on wake events — no sleep-polling). isPlaying() is read
+ * TWICE per iteration — before the scan and again after it, because the scan long-polls and can
+ * return work that only appeared after a pause. That pair is the graceful pause point: in-flight
+ * children finish, nothing new dispatches.
  *
  * USAGE:
  * await questNodeDispatchLoopBroker({ isPlaying: () => orchestrationDispatchState.getIsPlaying() });
  * // Resolves when paused or when the state machine reports idle
  *
  * WHY isPlaying is a parameter: brokers cannot import state/ — the bootstrap responder supplies
- * the real orchestrationDispatchState facade; tests inject a stub. `onWardLine` and
- * `onRiftcarverLine` are parameters for the same reason, and both are REQUIRED: a command work item
- * carries no sessionId, so the JSONL watcher can never tail it, and these callbacks are the only
- * route their output has to a UI. Dropping either means minutes of a dead panel with nothing at the
- * call site to show for it — a carve stalls the panel for longer than a ward run ever does.
+ * the real orchestrationDispatchState facade; tests inject a stub. `onWardLine`,
+ * `onRiftcarverLine` and `onStepLine` are parameters for the same reason, and all three are
+ * REQUIRED: a command or deterministic-step work item carries no sessionId, so the JSONL watcher can
+ * never tail it, and these callbacks are the only route their output has to a UI. Dropping one means
+ * minutes of a dead panel with nothing at the call site to show for it — a carve stalls the panel
+ * for longer than a ward run ever does.
  */
 
 import type {
@@ -32,6 +33,7 @@ import type { ActiveQuestFacade } from '../../../contracts/active-quest-facade/a
 import { orchestrationDispatchStatics } from '../../../statics/orchestration-dispatch/orchestration-dispatch-statics';
 import { questGetNextStepBroker } from '../get-next-step/quest-get-next-step-broker';
 import { questRunRiftcarverBroker } from '../run-riftcarver/quest-run-riftcarver-broker';
+import { questRunStepBroker } from '../run-step/quest-run-step-broker';
 import { questRunWardBroker } from '../run-ward/quest-run-ward-broker';
 import { spawnBatchLayerBroker } from './spawn-batch-layer-broker';
 
@@ -46,6 +48,7 @@ export const questNodeDispatchLoopBroker = async ({
   unregisterProcess,
   onWardLine,
   onRiftcarverLine,
+  onStepLine,
 }: {
   isPlaying: () => boolean;
   onWardLine: (params: { questId: QuestId; workItemId: QuestWorkItemId; line: string }) => void;
@@ -54,6 +57,7 @@ export const questNodeDispatchLoopBroker = async ({
     workItemId: QuestWorkItemId;
     line: string;
   }) => void;
+  onStepLine: (params: { questId: QuestId; workItemId: QuestWorkItemId; line: string }) => void;
   registerProcess?: (params: {
     processId: ProcessId;
     questId: QuestId;
@@ -92,7 +96,18 @@ export const questNodeDispatchLoopBroker = async ({
     return ok;
   }
 
-  if (step.type === 'run-riftcarver') {
+  if (step.type === 'run-step') {
+    const stepQuestId = step.questId;
+    const stepWorkItemId = step.workItemId;
+    // The handler owns its own work-item record — `in_progress`, then the classified word — and the
+    // ROUTER decides what the scope does with that word on the next scan, so the loop just recurses.
+    await questRunStepBroker({
+      step,
+      onLine: (line: string): void => {
+        onStepLine({ questId: stepQuestId, workItemId: stepWorkItemId, line });
+      },
+    });
+  } else if (step.type === 'run-riftcarver') {
     const carveQuestId = step.questId;
     const carveWorkItemId = step.workItemId;
     // The carve owns its own ledger outcome — it marks the work item in_progress, applies the
@@ -131,6 +146,7 @@ export const questNodeDispatchLoopBroker = async ({
     isPlaying,
     onWardLine,
     onRiftcarverLine,
+    onStepLine,
     ...(registerProcess === undefined ? {} : { registerProcess }),
     ...(unregisterProcess === undefined ? {} : { unregisterProcess }),
   });

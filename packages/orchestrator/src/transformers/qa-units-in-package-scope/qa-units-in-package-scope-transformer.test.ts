@@ -3,6 +3,7 @@ import {
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
+  PackageGraphEntryStub,
   PackageNameStub,
   QuestPackageEntryStub,
 } from '@dungeonmaster/shared/contracts';
@@ -142,8 +143,8 @@ describe('qaUnitsInPackageScopeTransformer', () => {
     );
   });
 
-  describe('intersection scope — an item owns every unit its packages touch, glue included', () => {
-    it('VALID: {flowrider, packageNames: [ui-app]} => keeps the glue node’s branches, because no track has a seam item to catch them', () => {
+  describe('name scope — one owner per unit, and a seam belongs to the LATER cell', () => {
+    it('VALID: {flowrider, packageNames: [ui-app], no packagesAffected} => owns the glue node’s branches, because with no kinds to rank the name tiebreak puts ui-app last', () => {
       expect(
         qaUnitsInPackageScopeTransformer({
           flow: FLOW,
@@ -160,7 +161,7 @@ describe('qaUnitsInPackageScopeTransformer', () => {
       ]);
     });
 
-    it('VALID: {siegemaster, packageNames: [api-service]} => keeps the glue too, so the union of an intersecting track’s items never loses a seam unit', () => {
+    it('VALID: {siegemaster, packageNames: [api-service], no packagesAffected} => does NOT own the glue, because the same tiebreak awarded it to ui-app', () => {
       expect(
         qaUnitsInPackageScopeTransformer({
           flow: FLOW,
@@ -168,12 +169,7 @@ describe('qaUnitsInPackageScopeTransformer', () => {
           track: 'siegemaster',
           packageNames: [API_PACKAGE],
         }).map((unit) => String(unit.id)),
-      ).toStrictEqual([
-        'login-flow:terminal:auth-error',
-        'login-flow:branch:submit-invalid',
-        'login-flow:branch:to-ghost',
-        ...UNROUTABLE_UNIT_IDS,
-      ]);
+      ).toStrictEqual(['login-flow:terminal:auth-error', ...UNROUTABLE_UNIT_IDS]);
     });
 
     it('VALID: {siegemaster, packageNames matching no node} => owns only what hangs off no node', () => {
@@ -186,10 +182,30 @@ describe('qaUnitsInPackageScopeTransformer', () => {
         }).map((unit) => String(unit.id)),
       ).toStrictEqual(UNROUTABLE_UNIT_IDS);
     });
+
+    it('VALID: {a package graph ranking api-service deeper inside its own tier} => the depth tiebreak moves the seam onto api-service', () => {
+      expect(
+        qaUnitsInPackageScopeTransformer({
+          flow: FLOW,
+          units: UNITS,
+          track: 'siegemaster',
+          packageNames: [API_PACKAGE],
+          packageGraph: [
+            PackageGraphEntryStub({ id: String(UI_PACKAGE), depth: 0 }),
+            PackageGraphEntryStub({ id: String(API_PACKAGE), depth: 1 }),
+          ],
+        }).map((unit) => String(unit.id)),
+      ).toStrictEqual([
+        'login-flow:terminal:auth-error',
+        'login-flow:branch:submit-invalid',
+        'login-flow:branch:to-ghost',
+        ...UNROUTABLE_UNIT_IDS,
+      ]);
+    });
   });
 
   describe('the two narrowings compose', () => {
-    it('VALID: {flowrider, packagesAffected AND packageNames: [ui-app]} => the kind narrowing removes nothing, so the name narrowing alone decides', () => {
+    it('VALID: {flowrider, packagesAffected AND packageNames: [ui-app]} => the KIND TIER decides the seam, and frontend-react ranks after http-backend', () => {
       expect(
         qaUnitsInPackageScopeTransformer({
           flow: FLOW,
@@ -205,6 +221,18 @@ describe('qaUnitsInPackageScopeTransformer', () => {
         'login-flow:observable:shows-form',
         ...UNROUTABLE_UNIT_IDS.filter((id) => id.split(':')[1] === 'off-map'),
       ]);
+    });
+
+    it('VALID: {the same quest, the api-service half} => the earlier cell still EXISTS and owns its own terminal, but not the seam', () => {
+      expect(
+        qaUnitsInPackageScopeTransformer({
+          flow: FLOW,
+          units: UNITS,
+          track: 'siegemaster',
+          packagesAffected: PACKAGES_AFFECTED,
+          packageNames: [API_PACKAGE],
+        }).map((unit) => String(unit.id)),
+      ).toStrictEqual(['login-flow:terminal:auth-error', ...UNROUTABLE_UNIT_IDS]);
     });
   });
 });

@@ -15,6 +15,7 @@ describe('questNodeDispatchLoopBroker', () => {
         isPlaying: (): boolean => false,
         onWardLine: () => undefined,
         onRiftcarverLine: () => undefined,
+        onStepLine: () => undefined,
       });
 
       expect(result).toStrictEqual(AdapterResultStub());
@@ -39,6 +40,7 @@ describe('questNodeDispatchLoopBroker', () => {
         isPlaying,
         onWardLine: () => undefined,
         onRiftcarverLine: () => undefined,
+        onStepLine: () => undefined,
       });
 
       expect(result).toStrictEqual(AdapterResultStub());
@@ -72,6 +74,7 @@ describe('questNodeDispatchLoopBroker', () => {
         isPlaying,
         onWardLine: () => undefined,
         onRiftcarverLine: () => undefined,
+        onStepLine: () => undefined,
       });
 
       expect(result).toStrictEqual(AdapterResultStub());
@@ -89,6 +92,7 @@ describe('questNodeDispatchLoopBroker', () => {
         isPlaying,
         onWardLine: () => undefined,
         onRiftcarverLine: () => undefined,
+        onStepLine: () => undefined,
       });
 
       expect(result).toStrictEqual(AdapterResultStub());
@@ -105,6 +109,7 @@ describe('questNodeDispatchLoopBroker', () => {
         isPlaying: (): boolean => true,
         onWardLine: () => undefined,
         onRiftcarverLine: () => undefined,
+        onStepLine: () => undefined,
       });
 
       expect(result).toStrictEqual(AdapterResultStub());
@@ -134,6 +139,7 @@ describe('questNodeDispatchLoopBroker', () => {
         isPlaying: (): boolean => true,
         onWardLine: () => undefined,
         onRiftcarverLine: () => undefined,
+        onStepLine: () => undefined,
       });
 
       expect(result).toStrictEqual(AdapterResultStub());
@@ -162,6 +168,7 @@ describe('questNodeDispatchLoopBroker', () => {
         isPlaying: (): boolean => true,
         onWardLine: () => undefined,
         onRiftcarverLine: () => undefined,
+        onStepLine: () => undefined,
       });
 
       expect(result).toStrictEqual(AdapterResultStub());
@@ -204,6 +211,7 @@ describe('questNodeDispatchLoopBroker', () => {
         onRiftcarverLine: (params): void => {
           received.push(params);
         },
+        onStepLine: () => undefined,
       });
 
       expect(received).toStrictEqual([
@@ -236,6 +244,7 @@ describe('questNodeDispatchLoopBroker', () => {
         isPlaying,
         onWardLine: () => undefined,
         onRiftcarverLine: () => undefined,
+        onStepLine: () => undefined,
       });
 
       expect(result).toStrictEqual(AdapterResultStub());
@@ -255,6 +264,7 @@ describe('questNodeDispatchLoopBroker', () => {
         isPlaying,
         onWardLine: () => undefined,
         onRiftcarverLine: () => undefined,
+        onStepLine: () => undefined,
         registerProcess,
       });
 
@@ -273,6 +283,7 @@ describe('questNodeDispatchLoopBroker', () => {
         isPlaying,
         onWardLine: () => undefined,
         onRiftcarverLine: () => undefined,
+        onStepLine: () => undefined,
         unregisterProcess,
       });
 
@@ -291,6 +302,7 @@ describe('questNodeDispatchLoopBroker', () => {
         isPlaying,
         onWardLine: () => undefined,
         onRiftcarverLine: () => undefined,
+        onStepLine: () => undefined,
       });
 
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([

@@ -520,10 +520,10 @@ ChaosWhisperer (the slash-command-loaded session) executes the prompt in order:
   │
   ▼
 Web UI "Start Quest" button ──► server orchestration-start-responder
-  │   approved → in_progress. Seeds the relay (questBuildRelayGraphBroker): mints the quest type's
-  │   startImplementationOps + the fixed verify tail as operation items (the riftcarver seed heads the
-  │   ledger; the codeweaver seed FANS OUT into the derived per-cell ledger here) and creates the
-  │   FIRST work item — the riftcarver, spawnerType: 'command'.
+  │   approved → in_progress. Seeds the relay (questBuildRelayGraphBroker): mints the ENTRY family's
+  │   scopes and NOTHING ELSE — one riftcarver scope — and creates its FIRST work item at that
+  │   family's entry step (carve), spawnerType: 'command'. Every later family's scopes are minted
+  │   when the family graph routes to it.
   │   PURE quest.json bookkeeping: no spawn, no git, no build, so the POST answers in milliseconds.
   │   Redirects to execute view; banner: "Run /dumpster-launch in your Claude session."
   │
@@ -534,7 +534,8 @@ User runs /dumpster-launch (long-lived dispatch loop in their session)
   │   operation item the relay marked in_progress; on signal-back / command exit the relay advances
   │   to the next pending item.
   │
-  │   The operations ledger drives the order. BOTH quest types run the same sequence:
+  │   The FAMILY GRAPH drives the order, and both quest types run the same one. Each family's scopes
+  │   are minted the moment the relay routes to it:
   ├─ riftcarver ──── mcp__dungeonmaster__run-riftcarver({questId, workItemId}); spawnerType: 'command'.
   │                   Carves the branch + worktree, pins baseRef from the new tree's HEAD, mirrors
   │                   node_modules, runs the preflight typecheck. Streams live; log persisted to
@@ -553,36 +554,112 @@ User runs /dumpster-launch (long-lived dispatch loop in their session)
   │   reviewer, inside the operator's own turn, before it commits. See "How an operator session
   │   works" and "Minions".
   │
-  │   (a red ward inserts a spiritmender + a fresh ward after it; a REPAIRABLE riftcarver red does the
-  │    same with a fresh pt N carve; a spent budget on either blocks the quest, as does a riftcarver
-  │    git-state or permission failure — see "Failure handling".)
+  │   (a red ward routes `unmet` to its family's own `repair` step, which returns to that ward and
+  │    re-runs it; a repairable carve red does the same inside the riftcarver family. A spent
+  │    `maxVisits` on either blocks the quest, as does any `wall` — see "Failure handling".)
   ▼
 Complete ──► /dumpster-launch's next get-next-step() picks up the next FIFO quest in the queue
 ```
 
 ## Operations Ledger & Work Items
 
-Execution is a **reactive relay over `quest.operations`** — an ordered `OperationItem[]` ledger. Each item is
-`{ id, role, text, status: pending | in_progress | complete, locked, wardMode?, flowIds, packageNames }`
-(`operationItemContract`).
+Execution runs on **TWO GRAPHS**. The **family graph** (`questFlowStatics`, in `@dungeonmaster/shared`)
+says which family runs after which — `riftcarver → codeweaver → flowrider → siegemaster → wardFull →
+@complete`, with `warpgate` appended at merge rather than routed to. The **step graph**
+(`agentFlowStatics`, this package's own statics) says what happens INSIDE one family: `plan → work →
+review → commit → ward`, with `unmet` marks looping back to the step that can settle them. Every step
+declares a `role` (`planner`/`worker`/`reviewer`), a `kind` (`prompt`/`deterministic`), a `maxVisits`
+ceiling and a route per outcome word.
 
-**The ledger has exactly ONE writer: the orchestrator.** `operations` is off the modify-quest allowlist entirely —
-ChaosWhisperer never authors it, at any status, and no execution agent ever writes it either. `questModifyBroker`
-rejects an `operations` write from any caller at any status; the ledger's only content comes from two
-orchestrator-owned mechanisms:
+`quest.operations` is one **SCOPE** per entry — a family's slice of the quest, `{ id, role, text, status,
+locked, wardMode?, flowIds, packageNames }` (`operationItemContract`).
 
-- **Derivation at Start** (`questBuildRelayGraphBroker`, reading `questTypeRegistryStatics[quest.questType]`): mints
-  `startImplementationOps` + `relayTail` as pending operation items, expanding each seed through
-  `relayTailFanOutTransformer` per its `fanOutBy`. The ONE `codeweaver` seed (`fanOutBy: 'implementation'`) becomes
-  the derived per-CELL codeweaver ledger this way — one item per (package, flow); the `flowrider` and `siegemaster`
-  seeds (`fanOutBy: 'flow'`) become one item per quest flow each.
-- **Runtime mutation** (`questOperationsUpdateBroker`, the ONLY runtime ledger writer): status transitions,
-  duplicate-on-partial, and the ward and riftcarver failure splices. Execution
-  agents have no ledger write path at all, ever — they read git + the ledger for context and signal an outcome.
+**The ledger has exactly ONE writer: the orchestrator**, and it is minted **LAZILY**. `operations` is off
+the modify-quest allowlist entirely — ChaosWhisperer never authors it and no execution agent ever writes
+it. Its content comes from three orchestrator-owned mechanisms:
 
-**Nothing is appended to the ledger between two seeded items.** The ledger a quest starts with is the ledger it
-finishes with, plus `pt N` continuations, the ward/riftcarver failure splices, and the one warpgate item a merge
-appends after it has drained. In particular there is **no standards-review role on it at all** — see below.
+- **Start seeds the ENTRY family and nothing else** (`questBuildRelayGraphBroker` →
+  `familyScopesMintTransformer({ quest, family: questFlowStatics[questType].entry })`) — one
+  `riftcarver` scope, plus the intake items force-completed.
+- **A family route mints the next family's scopes** (`questRouteScopeBroker` →
+  `mintNextFamilyLayerBroker`), the moment every scope of the current family is complete. A family that
+  fans out to ZERO scopes is routed PAST rather than stalled, by walking its `empty` edge.
+- **Runtime mutation** (`questOperationsUpdateBroker`, the ONLY runtime ledger writer): status
+  transitions, and the work items the router mints.
+
+**Lazy is the point.** A fan-out reads the flows AS THEY STAND when its family is routed to, which is
+what gives an observable an operator adds mid-quest a flowrider session at all — a scope cut at approval
+could never have covered it.
+
+### The three brokers that move a quest
+
+| Broker | Job |
+|---|---|
+| `questAdvanceBroker` | **ENTERS** a scope: the first `pending` operation item gets ONE work item, at its family's `entry` step, and the item flips `in_progress`. Its resume guard skips a `pending` item that already has a linked work item — still correct under many-work-items-per-scope, because the router only mints inside an item that is already `in_progress`. |
+| `questRouteScopeBroker` | **MOVES** a scope: the first `in_progress` one whose work items have ALL gone terminal. Reads the plan file ABOVE the lock, calls the pure `nextActionTransformer` inside `questOperationsUpdateBroker`'s callback, and persists the answer — the next step's batch, the scope completing (and the next family's scopes minted), or a HALT performed AFTER the persist returns. |
+| `questRunStepBroker` | **RUNS** a deterministic step through `stepHandlerRunBroker` and records the classified word on the work item as `declaredWord`. It routes nothing; the router reads that word on the next scan. |
+
+### The router — `nextActionTransformer`
+
+Pure, synchronous, takes no lock, performs nothing. Four questions in ONE order, and the order IS the
+engine: **a request beats an `unmet`; an `unmet` beats an unstarted batch; an unstarted batch beats
+`routes.done`.** Get it wrong and the symptoms are subtle — work that should have been re-cut is skipped,
+or a phase advances with pieces still unstarted.
+
+1. **Did this step REQUEST another step?** `quest-work`'s `request` payload names a `mintableOnRequest`
+   step; the mint returns to the asker.
+2. **Does this step have `unmet` units?** Grouped by the ORIGINATING PIECE, never the mark set, and
+   minted against `routes.unmet`. `contextUnitIds` are context, never claims.
+3. **Are there unstarted plan batches AT THE CURRENT STEP?** A step nothing has entered has no outcome
+   to fold — it has to RUN before question 4 can ask anything of it.
+4. **Otherwise, follow the step's own route for the outcome it folded to.**
+
+**THE CURRENT STEP IS THE STEP OF THE LAST WORK ITEM ON THIS SCOPE, by ARRAY order** — never
+`createdAt`, since a parallel batch is minted inside one persist and shares a timestamp.
+
+**THE PHASE RULE IS QUESTION 3 DOING ITS JOB.** A step's `done` fires only once every piece at that step
+has DRAINED, so a `pending` or `in_progress` item at the current step holds question 4 back and the
+answer is `cause: 'capped'` — neither done nor blocked, come back. For siege that is what makes
+`happyWalk → adversarial` mean something.
+
+**`routes.done` IS THE FORWARD EDGE ONLY; THE RETURN EDGE IS AUTOMATIC.** A step that is only ever
+mark-minted declares no `done` route at all, and an undeclared outcome returns to the work item
+`mintedBy` names — as a FRESH work item at that minter's step, never a resume of the minter's own.
+
+### The four outcome words and the three marks
+
+`wall` > `unmet` > `done` > `empty`, worst first, which is how a parallel batch folds to one outcome per
+step. A session writes `met` / `cant-meet` / `unmet` on each assigned unit through `quest-work`; `met`
+and `cant-meet` are settled, `unmet` is what mints a successor. `empty` means nothing was in scope to act
+on, never "there was work and I chose to cut none".
+
+### Work item = one dispatched session
+
+`quest.workItems[]` are generic session containers (`role`, `status`, `step`, `dependsOn`,
+`relatedDataItems`, `assignedUnitIds`, `observations`, `pieceId`, `payload`, `mintedBy`, `sessionId`,
+`agentId`). **Every work item carries exactly ONE `operations/<id>` ref, and ONE operation item carries
+MANY work items** — one per step the router mints on that scope, one per piece inside a parallel step.
+`step` is what separates them.
+
+### Dispatch — the STEP decides before the ROLE
+
+`compute-next-step-from-quest-layer-broker` resolves the head ready item's step node first
+(`workItemStepNodeTransformer`):
+
+- a `kind: 'deterministic'` step returns `{ type: 'run-step', handler, args }` **alone** — it runs a
+  handler, never a session, and it owns the whole tree for the length of its run. Its work item carries
+  the ROLE of its SCOPE (a `commit` step inside a codeweaver scope reads `role: 'codeweaver'`), so keying
+  on the role alone would spawn a Claude session for it;
+- a work item running NO step graph falls through to the role-keyed command split — `run-riftcarver` for
+  a carve, `run-ward` for a gate — which is what keeps a riftcarver item out of
+  `buildSpawnInstructionLayerBroker`, whose `agentRoleContract` parse throws for any role Claude cannot
+  be dispatched as;
+- otherwise the batch is every ready item sharing the head's ROLE **and** its STEP, which is a router
+  mint read back off the ledger. Several sessions of ONE step run in parallel by design; two different
+  steps never do.
+
+`args` ride the STEP: a family's own `ward` declares `['--committed', '--uncommitted']` and `wardFull`'s
+`gate` declares `[]`, passed verbatim, which is what keeps a ward-mode ternary out of every call site.
 
 ### How an operator session works
 
@@ -660,7 +737,7 @@ Eight things about that shape are load-bearing, and each is a measurement rather
   before it commits** — commit first and that surface is empty. Then `git add -A`, one commit under
   `<role>: <what this pass made true>` with the whole return block in the body, `--allow-empty` where the pass
   genuinely changed nothing, and a bare `git push`, no `-u`, as the last thing it does. That commit is the pass's only
-  durable record, and a later `pt N` session reconstructs the item from those bodies.
+  durable record, and a later session on the same scope reconstructs the state from those bodies.
 
 **Every decision the operator makes off a sub-agent's return is a LOOKUP.** Every sub-agent ends its return with one
 line starting `NEXT:`, and the operator matches the first word: `pass` moves on, `rework` sends exactly what it named
@@ -685,94 +762,94 @@ action is `signal-back`, so as a sub-agent it would signal on its parent's opera
 mid-pass; `agentPromptGetBroker` refuses the fetch on the name. It arrives the only way it ever does: the ledger's own
 `ward` item runs after the operator signals, and a red one splices it with the full detail blob.
 
-**Work item = one agent session.** `quest.workItems[]` are generic session containers (`role`, `status`, `dependsOn`,
-`relatedDataItems`, `sessionId`, `agentId`). The load-bearing invariant is **strict 1:1**: each work item links to
-exactly one operation item via `relatedDataItems: ['operations/<id>']`, and each operation item is worked by exactly
-one work item over its life.
+**Work item = one dispatched session.** `quest.workItems[]` are generic session containers (`role`,
+`status`, `step`, `dependsOn`, `relatedDataItems`, `assignedUnitIds`, `observations`, `pieceId`,
+`payload`, `mintedBy`, `sessionId`, `agentId`). Every work item links to exactly ONE operation item via
+`relatedDataItems: ['operations/<id>']`, and **ONE operation item carries MANY work items** — one per
+step the router mints on that scope, one per piece inside a parallel step. `step` is what separates them.
 
-- **Advance / relay** (`questAdvanceBroker`): the next actionable item is the FIRST `pending` operation item. Advance
-  creates ONE work item for it (role; `spawnerType` = `command` when `isCommandWorkItemRoleGuard` matches, else
-  `agent`; `dependsOn` chained after the most recent dependency-satisfying work item;
-  `relatedDataItems: ['operations/<id>']`) and marks the operation item `in_progress` — in the same atomic persist.
-  That guard, backed by `workItemRoleStatics.command` (`['ward', 'riftcarver']`), is the SINGLE input to the
-  `spawnerType` decision and to "is this Claude's to run" — data rather than a `role === 'ward'` ternary, because a
-  ternary has to be found and edited at every dispatch site and a missed site hands the role to `agentRoleContract`,
-  which throws on a name it does not enumerate. It is called from BOTH the signal-back handler AND the dispatch scan's
-  self-heal. A **resume guard** makes it act only on a `pending` item with NO linked work item, so no caller (double
-  signal, re-entrant scan, restart) can ever mint a second work item for one operation.
-- **Seed** (`questBuildRelayGraphBroker`, at Start): mints the quest type's `startImplementationOps` + `relayTail`
-  (from `questTypeRegistryStatics`) as pending operation items (locked, except the `codeweaver` seed, which mints
-  unlocked so its pt chain stays unbounded — see below), force-completes any leftover chat-role intake items
-  (`isChatWorkItemRoleGuard` — chaoswhisperer / glyphsmith / bughunt), and creates the first work item — all in one
-  `questOperationsUpdateBroker` persist. **`startImplementationOps` leads with a `riftcarver` seed for BOTH quest
-  types**, so the first work item this mints is always the carve, `spawnerType: 'command'`. It carries no `fanOutBy`
-  (exactly one item) and no `locked` override (defaults true, which enrols it in `slotManagerStatics.riftcarver`'s
-  budget), and it is excluded from the spine-packages fallback the other orchestrator-seeded items get: `packageNames`
-  exists to narrow an AGENT's search, and a command has no prompt to narrow — writing the flow-tagged packages onto it
-  would claim the carve builds only those, when what it prepares is the whole worktree. This broker also stamps **no
-  `baseRef`**: it runs before any worktree exists, so the only HEAD it could read is the server process's own
-  checkout, and riftcarver is the sole writer of that field.
+- **Enter a scope** (`questAdvanceBroker`): the FIRST `pending` operation item gets ONE work item, at its
+  family's `entry` step, and the item flips `in_progress` — in the same atomic persist. `spawnerType` is
+  `command` when `isCommandWorkItemRoleGuard` matches, else `agent`; that guard, backed by
+  `workItemRoleStatics.command` (`['ward', 'riftcarver']`), is data rather than a `role === 'ward'`
+  ternary, because a ternary has to be found and edited at every dispatch site and a missed site hands
+  the role to `agentRoleContract`, which throws on a name it does not enumerate. The family is resolved
+  through `questFlowStatics` and its `wardMode` compared, so the COMMITTED ward gate — which shares
+  `role: 'ward'` with `wardFull` and belongs to no family — is stamped with NO step. Advance is called
+  from BOTH the signal-back handler AND the dispatch scan's self-heal, and its **resume guard** makes it
+  act only on a `pending` item with NO linked work item.
+- **Move a scope** (`questRouteScopeBroker`): the first `in_progress` scope whose work items have ALL
+  gone terminal. It reads that scope's plan file ABOVE the lock, calls the pure `nextActionTransformer`
+  inside `questOperationsUpdateBroker`'s synchronous callback, and persists the answer — the next step's
+  batch, the scope completing (and, on the family's last scope, the next family's scopes minted), or a
+  HALT performed AFTER the persist returns, because `questBlockOnFailureBroker` takes the same lock.
+- **Seed** (`questBuildRelayGraphBroker`, at Start): force-completes any leftover chat-role intake items
+  (`isChatWorkItemRoleGuard` — chaoswhisperer / glyphsmith / bughunt), mints the **ENTRY family's scopes
+  and nothing else** through `familyScopesMintTransformer`, and creates the first work item — all in one
+  `questOperationsUpdateBroker` persist. The entry family is `riftcarver` for BOTH quest types, so that
+  first work item is always the carve, `spawnerType: 'command'`, `step: 'carve'`. It is excluded from the
+  spine-packages fallback the other scopes get: `packageNames` exists to narrow an AGENT's search, and a
+  command has no prompt to narrow. This broker stamps **no `baseRef`**: it runs before any worktree
+  exists, so the only HEAD it could read is the server process's own checkout. Seeding is idempotent —
+  the re-Start check asks whether the ENTRY family already has scopes on the ledger, matched through
+  `familyLedgerKeyTransformer` because two of the six family keys are not role names.
 
-  **`codeweaver` fans out BY (PACKAGE, FLOW) CELL** (`relayTailFanOutTransformer`, `fanOutBy: 'implementation'`, on
-  `startImplementationOps` rather than `relayTail`): one item per cell, where a cell exists wherever a package tags at
-  least one node on that flow, across BOTH flow types. Its text names both — `— package: <name> · flow: <id>` — which
-  is what buys each cell its own pt chain and keeps each session's fetched flow slice to one flow. A package that tags
-  nodes gets cells and NOTHING else; its contracts reach it through the `packageName`-only `get-quest` call, which
-  routes contracts by PATH. The ONE flow-less item that survives belongs to a package that owns a contract (by
-  `source`, or by an individual PROPERTY's `source`, since a contract is one-to-many) and tags NO node anywhere:
-  `shared` routinely does exactly that, and without the item those contracts have no owner at all. Membership is "this
-  package TAGS a node in this flow", so a glue node mints a cell on BOTH sides — a seam has two halves and each side
-  builds its own. Cells are ordered by package KIND tier first (`packageBuildOrderStatics.tiers` — library →
-  programmatic-service/mcp-server → http-backend → frontend-react/frontend-ink → cli-tool/hook-handlers/eslint-plugin),
-  then `packageGraph` depth as a tiebreak WITHIN a tier, then name; a package's own cells follow the quest's flow
-  declaration order. The tier ranks ahead of depth deliberately: manifest depth is Kahn's order over
-  `package.json` edges, which is inverted across an HTTP seam — this repo's `server` depends on `@dungeonmaster/web`
-  because it serves the built bundle, so raw depth would schedule the browser package's session before the backend
-  route it calls exists. A package is ranked on its whole KIND SET at its earliest tier, never on the detector's single
-  winning label. See `relay-tail-fan-out-transformer.ts` for the full membership/ordering logic.
+  **`codeweaver` fans out BY (PACKAGE, FLOW) CELL** (`relayTailFanOutTransformer`,
+  `fanOutBy: 'implementation'`): one scope per cell, where a cell exists wherever a package tags at least
+  one node on that flow, across BOTH flow types. Its text names both — `— package: <name> · flow: <id>` —
+  which is what buys each cell its own budget and keeps each session's fetched flow slice to one flow. A
+  package that tags nodes gets cells and NOTHING else; its contracts reach it through the
+  `packageName`-only `get-quest` call, which routes contracts by PATH. The ONE flow-less scope that
+  survives belongs to a package that owns a contract (by `source`, or by an individual PROPERTY's
+  `source`) and tags NO node anywhere: `shared` routinely does exactly that. Membership is "this package
+  TAGS a node in this flow", so a glue node mints a cell on BOTH sides — and the SEAM's units are
+  assigned to the LATER-ordered cell alone, so both cells exist and neither marks a unit twice. Cells are
+  ordered by package KIND tier first (`packageBuildOrderStatics.tiers` — library →
+  programmatic-service/mcp-server → http-backend → frontend-react/frontend-ink →
+  cli-tool/hook-handlers/eslint-plugin), then `packageGraph` depth as a tiebreak WITHIN a tier, then
+  name; a package's own cells follow the quest's flow declaration order. The tier ranks ahead of depth
+  deliberately: manifest depth is Kahn's order over `package.json` edges, which is inverted across an
+  HTTP seam — this repo's `server` depends on `@dungeonmaster/web` because it serves the built bundle, so
+  raw depth would schedule the browser package's session before the backend route it calls exists.
 
-  **`flowrider` and `siegemaster` each fan out to ONE ITEM PER FLOW THEIR OWN TRACK MEASURES** (`fanOutBy: 'flow'`),
-  each carrying a single `flowId` and a text suffixed `— flow: <id>`. Per-flow items give each flow its own pt budget
-  (the pt chain keys on role + base text, and the text carries the flow id) and its own scope. WHICH flows a seed is
-  cut over is `signoffTrackEligibilityStatics.byTrack[role].flowTypes` — the same statics every denominator reader
-  shares, so the ledger cannot mint an item whose work list computes as zero: siegemaster takes both flow types,
-  flowrider `runtime` alone, and an all-operational quest seeds one siegemaster item per flow and NO flowrider item.
-  With no eligible flow at all, the role keeps ONE whole-quest item only when `off-map` is in its `unitKinds` — the
-  probe families are properties of the built system rather than of any drawn flow, so siegemaster keeps this quest's
-  only security (`hostile-input`) and performance (`perf`) coverage owned, and flowrider gets nothing rather than a
-  session dispatched against an empty denominator. Seeding is idempotent: a re-Start detects the already-seeded verify
-  tail (a locked `role: ward` item) and skips straight to the status transition.
-- **Dispatch** (`quest-get-next-step-broker`): FIFO-scans active quests, picks the oldest with incomplete work, and
-  returns a `NextStep` (`spawn-agents` / `run-riftcarver` / `run-ward` / `idle`) to `/dumpster-launch`, which Task()s
-  the agent or calls the matching MCP tool. A ready COMMAND item is returned ALONE, under its own step type, before
-  anything is batched — each command owns the whole tree for the length of its run (riftcarver creates the workspace,
-  ward grades it), so batching one beside an agent would let that agent edit the tree mid-run, and a riftcarver item
-  reaching `build-spawn-instruction-layer-broker` is a crash rather than a mis-dispatch. `scan-once-layer-broker`'s
-  missing-worktree halt exempts `run-riftcarver` and only `run-riftcarver`: the carve OWNS creating that path and its
-  own done-check re-creates it, so halting ahead of it would leave the quest blocked by the one step that could have
-  repaired it.
-- **Session tracking**: each work item carries `sessionId` (parent /dumpster-launch session UUID) AND `agentId`
-  (the sub-agent's realAgentId, used to scope chat replay to one `subagents/agent-<id>.jsonl` file). For chat roles —
-  ChaosWhisperer, Glyphsmith, BugHunt, matched by the shared `isChatWorkItemRoleGuard`
-  (`@dungeonmaster/shared/guards`, backed by `workItemRoleStatics.chat`), which is the SINGLE predicate for "is this
-  work item the user's own conversation?" — `sessionId` is captured from the spawned Claude's first stream-json init
-  line via `chat-spawn-broker`'s `onSessionId` callback. For every Task-dispatched sub-agent under `/dumpster-launch`,
-  both
-  fields are stamped MCP-side: when the sub-agent calls `get-agent-prompt`, the responder reads
-  `request.params._meta.claudecode/toolUseId` — the toolUseId of the SUB-AGENT'S OWN MCP call (NOT the parent Task()
-  dispatch id) — and scans every `~/.claude/projects/<encoded-cwd>/<sessionId>/subagents/agent-*.jsonl` file for an
-  assistant line whose `tool_use.id` matches. The matching JSONL's basename yields `realAgentId`; its containing
-  session dir yields `parentSessionId`. It retries on miss (~3 s budget) to absorb the
-  Claude-Code-dispatches-MCP-call-before-flushing-JSONL race. Deterministic across any number of parallel Claude
-  sessions in the same cwd.
-- **The COMMAND roles** are the non-agent items (`spawnerType: 'command'`) — `workItemRoleStatics.command` is
-  `['ward', 'riftcarver']`. The `run-ward` / `run-riftcarver` MCP tools each block until the command exits, and
-  `quest-run-ward-broker` / `quest-run-riftcarver-broker` apply the result to the ledger + the work item. Neither has
-  a `sessionId`, so no JSONL watcher can tail either: both brokers take a **required `onLine`**, which is the sole
-  route their output has to a UI for minutes at a time. Each also persists a per-run history file under the quest
-  folder and back-links it onto the work item — ward its structured detail blob at `ward-results/<id>.json` via a
-  `wardResults/<id>` ref, riftcarver the streamed text verbatim at `riftcarver-results/<id>.log` via a
-  `riftcarverResults/<id>` ref. That ref is the ONLY route the execution panel has to the detail.
+  **`flowrider` and `siegemaster` each fan out to ONE SCOPE PER FLOW THEIR OWN TRACK MEASURES**
+  (`fanOutBy: 'flow'`), each carrying a single `flowId` and a text suffixed `— flow: <id>`. WHICH flows a
+  family is cut over is `signoffTrackEligibilityStatics.byTrack[role].flowTypes` — the same statics every
+  denominator reader shares, so the ledger cannot mint a scope whose work list computes as zero:
+  siegemaster takes both flow types, flowrider `runtime` alone. With no eligible flow at all, the family
+  keeps ONE whole-quest scope only when `off-map` is in its `unitKinds` — the probe families are
+  properties of the built system rather than of any drawn flow — and flowrider gets nothing rather than a
+  session dispatched against an empty denominator. A family that mints zero scopes is routed PAST by
+  walking its `empty` edge.
+- **Dispatch** (`quest-get-next-step-broker`): FIFO-scans active quests, picks the oldest with incomplete
+  work, and returns a `NextStep` (`spawn-agents` / `run-step` / `run-riftcarver` / `run-ward` / `idle`).
+  **The STEP decides before the ROLE:** a `kind: 'deterministic'` step returns `run-step` carrying its
+  handler and the step's own `args`, ALONE; a work item running no step graph falls through to the
+  role-keyed command split; otherwise the batch is every ready item sharing the head's ROLE and its STEP.
+  `scan-once-layer-broker`'s missing-worktree halt exempts the carve and only the carve — matched on the
+  `run-step` handler as well as on the legacy `run-riftcarver` type, because matching one of the two
+  would block on the other.
+- **Session tracking**: each work item carries `sessionId` (parent /dumpster-launch session UUID) AND
+  `agentId` (the sub-agent's realAgentId, used to scope chat replay to one `subagents/agent-<id>.jsonl`
+  file). For chat roles — ChaosWhisperer, Glyphsmith, BugHunt, matched by the shared
+  `isChatWorkItemRoleGuard` — `sessionId` is captured from the spawned Claude's first stream-json init
+  line via `chat-spawn-broker`'s `onSessionId` callback. For every Task-dispatched sub-agent under
+  `/dumpster-launch`, both fields are stamped MCP-side: when the sub-agent calls `get-agent-prompt`, the
+  responder reads `request.params._meta.claudecode/toolUseId` — the toolUseId of the SUB-AGENT'S OWN MCP
+  call (NOT the parent Task() dispatch id) — and scans every
+  `~/.claude/projects/<encoded-cwd>/<sessionId>/subagents/agent-*.jsonl` file for an assistant line whose
+  `tool_use.id` matches. It retries on miss (~3 s budget) to absorb the
+  Claude-Code-dispatches-MCP-call-before-flushing-JSONL race.
+- **Deterministic steps** run through `questRunStepBroker` → `stepHandlerRunBroker`, whose dispatch TABLE
+  carries `satisfies Record<StepHandlerName, StepHandler>` — a handler named in `agentFlowStatics` with no
+  implementation behind it fails the BUILD rather than throwing on the one quest that reaches that step.
+  A deterministic step's work item has no `sessionId`, so no JSONL watcher can tail it: the broker takes a
+  **required `onLine`**, the sole route its output has to a UI for minutes at a time. Ward and riftcarver
+  each persist a per-run history file under the quest folder and back-link it onto the work item —
+  `ward-results/<id>.json` via a `wardResults/<id>` ref, the streamed carve text at
+  `riftcarver-results/<id>.log` via a `riftcarverResults/<id>` ref. That ref is the ONLY route the
+  execution panel has to the detail. **The handler ROUTES NOTHING**: it classifies, the broker writes that
+  word as `declaredWord`, and the router decides on the next scan.
 
 ## Quest Status Lifecycle
 
@@ -890,68 +967,61 @@ none of these".
 
 ## Quest Types
 
-A quest carries a `questType` (`feature` | `bug-hunt`, default `feature`). `questTypeRegistryStatics`
-(`@dungeonmaster/shared/statics`) is the single source of truth per type — its intake slash command, create-time seed
-role (`initialWorkItemRole`), Start-Quest relay seed (`startImplementationOps` + `relayTail`), and the execution
-`roles` it uses. `orchestration-start-responder` seeds every type through the SAME `questBuildRelayGraphBroker`, which
-reads the registry entry for `quest.questType`.
+A quest carries a `questType` (`feature` | `bug-hunt`, default `feature`). **`questFlowStatics` is the
+family graph** — the `entry` family and every family's routes — and it is SHARED byte for byte between
+the two types, which `questFlowStatics`' own colocated test asserts. `questTypeRegistryStatics` holds
+what differs plus the seed text and `fanOutBy` each family's scopes are cut from: the intake slash
+command, the create-time seed role (`initialWorkItemRole`), and the execution `roles`.
 
-**THE TWO TYPES SHARE ONE RELAY.** Both carry:
+**THE TWO TYPES SHARE ONE GRAPH.** A bug-hunt's intake writes flows and observables exactly as a
+feature's does, so the same families verify them:
 
-- `startImplementationOps` = the `riftcarver` seed, then one `codeweaver` seed with
-  `fanOutBy: 'implementation'`, `locked: false`
-- `relayTail` = `ward(committed)` → `flowrider` (`fanOutBy: 'flow'`) → `siegemaster` (`fanOutBy: 'flow'`) →
-  `ward(full)`
-- `roles` = `riftcarver, codeweaver, ward, flowrider, siegemaster, spiritmender`
+```
+riftcarver → codeweaver → flowrider → siegemaster → wardFull → @complete
+```
 
-`questTypeRegistryStatics`' colocated test asserts that equality directly, so a change to one type's relay that is not
-made to the other fails there.
+with `warpgate` appended at MERGE rather than routed to, and every family routing `wall` to `@blocked`.
 
-**`startImplementationOps` leads with `riftcarver` for BOTH types**, and that placement is the whole design: the
-branch, the worktree, the `node_modules` mirror and the preflight typecheck are the HEAD of the relay, so the workspace is
-forged when the quest is next in line rather than the moment its spec is approved — and Start Quest stays a
-millisecond status flip. The seed carries no `fanOutBy` (exactly one item) and no `locked` override (defaults true,
-enrolling it in `slotManagerStatics.riftcarver.maxRetries`).
+**Only the ENTRY family's scopes exist at Start.** `questBuildRelayGraphBroker` mints the one
+`riftcarver` scope; each later family's are cut the moment the relay routes to it. A family that fans
+out to ZERO scopes — flowrider on an all-operational quest — is routed PAST by walking its `empty` edge,
+never stalled.
 
-**There is no blight-review role in either list, and none is appended to it either**: the standards concerns are taken
-by the reviewer each operator summons, inside that operator's own turn, before it commits. The registry's own comment
-says so at the point where such a seed would otherwise sit, so the absence reads as a decision rather than an
-omission.
+**There is no blight-review family and none is appended**: the standards concerns are taken by the
+reviewer each operator summons, inside that operator's own turn, before the family's `commit` step runs.
 
 What differs between the two types is the INTAKE, and nothing else:
 
 - **`feature`** (`/dumpster-create`): `initialWorkItemRole` = `chaoswhisperer`.
-- **`bug-hunt`** (`/dumpster-hunt`): `initialWorkItemRole` = `bughunt`, so `create-quest` seeds a `bughunt` intake
-  operation item + work item exactly as `feature` seeds a `chaoswhisperer` one. That work item is where the intake
-  session's `sessionId` lands, which is what gives the browser chat panel a session to hook onto during the hunt.
-  `bughunt` is a CHAT role (`workItemRoleStatics.chat`).
+- **`bug-hunt`** (`/dumpster-hunt`): `initialWorkItemRole` = `bughunt`, so `create-quest` seeds a
+  `bughunt` intake operation item + work item exactly as `feature` seeds a `chaoswhisperer` one. That
+  work item is where the intake session's `sessionId` lands, which is what gives the browser chat panel a
+  session to hook onto during the hunt. `bughunt` is a CHAT role (`workItemRoleStatics.chat`).
 
-  Bug-hunt reuses the flow/observable spec lifecycle, in the shape **ONE FLOW PER BUG**: each flow is the reproduction
-  path run once, forking at its last shared node (two outgoing edges labelled `today` / `after fix`) into two terminal
-  nodes whose LABELS carry the indicator — `ACTUAL: <symptom today>` and `EXPECTED: <what the fix must make real>`.
-  The observables sit on the EXPECTED side, never on ACTUAL — an observable is a positive expectation, so one on the
-  broken branch asks for a test that asserts the bug. Each becomes one failing test, written by the CODEWEAVER session
-  that owns the package the fix lands in. The prefixes are a LABEL convention, not a contract field: `flowNodeContract`
-  carries id/label/type/packages/observables and has nowhere else to put them, so the prompts that write them and the
-  prompts that read them must spell them identically; nothing typechecks it and the colocated prompt tests are the
-  only thing holding it.
+  Bug-hunt reuses the flow/observable spec lifecycle, in the shape **ONE FLOW PER BUG**: each flow is the
+  reproduction path run once, forking at its last shared node (two outgoing edges labelled `today` /
+  `after fix`) into two terminal nodes whose LABELS carry the indicator — `ACTUAL: <symptom today>` and
+  `EXPECTED: <what the fix must make real>`. The observables sit on the EXPECTED side, never on ACTUAL —
+  an observable is a positive expectation, so one on the broken branch asks for a test that asserts the
+  bug. Each becomes one failing test, written by the CODEWEAVER scope that owns the package the fix lands
+  in. The prefixes are a LABEL convention, not a contract field: `flowNodeContract` carries
+  id/label/type/packages/observables and has nowhere else to put them, so the prompts that write them and
+  the prompts that read them must spell them identically.
 
-Each type owns its COMPLETE relay via its registry entry. Adding a type = one `questTypeRegistryStatics` entry + the
-type added to `questTypeContract`.
+Adding a type = one `questFlowStatics` entry, one `questTypeRegistryStatics` entry, and the type added
+to `questTypeContract`.
 
 ## Agent Roles
 
-Every relay role is one operation item → one work item → one agent session. **For the three operator roles that
-session does not write the work itself** — it reads code, briefs sub-agents, and summons a reviewer (see "How an
-operator session works"). An agent does its work, then signals `complete` with an `operationStatus` (`done`,
-`partial`, or `blocked`); the orchestrator applies the outcome to the ledger and advances. Agents have **no failure
-signal for work they could have done** — they fix their own problems and move forward; `blocked` is reserved for an
-environment wall outside their reach and halts the quest for the user rather than spawning a successor that hits the
-same wall. The other failure concept is a **COMMAND role's exit code**: a **ward red** (`quest-run-ward-broker`)
-inserts a spiritmender + a fresh ward and blocks once the ward retry budget is spent, and a **riftcarver red**
-(`quest-run-riftcarver-broker`) routes by failure class — a repairable red inserts a spiritmender + a fresh `pt N`
-carve, while a git-state or permission red blocks on the spot. Quest status is then derived from work-item + operation
-state.
+Every relay family is one operation item per scope → MANY work items, one per step the router mints on that scope.
+**For the three operator families the session does not write the work itself** — it reads code, briefs sub-agents,
+and summons a reviewer (see "How an operator session works"). A session records its marks and, optionally, an
+`outcome` word through `quest-work`, then signals `complete` — a session-terminal marker and nothing more. The
+ROUTER reads that record and takes the step's own route for it. Sessions have **no failure signal for work they
+could have done**: `unmet` is not a failure, it is what mints a successor scoped to exactly the units that are still
+open. `wall` is reserved for an environment wall outside any session's reach and routes to `@blocked` in every step
+of every family, halting the quest for the user rather than spawning a successor that hits the same wall. Quest
+status is then derived from the family graph's position.
 
 The relay role set per quest type is `questTypeRegistryStatics[type].roles`. The `agentRoleContract` enumerates the
 Claude-dispatched agent roles (`codeweaver`, `flowrider`, `siegemaster`, `spiritmender`, `warpgate`) — the first three
@@ -1011,9 +1081,9 @@ every line streamed live to the execution row and persisted to `<questFolder>/ri
 here rather than inside `POST /api/quests/:questId/start` is what keeps that POST at millisecond scale AND what stops
 a workspace being forged at spec-approval time for a quest that may sit behind several others.
 
-**⚠️ THIS BROKER IS RE-ENTERED BY DESIGN — every step owns a done-check.** The repairable failure route is
-`riftcarver → spiritmender → riftcarver (pt N)`, so a second run against a PARTIALLY BUILT workspace is ROUTINE, not
-an edge case. Therefore:
+**⚠️ THIS HANDLER IS RE-ENTERED BY DESIGN — every step owns a done-check.** The repairable failure route is
+`carve → repair → carve`, so a second run against a PARTIALLY BUILT workspace is ROUTINE, not an edge case.
+Therefore:
 
 > **Every riftcarver step MUST begin with a done-check that inspects the REAL WORLD and skip itself when already
 > satisfied. A step added without one is a bug, not a simplification.**
@@ -1030,12 +1100,12 @@ Two rules qualify it, and both are load-bearing:
    nine before dying. Every skip emits its own `— skip … —` line, so the streamed output IS the evidence the contract
    held — a `pt 2` row that shows `git worktree add` re-running is the regression, visible without reading a test.
    The **collision check is skipped on re-entry for the mirror-image reason**: it guards the FIRST carve against a name
-   some other work owns, but on a `pt N` the recorded branch is the quest's OWN, so re-running it would refuse the
+   some other work owns, but on a re-entry the recorded branch is the quest's OWN, so re-running it would refuse the
    continuation against attempt 1's work and lock the quest out permanently. That is the step that breaks first if a
    done-check is dropped.
 2. **THE TYPECHECK IS THE ONE DELIBERATE EXCEPTION and has no done-check**, because re-running it IS how the
    spiritmender's fix gets verified. The typecheck is the verdict, not a side effect; a marker file "optimising" it
-   away would let a `pt N` report green off the previous attempt's result.
+   away would let a re-carve report green off the previous attempt's result.
 
 **Riftcarver also PUSHES, once, right after it records the git context.** `git push -u origin <branchName>`, with its
 own done-check (`git rev-parse @{upstream}` succeeding means a prior attempt already did it, and the step emits
@@ -1043,7 +1113,7 @@ own done-check (`git rev-parse @{upstream}` succeeding means a prior attempt alr
 from the moment the quest exists, so every later push is a bare `git push` with no `-u` for any session to get wrong,
 and `get-blight-checklist({ scope: 'unpushed' })` always has a range. A failed push classifies **`repairable`**, not
 `git-state` — the worktree is fully built and holds every commit, so a spiritmender has somewhere to work and the
-`pt N` retries only the publication; blocking there would halt a quest over a network blip. A permission-denied push is
+re-carve retries only the publication; blocking there would halt a quest over a network blip. A permission-denied push is
 caught first by `isPermissionDeniedErrorGuard` and blocks, because no fresh session talks an operator's credentials into
 working.
 
@@ -1053,20 +1123,20 @@ worktree is re-created and its fresh HEAD reads back a different sha. Moving it 
 quest's own work into the review base, the exact defect `baseRef` exists to fix. `questBuildRelayGraphBroker` stamps
 none: Start runs before any worktree exists, so the only HEAD available there is the server process's own checkout.
 
-**Failure routing is by CLASS**, off `worktreePrepareStepStatics.classifications` (keyed by the step's own VALUE, the
-thing `WorktreePrepareError` carries): `create` / `base_branch` are `git-state` and BLOCK the quest, deliberately, so
-no agent is ever dispatched into the repo-root checkout; `push` / `node_modules` / `typecheck` are `repairable` and splice in a
-spiritmender plus a fresh `pt N` carve, bounded by `slotManagerStatics.riftcarver.maxRetries` counted since the last
-GREEN carve. `isPermissionDeniedErrorGuard` is checked FIRST and overrides the step's own class — no fresh session of
-any role can talk an operator's filesystem out of saying no. Full outcome table in
-`docs/quest-role-paths.md` § "The sad paths in detail" (b2), invariants under `RIFT-*`.
+**Failure CLASSIFICATION is by step**, off `worktreePrepareStepStatics.classifications` (keyed by the step's own
+VALUE, the thing `WorktreePrepareError` carries): `create` / `base_branch` classify as `wall`, deliberately, so no
+agent is ever dispatched into the repo-root checkout; `push` / `node_modules` / `typecheck` classify as `unmet`.
+`isPermissionDeniedErrorGuard` is checked FIRST and overrides the step's own class — no fresh session of any role can
+talk an operator's filesystem out of saying no. The handler reports that word and the `carve` step's own routes do
+the rest: `unmet` to `repair`, which returns to `carve`; `wall` to `@blocked`. The bound is `carve`'s and `repair`'s
+own `maxVisits`. Full outcome table in `docs/quest-role-paths.md`, invariants under `RIFT-*`.
 
 The whole outcome — work-item status, the operation completing, the `riftcarverResults` ref, the work item's
 `riftcarverResults/<id>` back-link, and any splice — rides ONE `questOperationsUpdateBroker` persist, so a crash is
 all-or-nothing. (Ward writes its results ref in a separate, earlier write; riftcarver's rides the same persist as the
 ledger mutation.) The git context `{ branchName, baseBranch, worktreePath, baseRef }` is persisted earlier still —
 right after the git steps, BEFORE `node_modules` and the typecheck — so a spiritmender dispatched off a later failure has
-a real worktree to work in and the `pt N` behind it can see the git steps are done.
+a real worktree to work in and the re-carve behind it can see the git steps are done.
 
 `questHydrateBroker` DROPS the riftcarver item by default (unless a blueprint authors one itself): a hydrated quest is
 fabricated directly at `in_progress`, never through Start, so it has no workspace to carve and no scripted scenario
@@ -1094,8 +1164,10 @@ Four things about that append are load-bearing, and all four live inside `questO
 - **Status flips to `merging` BEFORE the append.** The ops-update broker re-derives quest status on every write from
   whatever it reads off disk; from `complete`, a pending warpgate item would derive `in_progress` — neither a legal
   transition out of `complete` nor what a merge means.
-- **The operation is minted WITH its work item**, so `questAdvanceBroker`'s strict-1:1 resume guard (which skips a
-  pending operation that already has a linked work item) can never mint a second one for it.
+- **The operation is minted WITH its work item**, carrying `step: 'merge'` — the warpgate family's entry step — so
+  `questAdvanceBroker`'s resume guard (which skips a pending operation that already has a linked work item) can never
+  open the scope a second time, and the router reads a scope that has been entered rather than one nothing has
+  touched.
 - **`dependsOn: []`, deliberately unchained.** A merge is a fresh top-level dispatch on a finished quest, not the next
   relay step — and on a blocked quest the trailing work items are `skipped`, which does NOT satisfy `dependsOn`, so a
   chained merge item would never become ready.
@@ -1111,94 +1183,56 @@ guard N clicks mint N merge agents against the one worktree. The responder also 
 (`isPostQuestChatWorkItemRoleGuard`) before writing anything, because tavernkeeper spawns outside the ledger and nothing
 else would stop it sharing the worktree warpgate is about to take.
 
-### The pt-N verify fixpoint
+### The gate/repair fixpoint
 
-`ward` is a **fixpoint role**: a red run completes its operation item and the orchestrator appends a `"pt N: {text}"`
-continuation so a FRESH ward run re-verifies the new state; the chain converges when a run comes back green (see
-"Failure handling" for the spiritmender splice that runs between them).
+A **gate** is a deterministic step whose `unmet` routes to a `repair`: `ward` in every code-changing
+family, `carve` in `riftcarver`, `gate` in `wardFull`. The repair is a `spiritmender`-prompted worker
+step in the SAME family, and it declares no `done` route at all — so a finished repair RETURNS to the
+gate that minted it and that gate re-runs. Convergence IS the verdict: a gate that comes back `done`
+takes its own `done` edge onward.
 
-The three operators are NOT fixpoint roles. Each loops inside its own session until its reviewer returns `pass`, and
-its prompt offers `done` and `blocked` only — writing a test, walking a path or landing a fix does not by itself earn
-another session.
+**The bound is `maxVisits`, and it is a ceiling on a count nothing stores.** The router derives it where
+it is about to mint — the work items on this scope whose `step` equals that step — so no visit counter
+field exists on the work item and none is to be added. Exceeding one is
+`{ kind: 'block', reason: 'max-visits' }`.
 
 **Verification is measured, not asserted.** A flow decomposes into atomic **verification units**
-(`get-qa-checklist` — every terminal, labelled branch, observable, and the seven off-map probe families), and each unit
-carries THREE independent top-level sign-offs: `codeweaverSignoff` (is it proven by the unit test written beside the
-code?), `flowriderSignoff` (is it proven by a test that walks the flow?) and `siegemasterSignoff` (does it hold when a
-human drives the real system?). Each is `{ verdict, evidence, question?, workItemId, at }` with `verdict` one of
-`confirmed | unconfirmable`. `get-qa-checklist({ questId, operationItemId })` derives the whole scope from the item —
-the track, the flows and the packages — through `operationSignoffScopeTransformer`. That ID is the only argument a
-caller needs, and it is the only correct way to ask: the derivation behind it is the SAME one the completion scope is
-computed from, so the number a session reads and the number that measures it cannot drift.
+(`get-qa-checklist` — every terminal, labelled branch, observable, and the seven off-map probe families),
+and each unit carries THREE independent top-level sign-offs: `codeweaverSignoff`, `flowriderSignoff` and
+`siegemasterSignoff`. Each is `{ verdict, evidence, question?, workItemId, at }` with `verdict` one of
+`confirmed | unconfirmable`. `get-qa-checklist({ questId, operationItemId })` derives the whole scope from
+the scope id — the track, the flows and the packages — through `operationSignoffScopeTransformer`.
 
-**`track` is the DENOMINATOR, not the field.** `signoffDenominatorTrackContract` and `signoffTrackContract` are
-separate enums that happen to hold the same three names today: a denominator that shares another role's field is
-representable, and the day one lands the denominator list grows while the field list does not. Which units each
-denominator covers is `signoffTrackEligibilityStatics.byTrack` — flow types, unit kinds, package kinds, the flow slice
-rule and the observable provenances that track could ever have signed. Every track reads `flowScope: 'declared'` (an
-item is measured on the flows it names) and `packageScope: 'intersection'` (an item owns every unit whose owning NODE
-tags ANY of its packages, glue included — no track mints a seam item, so a glue unit a stricter reading dropped would
-be owned by nobody). Only siegemaster carries `off-map` in its `unitKinds`, and flowrider alone is measured over
-`runtime` flows only.
+**`track` is the DENOMINATOR, not the field.** Which units each denominator covers is
+`signoffTrackEligibilityStatics.byTrack` — flow types, unit kinds, package kinds, the flow slice rule and
+the observable provenances that track could ever have signed. Every track reads `flowScope: 'declared'`
+and `packageScope: 'intersection'`, with ONE refinement for a SEAM: a node carrying more than one package
+gives its units to the LATER-ordered cell alone — the side that can see both halves — so no unit is owned
+twice and the earlier cell reaches the far half through its piece's `contextUnitIds`. Only siegemaster
+carries `off-map` in its `unitKinds`, and flowrider alone is measured over `runtime` flows.
 
-**EVERY UNIT ON A TRACK'S LIST ENDS ITS PASS CARRYING `confirmed` OR `unconfirmable`.** There is no third verdict, no
-blank, and no wording anywhere that lets a session stop short: a unit still owed a test is work remaining under a loop
-that has no cap, and a unit the track cannot settle at any layer is `unconfirmable`. **No operator prompt may contain
-wording that reads an unsettled unit as a finished outcome** ("leave it unsigned", "you did not get to it", "nothing
-refuses your `done`"); the pins in `flow-evidence-contract-statics.test.ts` keep those out.
+**Nothing COUNTS sign-offs, and no gate may be added that does.** A check refusing a `done` over an absent
+sign-off pressures a session into a verdict it cannot back. What the sign-offs buy is a durable, per-unit
+record of what was proved and by what evidence — `confirmed` needs a `file:line` and the wrong value that
+turns it red, or the value measured off the running system; `unconfirmable` needs what was tried plus
+`toSettle`.
 
-**Nothing COUNTS sign-offs, and no gate may be added that does.** A check refusing a `done` over an absent sign-off
-pressures a session into a verdict it cannot back, which is worse than the gap it closes. The rule above plus "never
-sign a unit you did not settle" is what holds the line. What the sign-offs buy is a durable, per-unit record of what was
-proved and by what evidence, readable by the next session and by the quest summary — `confirmed` needs a
-`file:line` and the wrong value that turns it red, or the value measured off the running system; `unconfirmable` needs
-what was tried plus `toSettle`.
+**`toSettle` is an INSTRUCTION, never a question.** It is the action that would settle the unit, and the
+contract refuses an `unconfirmable` without one.
 
-**`toSettle` is an INSTRUCTION, never a question.** It is the action that would settle the unit — "drive a real send
-through a live quest and read the session JSONL for a Read call on the written path" — and the contract refuses an
-`unconfirmable` without one. A question hands the next session something to answer where it needed something to do.
+**A measured defect is a NEW observable, not a verdict.** An observable is a positive expectation, so its
+inverse is ADDED to the flow through the additive spec authority every operator holds, and then carries
+its own sign-offs. `addedBy` answers "was this in the spec at approval, or added mid-quest, and by whom";
+`observableOrigins` is what stops a track being measured on work that did not exist while it ran.
 
-**No track audits another track's tests, and none may be told to.** Flowrider proves every `[ ]` unit on its own
-checklist whatever marks the graph carries beside it — a sign-off from another track never shrinks a denominator.
-Grading someone else's evidence to decide whether a unit still counts trades certain coverage for a guess, and the guess
-fails silently: judging a mocked assertion "real" drops that unit from the last track that would have caught it.
+**`quest.planningNotes.questNotes[]` is the durable side channel** — `{ id, kind: 'open-question' |
+'tooling-error' | 'out-of-scope' | 'walk-reset', role, workItemId, flowId?, unitId?, summary, detail, at }`.
+A note NEVER closes a unit; only a sign-off does.
 
-**A measured defect is a NEW observable, not a verdict.** An observable is a positive expectation, so its inverse
-("send `bleh` and the server crashes instead of returning 400") is ADDED to the flow through the additive spec
-authority every operator holds, and then carries its own sign-offs. Provenance is a separate axis: `addedBy` on the
-observable (`spec | chaoswhisperer | codeweaver | flowrider | siegemaster | operator`) answers "was this in the spec at
-approval, or added mid-quest, and by whom", and `observableOrigins` is what stops a track being measured on work that
-did not exist while it ran.
-
-**`quest.planningNotes.questNotes[]` is the durable side channel** — `{ id, kind: 'open-question' | 'tooling-error' |
-'out-of-scope' | 'walk-reset', role, workItemId, flowId?, unitId?, summary, detail, at }`. A note NEVER closes a unit;
-only a sign-off does.
-
-**Siegemaster's track has a reset lever.** `reset-flow-signoffs` clears `siegemasterSignoff` across ONE flow and
-appends a `walk-reset` note; the other two tracks are untouched. Sign-offs written before a mid-session fix describe a
-system that has since changed, so the operator resets and re-walks. Resets are free within a session — they cost no
-pt-chain attempt.
-
-**The standards-review surface has its own tool family**, and it is NOT a role's denominator. A diff decomposes into
-review units (`get-blight-checklist` — every changed impl file, its test/proxy/stub companions collapsed onto it,
-crossed with each of FIVE concerns). Its scopes answer five different questions and are not interchangeable:
-`working-tree` (everything since `HEAD` that is not yet committed, untracked additions unioned in — the only scope
-that sees an uncommitted pass), `unpushed` (`@{upstream}..HEAD`), `commit` (`HEAD~1...HEAD`), `quest` (from the pinned
-`baseRef`, the whole branch), and the server-only `since-ref`, which takes a caller-supplied base and is not exposed
-through MCP.
-
-Each locked (verify-tail) role's pt chain is bounded by `slotManagerStatics.<role>.maxAttempts`; a spent chain blocks
-the quest instead of looping. The two COMMAND roles hold `maxRetries` keys instead (`ward`, `riftcarver`), because
-their chain is counted off the ledger's own role-filtered history — the operation items since the last GREEN run —
-rather than off one item's pt continuations. Every dispatched role needs a key of its own either way: the budget
-ladder's final `else` hands an unnamed role spiritmender's budget, so a missing key mis-budgets silently rather than
-erroring. A chain is keyed on role + base text — so **every one of these budgets is bought by what the item's TEXT
-names**, and a role whose siblings share one sentence shares one budget across all of them. `flowrider` and
-`siegemaster` each hold one item PER FLOW, and because each carries the flow id in its text, each flow gets its own
-budget. A `codeweaver` item is minted UNLOCKED, so its chain is unbounded: the flows are the acceptance target and the
-work has to land. A `pt N` continuation copies the item's `flowIds` AND its `packageNames` so the fresh session keeps
-that scope — a continuation that lost either would silently work the whole quest instead of the remainder. See "Signal
-System" + "Failure handling".
+**The standards-review surface has its own tool family**, and it is NOT a role's denominator. A diff
+decomposes into review units (`get-blight-checklist` — every changed impl file, its test/proxy/stub
+companions collapsed onto it, crossed with each of FIVE concerns), over five scopes: `working-tree`,
+`unpushed`, `commit`, `quest` (from the pinned `baseRef`) and the server-only `since-ref`.
 
 ### Minions (parent-summoned sub-agents)
 
@@ -1279,173 +1313,121 @@ yet.
 
 ## Signal System
 
-Agents report via the `signal-back` MCP tool. `complete` is the SOLE signal kind — a session-terminal marker.
-`signalBackInputContract` validates `signal: 'complete'` plus an optional `operationItemId` and `blockedReason` —
-`failed` is explicitly rejected, and `.strict()` refuses any other key. The live handler is
-`quest-handle-signal-back-responder.ts`, which applies the work item's terminal outcome server-side (authoritative
-— an agent cannot forget to patch the ledger, because agents never write it).
+Agents report via the `signal-back` MCP tool. `complete` is the SOLE signal kind — a session-terminal
+marker and nothing more. `signalBackInputContract` validates `signal: 'complete'` plus an optional
+`operationItemId` and `blockedReason`, and `.strict()` refuses any other key. The live handler is
+`quest-handle-signal-back-responder.ts`.
 
-**One gate runs BEFORE any mutation**, and it THROWS rather than returning — the error rides the awaited `signal-back`
-path back through the MCP tool to the agent, where it is visible and actionable, instead of being swallowed as a
-success. Because nothing is persisted on a refusal, the session simply fixes what the message names and signals again;
-the work item and its operation item are exactly as they were.
+**A SESSION REPORTS; IT NEVER ROUTES.** What a session DID is already on the record before it signals —
+its marks on each assigned unit, and optionally an `outcome` word, a `request` for another step, or an
+`invalidation`, all written through the `quest-work` tool. `signal-back` marks the work item terminal;
+the ROUTER reads the record on the next scan and takes the step's own route for it.
 
-**Unmarked-unit gate — on every outcome, for every role.** `signalGateTransformer` compares the signalling work
-item's `assignedUnitIds` against `observations[].unitId` and refuses the call while any assigned id carries no
-observation. A mark's VALUE is irrelevant — `met`, `cant-meet` and `unmet` all count as marked, only the absence of
-an entry counts — so a unit the layer cannot settle (`cant-meet`) or cannot make pass (`unmet`) clears the gate
-exactly as `met` does. The refusal message is the deliverable: it names every unmarked unit alongside its text, so
-the session can act on it in the same turn instead of spending a round trip re-fetching what it means, and it
-closes by telling the session that `unmet` is free and mints its successor — the answer to a session padding marks
-to get past the gate. A session marks a unit through `quest-work` and re-fetches the full outstanding set past the
-gate's inline preview through `get-quest-work`.
+**One gate runs BEFORE any mutation, and it THROWS rather than returning** — the error rides the awaited
+`signal-back` path back through the MCP tool to the agent, where it is visible and actionable, instead of
+being swallowed as a success. Because nothing is persisted on a refusal, the session fixes what the
+message names and signals again; the work item and its scope are exactly as they were.
 
-Nothing at signal time reads the worktree. Every session reaches its signal with a dirty tree by construction — no
-work-item role commits its own changes — and `gitWorkingTreeFilesBroker` stays in service of the reviewer's pass,
-the worker's live DO-NOT-TOUCH set, and the fixer's view of what a walk left behind, none of which is this gate.
+**Unmarked-unit gate — on every outcome, for every role.** `signalGateTransformer` compares the
+signalling work item's `assignedUnitIds` against `observations[].unitId` and refuses the call while any
+assigned id carries no observation. A mark's VALUE is irrelevant — `met`, `cant-meet` and `unmet` all
+count as marked, only the absence of an entry counts — so a unit the layer cannot settle (`cant-meet`) or
+cannot make pass (`unmet`) clears the gate exactly as `met` does. The refusal message is the deliverable:
+it names every unmarked unit alongside its text, so the session can act on it in the same turn instead of
+spending a round trip re-fetching what it means, and it closes by telling the session that `unmet` is free
+and mints its successor — the answer to a session padding marks to get past the gate. A session marks a
+unit through `quest-work` and re-fetches the full outstanding set through `get-quest-work`.
 
-Then, in order:
+Nothing at signal time reads the worktree. Every session reaches its signal with a dirty tree by
+construction — no session commits its own changes; the family's `commit` STEP does — and
+`gitWorkingTreeFilesBroker` stays in service of the reviewer's pass, the worker's live DO-NOT-TOUCH set,
+and the fixer's view of what a walk left behind, none of which is this gate.
 
-1. Marks the signaled work item terminal (`completedAt`, `actualSignal`) — `complete`, or `failed` on `blocked`.
-2. Resolves the linked operation item (the call's `operationItemId`, else the work item's `operations/<id>` ref).
-3. `operationStatus: 'done'` (or absent) → marks that operation item `complete`.
-4. `operationStatus: 'partial'` → marks it `complete` AND appends a `"pt N: {text}"` continuation item (same role,
-   `locked`/`wardMode` preserved) immediately after it — **duplicate-on-partial**. This keeps the strict 1:1
-   operation↔work-item invariant and an immutable pt audit trail (instead of reverting a shared item's status). The pt
-   chain is the verify fixpoint; for a locked role it is bounded by `slotManagerStatics.<role>.maxAttempts`, and a
-   spent chain blocks via `quest-block-on-failure-broker` instead of appending.
-5. `operationStatus: 'blocked'` (requires `blockedReason`) → the **environment wall**: a denied command, a missing
-   credential, an unreachable service — something no fresh session of the same role could pass. The item is marked
-   `complete` and a `pt N` continuation is appended exactly as for `partial`, so a resume re-dispatches this same scope;
-   but the work item is marked `failed` carrying `blockedReason` as its `errorMessage` (the execution row renders it),
-   and the quest blocks IMMEDIATELY via `quest-block-on-failure-broker`. The pt budget does NOT gate this append — the
-   block is itself the bound, and withholding the continuation would leave the operation with no pending item, so a
-   resume would silently skip the scope. Spending the budget on successors that provably cannot succeed is exactly what
-   this outcome exists to prevent.
-
-Work-item-terminal + operation-complete + the optional pt N land
-in ONE `questOperationsUpdateBroker` persist (all-or-nothing on crash). The handler is **idempotent**: a redelivered
-signal for an already-terminal work item is a no-op (no second pt N, no second work item) — and because that check
-runs before the gate above, a redelivery never pays its git cost either. Afterwards
-`questAdvanceBroker` creates the next work item — except on the two halt routes (`blocked`, spent pt chain), which block
-instead of advancing.
-
-The `[WALL]` operating rule, carried inline in every role prompt under `## Operating rules`, is what teaches each role
-to pick `blocked` over `partial` when the wall is environmental — and to check first whether the JOB has another route,
-since a denied `grep`/`find` in this repo is answered by `Read` with an offset, `discover` or `python3 -c` rather than
-by halting a quest. "No session could pass this" is a claim about a FRESH session: anything a re-dispatch clears is not
-a wall.
+The handler is **idempotent**: a redelivered signal for an already-terminal work item is a no-op, and
+because that check runs before the gate above, a redelivery never pays the gate's cost either.
 
 ### Failure handling
 
-The orchestrator has THREE failure concepts, and each is owned by exactly one broker: **a ward exit-code red**
-(`quest-run-ward-broker.ts`), **a riftcarver exit-code red** (`quest-run-riftcarver-broker.ts`), and an agent's
-**`operationStatus: 'blocked'`** environment wall (see "Signal System" step 5). There is no `failed`/`failed-replan`
-agent signal for work an agent could have done.
+The orchestrator has THREE failure shapes, and the STEP GRAPH owns all three.
 
-Ward routing lives entirely in `quest-run-ward-broker.ts`:
+- **`unmet` — the ordinary one, and not a failure.** A step that left units unsettled routes them to its own
+  `routes.unmet`: `review → work`, `ward → repair`, `happyWalk → fixHappy`, `carve → repair`. The router mints ONE
+  work item per originating piece carrying exactly those units, plus one per unit no piece claimed. A repair step
+  declares no `done` route, so it RETURNS to the gate that minted it and that gate re-runs.
+- **A spent `maxVisits` — the bound.** Each step declares its own ceiling, derived where the router is about to mint
+  from the work items on this scope at that step. Exceeding one is `{ kind: 'block', reason: 'max-visits' }`, which
+  halts the quest rather than looping.
+- **`wall` — the halt.** An environment wall a session declares through `quest-work`, or a deterministic handler's
+  classification: ward's CRASH (ward never reported on the code, so a repair has nothing to fix), riftcarver's
+  `git-state` red or a permission denial (there is no worktree to dispatch a repair into, and the only checkout left
+  is the repo root — the one place no session may ever be sent). Every step routes it to `@blocked`.
 
-- **ward green** → mark the ward operation item complete, advance to the next pending item.
-- **ward red** → mark the ward work item `failed` and the ward operation item `complete`, then append a `spiritmender`
-  operation item PLUS a fresh ward continuation (`"pt N"`, same `wardMode`) immediately after it, and advance. The
-  next dispatched item is therefore the spiritmender (never two wards back-to-back); the fresh ward re-verifies after
-  the fix.
-- **ward red, budget spent** → the red chain is bounded: once the ward operation items of this `wardMode` since the
-  last GREEN ward of the same mode reach `slotManagerStatics.ward.maxRetries`, the broker calls
-  `quest-block-on-failure-broker` (marks the item `failed`, drains pending work items to `skipped`, sets status
-  `blocked`) instead of appending another fix loop. A `blocked` quest is not scanned by the active-quest loader
-  (filters on `in_progress`), so dispatch halts until the user resumes.
-
-Riftcarver routing lives entirely in `quest-run-riftcarver-broker.ts`, and its `outcome` has THREE values rather than
-ward's two (`green | repairable | blocked`), because a carve fails in ways that need different answers:
-
-- **carve green** → mark the riftcarver operation item complete, advance → the first `codeweaver` item.
-- **carve red, `repairable` (`push` / `node_modules` / `typecheck`), budget left** → work item `failed` with
-  `errorMessage: riftcarver_<step>_failed`, operation `complete`, then a `spiritmender` operation item PLUS a fresh
-  `pt N` riftcarver spliced immediately after it — the fresh carve copying the completed item's `flowIds` and
-  `packageNames` — and advance. The spiritmender
-  runs next, in the quest's own worktree — which exists because the git context was persisted before the mirror and
-  the typecheck ran. Its operation text names the failing STEP and the riftcarver result id, so
-  `operationPtChainTransformer` gives that attempt its own pt budget instead of one shared with every repair on the
-  quest.
-- **carve red, `git-state` (`create` / `base_branch`), or a permission-denied error at ANY step, or a spent
-  `slotManagerStatics.riftcarver.maxRetries` chain** → `quest-block-on-failure-broker`. A git-state red blocks
-  DELIBERATELY rather than repairing: with no worktree there is nothing to dispatch a spiritmender into, and the only
-  checkout left is the repo root — the one place no agent may ever be sent. `isPermissionDeniedErrorGuard` is checked
-  FIRST and overrides whatever class the step carries, because no fresh session of any role clears an operator's
-  filesystem saying no. On these routes the work item's `errorMessage` is git's own text VERBATIM, because nothing
-  downstream can act on it and the failed execution row is where the user reads it.
+`stepHandlerRunBroker` is also THE HANDLER BOUNDARY a thrown error becomes `wall` at: a handler that hits an
+exceptional condition it does not itself classify throws, and the boundary turns that throw into a
+`StepHandlerResult` instead of an unhandled rejection with nothing to route it.
 
 **Resume, don't restart.** An `in_progress` work item observed during a get-next-step scan is necessarily orphaned
 (the loop holds no dispatch in flight), so `recover-orphaned-work-items-layer-broker` flips it back to `pending`
 KEEPING `sessionId`/`agentId` and adds a `resume` marker; Node/UI dispatch resumes the retained Claude session
-(`claude --resume`) so partial work survives. An early crash with no captured session falls back to a fresh spawn; the
-MCP-Task path re-dispatches fresh. Budget: each recovery bumps `retryCount`; at
-`slotManagerStatics.orphanRecovery.maxResets` the crash loop is terminal and the quest blocks. The broker returns
-`{ quest, blocked }`, and `scan-once-layer-broker` STOPS on `blocked: true` — it does not fall through to the advance
-self-heal, because minting and dispatching the next ledger scope's work item against a quest that just halted is exactly
-the bug that flag exists to prevent.
+(`claude --resume`) so partial work survives. A resumed orphan keeps its `step` and its `observations` — the
+observation set freezes at signal, so a resumed session re-marks its assigned units from scratch rather than amending
+a predecessor's set. An early crash with no captured session falls back to a fresh spawn; the MCP-Task path
+re-dispatches fresh. Budget: each recovery bumps `retryCount`; at `slotManagerStatics.orphanRecovery.maxResets` the
+crash loop is terminal and the quest blocks. The broker returns `{ quest, blocked }`, and `scan-once-layer-broker`
+STOPS on `blocked: true` — it does not fall through to the router or the advance self-heal, because minting and
+dispatching work against a quest that just halted is exactly the bug that flag exists to prevent.
 
 **Never clobber a retained session.** `buildSpawnInstructionLayerBroker` decides resume-vs-fresh on
-`sessionId !== undefined && agentId === undefined`, and it does NOT consult the `resume` marker. Any
-dispatchable work item carrying a session resumes it, whatever the role. Gating on the marker instead
-fresh-spawns an item whose session was recorded but never formally reclaimed (a quest that blocked
-before recovery reached it, a hand-repaired quest.json), and the new child's init line then overwrites
-`sessionId` — silently orphaning a session that still holds real work. `agentId` is the ONE exception:
-`get-agent-prompt` stamps it together with a `sessionId` that is the user's `/dumpster-launch` loop
-session, not the agent's own. The `resume` marker is written purely as an audit record of "this item was
-reclaimed". The resume prompt itself opens by telling the agent it was
-CUT OFF (killed, not paused) and requires re-establishing real state before any new work, since its
-last action may never have landed. Covered end-to-end by
-`packages/web/src/flows/quest-chat/dispatch-resumes-retained-session.e2e.ts`, which asserts the
-spawned child's actual argv and prompt.
+`sessionId !== undefined && agentId === undefined`, and it does NOT consult the `resume` marker. Any dispatchable
+work item carrying a session resumes it, whatever the role. Gating on the marker instead fresh-spawns an item whose
+session was recorded but never formally reclaimed (a quest that blocked before recovery reached it, a hand-repaired
+quest.json), and the new child's init line then overwrites `sessionId` — silently orphaning a session that still
+holds real work. `agentId` is the ONE exception: `get-agent-prompt` stamps it together with a `sessionId` that is the
+user's `/dumpster-launch` loop session, not the agent's own. The resume prompt opens by telling the agent it was CUT
+OFF (killed, not paused) and requires re-establishing real state before any new work, since its last action may never
+have landed. Covered end-to-end by `packages/web/src/flows/quest-chat/dispatch-resumes-retained-session.e2e.ts`.
 
 **An API overload is not a crash.** A dispatched child that exits non-zero after emitting a 529 / `overloaded_error`
-marker lost the upstream API, not its own work. `spawn-one-agent-layer-broker` owns that case BELOW orphan recovery: it
-re-dispatches the same work item in place on `apiOverloadRetryStatics`' schedule (10 retries a minute apart, then 20 five
-minutes apart) WITHOUT touching `retryCount`, resuming the captured session when the dead attempt reached its init line.
-Recovery's budget is 3 resets and a 529 death takes seconds, so routing overloads through recovery blocks a quest inside
-a few minutes of an outage that would have cleared itself. Detection needs BOTH the marker and the non-zero exit — a
-marker alone is just an agent printing a string. The retry yields to a paused dispatcher (rechecked after each backoff,
-which can sleep minutes) and to a work item that went terminal mid-wait.
+marker lost the upstream API, not its own work. `spawn-one-agent-layer-broker` owns that case BELOW orphan recovery:
+it re-dispatches the same work item in place on `apiOverloadRetryStatics`' schedule (10 retries a minute apart, then
+20 five minutes apart) WITHOUT touching `retryCount`, resuming the captured session when the dead attempt reached its
+init line. Detection needs BOTH the marker and the non-zero exit — a marker alone is just an agent printing a string.
+The retry yields to a paused dispatcher (rechecked after each backoff, which can sleep minutes) and to a work item
+that went terminal mid-wait.
 
 **Resuming a blocked quest rearms it.** `OrchestrationResumeResponder` accepts `blocked` as well as `paused` (a block
 leaves no `pausedAtStatus`, so it restores `in_progress`) and runs `quest-resume-rearm-work-items-transformer` first:
 every work item whose linked operation item is still unfinished goes back to `pending` with `retryCount` cleared,
 keeping `sessionId` + the `resume` marker. Without it the blocking item is still `failed` at the budget, so the next
-recovery pass re-escalates and re-blocks — a resume that does nothing. The rearm persists BEFORE the status flip. Items
-whose operation item is `complete` are left alone, so a red ward's superseded `failed` item is not resurrected.
+recovery pass re-escalates and re-blocks — a resume that does nothing. The rearm persists BEFORE the status flip.
 
-**Siegemaster no longer owns a dev server — each round's minion owns its own LANE.** `siegeLane`
-(`packages/web/test/siege-driver/siege-lane.ts`) stands up an API server, a Vite server and a headless Chromium
-against an OS-assigned port pair and a throwaway `DUNGEONMASTER_HOME` — one call per minion per round. Siegemaster
-allocates which two lane names/directories a round gets (never reused across rounds, never shared between the pair)
-and passes each on its own minion's `LANE:` line; it never starts, drives or stops one itself.
-`workItemToPromptTransformer` carries no dev-server extra for siegemaster any more (see "Editing or Creating a Prompt"
-rule 4).
-
-- **Each minion starts, drives and tears down its own lane.** The verifier needs one nothing else has touched; the
-  stress tester needs one it is free to kill, corrupt or hammer — the pair get separate lanes DELIBERATELY. Several
-  units measure a difference from a value only a lane's own process lifetime provides — an uptime, a monotonic
-  counter, an append-only log — so restarting a live lane mid-round destroys them for that round with nothing to show
-  it happened. Fixers are forbidden to touch any lane, and **a lane that will not start is a defect the round
-  surfaces, never a wall.**
-- **Codeweaver and Flowrider are given no dev server and need none.** A Flowrider browser walk brings its own up from
-  the project's Playwright config (`webServer`) and tears it down with the run, and its specs navigate
-  `baseURL`-relative so no URL reaches the test. A missing `webServer` block makes every unit it blocks
-  `unconfirmable`, not something any of these sessions authors — writing one is install-time scaffolding shared by
-  every flow on the quest, and the sibling sessions work against the same tree.
-
-Operational flows run no server.
+**Siegemaster's rounds each own their own LANE.** `siegeLane` (`packages/web/test/siege-driver/siege-lane.ts`) stands
+up an API server, a Vite server and a headless Chromium against an OS-assigned port pair and a throwaway
+`DUNGEONMASTER_HOME` — one call per minion per round. A lane that will not start is a defect the round surfaces,
+never a wall. **Codeweaver and Flowrider are given no dev server and need none:** a Flowrider browser walk brings its
+own up from the project's Playwright config (`webServer`) and tears it down with the run. Operational flows run no
+server at all.
 
 ### Completion
 
-`work-items-to-quest-status-transformer` is operation-aware. It never derives `complete` while ANY operation item is
-`pending` or `in_progress` — that window is exactly "last session finished, advance hasn't created the next work item
-yet." Pre-execution, user-paused, abandoned, and blocked statuses are never derived over. When every work item is
-terminal AND the ledger is drained it returns `complete`; an unrecovered sink failure with a drained ledger returns
-`blocked`; otherwise `in_progress` (a dispatchable item exists, or advance will create one from the ledger). `skipped`
-is terminal and non-failure but does NOT satisfy `dependsOn`, so a `skipped` dep permanently dead-ends its dependents.
+`work-items-to-quest-status-transformer` derives quest status on every ledger write, and **`complete`
+means THE FAMILY GRAPH REACHED `@complete`, never that the ledger drained.** Under a graph that can
+cycle, a drained ledger is an ordinary mid-run state — `work ⇄ review` is legitimately empty between two
+passes — so `familyGraphCompleteDetectTransformer` owns that question.
+
+**It asks from the TERMINAL end, and walking forward is the trap.** A family that fanned out to zero
+scopes leaves no trace on the ledger, so a forward walk cannot tell "flowrider was skipped as `empty`"
+from "flowrider has not been routed to yet", and walks straight past every un-minted family to
+`@complete`. Asking instead whether a family that ROUTES to `@complete` holds scopes of its own makes
+their presence the proof the run got there: a `wardFull` scope exists only because siegemaster's `done`
+routed to it.
+
+Pre-execution, user-paused, abandoned, blocked and `merged` statuses are never derived over. An
+unrecovered sink failure with nothing left to advance to returns `blocked`; otherwise `in_progress`.
+That sink roll-up reads `insertedBy`, NOT `mintedBy` — `insertedBy` means "a retry was spliced for this
+failed item", where `mintedBy` is the router's RETURN EDGE, and reading it here would make a mark-minted
+worker read as superseding the reviewer that minted it. `skipped` is terminal and non-failure but does
+NOT satisfy `dependsOn`, so a `skipped` dep permanently dead-ends its dependents.
 
 ### MCP Sanitization
 
@@ -1457,7 +1439,7 @@ The MCP `modify-quest` tool gates writes by the per-status allowlist (`quest-sta
 - `workItems` — server-only, managed by the advance / signal-back / ward / riftcarver brokers.
 - `wardResults` — server-only, written by `quest-run-ward-broker`.
 - `riftcarverResults` — server-only, written by `quest-run-riftcarver-broker`, one entry appended per carve attempt so
-  a pt chain leaves its whole history rather than overwriting the attempt that failed.
+  a re-carve chain leaves its whole history rather than overwriting the attempt that failed.
 
 **Every timestamp a modify-quest payload writes is REPLACED with the server's clock, and the caller's value is
 discarded** — `questInputServerTimestampsTransformer`, running before any branch of `questModifyBroker` reads the
@@ -1642,14 +1624,21 @@ The general rule holds for every OTHER MCP server: an ungranted MCP tool in a he
 denied outright, never prompted — which is why `agentGitPermissionsStatics` exists. Chrome would be
 the exception, because its CLI flag is itself the grant.
 
-## Never parallel-dispatch different roles
+## One step of one family at a time
 
-The orchestration does not handle it: `signal-back` does not gate on readiness and `get-agent-prompt`
-stamps identity without a dependency check, so dispatching two different roles concurrently
-force-completes them out of dependency order and INVALIDATES the run. A dependency chain is strictly
-serial. The only permitted parallelism is multiple agents OF THE SAME ROLE that a SINGLE
-`get-next-step` returned together.
+The orchestration does not handle two different families running at once: `signal-back` does not gate on
+readiness and `get-agent-prompt` stamps identity without a dependency check, so dispatching across two
+families concurrently would force-complete them out of order and INVALIDATE the run.
+
+**The dispatch layer now enforces it.** `compute-next-step-from-quest-layer-broker` selects the batch on
+the HEAD ready item's ROLE **and** its STEP, so a batch is one step of one family by construction — which
+is what a router mint is. `select-batch-layer-broker` still throws on a batch that mixes either, but that
+throw is a backstop rather than something ordinary traffic reaches.
+
+**Several sessions of ONE step run in parallel by design** — nine codeweaver cells, or a step's pieces.
+A deterministic step and a command work item each dispatch ALONE, because each owns the whole tree for
+the length of its run.
 
 When driving the loop by hand: one `get-next-step` → dispatch only the `workItemId`(s) it returned →
-wait → assert `quest.json` on disk → `get-next-step` again. Only ever use ids the tool echoes back,
-never one recalled from a seed array or an earlier turn.
+wait → assert `quest.json` on disk → `get-next-step` again. Only ever use ids the tool echoes back, never
+one recalled from a seed array or an earlier turn.

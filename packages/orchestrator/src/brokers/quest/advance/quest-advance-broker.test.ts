@@ -82,6 +82,7 @@ describe('questAdvanceBroker', () => {
               relatedDataItems: ['operations/33333333-3333-4333-8333-333333333333'],
               dependsOn: [newerId],
               createdAt: '2024-01-15T10:00:00.000Z',
+              step: 'plan',
             }),
           ],
           updatedAt: '2024-01-15T10:00:00.000Z',
@@ -197,6 +198,7 @@ describe('questAdvanceBroker', () => {
               relatedDataItems: ['operations/44444444-4444-4444-8444-444444444444'],
               dependsOn: [],
               createdAt: '2024-01-15T10:00:00.000Z',
+              step: 'carve',
             }),
           ],
           updatedAt: '2024-01-15T10:00:00.000Z',
@@ -255,6 +257,7 @@ describe('questAdvanceBroker', () => {
               dependsOn: [],
               packageNames: ['web', 'server'],
               createdAt: '2024-01-15T10:00:00.000Z',
+              step: 'plan',
             }),
           ],
           updatedAt: '2024-01-15T10:00:00.000Z',
@@ -312,6 +315,7 @@ describe('questAdvanceBroker', () => {
               relatedDataItems: ['operations/11111111-1111-4111-8111-111111111111'],
               dependsOn: [],
               createdAt: '2024-01-15T10:00:00.000Z',
+              step: 'plan',
             }),
           ],
           updatedAt: '2024-01-15T10:00:00.000Z',
@@ -320,7 +324,7 @@ describe('questAdvanceBroker', () => {
     });
   });
 
-  describe('strict 1:1 operation-item↔work-item invariant', () => {
+  describe('the resume guard — one scope is entered once', () => {
     it('VALID: {pending op already linked to a work item} => no new work item, persists nothing', async () => {
       const proxy = questAdvanceBrokerProxy();
 

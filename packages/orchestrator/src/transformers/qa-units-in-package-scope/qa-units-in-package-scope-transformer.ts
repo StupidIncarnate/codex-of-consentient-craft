@@ -26,10 +26,27 @@
  * so, since the detector's priority table names a single winner and returns.
  *
  * `packageNames` NARROWS BY INTERSECTION for every track — an item owns every unit whose node tags
- * ANY of its names, glue included. No track mints a seam item, so a glue unit a stricter reading
- * dropped would be owned by nobody at all. Each track declares that as
+ * ANY of its names. Each track declares that as
  * `signoffTrackEligibilityStatics.byTrack[track].packageScope`, so a track that needs a different
  * rule declares it there and gets a branch here rather than a role comparison.
+ *
+ * A SEAM'S UNITS GO TO EXACTLY ONE CELL — THE LAST-ORDERED ONE. A node carrying more than one
+ * package is a seam (`flowNodeContract`'s own `.describe()` says so), and its units belong to the
+ * cell whose package sorts LAST among the packages tagging that node, by the same three keys the
+ * codeweaver fan-out orders cells by: package KIND tier, then `packageGraph` depth within a tier,
+ * then name. The later cell can see both halves of the seam; the earlier one is never assigned the
+ * unit and never has to mark it, and reaches the far half through its piece's `contextUnitIds`.
+ * CELL MEMBERSHIP IS UNCHANGED — both cells still exist, because a node may be the other side's
+ * ONLY node on the flow and awarding the node itself would mint no cell for it at all. Only the
+ * ASSIGNMENT moves.
+ *
+ * THE THREE KEYS ARE RECOMPUTED HERE rather than carried on the slice. `RelayTailSlice` is a
+ * `Pick<OperationItem, 'text' | 'flowIds' | 'packageNames'>` with nowhere to hold a unit list, and
+ * a widened slice would have to be persisted and then kept in sync with a mid-quest amendment —
+ * where `packagesAffected`, `packageBuildOrderStatics.tiers` and `packageGraph` are read live off
+ * the quest on every call. `packageGraph` defaults to empty, which collapses the depth tiebreak and
+ * leaves tier-then-name deciding; that is the same fallback the fan-out takes on a quest with no
+ * graph stamped yet, so the two orders still agree.
  *
  * NOTHING IS EXCLUDED ON DATA THAT CANNOT BE RESOLVED. A unit hanging off no node, a node the flow
  * does not carry, and a node tagged with a package absent from `packagesAffected` all stay in. A
@@ -38,7 +55,13 @@
  * data, which silently turns the gate off — the one failure this narrowing exists not to cause.
  */
 
-import type { Flow, PackageName, QuestPackageEntry } from '@dungeonmaster/shared/contracts';
+import type {
+  Flow,
+  PackageGraphEntry,
+  PackageName,
+  QuestPackageEntry,
+} from '@dungeonmaster/shared/contracts';
+import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
 import { questPackageEntryKindsTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { QaVerificationUnit } from '../../contracts/qa-verification-unit/qa-verification-unit-contract';
@@ -50,16 +73,40 @@ export const qaUnitsInPackageScopeTransformer = ({
   track,
   packagesAffected = [],
   packageNames = [],
+  packageGraph = [],
 }: {
   flow: Flow;
   units: readonly QaVerificationUnit[];
   track: keyof typeof signoffTrackEligibilityStatics.byTrack;
   packagesAffected?: readonly QuestPackageEntry[];
   packageNames?: readonly PackageName[];
+  packageGraph?: readonly PackageGraphEntry[];
 }): QaVerificationUnit[] => {
   const eligibility = signoffTrackEligibilityStatics.byTrack[track];
   const eligiblePackageTypes = new Set(eligibility.packageTypes.map(String));
   const declaredNames = new Set(packageNames.map(String));
+
+  // The cell-ordering keys, in the fan-out's own order: KIND tier first (it outranks depth because
+  // manifest depth is inverted across an HTTP seam), then depth within a tier, then name.
+  const rankByKind = new Map(
+    packageBuildOrderStatics.tiers.flatMap((tier, tierIndex) =>
+      tier.map((kind) => [kind, tierIndex] as const),
+    ),
+  );
+  const unrankedTier = packageBuildOrderStatics.tiers.length;
+  // Ranked on the whole KIND SET at its EARLIEST tier, never the detector's single winning label.
+  const rankByPackage = new Map(
+    packagesAffected.map((entry) => {
+      const ranks = questPackageEntryKindsTransformer({ entry }).flatMap((kind) => {
+        const rank = rankByKind.get(kind);
+        return rank === undefined ? [] : [rank];
+      });
+      return [String(entry.name), ranks.length === 0 ? unrankedTier : Math.min(...ranks)] as const;
+    }),
+  );
+  const depthByPackage = new Map(
+    packageGraph.map((graphEntry) => [String(graphEntry.id), graphEntry.depth]),
+  );
   // The entry's KIND SET, never its single display label — a package can be more than one kind, and
   // the detector's priority table reports only the first match, so a package that serves HTTP and
   // also renders widgets would resolve wholly to one track and drop out of the other's denominator.
@@ -102,6 +149,23 @@ export const qaUnitsInPackageScopeTransformer = ({
       return true;
     }
 
-    return owningPackages.some((name) => declaredNames.has(name));
+    // One owner per unit. A single-package node's owner IS its package, so this is the intersection
+    // rule unchanged there; a SEAM's owner is the last-ordered of the packages tagging it.
+    const owner = [...owningPackages]
+      .sort((left, right) => {
+        const leftRank = rankByPackage.get(left) ?? unrankedTier;
+        const rightRank = rankByPackage.get(right) ?? unrankedTier;
+        if (leftRank !== rightRank) {
+          return leftRank - rightRank;
+        }
+        const depthDelta = (depthByPackage.get(left) ?? 0) - (depthByPackage.get(right) ?? 0);
+        if (depthDelta !== 0) {
+          return depthDelta;
+        }
+        return left.localeCompare(right);
+      })
+      .at(-1);
+
+    return owner !== undefined && declaredNames.has(owner);
   });
 };

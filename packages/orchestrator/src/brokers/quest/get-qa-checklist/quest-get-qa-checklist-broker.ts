@@ -94,6 +94,7 @@ export const questGetQaChecklistBroker = async ({
           flow,
           packagesAffected: quest.packagesAffected,
           packageNames: scope.packageNames,
+          packageGraph: quest.packageGraph,
           track: scope.track,
         }),
       ),
@@ -108,7 +109,11 @@ export const questGetQaChecklistBroker = async ({
 
   return {
     checklists: flows.map((flow) =>
-      qaChecklistBuildTransformer({ flow, packagesAffected: quest.packagesAffected }),
+      qaChecklistBuildTransformer({
+        flow,
+        packagesAffected: quest.packagesAffected,
+        packageGraph: quest.packageGraph,
+      }),
     ),
   };
 };

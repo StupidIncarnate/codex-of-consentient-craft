@@ -247,6 +247,44 @@ describe('scanOnceLayerBroker', () => {
     expect(clear).toHaveBeenCalledWith();
   });
 
+  it('ERROR: {the router halts the scope} => the scan stops dead, clearing active and minting nothing', async () => {
+    const proxy = scanOnceLayerBrokerProxy();
+    const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+    const guildItem = GuildListItemStub({ id: guildId, valid: true });
+    const questId = QuestIdStub({ value: 'q-scan-router-halt' });
+    const quest = QuestStub({
+      id: questId,
+      status: 'in_progress',
+      operations: [
+        OperationItemStub({
+          id: '55555555-5555-4555-8555-555555555555',
+          role: 'codeweaver',
+          status: 'in_progress',
+        }),
+      ],
+      workItems: [WorkItemStub({ status: 'complete' })],
+    });
+    proxy.setupGuildsAndQuests({
+      guildItems: [guildItem],
+      questsByGuildId: [{ guildId, quests: [quest] }],
+    });
+    proxy.setupRouterBlocked();
+    const clear = jest.fn();
+    const setActive = jest.fn();
+    const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
+
+    const result = await scanOnceLayerBroker({ activeQuest });
+
+    // Nothing below the router runs: no advance self-heal, so the halted quest gains no work item
+    // for the next scope and nothing is dispatched against it.
+    expect({
+      result,
+      persisted: proxy.getAllPersistedContents(),
+      cleared: clear.mock.calls.length,
+      activated: setActive.mock.calls.length,
+    }).toStrictEqual({ result: null, persisted: [], cleared: 1, activated: 0 });
+  });
+
   it('VALID: {all work items terminal, one pending operation item} => advance self-heal creates the next work item and the step dispatches it', async () => {
     const proxy = scanOnceLayerBrokerProxy();
     const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });

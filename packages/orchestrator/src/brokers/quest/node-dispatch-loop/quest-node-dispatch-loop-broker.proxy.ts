@@ -11,6 +11,7 @@ import { questGetNextStepBrokerProxy } from '../get-next-step/quest-get-next-ste
 import { questRunRiftcarverBroker } from '../run-riftcarver/quest-run-riftcarver-broker';
 import { questRunRiftcarverBrokerProxy } from '../run-riftcarver/quest-run-riftcarver-broker.proxy';
 import { questRunWardBroker } from '../run-ward/quest-run-ward-broker';
+import { questRunStepBrokerProxy } from '../run-step/quest-run-step-broker.proxy';
 import { questRunWardBrokerProxy } from '../run-ward/quest-run-ward-broker.proxy';
 import { spawnBatchLayerBroker } from './spawn-batch-layer-broker';
 import { spawnBatchLayerBrokerProxy } from './spawn-batch-layer-broker.proxy';
@@ -63,6 +64,7 @@ export const questNodeDispatchLoopBrokerProxy = (): {
   questGetNextStepBrokerProxy();
   questRunWardBrokerProxy();
   questRunRiftcarverBrokerProxy();
+  questRunStepBrokerProxy();
   spawnBatchLayerBrokerProxy();
 
   const getNextStepMock = registerMock({ fn: questGetNextStepBroker });

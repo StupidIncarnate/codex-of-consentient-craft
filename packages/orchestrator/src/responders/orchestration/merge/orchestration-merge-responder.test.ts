@@ -41,6 +41,7 @@ const expectedWarpgateWorkItem = (): ReturnType<typeof WorkItemStub> =>
     role: 'warpgate',
     status: 'pending',
     spawnerType: 'agent',
+    step: 'merge',
     relatedDataItems: [`operations/${WARPGATE_OPERATION_ID}`],
     dependsOn: [],
     attempt: 0,

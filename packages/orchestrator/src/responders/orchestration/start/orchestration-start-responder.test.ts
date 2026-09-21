@@ -8,10 +8,7 @@ import {
   QuestStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
-import {
-  questStatusMetadataStatics,
-  questTypeRegistryStatics,
-} from '@dungeonmaster/shared/statics';
+import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
@@ -29,8 +26,9 @@ const NON_STARTABLE_STATUSES = ALL_STATUSES.filter(
 const STARTABLE_LIST = STARTABLE_STATUSES.join(' or ');
 
 // Mirrors the uuid queue seeded by OrchestrationStartResponderProxy: index 0 is the processId;
-// questBuildRelayGraphBroker consumes the rest in order — one id per seeded implementation
-// operation item, one per verify-tail item, then one for the single first work item.
+// questBuildRelayGraphBroker consumes ONE id for the entry family's single seeded operation item
+// (`familyScopesMintTransformer` — the riftcarver family fans out to exactly one scope), then one
+// more for the first work item.
 const SEEDED_UUIDS = [
   'f47ac10b-58cc-4372-a567-0e02b2c3d479',
   'aaaaaaaa-1111-4222-9333-444444444444',
@@ -49,91 +47,11 @@ const PROCESS_ID = `proc-${SEEDED_UUIDS[0]}`;
 // Every Date#toISOString is pinned by the composed persist/outbox proxies.
 const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
 
-// Feature quests seed implementation ops at Start as well: the ONE codeweaver seed carries
-// `fanOutBy: 'implementation'`, so the derived per-package ledger is minted here rather than authored
-// at spec time. QuestStub declares one flow with no tagged nodes, no packagesAffected and no
-// contracts, so no package resolves from either input — the fan-out
-// falls back to ONE whole-quest item. Implementation items consume uuids first, then the verify
-// tail, then the single first work item.
-const QUEST_STUB_FLOW_ID = 'login-flow';
-const FEATURE_IMPLEMENTATION_EXPECTED = questTypeRegistryStatics.feature.startImplementationOps.map(
-  (seed, index) => ({
-    id: SEEDED_UUIDS[index + 1],
-    role: seed.role,
-    text: seed.text,
-    status: 'pending',
-    // Read the same way the seed broker reads it: `locked` defaults TRUE and a seed opts out by
-    // declaring it. Codeweaver is the one that does, so its pt chain stays unbounded — the flows are
-    // the acceptance target, so the work has to land however many passes it takes. Riftcarver
-    // declares nothing and therefore locks, which is what enrols it in its retry budget.
-    locked: 'locked' in seed ? seed.locked : true,
-    flowIds: [],
-    packageNames: [],
-  }),
-);
-const FEATURE_IMPLEMENTATION_COUNT = FEATURE_IMPLEMENTATION_EXPECTED.length;
-// The verify tail's 1:1 mapping per entry: `flow` fan-out mints one item per quest flow, and
-// QuestStub declares exactly one ('login-flow'), so BOTH flowrider and siegemaster keep the tail's
-// 1:1 shape here — each suffixed with the flow it owns and carrying it in `flowIds`.
-const FEATURE_TAIL_SEEDED = questTypeRegistryStatics.feature.relayTail;
-const FEATURE_TAIL_EXPECTED = FEATURE_TAIL_SEEDED.map((entry, index) => ({
-  id: SEEDED_UUIDS[index + 1 + FEATURE_IMPLEMENTATION_COUNT],
-  role: entry.role,
-  text:
-    entry.role === 'flowrider' || entry.role === 'siegemaster'
-      ? `${entry.text} — flow: ${QUEST_STUB_FLOW_ID}`
-      : entry.text,
-  status: 'pending',
-  locked: true,
-  flowIds: entry.role === 'flowrider' || entry.role === 'siegemaster' ? [QUEST_STUB_FLOW_ID] : [],
-  packageNames: [],
-  ...('wardMode' in entry ? { wardMode: entry.wardMode } : {}),
-}));
-const FEATURE_WORK_ITEM_UUID =
-  SEEDED_UUIDS[FEATURE_IMPLEMENTATION_COUNT + FEATURE_TAIL_EXPECTED.length + 1];
-
-// Bug-hunt quests share the ENTIRE relay shape with a feature quest — the registry's implementation
-// ops (riftcarver, then the derived codeweaver seed) first (uuids 1..N), then the identical
-// ward/flowrider/siegemaster/ward tail. The first implementation op is the overall-first pending op,
-// so the relay flips it in_progress.
-const BUG_HUNT_IMPLEMENTATION_COUNT =
-  questTypeRegistryStatics['bug-hunt'].startImplementationOps.length;
-const BUG_HUNT_OPS_EXPECTED = [
-  ...questTypeRegistryStatics['bug-hunt'].startImplementationOps.map((seed, index) => ({
-    id: SEEDED_UUIDS[index + 1],
-    role: seed.role,
-    text: seed.text,
-    status: index === 0 ? 'in_progress' : 'pending',
-    locked: 'locked' in seed ? seed.locked : true,
-    flowIds: [],
-    packageNames: [],
-  })),
-  // Same 1:1-with-one-flow shape FEATURE_TAIL_EXPECTED relies on: QuestStub's one flow means
-  // flowrider and siegemaster each mint exactly one item, suffixed with that flow's id.
-  ...questTypeRegistryStatics['bug-hunt'].relayTail.map((seed, index) => ({
-    id: SEEDED_UUIDS[index + 1 + BUG_HUNT_IMPLEMENTATION_COUNT],
-    role: seed.role,
-    text:
-      seed.role === 'flowrider' || seed.role === 'siegemaster'
-        ? `${seed.text} — flow: ${QUEST_STUB_FLOW_ID}`
-        : seed.text,
-    status: 'pending',
-    locked: true,
-    flowIds: seed.role === 'flowrider' || seed.role === 'siegemaster' ? [QUEST_STUB_FLOW_ID] : [],
-    packageNames: [],
-    ...('wardMode' in seed ? { wardMode: seed.wardMode } : {}),
-  })),
-];
-const BUG_HUNT_WORK_ITEM_UUID =
-  SEEDED_UUIDS[
-    BUG_HUNT_IMPLEMENTATION_COUNT + questTypeRegistryStatics['bug-hunt'].relayTail.length + 1
-  ];
-
 const CHAT_ITEM_UUID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const CHAOS_OP_UUID = 'c0c0c0c0-58cc-4372-a567-0e02b2c3d479';
 const CW_OP_ONE_UUID = 'c1c1c1c1-58cc-4372-a567-0e02b2c3d479';
 const CW_OP_TWO_UUID = 'c2c2c2c2-58cc-4372-a567-0e02b2c3d479';
-const WARD_OP_UUID = 'dddd0000-58cc-4372-a567-0e02b2c3d479';
+const PRIOR_RIFTCARVER_OP_UUID = 'dddd0000-58cc-4372-a567-0e02b2c3d479';
 
 // The git context an already-carved quest carries. The idempotency describe block below models a
 // quest a previous Start already seeded and a previous riftcarver already carved, so its quest.json
@@ -143,9 +61,36 @@ const EXISTING_WORKTREE_PATH = AbsoluteFilePathStub({
   value: '/repo/worktrees/add-auth-f47ac10b',
 });
 
-// The riftcarver seed's text, restated from questTypeRegistryStatics (whose colocated test pins the
-// exact wording) so the regression assertion below reads as one literal object.
+// The entry family's own text — `questFlowStatics.feature.families.riftcarver.text`, identical for
+// bug-hunt — restated as one literal so the assertions below read as plain objects.
 const RIFTCARVER_TEXT = 'Riftcarver: carve the quest branch, worktree and preflight typecheck';
+
+// The entry family's own entry step (`agentFlowStatics.riftcarver.entry`). questBuildRelayGraphBroker
+// stamps this onto the FIRST work item Start mints, whatever role that item's flipped operation
+// carries — the step names where the ENTRY family's own graph begins, not the flipped operation's
+// family, since the entry family is fixed per quest type while the first-actionable operation can be
+// a pre-existing item of any role.
+const ENTRY_STEP = 'carve';
+
+// The ENTRY family's own scope — the ONE operation item Start ever seeds, for either quest type:
+// `questFlowStatics[quest.questType].entry` is `riftcarver` for both. `familyScopesMintTransformer`
+// mints it as a single item (the riftcarver family declares no `fanOutBy`) with an empty
+// flowIds/packageNames array — a COMMAND role gets no spine-package fallback.
+const riftcarverEntryScope = ({
+  id,
+  status,
+}: {
+  id: string;
+  status: 'pending' | 'in_progress';
+}) => ({
+  id,
+  role: 'riftcarver',
+  text: RIFTCARVER_TEXT,
+  status,
+  locked: true,
+  flowIds: [],
+  packageNames: [],
+});
 
 const DERIVED_PACKAGE_GRAPH = [
   PackageGraphEntryStub({
@@ -273,7 +218,7 @@ describe('OrchestrationStartResponder', () => {
       // row instead of leaving the panel to render nothing while a POST blocks.
       expect(persisted.workItems).toStrictEqual([
         {
-          id: FEATURE_WORK_ITEM_UUID,
+          id: SEEDED_UUIDS[2],
           role: 'riftcarver',
           status: 'pending',
           spawnerType: 'command',
@@ -285,6 +230,7 @@ describe('OrchestrationStartResponder', () => {
           createdAt: FIXED_TIMESTAMP,
           observations: [],
           assignedUnitIds: [],
+          step: ENTRY_STEP,
         },
       ]);
     });
@@ -348,17 +294,11 @@ describe('OrchestrationStartResponder', () => {
       expect(persisted.packageGraph).toStrictEqual(DERIVED_PACKAGE_GRAPH);
     });
 
-    it('VALID: {prior tail seeded, no packageGraph recorded} => the promotion-only persist still records the derived graph', async () => {
+    it('VALID: {entry family scope already on the ledger, no packageGraph recorded} => the promotion-only persist still records the derived graph', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
-      const wardOp = OperationItemStub({
-        id: WARD_OP_UUID,
-        role: 'ward',
-        text: 'Ward gate (committed files)',
-        status: 'pending',
-        locked: true,
-        flowIds: [],
-        wardMode: 'committed',
-      });
+      const riftcarverOp = OperationItemStub(
+        riftcarverEntryScope({ id: PRIOR_RIFTCARVER_OP_UUID, status: 'in_progress' }),
+      );
       const chatItem = WorkItemStub({
         id: CHAT_ITEM_UUID,
         role: 'chaoswhisperer',
@@ -368,7 +308,7 @@ describe('OrchestrationStartResponder', () => {
       const quest = QuestStub({
         id: questId,
         status: 'approved',
-        operations: [wardOp],
+        operations: [riftcarverOp],
         workItems: [chatItem],
         branchName: EXISTING_BRANCH_NAME,
         worktreePath: EXISTING_WORKTREE_PATH,
@@ -384,12 +324,12 @@ describe('OrchestrationStartResponder', () => {
       expect({
         operations: persisted.operations,
         packageGraph: persisted.packageGraph,
-      }).toStrictEqual({ operations: [wardOp], packageGraph: DERIVED_PACKAGE_GRAPH });
+      }).toStrictEqual({ operations: [riftcarverOp], packageGraph: DERIVED_PACKAGE_GRAPH });
     });
   });
 
   describe('feature relay seed (one atomic operations persist)', () => {
-    it('VALID: {approved feature quest with Chaos plan} => appends the locked verify tail in registry order and flips the first codeweaver op in_progress', async () => {
+    it('VALID: {approved feature quest with Chaos plan, two pending codeweaver ops already on the ledger} => appends the entry family scope AFTER them and flips the first still-pending op in_progress', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosOp = OperationItemStub({
         id: CHAOS_OP_UUID,
@@ -434,12 +374,11 @@ describe('OrchestrationStartResponder', () => {
         chaosOp,
         { ...cwOpOne, status: 'in_progress' },
         cwOpTwo,
-        ...FEATURE_IMPLEMENTATION_EXPECTED,
-        ...FEATURE_TAIL_EXPECTED,
+        riftcarverEntryScope({ id: SEEDED_UUIDS[1], status: 'pending' }),
       ]);
     });
 
-    it('VALID: {approved feature quest with Chaos plan} => links ONE new work item to the flipped op with dependsOn = chat item ids', async () => {
+    it('VALID: {approved feature quest with Chaos plan, one pending codeweaver op already on the ledger} => links ONE new work item to the flipped op, carrying the entry family step, with dependsOn = chat item ids', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosOp = OperationItemStub({
         id: CHAOS_OP_UUID,
@@ -477,7 +416,7 @@ describe('OrchestrationStartResponder', () => {
       expect(persisted.workItems).toStrictEqual([
         chatItem,
         {
-          id: FEATURE_WORK_ITEM_UUID,
+          id: SEEDED_UUIDS[2],
           role: 'codeweaver',
           status: 'pending',
           spawnerType: 'agent',
@@ -489,6 +428,7 @@ describe('OrchestrationStartResponder', () => {
           createdAt: FIXED_TIMESTAMP,
           observations: [],
           assignedUnitIds: [],
+          step: ENTRY_STEP,
         },
       ]);
     });
@@ -581,7 +521,7 @@ describe('OrchestrationStartResponder', () => {
   });
 
   describe('chaoswhisperer plan operation settlement', () => {
-    it('VALID: {non-complete chaoswhisperer plan op} => forced complete in the persisted ledger', async () => {
+    it('VALID: {non-complete chaoswhisperer plan op, pending codeweaver op already on the ledger} => forced complete in the persisted ledger, entry family scope appended after it', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosOp = OperationItemStub({
         id: CHAOS_OP_UUID,
@@ -608,14 +548,13 @@ describe('OrchestrationStartResponder', () => {
       expect(persisted.operations).toStrictEqual([
         { ...chaosOp, status: 'complete' },
         { ...cwOp, status: 'in_progress' },
-        ...FEATURE_IMPLEMENTATION_EXPECTED,
-        ...FEATURE_TAIL_EXPECTED,
+        riftcarverEntryScope({ id: SEEDED_UUIDS[1], status: 'pending' }),
       ]);
     });
   });
 
-  describe('idempotency (locked ward tail already on the ledger)', () => {
-    it('VALID: {prior tail + terminal chat item} => NO second tail; the only persist is the in_progress transition', async () => {
+  describe('idempotency (the entry family scope already on the ledger)', () => {
+    it('VALID: {prior riftcarver scope + terminal chat item} => NO second entry scope; the only persist is the in_progress transition', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosOp = OperationItemStub({
         id: CHAOS_OP_UUID,
@@ -625,15 +564,9 @@ describe('OrchestrationStartResponder', () => {
         locked: true,
         flowIds: [],
       });
-      const wardOp = OperationItemStub({
-        id: WARD_OP_UUID,
-        role: 'ward',
-        text: 'Ward gate (committed files)',
-        status: 'pending',
-        locked: true,
-        flowIds: [],
-        wardMode: 'committed',
-      });
+      const riftcarverOp = OperationItemStub(
+        riftcarverEntryScope({ id: PRIOR_RIFTCARVER_OP_UUID, status: 'in_progress' }),
+      );
       const chatItem = WorkItemStub({
         id: CHAT_ITEM_UUID,
         role: 'chaoswhisperer',
@@ -643,7 +576,7 @@ describe('OrchestrationStartResponder', () => {
       const quest = QuestStub({
         id: questId,
         status: 'approved',
-        operations: [chaosOp, wardOp],
+        operations: [chaosOp, riftcarverOp],
         workItems: [chatItem],
         branchName: EXISTING_BRANCH_NAME,
         worktreePath: EXISTING_WORKTREE_PATH,
@@ -656,10 +589,10 @@ describe('OrchestrationStartResponder', () => {
       const persisted = proxy.getPersistedQuestAt({ index: 0 });
 
       expect(proxy.getPersistedStatuses()).toStrictEqual(['in_progress']);
-      expect(persisted.operations).toStrictEqual([chaosOp, wardOp]);
+      expect(persisted.operations).toStrictEqual([chaosOp, riftcarverOp]);
     });
 
-    it('VALID: {prior tail + pending chat item} => promotion-only persist keeps operations unchanged (no second tail)', async () => {
+    it('VALID: {prior riftcarver scope + pending chat item} => promotion-only persist keeps operations unchanged (no second entry scope)', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosOp = OperationItemStub({
         id: CHAOS_OP_UUID,
@@ -669,15 +602,9 @@ describe('OrchestrationStartResponder', () => {
         locked: true,
         flowIds: [],
       });
-      const wardOp = OperationItemStub({
-        id: WARD_OP_UUID,
-        role: 'ward',
-        text: 'Ward gate (committed files)',
-        status: 'pending',
-        locked: true,
-        flowIds: [],
-        wardMode: 'committed',
-      });
+      const riftcarverOp = OperationItemStub(
+        riftcarverEntryScope({ id: PRIOR_RIFTCARVER_OP_UUID, status: 'in_progress' }),
+      );
       const chatItem = WorkItemStub({
         id: CHAT_ITEM_UUID,
         role: 'chaoswhisperer',
@@ -686,7 +613,7 @@ describe('OrchestrationStartResponder', () => {
       const quest = QuestStub({
         id: questId,
         status: 'approved',
-        operations: [chaosOp, wardOp],
+        operations: [chaosOp, riftcarverOp],
         workItems: [chatItem],
         branchName: EXISTING_BRANCH_NAME,
         worktreePath: EXISTING_WORKTREE_PATH,
@@ -698,10 +625,10 @@ describe('OrchestrationStartResponder', () => {
 
       const persisted = proxy.getPersistedQuestAt({ index: 0 });
 
-      expect(persisted.operations).toStrictEqual([chaosOp, wardOp]);
+      expect(persisted.operations).toStrictEqual([chaosOp, riftcarverOp]);
     });
 
-    it('VALID: {prior tail + pending chat item} => promotion-only persist marks the chat item complete', async () => {
+    it('VALID: {prior riftcarver scope + pending chat item} => promotion-only persist marks the chat item complete', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosOp = OperationItemStub({
         id: CHAOS_OP_UUID,
@@ -711,15 +638,9 @@ describe('OrchestrationStartResponder', () => {
         locked: true,
         flowIds: [],
       });
-      const wardOp = OperationItemStub({
-        id: WARD_OP_UUID,
-        role: 'ward',
-        text: 'Ward gate (committed files)',
-        status: 'pending',
-        locked: true,
-        flowIds: [],
-        wardMode: 'committed',
-      });
+      const riftcarverOp = OperationItemStub(
+        riftcarverEntryScope({ id: PRIOR_RIFTCARVER_OP_UUID, status: 'in_progress' }),
+      );
       const chatItem = WorkItemStub({
         id: CHAT_ITEM_UUID,
         role: 'chaoswhisperer',
@@ -728,7 +649,7 @@ describe('OrchestrationStartResponder', () => {
       const quest = QuestStub({
         id: questId,
         status: 'approved',
-        operations: [chaosOp, wardOp],
+        operations: [chaosOp, riftcarverOp],
         workItems: [chatItem],
         branchName: EXISTING_BRANCH_NAME,
         worktreePath: EXISTING_WORKTREE_PATH,
@@ -747,7 +668,7 @@ describe('OrchestrationStartResponder', () => {
   });
 
   describe('bug-hunt relay seed', () => {
-    it('VALID: {approved bug-hunt quest, empty operations} => seeds the shared relay identically to a feature quest — the derived codeweaver implementation op (in_progress) plus the ward → flowrider → siegemaster → ward verify tail', async () => {
+    it('VALID: {approved bug-hunt quest, empty operations} => seeds the SAME entry family scope as a feature quest — the riftcarver operation item, in_progress', async () => {
       const questId = QuestIdStub({ value: 'fix-bug' });
       const quest = QuestStub({ id: questId, status: 'approved', questType: 'bug-hunt' });
       const proxy = OrchestrationStartResponderProxy();
@@ -757,15 +678,17 @@ describe('OrchestrationStartResponder', () => {
 
       const persisted = proxy.getPersistedQuestAt({ index: 0 });
 
-      expect(persisted.operations).toStrictEqual(BUG_HUNT_OPS_EXPECTED);
+      expect(persisted.operations).toStrictEqual([
+        riftcarverEntryScope({ id: SEEDED_UUIDS[1], status: 'in_progress' }),
+      ]);
     });
 
-    // Riftcarver heads `startImplementationOps` for EVERY quest type, so the first work item a
-    // bug-hunt Start mints is the workspace-preparation command, not codeweaver — the branch, the
-    // worktree and the preflight typecheck have to exist before any agent is dispatched into them.
-    // `spawnerType: 'command'` is the assertion that matters here: it is what routes this item to
-    // the dispatcher's own run path instead of a Claude spawn.
-    it('VALID: {approved bug-hunt quest, empty operations} => first work item is the riftcarver command linked to the implementation op', async () => {
+    // Riftcarver is the entry family for EVERY quest type, so the first work item a bug-hunt Start
+    // mints is the workspace-preparation command, not codeweaver — the branch, the worktree and the
+    // preflight typecheck have to exist before any agent is dispatched into them. `spawnerType:
+    // 'command'` is the assertion that matters here: it is what routes this item to the dispatcher's
+    // own run path instead of a Claude spawn.
+    it('VALID: {approved bug-hunt quest, empty operations} => first work item is the riftcarver command linked to the entry scope', async () => {
       const questId = QuestIdStub({ value: 'fix-bug' });
       const quest = QuestStub({ id: questId, status: 'approved', questType: 'bug-hunt' });
       const proxy = OrchestrationStartResponderProxy();
@@ -777,7 +700,7 @@ describe('OrchestrationStartResponder', () => {
 
       expect(persisted.workItems).toStrictEqual([
         {
-          id: BUG_HUNT_WORK_ITEM_UUID,
+          id: SEEDED_UUIDS[2],
           role: 'riftcarver',
           status: 'pending',
           spawnerType: 'command',
@@ -789,6 +712,7 @@ describe('OrchestrationStartResponder', () => {
           createdAt: FIXED_TIMESTAMP,
           observations: [],
           assignedUnitIds: [],
+          step: ENTRY_STEP,
         },
       ]);
     });

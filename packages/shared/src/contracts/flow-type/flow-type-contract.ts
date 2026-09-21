@@ -10,8 +10,12 @@
  * Siegemaster to derive test scenarios.
  *
  * An operational flow is a one-time task sequence executed by the engineer or Codeweaver to achieve a
- * state change — refactor sweep, infrastructure setup, lint rule registration. It is verified by
- * Siegemaster checking the final state, not by walking paths.
+ * state change — refactor sweep, infrastructure setup, lint rule registration. Its units are settled
+ * inside the CODEWEAVER family: the session that made the change is the one that reads the tree back,
+ * and its reviewer confirms the end state by opening files. Flowrider is measured over `runtime`
+ * flows alone (`signoffTrackEligibilityStatics.byTrack.flowrider.flowTypes`) — there is no repeatable
+ * walk for a suite to assert, and a test that a file is ABSENT goes green the day it is written and
+ * is blind afterwards.
  */
 
 import { z } from 'zod';

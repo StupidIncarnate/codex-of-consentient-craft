@@ -242,6 +242,7 @@ describe('questRunWardBroker', () => {
               relatedDataItems: [`operations/${FLOWRIDER_OP_ID}`],
               dependsOn: [workItemId],
               createdAt: FIXED_TIMESTAMP,
+              step: 'plan',
             }),
           ],
           wardResults: [

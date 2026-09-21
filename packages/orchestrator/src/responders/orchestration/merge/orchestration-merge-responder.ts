@@ -31,6 +31,7 @@ import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { questOperationsUpdateBroker } from '../../../brokers/quest/operations-update/quest-operations-update-broker';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
+import { agentFlowStatics } from '../../../statics/agent-flow/agent-flow-statics';
 import { warpgateOperationStatics } from '../../../statics/warpgate-operation/warpgate-operation-statics';
 
 export const OrchestrationMergeResponder = async ({
@@ -131,11 +132,15 @@ export const OrchestrationMergeResponder = async ({
         status: 'pending',
         spawnerType: 'agent',
         // The operation is appended pending, not in_progress — it is minted WITH its work item
-        // right here, and questAdvanceBroker's strict-1:1 resume guard skips any pending
-        // operation that already has a linked work item, so no second work item can ever be
-        // created for it. The signal-back handler marks the operation complete when warpgate
-        // finishes, whichever status it was sitting in.
+        // right here, and questAdvanceBroker's resume guard skips any pending operation that
+        // already has a linked work item, so no second work item can ever open this scope. The
+        // signal-back handler marks the operation complete when warpgate finishes, whichever
+        // status it was sitting in.
         relatedDataItems: [`operations/${operationItemId}`],
+        // The warpgate family's entry step. Every other scope gets this from whichever path opened
+        // it; this one is minted here, so it is stamped here — without it the router reads a scope
+        // that has a work item as one nothing has entered.
+        step: agentFlowStatics.warpgate.entry,
         // Deliberately NOT chained after the quest's last work item the way questAdvanceBroker
         // chains a relay item — the merge is a fresh top-level dispatch on a finished quest, not
         // the next relay step. On a blocked quest the trailing work items are skipped, and

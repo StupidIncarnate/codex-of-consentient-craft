@@ -125,6 +125,7 @@ describe('questRunRiftcarverBroker', () => {
               relatedDataItems: [`operations/${CODEWEAVER_OP_ID}`],
               dependsOn: [workItemId],
               createdAt: FIXED_TIMESTAMP,
+              step: 'plan',
             }),
           ],
           riftcarverResults: [

@@ -14,6 +14,8 @@ import { orchestratorGetQuestPlanningNotesAdapterProxy } from '../../../adapters
 import { BlightChecklistLayerResponderProxy } from './blight-checklist-layer-responder.proxy';
 import { CreateWorktreeLayerResponderProxy } from './create-worktree-layer-responder.proxy';
 import { GetQuestLayerResponderProxy } from './get-quest-layer-responder.proxy';
+import { GetQuestWorkLayerResponderProxy } from './get-quest-work-layer-responder.proxy';
+import { QuestWorkLayerResponderProxy } from './quest-work-layer-responder.proxy';
 import { QaChecklistLayerResponderProxy } from './qa-checklist-layer-responder.proxy';
 import { QuestSummaryLayerResponderProxy } from './quest-summary-layer-responder.proxy';
 import { ResetFlowSignoffsLayerResponderProxy } from './reset-flow-signoffs-layer-responder.proxy';
@@ -167,6 +169,10 @@ export const QuestHandleResponderProxy = (): {
   const listGuildsProxy = orchestratorListGuildsAdapterProxy();
   const getPlanningNotesProxy = orchestratorGetQuestPlanningNotesAdapterProxy();
   QaChecklistLayerResponderProxy();
+  // Composed for enforce-proxy-child-creation against the responder's own imports; the two work
+  // tools stage nothing here, and each has its own colocated suite.
+  GetQuestWorkLayerResponderProxy();
+  QuestWorkLayerResponderProxy();
   const blightChecklistProxy = BlightChecklistLayerResponderProxy();
   const resetFlowSignoffsProxy = ResetFlowSignoffsLayerResponderProxy();
   const questSummaryProxy = QuestSummaryLayerResponderProxy();

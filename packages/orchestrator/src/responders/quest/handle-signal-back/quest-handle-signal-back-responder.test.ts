@@ -328,6 +328,7 @@ describe('QuestHandleSignalBackResponder', () => {
               relatedDataItems: [`operations/${OP2_ID}`],
               dependsOn: [itemId],
               createdAt: FIXED_TIMESTAMP,
+              step: 'sweepIn',
             }),
           ],
           updatedAt: FIXED_TIMESTAMP,

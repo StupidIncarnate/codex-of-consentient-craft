@@ -116,12 +116,11 @@ describe('questHydrateBroker', () => {
     restore();
     testbed.cleanup();
 
-    // The codeweaver item (advance marked it in_progress) leads, reordered dependencies-first ahead
-    // of the forced-complete intake item, then the fixed verify tail as pending operation items —
-    // ward is skipped via the blueprint's skipRoles. The relay creates ONE work item for the first
-    // actionable (codeweaver) operation item; the verify tail lives only on the ledger until the
-    // relay reaches it. There is NO standards-review item here at all: the five concerns are
-    // reviewed by a reviewer inside each committing session's own turn.
+    // The blueprint's codeweaver scope (advance marked it in_progress) leads, reordered
+    // dependencies-first ahead of the forced-complete intake item. Nothing else is on the ledger:
+    // scopes are minted when the family graph routes to a family, and the ENTRY family's own scope
+    // is dropped by hydrate — a hydrated quest is fabricated directly at `in_progress` and has no
+    // workspace to carve. The relay creates ONE work item, for the first actionable scope.
     expect({
       success: loaded.success,
       status: loaded.quest?.status,
@@ -132,14 +131,14 @@ describe('questHydrateBroker', () => {
     }).toStrictEqual({
       success: true,
       status: 'in_progress',
-      operationRoles: ['codeweaver', 'chaoswhisperer', 'flowrider', 'siegemaster'],
-      operationStatuses: ['in_progress', 'complete', 'pending', 'pending'],
+      operationRoles: ['codeweaver', 'chaoswhisperer'],
+      operationStatuses: ['in_progress', 'complete'],
       workItemRoles: ['codeweaver'],
       workItemStatuses: ['pending'],
     });
   });
 
-  it('VALID: {smoketestBlueprintsStatics.minimal} => seeds the verify tail as locked operation items and no minion/ward work items (roles summon minions as sub-agents)', async () => {
+  it('VALID: {smoketestBlueprintsStatics.minimal} => seeds NO later-family scopes and no minion/ward work items (roles summon minions as sub-agents)', async () => {
     const testbed = installTestbedCreateBroker({
       baseName: BaseNameStub({ value: 'hydrate-verify-tail' }),
     });
@@ -161,9 +160,10 @@ describe('questHydrateBroker', () => {
     const loaded = await questGetBroker({ input: GetQuestInputStub({ questId }) });
     const { operations, workItems } = loaded.quest!;
 
-    // The verify tail is seeded as LOCKED operation items (the intake plan item is also locked, so
-    // filter it out by role). Ward is skipped for the minimal blueprint. No minion/ward WORK items
-    // exist — codeweaver and the operator roles summon their minions as sub-agents, not work items.
+    // No LOCKED scope but the intake plan item exists: flowrider and siegemaster are minted when the
+    // family graph routes to them, and the entry family's own scope is dropped by hydrate. No
+    // minion/ward WORK items exist either — the operator families summon their minions as
+    // sub-agents, never as work items.
     const lockedTailRoles = operations
       .filter((op) => op.locked)
       .filter((op) => op.role !== 'chaoswhisperer')
@@ -180,7 +180,7 @@ describe('questHydrateBroker', () => {
       wardOpCount,
       workItemRoles: workItems.map((wi) => wi.role),
     }).toStrictEqual({
-      lockedTailRoles: ['flowrider', 'siegemaster'],
+      lockedTailRoles: [],
       minionItems: [],
       wardOpCount: 0,
       workItemRoles: ['codeweaver'],

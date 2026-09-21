@@ -119,24 +119,21 @@ const PACKAGE_ROUTING_FLOW_EDGES = [
   }),
 ];
 
-// The two branches leaving the GLUE node. Its tags name BOTH packages, so `intersection` puts them
-// in the denominator of an item naming either one — which is what stops a glue unit belonging to
-// nobody, since no track mints a seam item to hold it instead.
+// The two branches leaving the GLUE node. Its tags name BOTH packages, which makes it a SEAM, and a
+// seam's units are assigned to exactly ONE cell — the one whose package sorts LAST by the three keys
+// the codeweaver fan-out orders cells by. `ui-app` is `frontend-react` and `api-service` is
+// `http-backend`, and the frontend tier ranks after the backend one, so the UI cell owns these two.
 const GLUE_UNITS = ['login-flow:branch:submit-valid', 'login-flow:branch:submit-invalid'];
-// What an item naming `ui-app` alone owns: the UI terminal, the UI observable, and the glue.
+// What an item naming `ui-app` alone owns: the UI terminal, the UI observable, and the seam.
 const UI_SLICE_UNITS = [
   'login-flow:terminal:dashboard',
   ...GLUE_UNITS,
   'login-flow:observable:shows-form',
 ];
-// What an item naming `api-service` alone owns: the backend terminal, the glue, and the branch
-// leaving the backend-only decision node — the node that carries no observables at all and would
-// vanish from any observable-keyed slicer.
-const API_SLICE_UNITS = [
-  'login-flow:terminal:auth-error',
-  ...GLUE_UNITS,
-  'login-flow:branch:rate-limited',
-];
+// What an item naming `api-service` alone owns: the backend terminal and the branch leaving the
+// backend-only decision node — the node that carries no observables at all and would vanish from any
+// observable-keyed slicer. Not the seam: the UI cell is the later of the two.
+const API_SLICE_UNITS = ['login-flow:terminal:auth-error', 'login-flow:branch:rate-limited'];
 // Every on-map unit that flow decomposes into, in checklist order.
 const PACKAGE_ROUTING_ON_MAP_UNITS = [
   'login-flow:terminal:dashboard',
@@ -790,7 +787,7 @@ describe('signoffOutstandingTransformer', () => {
   });
 
   describe('package routing — a unit routes by its owning NODE, never by its observable', () => {
-    it('VALID: {an item naming the backend package} => owns the backend terminal, the glue and the zero-observable decision node’s branch, and NOT the UI observable', () => {
+    it('VALID: {an item naming the backend package} => owns the backend terminal and the zero-observable decision node’s branch, and NOT the seam or the UI observable', () => {
       const quest = QuestStub({
         packagesAffected: PACKAGES_AFFECTED,
         flows: [
@@ -815,7 +812,7 @@ describe('signoffOutstandingTransformer', () => {
       ).toStrictEqual(API_SLICE_UNITS);
     });
 
-    it('VALID: {an item naming the UI package} => owns the UI terminal, the UI observable and the glue, and NOT the backend-only branch', () => {
+    it('VALID: {an item naming the UI package} => owns the UI terminal, the UI observable and the seam, and NOT the backend-only branch', () => {
       const quest = QuestStub({
         packagesAffected: PACKAGES_AFFECTED,
         flows: [
@@ -840,7 +837,7 @@ describe('signoffOutstandingTransformer', () => {
       ).toStrictEqual(UI_SLICE_UNITS);
     });
 
-    it('VALID: {the two single-package items together} => they overlap on exactly the glue node’s units and cover every on-map unit between them, so nothing falls between the slices', () => {
+    it('VALID: {the two single-package items together} => they overlap on NOTHING, the earlier cell still owns units of its own, and between them they cover every on-map unit', () => {
       const quest = QuestStub({
         packagesAffected: PACKAGES_AFFECTED,
         flows: [
@@ -872,14 +869,18 @@ describe('signoffOutstandingTransformer', () => {
 
       expect({
         shared: uiIds.filter((id) => apiIds.includes(id)),
+        // The EARLIER cell still exists and is still assigned work of its own — a test counting
+        // only units would pass against an implementation that stopped minting the cell at all.
+        earlierCell: apiIds,
         union: [...new Set([...uiIds, ...apiIds])].sort((left, right) => left.localeCompare(right)),
       }).toStrictEqual({
-        shared: GLUE_UNITS,
+        shared: [],
+        earlierCell: API_SLICE_UNITS,
         union: [...PACKAGE_ROUTING_ON_MAP_UNITS].sort((left, right) => left.localeCompare(right)),
       });
     });
 
-    it('VALID: {every unit the UI slice owns carries a flowriderSignoff} => that item clears while the backend item keeps its own two, because a glue unit closed once is closed for both', () => {
+    it('VALID: {every unit the UI slice owns carries a flowriderSignoff} => that item clears while the backend item keeps its own two, because the seam belongs to the UI cell alone', () => {
       const signoff = SignoffStub();
       const quest = QuestStub({
         packagesAffected: PACKAGES_AFFECTED,
@@ -1176,7 +1177,7 @@ describe('signoffOutstandingTransformer', () => {
       });
     });
 
-    it('VALID: {a per-flow item on the glue-node flow} => its GLUE units stay in the denominator, because `intersection` has no seam item to hand them to', () => {
+    it('VALID: {a per-flow item on the seam-node flow, naming the LATER package} => the seam units are in its denominator, and in no other item’s', () => {
       const quest = QuestStub({
         packagesAffected: PACKAGES_AFFECTED,
         flows: [
@@ -1231,7 +1232,7 @@ describe('signoffOutstandingTransformer', () => {
   });
 
   describe('package-NAME denominator — the item’s own slice, not the whole quest’s', () => {
-    it('VALID: {the codeweaver items Start actually mints} => between them they COVER the whole-flow denominator, overlapping on exactly the glue node’s units', () => {
+    it('VALID: {the codeweaver items Start actually mints} => between them they COVER the whole-flow denominator, and no unit is owned twice', () => {
       const quest = QuestStub({
         packagesAffected: BACKEND_PACKAGES_AFFECTED,
         flows: [SLICEABLE_FLOW],
@@ -1269,12 +1270,11 @@ describe('signoffOutstandingTransformer', () => {
       }).toStrictEqual({
         sliceScopes: [[LIBRARY_PACKAGE], [BACKEND_PACKAGE]],
         sliceFlows: [['checkout-flow'], ['checkout-flow']],
+        // The seam's two branches land on the BACKEND slice alone — it is the later of the two
+        // cells by build tier — and the library slice still owns its own terminal, so the earlier
+        // cell exists and is still worked.
         perSliceIds: [
-          [
-            'checkout-flow:terminal:priced',
-            'checkout-flow:branch:valid',
-            'checkout-flow:branch:invalid',
-          ],
+          ['checkout-flow:terminal:priced'],
           [
             'checkout-flow:terminal:rejected',
             'checkout-flow:branch:valid',
@@ -1282,7 +1282,7 @@ describe('signoffOutstandingTransformer', () => {
             'checkout-flow:observable:accepts-order',
           ],
         ],
-        ownedTwice: ['checkout-flow:branch:valid', 'checkout-flow:branch:invalid'],
+        ownedTwice: [],
         covered: [...SLICEABLE_ON_MAP_UNITS].sort((left, right) => left.localeCompare(right)),
         wholeFlow: [...SLICEABLE_ON_MAP_UNITS].sort((left, right) => left.localeCompare(right)),
       });
@@ -1474,12 +1474,10 @@ describe('signoffOutstandingTransformer', () => {
         ],
       },
       {
+        // The seam's two branches are the BACKEND cell's — it sorts after the library by build
+        // tier — so the library scope is its own terminal and nothing else.
         scope: [LIBRARY_PACKAGE],
-        expected: [
-          'checkout-flow:terminal:priced',
-          'checkout-flow:branch:valid',
-          'checkout-flow:branch:invalid',
-        ],
+        expected: ['checkout-flow:terminal:priced'],
       },
       { scope: [BACKEND_PACKAGE, LIBRARY_PACKAGE], expected: SLICEABLE_ON_MAP_UNITS },
       { scope: [], expected: SLICEABLE_ON_MAP_UNITS },

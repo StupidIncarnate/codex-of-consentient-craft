@@ -11,13 +11,21 @@
  * none and this handler never reads it.
  *
  * The scope and the covered work items are read off the quest: this handler's OWN work item names
- * its linked operation item (`relatedDataItems: ['operations/<id>']`), that operation item's
- * `text` is the message's scope line, and every work item on the quest sharing that SAME linked
- * operation covers the message — a `plan`/`work`/`review` trio's observations, not just this
- * commit step's own (a commit step is never itself assigned units). Where no linked operation is
- * found (a `repair`'s own commit, minted with nothing to link), the scope falls back to this work
- * item's own id and the message carries no marks — see `commitMessageBuildTransformer`'s own
- * header for that shape.
+ * its linked operation item (`relatedDataItems: ['operations/<id>']`), and that operation item's
+ * `text` is the message's scope line.
+ *
+ * WHICH work items the message covers is THIS PASS's, not the scope's whole history. One operation
+ * item carries many work items — a scope cycles `work ⇄ review` and commits once per pass — so the
+ * covered set is every work item on this scope between the PREVIOUS commit at this step and this
+ * one, which is exactly the `plan`/`work`/`review` run whose marks this commit is landing. Taking
+ * every work item sharing the link instead re-lists every earlier pass's marks under every later
+ * commit, and the second commit on a scope would claim work the first already recorded. The cut
+ * uses ARRAY order rather than `createdAt`, for the reason `next-action-transformer.ts` gives at
+ * its own header: a parallel batch is minted inside one persist and shares a timestamp.
+ *
+ * Where no linked operation is found (a `repair`'s own commit, minted with nothing to link), the
+ * scope falls back to this work item's own id and the message carries no marks — see
+ * `commitMessageBuildTransformer`'s own header for that shape.
  *
  * `git add`, `git commit` and `git push` run inside `questWithModifyLockBroker` — the same
  * per-quest lock `questModifyBroker` and `questOperationsUpdateBroker` take — so two commit
@@ -95,7 +103,9 @@ export const stepHandlerCommitBroker = async ({
     (operation) => `${OPERATIONS_REF_PREFIX}${operation.id}` === linkedRef,
   );
 
-  const coveredWorkItems =
+  const ownStep = ownWorkItem.step ?? DEFAULT_STEP_NAME;
+
+  const scopeWorkItems =
     linkedOperation === undefined
       ? [ownWorkItem]
       : quest.workItems.filter((item) =>
@@ -104,9 +114,22 @@ export const stepHandlerCommitBroker = async ({
             .includes(`${OPERATIONS_REF_PREFIX}${linkedOperation.id}`),
         );
 
+  const ownIndex = scopeWorkItems.findIndex((item) => item.id === workItemId);
+  // The LAST earlier work item on this scope that ran this same commit step. Everything after it
+  // is this pass; `undefined` means this is the scope's first commit, so the pass starts at the
+  // scope's first work item.
+  const previousCommit = [...scopeWorkItems.slice(0, ownIndex)]
+    .reverse()
+    .find((item) => item.step !== undefined && String(item.step) === String(ownStep));
+
+  const coveredWorkItems = scopeWorkItems.slice(
+    previousCommit === undefined ? 0 : scopeWorkItems.indexOf(previousCommit) + 1,
+    ownIndex + 1,
+  );
+
   const message = commitMessageBuildTransformer({
     family: ownWorkItem.role,
-    step: ownWorkItem.step ?? DEFAULT_STEP_NAME,
+    step: ownStep,
     scope: contentTextContract.parse(String(linkedOperation?.text ?? ownWorkItem.id)),
     workItems: coveredWorkItems.map((item) => ({ id: item.id, observations: item.observations })),
   });

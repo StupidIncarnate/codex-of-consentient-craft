@@ -42,6 +42,7 @@
 
 import type {
   Flow,
+  PackageGraphEntry,
   PackageName,
   QaChecklistItemId,
   QuestPackageEntry,
@@ -56,11 +57,13 @@ export const signoffFlowOutstandingTransformer = ({
   track,
   packagesAffected = [],
   packageNames = [],
+  packageGraph = [],
 }: {
   flow: Flow;
   track: keyof typeof signoffTrackEligibilityStatics.byTrack;
   packagesAffected?: readonly QuestPackageEntry[];
   packageNames?: readonly PackageName[];
+  packageGraph?: readonly PackageGraphEntry[];
 }): QaChecklistItemId[] => {
   const eligibility = signoffTrackEligibilityStatics.byTrack[track];
   // A DENOMINATOR is not a sign-off field: two roles can write one field over disjoint slices of
@@ -86,6 +89,7 @@ export const signoffFlowOutstandingTransformer = ({
     track,
     packagesAffected,
     packageNames,
+    packageGraph,
   })
     .filter((unit) => unit[signoffField] === undefined)
     .map((unit) => unit.id);

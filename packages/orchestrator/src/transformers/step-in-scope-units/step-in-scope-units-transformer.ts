@@ -123,6 +123,9 @@ export const stepInScopeUnitsTransformer = ({
       track: family,
       packagesAffected: quest.packagesAffected,
       packageNames: operationItem.packageNames,
+      // The seam rule's depth tiebreak. Handed over rather than defaulted, so a step's scope and
+      // the fan-out that minted its cell order the same two packages the same way.
+      packageGraph: quest.packageGraph,
     }).map((unit) => unitIdContract.parse(unit.id));
   });
 };

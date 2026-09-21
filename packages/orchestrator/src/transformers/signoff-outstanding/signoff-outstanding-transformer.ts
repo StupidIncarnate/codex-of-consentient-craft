@@ -81,6 +81,7 @@ export const signoffOutstandingTransformer = ({
       track: scope.track,
       packagesAffected: quest.packagesAffected,
       packageNames: scope.packageNames,
+      packageGraph: quest.packageGraph,
     }),
   );
 };

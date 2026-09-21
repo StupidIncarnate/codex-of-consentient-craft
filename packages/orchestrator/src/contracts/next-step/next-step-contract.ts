@@ -6,6 +6,7 @@
  * nextStepContract.parse({ type: 'spawn-agents', agents: [SpawnInstruction, ...] });
  * nextStepContract.parse({ type: 'run-ward', questId, workItemId, mode: 'committed' });
  * nextStepContract.parse({ type: 'run-riftcarver', questId, workItemId });
+ * nextStepContract.parse({ type: 'run-step', questId, workItemId, handler: 'commit', args: [] });
  * // Returns: NextStep variant
  */
 
@@ -18,6 +19,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { idleReasonContract } from '../idle-reason/idle-reason-contract';
+import { runStepContract } from '../run-step/run-step-contract';
 import { spawnInstructionContract } from '../spawn-instruction/spawn-instruction-contract';
 
 export const nextStepContract = z.discriminatedUnion('type', [
@@ -39,6 +41,10 @@ export const nextStepContract = z.discriminatedUnion('type', [
     questId: questIdContract,
     workItemId: questWorkItemIdContract,
   }),
+  // A DETERMINISTIC step, dispatched by HANDLER rather than by the work item's role. Its own
+  // contract because `questRunStepBroker` takes exactly this member and nothing else — see that
+  // file's header for why the role-keyed members above cannot carry it.
+  runStepContract,
   z.object({
     type: z.literal('idle'),
     // Set when idle is forced rather than organic — the Node dispatcher owns the queue, or the

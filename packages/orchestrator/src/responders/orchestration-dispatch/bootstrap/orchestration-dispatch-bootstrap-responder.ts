@@ -55,16 +55,22 @@ export const OrchestrationDispatchBootstrapResponder = (): AdapterResult => {
     runLoop: async (): Promise<AdapterResult> =>
       questNodeDispatchLoopBroker({
         isPlaying: (): boolean => orchestrationDispatchState.getIsPlaying(),
-        // Neither command role has a sessionId, so the JSONL watcher can never tail either — these
-        // two callbacks are the only route their output has to the workspace. Both build the event
+        // Nothing the dispatcher runs ITSELF has a sessionId — neither command role, nor a
+        // deterministic step — so the JSONL watcher can never tail any of them, and these three
+        // callbacks are the only route their output has to the workspace. All three build the event
         // through the same transformer, which keys the chat process on the work item so the
-        // execution panel groups the lines under that role's row.
+        // execution panel groups the lines under that row.
         onWardLine: ({ questId, workItemId, line }): void => {
           orchestrationEventsState.emit(
             commandChatOutputEmitTransformer({ questId, workItemId, line }),
           );
         },
         onRiftcarverLine: ({ questId, workItemId, line }): void => {
+          orchestrationEventsState.emit(
+            commandChatOutputEmitTransformer({ questId, workItemId, line }),
+          );
+        },
+        onStepLine: ({ questId, workItemId, line }): void => {
           orchestrationEventsState.emit(
             commandChatOutputEmitTransformer({ questId, workItemId, line }),
           );

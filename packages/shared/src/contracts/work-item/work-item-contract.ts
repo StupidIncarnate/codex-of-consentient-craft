@@ -38,11 +38,11 @@ export const workItemContract = z.object({
   agentId: agentIdContract.optional(),
   // INVARIANT (behavioral, enforced by every seeding path — quest-create, the relay graph
   // builder, and questAdvanceBroker): every work item carries exactly ONE `operations/<id>`
-  // ref linking it to its operation item on the quest operations ledger, and each operation
-  // item is worked by exactly ONE work item over its life (strict 1:1 — never re-linked,
-  // never status-reverted). Ward items may additionally carry a `wardResults/<id>` ref.
-  // Story 22 retires this strict 1:1 invariant — do not treat it as still true once that
-  // story lands.
+  // ref, linking it to the operation item on the ledger whose SCOPE it works. That link is
+  // never re-pointed at a second operation item and a work item's status is never reverted.
+  // One operation item carries MANY work items over its life — one per step the router mints
+  // on that scope, and one per piece inside a parallel step — so the ref is many-to-one and
+  // `step` is what separates them. Ward items may additionally carry a `wardResults/<id>` ref.
   relatedDataItems: z.array(relatedDataItemContract).default([]),
   dependsOn: z.array(questWorkItemIdContract).default([]),
   attempt: z.number().int().nonnegative().brand<'Attempt'>().default(0),

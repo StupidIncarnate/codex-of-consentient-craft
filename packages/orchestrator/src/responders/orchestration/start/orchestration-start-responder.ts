@@ -26,7 +26,7 @@ import {
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
 import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
-import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
+import { questFlowStatics, questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 import {
   isChatWorkItemRoleGuard,
@@ -41,6 +41,7 @@ import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { questOperationsUpdateBroker } from '../../../brokers/quest/operations-update/quest-operations-update-broker';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
+import { familyLedgerKeyTransformer } from '../../../transformers/family-ledger-key/family-ledger-key-transformer';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 import { PrepareQuestPackageGraphLayerResponder } from './prepare-quest-package-graph-layer-responder';
@@ -77,11 +78,19 @@ export const OrchestrationStartResponder = async ({
 
   const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
 
-  // Idempotency: the verify tail is orchestrator-seeded (locked ward items). If it is already on
-  // the ledger, a previous Start got as far as the relay seed — don't append it twice; just
-  // finish the status transition below.
+  // Idempotency, keyed on the ONE family Start seeds. Every later family's scopes are minted when
+  // the graph routes to it, so there is no tail on the ledger to detect and a check looking for one
+  // answers `false` forever — re-seeding the entry family on every Start. The entry family's own
+  // scopes are the evidence a previous Start got as far as the relay seed; matched through
+  // `familyLedgerKeyTransformer` rather than by comparing `role` to the family key, because two of
+  // the six keys are not role names.
+  const entryKey = familyLedgerKeyTransformer({
+    family: questFlowStatics[quest.questType].entry,
+  });
   const hasExistingRelay = quest.operations.some(
-    (operation) => operation.locked && operation.role === 'ward',
+    (operation) =>
+      operation.role === entryKey.role &&
+      (entryKey.wardMode === undefined || operation.wardMode === entryKey.wardMode),
   );
 
   // Mark any non-complete chat work items (chaoswhisperer/glyphsmith/bughunt) as complete. The

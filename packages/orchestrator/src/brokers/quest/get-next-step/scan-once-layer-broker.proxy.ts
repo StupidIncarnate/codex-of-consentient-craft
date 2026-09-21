@@ -15,6 +15,7 @@ import { questAdvanceBrokerProxy } from '../advance/quest-advance-broker.proxy';
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
 import { questCwdResolveBrokerProxy } from '../cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
+import { questRouteScopeBrokerProxy } from '../route-scope/quest-route-scope-broker.proxy';
 import { blockOnMissingWorktreeLayerBrokerProxy } from './block-on-missing-worktree-layer-broker.proxy';
 import { computeNextStepFromQuestLayerBrokerProxy } from './compute-next-step-from-quest-layer-broker.proxy';
 import { questHasIncompleteWorkLayerBrokerProxy } from './quest-has-incomplete-work-layer-broker.proxy';
@@ -79,6 +80,12 @@ export const scanOnceLayerBrokerProxy = (): {
   }) => void;
   getAllPersistedContents: () => readonly unknown[];
   getLastPersistedQuest: () => Quest;
+  // Routes one scope on the next scan, so the step the scan hands back is the one the router's
+  // mint produced rather than the advance self-heal's.
+  setupRouted: () => void;
+  // The router halted the quest. The scan must stop there — nothing below it may act on a quest
+  // that just blocked.
+  setupRouterBlocked: () => void;
   getBlockCalls: () => readonly unknown[];
   // The git argv actually spawned during this scan — empty when the scan never touched git.
   // Asserting the complete array proves both the checkout's exact branchName AND that nothing
@@ -104,6 +111,10 @@ export const scanOnceLayerBrokerProxy = (): {
   // real all the way down to `child_process.spawn`, instead of being told the answer by a stub.
   const ensureQuestBranchProxy = worktreeEnsureQuestBranchBrokerProxy();
   const dispatchScanTrigger = QuestResumeTriggerStub({ value: 'dispatch-scan' });
+  // The ROUTER is stubbed by its own proxy — it owns a read-modify-write of its own and has its own
+  // suite. What the scan is answerable for is the ORDER: router before the advance self-heal, and a
+  // routed halt stopping the scan dead.
+  const routeScopeProxy = questRouteScopeBrokerProxy();
   const cwdResolveMock = registerMock({ fn: questCwdResolveBroker });
   const defaultRepoRoot = RepoRootCwdStub({ value: '/test/repo/root' });
 
@@ -127,6 +138,8 @@ export const scanOnceLayerBrokerProxy = (): {
       }
     },
     setupNoGuilds: activeQuestsProxy.setupNoGuilds,
+    setupRouted: routeScopeProxy.setupRouted,
+    setupRouterBlocked: routeScopeProxy.setupRouterBlocked,
     setupModifyForQuest: recoverProxy.setupModifyForQuest,
     setupWorktreeMissing: ({
       quest,

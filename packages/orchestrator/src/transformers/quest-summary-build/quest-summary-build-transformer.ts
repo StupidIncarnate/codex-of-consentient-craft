@@ -113,6 +113,7 @@ export const questSummaryBuildTransformer = ({
             track,
             packagesAffected: quest.packagesAffected,
             packageNames,
+            packageGraph: quest.packageGraph,
           }),
         };
       }),
@@ -140,6 +141,7 @@ export const questSummaryBuildTransformer = ({
             track: scope.track,
             packagesAffected: quest.packagesAffected,
             packageNames,
+            packageGraph: quest.packageGraph,
           }).length,
         })),
     })),

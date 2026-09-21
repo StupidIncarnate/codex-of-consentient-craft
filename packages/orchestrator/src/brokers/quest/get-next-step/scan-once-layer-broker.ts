@@ -17,10 +17,13 @@ import { questActiveQuestsBroker } from '../active-quests/quest-active-quests-br
 import { questAdvanceBroker } from '../advance/quest-advance-broker';
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
 import { questGetBroker } from '../get/quest-get-broker';
+import { questRouteScopeBroker } from '../route-scope/quest-route-scope-broker';
 import { blockOnMissingWorktreeLayerBroker } from './block-on-missing-worktree-layer-broker';
 import { computeNextStepFromQuestLayerBroker } from './compute-next-step-from-quest-layer-broker';
 import { questHasIncompleteWorkLayerBroker } from './quest-has-incomplete-work-layer-broker';
 import { recoverOrphanedWorkItemsLayerBroker } from './recover-orphaned-work-items-layer-broker';
+
+const RIFTCARVER_HANDLER = 'riftcarver';
 
 export const scanOnceLayerBroker = async ({
   activeQuest,
@@ -56,13 +59,17 @@ export const scanOnceLayerBroker = async ({
   //   1. compute directly — a ready work item exists.
   //   2. orphan recovery — an in_progress item whose agent died is flipped back to pending
   //      (keeping sessionId + resume marker) and recomputed, so a resumed orphan dispatches
-  //      BEFORE advance considers creating a new item.
-  //   3. advance self-heal (LAST resort) — no dispatchable work item exists at all, but the
-  //      ledger has an actionable operation item: a server stop between the signal handler's
-  //      atomic persist and questAdvanceBroker left the relay without its next work item.
-  //      Advance creates it (idempotent, strict-1:1 guarded), then recompute from a fresh read.
-  // All three run BEFORE the worktree gate below, because that gate's answer depends on which step
-  // this quest actually lands on, and a null step is not yet an answer — it is the input to the two
+  //      BEFORE the router considers minting anything new.
+  //   3. the ROUTER — a scope is in flight and its step has drained, so the family graph decides
+  //      what that scope does next: mint the next step's batch, complete the scope and mint the
+  //      next family's, or HALT. This is where a step that folded to `wall` becomes a blocked
+  //      quest, and it is the only route to that halt now.
+  //   4. advance self-heal (LAST resort) — no dispatchable work item exists at all, but the
+  //      ledger has an actionable operation item: a server stop between the last persist and
+  //      questAdvanceBroker left the relay without its next work item. Advance enters that scope
+  //      (idempotent, resume-guarded), then recompute from a fresh read.
+  // All four run BEFORE the worktree gate below, because that gate's answer depends on which step
+  // this quest actually lands on, and a null step is not yet an answer — it is the input to the
   // resolutions underneath it.
   let step = computeNextStepFromQuestLayerBroker({ quest });
 
@@ -80,6 +87,28 @@ export const scanOnceLayerBroker = async ({
     }
 
     step = computeNextStepFromQuestLayerBroker({ quest: recovery.quest });
+  }
+
+  if (step === null) {
+    const routing = await questRouteScopeBroker({ questId: quest.id });
+
+    // The router routed a step to `@blocked` — an environment wall, a spent `maxVisits`, an
+    // outcome with neither a route nor a minter — and the halt has already landed. Stop for the
+    // same reason orphan recovery's does: everything below would act on a quest that just stopped.
+    if (routing.blocked) {
+      activeQuest.clear();
+      return null;
+    }
+
+    if (routing.routed) {
+      const rerouted = await questGetBroker({
+        input: getQuestInputContract.parse({ questId: quest.id }),
+      });
+      step =
+        rerouted.success && rerouted.quest
+          ? computeNextStepFromQuestLayerBroker({ quest: rerouted.quest })
+          : null;
+    }
   }
 
   if (step === null) {
@@ -111,8 +140,17 @@ export const scanOnceLayerBroker = async ({
   // dispatches anything: orphan recovery only flips an `in_progress` work item back to `pending`,
   // and advance only mints a work item on the ledger. Both are safe to have run for a quest that
   // then blocks here. Every role other than riftcarver still trips the halt exactly as before.
+  //
+  // WHAT LETS RIFTCARVER THROUGH IS THE HANDLER, not the step type. The carve is a deterministic
+  // step in the `riftcarver` family now, so it arrives as `run-step` carrying `handler:
+  // 'riftcarver'`; the `run-riftcarver` type is what a ledger without a step graph still returns.
+  // Matching only one of the two would block the quest on the one step that could have repaired it.
   const cwdResolution = await questCwdResolveBroker({ questId: quest.id });
-  if (cwdResolution.kind === 'missing-worktree' && step?.type !== 'run-riftcarver') {
+  const carvesTheWorktree =
+    step?.type === 'run-riftcarver' ||
+    (step?.type === 'run-step' && step.handler === RIFTCARVER_HANDLER);
+
+  if (cwdResolution.kind === 'missing-worktree' && !carvesTheWorktree) {
     await blockOnMissingWorktreeLayerBroker({ quest, worktreePath: cwdResolution.worktreePath });
     activeQuest.clear();
     return null;

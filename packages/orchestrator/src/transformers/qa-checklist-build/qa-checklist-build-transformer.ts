@@ -48,6 +48,7 @@
 import { qaChecklistContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import type {
   Flow,
+  PackageGraphEntry,
   PackageName,
   QaChecklist,
   QuestPackageEntry,
@@ -68,6 +69,7 @@ export const qaChecklistBuildTransformer = ({
   track,
   packagesAffected = [],
   packageNames = [],
+  packageGraph = [],
 }: {
   flow: Flow;
   // Keyed on the ELIGIBILITY statics rather than `signoffTrackContract`, because a DENOMINATOR is
@@ -77,6 +79,10 @@ export const qaChecklistBuildTransformer = ({
   track?: keyof typeof signoffTrackEligibilityStatics.byTrack;
   packagesAffected?: readonly QuestPackageEntry[];
   packageNames?: readonly PackageName[];
+  // The depth half of the seam rule's ordering. A checklist that defaulted it while the gate was
+  // handed the real graph would name a seam unit the gate does not, which is the one disagreement
+  // this transformer's own header forbids.
+  packageGraph?: readonly PackageGraphEntry[];
 }): QaChecklist => {
   // The unit's own fields (anchors, source text, sign-offs) are spread in and `qaChecklistItem`'s
   // schema strips whatever it does not declare, so this file adds exactly the two rendered fields.
@@ -136,6 +142,12 @@ export const qaChecklistBuildTransformer = ({
     remainingItemIds:
       track === undefined
         ? items.map((item) => item.id)
-        : signoffFlowOutstandingTransformer({ flow, track, packagesAffected, packageNames }),
+        : signoffFlowOutstandingTransformer({
+            flow,
+            track,
+            packagesAffected,
+            packageNames,
+            packageGraph,
+          }),
   });
 };
