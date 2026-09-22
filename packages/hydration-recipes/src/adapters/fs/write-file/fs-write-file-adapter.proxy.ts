@@ -5,6 +5,7 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 export const fsWriteFileAdapterProxy = (): {
   succeeds: ({ filePath }: { filePath: string }) => void;
   getWrittenContents: ({ filePath }: { filePath: string }) => unknown;
+  getWrittenPaths: () => readonly unknown[];
 } => {
   const handle = registerMock({ fn: writeFile });
 
@@ -14,5 +15,6 @@ export const fsWriteFileAdapterProxy = (): {
     },
     getWrittenContents: ({ filePath }: { filePath: string }): unknown =>
       handle.callsMatching([filePath]).at(-1)?.[1],
+    getWrittenPaths: (): readonly unknown[] => handle.callsMatching([]).map((call) => call[0]),
   };
 };

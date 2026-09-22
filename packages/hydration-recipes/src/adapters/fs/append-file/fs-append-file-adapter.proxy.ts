@@ -5,6 +5,7 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 export const fsAppendFileAdapterProxy = (): {
   succeeds: ({ filePath }: { filePath: string }) => void;
   getAppendedContents: ({ filePath }: { filePath: string }) => unknown;
+  getAppendedPaths: () => readonly unknown[];
 } => {
   const handle = registerMock({ fn: appendFile });
 
@@ -14,5 +15,6 @@ export const fsAppendFileAdapterProxy = (): {
     },
     getAppendedContents: ({ filePath }: { filePath: string }): unknown =>
       handle.callsMatching([filePath]).at(-1)?.[1],
+    getAppendedPaths: (): readonly unknown[] => handle.callsMatching([]).map((call) => call[0]),
   };
 };

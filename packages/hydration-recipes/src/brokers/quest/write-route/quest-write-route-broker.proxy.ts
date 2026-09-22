@@ -1,4 +1,4 @@
-import { fsMkdirAdapterProxy } from '@dungeonmaster/shared/testing';
+import { fsMkdirAdapterProxy, pathResolveAdapterProxy } from '@dungeonmaster/shared/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { questContract, questIdContract } from '@dungeonmaster/shared/contracts';
@@ -11,11 +11,15 @@ const FIXED_TIMESTAMP = questContract.shape.createdAt.parse('2024-01-15T10:00:00
 
 export const questWriteRouteBrokerProxy = (): {
   succeeds: ({ questFilePath, outboxPath }: { questFilePath: string; outboxPath: string }) => void;
+  pathsTouched: () => readonly unknown[];
   mintedQuestId: QuestId;
   mintedCreatedAt: typeof FIXED_TIMESTAMP;
 } => {
   // fsMkdirAdapterProxy's own default (any unaddressed call succeeds) is all this route needs.
-  fsMkdirAdapterProxy();
+  const mkdirProxy = fsMkdirAdapterProxy();
+  // pathResolveAdapterProxy's own default is a REAL passthrough, so the route's containment check
+  // computes a genuine resolved path with nothing staged.
+  pathResolveAdapterProxy();
   const persistProxy = questPersistDirectBrokerProxy();
   registerSpyOn({ object: crypto, method: 'randomUUID' })
     .calledWith([])
@@ -36,5 +40,12 @@ export const questWriteRouteBrokerProxy = (): {
     }): void => {
       persistProxy.succeeds({ questFilePath, outboxPath });
     },
+    // Every filesystem path the route reached, in order: the quest folder it made, the temp file,
+    // the quest file it renamed that to, then the outbox. Assert containment against this, never
+    // against the addresses `succeeds` staged.
+    pathsTouched: (): readonly unknown[] => [
+      ...mkdirProxy.getCreatedDirs(),
+      ...persistProxy.pathsTouched(),
+    ],
   };
 };

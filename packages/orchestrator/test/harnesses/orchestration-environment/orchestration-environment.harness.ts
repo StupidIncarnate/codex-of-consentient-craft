@@ -65,6 +65,7 @@ export const orchestrationEnvironmentHarness = (): {
   setupHome: (params: { tempDir: GuildPath }) => {
     restore: () => void;
   };
+  seedHome: (params: { tempDir: GuildPath }) => Promise<void>;
   writeRepoRootMarker: (params: { repoRoot: GuildPath }) => Promise<void>;
   seedQuestRepoPackages: (params: {
     repoRoot: GuildPath;
@@ -129,6 +130,19 @@ export const orchestrationEnvironmentHarness = (): {
       currentRestore = restore;
 
       return { restore };
+    },
+    // The same files `setupHome` lays down, for a SECOND home the test reaches by handing its path
+    // to a broker rather than by pointing DUNGEONMASTER_HOME at it. `config.json` in particular is
+    // not optional here: `guildConfigReadBroker`'s ENOENT fallback tests `cause instanceof Error`,
+    // and under jest the cause is an `fs/promises` error from outside the sandbox realm, so that
+    // check reads false and the read throws instead of defaulting to `{ guilds: [] }`.
+    //
+    // Async because `ban-sync-seeding-methods` requires it of every `seed*` harness method. The
+    // writes stay on the sync `seedHomeFiles` this shares with `setupHome`, which cannot itself
+    // become async without changing every caller of the restore handle it returns inline.
+    seedHome: async ({ tempDir }: { tempDir: GuildPath }): Promise<void> => {
+      await Promise.resolve();
+      seedHomeFiles({ homeDir: tempDir });
     },
     writeRepoRootMarker: async ({ repoRoot }: { repoRoot: GuildPath }): Promise<void> => {
       // Drop a `.dungeonmaster.json` at the repo root so cwdResolveBroker({ kind: 'repo-root' })
