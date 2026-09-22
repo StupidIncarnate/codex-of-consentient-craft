@@ -569,8 +569,8 @@ export * from './src/contracts/quest-summary-flow/quest-summary-flow.stub';
 export * from './src/contracts/quest-summary-observable/quest-summary-observable-contract';
 export * from './src/contracts/quest-summary-observable/quest-summary-observable.stub';
 
-export * from './src/contracts/quest-summary-unconfirmable/quest-summary-unconfirmable-contract';
-export * from './src/contracts/quest-summary-unconfirmable/quest-summary-unconfirmable.stub';
+export * from './src/contracts/quest-summary-debt/quest-summary-debt-contract';
+export * from './src/contracts/quest-summary-debt/quest-summary-debt.stub';
 
 export * from './src/contracts/quest-summary-note-group/quest-summary-note-group-contract';
 export * from './src/contracts/quest-summary-note-group/quest-summary-note-group.stub';

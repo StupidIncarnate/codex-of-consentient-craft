@@ -1,7 +1,57 @@
-import { FlowStub } from '@dungeonmaster/shared/contracts';
+import {
+  FlowStub,
+  QuestStub,
+  UnitObservationStub,
+  WorkItemStub,
+} from '@dungeonmaster/shared/contracts';
 import { qaCheckSurfaceStatics, qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
 import { qaChecklistBuildTransformer } from './qa-checklist-build-transformer';
+
+// One node carrying four observables, named for the mark each attribution test puts on it. The node
+// has no outgoing edge, so it is also the flow's one terminal — the unit NO work item ever marks.
+const MARKED_FLOW = FlowStub({
+  id: 'a-flow',
+  name: 'A Flow',
+  nodes: [
+    {
+      id: 'a-node',
+      label: 'A node',
+      type: 'state',
+      packages: ['auth-service'],
+      observables: [
+        {
+          id: 'check-met',
+          type: 'ui-state',
+          package: 'auth-service',
+          description: 'the badge reads 2',
+        },
+        {
+          id: 'check-other',
+          type: 'api-call',
+          package: 'auth-service',
+          description: 'POST /api/charge returns 201',
+        },
+        {
+          id: 'check-cant',
+          type: 'db-query',
+          package: 'auth-service',
+          description: 'the row is persisted',
+        },
+        {
+          id: 'check-unmet',
+          type: 'custom',
+          package: 'auth-service',
+          description: 'the count and the order held',
+        },
+      ],
+    },
+  ],
+  edges: [],
+});
+
+const FLOWRIDER_ITEM_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+const CODEWEAVER_ITEM_ID = 'a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
 
 describe('qaChecklistBuildTransformer', () => {
   describe('observable units', () => {
@@ -315,42 +365,272 @@ describe('qaChecklistBuildTransformer', () => {
   });
 
   describe('remainingItemIds', () => {
-    it('VALID: {no track} => every unit is remaining', () => {
-      const flow = FlowStub({
-        id: 'a-flow',
-        nodes: [
-          {
-            id: 'a-node',
-            label: 'A node',
-            type: 'state',
-            packages: ['auth-service'],
-            observables: [],
-          },
-        ],
-        edges: [],
-      });
-      const result = qaChecklistBuildTransformer({ flow });
-
-      expect(result.remainingItemIds).toStrictEqual(result.items.map((item) => item.id));
+    it('VALID: {no track, no quest} => every unit is remaining, the read-only whole-quest shape', () => {
+      expect(qaChecklistBuildTransformer({ flow: MARKED_FLOW }).remainingItemIds).toStrictEqual([
+        'a-flow:terminal:a-node',
+        'a-flow:observable:check-met',
+        'a-flow:observable:check-other',
+        'a-flow:observable:check-cant',
+        'a-flow:observable:check-unmet',
+        'a-flow:off-map:re-entry',
+        'a-flow:off-map:concurrency',
+        'a-flow:off-map:interruption',
+        'a-flow:off-map:staleness',
+        'a-flow:off-map:configuration',
+        'a-flow:off-map:hostile-input',
+        'a-flow:off-map:perf',
+      ]);
     });
 
-    it('VALID: {track passed} => all checklist items are initially remaining', () => {
-      const flow = FlowStub({
-        id: 'a-flow',
-        nodes: [
-          {
-            id: 'a-node',
-            label: 'A node',
-            type: 'state',
-            packages: ['auth-service'],
-            observables: [],
-          },
-        ],
-        edges: [],
-      });
-      const result = qaChecklistBuildTransformer({ flow, track: 'flowrider' });
+    it('VALID: {track: flowrider, no quest} => every unit is remaining, because no record of what that track settled was handed over', () => {
+      expect(
+        qaChecklistBuildTransformer({ flow: MARKED_FLOW, track: 'flowrider' }).remainingItemIds,
+      ).toStrictEqual([
+        'a-flow:terminal:a-node',
+        'a-flow:observable:check-met',
+        'a-flow:observable:check-other',
+        'a-flow:observable:check-cant',
+        'a-flow:observable:check-unmet',
+        'a-flow:off-map:re-entry',
+        'a-flow:off-map:concurrency',
+        'a-flow:off-map:interruption',
+        'a-flow:off-map:staleness',
+        'a-flow:off-map:configuration',
+        'a-flow:off-map:hostile-input',
+        'a-flow:off-map:perf',
+      ]);
+    });
 
-      expect(result.remainingItemIds).toStrictEqual(result.items.map((item) => item.id));
+    it('EMPTY: {track: flowrider, quest with no work items} => every unit is remaining, since no work item ever marked one', () => {
+      const quest = QuestStub({ flows: [MARKED_FLOW], workItems: [] });
+
+      expect(
+        qaChecklistBuildTransformer({ flow: MARKED_FLOW, track: 'flowrider', quest })
+          .remainingItemIds,
+      ).toStrictEqual([
+        'a-flow:terminal:a-node',
+        'a-flow:observable:check-met',
+        'a-flow:observable:check-other',
+        'a-flow:observable:check-cant',
+        'a-flow:observable:check-unmet',
+        'a-flow:off-map:re-entry',
+        'a-flow:off-map:concurrency',
+        'a-flow:off-map:interruption',
+        'a-flow:off-map:staleness',
+        'a-flow:off-map:configuration',
+        'a-flow:off-map:hostile-input',
+        'a-flow:off-map:perf',
+      ]);
+    });
+
+    it("VALID: {check-met marked 'met' by a flowrider work item, asked as flowrider} => that unit alone leaves the list", () => {
+      const quest = QuestStub({
+        flows: [MARKED_FLOW],
+        workItems: [
+          WorkItemStub({
+            id: FLOWRIDER_ITEM_ID,
+            role: 'flowrider',
+            observations: [
+              UnitObservationStub({ unitId: 'a-flow:observable:check-met', mark: 'met' }),
+            ],
+          }),
+        ],
+      });
+
+      expect(
+        qaChecklistBuildTransformer({ flow: MARKED_FLOW, track: 'flowrider', quest })
+          .remainingItemIds,
+      ).toStrictEqual([
+        'a-flow:terminal:a-node',
+        'a-flow:observable:check-other',
+        'a-flow:observable:check-cant',
+        'a-flow:observable:check-unmet',
+        'a-flow:off-map:re-entry',
+        'a-flow:off-map:concurrency',
+        'a-flow:off-map:interruption',
+        'a-flow:off-map:staleness',
+        'a-flow:off-map:configuration',
+        'a-flow:off-map:hostile-input',
+        'a-flow:off-map:perf',
+      ]);
+    });
+
+    it("VALID: {check-other marked 'met' by a CODEWEAVER work item only, asked as flowrider} => it stays remaining, because the two tracks hold independent verdicts", () => {
+      const quest = QuestStub({
+        flows: [MARKED_FLOW],
+        workItems: [
+          WorkItemStub({
+            id: CODEWEAVER_ITEM_ID,
+            role: 'codeweaver',
+            observations: [
+              UnitObservationStub({ unitId: 'a-flow:observable:check-other', mark: 'met' }),
+            ],
+          }),
+        ],
+      });
+
+      expect(
+        qaChecklistBuildTransformer({ flow: MARKED_FLOW, track: 'flowrider', quest })
+          .remainingItemIds,
+      ).toStrictEqual([
+        'a-flow:terminal:a-node',
+        'a-flow:observable:check-met',
+        'a-flow:observable:check-other',
+        'a-flow:observable:check-cant',
+        'a-flow:observable:check-unmet',
+        'a-flow:off-map:re-entry',
+        'a-flow:off-map:concurrency',
+        'a-flow:off-map:interruption',
+        'a-flow:off-map:staleness',
+        'a-flow:off-map:configuration',
+        'a-flow:off-map:hostile-input',
+        'a-flow:off-map:perf',
+      ]);
+    });
+
+    it("VALID: {the SAME codeweaver 'met', asked as codeweaver} => it leaves the list, so the track asked is what decides", () => {
+      const quest = QuestStub({
+        flows: [MARKED_FLOW],
+        workItems: [
+          WorkItemStub({
+            id: CODEWEAVER_ITEM_ID,
+            role: 'codeweaver',
+            observations: [
+              UnitObservationStub({ unitId: 'a-flow:observable:check-other', mark: 'met' }),
+            ],
+          }),
+        ],
+      });
+
+      expect(
+        qaChecklistBuildTransformer({ flow: MARKED_FLOW, track: 'codeweaver', quest })
+          .remainingItemIds,
+      ).toStrictEqual([
+        'a-flow:terminal:a-node',
+        'a-flow:observable:check-met',
+        'a-flow:observable:check-cant',
+        'a-flow:observable:check-unmet',
+        'a-flow:off-map:re-entry',
+        'a-flow:off-map:concurrency',
+        'a-flow:off-map:interruption',
+        'a-flow:off-map:staleness',
+        'a-flow:off-map:configuration',
+        'a-flow:off-map:hostile-input',
+        'a-flow:off-map:perf',
+      ]);
+    });
+
+    it("VALID: {check-cant marked 'cant-meet' by a flowrider work item} => it leaves the list, because cant-meet settles the unit for that track", () => {
+      const quest = QuestStub({
+        flows: [MARKED_FLOW],
+        workItems: [
+          WorkItemStub({
+            id: FLOWRIDER_ITEM_ID,
+            role: 'flowrider',
+            observations: [
+              UnitObservationStub({
+                unitId: 'a-flow:observable:check-cant',
+                mark: 'cant-meet',
+                toSettle: 'drive it from the siege lane, where the state can be forced',
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect(
+        qaChecklistBuildTransformer({ flow: MARKED_FLOW, track: 'flowrider', quest })
+          .remainingItemIds,
+      ).toStrictEqual([
+        'a-flow:terminal:a-node',
+        'a-flow:observable:check-met',
+        'a-flow:observable:check-other',
+        'a-flow:observable:check-unmet',
+        'a-flow:off-map:re-entry',
+        'a-flow:off-map:concurrency',
+        'a-flow:off-map:interruption',
+        'a-flow:off-map:staleness',
+        'a-flow:off-map:configuration',
+        'a-flow:off-map:hostile-input',
+        'a-flow:off-map:perf',
+      ]);
+    });
+
+    it("VALID: {check-unmet marked 'unmet' by a flowrider work item} => it stays remaining, because unmet is work left rather than a settlement", () => {
+      const quest = QuestStub({
+        flows: [MARKED_FLOW],
+        workItems: [
+          WorkItemStub({
+            id: FLOWRIDER_ITEM_ID,
+            role: 'flowrider',
+            observations: [
+              UnitObservationStub({ unitId: 'a-flow:observable:check-unmet', mark: 'unmet' }),
+            ],
+          }),
+        ],
+      });
+
+      expect(
+        qaChecklistBuildTransformer({ flow: MARKED_FLOW, track: 'flowrider', quest })
+          .remainingItemIds,
+      ).toStrictEqual([
+        'a-flow:terminal:a-node',
+        'a-flow:observable:check-met',
+        'a-flow:observable:check-other',
+        'a-flow:observable:check-cant',
+        'a-flow:observable:check-unmet',
+        'a-flow:off-map:re-entry',
+        'a-flow:off-map:concurrency',
+        'a-flow:off-map:interruption',
+        'a-flow:off-map:staleness',
+        'a-flow:off-map:configuration',
+        'a-flow:off-map:hostile-input',
+        'a-flow:off-map:perf',
+      ]);
+    });
+
+    it('VALID: {one quest carrying all four cases at once} => remaining holds exactly the unmarked, the foreign-track-marked and the unmet', () => {
+      const quest = QuestStub({
+        flows: [MARKED_FLOW],
+        workItems: [
+          WorkItemStub({
+            id: CODEWEAVER_ITEM_ID,
+            role: 'codeweaver',
+            observations: [
+              UnitObservationStub({ unitId: 'a-flow:observable:check-other', mark: 'met' }),
+            ],
+          }),
+          WorkItemStub({
+            id: FLOWRIDER_ITEM_ID,
+            role: 'flowrider',
+            observations: [
+              UnitObservationStub({ unitId: 'a-flow:observable:check-met', mark: 'met' }),
+              UnitObservationStub({
+                unitId: 'a-flow:observable:check-cant',
+                mark: 'cant-meet',
+                toSettle: 'drive it from the siege lane, where the state can be forced',
+              }),
+              UnitObservationStub({ unitId: 'a-flow:observable:check-unmet', mark: 'unmet' }),
+              UnitObservationStub({ unitId: 'a-flow:off-map:staleness', mark: 'met' }),
+            ],
+          }),
+        ],
+      });
+
+      expect(
+        qaChecklistBuildTransformer({ flow: MARKED_FLOW, track: 'flowrider', quest })
+          .remainingItemIds,
+      ).toStrictEqual([
+        'a-flow:terminal:a-node',
+        'a-flow:observable:check-other',
+        'a-flow:observable:check-unmet',
+        'a-flow:off-map:re-entry',
+        'a-flow:off-map:concurrency',
+        'a-flow:off-map:interruption',
+        'a-flow:off-map:configuration',
+        'a-flow:off-map:hostile-input',
+        'a-flow:off-map:perf',
+      ]);
     });
   });
 

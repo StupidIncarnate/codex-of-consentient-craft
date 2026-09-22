@@ -7,7 +7,7 @@
  *   id: 'login-flow',
  *   name: 'Login Flow',
  *   flowType: 'runtime',
- *   tracks: [{ id: 'flowrider', confirmed: 12, unconfirmable: 1, outstanding: 3 }],
+ *   tracks: [{ id: 'flowrider', met: 12, cantMeet: 1, unmet: 2, outstanding: 3 }],
  * });
  * // Returns: QuestSummaryFlow — one element of QuestSummary.flows[]
  *

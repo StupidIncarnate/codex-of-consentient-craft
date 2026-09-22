@@ -42,9 +42,6 @@ export * from './src/transformers/flow-graph-to-text/flow-graph-to-text-transfor
 
 // Flow Sign-off Evidence to Text
 
-// Sign-off Markers to Text (the compact per-track verdict suffix every graph line carries)
-export * from './src/transformers/signoff-markers-to-text/signoff-markers-to-text-transformer';
-
 // Quest Summary to Text (the get-quest-summary MCP tool body)
 export * from './src/transformers/quest-summary-to-text/quest-summary-to-text-transformer';
 

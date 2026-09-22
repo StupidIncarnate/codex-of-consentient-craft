@@ -16,7 +16,7 @@
  *
  * ONE MEMBER PER `signoffTrackEligibilityStatics.byTrack` KEY. That statics object is where each
  * denominator's flow types, unit kinds, package kinds, package slice rule and observable origins
- * live; this enum is its key set, declared in `signoffTracksStatics` because a shared contract
+ * live; this enum is its key set, declared in `verificationTracksStatics` because a shared contract
  * cannot import an orchestrator static. The two are pinned in both directions: the eligibility
  * statics' colocated test compares its keys against that tuple, and
  * `questSummaryBuildTransformer` indexes `byTrack` with these options, so a member with no entry is
@@ -25,8 +25,8 @@
 
 import { z } from 'zod';
 
-import { signoffTracksStatics } from '../../statics/signoff-tracks/signoff-tracks-statics';
+import { verificationTracksStatics } from '../../statics/verification-tracks/verification-tracks-statics';
 
-export const signoffDenominatorTrackContract = z.enum(signoffTracksStatics.denominators);
+export const signoffDenominatorTrackContract = z.enum(verificationTracksStatics.roles);
 
 export type SignoffDenominatorTrack = z.infer<typeof signoffDenominatorTrackContract>;

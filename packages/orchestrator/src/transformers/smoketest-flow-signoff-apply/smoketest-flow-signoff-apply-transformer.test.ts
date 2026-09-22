@@ -5,7 +5,6 @@ import {
   FlowOffMapSignoffStub,
   FlowStub,
   QaChecklistItemIdStub,
-  SignoffStub,
 } from '@dungeonmaster/shared/contracts';
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
@@ -17,8 +16,6 @@ type OffMapFamily = keyof typeof qaOffMapProbeStatics.byFamily;
 // whose colocated test pins its keys 1:1 with the contract's options — a test file cannot import
 // that contract, so this is the honest source.
 const OFF_MAP_FAMILIES = Object.keys(qaOffMapProbeStatics.byFamily) as readonly OffMapFamily[];
-
-const SIGNOFF = SignoffStub({ evidence: 'fixture evidence, written by the harness' });
 
 // One flow carrying every unit kind: two terminals (nothing leaves them), two labelled branches
 // leaving the entry node, and one observable embedded in that entry node.
@@ -123,17 +120,6 @@ describe('smoketestFlowSignoffApplyTransformer', () => {
       const result = smoketestFlowSignoffApplyTransformer({
         flow: FlowStub({ ...FLOW, offMapSignoffs: [alreadyRecorded] }),
         unitIds: [QaChecklistItemIdStub({ value: 'login-flow:off-map:concurrency' })],
-      });
-
-      expect(result.offMapSignoffs).toStrictEqual([FlowOffMapSignoffStub({ id: 'concurrency' })]);
-    });
-
-    it('VALID: {backwards compatibility arguments} => accepts signoffField and signoff without error', () => {
-      const result = smoketestFlowSignoffApplyTransformer({
-        flow: FLOW,
-        unitIds: [QaChecklistItemIdStub({ value: 'login-flow:off-map:concurrency' })],
-        signoffField: 'siegemasterSignoff',
-        signoff: SIGNOFF,
       });
 
       expect(result.offMapSignoffs).toStrictEqual([FlowOffMapSignoffStub({ id: 'concurrency' })]);

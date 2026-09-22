@@ -7,11 +7,11 @@
  * signoffElementStampTransformer({ element: { id: 'obs-1' }, at });
  * // Returns: the same element with sign-off timestamps replaced
  */
-import type { ItemWithId, Signoff } from '@dungeonmaster/shared/contracts';
+import type { ItemWithId, UnitObservation } from '@dungeonmaster/shared/contracts';
 
 export const signoffElementStampTransformer = ({
   element,
 }: {
   element: ItemWithId;
-  at: Signoff['at'];
+  at: UnitObservation['at'];
 }): ItemWithId => ({ ...element });

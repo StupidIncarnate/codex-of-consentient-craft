@@ -30,7 +30,7 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { questPersistBroker } from '../persist/quest-persist-broker';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { ModifyQuestInput, Signoff } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput, UnitObservation } from '@dungeonmaster/shared/contracts';
 import { modifyQuestResultContract } from '@dungeonmaster/shared/contracts';
 import type { ModifyQuestResult } from '@dungeonmaster/shared/contracts';
 import { verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
@@ -73,7 +73,7 @@ export const questModifyBroker = async ({
     // untouched and keeps the time it was really made.
     const validated = questInputServerTimestampsTransformer({
       input: modifyQuestInputContract.parse(input),
-      at: new Date().toISOString() as Signoff['at'],
+      at: new Date().toISOString() as UnitObservation['at'],
     });
 
     // Serialize the read-modify-write critical section per questId to prevent lost writes

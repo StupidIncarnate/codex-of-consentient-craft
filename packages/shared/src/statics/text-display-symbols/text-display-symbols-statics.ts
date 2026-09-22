@@ -27,8 +27,6 @@ export const textDisplaySymbolsStatics = {
     '  (terminal)                  end state, no outgoing edges',
     '  (read-check)                settled by opening the source file, not by running a test',
     '  +codeweaver                 this observable was ADDED mid-quest by that role, not in the spec at approval',
-    '  [C✓ F✓ S?]                  one mark per track that HAS signed — C Codeweaver, F Flowrider, S Siegemaster',
-    '                              ✓ confirmed, ? unconfirmable; a track that has not signed is absent, not blank',
     '  _delete:true                removes the entity when sent via modify-quest',
     '---',
   ],
@@ -70,8 +68,6 @@ export const textDisplaySymbolsStatics = {
     '  ↗ cross-flow                edge into another flow, resolved on the lines under it',
     '  ← MERGE                     node reachable from multiple paths',
     '  (terminal)                  end state, no outgoing edges',
-    '  [C✓ F✓ S?]                  one mark per track that HAS signed — C Codeweaver, F Flowrider, S Siegemaster',
-    '                              ✓ confirmed, ? unconfirmable; a track that has not signed is absent, not blank',
     '---',
   ],
   // The KEY for a slice fetched with NO package — the flowrider / siegemaster / reviewer view, where
@@ -96,8 +92,6 @@ export const textDisplaySymbolsStatics = {
     '  ↗ cross-flow                edge into another flow, resolved on the lines under it',
     '  ← MERGE                     node reachable from multiple paths',
     '  (terminal)                  end state, no outgoing edges',
-    '  [C✓ F✓ S?]                  one mark per track that HAS signed — C Codeweaver, F Flowrider, S Siegemaster',
-    '                              ✓ confirmed, ? unconfirmable; a track that has not signed is absent, not blank',
     '---',
   ],
   sectionHeaders: {
@@ -124,13 +118,6 @@ export const textDisplaySymbolsStatics = {
     codeweaver: 'C',
     flowrider: 'F',
     siegemaster: 'S',
-  },
-  signoffVerdictMarks: {
-    confirmed: '\u2713',
-    unconfirmable: '?',
-    met: '\u2713',
-    'cant-meet': '?',
-    unmet: '\u2717',
   },
   // Mark glyphs for verification unit outcomes: met (proved), cant-meet (unsettleable at this layer),
   // unmet (not done). Every glyph is exactly one character.

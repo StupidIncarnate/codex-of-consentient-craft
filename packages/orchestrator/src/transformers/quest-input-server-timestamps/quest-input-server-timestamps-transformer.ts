@@ -15,7 +15,7 @@
  * plus a session whose notes drifted 50 minutes into a future it never reached.
  */
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { ModifyQuestInput, Signoff } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput, UnitObservation } from '@dungeonmaster/shared/contracts';
 
 import { signoffElementStampTransformer } from '../signoff-element-stamp/signoff-element-stamp-transformer';
 
@@ -24,7 +24,7 @@ export const questInputServerTimestampsTransformer = ({
   at,
 }: {
   input: ModifyQuestInput;
-  at: Signoff['at'];
+  at: UnitObservation['at'];
 }): ModifyQuestInput => {
   const { flows, planningNotes } = input;
 

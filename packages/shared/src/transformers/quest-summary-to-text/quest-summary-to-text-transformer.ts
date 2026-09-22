@@ -1,7 +1,8 @@
 /**
  * PURPOSE: Renders a quest's whole verification state as compact text — per-flow/per-track coverage,
- * the observables added after approval and by whom, every `unconfirmable` verdict with BOTH its
- * evidence and its question, and the side-channel notes grouped by kind with open questions first
+ * the observables added after approval and by whom, every unit carrying debt with BOTH its evidence
+ * and the action that would settle it, and the side-channel notes grouped by kind with open
+ * questions first
  *
  * USAGE:
  * questSummaryToTextTransformer({ summary });
@@ -10,14 +11,14 @@
  * THE READER IS THE NEXT ROLE, not a dashboard. `QuestSummary` is a structure because the web
  * renders the same fields for a person, but an agent cannot act on a JSON dump of counts: it has to
  * decide what is still open and who to ask. So every section here is written as an instruction
- * rather than a label, and the `unconfirmable` block carries the whole sign-off — `evidence` (why
- * confirmation was out of reach), `question` (what someone has to answer to close it) and
- * `workItemId` (who to ask). That block IS the routing surface; dropping either field would reduce
- * it to a count of holes with no way to close one.
+ * rather than a label, and the DEBT block carries the whole entry — `mark` (settled without proof,
+ * or still outstanding), `evidence` (what the recording session had), `toSettle` (the action that
+ * closes a `cant-meet`) and `workItemId` (who to ask). That block IS the routing surface; dropping
+ * any of them would reduce it to a count of holes with no way to close one.
  *
- * EMPTY IS RENDERED, NEVER OMITTED. "No unconfirmable verdicts" and "nobody signed anything" are
- * opposite facts, and a section that vanished when empty would make them read identically — the
- * same reason `questSummaryNoteGroupContract` emits a group per kind including the empty ones.
+ * EMPTY IS RENDERED, NEVER OMITTED. "No unit carries debt" and "nobody marked anything" are opposite
+ * facts, and a section that vanished when empty would make them read identically — the same reason
+ * `questSummaryNoteGroupContract` emits a group per kind including the empty ones.
  *
  * BOUNDED TWICE, AND NEVER SILENTLY. Every variable-length section is capped by
  * `questSummaryLimitsStatics` and states its exact dropped ENTRY count when a cap fires; the whole
@@ -61,15 +62,12 @@ export const questSummaryToTextTransformer = ({
       ? ''
       : ` — TRUNCATED at the ${String(questSummaryLimitsStatics.maxMidQuestObservables)}-entry cap; ${String(observablesDropped)} entry(s) NOT SHOWN`;
 
-  const unconfirmableShown = summary.unconfirmable.slice(
-    0,
-    questSummaryLimitsStatics.maxUnconfirmable,
-  );
-  const unconfirmableDropped = summary.unconfirmable.length - unconfirmableShown.length;
-  const unconfirmableNotice =
-    unconfirmableDropped === 0
+  const debtShown = summary.debt.slice(0, questSummaryLimitsStatics.maxUnconfirmable);
+  const debtDropped = summary.debt.length - debtShown.length;
+  const debtNotice =
+    debtDropped === 0
       ? ''
-      : ` — TRUNCATED at the ${String(questSummaryLimitsStatics.maxUnconfirmable)}-entry cap; ${String(unconfirmableDropped)} entry(s) NOT SHOWN`;
+      : ` — TRUNCATED at the ${String(questSummaryLimitsStatics.maxUnconfirmable)}-entry cap; ${String(debtDropped)} entry(s) NOT SHOWN`;
 
   // Open questions lead. They are the only kind naming something NOBODY has answered, so a reader
   // deciding what to pick up needs them before the three record-keeping kinds.
@@ -82,19 +80,19 @@ export const questSummaryToTextTransformer = ({
     `# QUEST SUMMARY — \`${String(summary.questId)}\``,
     '',
     'What actually happened on this quest — which is not what `get-quest` or a status answers. A',
-    'quest reaches `complete` when its operations ledger drains, not when its three verification',
-    'tracks (codeweaver, flowrider, siegemaster) have SIGNED every unit, and',
-    '`unconfirmable` signs a unit exactly as `confirmed` does: it clears the',
-    'ABSENCE of a verdict, never demands an honest one. So a complete quest can still carry real holes,',
-    'real scope nobody approved, and real unanswered questions. Every section below is one of those.',
+    'quest reaches `complete` when its operations ledger drains, not when every verification unit is',
+    'marked `met`. A `cant-meet` settles a unit without proving it and an `unmet` leaves the work',
+    'open, and neither one holds that ledger. So a complete quest can still carry real holes, real',
+    'scope nobody approved, and real unanswered questions. Every section below is one of those.',
   ].join('\n');
 
   const coverage = [
     '',
     `## COVERAGE — ${String(summary.flows.length)} flow(s), one row per track that measures each${flowsNotice}`,
-    "`outstanding` is that track's work list — nothing refuses a `done` over it. A track ABSENT",
-    'from a flow does not measure it at all, which is a different statement from measuring it and',
-    'finding nothing.',
+    '`met` and `cant-meet` are both settled; `unmet` is a unit a session of that track looked at and',
+    "left work open on; `outstanding` is one nobody of that track has marked at all — the track's",
+    'work list, which nothing refuses a `done` over. A track ABSENT from a flow does not measure it',
+    'at all, which is a different statement from measuring it and finding nothing.',
     ...(flowsShown.length === 0
       ? ['', '(no flows on this quest — nothing decomposes into verification units)']
       : flowsShown.map((flow) =>
@@ -105,7 +103,7 @@ export const questSummaryToTextTransformer = ({
               ? ['    (no track measures this flow)']
               : flow.tracks.map(
                   (track) =>
-                    `    ${track.id}: confirmed ${String(track.confirmed)} / unconfirmable ${String(track.unconfirmable)} / outstanding ${String(track.outstanding)}`,
+                    `    ${track.id}: met ${String(track.met)} / cant-meet ${String(track.cantMeet)} / unmet ${String(track.unmet)} / outstanding ${String(track.outstanding)}`,
                 )),
           ].join('\n'),
         )),
@@ -127,22 +125,27 @@ export const questSummaryToTextTransformer = ({
         )),
   ].join('\n');
 
-  const unconfirmable = [
+  const debt = [
     '',
-    `## UNCONFIRMABLE (${String(summary.unconfirmable.length)}) — settled, NOT proven${unconfirmableNotice}`,
-    'Every entry here settled a unit without proving it — this list is the only place it surfaces.',
-    '`evidence` is why confirmation was out of reach, `toSettle` is the action that would close it,',
-    'and the work item is who recorded it. Read this before deciding what is left to do.',
-    ...(unconfirmableShown.length === 0
-      ? ['', '(none — every signed unit on this quest was confirmed)']
-      : unconfirmableShown.map((entry) =>
+    `## DEBT (${String(summary.debt.length)}) — every unit that is NOT proven${debtNotice}`,
+    'Two marks land here and they are different work. `cant-meet` settled a unit without proving it,',
+    'and its `toSettle` names the action that would. `unmet` means work is outstanding right now and',
+    'carries no `toSettle`, because a successor is owed it rather than a handover. `evidence` is what',
+    'the recording session had, and the work item is who to ask. This list is the only place either',
+    'mark surfaces — read it before deciding what is left to do.',
+    ...(debtShown.length === 0
+      ? [
+          '',
+          '(none — no unit carries a cant-meet or an unmet mark; unmarked units are in COVERAGE)',
+        ]
+      : debtShown.map((entry) =>
           [
             '',
-            `### \`${String(entry.unitId)}\` [${entry.kind}] — could not be confirmed on the ${entry.track} track`,
+            `### \`${String(entry.unitId)}\` [${entry.kind}] — ${entry.mark} on the ${entry.track} track`,
             `      flow:     \`${String(entry.flowId)}\``,
-            `      evidence: ${String(entry.signoff.evidence)}`,
-            `      toSettle: ${entry.signoff.toSettle === undefined ? '(none recorded)' : String(entry.signoff.toSettle)}`,
-            `      raised by work item ${String(entry.signoff.workItemId)} at ${String(entry.signoff.at)}`,
+            `      evidence: ${String(entry.evidence)}`,
+            `      toSettle: ${entry.toSettle === undefined ? '(none recorded)' : String(entry.toSettle)}`,
+            `      raised by work item ${String(entry.workItemId)} at ${String(entry.at)}`,
           ].join('\n'),
         )),
   ].join('\n');
@@ -177,7 +180,7 @@ export const questSummaryToTextTransformer = ({
         })),
   ].join('\n');
 
-  const body = [header, coverage, observables, unconfirmable, notes].join('\n');
+  const body = [header, coverage, observables, debt, notes].join('\n');
 
   if (body.length <= questSummaryLimitsStatics.maxRenderChars) {
     return contentTextContract.parse(body);
@@ -190,6 +193,6 @@ export const questSummaryToTextTransformer = ({
   const kept = cut.slice(0, cut.lastIndexOf('\n') + 1);
 
   return contentTextContract.parse(
-    `${kept}\n[TRUNCATED at the ${String(questSummaryLimitsStatics.maxRenderChars)}-character ceiling — ${String(body.length - kept.length)} character(s) were dropped from the END of this render, so the sections after this line are missing or cut short. Sections run coverage, mid-quest observables, unconfirmable, notes; read quest.json for whatever fell off.]`,
+    `${kept}\n[TRUNCATED at the ${String(questSummaryLimitsStatics.maxRenderChars)}-character ceiling — ${String(body.length - kept.length)} character(s) were dropped from the END of this render, so the sections after this line are missing or cut short. Sections run coverage, mid-quest observables, debt, notes; read quest.json for whatever fell off.]`,
   );
 };

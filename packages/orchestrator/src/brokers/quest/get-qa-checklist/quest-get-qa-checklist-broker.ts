@@ -104,6 +104,7 @@ export const questGetQaChecklistBroker = async ({
           packageNames: operationItem.packageNames,
           packageGraph: quest.packageGraph,
           track,
+          quest,
         }),
       ),
       track,
@@ -121,6 +122,7 @@ export const questGetQaChecklistBroker = async ({
         flow,
         packagesAffected: quest.packagesAffected,
         packageGraph: quest.packageGraph,
+        quest,
       }),
     ),
   };
