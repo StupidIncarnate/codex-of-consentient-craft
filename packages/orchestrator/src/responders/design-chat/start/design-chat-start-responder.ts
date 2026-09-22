@@ -34,13 +34,6 @@ export const DesignChatStartResponder = async ({
     guildId,
     questId,
     message,
-    onDesignSessionLinked: ({ questId: qId, chatProcessId }) => {
-      orchestrationEventsState.emit({
-        type: 'quest-session-linked',
-        processId: chatProcessId,
-        payload: { questId: qId, chatProcessId, workItemId: glyphWorkItemId },
-      });
-    },
     onEntries: ({ chatProcessId, entries }) => {
       orchestrationEventsState.emit({
         type: 'chat-output',

@@ -353,89 +353,6 @@ describe('chatSpawnBroker', () => {
     });
   });
 
-  describe('glyphsmith onEntries via stdout lines', () => {
-    it('VALID: {glyphsmith stdout emits assistant text line} => calls onEntries with parsed entry', async () => {
-      const proxy = chatSpawnBrokerProxy();
-      const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'glyphsmith' });
-      const questId = QuestIdStub({ value: 'design-quest' });
-      const quest = QuestStub({ id: 'design-quest', status: 'explore_design' });
-      const onEntries = jest.fn();
-      const assistantLine = JSON.stringify(AssistantTextStreamLineStub());
-
-      proxy.setupGlyphsmithSession({
-        exitCode: ExitCodeStub({ value: 0 }),
-        quest,
-        stdoutLines: [assistantLine],
-      });
-
-      await chatSpawnBroker({
-        role,
-        guildId,
-        questId,
-        message: 'Create prototype',
-        onEntries,
-        onComplete: jest.fn(),
-        registerProcess: jest.fn(),
-      });
-
-      await new Promise((resolve) => {
-        setImmediate(resolve);
-      });
-      await new Promise((resolve) => {
-        setImmediate(resolve);
-      });
-
-      expect(onEntries).toHaveBeenCalledTimes(1);
-      expect(onEntries.mock.calls[0][0].entries[0].role).toBe('assistant');
-    });
-  });
-
-  describe('glyphsmith onDesignSessionLinked callback', () => {
-    it('VALID: {glyphsmith new session with no sessionId} => calls onDesignSessionLinked', async () => {
-      const proxy = chatSpawnBrokerProxy();
-      const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'glyphsmith' });
-      const questId = QuestIdStub({ value: 'design-quest' });
-      const quest = QuestStub({ id: 'design-quest', status: 'explore_design' });
-      const onDesignSessionLinked = jest.fn();
-      const sessionLine = JSON.stringify({ session_id: 'extracted-session-abc' });
-
-      proxy.setupGlyphsmithSession({
-        exitCode: ExitCodeStub({ value: 0 }),
-        quest,
-        stdoutLines: [sessionLine],
-      });
-
-      const { chatProcessId } = await chatSpawnBroker({
-        role,
-        guildId,
-        questId,
-        message: 'Create prototype',
-        onEntries: jest.fn(),
-        onComplete: jest.fn(),
-        onDesignSessionLinked,
-        registerProcess: jest.fn(),
-      });
-
-      await new Promise((resolve) => {
-        setImmediate(resolve);
-      });
-      await new Promise((resolve) => {
-        setImmediate(resolve);
-      });
-
-      expect(onDesignSessionLinked).toHaveBeenCalledTimes(1);
-
-      const [[designLinkedArg]] = onDesignSessionLinked.mock.calls;
-
-      expect(designLinkedArg).toStrictEqual({
-        chatProcessId,
-        questId: 'design-quest',
-      });
-    });
-  });
-
   describe('chaoswhisperer questSessionWriteLayerBroker', () => {
     it('VALID: {chaoswhisperer new session extracts sessionId} => calls questSessionWriteLayerBroker', async () => {
       const proxy = chatSpawnBrokerProxy();
@@ -470,47 +387,6 @@ describe('chatSpawnBroker', () => {
 
       expect(onComplete).toHaveBeenCalledTimes(1);
       expect(onComplete.mock.calls[0][0].sessionId).toBe('extracted-session-xyz');
-    });
-  });
-
-  describe('glyphsmith designSessionWriteLayerBroker', () => {
-    it('VALID: {glyphsmith new session extracts sessionId} => calls designSessionWriteLayerBroker', async () => {
-      const proxy = chatSpawnBrokerProxy();
-      const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'glyphsmith' });
-      const questId = QuestIdStub({ value: 'design-quest' });
-      const quest = QuestStub({ id: 'design-quest', status: 'explore_design' });
-      const onComplete = jest.fn();
-      const sessionLine = JSON.stringify({ session_id: 'extracted-design-session' });
-
-      proxy.setupGlyphsmithSession({
-        exitCode: ExitCodeStub({ value: 0 }),
-        quest,
-        stdoutLines: [sessionLine],
-      });
-
-      await chatSpawnBroker({
-        role,
-        guildId,
-        questId,
-        message: 'Create prototype',
-        onEntries: jest.fn(),
-        onComplete,
-        registerProcess: jest.fn(),
-      });
-
-      await new Promise((resolve) => {
-        setImmediate(resolve);
-      });
-      await new Promise((resolve) => {
-        setImmediate(resolve);
-      });
-      await new Promise((resolve) => {
-        setImmediate(resolve);
-      });
-
-      expect(onComplete).toHaveBeenCalledTimes(1);
-      expect(onComplete.mock.calls[0][0].sessionId).toBe('extracted-design-session');
     });
   });
 
@@ -695,8 +571,8 @@ describe('chatSpawnBroker', () => {
     });
   });
 
-  describe('glyphsmith new session', () => {
-    it('VALID: {glyphsmith + questId in explore_design} => returns chatProcessId', async () => {
+  describe('glyphsmith has no chat prompt', () => {
+    it('ERROR: {glyphsmith + questId in explore_design} => rejects naming the role, spawning nothing', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
       const role = WorkItemRoleStub({ value: 'glyphsmith' });
@@ -705,119 +581,19 @@ describe('chatSpawnBroker', () => {
 
       proxy.setupGlyphsmithSession({ exitCode: ExitCodeStub({ value: 0 }), quest });
 
-      const result = await chatSpawnBroker({
-        role,
-        guildId,
-        questId,
-        message: 'Create login page prototype',
-        onEntries: jest.fn(),
-        onComplete: jest.fn(),
-        registerProcess: jest.fn(),
-      });
+      await expect(
+        chatSpawnBroker({
+          role,
+          guildId,
+          questId,
+          message: 'Create login page prototype',
+          onEntries: jest.fn(),
+          onComplete: jest.fn(),
+          registerProcess: jest.fn(),
+        }),
+      ).rejects.toThrow(/^chatPromptBuildTransformer has no template for role 'glyphsmith'.*$/u);
 
-      expect(result.chatProcessId).toBe('design-f47ac10b-58cc-4372-a567-0e02b2c3d479');
-    });
-
-    it('VALID: {glyphsmith + questId in review_design} => returns chatProcessId', async () => {
-      const proxy = chatSpawnBrokerProxy();
-      const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'glyphsmith' });
-      const questId = QuestIdStub({ value: 'design-quest' });
-      const quest = QuestStub({ id: 'design-quest', status: 'review_design' });
-
-      proxy.setupGlyphsmithSession({ exitCode: ExitCodeStub({ value: 0 }), quest });
-
-      const result = await chatSpawnBroker({
-        role,
-        guildId,
-        questId,
-        message: 'Iterate on prototype',
-        onEntries: jest.fn(),
-        onComplete: jest.fn(),
-        registerProcess: jest.fn(),
-      });
-
-      expect(result.chatProcessId).toBe('design-f47ac10b-58cc-4372-a567-0e02b2c3d479');
-    });
-
-    it('VALID: {glyphsmith + questId in design_approved} => returns chatProcessId', async () => {
-      const proxy = chatSpawnBrokerProxy();
-      const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'glyphsmith' });
-      const questId = QuestIdStub({ value: 'design-quest' });
-      const quest = QuestStub({ id: 'design-quest', status: 'design_approved' });
-
-      proxy.setupGlyphsmithSession({ exitCode: ExitCodeStub({ value: 0 }), quest });
-
-      const result = await chatSpawnBroker({
-        role,
-        guildId,
-        questId,
-        message: 'Review approved design',
-        onEntries: jest.fn(),
-        onComplete: jest.fn(),
-        registerProcess: jest.fn(),
-      });
-
-      expect(result.chatProcessId).toBe('design-f47ac10b-58cc-4372-a567-0e02b2c3d479');
-    });
-
-    it('VALID: {glyphsmith session} => calls registerProcess with kill function', async () => {
-      const proxy = chatSpawnBrokerProxy();
-      const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'glyphsmith' });
-      const questId = QuestIdStub({ value: 'design-quest' });
-      const quest = QuestStub({ id: 'design-quest', status: 'explore_design' });
-      const registerProcess = jest.fn();
-
-      proxy.setupGlyphsmithSession({ exitCode: ExitCodeStub({ value: 0 }), quest });
-
-      await chatSpawnBroker({
-        role,
-        guildId,
-        questId,
-        message: 'Create prototype',
-        onEntries: jest.fn(),
-        onComplete: jest.fn(),
-        registerProcess,
-      });
-
-      expect(registerProcess).toHaveBeenCalledTimes(1);
-
-      const [[registerArg]] = registerProcess.mock.calls;
-
-      expect(registerArg).toStrictEqual({
-        processId: 'design-f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        questId: 'design-quest',
-        questWorkItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        kill: expect.any(Function),
-      });
-    });
-  });
-
-  describe('glyphsmith resume session', () => {
-    it('VALID: {glyphsmith + sessionId} => returns chatProcessId', async () => {
-      const proxy = chatSpawnBrokerProxy();
-      const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'glyphsmith' });
-      const questId = QuestIdStub({ value: 'design-quest' });
-      const quest = QuestStub({ id: 'design-quest', status: 'explore_design' });
-      const sessionId = SessionIdStub({ value: 'design-session-123' });
-
-      proxy.setupGlyphsmithSession({ exitCode: ExitCodeStub({ value: 0 }), quest });
-
-      const result = await chatSpawnBroker({
-        role,
-        guildId,
-        questId,
-        message: 'Continue design',
-        sessionId,
-        onEntries: jest.fn(),
-        onComplete: jest.fn(),
-        registerProcess: jest.fn(),
-      });
-
-      expect(result.chatProcessId).toBe('design-f47ac10b-58cc-4372-a567-0e02b2c3d479');
+      expect(proxy.getSpawnedArgs()).toBe(undefined);
     });
   });
 
@@ -1010,36 +786,24 @@ describe('chatSpawnBroker', () => {
     });
   });
 
-  describe('glyphsmith process completion', () => {
-    it('VALID: {glyphsmith process exits} => calls onComplete', async () => {
+  describe('chat processId prefix', () => {
+    it('VALID: {bughunt + message, no sessionId} => chatProcessId carries the chat prefix', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'glyphsmith' });
-      const questId = QuestIdStub({ value: 'design-quest' });
-      const quest = QuestStub({ id: 'design-quest', status: 'explore_design' });
-      const onComplete = jest.fn();
+      const role = WorkItemRoleStub({ value: 'bughunt' });
 
-      proxy.setupGlyphsmithSession({ exitCode: ExitCodeStub({ value: 0 }), quest });
+      proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
 
-      const { chatProcessId } = await chatSpawnBroker({
+      const result = await chatSpawnBroker({
         role,
         guildId,
-        questId,
-        message: 'Create prototype',
+        message: 'The save button does nothing',
         onEntries: jest.fn(),
-        onComplete,
+        onComplete: jest.fn(),
         registerProcess: jest.fn(),
       });
 
-      await new Promise((resolve) => {
-        setImmediate(resolve);
-      });
-      await new Promise((resolve) => {
-        setImmediate(resolve);
-      });
-
-      expect(onComplete).toHaveBeenCalledTimes(1);
-      expect(onComplete.mock.calls[0][0].chatProcessId).toBe(chatProcessId);
+      expect(result.chatProcessId).toBe('chat-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
   });
 });

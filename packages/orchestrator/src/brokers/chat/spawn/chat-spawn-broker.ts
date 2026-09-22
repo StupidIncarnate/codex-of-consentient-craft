@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Spawns a Claude CLI chat process for a chat role (ChaosWhisperer, BugHunt, Glyphsmith, or Tavernkeeper) with event emission for output streaming and lifecycle tracking. Resolves the quest + chat work item, builds the prompt, then delegates the full spawn lifecycle (chatStreamProcessHandleBroker, agentSpawnUnifiedBroker, chatMainSessionTailBroker, process registration) to `agentLaunchBroker` so chat agents launch identically to every orchestration-loop agent.
+ * PURPOSE: Spawns a Claude CLI chat process for a chat role (ChaosWhisperer, BugHunt, or Tavernkeeper) with event emission for output streaming and lifecycle tracking. Resolves the quest + chat work item, builds the prompt, then delegates the full spawn lifecycle (chatStreamProcessHandleBroker, agentSpawnUnifiedBroker, chatMainSessionTailBroker, process registration) to `agentLaunchBroker` so chat agents launch identically to every orchestration-loop agent.
  *
  * USAGE:
  * const { chatProcessId, handle } = await chatSpawnBroker({
@@ -58,7 +58,6 @@ export const chatSpawnBroker = async ({
   onEntries,
   onComplete,
   onQuestCreated,
-  onDesignSessionLinked,
   onSessionIdExtracted,
   registerProcess,
   recordActivity,
@@ -94,7 +93,6 @@ export const chatSpawnBroker = async ({
     sessionId: SessionId | null;
   }) => void | Promise<void>;
   onQuestCreated?: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
-  onDesignSessionLinked?: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   onSessionIdExtracted?: (params: { chatProcessId: ProcessId; sessionId: SessionId }) => void;
   registerProcess: (params: {
     processId: ProcessId;
@@ -166,8 +164,7 @@ export const chatSpawnBroker = async ({
   const launchResult = agentLaunchBroker({
     questId: resolvedQuestId,
     questWorkItemId: chatWorkItemId,
-    // 'design' is glyphsmith's alone; every spec-intake role (chaoswhisperer, bughunt) is a chat.
-    processIdPrefix: processIdPrefixContract.parse(role === 'glyphsmith' ? 'design' : 'chat'),
+    processIdPrefix: processIdPrefixContract.parse('chat'),
     prompt,
     cwd: repoRootCwd,
     model: roleToModelTransformer({ role }),
@@ -212,9 +209,6 @@ export const chatSpawnBroker = async ({
     },
     onComplete: ({ chatProcessId: cpid, exitCode, sessionId: extractedSessionId }) => {
       const finalSessionId = sessionId ?? extractedSessionId;
-      if (!sessionId && extractedSessionId !== null && role === 'glyphsmith') {
-        onDesignSessionLinked?.({ questId: resolvedQuestId, chatProcessId: cpid });
-      }
       // The caller's onComplete may return a Promise (chat-start-responder.onComplete is
       // async because it awaits sub-agent tail drains before emitting chat-complete on the
       // bus). Fire-and-forget here — chat-spawn-broker has no further work to coordinate

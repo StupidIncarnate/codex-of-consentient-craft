@@ -21,8 +21,8 @@ const WORK_ITEM_STATUSES = Object.keys(
 ) as readonly WorkItemStatusKey[];
 
 // Matches the crypto.randomUUID literal sticky-mocked by chatSpawnBrokerProxy (composed inside
-// FollowupChatStartResponderProxy) and the 'chat' processIdPrefix every non-glyphsmith chat role
-// gets (chatSpawnBroker.ts: `role === 'glyphsmith' ? 'design' : 'chat'`).
+// FollowupChatStartResponderProxy) and the one 'chat' processIdPrefix every chat role gets
+// (chatSpawnBroker.ts: `processIdPrefixContract.parse('chat')`).
 const MINTED_CHAT_PROCESS_ID = 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479';
 const MINTED_WORK_ITEM_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';

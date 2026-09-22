@@ -1,7 +1,6 @@
 import { QuestIdStub, SessionIdStub, WorkItemRoleStub } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { dumpsterCreatePromptStatics } from '../../statics/dumpster-create-prompt/dumpster-create-prompt-statics';
-import { glyphsmithPromptStatics } from '../../statics/glyphsmith-prompt/glyphsmith-prompt-statics';
 import { tavernkeeperPromptStatics } from '../../statics/tavernkeeper-prompt/tavernkeeper-prompt-statics';
 import { chatPromptBuildTransformer } from './chat-prompt-build-transformer';
 import { chatPromptBuildTransformerProxy } from './chat-prompt-build-transformer.proxy';
@@ -95,22 +94,31 @@ describe('chatPromptBuildTransformer', () => {
   });
 
   describe('glyphsmith role', () => {
-    it('VALID: {glyphsmith + message + questId} => returns prompt with glyphsmith template', () => {
+    it('ERROR: {glyphsmith + message + questId} => throws naming the role', () => {
       chatPromptBuildTransformerProxy();
       const role = WorkItemRoleStub({ value: 'glyphsmith' });
       const questId = QuestIdStub({ value: 'design-quest-456' });
 
-      const result = chatPromptBuildTransformer({
-        role,
-        message: 'Create login page',
-        questId,
-      });
+      expect(() =>
+        chatPromptBuildTransformer({
+          role,
+          message: 'Create login page',
+          questId,
+        }),
+      ).toThrow(/^chatPromptBuildTransformer has no template for role 'glyphsmith'.*$/u);
+    });
 
-      const expected = glyphsmithPromptStatics.prompt.template
-        .replace(glyphsmithPromptStatics.prompt.placeholders.arguments, 'Create login page')
-        .replace(glyphsmithPromptStatics.prompt.placeholders.questId, 'design-quest-456');
+    it('ERROR: {glyphsmith + no questId} => throws naming the role', () => {
+      chatPromptBuildTransformerProxy();
+      const role = WorkItemRoleStub({ value: 'glyphsmith' });
 
-      expect(result).toBe(expected);
+      expect(() =>
+        chatPromptBuildTransformer({
+          role,
+          message: 'Create login page',
+          questId: null,
+        }),
+      ).toThrow(/^chatPromptBuildTransformer has no template for role 'glyphsmith'.*$/u);
     });
 
     it('VALID: {glyphsmith + sessionId} => returns raw message as prompt', () => {
@@ -126,24 +134,6 @@ describe('chatPromptBuildTransformer', () => {
       });
 
       expect(result).toBe('Continue design');
-    });
-
-    it('VALID: {glyphsmith + no questId} => returns template without quest ID replaced', () => {
-      chatPromptBuildTransformerProxy();
-      const role = WorkItemRoleStub({ value: 'glyphsmith' });
-
-      const result = chatPromptBuildTransformer({
-        role,
-        message: 'Create login page',
-        questId: null,
-      });
-
-      const expected = glyphsmithPromptStatics.prompt.template.replace(
-        glyphsmithPromptStatics.prompt.placeholders.arguments,
-        'Create login page',
-      );
-
-      expect(result).toBe(expected);
     });
   });
 
@@ -184,7 +174,7 @@ describe('chatPromptBuildTransformer', () => {
       expect(result).toBe('Continue the follow-up');
     });
 
-    it('VALID: {tavernkeeper} => builds from the tavernkeeper template, not the glyphsmith template', () => {
+    it('VALID: {tavernkeeper} => builds from the tavernkeeper template, not an intake template', () => {
       chatPromptBuildTransformerProxy();
       const role = WorkItemRoleStub({ value: 'tavernkeeper' });
       const questId = QuestIdStub({ value: 'followup-quest-789' });
@@ -201,17 +191,18 @@ describe('chatPromptBuildTransformer', () => {
           'Can you nudge this button color?',
         )
         .replace(tavernkeeperPromptStatics.prompt.placeholders.questId, 'followup-quest-789');
-      const glyphsmithExpected = glyphsmithPromptStatics.prompt.template
+      const chaoswhispererExpected = dumpsterCreatePromptStatics.prompt.template
         .replace(
-          glyphsmithPromptStatics.prompt.placeholders.arguments,
+          dumpsterCreatePromptStatics.prompt.placeholders.arguments,
           'Can you nudge this button color?',
         )
-        .replace(glyphsmithPromptStatics.prompt.placeholders.questId, 'followup-quest-789');
+        .split(dumpsterCreatePromptStatics.prompt.placeholders.questId)
+        .join('followup-quest-789');
 
-      const matchesGlyphsmithTemplate = result === glyphsmithExpected;
+      const matchesChaoswhispererTemplate = result === chaoswhispererExpected;
 
       expect(result).toBe(tavernkeeperExpected);
-      expect(matchesGlyphsmithTemplate).toBe(false);
+      expect(matchesChaoswhispererTemplate).toBe(false);
     });
   });
 
