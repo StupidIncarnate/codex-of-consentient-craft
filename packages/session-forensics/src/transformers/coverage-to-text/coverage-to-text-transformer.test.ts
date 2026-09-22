@@ -7,7 +7,7 @@ const CAVEAT_LINE_TWO =
 const CAVEAT_LINE_THREE =
   'For the exact numbers, ask get-qa-checklist({questId, operationItemId}).';
 const HEADER_LINE =
-  "  sign-off track         REQUIRED  signed  confirmed  can't confirm  NOT SIGNED";
+  "  sign-off track         REQUIRED  signed        met     can't meet  NOT SIGNED";
 
 describe('coverageToTextTransformer', () => {
   describe('one flow, three rows', () => {
@@ -19,8 +19,8 @@ describe('coverageToTextTransformer', () => {
           track: 'flowrider',
           owed: 10,
           signed: 8,
-          confirmed: 8,
-          unconfirmable: 0,
+          met: 8,
+          cantMeet: 0,
           unsigned: 2,
         }),
         TrackCoverageStub({
@@ -28,8 +28,8 @@ describe('coverageToTextTransformer', () => {
           track: 'siegemaster',
           owed: 20,
           signed: 15,
-          confirmed: 10,
-          unconfirmable: 5,
+          met: 10,
+          cantMeet: 5,
           unsigned: 5,
         }),
       ];
@@ -60,8 +60,8 @@ describe('coverageToTextTransformer', () => {
           track: 'codeweaver',
           owed: 5,
           signed: 5,
-          confirmed: 5,
-          unconfirmable: 0,
+          met: 5,
+          cantMeet: 0,
           unsigned: 0,
         }),
         TrackCoverageStub({
@@ -69,8 +69,8 @@ describe('coverageToTextTransformer', () => {
           track: 'flowrider',
           owed: 5,
           signed: 4,
-          confirmed: 4,
-          unconfirmable: 0,
+          met: 4,
+          cantMeet: 0,
           unsigned: 1,
         }),
         TrackCoverageStub({
@@ -78,8 +78,8 @@ describe('coverageToTextTransformer', () => {
           track: 'siegemaster',
           owed: 7,
           signed: 0,
-          confirmed: 0,
-          unconfirmable: 0,
+          met: 0,
+          cantMeet: 0,
           unsigned: 7,
         }),
         TrackCoverageStub({
@@ -87,8 +87,8 @@ describe('coverageToTextTransformer', () => {
           track: 'codeweaver',
           owed: 3,
           signed: 3,
-          confirmed: 2,
-          unconfirmable: 1,
+          met: 2,
+          cantMeet: 1,
           unsigned: 0,
         }),
         TrackCoverageStub({
@@ -96,8 +96,8 @@ describe('coverageToTextTransformer', () => {
           track: 'flowrider',
           owed: 0,
           signed: 0,
-          confirmed: 0,
-          unconfirmable: 0,
+          met: 0,
+          cantMeet: 0,
           unsigned: 0,
         }),
         TrackCoverageStub({
@@ -105,8 +105,8 @@ describe('coverageToTextTransformer', () => {
           track: 'siegemaster',
           owed: 7,
           signed: 1,
-          confirmed: 1,
-          unconfirmable: 0,
+          met: 1,
+          cantMeet: 0,
           unsigned: 6,
         }),
       ];
@@ -151,8 +151,8 @@ describe('coverageToTextTransformer', () => {
           track: 'flowrider',
           owed: 6,
           signed: 0,
-          confirmed: 0,
-          unconfirmable: 0,
+          met: 0,
+          cantMeet: 0,
           unsigned: 6,
         }),
       ];
@@ -173,15 +173,15 @@ describe('coverageToTextTransformer', () => {
     });
   });
 
-  describe('non-zero unconfirmable', () => {
-    it('VALID: {unconfirmable: 3} => the unconfirmable column carries the non-zero count', () => {
-      const coverage = [TrackCoverageStub({ flowId: 'flow-unconfirmable' })];
+  describe('non-zero cantMeet', () => {
+    it('VALID: {cantMeet: 3} => the cantMeet column carries the non-zero count', () => {
+      const coverage = [TrackCoverageStub({ flowId: 'flow-cant-meet' })];
 
       const result = coverageToTextTransformer({ coverage });
 
       expect(String(result)).toBe(
         [
-          'Flow flow-unconfirmable',
+          'Flow flow-cant-meet',
           HEADER_LINE,
           '  codeweaver                   58      58         55              3           0',
           '',

@@ -252,7 +252,7 @@ describe('DigestRunResponder', () => {
       expect(String(result)).toBe(
         [
           'Flow bare-flow',
-          "  sign-off track         REQUIRED  signed  confirmed  can't confirm  NOT SIGNED",
+          "  sign-off track         REQUIRED  signed        met     can't meet  NOT SIGNED",
           '  codeweaver                    0       0          0              0           0',
           '  flowrider                     0       0          0              0           0',
           '  siegemaster                   7       0          0              0           7',

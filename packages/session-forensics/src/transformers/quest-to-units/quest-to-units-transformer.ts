@@ -18,8 +18,8 @@
  * - An unlabelled edge is not a branch anyone chose, so only labelled edges become units.
  * - All seven `qaOffMapProbeStatics` families are emitted for EVERY flow.
  *
- * Each unit's `trackVerdicts` is empty by default; sign-offs on flow elements have been retired, and
- * verdicts are tracked on work-item observations instead.
+ * Each unit's `trackMarks` is empty by default; sign-offs on flow elements have been retired, and
+ * marks are tracked on work-item observations instead.
  */
 
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
@@ -56,7 +56,7 @@ export const questToUnitsTransformer = ({
           unitId: node.id,
           nodeId: node.id,
           packages: node.packages,
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       ];
     });
@@ -72,7 +72,7 @@ export const questToUnitsTransformer = ({
           packages: node.packages,
           ...(observable.addedBy !== 'spec' && { addedBy: observable.addedBy }),
           verificationMethod: observable.verifyByReading === true ? 'reading' : 'test',
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       ),
     );
@@ -89,7 +89,7 @@ export const questToUnitsTransformer = ({
           kind: 'branch',
           unitId: edge.id,
           nodeId: `${edge.from}->${edge.to}`,
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       ];
     });
@@ -101,7 +101,7 @@ export const questToUnitsTransformer = ({
           flowType: flow.flowType,
           kind: 'off-map',
           unitId: family,
-          trackVerdicts: {},
+          trackMarks: {},
         }),
     );
 

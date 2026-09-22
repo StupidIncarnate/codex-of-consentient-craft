@@ -11,8 +11,8 @@ export const VerificationUnitStub = ({
     unitId: 'check-thumbnail-renders',
     packages: ['web'],
     verificationMethod: 'test',
-    trackVerdicts: {
-      codeweaver: 'confirmed',
+    trackMarks: {
+      codeweaver: 'met',
     },
     ...props,
   });

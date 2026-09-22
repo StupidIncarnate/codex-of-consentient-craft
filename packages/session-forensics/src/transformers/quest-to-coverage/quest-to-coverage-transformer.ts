@@ -40,21 +40,17 @@ export const questToCoverageTransformer = ({
 
     return tracks.map((track): TrackCoverage => {
       const owedUnits = flowUnits.filter((unit) => isTrackOwedUnitGuard({ track, unit }));
-      const signedUnits = owedUnits.filter((unit) => Object.hasOwn(unit.trackVerdicts, track));
-      const confirmedUnits = signedUnits.filter(
-        (unit) => unit.trackVerdicts[track] === 'confirmed',
-      );
-      const unconfirmableUnits = signedUnits.filter(
-        (unit) => unit.trackVerdicts[track] === 'unconfirmable',
-      );
+      const signedUnits = owedUnits.filter((unit) => Object.hasOwn(unit.trackMarks, track));
+      const metUnits = signedUnits.filter((unit) => unit.trackMarks[track] === 'met');
+      const cantMeetUnits = signedUnits.filter((unit) => unit.trackMarks[track] === 'cant-meet');
 
       return trackCoverageContract.parse({
         flowId: flow.id,
         track,
         owed: owedUnits.length,
         signed: signedUnits.length,
-        confirmed: confirmedUnits.length,
-        unconfirmable: unconfirmableUnits.length,
+        met: metUnits.length,
+        cantMeet: cantMeetUnits.length,
         unsigned: owedUnits.length - signedUnits.length,
       });
     });

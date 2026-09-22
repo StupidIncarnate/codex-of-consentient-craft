@@ -5,25 +5,25 @@
  * graph. None of the three is a list a measurement can walk. So `quest-to-units` flattens all of
  * them into these units, one per signable thing, and `quest-to-coverage` counts them.
  *
- * `trackVerdicts` holds an OPTIONAL verdict per sign-off track rather than a boolean. A sign-off
- * track is one reviewing role: codeweaver, flowrider or siegemaster. The reason for a verdict is
- * that `trackCoverageContract` has to reconcile `confirmed + unconfirmable === signed`, and a
- * boolean can only say that a track signed — never which verdict it carried. An ABSENT key means
- * that track has not signed this unit. A PRESENT key means it has, and the value is the verdict.
- * "Signed" is therefore "the key is present", so the confirmed and unconfirmable counts fall
- * straight out of what the present keys hold. Nothing keeps a second boolean in step.
+ * `trackMarks` holds an OPTIONAL `UnitMark` per sign-off track rather than a boolean. A sign-off
+ * track is one reviewing role: codeweaver, flowrider or siegemaster. The reason for a mark rather
+ * than a boolean is that `trackCoverageContract` has to reconcile `met + cantMeet === signed`, and a
+ * boolean can only say that a track signed — never which mark it carried. An ABSENT key means that
+ * track has not signed this unit. A PRESENT key means it has, and the value is the mark. "Signed" is
+ * therefore "the key is present", so the met and cantMeet counts fall straight out of what the
+ * present keys hold. Nothing keeps a second boolean in step.
  *
  * USAGE:
  * verificationUnitContract.parse({
  *   flowId: 'render-images-in-transcript', flowType: 'runtime', kind: 'observable',
  *   unitId: 'check-thumbnail-renders', nodeId: 'transcript-panel', addedBy: 'siegemaster',
  *   verificationMethod: 'reading',
- *   trackVerdicts: { codeweaver: 'confirmed', siegemaster: 'unconfirmable' },
+ *   trackMarks: { codeweaver: 'met', siegemaster: 'cant-meet' },
  * });
  */
 import { z } from 'zod';
 
-import { signoffVerdictContract } from '@dungeonmaster/shared/contracts';
+import { unitMarkContract } from '@dungeonmaster/shared/contracts';
 
 export const verificationUnitContract = z
   .object({
@@ -37,10 +37,10 @@ export const verificationUnitContract = z
       .enum(['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'siegemaster', 'operator'])
       .optional(),
     verificationMethod: z.enum(['test', 'reading']).default('test'),
-    trackVerdicts: z.object({
-      codeweaver: signoffVerdictContract.optional(),
-      flowrider: signoffVerdictContract.optional(),
-      siegemaster: signoffVerdictContract.optional(),
+    trackMarks: z.object({
+      codeweaver: unitMarkContract.optional(),
+      flowrider: unitMarkContract.optional(),
+      siegemaster: unitMarkContract.optional(),
     }),
   })
   .brand<'VerificationUnit'>();

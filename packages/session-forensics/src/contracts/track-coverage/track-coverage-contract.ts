@@ -8,7 +8,7 @@
  * USAGE:
  * trackCoverageContract.parse({
  *   flowId: 'paste-image-into-composer', track: 'codeweaver',
- *   owed: 58, signed: 58, confirmed: 55, unconfirmable: 3, unsigned: 0,
+ *   owed: 58, signed: 58, met: 55, cantMeet: 3, unsigned: 0,
  * });
  */
 import { z } from 'zod';
@@ -19,15 +19,15 @@ export const trackCoverageContract = z
     track: z.enum(['codeweaver', 'flowrider', 'siegemaster']),
     owed: z.number().int().nonnegative(),
     signed: z.number().int().nonnegative(),
-    confirmed: z.number().int().nonnegative(),
-    unconfirmable: z.number().int().nonnegative(),
+    met: z.number().int().nonnegative(),
+    cantMeet: z.number().int().nonnegative(),
     unsigned: z.number().int().nonnegative(),
   })
   .refine((coverage) => coverage.signed + coverage.unsigned === coverage.owed, {
     message: 'signed + unsigned must equal owed',
   })
-  .refine((coverage) => coverage.confirmed + coverage.unconfirmable === coverage.signed, {
-    message: 'confirmed + unconfirmable must equal signed',
+  .refine((coverage) => coverage.met + coverage.cantMeet === coverage.signed, {
+    message: 'met + cantMeet must equal signed',
   })
   .brand<'TrackCoverage'>();
 

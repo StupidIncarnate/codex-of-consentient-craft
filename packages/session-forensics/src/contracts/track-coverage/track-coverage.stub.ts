@@ -7,8 +7,8 @@ export const TrackCoverageStub = ({ ...props }: StubArgument<TrackCoverage> = {}
     track: 'codeweaver',
     owed: 58,
     signed: 58,
-    confirmed: 55,
-    unconfirmable: 3,
+    met: 55,
+    cantMeet: 3,
     unsigned: 0,
     ...props,
   });

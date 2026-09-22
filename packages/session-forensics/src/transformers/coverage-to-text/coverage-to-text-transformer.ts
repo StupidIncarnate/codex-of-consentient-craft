@@ -21,15 +21,15 @@ import type { TrackCoverage } from '../../contracts/track-coverage/track-coverag
 const TRACK_WIDTH = 22;
 const OWED_WIDTH = 8;
 const SIGNED_WIDTH = 7;
-const CONFIRMED_WIDTH = 10;
-const UNCONFIRMABLE_WIDTH = 14;
+const MET_WIDTH = 10;
+const CANT_MEET_WIDTH = 14;
 const UNSIGNED_WIDTH = 11;
 
 const HEADER_LINE = `  ${'sign-off track'.padEnd(TRACK_WIDTH)} ${'REQUIRED'.padStart(
   OWED_WIDTH,
-)} ${'signed'.padStart(SIGNED_WIDTH)} ${'confirmed'.padStart(
-  CONFIRMED_WIDTH,
-)} ${"can't confirm".padStart(UNCONFIRMABLE_WIDTH)} ${'NOT SIGNED'.padStart(UNSIGNED_WIDTH)}`;
+)} ${'signed'.padStart(SIGNED_WIDTH)} ${'met'.padStart(MET_WIDTH)} ${"can't meet".padStart(
+  CANT_MEET_WIDTH,
+)} ${'NOT SIGNED'.padStart(UNSIGNED_WIDTH)}`;
 
 const CAVEAT_BLOCK = [
   'These counts can be too high.',
@@ -61,9 +61,9 @@ export const coverageToTextTransformer = ({
       (row) =>
         `  ${row.track.padEnd(TRACK_WIDTH)} ${String(row.owed).padStart(OWED_WIDTH)} ${String(
           row.signed,
-        ).padStart(SIGNED_WIDTH)} ${String(row.confirmed).padStart(CONFIRMED_WIDTH)} ${String(
-          row.unconfirmable,
-        ).padStart(UNCONFIRMABLE_WIDTH)} ${String(row.unsigned).padStart(UNSIGNED_WIDTH)}`,
+        ).padStart(SIGNED_WIDTH)} ${String(row.met).padStart(MET_WIDTH)} ${String(
+          row.cantMeet,
+        ).padStart(CANT_MEET_WIDTH)} ${String(row.unsigned).padStart(UNSIGNED_WIDTH)}`,
     );
 
     return [`Flow ${flowId}`, HEADER_LINE, ...rowLines].join('\n');

@@ -22,7 +22,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -33,7 +33,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'checkout-success',
           nodeId: 'checkout-success',
           packages: ['web'],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
@@ -56,7 +56,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -76,7 +76,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -87,7 +87,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'order-cancelled',
           nodeId: 'order-cancelled',
           packages: ['web'],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         VerificationUnitStub({
           flowId: 'order-flow',
@@ -95,7 +95,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'order-shipped',
           nodeId: 'order-shipped',
           packages: ['web'],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
@@ -120,7 +120,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -131,7 +131,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'attach-fails',
           nodeId: 'compose-node->error-node',
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
@@ -149,7 +149,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -179,7 +179,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -191,7 +191,7 @@ describe('questToUnitsTransformer', () => {
           nodeId: 'compose-node',
           packages: ['web'],
           verificationMethod: 'reading',
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
@@ -214,7 +214,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -226,7 +226,7 @@ describe('questToUnitsTransformer', () => {
           nodeId: 'compose-node',
           packages: ['web'],
           verificationMethod: 'test',
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
@@ -253,7 +253,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -265,7 +265,7 @@ describe('questToUnitsTransformer', () => {
           nodeId: 'compose-node',
           packages: ['web'],
           addedBy: 'siegemaster',
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
@@ -288,7 +288,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -299,7 +299,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'in-spec-from-start',
           nodeId: 'compose-node',
           packages: ['web'],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
@@ -323,7 +323,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -334,7 +334,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'shows-spinner',
           nodeId: 'compose-node',
           packages: ['web'],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         VerificationUnitStub({
           flowId: 'flow-two-obs',
@@ -342,7 +342,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'shows-result',
           nodeId: 'compose-node',
           packages: ['web'],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
@@ -350,7 +350,7 @@ describe('questToUnitsTransformer', () => {
   });
 
   describe('off-map units', () => {
-    it('EDGE: {zero offMapSignoffs entries} => seven units, all trackVerdicts empty', () => {
+    it('EDGE: {zero offMapSignoffs entries} => seven units, all trackMarks empty', () => {
       const node = FlowNodeStub({ id: 'idle', type: 'state', packages: ['web'] });
       const flow = FlowStub({
         id: 'no-signoffs-flow',
@@ -367,7 +367,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -408,7 +408,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -419,7 +419,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'confirm-done',
           nodeId: 'confirm-done',
           packages: ['web'],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         VerificationUnitStub({
           flowId: 'combo-flow',
@@ -427,7 +427,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'shows-thumbnail',
           nodeId: 'compose-node',
           packages: ['web'],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         VerificationUnitStub({
           flowId: 'combo-flow',
@@ -435,7 +435,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'attach-fails',
           nodeId: 'compose-node->error-node',
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
@@ -455,7 +455,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
       const offMapUnitsB = Object.keys(qaOffMapProbeStatics.byFamily).map((family) =>
@@ -464,7 +464,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -490,7 +490,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
