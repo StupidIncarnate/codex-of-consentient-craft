@@ -44,14 +44,25 @@
  * a worker from a later family's `unmet`. Dropping the field would not deadlock either reading — the
  * reviewer would mark the unit `unmet` and the ordinary route would mint a worker — so it is carried
  * unchanged rather than decided here.
+ *
+ * NO ENTRY LISTS `human-check`, AND THAT ABSENCE IS WHAT DROPS A HUMAN-ONLY CRITERION FROM EVERY
+ * STEP'S SCOPE. An observable flagged `verifyByHuman` resolves to `human-check`; because no
+ * (family, step) below declares that method, the unit matches no scope and falls out of every
+ * denominator at once, with no special case anywhere. Adding `human-check` to any list below hands
+ * that step a criterion no automated check can settle, which is the one thing the flag exists to
+ * prevent. The explicit element type is what makes the value expressible at all: under `as const`
+ * alone each array infers its own literal tuple, so a method nothing lists has nowhere to be
+ * declared.
  */
+
+type VerificationMethod = 'test' | 'reading' | 'human-check';
 
 export const stepScopeStatics = {
   byFamilyStep: {
     codeweaver: {
       review: {
         flowTypes: ['runtime', 'operational'],
-        verificationMethods: ['test', 'reading'],
+        verificationMethods: ['test', 'reading'] as readonly VerificationMethod[],
         unitKinds: ['terminal', 'branch', 'observable'],
         packageTypes: [
           'http-backend',
@@ -70,7 +81,7 @@ export const stepScopeStatics = {
     flowrider: {
       review: {
         flowTypes: ['runtime'],
-        verificationMethods: ['test'],
+        verificationMethods: ['test'] as readonly VerificationMethod[],
         unitKinds: ['terminal', 'branch', 'observable'],
         packageTypes: [
           'http-backend',
@@ -92,7 +103,7 @@ export const stepScopeStatics = {
         // codeweaver's reviewer, the only family that can settle them — an operational flow is a
         // one-time task sequence with no repeatable walk for a siege lane to drive.
         flowTypes: ['runtime'],
-        verificationMethods: ['test'],
+        verificationMethods: ['test'] as readonly VerificationMethod[],
         unitKinds: ['terminal', 'branch', 'observable', 'off-map'],
         packageTypes: [
           'http-backend',
@@ -118,7 +129,7 @@ export const stepScopeStatics = {
         // Same narrowing as happyWalk, and for the same reason: operational units move to
         // codeweaver's reviewer, so this step is never measured over them either.
         flowTypes: ['runtime'],
-        verificationMethods: ['test'],
+        verificationMethods: ['test'] as readonly VerificationMethod[],
         unitKinds: ['off-map'],
         packageTypes: [
           'http-backend',
