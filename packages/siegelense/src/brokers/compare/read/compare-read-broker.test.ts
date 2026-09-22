@@ -5,13 +5,17 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { CompareQueryStub } from '../../../contracts/compare-query/compare-query.stub';
+import { ElementDeltaStub } from '../../../contracts/element-delta/element-delta.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
+import { KeyRowStub } from '../../../contracts/key-row/key-row.stub';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { RunIndexStub } from '../../../contracts/run-index/run-index.stub';
 import { RunResultStub } from '../../../contracts/run-result/run-result.stub';
 import { ShotListingStub } from '../../../contracts/shot-listing/shot-listing.stub';
+import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
+import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { RunMissingError } from '../../../errors/run-missing/run-missing-error';
 
@@ -96,6 +100,7 @@ describe('compareReadBroker', () => {
         server: { errors: '+0', new: [] },
         network: { errors: '+0', new: [] },
         pixels: null,
+        elements: { runA: null, runB: null },
       });
     });
   });
@@ -239,6 +244,7 @@ describe('compareReadBroker', () => {
         server: { errors: '+0', new: [] },
         network: { errors: '+0', new: [] },
         pixels: 'last capture differs 0%',
+        elements: { runA: null, runB: null },
       });
     });
   });
@@ -590,6 +596,7 @@ describe('compareReadBroker', () => {
         server: { errors: '+0', new: [] },
         network: { errors: '+1', new: [realFailureLine] },
         pixels: null,
+        elements: { runA: null, runB: null },
       });
     });
 
@@ -748,6 +755,129 @@ describe('compareReadBroker', () => {
       });
 
       expect(result.network).toStrictEqual({ errors: '+1', new: [noResponseLine] });
+    });
+  });
+
+  describe('element deltas', () => {
+    it('VALID: {runB last step recorded an appeared row and a changed row, runA recorded none} => elements.runA is null and elements.runB carries the real rows', async () => {
+      const proxy = compareReadBrokerProxy();
+      const instanceId = InstanceIdStub();
+      const guildId = GuildIdStub();
+      const runA = RunIdStub({ value: 'run_4' });
+      const runB = RunIdStub({ value: 'run_5' });
+      const appearedRow = KeyRowStub({ testId: 'GUILD_ADD_MODAL', tag: 'div' });
+      const changedBefore = KeyRowStub({ testId: 'GUILD_COUNT', text: '3' });
+      const changedAfter = KeyRowStub({ testId: 'GUILD_COUNT', text: '4' });
+      const runBDelta = ElementDeltaStub({
+        appeared: [appearedRow],
+        disappeared: [],
+        changed: [{ before: changedBefore, after: changedAfter }],
+      });
+
+      proxy.setupInstance({
+        entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
+      });
+      const evidencePath = proxy.evidencePathFor({ instanceId, guildId });
+      proxy.setupRun({
+        evidencePath,
+        runId: runA,
+        result: RunResultStub({ instanceId, runId: runA, shots: [] }),
+      });
+      proxy.setupRun({
+        evidencePath,
+        runId: runB,
+        result: RunResultStub({ instanceId, runId: runB, shots: [] }),
+      });
+      proxy.setupStepReadings({
+        evidencePath,
+        runId: runB,
+        readings: [StepReadingStub({ step: StepIndexStub({ value: 1 }), delta: runBDelta })],
+      });
+
+      const result = await compareReadBroker({
+        query: CompareQueryStub({ instanceId, runA, runB }),
+      });
+
+      expect(result.elements).toStrictEqual({ runA: null, runB: runBDelta });
+    });
+
+    it("VALID: {runA's step 1 carries a delta, step 2 carries none} => elements.runA is step 1's delta, the true last one recorded", async () => {
+      const proxy = compareReadBrokerProxy();
+      const instanceId = InstanceIdStub();
+      const guildId = GuildIdStub();
+      const runA = RunIdStub({ value: 'run_4' });
+      const runB = RunIdStub({ value: 'run_5' });
+      const runADelta = ElementDeltaStub({ appeared: [KeyRowStub({ testId: 'ONLY_ROW' })] });
+
+      proxy.setupInstance({
+        entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
+      });
+      const evidencePath = proxy.evidencePathFor({ instanceId, guildId });
+      proxy.setupRun({
+        evidencePath,
+        runId: runA,
+        result: RunResultStub({ instanceId, runId: runA, shots: [] }),
+      });
+      proxy.setupRun({
+        evidencePath,
+        runId: runB,
+        result: RunResultStub({ instanceId, runId: runB, shots: [] }),
+      });
+      proxy.setupStepReadings({
+        evidencePath,
+        runId: runA,
+        readings: [
+          StepReadingStub({ step: StepIndexStub({ value: 1 }), delta: runADelta }),
+          StepReadingStub({ step: StepIndexStub({ value: 2 }) }),
+        ],
+      });
+
+      const result = await compareReadBroker({
+        query: CompareQueryStub({ instanceId, runA, runB }),
+      });
+
+      expect(result.elements.runA).toStrictEqual(runADelta);
+    });
+
+    it('VALID: {runA and runB each recorded a different delta} => elements reports both, side by side', async () => {
+      const proxy = compareReadBrokerProxy();
+      const instanceId = InstanceIdStub();
+      const guildId = GuildIdStub();
+      const runA = RunIdStub({ value: 'run_4' });
+      const runB = RunIdStub({ value: 'run_5' });
+      const runADelta = ElementDeltaStub({ appeared: [KeyRowStub({ testId: 'A_ONLY' })] });
+      const runBDelta = ElementDeltaStub({ disappeared: [KeyRowStub({ testId: 'B_ONLY' })] });
+
+      proxy.setupInstance({
+        entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
+      });
+      const evidencePath = proxy.evidencePathFor({ instanceId, guildId });
+      proxy.setupRun({
+        evidencePath,
+        runId: runA,
+        result: RunResultStub({ instanceId, runId: runA, shots: [] }),
+      });
+      proxy.setupRun({
+        evidencePath,
+        runId: runB,
+        result: RunResultStub({ instanceId, runId: runB, shots: [] }),
+      });
+      proxy.setupStepReadings({
+        evidencePath,
+        runId: runA,
+        readings: [StepReadingStub({ step: StepIndexStub({ value: 1 }), delta: runADelta })],
+      });
+      proxy.setupStepReadings({
+        evidencePath,
+        runId: runB,
+        readings: [StepReadingStub({ step: StepIndexStub({ value: 1 }), delta: runBDelta })],
+      });
+
+      const result = await compareReadBroker({
+        query: CompareQueryStub({ instanceId, runA, runB }),
+      });
+
+      expect(result.elements).toStrictEqual({ runA: runADelta, runB: runBDelta });
     });
   });
 

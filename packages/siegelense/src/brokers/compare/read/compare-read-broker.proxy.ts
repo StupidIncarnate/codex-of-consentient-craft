@@ -5,6 +5,7 @@ import type { RegistryEntryStub } from '../../../contracts/registry-entry/regist
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import type { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import type { RunResultStub } from '../../../contracts/run-result/run-result.stub';
+import type { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { instanceStateResolveBrokerProxy } from '../../instance/state-resolve/instance-state-resolve-broker.proxy';
@@ -12,11 +13,13 @@ import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/in
 import { locationsRunPathsFindBrokerProxy } from '../../locations/run-paths-find/locations-run-paths-find-broker.proxy';
 import { resultsReadBrokerProxy } from '../../results/read/results-read-broker.proxy';
 import { shotChangeReadBrokerProxy } from '../../shot/change-read/shot-change-read-broker.proxy';
+import { elementDeltaLastLayerBrokerProxy } from './element-delta-last-layer-broker.proxy';
 import { newLinesLayerBrokerProxy } from './new-lines-layer-broker.proxy';
 
 type RegistryEntry = ReturnType<typeof RegistryEntryStub>;
 type RunId = ReturnType<typeof RunIdStub>;
 type RunResult = ReturnType<typeof RunResultStub>;
+type StepReading = ReturnType<typeof StepReadingStub>;
 
 // Every staged console line needs an `atMs` to satisfy `bufferEntryContract` — compareReadBroker
 // never reads it back, so one fixed constant keeps every staged line byte-for-byte reproducible.
@@ -47,6 +50,11 @@ export const compareReadBrokerProxy = (): {
     runId: RunId;
     lines: readonly ContentText[];
   }) => void;
+  setupStepReadings: (params: {
+    evidencePath: AbsoluteFilePath;
+    runId: RunId;
+    readings: readonly StepReading[];
+  }) => void;
 } => {
   // Composing the `results` domain's own entry-file proxy is deliberate, not incidental: it is the
   // one place that already resolves a real, repeatable evidence path (a sticky `homedir()` mock plus
@@ -68,6 +76,7 @@ export const compareReadBrokerProxy = (): {
   const resultsProxy = resultsReadBrokerProxy();
   const shotChangeProxy = shotChangeReadBrokerProxy();
   newLinesLayerBrokerProxy();
+  elementDeltaLastLayerBrokerProxy();
 
   const consoleLinesByRun = new Map<RunId, readonly ContentText[]>();
   const networkLinesByRun = new Map<RunId, readonly ContentText[]>();
@@ -84,13 +93,18 @@ export const compareReadBrokerProxy = (): {
         instanceId: entry.id,
         guildId: entry.guildId,
       });
-      // Every buffer/transcript resultsReadBroker touches must be staged one way or another — an
+      // Every buffer/transcript/log resultsReadBroker touches must be staged one way or another — an
       // unaddressed path throws rather than answering ENOENT. Empty content behaves exactly like a
       // missing file for `bufferReadLayerBroker`/`transcriptReadLayerBroker` (both split on '\n' and
       // filter empty lines), so this is the safe "nothing recorded yet" default every test gets for
-      // free; `setupConsoleLines` below overrides it per instance.
+      // free; `setupConsoleLines`/`setupNetworkLines` below override the buffers per instance, and
+      // `setupStepReadings` overrides the transcript per run. The server log is staged here too,
+      // ahead of any real need: `setupStepReadings` writes `StepReading`s whose `serverWindow` is
+      // never nullable, so the moment a test stages ONE real step, `results { kind: 'server' }`
+      // (which `compare` also drives) has a byte range to slice and reads `api-server.log` for real.
       resultsProxy.setupBuffer({ evidencePath, kind: 'console', content: '' });
       resultsProxy.setupBuffer({ evidencePath, kind: 'network', content: '' });
+      resultsProxy.setupServerLog({ evidencePath, content: '' });
     },
 
     // A present-but-empty registry — the honest shape of a typo'd or never-existed id, distinct
@@ -195,6 +209,22 @@ export const compareReadBrokerProxy = (): {
         )
         .join('');
       resultsProxy.setupBuffer({ evidencePath, kind: 'network', content });
+    },
+
+    setupStepReadings: ({
+      evidencePath,
+      runId,
+      readings,
+    }: {
+      evidencePath: AbsoluteFilePath;
+      runId: RunId;
+      readings: readonly StepReading[];
+    }): void => {
+      // A run's transcript is its own file, never shared across runs the way the console/network
+      // buffers above are — so, unlike `setupConsoleLines`/`setupNetworkLines`, this replaces the
+      // whole file each call rather than accumulating across runs.
+      const content = readings.map((reading) => `${JSON.stringify(reading)}\n`).join('');
+      resultsProxy.setupTranscript({ evidencePath, runId, content });
     },
   };
 };
