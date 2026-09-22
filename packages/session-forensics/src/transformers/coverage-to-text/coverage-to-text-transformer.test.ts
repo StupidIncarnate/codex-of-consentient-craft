@@ -7,7 +7,7 @@ const CAVEAT_LINE_TWO =
 const CAVEAT_LINE_THREE =
   'For the exact numbers, ask get-qa-checklist({questId, operationItemId}).';
 const HEADER_LINE =
-  "  sign-off track         REQUIRED  signed        met     can't meet  NOT SIGNED";
+  "  sign-off track         REQUIRED  signed        met     can't meet    unmet  NOT SIGNED";
 
 describe('coverageToTextTransformer', () => {
   describe('one flow, three rows', () => {
@@ -40,9 +40,9 @@ describe('coverageToTextTransformer', () => {
         [
           'Flow flow-one',
           HEADER_LINE,
-          '  codeweaver                   58      58         55              3           0',
-          '  flowrider                    10       8          8              0           2',
-          '  siegemaster                  20      15         10              5           5',
+          '  codeweaver                   58      58         55              3        0           0',
+          '  flowrider                    10       8          8              0        0           2',
+          '  siegemaster                  20      15         10              5        0           5',
           '',
           CAVEAT_LINE_ONE,
           CAVEAT_LINE_TWO,
@@ -117,15 +117,15 @@ describe('coverageToTextTransformer', () => {
         [
           'Flow flow-alpha',
           HEADER_LINE,
-          '  codeweaver                    5       5          5              0           0',
-          '  flowrider                     5       4          4              0           1',
-          '  siegemaster                   7       0          0              0           7',
+          '  codeweaver                    5       5          5              0        0           0',
+          '  flowrider                     5       4          4              0        0           1',
+          '  siegemaster                   7       0          0              0        0           7',
           '',
           'Flow flow-beta',
           HEADER_LINE,
-          '  codeweaver                    3       3          2              1           0',
-          '  flowrider                     0       0          0              0           0',
-          '  siegemaster                   7       1          1              0           6',
+          '  codeweaver                    3       3          2              1        0           0',
+          '  flowrider                     0       0          0              0        0           0',
+          '  siegemaster                   7       1          1              0        0           6',
           '',
           CAVEAT_LINE_ONE,
           CAVEAT_LINE_TWO,
@@ -163,7 +163,7 @@ describe('coverageToTextTransformer', () => {
         [
           'Flow flow-never-ran',
           HEADER_LINE,
-          '  flowrider                     6       0          0              0           6',
+          '  flowrider                     6       0          0              0        0           6',
           '',
           CAVEAT_LINE_ONE,
           CAVEAT_LINE_TWO,
@@ -183,7 +183,37 @@ describe('coverageToTextTransformer', () => {
         [
           'Flow flow-cant-meet',
           HEADER_LINE,
-          '  codeweaver                   58      58         55              3           0',
+          '  codeweaver                   58      58         55              3        0           0',
+          '',
+          CAVEAT_LINE_ONE,
+          CAVEAT_LINE_TWO,
+          CAVEAT_LINE_THREE,
+        ].join('\n'),
+      );
+    });
+  });
+
+  describe('non-zero unmet', () => {
+    it('VALID: {unmet: 3} => the unmet column carries the non-zero count', () => {
+      const coverage = [
+        TrackCoverageStub({
+          flowId: 'flow-unmet',
+          owed: 10,
+          signed: 10,
+          met: 6,
+          cantMeet: 1,
+          unmet: 3,
+          unsigned: 0,
+        }),
+      ];
+
+      const result = coverageToTextTransformer({ coverage });
+
+      expect(String(result)).toBe(
+        [
+          'Flow flow-unmet',
+          HEADER_LINE,
+          '  codeweaver                   10      10          6              1        3           0',
           '',
           CAVEAT_LINE_ONE,
           CAVEAT_LINE_TWO,

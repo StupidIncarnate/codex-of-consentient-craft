@@ -23,13 +23,14 @@ const OWED_WIDTH = 8;
 const SIGNED_WIDTH = 7;
 const MET_WIDTH = 10;
 const CANT_MEET_WIDTH = 14;
+const UNMET_WIDTH = 8;
 const UNSIGNED_WIDTH = 11;
 
 const HEADER_LINE = `  ${'sign-off track'.padEnd(TRACK_WIDTH)} ${'REQUIRED'.padStart(
   OWED_WIDTH,
 )} ${'signed'.padStart(SIGNED_WIDTH)} ${'met'.padStart(MET_WIDTH)} ${"can't meet".padStart(
   CANT_MEET_WIDTH,
-)} ${'NOT SIGNED'.padStart(UNSIGNED_WIDTH)}`;
+)} ${'unmet'.padStart(UNMET_WIDTH)} ${'NOT SIGNED'.padStart(UNSIGNED_WIDTH)}`;
 
 const CAVEAT_BLOCK = [
   'These counts can be too high.',
@@ -63,7 +64,9 @@ export const coverageToTextTransformer = ({
           row.signed,
         ).padStart(SIGNED_WIDTH)} ${String(row.met).padStart(MET_WIDTH)} ${String(
           row.cantMeet,
-        ).padStart(CANT_MEET_WIDTH)} ${String(row.unsigned).padStart(UNSIGNED_WIDTH)}`,
+        ).padStart(CANT_MEET_WIDTH)} ${String(row.unmet).padStart(UNMET_WIDTH)} ${String(
+          row.unsigned,
+        ).padStart(UNSIGNED_WIDTH)}`,
     );
 
     return [`Flow ${flowId}`, HEADER_LINE, ...rowLines].join('\n');
