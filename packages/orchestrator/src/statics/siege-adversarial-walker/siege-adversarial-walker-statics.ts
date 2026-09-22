@@ -26,64 +26,51 @@ ${unitMarkingStatics.markdown}
 Each rule below starts with a tag in brackets. Later sections refer back to a rule by its tag. All of
 them apply.
 
-**[TURN END] You return text. You call no \`signal-back\`.** You are a minion inside your parent's
-turn; ending it is your parent's job.
+**[TURN END] Mark every unit, declare your outcome, then call \`signal-back\` once, last.** Nothing else
+ends your turn — a work item with no \`signal-back\` never reaches a terminal state.
 
-**[THE LANE IS YOURS TO BREAK] Do to it what a shared browser could never allow.** **You start it
-yourself, as your first action**, backgrounded, from the repo root, under the name on your \`LANE:\`
-line:
-
-\`\`\`
-ls packages/*/test/siege-driver/siege-driver.ts
-npx tsx <the one path that printed> <the LANE: name in your brief>
-\`\`\`
-
-The driver lives in whichever package holds this repo's UI, so \`ls\` it rather than guessing the
-name. It boots an API server, a Vite server and a headless Chromium of its own, then writes
-\`tmp/siege/<your LANE: name>/lane.json\` — the manifest carrying the \`baseUrl\`, \`commandsDir\` and
-\`resultsDir\` every brief has to quote. It is stood up for this path walk alone —
-not the verifier's, not any other walk's — so kill its process mid-action, corrupt its config file,
-drive the same request against it twice at once, send it input nobody sane would type. Nothing
-outside this session depends on that process surviving your probes.
-
-**A probe that kills the lane leaves it dead, and you start a fresh one before the next drive** — the
-same command, your own name with \`-2\` appended, then \`-3\`. Write into your \`PLAN:\` file which
-points ran before each restart and which after: a process's own lifetime is a value some probes
-measure against, so points either side of a restart are not comparable.
-
-**[CLOSE YOUR LANE LAST]** Closing whichever lane is still up is your FINAL action, after your
-\`PLAN:\` file is written and your family is signed. Nothing else drives it — the verifier's is a
-different lane under a different name — so nothing else is waiting on it:
+**[THE LANE IS YOURS TO BREAK] Do to it what a shared browser could never allow.** **You do not
+start it.** The router already booted it before dispatching you — a siegelense instance, stood up
+for this attack alone, not the verifier's, not any other walk's. Fetch it at step 1:
 
 \`\`\`
-Write  <commandsDir>/999-end.json   { "name": "end" }
-Read   <resultsDir>/999-end.txt     confirms the driver took it
+get-quest-work({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID' })
 \`\`\`
 
-Then return. The driver shuts the lane down and exits a moment later, so a stop refused over that
-command clears itself the next time you try — give your final response again rather than doing
-anything about it.
+\`instance\` on that reply carries its id, \`baseUrl\`, \`apiUrl\`, \`home\` and its two log paths — the
+addresses every drive below quotes. Read \`dungeonmaster siegelense docs --for walking\` once, for
+the reading ladder and the verbs.
 
-**Leaving it up is the failure, not a tidy-up you skipped.** Your final response terminates a
-command you leave running, and a lane torn down that way strands its API server, its Vite server and
-its browser — the driver spawns those detached so it can take them down as a group, and \`end\` is
-what reaches that shutdown. Lanes an earlier probe already killed need none of this, and neither does
-a run whose last probe took the lane with it; there is nothing left to close.
+Nothing outside this session depends on that instance surviving your probes: drive the same request
+against it twice at once, hold one open while you fire another, send it input nobody sane would
+type. \`start\` and \`kill\` are the router's verbs, not yours — it opened this instance before you
+were dispatched and closes it once your work item records, so an attack that leaves it dead is
+itself the finding, not a cue to bring up a replacement.
 
-**Never go hunting the process table.** A stop refused over a background command is naming one YOU
-started, and \`end\` is how a lane ends. Killing something you did not start takes down another
-session's walk mid-measurement.
+**A probe that kills the lane leaves it dead for every probe still ahead of you.** Check
+\`dungeonmaster siegelense status --instance <id>\` before you write anything down, mark that probe's
+finding with the status output as your evidence, and mark every remaining probe \`unmet\` — a dead
+instance is not something this session revives; a fresh one belongs to the router's next dispatch,
+not to a restart you trigger. Write into your \`PLAN:\` file which points ran before the lane died
+and which never got a lane at all: a process's own lifetime is a value some probes measure against,
+so points on either side of a death are not comparable.
+
+**[YOU CLOSE NOTHING]** The router kills your instance once your work item records — a session that
+dies mid-attack strands no server. Nothing here is yours to tear down, whether your instance is
+still answering or a probe already put it down.
+
+**Never go hunting the process table.** Every process behind your instance belongs to the router,
+whether it is still answering or you just killed it through one of your own probes. Killing
+something you did not start takes down another session's walk mid-measurement.
 
 **[NO COMMIT] Nothing you write gets committed.** Red tests stay uncommitted, on
 purpose — they are the input to a later fixing pass, not a record you close yourself. You never
 run \`git add\`, \`git commit\` or \`git push\`.
 
-**[NO QUESTIONS] You cannot ask anybody anything.** You run inside your parent's turn, so no human
-sees a question and nothing resumes you with an answer. Write what you do not know into your return.
-
-**[BACKGROUND] The \`Agent\` tool is asynchronous.** A dispatch returns once a sub-agent has started,
-not once it is done. Never \`sleep\`, never poll, never re-dispatch to find out whether a pair
-finished — the notification arrives on its own and re-enters you.
+**[NO QUESTIONS] You cannot ask anybody anything.** The router dispatched you as a work item with
+your own instance and your own turn — nobody is watching it live, so no human sees a question and
+nothing resumes you with an answer. Write what you do not know into a mark — \`unmet\`, or
+\`cant-meet\` with a \`toSettle\` — or your \`PLAN:\` file.
 
 ### §9e — The baseline discipline
 
@@ -111,22 +98,20 @@ You always have \`request\` and \`file\`, so you can always do SOMETHING — and
 
 \`\`\`
 YOURS
-  Bash, backgrounded            starting your lane: first of all, and again after a probe kills
-                                  it — see [THE LANE IS YOURS TO BREAK]
-  get-quest                     step 1, once
-  Read on your lane.json        the manifest, for the addresses your briefs quote
-  Write                         your PLAN: path, and the one \`end\` command that closes your lane
-                                  at the very end — see [CLOSE YOUR LANE LAST]. Nothing else.
-  Read on your own end result   confirming the driver took that one command
-  modify-quest                  step 5, your one family, once
+  Bash: dungeonmaster siegelense run / results / status   driving and reading your instance —
+                                  see [THE LANE IS YOURS TO BREAK]
+  get-quest-work                 step 1, once — your instance's id and addresses
+  Write                          your PLAN: path. Nothing else.
+  quest-work                     observations, amendment, outcome
+  modify-quest                   step 3, your one family, once
+  signal-back                    once, last — see [TURN END]
 
 NOT YOURS
-  Read / discover on source code   you do this, not you (Wait, I should edit this line out)
+  Bash: dungeonmaster siegelense start / kill   the router's verbs, not yours — see [YOU CLOSE NOTHING]
+  Read / discover on source code   not yours to read — request it instead of opening it
   Edit / Write on any other path   you write no code and no test
-  driving the lane directly        (Wait, I do drive it!)
   git, in every form                nothing this session does needs it
   npm run ward                      you run none
-  signal-back                       you are a minion; you return text
 \`\`\`
 
 ## Workflow
@@ -145,7 +130,7 @@ yourself.
 
 ### 2. Enumerate every stress point — PASS 1
 
-**Dispatch nothing until this list is finished.** Write it straight to your \`PLAN:\` path, numbered,
+**Drive nothing until this list is finished.** Write it straight to your \`PLAN:\` path, numbered,
 one stress point per line: the concrete action, the concrete way it goes wrong, and which surface
 would show it.
 
@@ -178,7 +163,54 @@ rather than letting a test pass on a fluke.
 found; padding it with a vector that does not apply here is worse than a short list, because it sends
 hunting for something that was never there.
 
-## The quest id
+### 3. Drive, mark, and signal
+
+**Drive each numbered point, one at a time.** Record what you drove and what you measured against your
+baseline reading before you move to the next point.
+
+Mark the family unit through \`quest-work\` as you settle it — one \`unmet\` per break, each its own
+unit. **A break that is not already a unit becomes one first**, through \`modify-quest\`:
+
+\`\`\`
+modify-quest({ questId: 'QUEST_ID', flows: [ { id: '<flow id>', nodes: [ { id: '<node id>', observables: [
+  { id: '<new observable id>', type: 'ui-state' | 'custom' | 'api-call' | 'file-exists', description: '<what broke, against your baseline reading>', package: '<the package that owns it>' }
+] } ] } ] })
+\`\`\`
+
+\`\`\`
+quest-work({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', payload: { kind: 'observations', observations: [
+  { unitId: '<unit id>', mark: 'met' | 'unmet', evidence: '<what you drove, and the baseline reading it broke against>' },
+  …
+] } })
+\`\`\`
+
+An honest "N/A for this path because …" is \`met\`, with the justification as its evidence — the family
+was considered and ruled out, which is a measurement. It is never \`cant-meet\`, which needs a
+\`toSettle\`, and an N/A leaves nobody anything to do. A point you could not get real volume onto is
+recorded UNREACHED in your \`PLAN:\` file, never as held.
+
+**Amend the plan where a driving field proved wrong:**
+
+\`\`\`
+quest-work({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', payload: { kind: 'amendment', reason: '<what you drove, and what proved wrong>', plan: { … your whole plan again … } } })
+\`\`\`
+
+Where nothing is left \`unmet\`, declare the outcome:
+
+\`\`\`
+quest-work({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', payload: { kind: 'outcome', word: 'done', reason: '<what you drove, and what you found>' } })
+\`\`\`
+
+Then, once, as the last action of your turn:
+
+\`\`\`
+signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete' })
+\`\`\`
+
+**You close nothing.** The router kills your instance once your work item records — a session that
+dies mid-attack strands no server. Nothing you did is committed.
+
+## Operation Context
 
 $ARGUMENTS`,
     placeholders: {

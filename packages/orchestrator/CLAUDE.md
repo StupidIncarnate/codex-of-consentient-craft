@@ -684,7 +684,7 @@ named reviewer commits it.
 - **Siegemaster** (ten steps) writes ONE shared guide, then runs ROUNDS — one per path walk off the checklist's
   `## WALK PATHS`, cheapest first. Each round dispatches a PAIR in one message — a `siegemaster-verifier` and a
   `siegemaster-stress` — each in its own isolated LANE (an API server, a Vite server and a headless Chromium, booted by
-  a driver at `packages/web/test/siege-driver/`). The verifier walks the round's path, signs the
+  `dungeonmaster siegelense start` against `packages/siegelense`). The verifier walks the round's path, signs the
   observable/terminal/branch units on it, then dispatches sub-agents that each write ONE FAILING TEST per defect it
   found; the stress tester attacks the round's allocated off-map family the same way and signs only that family. Once
   every round has run, generic FIXER sub-agents repair what was found and a FRESH verifier re-walks the same path from
@@ -1401,9 +1401,9 @@ every work item whose linked operation item is still unfinished goes back to `pe
 keeping `sessionId` + the `resume` marker. Without it the blocking item is still `failed` at the budget, so the next
 recovery pass re-escalates and re-blocks — a resume that does nothing. The rearm persists BEFORE the status flip.
 
-**Siegemaster's rounds each own their own LANE.** `siegeLane` (`packages/web/test/siege-driver/siege-lane.ts`) stands
-up an API server, a Vite server and a headless Chromium against an OS-assigned port pair and a throwaway
-`DUNGEONMASTER_HOME` — one call per minion per round. A lane that will not start is a defect the round surfaces,
+**Siegemaster's rounds each own their own LANE.** `dungeonmaster siegelense start` (`packages/siegelense`'s
+`laneBootBroker`) stands up an API server, a Vite server and a headless Chromium against an OS-assigned port pair and
+a throwaway `DUNGEONMASTER_HOME` — one call per minion per round. A lane that will not start is a defect the round surfaces,
 never a wall. **Codeweaver and Flowrider are given no dev server and need none:** a Flowrider browser walk brings its
 own up from the project's Playwright config (`webServer`) and tears it down with the run. Operational flows run no
 server at all.
@@ -1607,7 +1607,7 @@ regardless of whether the extension is installed or the user's own interactive s
 tools — those are irrelevant to the child.
 
 Siegemaster's `ui-state` observables are driven by a Playwright lane
-(`packages/web/test/siege-driver/`), each round's verifier/stress pair holding its own headless
+(`packages/siegelense`'s `playwrightSessionAdapter`), each round's verifier/stress pair holding its own headless
 Chromium — no session dispatched from this package needs `mcp__claude-in-chrome__*`.
 
 **`--chrome` is the only way to attach those tools to a headless child**, should a future role need

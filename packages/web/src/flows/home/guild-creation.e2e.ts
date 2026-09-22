@@ -13,6 +13,26 @@ test.describe('Guild Creation Flow', () => {
     await expect(page.getByText('CREATE')).toBeVisible();
     // No CANCEL button when no projects exist
     await expect(page.getByText('CANCEL')).not.toBeVisible();
+
+    // jsdom cannot measure layout, so only a real browser can catch the Name and Path rows
+    // drifting apart (Stack align="center" centers each row as its own box, and the Path
+    // row is wider than the bare Name input). Assert the RELATIONSHIP between the two left
+    // edges, not an absolute x, with a 1px tolerance for sub-pixel rounding.
+    await page.bringToFront();
+    await page.screenshot();
+    const visibilityState = await page.evaluate(() => document.visibilityState);
+    expect(visibilityState).toBe('visible');
+
+    const nameBox = await page.getByTestId('GUILD_NAME_INPUT').boundingBox();
+    const pathBox = await page.getByTestId('GUILD_PATH_INPUT').boundingBox();
+    if (nameBox === null || pathBox === null) {
+      throw new Error(
+        'guild-creation: GUILD_NAME_INPUT or GUILD_PATH_INPUT bounding box not available',
+      );
+    }
+
+    const ALIGNMENT_TOLERANCE_PX = 1;
+    expect(Math.abs(nameBox.x - pathBox.x)).toBeLessThanOrEqual(ALIGNMENT_TOLERANCE_PX);
   });
 
   test('VALID: type name and path then CREATE succeeds', async ({ page, request }) => {

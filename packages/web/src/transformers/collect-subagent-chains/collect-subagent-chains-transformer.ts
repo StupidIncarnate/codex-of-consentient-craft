@@ -176,9 +176,13 @@ export const collectSubagentChainsTransformer = ({
         parentKey === '' ? undefined : chainsByAgentId.get(parentKey as ChainAgentId);
 
       if (parentChain === undefined) {
-        const flushedSingles: SingleGroup[] = normalBuffer.map(
-          (e) => ({ kind: 'single' as const, entry: e }) satisfies SingleGroup,
-        );
+        // A subagent map entry can be buffered here before its owning Task line is reached (the
+        // Task line sorts after its body in `entries`), then get consumed once that Task line is
+        // processed. Filter those out or the same entry renders twice: once nested in its chain,
+        // once as an orphan single from this flush.
+        const flushedSingles: SingleGroup[] = normalBuffer
+          .filter((e) => !consumed.has(e))
+          .map((e) => ({ kind: 'single' as const, entry: e }) satisfies SingleGroup);
         groups.push(...flushedSingles);
         normalBuffer = [];
         groups.push(chain as ChatEntryGroup);
@@ -205,9 +209,11 @@ export const collectSubagentChainsTransformer = ({
     }
   }
 
-  const trailingSingles: SingleGroup[] = normalBuffer.map(
-    (e) => ({ kind: 'single' as const, entry: e }) satisfies SingleGroup,
-  );
+  // Same guard as the mid-loop flush above: a buffered entry consumed later by a nested chain
+  // must not also come out here as an orphan single.
+  const trailingSingles: SingleGroup[] = normalBuffer
+    .filter((e) => !consumed.has(e))
+    .map((e) => ({ kind: 'single' as const, entry: e }) satisfies SingleGroup);
   groups.push(...trailingSingles);
 
   return groups;

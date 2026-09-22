@@ -6,7 +6,7 @@
  * USAGE:
  * isLocatorPickScopeFileGuard({ filename: '/repo/packages/siegelense/src/brokers/step/click/step-click-broker.ts' })
  * // Returns true
- * isLocatorPickScopeFileGuard({ filename: '/repo/packages/web/test/siege-driver/siege-command.ts' })
+ * isLocatorPickScopeFileGuard({ filename: '/repo/packages/siegelense/src/startup/start-siegelense.ts' })
  * // Returns false
  *
  * WHEN-TO-USE: Only inside the ban-locator-pick rule broker.

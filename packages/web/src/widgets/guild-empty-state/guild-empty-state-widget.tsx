@@ -63,37 +63,39 @@ export const GuildEmptyStateWidget = ({
         <Text ff="monospace" size="sm" style={{ color: colors.primary }}>
           NEW GUILD
         </Text>
-        <TextInput
-          label="Name"
-          placeholder="my-guild"
-          value={name}
-          onChange={(e) => {
-            setName(e.target.value);
-          }}
-          w={INPUT_WIDTH}
-          styles={inputStyles}
-          data-testid="GUILD_NAME_INPUT"
-        />
-        <Group gap="xs" align="flex-end">
+        <Stack gap="sm" align="flex-start" data-testid="GUILD_INPUT_ALIGNMENT_GROUP">
           <TextInput
-            label="Path"
-            placeholder="/home/user/my-guild"
-            value={path}
+            label="Name"
+            placeholder="my-guild"
+            value={name}
             onChange={(e) => {
-              setPath(e.target.value);
+              setName(e.target.value);
             }}
             w={INPUT_WIDTH}
             styles={inputStyles}
-            data-testid="GUILD_PATH_INPUT"
+            data-testid="GUILD_NAME_INPUT"
           />
-          <PixelBtnWidget
-            label={browseLabel}
-            variant={ghostVariant}
-            onClick={() => {
-              setBrowserOpened(true);
-            }}
-          />
-        </Group>
+          <Group gap="xs" align="flex-end">
+            <TextInput
+              label="Path"
+              placeholder="/home/user/my-guild"
+              value={path}
+              onChange={(e) => {
+                setPath(e.target.value);
+              }}
+              w={INPUT_WIDTH}
+              styles={inputStyles}
+              data-testid="GUILD_PATH_INPUT"
+            />
+            <PixelBtnWidget
+              label={browseLabel}
+              variant={ghostVariant}
+              onClick={() => {
+                setBrowserOpened(true);
+              }}
+            />
+          </Group>
+        </Stack>
         <Group gap="xs">
           <PixelBtnWidget
             label={createLabel}

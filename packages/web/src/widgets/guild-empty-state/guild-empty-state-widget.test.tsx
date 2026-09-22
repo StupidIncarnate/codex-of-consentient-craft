@@ -65,6 +65,23 @@ describe('GuildEmptyStateWidget', () => {
 
       expect(proxy.isBrowseVisible()).toBe(true);
     });
+
+    it('VALID: {} => the name input and the path input sit in sibling rows of one alignment container', () => {
+      GuildEmptyStateWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} />,
+      });
+
+      const alignmentGroup = screen.getByTestId('GUILD_INPUT_ALIGNMENT_GROUP');
+      const nameInput = screen.getByTestId('GUILD_NAME_INPUT');
+      const pathInput = screen.getByTestId('GUILD_PATH_INPUT');
+      const [nameRow, pathRow] = Array.from(alignmentGroup.children);
+
+      expect(nameRow?.contains(nameInput)).toBe(true);
+      expect(pathRow?.contains(pathInput)).toBe(true);
+      expect(pathRow?.contains(nameInput)).toBe(false);
+    });
   });
 
   describe('interactions', () => {
