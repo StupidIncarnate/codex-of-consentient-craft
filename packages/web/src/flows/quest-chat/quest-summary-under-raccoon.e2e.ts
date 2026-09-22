@@ -22,12 +22,20 @@ const OPEN_QUESTION_SUMMARY = 'Should the sandbox dev server port be configurabl
 //   branches    = edges carrying a non-empty label     -> `start-to-done`         (1)
 //   observables = embedded in nodes                    -> `crash-on-bleh`         (1)
 //   off-map     = emitted for every flow, always       -> 7 probe families        (7)
-// `questSummaryBuildTransformer` counts every eligible unit as `outstanding` — `confirmed` and
-// `unconfirmable` are both hardcoded (0 and [] respectively) pending the observation-record
-// rebuild. Flowrider's `unitKinds` covers terminal/branch/observable but its `observableOrigins`
-// excludes `siegemaster`, so `crash-on-bleh` drops out and its denominator is terminal + branch = 2.
-// Siegemaster's `unitKinds` covers all four kinds and its `observableOrigins` includes
-// `siegemaster`, so its denominator is the full ten.
+//
+// `questSummaryBuildTransformer` reads each track's `met`/`cantMeet`/`unmet` off
+// `workItem.observations[]`; `outstanding` is the track's denominator minus what it marked.
+// Codeweaver's and Flowrider's `unitKinds` cover terminal/branch/observable but both
+// `observableOrigins` exclude `siegemaster`, so `crash-on-bleh` drops out of each and their
+// denominator is terminal + branch = 2. Siegemaster's `unitKinds` covers all four kinds and its
+// `observableOrigins` includes `siegemaster`, so its denominator is the full ten.
+//
+// This quest's one work item carries no `observations`, so every track's `met`, `cantMeet` and
+// `unmet` read 0 and `outstanding` equals the denominator above. `questHarness.writeQuestFile`'s
+// `workItems[]` parameter has no `observations` field to seed one through, so this spec cannot
+// drive a non-zero `met`/`cantMeet`/`unmet` — a label swap between those three would render
+// identically (all "0 …") and pass unseen here; only the denominator/outstanding numbers, which
+// differ per track, are load-bearing in this spec.
 const SUMMARY_FLOWS = [
   {
     id: 'summary-flow',
@@ -89,7 +97,7 @@ test.describe('Quest summary joins the raccoon in the execution activity column'
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('VALID: {in_progress quest with a siegemaster-added observable and an open question} => the summary renders per-track counts, the drift row, the empty unconfirmable section and the open question, with the raccoon still visible', async ({
+  test('VALID: {in_progress quest with a siegemaster-added observable and an open question} => the summary renders per-track counts, the drift row, the empty debt section and the open question, with the raccoon still visible', async ({
     page,
     request,
   }) => {
@@ -154,15 +162,32 @@ test.describe('Quest summary joins the raccoon in the execution activity column'
       timeout: PANEL_TIMEOUT,
     });
 
-    // Real, graph-derived counts: Flowrider's denominator on this flow is the terminal + the
-    // labelled branch — the siegemaster-added observable drops out on provenance.
+    // Real, graph-derived counts. No observations exist on this quest's one work item, so every
+    // track reads 0 met / 0 cant-meet / 0 unmet and outstanding equals its own denominator.
+    const codeweaverRow = page
+      .getByTestId('QUEST_SUMMARY_TRACK_ROW')
+      .filter({ hasText: 'CODEWEAVER' });
+
+    await expect(codeweaverRow.getByTestId('QUEST_SUMMARY_TRACK_MET')).toHaveText('0 met');
+    await expect(codeweaverRow.getByTestId('QUEST_SUMMARY_TRACK_CANT_MEET')).toHaveText(
+      '0 cant-meet',
+    );
+    await expect(codeweaverRow.getByTestId('QUEST_SUMMARY_TRACK_UNMET')).toHaveText('0 unmet');
+    await expect(codeweaverRow.getByTestId('QUEST_SUMMARY_TRACK_OUTSTANDING')).toHaveText(
+      '2 outstanding',
+    );
+
+    // Flowrider's denominator on this flow is the terminal + the labelled branch — the
+    // siegemaster-added observable drops out on provenance.
     const flowriderRow = page
       .getByTestId('QUEST_SUMMARY_TRACK_ROW')
       .filter({ hasText: 'FLOWRIDER' });
 
-    await expect(flowriderRow.getByTestId('QUEST_SUMMARY_TRACK_CONFIRMED')).toHaveText(
-      '0 confirmed',
+    await expect(flowriderRow.getByTestId('QUEST_SUMMARY_TRACK_MET')).toHaveText('0 met');
+    await expect(flowriderRow.getByTestId('QUEST_SUMMARY_TRACK_CANT_MEET')).toHaveText(
+      '0 cant-meet',
     );
+    await expect(flowriderRow.getByTestId('QUEST_SUMMARY_TRACK_UNMET')).toHaveText('0 unmet');
     await expect(flowriderRow.getByTestId('QUEST_SUMMARY_TRACK_OUTSTANDING')).toHaveText(
       '2 outstanding',
     );
@@ -172,9 +197,11 @@ test.describe('Quest summary joins the raccoon in the execution activity column'
       .getByTestId('QUEST_SUMMARY_TRACK_ROW')
       .filter({ hasText: 'SIEGEMASTER' });
 
-    await expect(siegemasterRow.getByTestId('QUEST_SUMMARY_TRACK_UNCONFIRMABLE')).toHaveText(
-      '0 unconfirmable',
+    await expect(siegemasterRow.getByTestId('QUEST_SUMMARY_TRACK_MET')).toHaveText('0 met');
+    await expect(siegemasterRow.getByTestId('QUEST_SUMMARY_TRACK_CANT_MEET')).toHaveText(
+      '0 cant-meet',
     );
+    await expect(siegemasterRow.getByTestId('QUEST_SUMMARY_TRACK_UNMET')).toHaveText('0 unmet');
     await expect(siegemasterRow.getByTestId('QUEST_SUMMARY_TRACK_OUTSTANDING')).toHaveText(
       '10 outstanding',
     );
@@ -188,13 +215,11 @@ test.describe('Quest summary joins the raccoon in the execution activity column'
       'added by siegemaster',
     );
 
-    // `questSummaryBuildTransformer` hardcodes `unconfirmable: []` for every quest, so the DEBT
-    // section renders its own empty state rather than a row — and no `QUEST_SUMMARY_UNCONFIRMABLE_ROW`
-    // exists to find.
-    await expect(page.getByTestId('QUEST_SUMMARY_DEBT_EMPTY')).toHaveText(
-      'no unconfirmable verdicts',
-    );
-    await expect(page.getByTestId('QUEST_SUMMARY_UNCONFIRMABLE_ROW')).toHaveCount(0);
+    // The debt list holds one entry per (unit, track) marked `cant-meet` or `unmet`. Nothing on
+    // this quest carries either mark, so the DEBT section renders its own empty state and no
+    // `QUEST_SUMMARY_DEBT_ROW` exists to find.
+    await expect(page.getByTestId('QUEST_SUMMARY_DEBT_EMPTY')).toHaveText('every unit is proven');
+    await expect(page.getByTestId('QUEST_SUMMARY_DEBT_ROW')).toHaveCount(0);
 
     // The side-channel open question nobody answered.
     const openQuestionGroup = page
