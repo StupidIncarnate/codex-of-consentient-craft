@@ -3,24 +3,48 @@ import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 import { AgentPromptNameStub } from '../../contracts/agent-prompt-name/agent-prompt-name.stub';
 import { agentPromptClassificationStatics } from '../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
+import { codeweaverPlannerStatics } from '../../statics/codeweaver-planner/codeweaver-planner-statics';
 import { codeweaverReviewerStatics } from '../../statics/codeweaver-reviewer/codeweaver-reviewer-statics';
-import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
+import { codeweaverWorkerStatics } from '../../statics/codeweaver-worker/codeweaver-worker-statics';
+import { flowriderPlannerStatics } from '../../statics/flowrider-planner/flowrider-planner-statics';
 import { flowriderReviewerStatics } from '../../statics/flowrider-reviewer/flowrider-reviewer-statics';
+import { flowriderWorkerStatics } from '../../statics/flowrider-worker/flowrider-worker-statics';
+import { recipeMakerStatics } from '../../statics/recipe-maker/recipe-maker-statics';
 import { roleToModelStatics } from '../../statics/role-to-model/role-to-model-statics';
-import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
-import { siegemasterReviewerStatics } from '../../statics/siegemaster-reviewer/siegemaster-reviewer-statics';
-import { siegemasterStressStatics } from '../../statics/siegemaster-stress/siegemaster-stress-statics';
-import { siegemasterVerifierStatics } from '../../statics/siegemaster-verifier/siegemaster-verifier-statics';
+import { siegeAdversarialFixerStatics } from '../../statics/siege-adversarial-fixer/siege-adversarial-fixer-statics';
+import { siegeAdversarialWalkerStatics } from '../../statics/siege-adversarial-walker/siege-adversarial-walker-statics';
+import { siegeHappyFixerStatics } from '../../statics/siege-happy-fixer/siege-happy-fixer-statics';
+import { siegeHappyWalkerStatics } from '../../statics/siege-happy-walker/siege-happy-walker-statics';
+import { siegemasterReaderStatics } from '../../statics/siegemaster-reader/siegemaster-reader-statics';
+import { siegePlannerStatics } from '../../statics/siege-planner/siege-planner-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 import { agentNameToPromptTransformer } from './agent-name-to-prompt-transformer';
 
-// The literal union of today's roster, pulled out of the tuple type without an indexed-access
+const UNSERVED_PROMPT_NAMES = [
+  'codeweaver',
+  'flowrider',
+  'siegemaster',
+  'siegemaster-stress',
+  'siegemaster-verifier',
+] as const;
+
+type UnservedPromptName = typeof UNSERVED_PROMPT_NAMES extends readonly (infer U)[] ? U : never;
+
+// The literal union of today's served roster, pulled out of the tuple type without an indexed-access
 // `[number]` (banned by `@dungeonmaster/ban-primitives` outside a function parameter).
-type PromptName = typeof agentPromptClassificationStatics.promptNames extends readonly (infer U)[]
-  ? U
-  : never;
+type PromptName = Exclude<
+  typeof agentPromptClassificationStatics.promptNames extends readonly (infer U)[] ? U : never,
+  UnservedPromptName
+>;
+
+const isServedPromptName = (
+  name: typeof agentPromptClassificationStatics.promptNames extends readonly (infer U)[]
+    ? U
+    : never,
+): name is PromptName => !UNSERVED_PROMPT_NAMES.some((unserved) => unserved === name);
+
+const SERVED_PROMPT_NAMES = agentPromptClassificationStatics.promptNames.filter(isServedPromptName);
 
 // What each served name is supposed to come back with, stated ONCE here and read live off the
 // statics rather than copied — a prompt edited in its own file has to keep passing without this
@@ -45,39 +69,60 @@ const EXPECTED_BY_NAME = {
     prompt: chaoswhispererGapMinionStatics.prompt.template,
   },
 
-  codeweaver: {
+  'codeweaver-planner': {
     model: roleToModelStatics.codeweaver,
-    prompt: codeweaverPromptStatics.prompt.template,
+    prompt: codeweaverPlannerStatics.prompt.template,
+  },
+  'codeweaver-worker': {
+    model: roleToModelStatics.codeweaver,
+    prompt: codeweaverWorkerStatics.prompt.template,
   },
   'codeweaver-reviewer': {
     model: 'sonnet',
     prompt: codeweaverReviewerStatics.prompt.template,
   },
 
-  flowrider: {
+  'flowrider-planner': {
     model: roleToModelStatics.flowrider,
-    prompt: flowriderPromptStatics.prompt.template,
+    prompt: flowriderPlannerStatics.prompt.template,
+  },
+  'flowrider-worker': {
+    model: roleToModelStatics.flowrider,
+    prompt: flowriderWorkerStatics.prompt.template,
   },
   'flowrider-reviewer': {
     model: 'sonnet',
     prompt: flowriderReviewerStatics.prompt.template,
   },
 
-  siegemaster: {
+  'recipe-maker': {
+    model: 'opus',
+    prompt: recipeMakerStatics.prompt.template,
+  },
+
+  'siege-adversarial-fixer': {
+    model: 'sonnet',
+    prompt: siegeAdversarialFixerStatics.prompt.template,
+  },
+  'siege-adversarial-walker': {
+    model: 'sonnet',
+    prompt: siegeAdversarialWalkerStatics.prompt.template,
+  },
+  'siege-happy-fixer': {
+    model: 'sonnet',
+    prompt: siegeHappyFixerStatics.prompt.template,
+  },
+  'siege-happy-walker': {
+    model: 'sonnet',
+    prompt: siegeHappyWalkerStatics.prompt.template,
+  },
+  'siege-planner': {
     model: roleToModelStatics.siegemaster,
-    prompt: siegemasterPromptStatics.prompt.template,
+    prompt: siegePlannerStatics.prompt.template,
   },
-  'siegemaster-reviewer': {
+  'siegemaster-reader': {
     model: 'sonnet',
-    prompt: siegemasterReviewerStatics.prompt.template,
-  },
-  'siegemaster-stress': {
-    model: 'sonnet',
-    prompt: siegemasterStressStatics.prompt.template,
-  },
-  'siegemaster-verifier': {
-    model: 'sonnet',
-    prompt: siegemasterVerifierStatics.prompt.template,
+    prompt: siegemasterReaderStatics.prompt.template,
   },
 
   spiritmender: {
@@ -92,7 +137,7 @@ const EXPECTED_BY_NAME = {
 
 // The case list is DERIVED from the name list the contract's roster carries, so an eleventh prompt
 // is covered the day it is added rather than the day someone remembers this file.
-const EVERY_PROMPT_CASE = agentPromptClassificationStatics.promptNames.map(
+const EVERY_PROMPT_CASE = SERVED_PROMPT_NAMES.map(
   (name) => [name, EXPECTED_BY_NAME[name].model, EXPECTED_BY_NAME[name].prompt] as const,
 );
 
@@ -117,7 +162,7 @@ describe('agentNameToPromptTransformer', () => {
     // context substitutes. For a ROLE that caller is `workItemToPromptTransformer`; for a minion —
     // `chaoswhisperer-gap-minion` included — it is `agentPromptGetBroker`'s minion branch, which
     // substitutes a bare `Quest ID:` line.
-    it.each(agentPromptClassificationStatics.promptNames)(
+    it.each(SERVED_PROMPT_NAMES)(
       'VALID: {agent: %s} => served prompt still carries exactly one $ARGUMENTS for its caller',
       (name) => {
         const { prompt } = agentNameToPromptTransformer({
@@ -131,7 +176,7 @@ describe('agentNameToPromptTransformer', () => {
     // Every prompt is one file holding its own text. A `$DISCIPLINE` or `$MY_DISCIPLINE` left in
     // any served prompt would be a token nothing substitutes — an agent handed the literal string
     // where its instructions belong.
-    it.each(agentPromptClassificationStatics.promptNames)(
+    it.each(SERVED_PROMPT_NAMES)(
       'VALID: {agent: %s} => served prompt carries no $DISCIPLINE or $MY_DISCIPLINE token',
       (name) => {
         const { prompt } = agentNameToPromptTransformer({
@@ -151,7 +196,11 @@ describe('agentNameToPromptTransformer', () => {
   // result to a file and hands the agent an error stub instead of its instructions — a silent
   // dispatch failure, since the session starts holding a path rather than a method.
   describe('MCP tool-result budget for the minion-fetch path', () => {
-    it.each(agentPromptClassificationStatics.minionNames)(
+    const servedMinionNames = agentPromptClassificationStatics.minionNames.filter((name) =>
+      SERVED_PROMPT_NAMES.some((served) => served === name),
+    );
+
+    it.each(servedMinionNames)(
       'VALID: {agent: %s} => served MCP block stays within the verbatim budget',
       (minionName) => {
         const { name, model, prompt } = agentNameToPromptTransformer({
@@ -174,6 +223,19 @@ describe('agentNameToPromptTransformer', () => {
   // place that still refuses it — loudly, by name, rather than dispatching a session against
   // `undefined.model`.
   describe('an unknown prompt name is refused at dispatch, loudly and by name', () => {
+    it.each(UNSERVED_PROMPT_NAMES)(
+      'ERROR: {agent: %s} => throws because prompt was deleted and is not served',
+      (unservedName) => {
+        expect(() => {
+          agentNameToPromptTransformer({
+            agent: AgentPromptNameStub({ value: unservedName }),
+          });
+        }).toThrow(
+          `Unknown agent prompt name: '${unservedName}'. No prompt is registered for it in AGENT_PROMPTS — check agentPromptClassificationStatics.promptNames and this table still agree.`,
+        );
+      },
+    );
+
     it("ERROR: {agent: 'a-prompt-nobody-declared'} => throws naming the unknown name", () => {
       expect(() => {
         agentNameToPromptTransformer({

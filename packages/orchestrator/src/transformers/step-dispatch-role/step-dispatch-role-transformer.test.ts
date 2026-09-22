@@ -15,7 +15,7 @@ const OPERATION_ID = OperationItemIdStub({ value: 'a1a1a1a1-1111-4222-9333-44444
 const WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'b2b2b2b2-1111-4222-9333-444444444444' });
 
 describe('stepDispatchRoleTransformer', () => {
-  describe('a step naming a dispatchable role', () => {
+  describe('a step naming a prompt', () => {
     it('VALID: {ward scope, step: repair} => spiritmender, which the scope role `ward` could never have said', () => {
       const operation = OperationItemStub({
         id: OPERATION_ID,
@@ -36,8 +36,7 @@ describe('stepDispatchRoleTransformer', () => {
       });
 
       expect(stepDispatchRoleTransformer({ quest, workItem })).toStrictEqual({
-        role: 'spiritmender',
-        declinedPrompt: null,
+        prompt: 'spiritmender',
       });
     });
 
@@ -61,8 +60,7 @@ describe('stepDispatchRoleTransformer', () => {
       });
 
       expect(stepDispatchRoleTransformer({ quest, workItem })).toStrictEqual({
-        role: 'spiritmender',
-        declinedPrompt: null,
+        prompt: 'spiritmender',
       });
     });
 
@@ -86,14 +84,11 @@ describe('stepDispatchRoleTransformer', () => {
       });
 
       expect(stepDispatchRoleTransformer({ quest, workItem })).toStrictEqual({
-        role: 'warpgate',
-        declinedPrompt: null,
+        prompt: 'warpgate',
       });
     });
-  });
 
-  describe('a step naming a prompt no dispatch may spawn', () => {
-    it('VALID: {codeweaver scope, step: work} => declines `codeweaver-worker`, a prompt nothing serves yet', () => {
+    it('VALID: {codeweaver scope, step: work} => codeweaver-worker, where the step names a worker prompt', () => {
       const operation = OperationItemStub({
         id: OPERATION_ID,
         role: 'codeweaver',
@@ -113,12 +108,11 @@ describe('stepDispatchRoleTransformer', () => {
       });
 
       expect(stepDispatchRoleTransformer({ quest, workItem })).toStrictEqual({
-        role: null,
-        declinedPrompt: 'codeweaver-worker',
+        prompt: 'codeweaver-worker',
       });
     });
 
-    it('VALID: {codeweaver scope, step: review} => declines `codeweaver-reviewer`, which IS served but only to a parent-summoned minion', () => {
+    it('VALID: {codeweaver scope, step: review} => codeweaver-reviewer', () => {
       const operation = OperationItemStub({
         id: OPERATION_ID,
         role: 'codeweaver',
@@ -138,14 +132,13 @@ describe('stepDispatchRoleTransformer', () => {
       });
 
       expect(stepDispatchRoleTransformer({ quest, workItem })).toStrictEqual({
-        role: null,
-        declinedPrompt: 'codeweaver-reviewer',
+        prompt: 'codeweaver-reviewer',
       });
     });
   });
 
   describe('a work item with no prompt step to read', () => {
-    it('VALID: {ward scope, step: gate} => null with nothing declined, because a deterministic step spawns no session', () => {
+    it('VALID: {ward scope, step: gate} => null, because a deterministic step spawns no session', () => {
       const operation = OperationItemStub({
         id: OPERATION_ID,
         role: 'ward',
@@ -165,12 +158,11 @@ describe('stepDispatchRoleTransformer', () => {
       });
 
       expect(stepDispatchRoleTransformer({ quest, workItem })).toStrictEqual({
-        role: null,
-        declinedPrompt: null,
+        prompt: null,
       });
     });
 
-    it('EMPTY: {work item carrying no step at all} => null with nothing declined', () => {
+    it('EMPTY: {work item carrying no step at all} => null', () => {
       const operation = OperationItemStub({
         id: OPERATION_ID,
         role: 'codeweaver',
@@ -189,12 +181,11 @@ describe('stepDispatchRoleTransformer', () => {
       });
 
       expect(stepDispatchRoleTransformer({ quest, workItem })).toStrictEqual({
-        role: null,
-        declinedPrompt: null,
+        prompt: null,
       });
     });
 
-    it('EMPTY: {work item whose step names a family no operation item resolves to} => null with nothing declined', () => {
+    it('EMPTY: {work item whose step names a family no operation item resolves to} => null', () => {
       const workItem = WorkItemStub({
         id: WORK_ITEM_ID,
         role: 'spiritmender',
@@ -207,8 +198,7 @@ describe('stepDispatchRoleTransformer', () => {
       });
 
       expect(stepDispatchRoleTransformer({ quest, workItem })).toStrictEqual({
-        role: null,
-        declinedPrompt: null,
+        prompt: null,
       });
     });
   });

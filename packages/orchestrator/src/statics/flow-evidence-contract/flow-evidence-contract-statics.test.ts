@@ -1,10 +1,7 @@
 import { qaCheckSurfaceStatics } from '@dungeonmaster/shared/statics';
 
-import { codeweaverPromptStatics } from '../codeweaver-prompt/codeweaver-prompt-statics';
-import { flowriderPromptStatics } from '../flowrider-prompt/flowrider-prompt-statics';
+import { codeweaverReviewerStatics } from '../codeweaver-reviewer/codeweaver-reviewer-statics';
 import { flowriderReviewerStatics } from '../flowrider-reviewer/flowrider-reviewer-statics';
-import { siegemasterStressStatics } from '../siegemaster-stress/siegemaster-stress-statics';
-import { siegemasterVerifierStatics } from '../siegemaster-verifier/siegemaster-verifier-statics';
 import { signoffTrackEligibilityStatics } from '../signoff-track-eligibility/signoff-track-eligibility-statics';
 import { flowEvidenceContractStatics } from './flow-evidence-contract-statics';
 
@@ -316,19 +313,17 @@ describe('flowEvidenceContractStatics', () => {
   // different half to a different session. Nothing typechecks that split, and no test but these
   // ones spans this file and the files that read it. Every needle below is READ off the value the
   // consumer interpolates, never copied into a second place where it could drift quietly.
-  describe('the two prompts that interpolate these halves', () => {
-    // PAIR: `flowEvidenceContractStatics` and its two consumers. The flowrider OPERATOR chooses the
-    // layer for every unit on its flow, so it takes the authoring half; the flowrider REVIEWER
-    // grades the suite that came back, so it takes the judging half. Neither takes both — a reviewer
-    // does not need the method that produced the artifact it grades, and a copy of either half in a
-    // second prompt drifts away from the value the other consumer still interpolates, silently.
-    it('VALID: both prompts => carry each half in exactly the prompt that needs it, once each', () => {
+  describe('the reviewer prompts that consume or withhold these halves', () => {
+    // PAIR: `flowEvidenceContractStatics` and reviewer consumers. The flowrider REVIEWER
+    // grades the suite that came back, so it takes the judging half; neither takes the authoring
+    // half, and `codeweaver-reviewer` withholds both halves.
+    it('VALID: reviewer prompts => carry each half in exactly the prompt that needs it', () => {
       // RAW on both sides: this counts BYTE-EXACT interpolations of each half into a prompt.
       const { judgingMarkdown: rawJudging, authoringMarkdown: rawAuthoring } =
         flowEvidenceContractStatics;
       const templates = [
         flowriderReviewerStatics.prompt.template,
-        flowriderPromptStatics.prompt.template,
+        codeweaverReviewerStatics.prompt.template,
       ];
 
       expect({
@@ -341,53 +336,25 @@ describe('flowEvidenceContractStatics', () => {
       }).toStrictEqual({
         neitherHalfContainsTheOther: [false, false],
         judgingPerPrompt: [1, 0],
-        authoringPerPrompt: [0, 1],
+        authoringPerPrompt: [0, 0],
       });
     });
 
-    // PAIR: this block's verdict vocabulary and the four prompts that actually WRITE a sign-off.
-    // Those are not the three operators. Codeweaver and Flowrider sign from their sub-agents' PROVED
-    // lines, wave by wave — but Siegemaster the OPERATOR signs nothing: its VERIFIER and STRESS
-    // minions do, because between them they are the only sessions that ever drive the running system,
-    // and by the time anything else reads the record that system state is gone. Only the flowrider
-    // prompt interpolates this half, so the other three restate the vocabulary in their own words and
-    // the TOKEN is what has to agree. A prompt that signed a `gap` or a `deferred` would write a
-    // verdict `signoffContract` rejects, and the write fails at parse time.
-    //
-    // The judging half is subtracted byte-exactly from the flowrider prompt before the count, so
-    // that prompt is measured on its own words rather than on the text it is being checked against.
-    it('VALID: all four SIGNING prompts => sign in this vocabulary, and name no refused verdict', () => {
-      // RAW: the verdict bullets are line-anchored, and the shared half is subtracted byte-exactly.
+    it('VALID: flowriderReviewer => sign-off vocabulary contains no refused sign-off verdict', () => {
       const { judgingMarkdown: rawJudging } = flowEvidenceContractStatics;
-      const verdicts = Array.from(rawJudging.matchAll(/^- \*\*`([a-z]+)`\*\* —/gmu)).flatMap(
-        (match) => match.slice(1),
-      );
       const refused = Array.from(
         rawJudging
           .slice(rawJudging.indexOf('There is no'), rawJudging.indexOf('SIGN-OFF verdict'))
           .matchAll(/`([a-z]+)`/gu),
       ).flatMap((match) => match.slice(1));
-      const authoredHalves = [
-        codeweaverPromptStatics.prompt.template,
-        flowriderPromptStatics.prompt.template,
-        siegemasterVerifierStatics.prompt.template,
-        siegemasterStressStatics.prompt.template,
-      ].map((template) => template.split(rawJudging).join(''));
+      const authoredFlowrider = flowriderReviewerStatics.prompt.template.split(rawJudging).join('');
 
       expect({
-        verdicts,
         refused,
-        verdictsMissingFromAPrompt: verdicts.filter((verdict) =>
-          authoredHalves.some((half) => !half.includes(`\`${verdict}\``)),
-        ),
-        refusedWordsAPromptSignsAnyway: refused.filter((word) =>
-          authoredHalves.some((half) => half.includes(`\`${word}\``)),
-        ),
+        refusedWordsInPrompt: refused.filter((word) => authoredFlowrider.includes(`\`${word}\``)),
       }).toStrictEqual({
-        verdicts: ['confirmed', 'unconfirmable'],
         refused: ['defect', 'deferred', 'gap', 'recorded'],
-        verdictsMissingFromAPrompt: [],
-        refusedWordsAPromptSignsAnyway: [],
+        refusedWordsInPrompt: [],
       });
     });
 

@@ -23,7 +23,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
+import { codeweaverPlannerStatics } from '../../statics/codeweaver-planner/codeweaver-planner-statics';
 import { roleToModelStatics } from '../../statics/role-to-model/role-to-model-statics';
 
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
@@ -65,20 +65,20 @@ describe('AgentPromptFlow', () => {
       const operationId = OperationItemIdStub({ value: 'cccccccc-2222-4222-9333-444444444444' });
       const operation = OperationItemStub({
         id: operationId,
-        role: 'codeweaver',
+        role: 'spiritmender',
         text: 'core: config load+validate adapter',
         status: 'pending',
       });
       const workItem = WorkItemStub({
         id: workItemId,
-        role: 'codeweaver',
+        role: 'spiritmender',
         relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
       });
       const quest = QuestStub({ operations: [operation], workItems: [workItem] });
       await seeder.seed({ tempDir: testbed.guildPath, quest });
 
       const result = await AgentPromptFlow.get({
-        agent: 'codeweaver',
+        agent: 'codeweaver-planner',
         questId: quest.id,
         workItemId,
       });
@@ -89,17 +89,15 @@ describe('AgentPromptFlow', () => {
       const expectedArgs = [
         `Quest ID: ${String(quest.id)}`,
         `Work Item ID: ${String(workItemId)}`,
-        `Operation Item ID: ${String(operationId)}`,
-        'Your operation item: [codeweaver] core: config load+validate adapter',
       ].join('\n');
 
       expect(result).toStrictEqual({
-        name: 'codeweaver',
+        name: 'codeweaver-planner',
         // Read from the role map rather than restated: that map is what the CLI `--model` flag
         // resolves through at spawn time, so a literal here could report one model while the
         // dispatched child ran another.
         model: roleToModelStatics.codeweaver,
-        prompt: codeweaverPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        prompt: codeweaverPlannerStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       });
     });
   });
@@ -128,18 +126,18 @@ describe('AgentPromptFlow', () => {
       expect(awaited).toBeInstanceOf(Error);
     });
 
-    it('ERROR: {agent: codeweaver, questId, workItemId, no operations reference} => rejects naming the work item that carries no operations/<id> ref', async () => {
+    it('ERROR: {agent: spiritmender, questId, workItemId, no operations reference} => rejects naming the work item that carries no operations/<id> ref', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'agent-prompt-flow-no-op-ref' }),
       });
       const env = envHarness.setupHome({ tempDir: testbed.guildPath });
       const workItemId = QuestWorkItemIdStub({ value: 'dddddddd-3333-4222-9333-444444444444' });
-      const workItem = WorkItemStub({ id: workItemId, role: 'codeweaver', relatedDataItems: [] });
+      const workItem = WorkItemStub({ id: workItemId, role: 'spiritmender', relatedDataItems: [] });
       const quest = QuestStub({ workItems: [workItem] });
       await seeder.seed({ tempDir: testbed.guildPath, quest });
 
       const promise = AgentPromptFlow.get({
-        agent: 'codeweaver',
+        agent: 'spiritmender',
         questId: quest.id,
         workItemId,
       });
@@ -149,7 +147,7 @@ describe('AgentPromptFlow', () => {
       testbed.cleanup();
 
       expect(String(awaited)).toBe(
-        `Error: workItemToPromptTransformer: codeweaver work item ${String(workItemId)} has no resolvable operations/<id> reference`,
+        `Error: workItemToPromptTransformer: spiritmender work item ${String(workItemId)} has no resolvable operations/<id> reference`,
       );
     });
   });

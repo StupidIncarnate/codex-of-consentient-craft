@@ -1,15 +1,13 @@
 import { chaoswhispererGapMinionStatics } from '../chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { codeweaverPromptStatics } from '../codeweaver-prompt/codeweaver-prompt-statics';
+import { codeweaverPlannerStatics } from '../codeweaver-planner/codeweaver-planner-statics';
 import { codeweaverReviewerStatics } from '../codeweaver-reviewer/codeweaver-reviewer-statics';
 import { dumpsterCreatePromptStatics } from '../dumpster-create-prompt/dumpster-create-prompt-statics';
 import { dumpsterHuntPromptStatics } from '../dumpster-hunt-prompt/dumpster-hunt-prompt-statics';
-import { flowriderPromptStatics } from '../flowrider-prompt/flowrider-prompt-statics';
+import { flowriderPlannerStatics } from '../flowrider-planner/flowrider-planner-statics';
 import { flowriderReviewerStatics } from '../flowrider-reviewer/flowrider-reviewer-statics';
 import { glyphsmithPromptStatics } from '../glyphsmith-prompt/glyphsmith-prompt-statics';
-import { siegemasterPromptStatics } from '../siegemaster-prompt/siegemaster-prompt-statics';
-import { siegemasterReviewerStatics } from '../siegemaster-reviewer/siegemaster-reviewer-statics';
-import { siegemasterStressStatics } from '../siegemaster-stress/siegemaster-stress-statics';
-import { siegemasterVerifierStatics } from '../siegemaster-verifier/siegemaster-verifier-statics';
+import { siegePlannerStatics } from '../siege-planner/siege-planner-statics';
+import { siegemasterReaderStatics } from '../siegemaster-reader/siegemaster-reader-statics';
 import { spiritmenderPromptStatics } from '../spiritmender-prompt/spiritmender-prompt-statics';
 import { tavernkeeperPromptStatics } from '../tavernkeeper-prompt/tavernkeeper-prompt-statics';
 import { warpgatePromptStatics } from '../warpgate-prompt/warpgate-prompt-statics';
@@ -21,14 +19,12 @@ const BLOCK = spilledToolResultStatics.markdown;
 // as the value each one actually serves, so a prompt that stops interpolating the block reds here
 // rather than shipping a session that skims its own scope.
 const HOSTS = [
-  ['codeweaver', codeweaverPromptStatics.prompt.template],
-  ['flowrider', flowriderPromptStatics.prompt.template],
-  ['siegemaster', siegemasterPromptStatics.prompt.template],
+  ['codeweaver-planner', codeweaverPlannerStatics.prompt.template],
+  ['flowrider-planner', flowriderPlannerStatics.prompt.template],
+  ['siege-planner', siegePlannerStatics.prompt.template],
   ['codeweaver-reviewer', codeweaverReviewerStatics.prompt.template],
   ['flowrider-reviewer', flowriderReviewerStatics.prompt.template],
-  ['siegemaster-reviewer', siegemasterReviewerStatics.prompt.template],
-  ['siegemaster-verifier', siegemasterVerifierStatics.prompt.template],
-  ['siegemaster-stress', siegemasterStressStatics.prompt.template],
+  ['siegemaster-reader', siegemasterReaderStatics.prompt.template],
   ['chaoswhisperer-gap-minion', chaoswhispererGapMinionStatics.prompt.template],
   ['glyphsmith', glyphsmithPromptStatics.prompt.template],
   ['tavernkeeper', tavernkeeperPromptStatics.prompt.template],

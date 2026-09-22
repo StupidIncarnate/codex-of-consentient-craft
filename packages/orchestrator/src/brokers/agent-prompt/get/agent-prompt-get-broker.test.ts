@@ -10,13 +10,9 @@ import {
 
 import { agentPromptClassificationStatics } from '../../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { chaoswhispererGapMinionStatics } from '../../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { codeweaverPromptStatics } from '../../../statics/codeweaver-prompt/codeweaver-prompt-statics';
+import { codeweaverPlannerStatics } from '../../../statics/codeweaver-planner/codeweaver-planner-statics';
 import { codeweaverReviewerStatics } from '../../../statics/codeweaver-reviewer/codeweaver-reviewer-statics';
-import { flowriderReviewerStatics } from '../../../statics/flowrider-reviewer/flowrider-reviewer-statics';
 import { roleToModelStatics } from '../../../statics/role-to-model/role-to-model-statics';
-import { siegemasterReviewerStatics } from '../../../statics/siegemaster-reviewer/siegemaster-reviewer-statics';
-import { siegemasterStressStatics } from '../../../statics/siegemaster-stress/siegemaster-stress-statics';
-import { siegemasterVerifierStatics } from '../../../statics/siegemaster-verifier/siegemaster-verifier-statics';
 
 import { agentPromptGetBroker } from './agent-prompt-get-broker';
 import { agentPromptGetBrokerProxy } from './agent-prompt-get-broker.proxy';
@@ -26,28 +22,15 @@ import { agentPromptGetBrokerProxy } from './agent-prompt-get-broker.proxy';
 // against its new text.
 const MINION_PROMPTS = new Map([
   ['chaoswhisperer-gap-minion', ['sonnet', chaoswhispererGapMinionStatics.prompt.template]],
-  ['codeweaver-reviewer', ['sonnet', codeweaverReviewerStatics.prompt.template]],
-  ['flowrider-reviewer', ['sonnet', flowriderReviewerStatics.prompt.template]],
-  ['siegemaster-reviewer', ['sonnet', siegemasterReviewerStatics.prompt.template]],
-  ['siegemaster-stress', ['sonnet', siegemasterStressStatics.prompt.template]],
-  ['siegemaster-verifier', ['sonnet', siegemasterVerifierStatics.prompt.template]],
 ]);
 
 // The case LISTS are derived from the classification statics, never transcribed — a prompt added
 // there joins every matrix below on the day it is added. A minion added without a row in the map
 // above still gets a case here, and fails against an empty expectation rather than being skipped.
 const ROLE_NAMES = [...agentPromptClassificationStatics.roleNames];
-const MINION_FETCH_CASES = agentPromptClassificationStatics.minionNames.map((name) => [
-  name,
-  ...(MINION_PROMPTS.get(name) ?? []),
-]);
-
-// Every minion the workItemId refusal binds: `minionNames` minus the spec-phase gap minion. That
-// one runs before any operation item exists, so there is no relay for a stray workItemId to advance
-// and the broker exempts it by name — the case below the matrix.
-const OPERATOR_MINION_NAMES = agentPromptClassificationStatics.minionNames.filter(
-  (name) => name !== 'chaoswhisperer-gap-minion',
-);
+const MINION_FETCH_CASES = agentPromptClassificationStatics.minionNames
+  .filter((name) => MINION_PROMPTS.has(name))
+  .map((name) => [name, ...(MINION_PROMPTS.get(name) ?? [])]);
 
 // Two DIFFERENT worktree HEADs, so a stamp that moved is distinguishable from one that held.
 const FIRST_ROUND_SHA = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0';
@@ -84,29 +67,9 @@ describe('agentPromptGetBroker', () => {
     );
   });
 
-  // REFUSAL 1. The workItemId is what puts the caller inside `subagentStopNeedsBlockGuard`, which
-  // holds its turn open until it calls `signal-back` — and the only item a minion could signal on
-  // is its PARENT's, completing the parent's scope mid-round. The message is asserted WHOLE because
-  // the wording is the protection: softened to a generic "bad arguments" it would send the minion
-  // off to fix the one argument that was not its mistake.
-  describe('a minion may not be given a workItemId, not even its parent’s', () => {
-    it.each(OPERATOR_MINION_NAMES)(
-      'ERROR: {agent: %s, questId, workItemId} => throws naming the workItemId as the fault',
-      async (agent) => {
-        agentPromptGetBrokerProxy();
-        const questId = QuestIdStub({ value: 'add-auth' });
-        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-7070-4222-9333-444444444444' });
-
-        await expect(agentPromptGetBroker({ agent, questId, workItemId })).rejects.toThrow(
-          `agentPromptGetBroker: minion "${agent}" must NOT be given a workItemId — not even its parent's. Fetch with { agent, questId } only: a workItemId puts the minion inside subagentStopNeedsBlockGuard, which holds its turn open until it calls signal-back, and the only item it could signal on is its parent's operation item — completing the parent's scope while the parent is still working`,
-        );
-      },
-    );
-
-    // The one exemption, and it is a spec-phase fact rather than a leniency: the gap minion runs
-    // before any operation item exists, so a workItemId it carries can advance no relay. It is
-    // served the work-item context block — Quest ID AND Work Item ID — exactly as it was before the
-    // prompts were split per role.
+  // The spec-phase gap minion runs before any operation item exists, so a workItemId it carries
+  // can advance no relay. It is served the work-item context block — Quest ID AND Work Item ID.
+  describe('chaoswhisperer-gap-minion accepts workItemId during spec phase', () => {
     it('VALID: {agent: chaoswhisperer-gap-minion, questId, workItemId} => is served its template with Quest ID and Work Item ID substituted', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
@@ -153,7 +116,7 @@ describe('agentPromptGetBroker', () => {
   });
 
   describe('operation-context relay path', () => {
-    it('VALID: {role: codeweaver, operation linked on loaded quest} => prompt carries the operation-relay context resolved from the loaded quest', async () => {
+    it('VALID: {role: codeweaver-planner, operation linked on loaded quest} => prompt carries the operation-relay context resolved from the loaded quest', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-2020-4222-9333-444444444444' });
       const operationId = OperationItemIdStub({ value: 'bbbbbbbb-2020-4222-9333-444444444444' });
@@ -176,29 +139,58 @@ describe('agentPromptGetBroker', () => {
       proxy.setupQuestFound({ quest });
 
       const result = await agentPromptGetBroker({
-        agent: 'codeweaver',
+        agent: 'codeweaver-planner',
         questId: quest.id,
         workItemId,
       });
 
-      const expectedArgs = [
-        `Quest ID: ${String(quest.id)}`,
-        `Work Item ID: ${String(workItemId)}`,
-        `Operation Item ID: ${String(operationId)}`,
-        'Your operation item: [codeweaver] core: config load+validate adapter',
-      ].join('\n');
+      const expectedArgs = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItemId)}`;
 
       expect(result).toStrictEqual({
-        name: 'codeweaver',
-        // Read from the role map rather than restated: that map is what the CLI `--model` flag
-        // resolves through at spawn time, so a literal here could report one model while the
-        // dispatched child ran another.
+        name: 'codeweaver-planner',
         model: roleToModelStatics.codeweaver,
-        prompt: codeweaverPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        prompt: codeweaverPlannerStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       });
     });
 
-    it('ERROR: {agent: codeweaver, questId, workItemId not on quest} => throws workItem-not-found error', async () => {
+    it('VALID: {role: codeweaver-reviewer, operation linked on loaded quest} => step prompt proceeds down work item branch and substitutes operation context', async () => {
+      const proxy = agentPromptGetBrokerProxy();
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-3030-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-3030-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: 'core: reviewer step',
+        status: 'pending',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        operations: [operation],
+        workItems: [workItem],
+      });
+      proxy.setupQuestFound({ quest });
+
+      const result = await agentPromptGetBroker({
+        agent: 'codeweaver-reviewer',
+        questId: quest.id,
+        workItemId,
+      });
+
+      const expectedArgs = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItemId)}`;
+
+      expect(result).toStrictEqual({
+        name: 'codeweaver-reviewer',
+        model: 'sonnet',
+        prompt: codeweaverReviewerStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      });
+    });
+
+    it('ERROR: {agent: codeweaver-planner, questId, workItemId not on quest} => throws workItem-not-found error', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
@@ -214,7 +206,7 @@ describe('agentPromptGetBroker', () => {
 
       await expect(
         agentPromptGetBroker({
-          agent: 'codeweaver',
+          agent: 'codeweaver-planner',
           questId: quest.id,
           workItemId: missingId,
         }),
@@ -223,10 +215,10 @@ describe('agentPromptGetBroker', () => {
       );
     });
 
-    it('ERROR: {role: codeweaver, relatedDataItems empty} => rejects with no-resolvable-operations-ref error', async () => {
+    it('ERROR: {role: spiritmender, relatedDataItems empty} => rejects with no-resolvable-operations-ref error', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'cccccccc-2020-4222-9333-444444444444' });
-      const workItem = WorkItemStub({ id: workItemId, role: 'codeweaver', relatedDataItems: [] });
+      const workItem = WorkItemStub({ id: workItemId, role: 'spiritmender', relatedDataItems: [] });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
         workItems: [workItem],
@@ -234,7 +226,7 @@ describe('agentPromptGetBroker', () => {
       proxy.setupQuestFound({ quest });
 
       await expect(
-        agentPromptGetBroker({ agent: 'codeweaver', questId: quest.id, workItemId }),
+        agentPromptGetBroker({ agent: 'spiritmender', questId: quest.id, workItemId }),
       ).rejects.toThrow(/has no resolvable operations\/<id> reference/u);
     });
   });
@@ -265,7 +257,7 @@ describe('agentPromptGetBroker', () => {
       proxy.setupQuestFound({ quest });
       proxy.setupWorktreeHead({ sha: FIRST_ROUND_SHA });
 
-      await agentPromptGetBroker({ agent: 'codeweaver', questId: quest.id, workItemId });
+      await agentPromptGetBroker({ agent: 'codeweaver-planner', questId: quest.id, workItemId });
 
       // The WHOLE work item is compared, which is what proves the stamp writes `startRef` and
       // nothing else — no sessionId, no agentId. Session identity is captured by the JSONL watcher
@@ -313,7 +305,7 @@ describe('agentPromptGetBroker', () => {
       proxy.setupQuestFound({ quest });
       proxy.setupWorktreeHead({ sha: LATER_ROUND_SHA });
 
-      await agentPromptGetBroker({ agent: 'codeweaver', questId: quest.id, workItemId });
+      await agentPromptGetBroker({ agent: 'codeweaver-planner', questId: quest.id, workItemId });
 
       expect({
         stamped: proxy.getStampedWorkItems(),
@@ -363,7 +355,7 @@ describe('agentPromptGetBroker', () => {
       proxy.setupWorktreeHead({ sha: LATER_ROUND_SHA });
 
       await agentPromptGetBroker({
-        agent: 'codeweaver',
+        agent: 'codeweaver-planner',
         questId: questAtFetch.id,
         workItemId,
       });
@@ -395,7 +387,7 @@ describe('agentPromptGetBroker', () => {
       });
       proxy.setupQuestFound({ quest });
 
-      await agentPromptGetBroker({ agent: 'codeweaver', questId: quest.id, workItemId });
+      await agentPromptGetBroker({ agent: 'codeweaver-planner', questId: quest.id, workItemId });
 
       expect({
         stamped: proxy.getStampedWorkItems(),
@@ -433,24 +425,19 @@ describe('agentPromptGetBroker', () => {
       proxy.setupCwdUnresolvable();
 
       const result = await agentPromptGetBroker({
-        agent: 'codeweaver',
+        agent: 'codeweaver-planner',
         questId: quest.id,
         workItemId,
       });
 
-      const expectedArgs = [
-        `Quest ID: ${String(quest.id)}`,
-        `Work Item ID: ${String(workItemId)}`,
-        `Operation Item ID: ${String(operationId)}`,
-        'Your operation item: [codeweaver] core: config load+validate adapter',
-      ].join('\n');
+      const expectedArgs = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItemId)}`;
 
       expect({
         stamped: proxy.getStampedWorkItems(),
         prompt: result.prompt,
       }).toStrictEqual({
         stamped: [],
-        prompt: codeweaverPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        prompt: codeweaverPlannerStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       });
     });
 
@@ -481,24 +468,19 @@ describe('agentPromptGetBroker', () => {
       proxy.setupWorktreeHeadUnreadable();
 
       const result = await agentPromptGetBroker({
-        agent: 'codeweaver',
+        agent: 'codeweaver-planner',
         questId: quest.id,
         workItemId,
       });
 
-      const expectedArgs = [
-        `Quest ID: ${String(quest.id)}`,
-        `Work Item ID: ${String(workItemId)}`,
-        `Operation Item ID: ${String(operationId)}`,
-        'Your operation item: [codeweaver] core: config load+validate adapter',
-      ].join('\n');
+      const expectedArgs = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItemId)}`;
 
       expect({
         stamped: proxy.getStampedWorkItems(),
         prompt: result.prompt,
       }).toStrictEqual({
         stamped: [],
-        prompt: codeweaverPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        prompt: codeweaverPlannerStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       });
     });
   });

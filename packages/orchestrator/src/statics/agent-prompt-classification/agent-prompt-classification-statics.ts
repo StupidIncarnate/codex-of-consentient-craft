@@ -17,12 +17,9 @@
  * name, on one this list — and its own `AGENT_PROMPTS` table — do not carry.
  *
  * EVERY PROMPT IS ONE FILE, AND ITS NAME SAYS WHOSE IT IS. There is no generic template and no
- * discipline pack. The three operator roles — `codeweaver`, `flowrider`, `siegemaster` — brief
- * GENERIC sub-agents for the bulk of their work, so the only named minions are the ones whose
- * instructions cannot be written into a brief: each operator's own `<role>-reviewer`, and
- * siegemaster's `siegemaster-verifier` / `siegemaster-stress` pair, which drive a live system by
- * hand. `chaoswhisperer-gap-minion` sits outside that set entirely — it runs in the SPEC phase,
- * before any operation item exists.
+ * discipline pack. Reviewers, planners, workers, and walkers are steps with their own work items;
+ * `chaoswhisperer-gap-minion` is the only true parent-summoned minion without a work item. It runs
+ * in the SPEC phase, before any operation item exists.
  *
  * `roleNames` and `minionNames` are DISJOINT, and the mechanical stakes are what enforce it: a
  * minion added to `roleNames` would widen `agentRoleContract` with a role no operation item can
@@ -39,11 +36,21 @@ export const agentPromptClassificationStatics = {
   promptNames: [
     'chaoswhisperer-gap-minion',
     'codeweaver',
+    'codeweaver-planner',
     'codeweaver-reviewer',
+    'codeweaver-worker',
     'flowrider',
+    'flowrider-planner',
     'flowrider-reviewer',
+    'flowrider-worker',
+    'recipe-maker',
+    'siege-adversarial-fixer',
+    'siege-adversarial-walker',
+    'siege-happy-fixer',
+    'siege-happy-walker',
+    'siege-planner',
     'siegemaster',
-    'siegemaster-reviewer',
+    'siegemaster-reader',
     'siegemaster-stress',
     'siegemaster-verifier',
     'spiritmender',
@@ -67,18 +74,6 @@ export const agentPromptClassificationStatics = {
   minionNames: [
     /** ChaosWhisperer summons this during the SPEC phase, long before any operation item exists. */
     'chaoswhisperer-gap-minion',
-    /** One reviewer per operator role. A reviewer's name carries its parent's role because its
-     * prompt carries that role's subject matter — there is nothing generic left for a bare
-     * `reviewer` to name, and the reviewer is the only sub-agent on a pass that verifies anything. */
-    'codeweaver-reviewer',
-    'flowrider-reviewer',
-    'siegemaster-reviewer',
-    /** Siegemaster alone has two further named minions: one verifies a whole path walk against the
-     * running system before anything is dispatched, and one attacks the same path adversarially.
-     * Neither can be replaced by a brief — both carry a measurement/enumeration discipline that
-     * needs restating every round. */
-    'siegemaster-stress',
-    'siegemaster-verifier',
   ],
   operatorRoleNames: ['codeweaver', 'flowrider', 'siegemaster'],
 } as const;

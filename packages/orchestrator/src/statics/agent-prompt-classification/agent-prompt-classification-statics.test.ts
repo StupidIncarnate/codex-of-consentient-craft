@@ -7,31 +7,34 @@ describe('agentPromptClassificationStatics', () => {
         promptNames: [
           'chaoswhisperer-gap-minion',
           'codeweaver',
+          'codeweaver-planner',
           'codeweaver-reviewer',
+          'codeweaver-worker',
           'flowrider',
+          'flowrider-planner',
           'flowrider-reviewer',
+          'flowrider-worker',
+          'recipe-maker',
+          'siege-adversarial-fixer',
+          'siege-adversarial-walker',
+          'siege-happy-fixer',
+          'siege-happy-walker',
+          'siege-planner',
           'siegemaster',
-          'siegemaster-reviewer',
+          'siegemaster-reader',
           'siegemaster-stress',
           'siegemaster-verifier',
           'spiritmender',
           'warpgate',
         ],
         roleNames: ['codeweaver', 'flowrider', 'siegemaster', 'spiritmender', 'warpgate'],
-        minionNames: [
-          'chaoswhisperer-gap-minion',
-          'codeweaver-reviewer',
-          'flowrider-reviewer',
-          'siegemaster-reviewer',
-          'siegemaster-stress',
-          'siegemaster-verifier',
-        ],
+        minionNames: ['chaoswhisperer-gap-minion'],
         operatorRoleNames: ['codeweaver', 'flowrider', 'siegemaster'],
       });
     });
   });
 
-  describe('promptNames is the superset the other two partition', () => {
+  describe('roleNames and minionNames are disjoint subsets of promptNames', () => {
     it.each(agentPromptClassificationStatics.roleNames)(
       'VALID: {roleName: %s} => is also a served prompt name',
       (roleName) => {
@@ -50,35 +53,56 @@ describe('agentPromptClassificationStatics', () => {
       },
     );
 
-    // The stakes: a minion in `roleNames` widens `agentRoleContract` with a role no operation item
-    // can hold, and a role in `minionNames` lets it fetch without a workItemId and escape
-    // `subagentStopNeedsBlockGuard`.
-    it.each(agentPromptClassificationStatics.promptNames)(
-      'VALID: {promptName: %s} => is classified as exactly one of role or minion',
-      (promptName) => {
-        expect({
-          isRole: agentPromptClassificationStatics.roleNames.some((name) => name === promptName),
-          isMinion: agentPromptClassificationStatics.minionNames.some(
-            (name) => name === promptName,
+    it.each(agentPromptClassificationStatics.roleNames)(
+      'VALID: {roleName: %s} => is not in minionNames',
+      (roleName) => {
+        expect(
+          agentPromptClassificationStatics.minionNames.some(
+            (name) => (name as unknown) === roleName,
           ),
-        }).toStrictEqual({
-          isRole: agentPromptClassificationStatics.minionNames.every((name) => name !== promptName),
-          isMinion: agentPromptClassificationStatics.roleNames.every((name) => name !== promptName),
-        });
+        ).toBe(false);
       },
     );
 
-    it('VALID: {promptNames} => holds nothing outside those two lists', () => {
-      const classified = [
+    it.each(agentPromptClassificationStatics.minionNames)(
+      'VALID: {minionName: %s} => is not in roleNames',
+      (minionName) => {
+        expect(
+          agentPromptClassificationStatics.roleNames.some(
+            (name) => (name as unknown) === minionName,
+          ),
+        ).toBe(false);
+      },
+    );
+  });
+
+  describe('step prompts are in promptNames but neither role nor minion', () => {
+    it('VALID: {promptNames} => remaining prompts outside roleNames and minionNames are the 15 step prompts', () => {
+      const nonStepNames = new Set<unknown>([
         ...agentPromptClassificationStatics.roleNames,
         ...agentPromptClassificationStatics.minionNames,
-      ];
+      ]);
+      const stepPrompts = agentPromptClassificationStatics.promptNames.filter(
+        (name) => !nonStepNames.has(name),
+      );
 
-      expect(
-        agentPromptClassificationStatics.promptNames.filter(
-          (name) => !classified.some((known) => known === name),
-        ),
-      ).toStrictEqual([]);
+      expect(stepPrompts).toStrictEqual([
+        'codeweaver-planner',
+        'codeweaver-reviewer',
+        'codeweaver-worker',
+        'flowrider-planner',
+        'flowrider-reviewer',
+        'flowrider-worker',
+        'recipe-maker',
+        'siege-adversarial-fixer',
+        'siege-adversarial-walker',
+        'siege-happy-fixer',
+        'siege-happy-walker',
+        'siege-planner',
+        'siegemaster-reader',
+        'siegemaster-stress',
+        'siegemaster-verifier',
+      ]);
     });
   });
 
@@ -111,30 +135,11 @@ describe('agentPromptClassificationStatics', () => {
     );
   });
 
-  // Every operator role has its own reviewer, and it is named for it. The naming is the whole
-  // reason a bare `reviewer` no longer exists: a reviewer's prompt carries its parent's subject
-  // matter, so there is nothing generic left for an unprefixed name to mean.
-  describe('every operator role has its own reviewer', () => {
-    it.each(agentPromptClassificationStatics.operatorRoleNames)(
-      'VALID: {operatorRole: %s} => has a reviewer minion named for it',
-      (operatorRole) => {
-        expect(
-          agentPromptClassificationStatics.minionNames.some(
-            (name) => name === `${operatorRole}-reviewer`,
-          ),
-        ).toBe(true);
-      },
-    );
-
-    it('VALID: {minionNames} => holds only the per-role reviewers, the siegemaster verifier/stress pair and the spec-phase minion', () => {
-      expect(
-        agentPromptClassificationStatics.minionNames.filter(
-          (name) =>
-            !agentPromptClassificationStatics.operatorRoleNames.some(
-              (role) => name === `${role}-reviewer`,
-            ),
-        ),
-      ).toStrictEqual(['chaoswhisperer-gap-minion', 'siegemaster-stress', 'siegemaster-verifier']);
+  describe('minionNames holds only chaoswhisperer-gap-minion', () => {
+    it('VALID: {minionNames} => chaoswhisperer-gap-minion is the only true minion left', () => {
+      expect(agentPromptClassificationStatics.minionNames).toStrictEqual([
+        'chaoswhisperer-gap-minion',
+      ]);
     });
   });
 });

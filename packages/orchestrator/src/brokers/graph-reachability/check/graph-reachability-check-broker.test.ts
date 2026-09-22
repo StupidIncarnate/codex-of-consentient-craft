@@ -15,24 +15,11 @@ describe('graphReachabilityCheckBroker', () => {
   // vocabulary, bounded cycles, and every `handler:` name) passes cleanly today. Once story 25
   // registers a name, this pin goes red for a good reason — update it to drop that one line, not
   // to add the name back.
-  it('VALID: {} => the real graphs carry exactly the story-25-pending dangling prompts', () => {
+  it('VALID: {} => the real graphs carry zero dangling prompts now that story 25 names are registered', () => {
     graphReachabilityCheckBrokerProxy();
 
     const result = graphReachabilityCheckBroker();
 
-    expect(result).toStrictEqual([
-      "Step 'plan' in the 'codeweaver' graph names prompt 'codeweaver-planner', which nothing serves. Add it to agentPromptClassificationStatics.promptNames and to agentNameToPromptTransformer, or fix the name. A dangling prompt is a session dispatched against nothing.",
-      "Step 'work' in the 'codeweaver' graph names prompt 'codeweaver-worker', which nothing serves. Add it to agentPromptClassificationStatics.promptNames and to agentNameToPromptTransformer, or fix the name. A dangling prompt is a session dispatched against nothing.",
-      "Step 'recipe' in the 'flowrider' graph names prompt 'recipe-maker', which nothing serves. Add it to agentPromptClassificationStatics.promptNames and to agentNameToPromptTransformer, or fix the name. A dangling prompt is a session dispatched against nothing.",
-      "Step 'plan' in the 'flowrider' graph names prompt 'flowrider-planner', which nothing serves. Add it to agentPromptClassificationStatics.promptNames and to agentNameToPromptTransformer, or fix the name. A dangling prompt is a session dispatched against nothing.",
-      "Step 'work' in the 'flowrider' graph names prompt 'flowrider-worker', which nothing serves. Add it to agentPromptClassificationStatics.promptNames and to agentNameToPromptTransformer, or fix the name. A dangling prompt is a session dispatched against nothing.",
-      "Step 'recipe' in the 'siegemaster' graph names prompt 'recipe-maker', which nothing serves. Add it to agentPromptClassificationStatics.promptNames and to agentNameToPromptTransformer, or fix the name. A dangling prompt is a session dispatched against nothing.",
-      "Step 'read' in the 'siegemaster' graph names prompt 'siegemaster-reader', which nothing serves. Add it to agentPromptClassificationStatics.promptNames and to agentNameToPromptTransformer, or fix the name. A dangling prompt is a session dispatched against nothing.",
-      "Step 'plan' in the 'siegemaster' graph names prompt 'siege-planner', which nothing serves. Add it to agentPromptClassificationStatics.promptNames and to agentNameToPromptTransformer, or fix the name. A dangling prompt is a session dispatched against nothing.",
-      "Step 'happyWalk' in the 'siegemaster' graph names prompt 'siege-happy-walker', which nothing serves. Add it to agentPromptClassificationStatics.promptNames and to agentNameToPromptTransformer, or fix the name. A dangling prompt is a session dispatched against nothing.",
-      "Step 'fixHappy' in the 'siegemaster' graph names prompt 'siege-happy-fixer', which nothing serves. Add it to agentPromptClassificationStatics.promptNames and to agentNameToPromptTransformer, or fix the name. A dangling prompt is a session dispatched against nothing.",
-      "Step 'adversarial' in the 'siegemaster' graph names prompt 'siege-adversarial-walker', which nothing serves. Add it to agentPromptClassificationStatics.promptNames and to agentNameToPromptTransformer, or fix the name. A dangling prompt is a session dispatched against nothing.",
-      "Step 'fixAdversarial' in the 'siegemaster' graph names prompt 'siege-adversarial-fixer', which nothing serves. Add it to agentPromptClassificationStatics.promptNames and to agentNameToPromptTransformer, or fix the name. A dangling prompt is a session dispatched against nothing.",
-    ]);
+    expect(result).toStrictEqual([]);
   });
 });

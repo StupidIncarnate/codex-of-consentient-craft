@@ -37,15 +37,20 @@ import { agentPromptResultContract, type AgentPromptResult } from '@dungeonmaste
 
 import type { AgentPromptName } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
+import { codeweaverPlannerStatics } from '../../statics/codeweaver-planner/codeweaver-planner-statics';
+import { codeweaverWorkerStatics } from '../../statics/codeweaver-worker/codeweaver-worker-statics';
 import { codeweaverReviewerStatics } from '../../statics/codeweaver-reviewer/codeweaver-reviewer-statics';
-import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
+import { flowriderPlannerStatics } from '../../statics/flowrider-planner/flowrider-planner-statics';
+import { flowriderWorkerStatics } from '../../statics/flowrider-worker/flowrider-worker-statics';
 import { flowriderReviewerStatics } from '../../statics/flowrider-reviewer/flowrider-reviewer-statics';
 import { roleToModelStatics } from '../../statics/role-to-model/role-to-model-statics';
-import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
-import { siegemasterReviewerStatics } from '../../statics/siegemaster-reviewer/siegemaster-reviewer-statics';
-import { siegemasterStressStatics } from '../../statics/siegemaster-stress/siegemaster-stress-statics';
-import { siegemasterVerifierStatics } from '../../statics/siegemaster-verifier/siegemaster-verifier-statics';
+import { siegePlannerStatics } from '../../statics/siege-planner/siege-planner-statics';
+import { siegeAdversarialFixerStatics } from '../../statics/siege-adversarial-fixer/siege-adversarial-fixer-statics';
+import { siegeAdversarialWalkerStatics } from '../../statics/siege-adversarial-walker/siege-adversarial-walker-statics';
+import { siegeHappyFixerStatics } from '../../statics/siege-happy-fixer/siege-happy-fixer-statics';
+import { siegeHappyWalkerStatics } from '../../statics/siege-happy-walker/siege-happy-walker-statics';
+import { recipeMakerStatics } from '../../statics/recipe-maker/recipe-maker-statics';
+import { siegemasterReaderStatics } from '../../statics/siegemaster-reader/siegemaster-reader-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 
@@ -55,40 +60,48 @@ const AGENT_PROMPTS = {
     template: chaoswhispererGapMinionStatics.prompt.template,
   },
 
-  codeweaver: {
+  'codeweaver-planner': {
     model: roleToModelStatics.codeweaver,
-    template: codeweaverPromptStatics.prompt.template,
+    template: codeweaverPlannerStatics.prompt.template,
+  },
+  'codeweaver-worker': {
+    model: roleToModelStatics.codeweaver,
+    template: codeweaverWorkerStatics.prompt.template,
   },
   'codeweaver-reviewer': {
     model: 'sonnet',
     template: codeweaverReviewerStatics.prompt.template,
   },
 
-  flowrider: {
+  'flowrider-planner': {
     model: roleToModelStatics.flowrider,
-    template: flowriderPromptStatics.prompt.template,
+    template: flowriderPlannerStatics.prompt.template,
+  },
+  'flowrider-worker': {
+    model: roleToModelStatics.flowrider,
+    template: flowriderWorkerStatics.prompt.template,
   },
   'flowrider-reviewer': {
     model: 'sonnet',
     template: flowriderReviewerStatics.prompt.template,
   },
 
-  siegemaster: {
+  'siege-planner': {
     model: roleToModelStatics.siegemaster,
-    template: siegemasterPromptStatics.prompt.template,
+    template: siegePlannerStatics.prompt.template,
   },
-  'siegemaster-reviewer': {
+  'siege-adversarial-fixer': {
     model: 'sonnet',
-    template: siegemasterReviewerStatics.prompt.template,
+    template: siegeAdversarialFixerStatics.prompt.template,
   },
-  'siegemaster-stress': {
+  'siege-adversarial-walker': {
     model: 'sonnet',
-    template: siegemasterStressStatics.prompt.template,
+    template: siegeAdversarialWalkerStatics.prompt.template,
   },
-  'siegemaster-verifier': {
-    model: 'sonnet',
-    template: siegemasterVerifierStatics.prompt.template,
-  },
+  'siege-happy-fixer': { model: 'sonnet', template: siegeHappyFixerStatics.prompt.template },
+  'siege-happy-walker': { model: 'sonnet', template: siegeHappyWalkerStatics.prompt.template },
+  'recipe-maker': { model: 'opus', template: recipeMakerStatics.prompt.template },
+  'siegemaster-reader': { model: 'sonnet', template: siegemasterReaderStatics.prompt.template },
 
   spiritmender: {
     model: roleToModelStatics.spiritmender,

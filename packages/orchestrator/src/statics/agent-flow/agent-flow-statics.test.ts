@@ -447,10 +447,9 @@ describe('agentFlowStatics', () => {
     expect(agentFlowStatics.siegemaster.steps.happyWalk.routes.done).toBe('adversarial');
   });
 
-  // A dangling prompt name is a step that dispatches against nothing. Four of these resolve
-  // through the served roster today; the rest are written by the prompt story, and the graph
-  // checker is what turns one that never arrives into a red.
-  it('VALID: {every prompt step} => names a roster prompt, four of which are served today', () => {
+  // A dangling prompt name is a step that dispatches against nothing. Every one of these resolves
+  // through the served roster today.
+  it('VALID: {every prompt step} => names a roster prompt, all of which are served today', () => {
     expect({
       all: CONFIG_PROMPT_NAMES,
       servedToday: CONFIG_PROMPT_NAMES.filter((name) =>
@@ -474,7 +473,23 @@ describe('agentFlowStatics', () => {
         'spiritmender',
         'warpgate',
       ],
-      servedToday: ['codeweaver-reviewer', 'flowrider-reviewer', 'spiritmender', 'warpgate'],
+      servedToday: [
+        'codeweaver-planner',
+        'codeweaver-reviewer',
+        'codeweaver-worker',
+        'flowrider-planner',
+        'flowrider-reviewer',
+        'flowrider-worker',
+        'recipe-maker',
+        'siege-adversarial-fixer',
+        'siege-adversarial-walker',
+        'siege-happy-fixer',
+        'siege-happy-walker',
+        'siege-planner',
+        'siegemaster-reader',
+        'spiritmender',
+        'warpgate',
+      ],
     });
   });
 

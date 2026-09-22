@@ -295,10 +295,8 @@ describe('buildSpawnInstructionLayerBroker', () => {
       });
     });
 
-    // The fallback branch, pinned at the value that makes it necessary: `codeweaver-worker` is one
-    // of the eleven prompts the step graph names and nothing serves yet. Re-keying on it would
-    // throw on every codeweaver dispatch, so the work item's own role still answers.
-    it('VALID: {codeweaver scope work item at the work step, whose prompt is unregistered} => still dispatches on its own role, and says so on stderr', () => {
+    // Claude is spawned as the scope role (codeweaver) and reads the step's prompt (codeweaver-reviewer).
+    it('VALID: {codeweaver scope work item at the review step} => dispatches on its scope role with the step prompt in taskPrompt', () => {
       const proxy = buildSpawnInstructionLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'quest-codeweaver-work' });
       const workItemId = QuestWorkItemIdStub({
@@ -317,7 +315,7 @@ describe('buildSpawnInstructionLayerBroker', () => {
         id: workItemId,
         role: 'codeweaver',
         status: 'pending',
-        step: 'work',
+        step: 'review',
         relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
       });
       const quest = QuestStub({
@@ -334,10 +332,8 @@ describe('buildSpawnInstructionLayerBroker', () => {
         declined: proxy.getDeclinedPromptReports(),
       }).toStrictEqual({
         role: 'codeweaver',
-        agentLine: '  agent: "codeweaver",',
-        declined: [
-          `[dispatch-role] work item ${String(workItemId)} on quest ${String(questId)} runs step \`work\`, whose prompt \`codeweaver-worker\` is not a dispatchable agent role — dispatching as \`codeweaver\` instead\n`,
-        ],
+        agentLine: '  agent: "codeweaver-reviewer",',
+        declined: [],
       });
     });
   });

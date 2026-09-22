@@ -18,8 +18,9 @@ import { AgentPromptNameStub } from '../../contracts/agent-prompt-name/agent-pro
 import { agentPromptClassificationStatics } from '../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name-to-prompt-transformer';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
-import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
+import { codeweaverPlannerStatics } from '../../statics/codeweaver-planner/codeweaver-planner-statics';
+import { codeweaverWorkerStatics } from '../../statics/codeweaver-worker/codeweaver-worker-statics';
+import { siegePlannerStatics } from '../../statics/siege-planner/siege-planner-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 import { workItemToPromptTransformer } from './work-item-to-prompt-transformer';
@@ -30,7 +31,7 @@ import { workItemToPromptTransformer } from './work-item-to-prompt-transformer';
 // whole document, not one interpolated block. Each is read LIVE off its statics here — a copied
 // excerpt would drift the moment a prompt is edited, and every assertion below compares the entire
 // served string.
-const CODEWEAVER_TEMPLATE = codeweaverPromptStatics.prompt.template;
+const CODEWEAVER_TEMPLATE = codeweaverPlannerStatics.prompt.template;
 
 // Fixture scale for the MCP tool-result budget below, calibrated against a real dogfood quest
 // (e0210063): a 21-item ledger, seven flows, five affected packages, and a 1,530-character user
@@ -71,15 +72,6 @@ const PATHOLOGICAL_OWN_INDEX = 34;
 const PATHOLOGICAL_PENDING_COUNT = 5;
 const LEDGER_ITEM_TEXT = 'core: config load+validate adapter';
 
-// Every minion an operator summons. They own no work item and are served by
-// `agentPromptGetBroker`'s minion branch, which passes no workItemId at all; reaching THIS
-// transformer means a caller echoed its parent's id, and the branch below still serves them their
-// own prompt with the minimal substitution. Derived by subtracting the one minion outside that set
-// rather than listed, so a fourth operator role's reviewer arrives here covered.
-const OPERATOR_MINION_NAMES = agentPromptClassificationStatics.minionNames.filter(
-  (minionName) => minionName !== 'chaoswhisperer-gap-minion',
-);
-
 describe('workItemToPromptTransformer', () => {
   describe('minion path (agent name is not a WorkItemRole)', () => {
     it('VALID: {agent: chaoswhisperer-gap-minion} => substitutes Quest ID + Work Item ID', () => {
@@ -119,35 +111,6 @@ describe('workItemToPromptTransformer', () => {
         chaoswhispererGapMinionStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       );
     });
-
-    // Every minion carries its OWN prompt — its parent's subject matter is baked into the file, so
-    // there is no placeholder left for this transformer to be missing a value for. A caller that
-    // echoes its parent's workItemId therefore gets the same minimal substitution
-    // `chaoswhisperer-gap-minion` gets, into the minion's own prompt. Derived from `minionNames`, so
-    // a prompt added there is asserted the day it is added.
-    it.each(OPERATOR_MINION_NAMES)(
-      'VALID: {agent: %s, workItemId echoed} => substitutes Quest ID + Work Item ID into that minion’s own prompt',
-      (minionName) => {
-        const questId = QuestIdStub({ value: 'my-quest' });
-        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-7777-4222-9333-444444444444' });
-        const workItem = WorkItemStub({ id: workItemId, role: 'siegemaster' });
-        const quest = QuestStub({ id: questId, workItems: [workItem] });
-
-        const result = workItemToPromptTransformer({
-          quest,
-          workItem,
-          agentName: AgentPromptNameStub({ value: minionName }),
-        });
-
-        const expectedArgs = `Quest ID: ${String(questId)}\nWork Item ID: ${String(workItemId)}`;
-
-        expect(result.prompt).toBe(
-          agentNameToPromptTransformer({
-            agent: AgentPromptNameStub({ value: minionName }),
-          }).prompt.replace('$ARGUMENTS', expectedArgs),
-        );
-      },
-    );
   });
 
   describe('command roles (run by the dispatcher, never served by get-agent-prompt)', () => {
@@ -230,10 +193,7 @@ describe('workItemToPromptTransformer', () => {
       );
     });
 
-    // The fallback branch, pinned at the value that makes it necessary: `codeweaver-worker` is one
-    // of the prompts the step graph names and nothing serves yet, so the work item's own role
-    // still decides — exactly as it does with no step graph at all.
-    it('VALID: {codeweaver scope work item at the work step} => serves the codeweaver prompt, because the step names one nothing serves', () => {
+    it('VALID: {codeweaver scope work item at the work step} => serves the codeweaver worker prompt', () => {
       const questId = QuestIdStub({ value: 'my-quest' });
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-1313-4222-9333-444444444444' });
       const operationId = OperationItemIdStub({ value: 'bbbbbbbb-1313-4222-9333-444444444444' });
@@ -264,7 +224,9 @@ describe('workItemToPromptTransformer', () => {
         'Your operation item: [codeweaver] core: config load+validate adapter',
       ].join('\n');
 
-      expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.replace('$ARGUMENTS', expectedArgs));
+      expect(result.prompt).toBe(
+        codeweaverWorkerStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
     });
   });
 
@@ -310,6 +272,7 @@ describe('workItemToPromptTransformer', () => {
       const workItem = WorkItemStub({
         id: workItemId,
         role: 'codeweaver',
+        step: 'plan',
         relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
       });
       const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
@@ -347,6 +310,7 @@ describe('workItemToPromptTransformer', () => {
       const workItem = WorkItemStub({
         id: workItemId,
         role: 'codeweaver',
+        step: 'plan',
         relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
       });
       const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
@@ -392,6 +356,7 @@ describe('workItemToPromptTransformer', () => {
         const workItem = WorkItemStub({
           id: workItemId,
           role: 'codeweaver',
+          step: 'plan',
           relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
         });
         const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
@@ -426,6 +391,7 @@ describe('workItemToPromptTransformer', () => {
         const workItem = WorkItemStub({
           id: workItemId,
           role: 'codeweaver',
+          step: 'plan',
           relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
         });
         const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
@@ -459,6 +425,7 @@ describe('workItemToPromptTransformer', () => {
         const workItem = WorkItemStub({
           id: workItemId,
           role: 'codeweaver',
+          step: 'plan',
           relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
         });
         const quest = QuestStub({
@@ -518,6 +485,7 @@ describe('workItemToPromptTransformer', () => {
         const workItem = WorkItemStub({
           id: workItemId,
           role: 'codeweaver',
+          step: 'plan',
           relatedDataItems: [
             RelatedDataItemStub({ value: `operations/${String(ownOperationId)}` }),
           ],
@@ -670,6 +638,7 @@ describe('workItemToPromptTransformer', () => {
         const workItem = WorkItemStub({
           id: workItemId,
           role: 'codeweaver',
+          step: 'plan',
           relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
         });
         const quest = QuestStub({
@@ -905,6 +874,7 @@ describe('workItemToPromptTransformer', () => {
         const workItem = WorkItemStub({
           id: workItemId,
           role: 'siegemaster',
+          step: 'plan',
           needsLane: true,
           relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
           payload: {
@@ -938,7 +908,7 @@ describe('workItemToPromptTransformer', () => {
         ].join('\n');
 
         expect(result.prompt).toBe(
-          siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+          siegePlannerStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
         );
       });
 
@@ -955,6 +925,7 @@ describe('workItemToPromptTransformer', () => {
         const workItem = WorkItemStub({
           id: workItemId,
           role: 'siegemaster',
+          step: 'plan',
           needsLane: true,
           relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
           payload: {
@@ -988,7 +959,7 @@ describe('workItemToPromptTransformer', () => {
         ].join('\n');
 
         expect(result.prompt).toBe(
-          siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+          siegePlannerStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
         );
       });
 
@@ -1005,6 +976,7 @@ describe('workItemToPromptTransformer', () => {
         const workItem = WorkItemStub({
           id: workItemId,
           role: 'siegemaster',
+          step: 'plan',
           needsLane: true,
           relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
         });
@@ -1024,7 +996,7 @@ describe('workItemToPromptTransformer', () => {
         ].join('\n');
 
         expect(result.prompt).toBe(
-          siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+          siegePlannerStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
         );
       });
 
@@ -1041,6 +1013,7 @@ describe('workItemToPromptTransformer', () => {
         const workItem = WorkItemStub({
           id: workItemId,
           role: 'codeweaver',
+          step: 'plan',
           relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
           payload: {
             instance: {
@@ -1134,7 +1107,14 @@ describe('workItemToPromptTransformer', () => {
   // transformer builds is spliced in below it — and that block is the part an agent acts on first.
   //
   describe('MCP tool-result budget', () => {
-    it.each(agentPromptClassificationStatics.roleNames)(
+    const BUDGET_ROLES = agentPromptClassificationStatics.roleNames.filter(
+      (roleName) =>
+        agentPromptClassificationStatics.promptNames.includes(roleName) &&
+        workItemRoleStatics.names.some((name) => name === roleName) &&
+        !['codeweaver', 'flowrider', 'siegemaster'].includes(roleName),
+    );
+
+    it.each(BUDGET_ROLES)(
       'VALID: {agent: %s, relay-scale quest} => served MCP block stays within the verbatim budget',
       (agentName) => {
         const operations = Array.from({ length: BUDGET_OPERATION_COUNT }, (_unused, index) =>
@@ -1191,7 +1171,7 @@ describe('workItemToPromptTransformer', () => {
     // The ledger is the one term in the served block that grows without bound: a quest that takes
     // two or three retries accumulates `pt N` continuations until the block overflows and the MCP
     // layer spills it to a file, leaving the agent holding a path instead of its gates and rules.
-    it.each(agentPromptClassificationStatics.roleNames)(
+    it.each(BUDGET_ROLES)(
       'VALID: {agent: %s, relay-scale quest with a 40-item pt-chain ledger} => served MCP block stays within the verbatim budget',
       (agentName) => {
         const ownOperationId = OperationItemIdStub({

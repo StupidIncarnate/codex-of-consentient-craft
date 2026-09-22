@@ -13,6 +13,7 @@ import { QuestFlow } from '../flows/quest/quest-flow';
 import { ProcessFlow } from '../flows/process/process-flow';
 import { SessionFlow } from '../flows/session/session-flow';
 import { DirectoryFlow } from '../flows/directory/directory-flow';
+import { GraphReachabilityBootFlow } from '../flows/graph-reachability-boot/graph-reachability-boot-flow';
 import { HealthFlow } from '../flows/health/health-flow';
 import { ImagesFlow } from '../flows/images/images-flow';
 import { OrchestrationBootFlow } from '../flows/orchestration-boot/orchestration-boot-flow';
@@ -27,6 +28,10 @@ export const StartServer = ({
 }: {
   serveWebBundle?: boolean;
 } = {}): AdapterResult => {
+  // Validate reachability across the family graph and every step graph at server boot.
+  // Throws directly if any violation exists, stopping boot before listeners start.
+  GraphReachabilityBootFlow();
+
   // Start the quest-driven JSONL watcher reactor BEFORE the HTTP server begins listening.
   // It tails one JSONL per distinct sessionId stamped onto an in-progress workItem across
   // all active quests, reconciling on every quest-modified outbox event. Source of truth
