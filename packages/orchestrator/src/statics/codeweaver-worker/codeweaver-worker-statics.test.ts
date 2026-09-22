@@ -1,5 +1,6 @@
 import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 
+import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 import { sadPathRoutingStatics } from '../sad-path-routing/sad-path-routing-statics';
 import { unitMarkingStatics } from '../unit-marking/unit-marking-statics';
 
@@ -34,14 +35,15 @@ describe('codeweaverWorkerStatics', () => {
   });
 
   // THE HEADING LIST IS THE SHAPE OF THE ROLE. Pinning the LINES rather than the count is what
-  // catches a section silently deleted or renamed. Two of these ten arrive already headed, from the
-  // interpolated shared blocks rather than from this file's own prose.
-  it('VALID: served template => names its ten top-level sections in document order', () => {
+  // catches a section silently deleted or renamed. Three of these eleven arrive already headed, from
+  // the interpolated shared blocks rather than from this file's own prose.
+  it('VALID: served template => names its eleven top-level sections in document order', () => {
     expect(Array.from(TEMPLATE.matchAll(/^## .+$/gmu), (match) => match[0])).toStrictEqual([
       '## The words this page uses',
       '## What you do, and what you never do',
       '## Operating rules',
       '## Marking your units',
+      '## `verifyByHuman`',
       '## What your evidence carries',
       '## Your tools',
       '## Your piece is a best guess',
@@ -69,11 +71,26 @@ describe('codeweaverWorkerStatics', () => {
   // A SHARED BLOCK IS A CONTRACT: INTERPOLATED, NEVER RESTATED. Counted rather than tested for
   // presence, matching the pattern the blocks' own colocated tests use — twice would mean the block
   // landed in two sections and cost this prompt's budget twice over for one rule.
-  it('VALID: served template => interpolates the marking and sad-path blocks exactly once each', () => {
+  it('VALID: served template => interpolates the marking, automatability and sad-path blocks exactly once each', () => {
     expect({
       marking: TEMPLATE.split(unitMarkingStatics.markdown).length - 1,
+      automatability: TEMPLATE.split(observableAutomatabilityStatics.markdown).length - 1,
       sadPaths: TEMPLATE.split(sadPathRoutingStatics.markdown).length - 1,
-    }).toStrictEqual({ marking: 1, sadPaths: 1 });
+    }).toStrictEqual({ marking: 1, automatability: 1, sadPaths: 1 });
+  });
+
+  // THE ROLE-SPECIFIC SENTENCE, IN THE WORKER'S OWN TERMS. The shared block explains the flag once,
+  // for every host; this prompt still owes its own reader the moment inside ITS OWN script where the
+  // flag applies — right beside the mark it exists to replace, at the point this session actually
+  // marks a unit.
+  it('VALID: served template => tells the worker to flag verifyByHuman instead of cant-meet when nothing at any layer could ever settle a unit', () => {
+    expect(
+      hasIn({
+        needle:
+          "**Where a unit resists everything your reading and your tests can try, and nothing at any layer — not\na later piece, not a later pass, nothing but a person's own judgment once the quest is done — could\never settle it either, flag it instead of marking `cant-meet`.** Set `verifyByHuman: true` on its\nobservable through `modify-quest`, naming its flow, node and observable id and carrying forward what\nit already declares.",
+        text: TEMPLATE,
+      }),
+    ).toBe(true);
   });
 
   // THIS PROMPT MUST NOT RE-AUTHOR WHAT THE SHARED BLOCKS ALREADY SAY. A local paragraph restating
@@ -401,15 +418,29 @@ describe('codeweaverWorkerStatics', () => {
     ).toBe(true);
   });
 
-  // THIS ROLE WRITES CODE DIRECTLY, AND CARRIES NO STALE COPY-PASTE ARTIFACT. `modify-quest` was the
-  // old nested flows/nodes/edges sign-off shape this role no longer uses — marks travel through
-  // `quest-work`'s flat `observations` array instead, which the marking block already interpolates.
+  // THIS ROLE WRITES CODE DIRECTLY, AND CARRIES NO STALE COPY-PASTE ARTIFACT. Marks travel through
+  // `quest-work`'s flat `observations` array, which the marking block already interpolates —
+  // `modify-quest` is scoped to `verifyByHuman` alone (see "Your tools" and the role-specific
+  // sentence above), never the old nested flows/nodes/edges sign-off shape this role no longer uses.
   // `MIRROR` is `codeweaver-prompt`'s own DISCOVERY block naming a slot codeweaver's payload never
   // had; carrying it forward here would point at a field this piece's payload does not carry either.
-  it('VALID: served template => never calls modify-quest, and carries no MIRROR reference', () => {
+  it('VALID: served template => scopes every modify-quest call to verifyByHuman, and carries no MIRROR reference', () => {
     expect({
-      modifyQuest: TEMPLATE.includes('modify-quest'),
+      modifyQuestCount: TEMPLATE.split('modify-quest').length - 1,
+      toolRow: hasIn({
+        needle:
+          'modify-quest                                    verifyByHuman only, on a unit nothing could ever settle',
+        text: TEMPLATE,
+      }),
+      notYoursRow: hasIn({ needle: 'modify-quest on any field but verifyByHuman', text: TEMPLATE }),
+      noNestedSignoffShape: TEMPLATE.includes('modify-quest({ questId:'),
       mirror: TEMPLATE.includes('MIRROR'),
-    }).toStrictEqual({ modifyQuest: false, mirror: false });
+    }).toStrictEqual({
+      modifyQuestCount: 3,
+      toolRow: true,
+      notYoursRow: true,
+      noNestedSignoffShape: false,
+      mirror: false,
+    });
   });
 });

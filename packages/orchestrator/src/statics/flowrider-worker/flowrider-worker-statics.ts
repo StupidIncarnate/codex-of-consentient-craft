@@ -4,9 +4,14 @@
  * USAGE:
  * flowriderWorkerStatics.prompt.template;
  * // The whole prompt. `$ARGUMENTS` is the one token still unsubstituted.
+ *
+ * `modify-quest` IS GRANTED FOR EXACTLY ONE FIELD: `verifyByHuman`, the flag
+ * `observableAutomatabilityStatics` explains. A unit nothing automated could ever prove at any layer
+ * gets flagged rather than left as a `cant-meet` every future piece rediscovers the same wall on.
  */
 
 import { declaredValueStatics } from '../declared-value/declared-value-statics';
+import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 import { sadPathRoutingStatics } from '../sad-path-routing/sad-path-routing-statics';
 import { unitMarkingStatics } from '../unit-marking/unit-marking-statics';
 
@@ -112,6 +117,12 @@ MARK each unit as it settles.
 
 ${unitMarkingStatics.markdown}
 
+**Where a unit resists proving at every layer you can reach, and nothing at any layer — not a later
+pass, not a later spec file, nothing but a person's own judgment once the quest is done — could ever
+settle it either, flag it instead of marking \`cant-meet\`.** Set \`verifyByHuman: true\` on its
+observable through \`modify-quest\`, naming its flow, node and observable id and carrying forward what
+it already declares. See the \`verifyByHuman\` rule further down this page for the whole picture.
+
 ### 11. Unmet units
 
 A unit you cannot reach at its served surface is \`unmet\` with the reason. **You may not pick an easier layer**, and the surface is not yours to amend — it comes from the unit's own \`checkSurface\`, and changing that is the reviewer's authority.
@@ -195,6 +206,8 @@ RETURN
   NEXT: pass | rework — <what is left> | wall — <what a person must change>
 
 ${declaredValueStatics.markdown}
+
+${observableAutomatabilityStatics.markdown}
 
 ${sadPathRoutingStatics.markdown}
 

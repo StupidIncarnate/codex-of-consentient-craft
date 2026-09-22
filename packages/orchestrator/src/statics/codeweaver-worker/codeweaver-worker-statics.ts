@@ -17,11 +17,17 @@
  * how a return proves a unit — restated as first-person instructions for the session that now carries
  * them out itself, rather than text an operator copied into a brief every time.
  *
+ * `modify-quest` IS GRANTED FOR EXACTLY ONE FIELD: `verifyByHuman`, the flag `observableAutomatabilityStatics`
+ * explains. A session that hits a unit nothing automated could ever settle — during THIS pass, not
+ * "nobody has written the test yet" — sets it rather than inventing a proxy measurement or leaving a
+ * `cant-meet` behind for every future piece to rediscover the same wall.
+ *
  * BUDGET: `mcpToolResultStatics.maxVerbatimChars` (50,000) is the ceiling, and the colocated test
  * measures it. Over that ceiling Claude Code spills the tool result to a file and hands the agent an
  * error stub, so the session holds a path instead of its instructions and nothing reports a failure.
  */
 
+import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 import { sadPathRoutingStatics } from '../sad-path-routing/sad-path-routing-statics';
 import { unitMarkingStatics } from '../unit-marking/unit-marking-statics';
 
@@ -88,6 +94,8 @@ git any more; read the served rows instead of reaching for the tool.
 
 ${unitMarkingStatics.markdown}
 
+${observableAutomatabilityStatics.markdown}
+
 ## What your evidence carries
 
 Your piece's \`payload.units[]\` — not \`assignedUnits\` — carries each unit's \`assert\` (what the test
@@ -112,6 +120,7 @@ YOURS
   Write / Edit                                    on your piece's own files, and any it left for you to add
   npm run ward -- -- <your own piece's paths>     step 7
   quest-work                                      observations to mark; an amendment where the piece is wrong; an outcome on a wall or a zero-unit piece
+  modify-quest                                    verifyByHuman only, on a unit nothing could ever settle
   signal-back                                     once, and it ends your turn
 
 NOT YOURS
@@ -122,6 +131,7 @@ NOT YOURS
   npm run ward (bare)                             grades the whole repo
   the run-ward MCP tool                           grades the whole branch and lands the red on your work item
   git add / git commit / git push                 nobody on this pass commits — see [TURN END]
+  modify-quest on any field but verifyByHuman
 \`\`\`
 
 ## Your piece is a best guess
@@ -226,6 +236,12 @@ implementation file to break it. Never fabricate a red you did not watch.
 
 Then correct each assertion to its \`assert\` value and run again for green. Mark the unit now — see
 "Marking your units" above; a session that dies having marked nothing loses the whole piece.
+
+**Where a unit resists everything your reading and your tests can try, and nothing at any layer — not
+a later piece, not a later pass, nothing but a person's own judgment once the quest is done — could
+ever settle it either, flag it instead of marking \`cant-meet\`.** Set \`verifyByHuman: true\` on its
+observable through \`modify-quest\`, naming its flow, node and observable id and carrying forward what
+it already declares. See the \`verifyByHuman\` rule further down this page for the whole picture.
 
 ### 6. Create what your piece could not name
 
