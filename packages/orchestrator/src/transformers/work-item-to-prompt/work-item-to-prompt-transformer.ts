@@ -106,8 +106,8 @@ export const workItemToPromptTransformer = ({
   if (isChatWorkItemRoleGuard({ role: workItem.role })) {
     // Chat roles are briefed by their own entry point, not by the dispatch loop: chaoswhisperer
     // and bughunt run as the /dumpster-create and /dumpster-hunt slash command bodies (or as a
-    // headless node-mode spawn built by chatPromptBuildTransformer); glyphsmith runs through the
-    // chat-broker design flow. None has a dispatch-loop lifecycle.
+    // headless node-mode spawn built by chatPromptBuildTransformer). None has a dispatch-loop
+    // lifecycle.
     throw new Error(
       `workItemToPromptTransformer: role ${workItem.role} is not served by get-agent-prompt`,
     );

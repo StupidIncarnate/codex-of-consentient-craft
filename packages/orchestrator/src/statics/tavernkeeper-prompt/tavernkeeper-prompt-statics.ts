@@ -2,8 +2,8 @@
  * PURPOSE: Defines the Tavernkeeper agent prompt — the follow-up chat that opens once a quest's
  * work has already landed, so its instructions are deliberately thin: read the question, pull only
  * the quest state that question needs, and never touch the quest's status. Reach for this over the
- * intake prompts (ChaosWhisperer, BugHunt) or Glyphsmith's design prompt, which all run BEFORE or
- * DURING execution and carry a checklist plus status transitions to drive.
+ * intake prompts (ChaosWhisperer, BugHunt), which run BEFORE or DURING execution and carry a
+ * checklist plus status transitions to drive.
  *
  * USAGE:
  * tavernkeeperPromptStatics.prompt.template;

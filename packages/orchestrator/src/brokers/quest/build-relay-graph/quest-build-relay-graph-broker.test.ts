@@ -71,7 +71,7 @@ describe('questBuildRelayGraphBroker', () => {
   });
 
   describe('intake plan items forced complete', () => {
-    it('VALID: {chaoswhisperer op pending + glyphsmith op in_progress, codeweaver op pending} => both intake ops forced complete, the pre-existing codeweaver op stays first actionable, its work item carries codeweaver\'s OWN entry step "plan" (not riftcarver\'s "carve"), and the newly minted riftcarver scope seeds pending behind it', () => {
+    it('VALID: {chaoswhisperer op pending + bughunt op in_progress, codeweaver op pending} => both intake ops forced complete, the pre-existing codeweaver op stays first actionable, its work item carries codeweaver\'s OWN entry step "plan" (not riftcarver\'s "carve"), and the newly minted riftcarver scope seeds pending behind it', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -81,10 +81,10 @@ describe('questBuildRelayGraphBroker', () => {
         text: 'Author spec + implementation plan',
         status: 'pending',
       });
-      const forgottenDesignOp = OperationItemStub({
+      const forgottenBughuntOp = OperationItemStub({
         id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
-        role: 'glyphsmith',
-        text: 'Design prototypes',
+        role: 'bughunt',
+        text: 'Author bug-hunt spec',
         status: 'in_progress',
       });
       const codeweaverOp = OperationItemStub({
@@ -93,7 +93,7 @@ describe('questBuildRelayGraphBroker', () => {
         status: 'pending',
       });
       const quest = QuestStub({
-        operations: [forgottenPlanOp, forgottenDesignOp, codeweaverOp],
+        operations: [forgottenPlanOp, forgottenBughuntOp, codeweaverOp],
       });
 
       const result = questBuildRelayGraphBroker({
@@ -105,7 +105,7 @@ describe('questBuildRelayGraphBroker', () => {
       expect(result).toStrictEqual({
         operations: [
           { ...forgottenPlanOp, status: 'complete' },
-          { ...forgottenDesignOp, status: 'complete' },
+          { ...forgottenBughuntOp, status: 'complete' },
           { ...codeweaverOp, status: 'in_progress' },
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000001',

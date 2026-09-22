@@ -93,50 +93,6 @@ describe('chatPromptBuildTransformer', () => {
     });
   });
 
-  describe('glyphsmith role', () => {
-    it('ERROR: {glyphsmith + message + questId} => throws naming the role', () => {
-      chatPromptBuildTransformerProxy();
-      const role = WorkItemRoleStub({ value: 'glyphsmith' });
-      const questId = QuestIdStub({ value: 'design-quest-456' });
-
-      expect(() =>
-        chatPromptBuildTransformer({
-          role,
-          message: 'Create login page',
-          questId,
-        }),
-      ).toThrow(/^chatPromptBuildTransformer has no template for role 'glyphsmith'.*$/u);
-    });
-
-    it('ERROR: {glyphsmith + no questId} => throws naming the role', () => {
-      chatPromptBuildTransformerProxy();
-      const role = WorkItemRoleStub({ value: 'glyphsmith' });
-
-      expect(() =>
-        chatPromptBuildTransformer({
-          role,
-          message: 'Create login page',
-          questId: null,
-        }),
-      ).toThrow(/^chatPromptBuildTransformer has no template for role 'glyphsmith'.*$/u);
-    });
-
-    it('VALID: {glyphsmith + sessionId} => returns raw message as prompt', () => {
-      chatPromptBuildTransformerProxy();
-      const role = WorkItemRoleStub({ value: 'glyphsmith' });
-      const sessionId = SessionIdStub({ value: 'session-456' });
-
-      const result = chatPromptBuildTransformer({
-        role,
-        message: 'Continue design',
-        questId: null,
-        sessionId,
-      });
-
-      expect(result).toBe('Continue design');
-    });
-  });
-
   describe('tavernkeeper role', () => {
     it('VALID: {tavernkeeper + message + questId} => returns prompt with tavernkeeper template', () => {
       chatPromptBuildTransformerProxy();

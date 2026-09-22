@@ -230,7 +230,7 @@ describe('workItemToPromptTransformer', () => {
     });
   });
 
-  describe('chat roles (chaoswhisperer/glyphsmith are not served by get-agent-prompt)', () => {
+  describe('chat roles (chaoswhisperer is not served by get-agent-prompt)', () => {
     it('ERROR: {workItem.role: chaoswhisperer} => throws not-served-by-get-agent-prompt error', () => {
       const workItem = WorkItemStub({ role: 'chaoswhisperer' });
       const quest = QuestStub({ workItems: [workItem] });
@@ -242,19 +242,6 @@ describe('workItemToPromptTransformer', () => {
           agentName: AgentPromptNameStub({ value: 'codeweaver' }),
         }),
       ).toThrow(/role chaoswhisperer is not served by get-agent-prompt/u);
-    });
-
-    it('ERROR: {workItem.role: glyphsmith} => throws not-served-by-get-agent-prompt error', () => {
-      const workItem = WorkItemStub({ role: 'glyphsmith' });
-      const quest = QuestStub({ workItems: [workItem] });
-
-      expect(() =>
-        workItemToPromptTransformer({
-          quest,
-          workItem,
-          agentName: AgentPromptNameStub({ value: 'codeweaver' }),
-        }),
-      ).toThrow(/role glyphsmith is not served by get-agent-prompt/u);
     });
   });
 
