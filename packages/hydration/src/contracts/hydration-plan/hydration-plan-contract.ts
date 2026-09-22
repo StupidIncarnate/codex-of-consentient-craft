@@ -20,7 +20,8 @@ export type HydrationPlan = z.infer<typeof hydrationPlanContract>;
 
 /**
  * `run`'s return type, carried as a phantom property so the object stays printable data rather
- * than becoming a call. `TOut` stays `Record<string, unknown>` through chunks 1–3 — threading the
- * names `saveRecordAs` saves through this type is chunk 3b's own scheduled pass.
+ * than becoming a call. `TOut` defaults to `Record<string, unknown>`; `SavedOf<Ops>` threads each
+ * `saveRecordAs` call's own record contract into it instead, which is what `recipeDeclareBroker`
+ * returns as `Plan<SavedOf<Ops>>`.
  */
 export type Plan<TOut = Record<string, unknown>> = HydrationPlan & { readonly __out?: TOut };

@@ -4,9 +4,11 @@
  * what it explicitly named to save, never a row nobody saved and never the internal ref-keyed map
  * the walk used to get there.
  *
- * Typed as `Record<SavedRecordName, unknown>` until a scheduled pass threads each `saveRecordAs`
- * call's own record contract through the chain's return type — widening this to a typed shape is
- * additive and does not change what this contract accepts today.
+ * Stays `Record<SavedRecordName, unknown>` at RUNTIME — zod has no per-call knowledge of which
+ * ingredient a plan saved under which name, so this schema cannot validate a specific shape. The
+ * COMPILE-TIME return type is threaded already: `SavedOf<Ops>` types `Plan`'s output to each
+ * `saveRecordAs` call's own record contract, and `planRunBroker` casts this contract's loose parse
+ * result to that typed `TOut` at its one call site.
  *
  * USAGE:
  * hydrationRunResultContract.parse({ guild: { id: 'g1' } });
