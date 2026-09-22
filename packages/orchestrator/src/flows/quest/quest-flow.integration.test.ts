@@ -117,11 +117,12 @@ describe('QuestFlow', () => {
       // login-flow is runtime, so all three denominators measure it. Units: 1 terminal (dashboard,
       // the only node with no outgoing edge) + 1 labelled branch (e-success) + 1 observable + 7
       // off-map families. Codeweaver and Flowrider both shed the off-map families AND the
-      // siegemaster-added observable, leaving terminal + branch — 2 each, all outstanding, since
-      // confirmed/unconfirmable are hardcoded to 0 for every track. Siegemaster keeps all 10.
-      // deploy-lint-rule is operational, so both Flowrider and Siegemaster drop out entirely —
-      // operational units move to codeweaver's reviewer, the only family that settles them — and it
-      // carries a codeweaver row alone (the one terminal, outstanding).
+      // siegemaster-added observable, leaving terminal + branch — 2 each, all outstanding, since no
+      // work item marked anything (met/cantMeet/unmet are all 0 for every track). Siegemaster keeps
+      // all 10. deploy-lint-rule is operational, so both Flowrider and Siegemaster drop out entirely
+      // — operational units move to codeweaver's reviewer, the only family that settles them — and it
+      // carries a codeweaver row alone (the one terminal, outstanding). No marks anywhere means the
+      // whole-quest debt list is empty too.
       expect(summary).toStrictEqual({
         questId,
         flows: [
@@ -130,16 +131,16 @@ describe('QuestFlow', () => {
             name: 'Login Flow',
             flowType: 'runtime',
             tracks: [
-              { id: 'codeweaver', confirmed: 0, unconfirmable: 0, outstanding: 2 },
-              { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 2 },
-              { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 10 },
+              { id: 'codeweaver', met: 0, cantMeet: 0, unmet: 0, outstanding: 2 },
+              { id: 'flowrider', met: 0, cantMeet: 0, unmet: 0, outstanding: 2 },
+              { id: 'siegemaster', met: 0, cantMeet: 0, unmet: 0, outstanding: 10 },
             ],
           },
           {
             id: 'deploy-lint-rule',
             name: 'Deploy the lint rule',
             flowType: 'operational',
-            tracks: [{ id: 'codeweaver', confirmed: 0, unconfirmable: 0, outstanding: 1 }],
+            tracks: [{ id: 'codeweaver', met: 0, cantMeet: 0, unmet: 0, outstanding: 1 }],
           },
         ],
         midQuestObservables: [
@@ -153,7 +154,7 @@ describe('QuestFlow', () => {
             description: 'POST /api/auth/login returns 400 for a non-JSON body',
           },
         ],
-        unconfirmable: [],
+        debt: [],
         noteGroups: [
           {
             id: 'open-question',

@@ -96,8 +96,6 @@ export const chatSpawnBrokerProxy = (): {
     quest: Quest;
     stdoutLines?: readonly string[];
   }) => void;
-  setupQuestNotFound: () => void;
-  setupInvalidStatus: (params: { quest: Quest }) => void;
   setupSessionLinkQuest: (params: { quest: Quest }) => void;
   setupSessionLinkReject: (params: { error: Error }) => void;
   setupStderrCapture: () => SpyOnHandle;
@@ -272,14 +270,6 @@ export const chatSpawnBrokerProxy = (): {
         lines: stdoutLines ?? [],
         exitCode,
       });
-    },
-
-    setupQuestNotFound: (): void => {
-      resolveProxy.setupQuestNotFound();
-    },
-
-    setupInvalidStatus: ({ quest }: { quest: Quest }): void => {
-      resolveProxy.setupQuestFound({ quest });
     },
 
     setupSessionLinkQuest: ({ quest }: { quest: Quest }): void => {

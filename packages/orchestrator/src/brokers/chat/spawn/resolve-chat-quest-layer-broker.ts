@@ -1,8 +1,7 @@
 /**
  * PURPOSE: Layer of chatSpawnBroker — resolves the quest + chat work item id for the spawn. Handles
- * five paths: glyphsmith (lookup quest, validate design-phase status, find glyphsmith work item),
- * tavernkeeper (lookup quest by id, find the tavernkeeper work item by role alone — the calling
- * responder always creates that item before this ever runs), existing-quest (lookup quest by id,
+ * four paths: tavernkeeper (lookup quest by id, find the tavernkeeper work item by role alone — the
+ * calling responder always creates that item before this ever runs), existing-quest (lookup quest by id,
  * find the work item matching the spawn's chat role — no sessionId required), intake-resume (lookup
  * quest by id, find the work item matching the spawn's chat role, only when a sessionId backs the
  * lookup), and intake-new (create a quest of the requested type with its intake seed item, whose id
@@ -41,7 +40,6 @@ import type {
   SessionId,
   WorkItemRole,
 } from '@dungeonmaster/shared/contracts';
-import { isDesignPhaseQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { questGetBroker } from '../../quest/get/quest-get-broker';
 import { questUserAddBroker } from '../../quest/user-add/quest-user-add-broker';
@@ -69,26 +67,6 @@ export const resolveChatQuestLayerBroker = async ({
   sessionId?: SessionId;
   message: string;
 }): Promise<{ questId: QuestId; workItemId: QuestWorkItemId; createdQuest: boolean }> => {
-  if (role === 'glyphsmith') {
-    if (!questId) {
-      throw new Error('questId is required for glyphsmith role');
-    }
-    const result = await questGetBroker({ input: getQuestInputContract.parse({ questId }) });
-    if (!result.success || !result.quest) {
-      throw new Error(`Quest not found: ${questId}`);
-    }
-    if (!isDesignPhaseQuestStatusGuard({ status: result.quest.status })) {
-      throw new Error(
-        `Quest must be in a design phase (explore_design, review_design, or design_approved) to start design chat. Current status: ${result.quest.status}`,
-      );
-    }
-    const glyphItem = result.quest.workItems.find((wi) => wi.role === 'glyphsmith');
-    if (!glyphItem) {
-      throw new Error(`Quest ${questId} has no glyphsmith work item`);
-    }
-    return { questId, workItemId: glyphItem.id, createdQuest: false };
-  }
-
   if (role === 'tavernkeeper') {
     if (!questId) {
       throw new Error('questId is required for tavernkeeper role');

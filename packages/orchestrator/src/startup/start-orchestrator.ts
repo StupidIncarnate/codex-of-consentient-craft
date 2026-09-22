@@ -63,7 +63,6 @@ import { ClarifyAnswerFlow } from '../flows/clarify-answer/clarify-answer-flow';
 import { CommentBatchFlow } from '../flows/comment-batch/comment-batch-flow';
 import { ChatStopFlow } from '../flows/chat-stop/chat-stop-flow';
 import { ChatStopAllFlow } from '../flows/chat-stop-all/chat-stop-all-flow';
-import { DesignChatStartFlow } from '../flows/design-chat-start/design-chat-start-flow';
 import { DirectoryFlow } from '../flows/directory/directory-flow';
 import { ExecutionQueueFlow } from '../flows/execution-queue/execution-queue-flow';
 import { FollowupChatStartFlow } from '../flows/followup-chat-start/followup-chat-start-flow';
@@ -366,20 +365,9 @@ export const StartOrchestrator = {
       ...(chatProcessId && { chatProcessId }),
     }),
 
-  // Design chat methods
-  startDesignChat: async ({
-    questId,
-    guildId,
-    message,
-  }: {
-    questId: QuestId;
-    guildId: GuildId;
-    message: string;
-  }): Promise<{ chatProcessId: ProcessId }> => DesignChatStartFlow({ questId, guildId, message }),
-
   // Follow-up chat methods — the FOLLOW-UP tab's post-quest conversation with the tavernkeeper.
-  // Same quest-scoped chat shape as startDesignChat, but resumes the single tavernkeeper work
-  // item across every message instead of minting a fresh chat item per turn.
+  // Quest-scoped chat, resuming the single tavernkeeper work item across every message instead
+  // of minting a fresh chat item per turn.
   startFollowupChat: async ({
     questId,
     guildId,

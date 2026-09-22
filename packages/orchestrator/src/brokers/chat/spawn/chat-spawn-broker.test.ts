@@ -597,74 +597,12 @@ describe('chatSpawnBroker', () => {
     });
   });
 
-  describe('glyphsmith status guard', () => {
-    it('ERROR: {glyphsmith + quest in approved status} => throws', async () => {
-      const proxy = chatSpawnBrokerProxy();
-      const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'glyphsmith' });
-      const questId = QuestIdStub({ value: 'design-quest' });
-      const quest = QuestStub({ id: 'design-quest', status: 'approved' });
-
-      proxy.setupInvalidStatus({ quest });
-
-      await expect(
-        chatSpawnBroker({
-          role,
-          guildId,
-          questId,
-          message: 'Create prototype',
-          onEntries: jest.fn(),
-          onComplete: jest.fn(),
-          registerProcess: jest.fn(),
-        }),
-      ).rejects.toThrow(/Quest must be in a design phase/u);
-    });
-
-    it('ERROR: {glyphsmith + quest in created status} => throws', async () => {
-      const proxy = chatSpawnBrokerProxy();
-      const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'glyphsmith' });
-      const questId = QuestIdStub({ value: 'design-quest' });
-      const quest = QuestStub({ id: 'design-quest', status: 'created' });
-
-      proxy.setupInvalidStatus({ quest });
-
-      await expect(
-        chatSpawnBroker({
-          role,
-          guildId,
-          questId,
-          message: 'Create prototype',
-          onEntries: jest.fn(),
-          onComplete: jest.fn(),
-          registerProcess: jest.fn(),
-        }),
-      ).rejects.toThrow(/Current status: created/u);
-    });
-  });
-
-  describe('glyphsmith quest not found', () => {
-    it('ERROR: {glyphsmith + nonexistent questId} => throws', async () => {
-      const proxy = chatSpawnBrokerProxy();
-      const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'glyphsmith' });
-      const questId = QuestIdStub({ value: 'nonexistent' });
-
-      proxy.setupQuestNotFound();
-
-      await expect(
-        chatSpawnBroker({
-          role,
-          guildId,
-          questId,
-          message: 'Create prototype',
-          onEntries: jest.fn(),
-          onComplete: jest.fn(),
-          registerProcess: jest.fn(),
-        }),
-      ).rejects.toThrow(/Quest not found/u);
-    });
-  });
+  // The old 'glyphsmith status guard' and 'glyphsmith quest not found' describe blocks pinned
+  // resolveChatQuestLayerBroker's dedicated glyphsmith branch (deleted — glyphsmith now falls
+  // through to the generic quest-resolution paths, same as chaoswhisperer/bughunt). The rejection
+  // those blocks asserted is now the SAME error every glyphsmith spawn produces, covered above by
+  // 'glyphsmith has no chat prompt': chatPromptBuildTransformer throws before quest resolution's
+  // outcome (status, existence) can matter.
 
   // The old 'onAgentDetected via agent-detected output' describe block was removed when
   // chat-spawn-broker delegated sub-agent dispatch into chatStreamProcessHandleBroker.

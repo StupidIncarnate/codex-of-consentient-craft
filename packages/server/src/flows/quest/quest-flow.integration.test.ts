@@ -207,8 +207,8 @@ describe('QuestFlow', () => {
       // the only node with no outgoing edge) + 1 labelled branch (e-success) + 1 observable + 7
       // off-map families. Codeweaver and Flowrider both shed the off-map families AND the
       // siegemaster-added observable, leaving terminal + branch each — 2 outstanding apiece.
-      // Siegemaster keeps all 10 as outstanding. Sign-off tracking is retired, so `confirmed` and
-      // `unconfirmable` are always 0 on every track, and `unconfirmable` below is always [].
+      // Siegemaster keeps all 10 as outstanding. No work item marked anything, so `met`, `cantMeet`
+      // and `unmet` are always 0 on every track, and the whole-quest `debt` list below is always [].
       expect(response.status).toBe(200);
       expect(harness.toPlain(body)).toStrictEqual({
         questId,
@@ -218,9 +218,9 @@ describe('QuestFlow', () => {
             name: 'Login Flow',
             flowType: 'runtime',
             tracks: [
-              { id: 'codeweaver', confirmed: 0, unconfirmable: 0, outstanding: 2 },
-              { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 2 },
-              { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 10 },
+              { id: 'codeweaver', met: 0, cantMeet: 0, unmet: 0, outstanding: 2 },
+              { id: 'flowrider', met: 0, cantMeet: 0, unmet: 0, outstanding: 2 },
+              { id: 'siegemaster', met: 0, cantMeet: 0, unmet: 0, outstanding: 10 },
             ],
           },
         ],
@@ -235,7 +235,7 @@ describe('QuestFlow', () => {
             description: 'POST /api/auth/login returns 400 for a non-JSON body',
           },
         ],
-        unconfirmable: [],
+        debt: [],
         noteGroups: [
           { id: 'open-question', notes: [harness.toPlain(openQuestionNote)] },
           { id: 'tooling-error', notes: [harness.toPlain(toolingErrorNote)] },

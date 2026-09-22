@@ -33,7 +33,6 @@ registerModuleMock({
       removeGuild: jest.fn(),
       replayChatHistory: jest.fn(),
       startChat: jest.fn(),
-      startDesignChat: jest.fn(),
       startFollowupChat: jest.fn(),
       startQuest: jest.fn(),
       stopAllChats: jest.fn(),
