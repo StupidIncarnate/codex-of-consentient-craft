@@ -228,6 +228,31 @@ describe('siegeHappyFixerStatics', () => {
     });
   });
 
+  // ITS ADVERSARIAL TWIN CARRIES A YOURS / NOT YOURS TABLE; THIS PROMPT DID NOT. A mark is written
+  // through quest-work (its `observations` payload), never modify-quest — modify-quest is a spec
+  // edit, granted here for exactly one field, verifyByHuman. Pinned the same way the twin's table is.
+  it('VALID: tool table => quest-work carries the marks, modify-quest carries only verifyByHuman', () => {
+    expect({
+      hasYours: has('YOURS'),
+      hasNotYours: has('NOT YOURS'),
+      questWorkCarriesMarks: has(
+        'quest-work                                  observations (your marks), request, amendment, outcome',
+      ),
+      modifyQuestCarriesVerifyByHumanOnly: has(
+        'modify-quest                                step 8, verifyByHuman only, on a unit nothing could ever settle',
+      ),
+      notYoursExcludesEveryOtherField: has('modify-quest on any field but verifyByHuman'),
+      neverClaimsModifyQuestIsMarks: !has('modify-quest                                your marks'),
+    }).toStrictEqual({
+      hasYours: true,
+      hasNotYours: true,
+      questWorkCarriesMarks: true,
+      modifyQuestCarriesVerifyByHumanOnly: true,
+      notYoursExcludesEveryOtherField: true,
+      neverClaimsModifyQuestIsMarks: true,
+    });
+  });
+
   it('VALID: template => runs no ward but its own, scoped, never uncommitted or bare or run-ward', () => {
     expect({
       scopedOnce: has(

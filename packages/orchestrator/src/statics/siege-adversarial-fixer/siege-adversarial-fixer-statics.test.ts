@@ -53,4 +53,26 @@ describe('siege-adversarial-fixer-statics', () => {
       ),
     ).toBe(true);
   });
+
+  // A MARK IS WRITTEN THROUGH quest-work, NEVER modify-quest — modify-quest is a spec edit (it sets
+  // verifyByHuman on an observable), not the mark-recording surface. A prior version of this table
+  // claimed `modify-quest    your marks`, which sent a fixer to the wrong tool for the one call every
+  // fixer makes every time it settles a unit.
+  it('VALID: tool table => quest-work carries the marks, modify-quest carries only verifyByHuman', () => {
+    expect({
+      questWorkCarriesMarks: has(
+        'quest-work                                  observations (your marks), request, amendment, outcome',
+      ),
+      modifyQuestCarriesVerifyByHumanOnly: has(
+        'modify-quest                                step 8, verifyByHuman only, on a unit nothing could ever settle',
+      ),
+      notYoursExcludesEveryOtherField: has('modify-quest on any field but verifyByHuman'),
+      neverClaimsModifyQuestIsMarks: !has('modify-quest                                your marks'),
+    }).toStrictEqual({
+      questWorkCarriesMarks: true,
+      modifyQuestCarriesVerifyByHumanOnly: true,
+      notYoursExcludesEveryOtherField: true,
+      neverClaimsModifyQuestIsMarks: true,
+    });
+  });
 });

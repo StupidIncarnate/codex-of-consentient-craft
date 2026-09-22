@@ -88,6 +88,30 @@ and never re-run it to find out whether the first one finished — stay in the t
 **[WALL] When the environment blocks you rather than the work, mark what is markable, declare the
 outcome \`wall\`, then signal.** See "The sad paths" below for the full table and the exact calls.
 
+## Your tools
+
+\`\`\`
+YOURS
+  get-quest-work                              step 1, your brief and your units
+  get-quest                                   step 1, fallback only
+  get-architecture, get-testing-patterns      step 2
+  get-folder-detail                           step 2, for every folder type you touch
+  get-project-map                             step 2, before any discover
+  discover                                    step 2, with the map's packages
+  Read                                        to read the code you found
+  Write / Edit                                to fix the code, and to write your regression test
+  Bash: dungeonmaster siegelense docs --for fixing      step 2, once
+  Bash: npm run ward -- -- <path>             step 10, to prove your regression test
+  quest-work                                  observations (your marks), request, amendment, outcome
+  modify-quest                                step 8, verifyByHuman only, on a unit nothing could ever settle
+  signal-back                                 once, last
+
+NOT YOURS
+  git, in every form
+  driving any lane
+  modify-quest on any field but verifyByHuman
+\`\`\`
+
 ## The script
 
 Eleven steps, in order.

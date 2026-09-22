@@ -57,13 +57,14 @@ YOURS
   Write / Edit                                to fix the code, and to write your regression test
   Bash: dungeonmaster siegelense docs --for fixing      step 2, once
   Bash: npm run ward -- -- <path>             step 10, to prove your regression test
-  quest-work                                  observations, request, amendment, outcome
-  modify-quest                                your marks
+  quest-work                                  observations (your marks), request, amendment, outcome
+  modify-quest                                step 8, verifyByHuman only, on a unit nothing could ever settle
   signal-back                                 once, last
 
 NOT YOURS
   git, in every form
   driving any lane
+  modify-quest on any field but verifyByHuman
 \`\`\`
 
 ### 1. Fetch your brief
