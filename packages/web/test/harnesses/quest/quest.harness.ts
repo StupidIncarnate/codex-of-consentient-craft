@@ -317,6 +317,11 @@ export const questHarness = ({
     flowriderScopeSignedOff?: boolean;
     worktreePath?: string;
   }) => Promise<void>;
+  // Seeds `pausedAtStatus` on an already-written quest via dmRegistryBroker's setRaw route — same
+  // one-field shape as patchQuestStatus above, aimed at the snapshot field questPauseBroker stamps
+  // for real. A spec proving what RESUME does with an already-paused quest needs this as a
+  // PRECONDITION (the quest was paused before the test's own mutation), not as the mutation itself.
+  seedPausedAtStatus: (params: { questId: string; pausedAtStatus: string }) => Promise<void>;
 } => {
   const resolvedBaseUrl =
     baseURL ??
@@ -1173,6 +1178,44 @@ export const questHarness = ({
     });
   };
 
+  // Seeds `pausedAtStatus` via dmRegistryBroker's setRaw route — same filter-then-setRaw shape as
+  // patchQuestStatus above, aimed at the one field questPauseBroker stamps for real (a snapshot of
+  // the pre-pause status). Reach for this when a spec needs a quest that is ALREADY paused with a
+  // known snapshot as its starting state — never to perform the pause itself, which is what
+  // pauseQuest (the real POST route) is for.
+  const seedPausedAtStatus = async ({
+    questId,
+    pausedAtStatus,
+  }: {
+    questId: string;
+    pausedAtStatus: string;
+  }): Promise<void> => {
+    const guildId = await resolveQuestOwningGuildId({ questId });
+    const parsedPausedAtStatus = questContract.shape.pausedAtStatus.parse(pausedAtStatus);
+
+    // Same intersection as patchQuestStatus's own filterWhere: `id` is not a QuestFields key, so
+    // widening the target type (never asserting past it) is what lets a branded QuestId sit beside
+    // the link-derived `guildId` in one `where` clause.
+    type QuestFilterWhere = Parameters<typeof dmRegistryBroker.quests.filter>[0]['where'] & {
+      id?: QuestId;
+    };
+    const filterWhere: QuestFilterWhere = { guildId, id: questIdContract.parse(questId) };
+
+    const plan = recipe(
+      {
+        name: 'seed-paused-at-status',
+        description: "seeds an existing quest's pausedAtStatus field via dmRegistryBroker",
+      },
+      () => [
+        dmRegistryBroker.quests
+          .filter({ where: filterWhere, expect: 'one' })
+          .setRaw({ pausedAtStatus: parsedPausedAtStatus }),
+      ],
+    )();
+
+    await dmRegistryBroker.run(plan, dmTarget.apiTarget());
+  };
+
   return {
     createQuest,
     writeQuestFile,
@@ -1188,5 +1231,6 @@ export const questHarness = ({
     tamperQuestStatusRewind,
     questFolderExists,
     seedInProgressWithOperations,
+    seedPausedAtStatus,
   };
 };

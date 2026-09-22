@@ -273,7 +273,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
       questFilePath,
       items: [{ id: STOPPED_WI, status: 'complete', completedAt: FIXED_NOW }],
     });
-    await request.patch(`/api/quests/${questId}`, { data: { status: 'in_progress' } });
+    await quests.forceStatusRebroadcast({ questId: String(questId), status: 'in_progress' });
 
     await expect(stoppedRow.getByTestId('execution-row-status-badge')).toHaveText('DONE');
 
@@ -635,7 +635,7 @@ test.describe('Live elapsed duration on in-progress execution rows: the shared 6
       questFilePath,
       items: [{ id: ROW_WI, status: 'complete', completedAt: '2026-01-01T12:01:00.000Z' }],
     });
-    await request.patch(`/api/quests/${questId}`, { data: { status: 'in_progress' } });
+    await quests.forceStatusRebroadcast({ questId: String(questId), status: 'in_progress' });
 
     // branch: no-longer-running — the same row, the same panel, now past in_progress. The live
     // interval count is the value the still-running branch above and this one produce

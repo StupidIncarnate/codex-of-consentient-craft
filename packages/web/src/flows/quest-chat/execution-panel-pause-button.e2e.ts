@@ -271,10 +271,8 @@ test.describe('Execution Panel Pause/Resume Button', () => {
       ],
     });
 
-    // Seed pausedAtStatus via PATCH precondition so the resume responder can restore to in_progress.
-    await request.patch(`/api/quests/${questId}`, {
-      data: { pausedAtStatus: 'in_progress' },
-    });
+    // Seed pausedAtStatus as a precondition so the resume responder can restore to in_progress.
+    await quests.seedPausedAtStatus({ questId: String(questId), pausedAtStatus: 'in_progress' });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
     await nav.navigateToQuest({ urlSlug, questId: String(questId) });
