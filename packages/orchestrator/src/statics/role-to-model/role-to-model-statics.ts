@@ -25,7 +25,6 @@
 
 export const roleToModelStatics = {
   chaoswhisperer: 'opus',
-  glyphsmith: 'opus',
   bughunt: 'opus',
   tavernkeeper: 'opus',
   flowrider: 'opus',

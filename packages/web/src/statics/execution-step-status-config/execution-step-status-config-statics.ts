@@ -9,7 +9,6 @@
 export const executionStepStatusConfigStatics = {
   roleColors: {
     chaoswhisperer: 'primary',
-    glyphsmith: 'primary',
     bughunt: 'primary',
     tavernkeeper: 'primary',
     riftcarver: 'loot-rare',
