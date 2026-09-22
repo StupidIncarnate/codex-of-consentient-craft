@@ -288,6 +288,11 @@ export const questHarness = ({
   // subprocess, which needs state/ this package cannot import." POST /api/quests/:questId/pause
   // is the only route onto it; no dmRegistryBroker verb can express it.
   pauseQuest: (params: { questId: string }) => Promise<void>;
+  // RAW ON PURPOSE — see the broker's own header: patchQuestStatus's setRaw route fires none of
+  // the real PATCH route's side effects, and the WS broadcast is exactly the side effect this one
+  // exists for. PATCH /api/quests/:questId with the status the quest ALREADY has is the only route
+  // onto it.
+  forceStatusRebroadcast: (params: { questId: string; status: string }) => Promise<void>;
   rewindQuestStatus: (params: { questFilePath: string; status: string }) => Promise<void>;
   tamperQuestStatusRewind: (params: { questFilePath: string; status: string }) => Promise<void>;
   questFolderExists: (params: { questFilePath: string }) => boolean;
@@ -1005,6 +1010,32 @@ export const questHarness = ({
     }
   };
 
+  // RAW ON PURPOSE — the opposite gap from pauseQuest above: this PATCHes a quest to the STATUS IT
+  // ALREADY HAS, purely to make the server's real persist-and-broadcast path (questPersistBroker)
+  // re-read quest.json and push the update over the websocket. patchQuestStatus's setRaw writes
+  // through dmRegistryBroker's hydration route, which by its own header above fires none of the
+  // real PATCH route's side effects — the WS broadcast is exactly the side effect callers of this
+  // method want, so setRaw cannot substitute for it. PATCH /api/quests/:questId is the only route
+  // onto it. Reach for this after a harness write that lands quest.json from THIS Node process
+  // (e.g. elapsedDurationHarness.stampWorkItems) rather than from questPersistBroker itself, whose
+  // own cross-process outbox append does not reliably wake a watcher that subscribed before it
+  // landed.
+  const forceStatusRebroadcast = async ({
+    questId,
+    status,
+  }: {
+    questId: string;
+    status: string;
+  }): Promise<void> => {
+    const rebroadcastRoute = `/api/quests/${questId}`;
+    const response = await request.patch(rebroadcastRoute, { data: { status } });
+    if (!response.ok()) {
+      throw new Error(
+        `questHarness.forceStatusRebroadcast: ${rebroadcastRoute} answered ${String(response.status())}`,
+      );
+    }
+  };
+
   // Rewrites ONLY the `status` field of an existing quest.json, leaving every other byte — the
   // seeded operations ledger, the work items, the package graph — exactly as the SERVER wrote it,
   // then appends the same quest-modified outbox line questPersistBroker would so the watcher
@@ -1152,6 +1183,7 @@ export const questHarness = ({
     patchQuestStatus,
     startQuest,
     pauseQuest,
+    forceStatusRebroadcast,
     rewindQuestStatus: tamperQuestStatusRewind,
     tamperQuestStatusRewind,
     questFolderExists,

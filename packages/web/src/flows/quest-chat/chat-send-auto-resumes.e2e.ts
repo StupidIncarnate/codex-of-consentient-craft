@@ -69,9 +69,7 @@ test.describe('Chat send auto-resumes paused quest', () => {
       ],
     });
 
-    const pauseResponse = await request.post(`/api/quests/${questId}/pause`);
-
-    expect(pauseResponse.status()).toBe(HTTP_OK);
+    await quests.pauseQuest({ questId: String(questId) });
 
     const afterPauseResponse = await request.get(`/api/quests/${questId}`);
     const afterPauseBody = await afterPauseResponse.json();
