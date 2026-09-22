@@ -12,7 +12,7 @@
  *   instanceId: 'inst_7f3a9c21',
  *   steps: [{ step: 'goto', path: '/', node: null, expect: 'ok' }],
  *   stopOn: 'error',
- *   json: false,
+ *   isJson: false,
  * });
  * // Returns a validated RunArgs
  */
@@ -28,7 +28,7 @@ export const runArgsContract = z
     instanceId: instanceIdContract,
     steps: z.array(stepContract).readonly(),
     stopOn: stopOnContract,
-    json: z.boolean(),
+    isJson: z.boolean(),
   })
   .strict();
 

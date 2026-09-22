@@ -17,7 +17,7 @@ describe('startArgsContract', () => {
         questId: null,
         guildId: null,
         seed: null,
-        json: false,
+        isJson: false,
       });
     });
 
@@ -35,7 +35,7 @@ describe('startArgsContract', () => {
         questId: 'add-auth',
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         seed: null,
-        json: false,
+        isJson: false,
       });
     });
 
@@ -55,7 +55,7 @@ describe('startArgsContract', () => {
         guildId: null,
         seed: null,
         idleTimeoutMs: 1_800_000,
-        json: false,
+        isJson: false,
       });
     });
 
@@ -69,13 +69,13 @@ describe('startArgsContract', () => {
         questId: null,
         guildId: null,
         seed: 'guild-with-three-quests',
-        json: false,
+        isJson: false,
       });
     });
 
-    it('VALID: {json: true} => explicit json flag parses', () => {
+    it('VALID: {isJson: true} => explicit json flag parses', () => {
       const result = startArgsContract.parse(
-        StartArgsStub({ specName: 'dungeonmaster-stack', json: true }),
+        StartArgsStub({ specName: 'dungeonmaster-stack', isJson: true }),
       );
 
       expect(result).toStrictEqual({
@@ -83,7 +83,7 @@ describe('startArgsContract', () => {
         questId: null,
         guildId: null,
         seed: null,
-        json: true,
+        isJson: true,
       });
     });
   });

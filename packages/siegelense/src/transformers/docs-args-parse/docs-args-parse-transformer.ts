@@ -8,10 +8,10 @@
  *
  * USAGE:
  * docsArgsParseTransformer({ args: ['--for', 'walking'] });
- * // Returns { scope: 'walking', json: false } as DocsArgs
+ * // Returns { scope: 'walking', isJson: false } as DocsArgs
  *
  * docsArgsParseTransformer({ args: ['--for', 'operating', '--json'] });
- * // Returns { scope: 'operating', json: true } as DocsArgs
+ * // Returns { scope: 'operating', isJson: true } as DocsArgs
  */
 
 import { docsArgsContract, type DocsArgs } from '../../contracts/docs-args/docs-args-contract';
@@ -56,7 +56,7 @@ export const docsArgsParseTransformer = ({ args }: { args: readonly string[] }):
   }
 
   const rawScope = flagValueReadTransformer({ args, flag: FOR_FLAG });
-  const json = args.includes(siegelenseOutputStatics.flags.json);
+  const isJson = args.includes(siegelenseOutputStatics.flags.json);
 
   if (rawScope === null) {
     throw new Error(
@@ -75,6 +75,6 @@ export const docsArgsParseTransformer = ({ args }: { args: readonly string[] }):
 
   return docsArgsContract.parse({
     scope: parsedScope.data,
-    json,
+    isJson,
   });
 };

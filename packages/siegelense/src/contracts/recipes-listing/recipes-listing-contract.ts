@@ -4,8 +4,8 @@
  * sharing one `recipeName`, independently of `@dungeonmaster/hydration`'s `recipeManifestContract`
  * duplicate check, for the same reason `recipeNameContract` is independently declared in this
  * package (`siegelense-recipes.md`'s "Three packages, and what may cross between them" table —
- * "neither of the others") — the listing is what `seed` and `recipes --human` both pick a recipe
- * from, and two rows sharing a name make the pick ambiguous.
+ * "neither of the others") — the listing is what `seed` and the bare `recipes` call's default human
+ * view both pick a recipe from, and two rows sharing a name make the pick ambiguous.
  *
  * USAGE:
  * recipesListingContract.parse([]);

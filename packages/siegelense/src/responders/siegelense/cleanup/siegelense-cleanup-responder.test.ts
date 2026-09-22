@@ -27,7 +27,7 @@ describe('SiegelenseCleanupResponder', () => {
       ]);
     });
 
-    it('VALID: {human: false, one stale instance reaped} => writes the CleanupAnswer as one JSON document', async () => {
+    it('VALID: {isJson: true, one stale instance reaped} => writes the CleanupAnswer as one JSON document', async () => {
       const proxy = SiegelenseCleanupResponderProxy();
       const answer = CleanupAnswerStub({
         reaped: [{ id: 'inst_9b2c', staleFor: '9h', killed: [33_812, 33_840], homeRemoved: true }],
@@ -37,14 +37,14 @@ describe('SiegelenseCleanupResponder', () => {
       });
       proxy.stageAnswer({ answer });
 
-      await SiegelenseCleanupResponder({ human: false });
+      await SiegelenseCleanupResponder({ isJson: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
     });
 
-    it('VALID: {human: true, one stale instance reaped} => writes what was reaped, ports released, and lock released', async () => {
+    it('VALID: {isJson: false, one stale instance reaped} => writes what was reaped, ports released, and lock released', async () => {
       const proxy = SiegelenseCleanupResponderProxy();
       const answer = CleanupAnswerStub({
         reaped: [{ id: 'inst_9b2c', staleFor: '9h', killed: [33_812, 33_840], homeRemoved: true }],
@@ -54,7 +54,7 @@ describe('SiegelenseCleanupResponder', () => {
       });
       proxy.stageAnswer({ answer });
 
-      await SiegelenseCleanupResponder({ human: true });
+      await SiegelenseCleanupResponder({ isJson: false });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         'REAPED: inst_9b2c (stale 9h, killed 33812, 33840, home removed)\n' +
@@ -67,7 +67,7 @@ describe('SiegelenseCleanupResponder', () => {
   });
 
   describe('nothing reaped, one instance left alone', () => {
-    it('VALID: {human: false, no stale instances, one live instance left alone} => writes the CleanupAnswer as one JSON document', async () => {
+    it('VALID: {isJson: true, no stale instances, one live instance left alone} => writes the CleanupAnswer as one JSON document', async () => {
       const proxy = SiegelenseCleanupResponderProxy();
       const answer = CleanupAnswerStub({
         reaped: [],
@@ -77,14 +77,14 @@ describe('SiegelenseCleanupResponder', () => {
       });
       proxy.stageAnswer({ answer });
 
-      await SiegelenseCleanupResponder({ human: false });
+      await SiegelenseCleanupResponder({ isJson: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
     });
 
-    it('VALID: {human: true, no stale instances, one live instance left alone} => writes REAPED: none and the left-alone reason', async () => {
+    it('VALID: {isJson: false, no stale instances, one live instance left alone} => writes REAPED: none and the left-alone reason', async () => {
       const proxy = SiegelenseCleanupResponderProxy();
       const answer = CleanupAnswerStub({
         reaped: [],
@@ -94,7 +94,7 @@ describe('SiegelenseCleanupResponder', () => {
       });
       proxy.stageAnswer({ answer });
 
-      await SiegelenseCleanupResponder({ human: true });
+      await SiegelenseCleanupResponder({ isJson: false });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         'REAPED: none\n' +

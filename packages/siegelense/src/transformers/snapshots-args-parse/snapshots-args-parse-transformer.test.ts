@@ -2,18 +2,18 @@ import { snapshotsArgsParseTransformer } from './snapshots-args-parse-transforme
 
 describe('snapshotsArgsParseTransformer', () => {
   describe('the full flag set', () => {
-    it('VALID: {args: [--instance, inst_7f3a9c21, --json]} => the complete parsed object with json true', () => {
+    it('VALID: {args: [--instance, inst_7f3a9c21, --json]} => the complete parsed object with isJson true', () => {
       const result = snapshotsArgsParseTransformer({
         args: ['--instance', 'inst_7f3a9c21', '--json'],
       });
 
-      expect(result).toStrictEqual({ instanceId: 'inst_7f3a9c21', json: true });
+      expect(result).toStrictEqual({ instanceId: 'inst_7f3a9c21', isJson: true });
     });
 
     it('VALID: {args: [--instance, inst_9b2c4d1e]} => --json is optional and defaults to false', () => {
       const result = snapshotsArgsParseTransformer({ args: ['--instance', 'inst_9b2c4d1e'] });
 
-      expect(result).toStrictEqual({ instanceId: 'inst_9b2c4d1e', json: false });
+      expect(result).toStrictEqual({ instanceId: 'inst_9b2c4d1e', isJson: false });
     });
   });
 

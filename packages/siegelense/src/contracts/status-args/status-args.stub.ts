@@ -6,6 +6,6 @@ import type { StatusArgs } from './status-args-contract';
 export const StatusArgsStub = ({ ...props }: StubArgument<StatusArgs> = {}): StatusArgs =>
   statusArgsContract.parse({
     instanceId: null,
-    human: false,
+    isJson: true,
     ...props,
   });

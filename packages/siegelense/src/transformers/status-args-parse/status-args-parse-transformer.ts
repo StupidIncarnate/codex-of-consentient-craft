@@ -2,18 +2,18 @@
  * PURPOSE: Reads `dungeonmaster siegelense status`'s argv into a `StatusArgs` — `--instance` is
  * OPTIONAL here, unlike `killArgsParseTransformer`'s required one: the bare form lists the whole
  * fleet (siegelense-tooling.md line 2443), so an absent flag parses to `instanceId: null` rather
- * than a refusal. Outputs the human-readable table and text format by default (`human: true`),
- * reaching for `statusAnswerRenderTransformer`; passing `--json` explicitly sets `human: false` to
+ * than a refusal. Outputs the human-readable table and text format by default (`isJson: false`),
+ * reaching for `statusAnswerRenderTransformer`; passing `--json` explicitly sets `isJson: true` to
  * output the raw `StatusAnswer` JSON document instead. A named id parses through
  * `flagContractParseTransformer`, so a badly-shaped `--instance` answers with the contract's own
  * message under `--instance` rather than a raw ZodError.
  *
  * USAGE:
  * statusArgsParseTransformer({ args: [] });
- * // Returns { instanceId: null, human: true } as StatusArgs
+ * // Returns { instanceId: null, isJson: false } as StatusArgs
  *
  * statusArgsParseTransformer({ args: ['--json'] });
- * // Returns { instanceId: null, human: false } as StatusArgs
+ * // Returns { instanceId: null, isJson: true } as StatusArgs
  */
 
 import { instanceIdContract } from '../../contracts/instance-id/instance-id-contract';
@@ -98,12 +98,12 @@ export const statusArgsParseTransformer = ({ args }: { args: readonly string[] }
     since = '6h';
   }
 
-  const human = !args.includes(siegelenseOutputStatics.flags.json);
+  const isJson = args.includes(siegelenseOutputStatics.flags.json);
 
   return statusArgsContract.parse({
     instanceId,
     branch: rawBranch,
     since,
-    human,
+    isJson,
   });
 };

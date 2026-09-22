@@ -11,7 +11,7 @@
  * USAGE:
  * resultsArgsContract.parse({
  *   instanceId: 'inst_7f3a9c21', runId: null, step: null, kind: null, where: null, fields: null,
- *   since: null, json: false,
+ *   since: null, isJson: false,
  * });
  * // Returns a validated ResultsArgs
  */
@@ -35,7 +35,7 @@ export const resultsArgsContract = z
     where: resultWhereContract.nullable(),
     fields: z.array(resultFieldContract).readonly().nullable(),
     since: sinceMarkerContract.nullable(),
-    json: z.boolean(),
+    isJson: z.boolean(),
   })
   .strict();
 

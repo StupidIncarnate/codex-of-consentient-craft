@@ -31,28 +31,6 @@ describe('SiegelenseProfileResponder', () => {
       expect(result).toStrictEqual({ success: true });
       expect(proxy.getStdoutWrites()).toStrictEqual([profileAnswerRenderTransformer({ profile })]);
     });
-
-    it('VALID: {human: true} => writes the SpecProfile as human summary when human is explicitly true', async () => {
-      const proxy = SiegelenseProfileResponderProxy();
-      const profile = SpecProfileStub({
-        specName: 'dungeonmaster-stack',
-        processes: 3,
-        hash: 'a3f9c2e1',
-        measuredAt: '2026-09-14',
-        fromRuns: 14,
-        bootMs: 20_000,
-        samples: [{ poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 }],
-      });
-      proxy.stageProfile({ profile });
-
-      const result = await SiegelenseProfileResponder({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
-        human: true,
-      });
-
-      expect(result).toStrictEqual({ success: true });
-      expect(proxy.getStdoutWrites()).toStrictEqual([profileAnswerRenderTransformer({ profile })]);
-    });
   });
 
   describe('the JSON form', () => {
@@ -72,30 +50,6 @@ describe('SiegelenseProfileResponder', () => {
       const result = await SiegelenseProfileResponder({
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         isJson: true,
-      });
-
-      expect(result).toStrictEqual({ success: true });
-      expect(proxy.getStdoutWrites()).toStrictEqual([
-        `${JSON.stringify(profile, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
-      ]);
-    });
-
-    it('VALID: {human: false} => writes the SpecProfile as JSON when human is explicitly false', async () => {
-      const proxy = SiegelenseProfileResponderProxy();
-      const profile = SpecProfileStub({
-        specName: 'dungeonmaster-stack',
-        processes: 3,
-        hash: 'a3f9c2e1',
-        measuredAt: '2026-09-14',
-        fromRuns: 14,
-        bootMs: 20_000,
-        samples: [{ poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 }],
-      });
-      proxy.stageProfile({ profile });
-
-      const result = await SiegelenseProfileResponder({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
-        human: false,
       });
 
       expect(result).toStrictEqual({ success: true });

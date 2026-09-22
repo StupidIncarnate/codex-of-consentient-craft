@@ -1,15 +1,16 @@
 /**
  * PURPOSE: The surface `dungeonmaster siegelense start --spec <name> [--quest <id>] [--guild <id>]`
- * serves — stands up a fresh instance and writes the resulting `InstanceManifest` to stdout as one
- * JSON document, per §3.A of `scrolls/seigelense/plans/chunk-04-cli-surface.md`: every one of the
- * seven calls writes exactly one JSON document to stdout, or nothing at all. `start` has no
- * `--human` renderer — unlike `status`/`cleanup`, the manifest prints as JSON always — so a failure
- * from `instanceStartBroker` propagates unchanged rather than being caught into a `{success:false}`
- * document here; the CLI entry point turns an uncaught throw into stderr text and exit 1.
+ * serves — stands up a fresh instance and writes the resulting `InstanceManifest` to stdout, per
+ * §3.A of `scrolls/seigelense/plans/chunk-04-cli-surface.md`: every one of the seven calls writes
+ * exactly one document to stdout, or nothing at all. `start` prints a human summary by default,
+ * through `startAnswerRenderTransformer`, same as `status`/`cleanup`, and the raw `InstanceManifest`
+ * as JSON with `--json` (`isJson: true`) — a failure from `instanceStartBroker` propagates unchanged
+ * rather than being caught into a `{success:false}` document here; the CLI entry point turns an
+ * uncaught throw into stderr text and exit 1.
  *
  * USAGE:
  * await SiegelenseStartResponder({ specName: SpecNameStub(), questId: null, guildId: null, seed: null });
- * // Writes the InstanceManifest as one JSON document to stdout
+ * // Writes the human summary to stdout
  *
  * await SiegelenseStartResponder({
  *   specName: SpecNameStub(),
@@ -37,7 +38,7 @@ export const SiegelenseStartResponder = async ({
   guildId,
   seed,
   idleTimeoutMs,
-  json = false,
+  isJson = false,
 }: {
   specName: SpecName;
   questId: QuestId | null;
@@ -48,7 +49,7 @@ export const SiegelenseStartResponder = async ({
   // `exactOptionalPropertyTypes` refuses a narrower `idleTimeoutMs?: TimeoutMs` as an incompatible
   // target for that wider source type.
   idleTimeoutMs?: TimeoutMs | undefined;
-  json?: boolean | undefined;
+  isJson?: boolean | undefined;
 }): Promise<AdapterResult> => {
   const manifest = await instanceStartBroker(
     idleTimeoutMs === undefined
@@ -56,7 +57,7 @@ export const SiegelenseStartResponder = async ({
       : { specName, questId, guildId, seed, idleTimeoutMs },
   );
   process.stdout.write(
-    json
+    isJson
       ? `${JSON.stringify(manifest, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : startAnswerRenderTransformer({ manifest }),
   );

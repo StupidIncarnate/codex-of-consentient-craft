@@ -52,7 +52,7 @@ describe('HydrationRouteFailedError', () => {
       expect({ name: error.name, message: error.message }).toStrictEqual({
         name: 'HydrationRouteFailedError',
         message:
-          'recipe "guild-mid-execution": ingredient "guild"\'s "api" route refused the connection with no URL known: Error: connect ECONNREFUSED 127.0.0.1:3737',
+          'recipe "guild-mid-execution": ingredient "guild"\'s "api" route failed with no URL known: Error: connect ECONNREFUSED 127.0.0.1:3737',
       });
     });
 

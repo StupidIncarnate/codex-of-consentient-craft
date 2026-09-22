@@ -32,29 +32,6 @@ describe('SiegelenseCapacityResponder', () => {
       expect(result).toStrictEqual({ success: true });
       expect(proxy.getStdoutWrites()).toStrictEqual([capacityAnswerRenderTransformer({ answer })]);
     });
-
-    it('VALID: {human: true} => writes the CapacityAnswer as human summary when human is explicitly true', async () => {
-      const proxy = SiegelenseCapacityResponderProxy();
-      const answer = CapacityAnswerStub({
-        suggested: 2,
-        ceiling: 3,
-        why:
-          'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; ' +
-          'free RAM 5320MB less 512MB headroom; 1 siege instance already up',
-        measured: CapacityMeasuredStub(),
-        profile: CapacityProfileStub(),
-      });
-      proxy.stageAnswer({ specName: SpecNameStub(), poolSize: null, answer });
-
-      const result = await SiegelenseCapacityResponder({
-        specName: SpecNameStub(),
-        poolSize: null,
-        human: true,
-      });
-
-      expect(result).toStrictEqual({ success: true });
-      expect(proxy.getStdoutWrites()).toStrictEqual([capacityAnswerRenderTransformer({ answer })]);
-    });
   });
 
   describe('the JSON form', () => {
@@ -75,31 +52,6 @@ describe('SiegelenseCapacityResponder', () => {
         specName: SpecNameStub(),
         poolSize: null,
         isJson: true,
-      });
-
-      expect(result).toStrictEqual({ success: true });
-      expect(proxy.getStdoutWrites()).toStrictEqual([
-        `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
-      ]);
-    });
-
-    it('VALID: {human: false} => writes the CapacityAnswer as JSON when human is explicitly false', async () => {
-      const proxy = SiegelenseCapacityResponderProxy();
-      const answer = CapacityAnswerStub({
-        suggested: 2,
-        ceiling: 3,
-        why:
-          'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; ' +
-          'free RAM 5320MB less 512MB headroom; 1 siege instance already up',
-        measured: CapacityMeasuredStub(),
-        profile: CapacityProfileStub(),
-      });
-      proxy.stageAnswer({ specName: SpecNameStub(), poolSize: null, answer });
-
-      const result = await SiegelenseCapacityResponder({
-        specName: SpecNameStub(),
-        poolSize: null,
-        human: false,
       });
 
       expect(result).toStrictEqual({ success: true });

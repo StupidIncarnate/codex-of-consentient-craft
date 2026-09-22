@@ -59,7 +59,10 @@ export const SiegelenseRunResponder = async ({
           }),
         );
 
-  const { instanceId, steps, stopOn, json } = runArgsParseTransformer({ args, stepsFileContent });
+  const { instanceId, steps, stopOn, isJson } = runArgsParseTransformer({
+    args,
+    stepsFileContent,
+  });
 
   const registry = await registryReadBroker();
   const isKnownInstance = registry.instances.some((candidate) => candidate.id === instanceId);
@@ -69,7 +72,7 @@ export const SiegelenseRunResponder = async ({
 
   const result = await instanceRunBroker({ instanceId, steps, stopOn });
   process.stdout.write(
-    json
+    isJson
       ? `${JSON.stringify(result, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : runAnswerRenderTransformer({ result }),
   );

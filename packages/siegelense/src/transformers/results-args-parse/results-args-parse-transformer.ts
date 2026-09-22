@@ -14,14 +14,18 @@
  * own flag's name rather than a raw ZodError; `--kind` does not need it because the hand-written
  * check above it already refuses an invalid value before this point, and `--where-path`/`--fields`
  * do not need it because `contentTextContract`/`resultFieldContract` cannot reject a non-empty
- * string.
+ * string. `--run` and `--since boot` are mutually exclusive — the synopsis in
+ * `siegelense-help-statics.ts` reads `[--run <runId> | --since boot]` — so naming both refuses by
+ * naming both flags, the same shape `runArgsParseTransformer` refuses `--steps`/`--steps-file` in.
+ * Unlike that pair, neither flag here is required: omitting both is the ordinary "resolve the
+ * latest run" case, and only BOTH present is refused.
  *
  * USAGE:
  * resultsArgsParseTransformer({
  *   args: ['--instance', 'inst_7f3a9c21', '--run', 'run_2', '--kind', 'network'],
  * });
  * // Returns ResultsArgs { instanceId: 'inst_7f3a9c21', runId: 'run_2', step: null,
- * //   kind: 'network', where: null, fields: null, since: null, json: false }
+ * //   kind: 'network', where: null, fields: null, since: null, isJson: false }
  */
 
 import { arrayIndexContract, contentTextContract } from '@dungeonmaster/shared/contracts';
@@ -118,6 +122,13 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
   const sinceValue = flagValueReadTransformer({ args, flag: SINCE_FLAG });
   const fieldsValue = flagValueReadTransformer({ args, flag: FIELDS_FLAG });
 
+  if (runValue !== null && sinceValue !== null) {
+    throw new Error(
+      `${RUN_FLAG} and ${SINCE_FLAG} are mutually exclusive: ${RUN_FLAG} names one run's ` +
+        `evidence, ${SINCE_FLAG} reads the whole boot timeline, and both were given.`,
+    );
+  }
+
   if (kindValue !== null && !resultKindContract.safeParse(kindValue).success) {
     throw new Error(
       `${KIND_FLAG} must be one of: ${resultsStatics.kinds.all.join(', ')}. Received: "${kindValue}".`,
@@ -209,6 +220,6 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
             flag: SINCE_FLAG,
             parse: () => sinceMarkerContract.parse(sinceValue),
           }),
-    json: args.includes(siegelenseOutputStatics.flags.json),
+    isJson: args.includes(siegelenseOutputStatics.flags.json),
   });
 };

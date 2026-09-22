@@ -36,6 +36,7 @@ describe('InstallFlow', () => {
         crossSessionInbound: 'refuse',
         promptCacheTtl: '1h',
         subagentPromptCacheTtl: '1h',
+        promptSuggestionEnabled: false,
         env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
@@ -248,6 +249,7 @@ describe('InstallFlow', () => {
         crossSessionInbound: 'refuse',
         promptCacheTtl: '1h',
         subagentPromptCacheTtl: '1h',
+        promptSuggestionEnabled: false,
         env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [

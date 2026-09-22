@@ -8,29 +8,29 @@ import { SiegelenseStatusResponderProxy } from './siegelense-status-responder.pr
 
 describe('SiegelenseStatusResponder', () => {
   describe('no instance named, empty fleet', () => {
-    it('EMPTY: {instanceId: null, human: false, no instances} => writes the StatusAnswer as one JSON document', async () => {
+    it('EMPTY: {instanceId: null, isJson: true, no instances} => writes the StatusAnswer as one JSON document', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const answer = StatusAnswerStub({ instances: [] });
       proxy.stageAnswer({ answer });
 
-      await SiegelenseStatusResponder({ instanceId: null, human: false });
+      await SiegelenseStatusResponder({ instanceId: null, isJson: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
     });
 
-    it('EMPTY: {instanceId: null, human: true, no instances} => writes the plain fleet-empty sentence', async () => {
+    it('EMPTY: {instanceId: null, isJson: false, no instances} => writes the plain fleet-empty sentence', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const answer = StatusAnswerStub({ instances: [] });
       proxy.stageAnswer({ answer });
 
-      await SiegelenseStatusResponder({ instanceId: null, human: true });
+      await SiegelenseStatusResponder({ instanceId: null, isJson: false });
 
       expect(proxy.getStdoutWrites()).toStrictEqual(['No siegelense instances running.\n']);
     });
 
-    it('EMPTY: {instanceId: null, human omitted, no instances} => writes the plain fleet-empty sentence by default', async () => {
+    it('EMPTY: {instanceId: null, isJson omitted, no instances} => writes the plain fleet-empty sentence by default', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const answer = StatusAnswerStub({ instances: [] });
       proxy.stageAnswer({ answer });
@@ -42,26 +42,26 @@ describe('SiegelenseStatusResponder', () => {
   });
 
   describe('an instance named, that id not in the registry', () => {
-    it('EMPTY: {instanceId: inst_deadbeef, human: false, no instances} => writes the StatusAnswer as one JSON document', async () => {
+    it('EMPTY: {instanceId: inst_deadbeef, isJson: true, no instances} => writes the StatusAnswer as one JSON document', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_deadbeef' });
       const answer = StatusAnswerStub({ instances: [] });
       proxy.stageAnswer({ answer });
 
-      await SiegelenseStatusResponder({ instanceId, human: false });
+      await SiegelenseStatusResponder({ instanceId, isJson: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
     });
 
-    it('EMPTY: {instanceId: inst_deadbeef, human: true, no instances} => writes a sentence naming that id, distinct from the fleet-empty sentence', async () => {
+    it('EMPTY: {instanceId: inst_deadbeef, isJson: false, no instances} => writes a sentence naming that id, distinct from the fleet-empty sentence', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_deadbeef' });
       const answer = StatusAnswerStub({ instances: [] });
       proxy.stageAnswer({ answer });
 
-      await SiegelenseStatusResponder({ instanceId, human: true });
+      await SiegelenseStatusResponder({ instanceId, isJson: false });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         'No instance by the id "inst_deadbeef" — unknown, never existed.\n',
@@ -70,7 +70,7 @@ describe('SiegelenseStatusResponder', () => {
   });
 
   describe('no instance named, a live and a dead instance', () => {
-    it('VALID: {instanceId: null, human: false} => writes the StatusAnswer as one JSON document', async () => {
+    it('VALID: {instanceId: null, isJson: true} => writes the StatusAnswer as one JSON document', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const answer = StatusAnswerStub({
         machine: {
@@ -115,14 +115,14 @@ describe('SiegelenseStatusResponder', () => {
       });
       proxy.stageAnswer({ answer });
 
-      await SiegelenseStatusResponder({ instanceId: null, human: false });
+      await SiegelenseStatusResponder({ instanceId: null, isJson: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
     });
 
-    it('VALID: {instanceId: null, human: true} => writes the machine block, the monitored list, and one line per instance', async () => {
+    it('VALID: {instanceId: null, isJson: false} => writes the machine block, the monitored list, and one line per instance', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const answer = StatusAnswerStub({
         machine: {
@@ -167,7 +167,7 @@ describe('SiegelenseStatusResponder', () => {
       });
       proxy.stageAnswer({ answer });
 
-      await SiegelenseStatusResponder({ instanceId: null, human: true });
+      await SiegelenseStatusResponder({ instanceId: null, isJson: false });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
@@ -183,7 +183,7 @@ describe('SiegelenseStatusResponder', () => {
   });
 
   describe('a named dead instance', () => {
-    it('VALID: {instanceId: inst_9b2c, human: false} => writes the StatusAnswer as one JSON document', async () => {
+    it('VALID: {instanceId: inst_9b2c, isJson: true} => writes the StatusAnswer as one JSON document', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c' });
       const answer = StatusAnswerStub({
@@ -215,14 +215,14 @@ describe('SiegelenseStatusResponder', () => {
       });
       proxy.stageAnswer({ answer });
 
-      await SiegelenseStatusResponder({ instanceId, human: false });
+      await SiegelenseStatusResponder({ instanceId, isJson: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
     });
 
-    it('VALID: {instanceId: inst_9b2c, human: true} => writes that instance in full', async () => {
+    it('VALID: {instanceId: inst_9b2c, isJson: false} => writes that instance in full', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c' });
       const answer = StatusAnswerStub({
@@ -254,7 +254,7 @@ describe('SiegelenseStatusResponder', () => {
       });
       proxy.stageAnswer({ answer });
 
-      await SiegelenseStatusResponder({ instanceId, human: true });
+      await SiegelenseStatusResponder({ instanceId, isJson: false });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         'INSTANCE inst_9b2c — dead\n' +

@@ -27,6 +27,12 @@
  * consumer's own settings: every key here lands on a fresh install and yields to whatever they set
  * afterwards.
  *
+ * `promptSuggestionEnabled: false` turns off the predicted next prompt the CLI emits after every
+ * turn. Generating one costs a request over the conversation on each turn, and an orchestrated
+ * session never reads it — what comes next here is a dispatch, not a person choosing a suggestion.
+ * The `CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION` environment variable trumps this key, so a consumer
+ * who wants suggestions back has that lever as well as their own settings value.
+ *
  * `CLAUDE_CODE_SUBAGENT_MODEL` has no settings key of its own, so the environment variable rides in
  * the `env` block instead. It sets a DEFAULT: an agent definition's own `model`, or an explicit
  * `model` on a dispatch, still wins over it.
@@ -37,6 +43,7 @@ export const agentSessionDefaultsStatics = {
     crossSessionInbound: 'refuse',
     promptCacheTtl: '1h',
     subagentPromptCacheTtl: '1h',
+    promptSuggestionEnabled: false,
   },
   env: {
     CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet',

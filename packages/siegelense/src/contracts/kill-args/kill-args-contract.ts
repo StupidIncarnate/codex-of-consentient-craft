@@ -16,7 +16,7 @@ import { instanceIdContract } from '../instance-id/instance-id-contract';
 export const killArgsContract = z
   .object({
     instanceId: instanceIdContract,
-    json: z.boolean().default(false),
+    isJson: z.boolean().default(false),
   })
   .strict();
 

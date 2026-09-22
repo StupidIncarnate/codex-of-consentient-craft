@@ -5,21 +5,21 @@ describe('pruneArgsParseTransformer', () => {
     it('VALID: {args: []} => every selector null but the window, which falls back to the default rather than to no window at all', () => {
       expect(pruneArgsParseTransformer({ args: [] })).toStrictEqual({
         query: { instanceId: null, kind: null, olderThan: '7d' },
-        human: true,
+        isJson: false,
       });
     });
 
     it('VALID: {args: --older-than 7d} => the window-only form', () => {
       expect(pruneArgsParseTransformer({ args: ['--older-than', '7d'] })).toStrictEqual({
         query: { instanceId: null, kind: null, olderThan: '7d' },
-        human: true,
+        isJson: false,
       });
     });
 
     it('VALID: {args: --instance inst_9b2c} => the one-instance form', () => {
       expect(pruneArgsParseTransformer({ args: ['--instance', 'inst_9b2c'] })).toStrictEqual({
         query: { instanceId: 'inst_9b2c', kind: null, olderThan: '7d' },
-        human: true,
+        isJson: false,
       });
     });
 
@@ -28,7 +28,7 @@ describe('pruneArgsParseTransformer', () => {
         pruneArgsParseTransformer({ args: ['--kind', 'video', '--older-than', '2d'] }),
       ).toStrictEqual({
         query: { instanceId: null, kind: 'video', olderThan: '2d' },
-        human: true,
+        isJson: false,
       });
     });
 
@@ -38,10 +38,10 @@ describe('pruneArgsParseTransformer', () => {
       );
     });
 
-    it('VALID: {args: --json} => the explicit json flag parses to human: false', () => {
+    it('VALID: {args: --json} => the explicit json flag parses to isJson: true', () => {
       expect(pruneArgsParseTransformer({ args: ['--json'] })).toStrictEqual({
         query: { instanceId: null, kind: null, olderThan: '7d' },
-        human: false,
+        isJson: true,
       });
     });
   });

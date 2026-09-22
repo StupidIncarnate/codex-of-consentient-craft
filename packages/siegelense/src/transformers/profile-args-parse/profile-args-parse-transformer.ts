@@ -3,7 +3,8 @@
  * whether to output raw JSON. `--spec` is REQUIRED, unlike `statusArgsParseTransformer`'s optional
  * `--instance`: there is no fleet-wide form of a profile, because a profile is keyed by one spec's
  * content hash and two specs share nothing. `--json` outputs raw JSON instead of the default human
- * summary. `--human` is accepted silently as an explicit affirmation of the default.
+ * summary. `--human` is not a flag this parser accepts — it refuses it as an unknown flag, same as
+ * any other unrecognized token.
  *
  * USAGE:
  * profileArgsParseTransformer({ args: ['--spec', 'dungeonmaster-stack'] });

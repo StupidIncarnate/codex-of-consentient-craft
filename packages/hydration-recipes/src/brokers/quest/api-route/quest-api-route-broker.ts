@@ -3,8 +3,17 @@
  * userRequest }`, parsed through addQuestResultContract, then `GET /api/quests/:id` for the record.
  * Reach for this over the `write` route in an end-to-end spec: it walks the real intake path
  * (`questUserAddBroker` mints the id, seeds the chat work item, and the quest starts at `created`),
- * so it cannot express an arbitrary seeded `status`/`workItems`/`operations` the way `write` can —
- * that asymmetry is the whole reason both routes exist.
+ * so it cannot express an arbitrary seeded `workItems`/`operations` the way `write` can — that
+ * asymmetry is the whole reason both routes exist.
+ *
+ * `POST /api/quests` never accepts a `status` field on the wire — `quest-create-broker.ts` mints
+ * every quest at `created` unconditionally — so this route never puts one on it either. A caller's
+ * `fields.status` is still honored: once the create-plus-reload round trip confirms the status the
+ * server actually minted, a request for anything else is walked there through
+ * `questReachRouteBroker`, the SAME transition machinery a plain `set()` op already uses. A status
+ * the real gates refuse (missing flow/observable content, or a status excluded from
+ * `transitions.to` entirely) throws THAT gate's own named error rather than leaving the quest
+ * silently at `created`.
  *
  * Returns the created quest record itself on a success status, never `dmHttpRequestAdapter`'s
  * `{ status, body }` envelope — the runner parses whatever this route returns straight through
@@ -12,13 +21,15 @@
  * what makes a failure status hold too, by throwing instead of handing the envelope onward.
  *
  * USAGE:
- * await questApiRouteBroker({ target, fields: { guildId, title, userRequest } });
+ * await questApiRouteBroker({ target, fields: { guildId, title, userRequest, status: 'created' } });
  * // Returns an AddQuestResult-shaped record on a success status; throws naming the url, status and
- * // body otherwise
+ * // body otherwise — or, for a `status` other than `created`, whatever `questReachRouteBroker`
+ * // threw walking there
  */
 import { dmHttpRequestAdapter } from '../../../adapters/dm-http/request/dm-http-request-adapter';
 import { dmHttpResponseUnwrapAdapter } from '../../../adapters/dm-http/response-unwrap/dm-http-response-unwrap-adapter';
 import { questFieldsContract } from '../../../contracts/quest-fields/quest-fields-contract';
+import { questReachRouteBroker } from '../reach-route/quest-reach-route-broker';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 import { addQuestResultContract, questContract } from '@dungeonmaster/shared/contracts';
 
@@ -70,5 +81,16 @@ export const questApiRouteBroker = async ({
   });
 
   const { quest } = getResult as Record<PropertyKey, unknown>;
-  return questContract.parse(quest);
+  const createdQuest = questContract.parse(quest);
+
+  if (parsedFields.status === createdQuest.status) {
+    return createdQuest;
+  }
+
+  return questReachRouteBroker({
+    from: createdQuest.status,
+    to: parsedFields.status,
+    target,
+    record: createdQuest,
+  });
 };

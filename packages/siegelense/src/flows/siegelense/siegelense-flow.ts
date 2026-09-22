@@ -9,16 +9,14 @@
  * id or ceiling answers with the contract's own message under its own flag rather than a raw
  * ZodError. `--idle-timeout-ms` is OPTIONAL here exactly as it is on `start` — `start` only carries
  * it through to this same flag when a caller named one. Every other built call goes
- * through `CALL_ROUTES`, a `Map` keyed by the same names `siegelenseHelpStatics.calls` holds:
- * each entry parses its own argv and calls its responder — **except `run`, whose entry hands argv
- * straight to `SiegelenseRunResponder` unparsed.** That is not an inconsistency to "tidy" away:
- * `run` accepts `--steps-file`, the named file has to be read from disk before `runArgsParseTransformer`
- * can run, and `flows/` has no `adapters/` in its allowed imports — so the flow cannot do that read.
- * `SiegelenseRunResponder` is the one layer that can, and its own header says so. A built call's
- * `--human` is refused by name for every call whose OWN help entry carries no `--human` flag —
- * derived from `siegelenseHelpStatics.calls[call].flags` rather than a second hardcoded list, so
- * the calls that ship a table renderer stay the only ones this admits without a second edit
- * anywhere. `args[0]` outside `CALL_ROUTES` falls through a three-way refusal: a name
+ * through `CALL_ROUTES`, a `Map` keyed by the same names `siegelenseHelpStatics.calls` holds.
+ * **A `CALL_ROUTES` entry names ONE layer flow and does nothing else.** One file per call, each
+ * owning that call's whole argument surface and carrying its own `.integration.test.ts` beside it —
+ * so parsing, responder choice and per-call shaping live in the layer, never here, and this file
+ * stays a routing table a reader takes in at a glance however many calls it holds. Each built call's
+ * own args-parse transformer owns its known-flag set (`KNOWN_FLAGS`) and refuses anything outside
+ * it — this flow routes `callArgs` straight through without inspecting or refusing any flag itself.
+ * `args[0]` outside `CALL_ROUTES` falls through a three-way refusal: a name
  * `siegelenseCallStatics.calls.names` holds with no route answers "not built yet" and lists the
  * built calls, so a caller who read the spec learns the truth rather than being told the spec is
  * wrong; anything else answers "unknown subcommand" with the usage line; absent routes to the bare
@@ -42,39 +40,27 @@ import { adapterResultContract, timeoutMsContract } from '@dungeonmaster/shared/
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { instanceIdContract } from '../../contracts/instance-id/instance-id-contract';
-import { SiegelenseCapacityResponder } from '../../responders/siegelense/capacity/siegelense-capacity-responder';
-import { SiegelenseCleanupResponder } from '../../responders/siegelense/cleanup/siegelense-cleanup-responder';
-import { SiegelenseCompareResponder } from '../../responders/siegelense/compare/siegelense-compare-responder';
-import { SiegelenseDocsResponder } from '../../responders/siegelense/docs/siegelense-docs-responder';
 import { SiegelenseDriverResponder } from '../../responders/siegelense/driver/siegelense-driver-responder';
 import { SiegelenseFleetResponder } from '../../responders/siegelense/fleet/siegelense-fleet-responder';
-import { SiegelenseKillResponder } from '../../responders/siegelense/kill/siegelense-kill-responder';
-import { SiegelenseProfileResponder } from '../../responders/siegelense/profile/siegelense-profile-responder';
-import { SiegelensePruneResponder } from '../../responders/siegelense/prune/siegelense-prune-responder';
-import { SiegelenseRecipesResponder } from '../../responders/siegelense/recipes/siegelense-recipes-responder';
-import { SiegelenseResultsResponder } from '../../responders/siegelense/results/siegelense-results-responder';
-import { SiegelenseRunResponder } from '../../responders/siegelense/run/siegelense-run-responder';
-import { SiegelenseSnapshotsResponder } from '../../responders/siegelense/snapshots/siegelense-snapshots-responder';
-import { SiegelenseStartResponder } from '../../responders/siegelense/start/siegelense-start-responder';
-import { SiegelenseStatusResponder } from '../../responders/siegelense/status/siegelense-status-responder';
 import { siegelenseCallStatics } from '../../statics/siegelense-call/siegelense-call-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
-import { capacityArgsParseTransformer } from '../../transformers/capacity-args-parse/capacity-args-parse-transformer';
-import { cleanupArgsParseTransformer } from '../../transformers/cleanup-args-parse/cleanup-args-parse-transformer';
-import { compareArgsParseTransformer } from '../../transformers/compare-args-parse/compare-args-parse-transformer';
-import { docsArgsParseTransformer } from '../../transformers/docs-args-parse/docs-args-parse-transformer';
 import { flagContractParseTransformer } from '../../transformers/flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../../transformers/flag-value-read/flag-value-read-transformer';
-import { killArgsParseTransformer } from '../../transformers/kill-args-parse/kill-args-parse-transformer';
-import { profileArgsParseTransformer } from '../../transformers/profile-args-parse/profile-args-parse-transformer';
-import { pruneArgsParseTransformer } from '../../transformers/prune-args-parse/prune-args-parse-transformer';
-import { recipesArgsParseTransformer } from '../../transformers/recipes-args-parse/recipes-args-parse-transformer';
-import { resultsArgsParseTransformer } from '../../transformers/results-args-parse/results-args-parse-transformer';
 import { siegelenseHelpRenderTransformer } from '../../transformers/siegelense-help-render/siegelense-help-render-transformer';
 import type { SiegelenseCall } from '../../transformers/siegelense-help-render/siegelense-help-render-transformer';
-import { snapshotsArgsParseTransformer } from '../../transformers/snapshots-args-parse/snapshots-args-parse-transformer';
-import { startArgsParseTransformer } from '../../transformers/start-args-parse/start-args-parse-transformer';
-import { statusArgsParseTransformer } from '../../transformers/status-args-parse/status-args-parse-transformer';
+import { SiegelenseCapacityLayerFlow } from './siegelense-capacity-layer-flow';
+import { SiegelenseCleanupLayerFlow } from './siegelense-cleanup-layer-flow';
+import { SiegelenseCompareLayerFlow } from './siegelense-compare-layer-flow';
+import { SiegelenseDocsLayerFlow } from './siegelense-docs-layer-flow';
+import { SiegelenseKillLayerFlow } from './siegelense-kill-layer-flow';
+import { SiegelenseProfileLayerFlow } from './siegelense-profile-layer-flow';
+import { SiegelensePruneLayerFlow } from './siegelense-prune-layer-flow';
+import { SiegelenseRecipesLayerFlow } from './siegelense-recipes-layer-flow';
+import { SiegelenseResultsLayerFlow } from './siegelense-results-layer-flow';
+import { SiegelenseRunLayerFlow } from './siegelense-run-layer-flow';
+import { SiegelenseSnapshotsLayerFlow } from './siegelense-snapshots-layer-flow';
+import { SiegelenseStartLayerFlow } from './siegelense-start-layer-flow';
+import { SiegelenseStatusLayerFlow } from './siegelense-status-layer-flow';
 
 const HELP_FLAG = siegelenseOutputStatics.flags.help;
 const HELP_SHORT_FLAG = siegelenseOutputStatics.flags.helpShort;
@@ -89,63 +75,19 @@ const CALL_ROUTES = new Map<
   SiegelenseCall,
   (callArgs: readonly string[]) => Promise<AdapterResult>
 >([
-  [
-    'start',
-    async (callArgs) => SiegelenseStartResponder(startArgsParseTransformer({ args: callArgs })),
-  ],
-  ['run', async (callArgs) => SiegelenseRunResponder({ args: callArgs })],
-  [
-    'results',
-    async (callArgs) => {
-      const { json, ...query } = resultsArgsParseTransformer({ args: callArgs });
-      return SiegelenseResultsResponder({ query, json });
-    },
-  ],
-  [
-    'kill',
-    async (callArgs) => SiegelenseKillResponder(killArgsParseTransformer({ args: callArgs })),
-  ],
-  [
-    'capacity',
-    async (callArgs) =>
-      SiegelenseCapacityResponder(capacityArgsParseTransformer({ args: callArgs })),
-  ],
-  [
-    'profile',
-    async (callArgs) => SiegelenseProfileResponder(profileArgsParseTransformer({ args: callArgs })),
-  ],
-  [
-    'status',
-    async (callArgs) => SiegelenseStatusResponder(statusArgsParseTransformer({ args: callArgs })),
-  ],
-  [
-    'cleanup',
-    async (callArgs) => SiegelenseCleanupResponder(cleanupArgsParseTransformer({ args: callArgs })),
-  ],
-  [
-    'prune',
-    async (callArgs) => SiegelensePruneResponder(pruneArgsParseTransformer({ args: callArgs })),
-  ],
-  [
-    'compare',
-    async (callArgs) => {
-      const parsed = compareArgsParseTransformer({ args: callArgs });
-      return SiegelenseCompareResponder({ query: parsed, json: parsed.json });
-    },
-  ],
-  [
-    'snapshots',
-    async (callArgs) =>
-      SiegelenseSnapshotsResponder(snapshotsArgsParseTransformer({ args: callArgs })),
-  ],
-  [
-    'recipes',
-    async (callArgs) => SiegelenseRecipesResponder(recipesArgsParseTransformer({ args: callArgs })),
-  ],
-  [
-    'docs',
-    async (callArgs) => SiegelenseDocsResponder(docsArgsParseTransformer({ args: callArgs })),
-  ],
+  ['start', async (callArgs) => SiegelenseStartLayerFlow({ callArgs })],
+  ['run', async (callArgs) => SiegelenseRunLayerFlow({ callArgs })],
+  ['results', async (callArgs) => SiegelenseResultsLayerFlow({ callArgs })],
+  ['kill', async (callArgs) => SiegelenseKillLayerFlow({ callArgs })],
+  ['capacity', async (callArgs) => SiegelenseCapacityLayerFlow({ callArgs })],
+  ['profile', async (callArgs) => SiegelenseProfileLayerFlow({ callArgs })],
+  ['status', async (callArgs) => SiegelenseStatusLayerFlow({ callArgs })],
+  ['cleanup', async (callArgs) => SiegelenseCleanupLayerFlow({ callArgs })],
+  ['prune', async (callArgs) => SiegelensePruneLayerFlow({ callArgs })],
+  ['compare', async (callArgs) => SiegelenseCompareLayerFlow({ callArgs })],
+  ['snapshots', async (callArgs) => SiegelenseSnapshotsLayerFlow({ callArgs })],
+  ['recipes', async (callArgs) => SiegelenseRecipesLayerFlow({ callArgs })],
+  ['docs', async (callArgs) => SiegelenseDocsLayerFlow({ callArgs })],
 ]);
 
 const BUILT_CALL_NAMES = [...CALL_ROUTES.keys()];

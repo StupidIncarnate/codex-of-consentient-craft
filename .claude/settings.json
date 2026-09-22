@@ -5,6 +5,7 @@
   "crossSessionInbound": "refuse",
   "promptCacheTtl": "1h",
   "subagentPromptCacheTtl": "1h",
+  "promptSuggestionEnabled": false,
   "attribution": {
     "commit": "Claude'd it up in here!",
     "pr": ""
@@ -376,6 +377,8 @@
       "mcp__dungeonmaster__create-worktree",
       "Bash(dungeonmaster siegelense:*)"
     ],
-    "deny": ["Bash(sed:*)"]
+    "deny": [
+      "Bash(sed:*)"
+    ]
   }
 }

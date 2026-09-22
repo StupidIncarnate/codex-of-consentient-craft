@@ -30,21 +30,6 @@ const JSON_FLAG = {
   description: 'print raw JSON output instead of the human-readable view.',
 } as const;
 
-const RECIPES_JSON_FLAG = {
-  name: siegelenseOutputStatics.flags.json,
-  value: null,
-  required: false,
-  description: 'print the JSON answer — the default; explicit and refused nowhere.',
-} as const;
-
-const HUMAN_FLAG = {
-  name: siegelenseOutputStatics.flags.human,
-  value: null,
-  required: false,
-  description:
-    'render the operator table instead of JSON. Only status, cleanup and recipes implement this.',
-} as const;
-
 export const siegelenseHelpStatics = {
   index: {
     headline: 'dungeonmaster siegelense — every built call reachable without installing anything.',
@@ -106,7 +91,7 @@ export const siegelenseHelpStatics = {
           'lane holding a port pair and a browser open forever.',
       ],
       output:
-        'One JSON document on stdout: the manifest — instance id, base URL, and every evidence path this run will want, since there is no lookup call to recover them later.',
+        'A human summary by default: instance id, spec, URLs, home and evidence paths, boot time, and one line per seeded binding — since there is no lookup call to recover any of it later. `--json` prints the InstanceManifest unabridged, seeded rows included.',
       example: 'dungeonmaster siegelense start --spec dungeonmaster-stack',
     },
     run: {
@@ -149,7 +134,7 @@ export const siegelenseHelpStatics = {
       ],
       refusals: [],
       output:
-        "One JSON document on stdout: the RunResult. Returns a STATUS — an index and a shot list — never the steps' own payloads; query those afterward with `dungeonmaster siegelense results`.",
+        "By default, one summary line — run id, status, steps run and duration — plus the failure point when stopped early and any screenshot paths captured. `--json` prints the raw RunResult. Either way, a STATUS — an index and a shot list — never the steps' own payloads; query those afterward with `dungeonmaster siegelense results`.",
       example:
         'dungeonmaster siegelense run --instance inst_9b2c --steps [{"step":"goto","path":"/"}]',
     },
@@ -230,7 +215,8 @@ export const siegelenseHelpStatics = {
       refusals: [
         'Against a finished instance you must name --run (or --since boot); omit both and the call refuses rather than guessing which run you meant.',
       ],
-      output: 'One JSON document on stdout: the ResultsAnswer. Every answer carries instanceState.',
+      output:
+        'By default, an instance header followed by formatted step readings, or a notice when none matched. `--json` prints the raw ResultsAnswer. Every answer carries instanceState.',
       example: 'dungeonmaster siegelense results --instance inst_9b2c --run run_2 --step 7',
     },
     kill: {
@@ -247,7 +233,8 @@ export const siegelenseHelpStatics = {
         JSON_FLAG,
       ],
       refusals: [],
-      output: 'One JSON document on stdout: the KillResult.',
+      output:
+        'By default, three lines: the instance id, the processes reaped, and whether the throwaway home was removed or preserved. `--json` prints the raw KillResult.',
       example: 'dungeonmaster siegelense kill --instance inst_9b2c',
     },
     capacity: {
@@ -277,7 +264,7 @@ export const siegelenseHelpStatics = {
         'Counts instances this session did not start, reservations included: a parallel agent’s lanes, a ward e2e run holding a port pair, a developer’s own browser. It never reaps anything — a row whose heartbeat has gone cold is excluded from the count, and `cleanup` is what clears it.',
       ],
       output:
-        'One JSON document on stdout: the CapacityAnswer — suggested, ceiling, a why sentence naming every figure it reasoned from, the measured host block, and the one profile group it divided by (null for a spec nothing has run).',
+        'By default, a human summary — suggested and ceiling counts, the spec, a why sentence naming every figure it reasoned from, the measured host block, and the one profile group it divided by. `--json` prints the raw CapacityAnswer (profile null for a spec nothing has run).',
       example: 'dungeonmaster siegelense capacity --spec dungeonmaster-stack --pool 3',
     },
     profile: {
@@ -299,12 +286,13 @@ export const siegelenseHelpStatics = {
         'Samples are grouped by pool size and never averaged across them: a solo reading and a contended one describe different worlds, so read the group matching the pool you are about to open.',
       ],
       output:
-        "One JSON document on stdout: the SpecProfile — processes, the spec's content hash, measuredAt, fromRuns, bootMs, and one sample group per pool size.",
+        "By default, spec name, process count, content hash, measuredAt/boot/runs, and a box-drawing table of samples by pool size (or 'none measured yet'). `--json` prints the raw SpecProfile.",
       example: 'dungeonmaster siegelense profile --spec dungeonmaster-stack',
     },
     status: {
       summary: 'siegelense status — report the fleet, or one instance in full.',
-      synopsis: 'dungeonmaster siegelense status [--instance <id>] [--json]',
+      synopsis:
+        'dungeonmaster siegelense status [--instance <id>] [--branch <name>] [--since 1hr|6hr|1day|beginning] [--json]',
       flags: [
         {
           name: '--instance',
@@ -313,10 +301,24 @@ export const siegelenseHelpStatics = {
           description:
             'report that one instance in full — last beat, last step, RSS, orphans, evidence paths, likelyCause — instead of the fleet.',
         },
+        {
+          name: '--branch',
+          value: '<name>',
+          required: false,
+          description: 'filters the fleet to instances created on that git branch.',
+        },
+        {
+          name: '--since',
+          value: '1hr|6hr|1day|beginning',
+          required: false,
+          description:
+            'narrows the fleet to instances created within that time window. Defaults to 6hr; beginning is how a caller sees every instance the registry holds, regardless of age.',
+        },
         JSON_FLAG,
       ],
       refusals: ["Never lists another instance's runs or evidence unless you name it."],
-      output: 'One JSON document on stdout: the StatusAnswer.',
+      output:
+        'By default, the fleet as a box-drawing table (monitored vocabulary, machine reading, one row per instance), or the full single-instance form — last beat, last step, RSS, orphans, evidence paths, likelyCause — when --instance names one. `--json` prints the raw StatusAnswer instead.',
       example: 'dungeonmaster siegelense status --instance inst_9b2c',
     },
     cleanup: {
@@ -326,7 +328,8 @@ export const siegelenseHelpStatics = {
       refusals: [
         "Takes no input. Reaps, releases, and ages assets out on their own windows — video first on a shorter one. It refuses exactly what prune refuses, so a capture a VERIFIED prelude or an open quest's WALKED line still cites is never touched, and the instance it belongs to says so in leftAlone.",
       ],
-      output: 'One JSON document on stdout: the CleanupAnswer.',
+      output:
+        'By default, what was reaped, which ports and locks came back, how much evidence aged out, and what was left alone and why. `--json` prints the raw CleanupAnswer.',
       example: 'dungeonmaster siegelense cleanup',
     },
     prune: {
@@ -364,7 +367,7 @@ export const siegelenseHelpStatics = {
         'The third citation kind, an open issue record, is NOT CHECKED: nothing in this repo stores an issue carrying a typed instanceId/runId. Every answer names it under `unresolved`, so an empty `refused` never reads as "nothing cites any of this".',
       ],
       output:
-        'One JSON document on stdout: the PruneAnswer — freedMB and freedBytes, removed[] (with the tombstone flag), refused[] (each with the citing file), and unresolved[] naming every citation kind that went unchecked.',
+        'By default, what was freed, what was removed, what was refused (with the citing file), and which citation kinds went unchecked. `--json` prints the raw PruneAnswer — freedMB and freedBytes, removed[] (with the tombstone flag), refused[] (each with the citing file), and unresolved[] naming every citation kind that went unchecked.',
       example: 'dungeonmaster siegelense prune --kind video --older-than 2d',
     },
     compare: {
@@ -386,7 +389,7 @@ export const siegelenseHelpStatics = {
         'There is no cross-instance form: name one --instance and two runs (--run-a, --run-b) inside its own timeline — two different instances share nothing but a spec.',
       ],
       output:
-        'One JSON document on stdout: the CompareAnswer — console and server error deltas, network non-2xx deltas, and a last-capture pixel change. A READING, never a verdict on whether a unit passes.',
+        'By default, instance id, the runs compared, console/server/network error deltas, and the pixel diff summary. `--json` prints the raw CompareAnswer. Either way, a READING, never a verdict on whether a unit passes.',
       example: 'dungeonmaster siegelense compare --instance inst_9b2c --run-a run_1 --run-b run_2',
     },
     snapshots: {
@@ -408,18 +411,18 @@ export const siegelenseHelpStatics = {
         'Every run mints its own `run_N:start` and `run_N:end`; a name ending in either suffix is refused at capture, so the automatic namespace can never be taken by a typed name.',
       ],
       output:
-        'One JSON document on stdout: the SnapshotsAnswer — instanceId, instanceState, and one row per restore point with its name, atMs and manual flag, oldest first.',
+        "By default, instance id and state, then either 'none recorded yet' or a box-drawing table of restore points — name, age and manual flag, oldest first. `--json` prints the raw SnapshotsAnswer — instanceId, instanceState, and one row per restore point with its name, atMs and manual flag.",
       example: 'dungeonmaster siegelense snapshots --instance inst_9b2c',
     },
     recipes: {
       summary: 'siegelense recipes — list what states can be created. No instance needed.',
-      synopsis: 'dungeonmaster siegelense recipes [--json] [--human]',
-      flags: [RECIPES_JSON_FLAG, HUMAN_FLAG],
+      synopsis: 'dungeonmaster siegelense recipes [--json]',
+      flags: [JSON_FLAG],
       refusals: [
         'Takes no instance. `recipes` lists what states can be created, not what a running instance is doing — no instance is needed to answer it.',
       ],
       output:
-        'One JSON document on stdout: the RecipesAnswer — one entry per recipe, naming its description, inputs, whether it runs serverless or needs a server, and what it makes.',
+        "By default, one block per recipe naming its description, inputs, whether it runs serverless or needs a server, and what it makes — or 'no recipes declared yet' when the listing is empty. `--json` prints the raw RecipesAnswer.",
       example: 'dungeonmaster siegelense recipes',
     },
     docs: {
@@ -440,7 +443,7 @@ export const siegelenseHelpStatics = {
         'There is no scope for a code-reading role, and that absence is deliberate: a session that opens source files and calls nothing here would be handed the vocabulary for driving a browser.',
       ],
       output:
-        'One JSON document on stdout: the DocsAnswer — an about preamble, and one document per scope served, each a headed list of lines.',
+        'By default, formatted Markdown — the document title, an About block, and one heading per scope with its audience, summary and bulleted sections. `--json` prints the raw DocsAnswer — an about preamble, and one document per scope served, each a headed list of lines.',
       example: 'dungeonmaster siegelense docs --for walking',
     },
   },

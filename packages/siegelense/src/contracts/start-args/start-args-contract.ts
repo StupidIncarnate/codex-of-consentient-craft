@@ -47,7 +47,7 @@ export const startArgsContract = z
     // live question.
     seed: recipeNameContract.nullable(),
     idleTimeoutMs: timeoutMsContract.optional(),
-    json: z.boolean().default(false),
+    isJson: z.boolean().default(false),
   })
   .strict();
 

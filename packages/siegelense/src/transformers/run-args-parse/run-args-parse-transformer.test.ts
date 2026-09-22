@@ -30,7 +30,7 @@ describe('runArgsParseTransformer', () => {
           },
         ],
         stopOn: 'error',
-        json: false,
+        isJson: false,
       });
     });
 
@@ -46,7 +46,7 @@ describe('runArgsParseTransformer', () => {
         instanceId: 'inst_7f3a9c21',
         steps: [{ step: 'goto', path: '/', node: null, expect: 'ok' }],
         stopOn: 'error',
-        json: false,
+        isJson: false,
       });
     });
 
@@ -62,11 +62,11 @@ describe('runArgsParseTransformer', () => {
         instanceId: 'inst_7f3a9c21',
         steps: [{ step: 'goto', path: '/', node: null, expect: 'ok' }],
         stopOn: 'never',
-        json: false,
+        isJson: false,
       });
     });
 
-    it('VALID: {--json} => parses with json true', () => {
+    it('VALID: {--json} => parses with isJson true', () => {
       const stepsJson = JSON.stringify([{ step: 'goto', path: '/' }]);
 
       const result = runArgsParseTransformer({
@@ -78,7 +78,7 @@ describe('runArgsParseTransformer', () => {
         instanceId: 'inst_7f3a9c21',
         steps: [{ step: 'goto', path: '/', node: null, expect: 'ok' }],
         stopOn: 'error',
-        json: true,
+        isJson: true,
       });
     });
   });

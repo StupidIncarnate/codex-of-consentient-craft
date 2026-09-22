@@ -191,6 +191,36 @@ describe('resultsReadBroker', () => {
     expect(result.rows).toStrictEqual([matchingText]);
   });
 
+  it('VALID: {kind: network, where: {nth: 1}} => only the entry at that position, after every other filter narrows the set', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
+    const firstText = networkText({ method: 'GET', url: '/api/a', status: 200 });
+    const secondText = networkText({ method: 'GET', url: '/api/b', status: 200 });
+    const thirdText = networkText({ method: 'GET', url: '/api/c', status: 200 });
+    proxy.setupBuffer({
+      evidencePath,
+      kind: 'network',
+      content:
+        bufferLine({ runId: RUN_2, step: null, text: firstText }) +
+        bufferLine({ runId: RUN_2, step: null, text: secondText }) +
+        bufferLine({ runId: RUN_2, step: null, text: thirdText }),
+    });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({
+        instanceId: INSTANCE_ID,
+        runId: RUN_2,
+        kind: 'network',
+        where: ResultWhereStub({ nth: 1 }),
+      }),
+    });
+
+    expect(result.rows).toStrictEqual([secondText]);
+  });
+
   it('VALID: {kind: network, fields: [status, responseBody]} => each row reduced to those two keys', async () => {
     const proxy = resultsReadBrokerProxy();
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
@@ -292,6 +322,26 @@ describe('resultsReadBroker', () => {
     expect(result.rows).toStrictEqual([JSON.stringify(shot)]);
   });
 
+  it('VALID: {kind: ws} => only the websocket buffer entries, off ws.jsonl rather than console/network', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
+    const wsText = ContentTextStub({ value: '{"at":1,"direction":"send","payload":"ping"}' });
+    proxy.setupBuffer({
+      evidencePath,
+      kind: 'websocket',
+      content: bufferLine({ runId: RUN_2, step: null, text: wsText }),
+    });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({ instanceId: INSTANCE_ID, runId: RUN_2, kind: 'ws' }),
+    });
+
+    expect(result.rows).toStrictEqual([wsText]);
+  });
+
   it('VALID: {kind: console, since: boot} => entries from run_1 AND run_2 AND the untagged between-runs entry', async () => {
     const proxy = resultsReadBrokerProxy();
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
@@ -352,6 +402,55 @@ describe('resultsReadBroker', () => {
     expect({ matched: result.matched, returned: result.returned, rows: result.rows }).toStrictEqual(
       { matched: 2, returned: 2, rows: [run1Text, run2Text] },
     );
+  });
+
+  it('EDGE: {kind: network, runId AND since: boot both set on the query} => sinceBoot wins the buffer filter entirely: rows carry BOTH runs, while the answer still labels runId with the one that was named', async () => {
+    // The CLI itself refuses this combination (resultsArgsParseTransformer), so this query only
+    // arrives here through a direct construction, never through argv. Pinned anyway: sinceBoot
+    // short-circuits bufferReadLayerBroker's own runId filter unconditionally, so a query built
+    // this way silently drops the runId narrowing rather than erroring or narrowing to it.
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({
+      evidencePath,
+      entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl', 'run_2.json'],
+    });
+    const run1Text = networkText({ method: 'GET', url: '/api/a', status: 200 });
+    const run2Text = networkText({ method: 'POST', url: '/api/b', status: 500 });
+    proxy.setupBuffer({
+      evidencePath,
+      kind: 'network',
+      content:
+        bufferLine({ runId: RUN_1, step: null, text: run1Text }) +
+        bufferLine({ runId: RUN_2, step: null, text: run2Text }),
+    });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({
+        instanceId: INSTANCE_ID,
+        runId: RUN_2,
+        kind: 'network',
+        since: 'boot',
+      }),
+    });
+
+    expect(result).toStrictEqual({
+      instanceId: INSTANCE_ID,
+      instanceState: 'killed',
+      runId: RUN_2,
+      kind: 'network',
+      step: null,
+      verb: null,
+      prunedAtMs: null,
+      prunedByRule: null,
+      matched: 2,
+      returned: 2,
+      truncated: false,
+      rows: [run1Text, run2Text],
+      storedReturn: null,
+    });
   });
 
   it('ERROR: {killed instance holding console/network/ws evidence, since: boot, no kind} => refuses by name rather than answering matched: 0 for evidence genuinely on disk', async () => {

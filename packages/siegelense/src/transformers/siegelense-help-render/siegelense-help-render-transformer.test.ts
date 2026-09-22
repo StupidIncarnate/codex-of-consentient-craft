@@ -35,7 +35,7 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  Against a finished instance you must name --run (or --since boot); omit both and the call refuses rather than guessing which run you meant.\n' +
           '\n' +
           'OUTPUT\n' +
-          '  One JSON document on stdout: the ResultsAnswer. Every answer carries instanceState.\n' +
+          '  By default, an instance header followed by formatted step readings, or a notice when none matched. `--json` prints the raw ResultsAnswer. Every answer carries instanceState.\n' +
           '\n' +
           'EXAMPLE\n' +
           '  dungeonmaster siegelense results --instance inst_9b2c --run run_2 --step 7\n',
@@ -60,7 +60,7 @@ describe('siegelenseHelpRenderTransformer', () => {
           "  Takes no input. Reaps, releases, and ages assets out on their own windows — video first on a shorter one. It refuses exactly what prune refuses, so a capture a VERIFIED prelude or an open quest's WALKED line still cites is never touched, and the instance it belongs to says so in leftAlone.\n" +
           '\n' +
           'OUTPUT\n' +
-          '  One JSON document on stdout: the CleanupAnswer.\n' +
+          '  By default, what was reaped, which ports and locks came back, how much evidence aged out, and what was left alone and why. `--json` prints the raw CleanupAnswer.\n' +
           '\n' +
           'EXAMPLE\n' +
           '  dungeonmaster siegelense cleanup\n',
@@ -76,17 +76,16 @@ describe('siegelenseHelpRenderTransformer', () => {
         'siegelense recipes — list what states can be created. No instance needed.\n' +
           '\n' +
           'USAGE\n' +
-          '  dungeonmaster siegelense recipes [--json] [--human]\n' +
+          '  dungeonmaster siegelense recipes [--json]\n' +
           '\n' +
           'FLAGS\n' +
-          '  --json              print the JSON answer — the default; explicit and refused nowhere.\n' +
-          '  --human             render the operator table instead of JSON. Only status, cleanup and recipes implement this.\n' +
+          '  --json             print raw JSON output instead of the human-readable view.\n' +
           '\n' +
           'REFUSES\n' +
           '  Takes no instance. `recipes` lists what states can be created, not what a running instance is doing — no instance is needed to answer it.\n' +
           '\n' +
           'OUTPUT\n' +
-          '  One JSON document on stdout: the RecipesAnswer — one entry per recipe, naming its description, inputs, whether it runs serverless or needs a server, and what it makes.\n' +
+          "  By default, one block per recipe naming its description, inputs, whether it runs serverless or needs a server, and what it makes — or 'no recipes declared yet' when the listing is empty. `--json` prints the raw RecipesAnswer.\n" +
           '\n' +
           'EXAMPLE\n' +
           '  dungeonmaster siegelense recipes\n',
@@ -109,7 +108,7 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  --json                      print raw JSON output instead of the human-readable view.\n' +
           '\n' +
           'OUTPUT\n' +
-          '  One JSON document on stdout: the KillResult.\n' +
+          '  By default, three lines: the instance id, the processes reaped, and whether the throwaway home was removed or preserved. `--json` prints the raw KillResult.\n' +
           '\n' +
           'EXAMPLE\n' +
           '  dungeonmaster siegelense kill --instance inst_9b2c\n',
@@ -140,7 +139,7 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  --idle-timeout-ms only RAISES the ceiling for this one instance — it never disables the idle timeout or makes it infinite. The timeout is the only backstop against an abandoned lane holding a port pair and a browser open forever.\n' +
           '\n' +
           'OUTPUT\n' +
-          '  One JSON document on stdout: the manifest — instance id, base URL, and every evidence path this run will want, since there is no lookup call to recover them later.\n' +
+          '  A human summary by default: instance id, spec, URLs, home and evidence paths, boot time, and one line per seeded binding — since there is no lookup call to recover any of it later. `--json` prints the InstanceManifest unabridged, seeded rows included.\n' +
           '\n' +
           'EXAMPLE\n' +
           '  dungeonmaster siegelense start --spec dungeonmaster-stack\n',

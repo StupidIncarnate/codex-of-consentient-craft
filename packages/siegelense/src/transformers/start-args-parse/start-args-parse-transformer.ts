@@ -123,6 +123,6 @@ export const startArgsParseTransformer = ({ args }: { args: readonly string[] })
             parse: () => timeoutMsContract.parse(Number(idleTimeoutValue)),
           }),
         }),
-    json: args.includes(siegelenseOutputStatics.flags.json),
+    isJson: args.includes(siegelenseOutputStatics.flags.json),
   });
 };

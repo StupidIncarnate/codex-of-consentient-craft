@@ -7,12 +7,13 @@ const TIGHTENING_INBOUND_VALUES = new Set(['refuse', 'hold']);
 
 describe('agentSessionDefaultsStatics', () => {
   describe('settings', () => {
-    it('VALID: {agentSessionDefaultsStatics} => exposes exactly the cache-TTL and inbound session keys plus the subagent model env', () => {
+    it('VALID: {agentSessionDefaultsStatics} => exposes exactly the four session settings keys plus the subagent model env', () => {
       expect(agentSessionDefaultsStatics).toStrictEqual({
         settings: {
           crossSessionInbound: 'refuse',
           promptCacheTtl: '1h',
           subagentPromptCacheTtl: '1h',
+          promptSuggestionEnabled: false,
         },
         env: {
           CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet',
@@ -30,6 +31,12 @@ describe('agentSessionDefaultsStatics', () => {
       const { promptCacheTtl } = agentSessionDefaultsStatics.settings;
 
       expect(promptCacheTtl).toBe('1h');
+    });
+
+    it('VALID: {settings.promptSuggestionEnabled} => switches off the predicted next prompt an orchestrated session never reads', () => {
+      const { promptSuggestionEnabled } = agentSessionDefaultsStatics.settings;
+
+      expect(promptSuggestionEnabled).toBe(false);
     });
 
     it('VALID: {settings.crossSessionInbound} => picks a value a settings file may tighten to', () => {

@@ -2,7 +2,7 @@ import { startArgsParseTransformer } from './start-args-parse-transformer';
 
 describe('startArgsParseTransformer', () => {
   describe('the unowned case', () => {
-    it('VALID: {--spec dungeonmaster-stack} => quest and guild null, json false', () => {
+    it('VALID: {--spec dungeonmaster-stack} => quest and guild null, isJson false', () => {
       const result = startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-stack'] });
 
       expect(result).toStrictEqual({
@@ -10,13 +10,13 @@ describe('startArgsParseTransformer', () => {
         questId: null,
         guildId: null,
         seed: null,
-        json: false,
+        isJson: false,
       });
     });
   });
 
   describe('every flag named', () => {
-    it('VALID: {--spec, --quest, --guild} => returns the complete object with json false', () => {
+    it('VALID: {--spec, --quest, --guild} => returns the complete object with isJson false', () => {
       const result = startArgsParseTransformer({
         args: [
           '--spec',
@@ -33,13 +33,13 @@ describe('startArgsParseTransformer', () => {
         questId: 'add-auth',
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         seed: null,
-        json: false,
+        isJson: false,
       });
     });
   });
 
-  describe('--json is accepted and sets json true', () => {
-    it('VALID: {--spec, --quest, --guild, --json} => returns object with json true', () => {
+  describe('--json is accepted and sets isJson true', () => {
+    it('VALID: {--spec, --quest, --guild, --json} => returns object with isJson true', () => {
       const result = startArgsParseTransformer({
         args: [
           '--spec',
@@ -57,7 +57,7 @@ describe('startArgsParseTransformer', () => {
         questId: 'add-auth',
         guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         seed: null,
-        json: true,
+        isJson: true,
       });
     });
   });
@@ -130,7 +130,7 @@ describe('startArgsParseTransformer', () => {
         guildId: null,
         seed: null,
         idleTimeoutMs: 1_800_000,
-        json: false,
+        isJson: false,
       });
     });
 
@@ -142,7 +142,7 @@ describe('startArgsParseTransformer', () => {
         questId: null,
         guildId: null,
         seed: null,
-        json: false,
+        isJson: false,
       });
     });
 
@@ -174,7 +174,7 @@ describe('startArgsParseTransformer', () => {
         questId: null,
         guildId: null,
         seed: 'guild-with-three-quests',
-        json: false,
+        isJson: false,
       });
     });
 

@@ -163,7 +163,7 @@ describe('opUpdateApplyLayerBroker', () => {
       await expect(
         opUpdateApplyLayerBroker({ op, target: HydrationTargetStub({}), config, state }),
       ).rejects.toThrow(
-        /^recipe "guild-mid-execution": ingredient "quest"'s "update" route refused the connection with no URL known: Error: connect ECONNREFUSED$/u,
+        /^recipe "guild-mid-execution": ingredient "quest"'s "update" route failed with no URL known: Error: connect ECONNREFUSED$/u,
       );
     });
   });

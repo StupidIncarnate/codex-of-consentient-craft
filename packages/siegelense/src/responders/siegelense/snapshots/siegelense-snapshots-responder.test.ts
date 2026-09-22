@@ -11,7 +11,7 @@ import { SiegelenseSnapshotsResponderProxy } from './siegelense-snapshots-respon
 
 describe('SiegelenseSnapshotsResponder', () => {
   describe('an instance holding snapshots', () => {
-    it('VALID: {default: json false} => writes the human summary table to stdout', async () => {
+    it('VALID: {default: isJson false} => writes the human summary table to stdout', async () => {
       const proxy = SiegelenseSnapshotsResponderProxy();
       const nowMs = EpochMsStub({ value: 5000 });
       proxy.stageNow({ nowMs });
@@ -43,7 +43,7 @@ describe('SiegelenseSnapshotsResponder', () => {
       ]);
     });
 
-    it('VALID: {json: true} => writes the complete SnapshotsAnswer as one JSON document', async () => {
+    it('VALID: {isJson: true} => writes the complete SnapshotsAnswer as one JSON document', async () => {
       const proxy = SiegelenseSnapshotsResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const answer = SnapshotsAnswerStub({
@@ -60,7 +60,7 @@ describe('SiegelenseSnapshotsResponder', () => {
       });
       proxy.stageAnswer({ answer });
 
-      await SiegelenseSnapshotsResponder({ instanceId, json: true });
+      await SiegelenseSnapshotsResponder({ instanceId, isJson: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,

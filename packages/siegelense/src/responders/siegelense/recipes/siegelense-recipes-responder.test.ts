@@ -46,7 +46,7 @@ describe('SiegelenseRecipesResponder', () => {
       ]);
     });
 
-    it('VALID: {human: false, two recipes} => writes the RecipesAnswer as one JSON document', async () => {
+    it('VALID: {isJson: true, two recipes} => writes the RecipesAnswer as one JSON document', async () => {
       const proxy = SiegelenseRecipesResponderProxy();
       const recipes = RecipesListingStub({
         value: [
@@ -66,14 +66,14 @@ describe('SiegelenseRecipesResponder', () => {
       const answer = RecipesAnswerStub({ recipes });
       proxy.stageListing({ recipes });
 
-      await SiegelenseRecipesResponder({ human: false });
+      await SiegelenseRecipesResponder({ isJson: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
     });
 
-    it('VALID: {human: true, two recipes} => writes one block per recipe', async () => {
+    it('VALID: {isJson: false, two recipes} => writes one block per recipe', async () => {
       const proxy = SiegelenseRecipesResponderProxy();
       const recipes = RecipesListingStub({
         value: [
@@ -92,7 +92,7 @@ describe('SiegelenseRecipesResponder', () => {
       });
       proxy.stageListing({ recipes });
 
-      await SiegelenseRecipesResponder({ human: true });
+      await SiegelenseRecipesResponder({ isJson: false });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         '  guild-mid-execution\n' +
@@ -121,25 +121,25 @@ describe('SiegelenseRecipesResponder', () => {
       expect(proxy.getStdoutWrites()).toStrictEqual(['no recipes declared yet\n']);
     });
 
-    it('EMPTY: {human: false, no recipes} => writes the RecipesAnswer as one JSON document', async () => {
+    it('EMPTY: {isJson: true, no recipes} => writes the RecipesAnswer as one JSON document', async () => {
       const proxy = SiegelenseRecipesResponderProxy();
       const recipes = RecipesListingStub({ value: [] });
       const answer = RecipesAnswerStub({ recipes });
       proxy.stageListing({ recipes });
 
-      await SiegelenseRecipesResponder({ human: false });
+      await SiegelenseRecipesResponder({ isJson: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
     });
 
-    it('EMPTY: {human: true, no recipes} => writes "no recipes declared yet" rather than refusing', async () => {
+    it('EMPTY: {isJson: false, no recipes} => writes "no recipes declared yet" rather than refusing', async () => {
       const proxy = SiegelenseRecipesResponderProxy();
       const recipes = RecipesListingStub({ value: [] });
       proxy.stageListing({ recipes });
 
-      await SiegelenseRecipesResponder({ human: true });
+      await SiegelenseRecipesResponder({ isJson: false });
 
       expect(proxy.getStdoutWrites()).toStrictEqual(['no recipes declared yet\n']);
     });

@@ -3,17 +3,17 @@ import { SnapshotsArgsStub } from './snapshots-args.stub';
 
 describe('snapshotsArgsContract', () => {
   describe('valid args', () => {
-    it('VALID: {instanceId} => parses with json false by default', () => {
+    it('VALID: {instanceId} => parses with isJson false by default', () => {
       expect(SnapshotsArgsStub({ instanceId: 'inst_9b2c4d1e' })).toStrictEqual({
         instanceId: 'inst_9b2c4d1e',
-        json: false,
+        isJson: false,
       });
     });
 
-    it('VALID: {instanceId, json: true} => parses with json true', () => {
-      expect(SnapshotsArgsStub({ instanceId: 'inst_9b2c4d1e', json: true })).toStrictEqual({
+    it('VALID: {instanceId, isJson: true} => parses with isJson true', () => {
+      expect(SnapshotsArgsStub({ instanceId: 'inst_9b2c4d1e', isJson: true })).toStrictEqual({
         instanceId: 'inst_9b2c4d1e',
-        json: true,
+        isJson: true,
       });
     });
   });

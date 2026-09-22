@@ -3,9 +3,11 @@
  * flag but `--instance` and `--json` and any bare token that is not that flag's own value.
  * `--instance` is REQUIRED here, as it is on `kill` and unlike `statusArgsParseTransformer`'s
  * optional one: a snapshot lives inside one instance's throwaway home, so there is no fleet-wide form
- * to fall back on. `--human` is refused by name rather than silently answering JSON — this call has
- * no table renderer, and `SiegelenseFlow` already refuses it before routing because the call's help
- * entry carries no `--human` row; the refusal here covers a caller reaching this transformer directly.
+ * to fall back on. `--human` meets the same refusal as any other unknown flag: it fails this
+ * transformer's own `KNOWN_FLAGS` check below and throws naming the flag alongside the two this call
+ * accepts. `SiegelenseFlow` inspects no flag itself — it routes `callArgs` straight through unread
+ * (its own header says so) — so this check is the only gate any flag, `--human` included, passes
+ * through.
  *
  * USAGE:
  * snapshotsArgsParseTransformer({ args: ['--instance', 'inst_7f3a9c21'] });
@@ -72,6 +74,6 @@ export const snapshotsArgsParseTransformer = ({
       flag: INSTANCE_FLAG,
       parse: () => instanceIdContract.parse(rawInstanceId),
     }),
-    json: args.includes(siegelenseOutputStatics.flags.json),
+    isJson: args.includes(siegelenseOutputStatics.flags.json),
   });
 };

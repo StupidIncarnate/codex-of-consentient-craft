@@ -205,5 +205,6 @@ if (isLayerFile && !folderConfig?.allowsLayerFiles) {
 - `brokers/` - Complex business logic decomposition
 - `widgets/` - Complex UI sub-components
 - `responders/` - Complex request handling layers
+- `flows/` - One layer flow per entry point (route, command, or subcommand), routed to by the domain's root flow
 
 See `src/statics/folder-config/folder-config-statics.ts` for `allowsLayerFiles` configuration per folder type.

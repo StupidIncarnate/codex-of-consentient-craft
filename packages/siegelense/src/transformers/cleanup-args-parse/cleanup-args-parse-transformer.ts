@@ -9,10 +9,10 @@
  *
  * USAGE:
  * cleanupArgsParseTransformer({ args: [] });
- * // Returns { human: true } as CleanupArgs
+ * // Returns { isJson: false } as CleanupArgs
  *
  * cleanupArgsParseTransformer({ args: ['--json'] });
- * // Returns { human: false } as CleanupArgs
+ * // Returns { isJson: true } as CleanupArgs
  */
 
 import {
@@ -50,5 +50,5 @@ export const cleanupArgsParseTransformer = ({ args }: { args: readonly string[] 
 
   const isJson = args.includes(siegelenseOutputStatics.flags.json);
 
-  return cleanupArgsContract.parse({ human: !isJson });
+  return cleanupArgsContract.parse({ isJson });
 };

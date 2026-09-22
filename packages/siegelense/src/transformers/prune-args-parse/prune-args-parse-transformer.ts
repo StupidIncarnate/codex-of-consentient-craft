@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Reads `dungeonmaster siegelense prune`'s argv into a `PruneArgs` — the three selectors
  * kebab-cased from the spec's own field names (`--instance`, `--kind`, `--older-than`), plus
- * `--json`/`--human`. `--older-than` DEFAULTS to `pruneStatics.window.defaultOlderThan` rather than
+ * `--json`. `--older-than` DEFAULTS to `pruneStatics.window.defaultOlderThan` rather than
  * to no window at all: this is the one call in the tool that deletes files, and "take everything"
  * may not be what a caller gets for typing the call name alone. The window is validated here, at the
  * argv edge, so `prune --older-than 7` is refused before any directory is read rather than after.
@@ -10,7 +10,7 @@
  *
  * USAGE:
  * pruneArgsParseTransformer({ args: ['--kind', 'video', '--older-than', '2d'] });
- * // Returns { query: { instanceId: null, kind: 'video', olderThan: '2d' }, human: true }
+ * // Returns { query: { instanceId: null, kind: 'video', olderThan: '2d' }, isJson: false }
  */
 
 import { elapsedTextContract } from '../../contracts/elapsed-text/elapsed-text-contract';
@@ -95,6 +95,6 @@ export const pruneArgsParseTransformer = ({ args }: { args: readonly string[] })
             }),
       olderThan,
     },
-    human: !args.includes(siegelenseOutputStatics.flags.json),
+    isJson: args.includes(siegelenseOutputStatics.flags.json),
   });
 };

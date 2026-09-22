@@ -5,10 +5,10 @@
  * never silently becomes legal on the other.
  *
  * USAGE:
- * docsArgsContract.parse({ scope: 'operating', json: false, human: false });
+ * docsArgsContract.parse({ scope: 'operating', isJson: false });
  * // Returns a validated DocsArgs meaning "serve the operating instructions as Markdown"
  *
- * docsArgsContract.parse({ scope: 'walking', json: true, human: false });
+ * docsArgsContract.parse({ scope: 'walking', isJson: true });
  * // Returns a validated DocsArgs meaning "serve the walker's instructions as JSON"
  */
 
@@ -19,7 +19,7 @@ import { docsScopeContract } from '../docs-scope/docs-scope-contract';
 export const docsArgsContract = z
   .object({
     scope: docsScopeContract,
-    json: z.boolean(),
+    isJson: z.boolean(),
   })
   .strict();
 

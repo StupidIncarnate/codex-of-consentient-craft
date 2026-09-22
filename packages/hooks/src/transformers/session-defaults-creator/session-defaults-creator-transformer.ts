@@ -1,12 +1,13 @@
 /**
  * PURPOSE: Builds the root-level Claude Code session settings `dungeonmaster init` writes into
- * `.claude/settings.json` — the prompt-cache windows, the inbound peer-message stance, and the
- * default sub-agent model. Reach for this over `dungeonmasterHooksCreatorTransformer` when the
- * value belongs at the settings ROOT rather than under `hooks`.
+ * `.claude/settings.json` — the prompt-cache windows, the inbound peer-message stance, the
+ * prompt-suggestion switch, and the default sub-agent model. Reach for this over
+ * `dungeonmasterHooksCreatorTransformer` when the value belongs at the settings ROOT rather than
+ * under `hooks`.
  *
  * USAGE:
  * sessionDefaultsCreatorTransformer();
- * // Returns {crossSessionInbound, promptCacheTtl, subagentPromptCacheTtl, env} ready to spread
+ * // Returns the settings-root keys plus `env`, ready to spread
  *
  * It takes no existing settings and decides nothing about them. Whether a value already on disk
  * survives is the caller's spread order: `InstallCreateSettingsResponder` spreads this block
@@ -25,5 +26,6 @@ export const sessionDefaultsCreatorTransformer = (): ClaudeSettings =>
     crossSessionInbound: agentSessionDefaultsStatics.settings.crossSessionInbound,
     promptCacheTtl: agentSessionDefaultsStatics.settings.promptCacheTtl,
     subagentPromptCacheTtl: agentSessionDefaultsStatics.settings.subagentPromptCacheTtl,
+    promptSuggestionEnabled: agentSessionDefaultsStatics.settings.promptSuggestionEnabled,
     env: agentSessionDefaultsStatics.env,
   });

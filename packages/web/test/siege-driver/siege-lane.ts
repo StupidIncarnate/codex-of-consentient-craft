@@ -90,11 +90,13 @@ export const siegeLane = async ({
   const apiLogFd = fs.openSync(path.join(laneDir, locationsStatics.siegelense.apiLog), 'a');
   const webLogFd = fs.openSync(path.join(laneDir, locationsStatics.siegelense.webLog), 'a');
 
-  // `dev:no-watch`, never `dev`. The server's `dev` is `tsx watch --conditions=source`, which puts
-  // every packages/*/src file in this repo into its module graph — one save anywhere restarts the
-  // API server for ~1.5s and Vite's /api proxy answers every request in that window with a bare
-  // 500 and an empty body. A lane is held open across a whole path walk while the repo is being
-  // edited, so a watcher here would poison measurements at random.
+  // `dev:no-watch`, never `dev` — for BOTH servers below. The server's `dev` is
+  // `tsx watch --conditions=source`, which puts every packages/*/src file in this repo into its
+  // module graph — one save anywhere restarts the API server for ~1.5s and Vite's /api proxy
+  // answers every request in that window with a bare 500 and an empty body. The web server's `dev`
+  // carries the same exposure through Vite's own watcher and HMR socket, reloading the page a lane
+  // is mid-assertion on. A lane is held open across a whole path walk while the repo is being
+  // edited, so a watcher on either process would poison measurements at random.
   const apiServer = spawn('npm', ['run', 'dev:no-watch', `--workspace=${SERVER_WORKSPACE}`], {
     cwd: REPO_ROOT,
     detached: true,
@@ -115,7 +117,7 @@ export const siegeLane = async ({
     },
   });
 
-  const webServer = spawn('npm', ['run', 'dev', `--workspace=${WEB_WORKSPACE}`], {
+  const webServer = spawn('npm', ['run', 'dev:no-watch', `--workspace=${WEB_WORKSPACE}`], {
     cwd: REPO_ROOT,
     detached: true,
     stdio: ['ignore', webLogFd, webLogFd],

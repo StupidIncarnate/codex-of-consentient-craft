@@ -8,11 +8,11 @@ import { SiegelenseDocsResponderProxy } from './siegelense-docs-responder.proxy'
 
 describe('SiegelenseDocsResponder', () => {
   describe('one scope', () => {
-    it('VALID: {scope: operating, json: true} => writes that document alone as JSON, naming it in requested', async () => {
+    it('VALID: {scope: operating, isJson: true} => writes that document alone as JSON, naming it in requested', async () => {
       const proxy = SiegelenseDocsResponderProxy();
       const scope = DocsScopeStub({ value: 'operating' });
 
-      await SiegelenseDocsResponder({ scope, json: true });
+      await SiegelenseDocsResponder({ scope, isJson: true });
 
       expect(proxy.getStdoutLines()[1]).toBe('  "requested": "operating",');
       expect(proxy.getStdoutWrites()).toStrictEqual([
@@ -24,11 +24,11 @@ describe('SiegelenseDocsResponder', () => {
       ]);
     });
 
-    it('VALID: {scope: operating, json: false} => writes that document alone as Markdown by default', async () => {
+    it('VALID: {scope: operating, isJson: false} => writes that document alone as Markdown by default', async () => {
       const proxy = SiegelenseDocsResponderProxy();
       const scope = DocsScopeStub({ value: 'operating' });
 
-      await SiegelenseDocsResponder({ scope, json: false });
+      await SiegelenseDocsResponder({ scope, isJson: false });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         docsAnswerRenderTransformer({
@@ -39,23 +39,23 @@ describe('SiegelenseDocsResponder', () => {
   });
 
   describe('the rendered manual', () => {
-    it('VALID: {scope: driving, json: false} => writes Markdown opening on title', async () => {
+    it('VALID: {scope: driving, isJson: false} => writes Markdown opening on title', async () => {
       const proxy = SiegelenseDocsResponderProxy();
 
       await SiegelenseDocsResponder({
         scope: DocsScopeStub({ value: 'driving' }),
-        json: false,
+        isJson: false,
       });
 
       expect(proxy.getStdoutLines()[0]).toBe('# Siegelense Documentation');
     });
 
-    it("VALID: {scope: driving, json: false} => the driving table's first row reaches stdout formatted", async () => {
+    it("VALID: {scope: driving, isJson: false} => the driving table's first row reaches stdout formatted", async () => {
       const proxy = SiegelenseDocsResponderProxy();
 
       await SiegelenseDocsResponder({
         scope: DocsScopeStub({ value: 'driving' }),
-        json: false,
+        isJson: false,
       });
 
       expect(proxy.getStdoutLines()[16]).toBe(
@@ -68,12 +68,12 @@ describe('SiegelenseDocsResponder', () => {
   });
 
   describe('the return', () => {
-    it('VALID: {scope: operating, json: false} => answers success without starting anything', async () => {
+    it('VALID: {scope: operating, isJson: false} => answers success without starting anything', async () => {
       SiegelenseDocsResponderProxy();
 
       const result = await SiegelenseDocsResponder({
         scope: DocsScopeStub({ value: 'operating' }),
-        json: false,
+        isJson: false,
       });
 
       expect(result).toStrictEqual({ success: true });

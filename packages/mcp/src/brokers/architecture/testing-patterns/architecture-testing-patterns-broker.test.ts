@@ -384,6 +384,35 @@ describe('architectureTestingPatternsBroker', () => {
       );
     });
 
+    it('VALID: {} => includes argument coverage section heading and the every-argument list', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^## Argument Coverage for Entry Points$/mu);
+      expect(result).toMatch(
+        /^\*\*Every documented argument of an entry point needs a test\.\*\* Covering the entry point's default invocation is not covering the entry point — a flag no test ever sets is a flag no test ever proves works\.$/mu,
+      );
+      expect(result).toMatch(/^- Each value of a documented enum flag\.$/mu);
+      expect(result).toMatch(/^- The refusal when a required flag is missing\.$/mu);
+    });
+
+    it('VALID: {} => bans parser-only argument tests and boundary mocks, and restates the rule', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(
+        /^\*\*A test that exercises only the argument PARSER does not cover the argument\.\*\* Asserting that a flag parses into the right field proves the parser works, not that the flag does anything\. The test must reach the BEHAVIOUR the argument selects — the effect the documentation promises, not the value on the way in\.$/mu,
+      );
+      expect(result).toMatch(
+        /^\*\*A test that stages a boundary with a shape the real producer never emits passes while the feature is broken\.\*\* Where a flow's argument crosses a package boundary, the coverage that counts is an integration test running the real code on both sides\. A unit test whose mock is the only description of that boundary describes the mock, not the boundary, and the two can drift apart with nothing to catch it — a mock invented to match the caller's assumptions, not the producer's real output, is how a documented flag ships broken\.$/mu,
+      );
+      expect(result).toMatch(
+        /^\*\*Restated:\*\* a green suite that never drove a flag through its real path is not evidence the flag works\. Cover the default invocation AND the full argument surface — every documented flag, every enum value, every required-flag refusal, every mutually exclusive or co-required combination — crossing every package boundary for real\.$/mu,
+      );
+    });
+
     it('VALID: {} => includes no hooks or conditionals section', () => {
       architectureTestingPatternsBrokerProxy();
 

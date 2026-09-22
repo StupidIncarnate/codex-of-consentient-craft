@@ -1,7 +1,7 @@
 /**
  * PURPOSE: The surface `dungeonmaster siegelense docs --for <scope> [--json]` serves —
  * clean, readable Markdown on stdout by default through `docsAnswerRenderTransformer`, or the raw
- * `DocsAnswer` JSON document when `json` is true. Writes through `process.stdout.write`, never
+ * `DocsAnswer` JSON document when `isJson` is true. Writes through `process.stdout.write`, never
  * `console.log`, matching every other siegelense call.
  *
  * It reaches no broker, and that is the shape rather than an omission: the manual is immutable
@@ -15,10 +15,10 @@
  * the call's entry the same shape as its siblings that really do wait on a broker.
  *
  * USAGE:
- * await SiegelenseDocsResponder({ scope: docsScopeContract.parse('operating'), json: false });
+ * await SiegelenseDocsResponder({ scope: docsScopeContract.parse('operating'), isJson: false });
  * // Writes the operating instructions as formatted Markdown
  *
- * await SiegelenseDocsResponder({ scope: docsScopeContract.parse('walking'), json: true });
+ * await SiegelenseDocsResponder({ scope: docsScopeContract.parse('walking'), isJson: true });
  * // Writes the walker's page as one JSON document
  */
 
@@ -32,15 +32,15 @@ import { docsAnswerRenderTransformer } from '../../../transformers/docs-answer-r
 
 export const SiegelenseDocsResponder = async ({
   scope,
-  json,
+  isJson,
 }: {
   scope: DocsScope;
-  json: boolean;
+  isJson: boolean;
 }): Promise<AdapterResult> => {
   const answer = docsAnswerComposeTransformer({ scope });
 
   process.stdout.write(
-    json
+    isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : docsAnswerRenderTransformer({ answer }),
   );

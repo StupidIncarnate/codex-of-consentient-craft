@@ -118,9 +118,18 @@ describe('recipesSeedRunBroker', () => {
 
   describe('a baseUrl supplied on a recipe whose ingredient declares an api route', () => {
     const instanceStub = instanceStubHarness();
-    const QUEST_NAME = SavedRecordNameStub({ value: 'quest' });
 
-    it('VALID: {recipeName: quest-advances-one-step, baseUrl} => the api route wins over write, posting the real request and the result is the response it answered', async () => {
+    // `quest-advances-one-step` asks for `status: 'in_progress'` via `setRaw`, folded straight
+    // into the create op's fields (`plan-fold-writes-transformer.ts`) — the real create endpoint
+    // never reads that field off the wire, so `questApiRouteBroker` walks the freshly-minted
+    // `created` quest there through `questReachRouteBroker` once the create+reload round trip
+    // lands. This stub server only echoes a canned quest — it never persists one — so the walk's
+    // first hop (`questModifyBroker`, called in-process against `home`) finds no real quest file
+    // to modify and the run throws rather than silently keeping the quest at `created`. Proving the
+    // walk itself SUCCEEDS needs a real orchestrator HTTP server backing `home` with real
+    // `questCreateBroker`/`questModifyBroker`/`questGetBroker` behavior — a heavier harness than
+    // this package owns today.
+    it('ERROR: {recipeName: quest-advances-one-step, baseUrl} => the api route wins over write, posts the real request, then throws walking to the requested status rather than silently landing on created', async () => {
       const apiQuest = QuestStub({
         id: 'server-minted-quest',
         folder: '002-server-minted-quest',
@@ -130,37 +139,24 @@ describe('recipesSeedRunBroker', () => {
       });
       const baseUrl = String(await instanceStub.start({ status: 201, body: apiQuest }));
 
-      const result = await recipesSeedRunBroker({
-        recipeName: 'quest-advances-one-step',
-        params: { guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' },
-        home: UNUSED_HOME,
-        baseUrl,
-      });
-      const quest = result[QUEST_NAME] as Quest;
+      await expect(
+        recipesSeedRunBroker({
+          recipeName: 'quest-advances-one-step',
+          params: { guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' },
+          home: UNUSED_HOME,
+          baseUrl,
+        }),
+      ).rejects.toThrow(
+        /^recipe "quest-advances-one-step": ingredient "quest"'s "api" route failed with no URL known: Error: questReachRouteBroker: could not reach "explore_flows" — .+$/u,
+      );
 
-      expect({
-        requestReceived: instanceStub.lastRequest(),
-        questReturned: {
-          id: quest.id,
-          title: quest.title,
-          status: quest.status,
-          operations: quest.operations,
-        },
-      }).toStrictEqual({
-        requestReceived: {
-          method: 'POST',
-          path: '/api/quests',
-          body: {
-            guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            title: 'Advancing quest',
-            userRequest: 'seeded quest 1',
-          },
-        },
-        questReturned: {
-          id: 'server-minted-quest',
-          title: 'Server-minted title',
-          status: 'created',
-          operations: [],
+      expect(instanceStub.lastRequest()).toStrictEqual({
+        method: 'POST',
+        path: '/api/quests',
+        body: {
+          guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          title: 'Advancing quest',
+          userRequest: 'seeded quest 1',
         },
       });
     });

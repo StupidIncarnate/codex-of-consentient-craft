@@ -1,16 +1,16 @@
 /**
  * PURPOSE: The surface `dungeonmaster siegelense cleanup` serves — the operator's bookend table
- * through `cleanupAnswerRenderTransformer` by default (when `human` is true or omitted), or one
- * JSON document on stdout (the raw `CleanupAnswer`) when `human` is false (opted into with
+ * through `cleanupAnswerRenderTransformer` by default (when `isJson` is false or omitted), or one
+ * JSON document on stdout (the raw `CleanupAnswer`) when `isJson` is true (opted into with
  * `--json`). Writes through `process.stdout.write`, never `console.log`, matching `SiegelenseFleetResponder`.
- * The whole parameter defaults to `{ human: true }`: calling this responder with zero arguments
+ * The whole parameter defaults to `{ isJson: false }`: calling this responder with zero arguments
  * outputs the human table by default.
  *
  * USAGE:
  * await SiegelenseCleanupResponder();
  * // Writes what was reaped, what ports/locks came back, and what was left alone with its reason
  *
- * await SiegelenseCleanupResponder({ human: false });
+ * await SiegelenseCleanupResponder({ isJson: true });
  * // Writes the CleanupAnswer as one JSON document
  */
 
@@ -23,16 +23,16 @@ import { cleanupAnswerRenderTransformer } from '../../../transformers/cleanup-an
 
 export const SiegelenseCleanupResponder = async (
   {
-    human = true,
+    isJson = false,
   }: {
-    human?: boolean;
-  } = { human: true },
+    isJson?: boolean;
+  } = { isJson: false },
 ): Promise<AdapterResult> => {
   const answer = await cleanupRunBroker();
   process.stdout.write(
-    human
-      ? cleanupAnswerRenderTransformer({ answer })
-      : `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+    isJson
+      ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
+      : cleanupAnswerRenderTransformer({ answer }),
   );
   return adapterResultContract.parse({ success: true });
 };

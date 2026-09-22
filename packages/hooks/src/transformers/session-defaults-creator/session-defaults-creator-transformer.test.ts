@@ -2,13 +2,14 @@ import { sessionDefaultsCreatorTransformer } from './session-defaults-creator-tr
 
 describe('sessionDefaultsCreatorTransformer', () => {
   describe('settings block', () => {
-    it('VALID: {no arguments} => returns the four root keys dungeonmaster init writes', () => {
+    it('VALID: {no arguments} => returns the five root keys dungeonmaster init writes', () => {
       const result = sessionDefaultsCreatorTransformer();
 
       expect(result).toStrictEqual({
         crossSessionInbound: 'refuse',
         promptCacheTtl: '1h',
         subagentPromptCacheTtl: '1h',
+        promptSuggestionEnabled: false,
         env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
       });
     });
@@ -17,6 +18,12 @@ describe('sessionDefaultsCreatorTransformer', () => {
       const { subagentPromptCacheTtl } = sessionDefaultsCreatorTransformer();
 
       expect(subagentPromptCacheTtl).toBe('1h');
+    });
+
+    it('VALID: {no arguments} => switches off the predicted next prompt', () => {
+      const { promptSuggestionEnabled } = sessionDefaultsCreatorTransformer();
+
+      expect(promptSuggestionEnabled).toBe(false);
     });
 
     it('VALID: {no arguments} => carries no hooks block, so it never disturbs the hook merge', () => {

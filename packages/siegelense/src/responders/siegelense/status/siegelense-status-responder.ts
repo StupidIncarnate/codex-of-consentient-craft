@@ -1,7 +1,7 @@
 /**
  * PURPOSE: The surface `dungeonmaster siegelense status [--instance <id>]` serves — the fleet or
- * one-instance table through `statusAnswerRenderTransformer` by default (when `human` is true or
- * omitted), or one JSON document on stdout (the raw `StatusAnswer`) when `human` is false (opted
+ * one-instance table through `statusAnswerRenderTransformer` by default (when `isJson` is false or
+ * omitted), or one JSON document on stdout (the raw `StatusAnswer`) when `isJson` is true (opted
  * into with `--json`). Writes through `process.stdout.write`, never `console.log`, matching
  * `SiegelenseFleetResponder`. Never fetches per-row detail for a fleet listing itself —
  * `statusReadBroker`'s own no-browsing rule already withholds evidence and `lastStep` for every row
@@ -9,18 +9,18 @@
  * N extra calls to fill in a prettier table. Also passes `instanceId` through to the RENDERER —
  * `statusReadBroker` answers `instances: []` both for an empty fleet and for an unrecognised named id,
  * and only the renderer, told which question was asked, can tell those two apart in the text a
- * person reads. `human` defaults to `true` in the destructuring. **The refusal for `--human` on a call
- * with no renderer lives in `SiegelenseFlow`'s route table, not here** — this responder only ever
- * renders when told to.
+ * person reads. `isJson` defaults to `false` in the destructuring. **The refusal for `--human` lives
+ * in `statusArgsParseTransformer`'s own known-flag set**, which rejects it as an unknown flag before
+ * argv ever reaches this responder — this responder only ever renders when told to.
  *
  * USAGE:
- * await SiegelenseStatusResponder({ instanceId: null, human: true });
+ * await SiegelenseStatusResponder({ instanceId: null, isJson: false });
  * // Writes the fleet's rendered table
  *
- * await SiegelenseStatusResponder({ instanceId: null, human: false });
+ * await SiegelenseStatusResponder({ instanceId: null, isJson: true });
  * // Writes the fleet's StatusAnswer as one JSON document
  *
- * await SiegelenseStatusResponder({ instanceId: InstanceIdStub(), human: true });
+ * await SiegelenseStatusResponder({ instanceId: InstanceIdStub(), isJson: false });
  * // Writes that one instance in full, as the rendered table
  */
 
@@ -36,18 +36,18 @@ export const SiegelenseStatusResponder = async ({
   instanceId,
   branch = null,
   since = instanceId === null ? '6h' : null,
-  human = true,
+  isJson = false,
 }: {
   instanceId: InstanceId | null;
   branch?: string | null | undefined;
   since?: '1h' | '6h' | '1d' | 'beginning' | null | undefined;
-  human?: boolean | undefined;
+  isJson?: boolean | undefined;
 }): Promise<AdapterResult> => {
   const answer = await statusReadBroker({ instanceId, branch, since });
   process.stdout.write(
-    human
-      ? statusAnswerRenderTransformer({ answer, instanceId })
-      : `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+    isJson
+      ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
+      : statusAnswerRenderTransformer({ answer, instanceId }),
   );
   return adapterResultContract.parse({ success: true });
 };

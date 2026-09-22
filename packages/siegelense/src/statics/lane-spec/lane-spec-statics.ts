@@ -2,7 +2,8 @@
  * PURPOSE: The two built-in lane specs, as raw (unbranded) data — `dungeonmaster-stack` (api + web,
  * `browser: true`) and `dungeonmaster-api` (api only, `browser: false`), mirroring
  * `packages/web/test/siege-driver/siege-lane.ts`'s measured env blocks, its `dev:no-watch` choice
- * for the api process and its `DUNGEONMASTER_WEB_PORT` requirement for the web process. `{apiPort}`,
+ * for BOTH processes — a lane drives the app under a live operator, so the tree it serves must not
+ * move under that run — and its `DUNGEONMASTER_WEB_PORT` requirement for the web process. `{apiPort}`,
  * `{webPort}`, `{home}`, `{claudeQueueDir}` and `{wardQueueDir}` are placeholders `lane-boot-broker`
  * substitutes into `args`, `env` and `readyPath` once an instance exists to claim real values for
  * them; nothing here computes a port or mints a home. `CLAUDE_CLI_PATH` and `WARD_CLI_PATH` are
@@ -51,7 +52,7 @@ const API_PROCESS = {
 const WEB_PROCESS = {
   name: 'web',
   command: 'npm',
-  args: ['run', 'dev', '--workspace=@dungeonmaster/web'],
+  args: ['run', 'dev:no-watch', '--workspace=@dungeonmaster/web'],
   portRole: 'web',
   readyPath: '/',
   logFileName: locationsStatics.siegelense.webLog,

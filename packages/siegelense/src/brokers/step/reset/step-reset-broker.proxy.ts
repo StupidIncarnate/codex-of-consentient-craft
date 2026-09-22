@@ -14,6 +14,7 @@ import type {
   FileName,
   Guild,
 } from '@dungeonmaster/shared/contracts';
+import { QuestStub } from '@dungeonmaster/shared/contracts';
 
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { FileSizeBytes } from '../../../contracts/file-size-bytes/file-size-bytes-contract';
@@ -81,9 +82,19 @@ export const stepResetBrokerProxy = (): {
       restoreProxy.setupCpSucceeds({ sourcePath, destinationPath, entries });
     },
 
-    setupReseed: ({ apiBaseUrl, guild, questIds }): void => {
+    // `apiBaseUrl` stays in this method's own signature to match the real seam
+    // (`recipeSeedRunBroker` still takes one), even though the staged recipe answer no longer
+    // reads it — `guildWithThreeQuestsAnswers` stages the FULL saved rows the real
+    // `guild-with-three-quests` recipe produces, never the flat ids DEF-16 fixed.
+    setupReseed: ({ apiBaseUrl: _apiBaseUrl, guild, questIds }): void => {
       recipeProxy.bookPresent();
-      recipeProxy.guildLaneAnswers({ apiBaseUrl, guild, questIds });
+      const [firstId, secondId, thirdId] = questIds;
+      recipeProxy.guildWithThreeQuestsAnswers({
+        guild,
+        questCreated: firstId === undefined ? QuestStub() : QuestStub({ id: firstId }),
+        questInProgress: secondId === undefined ? QuestStub() : QuestStub({ id: secondId }),
+        questComplete: thirdId === undefined ? QuestStub() : QuestStub({ id: thirdId }),
+      });
     },
   };
 };

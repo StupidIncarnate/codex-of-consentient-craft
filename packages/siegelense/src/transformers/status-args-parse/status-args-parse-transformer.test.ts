@@ -2,7 +2,7 @@ import { statusArgsParseTransformer } from './status-args-parse-transformer';
 
 describe('statusArgsParseTransformer', () => {
   describe('the full flag set', () => {
-    it('VALID: {args: [--instance, inst_7f3a9c21, --branch, main, --since, 1hr, --json]} => explicit --json sets human: false', () => {
+    it('VALID: {args: [--instance, inst_7f3a9c21, --branch, main, --since, 1hr, --json]} => explicit --json sets isJson: true', () => {
       const result = statusArgsParseTransformer({
         args: ['--instance', 'inst_7f3a9c21', '--branch', 'main', '--since', '1hr', '--json'],
       });
@@ -11,20 +11,20 @@ describe('statusArgsParseTransformer', () => {
         instanceId: 'inst_7f3a9c21',
         branch: 'main',
         since: '1h',
-        human: false,
+        isJson: true,
       });
     });
   });
 
   describe('no args', () => {
-    it('EMPTY: {args: []} => the bare fleet-table default with human: true', () => {
+    it('EMPTY: {args: []} => the bare fleet-table default with isJson: false', () => {
       const result = statusArgsParseTransformer({ args: [] });
 
       expect(result).toStrictEqual({
         instanceId: null,
         branch: null,
         since: '6h',
-        human: true,
+        isJson: false,
       });
     });
   });
@@ -38,18 +38,18 @@ describe('statusArgsParseTransformer', () => {
   });
 
   describe('--json flag', () => {
-    it('VALID: {args: [--json]} => explicit --json sets human: false', () => {
+    it('VALID: {args: [--json]} => explicit --json sets isJson: true', () => {
       const result = statusArgsParseTransformer({ args: ['--json'] });
 
       expect(result).toStrictEqual({
         instanceId: null,
         branch: null,
         since: '6h',
-        human: false,
+        isJson: true,
       });
     });
 
-    it('VALID: {args: [--instance, inst_7f3a9c21, --json]} => parses instanceId with human: false', () => {
+    it('VALID: {args: [--instance, inst_7f3a9c21, --json]} => parses instanceId with isJson: true', () => {
       const result = statusArgsParseTransformer({
         args: ['--instance', 'inst_7f3a9c21', '--json'],
       });
@@ -58,7 +58,7 @@ describe('statusArgsParseTransformer', () => {
         instanceId: 'inst_7f3a9c21',
         branch: null,
         since: null,
-        human: false,
+        isJson: true,
       });
     });
   });
@@ -80,14 +80,14 @@ describe('statusArgsParseTransformer', () => {
   });
 
   describe('--branch flag', () => {
-    it('VALID: {args: [--branch, main]} => parses branch with human: true', () => {
+    it('VALID: {args: [--branch, main]} => parses branch with isJson: false', () => {
       const result = statusArgsParseTransformer({ args: ['--branch', 'main'] });
 
       expect(result).toStrictEqual({
         instanceId: null,
         branch: 'main',
         since: '6h',
-        human: true,
+        isJson: false,
       });
     });
   });
@@ -100,7 +100,7 @@ describe('statusArgsParseTransformer', () => {
         instanceId: null,
         branch: null,
         since: '1h',
-        human: true,
+        isJson: false,
       });
     });
 
@@ -111,7 +111,7 @@ describe('statusArgsParseTransformer', () => {
         instanceId: null,
         branch: null,
         since: '1h',
-        human: true,
+        isJson: false,
       });
     });
 
@@ -122,7 +122,7 @@ describe('statusArgsParseTransformer', () => {
         instanceId: null,
         branch: null,
         since: '6h',
-        human: true,
+        isJson: false,
       });
     });
 
@@ -133,7 +133,7 @@ describe('statusArgsParseTransformer', () => {
         instanceId: null,
         branch: null,
         since: '6h',
-        human: true,
+        isJson: false,
       });
     });
 
@@ -144,7 +144,7 @@ describe('statusArgsParseTransformer', () => {
         instanceId: null,
         branch: null,
         since: '1d',
-        human: true,
+        isJson: false,
       });
     });
 
@@ -155,7 +155,7 @@ describe('statusArgsParseTransformer', () => {
         instanceId: null,
         branch: null,
         since: '1d',
-        human: true,
+        isJson: false,
       });
     });
 
@@ -166,7 +166,7 @@ describe('statusArgsParseTransformer', () => {
         instanceId: null,
         branch: null,
         since: 'beginning',
-        human: true,
+        isJson: false,
       });
     });
 
