@@ -58,6 +58,27 @@ ruleTester.run('no-hardcoded-package-names', ruleNoHardcodedPackageNamesBroker()
       code: "import { thing } from '@dungeonmaster/web';\nexport const use = (): unknown => thing;",
       filename: sharedBrokerFixture,
     },
+    // === IMPORT EXEMPTION: the identical workspace-path text that IS flagged as data (see the
+    // invalid case below) is withheld here because its parent is the ImportDeclaration itself —
+    // the module specifier IS the string, so this is the only legal way to write it. A
+    // transformer-only attempt at this exemption read the string's TEXT alone and could not
+    // tell this apart from the data case; the parent node is what makes the distinction. ===
+    {
+      code: "import { thing } from 'packages/backend';\nexport const use = (): unknown => thing;",
+      filename: sharedBrokerFixture,
+    },
+    // === IMPORT EXEMPTION: the same workspace-path text inside a dynamic `import()` — the
+    // literal's parent is the ImportExpression, not a data position ===
+    {
+      code: "export const loadIt = (): Promise<unknown> => import('packages/backend');",
+      filename: sharedBrokerFixture,
+    },
+    // === IMPORT EXEMPTION: the same workspace-path text as a `require()` argument — the
+    // literal's parent is a CallExpression whose callee is the bare identifier `require` ===
+    {
+      code: "export const loadIt = (): unknown => require('packages/backend');",
+      filename: sharedBrokerFixture,
+    },
     // === PRODUCTION: a bare role name as DATA (array member nothing tests against) decides nothing ===
     {
       code: "const kinds = ['web', 'server'];",
@@ -103,6 +124,16 @@ ruleTester.run('no-hardcoded-package-names', ruleNoHardcodedPackageNamesBroker()
   ],
 
   invalid: [
+    // === IMPORT EXEMPTION, the DATA control case: the same 'packages/backend' text used in the
+    // three valid IMPORT EXEMPTION cases above IS flagged here, because as a plain assignment its
+    // parent is a VariableDeclarator, not an ImportDeclaration/ImportExpression/require() call.
+    // Without this control, a passing valid case for the import/require forms would prove nothing
+    // — the text could simply never have matched at all. ===
+    {
+      code: "const modulePath = 'packages/backend';",
+      filename: sharedBrokerFixture,
+      errors: [{ messageId: 'hardcodedPackagePath', data: { packageName: 'backend' } }],
+    },
     // === SHAPE 1: module-level const initializers holding workspace paths ===
     {
       code: [
