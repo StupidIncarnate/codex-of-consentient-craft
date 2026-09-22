@@ -163,7 +163,17 @@ const DIAGRAM_FLOW = {
       label: 'no — there is no detail to show for this node so the flow terminates immediately',
     },
   ],
+  // Two seed recipes this flow's walk starts from, so the SPEC tab's recipe callout has real data
+  // to render — only a real browser proves the callout paints over the live canvas rather than
+  // just in the jsdom-mocked unit test.
+  recipes: [
+    { id: 'pc-walk-1', instanceId: 'inst_e2e0001', runId: 'run_1' },
+    { id: 'admin-onboard', instanceId: 'inst_e2e0002', runId: 'run_2' },
+  ],
 };
+
+// The names above, in seeded order — what the callout is expected to list.
+const DIAGRAM_FLOW_RECIPE_NAMES = DIAGRAM_FLOW.recipes.map((recipe) => recipe.id);
 
 const EXPECTED_NODE_COUNT = DIAGRAM_FLOW.nodes.length;
 
@@ -351,6 +361,8 @@ export const flowDiagramHarness = ({
   loadZoomMatchesCapture: () => Promise<boolean>;
   captureNodeGeometry: () => Promise<void>;
   nodeGeometryMatchesCapture: () => Promise<boolean>;
+  recipeCalloutRendered: () => Promise<boolean>;
+  recipeNamesMatchSeeded: () => Promise<boolean>;
 } => {
   // The viewport scale the last captureLoadZoom() saw, so a later flow's load framing can be
   // compared against it without the harness handing a raw number back to the scenario.
@@ -867,5 +879,19 @@ export const flowDiagramHarness = ({
     // even when a card or two happens to survive inside it.
     nodeGeometryMatchesCapture: async (): Promise<boolean> =>
       serializeBoxes(await getBoundingBoxes()) === capturedNodeGeometry,
+
+    // The seed-recipe callout is flow-level data painted directly on the canvas (not behind a
+    // click), so a real browser is what proves it actually reaches the screen rather than just the
+    // jsdom-mocked component tree.
+    recipeCalloutRendered: async (): Promise<boolean> => {
+      const callout = page.getByTestId('FLOW_RECIPE_CALLOUT');
+      await callout.waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+      return callout.isVisible();
+    },
+
+    recipeNamesMatchSeeded: async (): Promise<boolean> => {
+      const names = await page.getByTestId('FLOW_RECIPE_NAME').allTextContents();
+      return names.join('|') === DIAGRAM_FLOW_RECIPE_NAMES.join('|');
+    },
   };
 };

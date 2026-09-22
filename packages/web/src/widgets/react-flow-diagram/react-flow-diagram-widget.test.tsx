@@ -6,6 +6,7 @@ import {
   FlowNodeIdStub,
   FlowNodeStub,
   FlowObservableStub,
+  FlowRecipeStub,
   FlowStub,
   QuestCommentStub,
   QuestContractEntryStub,
@@ -604,6 +605,59 @@ describe('ReactFlowDiagramWidget', () => {
       });
 
       expect(screen.queryByTestId('FLOW_NODE_BADGE')).toBe(null);
+    });
+  });
+
+  describe('recipe callout', () => {
+    it('VALID: {flow with two recipes} => callout shows both recipe names and their proving-run citations', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [],
+      });
+      const flow = FlowStub({
+        nodes: [node],
+        edges: [],
+        recipes: [
+          FlowRecipeStub({ id: 'pc-walk-1', instanceId: 'inst_7f3a9c21', runId: 'run_2' }),
+          FlowRecipeStub({ id: 'admin-onboard', instanceId: 'inst_11b2c333', runId: 'run_5' }),
+        ],
+      });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(proxy.hasRecipeCallout()).toBe(true);
+      });
+
+      expect(proxy.getRecipeNames()).toStrictEqual(['pc-walk-1', 'admin-onboard']);
+      expect(proxy.getRecipeCitations()).toStrictEqual([
+        'inst_7f3a9c21 / run_2',
+        'inst_11b2c333 / run_5',
+      ]);
+    });
+
+    it('EMPTY: {flow with no recipes} => renders no recipe callout', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [node], edges: [], recipes: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(proxy.hasRecipeCallout()).toBe(false);
     });
   });
 

@@ -56,6 +56,7 @@ import { flowCrossFlowPortalsTransformer } from '../../transformers/flow-cross-f
 import { IconButtonWidget } from '../icon-button/icon-button-widget';
 import { FlowNodeCardLayerWidget } from './flow-node-card-layer-widget';
 import { FlowNodeDetailPanelLayerWidget } from './flow-node-detail-panel-layer-widget';
+import { FlowRecipeCalloutLayerWidget } from './flow-recipe-callout-layer-widget';
 import { FlowObservableNodeLayerWidget } from './flow-observable-node-layer-widget';
 import { FlowPortalNodeLayerWidget } from './flow-portal-node-layer-widget';
 
@@ -589,6 +590,8 @@ export const ReactFlowDiagramWidget = ({
           },
         )}
       </div>
+
+      <FlowRecipeCalloutLayerWidget recipes={flow.recipes} />
 
       {panelNode === undefined ? null : (
         <FlowNodeDetailPanelLayerWidget
