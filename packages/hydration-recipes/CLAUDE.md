@@ -103,7 +103,7 @@ the full reasoning.
 
 ## This package is NOT in the root `package.json` `dependencies`, and a test pins it
 
-`src/statics/hydration-recipes/hydration-recipes-statics.test.ts` reads the root `package.json`
+`src/hydration-recipes-not-shipped.integration.test.ts` reads the root `package.json`
 (walking UP from `__dirname`, never `process.cwd()`) and asserts
 `rootPackageJson.dependencies['@dungeonmaster/hydration-recipes']` is `undefined`, and that this
 package's OWN `package.json` carries `"private": true`. `dungeonmaster create-package` adds a

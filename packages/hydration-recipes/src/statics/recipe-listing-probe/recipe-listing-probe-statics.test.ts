@@ -8,10 +8,10 @@ describe('recipeListingProbeStatics', () => {
           guildId: '00000000-0000-4000-8000-000000000000',
         },
         sessionSingleTurn: {
-          guildPath: '/siegelense-recipes/listing-probe/never-seeded',
+          guildPath: '/hydration-recipes/listing-probe/never-seeded',
         },
         sessionWithNestedChain: {
-          guildPath: '/siegelense-recipes/listing-probe/never-seeded',
+          guildPath: '/hydration-recipes/listing-probe/never-seeded',
         },
       });
     });

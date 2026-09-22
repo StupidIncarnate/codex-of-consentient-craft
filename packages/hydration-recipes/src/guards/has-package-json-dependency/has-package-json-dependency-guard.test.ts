@@ -4,12 +4,12 @@ import { hasPackageJsonDependencyGuard } from './has-package-json-dependency-gua
 describe('hasPackageJsonDependencyGuard', () => {
   it('VALID: {dependencies holding the name} => returns true', () => {
     const packageJson = PackageJsonStub({
-      dependencies: { '@dungeonmaster/siegelense-recipes': '*' },
+      dependencies: { '@dungeonmaster/hydration-recipes': '*' },
     });
 
     const result = hasPackageJsonDependencyGuard({
       packageJson,
-      dependencyName: '@dungeonmaster/siegelense-recipes',
+      dependencyName: '@dungeonmaster/hydration-recipes',
     });
 
     expect(result).toBe(true);
@@ -20,7 +20,7 @@ describe('hasPackageJsonDependencyGuard', () => {
 
     const result = hasPackageJsonDependencyGuard({
       packageJson,
-      dependencyName: '@dungeonmaster/siegelense-recipes',
+      dependencyName: '@dungeonmaster/hydration-recipes',
     });
 
     expect(result).toBe(false);
@@ -31,7 +31,7 @@ describe('hasPackageJsonDependencyGuard', () => {
 
     const result = hasPackageJsonDependencyGuard({
       packageJson,
-      dependencyName: '@dungeonmaster/siegelense-recipes',
+      dependencyName: '@dungeonmaster/hydration-recipes',
     });
 
     expect(result).toBe(false);
@@ -39,7 +39,7 @@ describe('hasPackageJsonDependencyGuard', () => {
 
   it('EMPTY: {packageJson: undefined} => returns false', () => {
     const result = hasPackageJsonDependencyGuard({
-      dependencyName: '@dungeonmaster/siegelense-recipes',
+      dependencyName: '@dungeonmaster/hydration-recipes',
     });
 
     expect(result).toBe(false);

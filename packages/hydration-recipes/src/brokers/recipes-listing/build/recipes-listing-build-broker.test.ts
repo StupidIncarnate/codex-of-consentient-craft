@@ -111,7 +111,7 @@ describe('recipesListingBuildBroker', () => {
         SessionWithNestedChainInputsStub({
           guildPath: recipeListingProbeStatics.sessionWithNestedChain.guildPath,
         }),
-      ).toStrictEqual({ guildPath: '/siegelense-recipes/listing-probe/never-seeded' });
+      ).toStrictEqual({ guildPath: '/hydration-recipes/listing-probe/never-seeded' });
     });
   });
 

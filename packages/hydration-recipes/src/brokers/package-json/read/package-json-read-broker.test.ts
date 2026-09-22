@@ -17,12 +17,12 @@ describe('packageJsonReadBroker', () => {
   it('VALID: {filePath holding a private package.json} => returns private:true from the passthrough field', () => {
     const proxy = packageJsonReadBrokerProxy();
     proxy.returns({
-      filePath: '/repo/packages/siegelense-recipes/package.json',
-      contents: '{"name":"@dungeonmaster/siegelense-recipes","private":true}',
+      filePath: '/repo/packages/hydration-recipes/package.json',
+      contents: '{"name":"@dungeonmaster/hydration-recipes","private":true}',
     });
 
     const result = packageJsonReadBroker({
-      filePath: '/repo/packages/siegelense-recipes/package.json',
+      filePath: '/repo/packages/hydration-recipes/package.json',
     });
 
     expect(result.private).toBe(true);
