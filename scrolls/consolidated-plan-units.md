@@ -213,3 +213,16 @@ green-lit dispatching D1-D8 immediately.
 
 T4-15h (the three stale-fixture test files) is unscheduled — its exact files weren't confirmed by
 research; locate via `discover` before slotting it into a wave alongside T4-15b/c/d.
+
+---
+
+## Owner decision added mid-run — remove the `glyphsmith` role
+
+The owner ruled: remove the `'glyphsmith'` role value itself, not only the design chat that used it.
+It comes out of `packages/shared/src/statics/work-item-role/work-item-role-statics.ts`, the HOMEBASE row in
+`execution-floor-config-statics.ts`, and every place that lists it alongside `chaoswhisperer` / `bughunt`.
+
+| ID | Goal | Runs |
+|---|---|---|
+| T3-16a | Survey every `glyphsmith` reference repo-wide and split the removal into 1-3 file units | read-only, any time |
+| T3-16b+ | The removal units the survey defines | after the orchestrator T3-15 / T3-20 / T4-10b agents land; the `shared` edit runs with nothing else in flight |
