@@ -1,167 +1,108 @@
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
-import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
-import {
-  wardMockHarness,
-  WardQueueResponseStub,
-} from '../../../test/harnesses/ward-mock/ward-mock.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
-import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
-import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-ward-execution-streaming';
 const PANEL_TIMEOUT = 10_000;
+const RELAY_TIMEOUT = 25_000;
 const WARD_OUTPUT_TIMEOUT = 15_000;
 
-wireHarnessLifecycle({ harness: claudeMockHarness({ guildPath: GUILD_PATH }), testObj: test });
-const wardMock = wireHarnessLifecycle({
-  harness: wardMockHarness({ guildPath: GUILD_PATH }),
-  testObj: test,
-});
-wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
-const sessions = wireHarnessLifecycle({
-  harness: sessionHarness({ guildPath: GUILD_PATH }),
-  testObj: test,
-});
+const CW_OP = '00000000-0000-4000-8000-0000000000c1';
+const WARD_OP = '00000000-0000-4000-8000-0000000000a1';
+const CW_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-000000000010';
 
-// Skipped: ward runs via the Node-dispatch `run-ward` command path that the operations relay
-// dispatches — `POST /api/quests/:id/start` does not spawn ward. The relay's ward dispatch is
-// covered end-to-end by operations-driven-dispatch.e2e.ts (its ward operation drives to green).
-// These tests drive ward through `POST /api/quests/:id/start`, which reaches no ward run, so
-// they stay skipped until an operations-ledger harness drives run-ward here.
-test.describe.skip('Ward Execution Streaming', () => {
+const FLOW_CW_OP = '00000000-0000-4000-8000-0000000000c2';
+const FLOW_OP = '00000000-0000-4000-8000-0000000000f2';
+const FLOW_WARD_OP = '00000000-0000-4000-8000-0000000000a2';
+const FLOW_CW_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-000000000020';
+const FLOW_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-000000000021';
+
+wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
+
+// THE WARD GATE IS THE LEDGER'S LAST SCOPE (`wardFull` is the only family whose edge reaches
+// `@complete`), and `questRunWardBroker` — the Node dispatch loop's `run-ward` handler — answers its
+// work item directly with a REQUIRED `onLine` callback: a command work item carries no sessionId, so
+// no JSONL watcher can tail it, and that callback is the ONLY route its output ever has to a UI (see
+// that broker's header). This spec proves the callback's output actually lands in the execution
+// panel. `operations-ward-recovery.e2e.ts` already proves the gate's status transitions and its
+// repair loop end to end, so this spec asserts none of that again — only the streamed TEXT.
+test.describe('Ward Execution Streaming', () => {
+  // Drives the real relay (fake-CLI children + an in-process ward run) past the 10s default budget.
+  test.describe.configure({ timeout: 60_000 });
+
   test.beforeEach(async ({ request }) => {
+    await dispatchHarness({ request, guildPath: GUILD_PATH }).beforeEach();
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('VALID: mini boss ward streams output lines to execution panel', async ({
+  test.afterEach(async ({ request }) => {
+    await dispatchHarness({ request, guildPath: GUILD_PATH }).afterEach();
+  });
+
+  test('VALID: {ledger [codeweaver, ward(full)] driven done/green} => ward streams its output lines into the execution panel', async ({
     page,
     request,
   }) => {
-    test.slow();
+    const guilds = guildHarness({ request });
+    const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
+    const nav = navigationHarness({ page });
 
-    const guild = await guildHarness({ request }).createGuild({
-      name: 'Ward Mini Boss Guild',
-      path: GUILD_PATH,
-    });
+    const guild = await guilds.createGuild({ name: 'Ward Streaming Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
-    const sessionId = `e2e-ward-mini-${Date.now()}`;
-    await sessions.createSessionFile({ sessionId, userMessage: 'Test ward streaming' });
+    const urlSlug = guilds.extractUrlSlug({ guild });
 
-    // Create quest via API to get the server-resolved file path
-    const created = await questHarness({ request }).createQuest({
+    const { questId } = await dispatch.seedQuest({
       guildId,
-      title: 'E2E Ward mini-boss Streaming',
+      title: 'Ward Streaming Quest',
       userRequest: 'Test ward streaming',
-    });
-    const { questId } = created;
-    const { questFolder } = created;
-    const questFilePath = created.filePath;
-
-    const chaoswhispererId = 'e2e00000-0000-4000-8000-000000000001';
-    const pathseekerId = 'e2e00000-0000-4000-8000-000000000002';
-    const codeweaver1Id = 'e2e00000-0000-4000-8000-000000000003';
-    const wardMiniBossId = 'e2e00000-0000-4000-8000-000000000004';
-    const now = new Date().toISOString();
-
-    // Seed quest with approved status + prior work items complete + pending ward.
-    // POST /start transitions the quest to in_progress and kicks the orchestration loop,
-    // which picks up the pending ward directly.
-    const quests = questHarness({ request });
-    await quests.writeQuestFile({
-      questId,
-      questFolder,
-      questFilePath,
-      title: 'E2E Ward mini-boss Streaming',
-      status: 'approved',
-      userRequest: 'Test ward streaming',
-      workItems: [
+      operations: [
+        { id: CW_OP, role: 'codeweaver', text: 'core: build the feature', status: 'in_progress' },
         {
-          id: chaoswhispererId,
-          role: 'chaoswhisperer',
-          status: 'complete',
-          spawnerType: 'agent',
-          sessionId,
-          createdAt: now,
-          completedAt: now,
-        },
-        {
-          id: pathseekerId,
-          role: 'pathseeker',
-          status: 'complete',
-          spawnerType: 'agent',
-          sessionId: `ps-${sessionId}`,
-          dependsOn: [chaoswhispererId],
-          createdAt: now,
-          completedAt: now,
-        },
-        {
-          id: codeweaver1Id,
-          role: 'codeweaver',
-          status: 'complete',
-          spawnerType: 'agent',
-          sessionId: `cw-${sessionId}`,
-          dependsOn: [pathseekerId],
-          createdAt: now,
-          completedAt: now,
-        },
-        {
-          id: wardMiniBossId,
+          id: WARD_OP,
           role: 'ward',
+          text: 'Ward gate (full monorepo)',
           status: 'pending',
-          spawnerType: 'command',
-          createdAt: now,
-          dependsOn: [codeweaver1Id],
-          attempt: 0,
-          maxAttempts: 3,
+          locked: true,
         },
       ],
-      steps: [{ id: 'implement-feature', name: 'Implement feature' }],
+      firstWorkItemId: CW_WORK_ITEM_ID,
     });
 
-    // Queue ward response with output lines that should stream to the frontend.
-    // delayMs gives the browser time to process the quest-modified event (wardSessionId storage)
-    // and reconnect its WS listener before ward output lines are broadcast.
-    wardMock.queueResponse({
-      response: WardQueueResponseStub({
-        exitCode: 0,
-        runId: 'e2e-mini-boss-run-001',
-        delayMs: 500,
-        outputLines: [
-          'lint        @dungeonmaster/shared PASS  42 files',
-          'typecheck   @dungeonmaster/shared PASS',
-          'unit        @dungeonmaster/shared PASS  15 tests passed',
-        ],
-      }),
-    });
-
-    // Kick orchestration off before navigation so the quest is already in an
-    // execution-phase status (in_progress) by the time the browser renders —
-    // the WS execution listener activates on first paint and no ward output is lost.
-    const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
-    await dispatch.startQuestViaStartRoute({ questId: String(questId) });
-
-    const urlSlug = String(guild.urlSlug ?? guild.name)
-      .toLowerCase()
-      .replace(/\s+/gu, '-');
-
-    const nav = navigationHarness({ page });
     await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
-    // Execution panel renders immediately since quest status is in_progress
     const executionPanel = page.getByTestId('execution-panel-widget');
+    await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    await expect(executionPanel).toBeVisible({
-      timeout: PANEL_TIMEOUT,
+    // Drive the relay: codeweaver -> done, then the ward gate -> green with real stdout lines.
+    await dispatch.playAndDrive({
+      questId: String(questId),
+      script: [
+        { role: 'codeweaver', outcome: 'done' },
+        {
+          role: 'ward',
+          outcome: 'green',
+          outputLines: [
+            'lint        @dungeonmaster/shared PASS  42 files',
+            'typecheck   @dungeonmaster/shared PASS',
+            'unit        @dungeonmaster/shared PASS  15 tests passed',
+          ],
+        },
+      ],
     });
 
-    // Wait for the ward row to reach DONE before clicking. Required because the row is
-    // not expandable while status is `pending` or `queued` — a click during that window
-    // is a no-op, and the row's auto-expand/auto-collapse lifecycle can leave the row
-    // collapsed by the time entries arrive. Filtering on `[WARD]` + `DONE` ensures the
-    // click lands on a row that the widget will actually toggle open.
+    await dispatch.waitForQuest({
+      questId: String(questId),
+      timeoutMs: RELAY_TIMEOUT,
+      predicate: ({ quest }) => quest.status === 'complete',
+    });
+
+    // Wait for the ward row to reach DONE before clicking. Required because the row is not
+    // expandable while status is `pending` or `in_progress` — a click during that window is a
+    // no-op, and the row's auto-expand/auto-collapse lifecycle can leave the row collapsed by the
+    // time entries arrive. Filtering on `[WARD]` + `DONE` ensures the click lands on a row the
+    // widget will actually toggle open.
     const wardRow = executionPanel
       .locator('[data-testid="execution-row-header"]')
       .filter({ hasText: '[WARD]' })
@@ -169,14 +110,12 @@ test.describe.skip('Ward Execution Streaming', () => {
       .first();
 
     await expect(wardRow).toBeVisible({ timeout: WARD_OUTPUT_TIMEOUT });
-
     await wardRow.click();
 
     // A DONE row opens on its whole transcript — the tail window only holds while the item is
-    // running — so the ward output is on screen without touching the "Show N earlier" toggle.
-    // Ward output lines should be visible in the expanded row after streaming.
-    // Scope to the execution panel because the activity panel also flattens session entries and
-    // renders the same text, which would otherwise trip Playwright's strict-mode duplicate match.
+    // running — so the ward output is on screen without touching the "Show N earlier" toggle. Scope
+    // to the execution panel because the activity panel also flattens session entries and renders
+    // the same text, which would otherwise trip Playwright's strict-mode duplicate match.
     await expect(
       executionPanel.getByText('lint        @dungeonmaster/shared PASS  42 files'),
     ).toBeVisible({
@@ -189,182 +128,88 @@ test.describe.skip('Ward Execution Streaming', () => {
     });
   });
 
-  test('VALID: floor boss ward streams output lines to execution panel', async ({
+  test('VALID: {ledger [codeweaver, flowrider, ward(full)] driven done/done/green} => ward still streams its output lines after a longer relay', async ({
     page,
     request,
   }) => {
-    test.slow();
+    const guilds = guildHarness({ request });
+    const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
+    const nav = navigationHarness({ page });
 
-    const guild = await guildHarness({ request }).createGuild({
-      name: 'Ward Floor Boss Guild',
+    const guild = await guilds.createGuild({
+      name: 'Ward Streaming Longer Guild',
       path: GUILD_PATH,
     });
     const guildId = String(guild.id);
-    const sessionId = `e2e-ward-floor-${Date.now()}`;
-    await sessions.createSessionFile({ sessionId, userMessage: 'Test ward streaming' });
+    const urlSlug = guilds.extractUrlSlug({ guild });
 
-    // Create quest via API to get the server-resolved file path
-    const created = await questHarness({ request }).createQuest({
+    const { questId } = await dispatch.seedQuest({
       guildId,
-      title: 'E2E Ward floor-boss Streaming',
+      title: 'Ward Streaming Longer Quest',
       userRequest: 'Test ward streaming',
-    });
-    const { questId } = created;
-    const { questFolder } = created;
-    const questFilePath = created.filePath;
-
-    const chaoswhispererId = 'e2e00000-0000-4000-8000-000000000001';
-    const pathseekerId = 'e2e00000-0000-4000-8000-000000000002';
-    const codeweaver1Id = 'e2e00000-0000-4000-8000-000000000003';
-    const wardMiniBossId = 'e2e00000-0000-4000-8000-000000000004';
-    const siegemasterId = 'e2e00000-0000-4000-8000-000000000005';
-    const flowriderId = 'e2e00000-0000-4000-8000-000000000006';
-    const wardFloorBossId = 'e2e00000-0000-4000-8000-000000000007';
-    const now = new Date().toISOString();
-
-    // Seed quest with approved status + full prior chain complete + pending floor-boss ward.
-    // POST /start transitions to in_progress; the loop skips the already-complete items
-    // and dispatches the ready floor-boss ward.
-    const quests = questHarness({ request });
-    await quests.writeQuestFile({
-      questId,
-      questFolder,
-      questFilePath,
-      title: 'E2E Ward floor-boss Streaming',
-      status: 'approved',
-      userRequest: 'Test ward streaming',
-      workItems: [
+      operations: [
         {
-          id: chaoswhispererId,
-          role: 'chaoswhisperer',
-          status: 'complete',
-          spawnerType: 'agent',
-          sessionId,
-          createdAt: now,
-          completedAt: now,
-        },
-        {
-          id: pathseekerId,
-          role: 'pathseeker',
-          status: 'complete',
-          spawnerType: 'agent',
-          sessionId: `ps-${sessionId}`,
-          dependsOn: [chaoswhispererId],
-          createdAt: now,
-          completedAt: now,
-        },
-        {
-          id: codeweaver1Id,
+          id: FLOW_CW_OP,
           role: 'codeweaver',
-          status: 'complete',
-          spawnerType: 'agent',
-          sessionId: `cw-${sessionId}`,
-          dependsOn: [pathseekerId],
-          createdAt: now,
-          completedAt: now,
+          text: 'core: build the feature',
+          status: 'in_progress',
         },
         {
-          id: wardMiniBossId,
-          role: 'ward',
-          status: 'complete',
-          spawnerType: 'command',
-          dependsOn: [codeweaver1Id],
-          createdAt: now,
-          completedAt: now,
-          attempt: 0,
-          maxAttempts: 3,
-        },
-        {
-          id: siegemasterId,
-          role: 'siegemaster',
-          status: 'complete',
-          spawnerType: 'agent',
-          sessionId: `siege-${sessionId}`,
-          dependsOn: [wardMiniBossId],
-          createdAt: now,
-          completedAt: now,
-        },
-        {
-          id: flowriderId,
+          id: FLOW_OP,
           role: 'flowrider',
-          status: 'complete',
-          spawnerType: 'agent',
-          sessionId: `fr-${sessionId}`,
-          dependsOn: [siegemasterId],
-          createdAt: now,
-          completedAt: now,
+          text: 'verify flows',
+          status: 'pending',
+          workItemId: FLOW_WORK_ITEM_ID,
         },
         {
-          id: wardFloorBossId,
+          id: FLOW_WARD_OP,
           role: 'ward',
+          text: 'Ward gate (full monorepo)',
           status: 'pending',
-          spawnerType: 'command',
-          dependsOn: [flowriderId],
-          createdAt: now,
-          attempt: 0,
-          maxAttempts: 3,
+          locked: true,
         },
       ],
-      steps: [{ id: 'implement-feature', name: 'Implement feature' }],
+      firstWorkItemId: FLOW_CW_WORK_ITEM_ID,
     });
 
-    // Queue ward response with output lines for the floor boss ward.
-    // delayMs gives the browser time to process the quest-modified event (wardSessionId storage)
-    // and reconnect its WS listener before ward output lines are broadcast.
-    wardMock.queueResponse({
-      response: WardQueueResponseStub({
-        exitCode: 0,
-        runId: 'e2e-floor-boss-run-001',
-        delayMs: 500,
-        outputLines: [
-          'lint        @dungeonmaster/orchestrator PASS  128 files',
-          'typecheck   @dungeonmaster/orchestrator PASS',
-          'unit        @dungeonmaster/orchestrator PASS  87 tests passed',
-          'integration @dungeonmaster/orchestrator PASS  12 tests passed',
-        ],
-      }),
-    });
-
-    // Kick orchestration off before navigation so the widget lands on an execution-phase
-    // quest with the WS execution listener active from the first render.
-    const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
-    await dispatch.startQuestViaStartRoute({ questId: String(questId) });
-
-    const urlSlug = String(guild.urlSlug ?? guild.name)
-      .toLowerCase()
-      .replace(/\s+/gu, '-');
-
-    const nav = navigationHarness({ page });
     await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
-    // Execution panel renders immediately since quest status is in_progress
     const executionPanel = page.getByTestId('execution-panel-widget');
+    await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    await expect(executionPanel).toBeVisible({
-      timeout: PANEL_TIMEOUT,
+    await dispatch.playAndDrive({
+      questId: String(questId),
+      script: [
+        { role: 'codeweaver', outcome: 'done' },
+        { role: 'flowrider', outcome: 'done' },
+        {
+          role: 'ward',
+          outcome: 'green',
+          outputLines: [
+            'lint        @dungeonmaster/orchestrator PASS  128 files',
+            'typecheck   @dungeonmaster/orchestrator PASS',
+            'unit        @dungeonmaster/orchestrator PASS  87 tests passed',
+            'integration @dungeonmaster/orchestrator PASS  12 tests passed',
+          ],
+        },
+      ],
     });
 
-    // Wait for both ward rows to reach DONE before clicking the floor boss. The mini
-    // boss is seeded `complete`; the floor boss must transition pending → in_progress →
-    // complete. Filtering on `[WARD]` + `DONE` and taking `nth(1)` ensures we click the
-    // floor-boss row only after the widget marks it expandable. Without this gate, a
-    // click during the pending window is a no-op and the row's auto-expand/collapse
-    // lifecycle can leave it collapsed by the time entries land.
-    const floorBossWardRow = executionPanel
+    await dispatch.waitForQuest({
+      questId: String(questId),
+      timeoutMs: RELAY_TIMEOUT,
+      predicate: ({ quest }) => quest.status === 'complete',
+    });
+
+    const wardRow = executionPanel
       .locator('[data-testid="execution-row-header"]')
       .filter({ hasText: '[WARD]' })
       .filter({ hasText: 'DONE' })
-      .nth(1);
+      .first();
 
-    await expect(floorBossWardRow).toBeVisible({ timeout: WARD_OUTPUT_TIMEOUT });
+    await expect(wardRow).toBeVisible({ timeout: WARD_OUTPUT_TIMEOUT });
+    await wardRow.click();
 
-    await floorBossWardRow.click();
-
-    // A DONE row opens on its whole transcript — the tail window only holds while the item is
-    // running — so the ward output is on screen without touching the "Show N earlier" toggle.
-    // Ward output lines should be visible in the expanded row after streaming.
-    // Scope to the execution panel because the activity panel also flattens session entries and
-    // renders the same text, which would otherwise trip Playwright's strict-mode duplicate match.
     await expect(
       executionPanel.getByText('lint        @dungeonmaster/orchestrator PASS  128 files'),
     ).toBeVisible({ timeout: WARD_OUTPUT_TIMEOUT });

@@ -115,12 +115,21 @@ export const dispatchHarness = ({
       // tell one role's transcript from the next one's — which is what an assertion about a role
       // TRANSITION needs, and what the shared default text cannot express.
       text?: string;
+      // A green/red step only: the stdout lines the fake ward CLI writes before its `run: <id>`
+      // line, for a spec asserting those lines reach the execution panel. Ignored on `done` — an
+      // agent outcome has no ward stdout to carry it.
+      outputLines?: string[];
     }[];
     agentLineDelayMs?: number;
   }) => void;
   playAndDrive: (params: {
     questId: string;
-    script: { role: string; outcome: 'done' | 'green' | 'red'; text?: string }[];
+    script: {
+      role: string;
+      outcome: 'done' | 'green' | 'red';
+      text?: string;
+      outputLines?: string[];
+    }[];
     agentLineDelayMs?: number;
   }) => Promise<void>;
   holdQueueWithMcpHeartbeat: () => void;
@@ -179,7 +188,12 @@ export const dispatchHarness = ({
     script,
     agentLineDelayMs,
   }: {
-    script: { role: string; outcome: 'done' | 'green' | 'red'; text?: string }[];
+    script: {
+      role: string;
+      outcome: 'done' | 'green' | 'red';
+      text?: string;
+      outputLines?: string[];
+    }[];
     // Milliseconds the fake CLI waits between the stream lines it emits, which is what decides
     // how long its work item reads `in_progress`. At the 10 ms default a whole dispatch —
     // spawn, three lines, signal-back — lands inside ~30 ms, so a spec asserting that a row is
@@ -205,6 +219,7 @@ export const dispatchHarness = ({
             exitCode: step.outcome === 'green' ? 0 : 1,
             runId: `e2e-dispatch-ward-${nextUnique()}`,
             wardResultJson: { checks: [] },
+            ...(step.outputLines === undefined ? {} : { outputLines: step.outputLines }),
           }),
         });
       }
