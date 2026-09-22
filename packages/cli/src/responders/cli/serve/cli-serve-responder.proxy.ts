@@ -5,10 +5,12 @@ import {
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { childProcessExecAdapterProxy } from '../../../adapters/child-process/exec/child-process-exec-adapter.proxy';
+import { httpBackendPackageResolveBrokerProxy } from '../../../brokers/http-backend-package/resolve/http-backend-package-resolve-broker.proxy';
 import { CliServeResponder } from './cli-serve-responder';
 
 const PORT = '3737';
 const SERVER_URL = `http://${environmentStatics.hostname}:${PORT}`;
+const SERVER_PACKAGE_NAME = '@dungeonmaster/server';
 
 export const CliServeResponderProxy = ({
   StartServer,
@@ -21,11 +23,17 @@ export const CliServeResponderProxy = ({
   getStdoutOutput: () => readonly unknown[];
 } => {
   const execProxy = childProcessExecAdapterProxy();
-  // The responder resolves its module specifier via require.resolve('@dungeonmaster/server') —
-  // not a literal we can write ahead of time (it depends on the host's node_modules layout).
-  // Calling the identical require.resolve() here, in the same process and directory, reproduces
-  // the exact address the responder's own call computes, so this is the real value, not a guess.
-  const serverPath = require.resolve('@dungeonmaster/server');
+
+  // The responder no longer hardcodes a package name — it asks httpBackendPackageResolveBroker,
+  // which itself runs real (brokers are not mocked in this repo's tests) with only its own
+  // adapter boundary staged. Steering it at '@dungeonmaster/server' here is what makes the
+  // require.resolve() below — the real, same-process address the responder's own call also
+  // computes — the correct one to stage the dynamic import against.
+  const backendResolveProxy = httpBackendPackageResolveBrokerProxy();
+  backendResolveProxy.setupOwnDependencies({ dependencyNames: [SERVER_PACKAGE_NAME] });
+  backendResolveProxy.setupCandidateHono({ candidateName: SERVER_PACKAGE_NAME });
+
+  const serverPath = require.resolve(SERVER_PACKAGE_NAME);
   const importProxy = runtimeDynamicImportAdapterProxy();
   importProxy.succeeds({ path: serverPath, module: { StartServer } });
   const portProxy = portResolveBrokerProxy();
