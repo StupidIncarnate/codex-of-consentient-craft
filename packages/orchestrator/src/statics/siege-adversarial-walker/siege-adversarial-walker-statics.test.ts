@@ -66,6 +66,21 @@ describe('siege-adversarial-walker-statics', () => {
     });
   });
 
+  // THE BUG THIS GUARDS: this role drives attacks against an instance, and its reading ladder has
+  // to be the attacking manual. A copy-paste from the happy walker's own docs line serves the
+  // WALKING manual instead — same tool call shape, wrong scope — silently, since both scopes parse
+  // and run. Asserting only the presence of `--for attacking` lets a future edit add
+  // `--for walking` alongside it; asserting the sibling scope's absence is what catches that.
+  it('VALID: served template => reads the siegelense docs scoped to attacking, never walking', () => {
+    expect({
+      fetchesAttackingDocs: TEMPLATE.includes('dungeonmaster siegelense docs --for attacking'),
+      neverFetchesWalkingDocs: TEMPLATE.includes('--for walking'),
+    }).toStrictEqual({
+      fetchesAttackingDocs: true,
+      neverFetchesWalkingDocs: false,
+    });
+  });
+
   it('VALID: served template => declares an outcome and marks its family unit before it signals', () => {
     expect({
       outcomeCall: hasIn({

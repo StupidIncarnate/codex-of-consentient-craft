@@ -38,7 +38,7 @@ get-quest-work({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID' })
 \`\`\`
 
 \`instance\` on that reply carries its id, \`baseUrl\`, \`apiUrl\`, \`home\` and its two log paths — the
-addresses every drive below quotes. Read \`dungeonmaster siegelense docs --for walking\` once, for
+addresses every drive below quotes. Read \`dungeonmaster siegelense docs --for attacking\` once, for
 the reading ladder and the verbs.
 
 Nothing outside this session depends on that instance surviving your probes: drive the same request
