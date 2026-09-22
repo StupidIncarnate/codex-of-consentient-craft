@@ -45,6 +45,8 @@ const OPERATIONS_REF = `operations/${String(SIEGE_OPERATION_ITEM_ID)}`;
 const HAPPY_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 const SECOND_WALK_ITEM_ID = QuestWorkItemIdStub({ value: 'd4e5f6a7-58cc-4372-a567-0e02b2c3d479' });
 const FIX_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'c3d4e5f6-58cc-4372-a567-0e02b2c3d479' });
+const WARD_ITEM_ID = QuestWorkItemIdStub({ value: 'e5f6a7b8-58cc-4372-a567-0e02b2c3d479' });
+const REPAIR_ITEM_ID = QuestWorkItemIdStub({ value: 'a7b8c9d0-58cc-4372-a567-0e02b2c3d479' });
 
 const WALK_PAYLOAD = WorkPlanPayloadSiegemasterStub({
   path: { nodeIds: ['web-node'], branchLabels: [] },
@@ -502,6 +504,128 @@ describe('nextActionTransformer', () => {
           'for, and the work item that recorded it names no minter to return to. An undeclared ' +
           'outcome returns to whoever minted the step; with neither a route nor a minter the ' +
           'scope has nowhere to go.',
+      });
+    });
+  });
+
+  describe('a plain route mint into a return-only target carries the return edge', () => {
+    it('VALID: {ward drains unmet, repair declares no `done` route} => the route mint records `mintedBy` on the current ward item', () => {
+      const quest = QuestStub({
+        flows: [SIEGE_FLOW],
+        operations: [SIEGE_OPERATION_ITEM],
+        workItems: [
+          WorkItemStub({
+            id: WARD_ITEM_ID,
+            role: 'siegemaster',
+            status: 'complete',
+            step: 'ward',
+            relatedDataItems: [OPERATIONS_REF],
+            assignedUnitIds: [],
+          }),
+        ],
+      });
+
+      const action = nextActionTransformer({
+        quest,
+        plan: null,
+        operationItemId: SIEGE_OPERATION_ITEM_ID,
+        agentFlowStatics,
+        questFlowStatics,
+        declaredWord: 'unmet',
+      });
+
+      expect(action).toStrictEqual({
+        kind: 'route',
+        operationItemId: SIEGE_OPERATION_ITEM_ID,
+        from: 'ward',
+        outcome: 'unmet',
+        step: 'repair',
+        batch: [
+          {
+            step: 'repair',
+            role: 'siegemaster',
+            assignedUnitIds: [],
+            mintedBy: WARD_ITEM_ID,
+            needsLane: false,
+          },
+        ],
+      });
+    });
+
+    it("VALID: {commit drains done, ward declares its own `done` route} => the route mint carries no `mintedBy` — the target's own route table is enough", () => {
+      const quest = QuestStub({
+        flows: [SIEGE_FLOW],
+        operations: [SIEGE_OPERATION_ITEM],
+        workItems: [
+          WorkItemStub({
+            id: WARD_ITEM_ID,
+            role: 'siegemaster',
+            status: 'complete',
+            step: 'commit',
+            relatedDataItems: [OPERATIONS_REF],
+            assignedUnitIds: [],
+          }),
+        ],
+      });
+
+      const action = nextActionTransformer({
+        quest,
+        plan: null,
+        operationItemId: SIEGE_OPERATION_ITEM_ID,
+        agentFlowStatics,
+        questFlowStatics,
+        declaredWord: 'done',
+      });
+
+      expect(action).toStrictEqual({
+        kind: 'route',
+        operationItemId: SIEGE_OPERATION_ITEM_ID,
+        from: 'commit',
+        outcome: 'done',
+        step: 'ward',
+        batch: [{ step: 'ward', role: 'siegemaster', assignedUnitIds: [], needsLane: false }],
+      });
+    });
+
+    it("VALID: {repair drains done (undeclared), mintedBy set by the earlier route mint} => mints a FRESH `ward` item at the minter's step", () => {
+      const quest = QuestStub({
+        flows: [SIEGE_FLOW],
+        operations: [SIEGE_OPERATION_ITEM],
+        workItems: [
+          WorkItemStub({
+            id: WARD_ITEM_ID,
+            role: 'siegemaster',
+            status: 'complete',
+            step: 'ward',
+            relatedDataItems: [OPERATIONS_REF],
+            assignedUnitIds: [],
+          }),
+          WorkItemStub({
+            id: REPAIR_ITEM_ID,
+            role: 'siegemaster',
+            status: 'complete',
+            step: 'repair',
+            mintedBy: WARD_ITEM_ID,
+            relatedDataItems: [OPERATIONS_REF],
+            assignedUnitIds: [],
+          }),
+        ],
+      });
+
+      const action = nextActionTransformer({
+        quest,
+        plan: null,
+        operationItemId: SIEGE_OPERATION_ITEM_ID,
+        agentFlowStatics,
+        questFlowStatics,
+      });
+
+      expect(action).toStrictEqual({
+        kind: 'mint',
+        operationItemId: SIEGE_OPERATION_ITEM_ID,
+        step: 'ward',
+        cause: 'return-to-minter',
+        batch: [{ step: 'ward', role: 'siegemaster', assignedUnitIds: [], needsLane: false }],
       });
     });
   });

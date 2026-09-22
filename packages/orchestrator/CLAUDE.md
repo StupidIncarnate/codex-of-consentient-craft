@@ -1186,9 +1186,22 @@ else would stop it sharing the worktree warpgate is about to take.
 
 A **gate** is a deterministic step whose `unmet` routes to a `repair`: `ward` in every code-changing
 family, `carve` in `riftcarver`, `gate` in `wardFull`. The repair is a `spiritmender`-prompted worker
-step in the SAME family, and it declares no `done` route at all — so a finished repair RETURNS to the
-gate that minted it and that gate re-runs. Convergence IS the verdict: a gate that comes back `done`
+step in the SAME family, and the two shapes it takes diverge on purpose: `ward`'s own `repair`
+(`CLOSE_OUT.repair`, shared by codeweaver, flowrider and siegemaster) declares no `done` route at
+all, so a finished repair RETURNS to the gate that minted it and that gate re-runs; riftcarver's and
+wardFull's own `repair` steps instead declare `done: 'commit'` and take that FORWARD edge onward,
+because each of those graphs has no shared `CLOSE_OUT` to fall back into and needs its own commit.
+Either way the gate is what re-runs: convergence IS the verdict, and a gate that comes back `done`
 takes its own `done` edge onward.
+
+**A gate's `unmet` route is a plain route mint, and it carries the return edge's fuel whenever its
+target needs one.** `ward` and `carve` are `kind: 'deterministic'` and mint with `assignedUnitIds:
+[]`, so their `unmet` route never takes question 2's mark-mint branch — there is no per-unit mark to
+group by. The router stamps `mintedBy` on the plain route mint itself instead, naming the gate's own
+current work item, whenever the target step (`repair`, or siege's `fixHappy` / `fixAdversarial`)
+declares no `done` route of its own. A target that DOES declare `done` (riftcarver's and wardFull's
+`repair`, `review`, `work`, …) is left untouched, so a genuine gap in ITS OWN route table still
+surfaces as `no-minter` instead of silently returning somewhere nobody routed it.
 
 **The bound is `maxVisits`, and it is a ceiling on a count nothing stores.** The router derives it where
 it is about to mint — the work items on this scope whose `step` equals that step — so no visit counter
@@ -1350,9 +1363,14 @@ because that check runs before the gate above, a redelivery never pays the gate'
 The orchestrator has THREE failure shapes, and the STEP GRAPH owns all three.
 
 - **`unmet` — the ordinary one, and not a failure.** A step that left units unsettled routes them to its own
-  `routes.unmet`: `review → work`, `ward → repair`, `happyWalk → fixHappy`, `carve → repair`. The router mints ONE
-  work item per originating piece carrying exactly those units, plus one per unit no piece claimed. A repair step
-  declares no `done` route, so it RETURNS to the gate that minted it and that gate re-runs.
+  `routes.unmet`: `review → work`, `ward → repair`, `happyWalk → fixHappy`, `carve → repair`. Where the routing item
+  holds real per-unit marks (`review`, `happyWalk`), the router mints ONE work item per originating piece carrying
+  exactly those units, plus one per unit no piece claimed, and that mint's own `mintedBy` names the item that held the
+  unit. Where it holds none (`ward` and `carve` are `kind: 'deterministic'` and mint with `assignedUnitIds: []`), it is
+  a plain route mint instead, and the router stamps `mintedBy` there naming the gate's own current item — but only
+  when the target declares no `done` route of its own: `ward`'s own `repair` and siege's `fixHappy` / `fixAdversarial`
+  need it and RETURN to the gate that minted them once they drain, where riftcarver's and wardFull's own `repair`
+  declare `done: 'commit'` and never need it.
 - **A spent `maxVisits` — the bound.** Each step declares its own ceiling, derived where the router is about to mint
   from the work items on this scope at that step. Exceeding one is `{ kind: 'block', reason: 'max-visits' }`, which
   halts the quest rather than looping.

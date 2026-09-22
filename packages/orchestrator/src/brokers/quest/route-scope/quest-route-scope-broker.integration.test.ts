@@ -451,7 +451,7 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
   });
 
   describe('ward — unmet mints repair', () => {
-    it("VALID: {a `ward` item drains unmet} => mints `repair` — a deterministic step carries no units, so this is a DECLARED forward route (question 4), never question 2's mark-mint, and the minted item carries no `mintedBy`", async () => {
+    it("VALID: {a `ward` item drains unmet} => mints `repair` — a deterministic step carries no units, so this is a DECLARED forward route (question 4), never question 2's mark-mint, and the minted item carries `mintedBy` naming the ward item, because `repair` declares no `done` route of its own and needs the return edge's fuel", async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'rsb-cw-ward-unmet' }),
       });
@@ -493,7 +493,8 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
         mintedStatus: minted?.status,
         mintedAssignedUnitIds: minted?.assignedUnitIds.map(String),
         mintedPieceId: minted?.pieceId,
-        // The real, verified fact — see the NOTE 1 test below for the consequence.
+        // See the NOTE 1 test below for what this buys: the fresh `repair` item now carries
+        // enough for its own undeclared `done` outcome to find its way back to `ward`.
         mintedMintedBy: minted?.mintedBy,
       }).toStrictEqual({
         result: { routed: true, blocked: false },
@@ -503,7 +504,7 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
         mintedStatus: 'pending',
         mintedAssignedUnitIds: [],
         mintedPieceId: undefined,
-        mintedMintedBy: undefined,
+        mintedMintedBy: wardItemId,
       });
     }, 30_000);
   });
@@ -511,28 +512,28 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
   // NOTE 1, settled. `packages/orchestrator/CLAUDE.md`'s "Operations Ledger & Work Items" section
   // says an undeclared outcome "returns to the work item `mintedBy` names — as a FRESH work item at
   // that minter's step". `agentFlowStatics.codeweaver.steps.repair` (CLOSE_OUT.repair) declares no
-  // `done` route on purpose, which only reads as safe if repair's own `done` is guaranteed to have a
-  // minter to return to.
+  // `done` route on purpose, which reads as safe only because the plain route mint that enters
+  // `repair` now stamps `mintedBy` itself.
   //
-  // It is not. `ward` is a `kind: 'deterministic'` step, so `stepEntryBatchTransformer` always mints
-  // it — and every step reached FROM it — with `assignedUnitIds: []`. Question 2 ("does this step
-  // have unmet UNITS") reads `terminalStepItems.flatMap(item => item.assignedUnitIds)`, which is
-  // therefore always empty for `ward`, so `ward`'s `unmet` NEVER takes question 2's mark-mint branch
-  // (the one that sets `mintedBy`) — it always takes question 4's plain DECLARED-route branch
-  // (`node.routes.unmet = 'repair'`), whose mint goes through `stepEntryBatchTransformer`, which never
-  // sets `mintedBy` in any of its branches (verified by reading every branch of
-  // `step-entry-batch-transformer.ts`). The `ward — unmet mints repair` test above is the same fact,
-  // verified against real disk: `mintedMintedBy: undefined`.
+  // `ward` is a `kind: 'deterministic'` step, so `stepEntryBatchTransformer` always mints it — and
+  // every step reached FROM it — with `assignedUnitIds: []`. Question 2 ("does this step have unmet
+  // UNITS") reads `terminalStepItems.flatMap(item => item.assignedUnitIds)`, which is therefore
+  // always empty for `ward`, so `ward`'s `unmet` NEVER takes question 2's mark-mint branch — it
+  // always takes question 4's plain DECLARED-route branch (`node.routes.unmet = 'repair'`).
+  // `nextActionTransformer` stamps `mintedBy` on that mint itself, naming the ward item, precisely
+  // BECAUSE `repair`'s own route table declares no `done` — the `ward — unmet mints repair` test
+  // above is the same fact, verified against real disk: `mintedMintedBy: wardItemId`.
   //
   // So when that repair session finishes — reporting nothing, the way `spiritmender-prompt-statics.ts`
   // describes ("signal-back carries no per-outcome field... every path through this prompt ends in the
   // same [signal-back]") — `nextActionTransformer`'s Question 4 default kicks in
   // (`declaredWord ?? (role === 'planner' ... : 'done')`), folding repair's outcome to `done`. Repair's
-  // routes declare no `done`, so the router falls into the "return to minter" branch — and finds none.
-  // The quest BLOCKS with `reason: 'no-minter'`, not a fresh `ward` item. This test drives that exact
-  // two-round sequence against real disk and is the verbatim evidence for the finding above.
-  describe('NOTE 1 — a finished repair off a ward `unmet` route does not return to ward', () => {
-    it("VALID: {a repair item minted off ward's `unmet` route drains with no declaredWord} => the router folds it to `done` (the no-units default), finds no `mintedBy` to return to, and BLOCKS the quest with reason `no-minter` — it does NOT mint a fresh `ward` item", async () => {
+  // routes declare no `done`, so the router falls into the "return to minter" branch, finds the ward
+  // item `mintedBy` names, and mints a FRESH `ward` item there — the gate re-runs rather than the
+  // quest blocking. This test drives that exact two-round sequence against real disk and is the
+  // verbatim evidence for the fixpoint holding.
+  describe('NOTE 1 — a finished repair off a ward `unmet` route returns to a FRESH ward item', () => {
+    it("VALID: {a repair item minted off ward's `unmet` route drains with no declaredWord} => the router folds it to `done` (the no-units default), follows `mintedBy` back to the ward item that routed it here, and mints a FRESH `ward` item — the gate re-runs rather than the quest blocking", async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'rsb-cw-ward-repair-return' }),
       });
@@ -584,7 +585,9 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
 
       const secondResult = await questRouteScopeBroker({ questId });
       const afterSecond = await quest.reload({ questId });
-      const repairAfterSecond = afterSecond.workItems.find((item) => item.id === repairItem.id);
+      const freshWard = afterSecond.workItems
+        .filter((item) => item.id !== wardItemId)
+        .find((item) => item.id !== repairItem.id);
 
       await quest.afterEach();
       testbed.cleanup();
@@ -594,24 +597,139 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
         secondResult,
         questStatus: afterSecond.status,
         operationStatus: afterSecond.operations.find((op) => String(op.id) === opId)?.status,
-        repairStatusAfter: repairAfterSecond?.status,
-        repairErrorMessage: repairAfterSecond?.errorMessage,
-        // No THIRD work item appears — the router never reached a mint, only a block.
+        freshWardStep: freshWard?.step,
+        freshWardRole: freshWard?.role,
+        freshWardStatus: freshWard?.status,
+        freshWardAssignedUnitIds: freshWard?.assignedUnitIds.map(String),
+        // A THIRD work item appears — the fresh `ward` entry the return edge minted.
         workItemCount: afterSecond.workItems.length,
       }).toStrictEqual({
-        repairMintedBy: undefined,
-        secondResult: { routed: false, blocked: true },
-        questStatus: 'blocked',
-        // The ledger's scope status is untouched by a block — `questBlockOnFailureBroker` only
-        // writes `quest.status` and the failed/skipped work items, never `quest.operations`.
+        repairMintedBy: wardItemId,
+        secondResult: { routed: true, blocked: false },
+        questStatus: 'in_progress',
         operationStatus: 'in_progress',
-        repairStatusAfter: 'failed',
-        repairErrorMessage:
-          'step `repair` in family `codeweaver` folded to `done`, which it declares no route for, ' +
-          'and the work item that recorded it names no minter to return to. An undeclared outcome ' +
-          'returns to whoever minted the step; with neither a route nor a minter the scope has ' +
-          'nowhere to go.',
-        workItemCount: 2,
+        freshWardStep: 'ward',
+        freshWardRole: 'codeweaver',
+        freshWardStatus: 'pending',
+        freshWardAssignedUnitIds: [],
+        workItemCount: 3,
+      });
+    }, 30_000);
+  });
+
+  describe('maxVisits — the ward/repair fixpoint blocks rather than looping forever', () => {
+    it("ERROR: {ward and repair have already alternated three times, spending ward's whole `maxVisits`} => a repair draining `done` (undeclared) tries to return a FOURTH ward and blocks with reason `max-visits`, naming `ward`", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-cw-ward-repair-fixpoint-maxvisits' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const ward1Id = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const repair1Id = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const ward2Id = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const repair2Id = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const ward3Id = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const repair3Id = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const relatedDataItems = [`operations/${opId}`];
+
+      // Three full `ward -> repair -> ward` cycles, laid out explicitly rather than generated:
+      // each `repair` carries `mintedBy` for the `ward` that routed to it (the fix this file
+      // exists to prove), and each `ward` after the first carries `mintedBy` for the `repair`
+      // that returned to it — the SAME propagation `next-action-transformer.ts`'s
+      // return-to-minter branch already does for a worker step.
+      // `agentFlowStatics.codeweaver.steps.ward` (CLOSE_OUT.ward) declares `maxVisits: 3`, so
+      // `ward` has already spent its whole budget by the third cycle. The LAST item is the third
+      // repair, drained with no declaredWord: its undeclared `done` return would mint a FOURTH
+      // `ward` — one past the budget.
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: [codeweaverScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: ward1Id,
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'ward',
+            assignedUnitIds: [],
+            declaredWord: 'unmet',
+            relatedDataItems,
+          }),
+          WorkItemStub({
+            id: repair1Id,
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'repair',
+            assignedUnitIds: [],
+            mintedBy: ward1Id,
+            relatedDataItems,
+          }),
+          WorkItemStub({
+            id: ward2Id,
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'ward',
+            assignedUnitIds: [],
+            declaredWord: 'unmet',
+            mintedBy: repair1Id,
+            relatedDataItems,
+          }),
+          WorkItemStub({
+            id: repair2Id,
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'repair',
+            assignedUnitIds: [],
+            mintedBy: ward2Id,
+            relatedDataItems,
+          }),
+          WorkItemStub({
+            id: ward3Id,
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'ward',
+            assignedUnitIds: [],
+            declaredWord: 'unmet',
+            mintedBy: repair2Id,
+            relatedDataItems,
+          }),
+          WorkItemStub({
+            id: repair3Id,
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'repair',
+            assignedUnitIds: [],
+            mintedBy: ward3Id,
+            relatedDataItems,
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const lastRepairAfter = after.workItems.find((item) => item.id === repair3Id);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        questStatus: after.status,
+        // No fourth `ward` item was minted — the budget check runs before the mint.
+        workItemCount: after.workItems.length,
+        lastRepairStatus: lastRepairAfter?.status,
+        lastRepairErrorMessage: lastRepairAfter?.errorMessage,
+      }).toStrictEqual({
+        result: { routed: false, blocked: true },
+        questStatus: 'blocked',
+        workItemCount: 6,
+        lastRepairStatus: 'failed',
+        lastRepairErrorMessage:
+          'maxVisits spent: step `ward` in family `codeweaver` has been entered 3 times for ' +
+          `operation item ${opId}, and its whole budget is 3 — the loop is not converging and ` +
+          'another session would find the same thing. Still unmet: none.',
       });
     }, 30_000);
   });
