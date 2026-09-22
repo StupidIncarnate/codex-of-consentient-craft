@@ -578,6 +578,11 @@ export * from './src/contracts/quest-summary-note-group/quest-summary-note-group
 export * from './src/contracts/quest-summary/quest-summary-contract';
 export * from './src/contracts/quest-summary/quest-summary.stub';
 
+// Quest Projection Contracts — the likely remainder of a quest's execution, walked forward through
+// agentFlowStatics from its real scopes and work items (T2-0, R7)
+export * from './src/contracts/quest-projection/quest-projection-contract';
+export * from './src/contracts/quest-projection/quest-projection.stub';
+
 // Chat Entry Contracts
 export * from './src/contracts/chat-entry/chat-entry-contract';
 export * from './src/contracts/chat-entry/chat-entry.stub';
