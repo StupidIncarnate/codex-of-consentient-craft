@@ -40,7 +40,7 @@ describe('recipeMakerStatics', () => {
       '## The four facts a setup is built out of',
       '## What a setup holds, and the three properties it keeps',
       '## One request per missing ingredient',
-      '## Seeding the same thing twice, and what it waits on',
+      '## Seeding the same thing twice, and reading what compare returns',
       '## The sad paths, and where each lands',
       '## How you finish',
       '## Operation Context',
@@ -168,27 +168,36 @@ describe('recipeMakerStatics', () => {
     });
   });
 
-  // THE COMPARE STEP IS WRITTEN AND NOT YET RUNNABLE — a session reaching for `compare`'s
-  // `elements` field gets a refusal, and the prompt has to say that the refusal is the gap rather
-  // than an application defect or an environment wall.
-  it('VALID: served template => states that the seed-twice comparison waits on remaining-build-items §13', () => {
+  // THE COMPARE STEP IS RUNNABLE, ON ONE INSTANCE — `compare` refuses a cross-instance query BY
+  // NAME (`compareArgsParseTransformer`'s own `--instance-a`/`--instance-b` refusal), so the prompt
+  // has to say the seed-twice check runs as two RUNS of one instance, never two instances.
+  it('VALID: served template => runs the seed-twice comparison as two runs of one instance, through compare', () => {
     expect({
-      theWait: hasIn({
+      oneInstanceNotTwo: hasIn({
+        needle: '**One instance, not two.**',
+        text: TEMPLATE,
+      }),
+      crossInstanceRefused: hasIn({
         needle:
-          '**This step waits on `scrolls/seigelense/remaining-build-items.md` §13, and is not runnable today.**',
+          '`--instance-a`/`--instance-b` are refused BY NAME, because two different instances "share nothing\nbut a spec."',
         text: TEMPLATE,
       }),
-      theTwoMissingPieces: hasIn({
-        needle: "It needs the element delta on `look` and `compare`'s `elements` field",
-        text: TEMPLATE,
-      }),
-      theStrictProof: hasIn({
+      twoRunsOneInstance: hasIn({
         needle:
-          '`compareAnswerContract` is `.strict()`, and a test asserts that adding `elements` throws.',
+          'dungeonmaster siegelense run --instance <id> --steps <the setup batch, verbatim>   # → run_1\ndungeonmaster siegelense run --instance <id> --steps <the same batch again>        # → run_2\ndungeonmaster siegelense compare --instance <id> --run-a run_1 --run-b run_2',
         text: TEMPLATE,
       }),
-      refusalIsTheGap: hasIn({
-        needle: '**that refusal is §13, not a defect in the app and not an\nenvironment wall.**',
+      neverTrailingLook: hasIn({
+        needle:
+          '**End the batch on the step that reaches the entry state — a `goto` or a `click` — never on a\ntrailing `look`.**',
+        text: TEMPLATE,
+      }),
+      lookAlwaysEmpty: hasIn({
+        needle: 'a `look` always records one, empty, since\nlooking changes nothing',
+        text: TEMPLATE,
+      }),
+      sideBySide: hasIn({
+        needle: '**Read the two deltas side by side — nothing diffs them for you.**',
         text: TEMPLATE,
       }),
       whatDiffersIsGenerated: hasIn({
@@ -196,10 +205,12 @@ describe('recipeMakerStatics', () => {
         text: TEMPLATE,
       }),
     }).toStrictEqual({
-      theWait: true,
-      theTwoMissingPieces: true,
-      theStrictProof: true,
-      refusalIsTheGap: true,
+      oneInstanceNotTwo: true,
+      crossInstanceRefused: true,
+      twoRunsOneInstance: true,
+      neverTrailingLook: true,
+      lookAlwaysEmpty: true,
+      sideBySide: true,
       whatDiffersIsGenerated: true,
     });
   });
