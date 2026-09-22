@@ -467,3 +467,345 @@ T5-1b carries no dependency and no file overlap with T5-1c..f, so all five units
 None of T5-1c..f share a file with each other or with T5-1b. Close with `npm run ward -- --only
 integration -- packages/orchestrator/src/brokers/quest/route-scope` as the section's own regression
 pass once all five land, per `<dungeonmaster-wardDiscipline>`'s scoping rule.
+
+---
+
+## Track 2 — the execution panel, units
+
+Verified against current code, not against `27-ui.md` or the handoff's own re-statement of it — both
+predate part of what has since landed. **Headline finding: Track 2 is not "0 of 13" any more.** Track 1's
+summary-widget rewrite silently finished two of these units as a side effect, and the operation-item
+shape it and an earlier, larger step-graph landing left behind means a third unit (the ward-mode half of
+T2-7) now has zero remaining scope. All three are struck below with evidence, not assumed.
+
+### Already done — strike from the remaining count
+
+| Unit | Evidence |
+|---|---|
+| **T2-6** (UNCONFIRMABLE debt list) | `packages/web/src/widgets/quest-summary/quest-summary-widget.tsx:154-173` renders `QUEST_SUMMARY_SECTION_DEBT` mapping `data.debt` through `DebtRowLayerWidget`; `packages/web/src/widgets/quest-summary/debt-row-layer-widget.tsx:38-79` renders `[mark] [track] unitId`, the evidence line, and branches on `entry.toSettle === undefined` between `QUEST_SUMMARY_DEBT_SUCCESSOR` ("nothing hands this over…") and `QUEST_SUMMARY_DEBT_TO_SETTLE` — exactly R17's "two marks" and the three-verdict vocabulary. The file is not named `unconfirmable-row-layer-widget.tsx` any more (see stale-premise #6 below) |
+| **COVERAGE section** (originally T2-5, already retired by R23 as a dup of T1-9 — confirmed, not just trusted) | `quest-summary-widget.tsx:110-129` renders `QUEST_SUMMARY_SECTION_COVERAGE`; `flow-row-layer-widget.tsx:24-41` renders one row per flow; `track-row-layer-widget.tsx:32-82` renders all FOUR counts per track — `met`, `cantMeet`, `unmet`, `outstanding`, each its own testid/colour, matching R1 and R2 exactly |
+| **T2-7's ward-mode half** | Only ONE of the two sites `27-ui.md` names still exists. `ward-result-row-layer-widget.tsx:40-41` — `` Ward exit code: {exitCode}{wardMode ? ` (${wardMode})` : ''} `` — is verbatim what `27-ui.md:149-150` and the handoff both cite, and it is real. The OTHER site, `operation-row-layer-widget.tsx:104-112` (`OPERATIONS_LEDGER_ROW_WARD_MODE`), does not exist in current code — the file (read in full) has no `operation.wardMode` reference anywhere, its own test file (`operation-row-layer-widget.test.tsx`, read in full) asserts no such testid, and `operationItemContract` (`packages/shared/src/contracts/operation-item/operation-item-contract.ts:25-70`) carries no `wardMode` field at all. Under the family-graph now live (`packages/orchestrator/src/statics/agent-flow/agent-flow-statics.ts`), only `wardFull` is ever `role: 'ward'` on the ledger — a per-family committed ward is a STEP inside another scope's own operation item, not a second ledger row — so there is nothing left for an operation-row ward-mode tag to disambiguate. **This half of the unit has zero remaining scope.** |
+| **T2-7's retry-badge half** | `execution-row-layer-widget.tsx:337-350` — `data-testid="execution-row-retry-badge"`, `` retry {attempt}/{maxAttempts} ``. Confirmed live, matching the handoff |
+| **T2-8** (already merged into T2-7 by R8) | `operations-ledger-widget.tsx` and `operation-row-layer-widget.tsx` (both read in full) already render against the current `OperationItem` shape with no legacy field references, and `execution-panel-widget.tsx`'s own imports (lines 43-64) confirm the EXECUTION tab no longer imports `OperationsLedgerWidget` at all — matching `27-ui.md:158-160`'s own claim exactly |
+
+**T2-7 is therefore reduced to nothing.** Its remaining scope after subtracting the above is empty — do
+not dispatch it. If a future ward-mode disambiguator turns out to be wanted on the ledger row after all,
+that is a new unit against a design question ("what distinguishes two ledger rows of the same scope now
+that `wardMode` is gone"), not a continuation of T2-7 as scoped.
+
+### The forced serial chain — confirmed, and tighter than stated
+
+The handoff names one shared file (`execution-row-layer-widget.tsx`). Reading all five units' owning
+files shows **two** shared files force the same order, not one: `execution-row-layer-widget.tsx` AND
+`execution-work-item-row-layer-widget.tsx` — 27a's own OWNS block (`27-ui.md:31-40`) names both as row-identity
+files, and T2-3/T2-11 read/write the work-item widget too (it is where `depLabels`, `observablesSatisfied`
+wiring and the scope-label derivation all live). The order itself is confirmed correct:
+
+`T2-1` (execution-panel-widget.tsx, execution-work-item-row-layer-widget.tsx, execution-row-layer-widget.tsx)
+→ `T2-11` (execution-row-layer-widget.tsx, execution-work-item-row-layer-widget.tsx)
+→ `T2-10` (execution-row-layer-widget.tsx's `EXPANDABLE_STATUSES` array, execution-step-status-config-statics.ts)
+→ `T2-3` (execution-row-layer-widget.tsx, execution-work-item-row-layer-widget.tsx)
+→ `T2-9` (execution-row-layer-widget.tsx, execution-row-subtitle-transformer.ts, execution-step-status-config-statics.ts, execution-work-item-row-layer-widget.tsx)
+
+No two of these five can run concurrently with each other. T2-9 itself exceeds the 1-3-files rule (4
+files) and splits below into T2-9a/T2-9b, which do NOT share a file with each other and so are the one
+place in the chain where two "chain" units can run in the same wave.
+
+### T2-1 — row identity, reworked to decision 2's four-tier rule
+
+**Goal:** replace the existing scope-plus-parenthesized-disambiguator naming in the execution panel with
+the four-tier label decision 2 and the handoff specify (bare / step / `step - piece` / `step pt: N`),
+using real `agentFlowStatics` step keys.
+
+**Files (all confirmed to exist):** `packages/web/src/widgets/execution-panel/execution-panel-widget.tsx`,
+`packages/web/src/widgets/execution-panel/execution-work-item-row-layer-widget.tsx`,
+`packages/web/src/widgets/execution-panel/execution-row-layer-widget.tsx`.
+
+**Deps:** none upstream in Track 2; first in the forced chain.
+
+**NOT DONE — confirmed, and the gap is structural, not cosmetic.** Current code (read in full) already
+groups visible work items by scope (an `operations/<id>` ref, or the role) and, within a scope holding 2+
+items, sub-groups by `step`, escalating to the live `sessionId`/work-item id only when two siblings share
+BOTH scope and step (`execution-panel-widget.tsx:276-312`). But the rendered name is always
+`` `${scopeLabel}${sessionDisambiguator ? ` (${sessionDisambiguator})` : ''}` `` —
+`execution-work-item-row-layer-widget.tsx:135-140` — i.e. the scope name repeats on every row, with the
+step (or a raw session/work-item id) parenthesized after it. Decision 2's worked example instead shows
+the scope name carried ONCE (an "operation row") with child rows underneath reading the step alone,
+`work - login broker`, or `walk pt: 1` — a real-vs-piece-name tier and a `pt: N` numeric tail that
+nothing in current code produces (the escalation tier renders `wi.sessionId ?? wi.id`, not `pt: N`).
+**Flag to whoever picks this up:** decision 2's worked example is ambiguous about whether "the operation
+row carries the piece name once" means a genuinely nested/indented render (a nesting the panel's own
+docstring — "the execution tab is ONE numbered list" — does not currently have) or a flat list where only
+the FIRST row of a scope shows the full name. Dry-run both readings against a real multi-work-item scope
+before committing; this is exactly 27a's own warning that a row-identity defect "passes the repo's own
+browser-is-the-verdict check" silently.
+
+**e2e:** high regression risk, no new spec strictly required by the row-uniqueness assertion itself (27a
+says a unit test on `ExecutionPanelWidgetProxy().getStepRows()` suffices for the invariant), but the
+RENDERED TEXT changes, and these existing specs assert against it and must be re-verified/updated:
+`carved-quest-session-cwds.e2e.ts`, `dispatch-survives-unparseable-quest-file.e2e.ts`,
+`resume-execution-row-runs-again.e2e.ts`, `resume-starts-dispatch.e2e.ts`, `quest-replay-execution-rows.e2e.ts`,
+`quest-replay-subagent-execution-rows.e2e.ts`, `quest-replay-subagent-row-isolation.e2e.ts`,
+`quest-streaming-subagent-execution-rows.e2e.ts`, `warpgate-row-and-header.e2e.ts`,
+`warpgate-followup-transcript.e2e.ts`, `abandoned-quest-chaos-only-transcript.e2e.ts`,
+`dispatch-resumes-retained-session.e2e.ts`, `operations-partial-continuation.e2e.ts`,
+`bughunt-begin-transition.e2e.ts`, `quest-begin-transition.e2e.ts`.
+
+### T2-0 — the projection endpoint (NEW, R7)
+
+**Goal:** an orchestrator broker that walks `agentFlowStatics` forward from a quest's current
+scopes/work-items to the likely remainder, served through a new server HTTP endpoint — the piece
+`27-ui.md` scoped to `@dungeonmaster/web` (which cannot build it) and the handoff's R7 added back.
+
+Confirmed nothing of this exists yet: `discover({ grep: "projection" })` returns zero hits under
+`packages/{orchestrator,server,shared,web}/src/**` — every match is either an unrelated use of the word
+or a historical planning doc (`scrolls/orcha-changes/*.md`, `scrolls/orchestrator-step-engine-plan.md`).
+
+Exceeds 3 files as one unit once modelled on the existing summary endpoint's own shape (contract in
+`shared`, transformer/broker in `orchestrator`, adapter+responder+route in `server`) — split in two:
+
+- **T2-0a** — `packages/shared/src/contracts/quest-projection/quest-projection-contract.ts` (NEW),
+  `packages/orchestrator/src/brokers/quest/projection/quest-projection-build-broker.ts` (NEW). No deps.
+- **T2-0b** — `packages/server/src/adapters/orchestrator/get-quest-projection/orchestrator-get-quest-projection-adapter.ts` (NEW),
+  `packages/server/src/responders/quest/projection/quest-projection-responder.ts` (NEW),
+  `packages/server/src/statics/api-routes/api-routes-statics.ts` (edit — add the route, mirroring
+  `questSummary`). Deps: **T2-0a**. Modelled directly on the confirmed-live pair
+  `packages/server/src/responders/quest/summary/quest-summary-responder.ts` →
+  `orchestratorGetQuestSummaryAdapter` (read in full).
+
+**e2e:** none existing; not required for the endpoint itself (server responder + orchestrator broker get
+unit/integration coverage the same way `quest-summary-responder.test.ts` does).
+
+**Projection contract — sketched from what T2-2 and T2-4 need, not invented wholesale.** Built only from
+fields already confirmed live on `WorkItem`/`OperationItem`/`agentFlowStatics`:
+
+```ts
+QuestProjection = {
+  questId: QuestId,
+  scopes: Array<{
+    operationId: OperationItem['id'],
+    role: WorkItemRole,          // == agentFlowStatics family key for every family but wardFull
+    text: OperationItem['text'],
+    status: OperationItem['status'],
+    steps: Array<{
+      step: StepName,            // real agentFlowStatics step key — decision 2 requires this, not a label
+      kind: 'actual' | 'planned',// 'actual' = a real work item exists; 'planned' = projected forward
+                                  // from agentFlowStatics[family].steps[step].routes, never yet dispatched
+      workItemId?: QuestWorkItemId,   // present iff kind === 'actual'
+      pieceId?: PieceId,              // present iff kind === 'actual' and the step carries pieces
+      status?: ExecutionStepStatus,   // present iff kind === 'actual'
+      mintedBy?: QuestWorkItemId,     // T2-11's back-edge badge reads this straight off WorkItem.mintedBy
+    }>,
+  }>,
+  totalPlannedSteps: number,     // T2-4's denominator — grows as unmet marks route new work; never shrinks
+  completedSteps: number,        // T2-4's numerator — ratio may fall, must never exceed 1 (27d's own ASSERT)
+}
+```
+
+`kind: 'planned'` rows are what makes 27b's DONE criterion ("renders the likely remainder... REDRAWS on a
+back-edge") buildable at all: they come from walking `routes.done`/`routes.unmet` forward from the last
+`kind: 'actual'` step per scope, using the SAME `agentFlowStatics` the router itself reads, so the
+projection can never disagree with what the router will actually do next.
+
+### T2-2 — the projection binding (web)
+
+**Goal:** a web broker + binding mirroring `use-quest-summary-binding.ts`'s exact shape (seed from GET,
+resubscribe to that quest's `quest-modified` broadcast, refetch, re-render — no new websocket type).
+
+**Files:** `packages/web/src/brokers/quest/projection/quest-projection-broker.ts` (NEW),
+`packages/web/src/bindings/use-quest-projection/use-quest-projection-binding.ts` (NEW),
+`packages/web/src/statics/web-config/web-config-statics.ts` (edit — add the route entry).
+
+**Deps:** T2-0 (both halves) — the endpoint must exist to fetch from.
+
+Confirmed pattern to mirror: `packages/web/src/bindings/use-quest-summary/use-quest-summary-binding.ts`
+(read in full) — seeds via `questSummaryBroker`, subscribes `webSocketChannelState.questUpdated$()`
+filtered on `quest.id === questId`, refetches on each match. The original plan's "a new transformer" for
+this unit is now misleading: the graph-walk logic lives in T2-0's orchestrator broker, so this unit's own
+transformer (if any) is only thin response-shaping, not a second graph walk — do not re-derive
+`agentFlowStatics` traversal on the web side.
+
+**e2e:** none existing (no consumer widget yet — T2-11 is the first renderer of this data).
+
+### T2-3 — churn view and units readout
+
+**Goal:** a legible per-unit churn sequence, and wiring the ALREADY-DECLARED `observablesSatisfied` prop
+to real data instead of leaving it dead.
+
+**Files:** `packages/web/src/widgets/execution-panel/execution-row-layer-widget.tsx`,
+`packages/web/src/widgets/execution-panel/execution-work-item-row-layer-widget.tsx`.
+
+**Deps:** T2-10 (forced chain, position 4 of 5).
+
+**NOT DONE, confirmed, and the specific gap 27-ui.md names is real today.**
+`ExecutionRowLayerWidgetProps.observablesSatisfied?: ObservableId[]` exists at
+`execution-row-layer-widget.tsx:69` and renders at `:420-431`
+(`data-testid="execution-row-observables"`, `` Satisfies: {observablesSatisfied.join(', ')} ``) — but
+`ExecutionWorkItemRowLayerWidget`'s prop spread onto `<ExecutionRowLayerWidget>` (read in full,
+lines 143-161) has no `observablesSatisfied` entry anywhere. The slot is genuinely dead in production,
+exactly as claimed. Unit id shape is confirmed `<flowId>:<kind>:<id>` with kinds `terminal`/`branch`/
+`observable`/`off-map` — `qa-unit-enumerate-transformer.ts:48-98`, read in full, matches `27-ui.md`
+exactly, no correction needed there. The data this unit needs (`WorkItem.assignedUnitIds`,
+`WorkItem.observations: UnitObservation[]` with `mark`/`evidence`/`toSettle`/`at`) is confirmed present
+on `workItemContract` (`work-item-contract.ts:91,99`) and `unitObservationContract`.
+
+**e2e:** none existing asserts `execution-row-observables` today (only
+`execution-row-layer-widget.test.tsx:1156-1192`, a unit test, and the test-only `quest.harness.ts:413`
+fixture) — no regression risk from existing specs, new coverage recommended but not mandatory.
+
+### T2-4 — unclaimed-operations tail and progress counter
+
+**Goal:** keep the unclaimed-operations tail (already sound) and make the progress counter read off the
+projection rather than the raw ledger, capped so it never exceeds 1.
+
+**Files:** `packages/web/src/transformers/unclaimed-operations/unclaimed-operations-transformer.ts`,
+`packages/web/src/widgets/execution-panel/execution-status-bar-layer-widget.tsx`,
+`packages/web/src/widgets/execution-panel/execution-panel-widget.tsx` (the `totalOperations`/
+`completedOperations` computation, lines 219-221, needs to source from the projection instead).
+
+**Deps:** T2-0 + T2-2 (needs the projection to recompute against). Shares `execution-panel-widget.tsx`
+with T2-1 — run after T2-1's wave, not inside it.
+
+**PARTIALLY DONE.** `unclaimed-operations-transformer.ts` (read in full) already works cleanly against the
+current `operations/<id>` ref shape and needs no rework — 27d's "deliberately removed, with the reason
+written down" branch does not apply; keep it as-is. `execution-status-bar-layer-widget.tsx` (read in
+full) renders `` {completedCount}/{totalCount} OPERATIONS `` or `AWAITING PLAN`, but
+`execution-panel-widget.tsx:219-221` computes both counts straight off `quest.operations` (the LEDGER),
+not a projection — 27d's "recomputed from the PROJECTION rather than the ledger" requirement is
+confirmed NOT met today.
+
+**e2e:** no existing spec asserts on `execution-status-bar-layer-widget` by testid in the grep taken
+across `packages/web/src/flows/**/*.e2e.ts` — new coverage recommended, no confirmed regression risk.
+
+### T2-9 — rework rather than rebuild (split into two, over the 3-file cap)
+
+**Goal:** concurrent-row auto-expand/scroll, dependency labels keyed on session identity rather than
+role, and role-colour keyed on step rather than family.
+
+Both sub-units confirmed NOT DONE, with fresh line numbers:
+
+- **T2-9a — dependency labels.** Files: `packages/web/src/widgets/execution-panel/execution-work-item-row-layer-widget.tsx`,
+  `packages/web/src/transformers/execution-row-subtitle/execution-row-subtitle-transformer.ts`. Deps:
+  T2-3 (forced chain, position 5). Confirmed: `depLabels` (`execution-work-item-row-layer-widget.tsx:104-106`)
+  maps `workItem.dependsOn` through `workItemIdToLabel`, which is built at `execution-panel-widget.tsx:225-228`
+  as `WorkItem['id'] -> WorkItem['role']` — a ROLE, not a session identity, so it still collapses the
+  instant two dependencies share a role, exactly as `27-ui.md` describes.
+- **T2-9b — auto-expand/scroll and role colour.** Files:
+  `packages/web/src/widgets/execution-panel/execution-row-layer-widget.tsx` (the three `useEffect`s,
+  now at lines 154-186), `packages/web/src/statics/execution-step-status-config/execution-step-status-config-statics.ts`
+  (`roleColors`, still keyed on family names at lines 10-21). Deps: T2-3 (forced chain, position 5 — runs
+  alongside T2-9a; the two do not share a file with each other).
+
+**e2e:** touches the widest surface of any unit here. Existing specs at risk: every
+`elapsed-duration-*.e2e.ts` file (absent, bands, finished, pause, tick — all select rows via
+`execution-row-layer-widget`/`execution-row-duration`), `execution-panel-active-row-collapse.e2e.ts`,
+`execution-panel-paused-row-expandable.e2e.ts`, and every `subagent-duration-*.e2e.ts` file
+(frozen-figure, live-tick, nested, notification-arrives, placement, row-status-gate) plus
+`subagent-duration-session-no-tick.e2e.ts`. Cap concurrent e2e runs at 3 (existing ward e2e port-pairing
+rule) when re-verifying this batch — do not run the whole set at once.
+
+### T2-10 — retire PARTIAL and pt-N (footprint is 3 files, not 2, and one is new to the finding)
+
+**Goal:** delete the now-dead `partially_complete` work-item status from the web.
+
+**Files:** `packages/web/src/contracts/execution-step-status/execution-step-status-contract.ts` (the
+enum itself — NOT named by `27-ui.md`, found by this pass), `packages/web/src/statics/execution-step-status-config/execution-step-status-config-statics.ts`
+(the `PARTIAL` display config), `packages/web/src/widgets/execution-panel/execution-row-layer-widget.tsx`
+(`EXPANDABLE_STATUSES` array). **`operations-partial-continuation.e2e.ts` is explicitly OUT of this
+unit's scope** — confirmed below, this is the handoff's fourth correction, re-verified against current
+code rather than trusted.
+
+**Deps:** T2-11 (forced chain, position 3).
+
+**Confirmed triple-dead, not just "no trap":**
+1. `packages/orchestrator/src/contracts/stream-signal/stream-signal-contract.test.ts:88-91` — `` it('INVALID: {signal: "partially-complete"} => throws for removed signal type' ``. The orchestrator's own signal contract REJECTS it.
+2. `packages/shared/src/contracts/work-item-status/work-item-status-contract.ts:11-18` — the persisted enum is `['pending', 'queued', 'in_progress', 'complete', 'failed', 'skipped']`. No `partially_complete` member ever reaches disk.
+3. `packages/orchestrator/CLAUDE.md`'s own Signal System section: `` `signal-back`... `complete` is the SOLE signal kind — a session-terminal marker and nothing more. ``. There is no partial outcome left to produce this status.
+
+Yet the WEB's own separate `execution-step-status-contract.ts` still enumerates `'partially_complete'`,
+`execution-step-status-config-statics.ts` still carries its `PARTIAL`/`warning`/`◇` display row, and
+`execution-row-layer-widget.tsx`'s `EXPANDABLE_STATUSES` still includes it — three sites of dead code the
+orchestrator can never again produce.
+
+**`operations-partial-continuation.e2e.ts` re-verified, not just trusted from the handoff:** its
+`describe` block is titled **"Operations duplicate-on-red (pt-N continuation)"** (line 28) — not
+"duplicate-on-partial" as `27-ui.md:194-201` claims — and its own header comment (lines 22-27) states
+outright that the outcome minting a pt-continuation is an EXIT CODE from a COMMAND role (`ward`'s red),
+never a `signal-back` outcome word, because `signal-back`'s two input contracts are `.strict()` and carry
+no outcome word at all. The continuation TEXT format this test asserts is `` pt 2: Ward gate (full
+monorepo) `` (`PT2_TEXT`, operation-item-level, prefix form) — textually distinct from decision 2's
+work-item-level `step pt: N` (suffix form, e.g. `walk pt: 1`). **Confirmed: no collision, two genuinely
+separate mechanisms, at two different data levels (operation item text vs. work-item display label).**
+This file needs no edit for T2-10.
+
+**e2e:** zero existing spec references `partially_complete`/`PARTIAL` anywhere under
+`packages/web/src/flows/**` (confirmed by grep) — no regression risk, safe isolated cleanup.
+
+### T2-11 — back-edge badge, unmet list, fallback
+
+**Goal:** render `workItem.mintedBy` as a back-edge badge, a live near-row `unmet` list, and a guarded
+fallback for a step/role the display config doesn't recognise.
+
+**Files:** `packages/web/src/widgets/execution-panel/execution-row-layer-widget.tsx`,
+`packages/web/src/widgets/execution-panel/execution-work-item-row-layer-widget.tsx`.
+
+**Deps:** T2-1 (forced chain, position 2). The "unmet list" half benefits from T2-2's projection once it
+exists, but the back-edge badge alone needs only `WorkItem.mintedBy`, already on disk.
+
+**NOT DONE, confirmed on both halves:**
+- `mintedBy: questWorkItemIdContract.optional()` is confirmed live on `workItemContract`
+  (`work-item-contract.ts:100-105`), deliberately distinct from `insertedBy` (documented in the same
+  file, lines 100-104) for exactly the reason `27-ui.md` gives. Neither widget (both read in full)
+  references `mintedBy` anywhere today.
+- The fallback risk is real and reproducible from current code: `execution-row-layer-widget.tsx:215-216`
+  indexes `executionStepStatusConfigStatics.statusConfig[status]` and `.roleColors[role]` UNGUARDED, then
+  immediately dereferences `.color`/`.label` off the result (lines 269-270, 296, 385, 390). `stepNameContract`
+  (`step-name-contract.ts:18`) is confirmed a free-form branded string, not a closed enum, specifically so
+  a `quest.json` holding a step/role a newer family added still LOADS — so an unrecognised value reaching
+  either lookup throws `Cannot read properties of undefined`, a crash, not a blank, exactly as claimed.
+
+**e2e:** no existing spec exercises an unrecognised step/role or asserts `mintedBy` rendering — new
+coverage required once built, no existing regression risk.
+
+### T2-12 — SPEC-tab recipe callout
+
+**Goal:** show the recipes a flow's walk starts from, on the flow diagram / node detail panel.
+
+**Files:** `packages/web/src/widgets/react-flow-diagram/react-flow-diagram-widget.tsx`,
+`packages/web/src/widgets/react-flow-diagram/flow-node-detail-panel-layer-widget.tsx`.
+
+**Deps:** none in Track 2 — independent of the forced chain, no shared file with any other unit here.
+
+**NOT DONE, confirmed, and now buildable.** `discover({ grep: "recipe", glob: "packages/web/src/widgets/react-flow-diagram/**" })`
+returns zero hits — nothing renders a recipe today. The blocking data IS present now:
+`flowContract` (`packages/shared/src/contracts/flow/flow-contract.ts:35-39`) carries
+`recipes: z.array(flowRecipeContract).default([])`, with its own JSDoc reading "story 27 renders it" —
+confirming the handoff's correction #1 to `27-ui.md:245-249` directly against the contract file itself,
+not just by citation.
+
+**e2e:** the natural place to extend is `packages/web/src/flows/quest-chat/flow-diagram-interaction.e2e.ts`
+(confirmed to exist) rather than a new spec file — it already drives the diagram's real-browser sizing
+and panel behaviour this callout would sit inside.
+
+### 27-ui.md errors beyond the four the handoff already found
+
+| # | Claim | Current code | Evidence |
+|---|---|---|---|
+| 5 | `:104-112` — the ward-mode tag has TWO sites, `operation-row-layer-widget.tsx` among them | Only ONE site exists. `operation-row-layer-widget.tsx` (read in full) has no `wardMode` reference; `operationItemContract` carries no `wardMode` field | `packages/web/src/widgets/operations-ledger/operation-row-layer-widget.tsx` (full file); `packages/shared/src/contracts/operation-item/operation-item-contract.ts:25-70`; the widget's own `.test.tsx` asserts no such testid |
+| 6 | `:44` — names `widgets/quest-summary/unconfirmable-row-layer-widget.tsx` as part of the "verified safe" blast-radius survey | That file does not exist. It is `debt-row-layer-widget.tsx` now, part of Track 1's rename | `packages/web/src/widgets/quest-summary/debt-row-layer-widget.tsx` (exists); `discover({glob:"packages/web/src/widgets/quest-summary/**"})` lists no `unconfirmable-*` file |
+| 7 | `:42-47` — the whole blast-radius survey is scoped by `discover({ grep: "signoff", strict: true })` over `packages/web/**` | That grep returns **zero** hits today. Track 1 renamed the vocabulary to `met`/`cant-meet`/`unmet`/`debt`/`observations` throughout the web package, so this verification method itself is stale, not just its one cited file | `discover({ grep: "signoff", glob: "packages/web/src/**", strict: true })` → 0 matches, 1380 files scanned |
+| 8 | The whole file's framing (echoed by the handoff's "0 of 13 done") | Two full units (T2-6, and T2-8 as merged into T2-7) and half of a third (T2-7's ward-mode half, now scopeless) are already done — landed as a side effect of Track 1's summary-widget rewrite and the operation-item's `wardMode` removal, neither of which `27-ui.md` or the handoff's Track 2 section could have known about when written | See "Already done" table above |
+
+### Waves (≤3 concurrent, no file overlap within a wave)
+
+| Wave | Units | Notes |
+|---|---|---|
+| 1 | T2-0a, T2-1, T2-12 | T2-1 is chain position 1. T2-0a and T2-12 touch none of T2-1's files |
+| 2 | T2-0b, T2-11 | T2-0b depends on T2-0a (wave 1). T2-11 is chain position 2 |
+| 3 | T2-2, T2-10 | T2-2 depends on T2-0a+T2-0b (both landed by end of wave 2). T2-10 is chain position 3 |
+| 4 | T2-4, T2-3 | T2-4 depends on T2-0+T2-2 (landed by end of wave 3) and shares `execution-panel-widget.tsx` with T2-1 — safe now that T2-1 is long landed. T2-3 is chain position 4 |
+| 5 | T2-9a, T2-9b | Both depend on T2-3 (wave 4). They share no file with each other, so both close the chain in one wave |
+
+T2-6, T2-7 and T2-8 need no wave — already done. When re-verifying e2e regressions for wave 1 (T2-1) or
+wave 5 (T2-9), cap concurrent Playwright runs at 3 per the existing ward e2e port-pairing rule; never run
+the full affected-spec list from either unit's section above in one pass.
