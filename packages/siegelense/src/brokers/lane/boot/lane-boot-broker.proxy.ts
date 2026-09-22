@@ -23,6 +23,7 @@ import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.pr
 import { playwrightSessionAdapterProxy } from '../../../adapters/playwright/session/playwright-session-adapter.proxy';
 import { processKillGroupAdapterProxy } from '../../../adapters/process/kill-group/process-kill-group-adapter.proxy';
 import { laneReadyWaitBrokerProxy } from '../ready-wait/lane-ready-wait-broker.proxy';
+import { laneWorkspaceResolveBrokerProxy } from '../workspace-resolve/lane-workspace-resolve-broker.proxy';
 import { serverLogReaderLayerBrokerProxy } from './server-log-reader-layer-broker.proxy';
 import { fakeAgentCliStatics } from '../../../statics/fake-agent-cli/fake-agent-cli-statics';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
@@ -57,6 +58,15 @@ export const laneBootBrokerProxy = (): {
   setupAgentCliFixturesNotFound: (params: { repoRoot: AbsoluteFilePath }) => void;
   setupAgentCliFixtureFound: (params: { filePath: AbsoluteFilePath }) => void;
   setupAgentCliFixtureNotFound: (params: { filePath: AbsoluteFilePath }) => void;
+  // Stages laneWorkspaceResolveBroker's two fs boundaries so a spec referencing `{apiWorkspace}`
+  // and/or `{webWorkspace}` resolves to a real name instead of throwing "no mock configured" — see
+  // that broker's own proxy for why this stages the packages/ listing ONCE with every dir name a
+  // test needs, rather than once per workspace kind.
+  setupWorkspacesResolved: (params: {
+    repoRoot: AbsoluteFilePath;
+    apiPackageName?: string;
+    webPackageName?: string;
+  }) => void;
   getSpawnOptionsFor: (params: { command: string; args: readonly string[] }) => unknown;
   getKillSignalsFor: (params: { pgid: ProcessGroupId }) => readonly unknown[];
   getClosedFds: () => readonly unknown[];
@@ -81,6 +91,7 @@ export const laneBootBrokerProxy = (): {
   const killProxy = processKillGroupAdapterProxy();
   playwrightSessionAdapterProxy();
   const readyWaitProxy = laneReadyWaitBrokerProxy();
+  const workspaceProxy = laneWorkspaceResolveBrokerProxy();
   serverLogReaderLayerBrokerProxy();
 
   return {
@@ -163,6 +174,39 @@ export const laneBootBrokerProxy = (): {
         filePath,
         error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
       });
+    },
+
+    setupWorkspacesResolved: ({
+      repoRoot,
+      apiPackageName,
+      webPackageName,
+    }: {
+      repoRoot: AbsoluteFilePath;
+      apiPackageName?: string;
+      webPackageName?: string;
+    }): void => {
+      const packageNames = [
+        ...(apiPackageName === undefined ? [] : ['api-pkg']),
+        ...(webPackageName === undefined ? [] : ['web-pkg']),
+      ];
+      workspaceProxy.setupPackagesDir({ repoRoot, packageNames });
+      if (apiPackageName !== undefined) {
+        workspaceProxy.setupPackage({
+          repoRoot,
+          dirName: 'api-pkg',
+          packageName: apiPackageName,
+          adapterDirNames: ['hono'],
+        });
+      }
+      if (webPackageName !== undefined) {
+        workspaceProxy.setupPackage({
+          repoRoot,
+          dirName: 'web-pkg',
+          packageName: webPackageName,
+          srcDirNames: ['widgets'],
+          dependencies: { react: '18.2.0' },
+        });
+      }
     },
 
     getSpawnOptionsFor: ({

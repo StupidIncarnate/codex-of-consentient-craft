@@ -460,6 +460,7 @@ describe('laneBootBroker', () => {
       process.env.WARD_CLI_PATH = '/tmp/dm-siege-fake-ward-cli';
       const proxy = laneBootBrokerProxy();
       const repoRoot = proxy.resolveRepoRoot();
+      proxy.setupWorkspacesResolved({ repoRoot, apiPackageName: '@dungeonmaster/server' });
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiFd = FileDescriptorStub({ value: 10 });
       // Statics hold raw, unbranded data (see lane-spec-statics.ts's PURPOSE) — routing it through
@@ -767,6 +768,7 @@ describe('laneBootBroker', () => {
       const proxy = laneBootBrokerProxy();
       const repoRoot = proxy.resolveRepoRoot();
       proxy.setupAgentCliFixturesFound({ repoRoot });
+      proxy.setupWorkspacesResolved({ repoRoot, apiPackageName: '@dungeonmaster/server' });
       const apiFd = FileDescriptorStub({ value: 10 });
       const spec = LaneSpecStub({ ...laneSpecStatics.specs['dungeonmaster-api'] });
       proxy.setupProcessBoot({

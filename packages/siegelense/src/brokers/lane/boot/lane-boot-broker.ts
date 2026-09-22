@@ -45,6 +45,7 @@ import {
   absoluteFilePathContract,
   contentTextContract,
   filePathContract,
+  packageTypeContract,
 } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
@@ -57,6 +58,8 @@ import { playwrightSessionAdapter } from '../../../adapters/playwright/session/p
 import { processKillGroupAdapter } from '../../../adapters/process/kill-group/process-kill-group-adapter';
 import { serverLogReaderLayerBroker } from './server-log-reader-layer-broker';
 import { laneReadyWaitBroker } from '../ready-wait/lane-ready-wait-broker';
+import { laneWorkspaceResolveBroker } from '../workspace-resolve/lane-workspace-resolve-broker';
+import { isLaneSpecTokenReferencedGuard } from '../../../guards/is-lane-spec-token-referenced/is-lane-spec-token-referenced-guard';
 import { laneEnvSubstituteTransformer } from '../../../transformers/lane-env-substitute/lane-env-substitute-transformer';
 import { laneProcessPortResolveTransformer } from '../../../transformers/lane-process-port-resolve/lane-process-port-resolve-transformer';
 import { lanePlaceholderSubstituteTransformer } from '../../../transformers/lane-placeholder-substitute/lane-placeholder-substitute-transformer';
@@ -153,12 +156,36 @@ export const laneBootBroker = async ({
     pathJoinAdapter({ paths: [homePath, locationsStatics.siegelense.wardQueueDir] }),
   );
 
+  // `{apiWorkspace}`/`{webWorkspace}` name a package by ROLE rather than by literal name — see
+  // lane-spec-statics.ts's header. Resolved only when some process actually references the token:
+  // a repo that never built an http-backend or frontend-react package must still be able to boot a
+  // spec that never asked for one, and `laneWorkspaceResolveBroker` throws when its kind resolves to
+  // none or to more than one package under `packages/`.
+  const [resolvedApiWorkspace, resolvedWebWorkspace] = await Promise.all([
+    isLaneSpecTokenReferencedGuard({ spec, token: '{apiWorkspace}' })
+      ? laneWorkspaceResolveBroker({
+          repoRoot: spawnCwd,
+          packageType: packageTypeContract.parse('http-backend'),
+        })
+      : Promise.resolve(undefined),
+    isLaneSpecTokenReferencedGuard({ spec, token: '{webWorkspace}' })
+      ? laneWorkspaceResolveBroker({
+          repoRoot: spawnCwd,
+          packageType: packageTypeContract.parse('frontend-react'),
+        })
+      : Promise.resolve(undefined),
+  ]);
+  const apiWorkspace = contentTextContract.parse(resolvedApiWorkspace ?? '');
+  const webWorkspace = contentTextContract.parse(resolvedWebWorkspace ?? '');
+
   const substitutedSpecEnv = laneEnvSubstituteTransformer({
     env: spec.env,
     ports,
     home: homePath,
     claudeQueueDir,
     wardQueueDir,
+    apiWorkspace,
+    webWorkspace,
   });
 
   const booted = spec.processes.map((laneProcess) => {
@@ -174,6 +201,8 @@ export const laneBootBroker = async ({
         home: homePath,
         claudeQueueDir,
         wardQueueDir,
+        apiWorkspace,
+        webWorkspace,
       }),
     );
     const substitutedProcessEnv = laneEnvSubstituteTransformer({
@@ -182,6 +211,8 @@ export const laneBootBroker = async ({
       home: homePath,
       claudeQueueDir,
       wardQueueDir,
+      apiWorkspace,
+      webWorkspace,
     });
     // A value still carrying a `{token}` after substitution is one this design has no honest answer
     // for — today that never happens for the two built-in specs (every token they declare resolves
@@ -223,6 +254,8 @@ export const laneBootBroker = async ({
               home: homePath,
               claudeQueueDir,
               wardQueueDir,
+              apiWorkspace,
+              webWorkspace,
             },
           )}`;
 

@@ -10,7 +10,7 @@ describe('laneSpecStatics', () => {
             {
               name: 'api',
               command: 'npm',
-              args: ['run', 'dev:no-watch', '--workspace=@dungeonmaster/server'],
+              args: ['run', 'dev:no-watch', '--workspace={apiWorkspace}'],
               portRole: 'api',
               readyPath: '/api/guilds',
               logFileName: 'api-server.log',
@@ -26,7 +26,7 @@ describe('laneSpecStatics', () => {
             {
               name: 'web',
               command: 'npm',
-              args: ['run', 'dev:no-watch', '--workspace=@dungeonmaster/web'],
+              args: ['run', 'dev:no-watch', '--workspace={webWorkspace}'],
               portRole: 'web',
               readyPath: '/',
               logFileName: 'web-server.log',
@@ -44,7 +44,7 @@ describe('laneSpecStatics', () => {
             {
               name: 'api',
               command: 'npm',
-              args: ['run', 'dev:no-watch', '--workspace=@dungeonmaster/server'],
+              args: ['run', 'dev:no-watch', '--workspace={apiWorkspace}'],
               portRole: 'api',
               readyPath: '/api/guilds',
               logFileName: 'api-server.log',

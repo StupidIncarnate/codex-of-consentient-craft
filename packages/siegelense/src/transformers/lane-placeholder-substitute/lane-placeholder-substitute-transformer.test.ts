@@ -1,11 +1,13 @@
 import { lanePlaceholderSubstituteTransformer } from './lane-placeholder-substitute-transformer';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
 import { PortPairStub } from '../../contracts/port-pair/port-pair.stub';
 
 const PORTS = PortPairStub({ api: 34_172, web: 34_173 });
 const HOME = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1' });
 const CLAUDE_QUEUE_DIR = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1/claude-queue' });
 const WARD_QUEUE_DIR = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1/ward-queue' });
+const API_WORKSPACE = ContentTextStub({ value: '@dungeonmaster/server' });
+const WEB_WORKSPACE = ContentTextStub({ value: '@dungeonmaster/web' });
 
 describe('lanePlaceholderSubstituteTransformer', () => {
   describe('a port placeholder', () => {
@@ -16,6 +18,8 @@ describe('lanePlaceholderSubstituteTransformer', () => {
         home: HOME,
         claudeQueueDir: CLAUDE_QUEUE_DIR,
         wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
       });
 
       expect(result).toBe('34172');
@@ -28,6 +32,8 @@ describe('lanePlaceholderSubstituteTransformer', () => {
         home: HOME,
         claudeQueueDir: CLAUDE_QUEUE_DIR,
         wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
       });
 
       expect(result).toBe('34173');
@@ -42,6 +48,8 @@ describe('lanePlaceholderSubstituteTransformer', () => {
         home: HOME,
         claudeQueueDir: CLAUDE_QUEUE_DIR,
         wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
       });
 
       expect(result).toBe('/tmp/dm-siege-inst_1');
@@ -54,6 +62,8 @@ describe('lanePlaceholderSubstituteTransformer', () => {
         home: HOME,
         claudeQueueDir: CLAUDE_QUEUE_DIR,
         wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
       });
 
       expect(result).toBe('/tmp/dm-siege-inst_1/claude-queue');
@@ -66,9 +76,55 @@ describe('lanePlaceholderSubstituteTransformer', () => {
         home: HOME,
         claudeQueueDir: CLAUDE_QUEUE_DIR,
         wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
       });
 
       expect(result).toBe('/tmp/dm-siege-inst_1/ward-queue');
+    });
+  });
+
+  describe('a workspace-name placeholder', () => {
+    it('VALID: {template: "{apiWorkspace}"} => returns the resolved backend package name', () => {
+      const result = lanePlaceholderSubstituteTransformer({
+        template: '{apiWorkspace}',
+        ports: PORTS,
+        home: HOME,
+        claudeQueueDir: CLAUDE_QUEUE_DIR,
+        wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
+      });
+
+      expect(result).toBe('@dungeonmaster/server');
+    });
+
+    it('VALID: {template: "{webWorkspace}"} => returns the resolved frontend package name', () => {
+      const result = lanePlaceholderSubstituteTransformer({
+        template: '{webWorkspace}',
+        ports: PORTS,
+        home: HOME,
+        claudeQueueDir: CLAUDE_QUEUE_DIR,
+        wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
+      });
+
+      expect(result).toBe('@dungeonmaster/web');
+    });
+
+    it('VALID: {template: "--workspace={apiWorkspace}"} => substitutes in place', () => {
+      const result = lanePlaceholderSubstituteTransformer({
+        template: '--workspace={apiWorkspace}',
+        ports: PORTS,
+        home: HOME,
+        claudeQueueDir: CLAUDE_QUEUE_DIR,
+        wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
+      });
+
+      expect(result).toBe('--workspace=@dungeonmaster/server');
     });
   });
 
@@ -80,6 +136,8 @@ describe('lanePlaceholderSubstituteTransformer', () => {
         home: HOME,
         claudeQueueDir: CLAUDE_QUEUE_DIR,
         wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
       });
 
       expect(result).toBe('http://host:34172/api/guilds');
@@ -92,6 +150,8 @@ describe('lanePlaceholderSubstituteTransformer', () => {
         home: HOME,
         claudeQueueDir: CLAUDE_QUEUE_DIR,
         wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
       });
 
       expect(result).toBe('api=34172 web=34173');
@@ -104,22 +164,28 @@ describe('lanePlaceholderSubstituteTransformer', () => {
         home: HOME,
         claudeQueueDir: CLAUDE_QUEUE_DIR,
         wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
       });
 
       expect(result).toBe('34172-34172');
     });
 
-    it('VALID: {template: every known token} => substitutes all five independently', () => {
+    it('VALID: {template: every known token} => substitutes all seven independently', () => {
       const result = lanePlaceholderSubstituteTransformer({
-        template: '{apiPort}|{webPort}|{home}|{claudeQueueDir}|{wardQueueDir}',
+        template:
+          '{apiPort}|{webPort}|{home}|{claudeQueueDir}|{wardQueueDir}|{apiWorkspace}|{webWorkspace}',
         ports: PORTS,
         home: HOME,
         claudeQueueDir: CLAUDE_QUEUE_DIR,
         wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
       });
 
       expect(result).toBe(
-        '34172|34173|/tmp/dm-siege-inst_1|/tmp/dm-siege-inst_1/claude-queue|/tmp/dm-siege-inst_1/ward-queue',
+        '34172|34173|/tmp/dm-siege-inst_1|/tmp/dm-siege-inst_1/claude-queue|/tmp/dm-siege-inst_1/ward-queue' +
+          '|@dungeonmaster/server|@dungeonmaster/web',
       );
     });
   });
@@ -132,6 +198,8 @@ describe('lanePlaceholderSubstituteTransformer', () => {
         home: HOME,
         claudeQueueDir: CLAUDE_QUEUE_DIR,
         wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
       });
 
       expect(result).toBe('{fakeClaudeCliPath}');
@@ -146,6 +214,8 @@ describe('lanePlaceholderSubstituteTransformer', () => {
         home: HOME,
         claudeQueueDir: CLAUDE_QUEUE_DIR,
         wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
       });
 
       expect(result).toBe('api-server.log');
