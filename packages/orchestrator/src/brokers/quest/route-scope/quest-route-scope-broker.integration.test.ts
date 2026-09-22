@@ -2123,3 +2123,1201 @@ describe('siegemaster', () => {
     }, 30_000);
   });
 });
+
+// Flowrider mirrors codeweaver's own step shape almost exactly — `plan -> work -> review ->
+// CLOSE_OUT` — with two differences this block exists to prove: an on-request `recipe` step
+// (shared verbatim with siegemaster's own, since a recipe is flow-scoped rather than
+// family-scoped) and `plan`'s own `empty` route completing the scope outright rather than
+// falling through to a sweep step the way siegemaster's does. Reuses the module-scope
+// `SEND_FLOW` / `UNIT_OBSERVABLE` / `UNIT_TERMINAL` / `WEB_PACKAGE` fixtures declared above for
+// the codeweaver block.
+
+const flowriderScope = ({ opId }: { opId: string }) =>
+  OperationItemStub({
+    id: OperationItemIdStub({ value: opId }),
+    role: 'flowrider',
+    text: 'Flowrider: author the test suites that prove this flow — flow: send-flow',
+    status: 'in_progress',
+    locked: false,
+    flowIds: ['send-flow'],
+    packageNames: ['web'],
+  });
+
+describe('flowrider', () => {
+  const quest = orchestrationQuestHarness();
+
+  describe('recipe — mintable on request, and returns to the requester regardless of what it folds to', () => {
+    it("VALID: {a `plan` item requests `recipe`} => mints `recipe`, carrying the request's reason and naming the plan item as `mintedBy`; once the recipe item drains holding no units and no declaredWord, the router folds it to `empty` (a planner's no-plan default) and — since `recipe` declares no route for `empty` either — returns a FRESH `plan` item to the requester", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-fr-recipe-request-return' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const planItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: [flowriderScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: planItemId,
+            role: 'flowrider',
+            status: 'complete',
+            step: 'plan',
+            assignedUnitIds: [],
+            requestedStep: 'recipe',
+            requestedReason: 'need seed data for the browser walk before the plan can be written',
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      // ROUND 1 — the plan item's own request wins outright over everything else (question 1).
+      const firstResult = await questRouteScopeBroker({ questId });
+      const afterFirst = await quest.reload({ questId });
+      const recipeItem = afterFirst.workItems.find((item) => item.id !== planItemId)!;
+
+      // ROUND 2 — the recipe session finishes holding no units and declaring no outcome word.
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: afterFirst.operations,
+        workItems: [
+          ...afterFirst.workItems.filter((item) => item.id !== recipeItem.id),
+          { ...recipeItem, status: 'complete' as const },
+        ],
+      });
+
+      const secondResult = await questRouteScopeBroker({ questId });
+      const afterSecond = await quest.reload({ questId });
+      const freshPlan = afterSecond.workItems
+        .filter((item) => item.id !== planItemId)
+        .find((item) => item.id !== recipeItem.id);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        firstResult,
+        recipeStep: recipeItem.step,
+        recipeRole: recipeItem.role,
+        recipeAssignedUnitIds: recipeItem.assignedUnitIds.map(String),
+        recipePayload: recipeItem.payload,
+        recipeMintedBy: recipeItem.mintedBy,
+        secondResult,
+        freshPlanStep: freshPlan?.step,
+        freshPlanRole: freshPlan?.role,
+        freshPlanStatus: freshPlan?.status,
+        freshPlanAssignedUnitIds: freshPlan?.assignedUnitIds.map(String),
+        workItemCount: afterSecond.workItems.length,
+      }).toStrictEqual({
+        firstResult: { routed: true, blocked: false },
+        recipeStep: 'recipe',
+        recipeRole: 'flowrider',
+        recipeAssignedUnitIds: [],
+        recipePayload: {
+          reason: 'need seed data for the browser walk before the plan can be written',
+        },
+        recipeMintedBy: planItemId,
+        secondResult: { routed: true, blocked: false },
+        freshPlanStep: 'plan',
+        freshPlanRole: 'flowrider',
+        freshPlanStatus: 'pending',
+        freshPlanAssignedUnitIds: [],
+        workItemCount: 3,
+      });
+    }, 30_000);
+  });
+
+  describe('plan — done mints work', () => {
+    it("VALID: {a `plan` item drains done} => mints `work`, assigned nothing — `work` is a `worker` step with no plan on disk, unlike siege's `happyWalk` reviewer-entry whole-scope assignment", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-fr-plan-done' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const planItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: [flowriderScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: planItemId,
+            role: 'flowrider',
+            status: 'complete',
+            step: 'plan',
+            assignedUnitIds: [],
+            declaredWord: 'done',
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const minted = after.workItems.find((item) => item.id !== planItemId);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        mintedStep: minted?.step,
+        mintedRole: minted?.role,
+        mintedStatus: minted?.status,
+        mintedAssignedUnitIds: minted?.assignedUnitIds.map(String),
+        mintedMintedBy: minted?.mintedBy,
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        mintedStep: 'work',
+        mintedRole: 'flowrider',
+        mintedStatus: 'pending',
+        mintedAssignedUnitIds: [],
+        mintedMintedBy: undefined,
+      });
+    }, 30_000);
+  });
+
+  describe('plan — empty completes the scope, cascading the family graph onward to siegemaster', () => {
+    it("VALID: {a `plan` item drains empty} => completes the flowrider operation item and mints siegemaster's own scope — `questFlowStatics.feature.families.flowrider.routes.empty` is 'siegemaster', the same target as `done`", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-fr-plan-empty' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const planItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: [flowriderScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: planItemId,
+            role: 'flowrider',
+            status: 'complete',
+            step: 'plan',
+            assignedUnitIds: [],
+            declaredWord: 'empty',
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const flowriderOp = after.operations.find((op) => String(op.id) === opId);
+      const mintedOp = after.operations.find((op) => String(op.id) !== opId);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        flowriderOpStatus: flowriderOp?.status,
+        mintedOpRole: mintedOp?.role,
+        mintedOpStatus: mintedOp?.status,
+        mintedOpFlowIds: mintedOp?.flowIds.map(String),
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        flowriderOpStatus: 'complete',
+        mintedOpRole: 'siegemaster',
+        mintedOpStatus: 'pending',
+        mintedOpFlowIds: ['send-flow'],
+      });
+    }, 30_000);
+  });
+
+  describe('work — unmet loops back to work', () => {
+    it('VALID: {a `work` item drains with its one unit still unmet} => mints a fresh `work` item, carrying that same unit and naming the draining item as `mintedBy`', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-fr-work-unmet' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const workItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: [flowriderScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            role: 'flowrider',
+            status: 'complete',
+            step: 'work',
+            assignedUnitIds: [UNIT_OBSERVABLE],
+            observations: [
+              UnitObservationStub({
+                unitId: UNIT_OBSERVABLE,
+                mark: 'unmet',
+                evidence: 'the test still asserts the queued count, not the persisted one',
+              }),
+            ],
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const minted = after.workItems.find((item) => item.id !== workItemId);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        mintedStep: minted?.step,
+        mintedRole: minted?.role,
+        mintedAssignedUnitIds: minted?.assignedUnitIds.map(String),
+        mintedMintedBy: minted?.mintedBy,
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        mintedStep: 'work',
+        mintedRole: 'flowrider',
+        mintedAssignedUnitIds: [UNIT_OBSERVABLE],
+        mintedMintedBy: workItemId,
+      });
+    }, 30_000);
+  });
+
+  describe('work — done mints review', () => {
+    it("VALID: {a `work` item drains done} => mints `review`, assigned the step's WHOLE in-scope set (the flow's terminal alongside its observable), not only the unit `work` marked", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-fr-work-done' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const workItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: [flowriderScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            role: 'flowrider',
+            status: 'complete',
+            step: 'work',
+            assignedUnitIds: [UNIT_OBSERVABLE],
+            observations: [
+              UnitObservationStub({
+                unitId: UNIT_OBSERVABLE,
+                mark: 'met',
+                evidence:
+                  'packages/web/src/widgets/badge/badge-widget.test.tsx:18 — asserts the persisted count',
+              }),
+            ],
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const minted = after.workItems.find((item) => item.id !== workItemId);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        mintedStep: minted?.step,
+        mintedRole: minted?.role,
+        mintedStatus: minted?.status,
+        mintedAssignedUnitIds: minted?.assignedUnitIds.map(String).sort(),
+        mintedMintedBy: minted?.mintedBy,
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        mintedStep: 'review',
+        mintedRole: 'flowrider',
+        mintedStatus: 'pending',
+        mintedAssignedUnitIds: [UNIT_OBSERVABLE, UNIT_TERMINAL].sort(),
+        mintedMintedBy: undefined,
+      });
+    }, 30_000);
+  });
+
+  describe('review — unmet mints work', () => {
+    it('VALID: {a `review` item drains with one of its two units unmet} => mints `work`, carrying only the unmet unit', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-fr-review-unmet' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const reviewItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: [flowriderScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: reviewItemId,
+            role: 'flowrider',
+            status: 'complete',
+            step: 'review',
+            assignedUnitIds: [UNIT_TERMINAL, UNIT_OBSERVABLE],
+            observations: [
+              UnitObservationStub({
+                unitId: UNIT_TERMINAL,
+                mark: 'met',
+                evidence: 'the composer node terminates the flow — the suite reaches it',
+              }),
+              UnitObservationStub({
+                unitId: UNIT_OBSERVABLE,
+                mark: 'unmet',
+                evidence: 'the assertion does not distinguish queued from persisted comments',
+              }),
+            ],
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const minted = after.workItems.find((item) => item.id !== reviewItemId);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        mintedStep: minted?.step,
+        mintedRole: minted?.role,
+        mintedAssignedUnitIds: minted?.assignedUnitIds.map(String),
+        mintedMintedBy: minted?.mintedBy,
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        mintedStep: 'work',
+        mintedRole: 'flowrider',
+        mintedAssignedUnitIds: [UNIT_OBSERVABLE],
+        mintedMintedBy: reviewItemId,
+      });
+    }, 30_000);
+  });
+
+  describe('review — done mints commit', () => {
+    it('VALID: {a `review` item drains done on its whole in-scope set} => mints `commit`, a deterministic entry assigned no units', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-fr-review-done' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const reviewItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: [flowriderScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: reviewItemId,
+            role: 'flowrider',
+            status: 'complete',
+            step: 'review',
+            assignedUnitIds: [UNIT_TERMINAL, UNIT_OBSERVABLE],
+            observations: [
+              UnitObservationStub({ unitId: UNIT_TERMINAL, mark: 'met', evidence: 'reached' }),
+              UnitObservationStub({
+                unitId: UNIT_OBSERVABLE,
+                mark: 'met',
+                evidence: 'distinguishes correctly now',
+              }),
+            ],
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const minted = after.workItems.find((item) => item.id !== reviewItemId);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        mintedStep: minted?.step,
+        mintedRole: minted?.role,
+        mintedAssignedUnitIds: minted?.assignedUnitIds.map(String),
+        mintedMintedBy: minted?.mintedBy,
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        mintedStep: 'commit',
+        mintedRole: 'flowrider',
+        mintedAssignedUnitIds: [],
+        mintedMintedBy: undefined,
+      });
+    }, 30_000);
+  });
+
+  describe('commit — done and empty both mint ward', () => {
+    it('VALID: {a `commit` item drains done} => mints `ward`, a deterministic entry assigned no units', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-fr-commit-done' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const commitItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: [flowriderScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: commitItemId,
+            role: 'flowrider',
+            status: 'complete',
+            step: 'commit',
+            assignedUnitIds: [],
+            declaredWord: 'done',
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const minted = after.workItems.find((item) => item.id !== commitItemId);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        mintedStep: minted?.step,
+        mintedRole: minted?.role,
+        mintedAssignedUnitIds: minted?.assignedUnitIds.map(String),
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        mintedStep: 'ward',
+        mintedRole: 'flowrider',
+        mintedAssignedUnitIds: [],
+      });
+    }, 30_000);
+
+    it('VALID: {a `commit` item drains empty — a clean tree} => mints `ward` too, per CLOSE_OUT.commit\'s own comment ("it still wards — the branch may be red from an earlier scope")', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-fr-commit-empty' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const commitItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: [flowriderScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: commitItemId,
+            role: 'flowrider',
+            status: 'complete',
+            step: 'commit',
+            assignedUnitIds: [],
+            declaredWord: 'empty',
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const minted = after.workItems.find((item) => item.id !== commitItemId);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        mintedStep: minted?.step,
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        mintedStep: 'ward',
+      });
+    }, 30_000);
+  });
+
+  describe('ward — done and empty both complete the scope, cascading the family graph onward to siegemaster', () => {
+    it("VALID: {a flowrider `ward` item drains done} => completes the flowrider operation item and mints siegemaster's own scope", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-fr-ward-done' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const wardItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: [flowriderScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: wardItemId,
+            role: 'flowrider',
+            status: 'complete',
+            step: 'ward',
+            assignedUnitIds: [],
+            declaredWord: 'done',
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const flowriderOp = after.operations.find((op) => String(op.id) === opId);
+      const mintedOp = after.operations.find((op) => String(op.id) !== opId);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        flowriderOpStatus: flowriderOp?.status,
+        mintedOpRole: mintedOp?.role,
+        mintedOpStatus: mintedOp?.status,
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        flowriderOpStatus: 'complete',
+        mintedOpRole: 'siegemaster',
+        mintedOpStatus: 'pending',
+      });
+    }, 30_000);
+
+    it('VALID: {a flowrider `ward` item drains empty} => completes the scope too, the same as done', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-fr-ward-empty' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const wardItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: [flowriderScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: wardItemId,
+            role: 'flowrider',
+            status: 'complete',
+            step: 'ward',
+            assignedUnitIds: [],
+            declaredWord: 'empty',
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const flowriderOp = after.operations.find((op) => String(op.id) === opId);
+      const mintedOp = after.operations.find((op) => String(op.id) !== opId);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        flowriderOpStatus: flowriderOp?.status,
+        mintedOpRole: mintedOp?.role,
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        flowriderOpStatus: 'complete',
+        mintedOpRole: 'siegemaster',
+      });
+    }, 30_000);
+  });
+
+  describe('ward — unmet mints repair, and a finished repair returns to a FRESH ward', () => {
+    it('VALID: {a flowrider `ward` item drains unmet} => mints `repair` carrying `mintedBy`; once the repair session finishes with no declaredWord, the router folds it to `done` (the no-units default), follows `mintedBy` back to the ward item, and mints a FRESH `ward` item — the gate re-runs rather than the quest blocking, the exact fix `ba5f48c5e` made for every family sharing CLOSE_OUT.repair', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-fr-ward-repair-return' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const wardItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: [flowriderScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: wardItemId,
+            role: 'flowrider',
+            status: 'complete',
+            step: 'ward',
+            assignedUnitIds: [],
+            declaredWord: 'unmet',
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      // ROUND 1 — ward's `unmet` route mints repair.
+      await questRouteScopeBroker({ questId });
+      const afterFirst = await quest.reload({ questId });
+      const repairItem = afterFirst.workItems.find((item) => item.id !== wardItemId)!;
+
+      // ROUND 2 — the repair session finishes, reporting nothing (it holds no units).
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: afterFirst.operations,
+        workItems: [
+          ...afterFirst.workItems.filter((item) => item.id !== repairItem.id),
+          { ...repairItem, status: 'complete' as const },
+        ],
+      });
+
+      const secondResult = await questRouteScopeBroker({ questId });
+      const afterSecond = await quest.reload({ questId });
+      const freshWard = afterSecond.workItems
+        .filter((item) => item.id !== wardItemId)
+        .find((item) => item.id !== repairItem.id);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        repairMintedBy: repairItem.mintedBy,
+        secondResult,
+        freshWardStep: freshWard?.step,
+        freshWardRole: freshWard?.role,
+        freshWardStatus: freshWard?.status,
+        freshWardAssignedUnitIds: freshWard?.assignedUnitIds.map(String),
+        workItemCount: afterSecond.workItems.length,
+      }).toStrictEqual({
+        repairMintedBy: wardItemId,
+        secondResult: { routed: true, blocked: false },
+        freshWardStep: 'ward',
+        freshWardRole: 'flowrider',
+        freshWardStatus: 'pending',
+        freshWardAssignedUnitIds: [],
+        workItemCount: 3,
+      });
+    }, 30_000);
+  });
+});
+
+// wardFull, riftcarver and warpgate share this file because each alone is too small (7 steps,
+// ~25 routes combined) to justify its own — see the T5-1 unit table. All three differ from the
+// three operator families above in one load-bearing way: none carries real per-unit marks
+// (`stepInScopeUnitsTransformer` returns `[]` for any operation-item role that is not
+// `codeweaver`/`flowrider`/`siegemaster`), so every step here mints and drains with
+// `assignedUnitIds: []` and every outcome comes from `declaredWord` alone — never from question
+// 2's mark-mint branch.
+//
+// Verified against `agentFlowStatics` ITSELF, not against the plan table that scoped this unit:
+// riftcarver's and wardFull's own `repair` steps declare `routes: { done: 'commit', ... }` — a
+// DECLARED forward edge — where the shared family `repair` codeweaver/flowrider/siegemaster all
+// spread from `CLOSE_OUT.repair` declares NO `done` route at all and relies entirely on the
+// return-to-minter edge. `packages/orchestrator/CLAUDE.md`'s "The gate/repair fixpoint" section
+// says this outright, corrected by `ba5f48c5e`: "riftcarver's and wardFull's own `repair` steps
+// instead declare `done: 'commit'` and take that FORWARD edge onward, because each of those
+// graphs has no shared `CLOSE_OUT` to fall back into and needs its own commit." One consequence
+// pinned below: because `commit`'s own route table also declares `done`/`empty` (to `gate` or
+// `carve`), NEITHER the `unmet`-mint into `repair` NOR the `done`-mint into `commit` NOR the
+// `done`-mint back into `gate`/`carve` ever stamps `mintedBy` — every hop here is a plain
+// declared forward edge, unlike the shared family gate/repair loop's `mintedBy`-carrying mint.
+
+const wardFullScope = ({ opId }: { opId: string }) =>
+  OperationItemStub({
+    id: OperationItemIdStub({ value: opId }),
+    role: 'ward',
+    text: 'Ward gate (full monorepo)',
+    status: 'in_progress',
+    locked: true,
+  });
+
+const riftcarverScope = ({ opId }: { opId: string }) =>
+  OperationItemStub({
+    id: OperationItemIdStub({ value: opId }),
+    role: 'riftcarver',
+    text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
+    status: 'in_progress',
+    locked: true,
+  });
+
+const warpgateScope = ({ opId }: { opId: string }) =>
+  OperationItemStub({
+    id: OperationItemIdStub({ value: opId }),
+    role: 'warpgate',
+    text: 'Warpgate: merge the quest branch home into the base branch',
+    status: 'in_progress',
+    locked: true,
+  });
+
+describe('wardFull, riftcarver and warpgate', () => {
+  const quest = orchestrationQuestHarness();
+
+  describe('wardFull.gate — done and empty both complete the scope, and wardFull mints no further family', () => {
+    it("VALID: {a `gate` item drains done} => completes the wardFull operation item — `questFlowStatics.feature.families.wardFull.routes.done` is `@complete`, so no next family's scopes appear", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-wf-gate-done' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const gateItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        operations: [wardFullScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: gateItemId,
+            role: 'ward',
+            status: 'complete',
+            step: 'gate',
+            assignedUnitIds: [],
+            declaredWord: 'done',
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const gateOp = after.operations.find((op) => String(op.id) === opId);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        gateOpStatus: gateOp?.status,
+        operationCount: after.operations.length,
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        gateOpStatus: 'complete',
+        operationCount: 1,
+      });
+    }, 30_000);
+
+    it('VALID: {a `gate` item drains empty — a 0-file scope} => completes the scope too, the same as done', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-wf-gate-empty' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const gateItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        operations: [wardFullScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: gateItemId,
+            role: 'ward',
+            status: 'complete',
+            step: 'gate',
+            assignedUnitIds: [],
+            declaredWord: 'empty',
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const gateOp = after.operations.find((op) => String(op.id) === opId);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        gateOpStatus: gateOp?.status,
+        operationCount: after.operations.length,
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        gateOpStatus: 'complete',
+        operationCount: 1,
+      });
+    }, 30_000);
+  });
+
+  describe('wardFull.gate — unmet mints repair, whose own `done: commit` forwards to commit, whose own `done` re-enters a FRESH gate', () => {
+    it("VALID: {a `gate` item drains unmet} => mints `repair` (no `mintedBy` — `repair` declares its own `done` route, unlike the family repair); the repair finishes undeclared and folds to `done`, taking its DECLARED `done: 'commit'` edge onward (still no `mintedBy` — a forward route, not a return); `commit` then drains done and re-enters a FRESH `gate` (no `mintedBy` either) — three plain declared hops, never a return-to-minter", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-wf-gate-repair-commit-gate' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const gateItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        operations: [wardFullScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: gateItemId,
+            role: 'ward',
+            status: 'complete',
+            step: 'gate',
+            assignedUnitIds: [],
+            declaredWord: 'unmet',
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      // ROUND 1 — gate's `unmet` route mints repair.
+      await questRouteScopeBroker({ questId });
+      const afterFirst = await quest.reload({ questId });
+      const repairItem = afterFirst.workItems.find((item) => item.id !== gateItemId)!;
+
+      // ROUND 2 — the repair session finishes undeclared; repair's OWN `done: 'commit'` fires.
+      await quest.seedInProgressRelay({
+        questId,
+        operations: afterFirst.operations,
+        workItems: [
+          ...afterFirst.workItems.filter((item) => item.id !== repairItem.id),
+          { ...repairItem, status: 'complete' as const },
+        ],
+      });
+
+      await questRouteScopeBroker({ questId });
+      const afterSecond = await quest.reload({ questId });
+      const commitItem = afterSecond.workItems
+        .filter((item) => item.id !== gateItemId)
+        .find((item) => item.id !== repairItem.id)!;
+
+      // ROUND 3 — the commit item drains (worker default: done); commit's own `done: 'gate'`
+      // re-enters the gate.
+      await quest.seedInProgressRelay({
+        questId,
+        operations: afterSecond.operations,
+        workItems: [
+          ...afterSecond.workItems.filter((item) => item.id !== commitItem.id),
+          { ...commitItem, status: 'complete' as const },
+        ],
+      });
+
+      const thirdResult = await questRouteScopeBroker({ questId });
+      const afterThird = await quest.reload({ questId });
+      const freshGate = afterThird.workItems
+        .filter((item) => item.id !== gateItemId)
+        .filter((item) => item.id !== repairItem.id)
+        .find((item) => item.id !== commitItem.id);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        repairStep: repairItem.step,
+        repairRole: repairItem.role,
+        repairMintedBy: repairItem.mintedBy,
+        commitStep: commitItem.step,
+        commitRole: commitItem.role,
+        commitMintedBy: commitItem.mintedBy,
+        thirdResult,
+        freshGateStep: freshGate?.step,
+        freshGateRole: freshGate?.role,
+        freshGateStatus: freshGate?.status,
+        freshGateMintedBy: freshGate?.mintedBy,
+        workItemCount: afterThird.workItems.length,
+      }).toStrictEqual({
+        repairStep: 'repair',
+        repairRole: 'ward',
+        repairMintedBy: undefined,
+        commitStep: 'commit',
+        commitRole: 'ward',
+        commitMintedBy: undefined,
+        thirdResult: { routed: true, blocked: false },
+        freshGateStep: 'gate',
+        freshGateRole: 'ward',
+        freshGateStatus: 'pending',
+        freshGateMintedBy: undefined,
+        workItemCount: 4,
+      });
+    }, 30_000);
+  });
+
+  describe('riftcarver.carve — unmet mints repair, whose own `done: commit` forwards to commit, whose own `done` re-enters a FRESH carve', () => {
+    it("VALID: {a `carve` item drains unmet} => the identical three-hop shape as wardFull's own gate/repair/commit fixpoint above — `riftcarver.repair` and `riftcarver.commit` declare the same `done: 'commit'` / `done: 'carve'` forward edges, so no hop here carries `mintedBy` either", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-rc-carve-repair-commit-carve' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const carveItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        operations: [riftcarverScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: carveItemId,
+            role: 'riftcarver',
+            status: 'complete',
+            step: 'carve',
+            assignedUnitIds: [],
+            declaredWord: 'unmet',
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      // ROUND 1 — carve's `unmet` route mints repair.
+      await questRouteScopeBroker({ questId });
+      const afterFirst = await quest.reload({ questId });
+      const repairItem = afterFirst.workItems.find((item) => item.id !== carveItemId)!;
+
+      // ROUND 2 — the repair session finishes undeclared; repair's OWN `done: 'commit'` fires.
+      await quest.seedInProgressRelay({
+        questId,
+        operations: afterFirst.operations,
+        workItems: [
+          ...afterFirst.workItems.filter((item) => item.id !== repairItem.id),
+          { ...repairItem, status: 'complete' as const },
+        ],
+      });
+
+      await questRouteScopeBroker({ questId });
+      const afterSecond = await quest.reload({ questId });
+      const commitItem = afterSecond.workItems
+        .filter((item) => item.id !== carveItemId)
+        .find((item) => item.id !== repairItem.id)!;
+
+      // ROUND 3 — the commit item drains (worker default: done); commit's own `done: 'carve'`
+      // re-enters carve.
+      await quest.seedInProgressRelay({
+        questId,
+        operations: afterSecond.operations,
+        workItems: [
+          ...afterSecond.workItems.filter((item) => item.id !== commitItem.id),
+          { ...commitItem, status: 'complete' as const },
+        ],
+      });
+
+      const thirdResult = await questRouteScopeBroker({ questId });
+      const afterThird = await quest.reload({ questId });
+      const freshCarve = afterThird.workItems
+        .filter((item) => item.id !== carveItemId)
+        .filter((item) => item.id !== repairItem.id)
+        .find((item) => item.id !== commitItem.id);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        repairStep: repairItem.step,
+        repairRole: repairItem.role,
+        repairMintedBy: repairItem.mintedBy,
+        commitStep: commitItem.step,
+        commitMintedBy: commitItem.mintedBy,
+        thirdResult,
+        freshCarveStep: freshCarve?.step,
+        freshCarveRole: freshCarve?.role,
+        freshCarveStatus: freshCarve?.status,
+        freshCarveMintedBy: freshCarve?.mintedBy,
+        workItemCount: afterThird.workItems.length,
+      }).toStrictEqual({
+        repairStep: 'repair',
+        repairRole: 'riftcarver',
+        repairMintedBy: undefined,
+        commitStep: 'commit',
+        commitMintedBy: undefined,
+        thirdResult: { routed: true, blocked: false },
+        freshCarveStep: 'carve',
+        freshCarveRole: 'riftcarver',
+        freshCarveStatus: 'pending',
+        freshCarveMintedBy: undefined,
+        workItemCount: 4,
+      });
+    }, 30_000);
+  });
+
+  describe('riftcarver.carve — done completes the scope and mints the next family', () => {
+    it("VALID: {a `carve` item drains done} => completes the riftcarver operation item and mints codeweaver's own scope — `questFlowStatics.feature.families.riftcarver.routes.done` is 'codeweaver', unlike wardFull's and warpgate's own `done` routes, which are terminal", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-rc-carve-done' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const carveItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        flows: [SEND_FLOW],
+        packagesAffected: [WEB_PACKAGE],
+        operations: [riftcarverScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: carveItemId,
+            role: 'riftcarver',
+            status: 'complete',
+            step: 'carve',
+            assignedUnitIds: [],
+            declaredWord: 'done',
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const carveOp = after.operations.find((op) => String(op.id) === opId);
+      const mintedOp = after.operations.find((op) => String(op.id) !== opId);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        carveOpStatus: carveOp?.status,
+        mintedOpRole: mintedOp?.role,
+        mintedOpStatus: mintedOp?.status,
+        mintedOpFlowIds: mintedOp?.flowIds.map(String),
+        mintedOpPackageNames: mintedOp?.packageNames.map(String),
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        carveOpStatus: 'complete',
+        mintedOpRole: 'codeweaver',
+        mintedOpStatus: 'pending',
+        mintedOpFlowIds: ['send-flow'],
+        mintedOpPackageNames: ['web'],
+      });
+    }, 30_000);
+  });
+
+  describe('warpgate.merge — unmet loops back to merge', () => {
+    it("VALID: {a `merge` item drains unmet} => mints a fresh `merge` item, no `mintedBy` — `merge` declares its own `done` route ('@done'), so this self-loop is a plain declared route the same way `work`'s self-loop is, never a mark-mint", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-wg-merge-unmet' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const mergeItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        operations: [warpgateScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: mergeItemId,
+            role: 'warpgate',
+            status: 'complete',
+            step: 'merge',
+            assignedUnitIds: [],
+            declaredWord: 'unmet',
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const minted = after.workItems.find((item) => item.id !== mergeItemId);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        mintedStep: minted?.step,
+        mintedRole: minted?.role,
+        mintedStatus: minted?.status,
+        mintedAssignedUnitIds: minted?.assignedUnitIds.map(String),
+        mintedMintedBy: minted?.mintedBy,
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        mintedStep: 'merge',
+        mintedRole: 'warpgate',
+        mintedStatus: 'pending',
+        mintedAssignedUnitIds: [],
+        mintedMintedBy: undefined,
+      });
+    }, 30_000);
+  });
+
+  describe('warpgate.merge — done completes the scope, and no family follows', () => {
+    it('VALID: {a `merge` item drains done} => completes the warpgate operation item — `questFlowStatics.feature.families.warpgate.routes.done` is `@complete`, and `mintNextFamilyLayerBroker` mints nothing for a target that names no family', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'rsb-wg-merge-done' }),
+      });
+      const { questId } = await quest.createGuildAndQuest({ testbed });
+
+      const opId = crypto.randomUUID();
+      const mergeItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await quest.seedInProgressRelay({
+        questId,
+        operations: [warpgateScope({ opId })],
+        workItems: [
+          WorkItemStub({
+            id: mergeItemId,
+            role: 'warpgate',
+            status: 'complete',
+            step: 'merge',
+            assignedUnitIds: [],
+            declaredWord: 'done',
+            relatedDataItems: [`operations/${opId}`],
+          }),
+        ],
+      });
+
+      const result = await questRouteScopeBroker({ questId });
+      const after = await quest.reload({ questId });
+      const mergeOp = after.operations.find((op) => String(op.id) === opId);
+
+      await quest.afterEach();
+      testbed.cleanup();
+
+      expect({
+        result,
+        mergeOpStatus: mergeOp?.status,
+        operationCount: after.operations.length,
+      }).toStrictEqual({
+        result: { routed: true, blocked: false },
+        mergeOpStatus: 'complete',
+        operationCount: 1,
+      });
+    }, 30_000);
+  });
+});
