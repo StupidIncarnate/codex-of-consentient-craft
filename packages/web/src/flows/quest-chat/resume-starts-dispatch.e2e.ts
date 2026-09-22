@@ -38,6 +38,7 @@ test.describe('Resume starts the dispatch queue', () => {
   }) => {
     const guilds = guildHarness({ request });
     const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
+    const quests = questHarness({ request });
     const nav = navigationHarness({ page });
 
     const guild = await guilds.createGuild({
@@ -70,7 +71,7 @@ test.describe('Resume starts the dispatch queue', () => {
     });
 
     // Precondition: quest paused, and the dispatcher explicitly NOT playing (beforeEach paused it).
-    await request.post(`/api/quests/${questId}/pause`);
+    await quests.pauseQuest({ questId: String(questId) });
 
     expect(await dispatch.isDispatchPlaying()).toBe(false);
 
@@ -149,7 +150,7 @@ test.describe('Resume starts the dispatch queue', () => {
       ],
     });
 
-    await request.patch(`/api/quests/${questId}`, { data: { pausedAtStatus: 'in_progress' } });
+    await quests.seedPausedAtStatus({ questId: String(questId), pausedAtStatus: 'in_progress' });
 
     await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 

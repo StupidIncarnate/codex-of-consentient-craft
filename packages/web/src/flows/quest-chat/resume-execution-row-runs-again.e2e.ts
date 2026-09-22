@@ -112,7 +112,7 @@ test.describe('Resuming a quest shows the previously in_progress execution row r
 
     // Precondition-only write: this PATCH sets the snapshot resume restores TO, not the mutation
     // under test — the mutation is the RESUME button click below.
-    await request.patch(`/api/quests/${questId}`, { data: { pausedAtStatus: 'in_progress' } });
+    await quests.seedPausedAtStatus({ questId: String(questId), pausedAtStatus: 'in_progress' });
 
     // The agent RESUME is about to spawn needs a queued outcome, or it exits red-on-empty.
     dispatch.queueScript({

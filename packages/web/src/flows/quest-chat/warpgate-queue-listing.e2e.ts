@@ -116,7 +116,9 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
         },
       ],
     });
-    await request.post(`/api/quests/${questIdB}/start`);
+    await dispatchHarness({ request, guildPath: GUILD_PATH }).startQuestViaStartRoute({
+      questId: questIdB,
+    });
 
     await quests.writeQuestFile({
       questId: questIdB,
@@ -133,9 +135,10 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
       ],
     });
 
-    const mergeResponse = await request.post(`/api/quests/${questIdB}/merge`);
-    expect(mergeResponse.status()).toBe(HTTP_OK);
-    const mergeBody = await mergeResponse.json();
+    const { status: mergeStatus, body: mergeBody } = await quests.mergeQuestViaMergeRoute({
+      questId: questIdB,
+    });
+    expect(mergeStatus).toBe(HTTP_OK);
     expect(mergeBody).toStrictEqual({ merging: true });
 
     const afterMergeResponse = await request.get(`/api/quests/${questIdB}`);

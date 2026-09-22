@@ -28,6 +28,8 @@ import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 import { questFlowObservableSeedTransformer } from '@dungeonmaster/testing/transformers/quest-flow-observable-seed';
 import { dmTargetHarness } from '../dm-target/dm-target.harness';
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
+import { dmHttpResponseContract } from '@dungeonmaster/hydration-recipes/contracts';
+import type { DmHttpResponse } from '@dungeonmaster/hydration-recipes/contracts';
 
 const { recipe } = recipesHydrationCreateBroker();
 const QUEST_SAVE_NAME = 'quest';
@@ -293,6 +295,13 @@ export const questHarness = ({
   // exists for. PATCH /api/quests/:questId with the status the quest ALREADY has is the only route
   // onto it.
   forceStatusRebroadcast: (params: { questId: string; status: string }) => Promise<void>;
+  // RAW ON PURPOSE — same cross-process gap as forceStatusRebroadcast above: dmRegistryBroker's
+  // `update` route calls questModifyBroker inside THIS test process, so its questPersistBroker
+  // outbox append is cross-process relative to the real dev server hosting
+  // orchestratorOutboxWatchAdapter and does not reliably wake it. PATCH /api/quests/:questId run
+  // through the server's own HTTP handler is what appends the outbox INSIDE that process, which is
+  // what a spec asserting on the WS-delivered flow update actually needs.
+  patchQuestFlows: (params: { questId: string; flows: FlowInput[] }) => Promise<void>;
   rewindQuestStatus: (params: { questFilePath: string; status: string }) => Promise<void>;
   tamperQuestStatusRewind: (params: { questFilePath: string; status: string }) => Promise<void>;
   questFolderExists: (params: { questFilePath: string }) => boolean;
@@ -322,6 +331,41 @@ export const questHarness = ({
   // for real. A spec proving what RESUME does with an already-paused quest needs this as a
   // PRECONDITION (the quest was paused before the test's own mutation), not as the mutation itself.
   seedPausedAtStatus: (params: { questId: string; pausedAtStatus: string }) => Promise<void>;
+  // RAW ON PURPOSE — same route as pauseQuest above, but hands back the response instead of
+  // throwing: a spec asserting the pause route's exact status code AND JSON body (not just that it
+  // succeeded) needs both, and pauseQuest deliberately discards them for its own callers, which
+  // only want a throw on failure.
+  pauseQuestResponse: (params: {
+    questId: string;
+  }) => Promise<{ status: DmHttpResponse['status']; body: Record<PropertyKey, unknown> }>;
+  // RAW ON PURPOSE — the resume counterpart of pauseQuestResponse. 'paused' is deliberately off
+  // the quest ingredient's own `transitions.to` (see quest-ingredient-broker.ts's own header), so
+  // nothing walks back OUT of it through the framework either — restoring the pre-pause status and
+  // deciding whether to restart the global dispatcher are real side effects only
+  // POST /api/quests/:questId/resume performs.
+  resumeQuestResponse: (params: {
+    questId: string;
+  }) => Promise<{ status: DmHttpResponse['status']; body: Record<PropertyKey, unknown> }>;
+  // RAW ON PURPOSE — dmRegistryBroker's `update` route (patchQuestStatus above) calls
+  // questModifyBroker IN-PROCESS (quest-update-route-broker.ts), so it never produces a wire-level
+  // HTTP response at all — there is no status code the framework route could ever hand back. A
+  // spec asserting the real PATCH /api/quests/:questId response code needs the actual request.
+  patchQuestStatusResponse: (params: {
+    questId: string;
+    status: string;
+  }) => Promise<{ status: DmHttpResponse['status'] }>;
+  // RAW ON PURPOSE — `merging`/`merged` are deliberately off the quest ingredient's own
+  // `transitions.to` list: quest-ingredient-broker.ts's own header names why — "minted only by
+  // OrchestrationMergeResponder pressing 'Teleport with Booty' ... the machinery behind both is
+  // out of this ingredient's reach." POST /api/quests/:questId/merge — the same route the UI's
+  // Teleport with Booty button calls — is the only way onto it. The status and body have to come
+  // back RAW too: dmHttpResponseUnwrapAdapter discards the real HTTP status and hands back only
+  // the parsed body on success (dispatchHarness.startQuestViaStartRoute's own comment names the
+  // same gap for /start), so a spec proving the route's own response shape has no route through
+  // the framework for either value.
+  mergeQuestViaMergeRoute: (params: {
+    questId: string;
+  }) => Promise<{ status: DmHttpResponse['status']; body: Record<PropertyKey, unknown> }>;
 } => {
   const resolvedBaseUrl =
     baseURL ??
@@ -1041,6 +1085,29 @@ export const questHarness = ({
     }
   };
 
+  // RAW ON PURPOSE — same cross-process gap as forceStatusRebroadcast above: dmRegistryBroker's
+  // `update` route calls questModifyBroker in THIS test process, and its questPersistBroker outbox
+  // append is therefore cross-process relative to the real dev server hosting
+  // orchestratorOutboxWatchAdapter — "does not reliably wake a watcher that subscribed before it
+  // landed" (forceStatusRebroadcast's own comment above). PATCH /api/quests/:questId run through
+  // the server's own HTTP handler is what appends the outbox INSIDE that process, which is what a
+  // spec asserting on the WS-delivered flow update actually needs.
+  const patchQuestFlows = async ({
+    questId,
+    flows,
+  }: {
+    questId: string;
+    flows: FlowInput[];
+  }): Promise<void> => {
+    const patchRoute = `/api/quests/${questId}`;
+    const response = await request.patch(patchRoute, { data: { flows } });
+    if (!response.ok()) {
+      throw new Error(
+        `questHarness.patchQuestFlows: ${patchRoute} answered ${String(response.status())}`,
+      );
+    }
+  };
+
   // Rewrites ONLY the `status` field of an existing quest.json, leaving every other byte — the
   // seeded operations ledger, the work items, the package graph — exactly as the SERVER wrote it,
   // then appends the same quest-modified outbox line questPersistBroker would so the watcher
@@ -1216,6 +1283,76 @@ export const questHarness = ({
     await dmRegistryBroker.run(plan, dmTarget.apiTarget());
   };
 
+  // RAW ON PURPOSE — see this method's own header on the return-type block above: `merging` has
+  // no dmRegistryBroker route, and the literal status/body are what a caller proving the merge
+  // route's own response shape needs back.
+  const mergeQuestViaMergeRoute = async ({
+    questId,
+  }: {
+    questId: string;
+  }): Promise<{ status: DmHttpResponse['status']; body: Record<PropertyKey, unknown> }> => {
+    const mergeRoute = `/api/quests/${questId}/merge`;
+    const response = await request.post(mergeRoute);
+    const body = (await response.json()) as Record<PropertyKey, unknown>;
+    return {
+      status: dmHttpResponseContract.shape.status.parse(response.status()),
+      body,
+    };
+  };
+
+  // RAW ON PURPOSE — same route as pauseQuest above, but hands back the response instead of
+  // throwing: a spec asserting the pause route's exact status code AND JSON body (not just that it
+  // succeeded) needs both, and pauseQuest deliberately discards them for its own callers, which
+  // only want a throw on failure.
+  const pauseQuestResponse = async ({
+    questId,
+  }: {
+    questId: string;
+  }): Promise<{ status: DmHttpResponse['status']; body: Record<PropertyKey, unknown> }> => {
+    const pauseRoute = `/api/quests/${questId}/pause`;
+    const response = await request.post(pauseRoute);
+    const body = (await response.json()) as Record<PropertyKey, unknown>;
+    return {
+      status: dmHttpResponseContract.shape.status.parse(response.status()),
+      body,
+    };
+  };
+
+  // RAW ON PURPOSE — the resume counterpart of pauseQuestResponse. 'paused' is deliberately off
+  // the quest ingredient's own `transitions.to` (see quest-ingredient-broker.ts's own header), so
+  // nothing walks back OUT of it through the framework either — restoring the pre-pause status and
+  // deciding whether to restart the global dispatcher are real side effects only
+  // POST /api/quests/:questId/resume performs.
+  const resumeQuestResponse = async ({
+    questId,
+  }: {
+    questId: string;
+  }): Promise<{ status: DmHttpResponse['status']; body: Record<PropertyKey, unknown> }> => {
+    const resumeRoute = `/api/quests/${questId}/resume`;
+    const response = await request.post(resumeRoute);
+    const body = (await response.json()) as Record<PropertyKey, unknown>;
+    return {
+      status: dmHttpResponseContract.shape.status.parse(response.status()),
+      body,
+    };
+  };
+
+  // RAW ON PURPOSE — dmRegistryBroker's `update` route (patchQuestStatus above) calls
+  // questModifyBroker IN-PROCESS (quest-update-route-broker.ts), so it never produces a wire-level
+  // HTTP response at all — there is no status code the framework route could ever hand back. A
+  // spec asserting the real PATCH /api/quests/:questId response code needs the actual request.
+  const patchQuestStatusResponse = async ({
+    questId,
+    status,
+  }: {
+    questId: string;
+    status: string;
+  }): Promise<{ status: DmHttpResponse['status'] }> => {
+    const patchRoute = `/api/quests/${questId}`;
+    const response = await request.patch(patchRoute, { data: { status } });
+    return { status: dmHttpResponseContract.shape.status.parse(response.status()) };
+  };
+
   return {
     createQuest,
     writeQuestFile,
@@ -1227,10 +1364,15 @@ export const questHarness = ({
     startQuest,
     pauseQuest,
     forceStatusRebroadcast,
+    patchQuestFlows,
     rewindQuestStatus: tamperQuestStatusRewind,
     tamperQuestStatusRewind,
     questFolderExists,
     seedInProgressWithOperations,
     seedPausedAtStatus,
+    mergeQuestViaMergeRoute,
+    pauseQuestResponse,
+    resumeQuestResponse,
+    patchQuestStatusResponse,
   };
 };

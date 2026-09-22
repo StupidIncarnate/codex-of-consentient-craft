@@ -132,7 +132,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
       at: NOTIFICATION_AT,
       durationMs: REPORTED_DURATION_MS,
     });
-    await request.patch(`/api/quests/${questId}`, { data: { status: 'in_progress' } });
+    await quests.forceStatusRebroadcast({ questId: String(questId), status: 'in_progress' });
 
     // Reading (2): …:branch:notification-arrives-yes — the reported duration wins outright, and
     // this string differs from the still-live "1m" above, so the change is provably the
@@ -241,7 +241,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
       taskToolUseId: TOOL_USE_ID,
       at: NOTIFICATION_AT,
     });
-    await request.patch(`/api/quests/${questId}`, { data: { status: 'in_progress' } });
+    await quests.forceStatusRebroadcast({ questId: String(questId), status: 'in_progress' });
 
     // Reading (2): the notification landed with no reportedDurationMs, so the figure freezes on
     // the raw timestamp gap between the Task tool use and the notification (270000 ms => `4m`) —

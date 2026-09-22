@@ -1,5 +1,6 @@
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
+import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import {
   wardMockHarness,
   WardQueueResponseStub,
@@ -139,7 +140,8 @@ test.describe.skip('Ward Execution Streaming', () => {
     // Kick orchestration off before navigation so the quest is already in an
     // execution-phase status (in_progress) by the time the browser renders —
     // the WS execution listener activates on first paint and no ward output is lost.
-    await request.post(`/api/quests/${questId}/start`);
+    const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
+    await dispatch.startQuestViaStartRoute({ questId: String(questId) });
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
@@ -325,7 +327,8 @@ test.describe.skip('Ward Execution Streaming', () => {
 
     // Kick orchestration off before navigation so the widget lands on an execution-phase
     // quest with the WS execution listener active from the first render.
-    await request.post(`/api/quests/${questId}/start`);
+    const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
+    await dispatch.startQuestViaStartRoute({ questId: String(questId) });
 
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
