@@ -8,13 +8,13 @@ import { SiegelenseDocsResponderProxy } from './siegelense-docs-responder.proxy'
 
 describe('SiegelenseDocsResponder', () => {
   describe('one scope', () => {
-    it('VALID: {scope: operating, isJson: true} => writes that document alone as JSON, naming it in requested', async () => {
+    it('VALID: {scope: planning, isJson: true} => writes that document alone as JSON, naming it in requested', async () => {
       const proxy = SiegelenseDocsResponderProxy();
-      const scope = DocsScopeStub({ value: 'operating' });
+      const scope = DocsScopeStub({ value: 'planning' });
 
       await SiegelenseDocsResponder({ scope, isJson: true });
 
-      expect(proxy.getStdoutLines()[1]).toBe('  "requested": "operating",');
+      expect(proxy.getStdoutLines()[1]).toBe('  "requested": "planning",');
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(
           docsAnswerComposeTransformer({ scope }),
@@ -24,9 +24,9 @@ describe('SiegelenseDocsResponder', () => {
       ]);
     });
 
-    it('VALID: {scope: operating, isJson: false} => writes that document alone as Markdown by default', async () => {
+    it('VALID: {scope: planning, isJson: false} => writes that document alone as Markdown by default', async () => {
       const proxy = SiegelenseDocsResponderProxy();
-      const scope = DocsScopeStub({ value: 'operating' });
+      const scope = DocsScopeStub({ value: 'planning' });
 
       await SiegelenseDocsResponder({ scope, isJson: false });
 
@@ -58,21 +58,21 @@ describe('SiegelenseDocsResponder', () => {
         isJson: false,
       });
 
-      expect(proxy.getStdoutLines()[16]).toBe(
+      expect(proxy.getStdoutLines()[17]).toBe(
         '### FIVE THINGS TRUE OF YOU AND OF NO DISPATCHED ROLE',
       );
-      expect(proxy.getStdoutLines()[18]).toBe(
+      expect(proxy.getStdoutLines()[19]).toBe(
         '- You are sharing this machine with other agents. Run capacity before starting anything. The start command will queue your request if the machine is busy, so starting multiple instances will slow down other tests.',
       );
     });
   });
 
   describe('the return', () => {
-    it('VALID: {scope: operating, isJson: false} => answers success without starting anything', async () => {
+    it('VALID: {scope: planning, isJson: false} => answers success without starting anything', async () => {
       SiegelenseDocsResponderProxy();
 
       const result = await SiegelenseDocsResponder({
-        scope: DocsScopeStub({ value: 'operating' }),
+        scope: DocsScopeStub({ value: 'planning' }),
         isJson: false,
       });
 

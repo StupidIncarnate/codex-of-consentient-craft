@@ -3,12 +3,12 @@ import { DocsArgsStub } from './docs-args.stub';
 
 describe('docsArgsContract', () => {
   describe('valid args', () => {
-    it('VALID: {scope: "operating", isJson: false} => one scope with markdown default parses', () => {
-      const args = DocsArgsStub({ scope: 'operating', isJson: false });
+    it('VALID: {scope: "planning", isJson: false} => one scope with markdown default parses', () => {
+      const args = DocsArgsStub({ scope: 'planning', isJson: false });
 
       const result = docsArgsContract.parse(args);
 
-      expect(result).toStrictEqual({ scope: 'operating', isJson: false });
+      expect(result).toStrictEqual({ scope: 'planning', isJson: false });
     });
 
     it('VALID: {scope: "walking", isJson: true} => one scope with json parses', () => {
@@ -17,6 +17,14 @@ describe('docsArgsContract', () => {
       const result = docsArgsContract.parse(args);
 
       expect(result).toStrictEqual({ scope: 'walking', isJson: true });
+    });
+
+    it('EMPTY: {scope: null, isJson: false} => the bare-docs overview form parses', () => {
+      const args = DocsArgsStub({ scope: null, isJson: false });
+
+      const result = docsArgsContract.parse(args);
+
+      expect(result).toStrictEqual({ scope: null, isJson: false });
     });
   });
 
@@ -28,28 +36,10 @@ describe('docsArgsContract', () => {
       expect(result.error?.issues).toStrictEqual([
         {
           code: 'invalid_type',
-          expected:
-            "'operating' | 'planning' | 'walking' | 'attacking' | 'fixing' | 'driving' | 'operational'",
+          expected: "'planning' | 'walking' | 'attacking' | 'fixing' | 'driving'",
           received: 'undefined',
           path: ['scope'],
           message: 'Required',
-        },
-      ]);
-    });
-
-    it('INVALID: {scope: null} => raises exactly one issue, scoped to scope', () => {
-      const result = docsArgsContract.safeParse({ scope: null, isJson: false });
-
-      expect(result.success).toBe(false);
-      expect(result.error?.issues).toStrictEqual([
-        {
-          code: 'invalid_type',
-          expected:
-            "'operating' | 'planning' | 'walking' | 'attacking' | 'fixing' | 'driving' | 'operational'",
-          received: 'null',
-          path: ['scope'],
-          message:
-            "Expected 'operating' | 'planning' | 'walking' | 'attacking' | 'fixing' | 'driving' | 'operational', received null",
         },
       ]);
     });
@@ -61,25 +51,17 @@ describe('docsArgsContract', () => {
       expect(result.error?.issues).toStrictEqual([
         {
           code: 'invalid_enum_value',
-          options: [
-            'operating',
-            'planning',
-            'walking',
-            'attacking',
-            'fixing',
-            'driving',
-            'operational',
-          ],
+          options: ['planning', 'walking', 'attacking', 'fixing', 'driving'],
           path: ['scope'],
           received: 'reader',
           message:
-            "Invalid enum value. Expected 'operating' | 'planning' | 'walking' | 'attacking' | 'fixing' | 'driving' | 'operational', received 'reader'",
+            "Invalid enum value. Expected 'planning' | 'walking' | 'attacking' | 'fixing' | 'driving', received 'reader'",
         },
       ]);
     });
 
     it('INVALID: {missing isJson} => raises exactly one issue, scoped to isJson', () => {
-      const result = docsArgsContract.safeParse({ scope: 'operating' });
+      const result = docsArgsContract.safeParse({ scope: 'planning' });
 
       expect(result.success).toBe(false);
       expect(result.error?.issues).toStrictEqual([
@@ -96,7 +78,7 @@ describe('docsArgsContract', () => {
     it('INVALID: {extra key "instance"} => throws Unrecognized key, because docs needs no instance', () => {
       expect(() =>
         docsArgsContract.parse({
-          scope: 'operating',
+          scope: 'planning',
           isJson: false,
           instance: 'inst_7f3a9c21',
         } as never),

@@ -1,21 +1,18 @@
 import { siegelenseCallStatics } from '../siegelense-call/siegelense-call-statics';
-import { stepStatics } from '../step/step-statics';
 
 import { docsStatics } from './docs-statics';
 
 describe('docsStatics', () => {
-  describe('the seven scopes', () => {
+  describe('the five scopes', () => {
     it('VALID: {every pinned scope} => each has its own audience line, in the pinned order', () => {
       expect(
         siegelenseCallStatics.docs.scopes.map((name) => docsStatics.scopes[name].audience),
       ).toStrictEqual([
-        'the operator — the session that opens and closes a pool of instances and assigns tasks to other agents.',
         'the planner — the session that writes the test sequence and proves that the application reaches its starting state.',
         'the walker — the session driving a browser against one instance and recording what it reads.',
         'the stress tester — the session running attacks against one instance and measuring what breaks.',
         'the fixer — the session that arrives after the walk is over and the instance is gone.',
         'a session nobody orchestrated — no quest dispatched you, and no dispatcher is watching.',
-        'a session verifying a flow that has no screen, where siege is the only verification track there is.',
       ]);
     });
 
@@ -24,32 +21,15 @@ describe('docsStatics', () => {
     });
   });
 
-  describe('operating carries no step vocabulary at all', () => {
-    it('VALID: {operating} => none of stepStatics.verbs.all appears anywhere in the scope', () => {
-      const operatingText = JSON.stringify(docsStatics.scopes.operating).toLowerCase();
-
-      expect(
-        stepStatics.verbs.all.filter((verb) =>
-          new RegExp(`\\b${verb}\\b`, 'u').test(operatingText),
-        ),
-      ).toStrictEqual([]);
-    });
-
-    it('VALID: {operating.summary} => states why the driving vocabulary is absent', () => {
-      expect(docsStatics.scopes.operating.summary).toBe(
-        'This scope covers instance and fleet management. As an operator, you do not interact with web pages directly or submit run batches. Therefore, this section does not include any browser-driving commands.',
-      );
-    });
-  });
-
   describe('the preamble every answer carries', () => {
-    it('VALID: {about} => names the 50,000-character ceiling, the marker rule and the absent code-reader scope', () => {
+    it('VALID: {about} => announces the bare-docs overview, names the marker rule and the absent code-reader scope', () => {
       expect(docsStatics.about).toStrictEqual([
+        'Run dungeonmaster siegelense docs with no --for flag to see this overview alone. Add --for <scope> to fetch the manual for one role instead.',
         'The siegelense tool launches an instance of an application, interacts with it, and returns readings. You run it using: dungeonmaster siegelense <call>. Steps are passed as values within a run batch; they are not standalone commands.',
         'A command only returns measured readings. It does not decide if a test passes or fails. Comparing two values is a reading, but determining if the result means pass or fail is left to the user.',
         'If a line ends with NOT BUILT YET, it describes a planned feature that is not implemented yet. Do not try to use it. If a different command can do the same job right now, the instructions will tell you. If a line does not have this marker, the feature is fully built and ready to use.',
-        'You can use the --for flag to show instructions for a specific role. If you omit this flag, you will see the instructions for all seven roles.',
-        'Each of the seven scopes corresponds to a specific role that uses this tool. There is no scope for a code-reading role. This is intentional: an agent that only reads code does not need instructions on how to use siegelense to drive a web browser.',
+        'You can use the --for flag to show instructions for a specific role. If you omit this flag, you will see this overview alone, with no per-role instructions.',
+        'Each of the five scopes corresponds to a specific role that uses this tool. There is no scope for a code-reading role. This is intentional: an agent that only reads code does not need instructions on how to use siegelense to drive a web browser.',
         'These instructions are provided via a command rather than being hardcoded into agent prompts for three reasons. First, any agent can fetch them dynamically. Second, there is only one central source of documentation to maintain. Third, system prompts have character limits; serving the manual dynamically saves valuable prompt space.',
         'Running dungeonmaster siegelense <call> --help provides different information. It shows the specific flags, errors, and an example for that command. This document is the role-specific manual. Use --help to learn how to run a command, and use this document to understand the rules and concepts.',
       ]);
@@ -135,18 +115,6 @@ describe('docsStatics', () => {
     it('VALID: {planning} => says a prelude CAN create its own starting state, now that seed runs a recipe', () => {
       expect(docsStatics.scopes.planning.sections[5].lines[2]).toBe(
         'The seed command runs a setup recipe to prepare the application state. Run dungeonmaster siegelense recipes to see what recipes are available. You can run a recipe using { step: "seed" } and then use its generated IDs in your test steps.',
-      );
-    });
-
-    it('VALID: {operational} => says browser steps error by name on a browserless lane, naming the shape rather than a count', () => {
-      expect(docsStatics.scopes.operational.sections[1].lines[2]).toBe(
-        'If you accidentally send a browser command to a headless instance, it will fail immediately with a clear error message. It will not silently ignore the command. The following browser commands will explicitly fail on a headless instance: goto, waitFor, click, type, screenshot, eval, look, box, dom, key, health, and resize.',
-      );
-    });
-
-    it('VALID: {operational} => closes by naming which steps are built, and that until { file } is the only until form here', () => {
-      expect(docsStatics.scopes.operational.sections[4].lines[0]).toBe(
-        'The request, file, and storage commands are fully built. The until { file } command is built and is the only until form allowed on a headless instance. All other until forms (visible, predicate, console, response) will fail with an error. Right now, you can boot a headless instance, shut it down, read its server logs, and test it using request, file, and until { file }.',
       );
     });
   });

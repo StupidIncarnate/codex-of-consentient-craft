@@ -13,10 +13,10 @@ The walkthrough proceeds across three phases covering all 13 subcommands in a re
 1. **`siegelense docs`**
    * *Purpose*: Query the built-in role and operator documentation without booting any processes. Outputs Markdown by default.
    * *Complete Arguments*:
-     * `--for <scope>` *(required)*: Scopes documentation to a specific role (`operating`, `planning`, `walking`, `attacking`, `fixing`, `driving`, `operational`). Required to prevent context flooding.
+     * `--for <scope>` *(optional)*: Scopes documentation to a specific role (`planning`, `walking`, `attacking`, `fixing`, `driving`). With no `--for`, `docs` returns the general overview alone.
      * `--json` *(optional)*: Outputs raw JSON structure instead of formatted Markdown.
    ```bash
-   dungeonmaster siegelense docs --for operating
+   dungeonmaster siegelense docs
    dungeonmaster siegelense docs --for walking
    ```
 

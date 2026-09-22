@@ -503,14 +503,14 @@ describe('siegelenseHelpStatics', () => {
     expect(siegelenseHelpStatics.calls.docs).toStrictEqual({
       summary:
         "siegelense docs — this tool's own instructions, scoped to one role. Starts nothing.",
-      synopsis: 'dungeonmaster siegelense docs --for <scope> [--json]',
+      synopsis: 'dungeonmaster siegelense docs [--for <scope>] [--json]',
       flags: [
         {
           name: '--for',
           value: '<scope>',
-          required: true,
+          required: false,
           description:
-            "serve one role's page instead of the whole surface: operating, planning, walking, attacking, fixing, driving, operational.",
+            "serve one role's page instead of the tool overview: planning, walking, attacking, fixing, driving. Omitted, docs serves the overview alone.",
         },
         {
           name: '--json',
@@ -524,7 +524,7 @@ describe('siegelenseHelpStatics', () => {
         'There is no scope for a code-reading role, and that absence is deliberate: a session that opens source files and calls nothing here would be handed the vocabulary for driving a browser.',
       ],
       output:
-        'By default, formatted Markdown — the document title, an About block, and one heading per scope with its audience, summary and bulleted sections. `--json` prints the raw DocsAnswer — an about preamble, and one document per scope served, each a headed list of lines.',
+        "With no --for, prints this tool's about overview alone — no role's page. With --for, formatted Markdown by default — the document title, an About block, and one heading for the requested scope with its audience, summary and bulleted sections. `--json` prints the raw DocsAnswer either way — an about preamble, and one document per scope served (none, for the bare overview form).",
       example: 'dungeonmaster siegelense docs --for walking',
     });
   });

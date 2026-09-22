@@ -20,44 +20,53 @@ describe('docsArgsParseTransformer', () => {
     });
   });
 
-  describe('refusals', () => {
-    it('INVALID: {args: []} => refuses missing --for flag, listing valid scopes', () => {
-      expect(() => docsArgsParseTransformer({ args: [] })).toThrow(
-        '--for <scope> is required: specify the role whose instructions to read.\n\n' +
-          'Accepted scopes: operating, planning, walking, attacking, fixing, driving, operational\n\n' +
-          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
-      );
+  describe('the bare call — --for omitted entirely', () => {
+    it('EMPTY: {args: []} => returns the about overview alone, scope null', () => {
+      const result = docsArgsParseTransformer({ args: [] });
+
+      expect(result).toStrictEqual({ scope: null, isJson: false });
     });
 
+    it('EMPTY: {args: ["--json"]} => returns the about overview as JSON, scope null', () => {
+      const result = docsArgsParseTransformer({ args: ['--json'] });
+
+      expect(result).toStrictEqual({ scope: null, isJson: true });
+    });
+  });
+
+  describe('refusals', () => {
     it('INVALID: {args: ["--human"]} => refuses --human as an unknown flag', () => {
       expect(() => docsArgsParseTransformer({ args: ['--human'] })).toThrow(
         'Unknown flag: --human\n\n' +
           'Accepted flags: --for, --json\n\n' +
-          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
+          'Usage: dungeonmaster siegelense docs [--for <scope>] [--json]',
       );
     });
 
-    it('INVALID: {args: ["--json"]} => refuses missing --for flag when only flags present', () => {
-      expect(() => docsArgsParseTransformer({ args: ['--json'] })).toThrow(
-        '--for <scope> is required: specify the role whose instructions to read.\n\n' +
-          'Accepted scopes: operating, planning, walking, attacking, fixing, driving, operational\n\n' +
-          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
-      );
-    });
-
-    it('INVALID: {args: ["--for", "reader"]} => refuses by name and lists the seven scopes that exist', () => {
+    it('INVALID: {args: ["--for", "reader"]} => refuses by name, lists the five scopes and names the bare-docs overview', () => {
       expect(() => docsArgsParseTransformer({ args: ['--for', 'reader'] })).toThrow(
         'Unknown docs scope: reader\n\n' +
-          'docs serves one scope per tool-using role. The scopes that exist are: operating, planning, walking, attacking, fixing, driving, operational.\n\n' +
-          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
+          'docs serves one scope per tool-using role. The scopes that exist are: planning, walking, attacking, fixing, driving. ' +
+          'Omit --for entirely to get the tool overview alone.\n\n' +
+          'Usage: dungeonmaster siegelense docs [--for <scope>] [--json]',
       );
     });
 
-    it('INVALID: {args: ["--for", "start"]} => a call name is refused as a scope, listing the scopes', () => {
+    it('INVALID: {args: ["--for", "start"]} => a call name is refused as a scope, listing the scopes and the overview', () => {
       expect(() => docsArgsParseTransformer({ args: ['--for', 'start'] })).toThrow(
         'Unknown docs scope: start\n\n' +
-          'docs serves one scope per tool-using role. The scopes that exist are: operating, planning, walking, attacking, fixing, driving, operational.\n\n' +
-          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
+          'docs serves one scope per tool-using role. The scopes that exist are: planning, walking, attacking, fixing, driving. ' +
+          'Omit --for entirely to get the tool overview alone.\n\n' +
+          'Usage: dungeonmaster siegelense docs [--for <scope>] [--json]',
+      );
+    });
+
+    it('INVALID: {args: ["--for", "operating"]} => the retired operating scope is refused like any unknown scope', () => {
+      expect(() => docsArgsParseTransformer({ args: ['--for', 'operating'] })).toThrow(
+        'Unknown docs scope: operating\n\n' +
+          'docs serves one scope per tool-using role. The scopes that exist are: planning, walking, attacking, fixing, driving. ' +
+          'Omit --for entirely to get the tool overview alone.\n\n' +
+          'Usage: dungeonmaster siegelense docs [--for <scope>] [--json]',
       );
     });
 
@@ -85,7 +94,7 @@ describe('docsArgsParseTransformer', () => {
       expect(() => docsArgsParseTransformer({ args: ['--instance', 'inst_7f3a9c21'] })).toThrow(
         'Unknown flag: --instance\n\n' +
           'Accepted flags: --for, --json\n\n' +
-          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
+          'Usage: dungeonmaster siegelense docs [--for <scope>] [--json]',
       );
     });
 
@@ -93,7 +102,7 @@ describe('docsArgsParseTransformer', () => {
       expect(() => docsArgsParseTransformer({ args: ['walking'] })).toThrow(
         'Unexpected positional argument: walking\n\n' +
           'docs names its scope with --for, so a bare word here belongs to no flag.\n\n' +
-          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
+          'Usage: dungeonmaster siegelense docs [--for <scope>] [--json]',
       );
     });
 
@@ -101,7 +110,7 @@ describe('docsArgsParseTransformer', () => {
       expect(() => docsArgsParseTransformer({ args: ['--for', 'walking', 'extra'] })).toThrow(
         'Unexpected positional argument: extra\n\n' +
           'docs names its scope with --for, so a bare word here belongs to no flag.\n\n' +
-          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
+          'Usage: dungeonmaster siegelense docs [--for <scope>] [--json]',
       );
     });
   });

@@ -11,7 +11,7 @@
  * const process = laneProcessContract.parse({
  *   name: 'api',
  *   command: 'npm',
- *   args: ['run', 'dev:no-watch', '--workspace=@dungeonmaster/server'],
+ *   args: ['run', 'dev:no-watch', '--workspace={apiWorkspace}'],
  *   portRole: 'api',
  *   readyPath: '/api/guilds',
  *   logFileName: 'api-server.log',

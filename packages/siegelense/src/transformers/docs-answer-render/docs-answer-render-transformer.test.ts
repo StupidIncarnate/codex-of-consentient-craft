@@ -33,7 +33,7 @@ describe('docsAnswerRenderTransformer', () => {
         about: ['Every call is: dungeonmaster siegelense <call>.'],
         scopes: [
           {
-            scope: 'operating',
+            scope: 'planning',
             audience: 'the operator',
             summary: 'Fleet management.',
             sections: [{ heading: 'REAPING RULES', lines: ['Run cleanup at both ends.'] }],
@@ -56,7 +56,7 @@ describe('docsAnswerRenderTransformer', () => {
           '\n' +
           '- Every call is: dungeonmaster siegelense <call>.\n' +
           '\n' +
-          '## operating — the operator\n' +
+          '## planning — the operator\n' +
           '\n' +
           'Fleet management.\n' +
           '\n' +
@@ -151,7 +151,7 @@ describe('docsAnswerRenderTransformer', () => {
         about: [],
         scopes: [
           {
-            scope: 'operating',
+            scope: 'planning',
             audience: 'the operator',
             summary: 'Summary',
             sections: [
@@ -171,7 +171,7 @@ describe('docsAnswerRenderTransformer', () => {
       expect(result).toBe(
         '# Siegelense Documentation\n' +
           '\n' +
-          '## operating — the operator\n' +
+          '## planning — the operator\n' +
           '\n' +
           'Summary\n' +
           '\n' +
