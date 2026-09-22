@@ -107,6 +107,72 @@ describe('questNoteContract', () => {
     });
   });
 
+  describe('human-verdict note', () => {
+    it('VALID: {kind: human-verdict, outcome: met, unitId} => parses, carrying the branded outcome', () => {
+      const result = questNoteContract.parse({
+        id: 'human-verdict-motion-feels-smooth',
+        kind: 'human-verdict',
+        role: 'operator',
+        workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+        flowId: 'login-flow',
+        unitId: 'motion-feels-smooth',
+        outcome: 'met',
+        summary: 'Motion feels smooth: confirmed',
+        detail: 'Watched run_7/walk.webm end to end — the transition never stutters.',
+        at: '2026-09-14T00:00:00.000Z',
+      });
+
+      expect(result).toStrictEqual({
+        id: 'human-verdict-motion-feels-smooth',
+        kind: 'human-verdict',
+        role: 'operator',
+        workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+        flowId: 'login-flow',
+        unitId: 'motion-feels-smooth',
+        outcome: 'met',
+        summary: 'Motion feels smooth: confirmed',
+        detail: 'Watched run_7/walk.webm end to end — the transition never stutters.',
+        at: '2026-09-14T00:00:00.000Z',
+      });
+    });
+
+    it('VALID: {kind: human-verdict, outcome: not-met, unitId} => parses, the reason carried in detail', () => {
+      const result = questNoteContract.parse({
+        id: 'human-verdict-motion-feels-smooth',
+        kind: 'human-verdict',
+        role: 'operator',
+        workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+        unitId: 'motion-feels-smooth',
+        outcome: 'not-met',
+        summary: 'Motion feels smooth: rejected',
+        detail: 'The panel jumps two pixels right before it settles — visibly janky.',
+        at: '2026-09-14T00:00:00.000Z',
+      });
+
+      expect(result).toStrictEqual({
+        id: 'human-verdict-motion-feels-smooth',
+        kind: 'human-verdict',
+        role: 'operator',
+        workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+        unitId: 'motion-feels-smooth',
+        outcome: 'not-met',
+        summary: 'Motion feels smooth: rejected',
+        detail: 'The panel jumps two pixels right before it settles — visibly janky.',
+        at: '2026-09-14T00:00:00.000Z',
+      });
+    });
+
+    it('INVALID: {outcome: "confirmed"} => throws, because the outcome set is closed to met/not-met', () => {
+      expect(() =>
+        QuestNoteStub({
+          kind: 'human-verdict',
+          unitId: 'motion-feels-smooth',
+          outcome: 'confirmed' as never,
+        }),
+      ).toThrow(/Invalid enum value/u);
+    });
+  });
+
   describe('quest-wide note', () => {
     it('VALID: {flowId and unitId omitted} => parses, because a tooling failure is not scoped to a flow', () => {
       expect(

@@ -598,4 +598,123 @@ describe('unjudgedScreencastLayerBroker', () => {
       expect(result).toStrictEqual({ references: [], blocked: null });
     });
   });
+
+  describe('a verdict releases the hold', () => {
+    it('VALID: {a human-verdict note naming the SAME criterion} => released: no citation and no refusal, even though the run still holds a screencast', async () => {
+      unjudgedScreencastLayerBrokerProxy();
+
+      const result = await unjudgedScreencastLayerBroker({
+        instanceId: InstanceIdStub({ value: INSTANCE }),
+        guildId: GuildIdStub({ value: GUILD }),
+        questFilePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        quest: QuestStub({
+          status: 'complete',
+          flows: [
+            FlowStub({
+              nodes: [
+                FlowNodeStub({
+                  observables: [
+                    FlowObservableStub({
+                      id: ObservableIdStub({ value: 'motion-feels-smooth' }),
+                      verifyByHuman: true,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+          planningNotes: {
+            blightLedger: [],
+            operationPlans: [],
+            questNotes: [
+              QuestNoteStub({
+                id: 'walked-path-3' as never,
+                kind: 'walked',
+                instanceId: SiegeInstanceIdStub({ value: INSTANCE }),
+                runId: SiegeRunIdStub({ value: 'run_2' }),
+              }),
+              QuestNoteStub({
+                id: 'human-verdict-motion-feels-smooth' as never,
+                kind: 'human-verdict',
+                unitId: 'motion-feels-smooth',
+                outcome: 'met',
+              }),
+            ],
+          },
+        }),
+      });
+
+      expect(result).toStrictEqual({ references: [], blocked: null });
+    });
+
+    it('VALID: {a human-verdict note naming a DIFFERENT criterion} => still held: the outstanding criterion keeps its citation', async () => {
+      const proxy = unjudgedScreencastLayerBrokerProxy();
+      proxy.setupEvidenceTree({
+        homeDir: HOME_DIR,
+        homePath: FilePathStub({ value: HOME }),
+        rootPath: FilePathStub({ value: ROOT }),
+        evidencePath: FilePathStub({ value: EVIDENCE }),
+      });
+      proxy.setupRunDir({
+        dirPath: AbsoluteFilePathStub({ value: `${RUNS}/run_2` }),
+        entries: ['walk.webm'],
+      });
+
+      const result = await unjudgedScreencastLayerBroker({
+        instanceId: InstanceIdStub({ value: INSTANCE }),
+        guildId: GuildIdStub({ value: GUILD }),
+        questFilePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        quest: QuestStub({
+          status: 'complete',
+          flows: [
+            FlowStub({
+              nodes: [
+                FlowNodeStub({
+                  observables: [
+                    FlowObservableStub({
+                      id: ObservableIdStub({ value: 'motion-feels-smooth' }),
+                      verifyByHuman: true,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+          planningNotes: {
+            blightLedger: [],
+            operationPlans: [],
+            questNotes: [
+              QuestNoteStub({
+                id: 'walked-path-3' as never,
+                kind: 'walked',
+                instanceId: SiegeInstanceIdStub({ value: INSTANCE }),
+                runId: SiegeRunIdStub({ value: 'run_2' }),
+              }),
+              QuestNoteStub({
+                id: 'human-verdict-some-other-criterion' as never,
+                kind: 'human-verdict',
+                unitId: 'some-other-criterion',
+                outcome: 'met',
+              }),
+            ],
+          },
+        }),
+      });
+
+      expect(result).toStrictEqual({
+        references: [
+          {
+            kind: 'unjudged-screencast',
+            instanceId: INSTANCE,
+            runId: 'run_2',
+            citingFile: QUEST_FILE,
+            why:
+              'run_2 cited by motion-feels-smooth on quest add-auth (complete), which only a ' +
+              `person can settle — held until that verdict is recorded: ${RUNS}/run_2/walk.webm`,
+          },
+        ],
+        blocked: null,
+      });
+    });
+  });
 });

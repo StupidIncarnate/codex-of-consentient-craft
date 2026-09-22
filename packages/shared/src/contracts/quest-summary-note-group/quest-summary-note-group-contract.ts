@@ -12,10 +12,10 @@
  * `Record<QuestNoteKind, QuestNote[]>` — the same reason every other keyed collection on a quest is
  * an array, and the reason a reader can map over it without knowing the kind list at all.
  *
- * A group is emitted for EVERY kind, including the empty ones. The four kinds are four different
- * questions — what nobody answered, what the tooling refused to do, what was consciously left, and
- * where a walk was thrown away — and an empty group is the answer "none of those" rather than the
- * absence of an answer. Dropping empty groups would make "no tooling errors" and "nobody looked"
+ * A group is emitted for EVERY kind, including the empty ones. Each kind is a different question —
+ * what nobody answered, what the tooling refused to do, what was consciously left, where a walk was
+ * thrown away — and an empty group is the answer "none of those" rather than the absence of an
+ * answer. Dropping empty groups would make "no tooling errors" and "nobody looked"
  * render identically.
  *
  * NOTHING HERE CLOSES A VERIFICATION UNIT. A note is what a role learned that belongs to nobody's

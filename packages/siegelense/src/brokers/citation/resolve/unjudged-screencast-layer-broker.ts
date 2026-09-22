@@ -13,6 +13,14 @@
  * hunting for it. Reach for this over `walkedNoteLayerBroker`: that one asks whether a walk is still
  * running, while this asks whether a person has still to judge what the walk recorded.
  *
+ * THE HOLD RELEASES ON A `human-verdict` NOTE NAMING THE SAME CRITERION. A person's judgment on a
+ * `verifyByHuman` observable has nowhere else to live (decision 3's filter keeps it out of every
+ * role's mark surface), so `quest.planningNotes.questNotes` is the one place this broker can read
+ * one back. Matching is by `unitId` alone, not by instance or run: the criterion is a property of
+ * the FLOW, not of which siegelense instance happened to record it, so a verdict recorded against
+ * one instance's evidence settles the criterion for every instance citing it. A verdict naming a
+ * DIFFERENT criterion changes nothing — that criterion is still awaiting one.
+ *
  * USAGE:
  * await unjudgedScreencastLayerBroker({ instanceId, guildId, quest, questFilePath });
  * // Returns { references, blocked: null } — or { references: [], blocked: <why the pointer is bad> }
@@ -51,6 +59,14 @@ export const unjudgedScreencastLayerBroker = async ({
   quest: Quest;
   questFilePath: AbsoluteFilePath;
 }): Promise<{ references: readonly CitationReference[]; blocked: ContentText | null }> => {
+  // A branded observable id is a plain string at runtime, so `String()` on both sides is what lets
+  // this compare against `QuestNoteUnitId` — a DIFFERENT brand carrying the same criterion id.
+  const verdicted = new Set(
+    quest.planningNotes.questNotes
+      .filter((note) => note.kind === 'human-verdict')
+      .map((note) => String(note.unitId)),
+  );
+
   const awaitingVerdict = [
     ...new Set(
       quest.flows.flatMap((flow) =>
@@ -61,7 +77,7 @@ export const unjudgedScreencastLayerBroker = async ({
         ),
       ),
     ),
-  ];
+  ].filter((observableId) => !verdicted.has(String(observableId)));
 
   if (awaitingVerdict.length === 0) {
     return { references: [], blocked: null };
