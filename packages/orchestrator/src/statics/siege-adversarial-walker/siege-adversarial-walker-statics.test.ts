@@ -83,6 +83,17 @@ describe('siege-adversarial-walker-statics', () => {
     });
   });
 
+  // DISCOVERABILITY: the docs tool's own overview exists and is one flag away — every prompt that
+  // reaches for `docs --for <scope>` says so, beside that same instruction.
+  it('VALID: served template => tells the reader that bare docs, with no --for, serves the tool overview', () => {
+    expect(
+      hasIn({
+        needle:
+          "Bare `dungeonmaster siegelense docs`, with no `--for`, serves the tool's own overview instead of a role's manual.",
+      }),
+    ).toBe(true);
+  });
+
   // THE SHARED BLOCK, WHOLE, EXACTLY ONCE. Restating it is text served twice against the same
   // budget; missing it is a rule this whole family agreed on that this prompt silently drops.
   it('VALID: served template => takes the observable-automatability block whole, exactly once', () => {

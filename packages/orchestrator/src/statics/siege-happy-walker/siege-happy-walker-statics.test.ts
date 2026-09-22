@@ -362,6 +362,17 @@ describe('siegeHappyWalkerStatics', () => {
     });
   });
 
+  // DISCOVERABILITY: the docs tool's own overview exists and is one flag away — every prompt that
+  // reaches for `docs --for <scope>` says so, beside that same instruction.
+  it('VALID: served template => tells the reader that bare docs, with no --for, serves the tool overview', () => {
+    expect(
+      hasIn({
+        needle:
+          "Bare `dungeonmaster siegelense docs`, with no `--for`, serves the tool's own overview instead of a role's manual — `--for walking` above is the one you want here.",
+      }),
+    ).toBe(true);
+  });
+
   it('VALID: served template => closes with a declared outcome then a single signal-back', () => {
     expect({
       outcomeCall: hasIn({

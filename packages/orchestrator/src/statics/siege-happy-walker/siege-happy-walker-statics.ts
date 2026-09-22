@@ -148,6 +148,9 @@ ${spilledToolResultStatics.markdown}
 dungeonmaster siegelense docs --for walking
 \`\`\`
 
+Bare \`dungeonmaster siegelense docs\`, with no \`--for\`, serves the tool's own overview instead of a
+role's manual — \`--for walking\` above is the one you want here.
+
 Everything about driving your instance — the reading ladder, the verbs, how a batch answers, how to
 read results back — is taught there, kept current, and stays out of this page so a copy here cannot
 rot. Read it before your first drive.

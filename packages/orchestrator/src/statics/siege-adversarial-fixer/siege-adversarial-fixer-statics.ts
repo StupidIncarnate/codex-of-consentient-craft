@@ -9,6 +9,7 @@
  */
 
 import { declaredValueStatics } from '../declared-value/declared-value-statics';
+import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 import { sadPathRoutingStatics } from '../sad-path-routing/sad-path-routing-statics';
 import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
 import { unitMarkingStatics } from '../unit-marking/unit-marking-statics';
@@ -97,8 +98,9 @@ that guessed wrong returns nothing, which reads exactly like a package with noth
 
 ${spilledToolResultStatics.markdown}
 
-Once, for orientation, run \`dungeonmaster siegelense docs --for fixing\`. Its first four steps are
-free, read-only queries against evidence already on disk. **Its STEP 5, "reproduce on a fresh
+Once, for orientation, run \`dungeonmaster siegelense docs --for fixing\` — bare
+\`dungeonmaster siegelense docs\`, with no \`--for\`, serves the tool's own overview instead. Its first
+four steps are free, read-only queries against evidence already on disk. **Its STEP 5, "reproduce on a fresh
 instance," does not apply to you and you do not run it** — [NO LANE OF YOUR OWN] above overrides it.
 That step describes a session that owns its own lane; you never do, and your whole brief already lives
 in \`mintingObservation\`, not on a live instance somewhere.
@@ -165,6 +167,12 @@ not guesses. Evidence never moves those.
 See "Marking your units" below for what each mark must carry, and write it the moment you settle a
 unit — never in one block at the end.
 
+**Where the unit you were minted to fix resists every fix you can make, and nothing at any layer
+could ever settle it either — not a later fixer, not a later session, nothing but a person's own
+judgment once the quest is done — flag it instead of forcing a fix or marking \`cant-meet\`.** Set
+\`verifyByHuman: true\` on its observable through \`modify-quest\`, rather than a \`toSettle\` nothing
+could ever carry out. See the \`verifyByHuman\` rule further down this page for the whole picture.
+
 ### 9. Where the fix moved behaviour nobody can enumerate, invalidate the flow
 
 A change to shared code can move behaviour an earlier walk already cleared, in a way no unit id on
@@ -202,6 +210,8 @@ Settle every assigned unit and this call is the last thing you ever do here.
 ${declaredValueStatics.markdown}
 
 ${unitMarkingStatics.markdown}
+
+${observableAutomatabilityStatics.markdown}
 
 ${sadPathRoutingStatics.markdown}
 

@@ -1,5 +1,6 @@
 import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 
+import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 import { sadPathRoutingStatics } from '../sad-path-routing/sad-path-routing-statics';
 import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
 import { unitMarkingStatics } from '../unit-marking/unit-marking-statics';
@@ -33,7 +34,7 @@ describe('siegeHappyFixerStatics', () => {
     expect(TEMPLATE.split('$ARGUMENTS').length - 1).toBe(1);
   });
 
-  describe('the three shared blocks', () => {
+  describe('the four shared blocks', () => {
     // Counted rather than tested for presence: twice would mean an interpolation landed in two
     // sections, which costs this prompt's own budget twice over for one rule.
     it('VALID: template => serves spilledToolResultStatics exactly once', () => {
@@ -44,9 +45,39 @@ describe('siegeHappyFixerStatics', () => {
       expect(TEMPLATE.split(unitMarkingStatics.markdown).length - 1).toBe(1);
     });
 
+    it('VALID: template => serves observableAutomatabilityStatics exactly once', () => {
+      expect(TEMPLATE.split(observableAutomatabilityStatics.markdown).length - 1).toBe(1);
+    });
+
     it('VALID: template => serves sadPathRoutingStatics exactly once', () => {
       expect(TEMPLATE.split(sadPathRoutingStatics.markdown).length - 1).toBe(1);
     });
+  });
+
+  // THE ROLE-SPECIFIC SENTENCE, IN THE FIXER'S OWN TERMS. The shared block explains the flag once,
+  // for every host; this prompt still owes its own reader the moment inside ITS OWN marking step
+  // where the flag applies — right beside the `cant-meet` mark it exists to replace.
+  it('VALID: template => tells the fixer to flag verifyByHuman instead of forcing a fix or marking cant-meet', () => {
+    expect(
+      has(
+        '**Where the unit you were minted to fix resists every fix you can make, and nothing at any ' +
+          'layer could ever settle it either — not a later fixer, not a later session, nothing but a ' +
+          "person's own judgment once the quest is done — flag it instead of forcing a fix or marking " +
+          '`cant-meet`.** Set `verifyByHuman: true` on its observable through `modify-quest`, rather ' +
+          'than a `toSettle` nothing could ever carry out.',
+      ),
+    ).toBe(true);
+  });
+
+  // DISCOVERABILITY: the docs tool's own overview exists and is one flag away — every prompt that
+  // reaches for `docs --for <scope>` says so, beside that same instruction.
+  it('VALID: template => tells the reader that bare docs, with no --for, serves the tool overview', () => {
+    expect(
+      has(
+        'run `dungeonmaster siegelense docs --for fixing` — bare `dungeonmaster siegelense docs`, ' +
+          "with no `--for`, serves the tool's own overview instead.",
+      ),
+    ).toBe(true);
   });
 
   it('VALID: template => holds these ### steps, in this order, and no others', () => {

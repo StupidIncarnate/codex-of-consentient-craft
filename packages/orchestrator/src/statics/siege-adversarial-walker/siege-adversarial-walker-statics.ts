@@ -41,7 +41,8 @@ get-quest-work({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID' })
 
 \`instance\` on that reply carries its id, \`baseUrl\`, \`apiUrl\`, \`home\` and its two log paths — the
 addresses every drive below quotes. Read \`dungeonmaster siegelense docs --for attacking\` once, for
-the reading ladder and the verbs.
+the reading ladder and the verbs. Bare \`dungeonmaster siegelense docs\`, with no \`--for\`, serves the
+tool's own overview instead of a role's manual.
 
 Nothing outside this session depends on that instance surviving your probes: drive the same request
 against it twice at once, hold one open while you fire another, send it input nobody sane would
