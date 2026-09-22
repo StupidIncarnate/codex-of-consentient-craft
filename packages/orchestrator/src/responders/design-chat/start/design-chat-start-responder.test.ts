@@ -22,6 +22,18 @@ describe('DesignChatStartResponder', () => {
         }),
       ).rejects.toThrow(/^chatPromptBuildTransformer has no template for role 'glyphsmith'.*$/u);
 
+      // `setupDesignSession` arms the staged child's stdout emit and its exit as two chained
+      // `setImmediate`s, and the rejection above lands before anything spawns. Draining them is
+      // what proves the emptiness below survives the abandoned lifecycle rather than merely
+      // preceding it — and it clears the handle, which ward's open-handle gate otherwise reports
+      // as still armed when this file ends, failing the package run with every check green.
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+
       expect(capture.getEmittedEvents()).toStrictEqual([]);
     });
   });

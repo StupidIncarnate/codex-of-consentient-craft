@@ -730,6 +730,19 @@ describe('chatSpawnBroker', () => {
         registerProcess: jest.fn(),
       });
 
+      // Drain the staged child's lifecycle before asserting. The proxy arms the stdout emit and
+      // the exit that follows it as two chained `setImmediate`s, and a test that asserts on argv
+      // or cwd settles on microtasks alone — so the outer immediate is still armed when the file
+      // ends, and ward's open-handle gate fails the whole package run over it while every check
+      // reads green. EVERY test that stages a spawn and never awaits the exit owes these two
+      // awaits; there is no teardown hook that can pay them on its behalf.
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+
       expect(proxy.getSpawnedCwd()).toBe(worktreePath);
     });
 
@@ -752,6 +765,15 @@ describe('chatSpawnBroker', () => {
         onEntries: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
+      });
+
+      // Drains the staged child's stdout emit and its exit; an unconsumed spawn lifecycle leaves
+      // an armed setImmediate behind when the file ends.
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
       });
 
       expect(proxy.getSpawnedCwd()).toBe(resolvedRepoRoot);
@@ -801,6 +823,15 @@ describe('chatSpawnBroker', () => {
         onEntries: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
+      });
+
+      // Drains the staged child's stdout emit and its exit; an unconsumed spawn lifecycle leaves
+      // an armed setImmediate behind when the file ends.
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
       });
 
       expect(result.chatProcessId).toBe('chat-f47ac10b-58cc-4372-a567-0e02b2c3d479');
