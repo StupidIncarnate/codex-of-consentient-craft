@@ -9,6 +9,7 @@
  */
 
 import { declaredValueStatics } from '../declared-value/declared-value-statics';
+import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 import { sadPathRoutingStatics } from '../sad-path-routing/sad-path-routing-statics';
 import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
 import { unitMarkingStatics } from '../unit-marking/unit-marking-statics';
@@ -20,6 +21,7 @@ export const siegeAdversarialWalkerStatics = {
 ${declaredValueStatics.markdown}
 ${sadPathRoutingStatics.markdown}
 ${unitMarkingStatics.markdown}
+${observableAutomatabilityStatics.markdown}
 
 ## Rules
 
@@ -188,6 +190,12 @@ An honest "N/A for this path because …" is \`met\`, with the justification as 
 was considered and ruled out, which is a measurement. It is never \`cant-meet\`, which needs a
 \`toSettle\`, and an N/A leaves nobody anything to do. A point you could not get real volume onto is
 recorded UNREACHED in your \`PLAN:\` file, never as held.
+
+**Where a point resists every attack you can mount, and nothing at any layer — not a later session,
+not a later round, nothing but a person's own judgment once the quest is done — could ever settle it
+either, flag it instead of marking \`cant-meet\` or writing it off as N/A.** Set \`verifyByHuman: true\`
+on its observable in the same \`modify-quest\` call above. See the \`verifyByHuman\` rule further up
+this page for the whole picture.
 
 **Amend the plan where a driving field proved wrong:**
 

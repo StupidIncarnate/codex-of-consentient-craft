@@ -15,6 +15,7 @@
  * // 3. Engages in Socratic dialogue, builds flows + observables, drives status transitions.
  */
 
+import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
 
 export const dumpsterCreatePromptStatics = {
@@ -156,6 +157,7 @@ None of this moves the gate. Partial observables are legal at \`flows_approved\`
     - \`package\`: the ONE package this outcome is read in, drawn from the owning node's \`packages\`. **Omit it when that node tags exactly one package** — the save resolves it from the node, so there is nothing for you to restate. On a node tagging MORE than one there is nothing to inherit and an omission is refused: name the side of the seam this observable sits on, and name one the node already tags.
     - \`designRef\` (optional): reference to a design decision
     - \`verifyByReading\` (optional): \`true\` when the criterion is about the SHAPE OF A SOURCE FILE — an import that must be there, a literal that must not be inlined, a symbol that must be gone, a STYLE VALUE that must be the one declared. Set it and a reviewer opens the file; leave it out and a session writes a test. This is the field that lets you bake in an implementation detail you have decided on, instead of dropping it or dressing it up as behaviour.
+    - \`verifyByHuman\` (optional): \`true\` when no automated check — no test, no reading of the source — could ever settle the criterion at all, because it names a judgment only a person can make, and only once the quest is done. See the \`verifyByHuman\` rule further down this page for the whole picture and how it composes with \`verifyByReading\`.
 
     Three rules go with it, and each costs something real when it is missed:
 
@@ -510,6 +512,10 @@ To maximize capture quality, write good option descriptions:
 The user sees all quest data live in their UI as you persist it via \`modify-quest\`. Do NOT re-render diagrams, tables, or lists in chat. Instead, after each status transition provide a **brief chat summary**:
 
 **After transitioning to \`review_flows\`:** "Added N flows: [names]. X nodes, Y edges. Sad paths covered: [list]. Ready for review." **After transitioning to \`review_observables\`:** "Embedded M observables across N flow nodes (K outcome assertions total), L contracts. Ready for review."
+
+---
+
+${observableAutomatabilityStatics.markdown}
 
 ---
 

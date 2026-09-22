@@ -1,5 +1,7 @@
 import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 
+import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
+
 import { siegeAdversarialWalkerStatics } from './siege-adversarial-walker-statics';
 
 // PROSE COMPARES IGNORE WRAPPING. `hasIn` collapses every whitespace run on BOTH sides, so a needle
@@ -79,6 +81,24 @@ describe('siege-adversarial-walker-statics', () => {
       fetchesAttackingDocs: true,
       neverFetchesWalkingDocs: false,
     });
+  });
+
+  // THE SHARED BLOCK, WHOLE, EXACTLY ONCE. Restating it is text served twice against the same
+  // budget; missing it is a rule this whole family agreed on that this prompt silently drops.
+  it('VALID: served template => takes the observable-automatability block whole, exactly once', () => {
+    expect(TEMPLATE.split(observableAutomatabilityStatics.markdown).length - 1).toBe(1);
+  });
+
+  // THE ROLE-SPECIFIC SENTENCE, IN THE WALKER'S OWN TERMS. The shared block explains the flag once,
+  // for every host; this prompt still owes its own reader the moment inside ITS OWN workflow where
+  // the flag applies — right beside the `cant-meet` mark and the N/A case it exists to replace.
+  it('VALID: served template => tells the walker to flag verifyByHuman instead of cant-meet or N/A when nothing could ever settle a point', () => {
+    expect(
+      hasIn({
+        needle:
+          "**Where a point resists every attack you can mount, and nothing at any layer — not a later session, not a later round, nothing but a person's own judgment once the quest is done — could ever settle it either, flag it instead of marking `cant-meet` or writing it off as N/A.** Set `verifyByHuman: true` on its observable in the same `modify-quest` call above.",
+      }),
+    ).toBe(true);
   });
 
   it('VALID: served template => declares an outcome and marks its family unit before it signals', () => {

@@ -1,3 +1,5 @@
+import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
+
 import { dumpsterHuntPromptStatics } from './dumpster-hunt-prompt-statics';
 
 // PROSE COMPARES IGNORE WRAPPING. `template` is bound with every whitespace run — spaces,
@@ -319,6 +321,29 @@ describe('dumpsterHuntPromptStatics', () => {
     it('VALID: template => keeps a clipped label and an overlapping control as tests, not read-checks', () => {
       const needle =
         'What a user PERCEIVES stays a test — a clipped label, two controls overlapping, a control off-screen, text unreadable against its background. The source states none of those.';
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+  });
+
+  // THE SHARED BLOCK, WHOLE, EXACTLY ONCE. Restating it is text served twice against the family's
+  // own budget; missing it is a rule every observable-authoring and walking prompt agreed on that
+  // this one silently drops.
+  describe('the verifyByHuman block this file interpolates', () => {
+    it('VALID: template => takes the observable-automatability block whole, exactly once', () => {
+      expect(
+        dumpsterHuntPromptStatics.prompt.template.split(observableAutomatabilityStatics.markdown)
+          .length - 1,
+      ).toBe(1);
+    });
+
+    // THE ROLE-SPECIFIC SENTENCE, IN BUGHUNT'S OWN AUTHORING TERMS. The shared block explains the
+    // flag once, for every host; this prompt still owes its own reader the moment inside ITS OWN
+    // observable-authoring list where the flag applies, alongside `verifyByReading`.
+    it('VALID: template => tells BugHunt when to flag an outcome verifyByHuman, in its own authoring terms', () => {
+      const needle =
+        '- `verifyByHuman` (optional): `true` when no automated check — no test, no reading of the source — could ever settle the outcome at all, because it names a judgment only a person can make, and only once the quest is done.';
       const foundIndex = template.indexOf(needle);
 
       expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);

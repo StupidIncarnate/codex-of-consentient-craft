@@ -32,6 +32,7 @@
  * and cramming the rest into one `description` paragraph.
  */
 
+import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
 
 export const dumpsterHuntPromptStatics = {
@@ -291,6 +292,10 @@ the nodes before it) and the trigger (the node it sits on).
   DECLARED STYLE VALUE that must be the one named. Set it and a reviewer settles it by opening the
   file; leave it out and the codeweaver session writes a test. Its \`package\` is the one whose FILE
   gets opened, never the package supplying the value.
+- \`verifyByHuman\` (optional): \`true\` when no automated check — no test, no reading of the source —
+  could ever settle the outcome at all, because it names a judgment only a person can make, and only
+  once the quest is done. See the \`verifyByHuman\` rule further down this page for the whole picture
+  and how it composes with \`verifyByReading\`.
 
 **A declared style value takes the flag; a painted outcome does not.** A font size, a colour token,
 a class name, a border, a padding, an animation duration, a "matching \`<some other component>\`" —
@@ -322,6 +327,10 @@ On the \`fetch-tool-result\` SEAM node, where the fix must also change what the 
 **Be tangible.** If the codeweaver session that owns the package the fix lands in would have to
 guess a value, it is not pinned: name the actual route, the actual text, the actual count. Never a
 placeholder like \`{PORT}\`.
+
+---
+
+${observableAutomatabilityStatics.markdown}
 
 ---
 
