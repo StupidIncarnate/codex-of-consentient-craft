@@ -28,8 +28,29 @@ Every command in this file runs from the worktree root, never from the main chec
 3. **The operator owns builds and commits. A dispatched agent does neither.** Twelve concurrent
    commits in one worktree was measured at three landing and nine dying on `Unable to create
    index.lock`.
-4. **Pre-existing failures are IN SCOPE.** The user ruled this explicitly. A full `npm run ward`
-   must exit 0, including failures this work did not cause.
+4. **FIX EVERY PRE-EXISTING FAILURE YOU FIND. This is not optional and it is not scope creep.**
+   The user's words: *"any pre-existing needs to be fixed... we're trying to get to a good state
+   with this slew of changes."*
+
+   That means:
+   - A full `npm run ward` must exit 0 — including failures this work did not cause, in packages
+     this work never touched.
+   - When a package-scoped run surfaces something unrelated, **it becomes a unit.** Do not file it
+     as "out of scope", do not hand it back as a note, do not fence an agent away from it and move
+     on. Add it to the queue and work it.
+   - When an agent reports a failure it left standing because you fenced it, **that failure is
+     yours to own next**, not the next session's.
+
+   It also matches this repo's own `<dungeonmaster-wardDiscipline>`: an agent working directly for
+   the user makes a full `npm run ward` exit 0 and owns every failure in it, including ones it did
+   not cause.
+
+   **Expect a lot of it.** Every package graded properly during this run carried failures that
+   scoped runs had hidden — `web` with 40 lint errors, `orchestrator` exiting 1 on a handle leak
+   while all 648 test files passed, `server` with a lint error and a broken adapter test. Fifteen
+   packages are still unmeasured. Assume they carry debt too, and go looking rather than waiting
+   for it to surface.
+
 5. **Commit on the branch you are on.** No new branches. This repo's `CLAUDE.md` overrides the
    harness default that says otherwise.
 
@@ -242,6 +263,24 @@ source, but the app they drive is `packages/web/dist`, which is stale.
 `architecturePackageE2eEligibleDetectBroker`, which answer the FRONTEND question. The hardcoded name
 here is the http-backend. Find the backend equivalent, or establish that an exemption is the honest
 answer — do not follow the message into a helper that resolves the wrong package.
+
+### `packages/server` — one lint error, and one this work caused
+
+Found by T3-14a's package-scoped run:
+
+- `packages/server/src/adapters/web-bundle/dist-path/web-bundle-dist-path-adapter.ts` —
+  `no-hardcoded-package-names`. Last touched by commit `8ff285587`. May be pre-existing, or may be
+  newly visible because the transformer now matches scoped specifiers used as data. **Check which,
+  then fix it.**
+- `orchestrator-get-quest-summary-adapter.test.ts` — `TS2353` on `'confirmed'`. **This one was
+  ours**, collateral from commit `51c62c417`'s track-counts rename, in a THIRD package nobody had
+  mapped. Already fixed and committed; recorded because it shows the rename's blast radius was
+  wider than every survey said.
+
+Also left standing, outside T3-14a's fence: `apiRoutesStatics.design.session`
+(`packages/server/src/statics/api-routes/api-routes-statics.ts:55`) still declares a path string no
+route registers. Remove it once `packages/web/src/brokers/design/session/design-session-broker.ts`
+is retired.
 
 ### `packages/orchestrator` exits 1 on an OPEN-HANDLE LEAK
 
