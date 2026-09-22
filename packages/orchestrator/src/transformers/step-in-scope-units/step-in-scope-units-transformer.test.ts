@@ -137,6 +137,179 @@ describe('stepInScopeUnitsTransformer', () => {
     });
   });
 
+  describe('the verifyByHuman filter', () => {
+    it('VALID: {observable with verifyByHuman} => absent from both a codeweaver and a flowrider in-scope list, because no step declares human-check', () => {
+      const flow = FlowStub({
+        id: 'send-flow',
+        flowType: 'runtime',
+        nodes: [
+          FlowNodeStub({
+            id: 'web-node',
+            label: 'Web Node',
+            packages: [WEB_PACKAGE],
+            observables: [
+              FlowObservableStub({
+                id: 'looks-right-to-a-person',
+                description: 'the new layout looks right',
+                package: WEB_PACKAGE,
+                verifyByHuman: true,
+              }),
+              FlowObservableStub({
+                id: 'badge-counts-persisted',
+                description: 'the badge counts persisted comments',
+                package: WEB_PACKAGE,
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+      const codeweaverItem = OperationItemStub({
+        id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        flowIds: ['send-flow'],
+        packageNames: [],
+      });
+      const flowriderItem = OperationItemStub({
+        id: 'b2c3d4e5-58cc-4372-a567-0e02b2c3d479',
+        role: 'flowrider',
+        flowIds: ['send-flow'],
+        packageNames: [],
+      });
+      const { id: codeweaverItemId } = codeweaverItem;
+      const { id: flowriderItemId } = flowriderItem;
+      const quest = QuestStub({ flows: [flow], operations: [codeweaverItem, flowriderItem] });
+
+      const codeweaverScope = stepInScopeUnitsTransformer({
+        quest,
+        operationItemId: codeweaverItemId,
+        step: StepNameStub({ value: 'review' }),
+      });
+      const flowriderScope = stepInScopeUnitsTransformer({
+        quest,
+        operationItemId: flowriderItemId,
+        step: StepNameStub({ value: 'review' }),
+      });
+
+      expect(codeweaverScope).toStrictEqual([
+        'send-flow:terminal:web-node',
+        'send-flow:observable:badge-counts-persisted',
+      ]);
+      expect(flowriderScope).toStrictEqual([
+        'send-flow:terminal:web-node',
+        'send-flow:observable:badge-counts-persisted',
+      ]);
+    });
+
+    it('VALID: {observable with both verifyByReading and verifyByHuman true} => verifyByHuman wins, so it stays out of codeweaver review even though codeweaver accepts reading', () => {
+      const flow = FlowStub({
+        id: 'send-flow',
+        flowType: 'runtime',
+        nodes: [
+          FlowNodeStub({
+            id: 'web-node',
+            label: 'Web Node',
+            packages: [WEB_PACKAGE],
+            observables: [
+              FlowObservableStub({
+                id: 'imports-the-shared-limit-and-looks-right',
+                description: 'the widget imports the shared limit AND the layout looks right',
+                package: WEB_PACKAGE,
+                verifyByReading: true,
+                verifyByHuman: true,
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+      const operationItem = OperationItemStub({
+        id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        flowIds: ['send-flow'],
+        packageNames: [],
+      });
+      const { id: operationItemId } = operationItem;
+      const quest = QuestStub({ flows: [flow], operations: [operationItem] });
+
+      const result = stepInScopeUnitsTransformer({
+        quest,
+        operationItemId,
+        step: StepNameStub({ value: 'review' }),
+      });
+
+      expect(result).toStrictEqual(['send-flow:terminal:web-node']);
+    });
+
+    it('VALID: {the same quest read before and after verifyByHuman is set on an observable} => the flagged unit drops out of the in-scope list from that point on', () => {
+      const flowBefore = FlowStub({
+        id: 'send-flow',
+        flowType: 'runtime',
+        nodes: [
+          FlowNodeStub({
+            id: 'web-node',
+            label: 'Web Node',
+            packages: [WEB_PACKAGE],
+            observables: [
+              FlowObservableStub({
+                id: 'looks-right-to-a-person',
+                description: 'the new layout looks right',
+                package: WEB_PACKAGE,
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+      const operationItem = OperationItemStub({
+        id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+        role: 'flowrider',
+        flowIds: ['send-flow'],
+        packageNames: [],
+      });
+      const { id: operationItemId } = operationItem;
+      const questBefore = QuestStub({ flows: [flowBefore], operations: [operationItem] });
+
+      const scopeBefore = stepInScopeUnitsTransformer({
+        quest: questBefore,
+        operationItemId,
+        step: StepNameStub({ value: 'review' }),
+      });
+
+      const flowAfter = FlowStub({
+        ...flowBefore,
+        nodes: [
+          FlowNodeStub({
+            id: 'web-node',
+            label: 'Web Node',
+            packages: [WEB_PACKAGE],
+            observables: [
+              FlowObservableStub({
+                id: 'looks-right-to-a-person',
+                description: 'the new layout looks right',
+                package: WEB_PACKAGE,
+                verifyByHuman: true,
+              }),
+            ],
+          }),
+        ],
+      });
+      const questAfter = QuestStub({ flows: [flowAfter], operations: [operationItem] });
+
+      const scopeAfter = stepInScopeUnitsTransformer({
+        quest: questAfter,
+        operationItemId,
+        step: StepNameStub({ value: 'review' }),
+      });
+
+      expect(scopeBefore).toStrictEqual([
+        'send-flow:terminal:web-node',
+        'send-flow:observable:looks-right-to-a-person',
+      ]);
+      expect(scopeAfter).toStrictEqual(['send-flow:terminal:web-node']);
+    });
+  });
+
   describe('the unit-kind narrowing', () => {
     it('VALID: {siegemaster adversarial} => returns the seven off-map families and nothing else', () => {
       const flow = FlowStub({

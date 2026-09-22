@@ -119,6 +119,33 @@ describe('qaVerificationUnitContract', () => {
       });
     });
 
+    it('VALID: {observable unit with verifyByHuman: true} => carries the flag alongside verifyByReading', () => {
+      expect(
+        QaVerificationUnitStub({
+          kind: 'observable',
+          id: 'login-flow:observable:shows-form',
+          nodeId: 'login-page',
+          observableId: 'shows-form',
+          observableType: 'ui-state',
+          observableDescription: 'the login form is on screen',
+          verifyByReading: true,
+          verifyByHuman: true,
+          addedBy: 'siegemaster',
+        }),
+      ).toStrictEqual({
+        kind: 'observable',
+        id: 'login-flow:observable:shows-form',
+        flowId: 'login-flow',
+        nodeId: 'login-page',
+        observableId: 'shows-form',
+        observableType: 'ui-state',
+        observableDescription: 'the login form is on screen',
+        verifyByReading: true,
+        verifyByHuman: true,
+        addedBy: 'siegemaster',
+      });
+    });
+
     it('INVALID: {observable unit with no addedBy} => throws, because provenance drives track eligibility', () => {
       expect(() =>
         qaVerificationUnitContract.parse({

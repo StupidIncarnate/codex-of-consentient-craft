@@ -107,12 +107,20 @@ export const stepInScopeUnitsTransformer = ({
         (unit) =>
           eligible === null || unit.kind !== 'observable' || eligible.origins.has(unit.addedBy),
       )
-      .filter(
-        (unit) =>
-          eligible === null ||
-          unit.kind !== 'observable' ||
-          eligible.methods.has(unit.verifyByReading === true ? 'reading' : 'test'),
-      );
+      .filter((unit) => {
+        if (eligible === null || unit.kind !== 'observable') {
+          return true;
+        }
+
+        // `verifyByHuman` wins over `verifyByReading` when an observable carries both — it names
+        // the METHOD nothing automated can perform, where `verifyByReading` only names which
+        // automated method applies.
+        if (unit.verifyByHuman === true) {
+          return eligible.methods.has('human-check');
+        }
+
+        return eligible.methods.has(unit.verifyByReading === true ? 'reading' : 'test');
+      });
 
     // The family name IS a valid track key — `signoffTrackEligibilityStatics.byTrack` holds exactly
     // these three, and all three carry the same package kinds, so this narrowing gives the identical
