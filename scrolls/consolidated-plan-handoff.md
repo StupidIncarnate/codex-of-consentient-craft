@@ -11,9 +11,17 @@ turned out to be wrong about.
 | Branch | `consolidated-plan` |
 | Worktree | `worktrees/consolidated-plan` |
 | Carved from | `master` at `e20c6b771` |
-| Commits landed | 7 |
-| Units finished | 28 |
-| Units remaining | roughly 45, listed below |
+| Commits landed | 16 |
+| Units finished | 30 |
+| Units remaining | roughly 43, listed below |
+
+**Package health, package-scoped — the only kind that counts:**
+
+| Package | State |
+|---|---|
+| `orchestrator`, `server`, `mcp`, `siegelense`, `hydration`, `hydration-recipes`, `local-eslint`, `session-forensics`, `shared` | green |
+| `web` | typecheck and unit clean; **40 lint errors**, 39 of them pre-existing on master |
+| the other eight | **never measured** — assume debt until a run says otherwise |
 
 Every command in this file runs from the worktree root, never from the main checkout.
 
@@ -282,14 +290,32 @@ Also left standing, outside T3-14a's fence: `apiRoutesStatics.design.session`
 route registers. Remove it once `packages/web/src/brokers/design/session/design-session-broker.ts`
 is retired.
 
-### `packages/orchestrator` exits 1 on an OPEN-HANDLE LEAK
+### `packages/orchestrator` — FIXED, exits 0. Keep the lesson.
 
-lint 1795/1795 PASS, typecheck 1794/1794 PASS, unit 648 files PASS, **exit 1**. A `setImmediate`
-stays armed, reported in `chat-spawn-broker.test.ts` and `design-chat-start-responder.test.ts`.
+It exited 1 while every check and all 648 test files passed. The cause was ours, and not in the way
+it looked: commit `eaeb92845` did not write the leak, it deleted two tests that were incidentally
+DRAINING one. `agent-spawn-unified-broker.proxy.ts:54` arms a ref'd `setImmediate` at STAGING time,
+and the deleted glyphsmith block sat LAST in its file awaiting two immediates — covering everything
+the block above it had armed.
 
-**Both files were changed in commit `eaeb92845`**, which deleted a callback parameter. An agent
-concluded they were untouched "because they are absent from `git status`" — that only proves they
-are COMMITTED. The leak may be ours. A unit was diagnosing this at handoff; see below.
+Fixed by draining in the four tests that stage a child's exit and abandon it. No production change.
+
+**Two things from it worth keeping:**
+
+1. **`setImmediate(...).unref()` is the wrong fix and looks right.** It clears the gate, but an
+   unref'd immediate does not hold the loop, so it fires only when something else wakes it.
+   Measured on three brokers at **42.6s against 15.9s**, tripping the slow-test gate at exactly its
+   1000ms threshold in all three. It trades one red gate for another and silently delays every
+   awaited exit.
+2. **A FILE-SCOPED WARD RUN DOES NOT EVALUATE THE OPEN-HANDLE GATE.** A two-file run passed with
+   the leak fully present. This is a second, independent confirmation that scoped runs prove files
+   and never packages.
+
+**A guard test here cannot be written honestly.** `process.getActiveResourcesInfo()` counts a ref'd
+and an unref'd Immediate identically — the same false comfort `packages/orchestrator/CLAUDE.md`
+already records — and driving the timers adapter from a test re-points its single listener and
+disables leak detection for the rest of that worker. Ward's own gate is the guard, and it was
+proven to bite by removing one drain and confirming the failure named that file alone.
 
 ## In flight at handoff — THREE agents, work uncommitted and UNVERIFIED
 
@@ -298,16 +324,14 @@ building on it; none of this work has passed a ward run.**
 
 | Unit | Was doing | Files to inspect |
 |---|---|---|
-| T3-14a | Deleting the `design.session` route | `packages/server/src/flows/design/design-flow.ts`, `responders/design/session/`, `adapters/orchestrator/start-design-chat/` |
-| orchestrator leak | Diagnosing the `setImmediate` | `packages/orchestrator/src/brokers/chat/spawn/`, `responders/design-chat/start/`, the three named proxies |
 | T4-4b | Element delta onto an acting step | `packages/siegelense/src/contracts/step-reading/`, `brokers/step/dispatch/` |
 
-**T3-14a carries a trap**: `design-flow.ts` holds THREE routes. `design.session` goes;
-`design.start` and `design.stop` are the design SANDBOX and STAY. Deleting the sandbox because it
-shares a prefix is not caught by any typecheck.
+T3-14a and the orchestrator leak diagnosis both finished after the handoff was first written, and
+both are committed.
 
 **T4-4b carries a trap**: `step-dispatch-broker.ts` builds a `StepReading` in THREE branches. A
-stamp in one is a silent hole in the other two — the same shape that bit a settle wiring earlier.
+stamp in one is a silent hole in the other two — the same shape that bit a settle wiring earlier,
+where dropping the call on a ref branch was caught by nothing.
 
 A previous trio died on a session rate limit mid-run. Both predecessors' work turned out to be
 complete and correct; the resuming agents verified rather than redid it. **Ask an agent to READ what
