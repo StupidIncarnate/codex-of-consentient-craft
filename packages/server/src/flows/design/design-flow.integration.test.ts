@@ -41,7 +41,7 @@ describe('DesignFlow', () => {
   });
 
   describe('POST /api/quests/:questId/design/session', () => {
-    it('VALID: {missing body} => delegates to DesignSessionResponder which validates and returns 400', async () => {
+    it('EDGE: {any request} => no route registered, falls through to the app-wide 404', async () => {
       const app = DesignFlow();
       const questId = QuestIdStub();
 
@@ -50,10 +50,10 @@ describe('DesignFlow', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
       });
-      const body: unknown = await response.json();
+      const text = await response.text();
 
-      expect(response.status).toBe(400);
-      expect(toPlain(body)).toStrictEqual({ error: 'guildId is required' });
+      expect(response.status).toBe(404);
+      expect(text).toBe('404 Not Found');
     });
   });
 });
