@@ -110,6 +110,76 @@ describe('flowObservableContract', () => {
     });
   });
 
+  describe('human verification', () => {
+    it('VALID: {verifyByHuman: true} => carried through, so a reader can tell no automated check settles this one', () => {
+      const observable = FlowObservableStub({ type: 'custom', verifyByHuman: true });
+
+      expect(observable).toStrictEqual({
+        id: 'login-redirects-to-dashboard',
+        type: 'custom',
+        description: 'redirects to dashboard',
+        package: 'auth-service',
+        verifyByHuman: true,
+        addedBy: 'spec',
+      });
+    });
+
+    it('VALID: {verifyByHuman: false} => carried through as an explicit false', () => {
+      const observable = FlowObservableStub({ type: 'custom', verifyByHuman: false });
+
+      expect(observable).toStrictEqual({
+        id: 'login-redirects-to-dashboard',
+        type: 'custom',
+        description: 'redirects to dashboard',
+        package: 'auth-service',
+        verifyByHuman: false,
+        addedBy: 'spec',
+      });
+    });
+
+    it('VALID: {field omitted} => stays ABSENT rather than defaulting to false, so an ordinary observable costs nothing on disk', () => {
+      const observable = FlowObservableStub({ type: 'custom' });
+
+      expect(observable).toStrictEqual({
+        id: 'login-redirects-to-dashboard',
+        type: 'custom',
+        description: 'redirects to dashboard',
+        package: 'auth-service',
+        addedBy: 'spec',
+      });
+    });
+
+    it('INVALID: {verifyByHuman: "yes"} => throws, because the flag is a boolean and a truthy string would silently pass', () => {
+      expect(() => FlowObservableStub({ verifyByHuman: 'yes' as never })).toThrow(
+        /Expected boolean/u,
+      );
+    });
+
+    it('INVALID: {verifyByHuman: null} => throws, because the field is optional, not nullable', () => {
+      expect(() => FlowObservableStub({ verifyByHuman: null as never })).toThrow(
+        /Expected boolean/u,
+      );
+    });
+
+    it('VALID: {verifyByReading: true, verifyByHuman: true} => both parse together, because the two axes are independent', () => {
+      const observable = FlowObservableStub({
+        type: 'custom',
+        verifyByReading: true,
+        verifyByHuman: true,
+      });
+
+      expect(observable).toStrictEqual({
+        id: 'login-redirects-to-dashboard',
+        type: 'custom',
+        description: 'redirects to dashboard',
+        package: 'auth-service',
+        verifyByReading: true,
+        verifyByHuman: true,
+        addedBy: 'spec',
+      });
+    });
+  });
+
   describe('provenance', () => {
     it('VALID: {addedBy omitted} => defaults to spec, the origin of every observable present at approval', () => {
       const observable = flowObservableContract.parse({

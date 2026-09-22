@@ -39,9 +39,16 @@
  * a misaligned control or a truncated label as a defect. The question that separates the two is
  * whether the statement could break with no user-visible change.
  *
+ * `verifyByHuman` exists for the criterion neither of those settles: one no automated check — test
+ * or reading — can reach at all, because it names a judgment only a person can make, and only once
+ * the quest is done. It sits on a separate axis from `verifyByReading` and composes with it freely:
+ * one says how a criterion is settled, the other says the checker cannot be a machine, so an
+ * observable may carry either, both, or neither. Any role may set it, including one with no way to
+ * confirm the criterion itself.
+ *
  * It is `.optional()` because `questModifyBroker` re-parses the whole quest on every write, so a
- * `.default(false)` would materialise onto every observable in the file. Absent means a test
- * settles it.
+ * `.default(false)` would materialise onto every observable in the file — true of `verifyByReading`
+ * and `verifyByHuman` alike. Absent means an automated check settles it.
  */
 
 import { z } from 'zod';
@@ -64,6 +71,12 @@ export const flowObservableContract = z.object({
     .optional()
     .describe(
       'Set true when the criterion is about the shape of a source file — an import that must exist, a literal that must not be inlined, a name that must be absent, a style value that must be the one declared — so it is settled by reading the code rather than by running a test. Absent means a test settles it, which is the right answer for every outcome a user perceives, painted geometry included.',
+    ),
+  verifyByHuman: z
+    .boolean()
+    .optional()
+    .describe(
+      'Set true when no automated check — no test, no reading — can settle the criterion at all: only a person can judge it, and only after the quest is done. Setting it drops the criterion from the observable list every other role works from, so from that point on nothing else in the quest is asked to satisfy it. Any role may set this, including one with no way to verify the criterion itself. Absent means an automated check settles it.',
     ),
   addedBy: observableOriginContract.default('spec'),
 });
