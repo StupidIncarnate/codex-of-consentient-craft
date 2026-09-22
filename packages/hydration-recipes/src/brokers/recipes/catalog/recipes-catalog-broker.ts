@@ -8,12 +8,21 @@
  * // Returns readonly RecipeCatalogEntry[]
  */
 
-import { recipeNameContract } from '@dungeonmaster/hydration/contracts';
+import { guildIdContract } from '@dungeonmaster/shared/contracts';
+import {
+  hydrationRunResultContract,
+  planMakesEntryContract,
+  planRunsResultContract,
+  recipeNameContract,
+} from '@dungeonmaster/hydration/contracts';
 
 import type { RecipeCatalogEntry } from '../../../contracts/recipe-catalog-entry/recipe-catalog-entry-contract';
+import { recipeCatalogEntryContract } from '../../../contracts/recipe-catalog-entry/recipe-catalog-entry-contract';
+import { recipeContextContract } from '../../../contracts/recipe-context/recipe-context-contract';
 import { recipeInputKeyContract } from '../../../contracts/recipe-input-key/recipe-input-key-contract';
 import { questAdvancesOneStepInputsContract } from '../../../contracts/quest-advances-one-step-inputs/quest-advances-one-step-inputs-contract';
 import { sessionWithNestedChainInputsContract } from '../../../contracts/session-with-nested-chain-inputs/session-with-nested-chain-inputs-contract';
+import { recipeHttpStatics } from '../../../statics/recipe-http/recipe-http-statics';
 import { recipeListingProbeStatics } from '../../../statics/recipe-listing-probe/recipe-listing-probe-statics';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
 import { recipesGuildEmptyBroker } from '../guild-empty/recipes-guild-empty-broker';
@@ -24,6 +33,19 @@ import { recipesQuestCompletedBroker } from '../quest-completed/recipes-quest-co
 import { recipesSessionSingleTurnBroker } from '../session-single-turn/recipes-session-single-turn-broker';
 import { recipesSessionWithNestedChainBroker } from '../session-with-nested-chain/recipes-session-with-nested-chain-broker';
 import { recipesGuildActiveSuiteBroker } from '../guild-active-suite/recipes-guild-active-suite-broker';
+import { recipesSessionWithNestedSubagentBroker } from '../session-with-nested-subagent/recipes-session-with-nested-subagent-broker';
+
+// `recipesSessionWithNestedSubagentBroker` is a `direct`-fidelity recipe, not a `recipe()`-declared
+// one — it writes JSONL transcripts itself rather than building a Plan, so it carries no `.recipeName`
+// / `.description` statics the way the other eight do. This is the one place those two fields get a
+// real, branded value: parsing through `recipeCatalogEntryContract` (rather than a hand-written
+// object literal) is what brands `description` as `RecipeDescription` — a plain string literal
+// cannot satisfy that field, since the brand is a required phantom property, not an optional one.
+const sessionWithNestedSubagentMeta = recipeCatalogEntryContract.parse({
+  recipeName: 'session-with-nested-subagent',
+  description:
+    'one session transcript holding an outer sub-agent chain with one chain nested inside it, both finished',
+});
 
 export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
   {
@@ -239,6 +261,39 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
         );
       }
       return dmRegistryBroker.run(recipesGuildActiveSuiteBroker(), target);
+    },
+  },
+  {
+    recipeName: sessionWithNestedSubagentMeta.recipeName,
+    description: sessionWithNestedSubagentMeta.description,
+    probeListing: () => ({
+      runs: planRunsResultContract.parse({ serverless: false, needsServerFor: 'guild' }),
+      makes: [
+        planMakesEntryContract.parse({ ingredient: 'session', count: 1 }),
+        planMakesEntryContract.parse({ ingredient: 'subagent', count: 2 }),
+      ],
+      inputKeys: [recipeInputKeyContract.parse('guild')],
+    }),
+    execute: async ({ params, target }) => {
+      const parsedGuild = guildIdContract.safeParse(params?.guild);
+      if (!parsedGuild.success) {
+        throw new Error(
+          `recipesSeedRunBroker: recipe 'session-with-nested-subagent' refused params — ${parsedGuild.error.message} — this recipe takes: guild`,
+        );
+      }
+      if (target.baseUrl === undefined) {
+        throw new Error(
+          `recipesSeedRunBroker: recipe 'session-with-nested-subagent' needs a target with a baseUrl — it reads ${recipeHttpStatics.routes.guilds} to resolve the guild's path`,
+        );
+      }
+      const result = await recipesSessionWithNestedSubagentBroker({
+        context: recipeContextContract.parse({
+          apiBaseUrl: target.baseUrl,
+          homePath: target.home,
+        }),
+        guild: parsedGuild.data,
+      });
+      return hydrationRunResultContract.parse(result);
     },
   },
 ];

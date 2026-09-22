@@ -20,6 +20,7 @@ describe('recipesListingBuildBroker', () => {
         'session-single-turn',
         'session-with-nested-chain',
         'guild-active-suite',
+        'session-with-nested-subagent',
       ]);
     });
   });

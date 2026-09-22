@@ -2,7 +2,7 @@ import { RecipesListingResponderProxy } from './recipes-listing-responder.proxy'
 
 describe('RecipesListingResponder', () => {
   describe('delegation to recipesListingBuildBroker', () => {
-    it('VALID: {} => delegates to broker and returns all 8 declared recipes', () => {
+    it('VALID: {} => delegates to broker and returns all 9 declared recipes', () => {
       const proxy = RecipesListingResponderProxy();
 
       const result = proxy.callResponder();
@@ -85,6 +85,17 @@ describe('RecipesListingResponder', () => {
             { ingredient: 'quest', count: 2 },
             { ingredient: 'session', count: 1 },
             { ingredient: 'subagent', count: 1 },
+          ],
+        },
+        {
+          recipeName: 'session-with-nested-subagent',
+          description:
+            'one session transcript holding an outer sub-agent chain with one chain nested inside it, both finished',
+          inputKeys: ['guild'],
+          runs: { serverless: false, needsServerFor: 'guild' },
+          makes: [
+            { ingredient: 'session', count: 1 },
+            { ingredient: 'subagent', count: 2 },
           ],
         },
       ]);

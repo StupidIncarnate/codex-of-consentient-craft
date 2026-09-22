@@ -148,6 +148,17 @@ describe('the exports @dungeonmaster/siegelense reads off this package', () => {
           { ingredient: 'subagent', count: 1 },
         ],
       },
+      {
+        recipeName: 'session-with-nested-subagent',
+        description:
+          'one session transcript holding an outer sub-agent chain with one chain nested inside it, both finished',
+        inputKeys: ['guild'],
+        runs: { serverless: false, needsServerFor: 'guild' },
+        makes: [
+          { ingredient: 'session', count: 1 },
+          { ingredient: 'subagent', count: 2 },
+        ],
+      },
     ]);
     expect(recipesListingShape.parse(listing)).toStrictEqual(listing);
   });
@@ -198,6 +209,11 @@ describe('the exports @dungeonmaster/siegelense reads off this package', () => {
         description:
           'one active guild holding two quests (one in progress, one complete) and a session with subagent chain',
       },
+      {
+        recipeName: 'session-with-nested-subagent',
+        description:
+          'one session transcript holding an outer sub-agent chain with one chain nested inside it, both finished',
+      },
     ]);
   });
 });
@@ -225,6 +241,7 @@ describe('the StartHydrationRecipes startup export', () => {
       'session-single-turn',
       'session-with-nested-chain',
       'guild-active-suite',
+      'session-with-nested-subagent',
     ]);
     expect(recipesListingShape.parse(listing)).toStrictEqual(listing);
   });

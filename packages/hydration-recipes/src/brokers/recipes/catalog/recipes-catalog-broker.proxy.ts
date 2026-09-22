@@ -7,6 +7,7 @@ import { recipesQuestCompletedBrokerProxy } from '../quest-completed/recipes-que
 import { recipesSessionSingleTurnBrokerProxy } from '../session-single-turn/recipes-session-single-turn-broker.proxy';
 import { recipesSessionWithNestedChainBrokerProxy } from '../session-with-nested-chain/recipes-session-with-nested-chain-broker.proxy';
 import { recipesGuildActiveSuiteBrokerProxy } from '../guild-active-suite/recipes-guild-active-suite-broker.proxy';
+import { recipesSessionWithNestedSubagentBrokerProxy } from '../session-with-nested-subagent/recipes-session-with-nested-subagent-broker.proxy';
 import { recipeListingProbeStatics } from '../../../statics/recipe-listing-probe/recipe-listing-probe-statics';
 
 export const recipesCatalogBrokerProxy = (): {
@@ -21,6 +22,7 @@ export const recipesCatalogBrokerProxy = (): {
   recipesSessionSingleTurnBrokerProxy();
   recipesSessionWithNestedChainBrokerProxy();
   recipesGuildActiveSuiteBrokerProxy();
+  recipesSessionWithNestedSubagentBrokerProxy();
 
   return {
     corruptQuestAdvancesOneStepProbe: (): void => {
