@@ -9,9 +9,9 @@
  * this". `open-issue` is a permanent gap today: nothing in this repo stores an issue with a typed
  * `instanceId`/`runId` for a resolver to match — `signoffContract` carries neither and
  * `questNoteKindContract` has no `issue` member — so a walker's defect lives as a failing test on
- * disk or as prose in a note. Reach for this over calling either layer directly: this is the one
- * place that loads the quest record, and two callers loading it separately could disagree about
- * whether the quest is still open.
+ * disk or as prose in a note. Reach for this over calling a layer directly: this is the one place
+ * that loads the quest record, and two callers loading it separately could disagree about whether
+ * the quest is still open.
  *
  * USAGE:
  * await citationResolveBroker({ entry, runIds });
@@ -30,6 +30,7 @@ import type { RegistryEntry } from '../../../contracts/registry-entry/registry-e
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { locationsCitationQuestFilePathFindBroker } from '../../locations/citation-quest-file-path-find/locations-citation-quest-file-path-find-broker';
 import { questRecordParseLayerBroker } from './quest-record-parse-layer-broker';
+import { unjudgedScreencastLayerBroker } from './unjudged-screencast-layer-broker';
 import { verifiedPreludeLayerBroker } from './verified-prelude-layer-broker';
 import { walkedNoteLayerBroker } from './walked-note-layer-broker';
 
@@ -125,11 +126,26 @@ export const citationResolveBroker = async ({
     questFilePath,
   });
 
+  const screencasts = await unjudgedScreencastLayerBroker({
+    instanceId: entry.id,
+    guildId: entry.guildId,
+    quest,
+    questFilePath,
+  });
+
+  if (screencasts.blocked !== null) {
+    return citationResolutionContract.parse({
+      references: [],
+      gaps: [],
+      blocked: screencasts.blocked,
+    });
+  }
+
   const { worktreePath } = quest;
 
   if (worktreePath === undefined) {
     return citationResolutionContract.parse({
-      references: walked,
+      references: [...walked, ...screencasts.references],
       gaps: [NO_PRELUDE_GAP, OPEN_ISSUE_GAP],
       blocked: null,
     });
@@ -142,7 +158,7 @@ export const citationResolveBroker = async ({
   });
 
   return citationResolutionContract.parse({
-    references: [...walked, ...preludes],
+    references: [...walked, ...screencasts.references, ...preludes],
     gaps: [OPEN_ISSUE_GAP],
     blocked: null,
   });

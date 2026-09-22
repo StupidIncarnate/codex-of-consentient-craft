@@ -1,7 +1,11 @@
 import {
   AbsoluteFilePathStub,
   FilePathStub,
+  FlowNodeStub,
+  FlowObservableStub,
+  FlowStub,
   GuildIdStub,
+  ObservableIdStub,
   QuestIdStub,
   QuestNoteStub,
   QuestStub,
@@ -26,6 +30,10 @@ const WORKTREE = '/repo/worktrees/add-auth-7bc217a1';
 const PLANS_DIR = `${WORKTREE}/.quest-plans`;
 const INSTANCE = 'inst_9b2c0001';
 const OTHER_INSTANCE = 'inst_1d090002';
+// Resolved for real through `pathJoinAdapter`'s passthrough off `osHomedirAdapterProxy`'s standing
+// '/home/default', since the quest-folder staging above spends its one homedir answer on the quest
+// record's own path.
+const SIEGE_RUNS = `/home/default/.dungeonmaster/siegelense/guilds/${GUILD}/instances/${INSTANCE}/runs`;
 
 const OPEN_ISSUE_WHY =
   'not checked: no issue record exists to check. Nothing in this repo stores an issue carrying ' +
@@ -662,6 +670,160 @@ describe('citationResolveBroker', () => {
           { kind: 'open-issue', why: OPEN_ISSUE_WHY },
         ],
         blocked: null,
+      });
+    });
+  });
+
+  describe('a criterion only a person can settle', () => {
+    it('VALID: {a verifyByHuman observable, a walked note and a .webm} => refused by BOTH kinds, the screencast citation naming the file a person opens', async () => {
+      const proxy = citationResolveBrokerProxy();
+      proxy.setupQuestFolder({
+        homeDir: HOME_DIR,
+        homePath: FilePathStub({ value: HOME }),
+        guildPath: FilePathStub({ value: GUILD_DIR }),
+        guildQuestsPath: FilePathStub({ value: `${GUILD_DIR}/quests` }),
+        questFolderPath: FilePathStub({ value: QUEST_FOLDER }),
+      });
+      proxy.setupQuestRecord({
+        filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        contents: JSON.stringify(
+          QuestStub({
+            status: 'in_progress',
+            worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+            flows: [
+              FlowStub({
+                nodes: [
+                  FlowNodeStub({
+                    observables: [
+                      FlowObservableStub({
+                        id: ObservableIdStub({ value: 'motion-feels-smooth' }),
+                        verifyByHuman: true,
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+            ],
+            planningNotes: {
+              blightLedger: [],
+              operationPlans: [],
+              questNotes: [
+                QuestNoteStub({
+                  id: 'walked-path-3' as never,
+                  kind: 'walked',
+                  instanceId: SiegeInstanceIdStub({ value: INSTANCE }),
+                  runId: SiegeRunIdStub({ value: 'run_7' }),
+                }),
+              ],
+            },
+          }),
+        ),
+      });
+      proxy.setupPlansDir({ dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }), entries: [] });
+      proxy.setupRunDir({
+        dirPath: AbsoluteFilePathStub({ value: `${SIEGE_RUNS}/run_7` }),
+        entries: ['step1.png', 'walk.webm'],
+      });
+
+      const result = await citationResolveBroker({
+        entry: RegistryEntryStub({
+          id: InstanceIdStub({ value: INSTANCE }),
+          questId: QuestIdStub({ value: QUEST }),
+          guildId: GuildIdStub({ value: GUILD }),
+        }),
+        runIds: [RunIdStub({ value: 'run_7' })],
+      });
+
+      expect(result).toStrictEqual({
+        references: [
+          {
+            kind: 'walked-note',
+            instanceId: INSTANCE,
+            runId: 'run_7',
+            citingFile: QUEST_FILE,
+            why: `run_7 cited by a WALKED note on open quest add-auth (in_progress) in ${QUEST_FILE}`,
+          },
+          {
+            kind: 'unjudged-screencast',
+            instanceId: INSTANCE,
+            runId: 'run_7',
+            citingFile: QUEST_FILE,
+            why:
+              'run_7 cited by motion-feels-smooth on quest add-auth (in_progress), which only a ' +
+              `person can settle — held until that verdict is recorded: ${SIEGE_RUNS}/run_7/walk.webm`,
+          },
+        ],
+        gaps: [{ kind: 'open-issue', why: OPEN_ISSUE_WHY }],
+        blocked: null,
+      });
+    });
+
+    it('ERROR: {a verifyByHuman observable whose run holds no .webm} => the whole resolution is blocked naming the empty directory, rather than reporting the walked citation and losing the recording', async () => {
+      const proxy = citationResolveBrokerProxy();
+      proxy.setupQuestFolder({
+        homeDir: HOME_DIR,
+        homePath: FilePathStub({ value: HOME }),
+        guildPath: FilePathStub({ value: GUILD_DIR }),
+        guildQuestsPath: FilePathStub({ value: `${GUILD_DIR}/quests` }),
+        questFolderPath: FilePathStub({ value: QUEST_FOLDER }),
+      });
+      proxy.setupQuestRecord({
+        filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        contents: JSON.stringify(
+          QuestStub({
+            status: 'complete',
+            worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+            flows: [
+              FlowStub({
+                nodes: [
+                  FlowNodeStub({
+                    observables: [
+                      FlowObservableStub({
+                        id: ObservableIdStub({ value: 'motion-feels-smooth' }),
+                        verifyByHuman: true,
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+            ],
+            planningNotes: {
+              blightLedger: [],
+              operationPlans: [],
+              questNotes: [
+                QuestNoteStub({
+                  id: 'walked-path-3' as never,
+                  kind: 'walked',
+                  instanceId: SiegeInstanceIdStub({ value: INSTANCE }),
+                  runId: SiegeRunIdStub({ value: 'run_7' }),
+                }),
+              ],
+            },
+          }),
+        ),
+      });
+      proxy.setupPlansDir({ dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }), entries: [] });
+      proxy.setupRunDir({
+        dirPath: AbsoluteFilePathStub({ value: `${SIEGE_RUNS}/run_7` }),
+        entries: ['step1.png'],
+      });
+
+      const result = await citationResolveBroker({
+        entry: RegistryEntryStub({
+          id: InstanceIdStub({ value: INSTANCE }),
+          questId: QuestIdStub({ value: QUEST }),
+          guildId: GuildIdStub({ value: GUILD }),
+        }),
+        runIds: [RunIdStub({ value: 'run_7' })],
+      });
+
+      expect(result).toStrictEqual({
+        references: [],
+        gaps: [],
+        blocked:
+          'quest add-auth (complete) leaves motion-feels-smooth for a person to settle off run_7 ' +
+          `on ${INSTANCE}, and no .webm is in ${SIEGE_RUNS}/run_7 — refusing rather than handing ` +
+          'that person a pointer to a recording that is not there.',
       });
     });
   });

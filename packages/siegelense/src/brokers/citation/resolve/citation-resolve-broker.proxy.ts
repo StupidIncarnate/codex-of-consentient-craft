@@ -4,6 +4,7 @@ import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-nativ
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { locationsCitationQuestFilePathFindBrokerProxy } from '../../locations/citation-quest-file-path-find/locations-citation-quest-file-path-find-broker.proxy';
 import { questRecordParseLayerBrokerProxy } from './quest-record-parse-layer-broker.proxy';
+import { unjudgedScreencastLayerBrokerProxy } from './unjudged-screencast-layer-broker.proxy';
 import { verifiedPreludeLayerBrokerProxy } from './verified-prelude-layer-broker.proxy';
 import { walkedNoteLayerBrokerProxy } from './walked-note-layer-broker.proxy';
 
@@ -20,10 +21,18 @@ export const citationResolveBrokerProxy = (): {
   setupPlansDir: (params: { dirPath: AbsoluteFilePath; entries: readonly string[] }) => void;
   setupPlanFile: (params: { filePath: AbsoluteFilePath; contents: string }) => void;
   setupNotADirectory: (params: { dirPath: AbsoluteFilePath }) => void;
+  setupEvidenceTree: (params: {
+    homeDir: string;
+    homePath: FilePath;
+    rootPath: FilePath;
+    evidencePath: FilePath;
+  }) => void;
+  setupRunDir: (params: { dirPath: AbsoluteFilePath; entries: readonly string[] }) => void;
 } => {
   const readFileProxy = fsReadFileAdapterProxy();
   const questFilePathProxy = locationsCitationQuestFilePathFindBrokerProxy();
   const preludeProxy = verifiedPreludeLayerBrokerProxy();
+  const screencastProxy = unjudgedScreencastLayerBrokerProxy();
   errorIsNativeErrorAdapterProxy();
   questRecordParseLayerBrokerProxy();
   walkedNoteLayerBrokerProxy();
@@ -57,5 +66,8 @@ export const citationResolveBrokerProxy = (): {
     setupPlansDir: preludeProxy.setupPlansDir,
     setupPlanFile: preludeProxy.setupPlanFile,
     setupNotADirectory: preludeProxy.setupNotADirectory,
+
+    setupEvidenceTree: screencastProxy.setupEvidenceTree,
+    setupRunDir: screencastProxy.setupRunDir,
   };
 };
