@@ -45,6 +45,7 @@ import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestam
 import { agentFlowStatics } from '../../../statics/agent-flow/agent-flow-statics';
 import { familyScopesMintTransformer } from '../../../transformers/family-scopes-mint/family-scopes-mint-transformer';
 import { operationsCodeweaverOrderTransformer } from '../../../transformers/operations-codeweaver-order/operations-codeweaver-order-transformer';
+import { workItemFamilyResolveTransformer } from '../../../transformers/work-item-family-resolve/work-item-family-resolve-transformer';
 
 const GRAPH_BY_FAMILY = new Map(Object.entries(agentFlowStatics));
 
@@ -87,10 +88,19 @@ export const questBuildRelayGraphBroker = ({
     return { operations, workItems: [] };
   }
 
-  // The scope is the entry family's, so its entry step is the family graph's own. Stamped here for
-  // the same reason advance stamps it: without it the router reads a scope that has work items as
-  // one nothing has entered.
-  const entryStep = GRAPH_BY_FAMILY.get(entryFamily)?.entry;
+  // The step comes from firstActionable's OWN family, never the entry family: a re-seed or a
+  // hydrated quest can already carry a pending operation from a family other than the one just
+  // minted, and stamping the entry family's step onto it mints a step that family's own graph
+  // never declares. Stamped here for the same reason advance stamps it: without it the router
+  // reads a scope that has work items as one nothing has entered.
+  const firstActionableFamily = workItemFamilyResolveTransformer({
+    quest,
+    operationItem: firstActionable,
+  });
+  const entryStep =
+    firstActionableFamily === undefined
+      ? undefined
+      : GRAPH_BY_FAMILY.get(firstActionableFamily)?.entry;
 
   const firstWorkItem = workItemContract.parse({
     id: questWorkItemIdContract.parse(crypto.randomUUID()),

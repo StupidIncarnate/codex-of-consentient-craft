@@ -71,7 +71,7 @@ describe('questBuildRelayGraphBroker', () => {
   });
 
   describe('intake plan items forced complete', () => {
-    it('VALID: {chaoswhisperer op pending + glyphsmith op in_progress, codeweaver op pending} => both intake ops forced complete, the pre-existing codeweaver op stays first actionable, and the newly minted riftcarver scope seeds pending behind it', () => {
+    it('VALID: {chaoswhisperer op pending + glyphsmith op in_progress, codeweaver op pending} => both intake ops forced complete, the pre-existing codeweaver op stays first actionable, its work item carries codeweaver\'s OWN entry step "plan" (not riftcarver\'s "carve"), and the newly minted riftcarver scope seeds pending behind it', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -125,7 +125,7 @@ describe('questBuildRelayGraphBroker', () => {
             relatedDataItems: ['operations/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'],
             dependsOn: [],
             createdAt: '2024-01-15T10:00:00.000Z',
-            step: 'carve',
+            step: 'plan',
           }),
         ],
       });
@@ -133,7 +133,7 @@ describe('questBuildRelayGraphBroker', () => {
   });
 
   describe('codeweaver dependency ordering', () => {
-    it('VALID: {pre-existing codeweaver ops authored top-down with a packageGraph stamped} => the ledger comes back dependencies-first, the LEAF op is the one marked in_progress, and the newly minted riftcarver scope seeds pending behind both', () => {
+    it('VALID: {pre-existing codeweaver ops authored top-down with a packageGraph stamped} => the ledger comes back dependencies-first, the LEAF op is the one marked in_progress, its work item carries codeweaver\'s OWN entry step "plan" (not riftcarver\'s "carve"), and the newly minted riftcarver scope seeds pending behind both', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -199,7 +199,54 @@ describe('questBuildRelayGraphBroker', () => {
             relatedDataItems: ['operations/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'],
             dependsOn: [],
             createdAt: '2024-01-15T10:00:00.000Z',
-            step: 'carve',
+            step: 'plan',
+          }),
+        ],
+      });
+    });
+  });
+
+  describe("regression: pending non-entry-family operation keeps its own family's entry step", () => {
+    it('VALID: {siegemaster op pending on the ledger, riftcarver is the entry family} => the siegemaster op is first actionable and its work item carries siegemaster\'s OWN entry step "sweepIn", never riftcarver\'s entry step "carve"', () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({ ids: UUIDS });
+
+      const siegemasterOp = OperationItemStub({
+        id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+        role: 'siegemaster',
+        text: 'siege: walk the checkout flow',
+        status: 'pending',
+      });
+      const quest = QuestStub({ operations: [siegemasterOp] });
+
+      const result = questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      expect(result).toStrictEqual({
+        operations: [
+          { ...siegemasterOp, status: 'in_progress' },
+          OperationItemStub({
+            id: '00000000-0000-4000-8000-000000000001',
+            role: 'riftcarver',
+            text: 'Riftcarver: carve the quest branch, worktree and preflight typecheck',
+            status: 'pending',
+            locked: true,
+            packageNames: [],
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000002' }),
+            role: 'siegemaster',
+            status: 'pending',
+            spawnerType: 'agent',
+            relatedDataItems: ['operations/dddddddd-dddd-4ddd-8ddd-dddddddddddd'],
+            dependsOn: [],
+            createdAt: '2024-01-15T10:00:00.000Z',
+            step: 'sweepIn',
           }),
         ],
       });

@@ -65,11 +65,12 @@ const EXISTING_WORKTREE_PATH = AbsoluteFilePathStub({
 // bug-hunt — restated as one literal so the assertions below read as plain objects.
 const RIFTCARVER_TEXT = 'Riftcarver: carve the quest branch, worktree and preflight typecheck';
 
-// The entry family's own entry step (`agentFlowStatics.riftcarver.entry`). questBuildRelayGraphBroker
-// stamps this onto the FIRST work item Start mints, whatever role that item's flipped operation
-// carries — the step names where the ENTRY family's own graph begins, not the flipped operation's
-// family, since the entry family is fixed per quest type while the first-actionable operation can be
-// a pre-existing item of any role.
+// `agentFlowStatics.riftcarver.entry` — the step the FIRST work item carries on an EMPTY ledger,
+// where the entry family's own freshly-minted scope is the first (and only) actionable item.
+// questBuildRelayGraphBroker stamps a work item with its FLIPPED OPERATION's OWN family's entry
+// step, so this constant only holds where that flipped operation IS the entry family — a
+// pre-existing operation of another role gets that role's own family's entry step instead (see the
+// "one pending codeweaver op already on the ledger" case below, which asserts `'plan'`).
 const ENTRY_STEP = 'carve';
 
 // The ENTRY family's own scope — the ONE operation item Start ever seeds, for either quest type:
@@ -378,7 +379,7 @@ describe('OrchestrationStartResponder', () => {
       ]);
     });
 
-    it('VALID: {approved feature quest with Chaos plan, one pending codeweaver op already on the ledger} => links ONE new work item to the flipped op, carrying the entry family step, with dependsOn = chat item ids', async () => {
+    it('VALID: {approved feature quest with Chaos plan, one pending codeweaver op already on the ledger} => links ONE new work item to the flipped op, carrying codeweaver\'s OWN entry step "plan" (not riftcarver\'s entry step "carve"), with dependsOn = chat item ids', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosOp = OperationItemStub({
         id: CHAOS_OP_UUID,
@@ -428,7 +429,7 @@ describe('OrchestrationStartResponder', () => {
           createdAt: FIXED_TIMESTAMP,
           observations: [],
           assignedUnitIds: [],
-          step: ENTRY_STEP,
+          step: 'plan',
         },
       ]);
     });
