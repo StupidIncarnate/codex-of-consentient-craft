@@ -52,7 +52,6 @@ export const apiRoutesStatics = {
   design: {
     start: '/api/quests/:questId/design/start',
     stop: '/api/quests/:questId/design/stop',
-    session: '/api/quests/:questId/design/session',
   },
   directories: {
     browse: '/api/directories/browse',
