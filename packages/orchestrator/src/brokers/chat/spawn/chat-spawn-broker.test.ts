@@ -571,39 +571,6 @@ describe('chatSpawnBroker', () => {
     });
   });
 
-  describe('glyphsmith has no chat prompt', () => {
-    it('ERROR: {glyphsmith + questId in explore_design} => rejects naming the role, spawning nothing', async () => {
-      const proxy = chatSpawnBrokerProxy();
-      const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'glyphsmith' });
-      const questId = QuestIdStub({ value: 'design-quest' });
-      const quest = QuestStub({ id: 'design-quest', status: 'explore_design' });
-
-      proxy.setupGlyphsmithSession({ exitCode: ExitCodeStub({ value: 0 }), quest });
-
-      await expect(
-        chatSpawnBroker({
-          role,
-          guildId,
-          questId,
-          message: 'Create login page prototype',
-          onEntries: jest.fn(),
-          onComplete: jest.fn(),
-          registerProcess: jest.fn(),
-        }),
-      ).rejects.toThrow(/^chatPromptBuildTransformer has no template for role 'glyphsmith'.*$/u);
-
-      expect(proxy.getSpawnedArgs()).toBe(undefined);
-    });
-  });
-
-  // The old 'glyphsmith status guard' and 'glyphsmith quest not found' describe blocks pinned
-  // resolveChatQuestLayerBroker's dedicated glyphsmith branch (deleted — glyphsmith now falls
-  // through to the generic quest-resolution paths, same as chaoswhisperer/bughunt). The rejection
-  // those blocks asserted is now the SAME error every glyphsmith spawn produces, covered above by
-  // 'glyphsmith has no chat prompt': chatPromptBuildTransformer throws before quest resolution's
-  // outcome (status, existence) can matter.
-
   // The old 'onAgentDetected via agent-detected output' describe block was removed when
   // chat-spawn-broker delegated sub-agent dispatch into chatStreamProcessHandleBroker.
   // Equivalent coverage now lives in

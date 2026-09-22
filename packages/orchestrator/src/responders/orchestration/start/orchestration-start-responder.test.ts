@@ -480,28 +480,6 @@ describe('OrchestrationStartResponder', () => {
       });
     });
 
-    it('VALID: {pending glyphsmith work item} => promoted to complete in the same operations persist', async () => {
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const glyphItem = WorkItemStub({
-        id: CHAT_ITEM_UUID,
-        role: 'glyphsmith',
-        status: 'pending',
-      });
-      const quest = QuestStub({ id: questId, status: 'approved', workItems: [glyphItem] });
-      const proxy = OrchestrationStartResponderProxy();
-      proxy.setupStart({ quest });
-
-      await proxy.callResponder({ questId });
-
-      const persisted = proxy.getPersistedQuestAt({ index: 0 });
-
-      expect(persisted.workItems[0]).toStrictEqual({
-        ...glyphItem,
-        status: 'complete',
-        completedAt: FIXED_TIMESTAMP,
-      });
-    });
-
     it('VALID: {failed chaoswhisperer work item} => already terminal, left untouched', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const failedChat = WorkItemStub({

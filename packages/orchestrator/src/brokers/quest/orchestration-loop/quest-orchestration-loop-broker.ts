@@ -40,7 +40,7 @@ import { runChatLayerBroker } from './run-chat-layer-broker';
 // NOTE: every execution-role layer broker (codeweaver, ward, flowrider, siegemaster,
 // spiritmender) is intentionally NOT imported here. Those roles are
 // dispatched by the dispatch loop via get-next-step. The orchestration loop only
-// retains the chat-role dispatch (chaoswhisperer / glyphsmith / bughunt) for chat surfaces;
+// retains the chat-role dispatch (chaoswhisperer / bughunt) for chat surfaces;
 // every other role drops through this loop as a no-op.
 
 const DEFAULT_SLOT_COUNT = 3;
@@ -184,7 +184,7 @@ export const questOrchestrationLoopBroker = async ({
     return result;
   }
 
-  // This loop only dispatches chat roles (chaoswhisperer / glyphsmith / bughunt). Every execution
+  // This loop only dispatches chat roles (chaoswhisperer / bughunt). Every execution
   // role is dispatched by /dumpster-launch via the MCP get-next-step tool, and its work item is
   // flipped to in_progress only when the sub-agent calls get-agent-prompt. Execution-role
   // items are left `pending` here — the loop must not touch their status.
@@ -262,7 +262,7 @@ export const questOrchestrationLoopBroker = async ({
     } as ModifyQuestInput,
   });
 
-  // 8. Dispatch to the chat layer (chaoswhisperer / glyphsmith — the only roles this loop runs).
+  // 8. Dispatch to the chat layer (chaoswhisperer / bughunt — the only roles this loop runs).
   try {
     await runChatLayerBroker({
       questId,

@@ -55,27 +55,6 @@ describe('runChatLayerBroker', () => {
       ).resolves.toStrictEqual({ success: true });
     });
 
-    it('ERROR: {glyphsmith work item} => rejects naming the role before any quest write', async () => {
-      const proxy = runChatLayerBrokerProxy();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const workItem = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
-        role: 'glyphsmith',
-        status: 'in_progress',
-      });
-
-      await expect(
-        runChatLayerBroker({
-          questId,
-          workItem,
-          userMessage: UserInputStub({ value: 'Design the login page' }),
-          onAgentEntry: jest.fn(),
-        }),
-      ).rejects.toThrow(/^chatPromptBuildTransformer has no template for role 'glyphsmith'.*$/u);
-
-      expect(proxy.getAllPersistedContents()).toStrictEqual([]);
-    });
-
     it('ERROR: {spawn throws} => marks work item as failed and rethrows', async () => {
       const proxy = runChatLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });

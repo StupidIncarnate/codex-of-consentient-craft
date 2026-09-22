@@ -59,8 +59,8 @@ export const FollowupChatStartResponderProxy = (): {
   // Guild default staging, the questModifyBroker auto-mock, and the launcher's crypto.randomUUID +
   // chatStreamProcessHandle + main-tail + kill-layer + spawn-adapter wiring — everything
   // chatSpawnBroker's real internal chain needs to complete a full spawn. This proxy's own quest-
-  // resolution scenario methods (setupGlyphsmithSession, setupSessionLinkQuest, ...) are never
-  // called directly — they are chaoswhisperer/glyphsmith-shaped and cannot address a tavernkeeper
+  // resolution scenario methods (setupSessionLinkQuest, ...) are never
+  // called directly — they are chaoswhisperer-shaped and cannot address a tavernkeeper
   // quest. Only its spawn-adapter-level methods (setupResumeSession, setupResumeWithWorktree,
   // setupResumeWithMissingWorktree, getSpawnedArgs) are used below, addressed so their OWN bundled
   // quest resolution never collides with this responder's real reads (see CWD_STAGING_QUEST_ID).

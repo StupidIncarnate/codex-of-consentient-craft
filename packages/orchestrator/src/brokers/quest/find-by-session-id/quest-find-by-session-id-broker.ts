@@ -7,7 +7,7 @@
  *
  * WHEN-TO-USE: From the POST-AskUserQuestion hook to look up the quest the hook session is
  *   running in, so it can PATCH design decisions onto the right quest. Matches any chat role
- *   (chaoswhisperer/glyphsmith/bughunt) — the hook fires in whichever intake conversation is
+ *   (chaoswhisperer/bughunt) — the hook fires in whichever intake conversation is
  *   running, and a bug-hunt session's answers belong on its quest exactly as a feature's do.
  * WHEN-NOT-TO-USE: Anywhere needing live workItem state — this only returns the questId.
  */

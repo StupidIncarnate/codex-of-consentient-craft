@@ -334,7 +334,7 @@ describe('resolveChatQuestLayerBroker', () => {
   });
 
   // #main-composer-ignores-tavernkeeper-session: a message sent through the quest's MAIN chat
-  // composer (POST /api/quests/:questId/chat) resumes the chaoswhisperer / glyphsmith / bughunt
+  // composer (POST /api/quests/:questId/chat) resumes the chaoswhisperer / bughunt
   // session, never the tavernkeeper session — including when the tavernkeeper work item is
   // listed FIRST in quest.workItems; when the tavernkeeper item is the only chat item carrying
   // a sessionId, that route starts a fresh chat with no sessionId rather than joining the
@@ -396,7 +396,7 @@ describe('resolveChatQuestLayerBroker', () => {
     });
 
     describe('case 2: tavernkeeper is the only chat item carrying a sessionId', () => {
-      // chaoswhisperer, bughunt and glyphsmith share the generic sessionId+questId resolution
+      // chaoswhisperer and bughunt share the generic sessionId+questId resolution
       // branch (lines 107-119 of the broker). When quest-chat-responder's own selector
       // (isChatWorkItemRoleGuard && !isPostQuestChatWorkItemRoleGuard) finds no non-tavernkeeper
       // chat item carrying a sessionId, no sessionId reaches this call at all — so the branch's

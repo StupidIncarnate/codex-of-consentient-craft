@@ -251,7 +251,7 @@ The `/dumpster-launch` session tail is the live driver under the dispatch-loop f
 sub-agent tail watches `subagents/agent-*.jsonl` siblings as new files appear (each Task
 the launch session dispatches creates one). The replay path is what hydrates the web UI's
 chat history when a browser reconnects to a quest that's mid-flight. The legacy spawn path
-still backs the interactive chat callers (ChaosWhisperer / Glyphsmith) of
+still backs the interactive chat callers (ChaosWhisperer / BugHunt) of
 `chat-spawn-broker`.
 
 ### Sanitation & parsing happens here, not on the web
@@ -286,8 +286,8 @@ instances to match. Multiple watcher instances coexist — one per active parent
 **Non-terminal, not in-progress.** The real target test is "an ACTIVE work item carrying a
 `sessionId`"; quest status is only a cheap pre-filter that skips loading `quest.json` for
 quests that can no longer hold a live session. So the SPEC PHASE is in scope: a quest sitting
-at `created` / `explore_flows` / `review_flows` has an intake work item (chaoswhisperer,
-glyphsmith, or bughunt) carrying the chat session's id, and its tail runs — which is what
+at `created` / `explore_flows` / `review_flows` has an intake work item (chaoswhisperer
+or bughunt) carrying the chat session's id, and its tail runs — which is what
 streams an intake conversation into the browser chat panel while the user is still having it
 in their terminal. Narrowing the pre-filter to `approved`/`design_approved`/`in_progress`
 starts no watcher for those quests and the panel stays empty for the whole conversation.
@@ -785,7 +785,7 @@ step the router mints on that scope, one per piece inside a parallel step. `step
   batch, the scope completing (and, on the family's last scope, the next family's scopes minted), or a
   HALT performed AFTER the persist returns, because `questBlockOnFailureBroker` takes the same lock.
 - **Seed** (`questBuildRelayGraphBroker`, at Start): force-completes any leftover chat-role intake items
-  (`isChatWorkItemRoleGuard` — chaoswhisperer / glyphsmith / bughunt), mints the **ENTRY family's scopes
+  (`isChatWorkItemRoleGuard` — chaoswhisperer / bughunt), mints the **ENTRY family's scopes
   and nothing else** through `familyScopesMintTransformer`, and creates the first work item — all in one
   `questOperationsUpdateBroker` persist. The entry family is `riftcarver` for BOTH quest types, so that
   first work item is always the carve, `spawnerType: 'command'`, `step: 'carve'`. It is excluded from the
@@ -832,7 +832,7 @@ step the router mints on that scope, one per piece inside a parallel step. `step
   would block on the other.
 - **Session tracking**: each work item carries `sessionId` (parent /dumpster-launch session UUID) AND
   `agentId` (the sub-agent's realAgentId, used to scope chat replay to one `subagents/agent-<id>.jsonl`
-  file). For chat roles — ChaosWhisperer, Glyphsmith, BugHunt, matched by the shared
+  file). For chat roles — ChaosWhisperer, BugHunt, matched by the shared
   `isChatWorkItemRoleGuard` — `sessionId` is captured from the spawned Claude's first stream-json init
   line via `chat-spawn-broker`'s `onSessionId` callback. For every Task-dispatched sub-agent under
   `/dumpster-launch`, both fields are stamped MCP-side: when the sub-agent calls `get-agent-prompt`, the
@@ -894,8 +894,8 @@ operation state by `work-items-to-quest-status-transformer` (see "Completion").
 | `explore_observables` | ChaosWhisperer (Phase 4 entry)                  | Can add: observables, contracts, tooling, packagesAffected              |
 | `review_observables`  | ChaosWhisperer (Phase 4 exit)                   | User reviews observables, APPROVE visible                               |
 | `approved`            | User approves (Gate #2)                         | Spec locked. `start-quest` or `explore_design` allowed                  |
-| `explore_design`      | Glyphsmith starts design work                   | Create prototypes, iterate on designs                                   |
-| `review_design`       | Glyphsmith ready for design review              | User reviews designs, APPROVE button visible                            |
+| `explore_design`      | (no current setter)                             | Create prototypes, iterate on designs                                   |
+| `review_design`       | (no current setter)                             | User reviews designs, APPROVE button visible                            |
 | `design_approved`     | User approves designs                           | Design locked. `start-quest` allowed                                    |
 | `in_progress`         | `start-quest` (Web UI "Start Quest")            | Relay dispatches operation items; agents may write `contracts`/`tooling`/`packagesAffected`/`designDecisions`/`flows` — `flowsRule: 'full'`, so add, edit and delete alike. The one refusal left is a sign-off naming a unit id the graph does not hold, which the upsert would append as a phantom unit |
 | `blocked`             | `quest-block-on-failure-broker`                 | Execution halted; user resumes to `in_progress`                         |
@@ -1028,8 +1028,8 @@ Claude-dispatched agent roles (`codeweaver`, `flowrider`, `siegemaster`, `spirit
 are `agentPromptClassificationStatics.operatorRoleNames`; `spiritmender` and `warpgate` keep bespoke prompts and brief
 nobody. No minion name is ever also a role, since `agentPromptClassificationStatics.roleNames` and `.minionNames` are
 DISJOINT (see "Minions" below); the broader `workItemRoleContract` (shared) adds the two COMMAND roles (`ward` and
-`riftcarver`) and the four interactive CHAT roles (`chaoswhisperer`, `glyphsmith`, `bughunt`, `tavernkeeper`) a work
-item may carry. Those four ARE the `workItemRoleStatics.chat` tuple, and `isChatWorkItemRoleGuard` is the one
+`riftcarver`) and the three interactive CHAT roles (`chaoswhisperer`, `bughunt`, `tavernkeeper`) a work
+item may carry. Those three ARE the `workItemRoleStatics.chat` tuple, and `isChatWorkItemRoleGuard` is the one
 predicate every call site uses to match them — adding a chat role means adding it to that tuple, not to another `||`
 chain. The command pair is `workItemRoleStatics.command`, matched the same way by `isCommandWorkItemRoleGuard`;
 `riftcarver` is deliberately absent from `agentRoleContract`, so a dispatch site that mistook it for an agent throws
@@ -1062,7 +1062,6 @@ take the whole quest.
 | Role           | Dispatched By                                                                                                           | Operation outcome                        | Quest writes (modify-quest)                                                                     |
 |----------------|-------------------------------------------------------------------------------------------------------------------------|------------------------------------------|--------------------------------------------------------------------------------------------------|
 | ChaosWhisperer | `/dumpster-create` (interactive)                                                                                        | N/A (spec)                               | full spec surface (flows, observables, contracts, packagesAffected) — never `operations`         |
-| Glyphsmith     | startDesignChat (interactive)                                                                                           | N/A (design)                             | status                                                                                           |
 | Tavernkeeper   | follow-up chat (interactive, AFTER the quest ends)                                                                      | N/A (chat; no operation item)            | none                                                                                             |
 | riftcarver     | `/dumpster-launch` via `run-riftcarver` MCP tool, or the Node loop in-process (command); ALWAYS the ledger's first item | exit code (green / repairable / blocked) | none (broker writes `branchName`/`baseBranch`/`worktreePath`/`baseRef` + riftcarverResults + item status) |
 | codeweaver     | `/dumpster-launch` via Task() (ONE SESSION PER CELL). OPERATOR — product code + its unit tests                          | complete (done / blocked)                | `codeweaverSignoff` per observable it proved, plus additive spec edits                           |
