@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Decomposes ONE flow into its atomic verification units — every terminal, every labelled
  * decision branch, every embedded observable, and every off-map probe family — carrying each unit's
- * derived id, its graph anchor, its verbatim source text and the three tracks' sign-offs on it
+ * derived id, its graph anchor and its verbatim source text
  *
  * USAGE:
  * qaUnitEnumerateTransformer({ flow });
@@ -29,10 +29,7 @@
  * author imagined, so a family can only leave the record carrying a real sign-off rather than a
  * silent omission.
  *
- * Each unit is built by spreading the graph element it came from. `z.object` strips the keys the
- * unit does not declare, so that spread is what carries `flowriderSignoff`, `siegemasterSignoff`
- * and `addedBy` through at their own names without a conditional per field — and an absent optional
- * on the source stays absent on the unit.
+ * Each unit is built explicitly with its graph element's properties.
  */
 
 import { qaOffMapFamilyContract } from '@dungeonmaster/shared/contracts';
@@ -49,7 +46,6 @@ export const qaUnitEnumerateTransformer = ({ flow }: { flow: Flow }): QaVerifica
     .filter((node) => !nodesWithOutgoing.has(String(node.id)))
     .map((node) =>
       qaVerificationUnitContract.parse({
-        ...node,
         kind: 'terminal',
         id: `${flowId}:terminal:${String(node.id)}`,
         flowId: flow.id,
@@ -62,7 +58,6 @@ export const qaUnitEnumerateTransformer = ({ flow }: { flow: Flow }): QaVerifica
     .filter((edge) => edge.label !== undefined && String(edge.label).length > 0)
     .map((edge) =>
       qaVerificationUnitContract.parse({
-        ...edge,
         kind: 'branch',
         id: `${flowId}:branch:${String(edge.id)}`,
         flowId: flow.id,
@@ -76,7 +71,6 @@ export const qaUnitEnumerateTransformer = ({ flow }: { flow: Flow }): QaVerifica
   const observableUnits = flow.nodes.flatMap((node) =>
     node.observables.map((observable) =>
       qaVerificationUnitContract.parse({
-        ...observable,
         kind: 'observable',
         id: `${flowId}:observable:${String(observable.id)}`,
         flowId: flow.id,
@@ -84,21 +78,22 @@ export const qaUnitEnumerateTransformer = ({ flow }: { flow: Flow }): QaVerifica
         observableId: observable.id,
         observableType: observable.type,
         observableDescription: observable.description,
+        ...(observable.verifyByReading === undefined
+          ? {}
+          : { verifyByReading: observable.verifyByReading }),
+        addedBy: observable.addedBy,
       }),
     ),
   );
 
-  const offMapUnits = qaOffMapFamilyContract.options.map((family) => {
-    const recorded = flow.offMapSignoffs.find((signoff) => signoff.id === family);
-
-    return qaVerificationUnitContract.parse({
-      ...(recorded ?? {}),
+  const offMapUnits = qaOffMapFamilyContract.options.map((family) =>
+    qaVerificationUnitContract.parse({
       kind: 'off-map',
       id: `${flowId}:off-map:${family}`,
       flowId: flow.id,
       offMapFamily: family,
-    });
-  });
+    }),
+  );
 
   return [...terminalUnits, ...branchUnits, ...observableUnits, ...offMapUnits];
 };

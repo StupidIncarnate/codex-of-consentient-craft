@@ -9,16 +9,9 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
-import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 import { smoketestFlowSignoffApplyTransformer } from './smoketest-flow-signoff-apply-transformer';
 
 type OffMapFamily = keyof typeof qaOffMapProbeStatics.byFamily;
-
-// Derived from the two eligibility entries rather than typed as literals: the map from track to
-// field is many-to-one and lives in one place, so reading it here is what keeps this test honest the
-// day a track's field changes.
-const SIEGEMASTER_FIELD = signoffTrackEligibilityStatics.byTrack.siegemaster.signoffField;
-const FLOWRIDER_FIELD = signoffTrackEligibilityStatics.byTrack.flowrider.signoffField;
 
 // The seven off-map families, in the order the enumerator emits them. Read off the probe statics,
 // whose colocated test pins its keys 1:1 with the contract's options — a test file cannot import
@@ -59,68 +52,52 @@ const FLOW = FlowStub({
 
 describe('smoketestFlowSignoffApplyTransformer', () => {
   describe('terminal units', () => {
-    it('VALID: {one terminal id} => that node carries the sign-off and the sibling terminal does not', () => {
+    it('VALID: {one terminal id} => nodes are preserved without sign-off fields and offMapSignoffs is untouched', () => {
       const result = smoketestFlowSignoffApplyTransformer({
         flow: FLOW,
         unitIds: [QaChecklistItemIdStub({ value: 'login-flow:terminal:dashboard' })],
-        signoffField: SIEGEMASTER_FIELD,
-        signoff: SIGNOFF,
       });
 
-      expect(
-        result.nodes.map((node) => ({
-          id: String(node.id),
-          signoff: node[SIEGEMASTER_FIELD],
-        })),
-      ).toStrictEqual([
-        { id: 'login-form', signoff: undefined },
-        { id: 'dashboard', signoff: SIGNOFF },
-        { id: 'auth-error', signoff: undefined },
-      ]);
+      expect({
+        nodes: result.nodes,
+        offMapSignoffs: result.offMapSignoffs,
+      }).toStrictEqual({
+        nodes: FLOW.nodes,
+        offMapSignoffs: [],
+      });
     });
   });
 
   describe('branch units', () => {
-    it('VALID: {one branch id} => that edge carries the sign-off and the sibling branch does not', () => {
+    it('VALID: {one branch id} => edges are preserved without sign-off fields and offMapSignoffs is untouched', () => {
       const result = smoketestFlowSignoffApplyTransformer({
         flow: FLOW,
         unitIds: [QaChecklistItemIdStub({ value: 'login-flow:branch:submit-invalid' })],
-        signoffField: SIEGEMASTER_FIELD,
-        signoff: SIGNOFF,
       });
 
-      expect(
-        result.edges.map((edge) => ({
-          id: String(edge.id),
-          signoff: edge[SIEGEMASTER_FIELD],
-        })),
-      ).toStrictEqual([
-        { id: 'submit-valid', signoff: undefined },
-        { id: 'submit-invalid', signoff: SIGNOFF },
-      ]);
+      expect({
+        edges: result.edges,
+        offMapSignoffs: result.offMapSignoffs,
+      }).toStrictEqual({
+        edges: FLOW.edges,
+        offMapSignoffs: [],
+      });
     });
   });
 
   describe('observable units', () => {
-    it('VALID: {one observable id} => the embedded observable carries the sign-off and its owning node does not', () => {
+    it('VALID: {one observable id} => observables are preserved without sign-off fields and offMapSignoffs is untouched', () => {
       const result = smoketestFlowSignoffApplyTransformer({
         flow: FLOW,
         unitIds: [QaChecklistItemIdStub({ value: 'login-flow:observable:shows-form' })],
-        signoffField: SIEGEMASTER_FIELD,
-        signoff: SIGNOFF,
       });
 
       expect({
-        owningNodeSignoff: result.nodes.map((node) => node[SIEGEMASTER_FIELD]),
-        observableSignoffs: result.nodes.flatMap((node) =>
-          node.observables.map((observable) => ({
-            id: String(observable.id),
-            signoff: observable[SIEGEMASTER_FIELD],
-          })),
-        ),
+        nodes: result.nodes,
+        offMapSignoffs: result.offMapSignoffs,
       }).toStrictEqual({
-        owningNodeSignoff: [undefined, undefined, undefined],
-        observableSignoffs: [{ id: 'shows-form', signoff: SIGNOFF }],
+        nodes: FLOW.nodes,
+        offMapSignoffs: [],
       });
     });
   });
@@ -132,124 +109,68 @@ describe('smoketestFlowSignoffApplyTransformer', () => {
         unitIds: OFF_MAP_FAMILIES.map((family) =>
           QaChecklistItemIdStub({ value: `login-flow:off-map:${family}` }),
         ),
-        signoffField: SIEGEMASTER_FIELD,
-        signoff: SIGNOFF,
       });
 
       expect(result.offMapSignoffs).toStrictEqual(
-        OFF_MAP_FAMILIES.map((family) =>
-          FlowOffMapSignoffStub({ id: family, siegemasterSignoff: SIGNOFF }),
-        ),
+        OFF_MAP_FAMILIES.map((family) => FlowOffMapSignoffStub({ id: family })),
       );
     });
 
-    it('VALID: {family already recorded} => upserts that entry instead of appending a duplicate', () => {
+    it('VALID: {family already recorded} => preserves that entry instead of appending a duplicate', () => {
       const alreadyRecorded = FlowOffMapSignoffStub({
         id: 'concurrency',
-        siegemasterSignoff: SignoffStub({ evidence: 'an earlier walk of the same family' }),
       });
       const result = smoketestFlowSignoffApplyTransformer({
         flow: FlowStub({ ...FLOW, offMapSignoffs: [alreadyRecorded] }),
         unitIds: [QaChecklistItemIdStub({ value: 'login-flow:off-map:concurrency' })],
-        signoffField: SIEGEMASTER_FIELD,
-        signoff: SIGNOFF,
       });
 
-      expect(result.offMapSignoffs).toStrictEqual([
-        FlowOffMapSignoffStub({ id: 'concurrency', siegemasterSignoff: SIGNOFF }),
-      ]);
+      expect(result.offMapSignoffs).toStrictEqual([FlowOffMapSignoffStub({ id: 'concurrency' })]);
     });
 
-    it('VALID: {flowrider field paired with an off-map unit id} => the write is stripped, because a family carries siegemaster alone', () => {
+    it('VALID: {backwards compatibility arguments} => accepts signoffField and signoff without error', () => {
       const result = smoketestFlowSignoffApplyTransformer({
         flow: FLOW,
         unitIds: [QaChecklistItemIdStub({ value: 'login-flow:off-map:concurrency' })],
-        signoffField: FLOWRIDER_FIELD,
+        signoffField: 'siegemasterSignoff',
         signoff: SIGNOFF,
       });
 
-      expect(result.offMapSignoffs).toStrictEqual([{ id: 'concurrency' }]);
-    });
-  });
-
-  describe('track independence', () => {
-    it('VALID: {siegemaster field} => the flowrider field on the same unit stays absent', () => {
-      const result = smoketestFlowSignoffApplyTransformer({
-        flow: FLOW,
-        unitIds: [QaChecklistItemIdStub({ value: 'login-flow:terminal:dashboard' })],
-        signoffField: SIEGEMASTER_FIELD,
-        signoff: SIGNOFF,
-      });
-
-      expect(
-        result.nodes.map((node) => ({
-          id: String(node.id),
-          flowrider: node[FLOWRIDER_FIELD],
-          siegemaster: node[SIEGEMASTER_FIELD],
-        })),
-      ).toStrictEqual([
-        { id: 'login-form', flowrider: undefined, siegemaster: undefined },
-        { id: 'dashboard', flowrider: undefined, siegemaster: SIGNOFF },
-        { id: 'auth-error', flowrider: undefined, siegemaster: undefined },
-      ]);
-    });
-
-    it('VALID: {flowrider field on a branch} => that edge carries flowriderSignoff alone', () => {
-      const result = smoketestFlowSignoffApplyTransformer({
-        flow: FLOW,
-        unitIds: [QaChecklistItemIdStub({ value: 'login-flow:branch:submit-valid' })],
-        signoffField: FLOWRIDER_FIELD,
-        signoff: SIGNOFF,
-      });
-
-      expect(
-        result.edges.map((edge) => ({
-          id: String(edge.id),
-          flowrider: edge[FLOWRIDER_FIELD],
-          siegemaster: edge[SIEGEMASTER_FIELD],
-        })),
-      ).toStrictEqual([
-        { id: 'submit-valid', flowrider: SIGNOFF, siegemaster: undefined },
-        { id: 'submit-invalid', flowrider: undefined, siegemaster: undefined },
-      ]);
+      expect(result.offMapSignoffs).toStrictEqual([FlowOffMapSignoffStub({ id: 'concurrency' })]);
     });
   });
 
   describe('ids that name nothing', () => {
-    it('EMPTY: {unitIds: []} => no unit on the flow carries a sign-off', () => {
+    it('EMPTY: {unitIds: []} => returns flow with untouched offMapSignoffs', () => {
       const result = smoketestFlowSignoffApplyTransformer({
         flow: FLOW,
         unitIds: [],
-        signoffField: SIEGEMASTER_FIELD,
-        signoff: SIGNOFF,
       });
 
       expect({
-        nodes: result.nodes.map((node) => node[SIEGEMASTER_FIELD]),
-        edges: result.edges.map((edge) => edge[SIEGEMASTER_FIELD]),
+        nodes: result.nodes,
+        edges: result.edges,
         offMapSignoffs: result.offMapSignoffs,
       }).toStrictEqual({
-        nodes: [undefined, undefined, undefined],
-        edges: [undefined, undefined],
+        nodes: FLOW.nodes,
+        edges: FLOW.edges,
         offMapSignoffs: [],
       });
     });
 
-    it('INVALID: {id the enumeration never mints} => nothing is signed', () => {
+    it('INVALID: {id the enumeration never mints} => nothing is added', () => {
       const result = smoketestFlowSignoffApplyTransformer({
         flow: FLOW,
         unitIds: [QaChecklistItemIdStub({ value: 'login-flow:terminal:no-such-node' })],
-        signoffField: SIEGEMASTER_FIELD,
-        signoff: SIGNOFF,
       });
 
       expect({
-        nodes: result.nodes.map((node) => node[SIEGEMASTER_FIELD]),
-        edges: result.edges.map((edge) => edge[SIEGEMASTER_FIELD]),
+        nodes: result.nodes,
+        edges: result.edges,
         offMapSignoffs: result.offMapSignoffs,
       }).toStrictEqual({
-        nodes: [undefined, undefined, undefined],
-        edges: [undefined, undefined],
+        nodes: FLOW.nodes,
+        edges: FLOW.edges,
         offMapSignoffs: [],
       });
     });

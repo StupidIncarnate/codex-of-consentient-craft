@@ -3,7 +3,6 @@ import { FlowNodeStub } from '../../contracts/flow-node/flow-node.stub';
 import { FlowEdgeStub } from '../../contracts/flow-edge/flow-edge.stub';
 import { FlowObservableStub } from '../../contracts/flow-observable/flow-observable.stub';
 import { FlowOffMapSignoffStub } from '../../contracts/flow-off-map-signoff/flow-off-map-signoff.stub';
-import { SignoffStub } from '../../contracts/signoff/signoff.stub';
 import { flowGraphToTextTransformer } from './flow-graph-to-text-transformer';
 
 describe('flowGraphToTextTransformer', () => {
@@ -197,80 +196,8 @@ describe('flowGraphToTextTransformer', () => {
     });
   });
 
-  describe('sign-off markers', () => {
-    it('VALID: {node signed by flowrider alone} => node line carries the flowrider mark only', () => {
-      const flow = FlowStub({
-        entryPoint: 'login-page' as never,
-        nodes: [
-          FlowNodeStub({
-            id: 'login-page' as never,
-            label: 'Login' as never,
-            type: 'state',
-            flowriderSignoff: SignoffStub(),
-          }),
-        ],
-        edges: [],
-      });
-
-      const result = flowGraphToTextTransformer({ flow });
-
-      expect(result).toStrictEqual([
-        '[#login-page] {auth-service} Login (state) [F✓]',
-        '  (terminal)',
-      ]);
-    });
-
-    it('VALID: {node signed by both tracks} => node line carries both marks', () => {
-      const flow = FlowStub({
-        entryPoint: 'login-page' as never,
-        nodes: [
-          FlowNodeStub({
-            id: 'login-page' as never,
-            label: 'Login' as never,
-            type: 'state',
-            flowriderSignoff: SignoffStub(),
-            siegemasterSignoff: SignoffStub(),
-          }),
-        ],
-        edges: [],
-      });
-
-      const result = flowGraphToTextTransformer({ flow });
-
-      expect(result).toStrictEqual([
-        '[#login-page] {auth-service} Login (state) [F✓ S✓]',
-        '  (terminal)',
-      ]);
-    });
-
-    it('VALID: {node unconfirmable on siegemaster} => renders the verdict mark, never the evidence', () => {
-      const flow = FlowStub({
-        entryPoint: 'login-page' as never,
-        nodes: [
-          FlowNodeStub({
-            id: 'login-page' as never,
-            label: 'Login' as never,
-            type: 'state',
-            siegemasterSignoff: SignoffStub({
-              verdict: 'unconfirmable',
-              evidence: 'the dev server refuses to bind port 3737 in this sandbox',
-              toSettle:
-                'Start the sandbox dev server on the configured port, then re-walk this node.',
-            }),
-          }),
-        ],
-        edges: [],
-      });
-
-      const result = flowGraphToTextTransformer({ flow });
-
-      expect(result).toStrictEqual([
-        '[#login-page] {auth-service} Login (state) [S?]',
-        '  (terminal)',
-      ]);
-    });
-
-    it('VALID: {observable signed and added mid-quest} => observable line carries provenance then marks', () => {
+  describe('observable provenance and read-check', () => {
+    it('VALID: {observable added mid-quest} => observable line carries provenance', () => {
       const flow = FlowStub({
         entryPoint: 'login-page' as never,
         nodes: [
@@ -284,7 +211,6 @@ describe('flowGraphToTextTransformer', () => {
                 description: 'POST /api/auth/login returns 400 for a non-JSON body' as never,
                 type: 'api-call',
                 addedBy: 'siegemaster',
-                siegemasterSignoff: SignoffStub(),
               }),
             ],
           }),
@@ -296,7 +222,7 @@ describe('flowGraphToTextTransformer', () => {
 
       expect(result).toStrictEqual([
         '[#login-page] {auth-service ● 1} Login (state)',
-        '  ● #crash-on-bleh {auth-service} POST /api/auth/login returns 400 for a non-JSON body [api-call] +siegemaster [S✓]',
+        '  ● #crash-on-bleh {auth-service} POST /api/auth/login returns 400 for a non-JSON body [api-call] +siegemaster',
         '  (terminal)',
       ]);
     });
@@ -331,7 +257,7 @@ describe('flowGraphToTextTransformer', () => {
       ]);
     });
 
-    it('VALID: {read-check observable also added mid-quest and signed} => (read-check) sits between the type and the provenance', () => {
+    it('VALID: {read-check observable also added mid-quest} => (read-check) sits between the type and the provenance', () => {
       const flow = FlowStub({
         entryPoint: 'login-page' as never,
         nodes: [
@@ -346,7 +272,6 @@ describe('flowGraphToTextTransformer', () => {
                 type: 'custom',
                 verifyByReading: true,
                 addedBy: 'codeweaver',
-                codeweaverSignoff: SignoffStub(),
               }),
             ],
           }),
@@ -358,7 +283,7 @@ describe('flowGraphToTextTransformer', () => {
 
       expect(result).toStrictEqual([
         '[#login-page] {auth-service ● 1} Login (state)',
-        '  ● #pattern-not-inlined {auth-service} the token pattern is read from the shared statics [custom] (read-check) +codeweaver [C✓]',
+        '  ● #pattern-not-inlined {auth-service} the token pattern is read from the shared statics [custom] (read-check) +codeweaver',
         '  (terminal)',
       ]);
     });
@@ -389,118 +314,6 @@ describe('flowGraphToTextTransformer', () => {
         '[#login-page] {auth-service ● 1} Login (state)',
         '  ● #shows-form {auth-service} shows login form [ui-state]',
         '  (terminal)',
-      ]);
-    });
-
-    it('VALID: {labelled edge signed by one track} => edge line carries the mark after the target', () => {
-      const flow = FlowStub({
-        entryPoint: 'check' as never,
-        nodes: [
-          FlowNodeStub({ id: 'check' as never, label: 'Check' as never, type: 'decision' }),
-          FlowNodeStub({ id: 'success' as never, label: 'Success' as never, type: 'terminal' }),
-        ],
-        edges: [
-          FlowEdgeStub({
-            id: 'e-one' as never,
-            from: 'check' as never,
-            to: 'success' as never,
-            label: 'yes' as never,
-            flowriderSignoff: SignoffStub(),
-          }),
-        ],
-      });
-
-      const result = flowGraphToTextTransformer({ flow });
-
-      expect(result).toStrictEqual([
-        '[#check] {auth-service} Check (decision)',
-        '  →<edge:e-one> "yes" [#success] [F✓]',
-        '  [#success] {auth-service} Success (terminal)',
-        '    (terminal)',
-      ]);
-    });
-
-    it('VALID: {back-reference edge signed by both tracks} => back-ref line carries both marks', () => {
-      const flow = FlowStub({
-        entryPoint: 'start' as never,
-        nodes: [
-          FlowNodeStub({ id: 'start' as never, label: 'Start' as never, type: 'state' }),
-          FlowNodeStub({ id: 'middle' as never, label: 'Middle' as never, type: 'action' }),
-        ],
-        edges: [
-          FlowEdgeStub({ id: 'e-one' as never, from: 'start' as never, to: 'middle' as never }),
-          FlowEdgeStub({
-            id: 'e-two' as never,
-            from: 'middle' as never,
-            to: 'start' as never,
-            flowriderSignoff: SignoffStub(),
-            siegemasterSignoff: SignoffStub({
-              verdict: 'unconfirmable',
-              evidence: 'the retry path needs a seeded failure the lever cannot produce',
-              toSettle: 'Extend the reset lever to seed a failed submit, then drive this branch.',
-            }),
-          }),
-        ],
-      });
-
-      const result = flowGraphToTextTransformer({ flow });
-
-      expect(result).toStrictEqual([
-        '[#start] {auth-service} Start (state)',
-        '  →<edge:e-one> [#middle]',
-        '  [#middle] {auth-service} Middle (action)',
-        '    →<edge:e-two> [#start] ↩ [F✓ S?]',
-      ]);
-    });
-
-    it('VALID: {off-map families signed} => a trailing off-map line lists only the signed families', () => {
-      const flow = FlowStub({
-        entryPoint: 'login-page' as never,
-        nodes: [
-          FlowNodeStub({ id: 'login-page' as never, label: 'Login' as never, type: 'state' }),
-        ],
-        edges: [],
-        offMapSignoffs: [
-          FlowOffMapSignoffStub({ id: 'concurrency', siegemasterSignoff: SignoffStub() }),
-          FlowOffMapSignoffStub({ id: 'perf' }),
-          FlowOffMapSignoffStub({
-            id: 'hostile-input',
-            siegemasterSignoff: SignoffStub({
-              verdict: 'unconfirmable',
-              evidence: 'no fuzzing harness is wired for this endpoint',
-              toSettle: 'Point a fuzzing harness at the login endpoint and record what it returns.',
-            }),
-          }),
-        ],
-      });
-
-      const result = flowGraphToTextTransformer({ flow });
-
-      expect(result).toStrictEqual([
-        '[#login-page] {auth-service} Login (state)',
-        '  (terminal)',
-        'off-map: concurrency [S✓] | hostile-input [S?]',
-      ]);
-    });
-
-    it("VALID: {off-map family carrying a stray flowrider sign-off} => renders siegemaster's mark alone, because a family has no other column", () => {
-      const flow = FlowStub({
-        entryPoint: 'login-page' as never,
-        nodes: [
-          FlowNodeStub({ id: 'login-page' as never, label: 'Login' as never, type: 'state' }),
-        ],
-        edges: [],
-        offMapSignoffs: [
-          { id: 'perf', flowriderSignoff: SignoffStub(), siegemasterSignoff: SignoffStub() },
-        ] as never,
-      });
-
-      const result = flowGraphToTextTransformer({ flow });
-
-      expect(result).toStrictEqual([
-        '[#login-page] {auth-service} Login (state)',
-        '  (terminal)',
-        'off-map: perf [S✓]',
       ]);
     });
   });

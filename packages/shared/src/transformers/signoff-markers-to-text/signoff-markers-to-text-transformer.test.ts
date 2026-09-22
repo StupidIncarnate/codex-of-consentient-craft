@@ -130,6 +130,24 @@ describe('signoffMarkersToTextTransformer', () => {
       expect(result).toBe('');
     });
 
+    it('EMPTY: {undefined input} => renders the empty string when input is undefined', () => {
+      const result = signoffMarkersToTextTransformer(undefined);
+
+      expect(result).toBe('');
+    });
+
+    it('EMPTY: {no argument} => renders the empty string when called with no arguments', () => {
+      const result = signoffMarkersToTextTransformer();
+
+      expect(result).toBe('');
+    });
+
+    it('EMPTY: {empty object} => renders the empty string when input object is empty', () => {
+      const result = signoffMarkersToTextTransformer({});
+
+      expect(result).toBe('');
+    });
+
     it('EMPTY: {no sign-offs} => concatenating the marker leaves the line byte-identical', () => {
       const marker = signoffMarkersToTextTransformer({
         codeweaverSignoff: undefined,
@@ -138,6 +156,42 @@ describe('signoffMarkersToTextTransformer', () => {
       });
 
       expect(`[#login-page] Login Page (state)${marker}`).toBe('[#login-page] Login Page (state)');
+    });
+  });
+
+  describe('mark-based inputs', () => {
+    it('VALID: {flowrider met} => renders the flowrider mark with checkmark', () => {
+      const result = signoffMarkersToTextTransformer({
+        flowriderSignoff: { mark: 'met' },
+      });
+
+      expect(result).toBe(' [F✓]');
+    });
+
+    it('VALID: {siegemaster cant-meet} => renders the siegemaster mark with question mark', () => {
+      const result = signoffMarkersToTextTransformer({
+        siegemasterSignoff: { mark: 'cant-meet' },
+      });
+
+      expect(result).toBe(' [S?]');
+    });
+
+    it('VALID: {codeweaver unmet} => renders the codeweaver mark with cross', () => {
+      const result = signoffMarkersToTextTransformer({
+        codeweaverSignoff: { mark: 'unmet' },
+      });
+
+      expect(result).toBe(' [C✗]');
+    });
+
+    it('VALID: {role-named tracks and string marks} => renders marks with track keys and strings', () => {
+      const result = signoffMarkersToTextTransformer({
+        codeweaver: 'met',
+        flowrider: 'cant-meet',
+        siegemaster: 'unmet',
+      });
+
+      expect(result).toBe(' [C✓ F? S✗]');
     });
   });
 });

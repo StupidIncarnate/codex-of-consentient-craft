@@ -118,14 +118,14 @@ Each shape below passes while the observable stays unproven. Each shipped in thi
 
 ## Verdicts — a unit carries one sign-off per track, and there are three
 
-A unit is settled PER TRACK, never once for everybody. Each field holds
+A unit is settled PER TRACK, never once for everybody. Each track holds
 \`{ verdict, evidence, toSettle?, workItemId, at }\`, and each says something the others do not:
 
-| Field | What it means | What its \`confirmed\` evidence is |
+| Track | What it means | What its \`confirmed\` evidence is |
 |---|---|---|
-| \`codeweaverSignoff\` | proven by a unit test, beside the code | the test \`file:line\`, plus what makes it fail |
-| \`flowriderSignoff\` | proven by a flow-perspective test | the test \`file:line\`, plus what makes it fail |
-| \`siegemasterSignoff\` | holds when a person drives the real system | the value measured off that system |
+| \`codeweaver\` | proven by a unit test, beside the code | the test \`file:line\`, plus what makes it fail |
+| \`flowrider\` | proven by a flow-perspective test | the test \`file:line\`, plus what makes it fail |
+| \`siegemaster\` | holds when a person drives the real system | the value measured off that system |
 
 - **\`confirmed\`** — you settled it, and the evidence above is what settles it.
 - **\`unconfirmable\`** — you could not settle it after real effort. \`evidence\` names what you TRIED

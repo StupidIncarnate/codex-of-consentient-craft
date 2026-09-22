@@ -6,7 +6,6 @@ import {
   QuestIdStub,
   QuestNoteStub,
   QuestStub,
-  SignoffStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questSummaryBuildTransformer } from '../../../transformers/quest-summary-build/quest-summary-build-transformer';
@@ -30,7 +29,7 @@ describe('questGetSummaryBroker', () => {
       expect(result).toStrictEqual(questSummaryBuildTransformer({ quest }));
     });
 
-    it('VALID: {signed and unsigned units} => the loaded quest drives the per-track counts', async () => {
+    it('VALID: {flow with two connected nodes} => the loaded quest drives the per-track outstanding counts', async () => {
       const proxy = questGetSummaryBrokerProxy();
       const quest = QuestStub({
         flows: [
@@ -41,7 +40,6 @@ describe('questGetSummaryBroker', () => {
                 id: 'dashboard',
                 label: 'Dashboard',
                 type: 'state',
-                flowriderSignoff: SignoffStub(),
               }),
             ],
             edges: [
@@ -65,10 +63,8 @@ describe('questGetSummaryBroker', () => {
           name: 'Login Flow',
           flowType: 'runtime',
           tracks: [
-            // Codeweaver reads a field of its own (`codeweaverSignoff`), untouched here, so it
-            // stays fully outstanding while Flowrider's own field is half signed.
             { id: 'codeweaver', confirmed: 0, unconfirmable: 0, outstanding: 2 },
-            { id: 'flowrider', confirmed: 1, unconfirmable: 0, outstanding: 1 },
+            { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 2 },
             { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 9 },
           ],
         },

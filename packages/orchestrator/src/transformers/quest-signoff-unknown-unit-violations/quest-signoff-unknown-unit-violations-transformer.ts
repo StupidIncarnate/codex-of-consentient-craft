@@ -23,6 +23,10 @@
  * ELEMENTS CARRYING NO SIGN-OFF ARE UNAFFECTED. Adding a brand-new node, edge, or observable stays
  * legal — that is the whole point of the additive spec authority, and this transformer never
  * inspects it.
+ *
+ * ALL SIGN-OFF FIELDS ARE RETIRED. With sign-off fields on flow elements retired,
+ * `signoffPatchFieldsStatics.signoffFields` is empty. Elements no longer carry sign-offs, so this
+ * transformer returns an empty array of violations.
  */
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 

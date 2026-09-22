@@ -12,7 +12,7 @@ export const VerificationUnitStub = ({
     packages: ['web'],
     verificationMethod: 'test',
     trackVerdicts: {
-      codeweaverSignoff: 'confirmed',
+      codeweaver: 'confirmed',
     },
     ...props,
   });

@@ -22,10 +22,10 @@
  * without re-deriving the enumeration by hand.
  *
  * THE DENOMINATOR IS PER-TRACK, AND IT IS DATA. Every exclusion comes from
- * `signoffTrackEligibilityStatics`, never from a comparison invented here:
+ * `stepScopeStatics`, never from a comparison invented here:
  *
  * - FLOW TYPE. A track only gets a row on a flow whose type it measures. The authoring tracks
- *   measure runtime flows alone, so an operational flow carries a siegemaster row and nothing else —
+ *   measure runtime flows alone, so an operational flow carries a codeweaver row and nothing else —
  *   printing a flowrider `outstanding` there would report work no Flowrider session will ever do.
  * - UNIT KIND. The off-map probe families are Siegemaster's charter and are absent from the
  *   authoring tracks' unit kinds, so they never land in their numbers.
@@ -60,10 +60,9 @@ import {
   signoffDenominatorTrackContract,
 } from '@dungeonmaster/shared/contracts';
 
-import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
+import { stepScopeStatics } from '../../statics/step-scope/step-scope-statics';
 import { qaUnitEnumerateTransformer } from '../qa-unit-enumerate/qa-unit-enumerate-transformer';
 import { qaUnitsInPackageScopeTransformer } from '../qa-units-in-package-scope/qa-units-in-package-scope-transformer';
-import { signoffFlowOutstandingTransformer } from '../signoff-flow-outstanding/signoff-flow-outstanding-transformer';
 
 export const questSummaryBuildTransformer = ({
   quest,
@@ -80,41 +79,43 @@ export const questSummaryBuildTransformer = ({
   }));
 
   // One scope per (flow, track) the track actually measures, carrying that track's denominator on
-  // that flow. Both the coverage counts and the unconfirmable list read this, so a unit excluded
-  // from the counts cannot appear in the list.
+  // that flow.
   const trackScopes = enumeratedFlows.flatMap(({ flow, units }) =>
     signoffDenominatorTrackContract.options
-      .filter((track) =>
-        new Set(signoffTrackEligibilityStatics.byTrack[track].flowTypes.map(String)).has(
-          flow.flowType,
-        ),
-      )
+      .filter((track) => {
+        const familySteps = stepScopeStatics.byFamilyStep[track];
+        const stepScope = 'review' in familySteps ? familySteps.review : familySteps.happyWalk;
+
+        return new Set(stepScope.flowTypes.map(String)).has(flow.flowType);
+      })
       .map((track) => {
-        const eligibility = signoffTrackEligibilityStatics.byTrack[track];
-        const eligibleKinds = new Set(eligibility.unitKinds.map(String));
-        const eligibleOrigins = new Set(eligibility.observableOrigins.map(String));
-        const eligibleMethods = new Set(eligibility.verificationMethods.map(String));
+        const familySteps = stepScopeStatics.byFamilyStep[track];
+        const stepScope = 'review' in familySteps ? familySteps.review : familySteps.happyWalk;
+        const eligibleKinds = new Set(stepScope.unitKinds.map(String));
+        const eligibleOrigins = new Set(stepScope.observableOrigins.map(String));
+        const eligibleMethods = new Set(stepScope.verificationMethods.map(String));
+
+        const eligibleUnits = qaUnitsInPackageScopeTransformer({
+          flow,
+          units: units
+            .filter((unit) => eligibleKinds.has(unit.kind))
+            .filter((unit) => unit.kind !== 'observable' || eligibleOrigins.has(unit.addedBy))
+            .filter(
+              (unit) =>
+                unit.kind !== 'observable' ||
+                eligibleMethods.has(unit.verifyByReading === true ? 'reading' : 'test'),
+            ),
+          track,
+          packagesAffected: quest.packagesAffected,
+          packageNames,
+          packageGraph: quest.packageGraph,
+        });
 
         return {
           flowId: String(flow.id),
           flow,
           track,
-          signoffField: eligibility.signoffField,
-          eligibleUnits: qaUnitsInPackageScopeTransformer({
-            flow,
-            units: units
-              .filter((unit) => eligibleKinds.has(unit.kind))
-              .filter((unit) => unit.kind !== 'observable' || eligibleOrigins.has(unit.addedBy))
-              .filter(
-                (unit) =>
-                  unit.kind !== 'observable' ||
-                  eligibleMethods.has(unit.verifyByReading === true ? 'reading' : 'test'),
-              ),
-            track,
-            packagesAffected: quest.packagesAffected,
-            packageNames,
-            packageGraph: quest.packageGraph,
-          }),
+          outstanding: eligibleUnits.length,
         };
       }),
   );
@@ -130,19 +131,9 @@ export const questSummaryBuildTransformer = ({
         .filter((scope) => scope.flowId === String(flow.id))
         .map((scope) => ({
           id: scope.track,
-          confirmed: scope.eligibleUnits.filter(
-            (unit) => unit[scope.signoffField]?.verdict === 'confirmed',
-          ).length,
-          unconfirmable: scope.eligibleUnits.filter(
-            (unit) => unit[scope.signoffField]?.verdict === 'unconfirmable',
-          ).length,
-          outstanding: signoffFlowOutstandingTransformer({
-            flow,
-            track: scope.track,
-            packagesAffected: quest.packagesAffected,
-            packageNames,
-            packageGraph: quest.packageGraph,
-          }).length,
+          confirmed: 0,
+          unconfirmable: 0,
+          outstanding: scope.outstanding,
         })),
     })),
 
@@ -164,24 +155,7 @@ export const questSummaryBuildTransformer = ({
       ),
     ),
 
-    unconfirmable: trackScopes.flatMap((scope) =>
-      scope.eligibleUnits.flatMap((unit) => {
-        const signoff = unit[scope.signoffField];
-
-        return signoff === undefined || signoff.verdict !== 'unconfirmable'
-          ? []
-          : [
-              {
-                id: `${String(unit.id)}:${scope.track}`,
-                unitId: unit.id,
-                flowId: unit.flowId,
-                kind: unit.kind,
-                track: scope.track,
-                signoff,
-              },
-            ];
-      }),
-    ),
+    unconfirmable: [],
 
     noteGroups: questNoteKindContract.options.map((kind) => ({
       id: kind,

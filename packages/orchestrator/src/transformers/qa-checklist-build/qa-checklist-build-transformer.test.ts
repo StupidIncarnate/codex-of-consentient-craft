@@ -314,8 +314,8 @@ describe('qaChecklistBuildTransformer', () => {
     });
   });
 
-  describe('coverage with no track named', () => {
-    it('VALID: {no track} => every unit is remaining, because no denominator was named to settle any', () => {
+  describe('remainingItemIds', () => {
+    it('VALID: {no track} => every unit is remaining', () => {
       const flow = FlowStub({
         id: 'a-flow',
         nodes: [
@@ -330,6 +330,25 @@ describe('qaChecklistBuildTransformer', () => {
         edges: [],
       });
       const result = qaChecklistBuildTransformer({ flow });
+
+      expect(result.remainingItemIds).toStrictEqual(result.items.map((item) => item.id));
+    });
+
+    it('VALID: {track passed} => all checklist items are initially remaining', () => {
+      const flow = FlowStub({
+        id: 'a-flow',
+        nodes: [
+          {
+            id: 'a-node',
+            label: 'A node',
+            type: 'state',
+            packages: ['auth-service'],
+            observables: [],
+          },
+        ],
+        edges: [],
+      });
+      const result = qaChecklistBuildTransformer({ flow, track: 'flowrider' });
 
       expect(result.remainingItemIds).toStrictEqual(result.items.map((item) => item.id));
     });

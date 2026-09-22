@@ -1,8 +1,8 @@
-import { qaCheckSurfaceStatics } from '@dungeonmaster/shared/statics';
+import { mcpToolResultStatics, qaCheckSurfaceStatics } from '@dungeonmaster/shared/statics';
 
 import { codeweaverReviewerStatics } from '../codeweaver-reviewer/codeweaver-reviewer-statics';
 import { flowriderReviewerStatics } from '../flowrider-reviewer/flowrider-reviewer-statics';
-import { signoffTrackEligibilityStatics } from '../signoff-track-eligibility/signoff-track-eligibility-statics';
+import { stepScopeStatics } from '../step-scope/step-scope-statics';
 import { flowEvidenceContractStatics } from './flow-evidence-contract-statics';
 
 // PROSE COMPARES IGNORE WRAPPING. Both halves are bound with every whitespace run — spaces,
@@ -83,13 +83,13 @@ describe('flowEvidenceContractStatics', () => {
           'A unit is settled PER TRACK, never once for everybody.',
         ),
         codeweaverIsAUnitTest: judgingMarkdown.includes(
-          '| `codeweaverSignoff` | proven by a unit test, beside the code |',
+          '| `codeweaver` | proven by a unit test, beside the code |',
         ),
         flowriderIsAFlowTest: judgingMarkdown.includes(
-          '| `flowriderSignoff` | proven by a flow-perspective test |',
+          '| `flowrider` | proven by a flow-perspective test |',
         ),
         siegemasterIsMeasured: judgingMarkdown.includes(
-          '| `siegemasterSignoff` | holds when a person drives the real system |',
+          '| `siegemaster` | holds when a person drives the real system |',
         ),
         unconfirmableNeedsAQuestion: judgingMarkdown.includes(
           'the contract refuses an `unconfirmable` carrying none.',
@@ -182,8 +182,11 @@ describe('flowEvidenceContractStatics', () => {
       });
     });
 
-    it('VALID: judgingMarkdown => is substantial enough to carry the shared contract', () => {
+    it('VALID: judgingMarkdown => is substantial enough to carry the shared contract and within verbatim ceiling', () => {
       expect(flowEvidenceContractStatics.judgingMarkdown.length).toBeGreaterThan(2000);
+      expect(Buffer.byteLength(flowEvidenceContractStatics.judgingMarkdown, 'utf8')).toBeLessThan(
+        mcpToolResultStatics.maxVerbatimChars,
+      );
     });
   });
 
@@ -260,6 +263,12 @@ describe('flowEvidenceContractStatics', () => {
         rejectsWriteSpy: true,
         rejectsMockedSpawner: true,
       });
+    });
+
+    it('VALID: authoringMarkdown => fits the MCP verbatim ceiling in bytes', () => {
+      expect(Buffer.byteLength(flowEvidenceContractStatics.authoringMarkdown, 'utf8')).toBeLessThan(
+        mcpToolResultStatics.maxVerbatimChars,
+      );
     });
   });
 
@@ -358,30 +367,28 @@ describe('flowEvidenceContractStatics', () => {
       });
     });
 
-    // PAIR: this block's sign-off FIELD names and `signoffTrackEligibilityStatics.byTrack`, which
-    // assigns them. The names are read off the data, so a track added there and never named here
-    // would leave that track judged against a contract that does not mention it. Each track now owns
-    // exactly one field, which is what the three-row table in the verdicts section renders.
-    it('VALID: judgingMarkdown => names every sign-off field the eligibility statics assign, and no other', () => {
-      const tracks = Object.values(signoffTrackEligibilityStatics.byTrack);
-      const fields = Array.from(new Set(tracks.map((track) => track.signoffField))).sort();
+    // PAIR: this block's track names and `stepScopeStatics.byFamilyStep`, which defines the scope
+    // per family step. The names are read off the step scope, so a track/family added there and
+    // never named here would leave that track judged against a contract that does not mention it.
+    it('VALID: judgingMarkdown => names every track the step scope statics define, and no other', () => {
+      const tracks = Object.keys(stepScopeStatics.byFamilyStep).sort();
 
       expect({
-        fields,
-        fieldsThisBlockNeverNames: fields.filter(
-          (field) => !judgingMarkdown.includes(`\`${field}\``),
+        tracks,
+        tracksThisBlockNeverNames: tracks.filter(
+          (track) => !judgingMarkdown.includes(`\`${track}\``),
         ),
       }).toStrictEqual({
-        fields: ['codeweaverSignoff', 'flowriderSignoff', 'siegemasterSignoff'],
-        fieldsThisBlockNeverNames: [],
+        tracks: ['codeweaver', 'flowrider', 'siegemaster'],
+        tracksThisBlockNeverNames: [],
       });
     });
 
     // PAIR: this block's provenance sentence and
-    // `signoffTrackEligibilityStatics.byTrack.siegemaster.observableOrigins` — the only track
+    // `stepScopeStatics.byFamilyStep.siegemaster.happyWalk.observableOrigins` — the only step
     // measured over every origin, so its list is the full one. `addedBy` is a SEPARATE axis from
     // the verdict, and a stale list here hands a reviewer an origin nothing else recognises.
-    it('VALID: judgingMarkdown => lists exactly the observable origins the eligibility statics carry', () => {
+    it('VALID: judgingMarkdown => lists exactly the observable origins the step scope statics carry', () => {
       const sentence = judgingMarkdown.slice(
         judgingMarkdown.indexOf('Its values are'),
         judgingMarkdown.indexOf('It never answers'),
@@ -389,7 +396,7 @@ describe('flowEvidenceContractStatics', () => {
 
       expect(
         Array.from(sentence.matchAll(/`([a-z]+)`/gu)).flatMap((match) => match.slice(1)),
-      ).toStrictEqual([...signoffTrackEligibilityStatics.byTrack.siegemaster.observableOrigins]);
+      ).toStrictEqual([...stepScopeStatics.byFamilyStep.siegemaster.happyWalk.observableOrigins]);
     });
   });
 });

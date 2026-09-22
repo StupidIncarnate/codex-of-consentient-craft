@@ -7,7 +7,7 @@
  *
  * USAGE:
  * trackCoverageContract.parse({
- *   flowId: 'paste-image-into-composer', track: 'codeweaverSignoff',
+ *   flowId: 'paste-image-into-composer', track: 'codeweaver',
  *   owed: 58, signed: 58, confirmed: 55, unconfirmable: 3, unsigned: 0,
  * });
  */
@@ -16,7 +16,7 @@ import { z } from 'zod';
 export const trackCoverageContract = z
   .object({
     flowId: z.string(),
-    track: z.enum(['codeweaverSignoff', 'flowriderSignoff', 'siegemasterSignoff']),
+    track: z.enum(['codeweaver', 'flowrider', 'siegemaster']),
     owed: z.number().int().nonnegative(),
     signed: z.number().int().nonnegative(),
     confirmed: z.number().int().nonnegative(),

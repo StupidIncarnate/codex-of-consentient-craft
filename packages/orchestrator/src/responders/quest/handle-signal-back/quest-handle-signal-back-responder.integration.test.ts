@@ -16,7 +16,6 @@ import {
   QuestStub,
   QuestWorkItemIdStub,
   RepoRelativePathStub,
-  SignoffStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
@@ -781,22 +780,10 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
               FlowNodeStub({
                 id: 'dashboard',
                 label: 'Dashboard',
-                flowriderSignoff: SignoffStub({
-                  workItemId: flowWorkItemId,
-                  evidence:
-                    'packages/web/src/flows/login/login.e2e.ts:42 — red when the redirect is removed',
-                }),
               }),
               FlowNodeStub({
                 id: 'rate-limited',
                 label: 'Rate limited',
-                flowriderSignoff: SignoffStub({
-                  verdict: 'unconfirmable',
-                  evidence:
-                    'the rate limiter needs 100 real requests, which the suite cannot issue',
-                  toSettle: 'Inject the limiter threshold, then drive the rejection branch.',
-                  workItemId: flowWorkItemId,
-                }),
               }),
             ],
             edges: [],
@@ -955,18 +942,12 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
               FlowNodeStub({
                 id: 'dashboard',
                 label: 'Dashboard',
-                flowriderSignoff: SignoffStub(),
-                siegemasterSignoff: SignoffStub({
-                  evidence: 'the dashboard header read "Welcome, ada" in the live tab at :3737',
-                  workItemId: siegeWorkItemId,
-                }),
               }),
             ],
             edges: [],
             offMapSignoffs: OFF_MAP_FAMILIES.map((family) =>
               FlowOffMapSignoffStub({
                 id: family as never,
-                siegemasterSignoff: SignoffStub({ workItemId: siegeWorkItemId }),
               }),
             ),
           }),

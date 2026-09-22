@@ -8,13 +8,10 @@ import {
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
-  SignoffStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
-import { signoffTrackEligibilityStatics } from '../../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
-import { smoketestStatics } from '../../../statics/smoketest/smoketest-statics';
 import { smoketestSignOutstandingUnitsBroker } from './smoketest-sign-outstanding-units-broker';
 import { smoketestSignOutstandingUnitsBrokerProxy } from './smoketest-sign-outstanding-units-broker.proxy';
 
@@ -26,24 +23,7 @@ const OPERATION_ID = 'cccccccc-cccc-4ccc-accc-cccccccccc01';
 const OPERATION_REF = `operations/${OPERATION_ID}`;
 const FLOW_ID = 'smoketest-signal-flow';
 
-// The two sign-off FIELDS, read off the eligibility entries rather than typed as literals: each
-// track now owns its own field one-to-one (codeweaver / flowrider / siegemaster), and reading it
-// here is what makes this test measure the real routing rather than a hardcoded guess.
-const SIEGEMASTER_FIELD = signoffTrackEligibilityStatics.byTrack.siegemaster.signoffField;
-const FLOWRIDER_FIELD = signoffTrackEligibilityStatics.byTrack.flowrider.signoffField;
-
 const OFF_MAP_FAMILIES = Object.keys(qaOffMapProbeStatics.byFamily) as readonly OffMapFamily[];
-
-// The timestamp questPersistBrokerProxy's outbox chain pins `Date.prototype.toISOString` to, which
-// is what makes the broker's `at` stamp assertable.
-const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
-
-// What the harness writes: `confirmed`, the fixture evidence, and the signalling work item.
-const HARNESS_SIGNOFF = SignoffStub({
-  evidence: smoketestStatics.signoffEvidence,
-  workItemId: WORK_ITEM_ID,
-  at: FIXED_TIMESTAMP,
-});
 
 // The minimal blueprint's shape: an action node pointing at a terminal node that carries one
 // observable. `dispatch-agent` has an outgoing edge, so it is NOT a terminal and mints no unit.
@@ -183,20 +163,16 @@ const questAlreadySigned = QuestStub({
           id: 'emit-signal',
           label: 'Agent emits signal-back',
           packages: ['orchestrator'],
-          siegemasterSignoff: HARNESS_SIGNOFF,
           observables: [
             FlowObservableStub({
               id: 'smoketest-signal-received',
               description: 'the scripted signal lands',
               package: 'orchestrator',
-              siegemasterSignoff: HARNESS_SIGNOFF,
             }),
           ],
         }),
       ],
-      offMapSignoffs: OFF_MAP_FAMILIES.map((family) =>
-        FlowOffMapSignoffStub({ id: family, siegemasterSignoff: HARNESS_SIGNOFF }),
-      ),
+      offMapSignoffs: OFF_MAP_FAMILIES.map((family) => FlowOffMapSignoffStub({ id: family })),
     }),
   ],
   operations: [SIEGEMASTER_OPERATION],
@@ -219,7 +195,7 @@ const questWithUnlinkedWorkItem = QuestStub({
 
 describe('smoketestSignOutstandingUnitsBroker', () => {
   describe('a gated role with outstanding units', () => {
-    it('VALID: {siegemaster item on an operational flow} => signs the terminal, the observable and every off-map family with the fixture sign-off', async () => {
+    it('VALID: {siegemaster item on an operational flow} => records every off-map family in offMapSignoffs', async () => {
       const proxy = smoketestSignOutstandingUnitsBrokerProxy();
       proxy.setupQuestFound({ quest: questSiegemasterOperational });
 
@@ -232,35 +208,14 @@ describe('smoketestSignOutstandingUnitsBroker', () => {
 
       expect({
         result,
-        nodes: flows.flatMap((flow) =>
-          flow.nodes.map((node) => ({
-            id: String(node.id),
-            signoff: node[SIEGEMASTER_FIELD],
-          })),
-        ),
-        observables: flows.flatMap((flow) =>
-          flow.nodes.flatMap((node) =>
-            node.observables.map((observable) => ({
-              id: String(observable.id),
-              signoff: observable[SIEGEMASTER_FIELD],
-            })),
-          ),
-        ),
         offMapSignoffs: flows.flatMap((flow) => flow.offMapSignoffs),
       }).toStrictEqual({
         result: { success: true },
-        nodes: [
-          { id: 'dispatch-agent', signoff: undefined },
-          { id: 'emit-signal', signoff: HARNESS_SIGNOFF },
-        ],
-        observables: [{ id: 'smoketest-signal-received', signoff: HARNESS_SIGNOFF }],
-        offMapSignoffs: OFF_MAP_FAMILIES.map((family) =>
-          FlowOffMapSignoffStub({ id: family, siegemasterSignoff: HARNESS_SIGNOFF }),
-        ),
+        offMapSignoffs: OFF_MAP_FAMILIES.map((family) => FlowOffMapSignoffStub({ id: family })),
       });
     });
 
-    it('VALID: {siegemaster item} => writes ONLY siegemasterSignoff, leaving the flowrider track absent', async () => {
+    it('VALID: {siegemaster item} => preserves flow nodes without sign-off fields', async () => {
       const proxy = smoketestSignOutstandingUnitsBrokerProxy();
       proxy.setupQuestFound({ quest: questSiegemasterOperational });
 
@@ -268,33 +223,25 @@ describe('smoketestSignOutstandingUnitsBroker', () => {
 
       const flows = proxy.getPersistedQuests().flatMap((quest) => quest.flows);
 
-      expect(
-        flows.flatMap((flow) => flow.nodes.map((node) => node[FLOWRIDER_FIELD])),
-      ).toStrictEqual([undefined, undefined]);
+      expect(flows.flatMap((flow) => flow.nodes)).toStrictEqual(FLOW_NODES);
     });
 
-    it('VALID: {flowrider item on a RUNTIME flow} => writes flowriderSignoff and leaves the off-map families to Siegemaster', async () => {
+    it('VALID: {flowrider item on a RUNTIME flow} => leaves the off-map families empty', async () => {
       const proxy = smoketestSignOutstandingUnitsBrokerProxy();
       proxy.setupQuestFound({ quest: questFlowriderRuntime });
 
-      await smoketestSignOutstandingUnitsBroker({ questId: QUEST_ID, workItemId: WORK_ITEM_ID });
+      const result = await smoketestSignOutstandingUnitsBroker({
+        questId: QUEST_ID,
+        workItemId: WORK_ITEM_ID,
+      });
 
       const flows = proxy.getPersistedQuests().flatMap((quest) => quest.flows);
 
       expect({
-        nodes: flows.flatMap((flow) =>
-          flow.nodes.map((node) => ({
-            id: String(node.id),
-            flowrider: node[FLOWRIDER_FIELD],
-            siegemaster: node[SIEGEMASTER_FIELD],
-          })),
-        ),
+        result,
         offMapSignoffs: flows.flatMap((flow) => flow.offMapSignoffs),
       }).toStrictEqual({
-        nodes: [
-          { id: 'dispatch-agent', flowrider: undefined, siegemaster: undefined },
-          { id: 'emit-signal', flowrider: HARNESS_SIGNOFF, siegemaster: undefined },
-        ],
+        result: { success: true },
         offMapSignoffs: [],
       });
     });
@@ -339,7 +286,7 @@ describe('smoketestSignOutstandingUnitsBroker', () => {
       });
     });
 
-    it('VALID: {siegemaster item whose units already carry the track} => persists nothing on a second pass', async () => {
+    it('VALID: {siegemaster item whose off-map families are already recorded} => off-map families are recorded in offMapSignoffs without duplicates', async () => {
       const proxy = smoketestSignOutstandingUnitsBrokerProxy();
       proxy.setupQuestFound({ quest: questAlreadySigned });
 
@@ -348,9 +295,14 @@ describe('smoketestSignOutstandingUnitsBroker', () => {
         workItemId: WORK_ITEM_ID,
       });
 
-      expect({ result, persistedCount: proxy.getAllPersistedContents().length }).toStrictEqual({
+      const flows = proxy.getPersistedQuests().flatMap((quest) => quest.flows);
+
+      expect({
+        result,
+        offMapSignoffs: flows.flatMap((flow) => flow.offMapSignoffs),
+      }).toStrictEqual({
         result: { success: true },
-        persistedCount: 0,
+        offMapSignoffs: OFF_MAP_FAMILIES.map((family) => FlowOffMapSignoffStub({ id: family })),
       });
     });
   });

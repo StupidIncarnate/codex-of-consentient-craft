@@ -83,10 +83,10 @@ describe('mintNextFamilyLayerBroker', () => {
         OperationItemStub({
           id: '00000000-0000-4000-8000-000000000001',
           role: 'siegemaster',
-          text: 'Siegemaster: manual-QA this flow and review its test suite — flow: register-lint-rule',
+          text: 'Siegemaster: manual-QA this flow and review its test suite',
           status: 'pending',
           locked: true,
-          flowIds: ['register-lint-rule'],
+          flowIds: [],
           // The spine fallback: a per-flow slice names no package of its own, so the scope inherits
           // every package the quest's nodes tag.
           packageNames: ['web'],

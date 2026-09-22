@@ -1,11 +1,9 @@
 import {
-  FlowEdgeStub,
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
   QuestNoteStub,
   QuestStub,
-  SignoffStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questSummaryBuildTransformer } from '../../../transformers/quest-summary-build/quest-summary-build-transformer';
@@ -23,59 +21,6 @@ describe('QuestGetSummaryResponder', () => {
       const result = await proxy.callResponder({ questId: quest.id });
 
       expect(result).toStrictEqual(questSummaryBuildTransformer({ quest }));
-    });
-
-    it('VALID: {quest with an unconfirmable verdict} => the reason and the question come through', async () => {
-      const proxy = QuestGetSummaryResponderProxy();
-      const quest = QuestStub({
-        flows: [
-          FlowStub({
-            nodes: [
-              FlowNodeStub({ id: 'login-page', label: 'Login Page', type: 'state' }),
-              FlowNodeStub({
-                id: 'dashboard',
-                label: 'Dashboard',
-                type: 'state',
-                flowriderSignoff: SignoffStub({
-                  verdict: 'unconfirmable',
-                  evidence: 'playwright.config.ts declares no webServer for this project',
-                  toSettle:
-                    'Add a webServer block to playwright.config.ts, then re-run this spec against it.',
-                }),
-              }),
-            ],
-            edges: [
-              FlowEdgeStub({
-                id: 'e-success',
-                from: 'login-page',
-                to: 'dashboard',
-                label: 'success',
-              }),
-            ],
-          }),
-        ],
-      });
-      proxy.setupQuestFound({ quest });
-
-      const result = await proxy.callResponder({ questId: quest.id });
-
-      // `flowriderSignoff` has exactly one reader now, so the unconfirmable verdict on it surfaces
-      // as exactly one entry.
-      expect(result.unconfirmable).toStrictEqual([
-        {
-          id: 'login-flow:terminal:dashboard:flowrider',
-          unitId: 'login-flow:terminal:dashboard',
-          flowId: 'login-flow',
-          kind: 'terminal',
-          track: 'flowrider',
-          signoff: SignoffStub({
-            verdict: 'unconfirmable',
-            evidence: 'playwright.config.ts declares no webServer for this project',
-            toSettle:
-              'Add a webServer block to playwright.config.ts, then re-run this spec against it.',
-          }),
-        },
-      ]);
     });
 
     it('VALID: {quest with drift and notes} => both are reported alongside the coverage', async () => {

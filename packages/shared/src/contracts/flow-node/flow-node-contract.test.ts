@@ -1,7 +1,6 @@
 import { flowNodeContract } from './flow-node-contract';
 import { FlowObservableStub } from '../flow-observable/flow-observable.stub';
 import { FlowNodeStub } from './flow-node.stub';
-import { SignoffStub } from '../signoff/signoff.stub';
 
 describe('flowNodeContract', () => {
   describe('valid flow nodes', () => {
@@ -118,59 +117,6 @@ describe('flowNodeContract', () => {
     });
   });
 
-  describe('track sign-offs', () => {
-    it('VALID: {flowriderSignoff only} => keeps the siegemaster field absent rather than nulled', () => {
-      const node = FlowNodeStub({ flowriderSignoff: SignoffStub() });
-
-      expect(node).toStrictEqual({
-        id: 'login-page',
-        label: 'Login Page',
-        type: 'state',
-        packages: ['auth-service'],
-        observables: [],
-        flowriderSignoff: {
-          verdict: 'confirmed',
-          evidence:
-            'packages/x/src/a-transformer.test.ts:42 — flips to red when the guard returns true',
-          workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          at: '2026-01-01T00:00:00.000Z',
-        },
-      });
-    });
-
-    it('VALID: {both sign-offs present} => parses each track onto its own top-level field', () => {
-      const node = FlowNodeStub({
-        flowriderSignoff: SignoffStub(),
-        siegemasterSignoff: SignoffStub({
-          evidence: 'the login page painted the form on the running server',
-          workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
-          at: '2026-01-02T00:00:00.000Z',
-        }),
-      });
-
-      expect(node).toStrictEqual({
-        id: 'login-page',
-        label: 'Login Page',
-        type: 'state',
-        packages: ['auth-service'],
-        observables: [],
-        flowriderSignoff: {
-          verdict: 'confirmed',
-          evidence:
-            'packages/x/src/a-transformer.test.ts:42 — flips to red when the guard returns true',
-          workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          at: '2026-01-01T00:00:00.000Z',
-        },
-        siegemasterSignoff: {
-          verdict: 'confirmed',
-          evidence: 'the login page painted the form on the running server',
-          workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
-          at: '2026-01-02T00:00:00.000Z',
-        },
-      });
-    });
-  });
-
   describe('invalid flow nodes', () => {
     it('INVALID: {id: "Bad-Id"} => throws validation error', () => {
       expect(() => {
@@ -229,34 +175,22 @@ describe('flowNodeContract', () => {
           edges: [
             {
               id: 'no image',
-              codeweaverSignoff: {
-                verdict: 'confirmed',
-                evidence:
-                  'packages/x/src/a-transformer.test.ts:42 — flips to red when the guard returns true',
-                workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-                at: '2026-01-01T00:00:00.000Z',
-              },
             },
           ],
         });
       }).toThrow(/Unrecognized key\(s\) in object: 'edges'/u);
     });
 
-    it("INVALID: {node carrying a misspelt sign-off field} => throws naming 'codeweaverSignOff', so a typo is not a silent no-op", () => {
+    it('INVALID: {node carrying an unrecognized field} => throws naming the unrecognized key, so extra keys are not silently dropped', () => {
       expect(() => {
         flowNodeContract.parse({
           id: 'clipboard-has-image',
           label: 'Clipboard has image',
           type: 'decision',
           packages: ['auth-service'],
-          codeweaverSignOff: {
-            verdict: 'confirmed',
-            evidence: 'packages/x/src/a-transformer.test.ts:42 — flips to red',
-            workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            at: '2026-01-01T00:00:00.000Z',
-          },
+          extraField: 'unexpected',
         });
-      }).toThrow(/Unrecognized key\(s\) in object: 'codeweaverSignOff'/u);
+      }).toThrow(/Unrecognized key\(s\) in object: 'extraField'/u);
     });
   });
 });

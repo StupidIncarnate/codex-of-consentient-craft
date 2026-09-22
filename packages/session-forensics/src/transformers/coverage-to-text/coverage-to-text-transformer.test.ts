@@ -13,10 +13,10 @@ describe('coverageToTextTransformer', () => {
   describe('one flow, three rows', () => {
     it('VALID: {three tracks on one flow} => flow id, header, one row per track, then the caveat', () => {
       const coverage = [
-        TrackCoverageStub({ flowId: 'flow-one', track: 'codeweaverSignoff' }),
+        TrackCoverageStub({ flowId: 'flow-one', track: 'codeweaver' }),
         TrackCoverageStub({
           flowId: 'flow-one',
-          track: 'flowriderSignoff',
+          track: 'flowrider',
           owed: 10,
           signed: 8,
           confirmed: 8,
@@ -25,7 +25,7 @@ describe('coverageToTextTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'flow-one',
-          track: 'siegemasterSignoff',
+          track: 'siegemaster',
           owed: 20,
           signed: 15,
           confirmed: 10,
@@ -40,9 +40,9 @@ describe('coverageToTextTransformer', () => {
         [
           'Flow flow-one',
           HEADER_LINE,
-          '  codeweaverSignoff            58      58         55              3           0',
-          '  flowriderSignoff             10       8          8              0           2',
-          '  siegemasterSignoff           20      15         10              5           5',
+          '  codeweaver                   58      58         55              3           0',
+          '  flowrider                    10       8          8              0           2',
+          '  siegemaster                  20      15         10              5           5',
           '',
           CAVEAT_LINE_ONE,
           CAVEAT_LINE_TWO,
@@ -57,7 +57,7 @@ describe('coverageToTextTransformer', () => {
       const coverage = [
         TrackCoverageStub({
           flowId: 'flow-alpha',
-          track: 'codeweaverSignoff',
+          track: 'codeweaver',
           owed: 5,
           signed: 5,
           confirmed: 5,
@@ -66,7 +66,7 @@ describe('coverageToTextTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'flow-alpha',
-          track: 'flowriderSignoff',
+          track: 'flowrider',
           owed: 5,
           signed: 4,
           confirmed: 4,
@@ -75,7 +75,7 @@ describe('coverageToTextTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'flow-alpha',
-          track: 'siegemasterSignoff',
+          track: 'siegemaster',
           owed: 7,
           signed: 0,
           confirmed: 0,
@@ -84,7 +84,7 @@ describe('coverageToTextTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'flow-beta',
-          track: 'codeweaverSignoff',
+          track: 'codeweaver',
           owed: 3,
           signed: 3,
           confirmed: 2,
@@ -93,7 +93,7 @@ describe('coverageToTextTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'flow-beta',
-          track: 'flowriderSignoff',
+          track: 'flowrider',
           owed: 0,
           signed: 0,
           confirmed: 0,
@@ -102,7 +102,7 @@ describe('coverageToTextTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'flow-beta',
-          track: 'siegemasterSignoff',
+          track: 'siegemaster',
           owed: 7,
           signed: 1,
           confirmed: 1,
@@ -117,15 +117,15 @@ describe('coverageToTextTransformer', () => {
         [
           'Flow flow-alpha',
           HEADER_LINE,
-          '  codeweaverSignoff             5       5          5              0           0',
-          '  flowriderSignoff              5       4          4              0           1',
-          '  siegemasterSignoff            7       0          0              0           7',
+          '  codeweaver                    5       5          5              0           0',
+          '  flowrider                     5       4          4              0           1',
+          '  siegemaster                   7       0          0              0           7',
           '',
           'Flow flow-beta',
           HEADER_LINE,
-          '  codeweaverSignoff             3       3          2              1           0',
-          '  flowriderSignoff              0       0          0              0           0',
-          '  siegemasterSignoff            7       1          1              0           6',
+          '  codeweaver                    3       3          2              1           0',
+          '  flowrider                     0       0          0              0           0',
+          '  siegemaster                   7       1          1              0           6',
           '',
           CAVEAT_LINE_ONE,
           CAVEAT_LINE_TWO,
@@ -148,7 +148,7 @@ describe('coverageToTextTransformer', () => {
       const coverage = [
         TrackCoverageStub({
           flowId: 'flow-never-ran',
-          track: 'flowriderSignoff',
+          track: 'flowrider',
           owed: 6,
           signed: 0,
           confirmed: 0,
@@ -163,7 +163,7 @@ describe('coverageToTextTransformer', () => {
         [
           'Flow flow-never-ran',
           HEADER_LINE,
-          '  flowriderSignoff              6       0          0              0           6',
+          '  flowrider                     6       0          0              0           6',
           '',
           CAVEAT_LINE_ONE,
           CAVEAT_LINE_TWO,
@@ -183,7 +183,7 @@ describe('coverageToTextTransformer', () => {
         [
           'Flow flow-unconfirmable',
           HEADER_LINE,
-          '  codeweaverSignoff            58      58         55              3           0',
+          '  codeweaver                   58      58         55              3           0',
           '',
           CAVEAT_LINE_ONE,
           CAVEAT_LINE_TWO,

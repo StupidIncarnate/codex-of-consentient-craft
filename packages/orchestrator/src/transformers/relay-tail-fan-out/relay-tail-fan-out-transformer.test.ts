@@ -91,7 +91,7 @@ describe('relayTailFanOutTransformer', () => {
       },
     );
 
-    it('VALID: {two runtime flows and one operational, siegemaster} => a slice for all THREE, because its track is measured over both flow types', () => {
+    it('VALID: {two runtime flows and one operational, siegemaster} => a slice for the TWO runtime flows only, the operational one dropped', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({ id: 'send-comment', name: 'Send comment', flowType: 'runtime' }),
@@ -117,17 +117,12 @@ describe('relayTailFanOutTransformer', () => {
           flowIds: ['view-comments'],
           packageNames: [],
         },
-        {
-          text: 'Siegemaster: manual-QA this flow and review its test suite — flow: register-lint-rule',
-          flowIds: ['register-lint-rule'],
-          packageNames: [],
-        },
       ]);
     });
 
-    // The ledger cut has to match the gate: `signoffTrackEligibilityStatics.byTrack.flowrider`
+    // The ledger cut has to match the gate: `stepScopeStatics.byFamilyStep.flowrider`
     // measures `runtime` alone, so an item minted over the operational flow would carry a
-    // denominator of zero units its own track could ever sign.
+    // denominator of zero units its own scope could ever sign.
     it('VALID: {two runtime flows and one operational, flowrider} => a slice for the TWO runtime flows only, the operational one dropped', () => {
       const quest = QuestStub({
         flows: [
@@ -157,7 +152,7 @@ describe('relayTailFanOutTransformer', () => {
       ]);
     });
 
-    it('EMPTY: {every flow operational, flowrider} => NO slice at all, because every flow is a type its track cannot sign a single unit of', () => {
+    it('EMPTY: {every flow operational, flowrider} => NO slice at all, because every flow is a type its scope cannot sign a single unit of', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -178,7 +173,7 @@ describe('relayTailFanOutTransformer', () => {
       expect(result).toStrictEqual([]);
     });
 
-    it('VALID: {every flow operational, siegemaster} => still one slice per flow, because its track measures operational flows too', () => {
+    it('EMPTY: {every flow operational, siegemaster} => exactly one whole-quest slice, because operational flows carry no repeatable walk for a siege lane and off-map probes keep an owner', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -198,13 +193,8 @@ describe('relayTailFanOutTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          text: 'Siegemaster: manual-QA this flow and review its test suite — flow: register-lint-rule',
-          flowIds: ['register-lint-rule'],
-          packageNames: [],
-        },
-        {
-          text: 'Siegemaster: manual-QA this flow and review its test suite — flow: sweep-legacy-imports',
-          flowIds: ['sweep-legacy-imports'],
+          text: 'Siegemaster: manual-QA this flow and review its test suite',
+          flowIds: [],
           packageNames: [],
         },
       ]);

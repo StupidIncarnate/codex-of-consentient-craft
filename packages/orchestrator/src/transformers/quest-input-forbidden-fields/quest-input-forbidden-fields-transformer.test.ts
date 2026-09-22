@@ -240,8 +240,10 @@ describe('questInputForbiddenFieldsTransformer', () => {
 
       expect(offenders).toStrictEqual([]);
     });
+  });
 
-    it('INVALID: {in_progress + signs an observable id the flow does NOT hold} => rejects it by name', () => {
+  describe('flowsRule: full with retired sign-off fields', () => {
+    it('VALID: {in_progress + unknown observable id with legacy sign-off} => returns empty array because sign-off fields are retired', () => {
       const existingFlow = FlowStub({
         id: 'login-flow' as never,
         nodes: [
@@ -278,18 +280,12 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'in_progress',
       });
 
-      expect(offenders).toStrictEqual([
-        "Sign-off on unknown observable 'never-existed' — no observable with that id exists on node 'login' in flow 'login-flow'; a sign-off may only be written on a unit that already exists, and an unknown id appends a phantom unit instead of signing the intended one",
-      ]);
+      expect(offenders).toStrictEqual([]);
     });
   });
 
-  // The other check that survives `flowsRule: 'full'`. The session that builds an artifact is the
-  // session that signs it, so a payload free to sign a unit and rewrite that same unit in one call
-  // can move the goalposts to whatever it produced. This case is what proves the check is WIRED
-  // here — every key it refuses is enumerated in the sibling transformer's own tests.
-  describe('flowsRule: full still refuses an edit coupled to a sign-off', () => {
-    it('INVALID: {in_progress + signs an observable AND rewrites its description in one call} => rejects the coupled key by name', () => {
+  describe('flowsRule: full edit coupled to legacy sign-off', () => {
+    it('VALID: {in_progress + signs an observable AND rewrites its description with legacy sign-off} => returns empty array because sign-off fields are retired', () => {
       const existingFlow = FlowStub({
         id: 'login-flow' as never,
         nodes: [
@@ -327,9 +323,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'in_progress',
       });
 
-      expect(offenders).toStrictEqual([
-        "Sign-off on observable 'redirects' on node 'login' in flow 'login-flow' also writes 'description' — an observable carrying a sign-off may carry only its id and its sign-off fields; a sign-off is evidence about the unit as it stands, so one call may not both sign it and rewrite it — send the sign-off and the edit as two separate modify-quest calls",
-      ]);
+      expect(offenders).toStrictEqual([]);
     });
   });
 

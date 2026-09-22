@@ -26,9 +26,7 @@
  * so, since the detector's priority table names a single winner and returns.
  *
  * `packageNames` NARROWS BY INTERSECTION for every track — an item owns every unit whose node tags
- * ANY of its names. Each track declares that as
- * `signoffTrackEligibilityStatics.byTrack[track].packageScope`, so a track that needs a different
- * rule declares it there and gets a branch here rather than a role comparison.
+ * ANY of its names.
  *
  * A SEAM'S UNITS GO TO EXACTLY ONE CELL — THE LAST-ORDERED ONE. A node carrying more than one
  * package is a seam (`flowNodeContract`'s own `.describe()` says so), and its units belong to the
@@ -65,7 +63,7 @@ import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
 import { questPackageEntryKindsTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { QaVerificationUnit } from '../../contracts/qa-verification-unit/qa-verification-unit-contract';
-import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
+import { stepScopeStatics } from '../../statics/step-scope/step-scope-statics';
 
 export const qaUnitsInPackageScopeTransformer = ({
   flow,
@@ -77,13 +75,16 @@ export const qaUnitsInPackageScopeTransformer = ({
 }: {
   flow: Flow;
   units: readonly QaVerificationUnit[];
-  track: keyof typeof signoffTrackEligibilityStatics.byTrack;
+  track: keyof typeof stepScopeStatics.byFamilyStep;
   packagesAffected?: readonly QuestPackageEntry[];
   packageNames?: readonly PackageName[];
   packageGraph?: readonly PackageGraphEntry[];
 }): QaVerificationUnit[] => {
-  const eligibility = signoffTrackEligibilityStatics.byTrack[track];
-  const eligiblePackageTypes = new Set(eligibility.packageTypes.map(String));
+  const familySteps = stepScopeStatics.byFamilyStep[track];
+  // Codeweaver and flowrider declare their packageTypes on `review`; siegemaster declares the same
+  // nine types on `happyWalk` and `adversarial`.
+  const stepScope = 'review' in familySteps ? familySteps.review : familySteps.happyWalk;
+  const eligiblePackageTypes = new Set(stepScope.packageTypes.map(String));
   const declaredNames = new Set(packageNames.map(String));
 
   // The cell-ordering keys, in the fan-out's own order: KIND tier first (it outranks depth because

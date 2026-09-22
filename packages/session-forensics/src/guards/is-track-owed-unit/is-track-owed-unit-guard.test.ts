@@ -21,7 +21,7 @@ describe('isTrackOwedUnitGuard', () => {
   });
 
   describe('flow type exclusion — an operational flow observable', () => {
-    it('INVALID: {track: flowriderSignoff, flowType: operational} => flowrider does not owe it', () => {
+    it('INVALID: {track: flowrider, flowType: operational} => flowrider does not owe it', () => {
       const unit = VerificationUnitStub({
         flowType: 'operational',
         kind: 'observable',
@@ -29,10 +29,10 @@ describe('isTrackOwedUnitGuard', () => {
         verificationMethod: 'test',
       });
 
-      expect(isTrackOwedUnitGuard({ track: 'flowriderSignoff', unit })).toBe(false);
+      expect(isTrackOwedUnitGuard({ track: 'flowrider', unit })).toBe(false);
     });
 
-    it('VALID: {track: codeweaverSignoff, flowType: operational} => codeweaver owes it', () => {
+    it('VALID: {track: codeweaver, flowType: operational} => codeweaver owes it', () => {
       const unit = VerificationUnitStub({
         flowType: 'operational',
         kind: 'observable',
@@ -40,10 +40,10 @@ describe('isTrackOwedUnitGuard', () => {
         verificationMethod: 'test',
       });
 
-      expect(isTrackOwedUnitGuard({ track: 'codeweaverSignoff', unit })).toBe(true);
+      expect(isTrackOwedUnitGuard({ track: 'codeweaver', unit })).toBe(true);
     });
 
-    it('VALID: {track: siegemasterSignoff, flowType: operational} => siegemaster owes it', () => {
+    it('VALID: {track: siegemaster, flowType: operational} => siegemaster owes it', () => {
       const unit = VerificationUnitStub({
         flowType: 'operational',
         kind: 'observable',
@@ -51,59 +51,59 @@ describe('isTrackOwedUnitGuard', () => {
         verificationMethod: 'test',
       });
 
-      expect(isTrackOwedUnitGuard({ track: 'siegemasterSignoff', unit })).toBe(true);
+      expect(isTrackOwedUnitGuard({ track: 'siegemaster', unit })).toBe(true);
     });
   });
 
   describe('unit kind exclusion — an off-map unit', () => {
-    it('VALID: {track: siegemasterSignoff, kind: off-map} => siegemaster owes it', () => {
+    it('VALID: {track: siegemaster, kind: off-map} => siegemaster owes it', () => {
       const unit = VerificationUnitStub({ kind: 'off-map' });
 
-      expect(isTrackOwedUnitGuard({ track: 'siegemasterSignoff', unit })).toBe(true);
+      expect(isTrackOwedUnitGuard({ track: 'siegemaster', unit })).toBe(true);
     });
 
-    it('INVALID: {track: codeweaverSignoff, kind: off-map} => codeweaver does not owe it', () => {
+    it('INVALID: {track: codeweaver, kind: off-map} => codeweaver does not owe it', () => {
       const unit = VerificationUnitStub({ kind: 'off-map' });
 
-      expect(isTrackOwedUnitGuard({ track: 'codeweaverSignoff', unit })).toBe(false);
+      expect(isTrackOwedUnitGuard({ track: 'codeweaver', unit })).toBe(false);
     });
 
-    it('INVALID: {track: flowriderSignoff, kind: off-map} => flowrider does not owe it', () => {
+    it('INVALID: {track: flowrider, kind: off-map} => flowrider does not owe it', () => {
       const unit = VerificationUnitStub({ kind: 'off-map' });
 
-      expect(isTrackOwedUnitGuard({ track: 'flowriderSignoff', unit })).toBe(false);
+      expect(isTrackOwedUnitGuard({ track: 'flowrider', unit })).toBe(false);
     });
   });
 
   describe('observable provenance exclusion — a siegemaster-authored observable', () => {
-    it('VALID: {track: siegemasterSignoff, addedBy: siegemaster} => siegemaster owes it', () => {
+    it('VALID: {track: siegemaster, addedBy: siegemaster} => siegemaster owes it', () => {
       const unit = VerificationUnitStub({
         kind: 'observable',
         addedBy: 'siegemaster',
         verificationMethod: 'test',
       });
 
-      expect(isTrackOwedUnitGuard({ track: 'siegemasterSignoff', unit })).toBe(true);
+      expect(isTrackOwedUnitGuard({ track: 'siegemaster', unit })).toBe(true);
     });
 
-    it('INVALID: {track: codeweaverSignoff, addedBy: siegemaster} => codeweaver does not owe it', () => {
+    it('INVALID: {track: codeweaver, addedBy: siegemaster} => codeweaver does not owe it', () => {
       const unit = VerificationUnitStub({
         kind: 'observable',
         addedBy: 'siegemaster',
         verificationMethod: 'test',
       });
 
-      expect(isTrackOwedUnitGuard({ track: 'codeweaverSignoff', unit })).toBe(false);
+      expect(isTrackOwedUnitGuard({ track: 'codeweaver', unit })).toBe(false);
     });
 
-    it('INVALID: {track: flowriderSignoff, addedBy: siegemaster} => flowrider does not owe it', () => {
+    it('INVALID: {track: flowrider, addedBy: siegemaster} => flowrider does not owe it', () => {
       const unit = VerificationUnitStub({
         kind: 'observable',
         addedBy: 'siegemaster',
         verificationMethod: 'test',
       });
 
-      expect(isTrackOwedUnitGuard({ track: 'flowriderSignoff', unit })).toBe(false);
+      expect(isTrackOwedUnitGuard({ track: 'flowrider', unit })).toBe(false);
     });
   });
 
@@ -119,34 +119,34 @@ describe('isTrackOwedUnitGuard', () => {
   });
 
   describe('verification method exclusion — a verifyByReading observable', () => {
-    it('VALID: {track: codeweaverSignoff, verificationMethod: reading} => codeweaver owes it', () => {
+    it('VALID: {track: codeweaver, verificationMethod: reading} => codeweaver owes it', () => {
       const unit = VerificationUnitStub({
         kind: 'observable',
         addedBy: 'spec',
         verificationMethod: 'reading',
       });
 
-      expect(isTrackOwedUnitGuard({ track: 'codeweaverSignoff', unit })).toBe(true);
+      expect(isTrackOwedUnitGuard({ track: 'codeweaver', unit })).toBe(true);
     });
 
-    it('INVALID: {track: flowriderSignoff, verificationMethod: reading} => flowrider does not owe it', () => {
+    it('INVALID: {track: flowrider, verificationMethod: reading} => flowrider does not owe it', () => {
       const unit = VerificationUnitStub({
         kind: 'observable',
         addedBy: 'spec',
         verificationMethod: 'reading',
       });
 
-      expect(isTrackOwedUnitGuard({ track: 'flowriderSignoff', unit })).toBe(false);
+      expect(isTrackOwedUnitGuard({ track: 'flowrider', unit })).toBe(false);
     });
 
-    it('INVALID: {track: siegemasterSignoff, verificationMethod: reading} => siegemaster does not owe it', () => {
+    it('INVALID: {track: siegemaster, verificationMethod: reading} => siegemaster does not owe it', () => {
       const unit = VerificationUnitStub({
         kind: 'observable',
         addedBy: 'spec',
         verificationMethod: 'reading',
       });
 
-      expect(isTrackOwedUnitGuard({ track: 'siegemasterSignoff', unit })).toBe(false);
+      expect(isTrackOwedUnitGuard({ track: 'siegemaster', unit })).toBe(false);
     });
   });
 
@@ -175,7 +175,7 @@ describe('isTrackOwedUnitGuard', () => {
     });
 
     it('EMPTY: {unit: undefined} => returns false', () => {
-      expect(isTrackOwedUnitGuard({ track: 'codeweaverSignoff' })).toBe(false);
+      expect(isTrackOwedUnitGuard({ track: 'codeweaver' })).toBe(false);
     });
   });
 });

@@ -15,7 +15,7 @@
  *
  * **`operationItemId` IS THE SCOPE, and it is the only correct way to ask.** The item already
  * carries the three things that define the answer — `role` (the track), `flowIds` and
- * `packageNames` — and `operationSignoffScopeTransformer` derives them, which is the SAME
+ * `packageNames` — and this broker derives them, which is the SAME
  * derivation every other reader of this coverage uses. Nothing refuses a `done` over this number —
  * it is a work list, not a gate.
  *
@@ -49,7 +49,7 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { operationSignoffScopeTransformer } from '../../../transformers/operation-signoff-scope/operation-signoff-scope-transformer';
+import { stepScopeStatics } from '../../../statics/step-scope/step-scope-statics';
 import { qaChecklistBuildTransformer } from '../../../transformers/qa-checklist-build/qa-checklist-build-transformer';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
@@ -80,25 +80,33 @@ export const questGetQaChecklistBroker = async ({
       );
     }
 
-    // `null` means this role is measured on something other than the flow graph. An empty array is
-    // the honest rendering of that: the caller's discipline names no checklist denominator at all.
-    const scope = operationSignoffScopeTransformer({ quest, operationItem });
-
-    if (scope === null) {
+    if (
+      operationItem.role !== 'codeweaver' &&
+      operationItem.role !== 'flowrider' &&
+      operationItem.role !== 'siegemaster'
+    ) {
       return { checklists: [] };
     }
 
+    const track = operationItem.role;
+    const familySteps = stepScopeStatics.byFamilyStep[track];
+    const familyScope = 'review' in familySteps ? familySteps.review : familySteps.happyWalk;
+    const eligibleFlowTypes = new Set(familyScope.flowTypes.map(String));
+    const typedFlows = quest.flows.filter((flow) => eligibleFlowTypes.has(flow.flowType));
+    const scopedFlowIds = new Set(operationItem.flowIds.map(String));
+    const flows = typedFlows.filter((flow) => scopedFlowIds.has(String(flow.id)));
+
     return {
-      checklists: scope.flows.map((flow) =>
+      checklists: flows.map((flow) =>
         qaChecklistBuildTransformer({
           flow,
           packagesAffected: quest.packagesAffected,
-          packageNames: scope.packageNames,
+          packageNames: operationItem.packageNames,
           packageGraph: quest.packageGraph,
-          track: scope.track,
+          track,
         }),
       ),
-      track: scope.track,
+      track,
     };
   }
 

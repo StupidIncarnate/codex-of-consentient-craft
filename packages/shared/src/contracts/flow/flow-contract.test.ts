@@ -2,7 +2,6 @@ import { FlowEdgeStub } from '../flow-edge/flow-edge.stub';
 import { FlowNodeStub } from '../flow-node/flow-node.stub';
 import { FlowOffMapSignoffStub } from '../flow-off-map-signoff/flow-off-map-signoff.stub';
 import { FlowRecipeStub } from '../flow-recipe/flow-recipe.stub';
-import { SignoffStub } from '../signoff/signoff.stub';
 import { flowContract } from './flow-contract';
 import { FlowStub } from './flow.stub';
 
@@ -99,40 +98,14 @@ describe('flowContract', () => {
         offMapSignoffs: [
           FlowOffMapSignoffStub({
             id: 'concurrency',
-            siegemasterSignoff: SignoffStub(),
           }),
           FlowOffMapSignoffStub({
             id: 'staleness',
-            siegemasterSignoff: SignoffStub({
-              evidence: 'a 25h-old cache entry served the stale row on the running server',
-              workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
-              at: '2026-01-02T00:00:00.000Z',
-            }),
           }),
         ],
       });
 
-      expect(flow.offMapSignoffs).toStrictEqual([
-        {
-          id: 'concurrency',
-          siegemasterSignoff: {
-            verdict: 'confirmed',
-            evidence:
-              'packages/x/src/a-transformer.test.ts:42 — flips to red when the guard returns true',
-            workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            at: '2026-01-01T00:00:00.000Z',
-          },
-        },
-        {
-          id: 'staleness',
-          siegemasterSignoff: {
-            verdict: 'confirmed',
-            evidence: 'a 25h-old cache entry served the stale row on the running server',
-            workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
-            at: '2026-01-02T00:00:00.000Z',
-          },
-        },
-      ]);
+      expect(flow.offMapSignoffs).toStrictEqual([{ id: 'concurrency' }, { id: 'staleness' }]);
     });
   });
 

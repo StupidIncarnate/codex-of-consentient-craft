@@ -8,15 +8,12 @@ import {
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
-  SignoffStub,
   WorkItemRoleStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
-import { signoffTrackEligibilityStatics } from '../../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
-import { smoketestStatics } from '../../../statics/smoketest/smoketest-statics';
 import { smoketestSweepPendingWorkItemsLayerBroker } from './smoketest-sweep-pending-work-items-layer-broker';
 import { smoketestSweepPendingWorkItemsLayerBrokerProxy } from './smoketest-sweep-pending-work-items-layer-broker.proxy';
 
@@ -30,7 +27,6 @@ const SIGNAL_COMPLETE_SIGNATURE = 'smoketest-complete';
 
 type OffMapFamily = keyof typeof qaOffMapProbeStatics.byFamily;
 
-const SIEGEMASTER_FIELD = signoffTrackEligibilityStatics.byTrack.siegemaster.signoffField;
 const OFF_MAP_FAMILIES = Object.keys(qaOffMapProbeStatics.byFamily) as readonly OffMapFamily[];
 const GATED_OPERATION_ID = 'cccccccc-cccc-4ccc-accc-cccccccccc02';
 const GATED_FLOW_ID = 'sweep-signal-flow';
@@ -238,7 +234,7 @@ describe('smoketestSweepPendingWorkItemsLayerBroker', () => {
     // Nothing gates the scripted siegemaster's `done` on its (nonexistent) real sign-offs — but
     // without this, the fixture quest left on disk would show nine permanently unsigned units,
     // indistinguishable from a real coverage hole to a human reading it later.
-    it('VALID: {pending siegemaster linked to a gated operation item} => the persisted quest carries a confirmed fixture sign-off on the terminal and the observable', async () => {
+    it('VALID: {pending siegemaster linked to a gated operation item} => the persisted quest carries off-map sign-offs for each family', async () => {
       const proxy = smoketestSweepPendingWorkItemsLayerBrokerProxy();
       proxy.setupQuestFound({ quest: questWithGatedSiegemaster });
       const controller = new AbortController();
@@ -249,12 +245,6 @@ describe('smoketestSweepPendingWorkItemsLayerBroker', () => {
         dispense: dispenseSignalCompleteForBoth,
       });
 
-      const expectedSignoff = SignoffStub({
-        evidence: smoketestStatics.signoffEvidence,
-        workItemId: WI_PENDING,
-        // The timestamp questPersistBrokerProxy's outbox chain pins the clock to.
-        at: '2024-01-15T10:00:00.000Z',
-      });
       // Two writes reach questPersistBroker for this work item and their ORDER is the point: the
       // sign-off write is awaited first, so the units are settled on disk before the override the
       // agent will run is even stamped. The first persisted quest is that sign-off write.
@@ -265,28 +255,10 @@ describe('smoketestSweepPendingWorkItemsLayerBroker', () => {
 
       expect({
         persistCount: proxy.getAllPersistedContents().length,
-        nodes: signedFlows.flatMap((flow) =>
-          flow.nodes.map((node) => ({
-            id: String(node.id),
-            signoff: node[SIEGEMASTER_FIELD],
-          })),
-        ),
-        observables: signedFlows.flatMap((flow) =>
-          flow.nodes.flatMap((node) =>
-            node.observables.map((observable) => observable[SIEGEMASTER_FIELD]),
-          ),
-        ),
         offMapSignoffs: signedFlows.flatMap((flow) => flow.offMapSignoffs),
       }).toStrictEqual({
         persistCount: 2,
-        nodes: [
-          { id: 'dispatch-agent', signoff: undefined },
-          { id: 'emit-signal', signoff: expectedSignoff },
-        ],
-        observables: [expectedSignoff],
-        offMapSignoffs: OFF_MAP_FAMILIES.map((family) =>
-          FlowOffMapSignoffStub({ id: family, siegemasterSignoff: expectedSignoff }),
-        ),
+        offMapSignoffs: OFF_MAP_FAMILIES.map((family) => FlowOffMapSignoffStub({ id: family })),
       });
     });
   });

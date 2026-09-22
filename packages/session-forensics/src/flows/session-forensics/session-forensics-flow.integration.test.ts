@@ -103,9 +103,9 @@ describe('SessionForensicsFlow', () => {
         [
           'Flow bare-flow',
           "  sign-off track         REQUIRED  signed  confirmed  can't confirm  NOT SIGNED",
-          '  codeweaverSignoff             0       0          0              0           0',
-          '  flowriderSignoff              0       0          0              0           0',
-          '  siegemasterSignoff            7       0          0              0           7',
+          '  codeweaver                    0       0          0              0           0',
+          '  flowrider                     0       0          0              0           0',
+          '  siegemaster                   7       0          0              0           7',
           '',
           'These counts can be too high.',
           'This reading has no operation item, so it counts rows a real checklist would leave out.',

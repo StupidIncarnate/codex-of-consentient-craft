@@ -93,6 +93,19 @@ describe('textDisplaySymbolsStatics', () => {
       signoffVerdictMarks: {
         confirmed: '\u2713',
         unconfirmable: '?',
+        met: '\u2713',
+        'cant-meet': '?',
+        unmet: '\u2717',
+      },
+      unitMarkMarks: {
+        met: '\u2713',
+        'cant-meet': '?',
+        unmet: '\u2717',
+      },
+      unitMarkSymbols: {
+        met: '\u2713',
+        'cant-meet': '?',
+        unmet: '\u2717',
       },
       offMapLabel: 'off-map:',
       observableOriginPrefix: '+',
@@ -123,7 +136,16 @@ describe('textDisplaySymbolsStatics', () => {
       textDisplaySymbolsStatics.signoffTrackMarks.siegemaster.length,
       textDisplaySymbolsStatics.signoffVerdictMarks.confirmed.length,
       textDisplaySymbolsStatics.signoffVerdictMarks.unconfirmable.length,
-    ]).toStrictEqual([1, 1, 1, 1, 1]);
+      textDisplaySymbolsStatics.signoffVerdictMarks.met.length,
+      textDisplaySymbolsStatics.signoffVerdictMarks['cant-meet'].length,
+      textDisplaySymbolsStatics.signoffVerdictMarks.unmet.length,
+      textDisplaySymbolsStatics.unitMarkMarks.met.length,
+      textDisplaySymbolsStatics.unitMarkMarks['cant-meet'].length,
+      textDisplaySymbolsStatics.unitMarkMarks.unmet.length,
+      textDisplaySymbolsStatics.unitMarkSymbols.met.length,
+      textDisplaySymbolsStatics.unitMarkSymbols['cant-meet'].length,
+      textDisplaySymbolsStatics.unitMarkSymbols.unmet.length,
+    ]).toStrictEqual([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
   });
 
   // THE TWO SLICE LEGENDS ARE ONE LEGEND WITH ONE DIFFERENCE, and this is what keeps them that way.

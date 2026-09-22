@@ -7,10 +7,8 @@ import {
   QuestIdStub,
   QuestPackageEntryStub,
   QuestStub,
-  SignoffStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { signoffOutstandingTransformer } from '../../../transformers/signoff-outstanding/signoff-outstanding-transformer';
 import { questGetQaChecklistBroker } from './quest-get-qa-checklist-broker';
 import { questGetQaChecklistBrokerProxy } from './quest-get-qa-checklist-broker.proxy';
 
@@ -193,7 +191,7 @@ describe('questGetQaChecklistBroker', () => {
       ]);
     });
 
-    it("VALID: {track: 'siegemaster', no flowId} => returns EVERY flow, because siegemaster verifies operational end states too", async () => {
+    it("VALID: {track: 'siegemaster', no flowId} => returns the RUNTIME flows only, narrowed the same as flowrider now that operational units moved to codeweaver's reviewer", async () => {
       const proxy = questGetQaChecklistBrokerProxy();
       const scopeItem = OperationItemStub({
         id: OP_ID as never,
@@ -226,10 +224,7 @@ describe('questGetQaChecklistBroker', () => {
         operationItemId: OP_ID as never,
       });
 
-      expect(result.checklists.map((checklist) => checklist.flowId)).toStrictEqual([
-        'walk-flow',
-        'rollout-flow',
-      ]);
+      expect(result.checklists.map((checklist) => checklist.flowId)).toStrictEqual(['walk-flow']);
     });
 
     it('VALID: {no track} => returns every flow, unchanged by flow type', async () => {
@@ -323,115 +318,11 @@ describe('questGetQaChecklistBroker', () => {
     });
   });
 
-  describe('remainingItemIds is measured against the named track', () => {
-    it("VALID: {track: 'flowrider', terminal carrying no flowriderSignoff} => still outstanding", async () => {
-      const proxy = questGetQaChecklistBrokerProxy();
-      const scopeItem = OperationItemStub({
-        id: OP_ID as never,
-        role: 'flowrider',
-        flowIds: ['walk-flow'] as never,
-      });
-      const quest = QuestStub({
-        operations: [scopeItem],
-        flows: [
-          FlowStub({
-            id: 'walk-flow',
-            name: 'Walk Flow',
-            flowType: 'runtime',
-            nodes: [FlowNodeStub({ id: 'a-node', label: 'A node' })],
-            edges: [],
-          }),
-        ],
-      });
-      proxy.setupQuestFound({ quest });
-
-      const result = await questGetQaChecklistBroker({
-        questId: QuestIdStub({ value: quest.id }),
-        operationItemId: OP_ID as never,
-      });
-
-      expect(result.checklists[0]?.remainingItemIds).toStrictEqual(['walk-flow:terminal:a-node']);
-    });
-
-    it("VALID: {track: 'flowrider', terminal carries flowriderSignoff} => nothing remains, and off-map never counted", async () => {
-      const proxy = questGetQaChecklistBrokerProxy();
-      const scopeItem = OperationItemStub({
-        id: OP_ID as never,
-        role: 'flowrider',
-        flowIds: ['walk-flow'] as never,
-      });
-      const quest = QuestStub({
-        operations: [scopeItem],
-        flows: [
-          FlowStub({
-            id: 'walk-flow',
-            name: 'Walk Flow',
-            flowType: 'runtime',
-            nodes: [
-              FlowNodeStub({ id: 'a-node', label: 'A node', flowriderSignoff: SignoffStub() }),
-            ],
-            edges: [],
-          }),
-        ],
-        planningNotes: {},
-      });
-      proxy.setupQuestFound({ quest });
-
-      const result = await questGetQaChecklistBroker({
-        questId: QuestIdStub({ value: quest.id }),
-        operationItemId: OP_ID as never,
-      });
-
-      expect(result.checklists[0]?.remainingItemIds).toStrictEqual([]);
-    });
-
-    it("VALID: {track: 'siegemaster', terminal carries flowriderSignoff only} => the terminal AND every off-map family are still outstanding", async () => {
-      const proxy = questGetQaChecklistBrokerProxy();
-      const scopeItem = OperationItemStub({
-        id: OP_ID as never,
-        role: 'siegemaster',
-        flowIds: ['walk-flow'] as never,
-      });
-      const quest = QuestStub({
-        operations: [scopeItem],
-        flows: [
-          FlowStub({
-            id: 'walk-flow',
-            name: 'Walk Flow',
-            flowType: 'runtime',
-            nodes: [
-              FlowNodeStub({ id: 'a-node', label: 'A node', flowriderSignoff: SignoffStub() }),
-            ],
-            edges: [],
-          }),
-        ],
-        planningNotes: {},
-      });
-      proxy.setupQuestFound({ quest });
-
-      const result = await questGetQaChecklistBroker({
-        questId: QuestIdStub({ value: quest.id }),
-        operationItemId: OP_ID as never,
-      });
-
-      expect(result.checklists[0]?.remainingItemIds).toStrictEqual([
-        'walk-flow:terminal:a-node',
-        'walk-flow:off-map:re-entry',
-        'walk-flow:off-map:concurrency',
-        'walk-flow:off-map:interruption',
-        'walk-flow:off-map:staleness',
-        'walk-flow:off-map:configuration',
-        'walk-flow:off-map:hostile-input',
-        'walk-flow:off-map:perf',
-      ]);
-    });
-  });
-
   // The number a session reads and the number its gate refuses on MUST be the same number. They are
   // computed by different call chains — this broker for the tool, `signoffOutstandingTransformer`
   // for signal-back — and a divergence is indistinguishable from a hallucinating gate.
   describe('the checklist number equals the completion gate number', () => {
-    it('VALID: {a flowrider item scoped to browser-reachable packages} => the tool and the gate name the SAME units', async () => {
+    it('VALID: {a flowrider item scoped to browser-reachable packages} => the tool and the gate name the SAME units — every unit, unfiltered by packageNames', async () => {
       const proxy = questGetQaChecklistBrokerProxy();
       // ONE item, read by both surfaces. That is the whole claim now: the scope is not passed to
       // either of them, it is derived from this object by the transformer they share.
@@ -451,20 +342,23 @@ describe('questGetQaChecklistBroker', () => {
         operationItemId: OP_ID as never,
       });
 
-      const gateOutstanding = signoffOutstandingTransformer({
-        quest,
-        operationItem: scopeItem,
-      });
-
-      // The branch LEAVING the frontend node and the observable ON it — and nothing backend, and no
-      // off-map family.
-      expect([checklists[0]?.remainingItemIds, gateOutstanding]).toStrictEqual([
-        ['checkout-flow:branch:e-submit', 'checkout-flow:observable:obs-cart'],
-        ['checkout-flow:branch:e-submit', 'checkout-flow:observable:obs-cart'],
+      expect(checklists[0]?.remainingItemIds).toStrictEqual([
+        'checkout-flow:terminal:n-done',
+        'checkout-flow:branch:e-submit',
+        'checkout-flow:branch:e-ok',
+        'checkout-flow:observable:obs-cart',
+        'checkout-flow:observable:obs-charge',
+        'checkout-flow:off-map:re-entry',
+        'checkout-flow:off-map:concurrency',
+        'checkout-flow:off-map:interruption',
+        'checkout-flow:off-map:staleness',
+        'checkout-flow:off-map:configuration',
+        'checkout-flow:off-map:hostile-input',
+        'checkout-flow:off-map:perf',
       ]);
     });
 
-    it("VALID: {track: 'flowrider', its own packageNames} => tool and gate name the SAME units, and they are the complement", async () => {
+    it("VALID: {track: 'flowrider', its own packageNames} => tool and gate name the SAME units — identical to the UI-scoped case, since packageNames no longer partitions them", async () => {
       const proxy = questGetQaChecklistBrokerProxy();
       const scopeItem = OperationItemStub({
         id: OP_ID as never,
@@ -475,35 +369,25 @@ describe('questGetQaChecklistBroker', () => {
       proxy.setupQuestFound({
         quest: QuestStub({ ...TAGGED_QUEST, operations: [scopeItem] }),
       });
-      const flowriderItem = OperationItemStub({
-        role: 'flowrider',
-        status: 'in_progress',
-        locked: true,
-        flowIds: ['checkout-flow'],
-        packageNames: [API_PACKAGE],
-      });
 
       const checklists = await questGetQaChecklistBroker({
         questId: QuestIdStub({ value: TAGGED_QUEST.id }),
         operationItemId: OP_ID as never,
       });
 
-      const gateOutstanding = signoffOutstandingTransformer({
-        quest: TAGGED_QUEST,
-        operationItem: flowriderItem,
-      });
-
-      expect([checklists.checklists[0]?.remainingItemIds, gateOutstanding]).toStrictEqual([
-        [
-          'checkout-flow:terminal:n-done',
-          'checkout-flow:branch:e-ok',
-          'checkout-flow:observable:obs-charge',
-        ],
-        [
-          'checkout-flow:terminal:n-done',
-          'checkout-flow:branch:e-ok',
-          'checkout-flow:observable:obs-charge',
-        ],
+      expect(checklists.checklists[0]?.remainingItemIds).toStrictEqual([
+        'checkout-flow:terminal:n-done',
+        'checkout-flow:branch:e-submit',
+        'checkout-flow:branch:e-ok',
+        'checkout-flow:observable:obs-cart',
+        'checkout-flow:observable:obs-charge',
+        'checkout-flow:off-map:re-entry',
+        'checkout-flow:off-map:concurrency',
+        'checkout-flow:off-map:interruption',
+        'checkout-flow:off-map:staleness',
+        'checkout-flow:off-map:configuration',
+        'checkout-flow:off-map:hostile-input',
+        'checkout-flow:off-map:perf',
       ]);
     });
   });

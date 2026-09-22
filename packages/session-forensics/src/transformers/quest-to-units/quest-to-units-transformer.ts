@@ -16,19 +16,10 @@
  * - A `terminal`-typed node that still has an outgoing edge is NOT a unit. `isTerminalUnitGuard`
  *   carries that rule, and this transformer calls it rather than re-implementing it.
  * - An unlabelled edge is not a branch anyone chose, so only labelled edges become units.
- * - All seven `qaOffMapProbeStatics` families are emitted for EVERY flow, whatever `offMapSignoffs`
- *   holds. That array records only the families already signed. Counting it instead of the static
- *   roster under-reports what siegemaster is owed.
+ * - All seven `qaOffMapProbeStatics` families are emitted for EVERY flow.
  *
- * Each unit's `trackVerdicts` comes straight off its own source: the node's, edge's or observable's
- * `codeweaverSignoff`, `flowriderSignoff` and `siegemasterSignoff`. An off-map unit is the one
- * exception. Its siegemaster verdict comes from the matching `offMapSignoffs` entry, and it never
- * carries the other two tracks, because nothing else signs an off-map family.
- *
- * A sign-off whose `verdict` is missing, or holds anything but the two known values, counts as
- * UNSIGNED for that track. This transformer OMITS the key rather than guessing a default. A
- * malformed record on disk therefore under-reports coverage instead of silently inflating it to
- * `confirmed`.
+ * Each unit's `trackVerdicts` is empty by default; sign-offs on flow elements have been retired, and
+ * verdicts are tracked on work-item observations instead.
  */
 
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
@@ -57,10 +48,6 @@ export const questToUnitsTransformer = ({
         return [];
       }
 
-      const codeweaverVerdict = node.codeweaverSignoff?.verdict;
-      const flowriderVerdict = node.flowriderSignoff?.verdict;
-      const siegemasterVerdict = node.siegemasterSignoff?.verdict;
-
       return [
         verificationUnitContract.parse({
           flowId: flow.id,
@@ -69,28 +56,14 @@ export const questToUnitsTransformer = ({
           unitId: node.id,
           nodeId: node.id,
           packages: node.packages,
-          trackVerdicts: {
-            ...(codeweaverVerdict === 'confirmed' || codeweaverVerdict === 'unconfirmable'
-              ? { codeweaverSignoff: codeweaverVerdict }
-              : {}),
-            ...(flowriderVerdict === 'confirmed' || flowriderVerdict === 'unconfirmable'
-              ? { flowriderSignoff: flowriderVerdict }
-              : {}),
-            ...(siegemasterVerdict === 'confirmed' || siegemasterVerdict === 'unconfirmable'
-              ? { siegemasterSignoff: siegemasterVerdict }
-              : {}),
-          },
+          trackVerdicts: {},
         }),
       ];
     });
 
     const observableUnits = flow.nodes.flatMap((node): VerificationUnit[] =>
-      node.observables.map((observable) => {
-        const codeweaverVerdict = observable.codeweaverSignoff?.verdict;
-        const flowriderVerdict = observable.flowriderSignoff?.verdict;
-        const siegemasterVerdict = observable.siegemasterSignoff?.verdict;
-
-        return verificationUnitContract.parse({
+      node.observables.map((observable) =>
+        verificationUnitContract.parse({
           flowId: flow.id,
           flowType: flow.flowType,
           kind: 'observable',
@@ -99,29 +72,15 @@ export const questToUnitsTransformer = ({
           packages: node.packages,
           ...(observable.addedBy !== 'spec' && { addedBy: observable.addedBy }),
           verificationMethod: observable.verifyByReading === true ? 'reading' : 'test',
-          trackVerdicts: {
-            ...(codeweaverVerdict === 'confirmed' || codeweaverVerdict === 'unconfirmable'
-              ? { codeweaverSignoff: codeweaverVerdict }
-              : {}),
-            ...(flowriderVerdict === 'confirmed' || flowriderVerdict === 'unconfirmable'
-              ? { flowriderSignoff: flowriderVerdict }
-              : {}),
-            ...(siegemasterVerdict === 'confirmed' || siegemasterVerdict === 'unconfirmable'
-              ? { siegemasterSignoff: siegemasterVerdict }
-              : {}),
-          },
-        });
-      }),
+          trackVerdicts: {},
+        }),
+      ),
     );
 
     const branchUnits = flow.edges.flatMap((edge): VerificationUnit[] => {
       if (edge.label === undefined) {
         return [];
       }
-
-      const codeweaverVerdict = edge.codeweaverSignoff?.verdict;
-      const flowriderVerdict = edge.flowriderSignoff?.verdict;
-      const siegemasterVerdict = edge.siegemasterSignoff?.verdict;
 
       return [
         verificationUnitContract.parse({
@@ -130,38 +89,20 @@ export const questToUnitsTransformer = ({
           kind: 'branch',
           unitId: edge.id,
           nodeId: `${edge.from}->${edge.to}`,
-          trackVerdicts: {
-            ...(codeweaverVerdict === 'confirmed' || codeweaverVerdict === 'unconfirmable'
-              ? { codeweaverSignoff: codeweaverVerdict }
-              : {}),
-            ...(flowriderVerdict === 'confirmed' || flowriderVerdict === 'unconfirmable'
-              ? { flowriderSignoff: flowriderVerdict }
-              : {}),
-            ...(siegemasterVerdict === 'confirmed' || siegemasterVerdict === 'unconfirmable'
-              ? { siegemasterSignoff: siegemasterVerdict }
-              : {}),
-          },
+          trackVerdicts: {},
         }),
       ];
     });
 
     const offMapUnits = Object.keys(qaOffMapProbeStatics.byFamily).map(
-      (family): VerificationUnit => {
-        const signoff = flow.offMapSignoffs.find((entry) => entry.id === family);
-        const siegemasterVerdict = signoff?.siegemasterSignoff?.verdict;
-
-        return verificationUnitContract.parse({
+      (family): VerificationUnit =>
+        verificationUnitContract.parse({
           flowId: flow.id,
           flowType: flow.flowType,
           kind: 'off-map',
           unitId: family,
-          trackVerdicts: {
-            ...(siegemasterVerdict === 'confirmed' || siegemasterVerdict === 'unconfirmable'
-              ? { siegemasterSignoff: siegemasterVerdict }
-              : {}),
-          },
-        });
-      },
+          trackVerdicts: {},
+        }),
     );
 
     return [...terminalUnits, ...observableUnits, ...branchUnits, ...offMapUnits];

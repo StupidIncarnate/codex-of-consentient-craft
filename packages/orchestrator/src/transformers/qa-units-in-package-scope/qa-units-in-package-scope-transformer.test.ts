@@ -9,14 +9,14 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { qaUnitEnumerateTransformer } from '../qa-unit-enumerate/qa-unit-enumerate-transformer';
-import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
+import { stepScopeStatics } from '../../statics/step-scope/step-scope-statics';
 import { qaUnitsInPackageScopeTransformer } from './qa-units-in-package-scope-transformer';
 
-type SignoffTrack = keyof typeof signoffTrackEligibilityStatics.byTrack;
+type StepFamily = keyof typeof stepScopeStatics.byFamilyStep;
 
-// Derived from the eligibility map rather than listed, so a fourth denominator is covered by the
+// Derived from the step-scope map rather than listed, so a fourth denominator is covered by the
 // kind-narrowing matrix below the day it is declared.
-const TRACKS = Object.keys(signoffTrackEligibilityStatics.byTrack) as SignoffTrack[];
+const TRACKS = Object.keys(stepScopeStatics.byFamilyStep) as StepFamily[];
 
 // Two packages of DIFFERENT kinds, so a narrowing that keyed on kind could be told from one that
 // keys on name: `ui-app` is browser-reachable and `api-service` is not.

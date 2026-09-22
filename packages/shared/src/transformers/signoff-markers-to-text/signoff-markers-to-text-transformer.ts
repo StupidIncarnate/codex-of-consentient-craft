@@ -7,6 +7,8 @@
  * // Returns ' [C✓ F✓ S?]' — Codeweaver and Flowrider confirmed it, Siegemaster could not
  * signoffMarkersToTextTransformer({ codeweaverSignoff: undefined, flowriderSignoff: undefined, siegemasterSignoff: undefined });
  * // Returns '' — an unsigned unit carries no marker and no placeholder column
+ * signoffMarkersToTextTransformer();
+ * // Returns '' — undefined or empty input renders as an empty string
  *
  * THE EMPTY CASE IS THE LOAD-BEARING ONE. An unsigned unit renders as '' rather than as an empty
  * bracket, so every line of a quest that has recorded no sign-offs is byte-identical to the same
@@ -26,33 +28,91 @@
 import { contentTextContract } from '../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { Signoff } from '../../contracts/signoff/signoff-contract';
+import type { SignoffVerdict } from '../../contracts/signoff-verdict/signoff-verdict-contract';
+import type { UnitMark } from '../../contracts/unit-mark/unit-mark-contract';
 import { textDisplaySymbolsStatics } from '../../statics/text-display-symbols/text-display-symbols-statics';
 
 const SYM = textDisplaySymbolsStatics;
 
 export const signoffMarkersToTextTransformer = ({
+  codeweaver,
   codeweaverSignoff,
+  flowrider,
   flowriderSignoff,
+  siegemaster,
   siegemasterSignoff,
 }: {
-  codeweaverSignoff: Signoff | undefined;
-  flowriderSignoff: Signoff | undefined;
-  siegemasterSignoff: Signoff | undefined;
-}): ContentText => {
+  codeweaver?:
+    | { verdict?: SignoffVerdict | UnitMark | undefined; mark?: UnitMark | undefined }
+    | Signoff
+    | UnitMark
+    | SignoffVerdict
+    | undefined;
+  codeweaverSignoff?:
+    | { verdict?: SignoffVerdict | UnitMark | undefined; mark?: UnitMark | undefined }
+    | Signoff
+    | UnitMark
+    | SignoffVerdict
+    | undefined;
+  flowrider?:
+    | { verdict?: SignoffVerdict | UnitMark | undefined; mark?: UnitMark | undefined }
+    | Signoff
+    | UnitMark
+    | SignoffVerdict
+    | undefined;
+  flowriderSignoff?:
+    | { verdict?: SignoffVerdict | UnitMark | undefined; mark?: UnitMark | undefined }
+    | Signoff
+    | UnitMark
+    | SignoffVerdict
+    | undefined;
+  siegemaster?:
+    | { verdict?: SignoffVerdict | UnitMark | undefined; mark?: UnitMark | undefined }
+    | Signoff
+    | UnitMark
+    | SignoffVerdict
+    | undefined;
+  siegemasterSignoff?:
+    | { verdict?: SignoffVerdict | UnitMark | undefined; mark?: UnitMark | undefined }
+    | Signoff
+    | UnitMark
+    | SignoffVerdict
+    | undefined;
+} = {}): ContentText => {
+  const codeweaverValue = codeweaverSignoff ?? codeweaver;
+  const codeweaverKey =
+    typeof codeweaverValue === 'string'
+      ? codeweaverValue
+      : (codeweaverValue?.verdict ?? codeweaverValue?.mark);
+  const codeweaverGlyph =
+    codeweaverKey === undefined ? undefined : SYM.signoffVerdictMarks[codeweaverKey];
+
+  const flowriderValue = flowriderSignoff ?? flowrider;
+  const flowriderKey =
+    typeof flowriderValue === 'string'
+      ? flowriderValue
+      : (flowriderValue?.verdict ?? flowriderValue?.mark);
+  const flowriderGlyph =
+    flowriderKey === undefined ? undefined : SYM.signoffVerdictMarks[flowriderKey];
+
+  const siegemasterValue = siegemasterSignoff ?? siegemaster;
+  const siegemasterKey =
+    typeof siegemasterValue === 'string'
+      ? siegemasterValue
+      : (siegemasterValue?.verdict ?? siegemasterValue?.mark);
+  const siegemasterGlyph =
+    siegemasterKey === undefined ? undefined : SYM.signoffVerdictMarks[siegemasterKey];
+
   const marks = [
-    ...(codeweaverSignoff === undefined
+    ...(codeweaverGlyph === undefined
       ? []
-      : [
-          `${SYM.signoffTrackMarks.codeweaver}${SYM.signoffVerdictMarks[codeweaverSignoff.verdict]}`,
-        ]),
-    ...(flowriderSignoff === undefined
+      : [`${SYM.signoffTrackMarks.codeweaver}${codeweaverGlyph}`]),
+    ...(flowriderGlyph === undefined
       ? []
-      : [`${SYM.signoffTrackMarks.flowrider}${SYM.signoffVerdictMarks[flowriderSignoff.verdict]}`]),
-    ...(siegemasterSignoff === undefined
+      : [`${SYM.signoffTrackMarks.flowrider}${flowriderGlyph}`]),
+    ...(siegemasterGlyph === undefined
       ? []
-      : [
-          `${SYM.signoffTrackMarks.siegemaster}${SYM.signoffVerdictMarks[siegemasterSignoff.verdict]}`,
-        ]),
+      : [`${SYM.signoffTrackMarks.siegemaster}${siegemasterGlyph}`]),
   ];
 
   return contentTextContract.parse(marks.length === 0 ? '' : ` [${marks.join(' ')}]`);

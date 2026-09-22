@@ -11,19 +11,6 @@
  * origin for every observable a quest file already carries, and a REQUIRED field with no default
  * would make each persisted quest.json fail at `questContract.parse`.
  *
- * `codeweaverSignoff`, `flowriderSignoff` and `siegemasterSignoff` are TOP-LEVEL SIBLING fields,
- * deliberately not a nested `signoffs: {codeweaver, flowrider, siegemaster}` block.
- * `questItemDeepMergeTransformer` recurses only into arrays of id-bearing objects and replaces every
- * other object value WHOLESALE, so a nested block written by Siegemaster would delete Flowrider's
- * sign-off while the write still reports `success: true`. As sibling keys the merge is a per-key
- * overwrite, which is exactly the semantics independent tracks need: each writes its own field and
- * none can clobber another.
- *
- * Every sign-off is `.optional()` rather than `.default()`. `questModifyBroker` re-parses the whole
- * quest on every write, so a default materialises into the persisted JSON for every observable in
- * the file — measured at +116% file size on a real quest with zero sign-offs written. An absent
- * field means unsigned.
- *
  * `package` is REQUIRED here and `.optional()` on `modifyQuestInputContract`. The asymmetry is the
  * resolve-on-save rule: an observable on a node tagged with exactly one package has that package
  * written through for it, so an author never restates what the node already says; on a node tagged
@@ -52,9 +39,9 @@
  * a misaligned control or a truncated label as a defect. The question that separates the two is
  * whether the statement could break with no user-visible change.
  *
- * It is `.optional()` for the same reason every sign-off is: `questModifyBroker` re-parses the whole
- * quest on every write, so a `.default(false)` would materialise onto every observable in the file.
- * Absent means a test settles it.
+ * It is `.optional()` because `questModifyBroker` re-parses the whole quest on every write, so a
+ * `.default(false)` would materialise onto every observable in the file. Absent means a test
+ * settles it.
  */
 
 import { z } from 'zod';
@@ -63,7 +50,6 @@ import { observableIdContract } from '../observable-id/observable-id-contract';
 import { observableOriginContract } from '../observable-origin/observable-origin-contract';
 import { outcomeTypeContract } from '../outcome-type/outcome-type-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
-import { signoffContract } from '../signoff/signoff-contract';
 
 export const flowObservableContract = z.object({
   id: observableIdContract,
@@ -80,9 +66,6 @@ export const flowObservableContract = z.object({
       'Set true when the criterion is about the shape of a source file — an import that must exist, a literal that must not be inlined, a name that must be absent, a style value that must be the one declared — so it is settled by reading the code rather than by running a test. Absent means a test settles it, which is the right answer for every outcome a user perceives, painted geometry included.',
     ),
   addedBy: observableOriginContract.default('spec'),
-  codeweaverSignoff: signoffContract.optional(),
-  flowriderSignoff: signoffContract.optional(),
-  siegemasterSignoff: signoffContract.optional(),
 });
 
 export type FlowObservable = z.infer<typeof flowObservableContract>;

@@ -3,10 +3,10 @@ import { TrackCoverageStub } from './track-coverage.stub';
 
 describe('trackCoverageContract', () => {
   describe('valid input', () => {
-    it('VALID: {flowId: paste-image-into-composer, track: codeweaverSignoff, owed: 58, signed: 58, confirmed: 55, unconfirmable: 3, unsigned: 0} => returns the branded coverage', () => {
+    it('VALID: {flowId: paste-image-into-composer, track: codeweaver, owed: 58, signed: 58, confirmed: 55, unconfirmable: 3, unsigned: 0} => returns the branded coverage', () => {
       const result = trackCoverageContract.parse({
         flowId: 'paste-image-into-composer',
-        track: 'codeweaverSignoff',
+        track: 'codeweaver',
         owed: 58,
         signed: 58,
         confirmed: 55,
@@ -17,7 +17,7 @@ describe('trackCoverageContract', () => {
       expect(result).toStrictEqual(
         TrackCoverageStub({
           flowId: 'paste-image-into-composer',
-          track: 'codeweaverSignoff',
+          track: 'codeweaver',
           owed: 58,
           signed: 58,
           confirmed: 55,
@@ -27,10 +27,10 @@ describe('trackCoverageContract', () => {
       );
     });
 
-    it('VALID: {flowId: send-message-with-images, track: siegemasterSignoff, owed: 71, signed: 67, confirmed: 66, unconfirmable: 1, unsigned: 4} => returns the branded coverage', () => {
+    it('VALID: {flowId: send-message-with-images, track: siegemaster, owed: 71, signed: 67, confirmed: 66, unconfirmable: 1, unsigned: 4} => returns the branded coverage', () => {
       const result = trackCoverageContract.parse({
         flowId: 'send-message-with-images',
-        track: 'siegemasterSignoff',
+        track: 'siegemaster',
         owed: 71,
         signed: 67,
         confirmed: 66,
@@ -41,7 +41,7 @@ describe('trackCoverageContract', () => {
       expect(result).toStrictEqual(
         TrackCoverageStub({
           flowId: 'send-message-with-images',
-          track: 'siegemasterSignoff',
+          track: 'siegemaster',
           owed: 71,
           signed: 67,
           confirmed: 66,
@@ -53,10 +53,10 @@ describe('trackCoverageContract', () => {
   });
 
   describe('track that never ran', () => {
-    it('EDGE: {flowId: render-images-in-transcript, track: siegemasterSignoff, owed: 75, signed: 0, confirmed: 0, unconfirmable: 0, unsigned: 75} => returns the branded coverage', () => {
+    it('EDGE: {flowId: render-images-in-transcript, track: siegemaster, owed: 75, signed: 0, confirmed: 0, unconfirmable: 0, unsigned: 75} => returns the branded coverage', () => {
       const result = trackCoverageContract.parse({
         flowId: 'render-images-in-transcript',
-        track: 'siegemasterSignoff',
+        track: 'siegemaster',
         owed: 75,
         signed: 0,
         confirmed: 0,
@@ -67,7 +67,7 @@ describe('trackCoverageContract', () => {
       expect(result).toStrictEqual(
         TrackCoverageStub({
           flowId: 'render-images-in-transcript',
-          track: 'siegemasterSignoff',
+          track: 'siegemaster',
           owed: 75,
           signed: 0,
           confirmed: 0,
@@ -103,10 +103,8 @@ describe('trackCoverageContract', () => {
       ).toThrow(/confirmed \+ unconfirmable must equal signed/u);
     });
 
-    it("INVALID: {track: 'wardSignoff'} => throws", () => {
-      expect(() => TrackCoverageStub({ track: 'wardSignoff' as never })).toThrow(
-        /Invalid enum value/u,
-      );
+    it("INVALID: {track: 'ward'} => throws", () => {
+      expect(() => TrackCoverageStub({ track: 'ward' as never })).toThrow(/Invalid enum value/u);
     });
 
     it('INVALID: {owed: -1} => throws', () => {

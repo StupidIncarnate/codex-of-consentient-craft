@@ -18,7 +18,7 @@
  *   flowId: 'render-images-in-transcript', flowType: 'runtime', kind: 'observable',
  *   unitId: 'check-thumbnail-renders', nodeId: 'transcript-panel', addedBy: 'siegemaster',
  *   verificationMethod: 'reading',
- *   trackVerdicts: { codeweaverSignoff: 'confirmed', siegemasterSignoff: 'unconfirmable' },
+ *   trackVerdicts: { codeweaver: 'confirmed', siegemaster: 'unconfirmable' },
  * });
  */
 import { z } from 'zod';
@@ -38,9 +38,9 @@ export const verificationUnitContract = z
       .optional(),
     verificationMethod: z.enum(['test', 'reading']).default('test'),
     trackVerdicts: z.object({
-      codeweaverSignoff: signoffVerdictContract.optional(),
-      flowriderSignoff: signoffVerdictContract.optional(),
-      siegemasterSignoff: signoffVerdictContract.optional(),
+      codeweaver: signoffVerdictContract.optional(),
+      flowrider: signoffVerdictContract.optional(),
+      siegemaster: signoffVerdictContract.optional(),
     }),
   })
   .brand<'VerificationUnit'>();

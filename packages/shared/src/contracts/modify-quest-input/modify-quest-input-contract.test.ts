@@ -2,7 +2,6 @@ import { flowNodeContract } from '../flow-node/flow-node-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 import { OperationPlanStub } from '../operation-plan/operation-plan.stub';
 import { QuestNoteStub } from '../quest-note/quest-note.stub';
-import { SignoffStub } from '../signoff/signoff.stub';
 import { modifyQuestInputContract } from './modify-quest-input-contract';
 import { ModifyQuestInputStub } from './modify-quest-input.stub';
 
@@ -630,21 +629,13 @@ describe('modifyQuestInputContract', () => {
     });
   });
 
-  // The persisted flow contracts declare the two sign-offs `.optional()`, which can only say "leave
-  // this alone" by omission. The input side widens them to `.nullish()` so a reset can send the
-  // explicit `null` clear marker that questItemDeepMergeTransformer turns into key removal.
-  it('VALID: {flows patch clearing an observable siegemasterSignoff to null} => keeps null in the parsed output as the clear marker', () => {
+  it('VALID: {flows patch with offMapSignoffs} => parses successfully', () => {
     const result = modifyQuestInputContract.parse({
       questId: 'add-auth',
       flows: [
         {
           id: 'login-flow',
-          nodes: [
-            {
-              id: 'end',
-              observables: [{ id: 'login-redirects-to-dashboard', siegemasterSignoff: null }],
-            },
-          ],
+          offMapSignoffs: [{ id: 'concurrency' }],
         },
       ],
     });
@@ -654,79 +645,7 @@ describe('modifyQuestInputContract', () => {
       flows: [
         {
           id: 'login-flow',
-          nodes: [
-            {
-              id: 'end',
-              observables: [{ id: 'login-redirects-to-dashboard', siegemasterSignoff: null }],
-            },
-          ],
-        },
-      ],
-    });
-  });
-
-  it('VALID: {flows patch with a full flowriderSignoff on an observable} => parses the whole sign-off through', () => {
-    const signoff = SignoffStub();
-
-    const result = modifyQuestInputContract.parse({
-      questId: 'add-auth',
-      flows: [
-        {
-          id: 'login-flow',
-          nodes: [
-            {
-              id: 'end',
-              observables: [{ id: 'login-redirects-to-dashboard', flowriderSignoff: signoff }],
-            },
-          ],
-        },
-      ],
-    });
-
-    expect(result).toStrictEqual({
-      questId: 'add-auth',
-      flows: [
-        {
-          id: 'login-flow',
-          nodes: [
-            {
-              id: 'end',
-              observables: [
-                {
-                  id: 'login-redirects-to-dashboard',
-                  flowriderSignoff: {
-                    verdict: 'confirmed',
-                    evidence:
-                      'packages/x/src/a-transformer.test.ts:42 — flips to red when the guard returns true',
-                    workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-                    at: '2026-01-01T00:00:00.000Z',
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    });
-  });
-
-  it('VALID: {flows patch clearing an offMapSignoffs siegemasterSignoff to null} => keeps null in the parsed output as the clear marker', () => {
-    const result = modifyQuestInputContract.parse({
-      questId: 'add-auth',
-      flows: [
-        {
-          id: 'login-flow',
-          offMapSignoffs: [{ id: 'concurrency', siegemasterSignoff: null }],
-        },
-      ],
-    });
-
-    expect(result).toStrictEqual({
-      questId: 'add-auth',
-      flows: [
-        {
-          id: 'login-flow',
-          offMapSignoffs: [{ id: 'concurrency', siegemasterSignoff: null }],
+          offMapSignoffs: [{ id: 'concurrency' }],
         },
       ],
     });
@@ -779,38 +698,6 @@ describe('modifyQuestInputContract', () => {
         operationPlans: [plan],
       },
     });
-  });
-
-  // signoffContract carries its rule in a superRefine, and this contract reaches it through both
-  // .extend() and .nullish(). Either wrapper silently dropping the effect would let an
-  // `unconfirmable` verdict land with no routable action behind it.
-  it('INVALID: {observable flowriderSignoff: unconfirmable verdict with no toSettle} => throws the superRefine error', () => {
-    expect(() => {
-      return modifyQuestInputContract.parse({
-        questId: 'add-auth',
-        flows: [
-          {
-            id: 'login-flow',
-            nodes: [
-              {
-                id: 'end',
-                observables: [
-                  {
-                    id: 'login-redirects-to-dashboard',
-                    flowriderSignoff: {
-                      verdict: 'unconfirmable',
-                      evidence: 'no browser bridge was reachable from this session',
-                      workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-                      at: '2026-01-01T00:00:00.000Z',
-                    },
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      });
-    }).toThrow(/toSettle is required when verdict is unconfirmable/u);
   });
 
   it('VALID: {workItems entry with only id} => parses successfully (every other field optional for upsert)', () => {

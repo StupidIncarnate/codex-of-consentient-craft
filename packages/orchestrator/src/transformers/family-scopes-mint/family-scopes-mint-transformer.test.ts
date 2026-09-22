@@ -5,11 +5,12 @@ import {
   OperationItemStub,
   QuestPackageEntryStub,
   QuestStub,
+  StepNameStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { familyScopesMintTransformer } from './family-scopes-mint-transformer';
 import { familyScopesMintTransformerProxy } from './family-scopes-mint-transformer.proxy';
-import { signoffOutstandingTransformer } from '../signoff-outstanding/signoff-outstanding-transformer';
+import { stepInScopeUnitsTransformer } from '../step-in-scope-units/step-in-scope-units-transformer';
 
 const UUIDS = [
   '00000000-0000-4000-8000-000000000001',
@@ -314,10 +315,13 @@ describe('familyScopesMintTransformer', () => {
 
       const [scope] = familyScopesMintTransformer({ quest, family: 'flowrider' });
 
-      expect(signoffOutstandingTransformer({ quest, operationItem: scope! })).toStrictEqual([
-        'late-flow:terminal:late-node',
-        'late-flow:observable:check-late-drain',
-      ]);
+      expect(
+        stepInScopeUnitsTransformer({
+          quest: QuestStub({ ...quest, operations: [scope!] }),
+          operationItemId: scope!.id,
+          step: StepNameStub({ value: 'review' }),
+        }),
+      ).toStrictEqual(['late-flow:terminal:late-node', 'late-flow:observable:check-late-drain']);
     });
   });
 

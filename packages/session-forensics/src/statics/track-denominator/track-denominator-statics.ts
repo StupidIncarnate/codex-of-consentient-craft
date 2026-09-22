@@ -16,14 +16,15 @@
  * - denominator: how many units a track was owed a sign-off on, the bottom half of the coverage
  *   fraction.
  *
- * The orchestrator file lists six exclusions. Four of them fit in a table like this one. The two
+ * The orchestrator file lists seven exclusions. Four of them fit in a table like this one. The two
  * that do not are flow slice and package slice. Both narrow by what a single operation item
- * declares, and a whole-quest reading has no operation item to consult. So a denominator computed
- * from this table is always an upper bound on what one session owed. `get-qa-checklist` stays the
- * authority.
+ * declares, and a whole-quest reading has no operation item to consult. Package kind
+ * (`packageTypes`) is omitted deliberately: session-forensics measures whole flows from the outside
+ * and carries no package-kind filter in its coverage pipeline. So a denominator computed from this
+ * table is always an upper bound on what one session owed. `get-qa-checklist` stays the authority.
  *
  * USAGE:
- * trackDenominatorStatics.byTrack.flowriderSignoff.unitKinds;
+ * trackDenominatorStatics.byTrack.flowrider.unitKinds;
  * // Returns the unit kinds counted against Flowrider — 'off-map' is absent
  */
 
@@ -31,19 +32,19 @@ export const trackDenominatorStatics = {
   mirrorOf:
     'packages/orchestrator/src/statics/signoff-track-eligibility/signoff-track-eligibility-statics.ts',
   byTrack: {
-    codeweaverSignoff: {
+    codeweaver: {
       flowTypes: ['runtime', 'operational'],
       unitKinds: ['terminal', 'branch', 'observable'],
       observableOrigins: ['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'operator'],
       verificationMethods: ['test', 'reading'],
     },
-    flowriderSignoff: {
+    flowrider: {
       flowTypes: ['runtime'],
       unitKinds: ['terminal', 'branch', 'observable'],
       observableOrigins: ['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'operator'],
       verificationMethods: ['test'],
     },
-    siegemasterSignoff: {
+    siegemaster: {
       flowTypes: ['runtime', 'operational'],
       unitKinds: ['terminal', 'branch', 'observable', 'off-map'],
       observableOrigins: [

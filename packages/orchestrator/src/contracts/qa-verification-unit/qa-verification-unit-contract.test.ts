@@ -1,5 +1,3 @@
-import { SignoffStub } from '@dungeonmaster/shared/contracts';
-
 import { qaVerificationUnitContract } from './qa-verification-unit-contract';
 import { QaVerificationUnitStub } from './qa-verification-unit.stub';
 
@@ -12,30 +10,6 @@ describe('qaVerificationUnitContract', () => {
         flowId: 'login-flow',
         nodeId: 'dashboard',
         nodeLabel: 'Dashboard',
-      });
-    });
-
-    it('VALID: {terminal unit carrying both sign-offs} => both are kept, at the same names the flow uses', () => {
-      const signoff = SignoffStub();
-
-      expect(
-        qaVerificationUnitContract.parse({
-          kind: 'terminal',
-          id: 'login-flow:terminal:dashboard',
-          flowId: 'login-flow',
-          nodeId: 'dashboard',
-          nodeLabel: 'Dashboard',
-          flowriderSignoff: signoff,
-          siegemasterSignoff: signoff,
-        }),
-      ).toStrictEqual({
-        kind: 'terminal',
-        id: 'login-flow:terminal:dashboard',
-        flowId: 'login-flow',
-        nodeId: 'dashboard',
-        nodeLabel: 'Dashboard',
-        flowriderSignoff: signoff,
-        siegemasterSignoff: signoff,
       });
     });
 
@@ -161,7 +135,7 @@ describe('qaVerificationUnitContract', () => {
   });
 
   describe('off-map variant', () => {
-    it('VALID: {off-map unit} => carries only the family and the sign-offs', () => {
+    it('VALID: {off-map unit} => carries only the family', () => {
       expect(
         QaVerificationUnitStub({
           kind: 'off-map',

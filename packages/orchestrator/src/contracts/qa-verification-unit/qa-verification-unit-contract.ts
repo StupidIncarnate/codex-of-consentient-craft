@@ -1,7 +1,6 @@
 /**
  * PURPOSE: One atomic verification unit as enumerated straight off a flow graph — its derived id,
- * the graph element it anchors to, that element's verbatim source text, and every verification
- * track's sign-off on it
+ * the graph element it anchors to, and that element's verbatim source text
  *
  * USAGE:
  * qaVerificationUnitContract.parse({
@@ -25,13 +24,8 @@
  * anchor the caller already knows is present, and those fallbacks are unreachable branches that
  * cannot be tested honestly.
  *
- * `codeweaverSignoff`, `flowriderSignoff` and `siegemasterSignoff` sit on EVERY variant, at the same
- * names the sign-offs carry on the flow itself, so every reader reads one field per track across the
- * whole enumeration without branching on kind. The `off-map` variant carries all three even though
- * `flowOffMapSignoffContract` declares only two: the shape is uniform so a reader never branches,
- * and the codeweaver column simply stays absent there because off-map is outside its `unitKinds`. `addedBy` and `verifyByReading` live on the `observable` variant alone because
- * provenance and verification method are axes observables have and nodes/edges/off-map families do
- * not.
+ * `addedBy` and `verifyByReading` live on the `observable` variant alone because provenance and
+ * verification method are axes observables have and nodes/edges/off-map families do not.
  */
 
 import { z } from 'zod';
@@ -47,14 +41,7 @@ import {
   observableOriginContract,
   qaChecklistItemIdContract,
   qaOffMapFamilyContract,
-  signoffContract,
 } from '@dungeonmaster/shared/contracts';
-
-const trackSignoffShape = {
-  codeweaverSignoff: signoffContract.optional(),
-  flowriderSignoff: signoffContract.optional(),
-  siegemasterSignoff: signoffContract.optional(),
-};
 
 export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
   z.object({
@@ -63,7 +50,6 @@ export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
     flowId: flowIdContract,
     nodeId: flowNodeIdContract,
     nodeLabel: flowNodeContract.shape.label,
-    ...trackSignoffShape,
   }),
   z.object({
     kind: z.literal('branch'),
@@ -75,7 +61,6 @@ export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
     // edge that carries a non-empty label, so an absent one is an enumeration bug, not a shape.
     edgeLabel: z.string().min(1).brand<'FlowEdgeLabel'>(),
     edgeTo: flowEdgeContract.shape.to,
-    ...trackSignoffShape,
   }),
   z.object({
     kind: z.literal('observable'),
@@ -89,14 +74,12 @@ export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
     observableDescription: flowObservableContract.shape.description,
     verifyByReading: flowObservableContract.shape.verifyByReading,
     addedBy: observableOriginContract,
-    ...trackSignoffShape,
   }),
   z.object({
     kind: z.literal('off-map'),
     id: qaChecklistItemIdContract,
     flowId: flowIdContract,
     offMapFamily: qaOffMapFamilyContract,
-    ...trackSignoffShape,
   }),
 ]);
 

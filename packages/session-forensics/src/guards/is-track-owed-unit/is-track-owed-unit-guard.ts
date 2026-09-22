@@ -13,7 +13,7 @@
  * caller defers to.
  *
  * USAGE:
- * isTrackOwedUnitGuard({ track: 'flowriderSignoff', unit: VerificationUnitStub({ flowType: 'operational' }) });
+ * isTrackOwedUnitGuard({ track: 'flowrider', unit: VerificationUnitStub({ flowType: 'operational' }) });
  * // Returns false — flowrider's denominator excludes operational flows
  */
 

@@ -5,18 +5,14 @@ import {
   FlowNodeStub,
   FlowObservableStub,
   FlowOffMapSignoffStub,
-  SignoffStub,
 } from '@dungeonmaster/shared/contracts';
 
 describe('questToCoverageTransformer', () => {
-  describe('fully confirmed observable', () => {
-    it('VALID: {one runtime flow, one spec observable confirmed by all three tracks} => codeweaver and flowrider owed 1/signed 1/confirmed 1, siegemaster carries the seven unsigned off-map units on top', () => {
+  describe('spec observable in runtime flow', () => {
+    it('VALID: {one runtime flow, one spec observable} => codeweaver and flowrider owed 1, siegemaster carries seven off-map units on top', () => {
       const observable = FlowObservableStub({
         id: 'shows-thumbnail',
         package: 'web',
-        codeweaverSignoff: SignoffStub({ verdict: 'confirmed' }),
-        flowriderSignoff: SignoffStub({ verdict: 'confirmed' }),
-        siegemasterSignoff: SignoffStub({ verdict: 'confirmed' }),
       });
       const node = FlowNodeStub({
         id: 'compose-node',
@@ -36,81 +32,66 @@ describe('questToCoverageTransformer', () => {
       expect(result).toStrictEqual([
         TrackCoverageStub({
           flowId: 'render-thumbnail-flow',
-          track: 'codeweaverSignoff',
+          track: 'codeweaver',
           owed: 1,
-          signed: 1,
-          confirmed: 1,
+          signed: 0,
+          confirmed: 0,
           unconfirmable: 0,
-          unsigned: 0,
+          unsigned: 1,
         }),
         TrackCoverageStub({
           flowId: 'render-thumbnail-flow',
-          track: 'flowriderSignoff',
+          track: 'flowrider',
           owed: 1,
-          signed: 1,
-          confirmed: 1,
+          signed: 0,
+          confirmed: 0,
           unconfirmable: 0,
-          unsigned: 0,
+          unsigned: 1,
         }),
         TrackCoverageStub({
           flowId: 'render-thumbnail-flow',
-          track: 'siegemasterSignoff',
+          track: 'siegemaster',
           owed: 8,
-          signed: 1,
-          confirmed: 1,
+          signed: 0,
+          confirmed: 0,
           unconfirmable: 0,
-          unsigned: 7,
+          unsigned: 8,
         }),
       ]);
     });
   });
 
-  describe('mixed verdicts within one flow', () => {
-    it('VALID: {one confirmed, one unconfirmable, one unsigned observable} => confirmed/unconfirmable/unsigned counts balance on every row', () => {
-      const confirmedObservable = FlowObservableStub({
-        id: 'obs-confirmed',
+  describe('multiple observables within one flow', () => {
+    it('VALID: {three observables} => owed/unsigned counts balance on every row', () => {
+      const observableA = FlowObservableStub({
+        id: 'obs-a',
         package: 'web',
-        codeweaverSignoff: SignoffStub({ verdict: 'confirmed' }),
-        flowriderSignoff: SignoffStub({ verdict: 'confirmed' }),
-        siegemasterSignoff: SignoffStub({ verdict: 'confirmed' }),
       });
-      const unconfirmableObservable = FlowObservableStub({
-        id: 'obs-unconfirmable',
+      const observableB = FlowObservableStub({
+        id: 'obs-b',
         package: 'web',
-        codeweaverSignoff: SignoffStub({
-          verdict: 'unconfirmable',
-          toSettle: 'drive a real send through a live quest and read the session JSONL',
-        }),
-        flowriderSignoff: SignoffStub({
-          verdict: 'unconfirmable',
-          toSettle: 'drive a real send through a live quest and read the session JSONL',
-        }),
-        siegemasterSignoff: SignoffStub({
-          verdict: 'unconfirmable',
-          toSettle: 'drive a real send through a live quest and read the session JSONL',
-        }),
       });
-      const unsignedObservable = FlowObservableStub({ id: 'obs-unsigned', package: 'web' });
+      const observableC = FlowObservableStub({ id: 'obs-c', package: 'web' });
       const nodeA = FlowNodeStub({
         id: 'node-a',
         type: 'state',
         packages: ['web'],
-        observables: [confirmedObservable],
+        observables: [observableA],
       });
       const nodeB = FlowNodeStub({
         id: 'node-b',
         type: 'state',
         packages: ['web'],
-        observables: [unconfirmableObservable],
+        observables: [observableB],
       });
       const nodeC = FlowNodeStub({
         id: 'node-c',
         type: 'state',
         packages: ['web'],
-        observables: [unsignedObservable],
+        observables: [observableC],
       });
       const flow = FlowStub({
-        id: 'mixed-verdict-flow',
+        id: 'multi-obs-flow',
         flowType: 'runtime',
         nodes: [nodeA, nodeB, nodeC],
         edges: [],
@@ -120,31 +101,31 @@ describe('questToCoverageTransformer', () => {
 
       expect(result).toStrictEqual([
         TrackCoverageStub({
-          flowId: 'mixed-verdict-flow',
-          track: 'codeweaverSignoff',
+          flowId: 'multi-obs-flow',
+          track: 'codeweaver',
           owed: 3,
-          signed: 2,
-          confirmed: 1,
-          unconfirmable: 1,
-          unsigned: 1,
+          signed: 0,
+          confirmed: 0,
+          unconfirmable: 0,
+          unsigned: 3,
         }),
         TrackCoverageStub({
-          flowId: 'mixed-verdict-flow',
-          track: 'flowriderSignoff',
+          flowId: 'multi-obs-flow',
+          track: 'flowrider',
           owed: 3,
-          signed: 2,
-          confirmed: 1,
-          unconfirmable: 1,
-          unsigned: 1,
+          signed: 0,
+          confirmed: 0,
+          unconfirmable: 0,
+          unsigned: 3,
         }),
         TrackCoverageStub({
-          flowId: 'mixed-verdict-flow',
-          track: 'siegemasterSignoff',
+          flowId: 'multi-obs-flow',
+          track: 'siegemaster',
           owed: 10,
-          signed: 2,
-          confirmed: 1,
-          unconfirmable: 1,
-          unsigned: 8,
+          signed: 0,
+          confirmed: 0,
+          unconfirmable: 0,
+          unsigned: 10,
         }),
       ]);
     });
@@ -175,7 +156,7 @@ describe('questToCoverageTransformer', () => {
       expect(result).toStrictEqual([
         TrackCoverageStub({
           flowId: 'siegemaster-found-flow',
-          track: 'codeweaverSignoff',
+          track: 'codeweaver',
           owed: 0,
           signed: 0,
           confirmed: 0,
@@ -184,7 +165,7 @@ describe('questToCoverageTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'siegemaster-found-flow',
-          track: 'flowriderSignoff',
+          track: 'flowrider',
           owed: 0,
           signed: 0,
           confirmed: 0,
@@ -193,7 +174,7 @@ describe('questToCoverageTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'siegemaster-found-flow',
-          track: 'siegemasterSignoff',
+          track: 'siegemaster',
           owed: 8,
           signed: 0,
           confirmed: 0,
@@ -229,7 +210,7 @@ describe('questToCoverageTransformer', () => {
       expect(result).toStrictEqual([
         TrackCoverageStub({
           flowId: 'reads-source-flow',
-          track: 'codeweaverSignoff',
+          track: 'codeweaver',
           owed: 1,
           signed: 0,
           confirmed: 0,
@@ -238,7 +219,7 @@ describe('questToCoverageTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'reads-source-flow',
-          track: 'flowriderSignoff',
+          track: 'flowrider',
           owed: 0,
           signed: 0,
           confirmed: 0,
@@ -247,7 +228,7 @@ describe('questToCoverageTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'reads-source-flow',
-          track: 'siegemasterSignoff',
+          track: 'siegemaster',
           owed: 7,
           signed: 0,
           confirmed: 0,
@@ -279,7 +260,7 @@ describe('questToCoverageTransformer', () => {
       expect(result).toStrictEqual([
         TrackCoverageStub({
           flowId: 'settings-sync-flow',
-          track: 'codeweaverSignoff',
+          track: 'codeweaver',
           owed: 1,
           signed: 0,
           confirmed: 0,
@@ -288,7 +269,7 @@ describe('questToCoverageTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'settings-sync-flow',
-          track: 'flowriderSignoff',
+          track: 'flowrider',
           owed: 0,
           signed: 0,
           confirmed: 0,
@@ -297,7 +278,7 @@ describe('questToCoverageTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'settings-sync-flow',
-          track: 'siegemasterSignoff',
+          track: 'siegemaster',
           owed: 8,
           signed: 0,
           confirmed: 0,
@@ -309,7 +290,7 @@ describe('questToCoverageTransformer', () => {
   });
 
   describe('off-map families', () => {
-    it('VALID: {one of seven off-map families signed} => all seven land only in siegemasters owed, one confirmed and six unsigned', () => {
+    it('VALID: {off-map families} => all seven land only in siegemasters owed', () => {
       const flow = FlowStub({
         id: 'off-map-focus-flow',
         flowType: 'runtime',
@@ -318,7 +299,6 @@ describe('questToCoverageTransformer', () => {
         offMapSignoffs: [
           FlowOffMapSignoffStub({
             id: 'perf',
-            siegemasterSignoff: SignoffStub({ verdict: 'confirmed' }),
           }),
         ],
       });
@@ -328,7 +308,7 @@ describe('questToCoverageTransformer', () => {
       expect(result).toStrictEqual([
         TrackCoverageStub({
           flowId: 'off-map-focus-flow',
-          track: 'codeweaverSignoff',
+          track: 'codeweaver',
           owed: 0,
           signed: 0,
           confirmed: 0,
@@ -337,7 +317,7 @@ describe('questToCoverageTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'off-map-focus-flow',
-          track: 'flowriderSignoff',
+          track: 'flowrider',
           owed: 0,
           signed: 0,
           confirmed: 0,
@@ -346,67 +326,12 @@ describe('questToCoverageTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'off-map-focus-flow',
-          track: 'siegemasterSignoff',
+          track: 'siegemaster',
           owed: 7,
-          signed: 1,
-          confirmed: 1,
-          unconfirmable: 0,
-          unsigned: 6,
-        }),
-      ]);
-    });
-  });
-
-  describe('stray sign-off outside eligibility', () => {
-    it('INVALID: {siegemaster-authored observable carrying a codeweaverSignoff} => absent from codeweavers owed AND signed', () => {
-      const observable = FlowObservableStub({
-        id: 'found-mid-quest-signed-stray',
-        package: 'web',
-        addedBy: 'siegemaster',
-        codeweaverSignoff: SignoffStub({ verdict: 'confirmed' }),
-      });
-      const node = FlowNodeStub({
-        id: 'compose-node',
-        type: 'state',
-        packages: ['web'],
-        observables: [observable],
-      });
-      const flow = FlowStub({
-        id: 'stray-signoff-flow',
-        flowType: 'runtime',
-        nodes: [node],
-        edges: [],
-      });
-
-      const result = questToCoverageTransformer({ flows: [flow] });
-
-      expect(result).toStrictEqual([
-        TrackCoverageStub({
-          flowId: 'stray-signoff-flow',
-          track: 'codeweaverSignoff',
-          owed: 0,
           signed: 0,
           confirmed: 0,
           unconfirmable: 0,
-          unsigned: 0,
-        }),
-        TrackCoverageStub({
-          flowId: 'stray-signoff-flow',
-          track: 'flowriderSignoff',
-          owed: 0,
-          signed: 0,
-          confirmed: 0,
-          unconfirmable: 0,
-          unsigned: 0,
-        }),
-        TrackCoverageStub({
-          flowId: 'stray-signoff-flow',
-          track: 'siegemasterSignoff',
-          owed: 8,
-          signed: 0,
-          confirmed: 0,
-          unconfirmable: 0,
-          unsigned: 8,
+          unsigned: 7,
         }),
       ]);
     });
@@ -427,7 +352,7 @@ describe('questToCoverageTransformer', () => {
       expect(result).toStrictEqual([
         TrackCoverageStub({
           flowId: 'bare-flow',
-          track: 'codeweaverSignoff',
+          track: 'codeweaver',
           owed: 0,
           signed: 0,
           confirmed: 0,
@@ -436,7 +361,7 @@ describe('questToCoverageTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'bare-flow',
-          track: 'flowriderSignoff',
+          track: 'flowrider',
           owed: 0,
           signed: 0,
           confirmed: 0,
@@ -445,7 +370,7 @@ describe('questToCoverageTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'bare-flow',
-          track: 'siegemasterSignoff',
+          track: 'siegemaster',
           owed: 7,
           signed: 0,
           confirmed: 0,
@@ -466,7 +391,7 @@ describe('questToCoverageTransformer', () => {
       expect(result).toStrictEqual([
         TrackCoverageStub({
           flowId: 'flow-alpha',
-          track: 'codeweaverSignoff',
+          track: 'codeweaver',
           owed: 0,
           signed: 0,
           confirmed: 0,
@@ -475,7 +400,7 @@ describe('questToCoverageTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'flow-alpha',
-          track: 'flowriderSignoff',
+          track: 'flowrider',
           owed: 0,
           signed: 0,
           confirmed: 0,
@@ -484,7 +409,7 @@ describe('questToCoverageTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'flow-alpha',
-          track: 'siegemasterSignoff',
+          track: 'siegemaster',
           owed: 7,
           signed: 0,
           confirmed: 0,
@@ -493,7 +418,7 @@ describe('questToCoverageTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'flow-beta',
-          track: 'codeweaverSignoff',
+          track: 'codeweaver',
           owed: 0,
           signed: 0,
           confirmed: 0,
@@ -502,7 +427,7 @@ describe('questToCoverageTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'flow-beta',
-          track: 'flowriderSignoff',
+          track: 'flowrider',
           owed: 0,
           signed: 0,
           confirmed: 0,
@@ -511,7 +436,7 @@ describe('questToCoverageTransformer', () => {
         }),
         TrackCoverageStub({
           flowId: 'flow-beta',
-          track: 'siegemasterSignoff',
+          track: 'siegemaster',
           owed: 7,
           signed: 0,
           confirmed: 0,

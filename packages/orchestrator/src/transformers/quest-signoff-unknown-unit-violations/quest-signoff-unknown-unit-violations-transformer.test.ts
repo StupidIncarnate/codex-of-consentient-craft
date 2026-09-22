@@ -13,7 +13,7 @@ import { questSignoffUnknownUnitViolationsTransformer } from './quest-signoff-un
 
 describe('questSignoffUnknownUnitViolationsTransformer', () => {
   describe('observables', () => {
-    it('INVALID: {sign-off on an observable id that is not on the node} => rejected, naming the observable, its node and its flow', () => {
+    it('VALID: {retired sign-off on an observable id not on node} => returns empty array because sign-off fields are retired', () => {
       const existingObservable = FlowObservableStub({ id: 'redirects' as never });
       const existingNode = FlowNodeStub({
         id: 'login' as never,
@@ -41,9 +41,7 @@ describe('questSignoffUnknownUnitViolationsTransformer', () => {
         currentQuest,
       });
 
-      expect(offenders.map(String)).toStrictEqual([
-        "Sign-off on unknown observable 'redirectz' — no observable with that id exists on node 'login' in flow 'login-flow'; a sign-off may only be written on a unit that already exists, and an unknown id appends a phantom unit instead of signing the intended one",
-      ]);
+      expect(offenders).toStrictEqual([]);
     });
 
     it('VALID: {sign-off on an observable that exists on that node} => returns empty array', () => {
@@ -77,7 +75,7 @@ describe('questSignoffUnknownUnitViolationsTransformer', () => {
       expect(offenders).toStrictEqual([]);
     });
 
-    it('INVALID: {sign-off on an observable that exists but on a DIFFERENT node} => rejected, because the check is positional', () => {
+    it('VALID: {retired sign-off on observable on different node} => returns empty array because sign-off fields are retired', () => {
       const signedObservable = FlowObservableStub({ id: 'redirects' as never });
       const nodeWithObservable = FlowNodeStub({
         id: 'login' as never,
@@ -109,9 +107,7 @@ describe('questSignoffUnknownUnitViolationsTransformer', () => {
         currentQuest,
       });
 
-      expect(offenders.map(String)).toStrictEqual([
-        "Sign-off on unknown observable 'redirects' — no observable with that id exists on node 'dashboard' in flow 'login-flow'; a sign-off may only be written on a unit that already exists, and an unknown id appends a phantom unit instead of signing the intended one",
-      ]);
+      expect(offenders).toStrictEqual([]);
     });
 
     it('VALID: {brand-new observable carrying NO sign-off} => returns empty array, the additive spec authority is untouched', () => {
@@ -149,7 +145,7 @@ describe('questSignoffUnknownUnitViolationsTransformer', () => {
   });
 
   describe('nodes', () => {
-    it('INVALID: {sign-off on a node id that is not on the flow} => rejected, naming the node and its flow', () => {
+    it('VALID: {retired sign-off on node id not on flow} => returns empty array because sign-off fields are retired', () => {
       const existingNode = FlowNodeStub({ id: 'login' as never });
       const existingFlow = FlowStub({ id: 'login-flow' as never, nodes: [existingNode] });
       const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
@@ -158,7 +154,7 @@ describe('questSignoffUnknownUnitViolationsTransformer', () => {
         flows: [
           {
             id: 'login-flow',
-            nodes: [{ id: 'loginn', flowriderSignoff: SignoffStub() }],
+            nodes: [{ id: 'loginn' }],
           },
         ] as never,
       });
@@ -168,12 +164,10 @@ describe('questSignoffUnknownUnitViolationsTransformer', () => {
         currentQuest,
       });
 
-      expect(offenders.map(String)).toStrictEqual([
-        "Sign-off on unknown node 'loginn' — no node with that id exists on flow 'login-flow'; a sign-off may only be written on a unit that already exists, and an unknown id appends a phantom unit instead of signing the intended one",
-      ]);
+      expect(offenders).toStrictEqual([]);
     });
 
-    it('VALID: {sign-off on a node that exists on the flow} => returns empty array', () => {
+    it('VALID: {node that exists on the flow} => returns empty array', () => {
       const existingNode = FlowNodeStub({ id: 'login' as never });
       const existingFlow = FlowStub({ id: 'login-flow' as never, nodes: [existingNode] });
       const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
@@ -182,7 +176,7 @@ describe('questSignoffUnknownUnitViolationsTransformer', () => {
         flows: [
           {
             id: 'login-flow',
-            nodes: [{ id: 'login', flowriderSignoff: SignoffStub() }],
+            nodes: [{ id: 'login' }],
           },
         ] as never,
       });
@@ -219,7 +213,7 @@ describe('questSignoffUnknownUnitViolationsTransformer', () => {
   });
 
   describe('edges', () => {
-    it('INVALID: {sign-off on an edge id that is not on the flow} => rejected, naming the edge and its flow', () => {
+    it('VALID: {retired sign-off on edge id not on flow} => returns empty array because sign-off fields are retired', () => {
       const existingNode = FlowNodeStub({ id: 'login' as never });
       const existingEdge = FlowEdgeStub({
         id: 'self' as never,
@@ -247,9 +241,7 @@ describe('questSignoffUnknownUnitViolationsTransformer', () => {
         currentQuest,
       });
 
-      expect(offenders.map(String)).toStrictEqual([
-        "Sign-off on unknown edge 'selff' — no edge with that id exists on flow 'login-flow'; a sign-off may only be written on a unit that already exists, and an unknown id appends a phantom unit instead of signing the intended one",
-      ]);
+      expect(offenders).toStrictEqual([]);
     });
 
     it('VALID: {sign-off on an edge that exists on the flow} => returns empty array', () => {
@@ -285,7 +277,7 @@ describe('questSignoffUnknownUnitViolationsTransformer', () => {
   });
 
   describe('flows', () => {
-    it('INVALID: {sign-off nested under a flow id that is not on the quest} => rejected once, naming the flow', () => {
+    it('VALID: {retired sign-off nested under unknown flow id} => returns empty array because sign-off fields are retired', () => {
       const existingFlow = FlowStub({ id: 'login-flow' as never });
       const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
 
@@ -308,9 +300,7 @@ describe('questSignoffUnknownUnitViolationsTransformer', () => {
         currentQuest,
       });
 
-      expect(offenders.map(String)).toStrictEqual([
-        "Sign-off on unknown flow 'ghost-flow' — no flow with that id exists on this quest; a sign-off may only be written on a unit that already exists, and an unknown id appends a phantom unit instead of signing the intended one",
-      ]);
+      expect(offenders).toStrictEqual([]);
     });
 
     it('VALID: {a whole new flow carrying NO sign-off anywhere} => returns empty array, this transformer only polices sign-offs', () => {
@@ -330,7 +320,7 @@ describe('questSignoffUnknownUnitViolationsTransformer', () => {
   });
 
   describe('off-map sign-offs', () => {
-    it('INVALID: {offMapSignoffs entry on a flow id that is not on the quest} => rejected, naming the flow', () => {
+    it('VALID: {offMapSignoffs entry on unknown flow id with retired sign-off} => returns empty array because sign-off fields are retired', () => {
       const existingFlow = FlowStub({ id: 'login-flow' as never });
       const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
 
@@ -348,9 +338,7 @@ describe('questSignoffUnknownUnitViolationsTransformer', () => {
         currentQuest,
       });
 
-      expect(offenders.map(String)).toStrictEqual([
-        "Sign-off on unknown flow 'ghost-flow' — no flow with that id exists on this quest; a sign-off may only be written on a unit that already exists, and an unknown id appends a phantom unit instead of signing the intended one",
-      ]);
+      expect(offenders).toStrictEqual([]);
     });
 
     it('VALID: {offMapSignoffs entry for a family the flow does not yet carry} => returns empty array, the family enum is closed so the entry materialises on first write', () => {

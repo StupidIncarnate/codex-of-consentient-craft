@@ -2,9 +2,7 @@ import {
   FlowEdgeStub,
   FlowNodeStub,
   FlowObservableStub,
-  FlowOffMapSignoffStub,
   FlowStub,
-  SignoffStub,
 } from '@dungeonmaster/shared/contracts';
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
@@ -56,33 +54,6 @@ describe('qaUnitEnumerateTransformer', () => {
           .map((unit) => String(unit.id)),
       ).toStrictEqual(['login-flow:terminal:really-last']);
     });
-
-    it("VALID: {a signed terminal node} => the node's own two sign-offs ride onto the unit", () => {
-      const flowriderSignoff = SignoffStub({ evidence: 'flowrider proved it' });
-      const siegemasterSignoff = SignoffStub({ evidence: 'siegemaster walked it' });
-      const flow = FlowStub({
-        id: 'login-flow',
-        nodes: [
-          FlowNodeStub({
-            id: 'dashboard',
-            label: 'Dashboard',
-            flowriderSignoff,
-            siegemasterSignoff,
-          }),
-        ],
-        edges: [],
-      });
-
-      expect(qaUnitEnumerateTransformer({ flow })[0]).toStrictEqual({
-        kind: 'terminal',
-        id: 'login-flow:terminal:dashboard',
-        flowId: 'login-flow',
-        nodeId: 'dashboard',
-        nodeLabel: 'Dashboard',
-        flowriderSignoff,
-        siegemasterSignoff,
-      });
-    });
   });
 
   describe('branch units', () => {
@@ -111,41 +82,6 @@ describe('qaUnitEnumerateTransformer', () => {
           edgeFrom: 'decide-here',
           edgeLabel: 'valid',
           edgeTo: 'yes-end',
-        },
-      ]);
-    });
-
-    it("VALID: {a signed labelled edge} => the edge's own sign-off rides onto the branch unit", () => {
-      const siegemasterSignoff = SignoffStub({ evidence: 'forced the rejection by hand' });
-      const flow = FlowStub({
-        id: 'login-flow',
-        nodes: [
-          FlowNodeStub({ id: 'login-page', label: 'Login Page' }),
-          FlowNodeStub({ id: 'dashboard', label: 'Dashboard' }),
-        ],
-        edges: [
-          FlowEdgeStub({
-            id: 'login-to-dashboard',
-            from: 'login-page',
-            to: 'dashboard',
-            label: 'success',
-            siegemasterSignoff,
-          }),
-        ],
-      });
-
-      expect(
-        qaUnitEnumerateTransformer({ flow }).filter((unit) => unit.kind === 'branch'),
-      ).toStrictEqual([
-        {
-          kind: 'branch',
-          id: 'login-flow:branch:login-to-dashboard',
-          flowId: 'login-flow',
-          edgeId: 'login-to-dashboard',
-          edgeFrom: 'login-page',
-          edgeLabel: 'success',
-          edgeTo: 'dashboard',
-          siegemasterSignoff,
         },
       ]);
     });
@@ -261,6 +197,41 @@ describe('qaUnitEnumerateTransformer', () => {
         },
       ]);
     });
+
+    it('VALID: {an observable with verifyByReading} => verifyByReading is preserved on the unit', () => {
+      const flow = FlowStub({
+        id: 'login-flow',
+        nodes: [
+          FlowNodeStub({
+            id: 'dashboard',
+            label: 'Dashboard',
+            observables: [
+              FlowObservableStub({
+                id: 'check-import',
+                verifyByReading: true,
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+
+      expect(
+        qaUnitEnumerateTransformer({ flow }).filter((unit) => unit.kind === 'observable'),
+      ).toStrictEqual([
+        {
+          kind: 'observable',
+          id: 'login-flow:observable:check-import',
+          flowId: 'login-flow',
+          nodeId: 'dashboard',
+          observableId: 'check-import',
+          observableType: 'ui-state',
+          observableDescription: 'redirects to dashboard',
+          verifyByReading: true,
+          addedBy: 'spec',
+        },
+      ]);
+    });
   });
 
   describe('off-map units', () => {
@@ -272,51 +243,6 @@ describe('qaUnitEnumerateTransformer', () => {
           .filter((unit) => unit.kind === 'off-map')
           .map((unit) => String(unit.id)),
       ).toStrictEqual(OFF_MAP_FAMILIES.map((family) => `a-flow:off-map:${family}`));
-    });
-
-    it("VALID: {a flow with one family signed} => that family's sign-off rides onto its own unit", () => {
-      const siegemasterSignoff = SignoffStub({ evidence: 'double-submitted, it serialised' });
-      const flow = FlowStub({
-        id: 'a-flow',
-        nodes: [],
-        edges: [],
-        offMapSignoffs: [FlowOffMapSignoffStub({ id: 'concurrency', siegemasterSignoff })],
-      });
-
-      expect(
-        qaUnitEnumerateTransformer({ flow }).filter(
-          (unit) => String(unit.id) === 'a-flow:off-map:concurrency',
-        ),
-      ).toStrictEqual([
-        {
-          kind: 'off-map',
-          id: 'a-flow:off-map:concurrency',
-          flowId: 'a-flow',
-          offMapFamily: 'concurrency',
-          siegemasterSignoff,
-        },
-      ]);
-    });
-
-    it('VALID: {a flow with one family signed} => every other family stays unsigned', () => {
-      const flow = FlowStub({
-        id: 'a-flow',
-        nodes: [],
-        edges: [],
-        offMapSignoffs: [
-          FlowOffMapSignoffStub({ id: 'concurrency', siegemasterSignoff: SignoffStub() }),
-        ],
-      });
-
-      expect(
-        qaUnitEnumerateTransformer({ flow })
-          .filter((unit) => unit.siegemasterSignoff === undefined)
-          .map((unit) => String(unit.id)),
-      ).toStrictEqual(
-        OFF_MAP_FAMILIES.filter((family) => family !== 'concurrency').map(
-          (family) => `a-flow:off-map:${family}`,
-        ),
-      );
     });
   });
 

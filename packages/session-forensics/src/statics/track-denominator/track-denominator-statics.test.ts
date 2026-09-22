@@ -7,19 +7,19 @@ describe('trackDenominatorStatics', () => {
         mirrorOf:
           'packages/orchestrator/src/statics/signoff-track-eligibility/signoff-track-eligibility-statics.ts',
         byTrack: {
-          codeweaverSignoff: {
+          codeweaver: {
             flowTypes: ['runtime', 'operational'],
             unitKinds: ['terminal', 'branch', 'observable'],
             observableOrigins: ['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'operator'],
             verificationMethods: ['test', 'reading'],
           },
-          flowriderSignoff: {
+          flowrider: {
             flowTypes: ['runtime'],
             unitKinds: ['terminal', 'branch', 'observable'],
             observableOrigins: ['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'operator'],
             verificationMethods: ['test'],
           },
-          siegemasterSignoff: {
+          siegemaster: {
             flowTypes: ['runtime', 'operational'],
             unitKinds: ['terminal', 'branch', 'observable', 'off-map'],
             observableOrigins: [

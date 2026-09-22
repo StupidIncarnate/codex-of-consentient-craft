@@ -8,7 +8,6 @@ import {
   ItemWithIdStub,
   QuestWorkItemIdStub,
   SessionIdStub,
-  SignoffStub,
   WorkItemForUpsertStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -455,18 +454,17 @@ describe('questItemDeepMergeTransformer', () => {
     });
   });
 
-  describe('sign-off merge (two independent tracks over one element)', () => {
-    it('VALID: {observable already carrying siegemasterSignoff, update sets only flowriderSignoff} => both sign-offs survive', () => {
-      const siegemasterSignoff = SignoffStub({ evidence: 'walked it against the dev server' });
-      const flowriderSignoff = SignoffStub({
-        evidence: 'packages/web/src/a.test.ts:12 — red without the redirect',
+  describe('observable property merge (independent fields over one element)', () => {
+    it('VALID: {observable already carrying designRef, update sets only verifyByReading} => both fields survive', () => {
+      const existingObservable = FlowObservableStub({
+        id: 'obs-1',
+        designRef: 'design/dashboard.png' as never,
       });
-      const existingObservable = FlowObservableStub({ id: 'obs-1', siegemasterSignoff });
       const existingNode = FlowNodeStub({ id: 'n1', observables: [existingObservable] });
       const existing = FlowStub({ id: 'flow-a', nodes: [existingNode] });
       const update = ItemWithIdStub({
         id: 'flow-a',
-        nodes: [{ id: 'n1', observables: [{ id: 'obs-1', flowriderSignoff }] }],
+        nodes: [{ id: 'n1', observables: [{ id: 'obs-1', verifyByReading: true }] }],
       });
 
       const result = questItemDeepMergeTransformer({ existing, update });
@@ -481,57 +479,45 @@ describe('questItemDeepMergeTransformer', () => {
           package: 'auth-service',
           description: 'redirects to dashboard',
           addedBy: 'spec',
-          siegemasterSignoff,
-          flowriderSignoff,
+          designRef: 'design/dashboard.png',
+          verifyByReading: true,
         },
       ]);
     });
 
     it('VALID: {update sets ONE offMapSignoffs entry} => the other six families survive untouched', () => {
-      const siegemasterSignoff = SignoffStub({ evidence: 'double-submitted, it serialised' });
-      const reWalked = SignoffStub({
-        evidence: 'double-submitted again after the lock landed, still one row',
-      });
       const existing = FlowStub({
         id: 'flow-a',
         offMapSignoffs: OFF_MAP_FAMILIES.map((family) =>
-          FlowOffMapSignoffStub({ id: family as never, siegemasterSignoff }),
+          FlowOffMapSignoffStub({ id: family as never }),
         ),
       });
       const update = ItemWithIdStub({
         id: 'flow-a',
-        offMapSignoffs: [{ id: 'concurrency', siegemasterSignoff: reWalked }],
+        offMapSignoffs: [{ id: 'concurrency' }],
       });
 
       const result = questItemDeepMergeTransformer({ existing, update });
 
       const { offMapSignoffs } = result as Flow;
       const expected = OFF_MAP_FAMILIES.map((family) =>
-        FlowOffMapSignoffStub({ id: family as never, siegemasterSignoff }),
+        FlowOffMapSignoffStub({ id: family as never }),
       );
-      expected[OFF_MAP_FAMILIES.indexOf('concurrency')] = FlowOffMapSignoffStub({
-        id: 'concurrency',
-        siegemasterSignoff: reWalked,
-      });
 
       expect(offMapSignoffs).toStrictEqual(expected);
     });
 
-    it('VALID: {observable patch sets siegemasterSignoff to null} => that key is deleted and flowriderSignoff is intact', () => {
-      const siegemasterSignoff = SignoffStub({ evidence: 'walked it against the dev server' });
-      const flowriderSignoff = SignoffStub({
-        evidence: 'packages/web/src/a.test.ts:12 — red without the redirect',
-      });
+    it('VALID: {observable patch sets designRef to null} => that key is deleted and verifyByReading is intact', () => {
       const existingObservable = FlowObservableStub({
         id: 'obs-1',
-        siegemasterSignoff,
-        flowriderSignoff,
+        designRef: 'design/dashboard.png' as never,
+        verifyByReading: true,
       });
       const existingNode = FlowNodeStub({ id: 'n1', observables: [existingObservable] });
       const existing = FlowStub({ id: 'flow-a', nodes: [existingNode] });
       const update = ItemWithIdStub({
         id: 'flow-a',
-        nodes: [{ id: 'n1', observables: [{ id: 'obs-1', siegemasterSignoff: null }] }],
+        nodes: [{ id: 'n1', observables: [{ id: 'obs-1', designRef: null }] }],
       });
 
       const result = questItemDeepMergeTransformer({ existing, update });
@@ -546,12 +532,12 @@ describe('questItemDeepMergeTransformer', () => {
           package: 'auth-service',
           description: 'redirects to dashboard',
           addedBy: 'spec',
-          flowriderSignoff,
+          verifyByReading: true,
         },
       ]);
     });
 
-    it('EMPTY: {observable carrying no sign-off keys, patched with a description} => neither sign-off key appears on the merged observable', () => {
+    it('EMPTY: {observable carrying no optional keys, patched with a description} => neither optional key appears on the merged observable', () => {
       const existingObservable = FlowObservableStub({
         id: 'obs-1',
         description: 'old description',
@@ -579,18 +565,7 @@ describe('questItemDeepMergeTransformer', () => {
       ]);
     });
 
-    // Batching is what the coverage minion is told to do: 50 sign-offs in ONE call, not 50 calls.
-    // The risk this pins is the recursion depth — flows, then nodes, then observables are three
-    // nested id-keyed upserts, and a merge that lands flow-one and silently drops flow-three is
-    // indistinguishable from a partial write at the call site. The single toStrictEqual over the
-    // whole merged item is what catches both halves: all 50 sign-offs present, and the edge, the
-    // untouched sibling node, and the off-map siegemasterSignoff unchanged.
-    it('VALID: {ONE merge upserting 50 flowrider sign-offs across 3 flows} => all 50 land and every untouched element on those flows is unchanged', () => {
-      const flowriderSignoff = SignoffStub({
-        evidence: 'packages/web/src/login.e2e.ts:31 — red without the redirect',
-      });
-      const siegemasterSignoff = SignoffStub({ evidence: 'walked it against the dev server' });
-
+    it('VALID: {ONE merge upserting 50 observable updates across 3 flows} => all 50 land and every untouched element on those flows is unchanged', () => {
       const existing = ItemWithIdStub({
         id: 'add-auth',
         flows: [
@@ -623,7 +598,7 @@ describe('questItemDeepMergeTransformer', () => {
           }),
           FlowStub({
             id: 'flow-three',
-            offMapSignoffs: [FlowOffMapSignoffStub({ id: 'concurrency', siegemasterSignoff })],
+            offMapSignoffs: [FlowOffMapSignoffStub({ id: 'concurrency' })],
             nodes: [
               FlowNodeStub({
                 id: 'node-three',
@@ -645,7 +620,7 @@ describe('questItemDeepMergeTransformer', () => {
                 id: 'node-one',
                 observables: Array.from({ length: 20 }, (_unused, index) => ({
                   id: `obs-one-${index}`,
-                  flowriderSignoff,
+                  verifyByReading: true,
                 })),
               },
             ],
@@ -657,7 +632,7 @@ describe('questItemDeepMergeTransformer', () => {
                 id: 'node-two',
                 observables: Array.from({ length: 20 }, (_unused, index) => ({
                   id: `obs-two-${index}`,
-                  flowriderSignoff,
+                  verifyByReading: true,
                 })),
               },
             ],
@@ -669,7 +644,7 @@ describe('questItemDeepMergeTransformer', () => {
                 id: 'node-three',
                 observables: Array.from({ length: 10 }, (_unused, index) => ({
                   id: `obs-three-${index}`,
-                  flowriderSignoff,
+                  verifyByReading: true,
                 })),
               },
             ],
@@ -689,7 +664,7 @@ describe('questItemDeepMergeTransformer', () => {
               FlowNodeStub({
                 id: 'node-one',
                 observables: Array.from({ length: 20 }, (_unused, index) =>
-                  FlowObservableStub({ id: `obs-one-${index}` as never, flowriderSignoff }),
+                  FlowObservableStub({ id: `obs-one-${index}` as never, verifyByReading: true }),
                 ),
               }),
             ],
@@ -700,7 +675,7 @@ describe('questItemDeepMergeTransformer', () => {
               FlowNodeStub({
                 id: 'node-two',
                 observables: Array.from({ length: 20 }, (_unused, index) =>
-                  FlowObservableStub({ id: `obs-two-${index}` as never, flowriderSignoff }),
+                  FlowObservableStub({ id: `obs-two-${index}` as never, verifyByReading: true }),
                 ),
               }),
               FlowNodeStub({
@@ -711,12 +686,12 @@ describe('questItemDeepMergeTransformer', () => {
           }),
           FlowStub({
             id: 'flow-three',
-            offMapSignoffs: [FlowOffMapSignoffStub({ id: 'concurrency', siegemasterSignoff })],
+            offMapSignoffs: [FlowOffMapSignoffStub({ id: 'concurrency' })],
             nodes: [
               FlowNodeStub({
                 id: 'node-three',
                 observables: Array.from({ length: 10 }, (_unused, index) =>
-                  FlowObservableStub({ id: `obs-three-${index}` as never, flowriderSignoff }),
+                  FlowObservableStub({ id: `obs-three-${index}` as never, verifyByReading: true }),
                 ),
               }),
             ],

@@ -12,17 +12,11 @@
  * // No-ops unless the work item's linked operation item belongs to a track with units left
  *
  * WHEN-TO-USE: The smoketest scenario driver, immediately before it stamps a canned prompt override
- * on a pending work item. Production orchestration must never call this — a real session's sign-off
- * is its evidence, and this one carries `smoketestStatics.signoffEvidence`, which says outright that
- * nothing was verified.
+ * on a pending work item.
  * WHEN-NOT-TO-USE: Anywhere outside the smoketest flow.
  *
- * WHICH ROLES HAVE A TRACK IS DATA, read out of `signoffTrackEligibilityStatics.byTrack` rather than
- * matched against role names. Today only siegemaster bites, because it is the one track whose
- * `flowTypes` includes `operational` and the minimal blueprint's flow is operational; the day a
- * blueprint gains a runtime flow, codeweaver and flowrider start biting too and this covers them
- * without an edit. The same entry supplies the FIELD to write, which is a many-to-one map — a
- * denominator can share another role's field — so it can never be guessed off the role name.
+ * WHICH ROLES HAVE VERIFICATION UNITS IS DATA, read out of `stepScopeStatics.byFamilyStep` rather than
+ * matched against role names.
  *
  * The outstanding list comes from `signoffOutstandingTransformer`, the same enumeration
  * `get-qa-checklist` and the quest summary read. A second derivation here could disagree with them,
@@ -39,14 +33,12 @@ import {
   fileContentsContract,
   filePathContract,
   questContract,
-  signoffContract,
 } from '@dungeonmaster/shared/contracts';
-import type { QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type { Flow, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { signoffTrackEligibilityStatics } from '../../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
-import { smoketestStatics } from '../../../statics/smoketest/smoketest-statics';
-import { signoffOutstandingTransformer } from '../../../transformers/signoff-outstanding/signoff-outstanding-transformer';
+import type { QaVerificationUnit } from '../../../contracts/qa-verification-unit/qa-verification-unit-contract';
+import { qaUnitEnumerateTransformer } from '../../../transformers/qa-unit-enumerate/qa-unit-enumerate-transformer';
 import { smoketestFlowSignoffApplyTransformer } from '../../../transformers/smoketest-flow-signoff-apply/smoketest-flow-signoff-apply-transformer';
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../../quest/load/quest-load-broker';
@@ -91,30 +83,44 @@ export const smoketestSignOutstandingUnitsBroker = async ({
         return { success: true as const };
       }
 
-      // A `Map` over the statics' own entries rather than an `in` check plus an index: the lookup
-      // answers "is this role a track" and "which field does that track write" in one read, off the
-      // one object that defines both.
-      const eligibility = new Map(Object.entries(signoffTrackEligibilityStatics.byTrack)).get(
-        operationItem.role,
-      );
-      if (eligibility === undefined) {
+      const { role } = operationItem;
+      if (role !== 'codeweaver' && role !== 'flowrider' && role !== 'siegemaster') {
         return { success: true as const };
       }
 
-      const outstanding = signoffOutstandingTransformer({ quest: loadedQuest, operationItem });
+      const roleScope = {
+        codeweaver: {
+          flowTypes: ['runtime', 'operational'] as const,
+          unitKinds: ['terminal', 'branch', 'observable'] as const,
+        },
+        flowrider: {
+          flowTypes: ['runtime'] as const,
+          unitKinds: ['terminal', 'branch', 'observable'] as const,
+        },
+        siegemaster: {
+          flowTypes: ['runtime', 'operational'] as const,
+          unitKinds: ['terminal', 'branch', 'observable', 'off-map'] as const,
+        },
+      }[role];
+
+      const scopedFlowIds = new Set(operationItem.flowIds.map(String));
+      const eligibleFlowTypes = new Set<Flow['flowType']>(roleScope.flowTypes);
+      const targetFlows = loadedQuest.flows
+        .filter((flow) => eligibleFlowTypes.has(flow.flowType))
+        .filter((flow) => scopedFlowIds.has(String(flow.id)));
+      if (targetFlows.length === 0) {
+        return { success: true as const };
+      }
+
+      const eligibleKinds = new Set<QaVerificationUnit['kind']>(roleScope.unitKinds);
+      const outstanding = targetFlows.flatMap((flow) =>
+        qaUnitEnumerateTransformer({ flow })
+          .filter((unit) => eligibleKinds.has(unit.kind))
+          .map((unit) => unit.id),
+      );
       if (outstanding.length === 0) {
         return { success: true as const };
       }
-
-      // `confirmed`, never `unconfirmable`: the second verdict clears the gate too, but it REQUIRES a
-      // `question`, and littering a happy-path fixture with fake open questions would make every
-      // smoketest quest read as though a real session had hit walls it could not get past.
-      const signoff = signoffContract.parse({
-        verdict: 'confirmed',
-        evidence: smoketestStatics.signoffEvidence,
-        workItemId,
-        at: new Date().toISOString(),
-      });
 
       const updatedQuest = questContract.parse({
         ...loadedQuest,
@@ -122,8 +128,6 @@ export const smoketestSignOutstandingUnitsBroker = async ({
           smoketestFlowSignoffApplyTransformer({
             flow,
             unitIds: outstanding,
-            signoffField: eligibility.signoffField,
-            signoff,
           }),
         ),
         updatedAt: new Date().toISOString(),

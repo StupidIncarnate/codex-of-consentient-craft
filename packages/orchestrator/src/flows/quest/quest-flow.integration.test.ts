@@ -18,7 +18,6 @@ import {
   QuestPackageEntryStub,
   QuestStub,
   QuestWorkItemIdStub,
-  SignoffStub,
   WardRunIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -49,23 +48,13 @@ describe('QuestFlow', () => {
   // flow-type exclusions are applied to the PERSISTED shape rather than an in-memory stub — is to
   // drive it against a seeded quest file.
   describe('getSummary — verification state of a persisted quest', () => {
-    it('VALID: {runtime flow with one signed terminal, one siegemaster-added observable, an operational flow and two notes} => coverage, drift, debt and note groups all come back off disk', async () => {
+    it('VALID: {runtime flow with one siegemaster-added observable, an operational flow and two notes} => coverage, drift, debt and note groups all come back off disk', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'qf-get-summary' }),
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const { questId } = await questHelper.createGuildAndQuest({ testbed });
-
-      const flowriderConfirmed = SignoffStub({
-        evidence: 'packages/web/src/flows/login/login.e2e.ts:31 — red without the redirect',
-      });
-      const siegemasterUnconfirmable = SignoffStub({
-        verdict: 'unconfirmable',
-        evidence: 'the dev server refuses to bind port 3737 inside this sandbox',
-        toSettle: 'Start the sandbox dev server on the configured port, then re-walk this node.',
-        at: '2026-01-02T00:00:00.000Z',
-      });
 
       await questHelper.seedInProgressRelay({
         questId,
@@ -98,8 +87,6 @@ describe('QuestFlow', () => {
               FlowNodeStub({
                 id: 'dashboard',
                 label: 'Dashboard',
-                flowriderSignoff: flowriderConfirmed,
-                siegemasterSignoff: siegemasterUnconfirmable,
               }),
             ],
             edges: [
@@ -130,13 +117,11 @@ describe('QuestFlow', () => {
       // login-flow is runtime, so all three denominators measure it. Units: 1 terminal (dashboard,
       // the only node with no outgoing edge) + 1 labelled branch (e-success) + 1 observable + 7
       // off-map families. Codeweaver and Flowrider both shed the off-map families AND the
-      // siegemaster-added observable, leaving terminal + branch each — but they read different
-      // sign-off fields, so Flowrider's terminal (signed `flowriderSignoff`) counts confirmed while
-      // Codeweaver's copy of the same two units carries no `codeweaverSignoff` at all and is fully
-      // outstanding. Siegemaster keeps all 10, of which the terminal is unconfirmable and the other
-      // 9 are outstanding. deploy-lint-rule is operational, so Flowrider drops out entirely: it
-      // carries a codeweaver row (the one terminal, outstanding) and a siegemaster row (1 terminal +
-      // 7 off-map = 8, all outstanding).
+      // siegemaster-added observable, leaving terminal + branch — 2 each, all outstanding, since
+      // confirmed/unconfirmable are hardcoded to 0 for every track. Siegemaster keeps all 10.
+      // deploy-lint-rule is operational, so both Flowrider and Siegemaster drop out entirely —
+      // operational units move to codeweaver's reviewer, the only family that settles them — and it
+      // carries a codeweaver row alone (the one terminal, outstanding).
       expect(summary).toStrictEqual({
         questId,
         flows: [
@@ -146,18 +131,15 @@ describe('QuestFlow', () => {
             flowType: 'runtime',
             tracks: [
               { id: 'codeweaver', confirmed: 0, unconfirmable: 0, outstanding: 2 },
-              { id: 'flowrider', confirmed: 1, unconfirmable: 0, outstanding: 1 },
-              { id: 'siegemaster', confirmed: 0, unconfirmable: 1, outstanding: 9 },
+              { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 2 },
+              { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 10 },
             ],
           },
           {
             id: 'deploy-lint-rule',
             name: 'Deploy the lint rule',
             flowType: 'operational',
-            tracks: [
-              { id: 'codeweaver', confirmed: 0, unconfirmable: 0, outstanding: 1 },
-              { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 8 },
-            ],
+            tracks: [{ id: 'codeweaver', confirmed: 0, unconfirmable: 0, outstanding: 1 }],
           },
         ],
         midQuestObservables: [
@@ -171,16 +153,7 @@ describe('QuestFlow', () => {
             description: 'POST /api/auth/login returns 400 for a non-JSON body',
           },
         ],
-        unconfirmable: [
-          {
-            id: 'login-flow:terminal:dashboard:siegemaster',
-            unitId: 'login-flow:terminal:dashboard',
-            flowId: 'login-flow',
-            kind: 'terminal',
-            track: 'siegemaster',
-            signoff: siegemasterUnconfirmable,
-          },
-        ],
+        unconfirmable: [],
         noteGroups: [
           {
             id: 'open-question',

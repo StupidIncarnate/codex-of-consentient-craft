@@ -1,6 +1,5 @@
 import { flowObservableContract } from './flow-observable-contract';
 import { FlowObservableStub } from './flow-observable.stub';
-import { SignoffStub } from '../signoff/signoff.stub';
 
 describe('flowObservableContract', () => {
   describe('valid flow observables', () => {
@@ -138,59 +137,6 @@ describe('flowObservableContract', () => {
         description: 'redirects to dashboard',
         package: 'auth-service',
         addedBy: 'siegemaster',
-      });
-    });
-  });
-
-  describe('track sign-offs', () => {
-    it('VALID: {flowriderSignoff only} => keeps the siegemaster field absent rather than nulled', () => {
-      const observable = FlowObservableStub({ flowriderSignoff: SignoffStub() });
-
-      expect(observable).toStrictEqual({
-        id: 'login-redirects-to-dashboard',
-        type: 'ui-state',
-        description: 'redirects to dashboard',
-        package: 'auth-service',
-        addedBy: 'spec',
-        flowriderSignoff: {
-          verdict: 'confirmed',
-          evidence:
-            'packages/x/src/a-transformer.test.ts:42 — flips to red when the guard returns true',
-          workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          at: '2026-01-01T00:00:00.000Z',
-        },
-      });
-    });
-
-    it('VALID: {both sign-offs present} => parses each track onto its own top-level field', () => {
-      const observable = FlowObservableStub({
-        flowriderSignoff: SignoffStub(),
-        siegemasterSignoff: SignoffStub({
-          evidence: 'the dashboard rendered 3 rows for a 3-row fixture on the running server',
-          workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
-          at: '2026-01-02T00:00:00.000Z',
-        }),
-      });
-
-      expect(observable).toStrictEqual({
-        id: 'login-redirects-to-dashboard',
-        type: 'ui-state',
-        description: 'redirects to dashboard',
-        package: 'auth-service',
-        addedBy: 'spec',
-        flowriderSignoff: {
-          verdict: 'confirmed',
-          evidence:
-            'packages/x/src/a-transformer.test.ts:42 — flips to red when the guard returns true',
-          workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          at: '2026-01-01T00:00:00.000Z',
-        },
-        siegemasterSignoff: {
-          verdict: 'confirmed',
-          evidence: 'the dashboard rendered 3 rows for a 3-row fixture on the running server',
-          workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
-          at: '2026-01-02T00:00:00.000Z',
-        },
       });
     });
   });

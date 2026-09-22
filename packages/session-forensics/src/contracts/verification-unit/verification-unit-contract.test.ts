@@ -14,8 +14,8 @@ describe('verificationUnitContract', () => {
         addedBy: 'siegemaster',
         verificationMethod: 'reading',
         trackVerdicts: {
-          codeweaverSignoff: 'confirmed',
-          siegemasterSignoff: 'confirmed',
+          codeweaver: 'confirmed',
+          siegemaster: 'confirmed',
         },
       });
 
@@ -25,8 +25,8 @@ describe('verificationUnitContract', () => {
           addedBy: 'siegemaster',
           verificationMethod: 'reading',
           trackVerdicts: {
-            codeweaverSignoff: 'confirmed',
-            siegemasterSignoff: 'confirmed',
+            codeweaver: 'confirmed',
+            siegemaster: 'confirmed',
           },
         }),
       );
@@ -42,8 +42,8 @@ describe('verificationUnitContract', () => {
         packages: ['web'],
         verificationMethod: 'test',
         trackVerdicts: {
-          codeweaverSignoff: 'confirmed',
-          flowriderSignoff: 'confirmed',
+          codeweaver: 'confirmed',
+          flowrider: 'confirmed',
         },
       });
 
@@ -54,8 +54,8 @@ describe('verificationUnitContract', () => {
           unitId: 'edge-attach-fails-to-error',
           nodeId: 'compose-node',
           trackVerdicts: {
-            codeweaverSignoff: 'confirmed',
-            flowriderSignoff: 'confirmed',
+            codeweaver: 'confirmed',
+            flowrider: 'confirmed',
           },
         }),
       );
@@ -69,7 +69,7 @@ describe('verificationUnitContract', () => {
         unitId: 'unhandled-rejection',
         verificationMethod: 'test',
         trackVerdicts: {
-          siegemasterSignoff: 'confirmed',
+          siegemaster: 'confirmed',
         },
       });
 
@@ -80,7 +80,7 @@ describe('verificationUnitContract', () => {
           unitId: 'unhandled-rejection',
           packages: [],
           trackVerdicts: {
-            siegemasterSignoff: 'confirmed',
+            siegemaster: 'confirmed',
           },
         }),
       );
@@ -95,16 +95,16 @@ describe('verificationUnitContract', () => {
         packages: ['web'],
         verificationMethod: 'test',
         trackVerdicts: {
-          codeweaverSignoff: 'confirmed',
-          flowriderSignoff: 'unconfirmable',
+          codeweaver: 'confirmed',
+          flowrider: 'unconfirmable',
         },
       });
 
       expect(result).toStrictEqual(
         VerificationUnitStub({
           trackVerdicts: {
-            codeweaverSignoff: 'confirmed',
-            flowriderSignoff: 'unconfirmable',
+            codeweaver: 'confirmed',
+            flowrider: 'unconfirmable',
           },
         }),
       );
@@ -121,9 +121,9 @@ describe('verificationUnitContract', () => {
         nodeId: 'composer-node',
         verificationMethod: 'test',
         trackVerdicts: {
-          codeweaverSignoff: 'confirmed',
-          flowriderSignoff: 'confirmed',
-          siegemasterSignoff: 'confirmed',
+          codeweaver: 'confirmed',
+          flowrider: 'confirmed',
+          siegemaster: 'confirmed',
         },
       });
 
@@ -135,9 +135,9 @@ describe('verificationUnitContract', () => {
           nodeId: 'composer-node',
           packages: [],
           trackVerdicts: {
-            codeweaverSignoff: 'confirmed',
-            flowriderSignoff: 'confirmed',
-            siegemasterSignoff: 'confirmed',
+            codeweaver: 'confirmed',
+            flowrider: 'confirmed',
+            siegemaster: 'confirmed',
           },
         }),
       );
@@ -152,9 +152,9 @@ describe('verificationUnitContract', () => {
         nodeId: 'composer-node',
         packages: ['web'],
         trackVerdicts: {
-          codeweaverSignoff: 'confirmed',
-          flowriderSignoff: 'confirmed',
-          siegemasterSignoff: 'confirmed',
+          codeweaver: 'confirmed',
+          flowrider: 'confirmed',
+          siegemaster: 'confirmed',
         },
       });
 
@@ -166,9 +166,9 @@ describe('verificationUnitContract', () => {
           nodeId: 'composer-node',
           verificationMethod: 'test',
           trackVerdicts: {
-            codeweaverSignoff: 'confirmed',
-            flowriderSignoff: 'confirmed',
-            siegemasterSignoff: 'confirmed',
+            codeweaver: 'confirmed',
+            flowrider: 'confirmed',
+            siegemaster: 'confirmed',
           },
         }),
       );
@@ -208,10 +208,10 @@ describe('verificationUnitContract', () => {
       );
     });
 
-    it('INVALID: {trackVerdicts.codeweaverSignoff: nonsense} => throws', () => {
+    it('INVALID: {trackVerdicts.codeweaver: nonsense} => throws', () => {
       expect(() =>
         VerificationUnitStub({
-          trackVerdicts: { codeweaverSignoff: 'nonsense' as never },
+          trackVerdicts: { codeweaver: 'nonsense' as never },
         }),
       ).toThrow(/Invalid enum value/u);
     });

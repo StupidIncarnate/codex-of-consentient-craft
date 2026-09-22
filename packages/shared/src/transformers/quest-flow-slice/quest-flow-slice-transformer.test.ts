@@ -6,7 +6,6 @@ import { FlowObservableStub } from '../../contracts/flow-observable/flow-observa
 import { QuestStub } from '../../contracts/quest/quest.stub';
 import { QuestContractEntryStub } from '../../contracts/quest-contract-entry/quest-contract-entry.stub';
 import { QuestPackageEntryStub } from '../../contracts/quest-package-entry/quest-package-entry.stub';
-import { SignoffStub } from '../../contracts/signoff/signoff.stub';
 import { mcpToolResultStatics } from '../../statics/mcp-tool-result/mcp-tool-result-statics';
 import { qaOffMapProbeStatics } from '../../statics/qa-off-map-probe/qa-off-map-probe-statics';
 import { questFlowSliceLimitsStatics } from '../../statics/quest-flow-slice-limits/quest-flow-slice-limits-statics';
@@ -173,34 +172,6 @@ const QUEST = QuestStub({
   ],
 });
 
-const SIGNED_QUEST = QuestStub({
-  ...QUEST,
-  flows: [
-    FlowStub({
-      ...LOGIN_FLOW,
-      nodes: [
-        FlowNodeStub({
-          ...LOGIN_PAGE_NODE,
-          observables: [],
-          flowriderSignoff: SignoffStub(),
-        }),
-      ],
-      edges: [
-        FlowEdgeStub({
-          id: 'submits' as never,
-          from: 'login-page' as never,
-          to: 'auth-check' as never,
-          label: 'submits credentials' as never,
-          siegemasterSignoff: SignoffStub({
-            verdict: 'unconfirmable',
-            toSettle: 'Drive the wrong-password walk with the seeded account and read the error.',
-          }),
-        }),
-      ],
-    }),
-  ],
-});
-
 // The worst measured case: the flowrider / siegemaster view of a flow carrying 18 nodes, 19 edges
 // and 47 observables, on a quest with 12 contracts and 33 design decisions. That view is the worst
 // because no package narrows it — every observable renders verbatim AND the off-map families render.
@@ -320,7 +291,6 @@ const LEGEND_LINES = [
 const CONTRACT_HEADER_PREFIXES = ['#login-credentials', '  email'];
 const OBSERVABLE_PREFIX = `${textDisplaySymbolsStatics.observable} `;
 const GRAPH_AND_OBSERVABLE_PREFIXES = ['[#', OBSERVABLE_PREFIX];
-const GRAPH_AND_EDGE_PREFIXES = ['[#', '→'];
 const OWNERSHIP_LINE_PREFIXES = ['The WHOLE flow', 'Your package:'];
 const TRUNCATION_PREFIX = `[TRUNCATED at the ${String(questFlowSliceLimitsStatics.maxRenderChars)}-character ceiling`;
 
@@ -595,43 +565,6 @@ describe('questFlowSliceTransformer', () => {
           '#login-credentials — LoginCredentials (data, new) [→ packages/web/src/contracts/login-credentials/login-credentials-contract.ts] on node #login-page',
         ],
       });
-    });
-  });
-
-  describe('sign-offs — a mark on the graph line, and nothing else', () => {
-    // A TRACK'S OWN EVIDENCE IS NOT RENDERED HERE, and no section of it may come back. Every track
-    // proves the units on its own list whatever another track recorded, so a paragraph naming the
-    // file some other session read changes nothing a reader does — while costing a share of
-    // `questFlowSliceLimitsStatics.maxRenderChars` that the graph, the contracts and the design
-    // decisions all compete for. The one-character verdict mark is the whole of what a reader needs:
-    // it says a track has touched the unit, which is all any of them may act on.
-    it('VALID: {a signed quest} => no evidence section, on any heading', () => {
-      const rendered = String(
-        questFlowSliceTransformer({ quest: SIGNED_QUEST, flowId: 'login-flow' as never }),
-      );
-
-      expect(
-        rendered.split('\n').filter((line) => line.toLowerCase().includes('sign-off')),
-      ).toStrictEqual([]);
-    });
-
-    it('VALID: {a node and an edge signed} => the marks ride their own lines', () => {
-      const result = questFlowSliceTransformer({
-        quest: SIGNED_QUEST,
-        flowId: 'login-flow' as never,
-      });
-
-      expect(
-        String(result)
-          .split('\n')
-          .filter((line) => !LEGEND_LINES.some((legend) => legend === line))
-          .filter((line) =>
-            GRAPH_AND_EDGE_PREFIXES.some((prefix) => line.trimStart().startsWith(prefix)),
-          ),
-      ).toStrictEqual([
-        '[#login-page] {web, server} Login page (state) [F✓]',
-        '  →<edge:submits> "submits credentials" auth-check ↗ cross-flow [S?]',
-      ]);
     });
   });
 

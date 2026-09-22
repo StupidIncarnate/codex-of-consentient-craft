@@ -4,7 +4,7 @@ import type { StubArgument } from '@dungeonmaster/shared/@types';
 export const TrackCoverageStub = ({ ...props }: StubArgument<TrackCoverage> = {}): TrackCoverage =>
   trackCoverageContract.parse({
     flowId: 'paste-image-into-composer',
-    track: 'codeweaverSignoff',
+    track: 'codeweaver',
     owed: 58,
     signed: 58,
     confirmed: 55,

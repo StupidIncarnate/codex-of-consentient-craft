@@ -8,7 +8,6 @@ import { OperationItemStub } from '../../contracts/operation-item/operation-item
 import { QuestContractEntryStub } from '../../contracts/quest-contract-entry/quest-contract-entry.stub';
 import { QuestNoteStub } from '../../contracts/quest-note/quest-note.stub';
 import { QuestPackageEntryStub } from '../../contracts/quest-package-entry/quest-package-entry.stub';
-import { SignoffStub } from '../../contracts/signoff/signoff.stub';
 import { ToolingRequirementStub } from '../../contracts/tooling-requirement/tooling-requirement.stub';
 import { textDisplaySymbolsStatics } from '../../statics/text-display-symbols/text-display-symbols-statics';
 import { questToTextDisplayTransformer } from './quest-to-text-display-transformer';
@@ -280,61 +279,8 @@ describe('questToTextDisplayTransformer', () => {
     });
   });
 
-  // `format: 'text'` is what every get-quest returns by default, so this composed render is where
-  // an agent reads its own track. A verdict that only exists in the JSON is invisible to it.
-  describe('sign-offs and observable provenance', () => {
-    it('VALID: {node signed by one track} => the node line carries that track mark alone', () => {
-      const quest = QuestStub({
-        flows: [
-          FlowStub({
-            entryPoint: 'login-page' as never,
-            nodes: [
-              FlowNodeStub({
-                id: 'login-page' as never,
-                label: 'Login Page' as never,
-                type: 'state',
-                flowriderSignoff: SignoffStub(),
-              }),
-            ],
-            edges: [],
-          }),
-        ],
-      });
-
-      const result = questToTextDisplayTransformer({ quest });
-
-      expect(result).toMatch(
-        /^\[#login-page\] \{auth-service\} Login Page \(state\) \[F\u2713\]$/mu,
-      );
-    });
-
-    it('VALID: {node signed by both tracks} => the node line carries both marks', () => {
-      const quest = QuestStub({
-        flows: [
-          FlowStub({
-            entryPoint: 'login-page' as never,
-            nodes: [
-              FlowNodeStub({
-                id: 'login-page' as never,
-                label: 'Login Page' as never,
-                type: 'state',
-                flowriderSignoff: SignoffStub(),
-                siegemasterSignoff: SignoffStub(),
-              }),
-            ],
-            edges: [],
-          }),
-        ],
-      });
-
-      const result = questToTextDisplayTransformer({ quest });
-
-      expect(result).toMatch(
-        /^\[#login-page\] \{auth-service\} Login Page \(state\) \[F\u2713 S\u2713\]$/mu,
-      );
-    });
-
-    it('VALID: {observable unconfirmable and added mid-quest} => provenance then the verdict mark', () => {
+  describe('observable provenance', () => {
+    it('VALID: {observable added mid-quest} => observable line carries provenance', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -350,12 +296,6 @@ describe('questToTextDisplayTransformer', () => {
                     description: 'returns 400 for a non-JSON body' as never,
                     type: 'api-call',
                     addedBy: 'siegemaster',
-                    siegemasterSignoff: SignoffStub({
-                      verdict: 'unconfirmable',
-                      evidence: 'the endpoint 500s before any validation runs',
-                      toSettle:
-                        'Post a non-JSON body and read whether the router rejects it before the handler.',
-                    }),
                   }),
                 ],
               }),
@@ -368,34 +308,8 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest });
 
       expect(result).toMatch(
-        /^ {2}● #crash-on-bleh \{auth-service\} returns 400 for a non-JSON body \[api-call\] \+siegemaster \[S\?\]$/mu,
+        /^ {2}● #crash-on-bleh \{auth-service\} returns 400 for a non-JSON body \[api-call\] \+siegemaster$/mu,
       );
-    });
-
-    it('VALID: {signed off-map family} => the flow section ends with an off-map line', () => {
-      const quest = QuestStub({
-        flows: [
-          FlowStub({
-            entryPoint: 'login-page' as never,
-            nodes: [
-              FlowNodeStub({
-                id: 'login-page' as never,
-                label: 'Login Page' as never,
-                type: 'state',
-              }),
-            ],
-            edges: [],
-            offMapSignoffs: [
-              FlowOffMapSignoffStub({ id: 'concurrency', siegemasterSignoff: SignoffStub() }),
-              FlowOffMapSignoffStub({ id: 'perf' }),
-            ],
-          }),
-        ],
-      });
-
-      const result = questToTextDisplayTransformer({ quest });
-
-      expect(result).toMatch(/^off-map: concurrency \[S\u2713\]$/mu);
     });
   });
 

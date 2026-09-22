@@ -1,8 +1,6 @@
 import {
-  FlowEdgeStub,
   FlowNodeStub,
   FlowObservableStub,
-  FlowOffMapSignoffStub,
   FlowStub,
   ModifyQuestInputStub,
   OperationItemStub,
@@ -12,12 +10,10 @@ import {
   QuestNoteStub,
   QuestPackageEntryStub,
   QuestStub,
-  SignoffStub,
   ToolingRequirementStub,
   WardResultStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
-import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
 import { questModifyBroker } from './quest-modify-broker';
 import { questModifyBrokerProxy } from './quest-modify-broker.proxy';
@@ -2952,412 +2948,10 @@ describe('questModifyBroker', () => {
   });
 
   describe('sign-off writes at in_progress', () => {
-    it("VALID: {sign-off carrying at: '2020-01-01'} => persists the server's stamp, not the value the caller sent", async () => {
+    it('VALID: {ONE call upserting 50 observable descriptions across 3 flows} => every one lands in the single persisted write', async () => {
       const proxy = questModifyBrokerProxy();
-      const observable = FlowObservableStub({ id: 'redirects' as never });
-      const node = FlowNodeStub({ id: 'submit-form' as never, observables: [observable] });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'in_progress',
-        flows: [flow],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        flows: [
-          {
-            id: 'login-flow',
-            nodes: [
-              {
-                id: 'submit-form',
-                observables: [
-                  {
-                    id: 'redirects',
-                    flowriderSignoff: SignoffStub({ at: '2020-01-01T00:00:00.000Z' }),
-                  },
-                ],
-              },
-            ],
-          },
-        ] as never,
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result).toStrictEqual({ success: true });
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect(persisted.flows[0]?.nodes[0]?.observables[0]?.flowriderSignoff).toStrictEqual(
-        SignoffStub({ at: SERVER_STAMPED_AT }),
-      );
-    });
-
-    it('VALID: {sign-off with NO at field} => accepted and persisted carrying the server stamp', async () => {
-      const proxy = questModifyBrokerProxy();
-      const observable = FlowObservableStub({ id: 'redirects' as never });
-      const node = FlowNodeStub({ id: 'submit-form' as never, observables: [observable] });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'in_progress',
-        flows: [flow],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      // Every field SignoffStub carries except the timestamp — the payload a coverage minion
-      // following the prompts now sends.
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        flows: [
-          {
-            id: 'login-flow',
-            nodes: [
-              {
-                id: 'submit-form',
-                observables: [
-                  {
-                    id: 'redirects',
-                    flowriderSignoff: {
-                      verdict: 'confirmed',
-                      evidence:
-                        'packages/x/src/a-transformer.test.ts:42 — flips to red when the guard returns true',
-                      workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-                    },
-                  },
-                ],
-              },
-            ],
-          },
-        ] as never,
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result).toStrictEqual({ success: true });
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect(persisted.flows[0]?.nodes[0]?.observables[0]?.flowriderSignoff).toStrictEqual(
-        SignoffStub({ at: SERVER_STAMPED_AT }),
-      );
-    });
-
-    // The regression guard for the subtle half: the stamp is applied to the INCOMING payload, never
-    // to the merged quest. A node, an edge and an off-map family this call never mentions must come
-    // through the merge reading the instant they were really signed — otherwise every unrelated
-    // write looks like the whole quest re-signed itself.
-    it('VALID: {a write signing ONE observable} => the node, edge and off-map sign-offs it never mentions keep their own instants', async () => {
-      const proxy = questModifyBrokerProxy();
-      const oldSignoff = SignoffStub({
-        evidence: 'walked it against the dev server on the first pass',
-        at: '2019-03-04T05:06:07.000Z',
-      });
-      const flow = FlowStub({
-        id: 'login-flow' as never,
-        nodes: [
-          FlowNodeStub({
-            id: 'submit-form' as never,
-            siegemasterSignoff: oldSignoff,
-            observables: [FlowObservableStub({ id: 'redirects' as never })],
-          }),
-          FlowNodeStub({ id: 'dashboard' as never, label: 'Dashboard' }),
-        ],
-        edges: [
-          FlowEdgeStub({
-            id: 'submit-to-dashboard' as never,
-            from: 'submit-form' as never,
-            to: 'dashboard' as never,
-            siegemasterSignoff: oldSignoff,
-          }),
-        ],
-        offMapSignoffs: [
-          FlowOffMapSignoffStub({ id: 'concurrency', siegemasterSignoff: oldSignoff }),
-        ],
-      });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'in_progress',
-        flows: [flow],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        flows: [
-          {
-            id: 'login-flow',
-            nodes: [
-              {
-                id: 'submit-form',
-                observables: [{ id: 'redirects', flowriderSignoff: SignoffStub() }],
-              },
-            ],
-          },
-        ] as never,
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result).toStrictEqual({ success: true });
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect({
-        node: persisted.flows[0]?.nodes[0]?.siegemasterSignoff,
-        edge: persisted.flows[0]?.edges[0]?.siegemasterSignoff,
-        offMap: persisted.flows[0]?.offMapSignoffs[0]?.siegemasterSignoff,
-        written: persisted.flows[0]?.nodes[0]?.observables[0]?.flowriderSignoff,
-      }).toStrictEqual({
-        node: oldSignoff,
-        edge: oldSignoff,
-        offMap: oldSignoff,
-        written: SignoffStub({ at: SERVER_STAMPED_AT }),
-      });
-    });
-
-    it('VALID: {observable already carrying siegemasterSignoff, one write sets only flowriderSignoff} => both sign-offs survive on the persisted observable', async () => {
-      const proxy = questModifyBrokerProxy();
-      const siegemasterSignoff = SignoffStub({ evidence: 'walked it against the dev server' });
-      const flowriderSignoff = SignoffStub({
-        evidence: 'packages/web/src/login.e2e.ts:31 — red without the redirect',
-      });
-      const observable = FlowObservableStub({ id: 'redirects' as never, siegemasterSignoff });
-      const node = FlowNodeStub({ id: 'submit-form' as never, observables: [observable] });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'in_progress',
-        flows: [flow],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        flows: [
-          {
-            id: 'login-flow',
-            nodes: [{ id: 'submit-form', observables: [{ id: 'redirects', flowriderSignoff }] }],
-          },
-        ] as never,
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result).toStrictEqual({ success: true });
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect(persisted.flows).toStrictEqual([
-        FlowStub({
-          id: 'login-flow' as never,
-          edges: [],
-          nodes: [
-            FlowNodeStub({
-              id: 'submit-form' as never,
-              observables: [
-                FlowObservableStub({
-                  id: 'redirects' as never,
-                  // Untouched by this write, so its own instant survives verbatim.
-                  siegemasterSignoff,
-                  flowriderSignoff: SignoffStub({ ...flowriderSignoff, at: SERVER_STAMPED_AT }),
-                }),
-              ],
-            }),
-          ],
-        }),
-      ]);
-    });
-
-    it('VALID: {one write signs ONE offMapSignoffs family} => the other six families survive untouched', async () => {
-      const proxy = questModifyBrokerProxy();
-      const offMapFamilies = Object.keys(qaOffMapProbeStatics.byFamily);
-      const siegemasterSignoff = SignoffStub({ evidence: 'double-submitted, it serialised' });
-      const reWalked = SignoffStub({
-        evidence: 'double-submitted again after the lock landed, still one row',
-      });
-      const flow = FlowStub({
-        id: 'login-flow' as never,
-        nodes: [],
-        edges: [],
-        offMapSignoffs: offMapFamilies.map((family) =>
-          FlowOffMapSignoffStub({ id: family as never, siegemasterSignoff }),
-        ),
-      });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'in_progress',
-        flows: [flow],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        flows: [
-          {
-            id: 'login-flow',
-            offMapSignoffs: [{ id: 'concurrency', siegemasterSignoff: reWalked }],
-          },
-        ] as never,
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result).toStrictEqual({ success: true });
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-      const expectedOffMapSignoffs = offMapFamilies.map((family) =>
-        FlowOffMapSignoffStub({ id: family as never, siegemasterSignoff }),
-      );
-      expectedOffMapSignoffs[offMapFamilies.indexOf('concurrency')] = FlowOffMapSignoffStub({
-        id: 'concurrency',
-        siegemasterSignoff: SignoffStub({ ...reWalked, at: SERVER_STAMPED_AT }),
-      });
-
-      expect(persisted.flows).toStrictEqual([
-        FlowStub({
-          id: 'login-flow' as never,
-          nodes: [],
-          edges: [],
-          offMapSignoffs: expectedOffMapSignoffs,
-        }),
-      ]);
-    });
-
-    it('VALID: {write sets siegemasterSignoff to null on an observable carrying both} => the key is gone from the persisted observable and flowriderSignoff is intact', async () => {
-      const proxy = questModifyBrokerProxy();
-      const siegemasterSignoff = SignoffStub({ evidence: 'walked it against the dev server' });
-      const flowriderSignoff = SignoffStub({
-        evidence: 'packages/web/src/login.e2e.ts:31 — red without the redirect',
-      });
-      const observable = FlowObservableStub({
-        id: 'redirects' as never,
-        siegemasterSignoff,
-        flowriderSignoff,
-      });
-      const node = FlowNodeStub({ id: 'submit-form' as never, observables: [observable] });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'in_progress',
-        flows: [flow],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        flows: [
-          {
-            id: 'login-flow',
-            nodes: [
-              { id: 'submit-form', observables: [{ id: 'redirects', siegemasterSignoff: null }] },
-            ],
-          },
-        ] as never,
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result).toStrictEqual({ success: true });
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect(persisted.flows).toStrictEqual([
-        FlowStub({
-          id: 'login-flow' as never,
-          edges: [],
-          nodes: [
-            FlowNodeStub({
-              id: 'submit-form' as never,
-              observables: [FlowObservableStub({ id: 'redirects' as never, flowriderSignoff })],
-            }),
-          ],
-        }),
-      ]);
-    });
-
-    it('EMPTY: {a quest carrying no sign-off keys at all, patched with an observable reword} => the persisted observable has neither sign-off key present', async () => {
-      const proxy = questModifyBrokerProxy();
-      const observable = FlowObservableStub({
-        id: 'redirects' as never,
-        description: 'redirects to dashboard' as never,
-      });
-      const node = FlowNodeStub({ id: 'submit-form' as never, observables: [observable] });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'in_progress',
-        flows: [flow],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        flows: [
-          {
-            id: 'login-flow',
-            nodes: [
-              {
-                id: 'submit-form',
-                observables: [{ id: 'redirects', description: 'redirects to /home instead' }],
-              },
-            ],
-          },
-        ] as never,
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result).toStrictEqual({ success: true });
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      // toStrictEqual is what makes this a real assertion: an absent key and a key holding
-      // undefined/null are different objects to it, so this pins "absent", not "empty".
-      expect(persisted.flows).toStrictEqual([
-        FlowStub({
-          id: 'login-flow' as never,
-          edges: [],
-          nodes: [
-            FlowNodeStub({
-              id: 'submit-form' as never,
-              observables: [
-                FlowObservableStub({
-                  id: 'redirects' as never,
-                  description: 'redirects to /home instead' as never,
-                }),
-              ],
-            }),
-          ],
-        }),
-      ]);
-    });
-
-    it('VALID: {ONE call upserting 50 sign-offs across 3 flows} => every one lands in the single persisted write', async () => {
-      const proxy = questModifyBrokerProxy();
-      const flowriderSignoff = SignoffStub({
-        evidence: 'packages/web/src/a.test.ts:4 — red first',
-      });
-      const stampedFlowriderSignoff = SignoffStub({
-        ...flowriderSignoff,
-        at: SERVER_STAMPED_AT,
-      });
+      const upsertedDescription =
+        'confirmed directly against the diff at packages/web/src/a.test.ts:4';
       const flowOne = FlowStub({
         id: 'flow-one' as never,
         edges: [],
@@ -3413,7 +3007,7 @@ describe('questModifyBroker', () => {
                 id: 'node-one',
                 observables: Array.from({ length: 20 }, (_unused, index) => ({
                   id: `obs-one-${index}`,
-                  flowriderSignoff,
+                  description: upsertedDescription,
                 })),
               },
             ],
@@ -3425,7 +3019,7 @@ describe('questModifyBroker', () => {
                 id: 'node-two',
                 observables: Array.from({ length: 20 }, (_unused, index) => ({
                   id: `obs-two-${index}`,
-                  flowriderSignoff,
+                  description: upsertedDescription,
                 })),
               },
             ],
@@ -3437,7 +3031,7 @@ describe('questModifyBroker', () => {
                 id: 'node-three',
                 observables: Array.from({ length: 10 }, (_unused, index) => ({
                   id: `obs-three-${index}`,
-                  flowriderSignoff,
+                  description: upsertedDescription,
                 })),
               },
             ],
@@ -3459,7 +3053,7 @@ describe('questModifyBroker', () => {
               observables: Array.from({ length: 20 }, (_unused, index) =>
                 FlowObservableStub({
                   id: `obs-one-${index}` as never,
-                  flowriderSignoff: stampedFlowriderSignoff,
+                  description: upsertedDescription,
                 }),
               ),
             }),
@@ -3474,7 +3068,7 @@ describe('questModifyBroker', () => {
               observables: Array.from({ length: 20 }, (_unused, index) =>
                 FlowObservableStub({
                   id: `obs-two-${index}` as never,
-                  flowriderSignoff: stampedFlowriderSignoff,
+                  description: upsertedDescription,
                 }),
               ),
             }),
@@ -3489,7 +3083,7 @@ describe('questModifyBroker', () => {
               observables: Array.from({ length: 10 }, (_unused, index) =>
                 FlowObservableStub({
                   id: `obs-three-${index}` as never,
-                  flowriderSignoff: stampedFlowriderSignoff,
+                  description: upsertedDescription,
                 }),
               ),
             }),

@@ -1,6 +1,8 @@
 /**
  * PURPOSE: Defines the two verdicts a single verification sign-off can carry
  *
+ * @deprecated Retires alongside signoffContract (set 26 session 3) and verificationUnitContract.trackVerdicts (set 26 session 26). Replaced by unitMarkContract ('met' | 'cant-meet' | 'unmet') in story 01.
+ *
  * USAGE:
  * signoffVerdictContract.parse('confirmed');
  * // Returns: SignoffVerdict enum value

@@ -4,7 +4,7 @@
  *
  * USAGE:
  * signoffPatchFieldsStatics.signoffFields;
- * // Returns the field names whose presence marks an element as carrying a sign-off
+ * // Returns the field names whose presence marks an element as carrying a sign-off (empty now that sign-off fields are retired)
  * signoffPatchFieldsStatics.allowedOnSigningElement;
  * // Returns every key an observable / edge may carry once it signs
  * signoffPatchFieldsStatics.allowedOnSigningNode;
@@ -17,22 +17,15 @@
  * `questSignoffCoupledEditViolationsTransformer` is the reader that refuses it.
  *
  * `observables` stays allowed on a signing NODE because every observable inside is held to this same
- * allowlist at its own level, so nothing can change unseen — and that batched shape (`{id,
- * flowriderSignoff, observables: [...]}`) is what a reviewer writes: its discipline pack
- * tells it to sign a whole slice in ONE modify-quest call rather than one call per unit.
+ * allowlist at its own level, so nothing can change unseen.
  * `nodes` needs no equivalent entry: a flow carries no sign-off fields at all.
  *
- * ALL THREE LISTS ARE DERIVED FROM `signoffTracksStatics.fields` rather than spelled out, so a
- * fourth track is marked as signing AND allowed on a signing element the day it is declared there.
- * Hardcoded, a track this file had not heard of would have its own sign-off refused as the
- * offending key — the exact inversion of what the allowlist is for.
- *
- * Field NAMES rather than a track map: the reader is a key-presence check over a payload element,
- * not a per-track lookup. `signoffTrackEligibilityStatics` owns the per-track question.
+ * ALL SIGN-OFF FIELDS ARE RETIRED. The three sign-off fields (`codeweaverSignoff`,
+ * `flowriderSignoff`, `siegemasterSignoff`) have been removed from verification units.
+ * `signoffFields` is now empty, and the allowlists retain only `id` (and `observables` on nodes)
+ * for compatibility with consumers that check modify-quest element keys.
  */
-import { signoffTracksStatics } from '@dungeonmaster/shared/statics';
-
-const signoffFields = signoffTracksStatics.fields.map((track) => `${track}Signoff`);
+const signoffFields = [] as const;
 
 export const signoffPatchFieldsStatics = {
   signoffFields,

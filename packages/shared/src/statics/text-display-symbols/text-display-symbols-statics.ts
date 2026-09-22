@@ -128,6 +128,21 @@ export const textDisplaySymbolsStatics = {
   signoffVerdictMarks: {
     confirmed: '\u2713',
     unconfirmable: '?',
+    met: '\u2713',
+    'cant-meet': '?',
+    unmet: '\u2717',
+  },
+  // Mark glyphs for verification unit outcomes: met (proved), cant-meet (unsettleable at this layer),
+  // unmet (not done). Every glyph is exactly one character.
+  unitMarkMarks: {
+    met: '\u2713',
+    'cant-meet': '?',
+    unmet: '\u2717',
+  },
+  unitMarkSymbols: {
+    met: '\u2713',
+    'cant-meet': '?',
+    unmet: '\u2717',
   },
   // Prefixes the off-map probe families that carry a sign-off, one line per flow.
   offMapLabel: 'off-map:',

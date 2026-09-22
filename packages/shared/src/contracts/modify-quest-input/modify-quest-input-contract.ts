@@ -12,16 +12,6 @@
  * The server-side merge (questItemDeepMergeTransformer) only touches fields present in the update, so partial-patch
  * is the safe shape for editing entries another minion may have written.
  *
- * The sign-off fields on the flow shapes — `codeweaverSignoff`, `flowriderSignoff` and `siegemasterSignoff` on an
- * observable, a node and an edge, and `siegemasterSignoff` alone on each `offMapSignoffs` entry, since a probe family
- * is measured by hand and no other track has a column there — are `.nullish()` HERE while the
- * persisted contracts keep them
- * `.optional()`. `null` is the clear marker a reset writes: `{ id, siegemasterSignoff: null }` says "take this track's
- * sign-off off this unit", which `.optional()` alone cannot express, because omitting the key is how a patch says
- * "leave it alone". questItemDeepMergeTransformer reads an update value of `null` as "remove this key" rather than
- * storing it, so the persisted quest only ever sees the key present or absent. Making the persisted contracts nullable
- * too would invent a third state — a stored `null` — that no reader distinguishes from absent.
- *
  * The package fields are threaded through the flow shapes DELIBERATELY, not by accident of reuse.
  * Only the top object is `.strict()`; the flow/node/observable unions are `.extend().partial()`
  * objects, which STRIP an unrecognised key instead of rejecting it. A node's `packages` therefore has to reach
@@ -36,8 +26,8 @@
  * author has nothing to state. `quest.packageGraph` is deliberately ABSENT — it is derived at Start
  * through `questOperationsUpdateBroker`, which bypasses this allowlist, and no agent writes it.
  *
- * EVERY TIMESTAMP IS `.optional()` HERE AND REQUIRED ON THE PERSISTED CONTRACT — a sign-off's `at`,
- * a blight-ledger entry's `createdAt`, a quest note's `at`, an operation plan's `at`. The same
+ * EVERY TIMESTAMP IS `.optional()` HERE AND REQUIRED ON THE PERSISTED CONTRACT — a
+ * blight-ledger entry's `createdAt`, a quest note's `at`, an operation plan's `at`. The same
  * asymmetry as `package` above, for a different reason: `questModifyBroker` stamps each one from the
  * server clock and DISCARDS whatever arrived, so requiring the field on input would only reject an
  * agent that correctly declined to invent a value. An LLM has no reliable clock; agent-supplied
@@ -69,7 +59,6 @@ import { questContractEntryIdContract } from '../quest-contract-entry-id/quest-c
 import { questNoteContract } from '../quest-note/quest-note-contract';
 import { questPackageEntryContract } from '../quest-package-entry/quest-package-entry-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
-import { signoffContract } from '../signoff/signoff-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
 import { toolingRequirementIdContract } from '../tooling-requirement-id/tooling-requirement-id-contract';
 import { wardResultContract } from '../ward-result/ward-result-contract';
@@ -91,25 +80,6 @@ const serverStampedTimestamp = z
       'quest and dated into a future that never happened.',
   );
 
-// `signoffContract` carries a `.superRefine`, which makes it a ZodEffects with no `.extend()`, so
-// the input variant is rebuilt from its `.innerType()`. That is also why the unconfirmable-needs-a-
-// `toSettle` rule is restated here rather than inherited — each copy is pinned by its own contract
-// test, and dropping it here would demote a form-level rejection to an opaque whole-quest re-parse
-// failure at save time.
-const signoffForUpsertContract = signoffContract
-  .innerType()
-  .extend({ at: serverStampedTimestamp })
-  .superRefine((value, ctx) => {
-    if (value.verdict === 'unconfirmable' && value.toSettle === undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['toSettle'],
-        message:
-          'toSettle is required when verdict is unconfirmable — state the action that would settle this unit, as an instruction rather than a question',
-      });
-    }
-  });
-
 const questBlightLedgerEntryForUpsertContract = questBlightLedgerEntryContract.extend({
   createdAt: serverStampedTimestamp,
 });
@@ -124,9 +94,6 @@ const fullFlowObservable = flowObservableContract.extend({
     .describe(
       'The package this observable is read in. Omit it when the owning node tags exactly one package — the save resolves it from the node. On a node tagging more than one there is nothing to inherit and the omission is refused, so state which side of the seam this one sits on.',
     ),
-  codeweaverSignoff: signoffForUpsertContract.nullish(),
-  flowriderSignoff: signoffForUpsertContract.nullish(),
-  siegemasterSignoff: signoffForUpsertContract.nullish(),
   _delete: z.boolean().optional(),
 });
 const deletableObservableContract = z.union([
@@ -142,9 +109,6 @@ const deletableObservableContract = z.union([
 // through flowNodeContract, and by the save-invariants tier that names the offending node.
 const fullFlowNode = flowNodeContract.extend({
   observables: z.array(deletableObservableContract).optional(),
-  codeweaverSignoff: signoffForUpsertContract.nullish(),
-  flowriderSignoff: signoffForUpsertContract.nullish(),
-  siegemasterSignoff: signoffForUpsertContract.nullish(),
   _delete: z.boolean().optional(),
 });
 const deletableNodeContract = z.union([
@@ -154,9 +118,6 @@ const deletableNodeContract = z.union([
 ]);
 
 const fullFlowEdge = flowEdgeContract.extend({
-  codeweaverSignoff: signoffForUpsertContract.nullish(),
-  flowriderSignoff: signoffForUpsertContract.nullish(),
-  siegemasterSignoff: signoffForUpsertContract.nullish(),
   _delete: z.boolean().optional(),
 });
 const deletableEdgeContract = z.union([
@@ -168,13 +129,7 @@ const deletableEdgeContract = z.union([
 const fullFlow = flowContract.extend({
   nodes: z.array(deletableNodeContract).optional(),
   edges: z.array(deletableEdgeContract).optional(),
-  offMapSignoffs: z
-    .array(
-      flowOffMapSignoffContract.extend({
-        siegemasterSignoff: signoffForUpsertContract.nullish(),
-      }),
-    )
-    .optional(),
+  offMapSignoffs: z.array(flowOffMapSignoffContract).optional(),
   _delete: z.boolean().optional(),
 });
 const deletableFlowContract = z.union([
@@ -306,7 +261,7 @@ export const modifyQuestInputContract = z
         questNotes: z
           .array(questNoteForUpsertContract)
           .describe(
-            'Durable side-channel notes appended to quest.planningNotes.questNotes, keyed on id — re-stating a note UPSERTS its prior entry rather than appending a duplicate, so a continuation session can sharpen a note it already left. These NEVER close a verification unit: they carry open questions, tooling failures, out-of-scope observations, and walk resets. A flow unit is closed by its own `flowriderSignoff` / `siegemasterSignoff`, and a standards-review unit by its blightLedger disposition.',
+            'Durable side-channel notes appended to quest.planningNotes.questNotes, keyed on id — re-stating a note UPSERTS its prior entry rather than appending a duplicate, so a continuation session can sharpen a note it already left. These NEVER close a verification unit: they carry open questions, tooling failures, out-of-scope observations, and walk resets, while a standards-review unit is closed by its blightLedger disposition.',
           )
           .optional(),
         operationPlans: z
@@ -318,7 +273,7 @@ export const modifyQuestInputContract = z
       })
       .partial()
       .describe(
-        'The per-unit standards-review ledger a reviewer writes, the durable side-channel quest notes, and the planner sub-agent plans to merge into quest.planningNotes. Verification sign-offs are NOT here — `flowriderSignoff` / `siegemasterSignoff` are written through `flows`, on the element that carries them.',
+        'The per-unit standards-review ledger a reviewer writes, the durable side-channel quest notes, and the planner sub-agent plans to merge into quest.planningNotes.',
       )
       .optional(),
   })

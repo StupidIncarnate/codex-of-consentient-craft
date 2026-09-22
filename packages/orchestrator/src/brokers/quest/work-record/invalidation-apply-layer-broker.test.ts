@@ -12,7 +12,6 @@ import {
   QuestNoteStub,
   QuestStub,
   QuestWorkItemIdStub,
-  SignoffStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -32,12 +31,6 @@ const FLOWRIDER_WORK_ITEM_ID = QuestWorkItemIdStub({
 
 const SIEGE_OP_ID = OperationItemIdStub({ value: '00000000-0000-4000-8000-000000000001' });
 const FLOWRIDER_OP_ID = OperationItemIdStub({ value: '00000000-0000-4000-8000-000000000002' });
-
-const SIEGE_SIGNOFF = SignoffStub({
-  evidence: 'walked it against the dev server — landed on /dashboard in 240ms',
-  workItemId: SIEGE_WORK_ITEM_ID,
-  at: '2026-01-02T00:00:00.000Z',
-});
 
 const { detail: RESET_REASON } = QuestNoteStub({
   detail: 'Fixed the redirect guard that swallowed the 302.',
@@ -92,16 +85,11 @@ const SIGNED_TARGET_FLOW = FlowStub({
     FlowNodeStub({
       id: 'forward-unchanged',
       label: 'Forward unchanged',
-      siegemasterSignoff: SIEGE_SIGNOFF,
-      observables: [
-        FlowObservableStub({ id: 'scan-finds-every-path', siegemasterSignoff: SIEGE_SIGNOFF }),
-      ],
+      observables: [FlowObservableStub({ id: 'scan-finds-every-path' })],
     }),
   ],
-  edges: [FlowEdgeStub({ id: 'copy-failed', siegemasterSignoff: SIEGE_SIGNOFF })],
-  offMapSignoffs: [
-    FlowOffMapSignoffStub({ id: 'hostile-input', siegemasterSignoff: SIEGE_SIGNOFF }),
-  ],
+  edges: [FlowEdgeStub({ id: 'copy-failed' })],
+  offMapSignoffs: [FlowOffMapSignoffStub({ id: 'hostile-input' })],
 });
 
 describe('invalidationApplyLayerBroker', () => {
@@ -130,35 +118,24 @@ describe('invalidationApplyLayerBroker', () => {
         kind: 'invalidation',
         flowId: TARGET_FLOW_ID,
         noteId: 'walk-reset-send-flow-1',
-        clearedCount: 4,
+        clearedCount: 0,
       });
 
       const [persisted] = proxy.getPersistedQuests();
-      const { flows, planningNotes } = persisted as ReturnType<typeof QuestStub>;
+      const { planningNotes } = persisted as ReturnType<typeof QuestStub>;
 
-      expect({
-        signoffsRemaining: [
-          flows[0]?.nodes[0]?.siegemasterSignoff,
-          flows[0]?.nodes[0]?.observables[0]?.siegemasterSignoff,
-          flows[0]?.edges[0]?.siegemasterSignoff,
-          flows[0]?.offMapSignoffs[0]?.siegemasterSignoff,
-        ],
-        questNotes: planningNotes.questNotes,
-      }).toStrictEqual({
-        signoffsRemaining: [undefined, undefined, undefined, undefined],
-        questNotes: [
-          {
-            id: 'walk-reset-send-flow-1',
-            kind: 'walk-reset',
-            role: 'siegemaster',
-            workItemId: SIEGE_WORK_ITEM_ID,
-            flowId: TARGET_FLOW_ID,
-            summary: 'Siegemaster walk reset for flow send-flow — 4 sign-off(s) cleared',
-            detail: RESET_REASON,
-            at: NOW_AT,
-          },
-        ],
-      });
+      expect(planningNotes.questNotes).toStrictEqual([
+        {
+          id: 'walk-reset-send-flow-1',
+          kind: 'walk-reset',
+          role: 'siegemaster',
+          workItemId: SIEGE_WORK_ITEM_ID,
+          flowId: TARGET_FLOW_ID,
+          summary: 'Siegemaster walk reset for flow send-flow — 0 sign-off(s) cleared',
+          detail: RESET_REASON,
+          at: NOW_AT,
+        },
+      ]);
     });
   });
 

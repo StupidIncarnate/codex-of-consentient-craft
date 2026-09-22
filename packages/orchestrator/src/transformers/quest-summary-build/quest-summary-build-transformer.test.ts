@@ -6,7 +6,6 @@ import {
   FlowStub,
   QuestNoteStub,
   QuestStub,
-  SignoffStub,
 } from '@dungeonmaster/shared/contracts';
 import { signoffTracksStatics } from '@dungeonmaster/shared/statics';
 
@@ -97,15 +96,13 @@ describe('questSummaryBuildTransformer', () => {
       ]);
     });
 
-    it('VALID: {off-map family signed by siegemaster} => counts against siegemaster only', () => {
+    it('VALID: {off-map family on flow} => counts against siegemaster only', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
             nodes: LOGIN_NODES,
             edges: LOGIN_EDGES,
-            offMapSignoffs: [
-              FlowOffMapSignoffStub({ id: 'concurrency', siegemasterSignoff: SignoffStub() }),
-            ],
+            offMapSignoffs: [FlowOffMapSignoffStub({ id: 'concurrency' })],
           }),
         ],
       });
@@ -120,13 +117,13 @@ describe('questSummaryBuildTransformer', () => {
           tracks: [
             { id: 'codeweaver', confirmed: 0, unconfirmable: 0, outstanding: 2 },
             { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 2 },
-            { id: 'siegemaster', confirmed: 1, unconfirmable: 0, outstanding: 8 },
+            { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 9 },
           ],
         },
       ]);
     });
 
-    it('VALID: {operational flow} => carries codeweaver and siegemaster rows, not flowrider', () => {
+    it('VALID: {operational flow} => carries codeweaver row, not flowrider or siegemaster', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -147,12 +144,9 @@ describe('questSummaryBuildTransformer', () => {
           name: 'Register the lint rule',
           flowType: 'operational',
           // Codeweaver measures BOTH flow types — it builds an operational flow's code exactly as
-          // it builds a runtime one's — so it carries a row here where Flowrider, runtime-only,
-          // does not.
-          tracks: [
-            { id: 'codeweaver', confirmed: 0, unconfirmable: 0, outstanding: 2 },
-            { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 9 },
-          ],
+          // it builds a runtime one's — so it carries a row here where Flowrider and Siegemaster
+          // (runtime-only under stepScopeStatics) do not.
+          tracks: [{ id: 'codeweaver', confirmed: 0, unconfirmable: 0, outstanding: 2 }],
         },
       ]);
     });
@@ -192,19 +186,14 @@ describe('questSummaryBuildTransformer', () => {
     });
   });
 
-  describe('one track signing without the other', () => {
-    it('VALID: {terminal carrying a flowriderSignoff} => confirmed on flowrider alone, still outstanding on codeweaver and siegemaster', () => {
+  describe('sign-off fields retired from units', () => {
+    it('VALID: {terminal on flow} => reported as outstanding on all measuring tracks with 0 confirmed', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
             nodes: [
               FlowNodeStub({ id: 'login-page', label: 'Login Page', type: 'state' }),
-              FlowNodeStub({
-                id: 'dashboard',
-                label: 'Dashboard',
-                type: 'state',
-                flowriderSignoff: SignoffStub(),
-              }),
+              FlowNodeStub({ id: 'dashboard', label: 'Dashboard', type: 'state' }),
             ],
             edges: LOGIN_EDGES,
           }),
@@ -220,14 +209,14 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'codeweaver', confirmed: 0, unconfirmable: 0, outstanding: 2 },
-            { id: 'flowrider', confirmed: 1, unconfirmable: 0, outstanding: 1 },
+            { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 2 },
             { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 9 },
           ],
         },
       ]);
     });
 
-    it('VALID: {branch signed on both FIELDS} => confirmed on flowrider and siegemaster, outstanding drops on each', () => {
+    it('VALID: {branch on flow} => reported as outstanding on all measuring tracks with 0 confirmed', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -238,8 +227,6 @@ describe('questSummaryBuildTransformer', () => {
                 from: 'login-page',
                 to: 'dashboard',
                 label: 'success',
-                flowriderSignoff: SignoffStub(),
-                siegemasterSignoff: SignoffStub(),
               }),
             ],
           }),
@@ -255,8 +242,8 @@ describe('questSummaryBuildTransformer', () => {
           flowType: 'runtime',
           tracks: [
             { id: 'codeweaver', confirmed: 0, unconfirmable: 0, outstanding: 2 },
-            { id: 'flowrider', confirmed: 1, unconfirmable: 0, outstanding: 1 },
-            { id: 'siegemaster', confirmed: 1, unconfirmable: 0, outstanding: 8 },
+            { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 2 },
+            { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 9 },
           ],
         },
       ]);
@@ -466,7 +453,7 @@ describe('questSummaryBuildTransformer', () => {
       ]);
     });
 
-    it('VALID: {siegemaster-added observable signed by siegemaster} => the debt entry names the siegemaster track', () => {
+    it('VALID: {siegemaster-added observable} => debt list is empty after sign-off retirement', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -481,12 +468,6 @@ describe('questSummaryBuildTransformer', () => {
                     type: 'api-call',
                     description: 'POST /api/auth/login returns 400 for a non-JSON body',
                     addedBy: 'siegemaster',
-                    siegemasterSignoff: SignoffStub({
-                      verdict: 'unconfirmable',
-                      evidence: 'the endpoint 500s before any validation runs',
-                      toSettle:
-                        'Post a non-JSON body and read whether the router rejects it before the handler.',
-                    }),
                   }),
                 ],
               }),
@@ -499,28 +480,12 @@ describe('questSummaryBuildTransformer', () => {
 
       const result = questSummaryBuildTransformer({ quest });
 
-      expect(result.unconfirmable).toStrictEqual([
-        {
-          id: 'login-flow:observable:crash-on-bleh:siegemaster',
-          unitId: 'login-flow:observable:crash-on-bleh',
-          flowId: 'login-flow',
-          kind: 'observable',
-          track: 'siegemaster',
-          signoff: SignoffStub({
-            verdict: 'unconfirmable',
-            evidence: 'the endpoint 500s before any validation runs',
-            toSettle:
-              'Post a non-JSON body and read whether the router rejects it before the handler.',
-          }),
-        },
-      ]);
+      expect(result.unconfirmable).toStrictEqual([]);
     });
   });
 
-  describe('unconfirmable verdicts', () => {
-    // Every sign-off field has exactly one reader now — `flowriderSignoff` names Flowrider alone —
-    // so an unconfirmable verdict on it surfaces as exactly one entry, keyed unit-crossed-with-track.
-    it('VALID: {terminal unconfirmable on flowrider} => surfaces the reason and the question', () => {
+  describe('unconfirmable debt list after sign-off retirement', () => {
+    it('VALID: {terminal node} => debt list is empty', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -530,13 +495,6 @@ describe('questSummaryBuildTransformer', () => {
                 id: 'dashboard',
                 label: 'Dashboard',
                 type: 'state',
-                flowriderSignoff: SignoffStub({
-                  verdict: 'unconfirmable',
-                  evidence:
-                    'playwright.config.ts declares no webServer, so no e2e run can reach the app',
-                  toSettle:
-                    'Add a webServer block to playwright.config.ts, then re-run this spec against it.',
-                }),
               }),
             ],
             edges: LOGIN_EDGES,
@@ -546,24 +504,10 @@ describe('questSummaryBuildTransformer', () => {
 
       const result = questSummaryBuildTransformer({ quest });
 
-      expect(result.unconfirmable).toStrictEqual([
-        {
-          id: 'login-flow:terminal:dashboard:flowrider',
-          unitId: 'login-flow:terminal:dashboard',
-          flowId: 'login-flow',
-          kind: 'terminal',
-          track: 'flowrider',
-          signoff: SignoffStub({
-            verdict: 'unconfirmable',
-            evidence: 'playwright.config.ts declares no webServer, so no e2e run can reach the app',
-            toSettle:
-              'Add a webServer block to playwright.config.ts, then re-run this spec against it.',
-          }),
-        },
-      ]);
+      expect(result.unconfirmable).toStrictEqual([]);
     });
 
-    it('VALID: {one unit unconfirmable on both FIELDS} => one entry per denominator, keyed unit-crossed-with-track', () => {
+    it('VALID: {multiple nodes on flow} => debt list is empty', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -573,17 +517,6 @@ describe('questSummaryBuildTransformer', () => {
                 id: 'dashboard',
                 label: 'Dashboard',
                 type: 'state',
-                flowriderSignoff: SignoffStub({
-                  verdict: 'unconfirmable',
-                  evidence: 'no webServer is declared for the e2e run',
-                  toSettle: 'Add a webServer block to playwright.config.ts.',
-                }),
-                siegemasterSignoff: SignoffStub({
-                  verdict: 'unconfirmable',
-                  evidence: 'the dev server refuses to bind port 3737 in this sandbox',
-                  toSettle:
-                    'Start the sandbox dev server on the configured port, then re-walk this node.',
-                }),
               }),
             ],
             edges: LOGIN_EDGES,
@@ -593,36 +526,10 @@ describe('questSummaryBuildTransformer', () => {
 
       const result = questSummaryBuildTransformer({ quest });
 
-      expect(result.unconfirmable).toStrictEqual([
-        {
-          id: 'login-flow:terminal:dashboard:flowrider',
-          unitId: 'login-flow:terminal:dashboard',
-          flowId: 'login-flow',
-          kind: 'terminal',
-          track: 'flowrider',
-          signoff: SignoffStub({
-            verdict: 'unconfirmable',
-            evidence: 'no webServer is declared for the e2e run',
-            toSettle: 'Add a webServer block to playwright.config.ts.',
-          }),
-        },
-        {
-          id: 'login-flow:terminal:dashboard:siegemaster',
-          unitId: 'login-flow:terminal:dashboard',
-          flowId: 'login-flow',
-          kind: 'terminal',
-          track: 'siegemaster',
-          signoff: SignoffStub({
-            verdict: 'unconfirmable',
-            evidence: 'the dev server refuses to bind port 3737 in this sandbox',
-            toSettle:
-              'Start the sandbox dev server on the configured port, then re-walk this node.',
-          }),
-        },
-      ]);
+      expect(result.unconfirmable).toStrictEqual([]);
     });
 
-    it('VALID: {off-map family unconfirmable} => surfaces with its family unit id', () => {
+    it('VALID: {off-map family} => debt list is empty', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -631,11 +538,6 @@ describe('questSummaryBuildTransformer', () => {
             offMapSignoffs: [
               FlowOffMapSignoffStub({
                 id: 'perf',
-                siegemasterSignoff: SignoffStub({
-                  verdict: 'unconfirmable',
-                  evidence: 'the sandbox has no way to generate representative load',
-                  toSettle: 'Drive this flow under the recorded load profile and read the timings.',
-                }),
               }),
             ],
           }),
@@ -644,23 +546,10 @@ describe('questSummaryBuildTransformer', () => {
 
       const result = questSummaryBuildTransformer({ quest });
 
-      expect(result.unconfirmable).toStrictEqual([
-        {
-          id: 'login-flow:off-map:perf:siegemaster',
-          unitId: 'login-flow:off-map:perf',
-          flowId: 'login-flow',
-          kind: 'off-map',
-          track: 'siegemaster',
-          signoff: SignoffStub({
-            verdict: 'unconfirmable',
-            evidence: 'the sandbox has no way to generate representative load',
-            toSettle: 'Drive this flow under the recorded load profile and read the timings.',
-          }),
-        },
-      ]);
+      expect(result.unconfirmable).toStrictEqual([]);
     });
 
-    it('VALID: {confirmed sign-off} => never appears in the unconfirmable list', () => {
+    it('EMPTY: {flow with nodes} => debt list is empty', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
@@ -670,8 +559,6 @@ describe('questSummaryBuildTransformer', () => {
                 id: 'dashboard',
                 label: 'Dashboard',
                 type: 'state',
-                flowriderSignoff: SignoffStub(),
-                siegemasterSignoff: SignoffStub(),
               }),
             ],
             edges: LOGIN_EDGES,

@@ -30,7 +30,7 @@ import {
   questPackageEntryKindsTransformer,
 } from '@dungeonmaster/shared/transformers';
 
-import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
+import { stepScopeStatics } from '../../statics/step-scope/step-scope-statics';
 
 type QuestFlow = (typeof questFlowStatics)[keyof typeof questFlowStatics];
 
@@ -55,30 +55,36 @@ export const relayTailFanOutTransformer = ({
   const fanOutBy = 'fanOutBy' in entry ? entry.fanOutBy : undefined;
 
   if (fanOutBy === 'flow') {
-    // THE SEED'S OWN ROLE decides the cut, read off the one statics every denominator reader
-    // shares, so the ledger and get-qa-checklist cannot disagree about what an item covers.
-    const eligibility = new Map(Object.entries(signoffTrackEligibilityStatics.byTrack)).get(
-      entry.role,
-    );
+    // THE SEED'S OWN ROLE decides the cut, read off the step scope statics every denominator
+    // reader shares, so the ledger and get-qa-checklist cannot disagree about what an item covers.
+    const familySteps = new Map(Object.entries(stepScopeStatics.byFamilyStep)).get(entry.role);
+    // Codeweaver and flowrider declare their scope on `review`; siegemaster declares on `happyWalk`
+    // and `adversarial`.
+    const familyScope =
+      familySteps === undefined
+        ? undefined
+        : 'review' in familySteps
+          ? familySteps.review
+          : familySteps.happyWalk;
 
-    // One item per flow of a type this role's track MEASURES. An item minted over a flow type its
-    // own track excludes carries a denominator of zero units, so no session of that role can sign a
-    // single unit of it. A role the statics defines no track for is measured by nothing, so nothing
+    // One item per flow of a type this role's scope MEASURES. An item minted over a flow type its
+    // own scope excludes carries a denominator of zero units, so no session of that role can sign a
+    // single unit of it. A role the statics defines no scope for is measured by nothing, so nothing
     // narrows it and it keeps every flow.
     const eligibleFlows = quest.flows.filter(
       (flow) =>
-        eligibility === undefined || new Set(eligibility.flowTypes.map(String)).has(flow.flowType),
+        familyScope === undefined || new Set(familyScope.flowTypes.map(String)).has(flow.flowType),
     );
 
     if (eligibleFlows.length === 0) {
       // Nothing eligible — a quest with no flows at all, or one whose every flow is a type this
-      // track does not measure. Whether the role still gets ONE whole-quest item turns on `off-map`
+      // scope does not measure. Whether the role still gets ONE whole-quest item turns on `off-map`
       // in its `unitKinds`: the probe families — hostile-input and perf among them — are properties
-      // of the BUILT SYSTEM rather than of any drawn flow, so a track that owns them keeps an owner
-      // for them even here. A track that does not own them has nothing left to prove, and an item
+      // of the BUILT SYSTEM rather than of any drawn flow, so a scope that owns them keeps an owner
+      // for them even here. A scope that does not own them has nothing left to prove, and an item
       // whose denominator is empty is a session dispatched to do nothing.
       const ownsOffMapProbes =
-        eligibility !== undefined && new Set(eligibility.unitKinds.map(String)).has('off-map');
+        familyScope !== undefined && new Set(familyScope.unitKinds.map(String)).has('off-map');
 
       return ownsOffMapProbes
         ? [{ text: textContract.parse(entry.text), flowIds: [], packageNames: [] }]
