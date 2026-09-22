@@ -22,7 +22,8 @@ describe('recipesQuestCompletedBroker', () => {
         inputs: recipesQuestCompletedBroker.inputs,
       }).toStrictEqual({
         recipeName: 'quest-completed',
-        description: 'one guild holding one completed quest with all workflow operations finished',
+        description:
+          'one guild holding one completed quest with all workflow operations and work items finished',
         inputs: undefined,
       });
     });
@@ -47,7 +48,7 @@ describe('recipesQuestCompletedBroker', () => {
       });
     });
 
-    it('VALID: {} => on disk, the quest has codeweaver and ward operations in its ledger', async () => {
+    it('VALID: {} => on disk, the quest has codeweaver and ward operations in its ledger, both complete', async () => {
       const result = await run(recipesQuestCompletedBroker(), fileTarget.target());
       const guild = result[GUILD_NAME] as unknown as Guild;
       const quest = result[QUEST_NAME] as unknown as Quest;
@@ -56,9 +57,29 @@ describe('recipesQuestCompletedBroker', () => {
         guildId: guild.id,
         questFolder: quest.folder,
       });
-      const rolesOnDisk = operationsOnDisk.map((operation) => operation.role);
 
-      expect(rolesOnDisk).toStrictEqual(['codeweaver', 'ward']);
+      expect(
+        operationsOnDisk.map((operation) => ({ role: operation.role, status: operation.status })),
+      ).toStrictEqual([
+        { role: 'codeweaver', status: 'complete' },
+        { role: 'ward', status: 'complete' },
+      ]);
+    });
+
+    it('VALID: {} => the quest carries two work items, one per operation, both in a terminal complete state', async () => {
+      const result = await run(recipesQuestCompletedBroker(), fileTarget.target());
+      const quest = result[QUEST_NAME] as unknown as Quest;
+
+      expect(
+        quest.workItems.map((workItem) => ({
+          role: workItem.role,
+          status: workItem.status,
+          spawnerType: workItem.spawnerType,
+        })),
+      ).toStrictEqual([
+        { role: 'codeweaver', status: 'complete', spawnerType: 'agent' },
+        { role: 'ward', status: 'complete', spawnerType: 'command' },
+      ]);
     });
   });
 });

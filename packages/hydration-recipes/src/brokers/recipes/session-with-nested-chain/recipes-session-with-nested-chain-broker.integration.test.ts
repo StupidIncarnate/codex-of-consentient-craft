@@ -25,7 +25,9 @@ describe('recipesSessionWithNestedChainBroker', () => {
         hasInputs: recipesSessionWithNestedChainBroker.inputs !== undefined,
       }).toStrictEqual({
         recipeName: 'session-with-nested-chain',
-        description: 'one session under an existing guild, holding a nested sub-agent chain',
+        description:
+          'one session under an existing guild, holding a nested sub-agent chain two levels deep ' +
+          '— a top agent with one sub-agent nested under it',
         hasInputs: true,
       });
     });
