@@ -170,6 +170,13 @@ export const questHarness = ({
       completedAt?: string;
       attempt?: number;
       maxAttempts?: number;
+      observations?: {
+        unitId: string;
+        mark: string;
+        evidence: string;
+        toSettle?: string;
+        at?: string;
+      }[];
     }[];
     steps?: { id: string; name: string }[];
     userRequest?: string;
@@ -379,6 +386,13 @@ export const questHarness = ({
       completedAt?: string;
       attempt?: number;
       maxAttempts?: number;
+      observations?: {
+        unitId: string;
+        mark: string;
+        evidence: string;
+        toSettle?: string;
+        at?: string;
+      }[];
     }[];
     steps: { id: string; name: string }[];
     userRequest: string;
@@ -440,6 +454,17 @@ export const questHarness = ({
         maxAttempts: wi.maxAttempts ?? 1,
         ...(wi.insertedBy ? { insertedBy: wi.insertedBy } : {}),
         ...(wi.completedAt === undefined ? {} : { completedAt: wi.completedAt }),
+        ...(wi.observations === undefined
+          ? {}
+          : {
+              observations: wi.observations.map((obs) => ({
+                unitId: obs.unitId,
+                mark: obs.mark,
+                evidence: obs.evidence,
+                ...(obs.toSettle === undefined ? {} : { toSettle: obs.toSettle }),
+                at: obs.at ?? new Date().toISOString(),
+              })),
+            }),
       })),
       userRequest,
       designDecisions: [],
@@ -552,6 +577,19 @@ export const questHarness = ({
       completedAt?: string;
       attempt?: number;
       maxAttempts?: number;
+      // The sign-off record `questSummaryBuildTransformer` reads per (unit, track) —
+      // `unitObservationContract`'s own fields (`packages/shared/src/contracts/unit-observation/`),
+      // restated as plain input like every other field here. `toSettle` is valid ONLY on
+      // `mark: 'cant-meet'` and OMITTED (never sent as `undefined`) otherwise — `questContract`'s
+      // `safeParse` inside `writeQuestFile` is what enforces that pairing and every other shape
+      // rule; this type does not.
+      observations?: {
+        unitId: string;
+        mark: string;
+        evidence: string;
+        toSettle?: string;
+        at?: string;
+      }[];
     }[];
     steps?: { id: string; name: string }[];
     userRequest?: string;
@@ -588,26 +626,30 @@ export const questHarness = ({
     branchName?: string;
     baseBranch?: string;
   }): Promise<void> => {
+    // Every optional property below is a conditional spread, never a plain shorthand: a
+    // destructured optional param's local type is `T | undefined`, and `assembleQuestJsonShape`'s
+    // own param type declares each as `T?` (absent-or-T, never present-as-undefined) —
+    // `exactOptionalPropertyTypes` rejects the shorthand form outright.
     const rawQuest = assembleQuestJsonShape({
       questId,
       questFolder,
       title,
       status,
-      questType,
+      ...(questType === undefined ? {} : { questType }),
       workItems,
       steps,
       userRequest,
-      planningNotes,
-      flows,
+      ...(planningNotes === undefined ? {} : { planningNotes }),
+      ...(flows === undefined ? {} : { flows }),
       packagesAffected,
       contracts,
-      comments,
+      ...(comments === undefined ? {} : { comments }),
       wardResults,
       operations,
-      sessions,
-      worktreePath,
-      branchName,
-      baseBranch,
+      ...(sessions === undefined ? {} : { sessions }),
+      ...(worktreePath === undefined ? {} : { worktreePath }),
+      ...(branchName === undefined ? {} : { branchName }),
+      ...(baseBranch === undefined ? {} : { baseBranch }),
     });
 
     // Every write goes through dmRegistryBroker — no raw-fs fallback. A shape the framework
@@ -735,21 +777,21 @@ export const questHarness = ({
       questFolder,
       title,
       status,
-      questType,
+      ...(questType === undefined ? {} : { questType }),
       workItems,
       steps,
       userRequest,
-      planningNotes,
-      flows,
+      ...(planningNotes === undefined ? {} : { planningNotes }),
+      ...(flows === undefined ? {} : { flows }),
       packagesAffected,
       contracts,
-      comments,
+      ...(comments === undefined ? {} : { comments }),
       wardResults,
       operations,
-      sessions,
-      worktreePath,
-      branchName,
-      baseBranch,
+      ...(sessions === undefined ? {} : { sessions }),
+      ...(worktreePath === undefined ? {} : { worktreePath }),
+      ...(branchName === undefined ? {} : { branchName }),
+      ...(baseBranch === undefined ? {} : { baseBranch }),
     });
 
     await fsPromises.mkdir(dirname(questFilePath), { recursive: true });
