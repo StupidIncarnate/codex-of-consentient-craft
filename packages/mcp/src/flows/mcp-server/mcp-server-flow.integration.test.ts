@@ -16,7 +16,6 @@ import {
   QuestContractEntryStub,
   QuestNoteStub,
   QuestStub,
-  SignoffStub,
   ToolingRequirementStub,
 } from '@dungeonmaster/shared/contracts';
 import { mcpToolsStatics } from '@dungeonmaster/shared/statics';
@@ -1512,7 +1511,7 @@ describe('McpServerFlow', () => {
     const SUMMARY_GUILD_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
     const SUMMARY_WORK_ITEM_ID = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 
-    it('VALID: {questId} => renders the coverage rows, the mid-quest observable, the unconfirmable evidence AND toSettle, and the notes by kind', async () => {
+    it('VALID: {questId} => renders the coverage rows, the mid-quest observable, and the notes by kind', async () => {
       const questId = 'mcp-get-quest-summary';
       const questFolder = '001-mcp-get-quest-summary';
       const quest = QuestStub({
@@ -1534,14 +1533,6 @@ describe('McpServerFlow', () => {
                     type: 'api-call' as never,
                     description: 'POST /api/auth/login returns 400 for a non-JSON body' as never,
                     addedBy: 'siegemaster' as never,
-                    siegemasterSignoff: SignoffStub({
-                      verdict: 'unconfirmable' as never,
-                      evidence: 'the dev server refuses a non-JSON body before the route runs',
-                      toSettle:
-                        'Post a non-JSON body and read what the body parser in front of this route returns.',
-                      workItemId: SUMMARY_WORK_ITEM_ID,
-                      at: '2026-01-02T00:00:00.000Z',
-                    }),
                   }),
                 ],
               }),
@@ -1595,8 +1586,6 @@ describe('McpServerFlow', () => {
         title: lines[0],
         flowHeading: lines.find((line) => line.startsWith('### `login-flow`')),
         observable: lines.find((line) => line.startsWith('- added by')),
-        evidence: lines.find((line) => line.startsWith('      evidence:')),
-        toSettle: lines.find((line) => line.startsWith('      toSettle:')),
         openQuestions: lines.find((line) => line.startsWith('### open-question')),
         walkResets: lines.find((line) => line.startsWith('### walk-reset')),
       }).toStrictEqual({
@@ -1606,9 +1595,6 @@ describe('McpServerFlow', () => {
         flowHeading: '### `login-flow` "Login Flow" [runtime]',
         observable:
           '- added by siegemaster: `login-flow:observable:rejects-bleh-payload` [api-call]',
-        evidence: '      evidence: the dev server refuses a non-JSON body before the route runs',
-        toSettle:
-          '      toSettle: Post a non-JSON body and read what the body parser in front of this route returns.',
         openQuestions: '### open-question (1)',
         walkResets: '### walk-reset (0)',
       });

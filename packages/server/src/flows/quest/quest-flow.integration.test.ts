@@ -9,7 +9,6 @@ import {
   QuestStub,
   QuestWorkItemIdStub,
   SessionIdStub,
-  SignoffStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
@@ -135,25 +134,16 @@ describe('QuestFlow', () => {
   // The summary is COMPUTED from the persisted flow graph, not stored — so the only way to prove
   // the route returns real numbers (rather than an empty envelope that happens to be 200) is to
   // drive a real HTTP request against a real quest.json whose graph the counts can be derived from
-  // by hand. The seeded flow is deliberately mixed: a Siegemaster-added observable (which Flowrider
-  // can never sign, so it must be absent from Flowrider's three numbers and present in
-  // midQuestObservables), a confirmed terminal, an unconfirmable terminal on the other track, an
-  // unsigned labelled branch, and one note of each of two kinds.
+  // by hand. The seeded flow is deliberately mixed: a Siegemaster-added observable (which
+  // Codeweaver's and Flowrider's denominators both exclude, so it must be absent from their two
+  // numbers and present in midQuestObservables), a terminal, a labelled branch, and one note of
+  // each of two kinds.
   describe('GET /api/quests/:questId/summary', () => {
-    it('VALID: {quest with one signed terminal, one siegemaster-added observable, an unsigned branch and two notes} => 200 carrying per-track counts, the drift row, the unconfirmable debt and every note group', async () => {
+    it('VALID: {quest with a terminal, a labelled branch, a siegemaster-added observable and two notes} => 200 carrying per-track outstanding counts, the drift row and every note group', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-summary-get' });
       const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
-      const flowriderConfirmed = SignoffStub({
-        evidence: 'packages/web/src/flows/login/login.e2e.ts:31 — red without the redirect',
-      });
-      const siegemasterUnconfirmable = SignoffStub({
-        verdict: 'unconfirmable',
-        evidence: 'the sandbox refuses to bind port 3737, so no browser can reach the app',
-        toSettle: 'Start the sandbox dev server on a free port, then re-walk this node.',
-        at: '2026-01-02T00:00:00.000Z',
-      });
       const openQuestionNote = QuestNoteStub({
         id: 'open-question-anchor-scope',
         kind: 'open-question',
@@ -181,8 +171,6 @@ describe('QuestFlow', () => {
           FlowNodeStub({
             id: 'dashboard' as never,
             label: 'Dashboard' as never,
-            flowriderSignoff: flowriderConfirmed,
-            siegemasterSignoff: siegemasterUnconfirmable,
           }),
         ],
         edges: [
@@ -218,11 +206,9 @@ describe('QuestFlow', () => {
       // login-flow is runtime, so all three denominators measure it. Units: 1 terminal (dashboard,
       // the only node with no outgoing edge) + 1 labelled branch (e-success) + 1 observable + 7
       // off-map families. Codeweaver and Flowrider both shed the off-map families AND the
-      // siegemaster-added observable, leaving terminal + branch each — but they read different
-      // sign-off fields, so Flowrider's terminal (signed `flowriderSignoff`) counts confirmed while
-      // Codeweaver's copy of the same two units carries no `codeweaverSignoff` at all and is fully
-      // outstanding. Siegemaster keeps all 10, of which the terminal is unconfirmable and the other
-      // 9 are outstanding.
+      // siegemaster-added observable, leaving terminal + branch each — 2 outstanding apiece.
+      // Siegemaster keeps all 10 as outstanding. Sign-off tracking is retired, so `confirmed` and
+      // `unconfirmable` are always 0 on every track, and `unconfirmable` below is always [].
       expect(response.status).toBe(200);
       expect(harness.toPlain(body)).toStrictEqual({
         questId,
@@ -233,8 +219,8 @@ describe('QuestFlow', () => {
             flowType: 'runtime',
             tracks: [
               { id: 'codeweaver', confirmed: 0, unconfirmable: 0, outstanding: 2 },
-              { id: 'flowrider', confirmed: 1, unconfirmable: 0, outstanding: 1 },
-              { id: 'siegemaster', confirmed: 0, unconfirmable: 1, outstanding: 9 },
+              { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 2 },
+              { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 10 },
             ],
           },
         ],
@@ -249,16 +235,7 @@ describe('QuestFlow', () => {
             description: 'POST /api/auth/login returns 400 for a non-JSON body',
           },
         ],
-        unconfirmable: [
-          {
-            id: 'login-flow:terminal:dashboard:siegemaster',
-            unitId: 'login-flow:terminal:dashboard',
-            flowId: 'login-flow',
-            kind: 'terminal',
-            track: 'siegemaster',
-            signoff: harness.toPlain(siegemasterUnconfirmable),
-          },
-        ],
+        unconfirmable: [],
         noteGroups: [
           { id: 'open-question', notes: [harness.toPlain(openQuestionNote)] },
           { id: 'tooling-error', notes: [harness.toPlain(toolingErrorNote)] },

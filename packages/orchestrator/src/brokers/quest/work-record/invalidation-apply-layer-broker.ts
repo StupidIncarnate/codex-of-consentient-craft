@@ -1,13 +1,12 @@
 /**
- * PURPOSE: Layer of `questWorkRecordBroker` — applies `quest-work`'s `invalidation` payload, the
- * bulk lever `questResetFlowSignoffsBroker` was: clears `siegemasterSignoff` across every unit on
- * ONE flow and appends a `walk-reset` note. Carries that broker's five guards VERBATIM, prefixed
- * `quest-work:` instead of `reset-flow-signoffs:` — including the `:101`-equivalent guard's
- * `'no flows at all'` branch when `flowIds` is empty. The ONE guard that changes on purpose is the
- * siegemaster-only authority check: it is keyed on the linked operation item's FAMILY
+ * PURPOSE: Layer of `questWorkRecordBroker` — applies `quest-work`'s `invalidation` payload: a
+ * `flowId` and a reason that re-opens the flow by appending a `walk-reset` note to
+ * `quest.planningNotes.questNotes`. No field on the flow is touched — a unit's mark is already the
+ * one on the most recent work item assigned it, so the note is the whole durable record. Carries
+ * five guards, prefixed `quest-work:` — including the `'no flows at all'` branch when `flowIds` is
+ * empty. The siegemaster-only authority check is keyed on the linked operation item's FAMILY
  * (`workItemFamilyResolveTransformer`), never on `operationItem.role` read as a bare string, because
- * a siege FIXER's own work item is mid-family (`step: 'fixHappy'` / `'fixAdversarial'`), not the
- * whole-scope role the OLD broker's single work item always carried.
+ * a siege FIXER's own work item is mid-family (`step: 'fixHappy'` / `'fixAdversarial'`).
  *
  * USAGE:
  * await invalidationApplyLayerBroker({ quest, workItem, workItemId, questId, questFilePath, flowId, reason, nowAt });
@@ -89,17 +88,7 @@ export const invalidationApplyLayerBroker = async ({
     throw new Error(`quest-work: flow ${flowId} is not on quest ${questId} — nothing was reset`);
   }
 
-  const signedUnits = [
-    ...targetFlow.nodes,
-    ...targetFlow.nodes.flatMap((node) => node.observables),
-    ...targetFlow.edges,
-    ...targetFlow.offMapSignoffs,
-  ];
-  const clearedCount = signedUnits.filter((unit) => unit.siegemasterSignoff !== undefined).length;
-
-  for (const unit of signedUnits) {
-    Reflect.deleteProperty(unit, 'siegemasterSignoff');
-  }
+  const clearedCount = 0;
 
   const priorResets = quest.planningNotes.questNotes.filter(
     (note) => note.kind === 'walk-reset' && note.flowId === flowId,
