@@ -545,14 +545,23 @@ it. It declares no `done` route either, so it returns to whichever session reque
 
 **siegemaster** is the INVERSE of the other two — its reviewers run FIRST and find the work, its worker
 repairs — and the structure holds unchanged: `sweepIn → plan → happyWalk → adversarial → commit → ward →
-sweepOut`. `happyWalk` and `adversarial` are `reviewer` steps, each with its OWN fixer (`fixHappy`,
-`fixAdversarial`) that routes back to the walker that found the work — one shared fixer sent every
-adversarial finding back to the happy walk, which never measured it. **`happyWalk → adversarial` is the
-PHASE ORDER, and it is a route rather than a rule in a prompt:** a step's `done` fires only once every
-piece at that step has DRAINED, so every happy piece has recorded before the first attack is minted and
-an antagonist's baseline exists by the time the router mints it. `sweepIn` and `sweepOut` are `cleanup`
-handlers at both ends — the first makes the first capacity reading honest, the last catches what the
-pass leaked.
+sweepOut`. Two more steps sit OFF that chain, mintable ON REQUEST rather than by route: `recipe` (the
+same `recipe-maker` prompt flowrider requests — a recipe is flow-scoped, not family-scoped, so whichever
+family asks first authors it) and `read` (the `siegemaster-reader` prompt, opening source files so no
+walker has to). Neither declares any route but `wall`, so a planner asking up front or a walker asking
+mid-pass gets it back as a fresh work item at its own step, not a route target. `happyWalk` (the
+`siege-happy-walker` prompt) and `adversarial` (the `siege-adversarial-walker` prompt) are `reviewer`
+steps, each with its OWN fixer — `fixHappy` runs the `siege-happy-fixer` prompt, `fixAdversarial` the
+`siege-adversarial-fixer` prompt — that routes back to the walker that found the work — one shared fixer
+sent every adversarial finding back to the happy walk, which never measured it. **`happyWalk →
+adversarial` is the PHASE ORDER, and it is a route rather than a rule in a prompt:** a step's `done`
+fires only once every piece at that step has DRAINED, so every happy piece has recorded before the first
+attack is minted and an antagonist's baseline exists by the time the router mints it. `sweepIn` and
+`sweepOut` are `cleanup` handlers at both ends — the first makes the first capacity reading honest, the
+last catches what the pass leaked. **Siegemaster's `ward` step OVERRIDES the shared `CLOSE_OUT`
+routing**: every other family's `ward` sends `done` and `empty` straight to `@done`, but siegemaster's
+sends both to `sweepOut` instead — the pass is not over until the instances it opened are swept. `unmet`
+still routes to `repair`, unchanged from every other family's gate.
 
 **riftcarver** — `carve → repair → commit → carve`. **wardFull** — `gate → repair → commit → gate`.
 Both carry their own `commit`, because neither shares the `CLOSE_OUT` trio: without one a repair's fix
