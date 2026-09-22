@@ -12,12 +12,8 @@ const SUMMARY_REQUEST_TIMEOUT = 15_000;
 
 const WORK_ITEM_ID = 'e2e00000-0000-4000-8000-0000000000a1';
 const OPERATION_ID = '00000000-0000-4000-8000-0000000000c1';
-const SIGNOFF_WORK_ITEM_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+const NOTE_WORK_ITEM_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
-const UNCONFIRMABLE_REASON =
-  'the sandbox refuses to bind port 3737, so no browser can reach the app';
-const UNCONFIRMABLE_TO_SETTLE =
-  'Start the sandbox dev server on a free port, then re-walk this terminal.';
 const DRIFT_OBSERVABLE_TEXT = 'POST /api/auth/login returns 400 for a non-JSON body';
 const OPEN_QUESTION_SUMMARY = 'Should the sandbox dev server port be configurable per guild?';
 
@@ -26,9 +22,12 @@ const OPEN_QUESTION_SUMMARY = 'Should the sandbox dev server port be configurabl
 //   branches    = edges carrying a non-empty label     -> `start-to-done`         (1)
 //   observables = embedded in nodes                    -> `crash-on-bleh`         (1)
 //   off-map     = emitted for every flow, always       -> 7 probe families        (7)
-// Flowrider measures runtime flows but sheds the off-map families AND anything
-// `addedBy: 'siegemaster'`, leaving the terminal (confirmed) + the branch (outstanding).
-// Siegemaster measures all ten, of which the terminal is unconfirmable and nine are outstanding.
+// `questSummaryBuildTransformer` counts every eligible unit as `outstanding` — `confirmed` and
+// `unconfirmable` are both hardcoded (0 and [] respectively) pending the observation-record
+// rebuild. Flowrider's `unitKinds` covers terminal/branch/observable but its `observableOrigins`
+// excludes `siegemaster`, so `crash-on-bleh` drops out and its denominator is terminal + branch = 2.
+// Siegemaster's `unitKinds` covers all four kinds and its `observableOrigins` includes
+// `siegemaster`, so its denominator is the full ten.
 const SUMMARY_FLOWS = [
   {
     id: 'summary-flow',
@@ -58,19 +57,6 @@ const SUMMARY_FLOWS = [
         type: 'terminal',
         packages: ['auth-service'],
         observables: [],
-        flowriderSignoff: {
-          verdict: 'confirmed',
-          evidence: 'packages/web/src/flows/login/login.e2e.ts:31 — red without the redirect',
-          workItemId: SIGNOFF_WORK_ITEM_ID,
-          at: '2026-01-01T00:00:00.000Z',
-        },
-        siegemasterSignoff: {
-          verdict: 'unconfirmable',
-          evidence: UNCONFIRMABLE_REASON,
-          toSettle: UNCONFIRMABLE_TO_SETTLE,
-          workItemId: SIGNOFF_WORK_ITEM_ID,
-          at: '2026-01-02T00:00:00.000Z',
-        },
       },
     ],
     edges: [{ id: 'start-to-done', from: 'start', to: 'done', label: 'success' }],
@@ -84,7 +70,7 @@ const SUMMARY_PLANNING_NOTES = {
       id: 'open-question-sandbox-port',
       kind: 'open-question',
       role: 'siegemaster',
-      workItemId: SIGNOFF_WORK_ITEM_ID,
+      workItemId: NOTE_WORK_ITEM_ID,
       flowId: 'summary-flow',
       summary: OPEN_QUESTION_SUMMARY,
       detail: 'The walk stalled on the bound port; nobody answered before the session ended.',
@@ -103,7 +89,7 @@ test.describe('Quest summary joins the raccoon in the execution activity column'
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('VALID: {in_progress quest with a signed terminal, a siegemaster-added observable and an open question} => the summary renders per-track counts, the drift row, the unconfirmable reason and its question, with the raccoon still visible', async ({
+  test('VALID: {in_progress quest with a siegemaster-added observable and an open question} => the summary renders per-track counts, the drift row, the empty unconfirmable section and the open question, with the raccoon still visible', async ({
     page,
     request,
   }) => {
@@ -169,28 +155,28 @@ test.describe('Quest summary joins the raccoon in the execution activity column'
     });
 
     // Real, graph-derived counts: Flowrider's denominator on this flow is the terminal + the
-    // labelled branch, and only the terminal carries a Flowrider verdict.
+    // labelled branch — the siegemaster-added observable drops out on provenance.
     const flowriderRow = page
       .getByTestId('QUEST_SUMMARY_TRACK_ROW')
       .filter({ hasText: 'FLOWRIDER' });
 
     await expect(flowriderRow.getByTestId('QUEST_SUMMARY_TRACK_CONFIRMED')).toHaveText(
-      '1 confirmed',
+      '0 confirmed',
     );
     await expect(flowriderRow.getByTestId('QUEST_SUMMARY_TRACK_OUTSTANDING')).toHaveText(
-      '1 outstanding',
+      '2 outstanding',
     );
 
-    // Siegemaster keeps all ten units (off-map families included), one of which is unconfirmable.
+    // Siegemaster keeps all ten units (off-map families included).
     const siegemasterRow = page
       .getByTestId('QUEST_SUMMARY_TRACK_ROW')
       .filter({ hasText: 'SIEGEMASTER' });
 
     await expect(siegemasterRow.getByTestId('QUEST_SUMMARY_TRACK_UNCONFIRMABLE')).toHaveText(
-      '1 unconfirmable',
+      '0 unconfirmable',
     );
     await expect(siegemasterRow.getByTestId('QUEST_SUMMARY_TRACK_OUTSTANDING')).toHaveText(
-      '9 outstanding',
+      '10 outstanding',
     );
 
     // Scope drift: the observable a Siegemaster walker wrote in after approval, with its author.
@@ -202,17 +188,13 @@ test.describe('Quest summary joins the raccoon in the execution activity column'
       'added by siegemaster',
     );
 
-    // The debt the completion gate let through, carrying the reason AND the action that settles it.
-    const unconfirmableRow = page
-      .getByTestId('QUEST_SUMMARY_UNCONFIRMABLE_ROW')
-      .filter({ hasText: 'summary-flow:terminal:done' });
-
-    await expect(unconfirmableRow.getByTestId('QUEST_SUMMARY_UNCONFIRMABLE_REASON')).toHaveText(
-      UNCONFIRMABLE_REASON,
+    // `questSummaryBuildTransformer` hardcodes `unconfirmable: []` for every quest, so the DEBT
+    // section renders its own empty state rather than a row — and no `QUEST_SUMMARY_UNCONFIRMABLE_ROW`
+    // exists to find.
+    await expect(page.getByTestId('QUEST_SUMMARY_DEBT_EMPTY')).toHaveText(
+      'no unconfirmable verdicts',
     );
-    await expect(unconfirmableRow.getByTestId('QUEST_SUMMARY_UNCONFIRMABLE_TO_SETTLE')).toHaveText(
-      `→ ${UNCONFIRMABLE_TO_SETTLE}`,
-    );
+    await expect(page.getByTestId('QUEST_SUMMARY_UNCONFIRMABLE_ROW')).toHaveCount(0);
 
     // The side-channel open question nobody answered.
     const openQuestionGroup = page

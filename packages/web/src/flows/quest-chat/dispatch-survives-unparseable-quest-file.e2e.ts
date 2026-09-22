@@ -103,26 +103,31 @@ test.describe('Dispatch with an unparseable sibling quest file', () => {
       },
     );
 
-    // The relay advances codeweaver#1 -> codeweaver#2, one dispatch each, so the FIFO script is
-    // exactly two outcomes.
+    // The relay advances codeweaver#1 -> codeweaver#2, then drains the codeweaver family, which
+    // auto-routes onward through the family graph (questFlowStatics: riftcarver -> codeweaver ->
+    // flowrider -> siegemaster -> wardFull -> @complete): each family's own drain mints the next
+    // family's scopes the moment it completes, so the FIFO script carries one outcome per family
+    // the router mints behind codeweaver.
     await dispatch.playAndDrive({
       questId: String(questId),
       script: [
         { role: 'codeweaver', outcome: 'done' },
         { role: 'codeweaver', outcome: 'done' },
+        { role: 'flowrider', outcome: 'done' },
+        { role: 'siegemaster', outcome: 'done' },
+        { role: 'ward', outcome: 'green' },
       ],
     });
 
-    // Backend truth: both operations complete, one work item each, quest complete. The scan
-    // re-reads the unparseable sibling on every pass, so this also proves it stays survivable
-    // across dispatches rather than only on the first one.
+    // Backend truth: quest complete, every operation item complete. The scan re-reads the
+    // unparseable sibling on every pass, so this also proves it stays survivable across dispatches
+    // rather than only on the first one.
     const finalQuest = await dispatch.waitForQuest({
       questId: String(questId),
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.status === 'complete' &&
-        quest.operations.length === 2 &&
-        quest.workItems.length === 2 &&
+        quest.operations.length === 5 &&
         quest.operations.every((op) => op.status === 'complete'),
     });
 
@@ -131,10 +136,26 @@ test.describe('Dispatch with an unparseable sibling quest file', () => {
     ).toStrictEqual([
       { role: 'codeweaver', status: 'complete' },
       { role: 'codeweaver', status: 'complete' },
+      { role: 'flowrider', status: 'complete' },
+      { role: 'siegemaster', status: 'complete' },
+      { role: 'ward', status: 'complete' },
     ]);
 
-    await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(['DONE', 'DONE'], {
-      timeout: LEDGER_TIMEOUT,
-    });
+    expect(
+      finalQuest.workItems.map((wi) => ({ role: String(wi.role), status: wi.status })),
+    ).toStrictEqual([
+      { role: 'codeweaver', status: 'complete' },
+      { role: 'codeweaver', status: 'complete' },
+      { role: 'flowrider', status: 'complete' },
+      { role: 'siegemaster', status: 'complete' },
+      { role: 'siegemaster', status: 'complete' },
+      { role: 'siegemaster', status: 'complete' },
+      { role: 'ward', status: 'complete' },
+    ]);
+
+    await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(
+      ['DONE', 'DONE', 'DONE', 'DONE', 'DONE', 'DONE', 'DONE'],
+      { timeout: LEDGER_TIMEOUT },
+    );
   });
 });
