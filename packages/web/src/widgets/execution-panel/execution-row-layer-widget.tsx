@@ -303,6 +303,7 @@ export const ExecutionRowLayerWidget = ({
 
         <Text
           ff="monospace"
+          data-testid="execution-row-name"
           style={{
             fontSize: NAME_FONT_SIZE,
             color: colors.text,

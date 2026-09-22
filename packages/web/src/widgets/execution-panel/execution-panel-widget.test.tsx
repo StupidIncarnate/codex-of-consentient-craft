@@ -456,6 +456,122 @@ describe('ExecutionPanelWidget', () => {
     });
   });
 
+  describe('row identity', () => {
+    it('VALID: {a codeweaver cell with several sessions on one scope, each a different step} => every row name is distinguishable', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({ id: OP_ID_1, text: 'core: config adapter', status: 'in_progress' }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'plan',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'review',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000003',
+            role: 'codeweaver',
+            status: 'in_progress',
+            step: 'commit',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getRowNames()).toStrictEqual([
+        'core: config adapter (plan)',
+        'core: config adapter (review)',
+        'core: config adapter (commit)',
+      ]);
+    });
+
+    it('EDGE: {two parallel workers on one scope sharing the same step} => names stay distinguishable via each session id', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({ id: OP_ID_1, text: 'core: config adapter', status: 'in_progress' }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'in_progress',
+            step: 'work',
+            sessionId: 'session-worker-one',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'in_progress',
+            step: 'work',
+            sessionId: 'session-worker-two',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const names = proxy.getRowNames();
+
+      expect(names).toStrictEqual([
+        'core: config adapter (session-worker-one)',
+        'core: config adapter (session-worker-two)',
+      ]);
+      expect(new Set(names).size).toBe(names.length);
+    });
+
+    it('VALID: {two work items on two different operations} => each row keeps its own scope text, unchanged', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({ id: OP_ID_1, text: 'build the broker', status: 'complete' }),
+          OperationItemStub({ id: OP_ID_2, text: 'wire the flow', status: 'pending' }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'pending',
+            relatedDataItems: [`operations/${OP_ID_2}`],
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getRowNames()).toStrictEqual(['build the broker', 'wire the flow']);
+    });
+  });
+
   describe('dependsOn labels', () => {
     it('VALID: {work item with dependsOn} => subtitle shows the dependency role labels', () => {
       ExecutionPanelWidgetProxy();

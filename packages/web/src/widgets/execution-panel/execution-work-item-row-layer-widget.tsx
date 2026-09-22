@@ -3,7 +3,9 @@
  * status and display name from the quest-wide lookups the panel builds once, then renders the row.
  * This is what the panel's one numbered list maps over for a claimed work item — the counterpart to
  * rendering ExecutionRowLayerWidget directly for an unclaimed operation, which has none of this to
- * derive.
+ * derive. The name is the row's SCOPE label (its operation, or the role fallback) plus, only when
+ * the panel flags a sibling sharing that scope, `sessionDisambiguator` — see the panel's own
+ * scope-grouping comment for how that value is chosen.
  *
  * USAGE:
  * <ExecutionWorkItemRowLayerWidget
@@ -35,6 +37,7 @@ import { riftcarverResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
+import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
 import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
@@ -68,6 +71,11 @@ export interface ExecutionWorkItemRowLayerWidgetProps {
   wardResultsById: Map<WardResult['id'], WardResult>;
   riftcarverResultsById: Map<RiftcarverResult['id'], RiftcarverResult>;
   operationsById: Map<OperationItem['id'], OperationItem>;
+  // Set by the panel ONLY when this row's scope (its resolved operation, or the role fallback) is
+  // shared by another visible row — the panel is the one place that can see every sibling at once.
+  // A row on a scope nothing else is working never receives one, so its name renders exactly as
+  // before. See the panel's own scope-grouping comment for what this value resolves to.
+  sessionDisambiguator?: DisplayLabel;
 }
 
 export const ExecutionWorkItemRowLayerWidget = ({
@@ -83,6 +91,7 @@ export const ExecutionWorkItemRowLayerWidget = ({
   wardResultsById,
   riftcarverResultsById,
   operationsById,
+  sessionDisambiguator,
 }: ExecutionWorkItemRowLayerWidgetProps): React.JSX.Element => {
   const ownEntries =
     workItemEntries.get(workItem.id) ??
@@ -119,10 +128,15 @@ export const ExecutionWorkItemRowLayerWidget = ({
   const operation = operationRef
     ? operationsById.get(operationRef.slice(OPERATIONS_PREFIX_LENGTH) as OperationItem['id'])
     : undefined;
+  // The scope label alone (the operation this row works, or the role fallback) is what the panel
+  // GROUPS rows by — it stays the row's primary, human-recognisable identity. sessionDisambiguator
+  // is appended only when the panel found a sibling row sharing that same scope, which is exactly
+  // when the bare scope label stops being unique.
+  const scopeLabel = operation
+    ? operation.text
+    : `${workItem.role.charAt(0).toUpperCase()}${workItem.role.slice(1)}`;
   const name = displayLabelContract.parse(
-    operation
-      ? operation.text
-      : `${workItem.role.charAt(0).toUpperCase()}${workItem.role.slice(1)}`,
+    sessionDisambiguator === undefined ? scopeLabel : `${scopeLabel} (${sessionDisambiguator})`,
   );
 
   return (

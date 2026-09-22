@@ -100,6 +100,16 @@ describe('ExecutionRowLayerWidget', () => {
 
       expect(row.textContent).toBe('\u00B7\u00B7\u00B701[CODEWEAVER]Build auth flowPENDING');
     });
+
+    it('VALID: {name: "Build auth flow"} => execution-row-name carries exactly the name text, isolated from the order/badge/status around it', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ExecutionRowLayerWidget {...defaultProps()} />,
+      });
+
+      expect(screen.getByTestId('execution-row-name').textContent).toBe('Build auth flow');
+    });
   });
 
   describe('status badge', () => {

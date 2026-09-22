@@ -13,6 +13,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { DisplayLabelStub } from '../../contracts/display-label/display-label.stub';
 import { RowOrderStub } from '../../contracts/row-order/row-order.stub';
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 import { ExecutionWorkItemRowLayerWidget } from './execution-work-item-row-layer-widget';
@@ -80,6 +81,51 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
 
       expect(screen.getByTestId('execution-row-layer-widget').textContent).toBe(
         '▸01[CODEWEAVER]CodeweaverDONE',
+      );
+    });
+
+    it('VALID: {sessionDisambiguator provided, operation resolves} => row name appends it to the resolved operation text', () => {
+      ExecutionWorkItemRowLayerWidgetProxy();
+      const workItem = WorkItemStub({
+        id: WORK_ITEM_ID,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`operations/${OPERATION_ID}`],
+      });
+      const operation = OperationItemStub({ id: OPERATION_ID, text: 'build the broker' });
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionWorkItemRowLayerWidget
+            {...defaultParams({ workItem })}
+            operationsById={new Map([[operation.id, operation]])}
+            sessionDisambiguator={DisplayLabelStub({ value: 'work' })}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('execution-row-name').textContent).toBe('build the broker (work)');
+    });
+
+    it('VALID: {sessionDisambiguator provided, operation does not resolve} => row name appends it to the capitalized role fallback', () => {
+      ExecutionWorkItemRowLayerWidgetProxy();
+      const workItem = WorkItemStub({
+        id: WORK_ITEM_ID,
+        role: 'codeweaver',
+        status: 'in_progress',
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionWorkItemRowLayerWidget
+            {...defaultParams({ workItem })}
+            sessionDisambiguator={DisplayLabelStub({ value: 'session-worker-two' })}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('execution-row-name').textContent).toBe(
+        'Codeweaver (session-worker-two)',
       );
     });
   });

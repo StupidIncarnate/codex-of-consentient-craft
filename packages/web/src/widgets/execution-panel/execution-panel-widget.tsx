@@ -30,6 +30,7 @@ import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { CompletedCount } from '@dungeonmaster/shared/contracts';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
+import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
 import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 import { executionRoleContract } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
@@ -115,6 +116,8 @@ const ACTION_BAR_PADDING = 12;
 // a flex item's default min-height: auto does not floor it here because its own content
 // scrolls internally.
 const EXECUTION_FLOOR_MIN_HEIGHT = 160;
+const OPERATIONS_PREFIX = 'operations/';
+const OPERATIONS_PREFIX_LENGTH = OPERATIONS_PREFIX.length;
 const FLOOR_CONTENT_TEST_ID = testIdContract.parse('execution-panel-floor-content');
 // ChatPanelWidget's onSendMessage/onStopChat are required props. onSendFollowupMessage is
 // only reachable as undefined for the single render tick between a prop change and the
@@ -240,6 +243,74 @@ export const ExecutionPanelWidget = ({
     riftcarverResultsById.set(rr.id, rr);
   }
 
+  // A row's SCOPE is the operation its relatedDataItems ref resolves to (matching the fallback
+  // ExecutionWorkItemRowLayerWidget itself applies), or its role when the ref is absent or dangling.
+  // Grouped here — the only place that sees every visible sibling at once — because a scope holding
+  // several dispatched sessions (a codeweaver cell's plan, several parallel workers, review, commit,
+  // ward, repair) renders one row per session, and every one of those rows shares this same scope.
+  // Two maps rather than one composite-string-keyed map, so neither key needs an ad hoc brand.
+  const opScopeGroups = new Map<(typeof quest.operations)[0]['id'], WorkItem[]>();
+  const roleScopeGroups = new Map<WorkItem['role'], WorkItem[]>();
+  for (const wi of visibleWorkItems) {
+    const operationRef = wi.relatedDataItems.find((ref) => ref.startsWith(OPERATIONS_PREFIX));
+    const rawOperationId = operationRef?.slice(OPERATIONS_PREFIX_LENGTH) as
+      | (typeof quest.operations)[0]['id']
+      | undefined;
+    if (rawOperationId !== undefined && operationsById.has(rawOperationId)) {
+      const group = opScopeGroups.get(rawOperationId);
+      if (group) {
+        group.push(wi);
+      } else {
+        opScopeGroups.set(rawOperationId, [wi]);
+      }
+    } else {
+      const group = roleScopeGroups.get(wi.role);
+      if (group) {
+        group.push(wi);
+      } else {
+        roleScopeGroups.set(wi.role, [wi]);
+      }
+    }
+  }
+
+  // Only a scope holding more than one visible session needs a disambiguator at all — the common
+  // case (one session per scope) leaves every row's name exactly as ExecutionWorkItemRowLayerWidget's
+  // own scope-label fallback already renders it, and this map simply carries no entry for it. Within
+  // a colliding scope, `step` is the human-legible tiebreaker (it names which step of the family
+  // graph this session is running); parallel pieces of the SAME step (several workers dispatched
+  // together) still collide on that, so a step shared by more than one sibling escalates further to
+  // that session's own identity — its live sessionId, or its work item id for a session that has not
+  // been dispatched yet — which is always unique.
+  const SCOPE_HOLDS_MULTIPLE_SESSIONS = 2;
+  const sessionDisambiguatorPropsByWorkItemId = new Map<
+    WorkItem['id'],
+    { sessionDisambiguator: DisplayLabel } | Record<PropertyKey, never>
+  >();
+  for (const group of [...opScopeGroups.values(), ...roleScopeGroups.values()]) {
+    if (group.length < SCOPE_HOLDS_MULTIPLE_SESSIONS) {
+      continue;
+    }
+    const stepGroups = new Map<DisplayLabel, WorkItem[]>();
+    for (const wi of group) {
+      const stepKey = displayLabelContract.parse(wi.step ?? `${wi.role} role`);
+      const stepGroup = stepGroups.get(stepKey);
+      if (stepGroup) {
+        stepGroup.push(wi);
+      } else {
+        stepGroups.set(stepKey, [wi]);
+      }
+    }
+    for (const [stepKey, stepGroup] of stepGroups) {
+      for (const wi of stepGroup) {
+        const label =
+          stepGroup.length < SCOPE_HOLDS_MULTIPLE_SESSIONS
+            ? stepKey
+            : displayLabelContract.parse(wi.sessionId ?? wi.id);
+        sessionDisambiguatorPropsByWorkItemId.set(wi.id, { sessionDisambiguator: label });
+      }
+    }
+  }
+
   return (
     <Stack gap={0} style={{ height: '100%' }} data-testid="execution-panel-widget">
       <Box
@@ -338,6 +409,7 @@ export const ExecutionPanelWidget = ({
                 riftcarverResultsById={riftcarverResultsById}
                 operationsById={operationsById}
                 {...(guildSlug ? { guildSlug } : {})}
+                {...(sessionDisambiguatorPropsByWorkItemId.get(wi.id) ?? {})}
               />
             ))}
             {/* The numbering continues straight on from the work-item rows above, because this is

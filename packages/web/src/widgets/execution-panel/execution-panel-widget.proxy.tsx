@@ -49,6 +49,7 @@ export const ExecutionPanelWidgetProxy = (): {
   hasDumpsterLaunchBanner: () => boolean;
   getDumpsterLaunchBannerCommand: () => HTMLElement['textContent'];
   getStepRows: () => HTMLElement[];
+  getRowNames: () => (HTMLElement['textContent'] | null)[];
   getRoleBadges: () => (HTMLElement['textContent'] | null)[];
   hasOperationsLedger: () => boolean;
   getActionButtons: () => HTMLElement[];
@@ -183,6 +184,8 @@ export const ExecutionPanelWidgetProxy = (): {
       return element?.textContent ?? null;
     },
     getStepRows: (): HTMLElement[] => screen.queryAllByTestId('execution-row-layer-widget'),
+    getRowNames: (): (HTMLElement['textContent'] | null)[] =>
+      screen.queryAllByTestId('execution-row-name').map((el) => el.textContent),
     getRoleBadges: (): (HTMLElement['textContent'] | null)[] =>
       screen.queryAllByTestId('execution-row-role-badge').map((el) => el.textContent),
     // The checklist box belongs to the QUEST SPEC tab now, so this reads the EXECUTION tab's own
