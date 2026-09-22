@@ -149,6 +149,13 @@ export const questHarness = ({
     title: string;
     userRequest: string;
   }) => Promise<{ questId: QuestId; questFolder: QuestId; filePath: FilePath; success: boolean }>;
+  // Same plan shape as createQuest, run against the `write` target instead of the `api` one — for
+  // a spec proving the two routes produce equivalent domain state for the same ingredient.
+  createQuestViaWriteRoute: (params: {
+    guildId: string;
+    title: string;
+    userRequest: string;
+  }) => Promise<{ questId: QuestId; questFolder: QuestId; filePath: FilePath }>;
   writeQuestFile: (params: {
     guildId?: string;
     questId: string;
@@ -400,6 +407,43 @@ export const questHarness = ({
     );
     return {
       success: true,
+      questId: quest.id,
+      questFolder: quest.folder as unknown as QuestId,
+      filePath,
+    };
+  };
+
+  // Same plan shape as createQuest, run against the `write` target instead of the `api` one — for
+  // a spec proving the two routes produce equivalent domain state for the same ingredient.
+  const createQuestViaWriteRoute = async ({
+    guildId,
+    title,
+    userRequest,
+  }: {
+    guildId: string;
+    title: string;
+    userRequest: string;
+  }): Promise<{ questId: QuestId; questFolder: QuestId; filePath: FilePath }> => {
+    const plan = recipe(
+      { name: 'seed-quest-write', description: 'seed one quest via write route' },
+      () => [
+        dmRegistryBroker.quests.under({ guildId: guildIdContract.parse(guildId) }).add(1, (q) => [
+          q[0].set({
+            title: questContract.shape.title.parse(title),
+            userRequest: questContract.shape.userRequest.parse(userRequest),
+          }),
+          q[0].saveRecordAs({ name: QUEST_SAVE_NAME }),
+        ]),
+      ],
+    )();
+    const result = await dmRegistryBroker.run(plan, dmTarget.writeTarget());
+    const quest = (result as Record<PropertyKey, unknown>)[QUEST_SAVE_NAME] as Quest;
+    const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+    const questFolderPath = `${dungeonmasterHome}/${dungeonmasterHomeStatics.paths.guildsDir}/${guildId}/${dungeonmasterHomeStatics.paths.questsDir}/${quest.folder}`;
+    const filePath = filePathContract.parse(
+      `${questFolderPath}/${dungeonmasterHomeStatics.paths.questFile}`,
+    );
+    return {
       questId: quest.id,
       questFolder: quest.folder as unknown as QuestId,
       filePath,
@@ -1355,6 +1399,7 @@ export const questHarness = ({
 
   return {
     createQuest,
+    createQuestViaWriteRoute,
     writeQuestFile,
     writeMalformedQuestFile,
     writeUnparseableQuestFile: tamperQuestUnparseableFile,
