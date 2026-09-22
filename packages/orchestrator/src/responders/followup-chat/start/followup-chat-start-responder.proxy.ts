@@ -24,8 +24,7 @@ type WorktreePath = NonNullable<Quest['worktreePath']>;
 // crypto.randomUUID is sticky-mocked to this literal by chatSpawnBrokerProxy's own constructor
 // (its last registration wins over agentLaunchBrokerProxy's own uuid mock). FollowupChatStartResponder
 // mints a fresh tavernkeeper work item id off the SAME global mock, so this is the id it computes
-// whenever no existing item is found — matching the literal design-chat-start-responder.test.ts
-// asserts for its own crypto.randomUUID-minted glyphWorkItemId.
+// whenever no existing item is found.
 const MINTED_WORK_ITEM_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
 // Pins createdAt/startedAt/completedAt (this responder's own timestamps) AND quest.updatedAt

@@ -50,10 +50,10 @@ const stripTrailingAddDirPair = ({ args }: { args: unknown }): unknown => {
 };
 
 const awaitOnCompleteFireAndForget = async (): Promise<void> => {
-  // Mirrors design-chat-start-responder.test.ts's own wait for the onComplete fire-and-forget
-  // questModifyBroker chain: a nested setImmediate pair (spawn exit event, then the launcher's
-  // onComplete handler) followed by a setTimeout(0) so the questModifyBroker promise chain
-  // (find-quest-path -> load -> persist) settles before the assertion reads it.
+  // Waits out the onComplete fire-and-forget questModifyBroker chain: a nested setImmediate pair
+  // (spawn exit event, then the launcher's onComplete handler) followed by a setTimeout(0) so the
+  // questModifyBroker promise chain (find-quest-path -> load -> persist) settles before the
+  // assertion reads it.
   await new Promise<void>((resolve) => {
     setImmediate(() => {
       setImmediate(() => {

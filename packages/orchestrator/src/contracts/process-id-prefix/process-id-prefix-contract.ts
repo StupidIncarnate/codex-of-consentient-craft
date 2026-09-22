@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Defines the observability prefix the launcher prepends to a UUID when minting a ProcessId. Three values are valid: `chat` (chaoswhisperer interactive sessions), `design` (glyphsmith interactive sessions), and `proc` (every orchestration-loop dispatched agent — codeweaver, flowrider, siegemaster, spiritmender, warpgate, ward).
+ * PURPOSE: Defines the observability prefix the launcher prepends to a UUID when minting a ProcessId. Two values are valid: `chat` (chaoswhisperer interactive sessions) and `proc` (every orchestration-loop dispatched agent — codeweaver, flowrider, siegemaster, spiritmender, warpgate, ward).
  *
  * USAGE:
  * processIdPrefixContract.parse('proc');
@@ -8,6 +8,6 @@
 
 import { z } from 'zod';
 
-export const processIdPrefixContract = z.enum(['chat', 'design', 'proc']);
+export const processIdPrefixContract = z.enum(['chat', 'proc']);
 
 export type ProcessIdPrefix = z.infer<typeof processIdPrefixContract>;

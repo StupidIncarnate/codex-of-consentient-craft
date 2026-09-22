@@ -15,12 +15,6 @@ describe('processIdPrefixContract', () => {
       expect(result).toBe('chat');
     });
 
-    it('VALID: {value: "design"} => parses successfully', () => {
-      const result = processIdPrefixContract.parse('design');
-
-      expect(result).toBe('design');
-    });
-
     it('VALID: {value: "proc"} => parses successfully', () => {
       const result = processIdPrefixContract.parse('proc');
 
@@ -31,6 +25,10 @@ describe('processIdPrefixContract', () => {
   describe('invalid prefix', () => {
     it('INVALID: {value: "agent"} => throws validation error', () => {
       expect(() => processIdPrefixContract.parse('agent')).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: {value: "design"} => throws validation error', () => {
+      expect(() => processIdPrefixContract.parse('design')).toThrow(/Invalid enum value/u);
     });
 
     it('INVALID: {value: ""} => throws validation error', () => {
