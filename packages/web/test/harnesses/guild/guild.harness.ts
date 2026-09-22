@@ -32,6 +32,9 @@ export const guildHarness = ({
   beforeEach: () => Promise<void>;
   cleanGuilds: () => Promise<void>;
   createGuild: (params: { name: string; path: string }) => Promise<GuildRecord>;
+  // Same plan shape as createGuild, run against the `write` target instead of the `api` one — for a
+  // spec proving the two routes produce equivalent domain state for the same ingredient.
+  createGuildViaWriteRoute: (params: { name: string; path: string }) => Promise<GuildRecord>;
   // Removes one guild through dmRegistryBroker's `remove` route (guildRemoveRouteBroker), the same
   // guildRemoveBroker call the real DELETE responder makes — see that route's own header for why it
   // calls the broker in-process rather than over HTTP even against an apiTarget.
@@ -68,6 +71,27 @@ export const guildHarness = ({
     return (result as Record<PropertyKey, unknown>)[GUILD_SAVE_NAME] as GuildRecord;
   };
 
+  const createGuildViaWriteRoute = async ({
+    name,
+    path,
+  }: {
+    name: string;
+    path: string;
+  }): Promise<GuildRecord> => {
+    const parsedFields = guildFieldsContract.parse({ name, path });
+    const plan = recipe(
+      { name: 'seed-guild-write', description: 'seed one guild via write route' },
+      () => [
+        dmRegistryBroker.guilds.add(1, (g) => [
+          g[0].set(parsedFields),
+          g[0].saveRecordAs({ name: GUILD_SAVE_NAME }),
+        ]),
+      ],
+    )();
+    const result = await dmRegistryBroker.run(plan, dmTarget.writeTarget());
+    return (result as Record<PropertyKey, unknown>)[GUILD_SAVE_NAME] as GuildRecord;
+  };
+
   // Filters on `id` alone: the intersection widens the ingredient's own `where` type (which has no
   // index signature) to admit `id`, a value `guildAddBroker` mints rather than a settable
   // GuildFields key — the same shape questHarness.patchQuestStatus uses for a quest's `id`.
@@ -95,6 +119,7 @@ export const guildHarness = ({
     beforeEach: cleanGuilds,
     cleanGuilds,
     createGuild,
+    createGuildViaWriteRoute,
     deleteGuild,
     extractGuildId,
     extractUrlSlug,

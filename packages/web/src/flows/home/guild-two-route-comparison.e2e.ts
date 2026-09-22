@@ -5,60 +5,35 @@
 import { z } from 'zod';
 
 import { guildContract } from '@dungeonmaster/shared/contracts';
-import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
-import { guildFieldsContract } from '@dungeonmaster/hydration-recipes/contracts';
 
 import { test, expect } from '../../../test/harnesses/e2e-fixtures';
-import { dmTargetHarness } from '../../../test/harnesses/dm-target/dm-target.harness';
+import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 
-const { recipe } = recipesHydrationCreateBroker();
-const GUILD_SAVE_NAME = 'guild';
 const SHARED_NAME = 'Dual Route Guild';
 const WRITE_GUILD_NAME = SHARED_NAME;
 const API_GUILD_PATH = '/tmp/dm-e2e-two-route-api';
 const WRITE_GUILD_PATH = '/tmp/dm-e2e-two-route-write';
 
 test.describe('Guild Two-Route Comparison', () => {
-  let target: ReturnType<typeof dmTargetHarness>;
+  let guilds: ReturnType<typeof guildHarness>;
 
   test.beforeEach(async ({ baseURL, request }) => {
-    target = dmTargetHarness({ baseURL, request });
-    await target.beforeEach();
+    guilds = guildHarness({ ...(baseURL === undefined ? {} : { baseURL }), request });
+    await guilds.cleanGuilds();
   });
 
   test('VALID: {same guild fields via api and write routes} => produces equivalent domain state', async ({
     page,
     request,
   }) => {
-    const apiPlan = recipe(
-      { name: 'seed-guild-api', description: 'seed one guild via api route' },
-      () => [
-        dmRegistryBroker.guilds.add(1, (g) => [
-          g[0].set(guildFieldsContract.parse({ name: SHARED_NAME, path: API_GUILD_PATH })),
-          g[0].saveRecordAs({ name: GUILD_SAVE_NAME }),
-        ]),
-      ],
-    )();
+    const apiGuildRecord = await guilds.createGuild({ name: SHARED_NAME, path: API_GUILD_PATH });
+    const writeGuildRecord = await guilds.createGuildViaWriteRoute({
+      name: SHARED_NAME,
+      path: WRITE_GUILD_PATH,
+    });
 
-    const writePlan = recipe(
-      { name: 'seed-guild-write', description: 'seed one guild via write route' },
-      () => [
-        dmRegistryBroker.guilds.add(1, (g) => [
-          g[0].set(guildFieldsContract.parse({ name: SHARED_NAME, path: WRITE_GUILD_PATH })),
-          g[0].saveRecordAs({ name: GUILD_SAVE_NAME }),
-        ]),
-      ],
-    )();
-
-    const apiResult = await dmRegistryBroker.run(apiPlan, target.apiTarget());
-    const writeResult = await dmRegistryBroker.run(writePlan, target.writeTarget());
-
-    const apiGuild = guildContract.parse(
-      (apiResult as Record<PropertyKey, unknown>)[GUILD_SAVE_NAME],
-    );
-    const writeGuild = guildContract.parse(
-      (writeResult as Record<PropertyKey, unknown>)[GUILD_SAVE_NAME],
-    );
+    const apiGuild = guildContract.parse(apiGuildRecord);
+    const writeGuild = guildContract.parse(writeGuildRecord);
 
     const apiGuildName = apiGuild.name;
     const writeGuildName = writeGuild.name;
@@ -76,8 +51,8 @@ test.describe('Guild Two-Route Comparison', () => {
     const response = await request.get('/api/guilds');
     expect(response.status()).toBe(200);
     const rawGuilds: unknown = await response.json();
-    const guilds = z.array(guildContract).parse(rawGuilds);
-    const ids = guilds.map((guild) => guild.id);
+    const allGuilds = z.array(guildContract).parse(rawGuilds);
+    const ids = allGuilds.map((guild) => guild.id);
     const hasApiGuild = ids.some((id) => id === apiGuildId);
     const hasWriteGuild = ids.some((id) => id === writeGuildId);
     expect(hasApiGuild).toBe(true);

@@ -27,10 +27,11 @@ import * as path from 'path';
 import type { APIRequestContext } from '@playwright/test';
 import { z } from 'zod';
 
-import type { FilePath, Quest, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, ProcessId, Quest, QuestId } from '@dungeonmaster/shared/contracts';
 import {
   SimpleTextResponseStub,
   WardQueueResponseStub,
+  processIdContract,
   questContract,
 } from '@dungeonmaster/shared/contracts';
 import { dmHttpResponseContract } from '@dungeonmaster/hydration-recipes/contracts';
@@ -137,10 +138,12 @@ export const dispatchHarness = ({
   // this is RAW ON PURPOSE.
   forcePlayDispatcher: () => Promise<{ status: DmHttpResponse['status'] }>;
   // Calls the real POST /api/quests/:questId/start route — the same one the Begin Quest button
-  // calls — and hands back its status code. See its own body for why this is RAW ON PURPOSE.
+  // calls — and hands back its status code plus the processId the body carries, since a caller
+  // that polls `/api/process/:processId` next needs that id and no ingredient exposes it. See its
+  // own body for why this is RAW ON PURPOSE.
   startQuestViaStartRoute: (params: {
     questId: string;
-  }) => Promise<{ status: DmHttpResponse['status'] }>;
+  }) => Promise<{ status: DmHttpResponse['status']; processId: ProcessId }>;
 } => {
   const claudeMock = claudeMockHarness({
     guildPath,
@@ -345,9 +348,13 @@ export const dispatchHarness = ({
       questId,
     }: {
       questId: string;
-    }): Promise<{ status: DmHttpResponse['status'] }> => {
+    }): Promise<{ status: DmHttpResponse['status']; processId: ProcessId }> => {
       const response = await request.post(`/api/quests/${questId}/start`);
-      return { status: dmHttpResponseContract.shape.status.parse(response.status()) };
+      const body: unknown = await response.json();
+      return {
+        status: dmHttpResponseContract.shape.status.parse(response.status()),
+        processId: processIdContract.parse((body as Record<PropertyKey, unknown>).processId),
+      };
     },
   };
 };
