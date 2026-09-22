@@ -234,6 +234,66 @@ describe('questToUnitsTransformer', () => {
       ]);
     });
 
+    it('VALID: {verifyByHuman: true} => verificationMethod human-check', () => {
+      const observable = FlowObservableStub({
+        id: 'looks-right-to-a-person',
+        package: 'web',
+        verifyByHuman: true,
+      });
+      const node = FlowNodeStub({
+        id: 'compose-node',
+        packages: ['web'],
+        observables: [observable],
+      });
+      const flow = FlowStub({ id: 'flow-human', nodes: [node], edges: [] });
+
+      const result = questToUnitsTransformer({ flows: [flow] });
+
+      const offMapUnits = Object.keys(qaOffMapProbeStatics.byFamily).map((family) =>
+        VerificationUnitStub({
+          flowId: 'flow-human',
+          kind: 'off-map',
+          unitId: family,
+          packages: [],
+          trackMarks: {},
+        }),
+      );
+
+      expect(result).toStrictEqual([
+        VerificationUnitStub({
+          flowId: 'flow-human',
+          kind: 'observable',
+          unitId: 'looks-right-to-a-person',
+          nodeId: 'compose-node',
+          packages: ['web'],
+          verificationMethod: 'human-check',
+          trackMarks: {},
+        }),
+        ...offMapUnits,
+      ]);
+    });
+
+    it('VALID: {verifyByReading: true AND verifyByHuman: true} => verificationMethod human-check, verifyByHuman wins', () => {
+      const observable = FlowObservableStub({
+        id: 'imports-the-shared-limit-and-looks-right',
+        package: 'web',
+        verifyByReading: true,
+        verifyByHuman: true,
+      });
+      const node = FlowNodeStub({
+        id: 'compose-node',
+        packages: ['web'],
+        observables: [observable],
+      });
+      const flow = FlowStub({ id: 'flow-both-flags', nodes: [node], edges: [] });
+
+      const result = questToUnitsTransformer({ flows: [flow] });
+
+      const observableUnit = result.find((unit) => unit.kind === 'observable');
+
+      expect(observableUnit?.verificationMethod).toBe('human-check');
+    });
+
     it('VALID: {addedBy: siegemaster} => carried through', () => {
       const observable = FlowObservableStub({
         id: 'found-mid-quest',

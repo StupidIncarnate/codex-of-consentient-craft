@@ -57,6 +57,11 @@
  * - PACKAGE KIND. A ROW IS KEYED ON THE DENOMINATOR TRACK, so `quest.packagesAffected` IS passed and
  *   each row narrows to the package kinds its own role measures. A single row per FIELD would fuse
  *   every role writing that field into one number no single track's work list computes.
+ * - VERIFICATION METHOD. An observable flagged `verifyByHuman` resolves to `human-check`, which no
+ *   track's `verificationMethods` lists, so it matches none of the four counts on any row —
+ *   `verifyByHuman` wins over `verifyByReading` when an observable carries both. `QuestSummary` has
+ *   no place yet for a criterion only a person can settle; the unit is excluded outright rather than
+ *   parked somewhere no reader would find it.
  *
  * `packageNames` is an operation item's own slice and is threaded on top when a caller holds one,
  * because such a caller is asking exactly "what does MY work list say".
@@ -125,11 +130,23 @@ export const questSummaryBuildTransformer = ({
           units: units
             .filter((unit) => eligibleKinds.has(unit.kind))
             .filter((unit) => unit.kind !== 'observable' || eligibleOrigins.has(unit.addedBy))
-            .filter(
-              (unit) =>
-                unit.kind !== 'observable' ||
-                eligibleMethods.has(unit.verifyByReading === true ? 'reading' : 'test'),
-            ),
+            .filter((unit) => {
+              if (unit.kind !== 'observable') {
+                return true;
+              }
+
+              // `verifyByHuman` wins over `verifyByReading` when an observable carries both — it
+              // names the METHOD nothing automated can perform, where `verifyByReading` only names
+              // which automated method applies. No track's `verificationMethods` lists
+              // `human-check` (`stepScopeStatics`), so a flagged unit matches none of them and is
+              // excluded here — `QuestSummary` has no place yet for a criterion only a person can
+              // settle (T3-21 adds one).
+              if (unit.verifyByHuman === true) {
+                return eligibleMethods.has('human-check');
+              }
+
+              return eligibleMethods.has(unit.verifyByReading === true ? 'reading' : 'test');
+            }),
           track,
           packagesAffected: quest.packagesAffected,
           packageNames,

@@ -100,8 +100,21 @@ export const questToUnitsTransformer = ({
     });
 
     const observableUnits = flow.nodes.flatMap((node): VerificationUnit[] =>
-      node.observables.map((observable) =>
-        verificationUnitContract.parse({
+      node.observables.map((observable) => {
+        // `verifyByHuman` wins over `verifyByReading` when an observable carries both — it names
+        // the METHOD nothing automated can perform, where `verifyByReading` only names which
+        // automated method applies (`flowObservableContract`'s own JSDoc). No track in
+        // `trackDenominatorStatics` lists `human-check`, so this literal is what drops the unit out
+        // of every track's denominator on the outside-measurement path this package serves.
+        let verificationMethod: VerificationUnit['verificationMethod'] = 'test';
+
+        if (observable.verifyByHuman === true) {
+          verificationMethod = 'human-check';
+        } else if (observable.verifyByReading === true) {
+          verificationMethod = 'reading';
+        }
+
+        return verificationUnitContract.parse({
           flowId: flow.id,
           flowType: flow.flowType,
           kind: 'observable',
@@ -109,10 +122,10 @@ export const questToUnitsTransformer = ({
           nodeId: node.id,
           packages: node.packages,
           ...(observable.addedBy !== 'spec' && { addedBy: observable.addedBy }),
-          verificationMethod: observable.verifyByReading === true ? 'reading' : 'test',
+          verificationMethod,
           trackMarks: {},
-        }),
-      ),
+        });
+      }),
     );
 
     const branchUnits = flow.edges.flatMap((edge): VerificationUnit[] => {

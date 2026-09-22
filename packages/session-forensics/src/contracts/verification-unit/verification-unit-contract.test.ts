@@ -32,6 +32,28 @@ describe('verificationUnitContract', () => {
       );
     });
 
+    it('VALID: {verificationMethod: human-check} => returns the branded unit', () => {
+      const result = verificationUnitContract.parse({
+        flowId: 'render-images-in-transcript',
+        flowType: 'runtime',
+        kind: 'observable',
+        unitId: 'looks-right-to-a-person',
+        nodeId: 'transcript-panel',
+        packages: ['web'],
+        verificationMethod: 'human-check',
+        trackMarks: {},
+      });
+
+      expect(result).toStrictEqual(
+        VerificationUnitStub({
+          unitId: 'looks-right-to-a-person',
+          nodeId: 'transcript-panel',
+          verificationMethod: 'human-check',
+          trackMarks: {},
+        }),
+      );
+    });
+
     it('VALID: {kind: branch, nodeId present, no addedBy} => returns the branded unit', () => {
       const result = verificationUnitContract.parse({
         flowId: 'send-message-with-images',

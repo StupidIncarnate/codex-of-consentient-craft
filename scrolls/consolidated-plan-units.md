@@ -226,3 +226,116 @@ It comes out of `packages/shared/src/statics/work-item-role/work-item-role-stati
 |---|---|---|
 | T3-16a | Survey every `glyphsmith` reference repo-wide and split the removal into 1-3 file units | read-only, any time |
 | T3-16b+ | The removal units the survey defines | after the orchestrator T3-15 / T3-20 / T4-10b agents land; the `shared` edit runs with nothing else in flight |
+
+---
+
+## T3-16 — glyphsmith role removal, units
+
+107 occurrences of `glyphsmith` (case-insensitive) found under `packages/**`, `docs/**`, `playbook/**`
+and the root `CLAUDE.md`s. None in `.claude/` (only generated settings there, skipped) and none in the
+root `CLAUDE.md` itself. Classified: the enum source (`work-item-role-statics.ts`); three maps/lists
+keyed by role that a colocated test pins to an exact shape (`role-to-model-statics.ts`,
+`execution-step-status-config-statics.ts`, `execution-floor-config-statics.ts`); one live functional
+comparison in a test proxy (`chat-spawn-broker.proxy.ts`'s `setupGlyphsmithSession`); a long tail of
+`WorkItemRoleStub`/`WorkItemStub` literals and `describe`/`it` blocks across orchestrator and server
+tests; and prose — purpose-comments, package `CLAUDE.md`s, and `docs/`/`playbook/` narrative.
+
+**Surprising finding:** the three "map keyed by role" statics are **not** typecheck-forced the way the
+task brief expected. `role-to-model-statics.ts` is checked via
+`roleToModelStatics satisfies Record<ClaudeSpawnRole, ClaudeModel>` in
+`role-to-model-transformer.ts:30-31` — but `satisfies`'s excess-property check only fires on a *fresh*
+object literal written at the checked position, and here the checked expression is an identifier
+reference to a `const` declared elsewhere. A stale `glyphsmith: 'opus'` left behind after the enum
+shrinks is an allowed *extra* property, not a compile error — `Record<K,V>` assignability doesn't forbid
+extra keys structurally. Same reasoning for `executionStepStatusConfigStatics.roleColors[role]` and
+`executionFloorConfigStatics.floors.find(f => f.role === role)` in
+`role-to-config-index-transformer.ts:29-31`: indexing/comparing with the *narrower*, post-shrink
+`WorkItemRole` union against an object/array that still carries an extra `glyphsmith` entry typechecks
+fine either way. What actually breaks if these three are left stale is their own **colocated unit
+test** (`toStrictEqual` against a hand-written literal, or an exact-length array comparison) — a
+test-green concern, not a typecheck one, and satisfied by editing each statics file together with its
+own `.test.ts` in one unit, independent of when the enum itself moves.
+
+What **is** unavoidably typecheck-forced, the moment `work-item-role-statics.ts` loses the `'glyphsmith'`
+member: every `WorkItemRoleStub({ value: 'glyphsmith' })` / `WorkItemStub({ role: 'glyphsmith' })` /
+`role === 'glyphsmith'` literal anywhere in the tree, because each compares or assigns the string literal
+against a position typed `WorkItemRole`, and ward's `tsc --noEmit` grades a touched package **whole**
+(per `<dungeonmaster-ward>`) — so one straggler anywhere in a package fails that package's typecheck the
+moment the enum unit lands, even in a file this pass never touched.
+
+### Units
+
+| ID | Files | Package | Depends on | Ward command |
+|---|---|---|---|---|
+| T3-16b | `execution-step-status-config-statics.ts`, `execution-step-status-config-statics.test.ts` | web | none | `npm run ward -- --only lint,typecheck,unit -- packages/web/src/statics/execution-step-status-config/execution-step-status-config-statics.ts packages/web/src/statics/execution-step-status-config/execution-step-status-config-statics.test.ts` |
+| T3-16c | `widgets/chat-message/chat-message-widget.test.tsx` | web | none | `npm run ward -- --only lint,typecheck,unit -- packages/web/src/widgets/chat-message/chat-message-widget.test.tsx` |
+| T3-16d | `statics/role-to-model/role-to-model-statics.ts`, `role-to-model-statics.test.ts` | orchestrator | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/statics/role-to-model/role-to-model-statics.ts packages/orchestrator/src/statics/role-to-model/role-to-model-statics.test.ts` |
+| T3-16e | `statics/tavernkeeper-prompt/tavernkeeper-prompt-statics.ts` | orchestrator | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/statics/tavernkeeper-prompt/tavernkeeper-prompt-statics.ts` |
+| T3-16f | `transformers/quest-active-session/quest-active-session-transformer.ts`, `.test.ts` | orchestrator | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/transformers/quest-active-session/quest-active-session-transformer.ts packages/orchestrator/src/transformers/quest-active-session/quest-active-session-transformer.test.ts` |
+| T3-16g | `transformers/chat-prompt-build/chat-prompt-build-transformer.test.ts` (delete the `'glyphsmith role'` describe block — the source `.ts` has no literal to touch, its error message interpolates `${role}` generically) | orchestrator | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/transformers/chat-prompt-build/chat-prompt-build-transformer.test.ts` |
+| T3-16h | `transformers/work-item-to-prompt/work-item-to-prompt-transformer.ts`, `.test.ts` | orchestrator | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/transformers/work-item-to-prompt/work-item-to-prompt-transformer.ts packages/orchestrator/src/transformers/work-item-to-prompt/work-item-to-prompt-transformer.test.ts` |
+| T3-16i | `brokers/agent/launch/agent-launch-broker.ts` (purpose-comment only) | orchestrator | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/brokers/agent/launch/agent-launch-broker.ts` |
+| T3-16j | `brokers/quest/build-relay-graph/quest-build-relay-graph-broker.ts`, `.test.ts` | orchestrator | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/brokers/quest/build-relay-graph/quest-build-relay-graph-broker.ts packages/orchestrator/src/brokers/quest/build-relay-graph/quest-build-relay-graph-broker.test.ts` |
+| T3-16k | `brokers/quest/find-by-session-id/quest-find-by-session-id-broker.ts` (comment only) | orchestrator | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/brokers/quest/find-by-session-id/quest-find-by-session-id-broker.ts` |
+| T3-16l | `brokers/quest/orchestration-loop/quest-orchestration-loop-broker.ts`, `.proxy.ts` (both comment only) | orchestrator | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.ts packages/orchestrator/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.proxy.ts` |
+| T3-16m | `brokers/quest/orchestration-loop/quest-orchestration-loop-broker.test.ts` (4 `WorkItemStub({role: 'glyphsmith'})` sites) | orchestrator | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.test.ts` |
+| T3-16n | `brokers/quest/orchestration-loop/run-chat-layer-broker.test.ts` | orchestrator | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/brokers/quest/orchestration-loop/run-chat-layer-broker.test.ts` |
+| T3-16o | `brokers/chat/stream-process-handle/chat-stream-process-handle-broker.ts` (comment only) | orchestrator | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/brokers/chat/stream-process-handle/chat-stream-process-handle-broker.ts` |
+| T3-16p | `brokers/chat/spawn/chat-spawn-broker.test.ts`, `chat-spawn-broker.proxy.ts` (delete `setupGlyphsmithSession` and its `'glyphsmith has no chat prompt'` describe block — this proxy method is the one place a `role === 'glyphsmith'` comparison is live code, not prose) | orchestrator | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/brokers/chat/spawn/chat-spawn-broker.test.ts packages/orchestrator/src/brokers/chat/spawn/chat-spawn-broker.proxy.ts` |
+| T3-16q | `brokers/chat/spawn/resolve-chat-quest-layer-broker.test.ts` (comment only) | orchestrator | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/brokers/chat/spawn/resolve-chat-quest-layer-broker.test.ts` |
+| T3-16r | `responders/followup-chat/start/followup-chat-start-responder.proxy.ts` (comment only) | orchestrator | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/responders/followup-chat/start/followup-chat-start-responder.proxy.ts` |
+| T3-16s | `responders/chat/replay/chat-replay-responder.ts` (comment only) | orchestrator | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/responders/chat/replay/chat-replay-responder.ts` |
+| T3-16t | `responders/orchestration/start/orchestration-start-responder.ts`, `.test.ts` | orchestrator | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/responders/orchestration/start/orchestration-start-responder.ts packages/orchestrator/src/responders/orchestration/start/orchestration-start-responder.test.ts` |
+| T3-16u | `packages/orchestrator/CLAUDE.md` (prose: `## Callouts` roster note, the two-source-correlation "legacy spawn path" line, the ledger-seeding paragraph, the Agent Roles table's `Glyphsmith` row and the status-table `explore_design`/`review_design` rows) | orchestrator (doc) | none | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/CLAUDE.md` (doc-only; expect a no-op/skip) |
+| T3-16v | `brokers/quest/wait-for-session-stamp/quest-wait-for-session-stamp-broker.ts` (comment), `.test.ts` (test-name string only, no literal role value constructed) | server | none | `npm run ward -- --only lint,typecheck,unit -- packages/server/src/brokers/quest/wait-for-session-stamp/quest-wait-for-session-stamp-broker.ts packages/server/src/brokers/quest/wait-for-session-stamp/quest-wait-for-session-stamp-broker.test.ts` |
+| T3-16w | `flows/quest/quest-flow.integration.test.ts` (test-name string only) | server | none | `npm run ward -- --only lint,typecheck,integration -- packages/server/src/flows/quest/quest-flow.integration.test.ts` |
+| T3-16x | `responders/quest/chat/quest-chat-responder.ts`, `responders/server/init/server-init-responder.ts` (both comment only) | server | none | `npm run ward -- --only lint,typecheck,unit -- packages/server/src/responders/quest/chat/quest-chat-responder.ts packages/server/src/responders/server/init/server-init-responder.ts` |
+| T3-16y | `responders/quest/comment-batch/quest-comment-batch-responder.test.ts` (`WorkItemStub({role: 'glyphsmith', sessionId})`) | server | none | `npm run ward -- --only lint,typecheck,unit -- packages/server/src/responders/quest/comment-batch/quest-comment-batch-responder.test.ts` |
+| T3-16z | `brokers/ask/user-question/ask-user-question-broker.ts` (comment only) | mcp | none | `npm run ward -- --only lint,typecheck,unit -- packages/mcp/src/brokers/ask/user-question/ask-user-question-broker.ts` |
+| T3-16aa | `brokers/quest/ingredient/quest-ingredient-broker.ts` (comment only) | hydration-recipes | none | `npm run ward -- --only lint,typecheck,unit -- packages/hydration-recipes/src/brokers/quest/ingredient/quest-ingredient-broker.ts` |
+| T3-16ab | `packages/testing/CLAUDE.md` (prose: the `activeSessionId` lookup note and the feature-quest matching example) | testing (doc) | none | `npm run ward -- --only lint,typecheck,unit -- packages/testing/CLAUDE.md` (doc-only; expect a no-op/skip) |
+| T3-16ac | `docs/quest-role-paths.md` (prose: the ENTRY-family comment, the Agent Roles table's `Glyphsmith` row, the status-transition line) | docs | none | `npm run ward -- --only lint,typecheck,unit -- docs/quest-role-paths.md` (doc-only; expect a no-op/skip) |
+| T3-16ad | `playbook/smoketest-mcp-orchestration.md` (role list + count — update "11" to "10"; and the `glyphsmith-prompt` mention, which names no file that exists on disk and may already be stale independent of this removal), `playbook/quest-lifecycle.md` (the intake force-complete line) | playbook | none | `npm run ward -- --only lint,typecheck,unit -- playbook/smoketest-mcp-orchestration.md playbook/quest-lifecycle.md` (doc-only; expect a no-op/skip) |
+| T3-16ae | `statics/execution-floor-config/execution-floor-config-statics.ts` (drop the `{ name: 'HOMEBASE', role: 'glyphsmith', type: 'entrance' }` row), `.test.ts` | shared | none | `npm run ward -- --only lint,typecheck,unit -- packages/shared/src/statics/execution-floor-config/execution-floor-config-statics.ts packages/shared/src/statics/execution-floor-config/execution-floor-config-statics.test.ts` |
+| T3-16af | `guards/is-chat-work-item-role/is-chat-work-item-role-guard.ts`, `guards/has-incomplete-quest-work/has-incomplete-quest-work-guard.ts` (both comment only — neither hardcodes the roster, both derive from `workItemRoleStatics.chat`) | shared | none | `npm run ward -- --only lint,typecheck,unit -- packages/shared/src/guards/is-chat-work-item-role/is-chat-work-item-role-guard.ts packages/shared/src/guards/has-incomplete-quest-work/has-incomplete-quest-work-guard.ts` |
+| T3-16ag | `contracts/work-item/work-item-contract.ts` (comment only) | shared | none | `npm run ward -- --only lint,typecheck,unit -- packages/shared/src/contracts/work-item/work-item-contract.ts` |
+| **T3-16ah** | `statics/work-item-role/work-item-role-statics.ts` **(the enum — drop `'glyphsmith'` from both `names` and `chat`, and its Role-semantics doc-comment bullet)**, `work-item-role-statics.test.ts`, `contracts/work-item-role/work-item-role-contract.test.ts` (drop the `'VALID: glyphsmith => parses successfully'` case) | shared | **T3-16b through T3-16ag, all of them** | `npm run ward -- --only lint,typecheck,unit -- packages/shared/src/statics/work-item-role/work-item-role-statics.ts packages/shared/src/statics/work-item-role/work-item-role-statics.test.ts packages/shared/src/contracts/work-item-role/work-item-role-contract.test.ts`, then a bare `npm run ward` as the regression pass |
+
+**Not touched — not about the role:**
+
+- `playbook/e2e-flakiness-log.md:754` — a dated incident writeup ("In the failure log, server
+  timestamps..." / "**Fix location:**") describing `quest-wait-for-session-stamp-broker`'s poll
+  condition *as it stood when that fix landed*. It's a historical record of a specific past bug, the
+  same category the task brief exempts for `scrolls/` — editing it to retroactively read
+  "chaoswhisperer/bughunt" would misreport what the fix actually checked at the time. Leave it.
+
+### Ordering rationale
+
+**Consumers first, enum last, as one serial unit — not interleaved.** The brief offered two options;
+this plan takes the first for everything except the enum's own file pair, and folds *that* into the
+second option's shape for just those three files.
+
+Reasoning: per the surprising finding above, none of the b..ag units are actually order-coupled to the
+enum at the *typecheck* level — a stale `'glyphsmith'` key left in a `satisfies`-checked map, or a
+stale array entry compared with `===`, does not fail `tsc`. What DOES fail once the enum shrinks is any
+file — anywhere in the touched package — still holding a bare `'glyphsmith'` string literal in a
+position typed `WorkItemRole` (a stub call, a direct comparison), because ward's typecheck grades a
+touched package whole. Since T3-16b through T3-16ag between them remove *every* such literal across
+every package that has one, landing all of them before T3-16ah guarantees the enum edit is the single
+commit where the union actually shrinks — and because nothing typed against the old, wider
+`WorkItemRole` is left anywhere in the tree at that point, the repo typechecks at every commit,
+including the one that removes `'glyphsmith'` itself. Doing it the other way — shrinking the enum
+first — would leave every one of those ~15 not-yet-cleaned files red the moment T3-16ah lands, for
+however many waves it takes the rest to catch up.
+
+T3-16ae (`execution-floor-config-statics.ts`) is listed among the consumer units rather than bundled
+into T3-16ah despite being named explicitly in the owner's decision — it has no typecheck coupling to
+the enum (same `satisfies`/`===` reasoning), only a test-shape coupling to its own colocated `.test.ts`,
+so it is safe and simpler to land on its own.
+
+Units b..ag carry no `depends-on` among each other — none share a file, and package-scoped `tsc --noEmit`
+means a straggler in package X only threatens package X's own typecheck, not a sibling's. They can run
+in any order or concurrently. T3-16ah is the sole hard dependency: run it last, after every other unit
+in this section has landed, then close with a bare `npm run ward` regression pass per
+`<dungeonmaster-wardDiscipline>`'s "who owns a FULL run" (that pass belongs to whoever dispatches these
+units, not to T3-16ah itself).

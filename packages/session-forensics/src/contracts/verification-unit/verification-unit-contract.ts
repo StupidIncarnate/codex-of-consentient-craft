@@ -36,7 +36,7 @@ export const verificationUnitContract = z
     addedBy: z
       .enum(['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'siegemaster', 'operator'])
       .optional(),
-    verificationMethod: z.enum(['test', 'reading']).default('test'),
+    verificationMethod: z.enum(['test', 'reading', 'human-check']).default('test'),
     trackMarks: z.object({
       codeweaver: unitMarkContract.optional(),
       flowrider: unitMarkContract.optional(),

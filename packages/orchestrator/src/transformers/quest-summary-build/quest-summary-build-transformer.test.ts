@@ -1056,6 +1056,132 @@ describe('questSummaryBuildTransformer', () => {
     });
   });
 
+  describe('the verifyByHuman filter', () => {
+    it('VALID: {observable flagged verifyByHuman} => excluded from every track’s counts, not merely folded into outstanding', () => {
+      const quest = QuestStub({
+        flows: [
+          FlowStub({
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                label: 'Login Page',
+                type: 'state',
+                observables: [
+                  FlowObservableStub({
+                    id: 'looks-right-to-a-person',
+                    type: 'ui-state',
+                    description: 'the new layout looks right',
+                    verifyByHuman: true,
+                  }),
+                ],
+              }),
+              FlowNodeStub({ id: 'dashboard', label: 'Dashboard', type: 'state' }),
+            ],
+            edges: LOGIN_EDGES,
+          }),
+        ],
+      });
+
+      const result = questSummaryBuildTransformer({ quest });
+
+      // No track's `verificationMethods` lists `human-check`, so this unit drops out of the
+      // denominator entirely: the same 1 terminal + 1 branch every LOGIN_NODES-based test carries,
+      // with the flagged observable adding to no track's count at all.
+      expect(result.flows).toStrictEqual([
+        {
+          id: 'login-flow',
+          name: 'Login Flow',
+          flowType: 'runtime',
+          tracks: [
+            { id: 'codeweaver', met: 0, cantMeet: 0, unmet: 0, outstanding: 2 },
+            { id: 'flowrider', met: 0, cantMeet: 0, unmet: 0, outstanding: 2 },
+            { id: 'siegemaster', met: 0, cantMeet: 0, unmet: 0, outstanding: 9 },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {observable flagged both verifyByReading and verifyByHuman} => still excluded everywhere — verifyByHuman wins even where codeweaver would otherwise accept reading', () => {
+      const quest = QuestStub({
+        flows: [
+          FlowStub({
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                label: 'Login Page',
+                type: 'state',
+                observables: [
+                  FlowObservableStub({
+                    id: 'imports-the-shared-limit-and-looks-right',
+                    type: 'ui-state',
+                    description: 'the widget imports the shared limit AND the layout looks right',
+                    verifyByReading: true,
+                    verifyByHuman: true,
+                  }),
+                ],
+              }),
+              FlowNodeStub({ id: 'dashboard', label: 'Dashboard', type: 'state' }),
+            ],
+            edges: LOGIN_EDGES,
+          }),
+        ],
+      });
+
+      const result = questSummaryBuildTransformer({ quest });
+
+      // Codeweaver's `verificationMethods` includes `reading`, so an UNflagged `verifyByReading`
+      // unit would count there. `verifyByHuman` wins regardless, so this unit is absent from
+      // codeweaver's count too — 2, not 3.
+      expect(result.flows[0]?.tracks[0]).toStrictEqual({
+        id: 'codeweaver',
+        met: 0,
+        cantMeet: 0,
+        unmet: 0,
+        outstanding: 2,
+      });
+    });
+
+    it('VALID: {observable with neither flag set} => counted exactly as before, the filter leaves it alone', () => {
+      const quest = QuestStub({
+        flows: [
+          FlowStub({
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                label: 'Login Page',
+                type: 'state',
+                observables: [
+                  FlowObservableStub({
+                    id: 'shows-form',
+                    type: 'ui-state',
+                    description: 'shows the login form',
+                  }),
+                ],
+              }),
+              FlowNodeStub({ id: 'dashboard', label: 'Dashboard', type: 'state' }),
+            ],
+            edges: LOGIN_EDGES,
+          }),
+        ],
+      });
+
+      const result = questSummaryBuildTransformer({ quest });
+
+      expect(result.flows).toStrictEqual([
+        {
+          id: 'login-flow',
+          name: 'Login Flow',
+          flowType: 'runtime',
+          tracks: [
+            { id: 'codeweaver', met: 0, cantMeet: 0, unmet: 0, outstanding: 3 },
+            { id: 'flowrider', met: 0, cantMeet: 0, unmet: 0, outstanding: 3 },
+            { id: 'siegemaster', met: 0, cantMeet: 0, unmet: 0, outstanding: 10 },
+          ],
+        },
+      ]);
+    });
+  });
+
   describe('quest notes grouped by kind', () => {
     it('VALID: {one note of each kind, plus a second open question} => one group per kind, in quest order, with a walked note keeping its branded ids', () => {
       const quest = QuestStub({
