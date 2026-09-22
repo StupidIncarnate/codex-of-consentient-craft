@@ -610,7 +610,7 @@ describe('QuestFlow', () => {
       });
     });
 
-    it('EDGE: {quest on disk carries no chaoswhisperer or glyphsmith work item with a sessionId} => returns 404 and persists no comments', async () => {
+    it('EDGE: {quest on disk carries no chaoswhisperer work item with a sessionId} => returns 404 and persists no comments', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-comments-no-session' });
       const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';

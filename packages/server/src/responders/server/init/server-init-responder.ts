@@ -277,7 +277,7 @@ export const ServerInitResponder = ({
                     }),
                   ),
                 );
-                // Wait for the chaoswhisperer/glyphsmith workItem to have its sessionId
+                // Wait for the chaoswhisperer workItem to have its sessionId
                 // stamped before walking workItems for replay. New-chat flow's stamp is
                 // async (chat-spawn-broker fires questModifyBroker after the CLI's first
                 // init line resolves), so a subscribe arriving in that ~100ms window sees

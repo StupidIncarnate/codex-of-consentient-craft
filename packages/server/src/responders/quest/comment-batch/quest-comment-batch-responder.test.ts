@@ -69,7 +69,7 @@ describe('QuestCommentBatchResponder', () => {
       const quest = QuestStub({
         id: questId,
         flows: [flow],
-        workItems: [WorkItemStub({ role: 'glyphsmith', sessionId })],
+        workItems: [WorkItemStub({ role: 'bughunt', sessionId })],
       });
 
       proxy.setupQuestLoad({ quest });

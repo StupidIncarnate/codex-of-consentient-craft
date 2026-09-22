@@ -104,7 +104,7 @@ The Web UI "Start Quest" button → `orchestration-start-responder`. It seeds th
 (it spawns nothing — the active dispatcher picks the quest up on its next scan). `questBuildRelayGraphBroker`, reading
 `questFlowStatics[quest.questType]`, in one atomic `questOperationsUpdateBroker` persist:
 
-1. Force-completes any non-complete intake (`chaoswhisperer` / `glyphsmith` / `bughunt`) operation item.
+1. Force-completes any non-complete intake (`chaoswhisperer` / `bughunt`) operation item.
 2. Mints the ENTRY family's scopes and nothing else (`familyScopesMintTransformer`) as **pending** operation items —
    one `riftcarver` scope. Every later family's scopes are cut the moment the graph routes to it: `codeweaver` becomes
    ONE ITEM PER (PACKAGE, FLOW) CELL; `flowrider` and `siegemaster` each become ONE ITEM PER FLOW their own track

@@ -210,8 +210,8 @@ See `get-testing-patterns` MCP tool for full E2E testing patterns and anti-patte
   silently does nothing
 - **Queue responses before triggering chat** — if the queue is empty, the fake CLI exits with code 1
 - **Quest→session linking requires a chaoswhisperer work item** — the `questActiveSessionTransformer` derives
-  `activeSessionId` by looking for `chaoswhisperer` or `glyphsmith` work items with a `sessionId`. If your test quest
-  has no chaoswhisperer/glyphsmith work item, the server cannot match the quest to the session, and the execution panel
+  `activeSessionId` by looking for `chaoswhisperer` work items with a `sessionId`. If your test quest
+  has no chaoswhisperer work item, the server cannot match the quest to the session, and the execution panel
   will show "Awaiting quest activity..." instead of rendering. Always include a chaoswhisperer work item with the
   session's `sessionId` in test quest data.
 - **Quest status determines when the WS execution listener activates** — the browser's WebSocket listener for execution
@@ -223,7 +223,7 @@ See `get-testing-patterns` MCP tool for full E2E testing patterns and anti-patte
   `/api/quests/:id/start` endpoint (normal flow) or by the server's startup-recovery responder (which only runs at
   boot). Tests that need the relay running against a seeded quest must:
     1. Write the quest file with `status: 'approved'` (or `'design_approved'`), a valid `operations` ledger (for a
-       `feature` quest, ≥1 `role: 'codeweaver'` item), plus any prior-phase (`chaoswhisperer`/`glyphsmith`) work items
+       `feature` quest, ≥1 `role: 'codeweaver'` item), plus any prior-phase (`chaoswhisperer`) work items
        marked `complete`.
     2. POST `/api/quests/:questId/start` **before** `page.goto(...)`. This appends the verify tail as operation items,
        creates the first work item, and transitions the quest to `in_progress` on the server, so the browser lands on

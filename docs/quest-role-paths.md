@@ -346,7 +346,7 @@ Trace one feature quest end to end.
      then the status flip and the queue entry. It spawns no child and runs no git, which is what
      keeps the POST at millisecond scale and lets the WebSocket-driven panel swap land instantly.
    - `questBuildRelayGraphBroker` force-completes any non-complete intake (`chaoswhisperer` /
-     `glyphsmith` / `bughunt`) operation item, mints the **ENTRY family's scopes and nothing else**
+     `bughunt`) operation item, mints the **ENTRY family's scopes and nothing else**
      (`familyScopesMintTransformer({ quest, family: questFlowStatics[questType].entry })` — one
      `riftcarver` scope), and creates ONE work item for the first actionable (`pending`) one, carrying
      `step: 'carve'` — its family graph's own `entry` — and `spawnerType: 'command'` off
@@ -520,7 +520,6 @@ a session padding marks to get past the gate.
 |--------------------|-----------------------------------------|--------------------------------------------------------------------------|--------------------------------------------------------------------|
 | **ChaosWhisperer** | the plan item (seeded `in_progress`, locked) | Authors flows/observables/contracts/`packagesAffected` — never `operations`; at Start Quest `questBuildRelayGraphBroker` force-marks the plan item `complete` and mints the ENTRY family's scopes. The codeweaver scopes are cut later, when the family graph routes to that family. | No execution sad path. The approval gate rejects `approved`/`flows_approved`/`design_approved` only for empty `flows`; it demands no ledger item. |
 | **BugHunt**        | the plan item (seeded `in_progress`, locked) | Captures the reproduction flow (one flow per bug, `ACTUAL:`/`EXPECTED:` terminal fork) and its observables; force-completed at Start exactly like ChaosWhisperer. Implementation lands on the same codeweaver scopes a feature quest gets. | No execution sad path.                                            |
-| **Glyphsmith**     | (optional design phase)                 | Walks `approved → design_approved`; its plan item is force-completed at Start like ChaosWhisperer. | —                                                                  |
 
 ### Inside one family — the step paths
 
@@ -1062,7 +1061,7 @@ dispatchable while the wreckage is still in place.
   `riftcarverResults`, `flows` (the exact set `relatedDataItemContract`'s regex admits) — and existing
   ids.
 - **C-4 — Chat roles set status only within their phase** (ChaosWhisperer: `created` →
-  `review_observables`; Glyphsmith: `approved` → `design_approved`).
+  `review_observables`).
 
 ---
 

@@ -87,8 +87,8 @@ export const QuestChatResponder = async ({
       await orchestratorResumeQuestAdapter({ questId });
     }
 
-    // The main composer resumes the thread it owns — spec intake (chaoswhisperer) or design
-    // (glyphsmith/bughunt) — never the post-quest follow-up thread (tavernkeeper), which has its
+    // The main composer resumes the thread it owns — spec intake (chaoswhisperer) or bug-hunt
+    // intake (bughunt) — never the post-quest follow-up thread (tavernkeeper), which has its
     // own composer in its own tab talking to its own route. That thread is deliberately invisible
     // here. Chat work items never reach a terminal status, so this keys on role, never on status.
     const chatItem = quest.workItems.find(

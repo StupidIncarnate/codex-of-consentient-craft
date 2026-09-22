@@ -320,10 +320,10 @@ the MCP `get-quest` view strips `workItems`/`wardResults`).
   review_observables, approved, explore_design, review_design, design_approved, in_progress, paused, blocked, complete,
   abandoned`. Terminal = {complete, abandoned}. **`blocked` is NOT terminal** (resumable → in_progress). There are NO
   `seek_*` statuses.
-- **roles** (`workItemRoleContract`, 11): `chaoswhisperer, glyphsmith, bughunt, tavernkeeper, riftcarver, codeweaver,
+- **roles** (`workItemRoleContract`, 10): `chaoswhisperer, bughunt, tavernkeeper, riftcarver, codeweaver,
   ward, spiritmender, flowrider, siegemaster, warpgate`. The Claude-dispatched agent-role subset
   (`agentRoleContract`, 5) is `codeweaver, flowrider, siegemaster, spiritmender, warpgate` — `riftcarver`/`ward` are
-  deliberately excluded (they are commands, terminal by exit code) and the four chat roles are excluded too. No
+  deliberately excluded (they are commands, terminal by exit code) and the three chat roles are excluded too. No
   minion name is ever a role: `codeweaver-reviewer`, `flowrider-reviewer`, `siegemaster-reviewer`,
   `siegemaster-verifier`, `siegemaster-stress`, and `chaoswhisperer-gap-minion` are `agentPromptNameContract` names
   only — a parent summons them via the `Agent` tool with `{ agent, questId }` and NO `workItemId`, so they are never
@@ -741,7 +741,7 @@ The three operator roles each carry their OWN prompt file, and each summons its 
 `codeweaver-prompt` (+ `codeweaver-reviewer`), `flowrider-prompt` (+ `flowrider-reviewer`), `siegemaster-prompt` (+
 `siegemaster-reviewer`, `siegemaster-verifier` and `siegemaster-stress`), plus the shared blocks they interpolate
 (`standards-review-concerns-statics`, `flow-evidence-contract-statics`), the bespoke prompts `spiritmender-prompt`,
-`warpgate-prompt`, `glyphsmith-prompt`, `tavernkeeper-prompt`, `dumpster-create-prompt`, `dumpster-hunt-prompt`, plus
+`warpgate-prompt`, `tavernkeeper-prompt`, `dumpster-create-prompt`, `dumpster-hunt-prompt`, plus
 `chaoswhisperer-gap-minion`. There is no shared operator template and no generic planner/worker/reviewer minion any
 more — walk each of the eleven `agentPromptClassificationStatics.promptNames` files on its own.
 

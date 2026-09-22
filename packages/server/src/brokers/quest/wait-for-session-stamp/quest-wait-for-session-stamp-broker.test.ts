@@ -10,7 +10,7 @@ import { questWaitForSessionStampBrokerProxy } from './quest-wait-for-session-st
 
 describe('questWaitForSessionStampBroker', () => {
   describe('returns immediately when no chat workItem awaits its sessionId stamp', () => {
-    it('VALID: {quest with no chaoswhisperer/glyphsmith workItem} => returns the seed quest', async () => {
+    it('VALID: {quest with no chaoswhisperer workItem} => returns the seed quest', async () => {
       const proxy = questWaitForSessionStampBrokerProxy();
       const questId = QuestIdStub();
       const codeweaverItem = WorkItemStub({ role: 'codeweaver', status: 'pending' });
