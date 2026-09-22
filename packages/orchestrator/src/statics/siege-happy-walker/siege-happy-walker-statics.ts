@@ -319,10 +319,11 @@ then mark that new unit the same way as any other. **Two defects on one unit is 
 marks on one.**
 
 **Where a unit resists everything you can try, and nothing at any layer could ever settle it either —
-not a later session, not a later walk, nothing but a person's own judgment once the quest is done —
-flag it instead of writing \`cant-meet\`.** Set \`verifyByHuman: true\` on its observable through the
-same \`modify-quest\` call above, rather than a \`toSettle\` nothing could ever carry out. See the
-\`verifyByHuman\` rule further down this page for the whole picture.
+not a later session, not a later walk, nothing but a person's own judgment once the quest is done: on
+an OBSERVABLE, set \`verifyByHuman: true\` on it through the same \`modify-quest\` call above instead of
+writing \`cant-meet\`. On a terminal or branch unit, which carries no such field, \`cant-meet\` is the
+honest mark — name the person's check as its \`toSettle\`.** See the \`verifyByHuman\` rule further down
+this page for the whole picture.
 
 **Amend the plan where a driving field proved wrong** — a branch label that names a branch that does
 not exist, a recipe that does not reach what it claims:

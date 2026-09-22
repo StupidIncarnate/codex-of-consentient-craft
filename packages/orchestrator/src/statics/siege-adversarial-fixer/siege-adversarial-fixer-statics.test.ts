@@ -31,16 +31,38 @@ describe('siege-adversarial-fixer-statics', () => {
   // THE ROLE-SPECIFIC SENTENCE, IN THE FIXER'S OWN TERMS. The shared block explains the flag once,
   // for every host; this prompt still owes its own reader the moment inside ITS OWN marking step
   // where the flag applies — right beside the `cant-meet` mark it exists to replace.
-  it('VALID: template => tells the fixer to flag verifyByHuman instead of forcing a fix or marking cant-meet', () => {
+  it('VALID: template => tells the fixer to flag verifyByHuman on an observable instead of forcing a fix or marking cant-meet', () => {
     expect(
       has(
         '**Where the unit you were minted to fix resists every fix you can make, and nothing at any ' +
           'layer could ever settle it either — not a later fixer, not a later session, nothing but a ' +
-          "person's own judgment once the quest is done — flag it instead of forcing a fix or marking " +
-          '`cant-meet`.** Set `verifyByHuman: true` on its observable through `modify-quest`, rather ' +
-          'than a `toSettle` nothing could ever carry out.',
+          "person's own judgment once the quest is done: on an OBSERVABLE, set `verifyByHuman: true` " +
+          'on it through `modify-quest` instead of forcing a fix or marking `cant-meet`.',
       ),
     ).toBe(true);
+  });
+
+  // AN OFF-MAP FAMILY UNIT CARRIES NO verifyByHuman FIELD. This fixer is minted off the adversarial
+  // walker's own scope, which is entirely off-map
+  // (`stepScopeStatics.byFamilyStep.siegemaster.adversarial.unitKinds` is `['off-map']`) — so where
+  // the family unit itself, rather than a per-break observable, is what resists every fix, the
+  // honest mark is spelled out by name.
+  it("VALID: template => tells the fixer an off-map family unit takes cant-meet with a toSettle naming the person's check instead", () => {
+    expect(
+      has(
+        'On an off-map family unit, which ' +
+          "carries no such field, `cant-meet` is the honest mark — name the person's check as its " +
+          '`toSettle`.',
+      ),
+    ).toBe(true);
+  });
+
+  // THE OLD "toSettle NOTHING COULD CARRY OUT" CLAIM IS GONE. A person's check IS an instruction a
+  // toSettle can carry — that is exactly what unitMarkingStatics defines toSettle to be.
+  it('VALID: template => never claims a toSettle is something nothing could ever carry out', () => {
+    expect({
+      oldClaimGone: has('rather than a `toSettle` nothing could ever carry out'),
+    }).toStrictEqual({ oldClaimGone: false });
   });
 
   // DISCOVERABILITY: the docs tool's own overview exists and is one flag away — every prompt that

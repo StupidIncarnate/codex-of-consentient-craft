@@ -57,16 +57,37 @@ describe('siegeHappyFixerStatics', () => {
   // THE ROLE-SPECIFIC SENTENCE, IN THE FIXER'S OWN TERMS. The shared block explains the flag once,
   // for every host; this prompt still owes its own reader the moment inside ITS OWN marking step
   // where the flag applies — right beside the `cant-meet` mark it exists to replace.
-  it('VALID: template => tells the fixer to flag verifyByHuman instead of forcing a fix or marking cant-meet', () => {
+  it('VALID: template => tells the fixer to flag verifyByHuman on an observable instead of forcing a fix or marking cant-meet', () => {
     expect(
       has(
         '**Where the unit you were minted to fix resists every fix you can make, and nothing at any ' +
           'layer could ever settle it either — not a later fixer, not a later session, nothing but a ' +
-          "person's own judgment once the quest is done — flag it instead of forcing a fix or marking " +
-          '`cant-meet`.** Set `verifyByHuman: true` on its observable through `modify-quest`, rather ' +
-          'than a `toSettle` nothing could ever carry out.',
+          "person's own judgment once the quest is done: on an OBSERVABLE, set `verifyByHuman: true` " +
+          'on it through `modify-quest` instead of forcing a fix or marking `cant-meet`.',
       ),
     ).toBe(true);
+  });
+
+  // A TERMINAL OR BRANCH UNIT CARRIES NO verifyByHuman FIELD. This fixer inherits whatever kind of
+  // unit the happy walker minted it on — an observable, a terminal node, or a labelled branch edge —
+  // so the honest mark for the latter two has to be spelled out rather than left to a blanket "flag
+  // it" that names no field on a unit that has none.
+  it("VALID: template => tells the fixer a terminal or branch unit takes cant-meet with a toSettle naming the person's check instead", () => {
+    expect(
+      has(
+        'On a terminal or branch unit, which ' +
+          "carries no such field, `cant-meet` is the honest mark — name the person's check as its " +
+          '`toSettle`.',
+      ),
+    ).toBe(true);
+  });
+
+  // THE OLD "toSettle NOTHING COULD CARRY OUT" CLAIM IS GONE. A person's check IS an instruction a
+  // toSettle can carry — that is exactly what unitMarkingStatics defines toSettle to be.
+  it('VALID: template => never claims a toSettle is something nothing could ever carry out', () => {
+    expect({
+      oldClaimGone: has('rather than a `toSettle` nothing could ever carry out'),
+    }).toStrictEqual({ oldClaimGone: false });
   });
 
   // DISCOVERABILITY: the docs tool's own overview exists and is one flag away — every prompt that

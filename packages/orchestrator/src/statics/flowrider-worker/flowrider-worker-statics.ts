@@ -119,9 +119,11 @@ ${unitMarkingStatics.markdown}
 
 **Where a unit resists proving at every layer you can reach, and nothing at any layer — not a later
 pass, not a later spec file, nothing but a person's own judgment once the quest is done — could ever
-settle it either, flag it instead of marking \`cant-meet\`.** Set \`verifyByHuman: true\` on its
-observable through \`modify-quest\`, naming its flow, node and observable id and carrying forward what
-it already declares. See the \`verifyByHuman\` rule further down this page for the whole picture.
+settle it either: on an OBSERVABLE, set \`verifyByHuman: true\` on it through \`modify-quest\` instead
+of marking \`cant-meet\`, naming its flow, node and observable id — the merge only touches fields you
+send, so nothing else on the observable needs restating. On a terminal or branch unit, which carries
+no such field, \`cant-meet\` is the honest mark instead, with a \`toSettle\` naming the person's check.**
+See the \`verifyByHuman\` rule further down this page for the whole picture.
 
 ### 11. Unmet units
 

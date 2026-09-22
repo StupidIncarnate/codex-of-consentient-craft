@@ -83,14 +83,39 @@ describe('codeweaverWorkerStatics', () => {
   // for every host; this prompt still owes its own reader the moment inside ITS OWN script where the
   // flag applies — right beside the mark it exists to replace, at the point this session actually
   // marks a unit.
-  it('VALID: served template => tells the worker to flag verifyByHuman instead of cant-meet when nothing at any layer could ever settle a unit', () => {
+  it('VALID: served template => tells the worker to flag verifyByHuman on an observable instead of cant-meet, naming the merge scope, when nothing at any layer could ever settle a unit', () => {
     expect(
       hasIn({
         needle:
-          "**Where a unit resists everything your reading and your tests can try, and nothing at any layer — not\na later piece, not a later pass, nothing but a person's own judgment once the quest is done — could\never settle it either, flag it instead of marking `cant-meet`.** Set `verifyByHuman: true` on its\nobservable through `modify-quest`, naming its flow, node and observable id and carrying forward what\nit already declares.",
+          "**Where a unit resists everything your reading and your tests can try, and nothing at any layer — not\na later piece, not a later pass, nothing but a person's own judgment once the quest is done — could\never settle it either: on an OBSERVABLE, set `verifyByHuman: true` on it through `modify-quest`\ninstead of marking `cant-meet`, naming its flow, node and observable id — the merge only touches\nfields you send, so nothing else on the observable needs restating.",
         text: TEMPLATE,
       }),
     ).toBe(true);
+  });
+
+  // A TERMINAL OR BRANCH UNIT CARRIES NO verifyByHuman FIELD. `flowObservableContract` is the only
+  // contract with the flag (see `observableAutomatabilityStatics`), and codeweaver's own review step
+  // is measured over terminal and branch units too (`stepScopeStatics.byFamilyStep.codeweaver.review
+  // .unitKinds`) — so a session that hit the wall on one of those needs the honest mark spelled out,
+  // not a blanket "flag it" that names no field to flag.
+  it('VALID: served template => tells the worker a terminal or branch unit takes cant-meet with a toSettle instead, since it carries no verifyByHuman field', () => {
+    expect(
+      hasIn({
+        needle:
+          "On a terminal or branch unit,\nwhich carries no such field, `cant-meet` is the honest mark instead, with a `toSettle` naming the\nperson's check.",
+        text: TEMPLATE,
+      }),
+    ).toBe(true);
+  });
+
+  // THE FALSE MERGE CLAIM IS GONE. modify-quest's deep upsert merges by id and touches only the
+  // fields a call sends (`modifyQuestInputContract`, `questItemDeepMergeTransformer`) — it never
+  // required "carrying forward" an observable's other fields, and a session told to restate them
+  // risks overwriting a sibling's concurrent edit with a stale copy.
+  it('VALID: served template => never claims the modify-quest merge requires carrying forward what an observable already declares', () => {
+    expect({ carriesForwardClaimGone: TEMPLATE.includes('carrying forward what') }).toStrictEqual({
+      carriesForwardClaimGone: false,
+    });
   });
 
   // THIS PROMPT MUST NOT RE-AUTHOR WHAT THE SHARED BLOCKS ALREADY SAY. A local paragraph restating

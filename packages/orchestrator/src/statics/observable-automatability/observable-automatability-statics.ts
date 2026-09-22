@@ -1,9 +1,9 @@
 /**
  * PURPOSE: The one shared explanation of `verifyByHuman`, written once and interpolated into every
- * prompt that authors observables (ChaosWhisperer, BugHunt) and every prompt that walks a running
- * system looking for what no automated check can settle (both siege walkers). Reach for this over
- * repeating the rule in a fifth place; a question specific to one of those prompts belongs in that
- * prompt instead.
+ * prompt that authors observables (ChaosWhisperer, BugHunt) and every prompt that marks units
+ * (the codeweaver and flowrider workers, both siege walkers and both siege fixers). Reach for this
+ * over repeating the rule in another prompt; a question specific to one of those prompts belongs in
+ * that prompt instead.
  *
  * USAGE:
  * observableAutomatabilityStatics.markdown;
@@ -19,6 +19,12 @@ export const observableAutomatabilityStatics = {
 
 Set \`verifyByHuman: true\` on an observable when NO automated check — no test, no reading of the source —
 can settle it at all, because it names a judgment only a person can make, and only once the quest is done.
+
+**The flag lives on an OBSERVABLE, and nowhere else.** \`flowObservableContract\` is the only contract
+carrying it — a terminal node, a labelled branch edge and an off-map probe family have no such field to
+set. Where one of those, rather than an observable, is what resists every check and nothing but a
+person's own judgment could ever settle, the honest mark is \`cant-meet\` with a \`toSettle\` naming the
+person's check — never an invented flag on a unit that carries none.
 
 **Any role may set it, including one with no way to confirm the criterion itself.** A session that
 recognizes a criterion nothing available to it can verify sets the flag rather than inventing a proxy

@@ -40,6 +40,14 @@ describe('observableAutomatabilityStatics', () => {
     ).toBe(true);
   });
 
+  it('VALID: markdown => states the flag lives on an observable only, and a terminal/branch/off-map unit takes cant-meet with a toSettle instead', () => {
+    expect(
+      has(
+        "**The flag lives on an OBSERVABLE, and nowhere else.** `flowObservableContract` is the only contract carrying it — a terminal node, a labelled branch edge and an off-map probe family have no such field to set. Where one of those, rather than an observable, is what resists every check and nothing but a person's own judgment could ever settle, the honest mark is `cant-meet` with a `toSettle` naming the person's check — never an invented flag on a unit that carries none.",
+      ),
+    ).toBe(true);
+  });
+
   it('VALID: markdown => states any role may set it, including one with no way to confirm the criterion itself', () => {
     expect(
       has(

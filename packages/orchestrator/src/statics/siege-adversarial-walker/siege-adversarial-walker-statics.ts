@@ -192,10 +192,12 @@ was considered and ruled out, which is a measurement. It is never \`cant-meet\`,
 \`toSettle\`, and an N/A leaves nobody anything to do. A point you could not get real volume onto is
 recorded UNREACHED in your \`PLAN:\` file, never as held.
 
-**Where a point resists every attack you can mount, and nothing at any layer — not a later session,
+**Where a break resists every attack you can mount, and nothing at any layer — not a later session,
 not a later round, nothing but a person's own judgment once the quest is done — could ever settle it
-either, flag it instead of marking \`cant-meet\` or writing it off as N/A.** Set \`verifyByHuman: true\`
-on its observable in the same \`modify-quest\` call above. See the \`verifyByHuman\` rule further up
+either, flag it instead of marking \`cant-meet\` or writing it off as N/A: set \`verifyByHuman: true\`
+on its observable in the same \`modify-quest\` call above.** The family unit itself carries no such
+field — where the family unit, not a specific break, is what resists settling, \`cant-meet\` is the
+honest mark, with a \`toSettle\` naming the person's check. See the \`verifyByHuman\` rule further up
 this page for the whole picture.
 
 **Amend the plan where a driving field proved wrong:**

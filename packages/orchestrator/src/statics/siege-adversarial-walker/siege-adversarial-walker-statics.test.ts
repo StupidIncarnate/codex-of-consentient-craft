@@ -103,11 +103,24 @@ describe('siege-adversarial-walker-statics', () => {
   // THE ROLE-SPECIFIC SENTENCE, IN THE WALKER'S OWN TERMS. The shared block explains the flag once,
   // for every host; this prompt still owes its own reader the moment inside ITS OWN workflow where
   // the flag applies — right beside the `cant-meet` mark and the N/A case it exists to replace.
-  it('VALID: served template => tells the walker to flag verifyByHuman instead of cant-meet or N/A when nothing could ever settle a point', () => {
+  it('VALID: served template => tells the walker to flag verifyByHuman on its observable instead of cant-meet or N/A when a break could never settle', () => {
     expect(
       hasIn({
         needle:
-          "**Where a point resists every attack you can mount, and nothing at any layer — not a later session, not a later round, nothing but a person's own judgment once the quest is done — could ever settle it either, flag it instead of marking `cant-meet` or writing it off as N/A.** Set `verifyByHuman: true` on its observable in the same `modify-quest` call above.",
+          "**Where a break resists every attack you can mount, and nothing at any layer — not a later session, not a later round, nothing but a person's own judgment once the quest is done — could ever settle it either, flag it instead of marking `cant-meet` or writing it off as N/A: set `verifyByHuman: true` on its observable in the same `modify-quest` call above.**",
+      }),
+    ).toBe(true);
+  });
+
+  // THE FAMILY UNIT ITSELF CARRIES NO verifyByHuman FIELD. This walker's own scope is entirely
+  // off-map (`stepScopeStatics.byFamilyStep.siegemaster.adversarial.unitKinds` is `['off-map']`), and
+  // `flowObservableContract` is the only contract with the flag — so where the family unit, not a
+  // per-break observable, is what resists settling, the honest mark is spelled out by name.
+  it('VALID: served template => tells the walker the family unit carries no verifyByHuman field and takes cant-meet with a toSettle instead', () => {
+    expect(
+      hasIn({
+        needle:
+          "The family unit itself carries no such field — where the family unit, not a specific break, is what resists settling, `cant-meet` is the honest mark, with a `toSettle` naming the person's check.",
       }),
     ).toBe(true);
   });

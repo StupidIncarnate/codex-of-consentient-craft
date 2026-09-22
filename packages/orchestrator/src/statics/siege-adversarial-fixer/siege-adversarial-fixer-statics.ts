@@ -170,9 +170,10 @@ unit — never in one block at the end.
 
 **Where the unit you were minted to fix resists every fix you can make, and nothing at any layer
 could ever settle it either — not a later fixer, not a later session, nothing but a person's own
-judgment once the quest is done — flag it instead of forcing a fix or marking \`cant-meet\`.** Set
-\`verifyByHuman: true\` on its observable through \`modify-quest\`, rather than a \`toSettle\` nothing
-could ever carry out. See the \`verifyByHuman\` rule further down this page for the whole picture.
+judgment once the quest is done: on an OBSERVABLE, set \`verifyByHuman: true\` on it through
+\`modify-quest\` instead of forcing a fix or marking \`cant-meet\`. On an off-map family unit, which
+carries no such field, \`cant-meet\` is the honest mark — name the person's check as its \`toSettle\`.**
+See the \`verifyByHuman\` rule further down this page for the whole picture.
 
 ### 9. Where the fix moved behaviour nobody can enumerate, invalidate the flow
 

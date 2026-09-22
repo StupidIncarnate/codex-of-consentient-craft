@@ -97,13 +97,34 @@ describe('siegeHappyWalkerStatics', () => {
   // THE ROLE-SPECIFIC SENTENCE, IN THE WALKER'S OWN TERMS. The shared block explains the flag once,
   // for every host; this prompt still owes its own reader the moment inside ITS OWN workflow where
   // the flag applies — right beside the `cant-meet` mark it exists to replace.
-  it('VALID: served template => tells the walker to flag verifyByHuman instead of cant-meet when nothing could ever settle a unit', () => {
+  it('VALID: served template => tells the walker to flag verifyByHuman on an observable instead of cant-meet when nothing could ever settle a unit', () => {
     expect(
       hasIn({
         needle:
-          "**Where a unit resists everything you can try, and nothing at any layer could ever settle it either — not a later session, not a later walk, nothing but a person's own judgment once the quest is done — flag it instead of writing `cant-meet`.** Set `verifyByHuman: true` on its observable through the same `modify-quest` call above, rather than a `toSettle` nothing could ever carry out.",
+          "**Where a unit resists everything you can try, and nothing at any layer could ever settle it either — not a later session, not a later walk, nothing but a person's own judgment once the quest is done: on an OBSERVABLE, set `verifyByHuman: true` on it through the same `modify-quest` call above instead of writing `cant-meet`.",
       }),
     ).toBe(true);
+  });
+
+  // A TERMINAL OR BRANCH UNIT CARRIES NO verifyByHuman FIELD. This walker's own units span all
+  // three kinds (see "The words this page uses" — an observable, a terminal node, or a labelled
+  // branch edge), so the honest mark for the other two has to be spelled out rather than left to a
+  // blanket "flag it" that names no field on a unit that has none.
+  it("VALID: served template => tells the walker a terminal or branch unit takes cant-meet with a toSettle naming the person's check instead", () => {
+    expect(
+      hasIn({
+        needle:
+          "On a terminal or branch unit, which carries no such field, `cant-meet` is the honest mark — name the person's check as its `toSettle`.",
+      }),
+    ).toBe(true);
+  });
+
+  // THE OLD "toSettle NOTHING COULD CARRY OUT" CLAIM IS GONE. A person's check IS an instruction a
+  // toSettle can carry — that is exactly what unitMarkingStatics defines toSettle to be.
+  it('VALID: served template => never claims a toSettle is something nothing could ever carry out', () => {
+    expect({
+      oldClaimGone: TEMPLATE.includes('rather than a `toSettle` nothing could ever carry out'),
+    }).toStrictEqual({ oldClaimGone: false });
   });
 
   // THE SPILL RULE SITS BESIDE THE ONE FETCH IN THIS PROMPT THAT CAN ACTUALLY SPILL. `get-quest-work`
