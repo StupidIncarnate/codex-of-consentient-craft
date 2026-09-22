@@ -33,7 +33,18 @@
  * (a corrupt read, a dimension mismatch against `lastShotPath()`) degrades the same way rather than
  * throwing: an evidence read must never replace the step's own real error, the rule the swallowed
  * capture above already follows. `serverWindow` is real, read off `lane.serverLogLength()` before and
- * after the verb runs.
+ * after the verb runs. `previousReading` is a fourth measurement taken alongside `blank` and
+ * `pixelChange` rather than a fifth one bolted on: this file reads a `KeyListing` via
+ * `session.look({ within: null })` ONCE, before `runVerbLayerBroker` runs, so every branch below diffs
+ * the SAME before-snapshot rather than three independent reads racing the page. `delta` is
+ * `elementDeltaComputeTransformer`'s answer between that snapshot and a second `session.look()` taken
+ * after the verb — on the success return, on the `expect: 'error'` catch return, and attached to the
+ * thrown `StepFailureCaptureError` on a real failure whose own capture landed, mirroring exactly where
+ * `blank`/`pixelChange` are measured on each of those three paths. Both `previousReading` and `delta`
+ * are `null` on a non-capturing step (no `session.look()` was ever taken to diff) and degrade to `null`
+ * on their own read failure without disturbing anything else this file already measured or threw — an
+ * evidence read must never replace the step's real outcome, the same rule the screenshot capture above
+ * already follows.
  *
  * USAGE:
  * await stepDispatchBroker({
@@ -51,7 +62,9 @@ import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contra
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import type { BlankReading } from '../../../contracts/blank-reading/blank-reading-contract';
 import type { BufferLengths } from '../../../contracts/browser-session/browser-session-contract';
+import type { ElementDelta } from '../../../contracts/element-delta/element-delta-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
+import type { KeyListing } from '../../../contracts/key-listing/key-listing-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { SeedBindingName } from '../../../contracts/seed-binding-name/seed-binding-name-contract';
 import type { PixelChange } from '../../../contracts/pixel-change/pixel-change-contract';
@@ -66,6 +79,7 @@ import { StepFailureCaptureError } from '../../../errors/step-failure-capture/st
 import { isBrowserStepGuard } from '../../../guards/is-browser-step/is-browser-step-guard';
 import { shotBlankReadBroker } from '../../shot/blank-read/shot-blank-read-broker';
 import { shotChangeReadBroker } from '../../shot/change-read/shot-change-read-broker';
+import { elementDeltaComputeTransformer } from '../../../transformers/element-delta-compute/element-delta-compute-transformer';
 import { runVerbLayerBroker } from './run-verb-layer-broker';
 
 export const stepDispatchBroker = async ({
@@ -101,6 +115,20 @@ export const stepDispatchBroker = async ({
 
   const startedAtMs = epochMsContract.parse(Date.now());
   const serverLogStartByte = lane.serverLogLength();
+
+  // The element half of the pixel/element pair, taken ONCE before the verb runs so every branch
+  // below diffs the same baseline. Null on a non-capturing step (mirrors pixelChange/blank staying
+  // null there) and degrades to null on its own read failure rather than throwing — an evidence
+  // read must never replace the step's real outcome.
+  const previousReading: KeyListing | null =
+    shotPath === null || session === null
+      ? null
+      : await session.look({ within: null }).catch((readError: unknown) => {
+          process.stderr.write(
+            `[step-dispatch] key listing read failed for step ${String(index)} before the verb ran: ${String(readError)}\n`,
+          );
+          return null;
+        });
 
   // No mutable `ok`/`reading` declared ahead of the try: a placeholder initializer that every path
   // below unconditionally overwrites trips no-useless-assignment, so each branch instead builds and
@@ -140,6 +168,18 @@ export const stepDispatchBroker = async ({
     const blank = blankReading === null ? null : blankReading.blank;
     const blankColour = blankReading === null ? null : blankReading.colour;
 
+    let delta: ElementDelta | null = null;
+    if (previousReading !== null && session !== null) {
+      try {
+        const afterReading = await session.look({ within: null });
+        delta = elementDeltaComputeTransformer({ before: previousReading, after: afterReading });
+      } catch (readError: unknown) {
+        process.stderr.write(
+          `[step-dispatch] key listing read failed for step ${String(index)} after the verb ran: ${String(readError)}\n`,
+        );
+      }
+    }
+
     return stepReadingContract.parse({
       step: index,
       verb,
@@ -151,6 +191,8 @@ export const stepDispatchBroker = async ({
       pixelChange,
       blank,
       blankColour,
+      previousReading,
+      delta,
       serverWindow: serverLogWindowContract.parse({
         fromByte: serverLogStartByte,
         toByte: lane.serverLogLength(),
@@ -211,12 +253,31 @@ export const stepDispatchBroker = async ({
           }
         }
 
+        // The element half, gated on `captured` exactly like blank/pixelChange above: a failure
+        // whose own capture never landed has nothing fresh to diff `previousReading` against either.
+        let delta: ElementDelta | null = null;
+        if (captured && previousReading !== null) {
+          try {
+            const afterReading = await session.look({ within: null });
+            delta = elementDeltaComputeTransformer({
+              before: previousReading,
+              after: afterReading,
+            });
+          } catch (readError: unknown) {
+            process.stderr.write(
+              `[step-dispatch] key listing read failed for step ${String(index)} after a real failure's own capture: ${String(readError)}\n`,
+            );
+          }
+        }
+
         throw new StepFailureCaptureError({
           underlyingError: error,
           captured,
           blank: blankReading === null ? null : blankReading.blank,
           blankColour: blankReading === null ? null : blankReading.colour,
           pixelChange,
+          previousReading,
+          delta,
         });
       }
       throw error;
@@ -263,6 +324,18 @@ export const stepDispatchBroker = async ({
     const blank = blankReading === null ? null : blankReading.blank;
     const blankColour = blankReading === null ? null : blankReading.colour;
 
+    let delta: ElementDelta | null = null;
+    if (previousReading !== null && session !== null) {
+      try {
+        const afterReading = await session.look({ within: null });
+        delta = elementDeltaComputeTransformer({ before: previousReading, after: afterReading });
+      } catch (readError: unknown) {
+        process.stderr.write(
+          `[step-dispatch] key listing read failed for step ${String(index)} after the verb ran: ${String(readError)}\n`,
+        );
+      }
+    }
+
     return stepReadingContract.parse({
       step: index,
       verb,
@@ -274,6 +347,8 @@ export const stepDispatchBroker = async ({
       pixelChange,
       blank,
       blankColour,
+      previousReading,
+      delta,
       serverWindow: serverLogWindowContract.parse({
         fromByte: serverLogStartByte,
         toByte: lane.serverLogLength(),

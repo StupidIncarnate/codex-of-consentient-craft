@@ -1,3 +1,7 @@
+import { ElementDeltaStub } from '../element-delta/element-delta.stub';
+import { KeyListingStub } from '../key-listing/key-listing.stub';
+import { KeyRowStub } from '../key-row/key-row.stub';
+
 import { stepReadingContract } from './step-reading-contract';
 import { StepReadingStub } from './step-reading.stub';
 
@@ -31,9 +35,40 @@ describe('stepReadingContract', () => {
         pixelChange: '4%',
         blank: false,
         blankColour: null,
+        previousReading: null,
+        delta: null,
         serverWindow: { fromByte: 1024, toByte: 2048 },
         startedAtMs: 1_700_000_000_000,
         endedAtMs: 1_700_000_000_210,
+      });
+    });
+
+    it('VALID: {previousReading, delta with an appeared element} => carries the element half of the pixel/element pair', () => {
+      const previousReading = KeyListingStub({ rows: [] });
+      const appearedRow = KeyRowStub({ testId: 'guild-add-modal' });
+      const delta = ElementDeltaStub({ appeared: [appearedRow] });
+
+      const result = stepReadingContract.parse({
+        step: 2,
+        verb: 'click',
+        node: null,
+        ok: true,
+        expected: 'ok',
+        reading: 'clicked [data-testid="GUILD_ADD"]',
+        shot: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2/step2.png',
+        pixelChange: '4%',
+        blank: false,
+        blankColour: null,
+        previousReading,
+        delta,
+        serverWindow: { fromByte: 1024, toByte: 2048 },
+        startedAtMs: 1_700_000_000_000,
+        endedAtMs: 1_700_000_000_210,
+      });
+
+      expect({ previousReading: result.previousReading, delta: result.delta }).toStrictEqual({
+        previousReading,
+        delta,
       });
     });
 
@@ -129,6 +164,29 @@ describe('stepReadingContract', () => {
         blankColour: null,
       });
     });
+
+    it('EDGE: {previousReading and delta omitted} => both default to null', () => {
+      const result = stepReadingContract.parse({
+        step: 3,
+        verb: 'eval',
+        node: null,
+        ok: true,
+        expected: 'ok',
+        reading: '"Guild Hall"',
+        shot: null,
+        pixelChange: null,
+        blank: null,
+        blankColour: null,
+        serverWindow: { fromByte: 0, toByte: 0 },
+        startedAtMs: 1_700_000_000_000,
+        endedAtMs: 1_700_000_000_100,
+      });
+
+      expect({ previousReading: result.previousReading, delta: result.delta }).toStrictEqual({
+        previousReading: null,
+        delta: null,
+      });
+    });
   });
 
   describe('invalid readings', () => {
@@ -205,6 +263,8 @@ describe('stepReadingContract', () => {
         pixelChange: '38%',
         blank: false,
         blankColour: null,
+        previousReading: null,
+        delta: null,
         serverWindow: { fromByte: 0, toByte: 512 },
         startedAtMs: 1_700_000_000_000,
         endedAtMs: 1_700_000_000_210,

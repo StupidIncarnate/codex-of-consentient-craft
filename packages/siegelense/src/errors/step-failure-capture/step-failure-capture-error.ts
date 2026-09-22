@@ -13,16 +13,22 @@
  * three are `null` when `captured` is `false` (no file exists to measure) and also degrade to `null`
  * on their own read failure without disturbing `captured` or `underlyingError` — an evidence read must
  * never replace the step's real error, the same rule the capture itself already follows.
- * `blankColour` and `pixelChange` are stored as `unknown`, matching `underlyingError`: this file is a
+ * `previousReading` and `delta` ride the same wrapper for the same reason, gated on `captured` exactly
+ * like `blank`/`pixelChange`: the element half of the pixel/element pair belongs on a real failure's
+ * evidence exactly as much as the pixel half does.
+ * `blankColour`, `pixelChange`, `previousReading` and `delta` are stored as `unknown`, matching
+ * `underlyingError`: this file is a
  * leaf node (`errors/` imports nothing), so it cannot brand them through `hexColourContract` /
- * `pixelChangeContract` — `runExecuteStepLayerBroker` passes them straight into `stepReadingContract`,
- * which re-validates and brands them there. `underlyingError` itself is the original rejection,
+ * `pixelChangeContract` / `keyListingContract` / `elementDeltaContract` — whoever reads this wrapper
+ * passes them straight into `stepReadingContract`, which re-validates and brands them there.
+ * `underlyingError` itself is the original rejection,
  * unchanged, so `runExecuteStepLayerBroker`'s own `instanceof WaitForCeilingHitError` check and its
  * message extraction still see the real failure rather than this wrapper's own class or message.
  *
  * USAGE:
  * throw new StepFailureCaptureError({
  *   underlyingError, captured: true, blank: false, blankColour: null, pixelChange: '4%',
+ *   previousReading: null, delta: null,
  * });
  * // runExecuteStepLayerBroker reads `.captured` to gate `shot`, reads `.blank`/`.blankColour`/
  * // `.pixelChange` to carry the same measurement the success path would have made, and unwraps
@@ -39,6 +45,8 @@ export class StepFailureCaptureError extends Error {
   public readonly blank: boolean | null;
   public readonly blankColour: unknown;
   public readonly pixelChange: unknown;
+  public readonly previousReading: unknown;
+  public readonly delta: unknown;
 
   public constructor({
     underlyingError,
@@ -46,12 +54,16 @@ export class StepFailureCaptureError extends Error {
     blank,
     blankColour,
     pixelChange,
+    previousReading,
+    delta,
   }: {
     underlyingError: unknown;
     captured: boolean;
     blank: boolean | null;
     blankColour: string | null;
     pixelChange: string | null;
+    previousReading: unknown;
+    delta: unknown;
   }) {
     super(String(underlyingError));
     this.underlyingError = underlyingError;
@@ -59,6 +71,8 @@ export class StepFailureCaptureError extends Error {
     this.blank = blank;
     this.blankColour = blankColour;
     this.pixelChange = pixelChange;
+    this.previousReading = previousReading;
+    this.delta = delta;
     this.name = 'StepFailureCaptureError';
   }
 }

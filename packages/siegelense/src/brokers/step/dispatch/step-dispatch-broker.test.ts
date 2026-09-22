@@ -4,6 +4,9 @@ import {
   FileNameStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { ElementDeltaStub } from '../../../contracts/element-delta/element-delta.stub';
+import { KeyListingStub } from '../../../contracts/key-listing/key-listing.stub';
+import { KeyRowStub } from '../../../contracts/key-row/key-row.stub';
 import { LocatorStateStub } from '../../../contracts/locator-state/locator-state.stub';
 import { NodeLabelStub } from '../../../contracts/node-label/node-label.stub';
 import { SelectorStub } from '../../../contracts/selector/selector.stub';
@@ -64,6 +67,8 @@ describe('stepDispatchBroker', () => {
         pixelChange: null,
         blank: false,
         blankColour: null,
+        previousReading: KeyListingStub(),
+        delta: ElementDeltaStub(),
         serverWindow: { fromByte: 0, toByte: 0 },
         startedAtMs: FIXED_NOW_MS,
         endedAtMs: FIXED_NOW_MS,
@@ -108,6 +113,8 @@ describe('stepDispatchBroker', () => {
         pixelChange: null,
         blank: true,
         blankColour: '#0d0907',
+        previousReading: KeyListingStub(),
+        delta: ElementDeltaStub(),
         serverWindow: { fromByte: 0, toByte: 0 },
         startedAtMs: FIXED_NOW_MS,
         endedAtMs: FIXED_NOW_MS,
@@ -234,6 +241,8 @@ describe('stepDispatchBroker', () => {
         pixelChange: null,
         blank: true,
         blankColour: '#0d0907',
+        previousReading: KeyListingStub(),
+        delta: ElementDeltaStub(),
         serverWindow: { fromByte: 0, toByte: 0 },
         startedAtMs: FIXED_NOW_MS,
         endedAtMs: FIXED_NOW_MS,
@@ -459,6 +468,8 @@ describe('stepDispatchBroker', () => {
         pixelChange: null,
         blank: null,
         blankColour: null,
+        previousReading: null,
+        delta: null,
         serverWindow: { fromByte: 0, toByte: 0 },
         startedAtMs: FIXED_NOW_MS,
         endedAtMs: FIXED_NOW_MS,
@@ -492,6 +503,8 @@ describe('stepDispatchBroker', () => {
         pixelChange: null,
         blank: null,
         blankColour: null,
+        previousReading: null,
+        delta: null,
         serverWindow: { fromByte: 0, toByte: 0 },
         startedAtMs: FIXED_NOW_MS,
         endedAtMs: FIXED_NOW_MS,
@@ -533,6 +546,8 @@ describe('stepDispatchBroker', () => {
         pixelChange: null,
         blank: null,
         blankColour: null,
+        previousReading: null,
+        delta: null,
         serverWindow: { fromByte: 0, toByte: 0 },
         startedAtMs: FIXED_NOW_MS,
         endedAtMs: FIXED_NOW_MS,
@@ -571,6 +586,8 @@ describe('stepDispatchBroker', () => {
         pixelChange: null,
         blank: null,
         blankColour: null,
+        previousReading: null,
+        delta: null,
         serverWindow: { fromByte: 0, toByte: 0 },
         startedAtMs: FIXED_NOW_MS,
         endedAtMs: FIXED_NOW_MS,
@@ -1077,6 +1094,124 @@ describe('stepDispatchBroker', () => {
       });
 
       expect(result.reading).toBe('"Guild Hall"');
+    });
+  });
+
+  describe('the element delta', () => {
+    it('VALID: {a successful click, before/after key listings differ} => the reading carries previousReading and a real delta with an appeared, a disappeared and a changed element', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const disappearingRow = KeyRowStub({ testId: 'el-disappear' });
+      const changedBeforeRow = KeyRowStub({ testId: 'el-change', text: 'before-text' });
+      const changedAfterRow = KeyRowStub({ testId: 'el-change', text: 'after-text' });
+      const appearingRow = KeyRowStub({ testId: 'el-appear' });
+      const beforeListing = KeyListingStub({ rows: [disappearingRow, changedBeforeRow] });
+      const afterListing = KeyListingStub({ rows: [changedAfterRow, appearingRow] });
+      const { lane } = proxy.happyLane({ keyListings: [beforeListing, afterListing] });
+      const step = StepStub({ step: 'click', target: SelectorStub() });
+      const shotPath = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+      });
+
+      const result = await stepDispatchBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 1 }),
+        shotPath,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
+      });
+
+      expect({ previousReading: result.previousReading, delta: result.delta }).toStrictEqual({
+        previousReading: beforeListing,
+        delta: ElementDeltaStub({
+          appeared: [appearingRow],
+          disappeared: [disappearingRow],
+          changed: [{ before: changedBeforeRow, after: changedAfterRow }],
+        }),
+      });
+    });
+
+    it('VALID: {a real failure whose capture lands, before/after key listings differ} => the thrown error carries previousReading and a real delta with an appeared, a disappeared and a changed element', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const disappearingRow = KeyRowStub({ testId: 'el-disappear' });
+      const changedBeforeRow = KeyRowStub({ testId: 'el-change', text: 'before-text' });
+      const changedAfterRow = KeyRowStub({ testId: 'el-change', text: 'after-text' });
+      const appearingRow = KeyRowStub({ testId: 'el-appear' });
+      const beforeListing = KeyListingStub({ rows: [disappearingRow, changedBeforeRow] });
+      const afterListing = KeyListingStub({ rows: [changedAfterRow, appearingRow] });
+      const { lane } = proxy.laneRejectingClickMatch({
+        error: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
+        keyListings: [beforeListing, afterListing],
+      });
+      const step = StepStub({ step: 'click', target: SelectorStub() });
+      const shotPath = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+      });
+
+      const error = await stepDispatchBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 1 }),
+        shotPath,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
+      }).then(
+        (): never => {
+          throw new Error('Expected stepDispatchBroker to reject');
+        },
+        (caught: unknown): StepFailureCaptureError => caught as StepFailureCaptureError,
+      );
+
+      expect({ previousReading: error.previousReading, delta: error.delta }).toStrictEqual({
+        previousReading: beforeListing,
+        delta: ElementDeltaStub({
+          appeared: [appearingRow],
+          disappeared: [disappearingRow],
+          changed: [{ before: changedBeforeRow, after: changedAfterRow }],
+        }),
+      });
+    });
+
+    it('VALID: {expect: error, click throws as the declared attack, before/after key listings differ} => the reading carries previousReading and a real delta with an appeared, a disappeared and a changed element', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const disappearingRow = KeyRowStub({ testId: 'el-disappear' });
+      const changedBeforeRow = KeyRowStub({ testId: 'el-change', text: 'before-text' });
+      const changedAfterRow = KeyRowStub({ testId: 'el-change', text: 'after-text' });
+      const appearingRow = KeyRowStub({ testId: 'el-appear' });
+      const beforeListing = KeyListingStub({ rows: [disappearingRow, changedBeforeRow] });
+      const afterListing = KeyListingStub({ rows: [changedAfterRow, appearingRow] });
+      const { lane } = proxy.laneRejectingClickMatch({
+        error: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
+        keyListings: [beforeListing, afterListing],
+      });
+      const step = StepStub({ step: 'click', target: SelectorStub(), expect: 'error' });
+      const shotPath = AbsoluteFilePathStub({
+        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+      });
+
+      const result = await stepDispatchBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 1 }),
+        shotPath,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
+      });
+
+      expect({ previousReading: result.previousReading, delta: result.delta }).toStrictEqual({
+        previousReading: beforeListing,
+        delta: ElementDeltaStub({
+          appeared: [appearingRow],
+          disappeared: [disappearingRow],
+          changed: [{ before: changedBeforeRow, after: changedAfterRow }],
+        }),
+      });
     });
   });
 });

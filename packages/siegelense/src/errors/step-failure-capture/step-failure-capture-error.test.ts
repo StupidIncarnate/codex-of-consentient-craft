@@ -11,6 +11,8 @@ describe('StepFailureCaptureError', () => {
         blank: false,
         blankColour: null,
         pixelChange: '4%',
+        previousReading: null,
+        delta: null,
       });
 
       expect({
@@ -21,6 +23,8 @@ describe('StepFailureCaptureError', () => {
         blank: error.blank,
         blankColour: error.blankColour,
         pixelChange: error.pixelChange,
+        previousReading: error.previousReading,
+        delta: error.delta,
       }).toStrictEqual({
         name: 'StepFailureCaptureError',
         message: 'Error: AMBIGUOUS: 2 elements match [data-testid="X"]',
@@ -29,6 +33,8 @@ describe('StepFailureCaptureError', () => {
         blank: false,
         blankColour: null,
         pixelChange: '4%',
+        previousReading: null,
+        delta: null,
       });
     });
 
@@ -41,6 +47,8 @@ describe('StepFailureCaptureError', () => {
         blank: null,
         blankColour: null,
         pixelChange: null,
+        previousReading: null,
+        delta: null,
       });
 
       expect({
@@ -51,6 +59,8 @@ describe('StepFailureCaptureError', () => {
         blank: error.blank,
         blankColour: error.blankColour,
         pixelChange: error.pixelChange,
+        previousReading: error.previousReading,
+        delta: error.delta,
       }).toStrictEqual({
         name: 'StepFailureCaptureError',
         message: 'Error: page.goto: Timeout 30000ms exceeded.',
@@ -59,6 +69,8 @@ describe('StepFailureCaptureError', () => {
         blank: null,
         blankColour: null,
         pixelChange: null,
+        previousReading: null,
+        delta: null,
       });
     });
 
@@ -69,6 +81,8 @@ describe('StepFailureCaptureError', () => {
         blank: true,
         blankColour: '#0d0907',
         pixelChange: null,
+        previousReading: null,
+        delta: null,
       });
 
       expect({
@@ -80,6 +94,22 @@ describe('StepFailureCaptureError', () => {
         blankColour: '#0d0907',
         pixelChange: null,
       });
+    });
+
+    it('VALID: {delta: a staged marker} => carries it through unchanged, exactly like blankColour and pixelChange', () => {
+      const stagedDelta = 'staged-element-delta';
+
+      const error = new StepFailureCaptureError({
+        underlyingError: new Error('boom'),
+        captured: true,
+        blank: false,
+        blankColour: null,
+        pixelChange: '10%',
+        previousReading: null,
+        delta: stagedDelta,
+      });
+
+      expect(error.delta).toBe(stagedDelta);
     });
   });
 
@@ -91,6 +121,8 @@ describe('StepFailureCaptureError', () => {
         blank: null,
         blankColour: null,
         pixelChange: null,
+        previousReading: null,
+        delta: null,
       });
 
       expect(error instanceof StepFailureCaptureError).toBe(true);
@@ -103,6 +135,8 @@ describe('StepFailureCaptureError', () => {
         blank: null,
         blankColour: null,
         pixelChange: null,
+        previousReading: null,
+        delta: null,
       });
 
       expect(error instanceof Error).toBe(true);
