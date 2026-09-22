@@ -11,9 +11,13 @@ turned out to be wrong about.
 | Branch | `consolidated-plan` |
 | Worktree | `worktrees/consolidated-plan` |
 | Carved from | `master` at `e20c6b771` |
-| Commits landed | 16 |
-| Units finished | 30 |
-| Units remaining | roughly 43, listed below |
+| Commits landed | 18 |
+| Units finished | 31 |
+| Units remaining | roughly 42, listed below |
+| In flight | **NOTHING.** The board is empty and the tree is committed. |
+
+`packages/web` **has been built** (`npm run build --workspace=@dungeonmaster/web`), so the e2e debt
+units below can run against current code immediately. `@dungeonmaster/shared` has been built too.
 
 **Package health, package-scoped — the only kind that counts:**
 
@@ -238,10 +242,54 @@ Two are the OPERATOR's, not an agent's:
   `@dungeonmaster/shared/statics` at load with no `source` condition, so lint cannot grade it until
   `shared` is rebuilt.
 
-### The debt units — added by the user's ruling that pre-existing failures are in scope
+### The debt units — the COMPLETE lint picture, swept repo-wide
 
-`packages/web`, run `1790102251700-29d3`: 21 files, 40 errors. PROVEN pre-existing — the rule commit
-`3aa2d4816` is an ancestor of master's tip, and zero e2e files were touched by this work.
+**A repo-wide `npm run ward -- --only lint` has been run.** Do not re-derive this.
+
+> `lint: FAIL 17 packages (10540 files passed / 24 files failed, 10564 discovered)`
+> `@dungeonmaster/cli (1), @dungeonmaster/server (1), @dungeonmaster/siegelense (2), @dungeonmaster/web (40)`
+
+**44 errors, 24 files, and that is all of them.**
+
+| Count | Rule | Where |
+|---|---|---|
+| 39 | `ban-direct-io-in-test-scenarios` | 20 e2e specs, all in `web` — D1–D8 below |
+| 5 | `no-hardcoded-package-names` | 4 files in 4 DIFFERENT packages — D9 below |
+
+The 39 are PROVEN pre-existing: the rule commit `3aa2d4816` is an ancestor of master's tip, and
+zero e2e files were touched by this work. A `shared` build cleared none of them.
+
+#### D9 — `no-hardcoded-package-names`, five errors in four packages
+
+```
+packages/cli/src/responders/cli/serve/cli-serve-responder.ts                       (1)
+packages/server/src/adapters/web-bundle/dist-path/web-bundle-dist-path-adapter.ts  (1)
+packages/siegelense/src/statics/lane-spec/lane-spec-statics.ts                     (2)
+packages/web/playwright.config.ts:85                                               (1)
+```
+
+`playwright.config.ts:85` reads `command: 'npm run dev:no-watch --workspace=@dungeonmaster/server',`.
+
+**These became visible because this branch widened the rule** to catch a scoped `@scope/name` used
+as data. They are real violations, not artefacts — dungeonmaster runs inside OTHER repos, where the
+frontend may not be called `web` and the backend may not be called `server`, and where two packages
+may answer the same role.
+
+**TWO TRAPS in fixing them:**
+
+1. **The error message names the WRONG helpers for some sites.** It points at
+   `isPackageE2eEligibleGuard` and `architecturePackageE2eEligibleDetectBroker`, which answer the
+   FRONTEND question. At least two of these sites are about the http-backend. Following the message
+   there produces code that lints clean and resolves the wrong package. Find what actually exists
+   first; `packageBuildOrderStatics.tiers` in `@dungeonmaster/shared` names the kinds.
+2. **Handle a SET, never a singleton.** Each site wants one package to run or one path to read. Decide
+   deliberately what happens with NONE and with SEVERAL. Throwing and naming what it found is a good
+   answer; silently taking the first is the same bug as the hardcoded name, just later.
+
+If no resolver exists for a kind a site needs, building one may be honest and so may an exemption —
+say which and why rather than inventing a resolver that guesses.
+
+#### D1–D8 — `ban-direct-io-in-test-scenarios`, the 39
 
 ```
 D1  dispatch-pause-between-specs.e2e.ts (34) · bughunt-begin-transition.e2e.ts (285)
@@ -256,21 +304,17 @@ D7  quest-ws-update.e2e.ts (75,148) · resume-execution-row-runs-again.e2e.ts (1
     · resume-starts-dispatch.e2e.ts (73,152)
 D8  subagent-duration-notification-arrives.e2e.ts (135,244) · ward-execution-streaming.e2e.ts (142,328)
     · warpgate-queue-listing.e2e.ts (119,136)
-D9  playwright.config.ts:85 — `command: 'npm run dev:no-watch --workspace=@dungeonmaster/server',`
 ```
 
 **D1–D8 are unlike every other unit here: they need E2E verification.** Routing setup through a
-harness CHANGES what a spec does, and only a browser run proves it still passes. The specs run from
-source, but the app they drive is `packages/web/dist`, which is stale.
+harness CHANGES what a spec does, and only a browser run proves it still passes.
 
-> **SEQUENCE: build `packages/web` FIRST, then dispatch D1–D8 with `--only e2e -- <their own specs>`
-> permitted.** Ward gives each e2e run its own port pair, report path and artifact directory, so
-> four can run at once; a cap of 3 is already inside that.
+**`packages/web` IS ALREADY BUILT**, so dispatch these with `--only e2e -- <their own specs>`
+permitted. Ward gives each e2e run its own port pair, report path and artifact directory, so four
+can run at once; a cap of 3 is already inside that. Never let one run the whole e2e suite.
 
-**D9's lint message points at the wrong helpers.** It names `isPackageE2eEligibleGuard` and
-`architecturePackageE2eEligibleDetectBroker`, which answer the FRONTEND question. The hardcoded name
-here is the http-backend. Find the backend equivalent, or establish that an exemption is the honest
-answer — do not follow the message into a helper that resolves the wrong package.
+Read `packages/web/test/harnesses/` first — `quest.harness.ts` and `session.harness.ts` are what the
+direct I/O has to route through.
 
 ### `packages/server` — one lint error, and one this work caused
 
@@ -317,21 +361,25 @@ already records — and driving the timers adapter from a test re-points its sin
 disables leak detection for the rest of that worker. Ward's own gate is the guard, and it was
 proven to bite by removing one drain and confirming the failure named that file alone.
 
-## In flight at handoff — THREE agents, work uncommitted and UNVERIFIED
+## In flight at handoff — NOTHING
 
-These were mid-run when the session stopped. Their edits are on disk. **Read each file before
-building on it; none of this work has passed a ward run.**
+The board is empty and the working tree is committed. Every unit that ran has landed. Start clean.
 
-| Unit | Was doing | Files to inspect |
-|---|---|---|
-| T4-4b | Element delta onto an acting step | `packages/siegelense/src/contracts/step-reading/`, `brokers/step/dispatch/` |
+One agent was dispatched and stopped by the user mid-run (D9a, the cli and server hardcoded names);
+it wrote nothing. Re-dispatch it from the D9 section above.
 
-T3-14a and the orchestrator leak diagnosis both finished after the handoff was first written, and
-both are committed.
+## Start here
 
-**T4-4b carries a trap**: `step-dispatch-broker.ts` builds a `StepReading` in THREE branches. A
-stamp in one is a silent hole in the other two — the same shape that bit a settle wiring earlier,
-where dropping the call on a ref branch was caught by nothing.
+1. **Set the heartbeat first**, before dispatching anything — `ScheduleWakeup`, `delaySeconds: 2700`,
+   and re-schedule on every firing.
+2. **Three agents, never a fourth.**
+3. Highest value first: **D9** (five lint errors, four packages, unblocks four package-scoped greens)
+   and **T1-15** (the deletion sweep that finishes decision 1).
+4. `packages/web` is the biggest remaining block — 39 lint errors across D1–D8, and all of Track 2
+   waits behind it.
+5. **Run a full `npm run ward` before you believe anything is done.** Only LINT has been swept
+   repo-wide. Typecheck, unit, integration and e2e have been measured per package at best, and three
+   of the four packages measured that way carried failures scoped runs had hidden.
 
 A previous trio died on a session rate limit mid-run. Both predecessors' work turned out to be
 complete and correct; the resuming agents verified rather than redid it. **Ask an agent to READ what
@@ -339,11 +387,11 @@ its predecessor left and judge it, never to assume either way.**
 
 ## What is owed and was not done
 
-1. **A full `npm run ward`.** Only `web` and `orchestrator` have been graded package-scoped, and
-   BOTH carried failures that scoped runs had hidden. Fifteen packages are unmeasured. Whatever it
-   finds joins the debt list.
-2. **`npm run build --workspace=@dungeonmaster/web`**, before any D-unit's e2e run.
-3. **Nothing writes a `.webm`.** `prune-statics.ts:39-41` marks the video step NOT STARTED. Decision
+1. **A full `npm run ward` — every check, not just lint.** Lint HAS been swept repo-wide and the
+   result is the 44 errors above. Typecheck, unit, integration and e2e have NOT. Four packages were
+   graded package-scoped during this run and THREE of them carried failures that scoped runs had
+   hidden. Assume the other thirteen do too.
+2. **Nothing writes a `.webm`.** `prune-statics.ts:39-41` marks the video step NOT STARTED. Decision
    3's flag, filter, citation and retention are all correct, and there is no recording to cite — so
    a `verifyByHuman` unit resolves `blocked`, loudly and by design. The person gets a question with
    no evidence. Building the recorder was in none of the four tracks. **This is a scope decision for
