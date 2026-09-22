@@ -339,3 +339,131 @@ in any order or concurrently. T3-16ah is the sole hard dependency: run it last, 
 in this section has landed, then close with a bare `npm run ward` regression pass per
 `<dungeonmaster-wardDiscipline>`'s "who owns a FULL run" (that pass belongs to whoever dispatches these
 units, not to T3-16ah itself).
+
+---
+
+## T5-1 — role-path coverage for the step graph
+
+Source: `packages/orchestrator/src/statics/agent-flow/agent-flow-statics.ts` (`agentFlowStatics`) —
+the step graph inside each of the six families. `docs/quest-role-paths.md` was read in full (1118
+lines). Coverage was checked against every `*.integration.test.ts` under `packages/orchestrator`
+(39 files); `*.test.ts` unit tests of `nextActionTransformer` and its neighbours are NOT counted —
+they exercise the router's pure logic in isolation, never a real dispatch through a persisted
+`quest.json`, so they cannot stand in for "an integration test exercises this path end to end."
+
+**Every step declares `wall: '@blocked'`; that route is identical everywhere (§ (d) of the doc) and is
+folded into each step's row rather than argued per family.** An outcome word a step's `routes` object
+does not list is not absent from the graph — it returns automatically to the step that minted the
+work item (`mintedBy`) — so a `—` in the table below means "return-to-minter," a real, load-bearing
+edge, not a hole.
+
+### Coverage table — every step, every family
+
+32 steps, 89 declared `(step, outcome)` routes (the `wall: '@blocked'` edge counted once per step).
+
+| Family.step | Role | Kind | Prompt / handler | `done` → | `unmet` → | `empty` → | Doc status | Behavioural integration coverage |
+|---|---|---|---|---|---|---|---|---|
+| codeweaver.plan | planner | prompt | `codeweaver-planner` | work | — | `@done` | documented | **YES** — `quest-flow.integration.test.ts:1383` |
+| codeweaver.work | worker | prompt | `codeweaver-worker` | review | work | — | documented | none |
+| codeweaver.review | reviewer | prompt | `codeweaver-reviewer` | commit | work | — | documented | none |
+| codeweaver.commit | worker | deterministic (`commit`) | — | ward | — | ward | documented | none |
+| codeweaver.ward | reviewer | deterministic (`ward`, `--committed --uncommitted`) | — | `@done` | repair | `@done` | documented | **PARTIAL, flagged** — see note 1 |
+| codeweaver.repair | worker | prompt | `spiritmender` | — | repair | — | documented | none |
+| flowrider.recipe | planner | prompt (on-request) | `recipe-maker` | — | — | — | documented | none |
+| flowrider.plan | planner | prompt | `flowrider-planner` | work | — | `@done` | documented | none |
+| flowrider.work | worker | prompt (maxConcurrent 4, browser-pieces) | `flowrider-worker` | review | work | — | documented | none |
+| flowrider.review | reviewer | prompt | `flowrider-reviewer` | commit | work | — | documented | none |
+| flowrider.commit | worker | deterministic (`commit`) | — | ward | — | ward | documented | none |
+| flowrider.ward | reviewer | deterministic (`ward`) | — | `@done` | repair | `@done` | documented | none |
+| flowrider.repair | worker | prompt | `spiritmender` | — | repair | — | documented | none |
+| siegemaster.sweepIn | worker | deterministic (`cleanup`) | — | plan | — | plan | documented | none |
+| siegemaster.recipe | planner | prompt (on-request) | `recipe-maker` | — | — | — | **missing** | none |
+| siegemaster.read | worker | prompt (on-request) | `siegemaster-reader` | — | — | — | **missing** | none |
+| siegemaster.plan | planner | prompt | `siege-planner` | happyWalk | — | sweepOut | documented | none |
+| siegemaster.happyWalk | reviewer | prompt (needsLane) | `siege-happy-walker` | adversarial | fixHappy | — | documented (step named; prompt name absent) | none |
+| siegemaster.fixHappy | worker | prompt | `siege-happy-fixer` | — | fixHappy | — | documented (step named; prompt name absent) | none |
+| siegemaster.adversarial | reviewer | prompt (needsLane) | `siege-adversarial-walker` | commit | fixAdversarial | — | documented (step named; prompt name absent) | none |
+| siegemaster.fixAdversarial | worker | prompt | `siege-adversarial-fixer` | — | fixAdversarial | — | documented (step named; prompt name absent) | none |
+| siegemaster.commit | worker | deterministic (`commit`) | — | ward | — | ward | documented | none |
+| siegemaster.ward *(CLOSE_OUT overridden)* | reviewer | deterministic (`ward`) | — | sweepOut | repair | sweepOut | documented (only via the E2E ASCII diagram — no prose states the override) | none |
+| siegemaster.repair | worker | prompt | `spiritmender` | — | repair | — | documented | none |
+| siegemaster.sweepOut | worker | deterministic (`cleanup`) | — | `@done` | — | `@done` | documented | none |
+| wardFull.gate | reviewer | deterministic (`ward`, no args) | — | `@done` | repair | `@done` | documented | none |
+| wardFull.repair | worker | prompt | `spiritmender` | commit | repair | — | documented | none |
+| wardFull.commit | worker | deterministic (`commit`) | — | gate | — | gate | documented | none |
+| riftcarver.carve | reviewer | deterministic (`riftcarver`) | — | `@done` | repair | — | documented | none — see note 2 |
+| riftcarver.repair | worker | prompt | `spiritmender` | commit | repair | — | documented | none — see note 2 |
+| riftcarver.commit | worker | deterministic (`commit`) | — | carve | — | carve | documented | none — see note 2 |
+| warpgate.merge | worker | prompt | `warpgate` | `@done` | merge | — | documented | none |
+
+**Totals** — 89 `(step, outcome)` routes; **87 documented**, **2 missing** (`siegemaster.recipe`,
+`siegemaster.read` — never named anywhere in `docs/quest-role-paths.md`, not even as "siege also has
+an on-request recipe/reader step" by cross-reference to flowrider's own paragraph, which DOES name
+`recipe`); **3 have real behavioural `*.integration.test.ts` coverage** (`codeweaver.plan`'s `done`
+route, and two of `codeweaver.ward`'s routes under note 1's caveat) out of 89. **Every siege-family
+route — the exact gap the plan's loose ends named — has zero integration coverage**; the only siege
+material any `*.integration.test.ts` file touches is `quest-handle-signal-back-responder.integration.test.ts`'s
+`siegemasterSignoff`-gate-removal cases (`role: 'siegemaster'`, no `step` field), which assert the
+sign-off gate, never step routing — see note 3.
+
+**Note 1 — `codeweaver.ward`'s test may not be testing the step this table names it against.**
+`quest-flow.integration.test.ts`'s `'ward operation item — green advances the relay'` (line 1697) and
+`'ward operation item — red inserts a spiritmender then a fresh ward'` (line 1782) seed a STANDALONE
+operation item with `role: 'ward', text: 'ward (committed)'` and a work item with `role: 'ward'` — NOT
+a work item with `step: 'ward'` nested inside a `role: 'codeweaver'` scope, which is the actual shape
+`agentFlowStatics.codeweaver.steps.ward` describes (CLAUDE.md: "a `commit` step inside a codeweaver
+scope reads `role: 'codeweaver'`" — the same is true of `ward`). The red-ward case's own assertion —
+"the fresh ward is the SAME scope continued, which its `pt N:` text is what now says" — mints a BRAND
+NEW operation item (`pt 2: ward (committed)`) rather than looping `repair` back to the SAME operation
+item's `ward` step the way `agentFlowStatics.codeweaver.steps.repair` (no `done` route, returns to its
+minter) says it should. This test drives a REAL responder against REAL disk and DOES prove some ward
+gate's `done`→advance and `unmet`→repair(+refresh) behaviour — it is not wiring-only — but whether it
+is proving `agentFlowStatics.codeweaver.steps.ward`'s OWN route, or a separate, older "family-less
+committed-ward-with-pt-continuation" mechanism the current step graph has since superseded, was not
+resolved in this pass. Flagged for whoever picks up T5-1e below to settle before extending it.
+
+**Note 2 — riftcarver's underlying git mechanics ARE integration-tested; its step-graph ROUTING is
+not.** `worktree-prepare-broker.integration.test.ts`, `worktree-ensure-quest-branch-broker.integration.test.ts`,
+`worktree-populate-node-modules-broker.integration.test.ts` and `worktree-resume-restore-broker.integration.test.ts`
+drive the real `git worktree add` / mirror / resume mechanics `stepHandlerRunBroker`'s `riftcarver`
+handler calls — real coverage of RIFT-1/RIFT-2's done-check discipline. None of them go through
+`questRouteScopeBroker` or assert that a `carve` outcome mints a `repair` work item on the SAME
+operation item, or that `repair`'s `done` returns to `carve` and `carve` re-runs — the ROUTING this
+table is about. "none" in the table means no test proves the ROUTE; it does not mean riftcarver is
+untested.
+
+**Note 3 — wiring-only / off-target tests that were ruled out, not silently skipped.**
+`quest-handle-signal-back-responder.integration.test.ts` seeds `role: 'codeweaver'` / `'flowrider'` /
+`'siegemaster'` operation items with a single work item carrying **no `step` field at all** and signals
+`operationStatus: 'done'` directly — proving the (now-removed) blight-ledger and sign-off completion
+gates don't block completion. That is real, valuable coverage of a DIFFERENT surface (the gates
+`QuestHandleSignalBackResponder` itself enforces), and it was read in full before being excluded here —
+it asserts real persisted values, so it is not "wiring-only" in the sense the brief means, but it does
+not exercise `agentFlowStatics` routing at all (no step, no `nextActionTransformer` decision to make),
+so it cannot be quoted as coverage of any row in the table above.
+
+### Units to close the gaps
+
+Doc unit first (single file, so it cannot collide with anything), then four integration-test units —
+each a NEW file so no two units in this section touch the same path, and each independently
+dispatchable/parallel. Naming follows the "related-but-separate spec file" precedent the orchestrator
+package's own CLAUDE.md documents for `chat-streaming-subagent-grouping.spec.ts` /
+`chat-replay-subagent-grouping.spec.ts`, applied to `quest-route-scope-broker` — the broker
+`questRouteScopeBroker` (`packages/orchestrator/src/brokers/quest/route-scope/`) is the direct,
+un-wrapped surface for this: it takes a quest + scope and returns/persists exactly the `NextAction`
+`nextActionTransformer` computed, which is the router decision this whole table is about. Driving IT
+directly (real testbed, real `quest.json`, no HTTP/MCP layer in between) is a smaller, more targeted
+integration surface than routing every case through `QuestFlow`.
+
+| ID | Goal | Files | Deps | Ward |
+|---|---|---|---|---|
+| T5-1b | Fill the two doc gaps: name `siegemaster.recipe`/`siegemaster.read` (never mentioned) in the siegemaster paragraph, and name each siege step's PROMPT (`siege-happy-walker`, `siege-happy-fixer`, `siege-adversarial-walker`, `siege-adversarial-fixer`, `siegemaster-reader`) the way the doc already names `spiritmender`/`warpgate` for their steps. State the `ward` CLOSE_OUT override in prose, not only in the ASCII diagram | `docs/quest-role-paths.md` | none | n/a (docs) |
+| T5-1c | Siege step-chain integration coverage — the gap the plan's loose ends named. Drive `questRouteScopeBroker` against a real testbed quest seeded at each of: `sweepIn`(done/empty)→`plan`; `plan`(done)→`happyWalk`, `plan`(empty)→`sweepOut`; `happyWalk`(unmet)→`fixHappy`, `fixHappy`(unmet loop), a `fixHappy` `done`-equivalent (no route) returning to `happyWalk`; `happyWalk`(done, ALL pieces drained)→`adversarial` — the phase-order rule SIEGE tests nothing else proves end to end; `adversarial`(unmet)→`fixAdversarial`, loop, return-to-`adversarial`; `adversarial`(done)→`commit`; the overridden `ward`(done/empty)→`sweepOut`, `ward`(unmet)→`repair`; `sweepOut`(done/empty)→`@done`. Assert the MINTED work item's step, role, `assignedUnitIds`/`pieceId` and the operation item's status — not that a callback fired | NEW `packages/orchestrator/src/brokers/quest/route-scope/quest-route-scope-broker-siegemaster.integration.test.ts` | none | `npm run ward -- --only lint,typecheck,integration -- packages/orchestrator/src/brokers/quest/route-scope/quest-route-scope-broker-siegemaster.integration.test.ts` |
+| T5-1d | Flowrider step-chain integration coverage — `recipe` minted on-request and returning to its requester; `plan`(done)→`work`, `plan`(empty)→`@done`; `work`(unmet loop), `work`(done)→`review`; `review`(unmet)→`work`, `review`(done)→`commit`; `commit`(done/empty)→`ward`; `ward`(done/empty)→`@done`, `ward`(unmet)→`repair`→ returns to `ward` | NEW `packages/orchestrator/src/brokers/quest/route-scope/quest-route-scope-broker-flowrider.integration.test.ts` | none | `npm run ward -- --only lint,typecheck,integration -- packages/orchestrator/src/brokers/quest/route-scope/quest-route-scope-broker-flowrider.integration.test.ts` |
+| T5-1e | Codeweaver's remaining step-graph gaps (`plan`'s `done` route and one flavor of `ward` are already covered — see the coverage table and note 1). Cover: `work`(unmet loop), `work`(done)→`review`; `review`(unmet)→`work`, `review`(done)→`commit`; `commit`(done/empty)→`ward`; and — the part that makes this unit worth doing before T5-1c/d get trusted as a pattern — settle note 1: seed `codeweaver.ward`'s `unmet` route as a work item with `step: 'ward'` NESTED in a `role: 'codeweaver'` operation item (not a standalone `role: 'ward'` scope) and confirm whether `repair` returns to the SAME operation item's `ward` step, or whether the existing `'ward operation item — red …'` test's `pt N:`-continuation shape is what actually runs in production for this case. Record the finding as a comment on whichever test asserts it | NEW `packages/orchestrator/src/brokers/quest/route-scope/quest-route-scope-broker-codeweaver.integration.test.ts` | none | `npm run ward -- --only lint,typecheck,integration -- packages/orchestrator/src/brokers/quest/route-scope/quest-route-scope-broker-codeweaver.integration.test.ts` |
+| T5-1f | wardFull, riftcarver and warpgate ROUTING (distinct from riftcarver's already-covered git mechanics — see note 2): `gate`(done/empty)→`@done`, `gate`(unmet)→`repair`→`commit`→`gate`; `carve`(unmet)→`repair`→`commit`→`carve`, `carve`(done)→`@done`; `merge`(unmet loop), `merge`(done)→`@done`. Three small families sharing one file is deliberate — each alone is too small (7 steps, ~25 routes combined) to justify its own file | NEW `packages/orchestrator/src/brokers/quest/route-scope/quest-route-scope-broker-wardfull-riftcarver-warpgate.integration.test.ts` | none | `npm run ward -- --only lint,typecheck,integration -- packages/orchestrator/src/brokers/quest/route-scope/quest-route-scope-broker-wardfull-riftcarver-warpgate.integration.test.ts` |
+
+T5-1b carries no dependency and no file overlap with T5-1c..f, so all five units run in parallel.
+None of T5-1c..f share a file with each other or with T5-1b. Close with `npm run ward -- --only
+integration -- packages/orchestrator/src/brokers/quest/route-scope` as the section's own regression
+pass once all five land, per `<dungeonmaster-wardDiscipline>`'s scoping rule.
