@@ -92,12 +92,12 @@ test.describe('Execution Queue Streaming', () => {
     //    questExecutionQueueState.enqueue(). That fires the execution-queue-updated event which the
     //    server relays as a global WS broadcast; useQuestQueueBinding re-fetches
     //    GET /api/quests/queue and updates the DOM.
-    await request.post(`/api/quests/${questId1}/start`);
+    await quests.startQuest({ questId: questId1 });
 
     // 4b. Pause quest 1 so it stays in the execution queue for the duration of the test. Pause
     //     restores pausedAtStatus and keeps the QueueEntry in place, pinning a stable status while
     //     quest 2 is enqueued alongside it.
-    await request.post(`/api/quests/${questId1}/pause`);
+    await quests.pauseQuest({ questId: questId1 });
 
     // 5. Queue bar must appear with 'Quest 1/1' — proves DOM updated via WS,
     //    not a page reload.
@@ -163,7 +163,7 @@ test.describe('Execution Queue Streaming', () => {
       ],
     });
 
-    await request.post(`/api/quests/${questId2}/start`);
+    await quests.startQuest({ questId: questId2 });
 
     // 7. Label updates to 1/2 — active entry is still quest-one (head of queue)
     //    but total is now two.

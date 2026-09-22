@@ -276,6 +276,18 @@ export const questHarness = ({
     detail: Record<PropertyKey, unknown>;
   }) => Promise<void>;
   patchQuestStatus: (params: { questId: string; status: string }) => Promise<void>;
+  // Walks a quest to 'in_progress' through dmRegistryBroker's declared transitions.reach — the
+  // quest ingredient's own route for that hop is the real POST /api/quests/:questId/start (see
+  // quest-ingredient-broker.ts's own header), never a bare status write. patchQuestStatus's
+  // setRaw flips the field with none of the real route's side effects (operations relay seed,
+  // execution-queue enqueue, the WS broadcast); reach for THIS whenever a spec asserts on those.
+  startQuest: (params: { questId: string }) => Promise<void>;
+  // RAW ON PURPOSE: 'paused' is deliberately excluded from the quest ingredient's own
+  // `transitions.to` — its header names the gap directly: "questModifyBroker REFUSES a bare
+  // status: 'paused' write outright... Reaching it for real also kills every registered
+  // subprocess, which needs state/ this package cannot import." POST /api/quests/:questId/pause
+  // is the only route onto it; no dmRegistryBroker verb can express it.
+  pauseQuest: (params: { questId: string }) => Promise<void>;
   rewindQuestStatus: (params: { questFilePath: string; status: string }) => Promise<void>;
   tamperQuestStatusRewind: (params: { questFilePath: string; status: string }) => Promise<void>;
   questFolderExists: (params: { questFilePath: string }) => boolean;
@@ -947,6 +959,52 @@ export const questHarness = ({
     await dmRegistryBroker.run(plan, dmTarget.apiTarget());
   };
 
+  // Walks a quest from its current (live) status to 'in_progress' via dmRegistryBroker's
+  // transitions.reach. That reach function is questReachRouteBroker, which for this one hop skips
+  // questModifyBroker entirely and calls the real POST /api/quests/:questId/start — seeding the
+  // operations relay and enqueuing the quest exactly as OrchestrationStartResponder does. See
+  // quest-ingredient-broker.ts's own header for the full reasoning.
+  const startQuest = async ({ questId }: { questId: string }): Promise<void> => {
+    const guildId = await resolveQuestOwningGuildId({ questId });
+
+    // Same intersection as patchQuestStatus's own filterWhere: `id` is not a QuestFields key, so
+    // widening the target type (never asserting past it) is what lets a branded QuestId sit beside
+    // the link-derived `guildId` in one `where` clause.
+    type QuestFilterWhere = Parameters<typeof dmRegistryBroker.quests.filter>[0]['where'] & {
+      id?: QuestId;
+    };
+    const filterWhere: QuestFilterWhere = { guildId, id: questIdContract.parse(questId) };
+
+    const plan = recipe(
+      {
+        name: 'start-quest',
+        description: 'walks a quest to in_progress via the real POST /start route',
+      },
+      () => [
+        dmRegistryBroker.quests.filter({ where: filterWhere, expect: 'one' }).set({
+          status: 'in_progress',
+        }),
+      ],
+    )();
+
+    await dmRegistryBroker.run(plan, dmTarget.apiTarget());
+  };
+
+  // RAW ON PURPOSE — questIngredientBroker's own header names this as a real, documented gap
+  // rather than an oversight: 'paused' is deliberately off `transitions.to` because
+  // questModifyBroker refuses a bare `status: 'paused'` write by name, and reaching it for real
+  // requires killing every registered subprocess through `state/`, which this package cannot
+  // import. POST /api/quests/:questId/pause is the only route onto it.
+  const pauseQuest = async ({ questId }: { questId: string }): Promise<void> => {
+    const pauseRoute = `/api/quests/${questId}/pause`;
+    const response = await request.post(pauseRoute);
+    if (!response.ok()) {
+      throw new Error(
+        `questHarness.pauseQuest: ${pauseRoute} answered ${String(response.status())}`,
+      );
+    }
+  };
+
   // Rewrites ONLY the `status` field of an existing quest.json, leaving every other byte — the
   // seeded operations ledger, the work items, the package graph — exactly as the SERVER wrote it,
   // then appends the same quest-modified outbox line questPersistBroker would so the watcher
@@ -1092,6 +1150,8 @@ export const questHarness = ({
     tamperQuestUnparseableFile,
     writeWardResultDetail,
     patchQuestStatus,
+    startQuest,
+    pauseQuest,
     rewindQuestStatus: tamperQuestStatusRewind,
     tamperQuestStatusRewind,
     questFolderExists,
