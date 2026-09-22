@@ -5,6 +5,14 @@
  * payload (file contents or text value) to browser clipboard, and simulates ControlOrMeta+V.
  * Returns a ContentText reading describing what was pasted and into which target.
  *
+ * **The paste's own timeout bounds the action; `waitForSettle` bounds what happens after it.**
+ * They answer different questions — whether the clipboard write and the keystroke landed at all,
+ * and whether the page finished reacting to it — so a paste that lands but leaves the page
+ * mid-update still gets reported. `waitForSettle` never throws on `settled: false`; this broker
+ * reads that flag and, only when it is false, appends the reason and the still-moving signals to
+ * the reading it returns, using `driverStatics.settle`'s quiet window, ceiling and poll cadence
+ * rather than inventing its own.
+ *
  * USAGE:
  * await stepPasteBroker({
  *   session,
@@ -16,6 +24,18 @@
  *   timeoutMs: null,
  * });
  * // Returns ContentText 'pasted "hello" into [data-testid="INPUT"]'
+ *
+ * await stepPasteBroker({
+ *   session,
+ *   target: '[data-testid="SLOW_INPUT"]',
+ *   within: null,
+ *   ref: null,
+ *   filePath: null,
+ *   value: 'hello',
+ *   timeoutMs: null,
+ * });
+ * // If the page never settles: 'pasted "hello" into [data-testid="SLOW_INPUT"]; did not settle
+ * // after 5000ms (still moving: network)'
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
@@ -24,6 +44,7 @@ import type { ContentText } from '@dungeonmaster/shared/contracts';
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { pasteStatics } from '../../../statics/paste/paste-statics';
+import { settleReadingRenderTransformer } from '../../../transformers/settle-reading-render/settle-reading-render-transformer';
 
 export const stepPasteBroker = async ({
   session,
@@ -51,6 +72,11 @@ export const stepPasteBroker = async ({
       value,
       timeoutMs: resolvedTimeoutMs,
     });
+    const settleReading = await session.waitForSettle({
+      quietWindowMs: driverStatics.settle.quietWindowMs,
+      ceilingMs: driverStatics.settle.ceilingMs,
+      pollMs: driverStatics.settle.pollMs,
+    });
     const reading =
       filePath === null
         ? pasteStatics.templates.text.ref
@@ -59,7 +85,10 @@ export const stepPasteBroker = async ({
         : pasteStatics.templates.file.ref
             .replace('{filePath}', filePath)
             .replace('{ref}', String(ref));
-    return contentTextContract.parse(reading);
+    return settleReadingRenderTransformer({
+      baseMessage: contentTextContract.parse(reading),
+      settleReading,
+    });
   }
 
   if (target === null) {
@@ -74,6 +103,11 @@ export const stepPasteBroker = async ({
       : { target, within, filePath, value, timeoutMs: resolvedTimeoutMs };
 
   await session.pasteMatch(matchParams);
+  const settleReading = await session.waitForSettle({
+    quietWindowMs: driverStatics.settle.quietWindowMs,
+    ceilingMs: driverStatics.settle.ceilingMs,
+    pollMs: driverStatics.settle.pollMs,
+  });
 
   if (within !== null) {
     const reading =
@@ -86,7 +120,10 @@ export const stepPasteBroker = async ({
             .replace('{filePath}', filePath)
             .replace('{target}', target)
             .replace('{within}', within);
-    return contentTextContract.parse(reading);
+    return settleReadingRenderTransformer({
+      baseMessage: contentTextContract.parse(reading),
+      settleReading,
+    });
   }
 
   const reading =
@@ -97,5 +134,8 @@ export const stepPasteBroker = async ({
       : pasteStatics.templates.file.target
           .replace('{filePath}', filePath)
           .replace('{target}', target);
-  return contentTextContract.parse(reading);
+  return settleReadingRenderTransformer({
+    baseMessage: contentTextContract.parse(reading),
+    settleReading,
+  });
 };

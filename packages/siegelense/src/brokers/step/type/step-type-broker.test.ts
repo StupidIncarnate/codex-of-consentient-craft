@@ -1,7 +1,77 @@
+import { driverStatics } from '../../../statics/driver/driver-statics';
 import { stepTypeBroker } from './step-type-broker';
 import { stepTypeBrokerProxy } from './step-type-broker.proxy';
 
 describe('stepTypeBroker', () => {
+  describe('waitForSettle wiring', () => {
+    it('VALID: {target, value, page settles promptly} => waits for settle with the settle statics, and pollerRepeatThreshold is not one of the arguments', async () => {
+      const proxy = stepTypeBrokerProxy();
+      const { session, getWaitForSettleCalls } = proxy.session();
+
+      const result = await stepTypeBroker({
+        session,
+        target: '[data-testid="NAME_INPUT"]',
+        within: null,
+        ref: null,
+        value: 'Guild Hall',
+        timeoutMs: null,
+      });
+
+      expect(getWaitForSettleCalls()).toStrictEqual([
+        [
+          {
+            quietWindowMs: driverStatics.settle.quietWindowMs,
+            ceilingMs: driverStatics.settle.ceilingMs,
+            pollMs: driverStatics.settle.pollMs,
+          },
+        ],
+      ]);
+      expect(result).toBe('typed "Guild Hall" into [data-testid="NAME_INPUT"]');
+    });
+
+    it('VALID: {ref, value, page settles promptly} => also waits for settle after driving by ref', async () => {
+      const proxy = stepTypeBrokerProxy();
+      const { session, getWaitForSettleCalls } = proxy.session();
+
+      await stepTypeBroker({
+        session,
+        target: null,
+        within: null,
+        ref: 14,
+        value: 'guild-alpha',
+        timeoutMs: null,
+      });
+
+      expect(getWaitForSettleCalls()).toStrictEqual([
+        [
+          {
+            quietWindowMs: driverStatics.settle.quietWindowMs,
+            ceilingMs: driverStatics.settle.ceilingMs,
+            pollMs: driverStatics.settle.pollMs,
+          },
+        ],
+      ]);
+    });
+
+    it('VALID: {target, value, page never settles} => reports the ceiling reason and the still-moving signals instead of the plain type message', async () => {
+      const proxy = stepTypeBrokerProxy();
+      const { session } = proxy.sessionNeverSettling();
+
+      const result = await stepTypeBroker({
+        session,
+        target: '[data-testid="NAME_INPUT"]',
+        within: null,
+        ref: null,
+        value: 'Guild Hall',
+        timeoutMs: null,
+      });
+
+      expect(result).toBe(
+        'typed "Guild Hall" into [data-testid="NAME_INPUT"]; did not settle after 5000ms (still moving: network)',
+      );
+    });
+  });
+
   describe('within given, explicit timeoutMs', () => {
     it('VALID: {target, within, value, timeoutMs} => drives session.fillMatch with the scoped arguments', async () => {
       const proxy = stepTypeBrokerProxy();

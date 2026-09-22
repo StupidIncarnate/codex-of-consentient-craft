@@ -12,12 +12,24 @@
  * than a selector is what keeps the transcript honest about what was actually aimed at — a
  * transcript claiming a selector for a click driven by ref would read as durable when it was not.
  *
+ * **The click's own timeout bounds the action; `waitForSettle` bounds what happens after it.**
+ * They answer different questions — whether the element accepted the click at all, and whether the
+ * page finished reacting to it — so a click that lands but leaves the page mid-update still gets
+ * reported. `waitForSettle` never throws on `settled: false`; this broker reads that flag and, only
+ * when it is false, appends the reason and the still-moving signals to the reading it returns,
+ * using `driverStatics.settle`'s quiet window, ceiling and poll cadence rather than inventing its
+ * own.
+ *
  * USAGE:
  * await stepClickBroker({ session, target: '[data-testid="GUILD_ADD"]', within: null, ref: null, timeoutMs: null });
  * // Clicks the match and returns a reading naming the target that was clicked
  *
  * await stepClickBroker({ session, target: null, within: null, ref: 23, timeoutMs: null });
  * // Clicks the element ref 23 binds to, and says so
+ *
+ * await stepClickBroker({ session, target: '[data-testid="SLOW_BTN"]', within: null, ref: null, timeoutMs: null });
+ * // If the page never settles: 'clicked [data-testid="SLOW_BTN"]; did not settle after 5000ms
+ * // (still moving: network)'
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
@@ -25,6 +37,7 @@ import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
+import { settleReadingRenderTransformer } from '../../../transformers/settle-reading-render/settle-reading-render-transformer';
 
 export const stepClickBroker = async ({
   session,
@@ -43,7 +56,15 @@ export const stepClickBroker = async ({
 
   if (ref !== null) {
     await session.clickRef({ ref, timeoutMs: resolvedTimeoutMs });
-    return contentTextContract.parse(`clicked ref ${String(ref)}`);
+    const settleReading = await session.waitForSettle({
+      quietWindowMs: driverStatics.settle.quietWindowMs,
+      ceilingMs: driverStatics.settle.ceilingMs,
+      pollMs: driverStatics.settle.pollMs,
+    });
+    return settleReadingRenderTransformer({
+      baseMessage: contentTextContract.parse(`clicked ref ${String(ref)}`),
+      settleReading,
+    });
   }
 
   if (target === null) {
@@ -58,8 +79,16 @@ export const stepClickBroker = async ({
       : { target, within, timeoutMs: resolvedTimeoutMs };
 
   await session.clickMatch(matchParams);
+  const settleReading = await session.waitForSettle({
+    quietWindowMs: driverStatics.settle.quietWindowMs,
+    ceilingMs: driverStatics.settle.ceilingMs,
+    pollMs: driverStatics.settle.pollMs,
+  });
 
-  return contentTextContract.parse(
-    within === null ? `clicked ${target}` : `clicked ${target} within ${within}`,
-  );
+  return settleReadingRenderTransformer({
+    baseMessage: contentTextContract.parse(
+      within === null ? `clicked ${target}` : `clicked ${target} within ${within}`,
+    ),
+    settleReading,
+  });
 };

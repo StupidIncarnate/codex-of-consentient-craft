@@ -12,6 +12,9 @@
  *
  * driverStatics.run.defaultStepTimeoutMs;
  * // Returns 30_000 — the ceiling a step gets when its own `timeoutMs` is omitted
+ *
+ * driverStatics.settle.ceilingMs;
+ * // Returns 5_000 — the most a `waitForSettle` call spends before reporting settled: false
  */
 
 export const driverStatics = {
@@ -47,36 +50,27 @@ export const driverStatics = {
     timeoutMs: 900_000,
   },
   boot: {
-    // Matches READY_POLL_MS in the measured prototype
-    // (packages/web/test/siege-driver/siege-lane.ts:36) — the interval between successive
-    // probes of a lane process's ready path while it boots.
+    // The interval between successive probes of a lane process's ready path while it boots.
     readyPollMs: 250,
-    // Matches BOOT_TIMEOUT_MS in the same file (line 35): "a cold Vite pre-bundle of the whole
-    // shared surface plus a tsx boot of the API server is the slowest thing here; 180s is
-    // generous enough that a loaded machine does not report a boot failure that was only a slow
-    // boot."
+    // A cold Vite pre-bundle of the whole shared surface plus a tsx boot of the API server is
+    // the slowest thing here; 180s is generous enough that a loaded machine does not report a
+    // boot failure that was only a slow boot.
     defaultTimeoutMs: 180_000,
-    // The prototype's own `probeHttp` (siege-lane.ts:156-165) has no per-attempt bound — it
-    // relies on `fetch` either connecting fast or refusing outright, which held for a single
-    // dev boot. A driver-managed boot needs an explicit ceiling per attempt so a probe that
-    // connects and then hangs cannot wedge the whole readyPollMs cadence behind it. 5s is
-    // generous for one HTTP round trip against localhost.
+    // A boot probe that relies on `fetch` either connecting fast or refusing outright carries no
+    // per-attempt bound of its own. A driver-managed boot needs an explicit ceiling per attempt
+    // so a probe that connects and then hangs cannot wedge the whole readyPollMs cadence behind
+    // it. 5s is generous for one HTTP round trip against localhost.
     readyProbeTimeoutMs: 5_000,
     // The throwaway home prefix `lane-boot-broker`'s own USAGE example already assumes
     // (`/tmp/dm-siege-inst_1`) — joined onto `osTmpdirAdapter()` plus the instance id by
-    // `locationsInstanceHomePathFindBroker`. Matches the measured prototype's own home-directory
-    // naming (packages/web/test/siege-driver/siege-lane.ts).
+    // `locationsInstanceHomePathFindBroker`.
     homePrefix: 'dm-siege-',
   },
   teardown: {
-    // Matches KILL_GRACE_MS in the measured prototype
-    // (packages/web/test/siege-driver/siege-lane.ts:37) — SIGTERM, then this long a wait, then
-    // SIGKILL to whatever is still standing.
+    // SIGTERM, then this long a wait, then SIGKILL to whatever is still standing.
     graceMs: 3_000,
-    // The OS signals a driver process reacts to by tearing its own lane down, matching
-    // `siege-driver.ts`'s own `process.on('SIGINT', shutdown)` / `SIGTERM` pair
-    // (packages/web/test/siege-driver/siege-driver.ts:180-181) — a bare array literal at the call
-    // site is a magic-string-array lint violation, so it lives here instead.
+    // The OS signals a driver process reacts to by tearing its own lane down. A bare array
+    // literal at the call site is a magic-string-array lint violation, so it lives here instead.
     signals: ['SIGINT', 'SIGTERM'],
   },
   run: {
@@ -90,5 +84,21 @@ export const driverStatics = {
     // an in-process array slice and a file probe is one `stat` call, so the cost of the interval
     // is nothing; 100ms is well under the smallest gap a walk can meaningfully observe.
     untilPollMs: 100,
+  },
+  settle: {
+    // Matches `settleWaitLayerAdapter`'s own DEFAULT_QUIET_WINDOW_MS
+    // (adapters/playwright/session/settle-wait-layer-adapter.ts) — how long every one of its
+    // three signals (network, DOM, animation) must hold still before a wait reports settled: true.
+    quietWindowMs: 250,
+    // Matches the adapter's own DEFAULT_CEILING_MS — the most one wait spends before giving up
+    // and reporting settled: false rather than hanging.
+    ceilingMs: 5_000,
+    // Matches the adapter's own DEFAULT_POLL_MS — the probe cadence inside one wait.
+    pollMs: 50,
+    // Matches the adapter's own DEFAULT_POLLER_REPEAT_THRESHOLD. Unlike the three values above,
+    // this one belongs at `settleWaitLayerAdapter`'s CONSTRUCTION, not on a `waitForSettle` call —
+    // a request shape is classified while requests arrive on the event stream between waits, not
+    // during the one wait it would otherwise be read from.
+    pollerRepeatThreshold: 3,
   },
 } as const;

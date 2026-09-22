@@ -15,6 +15,8 @@ import { KeyReadingStub } from '../key-reading/key-reading.stub';
 import type { KeyReading } from '../key-reading/key-reading-contract';
 import { RefResolutionStub } from '../ref-resolution/ref-resolution.stub';
 import type { RefResolution } from '../ref-resolution/ref-resolution-contract';
+import { SettleReadingStub } from '../settle-reading/settle-reading.stub';
+import type { SettleReading } from '../settle-reading/settle-reading-contract';
 import type { StepCandidate } from '../step-candidate/step-candidate-contract';
 import { StorageReadingStub } from '../storage-reading/storage-reading.stub';
 import type { StorageReading } from '../storage-reading/storage-reading-contract';
@@ -47,6 +49,7 @@ export const BrowserSessionStub = ({
     pasteMatch,
     pasteRef,
     waitForPredicate,
+    waitForSettle,
     capture,
     captureLive,
     evaluateSource,
@@ -88,6 +91,8 @@ export const BrowserSessionStub = ({
     pasteMatch: pasteMatch ?? (async (): Promise<void> => Promise.resolve()),
     pasteRef: pasteRef ?? (async (): Promise<void> => Promise.resolve()),
     waitForPredicate: waitForPredicate ?? (async (): Promise<void> => Promise.resolve()),
+    waitForSettle:
+      waitForSettle ?? (async (): Promise<SettleReading> => Promise.resolve(SettleReadingStub())),
     capture: capture ?? (async (): Promise<void> => Promise.resolve()),
     captureLive: captureLive ?? (async (): Promise<void> => Promise.resolve()),
     evaluateSource:

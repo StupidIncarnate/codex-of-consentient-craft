@@ -1,7 +1,99 @@
+import { driverStatics } from '../../../statics/driver/driver-statics';
 import { stepPasteBroker } from './step-paste-broker';
 import { stepPasteBrokerProxy } from './step-paste-broker.proxy';
 
 describe('stepPasteBroker', () => {
+  describe('waitForSettle wiring', () => {
+    it('VALID: {target, page settles promptly} => waits for settle with the settle statics after pasteMatch', async () => {
+      const proxy = stepPasteBrokerProxy();
+      const { session, getWaitForSettleCalls } = proxy.session();
+
+      const result = await stepPasteBroker({
+        session,
+        target: '[data-testid="INPUT"]',
+        within: null,
+        ref: null,
+        filePath: null,
+        value: 'hello',
+        timeoutMs: null,
+      });
+
+      expect(getWaitForSettleCalls()).toStrictEqual([
+        [
+          {
+            quietWindowMs: driverStatics.settle.quietWindowMs,
+            ceilingMs: driverStatics.settle.ceilingMs,
+            pollMs: driverStatics.settle.pollMs,
+          },
+        ],
+      ]);
+      expect(result).toBe('pasted "hello" into [data-testid="INPUT"]');
+    });
+
+    it('VALID: {ref, page settles promptly} => also waits for settle after driving by ref', async () => {
+      const proxy = stepPasteBrokerProxy();
+      const { session, getWaitForSettleCalls } = proxy.session();
+
+      await stepPasteBroker({
+        session,
+        target: null,
+        within: null,
+        ref: 14,
+        filePath: null,
+        value: 'ref-paste-val',
+        timeoutMs: null,
+      });
+
+      expect(getWaitForSettleCalls()).toStrictEqual([
+        [
+          {
+            quietWindowMs: driverStatics.settle.quietWindowMs,
+            ceilingMs: driverStatics.settle.ceilingMs,
+            pollMs: driverStatics.settle.pollMs,
+          },
+        ],
+      ]);
+    });
+
+    it('VALID: {target, page never settles} => reports the ceiling reason and the still-moving signals instead of the plain paste message', async () => {
+      const proxy = stepPasteBrokerProxy();
+      const { session } = proxy.sessionNeverSettling();
+
+      const result = await stepPasteBroker({
+        session,
+        target: '[data-testid="INPUT"]',
+        within: null,
+        ref: null,
+        filePath: null,
+        value: 'hello',
+        timeoutMs: null,
+      });
+
+      expect(result).toBe(
+        'pasted "hello" into [data-testid="INPUT"]; did not settle after 5000ms (still moving: network)',
+      );
+    });
+
+    it('VALID: {ref, page never settles} => reports the ceiling reason instead of the plain ref paste message', async () => {
+      const proxy = stepPasteBrokerProxy();
+      const { session } = proxy.sessionNeverSettling();
+
+      const result = await stepPasteBroker({
+        session,
+        target: null,
+        within: null,
+        ref: 14,
+        filePath: null,
+        value: 'ref-paste-val',
+        timeoutMs: null,
+      });
+
+      expect(result).toBe(
+        'pasted "ref-paste-val" into ref 14; did not settle after 5000ms (still moving: network)',
+      );
+    });
+  });
+
   describe('within given, explicit timeoutMs with text', () => {
     it('VALID: {target, within, value, timeoutMs} => drives session.pasteMatch with scoped arguments', async () => {
       const proxy = stepPasteBrokerProxy();
