@@ -5,6 +5,8 @@ import {
   FlowNodeStub,
   FlowEdgeStub,
   FlowObservableStub,
+  WorkItemStub,
+  UnitObservationStub,
 } from '@dungeonmaster/shared/contracts';
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
@@ -495,6 +497,147 @@ describe('questToUnitsTransformer', () => {
       );
 
       expect(result).toStrictEqual(offMapUnits);
+    });
+  });
+
+  describe('trackMarks from workItem observations', () => {
+    it('VALID: {codeweaver work item observes met} => that unit carries codeweaver: met, nothing else marked', () => {
+      const observable = FlowObservableStub({ id: 'shows-toast', package: 'web' });
+      const node = FlowNodeStub({
+        id: 'compose-node',
+        packages: ['web'],
+        observables: [observable],
+      });
+      const flow = FlowStub({ id: 'send-flow', nodes: [node], edges: [] });
+      const workItem = WorkItemStub({
+        role: 'codeweaver',
+        observations: [
+          UnitObservationStub({ unitId: 'send-flow:observable:shows-toast', mark: 'met' }),
+        ],
+      });
+
+      const result = questToUnitsTransformer({ flows: [flow], workItems: [workItem] });
+
+      const observableUnit = result.find((unit) => unit.kind === 'observable');
+
+      expect(observableUnit?.trackMarks).toStrictEqual({ codeweaver: 'met' });
+
+      const offMapUnit = result.find((unit) => unit.kind === 'off-map');
+
+      expect(offMapUnit?.trackMarks).toStrictEqual({});
+    });
+
+    it("VALID: {codeweaver marks met, flowrider marks cant-meet on the SAME unit} => each track's own mark lands, per R2", () => {
+      const observable = FlowObservableStub({ id: 'shows-toast', package: 'web' });
+      const node = FlowNodeStub({
+        id: 'compose-node',
+        packages: ['web'],
+        observables: [observable],
+      });
+      const flow = FlowStub({ id: 'send-flow', nodes: [node], edges: [] });
+      const codeweaverItem = WorkItemStub({
+        role: 'codeweaver',
+        observations: [
+          UnitObservationStub({ unitId: 'send-flow:observable:shows-toast', mark: 'met' }),
+        ],
+      });
+      const flowriderItem = WorkItemStub({
+        id: '11111111-1111-4111-8111-111111111111',
+        role: 'flowrider',
+        observations: [
+          UnitObservationStub({
+            unitId: 'send-flow:observable:shows-toast',
+            mark: 'cant-meet',
+            toSettle: 'wire the toast assertion',
+          }),
+        ],
+      });
+
+      const result = questToUnitsTransformer({
+        flows: [flow],
+        workItems: [codeweaverItem, flowriderItem],
+      });
+
+      const observableUnit = result.find((unit) => unit.kind === 'observable');
+
+      expect(observableUnit?.trackMarks).toStrictEqual({
+        codeweaver: 'met',
+        flowrider: 'cant-meet',
+      });
+    });
+
+    it('VALID: {two codeweaver work items mark the same unit, unmet then met} => the LATER work item wins, by array order', () => {
+      const observable = FlowObservableStub({ id: 'shows-toast', package: 'web' });
+      const node = FlowNodeStub({
+        id: 'compose-node',
+        packages: ['web'],
+        observables: [observable],
+      });
+      const flow = FlowStub({ id: 'send-flow', nodes: [node], edges: [] });
+      const firstAttempt = WorkItemStub({
+        role: 'codeweaver',
+        observations: [
+          UnitObservationStub({
+            unitId: 'send-flow:observable:shows-toast',
+            mark: 'unmet',
+            evidence: 'left the toast unimplemented',
+          }),
+        ],
+      });
+      const successor = WorkItemStub({
+        id: '22222222-2222-4222-8222-222222222222',
+        role: 'codeweaver',
+        observations: [
+          UnitObservationStub({ unitId: 'send-flow:observable:shows-toast', mark: 'met' }),
+        ],
+      });
+
+      const result = questToUnitsTransformer({
+        flows: [flow],
+        workItems: [firstAttempt, successor],
+      });
+
+      const observableUnit = result.find((unit) => unit.kind === 'observable');
+
+      expect(observableUnit?.trackMarks).toStrictEqual({ codeweaver: 'met' });
+    });
+
+    it('EDGE: {observation.unitId names a different flow} => no unit matches, trackMarks stays empty', () => {
+      const observable = FlowObservableStub({ id: 'shows-toast', package: 'web' });
+      const node = FlowNodeStub({
+        id: 'compose-node',
+        packages: ['web'],
+        observables: [observable],
+      });
+      const flow = FlowStub({ id: 'send-flow', nodes: [node], edges: [] });
+      const workItem = WorkItemStub({
+        role: 'codeweaver',
+        observations: [
+          UnitObservationStub({ unitId: 'other-flow:observable:shows-toast', mark: 'met' }),
+        ],
+      });
+
+      const result = questToUnitsTransformer({ flows: [flow], workItems: [workItem] });
+
+      const observableUnit = result.find((unit) => unit.kind === 'observable');
+
+      expect(observableUnit?.trackMarks).toStrictEqual({});
+    });
+
+    it('EMPTY: {workItems omitted} => every unit still carries an empty trackMarks, exactly as before', () => {
+      const observable = FlowObservableStub({ id: 'shows-toast', package: 'web' });
+      const node = FlowNodeStub({
+        id: 'compose-node',
+        packages: ['web'],
+        observables: [observable],
+      });
+      const flow = FlowStub({ id: 'send-flow', nodes: [node], edges: [] });
+
+      const result = questToUnitsTransformer({ flows: [flow] });
+
+      const observableUnit = result.find((unit) => unit.kind === 'observable');
+
+      expect(observableUnit?.trackMarks).toStrictEqual({});
     });
   });
 });

@@ -10,7 +10,12 @@
  *
  * USAGE:
  * questToUnitsTransformer({ flows: [FlowStub({ nodes: [...], edges: [...] })] });
- * // Returns every terminal, branch, observable and off-map unit those flows define
+ * // Returns every terminal, branch, observable and off-map unit those flows define, trackMarks
+ * // empty on every one
+ *
+ * questToUnitsTransformer({ flows, workItems });
+ * // Same units, with trackMarks populated from workItem.observations[] — decision 1's sign-off
+ * // record. Optional and defaults to [] so every existing caller is unaffected.
  *
  * Three rules decide what becomes a unit:
  * - A `terminal`-typed node that still has an outgoing edge is NOT a unit. `isTerminalUnitGuard`
@@ -18,26 +23,59 @@
  * - An unlabelled edge is not a branch anyone chose, so only labelled edges become units.
  * - All seven `qaOffMapProbeStatics` families are emitted for EVERY flow.
  *
- * Each unit's `trackMarks` is empty by default; sign-offs on flow elements have been retired, and
- * marks are tracked on work-item observations instead.
+ * MATCHING AN OBSERVATION TO A UNIT rebuilds the COMPOSITE id `<flowId>:<kind>:<localId>` —
+ * `unitIdContract`'s shape (`@dungeonmaster/shared`) and what orchestrator's
+ * `qaUnitEnumerateTransformer` mints. session-forensics carries no dependency on orchestrator, so
+ * this is a local, one-line rebuild off fields this transformer already has (`flow.id`, the unit's
+ * `kind`, its own local `unitId`) — not logic worth a shared file, the same call
+ * `trackDenominatorStatics`'s own header makes for the mirrored denominator table.
+ *
+ * PER TRACK, LAST OBSERVATION WINS BY WORK-ITEM ARRAY ORDER — the same rule
+ * `questSummaryBuildTransformer` (orchestrator) applies, because a `review` step's `unmet` mints a
+ * successor whose later mark is that track's current verdict. A track's marks come ONLY from work
+ * items whose `role` equals that track (R2): a codeweaver's `met` never counts for flowrider.
  */
 
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
-import { flowNodeIdContract } from '@dungeonmaster/shared/contracts';
-import type { Flow } from '@dungeonmaster/shared/contracts';
+import { flowNodeIdContract, unitIdContract } from '@dungeonmaster/shared/contracts';
+import type { Flow, WorkItem, UnitMark, UnitId } from '@dungeonmaster/shared/contracts';
 
 import {
   verificationUnitContract,
   type VerificationUnit,
 } from '../../contracts/verification-unit/verification-unit-contract';
 import { isTerminalUnitGuard } from '../../guards/is-terminal-unit/is-terminal-unit-guard';
+import { trackDenominatorStatics } from '../../statics/track-denominator/track-denominator-statics';
 
 export const questToUnitsTransformer = ({
   flows,
+  workItems = [],
 }: {
   flows: readonly Flow[];
-}): readonly VerificationUnit[] =>
-  flows.flatMap((flow): VerificationUnit[] => {
+  workItems?: readonly WorkItem[];
+}): readonly VerificationUnit[] => {
+  const tracks = Object.keys(
+    trackDenominatorStatics.byTrack,
+  ) as readonly (keyof typeof trackDenominatorStatics.byTrack)[];
+
+  // ONE map per track, unitId -> that track's current mark. Built once for the whole quest rather
+  // than per unit, so attaching marks below is a lookup, not a re-scan of every work item per unit.
+  const marksByTrack = new Map(
+    tracks.map((track) => [
+      track,
+      new Map<UnitId, UnitMark>(
+        workItems
+          .filter((workItem) => workItem.role === track)
+          .flatMap((workItem) =>
+            workItem.observations.map(
+              (observation) => [observation.unitId, observation.mark] as const,
+            ),
+          ),
+      ),
+    ]),
+  );
+
+  const unitsByFlow = flows.flatMap((flow): VerificationUnit[] => {
     // Every edge's `from` names a node inside this same flow, so parsing it back through
     // `flowNodeIdContract` is safe. `flowEdgeRefContract` does accept a cross-flow form
     // ("otherFlow:node"), but only on `to`, where it marks an exit jump out of the flow.
@@ -107,3 +145,21 @@ export const questToUnitsTransformer = ({
 
     return [...terminalUnits, ...observableUnits, ...branchUnits, ...offMapUnits];
   });
+
+  return unitsByFlow.map((unit) => {
+    const compositeId = unitIdContract.safeParse(`${unit.flowId}:${unit.kind}:${unit.unitId}`);
+
+    return verificationUnitContract.parse({
+      ...unit,
+      trackMarks: compositeId.success
+        ? Object.fromEntries(
+            tracks.flatMap((track) => {
+              const mark = marksByTrack.get(track)?.get(compositeId.data);
+
+              return mark === undefined ? [] : [[track, mark]];
+            }),
+          )
+        : {},
+    });
+  });
+};

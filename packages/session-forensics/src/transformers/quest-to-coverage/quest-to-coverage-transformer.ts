@@ -9,13 +9,20 @@
  * reading has no operation item to hand it. `get-qa-checklist` stays the authority a caller defers
  * to.
  *
+ * `workItems` is optional and threads straight to `questToUnitsTransformer` — that is the only
+ * place `trackMarks` gets populated from real `workItem.observations[]`. Omitted, every unit's
+ * `trackMarks` is empty and every row reads `signed: 0`, exactly as before this parameter existed.
+ *
  * USAGE:
  * questToCoverageTransformer({ flows: [FlowStub({ id: 'checkout-flow', nodes: [...], edges: [...] })] });
- * // Returns one row per (flow, track) pair. Flows come back in input order, tracks in
- * // trackDenominatorStatics order.
+ * // Returns one row per (flow, track) pair, signed/met/cantMeet/unmet all 0. Flows come back in
+ * // input order, tracks in trackDenominatorStatics order.
+ *
+ * questToCoverageTransformer({ flows, workItems });
+ * // Same rows, with signed/met/cantMeet/unmet computed from each track's real observations.
  */
 
-import type { Flow } from '@dungeonmaster/shared/contracts';
+import type { Flow, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import {
   trackCoverageContract,
@@ -27,10 +34,12 @@ import { questToUnitsTransformer } from '../quest-to-units/quest-to-units-transf
 
 export const questToCoverageTransformer = ({
   flows,
+  workItems = [],
 }: {
   flows: readonly Flow[];
+  workItems?: readonly WorkItem[];
 }): readonly TrackCoverage[] => {
-  const units = questToUnitsTransformer({ flows });
+  const units = questToUnitsTransformer({ flows, workItems });
   const tracks = Object.keys(
     trackDenominatorStatics.byTrack,
   ) as readonly (keyof typeof trackDenominatorStatics.byTrack)[];
@@ -43,6 +52,7 @@ export const questToCoverageTransformer = ({
       const signedUnits = owedUnits.filter((unit) => Object.hasOwn(unit.trackMarks, track));
       const metUnits = signedUnits.filter((unit) => unit.trackMarks[track] === 'met');
       const cantMeetUnits = signedUnits.filter((unit) => unit.trackMarks[track] === 'cant-meet');
+      const unmetUnits = signedUnits.filter((unit) => unit.trackMarks[track] === 'unmet');
 
       return trackCoverageContract.parse({
         flowId: flow.id,
@@ -51,6 +61,7 @@ export const questToCoverageTransformer = ({
         signed: signedUnits.length,
         met: metUnits.length,
         cantMeet: cantMeetUnits.length,
+        unmet: unmetUnits.length,
         unsigned: owedUnits.length - signedUnits.length,
       });
     });

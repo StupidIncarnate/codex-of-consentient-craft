@@ -9,6 +9,7 @@ export const TrackCoverageStub = ({ ...props }: StubArgument<TrackCoverage> = {}
     signed: 58,
     met: 55,
     cantMeet: 3,
+    unmet: 0,
     unsigned: 0,
     ...props,
   });

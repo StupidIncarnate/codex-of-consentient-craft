@@ -5,6 +5,8 @@ import {
   FlowNodeStub,
   FlowObservableStub,
   FlowOffMapSignoffStub,
+  WorkItemStub,
+  UnitObservationStub,
 } from '@dungeonmaster/shared/contracts';
 
 describe('questToCoverageTransformer', () => {
@@ -444,6 +446,102 @@ describe('questToCoverageTransformer', () => {
           unsigned: 7,
         }),
       ]);
+    });
+  });
+
+  describe('real work-item observations', () => {
+    it('VALID: {two met, one cant-meet, one unmet, all codeweaver} => met/cantMeet/unmet land on their own counts, not each other', () => {
+      const observables = [
+        FlowObservableStub({ id: 'obs-met-a', package: 'web' }),
+        FlowObservableStub({ id: 'obs-met-b', package: 'web' }),
+        FlowObservableStub({ id: 'obs-cant', package: 'web' }),
+        FlowObservableStub({ id: 'obs-unmet', package: 'web' }),
+      ];
+      const node = FlowNodeStub({
+        id: 'compose-node',
+        type: 'state',
+        packages: ['web'],
+        observables,
+      });
+      const flow = FlowStub({
+        id: 'verify-flow',
+        flowType: 'runtime',
+        nodes: [node],
+        edges: [],
+      });
+      const workItem = WorkItemStub({
+        role: 'codeweaver',
+        observations: [
+          UnitObservationStub({ unitId: 'verify-flow:observable:obs-met-a', mark: 'met' }),
+          UnitObservationStub({ unitId: 'verify-flow:observable:obs-met-b', mark: 'met' }),
+          UnitObservationStub({
+            unitId: 'verify-flow:observable:obs-cant',
+            mark: 'cant-meet',
+            toSettle: 'wire the missing adapter call',
+          }),
+          UnitObservationStub({
+            unitId: 'verify-flow:observable:obs-unmet',
+            mark: 'unmet',
+            evidence: 'ran out of time to implement this observable',
+          }),
+        ],
+      });
+
+      const result = questToCoverageTransformer({ flows: [flow], workItems: [workItem] });
+
+      const codeweaverRow = result.find((row) => row.track === 'codeweaver');
+
+      expect(codeweaverRow).toStrictEqual(
+        TrackCoverageStub({
+          flowId: 'verify-flow',
+          track: 'codeweaver',
+          owed: 4,
+          signed: 4,
+          met: 2,
+          cantMeet: 1,
+          unmet: 1,
+          unsigned: 0,
+        }),
+      );
+    });
+
+    it("VALID: {codeweaver marks met on a unit flowrider also owes} => flowrider's row stays unsigned, per R2", () => {
+      const observable = FlowObservableStub({ id: 'shows-toast', package: 'web' });
+      const node = FlowNodeStub({
+        id: 'compose-node',
+        type: 'state',
+        packages: ['web'],
+        observables: [observable],
+      });
+      const flow = FlowStub({
+        id: 'shared-unit-flow',
+        flowType: 'runtime',
+        nodes: [node],
+        edges: [],
+      });
+      const workItem = WorkItemStub({
+        role: 'codeweaver',
+        observations: [
+          UnitObservationStub({ unitId: 'shared-unit-flow:observable:shows-toast', mark: 'met' }),
+        ],
+      });
+
+      const result = questToCoverageTransformer({ flows: [flow], workItems: [workItem] });
+
+      const flowriderRow = result.find((row) => row.track === 'flowrider');
+
+      expect(flowriderRow).toStrictEqual(
+        TrackCoverageStub({
+          flowId: 'shared-unit-flow',
+          track: 'flowrider',
+          owed: 1,
+          signed: 0,
+          met: 0,
+          cantMeet: 0,
+          unmet: 0,
+          unsigned: 1,
+        }),
+      );
     });
   });
 });

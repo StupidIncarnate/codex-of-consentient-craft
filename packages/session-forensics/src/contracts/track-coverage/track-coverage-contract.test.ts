@@ -3,14 +3,15 @@ import { TrackCoverageStub } from './track-coverage.stub';
 
 describe('trackCoverageContract', () => {
   describe('valid input', () => {
-    it('VALID: {flowId: paste-image-into-composer, track: codeweaver, owed: 58, signed: 58, met: 55, cantMeet: 3, unsigned: 0} => returns the branded coverage', () => {
+    it('VALID: {flowId: paste-image-into-composer, track: codeweaver, owed: 58, signed: 58, met: 54, cantMeet: 3, unmet: 1, unsigned: 0} => returns the branded coverage', () => {
       const result = trackCoverageContract.parse({
         flowId: 'paste-image-into-composer',
         track: 'codeweaver',
         owed: 58,
         signed: 58,
-        met: 55,
+        met: 54,
         cantMeet: 3,
+        unmet: 1,
         unsigned: 0,
       });
 
@@ -20,21 +21,23 @@ describe('trackCoverageContract', () => {
           track: 'codeweaver',
           owed: 58,
           signed: 58,
-          met: 55,
+          met: 54,
           cantMeet: 3,
+          unmet: 1,
           unsigned: 0,
         }),
       );
     });
 
-    it('VALID: {flowId: send-message-with-images, track: siegemaster, owed: 71, signed: 67, met: 66, cantMeet: 1, unsigned: 4} => returns the branded coverage', () => {
+    it('VALID: {flowId: send-message-with-images, track: siegemaster, owed: 71, signed: 67, met: 65, cantMeet: 1, unmet: 1, unsigned: 4} => returns the branded coverage', () => {
       const result = trackCoverageContract.parse({
         flowId: 'send-message-with-images',
         track: 'siegemaster',
         owed: 71,
         signed: 67,
-        met: 66,
+        met: 65,
         cantMeet: 1,
+        unmet: 1,
         unsigned: 4,
       });
 
@@ -44,8 +47,9 @@ describe('trackCoverageContract', () => {
           track: 'siegemaster',
           owed: 71,
           signed: 67,
-          met: 66,
+          met: 65,
           cantMeet: 1,
+          unmet: 1,
           unsigned: 4,
         }),
       );
@@ -53,7 +57,7 @@ describe('trackCoverageContract', () => {
   });
 
   describe('track that never ran', () => {
-    it('EDGE: {flowId: render-images-in-transcript, track: siegemaster, owed: 75, signed: 0, met: 0, cantMeet: 0, unsigned: 75} => returns the branded coverage', () => {
+    it('EDGE: {flowId: render-images-in-transcript, track: siegemaster, owed: 75, signed: 0, met: 0, cantMeet: 0, unmet: 0, unsigned: 75} => returns the branded coverage', () => {
       const result = trackCoverageContract.parse({
         flowId: 'render-images-in-transcript',
         track: 'siegemaster',
@@ -61,6 +65,7 @@ describe('trackCoverageContract', () => {
         signed: 0,
         met: 0,
         cantMeet: 0,
+        unmet: 0,
         unsigned: 75,
       });
 
@@ -72,6 +77,7 @@ describe('trackCoverageContract', () => {
           signed: 0,
           met: 0,
           cantMeet: 0,
+          unmet: 0,
           unsigned: 75,
         }),
       );
@@ -86,21 +92,36 @@ describe('trackCoverageContract', () => {
           signed: 58,
           met: 55,
           cantMeet: 3,
+          unmet: 0,
           unsigned: 1,
         }),
       ).toThrow(/signed \+ unsigned must equal owed/u);
     });
 
-    it('INVALID: {met: 55, cantMeet: 2, signed: 58} => throws met + cantMeet mismatch', () => {
+    it('INVALID: {met: 55, cantMeet: 2, unmet: 0, signed: 58} => throws met + cantMeet + unmet mismatch', () => {
       expect(() =>
         TrackCoverageStub({
           owed: 58,
           signed: 58,
           met: 55,
           cantMeet: 2,
+          unmet: 0,
           unsigned: 0,
         }),
-      ).toThrow(/met \+ cantMeet must equal signed/u);
+      ).toThrow(/met \+ cantMeet \+ unmet must equal signed/u);
+    });
+
+    it('INVALID: {met: 54, cantMeet: 3, unmet: 2, signed: 58} => throws met + cantMeet + unmet mismatch when unmet overshoots too', () => {
+      expect(() =>
+        TrackCoverageStub({
+          owed: 58,
+          signed: 58,
+          met: 54,
+          cantMeet: 3,
+          unmet: 2,
+          unsigned: 0,
+        }),
+      ).toThrow(/met \+ cantMeet \+ unmet must equal signed/u);
     });
 
     it("INVALID: {track: 'ward'} => throws", () => {
