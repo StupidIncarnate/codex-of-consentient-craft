@@ -1,11 +1,10 @@
 import {
+  QuestSummaryDebtStub,
   QuestSummaryFlowStub,
   QuestSummaryNoteGroupStub,
   QuestSummaryObservableStub,
   QuestSummaryStub,
   QuestSummaryTrackCountsStub,
-  QuestSummaryUnconfirmableStub,
-  SignoffStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { QuestSummaryLayerResponder } from './quest-summary-layer-responder';
@@ -29,15 +28,16 @@ describe('QuestSummaryLayerResponder', () => {
               tracks: [
                 QuestSummaryTrackCountsStub({
                   id: 'siegemaster',
-                  confirmed: 15,
-                  unconfirmable: 0,
+                  met: 15,
+                  cantMeet: 0,
+                  unmet: 0,
                   outstanding: 1,
                 }),
               ],
             }),
           ],
           midQuestObservables: [],
-          unconfirmable: [],
+          debt: [],
           noteGroups: [],
         }),
       });
@@ -56,11 +56,11 @@ describe('QuestSummaryLayerResponder', () => {
         type: 'text',
         title: '# QUEST SUMMARY — `add-auth`',
         flowHeading: '### `login-flow` "Login Flow" [runtime]',
-        trackRow: '    siegemaster: confirmed 15 / unconfirmable 0 / outstanding 1',
+        trackRow: '    siegemaster: met 15 / cant-meet 0 / unmet 0 / outstanding 1',
       });
     });
 
-    it('VALID: {quest carrying an unconfirmable verdict} => the evidence AND the question reach the agent', async () => {
+    it('VALID: {quest carrying debt entries} => a cant-meet entry renders its toSettle and an unmet entry renders none recorded', async () => {
       const proxy = QuestSummaryLayerResponderProxy();
       proxy.setupReturns({
         questId: 'add-auth',
@@ -74,16 +74,18 @@ describe('QuestSummaryLayerResponder', () => {
               description: 'POST /api/auth/login returns 400 for a non-JSON body',
             }),
           ],
-          unconfirmable: [
-            QuestSummaryUnconfirmableStub({
-              unitId: 'login-flow:observable:rejects-bleh-payload',
-              track: 'flowrider',
-              signoff: SignoffStub({
-                verdict: 'unconfirmable',
-                evidence: 'playwright.config.ts declares no webServer, so no e2e reaches the app',
-                toSettle:
-                  'Add a webServer block to playwright.config.ts, then re-run this spec against it.',
-              }),
+          debt: [
+            QuestSummaryDebtStub({
+              mark: 'cant-meet',
+              evidence: 'playwright.config.ts declares no webServer, so no e2e run reaches the app',
+              toSettle:
+                'Add a webServer block to playwright.config.ts, then re-run this spec against it.',
+            }),
+            QuestSummaryDebtStub({
+              id: 'login-flow:off-map:perf:siegemaster',
+              unitId: 'login-flow:off-map:perf',
+              kind: 'off-map',
+              track: 'siegemaster',
             }),
           ],
           noteGroups: [QuestSummaryNoteGroupStub({ id: 'open-question', notes: [] })],
@@ -93,17 +95,23 @@ describe('QuestSummaryLayerResponder', () => {
       const result = await QuestSummaryLayerResponder({ args: { questId: 'add-auth' } });
       const lines = String(result.content[0]?.text).split('\n');
 
-      expect([
-        lines.find((line) => line.startsWith('- added by')),
-        lines.find((line) => line.startsWith('      evidence:')),
-        lines.find((line) => line.startsWith('      toSettle:')),
-        lines.find((line) => line.startsWith('### open-question')),
-      ]).toStrictEqual([
-        '- added by siegemaster: `login-flow:observable:rejects-bleh-payload` [api-call]',
-        '      evidence: playwright.config.ts declares no webServer, so no e2e reaches the app',
-        '      toSettle: Add a webServer block to playwright.config.ts, then re-run this spec against it.',
-        '### open-question (0)',
-      ]);
+      expect({
+        addedBy: lines.find((line) => line.startsWith('- added by')),
+        debtHeadings: lines.filter((line) => line.startsWith('### `login-flow:')),
+        toSettleLines: lines.filter((line) => line.startsWith('      toSettle:')),
+        openQuestionHeading: lines.find((line) => line.startsWith('### open-question')),
+      }).toStrictEqual({
+        addedBy: '- added by siegemaster: `login-flow:observable:rejects-bleh-payload` [api-call]',
+        debtHeadings: [
+          '### `login-flow:observable:rejects-bleh-payload` [observable] — cant-meet on the flowrider track',
+          '### `login-flow:off-map:perf` [off-map] — unmet on the siegemaster track',
+        ],
+        toSettleLines: [
+          '      toSettle: Add a webServer block to playwright.config.ts, then re-run this spec against it.',
+          '      toSettle: (none recorded)',
+        ],
+        openQuestionHeading: '### open-question (0)',
+      });
     });
 
     it('VALID: {questId} => forwards it to the orchestrator', async () => {

@@ -3,13 +3,12 @@ import { screen, waitFor } from '@testing-library/react';
 import {
   QuestIdStub,
   QuestNoteStub,
+  QuestSummaryDebtStub,
   QuestSummaryFlowStub,
   QuestSummaryNoteGroupStub,
   QuestSummaryObservableStub,
   QuestSummaryStub,
   QuestSummaryTrackCountsStub,
-  QuestSummaryUnconfirmableStub,
-  SignoffStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
@@ -34,14 +33,16 @@ describe('QuestSummaryWidget', () => {
               tracks: [
                 QuestSummaryTrackCountsStub({
                   id: 'flowrider',
-                  confirmed: 1,
-                  unconfirmable: 0,
+                  met: 1,
+                  cantMeet: 0,
+                  unmet: 0,
                   outstanding: 1,
                 }),
                 QuestSummaryTrackCountsStub({
                   id: 'siegemaster',
-                  confirmed: 0,
-                  unconfirmable: 1,
+                  met: 0,
+                  cantMeet: 1,
+                  unmet: 2,
                   outstanding: 9,
                 }),
               ],
@@ -60,8 +61,8 @@ describe('QuestSummaryWidget', () => {
         'Login Flow [runtime]',
       );
       expect(trackRows.map((row) => String(row.textContent))).toStrictEqual([
-        'FLOWRIDER1 confirmed0 unconfirmable1 outstanding',
-        'SIEGEMASTER0 confirmed1 unconfirmable9 outstanding',
+        'FLOWRIDER1 met0 cant-meet0 unmet1 outstanding',
+        'SIEGEMASTER0 met1 cant-meet2 unmet9 outstanding',
       ]);
     });
 
@@ -135,25 +136,32 @@ describe('QuestSummaryWidget', () => {
     });
   });
 
-  describe('unconfirmable section', () => {
-    it('VALID: {one unconfirmable verdict} => renders the unit, the reason text and the action that would settle it', async () => {
+  describe('debt section', () => {
+    it('VALID: {a cant-meet entry and an unmet entry} => renders both rows, each carrying its own mark, unit and evidence', async () => {
       const proxy = QuestSummaryWidgetProxy();
       proxy.setupConnectedChannel();
       proxy.setupSummary({
         summary: QuestSummaryStub({
           questId: 'q-summary',
-          unconfirmable: [
-            QuestSummaryUnconfirmableStub({
+          debt: [
+            QuestSummaryDebtStub({
               id: 'login-flow:terminal:dashboard:siegemaster',
               unitId: 'login-flow:terminal:dashboard',
               flowId: 'login-flow',
               kind: 'terminal',
               track: 'siegemaster',
-              signoff: SignoffStub({
-                verdict: 'unconfirmable',
-                evidence: 'the sandbox refuses to bind port 3737, so no browser can reach the app',
-                toSettle: 'Start the sandbox dev server on a free port, then re-walk this node.',
-              }),
+              mark: 'cant-meet',
+              evidence: 'the sandbox refuses to bind port 3737, so no browser can reach the app',
+              toSettle: 'Start the sandbox dev server on a free port, then re-walk this node.',
+            }),
+            QuestSummaryDebtStub({
+              id: 'login-flow:observable:rejects-bleh-payload:flowrider',
+              unitId: 'login-flow:observable:rejects-bleh-payload',
+              flowId: 'login-flow',
+              kind: 'observable',
+              track: 'flowrider',
+              mark: 'unmet',
+              evidence: 'the spec asserts the 400 body but nothing drives a non-JSON request yet',
             }),
           ],
         }),
@@ -163,22 +171,162 @@ describe('QuestSummaryWidget', () => {
 
       await screen.findByTestId('QUEST_SUMMARY');
 
-      expect(screen.getByTestId('QUEST_SUMMARY_UNCONFIRMABLE_UNIT').textContent).toBe(
-        '[siegemaster] login-flow:terminal:dashboard',
-      );
-      expect(screen.getByTestId('QUEST_SUMMARY_UNCONFIRMABLE_REASON').textContent).toBe(
+      expect(
+        screen.getAllByTestId('QUEST_SUMMARY_DEBT_UNIT').map((el) => String(el.textContent)),
+      ).toStrictEqual([
+        '[cant-meet] [siegemaster] login-flow:terminal:dashboard',
+        '[unmet] [flowrider] login-flow:observable:rejects-bleh-payload',
+      ]);
+      expect(
+        screen.getAllByTestId('QUEST_SUMMARY_DEBT_EVIDENCE').map((el) => String(el.textContent)),
+      ).toStrictEqual([
         'the sandbox refuses to bind port 3737, so no browser can reach the app',
-      );
-      expect(screen.getByTestId('QUEST_SUMMARY_UNCONFIRMABLE_TO_SETTLE').textContent).toBe(
-        '→ Start the sandbox dev server on a free port, then re-walk this node.',
-      );
+        'the spec asserts the 400 body but nothing drives a non-JSON request yet',
+      ]);
     });
 
-    it('EMPTY: {unconfirmable: []} => renders the no-debt line', async () => {
+    it('VALID: {a cant-meet entry and an unmet entry} => only the cant-meet row carries a to-settle line and only the unmet row says nothing hands it over', async () => {
       const proxy = QuestSummaryWidgetProxy();
       proxy.setupConnectedChannel();
       proxy.setupSummary({
-        summary: QuestSummaryStub({ questId: 'q-summary', unconfirmable: [] }),
+        summary: QuestSummaryStub({
+          questId: 'q-summary',
+          debt: [
+            QuestSummaryDebtStub({
+              id: 'login-flow:terminal:dashboard:siegemaster',
+              unitId: 'login-flow:terminal:dashboard',
+              track: 'siegemaster',
+              kind: 'terminal',
+              mark: 'cant-meet',
+              evidence: 'the sandbox refuses to bind port 3737, so no browser can reach the app',
+              toSettle: 'Start the sandbox dev server on a free port, then re-walk this node.',
+            }),
+            QuestSummaryDebtStub({
+              id: 'login-flow:observable:rejects-bleh-payload:flowrider',
+              unitId: 'login-flow:observable:rejects-bleh-payload',
+              track: 'flowrider',
+              kind: 'observable',
+              mark: 'unmet',
+              evidence: 'the spec asserts the 400 body but nothing drives a non-JSON request yet',
+            }),
+          ],
+        }),
+      });
+
+      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+
+      await screen.findByTestId('QUEST_SUMMARY');
+
+      expect(
+        screen.getAllByTestId('QUEST_SUMMARY_DEBT_TO_SETTLE').map((el) => String(el.textContent)),
+      ).toStrictEqual(['→ Start the sandbox dev server on a free port, then re-walk this node.']);
+      expect(
+        screen.getAllByTestId('QUEST_SUMMARY_DEBT_SUCCESSOR').map((el) => String(el.textContent)),
+      ).toStrictEqual(['→ nothing hands this over; a successor is owed the work']);
+      expect(
+        screen
+          .getAllByTestId('QUEST_SUMMARY_DEBT_ROW')
+          .map((row) =>
+            Array.from(row.children).map((line) => String(line.getAttribute('data-testid'))),
+          ),
+      ).toStrictEqual([
+        ['QUEST_SUMMARY_DEBT_UNIT', 'QUEST_SUMMARY_DEBT_EVIDENCE', 'QUEST_SUMMARY_DEBT_TO_SETTLE'],
+        ['QUEST_SUMMARY_DEBT_UNIT', 'QUEST_SUMMARY_DEBT_EVIDENCE', 'QUEST_SUMMARY_DEBT_SUCCESSOR'],
+      ]);
+    });
+
+    it('VALID: {one unit carrying debt on two tracks} => renders a row per track, each with its own mark and evidence', async () => {
+      const proxy = QuestSummaryWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupSummary({
+        summary: QuestSummaryStub({
+          questId: 'q-summary',
+          debt: [
+            QuestSummaryDebtStub({
+              id: 'login-flow:observable:rejects-bleh-payload:flowrider',
+              unitId: 'login-flow:observable:rejects-bleh-payload',
+              track: 'flowrider',
+              kind: 'observable',
+              mark: 'unmet',
+              evidence: 'no spec drives a non-JSON request at the login route yet',
+            }),
+            QuestSummaryDebtStub({
+              id: 'login-flow:observable:rejects-bleh-payload:siegemaster',
+              unitId: 'login-flow:observable:rejects-bleh-payload',
+              track: 'siegemaster',
+              kind: 'observable',
+              mark: 'cant-meet',
+              evidence: 'a browser cannot post a non-JSON body through the login form',
+              toSettle: 'Drive this observable from an API-level walk instead of the browser.',
+            }),
+          ],
+        }),
+      });
+
+      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+
+      await screen.findByTestId('QUEST_SUMMARY');
+
+      expect(
+        screen.getAllByTestId('QUEST_SUMMARY_DEBT_UNIT').map((el) => String(el.textContent)),
+      ).toStrictEqual([
+        '[unmet] [flowrider] login-flow:observable:rejects-bleh-payload',
+        '[cant-meet] [siegemaster] login-flow:observable:rejects-bleh-payload',
+      ]);
+      expect(
+        screen.getAllByTestId('QUEST_SUMMARY_DEBT_EVIDENCE').map((el) => String(el.textContent)),
+      ).toStrictEqual([
+        'no spec drives a non-JSON request at the login route yet',
+        'a browser cannot post a non-JSON body through the login form',
+      ]);
+    });
+
+    it('VALID: {one unit carrying debt on two tracks} => the two rows are keyed apart, so React reconciles them as separate entries', async () => {
+      const proxy = QuestSummaryWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupSummary({
+        summary: QuestSummaryStub({
+          questId: 'q-summary',
+          debt: [
+            QuestSummaryDebtStub({
+              id: 'login-flow:observable:rejects-bleh-payload:flowrider',
+              unitId: 'login-flow:observable:rejects-bleh-payload',
+              track: 'flowrider',
+              kind: 'observable',
+              mark: 'unmet',
+              evidence: 'no spec drives a non-JSON request at the login route yet',
+            }),
+            QuestSummaryDebtStub({
+              id: 'login-flow:observable:rejects-bleh-payload:siegemaster',
+              unitId: 'login-flow:observable:rejects-bleh-payload',
+              track: 'siegemaster',
+              kind: 'observable',
+              mark: 'cant-meet',
+              evidence: 'a browser cannot post a non-JSON body through the login form',
+              toSettle: 'Drive this observable from an API-level walk instead of the browser.',
+            }),
+          ],
+        }),
+      });
+
+      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+
+      await screen.findByTestId('QUEST_SUMMARY');
+
+      expect(proxy.hasDuplicateRowKeyWarning()).toBe(false);
+      expect(
+        screen.getAllByTestId('QUEST_SUMMARY_DEBT_UNIT').map((el) => String(el.textContent)),
+      ).toStrictEqual([
+        '[unmet] [flowrider] login-flow:observable:rejects-bleh-payload',
+        '[cant-meet] [siegemaster] login-flow:observable:rejects-bleh-payload',
+      ]);
+    });
+
+    it('EMPTY: {debt: []} => renders the every-unit-is-proven line and no debt rows', async () => {
+      const proxy = QuestSummaryWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupSummary({
+        summary: QuestSummaryStub({ questId: 'q-summary', debt: [] }),
       });
 
       mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
@@ -186,8 +334,35 @@ describe('QuestSummaryWidget', () => {
       await screen.findByTestId('QUEST_SUMMARY');
 
       expect(screen.getByTestId('QUEST_SUMMARY_DEBT_EMPTY').textContent).toBe(
-        'no unconfirmable verdicts',
+        'every unit is proven',
       );
+      expect(screen.queryAllByTestId('QUEST_SUMMARY_DEBT_ROW')).toStrictEqual([]);
+    });
+
+    it('VALID: {one unmet entry} => the section heading reads DEBT and the empty line is gone', async () => {
+      const proxy = QuestSummaryWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupSummary({
+        summary: QuestSummaryStub({
+          questId: 'q-summary',
+          debt: [
+            QuestSummaryDebtStub({
+              id: 'login-flow:observable:rejects-bleh-payload:flowrider',
+              mark: 'unmet',
+              evidence: 'no spec drives a non-JSON request at the login route yet',
+            }),
+          ],
+        }),
+      });
+
+      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+
+      await screen.findByTestId('QUEST_SUMMARY');
+
+      const section = screen.getByTestId('QUEST_SUMMARY_SECTION_DEBT');
+
+      expect(String(section.children[0]?.textContent)).toBe('DEBT');
+      expect(screen.queryByTestId('QUEST_SUMMARY_DEBT_EMPTY')).toBe(null);
     });
   });
 

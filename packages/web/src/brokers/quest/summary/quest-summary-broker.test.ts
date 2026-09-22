@@ -19,8 +19,9 @@ describe('questSummaryBroker', () => {
             tracks: [
               QuestSummaryTrackCountsStub({
                 id: 'siegemaster',
-                confirmed: 2,
-                unconfirmable: 1,
+                met: 2,
+                cantMeet: 1,
+                unmet: 3,
                 outstanding: 9,
               }),
             ],

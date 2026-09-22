@@ -1289,15 +1289,16 @@ describe('QuestHandleResponder', () => {
               tracks: [
                 QuestSummaryTrackCountsStub({
                   id: 'flowrider',
-                  confirmed: 9,
-                  unconfirmable: 2,
+                  met: 9,
+                  cantMeet: 1,
+                  unmet: 1,
                   outstanding: 4,
                 }),
               ],
             }),
           ],
           midQuestObservables: [],
-          unconfirmable: [],
+          debt: [],
           noteGroups: [],
         }),
       });
@@ -1315,7 +1316,7 @@ describe('QuestHandleResponder', () => {
       }).toStrictEqual({
         isError: undefined,
         title: '# QUEST SUMMARY — `test-quest-id`',
-        trackRow: '    flowrider: confirmed 9 / unconfirmable 2 / outstanding 4',
+        trackRow: '    flowrider: met 9 / cant-meet 1 / unmet 1 / outstanding 4',
       });
     });
 

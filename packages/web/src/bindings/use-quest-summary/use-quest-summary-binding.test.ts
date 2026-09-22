@@ -108,8 +108,9 @@ describe('useQuestSummaryBinding', () => {
             tracks: [
               QuestSummaryTrackCountsStub({
                 id: 'siegemaster',
-                confirmed: 0,
-                unconfirmable: 0,
+                met: 0,
+                cantMeet: 0,
+                unmet: 0,
                 outstanding: 10,
               }),
             ],
@@ -130,7 +131,8 @@ describe('useQuestSummaryBinding', () => {
         },
       });
 
-      // A sign-off landed on disk: the same quest now reports one confirmed unit fewer outstanding.
+      // An observation landed on disk: the same quest now reports one unit met and one fewer
+      // outstanding.
       const afterSignoff = QuestSummaryStub({
         questId: 'q-summary',
         flows: [
@@ -138,8 +140,9 @@ describe('useQuestSummaryBinding', () => {
             tracks: [
               QuestSummaryTrackCountsStub({
                 id: 'siegemaster',
-                confirmed: 1,
-                unconfirmable: 0,
+                met: 1,
+                cantMeet: 0,
+                unmet: 0,
                 outstanding: 9,
               }),
             ],
