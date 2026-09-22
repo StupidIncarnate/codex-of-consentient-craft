@@ -22,6 +22,7 @@ import {
   questContract,
   questIdContract,
   questStatusContract,
+  questWorkItemIdContract,
   workItemRoleContract,
 } from '@dungeonmaster/shared/contracts';
 
@@ -40,6 +41,7 @@ export const questBlueprintContract = questContract
     targetStatus: questStatusContract.optional(),
     skipRoles: z.array(workItemRoleContract).default([]),
     fixedQuestId: questIdContract.optional(),
+    fixedWorkItemId: questWorkItemIdContract.optional(),
     rolePromptOverrides: z
       .record(workItemRoleContract, z.string().min(1).brand<'PromptText'>())
       .default({}),

@@ -74,6 +74,26 @@ describe('questBlueprintContract', () => {
         rolePromptOverrides: {},
       });
     });
+
+    it('VALID: {fixedWorkItemId: "f47ac10b-58cc-4372-a567-0e02b2c3d479"} => result includes fixedWorkItemId', () => {
+      const result = QuestBlueprintStub({
+        fixedWorkItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
+
+      expect(result).toStrictEqual({
+        title: 'Smoketest Quest',
+        userRequest: 'Verify orchestration pipeline',
+        flows: [],
+        designDecisions: [],
+        contracts: [],
+        toolingRequirements: [],
+        operations: [],
+        packagesAffected: [],
+        skipRoles: [],
+        fixedWorkItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        rolePromptOverrides: {},
+      });
+    });
   });
 
   describe('invalid inputs', () => {
@@ -146,6 +166,21 @@ describe('questBlueprintContract', () => {
           fixedQuestId: '',
         });
       }).toThrow(/String must contain at least 1/u);
+    });
+
+    it('INVALID: {fixedWorkItemId: "not-a-uuid"} => throws validation error', () => {
+      expect(() => {
+        questBlueprintContract.parse({
+          title: 'T',
+          userRequest: 'R',
+          flows: [],
+          designDecisions: [],
+          contracts: [],
+          toolingRequirements: [],
+          operations: [],
+          fixedWorkItemId: 'not-a-uuid',
+        });
+      }).toThrow(/Invalid uuid/u);
     });
   });
 });
