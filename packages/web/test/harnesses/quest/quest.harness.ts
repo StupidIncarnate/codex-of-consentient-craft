@@ -18,6 +18,7 @@ import {
   questIdContract,
   type Quest,
   type QuestId,
+  type GuildId,
   type FilePath,
   type WorkItemRole,
 } from '@dungeonmaster/shared/contracts';
@@ -57,6 +58,10 @@ type QuestSessionInput = Record<PropertyKey, unknown>;
 // Deliberately opaque: the point of `rewindQuestStatus` is that every key it does not name survives
 // untouched, so naming any of them here would invite a caller to reach for one.
 type PersistedQuestInput = Record<PropertyKey, unknown>;
+// One row of a `GET /api/guilds` or `GET /api/quests?guildId=…` response body. Opaque: these two
+// real production routes are read only to resolve which guild owns a bare `questId` (only its `id`
+// is read), never as a domain shape this harness owns.
+type ApiListRecord = Record<PropertyKey, unknown>;
 
 // The one package every default-seeded flow node tags, declared so its chips resolve to a real kind
 // rather than painting unresolved. Deliberately NOT a name from this repo: nothing in the app may
@@ -193,6 +198,61 @@ export const questHarness = ({
     branchName?: string;
     baseBranch?: string;
   }) => Promise<void>;
+  // The same shape writeQuestFile assembles, but written straight to disk with no questContract
+  // validation and no dmRegistryBroker route — used only by
+  // flows/quest-chat/malformed-quest-file-reported.e2e.ts, which needs a quest.json the SERVER
+  // rejects on read. Never reach for this to work around a writeQuestFile throw elsewhere: that
+  // throw is the framework refusing a shape it cannot honestly write, not a gap to route around.
+  writeMalformedQuestFile: (params: {
+    questId: string;
+    questFolder: string;
+    questFilePath: string;
+    title?: string;
+    status: string;
+    questType?: string;
+    workItems: {
+      id: string;
+      role: string;
+      sessionId?: string;
+      agentId?: string;
+      status?: string;
+      spawnerType?: string;
+      step?: string;
+      dependsOn?: string[];
+      relatedDataItems?: string[];
+      insertedBy?: string;
+      createdAt?: string;
+      completedAt?: string;
+      attempt?: number;
+      maxAttempts?: number;
+    }[];
+    steps?: { id: string; name: string }[];
+    userRequest?: string;
+    planningNotes?: PlanningNotesInput;
+    flows?: FlowInput[];
+    packagesAffected?: PackageEntryInput[];
+    contracts?: ContractEntryInput[];
+    comments?: CommentInput[];
+    wardResults?: {
+      id: string;
+      exitCode: number;
+      wardMode?: string;
+      runId?: string;
+      createdAt?: string;
+    }[];
+    operations?: {
+      id: string;
+      role: string;
+      text: string;
+      status: string;
+      locked?: boolean;
+      packageNames?: string[];
+    }[];
+    sessions?: QuestSessionInput[];
+    worktreePath?: string;
+    branchName?: string;
+    baseBranch?: string;
+  }) => Promise<void>;
   writeUnparseableQuestFile: (params: {
     questId: string;
     questFolder: string;
@@ -273,34 +333,35 @@ export const questHarness = ({
     };
   };
 
-  const writeQuestFile = async ({
-    guildId,
+  // Builds the quest.json OBJECT SHAPE from a writeQuestFile-style parameter set — no I/O, no
+  // contract validation. Shared by writeQuestFile (which validates the result and writes it
+  // through dmRegistryBroker) and writeMalformedQuestFile (which writes this same shape straight
+  // to disk on purpose), so the two callers can never drift into assembling quest.json two
+  // different ways.
+  const assembleQuestJsonShape = ({
     questId,
     questFolder,
-    questFilePath,
-    title = 'E2E Quest',
+    title,
     status,
     questType,
     workItems,
-    steps = [],
-    userRequest = 'Build the feature',
+    steps,
+    userRequest,
     planningNotes,
     flows,
-    packagesAffected = DEFAULT_PACKAGES_AFFECTED,
-    contracts = [],
+    packagesAffected,
+    contracts,
     comments,
-    wardResults = [],
-    operations = [],
+    wardResults,
+    operations,
     sessions,
     worktreePath,
     branchName,
     baseBranch,
   }: {
-    guildId?: string;
     questId: string;
     questFolder: string;
-    questFilePath: string;
-    title?: string;
+    title: string;
     status: string;
     questType?: string;
     workItems: {
@@ -310,9 +371,6 @@ export const questHarness = ({
       agentId?: string;
       status?: string;
       spawnerType?: string;
-      // The `agentFlowStatics` step this item is running. A work item carrying one belongs to
-      // `questRouteScopeBroker`, which takes that step's own route; one carrying none runs no step
-      // graph at all and its own `signal-back` completes the scope it links to.
       step?: string;
       dependsOn?: string[];
       relatedDataItems?: string[];
@@ -322,21 +380,21 @@ export const questHarness = ({
       attempt?: number;
       maxAttempts?: number;
     }[];
-    steps?: { id: string; name: string }[];
-    userRequest?: string;
+    steps: { id: string; name: string }[];
+    userRequest: string;
     planningNotes?: PlanningNotesInput;
     flows?: FlowInput[];
-    packagesAffected?: PackageEntryInput[];
-    contracts?: ContractEntryInput[];
+    packagesAffected: PackageEntryInput[];
+    contracts: ContractEntryInput[];
     comments?: CommentInput[];
-    wardResults?: {
+    wardResults: {
       id: string;
       exitCode: number;
       wardMode?: string;
       runId?: string;
       createdAt?: string;
     }[];
-    operations?: {
+    operations: {
       id: string;
       role: string;
       text: string;
@@ -344,26 +402,19 @@ export const questHarness = ({
       locked?: boolean;
       packageNames?: string[];
     }[];
-    // The quest's own session ledger. Seed a row per session whose transcript the spec expects to
-    // read back; the key is OMITTED when the caller names none, so every other fixture still proves
-    // questContract defaults it to []. A session with no row here falls back to the per-quest cwd.
     sessions?: QuestSessionInput[];
-    // The git context riftcarver writes when it carves. Seed these to stand a quest up in the
-    // state EVERY role after riftcarver actually runs in: its sessions run in the worktree, and
-    // Claude CLI encodes its JSONL directory from the child's cwd, so the server resolves that
-    // session's tail through `worktreePath` rather than the guild path. A fixture that leaves them
-    // unset can only ever exercise the pre-carve arrangement.
     worktreePath?: string;
     branchName?: string;
     baseBranch?: string;
-  }): Promise<void> => {
+  }): Record<PropertyKey, unknown> => {
     const seededPlanningNotes: PlanningNotesInput = planningNotes ?? {};
     const baseFlows: FlowInput[] = flows ?? DEFAULT_FLOWS;
     const seededFlows: FlowInput[] = questFlowObservableSeedTransformer({
       flows: baseFlows,
       status,
     });
-    const rawQuest = {
+
+    return {
       id: questId,
       folder: questFolder,
       title,
@@ -451,56 +502,267 @@ export const questHarness = ({
           op.packageNames ?? (op.role === 'codeweaver' ? DEFAULT_CODEWEAVER_PACKAGE_NAMES : []),
       })),
     };
+  };
 
-    const writeRawQuestFile = async (raw: Record<PropertyKey, unknown>): Promise<void> => {
-      await fsPromises.mkdir(dirname(questFilePath), { recursive: true });
-      await fsPromises.writeFile(questFilePath, JSON.stringify(raw, null, JSON_INDENT));
+  const writeQuestFile = async ({
+    guildId,
+    questId,
+    questFolder,
+    questFilePath,
+    title = 'E2E Quest',
+    status,
+    questType,
+    workItems,
+    steps = [],
+    userRequest = 'Build the feature',
+    planningNotes,
+    flows,
+    packagesAffected = DEFAULT_PACKAGES_AFFECTED,
+    contracts = [],
+    comments,
+    wardResults = [],
+    operations = [],
+    sessions,
+    worktreePath,
+    branchName,
+    baseBranch,
+  }: {
+    guildId?: string;
+    questId: string;
+    questFolder: string;
+    questFilePath: string;
+    title?: string;
+    status: string;
+    questType?: string;
+    workItems: {
+      id: string;
+      role: string;
+      sessionId?: string;
+      agentId?: string;
+      status?: string;
+      spawnerType?: string;
+      // The `agentFlowStatics` step this item is running. A work item carrying one belongs to
+      // `questRouteScopeBroker`, which takes that step's own route; one carrying none runs no step
+      // graph at all and its own `signal-back` completes the scope it links to.
+      step?: string;
+      dependsOn?: string[];
+      relatedDataItems?: string[];
+      insertedBy?: string;
+      createdAt?: string;
+      completedAt?: string;
+      attempt?: number;
+      maxAttempts?: number;
+    }[];
+    steps?: { id: string; name: string }[];
+    userRequest?: string;
+    planningNotes?: PlanningNotesInput;
+    flows?: FlowInput[];
+    packagesAffected?: PackageEntryInput[];
+    contracts?: ContractEntryInput[];
+    comments?: CommentInput[];
+    wardResults?: {
+      id: string;
+      exitCode: number;
+      wardMode?: string;
+      runId?: string;
+      createdAt?: string;
+    }[];
+    operations?: {
+      id: string;
+      role: string;
+      text: string;
+      status: string;
+      locked?: boolean;
+      packageNames?: string[];
+    }[];
+    // The quest's own session ledger. Seed a row per session whose transcript the spec expects to
+    // read back; the key is OMITTED when the caller names none, so every other fixture still proves
+    // questContract defaults it to []. A session with no row here falls back to the per-quest cwd.
+    sessions?: QuestSessionInput[];
+    // The git context riftcarver writes when it carves. Seed these to stand a quest up in the
+    // state EVERY role after riftcarver actually runs in: its sessions run in the worktree, and
+    // Claude CLI encodes its JSONL directory from the child's cwd, so the server resolves that
+    // session's tail through `worktreePath` rather than the guild path. A fixture that leaves them
+    // unset can only ever exercise the pre-carve arrangement.
+    worktreePath?: string;
+    branchName?: string;
+    baseBranch?: string;
+  }): Promise<void> => {
+    const rawQuest = assembleQuestJsonShape({
+      questId,
+      questFolder,
+      title,
+      status,
+      questType,
+      workItems,
+      steps,
+      userRequest,
+      planningNotes,
+      flows,
+      packagesAffected,
+      contracts,
+      comments,
+      wardResults,
+      operations,
+      sessions,
+      worktreePath,
+      branchName,
+      baseBranch,
+    });
 
-      // Append a quest-modified event to the outbox so the HTTP server's quest-driven
-      // watcher reactor reconciles immediately, just like questPersistBroker does in
-      // production. Without this, the reactor depends on its 3s fallback poll to notice
-      // the new workItem.sessionId stamp — racing the LIVE_MARKER assertion's 10s
-      // visibility timeout in quest-streaming-subagent-execution-rows.spec.ts.
-      // questFilePath shape: <DUNGEONMASTER_HOME>/guilds/<guildId>/quests/<questFolder>/quest.json
-      // walk up four levels to reach DUNGEONMASTER_HOME, then append `event-outbox.jsonl`.
-      const dungeonmasterHome = dirname(dirname(dirname(dirname(questFilePath))));
-      const outboxPath = `${dungeonmasterHome}/event-outbox.jsonl`;
-      const outboxLine = `${JSON.stringify({ questId, timestamp: new Date().toISOString() })}\n`;
-      await fsPromises.appendFile(outboxPath, outboxLine);
+    // Every write goes through dmRegistryBroker — no raw-fs fallback. A shape the framework
+    // cannot write (an unparseable guild id, a quest.json that does not fit questContract) is a
+    // loud, named throw here, not a silent drop to a hand-rolled fs.writeFile: a fallback that
+    // never reports it fired is worse than an unconverted method, because a spec passes on the
+    // fallback path while asserting nothing about the real write route.
+    const inferredGuildId = guildId ?? basename(dirname(dirname(dirname(questFilePath))));
+    const parsedGuildId = guildIdContract.safeParse(inferredGuildId);
+    if (!parsedGuildId.success) {
+      throw new Error(
+        `questHarness.writeQuestFile: could not write quest "${questId}" — guild id ` +
+          `"${inferredGuildId}" does not parse as guildIdContract: ${parsedGuildId.error.message}`,
+      );
+    }
+
+    const parsedQuest = questContract.safeParse(rawQuest);
+    if (!parsedQuest.success) {
+      throw new Error(
+        `questHarness.writeQuestFile: could not write quest "${questId}" — the assembled shape ` +
+          `does not parse as questContract, so dmRegistryBroker's quest ingredient cannot write ` +
+          `it: ${parsedQuest.error.message}`,
+      );
+    }
+
+    const questPayload = {
+      ...parsedQuest.data,
+      id: questIdContract.parse(questId),
+      folder: questContract.shape.folder.parse(questFolder),
     };
 
-    const inferredGuildId = guildId ?? basename(dirname(dirname(dirname(questFilePath))));
-    const parsedGuildIdResult = guildIdContract.safeParse(inferredGuildId);
-    const parsedQuestResult = questContract.safeParse(rawQuest);
+    const plan = recipe(
+      { name: 'write-quest-file', description: 'write quest file via dmRegistryBroker' },
+      () => [
+        dmRegistryBroker.quests
+          .under({ guildId: parsedGuildId.data })
+          .add(1, (q) => [q[0].setRaw(questPayload)]),
+      ],
+    )();
 
-    if (!parsedGuildIdResult.success || !parsedQuestResult.success) {
-      await writeRawQuestFile(rawQuest);
-      return;
-    }
+    await dmRegistryBroker.run(plan, dmTarget.writeTarget());
+  };
 
-    const resolvedGuildId = parsedGuildIdResult.data;
-    const parsedQuest = parsedQuestResult.data;
+  // Writes the SAME shape writeQuestFile assembles, straight to disk — no questContract
+  // validation, no dmRegistryBroker route. writeQuestFile refuses a shape questContract rejects
+  // (a loud throw, deliberately: see its own comment), so a spec proving the SERVER's own
+  // read-time rejection needs a way onto disk that does not go through that refusal.
+  // malformed-quest-file-reported.e2e.ts is this method's only caller — reach for
+  // writeQuestFile everywhere else, including for a quest this method's caller expects to fail:
+  // a fallback silently reused by every caller is what let a spec pass on the fallback path
+  // while asserting nothing about the real write route.
+  const writeMalformedQuestFile = async ({
+    questId,
+    questFolder,
+    questFilePath,
+    title = 'E2E Quest',
+    status,
+    questType,
+    workItems,
+    steps = [],
+    userRequest = 'Build the feature',
+    planningNotes,
+    flows,
+    packagesAffected = DEFAULT_PACKAGES_AFFECTED,
+    contracts = [],
+    comments,
+    wardResults = [],
+    operations = [],
+    sessions,
+    worktreePath,
+    branchName,
+    baseBranch,
+  }: {
+    questId: string;
+    questFolder: string;
+    questFilePath: string;
+    title?: string;
+    status: string;
+    questType?: string;
+    workItems: {
+      id: string;
+      role: string;
+      sessionId?: string;
+      agentId?: string;
+      status?: string;
+      spawnerType?: string;
+      step?: string;
+      dependsOn?: string[];
+      relatedDataItems?: string[];
+      insertedBy?: string;
+      createdAt?: string;
+      completedAt?: string;
+      attempt?: number;
+      maxAttempts?: number;
+    }[];
+    steps?: { id: string; name: string }[];
+    userRequest?: string;
+    planningNotes?: PlanningNotesInput;
+    flows?: FlowInput[];
+    packagesAffected?: PackageEntryInput[];
+    contracts?: ContractEntryInput[];
+    comments?: CommentInput[];
+    wardResults?: {
+      id: string;
+      exitCode: number;
+      wardMode?: string;
+      runId?: string;
+      createdAt?: string;
+    }[];
+    operations?: {
+      id: string;
+      role: string;
+      text: string;
+      status: string;
+      locked?: boolean;
+      packageNames?: string[];
+    }[];
+    sessions?: QuestSessionInput[];
+    worktreePath?: string;
+    branchName?: string;
+    baseBranch?: string;
+  }): Promise<void> => {
+    const rawQuest = assembleQuestJsonShape({
+      questId,
+      questFolder,
+      title,
+      status,
+      questType,
+      workItems,
+      steps,
+      userRequest,
+      planningNotes,
+      flows,
+      packagesAffected,
+      contracts,
+      comments,
+      wardResults,
+      operations,
+      sessions,
+      worktreePath,
+      branchName,
+      baseBranch,
+    });
 
-    try {
-      const questPayload = {
-        ...parsedQuest,
-        id: questIdContract.parse(questId),
-        folder: questContract.shape.folder.parse(questFolder),
-      };
+    await fsPromises.mkdir(dirname(questFilePath), { recursive: true });
+    await fsPromises.writeFile(questFilePath, JSON.stringify(rawQuest, null, JSON_INDENT));
 
-      const plan = recipe(
-        { name: 'write-quest-file', description: 'write quest file via dmRegistryBroker' },
-        () => [
-          dmRegistryBroker.quests
-            .under({ guildId: resolvedGuildId })
-            .add(1, (q) => [q[0].setRaw(questPayload)]),
-        ],
-      )();
-
-      await dmRegistryBroker.run(plan, dmTarget.writeTarget());
-    } catch {
-      await writeRawQuestFile(rawQuest);
-    }
+    // Append a quest-modified event to the outbox so the HTTP server's quest-driven watcher
+    // reactor reconciles immediately, exactly as questPersistBroker does in production — see
+    // writeQuestFile's own broker route, which gets this for free through dmRegistryBroker.
+    const dungeonmasterHome = dirname(dirname(dirname(dirname(questFilePath))));
+    await fsPromises.appendFile(
+      `${dungeonmasterHome}/event-outbox.jsonl`,
+      `${JSON.stringify({ questId, timestamp: new Date().toISOString() })}\n`,
+    );
   };
 
   // Writes a quest.json that questContract REJECTS, into a real quest folder the guild's
@@ -567,6 +829,44 @@ export const questHarness = ({
     );
   };
 
+  // A quest's parent is its FOLDER, never a field on the record — dmRegistryBroker's quest
+  // ingredient can only reach an existing row through its `guildId` link (see
+  // packages/hydration-recipes/src/brokers/quest/query-route/quest-query-route-broker.ts), and
+  // there is no framework verb that resolves an owning guild from a bare id (the same gap
+  // hydration-recipes' own `questOwningGuildFindBroker` exists to close — internal to that
+  // package, unreachable from here). This mirrors that broker's own algorithm — scan every guild's
+  // quest list for the id — over the one surface this harness can reach: the real HTTP API.
+  const resolveQuestOwningGuildId = async ({ questId }: { questId: string }): Promise<GuildId> => {
+    const guildsResponse = await request.get('/api/guilds');
+    const guildsBody = (await guildsResponse.json()) as ApiListRecord[];
+    const guilds = Array.isArray(guildsBody) ? guildsBody : [];
+
+    const owningGuildId = await guilds.reduce<Promise<GuildId | undefined>>(
+      async (previous, guild) => {
+        const found = await previous;
+        if (found !== undefined) {
+          return found;
+        }
+        const candidateGuildId = guildIdContract.parse(String(guild.id));
+        const questsResponse = await request.get(`/api/quests?guildId=${candidateGuildId}`);
+        const questsBody = (await questsResponse.json()) as Record<PropertyKey, unknown>;
+        const questsRaw = questsBody.quests;
+        const quests = Array.isArray(questsRaw) ? (questsRaw as ApiListRecord[]) : [];
+        return quests.some((quest) => String(quest.id) === questId) ? candidateGuildId : undefined;
+      },
+      Promise.resolve(undefined),
+    );
+
+    if (owningGuildId === undefined) {
+      throw new Error(
+        `questHarness.patchQuestStatus: no guild owns quest "${questId}" — checked every guild ` +
+          `GET /api/guilds returned`,
+      );
+    }
+
+    return owningGuildId;
+  };
+
   const patchQuestStatus = async ({
     questId,
     status,
@@ -574,9 +874,35 @@ export const questHarness = ({
     questId: string;
     status: string;
   }): Promise<void> => {
-    await request.patch(`/api/quests/${questId}`, {
-      data: { status },
-    });
+    const guildId = await resolveQuestOwningGuildId({ questId });
+    const parsedStatus = questContract.shape.status.parse(status);
+
+    // `id` is not a QuestFields key (a quest's id is server-minted, never settable) even though
+    // questQueryRouteBroker's own matchesWhereClauseGuard matches it at RUN time — a query's
+    // `where` reaches wider than the settable-fields type the chain otherwise enforces. The
+    // intersection bridges that modelling gap without an `as unknown as`: `where`'s own type has
+    // no index signature, so intersecting in `id` widens the TARGET type instead of asserting
+    // past it — branded `QuestId`, never a bare `string`, so `@dungeonmaster/ban-primitives` (which
+    // allows a raw primitive only directly in a parameter position, never in a type alias's own
+    // body) has no bare primitive to flag here either.
+    type QuestFilterWhere = Parameters<typeof dmRegistryBroker.quests.filter>[0]['where'] & {
+      id?: QuestId;
+    };
+    const filterWhere: QuestFilterWhere = { guildId, id: questIdContract.parse(questId) };
+
+    const plan = recipe(
+      {
+        name: 'patch-quest-status',
+        description: "writes an existing quest's status field via dmRegistryBroker",
+      },
+      () => [
+        dmRegistryBroker.quests
+          .filter({ where: filterWhere, expect: 'one' })
+          .setRaw({ status: parsedStatus }),
+      ],
+    )();
+
+    await dmRegistryBroker.run(plan, dmTarget.apiTarget());
   };
 
   // Rewrites ONLY the `status` field of an existing quest.json, leaving every other byte — the
@@ -719,6 +1045,7 @@ export const questHarness = ({
   return {
     createQuest,
     writeQuestFile,
+    writeMalformedQuestFile,
     writeUnparseableQuestFile: tamperQuestUnparseableFile,
     tamperQuestUnparseableFile,
     writeWardResultDetail,
