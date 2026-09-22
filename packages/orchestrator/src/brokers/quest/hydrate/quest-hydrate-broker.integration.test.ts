@@ -120,7 +120,9 @@ describe('questHydrateBroker', () => {
     // dependencies-first ahead of the forced-complete intake item. Nothing else is on the ledger:
     // scopes are minted when the family graph routes to a family, and the ENTRY family's own scope
     // is dropped by hydrate — a hydrated quest is fabricated directly at `in_progress` and has no
-    // workspace to carve. The relay creates ONE work item, for the first actionable scope.
+    // workspace to carve. The relay creates ONE work item, for the first actionable scope, stamped
+    // with ITS OWN family's entry step — `agentFlowStatics.codeweaver.entry` is `plan`, never
+    // riftcarver's `carve`, which the codeweaver family does not declare as a step at all.
     expect({
       success: loaded.success,
       status: loaded.quest?.status,
@@ -128,6 +130,7 @@ describe('questHydrateBroker', () => {
       operationStatuses: operations.map((op) => op.status),
       workItemRoles: workItems.map((wi) => wi.role),
       workItemStatuses: workItems.map((wi) => wi.status),
+      workItemSteps: workItems.map((wi) => wi.step),
     }).toStrictEqual({
       success: true,
       status: 'in_progress',
@@ -135,6 +138,7 @@ describe('questHydrateBroker', () => {
       operationStatuses: ['in_progress', 'complete'],
       workItemRoles: ['codeweaver'],
       workItemStatuses: ['pending'],
+      workItemSteps: ['plan'],
     });
   });
 

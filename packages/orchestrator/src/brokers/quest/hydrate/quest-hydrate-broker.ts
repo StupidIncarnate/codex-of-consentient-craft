@@ -16,6 +16,7 @@ import {
   questContract,
   questIdContract,
   questWorkItemIdContract,
+  stepNameContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
 import type {
@@ -29,7 +30,9 @@ import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { QuestBlueprint } from '../../../contracts/quest-blueprint/quest-blueprint-contract';
+import { agentFlowStatics } from '../../../statics/agent-flow/agent-flow-statics';
 import { questHydrateStrategyStatics } from '../../../statics/quest-hydrate-strategy/quest-hydrate-strategy-statics';
+import { workItemFamilyResolveTransformer } from '../../../transformers/work-item-family-resolve/work-item-family-resolve-transformer';
 import { questBuildRelayGraphBroker } from '../build-relay-graph/quest-build-relay-graph-broker';
 import { questCreateBroker } from '../create/quest-create-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
@@ -40,6 +43,8 @@ import { buildHydrateInputLayerBroker } from './build-hydrate-input-layer-broker
 const JSON_INDENT_SPACES = 2;
 
 const RIFTCARVER_ROLE: WorkItemRole = 'riftcarver';
+
+const GRAPH_BY_FAMILY = new Map(Object.entries(agentFlowStatics));
 
 export const questHydrateBroker = async ({
   blueprint,
@@ -124,6 +129,20 @@ export const questHydrateBroker = async ({
       );
     const firstActionable = operations.find((operation) => operation.status === 'pending');
 
+    // The step comes from firstActionable's OWN family, never a fixed value — matching
+    // questBuildRelayGraphBroker's precedent. Hydrate drops the riftcarver entry scope by default,
+    // so the first actionable item is routinely a LATER family (codeweaver, whose entry step is
+    // `plan`, not riftcarver's `carve`); stamping the wrong family's entry step mints a work item
+    // whose step its own family never declares, which the router then refuses to dispatch.
+    const firstActionableFamily =
+      firstActionable === undefined
+        ? undefined
+        : workItemFamilyResolveTransformer({ quest, operationItem: firstActionable });
+    const entryStep =
+      firstActionableFamily === undefined
+        ? undefined
+        : GRAPH_BY_FAMILY.get(firstActionableFamily)?.entry;
+
     const firstWorkItem =
       firstActionable === undefined
         ? undefined
@@ -138,6 +157,7 @@ export const questHydrateBroker = async ({
             dependsOn: [],
             maxAttempts: 1,
             createdAt: now,
+            ...(entryStep === undefined ? {} : { step: stepNameContract.parse(entryStep) }),
             ...(blueprint.rolePromptOverrides[firstActionable.role] === undefined
               ? {}
               : { smoketestPromptOverride: blueprint.rolePromptOverrides[firstActionable.role] }),
