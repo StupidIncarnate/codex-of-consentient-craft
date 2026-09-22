@@ -128,6 +128,21 @@ describe('questFindQuestPathBroker', () => {
       );
     });
 
+    it('ERROR: {guilds directory does not exist on disk} => throws quest not found', async () => {
+      const proxy = questFindQuestPathBrokerProxy();
+      const questId = QuestIdStub({ value: 'nonexistent' });
+
+      proxy.setupGuildsDirMissing({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        guildsDir: FilePathStub({ value: '/home/user/.dungeonmaster/guilds' }),
+      });
+
+      await expect(questFindQuestPathBroker({ questId })).rejects.toThrow(
+        /Quest with id "nonexistent" not found in any guild/u,
+      );
+    });
+
     it('ERROR: {questId not in any guild} => throws quest not found', async () => {
       const proxy = questFindQuestPathBrokerProxy();
       const questId = QuestIdStub({ value: 'nonexistent' });

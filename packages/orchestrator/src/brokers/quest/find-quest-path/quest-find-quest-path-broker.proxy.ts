@@ -159,6 +159,11 @@ export const questFindQuestPathBrokerProxy = (): {
     }[];
   }) => void;
   setupNoGuilds: (params: { homeDir: string; homePath: FilePath; guildsDir: FilePath }) => void;
+  setupGuildsDirMissing: (params: {
+    homeDir: string;
+    homePath: FilePath;
+    guildsDir: FilePath;
+  }) => void;
   setupQuestNotFound: (params: {
     homeDir: string;
     homePath: FilePath;
@@ -278,6 +283,23 @@ export const questFindQuestPathBrokerProxy = (): {
       homeFindProxy.setupHomePath({ homeDir, homePath });
       pathJoinProxy.returns({ result: guildsDir });
       readdirReturns({ dirPath: guildsDir, entries: [] });
+    },
+
+    setupGuildsDirMissing: ({
+      homeDir,
+      homePath,
+      guildsDir,
+    }: {
+      homeDir: string;
+      homePath: FilePath;
+      guildsDir: FilePath;
+    }): void => {
+      homeFindProxy.setupHomePath({ homeDir, homePath });
+      pathJoinProxy.returns({ result: guildsDir });
+      readdirThrows({
+        dirPath: guildsDir,
+        error: new Error('ENOENT: no such file or directory'),
+      });
     },
 
     setupQuestNotFound: ({

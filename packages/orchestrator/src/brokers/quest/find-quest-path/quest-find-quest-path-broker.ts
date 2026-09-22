@@ -60,7 +60,16 @@ export const questFindQuestPathBroker = async ({
     paths: [homePath, dungeonmasterHomeStatics.paths.guildsDir],
   });
 
-  const guildEntries = fsReaddirWithTypesAdapter({ dirPath: guildsDir as AbsoluteFilePath });
+  // A guilds/ directory that does not exist yet reads as "no quests here" — the same treatment
+  // the per-guild scan loop below gives an unreadable quests/ dir — rather than an ENOENT
+  // escaping to the caller: `dungeonmasterHomeEnsureBroker` creates guilds/ lazily, so a fresh
+  // or hand-pointed DUNGEONMASTER_HOME can reach this lookup before it exists on disk.
+  let guildEntries: ReturnType<typeof fsReaddirWithTypesAdapter> = [];
+  try {
+    guildEntries = fsReaddirWithTypesAdapter({ dirPath: guildsDir as AbsoluteFilePath });
+  } catch {
+    // guildsDir is missing — guildEntries keeps the empty-array default declared above.
+  }
   const guildDirs = guildEntries.filter((entry) => entry.isDirectory());
 
   // `questId` becomes a path segment here and nowhere else in this broker, and questIdContract is
