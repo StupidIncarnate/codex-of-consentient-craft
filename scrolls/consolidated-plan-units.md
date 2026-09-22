@@ -809,3 +809,16 @@ and panel behaviour this callout would sit inside.
 T2-6, T2-7 and T2-8 need no wave — already done. When re-verifying e2e regressions for wave 1 (T2-1) or
 wave 5 (T2-9), cap concurrent Playwright runs at 3 per the existing ward e2e port-pairing rule; never run
 the full affected-spec list from either unit's section above in one pass.
+
+---
+
+## Owner decision added mid-run — delete the design-phase quest statuses
+
+The owner ruled: delete `explore_design`, `review_design` and `design_approved`. They served glyphsmith's design
+phase, which is gone, and nothing sets them. They come out of `questStatusContract`, the transition statics, the
+gate-content requirements, every status-keyed map and test, and `packages/orchestrator/CLAUDE.md`'s lifecycle diagram
+and status table.
+
+| ID | Goal | Runs |
+|---|---|---|
+| T3-17 | Remove every consumer first, then the enum members last, in one serial unit | when a slot frees; the enum edit touches a `shared` contract every package reads |
