@@ -68,55 +68,62 @@ npm run prod:kill
 
 ---
 
-## Scenario 3: Siege lane — a siegemaster round's isolated QA lane
+## Scenario 3: A siegelense lane — a siegemaster round's isolated QA lane
 
 Siegemaster resolves no dev-server config and owns no server of its own. Each round dispatches a
 `siegemaster-verifier` and a `siegemaster-stress` minion pair, and each minion boots its OWN
-throwaway lane — an API server, a Vite server, and a headless Chromium — via
-`packages/web/test/siege-driver/siege-driver.ts`. A lane never touches the prod or dev queue: the OS
-picks its port pair (`netFreePortPairAdapter`) and it gets its own `DUNGEONMASTER_HOME` under the OS
-tmp dir, so several lanes run at once without colliding with each other or with a running
-`npm run prod` / `npm run dev`. A lane closes itself once nothing drives it for the idle window, so
-nobody starts, stops, or manages one by hand during a real quest.
+throwaway lane — an API server, a Vite server, and (for a spec that asks for one) a headless
+Chromium — through `dungeonmaster siegelense start`, backed by `packages/siegelense`'s
+`laneBootBroker` and `playwrightSessionAdapter`. A lane never touches the prod or dev queue: the OS
+picks its port pair and the instance gets its own throwaway home under the OS tmp dir
+(`dm-siege-<instanceId>`), so several lanes run at once without colliding with each other or with a
+running `npm run prod` / `npm run dev`. A lane closes itself once nothing drives it for the idle
+window, so nobody starts, stops, or manages one by hand during a real quest.
 
 You can stand a lane up the same way a minion does, to check the mechanism on its own:
 
 ```bash
-npx tsx packages/web/test/siege-driver/siege-driver.ts p1
+node packages/cli/dist/bin/dungeonmaster.js siegelense start --spec dungeonmaster-stack --json
 ```
+
+`dungeonmaster-stack` boots the API server, the web server and a headless Chromium;
+`dungeonmaster-api` (no browser) is the faster check when a browser is not what you're after. Both
+auto-detect this repo's fake Claude/ward CLI fixtures on disk, so no extra env is needed when run
+from the repo root.
 
 **Expected:**
 
 | Thing | Value |
 |---|---|
-| API port / web port | OS-assigned, printed in the manifest |
-| Home dir | `<os tmp dir>/dm-siege-p1-<pid>` — NOT `<repo>/.dungeonmaster` or `<repo>/.dungeonmaster-dev` |
-| Lane dir | `<repo>/tmp/siege/p1/` — carries `lane.json`, `commands/`, `results/`, `screenshots/` |
-| Claude / ward CLI | fake binaries, so a lane never talks to the real Claude API or a real ward run |
+| API port / web port | OS-assigned, printed on the manifest's `apiUrl` / `baseUrl` |
+| Home dir | `<os tmp dir>/dm-siege-<instanceId>` — NOT `<repo>/.dungeonmaster` or `<repo>/.dungeonmaster-dev` |
+| Evidence dir | `<dungeonmaster home>/siegelense/unowned/instances/<instanceId>` (or `guilds/<guildId>/instances/<instanceId>` with `--guild`/`--quest`) — `<dungeonmaster home>` follows `DUNGEONMASTER_HOME`, else `~/.dungeonmaster` |
+| Claude / ward CLI | the repo's fixture binaries, so a lane never talks to the real Claude API or a real ward run |
 
 **Verify:**
 
-- The command prints `[siege] lane up` plus the manifest JSON, and `tmp/siege/p1/lane.json` on disk
-  matches it.
-- Drop a command file and read the result it produces:
+- The manifest prints the instance id, spec, URLs, home path, evidence path, and boot time.
+- Drive a step and read the result:
   ```bash
-  echo '{"name":"goto","target":"/","timeoutMs":30000}' > tmp/siege/p1/commands/010-goto.json
-  cat tmp/siege/p1/results/010-goto.txt   # "OK", a blank line, then the JSON reading
+  node packages/cli/dist/bin/dungeonmaster.js siegelense run --instance <id> --steps '[{"step":"request","method":"GET","path":"/api/guilds"}]'
+  node packages/cli/dist/bin/dungeonmaster.js siegelense results --instance <id> --run <runId>
   ```
-- A second lane (`npx tsx packages/web/test/siege-driver/siege-driver.ts p2`, in another terminal)
-  boots and drives at the same time without colliding — distinct ports, distinct homes, its own
-  `tmp/siege/p2/` directory.
+- A second lane (`siegelense start --spec dungeonmaster-api` in another terminal) boots and drives at
+  the same time without colliding — distinct ports, distinct homes.
+- `node packages/cli/dist/bin/dungeonmaster.js siegelense status --instance <id>` reports it alive,
+  with its own RSS and last-beat reading.
 - Neither lane's home is `<repo>/.dungeonmaster` or `<repo>/.dungeonmaster-dev` — the prod and dev
   queues stay untouched throughout.
-- Drop `{"name":"end"}` as the next command (or send SIGINT/SIGTERM to the process) and the lane
-  closes its browser, kills both child servers, and removes its throwaway home.
-- After teardown, `lsof -i :<apiPort>` and `lsof -i :<webPort>` (the ports from the printed
-  manifest) show nothing listening.
+- `node packages/cli/dist/bin/dungeonmaster.js siegelense kill --instance <id>` closes the browser
+  (when the spec carries one), kills every process it spawned, and removes the throwaway home — the
+  evidence directory survives, since it is the run's own record.
+- After teardown, `lsof -i :<apiPort>` and `lsof -i :<webPort>` (the ports the manifest printed) show
+  nothing listening.
 
 **Teardown (if a lane is left running):**
 
 ```bash
-pkill -f siege-driver
+node packages/cli/dist/bin/dungeonmaster.js siegelense cleanup
 ```
 
 ---
@@ -158,7 +165,7 @@ behavior.
 |---|---|
 | Server starts on 3737 instead of 4800/4750 | `.dungeonmaster.json` missing or `dungeonmaster.port` not set |
 | "Killed existing dev instances on ports 3737 and 3738" in `npm run dev:kill` | `.dungeonmaster.json` missing `devServer.port`; `node -e` returned `undefined`, NaN coerced |
-| A siege lane never comes up within its boot timeout | check `tmp/siege/<lane-name>/api-server.log` and `web-server.log` — the thrown error names the lane and both ready-urls |
+| A siegelense lane never comes up within its boot timeout | the thrown `LaneBootFailedError` names the unready processes and each one's own log path under the instance's evidence directory |
 | Zod parse error "dungeonmaster.port and devServer.port must differ" | Both fields set to the same value in `.dungeonmaster.json` — change one |
 | MCP `list-quests` returns empty list when you expect dev quests | IDE-launched MCP isn't pinned to repo-local home; check `.mcp.json` bash wrapper |
 | Orchestration events silent | `VERBOSE=1` missing from the launching script |

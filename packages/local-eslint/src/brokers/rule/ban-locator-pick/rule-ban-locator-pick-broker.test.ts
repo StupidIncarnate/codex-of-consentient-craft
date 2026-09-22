@@ -8,7 +8,7 @@ const ruleTester = eslintRuleTesterAdapter();
 const stepClickBrokerFixture =
   '/repo/packages/siegelense/src/brokers/step/click/step-click-broker.ts';
 const stepNthBrokerFixture = '/repo/packages/siegelense/src/brokers/step/nth/step-nth-broker.ts';
-const outsideScopeFixture = '/repo/packages/web/test/siege-driver/siege-command.ts';
+const outsideScopeFixture = '/repo/packages/siegelense/src/startup/start-siegelense.ts';
 
 const scope = 'packages/siegelense/src/brokers/step/';
 

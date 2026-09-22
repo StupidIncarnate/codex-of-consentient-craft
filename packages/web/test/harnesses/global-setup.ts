@@ -7,8 +7,8 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 const TEST_HOME = process.env.E2E_TEST_HOME ?? path.join(os.tmpdir(), `dm-e2e-${process.pid}`);
 
 // The two sandbox namings that land under `os.tmpdir()`, each named by the file that mints it:
-// `playwright.config.ts`'s `dm-e2e-<pid>` and `test/siege-driver/siege-lane.ts`'s
-// `dm-siege-<lane>-<pid>`.
+// `playwright.config.ts`'s `dm-e2e-<pid>` and `locationsInstanceHomePathFindBroker`'s
+// `dm-siege-<instanceId>`, in `packages/siegelense`.
 const E2E_SANDBOX_PREFIX = 'dm-e2e-';
 const SIEGE_SANDBOX_PREFIX = 'dm-siege-';
 // Six hours. `global-teardown.ts` is the only thing that removes a sandbox, and Playwright runs NO
