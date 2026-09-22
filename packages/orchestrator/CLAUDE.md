@@ -712,8 +712,9 @@ Eight things about that shape are load-bearing, and each is a measurement rather
   builds against a paraphrase and reports against the same paraphrase passes while proving something else.
 - **Changes touching different files go out in ONE message**, one `Agent` call each, so they run at the same time; the
   operator waits for all of them before the next group. Two changes touching the same file never go out together.
-  Flowrider adds one more rule: never two browser walks against the same package at once, because Playwright writes
-  one report path per package and the second run overwrites a report the first is still reading. Siegemaster runs
+  Flowrider's browser walks are the exception: several against the same package go out together, up to four in a
+  batch — ward hands each e2e run its own port pair, its own Playwright report path and its own artifact folder, so
+  concurrent runs never overwrite each other. Siegemaster runs
   exactly ONE ROUND at a time, always — a round's own verifier and stress tester go out together, each in its own
   lane, but the next round never starts until both return; a lane reused across rounds would measure a previous
   round's leftover state instead of a fresh one.

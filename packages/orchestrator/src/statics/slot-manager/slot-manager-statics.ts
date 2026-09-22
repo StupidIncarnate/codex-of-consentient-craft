@@ -2,7 +2,7 @@
  * PURPOSE: Defines immutable configuration values for slot-based orchestration phases
  *
  * USAGE:
- * slotManagerStatics.codeweaver.slotCount;
+ * slotManagerStatics.codeweaver.maxAttempts;
  * // Returns 3
  */
 
