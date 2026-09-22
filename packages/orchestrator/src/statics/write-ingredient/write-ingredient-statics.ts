@@ -29,11 +29,9 @@
  * — never beside `get-quest-work`, whose return is already cut to fit by
  * `questWorkTruncateTransformer` and never spills to a file.
  *
- * THE THIRD DIAGNOSIS ROUTE IS DELIBERATELY ABSENT. The gap this prompt closes can stop proving out
- * three ways — a `write` drift, an `api` move, and a `recording` gone stale — and this prompt carries
- * instructions for exactly the first two. `remaining-build-items.md` §5c has to give a recording
- * something to check before that third diagnosis is performable; an instruction for it here would be
- * one nobody could follow.
+ * DIAGNOSIS COVERS `write` AND `api`. The gap this prompt closes can stop proving out as a `write`
+ * drift or an `api` move, and this prompt carries instructions for exactly those two — the only
+ * routes an ingredient declares to make a row.
  *
  * BUDGET: `mcpToolResultStatics.maxVerbatimChars` (50,000), measured by the colocated test against
  * the template with both shared blocks already interpolated.
@@ -193,17 +191,15 @@ out on a fresh run. **The book on disk is your memory across that gap.** Read th
 and its test before anything else — that is what a session already declared: its \`links\`, its
 \`routes\`, and the producer its \`copies:\` names. You are not starting blind.
 
-**The diagnosis is bounded by the ROUTE that failed, and exactly two are performable today:**
+**The diagnosis is bounded by the ROUTE that failed:**
 
 - a \`write\` failure — diff the real effect of the \`copies:\` target against what your ingredient's
   route actually writes today. The two have drifted; the diff says where.
 - an \`api\` failure — the real code path moved. Read the handler your route calls now and compare it
   against what the route still assumes.
 
-**A third route — checking a captured recording against production — is not built.**
-\`remaining-build-items.md\` §5c has to give a recording something to check before that diagnosis is
-performable. If a failure does not sort into \`write\` or \`api\`, say so plainly in your outcome
-rather than inventing a way to check it.
+If a failure does not sort into \`write\` or \`api\`, say so plainly in your outcome rather than
+inventing a way to check it.
 
 **Where the real cause is production changing shape** — a field renamed, a status no longer
 reachable the way the flow assumed — that is a FINDING about the application, not a defect in your

@@ -63,7 +63,6 @@ diagnosis of a broken ingredient opens with a hunt for the counterpart instead o
 |---|---|
 | `api` | the real code path changed. Read the handler |
 | `write` | diff what `copies:` writes NOW against what the ingredient writes — it is a copy that stopped matching |
-| `recording` | the recording is of a version that no longer exists. Re-capture, do not patch |
 
 ## Determinism is structural, not a rule to remember
 

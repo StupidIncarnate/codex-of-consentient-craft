@@ -25,8 +25,5 @@ export const routeSelectTransformer = ({
   if (routes.write !== undefined) {
     return hydrationRouteContract.parse('write');
   }
-  if (routes.recording !== undefined) {
-    return hydrationRouteContract.parse('recording');
-  }
   return null;
 };

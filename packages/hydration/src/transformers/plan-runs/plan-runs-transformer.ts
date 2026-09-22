@@ -4,14 +4,11 @@
  * the different and more optimistic question of which routes appear ANYWHERE in the plan. Reach
  * for this wherever the listing needs its `runs` line, before anything on the plan has executed.
  *
- * Re-expressed on `routeSelectTransformer` (Q10) so the listing's route rule and the runner's own
+ * Re-expressed on `routeSelectTransformer` so the listing's route rule and the runner's own
  * selection are ONE implementation — asked here with `hasBaseUrl: false`, since this is always the
- * "no server" question regardless of what a real caller's target later turns out to hold. That
- * reuse stops short of `routeSelectTransformer`'s full verdict on purpose: with no base URL its
- * selection is `'write'`, `'recording'` or `null`, and only `'write'` counts as serverless here —
- * a `recording`-only ingredient still reports `needs a server`, per the Known-gaps row this
- * transformer's own history records. Comparing against `!== null` instead would silently WIDEN
- * what "runs serverless" means, exactly what re-expressing this rule must not do.
+ * "no server" question regardless of what a real caller's target later turns out to hold. With no
+ * base URL, that selection is either `'write'` or `null`, and only `'write'` counts as serverless
+ * here.
  *
  * USAGE:
  * planRunsTransformer({ plan, ingredients: [guildConfig, questConfig] });

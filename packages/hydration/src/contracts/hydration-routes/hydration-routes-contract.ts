@@ -1,6 +1,6 @@
 /**
  * PURPOSE: How an ingredient's row actually gets made, as one function per route, with at least
- * one of `api`/`write`/`recording` required. Reach for this over a route on the recipe — the
+ * one of `api`/`write` required. Reach for this over a route on the recipe — the
  * TARGET picks which route runs, which is what lets a caller with no server (a Jest integration
  * test) into the catalogue at all, so long as every ingredient it touches declares `write`.
  *
@@ -66,7 +66,6 @@ export const hydrationRoutesContract = z
   .object({
     api: routeFnContract.optional(),
     write: routeFnContract.optional(),
-    recording: routeFnContract.optional(),
     query: queryRouteFnContract.optional(),
     update: updateRouteFnContract.optional(),
     remove: removeRouteFnContract.optional(),
@@ -87,22 +86,21 @@ interface ExistingRowRoutes<TTarget> {
 }
 
 /**
- * At least one of the three MAKE routes, each optional. This union (rather than an object with
- * three optional keys) is what forces the compiler to refuse `routes: {}` — an object literal
- * typed against three optional keys satisfies all three being absent, but none of this union's
- * three branches does. `ExistingRowRoutes` is intersected onto every branch equally, since
+ * At least one of the two MAKE routes, each optional. This union (rather than an object with
+ * two optional keys) is what forces the compiler to refuse `routes: {}` — an object literal
+ * typed against two optional keys satisfies both being absent, but none of this union's
+ * two branches does. `ExistingRowRoutes` is intersected onto every branch equally, since
  * whether an ingredient can be queried, updated or removed has nothing to do with which MAKE
  * route it picked.
  */
 export type RoutesFor<TTarget> = (
-  | { api: RouteFn<TTarget>; write?: RouteFn<TTarget>; recording?: RouteFn<TTarget> }
-  | { write: RouteFn<TTarget>; api?: RouteFn<TTarget>; recording?: RouteFn<TTarget> }
-  | { recording: RouteFn<TTarget>; api?: RouteFn<TTarget>; write?: RouteFn<TTarget> }
+  | { api: RouteFn<TTarget>; write?: RouteFn<TTarget> }
+  | { write: RouteFn<TTarget>; api?: RouteFn<TTarget> }
 ) &
   ExistingRowRoutes<TTarget>;
 
-/** `copies:` is required exactly where a `write` route exists — never for an `api`-only or
- * `recording`-only ingredient, which have nothing to imitate. Bare `string`, not the branded
+/** `copies:` is required exactly where a `write` route exists — never for an `api`-only
+ * ingredient, which has nothing to imitate. Bare `string`, not the branded
  * `CopiesTarget`: a caller writes a plain literal here, and `ingredientConfigContract.parse` is
  * what brands it — same reasoning as `IngredientConfig.copies`, which this type is intersected
  * alongside at every `ingredientDeclareBroker` call site. */

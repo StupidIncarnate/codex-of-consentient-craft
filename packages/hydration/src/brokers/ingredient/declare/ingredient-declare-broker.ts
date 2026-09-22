@@ -60,10 +60,7 @@ export const ingredientDeclareBroker = <
   // was written. D1, D2, D7 and D8 have no runtime counterpart here: this generic layer never sees
   // TFields' concrete keys at run time, only at the type level, so `transitions.field`, `defaults`
   // and `links.as` are refused by the compiler alone.
-  const declaresARoute =
-    config.routes.api !== undefined ||
-    config.routes.write !== undefined ||
-    config.routes.recording !== undefined;
+  const declaresARoute = config.routes.api !== undefined || config.routes.write !== undefined;
   if (!declaresARoute) {
     throw new IngredientDeclarationError({
       ingredientName: config.name,
