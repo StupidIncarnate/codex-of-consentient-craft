@@ -2,7 +2,10 @@
  * PURPOSE: Renders an expandable execution work-item row with status, role badge, and metadata.
  * Forwards the panel's shared clock (`now`) to its own transcript only while the row is
  * in_progress, so a sub-agent chain inside a finished, failed or replayed row renders no live
- * duration figure.
+ * duration figure. `order` is omitted by the panel for a step row nested under an operation
+ * header (decision 2's NESTED ruling) — the header alone carries the list's running number, and
+ * `indented` shifts the row right and drops its own `[ROLE]` badge, since the header above it
+ * already names the role for every step beneath it.
  *
  * USAGE:
  * <ExecutionRowLayerWidget order={order} name={name} role={role} status={status} files={files} dependsOn={deps} isAdhoc={false} />
@@ -48,13 +51,17 @@ import { StreamingBarLayerWidget } from './streaming-bar-layer-widget';
 import { WardResultRowLayerWidget } from './ward-result-row-layer-widget';
 
 export interface ExecutionRowLayerWidgetProps {
-  order: RowOrder;
+  // Omitted for a step row nested under an operation header — the header alone is numbered.
+  order?: RowOrder;
   name: DisplayLabel;
   role: ExecutionRole;
   status: ExecutionStepStatus;
   files: DisplayFilePath[];
   dependsOn: DependencyLabel[];
   isAdhoc: boolean;
+  // Set on a step row nested under an operation header (decision 2's NESTED ruling): shifts the
+  // row right and drops its own [ROLE] badge, since the header already names the scope's role.
+  indented?: boolean;
   errorMessage?: ErrorMessage;
   // Carries summary, attempt, maxAttempts, startedAt, completedAt and actualSignal as ONE object
   // rather than six flattened WorkItem['x'] properties, so a caller passes the work item it already
@@ -100,6 +107,8 @@ const ADHOC_BORDER_WIDTH = 2;
 const ADHOC_PADDING_LEFT = 4;
 const ROW_MARGIN_BOTTOM = 2;
 const EXPANDED_MARGIN_VERTICAL = 4;
+// How far a step row sits under its operation header — decision 2's "indented step rows beneath".
+const CHILD_ROW_INDENT_LEFT = 20;
 
 const CHEVRON_EXPANDED = '\u25BE';
 const CHEVRON_COLLAPSED = '\u25B8';
@@ -120,6 +129,7 @@ export const ExecutionRowLayerWidget = ({
   files,
   dependsOn,
   isAdhoc,
+  indented,
   errorMessage,
   workItem,
   entries,
@@ -215,7 +225,6 @@ export const ExecutionRowLayerWidget = ({
   const statusCfg = executionStepStatusConfigStatics.statusConfig[status];
   const roleColor = executionStepStatusConfigStatics.roleColors[role];
   const isExpandable = EXPANDABLE_STATUSES.includes(status) || hasEntries;
-  const orderDisplay = String(order).padStart(ORDER_PAD_LENGTH, '0');
   const subtitle = executionRowSubtitleTransformer({ status, dependsOn, files });
   const headerContextLabel = computeRowContextTotalTransformer({ entries: entries ?? [] });
 
@@ -224,10 +233,13 @@ export const ExecutionRowLayerWidget = ({
       data-testid="execution-row-layer-widget"
       mb={ROW_MARGIN_BOTTOM}
       style={{
-        borderLeft: isAdhoc
-          ? `${ADHOC_BORDER_WIDTH}px dashed ${colors.warning}`
-          : `${ADHOC_BORDER_WIDTH}px solid transparent`,
-        paddingLeft: isAdhoc ? ADHOC_PADDING_LEFT : 0,
+        ...(isAdhoc
+          ? {
+              borderLeft: `${ADHOC_BORDER_WIDTH}px dashed ${colors.warning}`,
+              paddingLeft: ADHOC_PADDING_LEFT,
+            }
+          : { borderLeft: `${ADHOC_BORDER_WIDTH}px solid transparent`, paddingLeft: 0 }),
+        marginLeft: indented === true ? CHILD_ROW_INDENT_LEFT : 0,
       }}
     >
       <UnstyledButton
@@ -246,7 +258,6 @@ export const ExecutionRowLayerWidget = ({
           padding: `${HEADER_PADDING_VERTICAL}px ${HEADER_PADDING_HORIZONTAL}px`,
           cursor: isExpandable ? 'pointer' : 'default',
           borderRadius: ROW_MARGIN_BOTTOM,
-          backgroundColor: expanded ? colors['bg-raised'] : 'transparent',
           // Pinned only while open — that is both when there is a transcript long enough to lose
           // the header off the top, and when the `bg-raised` fill above is present to keep the
           // entries scrolling underneath from reading through it. A collapsed row is one line with
@@ -254,13 +265,14 @@ export const ExecutionRowLayerWidget = ({
           // below it show through.
           ...(expanded
             ? {
+                backgroundColor: colors['bg-raised'],
                 position: 'sticky' as const,
                 top: Number(STICKY_TOP_ROOT),
                 zIndex: Number(stickyHeaderZIndexTransformer({ stickyTop: STICKY_TOP_ROOT })),
                 height: stickyHeaderStatics.heights.executionRow,
                 boxSizing: 'border-box' as const,
               }
-            : {}),
+            : { backgroundColor: 'transparent' }),
         }}
       >
         <Text
@@ -276,30 +288,34 @@ export const ExecutionRowLayerWidget = ({
           {isExpandable ? (expanded ? CHEVRON_EXPANDED : CHEVRON_COLLAPSED) : DOTS}
         </Text>
 
-        <Text
-          ff="monospace"
-          style={{
-            fontSize: HEADER_FONT_SIZE,
-            color: isAdhoc ? colors.warning : colors['text-dim'],
-            width: ORDER_WIDTH,
-            flexShrink: 0,
-          }}
-        >
-          {orderDisplay}
-        </Text>
+        {order === undefined ? null : (
+          <Text
+            ff="monospace"
+            style={{
+              fontSize: HEADER_FONT_SIZE,
+              color: isAdhoc ? colors.warning : colors['text-dim'],
+              width: ORDER_WIDTH,
+              flexShrink: 0,
+            }}
+          >
+            {String(order).padStart(ORDER_PAD_LENGTH, '0')}
+          </Text>
+        )}
 
-        <Text
-          ff="monospace"
-          data-testid="execution-row-role-badge"
-          style={{
-            fontSize: HEADER_FONT_SIZE,
-            color: colors[roleColor],
-            fontWeight: 600,
-            flexShrink: 0,
-          }}
-        >
-          [{role.toUpperCase()}]
-        </Text>
+        {indented === true ? null : (
+          <Text
+            ff="monospace"
+            data-testid="execution-row-role-badge"
+            style={{
+              fontSize: HEADER_FONT_SIZE,
+              color: colors[roleColor],
+              fontWeight: 600,
+              flexShrink: 0,
+            }}
+          >
+            [{role.toUpperCase()}]
+          </Text>
+        )}
 
         <Text
           ff="monospace"
@@ -334,7 +350,7 @@ export const ExecutionRowLayerWidget = ({
           </Text>
         ) : null}
 
-        {attempt !== undefined && maxAttempts !== undefined && attempt > 0 ? (
+        {attempt && maxAttempts !== undefined ? (
           <Text
             ff="monospace"
             data-testid="execution-row-retry-badge"
@@ -417,7 +433,7 @@ export const ExecutionRowLayerWidget = ({
             borderRadius: ROW_MARGIN_BOTTOM,
           }}
         >
-          {observablesSatisfied && observablesSatisfied.length > 0 ? (
+          {observablesSatisfied?.length ? (
             <Text
               ff="monospace"
               data-testid="execution-row-observables"
@@ -430,7 +446,7 @@ export const ExecutionRowLayerWidget = ({
               Satisfies: {observablesSatisfied.join(', ')}
             </Text>
           ) : null}
-          {inputContracts && inputContracts.length > 0 ? (
+          {inputContracts?.length ? (
             <Text
               ff="monospace"
               data-testid="execution-row-input-contracts"
@@ -443,7 +459,7 @@ export const ExecutionRowLayerWidget = ({
               Inputs: {inputContracts.join(', ')}
             </Text>
           ) : null}
-          {outputContracts && outputContracts.length > 0 ? (
+          {outputContracts?.length ? (
             <Text
               ff="monospace"
               data-testid="execution-row-output-contracts"
@@ -476,7 +492,7 @@ export const ExecutionRowLayerWidget = ({
               </Text>
             </Box>
           ) : null}
-          {entries && entries.length > 0 ? (
+          {entries?.length ? (
             <ChatEntryListWidget
               entries={displayEntries}
               isStreaming={isStreaming ?? false}
@@ -506,7 +522,7 @@ export const ExecutionRowLayerWidget = ({
               Files: {files.join(', ')}
             </Text>
           ) : null}
-          {wardResults && wardResults.length > 0
+          {wardResults?.length
             ? wardResults.map((wr) => (
                 <WardResultRowLayerWidget
                   key={wr.id}
@@ -515,7 +531,7 @@ export const ExecutionRowLayerWidget = ({
                 />
               ))
             : null}
-          {riftcarverResults && riftcarverResults.length > 0
+          {riftcarverResults?.length
             ? riftcarverResults.map((rr) => (
                 <RiftcarverResultRowLayerWidget
                   key={rr.id}

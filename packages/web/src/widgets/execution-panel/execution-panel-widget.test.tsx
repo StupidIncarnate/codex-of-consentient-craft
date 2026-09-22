@@ -456,13 +456,39 @@ describe('ExecutionPanelWidget', () => {
     });
   });
 
-  describe('row identity', () => {
-    it('VALID: {a codeweaver cell with several sessions on one scope, each a different step} => every row name is distinguishable', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
+  describe('row identity — decision 2 four-tier NESTED labels', () => {
+    // Decision 2's worked example (scrolls/consolidated-plan.md), corrected per the handoff:
+    // flowrider has no `walk` step — its rows read the real step key, `work` — so the fixture below
+    // spells the child rows `work`/`work pt: N`, not `walk`. The operation's own TEXT ("walk
+    // login-flow") is free descriptive prose the scope was minted with and is unrelated to step
+    // names, so it is left exactly as decision 2 wrote it.
+    //
+    // OP_ID_1 ("build the login broker", codeweaver, complete) exercises tiers 1-3 in one scope:
+    //   plan                        -> tier 2 (step alone; only "plan" in this scope)
+    //   work, piece from payload    -> tier 3 ("work - login broker", human name from payload)
+    //   work, piece from pieceId    -> tier 3 ("work - pc-2", no payload name, falls back to pieceId)
+    //   review                      -> tier 2
+    //   ward                        -> tier 2
+    // OP_ID_2 ("walk login-flow", flowrider, in_progress) exercises tier 4:
+    //   plan                        -> tier 2
+    //   work, work (no piece info)  -> tier 4 ("work pt: 1", "work pt: 2" — same step, same
+    //                                  "no piece" bucket, a true duplicate numbered in array order)
+    const buildDecisionTwoFixtureQuest = (): Quest =>
+      QuestStub({
         status: 'in_progress',
         operations: [
-          OperationItemStub({ id: OP_ID_1, text: 'core: config adapter', status: 'in_progress' }),
+          OperationItemStub({
+            id: OP_ID_1,
+            role: 'codeweaver',
+            text: 'build the login broker',
+            status: 'complete',
+          }),
+          OperationItemStub({
+            id: OP_ID_2,
+            role: 'flowrider',
+            text: 'walk login-flow',
+            status: 'in_progress',
+          }),
         ],
         workItems: [
           WorkItemStub({
@@ -476,71 +502,126 @@ describe('ExecutionPanelWidget', () => {
             id: 'a0000000-0000-0000-0000-000000000002',
             role: 'codeweaver',
             status: 'complete',
-            step: 'review',
+            step: 'work',
+            pieceId: 'pc-1',
+            payload: { pieceName: 'login broker' },
             relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000003',
             role: 'codeweaver',
-            status: 'in_progress',
-            step: 'commit',
+            status: 'complete',
+            step: 'work',
+            pieceId: 'pc-2',
             relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000004',
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'review',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000005',
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'ward',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000006',
+            role: 'flowrider',
+            status: 'complete',
+            step: 'plan',
+            relatedDataItems: [`operations/${OP_ID_2}`],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000007',
+            role: 'flowrider',
+            status: 'complete',
+            step: 'work',
+            relatedDataItems: [`operations/${OP_ID_2}`],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000008',
+            role: 'flowrider',
+            status: 'in_progress',
+            step: 'work',
+            relatedDataItems: [`operations/${OP_ID_2}`],
           }),
         ],
       });
 
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      expect(proxy.getRowNames()).toStrictEqual([
-        'core: config adapter (plan)',
-        'core: config adapter (review)',
-        'core: config adapter (commit)',
-      ]);
-    });
-
-    it('EDGE: {two parallel workers on one scope sharing the same step} => names stay distinguishable via each session id', () => {
+    it('VALID: {two multi-item scopes exercising every label tier} => every row name is unique within its own scope (27a’s invariant, reproved under decision 2)', () => {
       const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        operations: [
-          OperationItemStub({ id: OP_ID_1, text: 'core: config adapter', status: 'in_progress' }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'in_progress',
-            step: 'work',
-            sessionId: 'session-worker-one',
-            relatedDataItems: [`operations/${OP_ID_1}`],
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'codeweaver',
-            status: 'in_progress',
-            step: 'work',
-            sessionId: 'session-worker-two',
-            relatedDataItems: [`operations/${OP_ID_1}`],
-          }),
-        ],
-      });
+      const quest = buildDecisionTwoFixtureQuest();
 
       mantineRenderAdapter({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
       const names = proxy.getRowNames();
+      // OP_ID_1's scope is its header (index 0) plus 5 children (indices 1-5); OP_ID_2's scope is
+      // its header (index 6) plus 3 children (indices 7-9) — 10 rows total, checked per scope so a
+      // coincidental cross-scope repeat (two different scopes both holding a bare "plan" child)
+      // never fails an assertion 27a never made.
+      const op1ScopeNames = names.slice(0, 6);
+      const op2ScopeNames = names.slice(6, 10);
 
-      expect(names).toStrictEqual([
-        'core: config adapter (session-worker-one)',
-        'core: config adapter (session-worker-two)',
-      ]);
-      expect(new Set(names).size).toBe(names.length);
+      expect(new Set(op1ScopeNames).size).toBe(op1ScopeNames.length);
+      expect(new Set(op2ScopeNames).size).toBe(op2ScopeNames.length);
     });
 
-    it('VALID: {two work items on two different operations} => each row keeps its own scope text, unchanged', () => {
+    it('VALID: {decision 2’s worked example, corrected to real step keys} => renders the operation header once per scope, with every tier’s step row nested and indented beneath it', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest = buildDecisionTwoFixtureQuest();
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getRowNames()).toStrictEqual([
+        'build the login broker',
+        'plan',
+        'work - login broker',
+        'work - pc-2',
+        'review',
+        'ward',
+        'walk login-flow',
+        'plan',
+        'work pt: 1',
+        'work pt: 2',
+      ]);
+    });
+
+    it('VALID: {decision 2’s worked example} => the two operation headers carry their scope’s own role and status, and only the headers are numbered', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest = buildDecisionTwoFixtureQuest();
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getRoleBadges()).toStrictEqual(['[CODEWEAVER]', '[FLOWRIDER]']);
+      // Every row here is EXPANDABLE (complete/in_progress are both in EXPANDABLE_STATUSES) and none
+      // carries entries, so every chevron renders collapsed (▸) rather than the dots placeholder —
+      // dots mark a row that cannot expand at all, which none of these are.
+      expect(proxy.getStepRows().map((r) => r.textContent)).toStrictEqual([
+        '▸01[CODEWEAVER]build the login brokerDONE',
+        '▸planDONE',
+        '▸work - login brokerDONE',
+        '▸work - pc-2DONE',
+        '▸reviewDONE',
+        '▸wardDONE',
+        '▸02[FLOWRIDER]walk login-flowRUNNING',
+        '▸planDONE',
+        '▸work pt: 1DONE',
+        '▸work pt: 2RUNNING',
+      ]);
+    });
+
+    it('VALID: {a scope with exactly one visible work item} => stays bare, unchanged from before decision 2 — no header, no nesting', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'in_progress',

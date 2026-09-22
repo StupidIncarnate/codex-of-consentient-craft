@@ -2,10 +2,13 @@
  * PURPOSE: Derives one visible-work-item row's entries, dependency labels, ward/riftcarver results,
  * status and display name from the quest-wide lookups the panel builds once, then renders the row.
  * This is what the panel's one numbered list maps over for a claimed work item — the counterpart to
- * rendering ExecutionRowLayerWidget directly for an unclaimed operation, which has none of this to
- * derive. The name is the row's SCOPE label (its operation, or the role fallback) plus, only when
- * the panel flags a sibling sharing that scope, `sessionDisambiguator` — see the panel's own
- * scope-grouping comment for how that value is chosen.
+ * rendering ExecutionRowLayerWidget directly for an unclaimed operation, or for a scope's own
+ * operation header, neither of which has any of this to derive. Decision 2's NESTED ruling: a scope
+ * holding one visible work item renders BARE — this row's name is its SCOPE label (its operation
+ * text, or the capitalized role) and `stepLabel` stays unset. A scope holding several instead gets
+ * an operation header row (built by the panel) and this row renders `stepLabel` alone, indented —
+ * see the panel's own tiering comment for how that four-tier label (`step`, `step - piece`,
+ * `step pt: N`) is computed.
  *
  * USAGE:
  * <ExecutionWorkItemRowLayerWidget
@@ -54,7 +57,8 @@ const OPERATIONS_PREFIX = 'operations/';
 const OPERATIONS_PREFIX_LENGTH = OPERATIONS_PREFIX.length;
 
 export interface ExecutionWorkItemRowLayerWidgetProps {
-  order: RowOrder;
+  // Omitted for a step row nested under an operation header — the header alone is numbered.
+  order?: RowOrder;
   workItem: WorkItem;
   questId: QuestId;
   now?: IsoTimestamp;
@@ -71,11 +75,13 @@ export interface ExecutionWorkItemRowLayerWidgetProps {
   wardResultsById: Map<WardResult['id'], WardResult>;
   riftcarverResultsById: Map<RiftcarverResult['id'], RiftcarverResult>;
   operationsById: Map<OperationItem['id'], OperationItem>;
-  // Set by the panel ONLY when this row's scope (its resolved operation, or the role fallback) is
-  // shared by another visible row — the panel is the one place that can see every sibling at once.
-  // A row on a scope nothing else is working never receives one, so its name renders exactly as
-  // before. See the panel's own scope-grouping comment for what this value resolves to.
-  sessionDisambiguator?: DisplayLabel;
+  // Set by the panel ONLY when this row's scope (its resolved operation, or the role fallback) holds
+  // more than one visible work item — the panel is the one place that can see every sibling at once.
+  // A row on a scope nothing else is working never receives one, so its name renders the bare scope
+  // label exactly as before. See the panel's own tiering comment for how this value is computed.
+  stepLabel?: DisplayLabel;
+  // Mirrors ExecutionRowLayerWidgetProps.indented — set together with `stepLabel` by the panel.
+  indented?: boolean;
 }
 
 export const ExecutionWorkItemRowLayerWidget = ({
@@ -91,7 +97,8 @@ export const ExecutionWorkItemRowLayerWidget = ({
   wardResultsById,
   riftcarverResultsById,
   operationsById,
-  sessionDisambiguator,
+  stepLabel,
+  indented,
 }: ExecutionWorkItemRowLayerWidgetProps): React.JSX.Element => {
   const ownEntries =
     workItemEntries.get(workItem.id) ??
@@ -128,20 +135,17 @@ export const ExecutionWorkItemRowLayerWidget = ({
   const operation = operationRef
     ? operationsById.get(operationRef.slice(OPERATIONS_PREFIX_LENGTH) as OperationItem['id'])
     : undefined;
-  // The scope label alone (the operation this row works, or the role fallback) is what the panel
-  // GROUPS rows by — it stays the row's primary, human-recognisable identity. sessionDisambiguator
-  // is appended only when the panel found a sibling row sharing that same scope, which is exactly
-  // when the bare scope label stops being unique.
+  // Bare tier (decision 2): a scope holding this one visible work item alone has no header row
+  // above it, so this row carries the scope label itself — the operation this row works, or the
+  // role fallback. `stepLabel` REPLACES that name entirely, rather than appending to it, once the
+  // panel's operation header is already carrying the scope's text — see this file's own PURPOSE.
   const scopeLabel = operation
     ? operation.text
     : `${workItem.role.charAt(0).toUpperCase()}${workItem.role.slice(1)}`;
-  const name = displayLabelContract.parse(
-    sessionDisambiguator === undefined ? scopeLabel : `${scopeLabel} (${sessionDisambiguator})`,
-  );
+  const name = displayLabelContract.parse(stepLabel ?? scopeLabel);
 
   return (
     <ExecutionRowLayerWidget
-      order={order}
       name={name}
       role={workItem.role as unknown as ExecutionRole}
       status={status}
@@ -152,12 +156,14 @@ export const ExecutionWorkItemRowLayerWidget = ({
       isStreaming={status === ('in_progress' as ExecutionStepStatus)}
       {...(includeSkipped ? { autoExpand: true } : {})}
       workItem={workItem}
+      {...(order === undefined ? {} : { order })}
       {...(now === undefined ? {} : { now })}
       {...(workItem.errorMessage ? { errorMessage: workItem.errorMessage } : {})}
       {...(wardResults.length > 0 ? { wardResults, questId } : {})}
       {...(riftcarverResults.length > 0 ? { riftcarverResults, questId } : {})}
       {...(workItem.sessionId ? { sessionId: workItem.sessionId } : {})}
       {...(guildSlug ? { guildSlug } : {})}
+      {...(indented === true ? { indented: true } : {})}
     />
   );
 };

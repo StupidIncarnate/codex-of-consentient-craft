@@ -105,9 +105,17 @@ test.describe('Two Task-dispatched rows that share one parent /dumpster-launch s
 
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
+    // THREE rows, not two: neither codeweaver work item carries a `relatedDataItems` operation ref,
+    // so both fall into the shared ROLE-FALLBACK scope (`role:codeweaver`) and decision 2's NESTED
+    // ruling renders one operation header ("Codeweaver", carrying the [CODEWEAVER] badge) plus this
+    // scope's two work items nested beneath it. Neither carries a `step`, so both fall back to the
+    // scope-role step key and, sharing that key with no `pieceId` to tell them apart, tier to a true
+    // duplicate — "codeweaver role pt: 1" / "codeweaver role pt: 2" — which itself still contains the
+    // case-insensitive substring "codeweaver" that `hasText` matches on, alongside the header's own
+    // [CODEWEAVER] badge.
     await expect(
       executionPanel.getByTestId('execution-row-layer-widget').filter({ hasText: 'CODEWEAVER' }),
-    ).toHaveCount(2);
+    ).toHaveCount(3);
 
     // Each in_progress codeweaver row auto-expands and renders its transcript via a
     // `collapseToTail` ChatEntryListWidget, which shows ONLY the most-recent message anchor.

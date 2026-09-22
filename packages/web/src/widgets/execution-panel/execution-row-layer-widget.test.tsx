@@ -57,6 +57,58 @@ describe('ExecutionRowLayerWidget', () => {
     });
   });
 
+  describe('nested step row (decision 2 NESTED ruling)', () => {
+    it('EMPTY: {order omitted} => renders no order number', () => {
+      ExecutionRowLayerWidgetProxy();
+      // Drop `order` from the stubbed props via a rest pattern rather than an inline object
+      // literal \u2014 enforce-stub-usage wants every Props-shaped value built through defaultProps().
+      const { order: _omittedOrder, ...propsWithoutOrder } = defaultProps();
+
+      mantineRenderAdapter({
+        ui: <ExecutionRowLayerWidget {...propsWithoutOrder} />,
+      });
+
+      const row = screen.getByTestId('execution-row-layer-widget');
+
+      expect(row.textContent).toBe('\u00B7\u00B7\u00B7[CODEWEAVER]Build auth flowPENDING');
+    });
+
+    it('VALID: {indented: true} => renders no [ROLE] badge, since the header above already names it', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ExecutionRowLayerWidget {...defaultProps()} indented={true} />,
+      });
+
+      expect(screen.queryByTestId('execution-row-role-badge')).toBe(null);
+    });
+
+    it('VALID: {indented: true} => shifts the row right with a left margin', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ExecutionRowLayerWidget {...defaultProps()} indented={true} />,
+      });
+
+      const row = screen.getByTestId('execution-row-layer-widget');
+
+      expect(row.style.marginLeft).toBe('20px');
+    });
+
+    it('EMPTY: {indented omitted} => renders the [ROLE] badge and carries no left margin', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ExecutionRowLayerWidget {...defaultProps()} />,
+      });
+
+      const row = screen.getByTestId('execution-row-layer-widget');
+
+      expect(screen.getByTestId('execution-row-role-badge').textContent).toBe('[CODEWEAVER]');
+      expect(row.style.marginLeft).toBe('0px');
+    });
+  });
+
   describe('role badge', () => {
     it('VALID: {role: "codeweaver"} => renders uppercase role badge', () => {
       ExecutionRowLayerWidgetProxy();

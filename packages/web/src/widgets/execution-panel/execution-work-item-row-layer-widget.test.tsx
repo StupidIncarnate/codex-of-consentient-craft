@@ -84,7 +84,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
       );
     });
 
-    it('VALID: {sessionDisambiguator provided, operation resolves} => row name appends it to the resolved operation text', () => {
+    it('VALID: {stepLabel provided, operation resolves} => row name is the stepLabel ALONE, replacing the operation text (decision 2 NESTED ruling)', () => {
       ExecutionWorkItemRowLayerWidgetProxy();
       const workItem = WorkItemStub({
         id: WORK_ITEM_ID,
@@ -99,15 +99,15 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
             operationsById={new Map([[operation.id, operation]])}
-            sessionDisambiguator={DisplayLabelStub({ value: 'work' })}
+            stepLabel={DisplayLabelStub({ value: 'work - login broker' })}
           />
         ),
       });
 
-      expect(screen.getByTestId('execution-row-name').textContent).toBe('build the broker (work)');
+      expect(screen.getByTestId('execution-row-name').textContent).toBe('work - login broker');
     });
 
-    it('VALID: {sessionDisambiguator provided, operation does not resolve} => row name appends it to the capitalized role fallback', () => {
+    it('VALID: {stepLabel provided, operation does not resolve} => row name is the stepLabel ALONE, replacing the capitalized role fallback', () => {
       ExecutionWorkItemRowLayerWidgetProxy();
       const workItem = WorkItemStub({
         id: WORK_ITEM_ID,
@@ -119,14 +119,37 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
-            sessionDisambiguator={DisplayLabelStub({ value: 'session-worker-two' })}
+            stepLabel={DisplayLabelStub({ value: 'work pt: 2' })}
           />
         ),
       });
 
-      expect(screen.getByTestId('execution-row-name').textContent).toBe(
-        'Codeweaver (session-worker-two)',
-      );
+      expect(screen.getByTestId('execution-row-name').textContent).toBe('work pt: 2');
+    });
+
+    it('VALID: {stepLabel and indented both provided} => the row carries no [ROLE] badge, and its own name is the stepLabel alone', () => {
+      ExecutionWorkItemRowLayerWidgetProxy();
+      const workItem = WorkItemStub({
+        id: WORK_ITEM_ID,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`operations/${OPERATION_ID}`],
+      });
+      const operation = OperationItemStub({ id: OPERATION_ID, text: 'build the broker' });
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionWorkItemRowLayerWidget
+            {...defaultParams({ workItem })}
+            operationsById={new Map([[operation.id, operation]])}
+            stepLabel={DisplayLabelStub({ value: 'plan' })}
+            indented={true}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('execution-row-name').textContent).toBe('plan');
+      expect(screen.queryByTestId('execution-row-role-badge')).toBe(null);
     });
   });
 

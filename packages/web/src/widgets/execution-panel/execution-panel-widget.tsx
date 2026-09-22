@@ -6,8 +6,11 @@
  * USAGE:
  * <ExecutionPanelWidget quest={quest} />
  * // Renders tabbed panel with EXECUTION and QUEST SPEC tabs (FOLLOW-UP joins them once opened);
- * // the execution tab is ONE numbered list — a row per visible work item in quest.workItems order,
- * // then a row per operation no work item has claimed, in quest.operations order
+ * // the execution tab is ONE numbered list — a row per SCOPE (an operation, or a role fallback) in
+ * // first-visible-appearance order, then a row per operation no work item has claimed, in
+ * // quest.operations order. A scope holding one visible work item numbers that row directly
+ * // (decision 2's bare tier); a scope holding several numbers an operation header row instead and
+ * // nests every one of its work items beneath it, unnumbered — see the row-building block below.
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -41,8 +44,11 @@ import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import type { TotalCount } from '@dungeonmaster/shared/contracts';
 import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import {
+  isActiveWorkItemStatusGuard,
   isAnyAgentRunningQuestStatusGuard,
+  isCompleteWorkItemStatusGuard,
   isCompletedSuccessfullyQuestStatusGuard,
+  isFailureWorkItemStatusGuard,
   isFollowupChatableQuestStatusGuard,
   isMergeableQuestStatusGuard,
   isQuestResumableQuestStatusGuard,
@@ -127,6 +133,12 @@ const NOOP_FOLLOWUP_HANDLERS = {
   sendMessage: async (): Promise<void> => Promise.resolve(),
   stopChat: (): void => undefined,
 };
+// A scope needs an operation header (decision 2's NESTED ruling) once it holds more than one
+// visible work item; below that it renders BARE, unchanged from before decision 2.
+const SCOPE_HOLDS_MULTIPLE_SESSIONS = 2;
+// Sentinel piece-group key for a work item with no `pieceId` at all — real piece labels (a
+// payload's own name, or `pieceId` itself) are never empty, so '' cannot collide with one.
+const NO_PIECE_GROUP_KEY = displayLabelContract.parse('');
 
 export const ExecutionPanelWidget = ({
   quest,
@@ -247,51 +259,85 @@ export const ExecutionPanelWidget = ({
   // ExecutionWorkItemRowLayerWidget itself applies), or its role when the ref is absent or dangling.
   // Grouped here — the only place that sees every visible sibling at once — because a scope holding
   // several dispatched sessions (a codeweaver cell's plan, several parallel workers, review, commit,
-  // ward, repair) renders one row per session, and every one of those rows shares this same scope.
-  // Two maps rather than one composite-string-keyed map, so neither key needs an ad hoc brand.
-  const opScopeGroups = new Map<(typeof quest.operations)[0]['id'], WorkItem[]>();
-  const roleScopeGroups = new Map<WorkItem['role'], WorkItem[]>();
-  for (const wi of visibleWorkItems) {
+  // ward, repair) renders one operation header plus one nested row per session (decision 2's NESTED
+  // ruling), and every one of those rows shares this same scope. `scopeKey` is branded through
+  // `displayLabelContract` rather than kept as a raw string, matching every other Map key this file
+  // builds.
+  //
+  // Every grouping/tiering step below runs inside a `.forEach()`/`.map()` callback rather than a
+  // `for` loop or a named helper — ESLint scores each callback's own branching separately from
+  // ExecutionPanelWidget's, which is what keeps the component itself under this repo's complexity
+  // ceiling without moving the logic to a second file.
+  const scopeGroups = new Map<
+    DisplayLabel,
+    { workItems: WorkItem[]; operation?: (typeof quest.operations)[0] }
+  >();
+  const workItemScopeKey = new Map<WorkItem['id'], DisplayLabel>();
+  visibleWorkItems.forEach((wi) => {
     const operationRef = wi.relatedDataItems.find((ref) => ref.startsWith(OPERATIONS_PREFIX));
     const rawOperationId = operationRef?.slice(OPERATIONS_PREFIX_LENGTH) as
       | (typeof quest.operations)[0]['id']
       | undefined;
-    if (rawOperationId !== undefined && operationsById.has(rawOperationId)) {
-      const group = opScopeGroups.get(rawOperationId);
-      if (group) {
-        group.push(wi);
-      } else {
-        opScopeGroups.set(rawOperationId, [wi]);
-      }
+    const operation = rawOperationId === undefined ? undefined : operationsById.get(rawOperationId);
+    const scopeKey = displayLabelContract.parse(
+      operation ? `op:${operation.id}` : `role:${wi.role}`,
+    );
+    workItemScopeKey.set(wi.id, scopeKey);
+    const existing = scopeGroups.get(scopeKey);
+    if (existing) {
+      existing.workItems.push(wi);
     } else {
-      const group = roleScopeGroups.get(wi.role);
-      if (group) {
-        group.push(wi);
-      } else {
-        roleScopeGroups.set(wi.role, [wi]);
-      }
+      scopeGroups.set(scopeKey, operation ? { workItems: [wi], operation } : { workItems: [wi] });
     }
-  }
+  });
 
-  // Only a scope holding more than one visible session needs a disambiguator at all — the common
-  // case (one session per scope) leaves every row's name exactly as ExecutionWorkItemRowLayerWidget's
-  // own scope-label fallback already renders it, and this map simply carries no entry for it. Within
-  // a colliding scope, `step` is the human-legible tiebreaker (it names which step of the family
-  // graph this session is running); parallel pieces of the SAME step (several workers dispatched
-  // together) still collide on that, so a step shared by more than one sibling escalates further to
-  // that session's own identity — its live sessionId, or its work item id for a session that has not
-  // been dispatched yet — which is always unique.
-  const SCOPE_HOLDS_MULTIPLE_SESSIONS = 2;
-  const sessionDisambiguatorPropsByWorkItemId = new Map<
-    WorkItem['id'],
-    { sessionDisambiguator: DisplayLabel } | Record<PropertyKey, never>
+  // Decision 2 (scrolls/consolidated-plan.md) plus the operator's NESTED ruling: a scope holding
+  // one visible work item stays BARE (unchanged — that row already carries the scope label via
+  // ExecutionWorkItemRowLayerWidget's own fallback). A scope holding several instead gets ONE
+  // operation header — the scope's text (or the capitalized role, when no operation resolves) with
+  // that scope's own role and status — and a `stepLabel` per nested work item. Web cannot import
+  // `agentFlowStatics` (orchestrator-only), so `workItem.step` is read exactly as stored — it is
+  // already the real step key.
+  const headerInfoByScopeKey = new Map<
+    DisplayLabel,
+    { name: DisplayLabel; role: WorkItem['role']; status: ExecutionStepStatus }
   >();
-  for (const group of [...opScopeGroups.values(), ...roleScopeGroups.values()]) {
+  const stepLabelByWorkItemId = new Map<WorkItem['id'], DisplayLabel>();
+  scopeGroups.forEach(({ workItems: group, operation }, scopeKey) => {
     if (group.length < SCOPE_HOLDS_MULTIPLE_SESSIONS) {
-      continue;
+      return;
     }
+    const [firstItem] = group;
+    if (firstItem === undefined) {
+      return;
+    }
+    // An operation-backed header takes the operation's OWN status verbatim — that is the field
+    // decision 2's worked example shows in the header column. A role-fallback scope (no operation
+    // to read a status off) folds its children worst-first: any failure outranks any run, which
+    // outranks a clean sweep, matching the order agentFlowStatics' own outcome words fold in.
+    const headerName = operation
+      ? displayLabelContract.parse(operation.text)
+      : displayLabelContract.parse(
+          `${firstItem.role.charAt(0).toUpperCase()}${firstItem.role.slice(1)}`,
+        );
+    const headerStatus: ExecutionStepStatus = operation
+      ? (operation.status as ExecutionStepStatus)
+      : group.some((wi) => isFailureWorkItemStatusGuard({ status: wi.status }))
+        ? ('failed' as ExecutionStepStatus)
+        : group.some((wi) => isActiveWorkItemStatusGuard({ status: wi.status }))
+          ? ('in_progress' as ExecutionStepStatus)
+          : group.every((wi) => isCompleteWorkItemStatusGuard({ status: wi.status }))
+            ? ('complete' as ExecutionStepStatus)
+            : (firstItem.status as ExecutionStepStatus);
+    headerInfoByScopeKey.set(scopeKey, {
+      name: headerName,
+      role: firstItem.role,
+      status: headerStatus,
+    });
+
+    // Tier 2/3/4: group by STEP first, then by PIECE within a shared step.
     const stepGroups = new Map<DisplayLabel, WorkItem[]>();
-    for (const wi of group) {
+    group.forEach((wi) => {
       const stepKey = displayLabelContract.parse(wi.step ?? `${wi.role} role`);
       const stepGroup = stepGroups.get(stepKey);
       if (stepGroup) {
@@ -299,17 +345,131 @@ export const ExecutionPanelWidget = ({
       } else {
         stepGroups.set(stepKey, [wi]);
       }
-    }
-    for (const [stepKey, stepGroup] of stepGroups) {
-      for (const wi of stepGroup) {
-        const label =
-          stepGroup.length < SCOPE_HOLDS_MULTIPLE_SESSIONS
-            ? stepKey
-            : displayLabelContract.parse(wi.sessionId ?? wi.id);
-        sessionDisambiguatorPropsByWorkItemId.set(wi.id, { sessionDisambiguator: label });
+    });
+
+    stepGroups.forEach((stepGroup, stepKey) => {
+      const [soleStepItem] = stepGroup;
+      if (stepGroup.length < SCOPE_HOLDS_MULTIPLE_SESSIONS) {
+        // Tier 2 — this step is unique within the scope: the step name alone.
+        if (soleStepItem !== undefined) {
+          stepLabelByWorkItemId.set(soleStepItem.id, stepKey);
+        }
+        return;
       }
+      // Piece name: a human name off the payload if one exists there, else the plan's own
+      // mnemonic pieceId — `payload` is `z.record(z.unknown())` (the per-family shape lives on
+      // the orchestrator's own plan-file contract, which this package may not import), so
+      // `pieceName` is the one key checked defensively. A work item with no `pieceId` at all
+      // groups under the sentinel.
+      const pieceGroups = new Map<DisplayLabel, WorkItem[]>();
+      stepGroup.forEach((wi) => {
+        const payloadPieceName = wi.payload?.pieceName;
+        const pieceLabel =
+          wi.pieceId === undefined
+            ? undefined
+            : typeof payloadPieceName === 'string' && payloadPieceName.length > 0
+              ? payloadPieceName
+              : wi.pieceId;
+        const pieceKey =
+          pieceLabel === undefined ? NO_PIECE_GROUP_KEY : displayLabelContract.parse(pieceLabel);
+        const pieceGroup = pieceGroups.get(pieceKey);
+        if (pieceGroup) {
+          pieceGroup.push(wi);
+        } else {
+          pieceGroups.set(pieceKey, [wi]);
+        }
+      });
+      if (pieceGroups.size < SCOPE_HOLDS_MULTIPLE_SESSIONS) {
+        // Every item in this step shares one piece (or none at all) — a true duplicate.
+        stepGroup.forEach((wi, idx) => {
+          stepLabelByWorkItemId.set(wi.id, displayLabelContract.parse(`${stepKey} pt: ${idx + 1}`));
+        });
+        return;
+      }
+      pieceGroups.forEach((pieceGroup, pieceKey) => {
+        const [solePieceItem] = pieceGroup;
+        if (pieceGroup.length >= SCOPE_HOLDS_MULTIPLE_SESSIONS) {
+          // Tier 4 — same step AND same piece: a true duplicate, numbered in array order.
+          pieceGroup.forEach((wi, idx) => {
+            stepLabelByWorkItemId.set(
+              wi.id,
+              displayLabelContract.parse(`${stepKey} pt: ${idx + 1}`),
+            );
+          });
+          return;
+        }
+        if (solePieceItem === undefined) {
+          return;
+        }
+        // Tier 3 — this piece is unique within the step: `step - piece`.
+        const resolvedPieceLabel =
+          pieceKey === NO_PIECE_GROUP_KEY
+            ? displayLabelContract.parse(solePieceItem.sessionId ?? solePieceItem.id)
+            : pieceKey;
+        stepLabelByWorkItemId.set(
+          solePieceItem.id,
+          displayLabelContract.parse(`${stepKey} - ${resolvedPieceLabel}`),
+        );
+      });
+    });
+  });
+
+  // The ONE numbered list this widget renders, built once so the JSX below is a single flat
+  // `.map()`. Order is assigned only to a TOP-LEVEL row — a bare work item, an operation header, or
+  // an unclaimed operation — never to a step row nested under a header, which carries `stepLabel`
+  // instead. Scopes are emitted in first-visible-appearance order (a scope's later work items are
+  // skipped here and rendered together with its first, via `emittedScopeKeys`), then every
+  // still-unclaimed operation continues the same running number.
+  type ExecutionRenderRow =
+    | { kind: 'header'; scopeKey: DisplayLabel; order: RowOrder }
+    | {
+        kind: 'workItem';
+        workItem: WorkItem;
+        order?: RowOrder;
+        indented?: boolean;
+        stepLabel?: DisplayLabel;
+      }
+    | { kind: 'unclaimed'; operation: (typeof quest.operations)[0]; order: RowOrder };
+
+  const renderRows: ExecutionRenderRow[] = [];
+  const emittedScopeKeys = new Set<DisplayLabel>();
+  let nextRowOrder = 1;
+  visibleWorkItems.forEach((wi) => {
+    const scopeKey = workItemScopeKey.get(wi.id);
+    if (scopeKey === undefined || emittedScopeKeys.has(scopeKey)) {
+      return;
     }
-  }
+    emittedScopeKeys.add(scopeKey);
+    const scope = scopeGroups.get(scopeKey);
+    if (scope === undefined) {
+      return;
+    }
+    const { workItems: group } = scope;
+    if (group.length < SCOPE_HOLDS_MULTIPLE_SESSIONS) {
+      const [soleItem] = group;
+      if (soleItem !== undefined) {
+        renderRows.push({
+          kind: 'workItem',
+          workItem: soleItem,
+          order: nextRowOrder++ as RowOrder,
+        });
+      }
+      return;
+    }
+    renderRows.push({ kind: 'header', scopeKey, order: nextRowOrder++ as RowOrder });
+    group.forEach((child) => {
+      const childStepLabel = stepLabelByWorkItemId.get(child.id);
+      renderRows.push({
+        kind: 'workItem',
+        workItem: child,
+        indented: true,
+        ...(childStepLabel === undefined ? {} : { stepLabel: childStepLabel }),
+      });
+    });
+  });
+  unclaimedOperations.forEach((op) => {
+    renderRows.push({ kind: 'unclaimed', operation: op, order: nextRowOrder++ as RowOrder });
+  });
 
   return (
     <Stack gap={0} style={{ height: '100%' }} data-testid="execution-panel-widget">
@@ -394,40 +554,64 @@ export const ExecutionPanelWidget = ({
             testId={FLOOR_CONTENT_TEST_ID}
             style={{ flex: 1, padding: '0 12px 12px', minHeight: EXECUTION_FLOOR_MIN_HEIGHT }}
           >
-            {visibleWorkItems.map((wi, wiIndex) => (
-              <ExecutionWorkItemRowLayerWidget
-                key={wi.id}
-                order={(wiIndex + 1) as RowOrder}
-                workItem={wi}
-                questId={quest.id}
-                now={now}
-                includeSkipped={includeSkipped}
-                workItemEntries={workItemEntries}
-                sessionEntries={sessionEntries}
-                workItemIdToLabel={workItemIdToLabel}
-                wardResultsById={wardResultsById}
-                riftcarverResultsById={riftcarverResultsById}
-                operationsById={operationsById}
-                {...(guildSlug ? { guildSlug } : {})}
-                {...(sessionDisambiguatorPropsByWorkItemId.get(wi.id) ?? {})}
-              />
-            ))}
-            {/* The numbering continues straight on from the work-item rows above, because this is
-                ONE list: an operation nothing has claimed is the next thing that will run, not a
-                separate register. The row is handed no entries, no timestamps and no results —
-                nothing has run for it, so there is nothing for a disclosure to open onto. */}
-            {unclaimedOperations.map((op, opIndex) => (
-              <ExecutionRowLayerWidget
-                key={op.id}
-                order={(visibleWorkItems.length + opIndex + 1) as RowOrder}
-                name={displayLabelContract.parse(op.text)}
-                role={op.role as unknown as ExecutionRole}
-                status={op.status as ExecutionStepStatus}
-                files={[] as DisplayFilePath[]}
-                dependsOn={[] as DependencyLabel[]}
-                isAdhoc={false}
-              />
-            ))}
+            {/* The numbering continues straight on from a scope's rows to the next scope's, and
+                then to the unclaimed tail, because this is ONE list: an operation nothing has
+                claimed is the next thing that will run, not a separate register. An unclaimed row
+                is handed no entries, no timestamps and no results — nothing has run for it, so
+                there is nothing for a disclosure to open onto. */}
+            {renderRows.map((row) => {
+              if (row.kind === 'header') {
+                const info = headerInfoByScopeKey.get(row.scopeKey);
+                if (info === undefined) {
+                  return null;
+                }
+                return (
+                  <ExecutionRowLayerWidget
+                    key={row.scopeKey}
+                    order={row.order}
+                    name={info.name}
+                    role={info.role as unknown as ExecutionRole}
+                    status={info.status}
+                    files={[] as DisplayFilePath[]}
+                    dependsOn={[] as DependencyLabel[]}
+                    isAdhoc={false}
+                  />
+                );
+              }
+              if (row.kind === 'unclaimed') {
+                return (
+                  <ExecutionRowLayerWidget
+                    key={row.operation.id}
+                    order={row.order}
+                    name={displayLabelContract.parse(row.operation.text)}
+                    role={row.operation.role as unknown as ExecutionRole}
+                    status={row.operation.status as ExecutionStepStatus}
+                    files={[] as DisplayFilePath[]}
+                    dependsOn={[] as DependencyLabel[]}
+                    isAdhoc={false}
+                  />
+                );
+              }
+              return (
+                <ExecutionWorkItemRowLayerWidget
+                  key={row.workItem.id}
+                  workItem={row.workItem}
+                  questId={quest.id}
+                  now={now}
+                  includeSkipped={includeSkipped}
+                  workItemEntries={workItemEntries}
+                  sessionEntries={sessionEntries}
+                  workItemIdToLabel={workItemIdToLabel}
+                  wardResultsById={wardResultsById}
+                  riftcarverResultsById={riftcarverResultsById}
+                  operationsById={operationsById}
+                  {...(guildSlug ? { guildSlug } : {})}
+                  {...(row.order === undefined ? {} : { order: row.order })}
+                  {...(row.indented === true ? { indented: true } : {})}
+                  {...(row.stepLabel === undefined ? {} : { stepLabel: row.stepLabel })}
+                />
+              );
+            })}
           </AutoScrollContainerWidget>
           {((isAnyAgentRunningQuestStatusGuard({ status: quest.status }) && onPause) ||
             (isQuestResumableQuestStatusGuard({ status: quest.status }) && onStatusChange)) && (
