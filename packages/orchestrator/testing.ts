@@ -13,6 +13,7 @@ export * from './src/brokers/guild/list/guild-list-broker.proxy';
 export * from './src/brokers/guild/remove/guild-remove-broker.proxy';
 export * from './src/brokers/quest/delete/quest-delete-broker.proxy';
 export * from './src/brokers/quest/get/quest-get-broker.proxy';
+export * from './src/brokers/quest/human-verdict-record/quest-human-verdict-record-broker.proxy';
 export * from './src/brokers/quest/list/quest-list-broker.proxy';
 export * from './src/brokers/quest/load/quest-load-broker.proxy';
 export * from './src/brokers/quest/modify/quest-modify-broker.proxy';

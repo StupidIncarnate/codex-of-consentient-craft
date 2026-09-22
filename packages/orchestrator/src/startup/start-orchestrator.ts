@@ -217,6 +217,15 @@ export const StartOrchestrator = {
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getSummary>>> =>
     QuestFlow.getSummary({ questId }),
 
+  // The likely remainder of the quest's execution: every MINTED scope's real work items,
+  // continued forward through `agentFlowStatics`'s `routes.done` edge to the next family boundary.
+  getQuestProjection: async ({
+    questId,
+  }: {
+    questId: string;
+  }): Promise<Awaited<ReturnType<typeof QuestFlow.getProjection>>> =>
+    QuestFlow.getProjection({ questId }),
+
   // MCP-driven get-quest-work — the ONE startup call every LLM step makes. `workItemId` serves
   // everything that session needs to start; `operationItemId` serves the whole plan as markdown for
   // a planner's review-before-signing read. Passing both is refused rather than resolved by

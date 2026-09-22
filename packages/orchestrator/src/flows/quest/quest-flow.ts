@@ -11,6 +11,7 @@
  * const modified = await QuestFlow.modify({ questId, input });
  * const notes = await QuestFlow.getPlanningNotes({ questId });
  * const summary = await QuestFlow.getSummary({ questId });
+ * const projection = await QuestFlow.getProjection({ questId });
  * const blightChecklist = await QuestFlow.getBlightChecklist({ questId });
  * const created = await QuestFlow.mcpCreate({ userRequest });
  * const next = await QuestFlow.getNextStep();
@@ -28,6 +29,7 @@ import { QuestGetNextStepResponder } from '../../responders/quest/get-next-step/
 import { QuestGetPlanningNotesResponder } from '../../responders/quest/get-planning-notes/quest-get-planning-notes-responder';
 import { QuestGetQuestWorkResponder } from '../../responders/quest/get-quest-work/quest-get-quest-work-responder';
 import { QuestGetServerConfigResponder } from '../../responders/quest/get-server-config/quest-get-server-config-responder';
+import { QuestGetProjectionResponder } from '../../responders/quest/get-projection/quest-get-projection-responder';
 import { QuestGetSummaryResponder } from '../../responders/quest/get-summary/quest-get-summary-responder';
 import { QuestHandleSignalBackResponder } from '../../responders/quest/handle-signal-back/quest-handle-signal-back-responder';
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
@@ -52,6 +54,9 @@ type GetPlanningNotesResult = Awaited<ReturnType<typeof QuestGetPlanningNotesRes
 
 type GetSummaryParams = Parameters<typeof QuestGetSummaryResponder>[0];
 type GetSummaryResult = Awaited<ReturnType<typeof QuestGetSummaryResponder>>;
+
+type GetProjectionParams = Parameters<typeof QuestGetProjectionResponder>[0];
+type GetProjectionResult = Awaited<ReturnType<typeof QuestGetProjectionResponder>>;
 
 type GetQuestWorkParams = Parameters<typeof QuestGetQuestWorkResponder>[0];
 type GetQuestWorkResult = Awaited<ReturnType<typeof QuestGetQuestWorkResponder>>;
@@ -119,6 +124,9 @@ export const QuestFlow = {
 
   getSummary: async ({ questId }: GetSummaryParams): Promise<GetSummaryResult> =>
     QuestGetSummaryResponder({ questId }),
+
+  getProjection: async ({ questId }: GetProjectionParams): Promise<GetProjectionResult> =>
+    QuestGetProjectionResponder({ questId }),
 
   getQuestWork: async ({
     questId,

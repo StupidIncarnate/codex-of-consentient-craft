@@ -22,6 +22,7 @@ export { guildRemoveBroker } from './src/brokers/guild/remove/guild-remove-broke
 // Quest
 export { questDeleteBroker } from './src/brokers/quest/delete/quest-delete-broker';
 export { questGetBroker } from './src/brokers/quest/get/quest-get-broker';
+export { questHumanVerdictRecordBroker } from './src/brokers/quest/human-verdict-record/quest-human-verdict-record-broker';
 export { questListBroker } from './src/brokers/quest/list/quest-list-broker';
 export { questModifyBroker } from './src/brokers/quest/modify/quest-modify-broker';
 

@@ -36,7 +36,9 @@ export const apiRoutesStatics = {
     wardDetail: '/api/quests/:questId/ward-results/:wardResultId',
     riftcarverDetail: '/api/quests/:questId/riftcarver-results/:riftcarverResultId',
     summary: '/api/quests/:questId/summary',
+    humanVerdict: '/api/quests/:questId/human-verdict',
     signalBack: '/api/quests/:questId/signal-back',
+    projection: '/api/quests/:questId/projection',
   },
   process: {
     status: '/api/process/:processId',

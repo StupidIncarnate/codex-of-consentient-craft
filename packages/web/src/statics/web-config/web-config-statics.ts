@@ -18,6 +18,8 @@ export const webConfigStatics = {
       questWardDetail: '/api/quests/:questId/ward-results/:wardResultId',
       questRiftcarverDetail: '/api/quests/:questId/riftcarver-results/:riftcarverResultId',
       questSummary: '/api/quests/:questId/summary',
+      questHumanVerdict: '/api/quests/:questId/human-verdict',
+      questProjection: '/api/quests/:questId/projection',
       guildSessions: '/api/guilds/:guildId/sessions',
       sessionChatHistory: '/api/sessions/:sessionId/chat/history',
       questNew: '/api/guilds/:guildId/quests',

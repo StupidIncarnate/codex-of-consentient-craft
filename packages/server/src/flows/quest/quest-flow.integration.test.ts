@@ -3,6 +3,8 @@ import {
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
+  OperationItemIdStub,
+  OperationItemStub,
   QuestCommentStub,
   QuestIdStub,
   QuestNoteStub,
@@ -242,6 +244,7 @@ describe('QuestFlow', () => {
           { id: 'out-of-scope', notes: [] },
           { id: 'walk-reset', notes: [] },
           { id: 'walked', notes: [] },
+          { id: 'human-verdict', notes: [] },
         ],
       });
     });
@@ -271,6 +274,131 @@ describe('QuestFlow', () => {
       expect(response.status).toBe(404);
       expect(harness.toPlain(body)).toStrictEqual({
         error: 'Quest with id "server-http-summary-gone" not found in any guild',
+      });
+    });
+  });
+
+  // The projection is COMPUTED from the persisted operations/workItems ledger, not stored — so the
+  // only way to prove the route returns real step names (rather than an empty envelope that happens
+  // to be 200) is to drive a real HTTP request against a real quest.json seeded with a real scope
+  // one step in, and read the real agentFlowStatics step keys back off the response.
+  describe('GET /api/quests/:questId/projection', () => {
+    it('VALID: {quest with a codeweaver scope one step in} => 200 carrying the actual step and the planned remainder, by real step name', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-projection-get' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+
+      const opId = OperationItemIdStub({ value: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479' });
+      const planWorkItemId = QuestWorkItemIdStub({
+        value: '11111111-1111-4111-8111-111111111111',
+      });
+
+      const quest = await harness.seedQuestFields({
+        dungeonmasterHome,
+        guildId,
+        fields: {
+          status: 'in_progress' as never,
+          operations: [
+            OperationItemStub({
+              id: opId,
+              role: 'codeweaver',
+              text: 'core: config load+validate adapter',
+              status: 'in_progress',
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: planWorkItemId,
+              role: 'codeweaver',
+              status: 'complete',
+              step: 'plan',
+              relatedDataItems: [`operations/${opId}`],
+            }),
+          ],
+        },
+      });
+      const questId = quest.id;
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/projection`);
+      const body: unknown = await response.json();
+
+      restore();
+
+      expect(response.status).toBe(200);
+      expect(harness.toPlain(body)).toStrictEqual({
+        questId,
+        scopes: [
+          {
+            operationId: opId,
+            role: 'codeweaver',
+            text: 'core: config load+validate adapter',
+            status: 'in_progress',
+            steps: [
+              { step: 'plan', kind: 'actual', workItemId: planWorkItemId, status: 'complete' },
+              { step: 'work', kind: 'planned' },
+              { step: 'review', kind: 'planned' },
+              { step: 'commit', kind: 'planned' },
+              { step: 'ward', kind: 'planned' },
+            ],
+          },
+        ],
+        totalPlannedSteps: 5,
+        completedSteps: 1,
+      });
+    });
+
+    it('EMPTY: {quest with no operations minted yet} => 200 carrying an empty scope list and zero counts', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-projection-empty' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+
+      const quest = await harness.seedQuestFields({
+        dungeonmasterHome,
+        guildId,
+        fields: { operations: [], workItems: [] },
+      });
+      const questId = quest.id;
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/projection`);
+      const body: unknown = await response.json();
+
+      restore();
+
+      expect(response.status).toBe(200);
+      expect(harness.toPlain(body)).toStrictEqual({
+        questId,
+        scopes: [],
+        totalPlannedSteps: 0,
+        completedSteps: 0,
+      });
+    });
+
+    // A REAL guilds tree holding a REAL other quest, so the 404 proves "this quest is in no guild"
+    // rather than "the home dir does not exist" — mirrors the summary route's own unknown-quest case.
+    it('VALID: {questId absent from a populated guilds tree} => delegates to QuestProjectionResponder and returns 404 rather than an empty projection', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-projection-missing' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+
+      await harness.seedQuestFields({
+        dungeonmasterHome,
+        guildId,
+        fields: {},
+      });
+
+      const app = QuestFlow();
+      const questId = QuestIdStub({ value: 'server-http-projection-gone' });
+
+      const response = await app.request(`/api/quests/${questId}/projection`);
+      const body: unknown = await response.json();
+
+      restore();
+
+      expect(response.status).toBe(404);
+      expect(harness.toPlain(body)).toStrictEqual({
+        error: 'Quest with id "server-http-projection-gone" not found in any guild',
       });
     });
   });
