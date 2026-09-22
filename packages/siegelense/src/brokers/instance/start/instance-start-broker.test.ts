@@ -367,6 +367,37 @@ describe('instanceStartBroker', () => {
     });
   });
 
+  describe('apiUrl', () => {
+    it('VALID: {spec whose processes include the api process} => apiUrl is the real api URL', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      const specName = SpecNameStub({ value: 'test-api-surface-apiurl' });
+      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [
+            RegistryEntryStub({
+              id: instanceId,
+              specName,
+              ports: PortPairStub({ api: 40_502, web: 40_503 }),
+            }),
+          ],
+        }),
+      });
+
+      const result = await instanceStartBroker({
+        specName,
+        questId: null,
+        guildId: null,
+        seed: null,
+      });
+
+      expect(result.apiUrl).toBe('http://dungeonmaster.localhost:40502');
+    });
+  });
+
   describe('aheadOfMe', () => {
     it('VALID: {two reservations already queued} => aheadOfMe is 2', async () => {
       const proxy = instanceStartBrokerProxy();

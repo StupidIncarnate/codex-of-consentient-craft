@@ -12,7 +12,7 @@ import { SiegelenseCompareResponderProxy } from './siegelense-compare-responder.
 
 describe('SiegelenseCompareResponder', () => {
   describe('two runs', () => {
-    it('VALID: {default: json false} => writes the human summary to stdout', async () => {
+    it('VALID: {default: isJson false} => writes the human summary to stdout', async () => {
       const proxy = SiegelenseCompareResponderProxy();
       const query = CompareQueryStub();
       const answer = CompareAnswerStub({
@@ -27,7 +27,7 @@ describe('SiegelenseCompareResponder', () => {
       expect(proxy.getStdoutWrites()).toStrictEqual([compareAnswerRenderTransformer({ answer })]);
     });
 
-    it('VALID: {json: true} => writes the complete CompareAnswer as one JSON document', async () => {
+    it('VALID: {isJson: true} => writes the complete CompareAnswer as one JSON document', async () => {
       const proxy = SiegelenseCompareResponderProxy();
       const query = CompareQueryStub();
       const answer = CompareAnswerStub({
@@ -37,7 +37,7 @@ describe('SiegelenseCompareResponder', () => {
       });
       proxy.stageAnswer({ answer });
 
-      await SiegelenseCompareResponder({ query, json: true });
+      await SiegelenseCompareResponder({ query, isJson: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,

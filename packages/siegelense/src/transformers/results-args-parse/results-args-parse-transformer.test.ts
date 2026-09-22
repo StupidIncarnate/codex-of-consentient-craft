@@ -16,7 +16,7 @@ describe('resultsArgsParseTransformer', () => {
         where: null,
         fields: null,
         since: null,
-        json: false,
+        isJson: false,
       });
     });
   });
@@ -35,7 +35,7 @@ describe('resultsArgsParseTransformer', () => {
         where: null,
         fields: null,
         since: null,
-        json: false,
+        isJson: false,
       });
     });
   });
@@ -63,7 +63,7 @@ describe('resultsArgsParseTransformer', () => {
         where: { path: '/api/quests', method: 'POST', nth: null, level: null, steps: null },
         fields: null,
         since: null,
-        json: false,
+        isJson: false,
       });
     });
   });
@@ -82,7 +82,7 @@ describe('resultsArgsParseTransformer', () => {
         where: null,
         fields: ['status', 'responseBody'],
         since: null,
-        json: false,
+        isJson: false,
       });
     });
   });
@@ -101,13 +101,13 @@ describe('resultsArgsParseTransformer', () => {
         where: null,
         fields: null,
         since: 'boot',
-        json: false,
+        isJson: false,
       });
     });
   });
 
   describe('--json flag', () => {
-    it('VALID: {--instance inst_7f3a9c21 --json} => parses with json true', () => {
+    it('VALID: {--instance inst_7f3a9c21 --json} => parses with isJson true', () => {
       const result = resultsArgsParseTransformer({
         args: ['--instance', 'inst_7f3a9c21', '--json'],
       });
@@ -120,8 +120,30 @@ describe('resultsArgsParseTransformer', () => {
         where: null,
         fields: null,
         since: null,
-        json: true,
+        isJson: true,
       });
+    });
+  });
+
+  describe('--run and --since boot together', () => {
+    it('INVALID: {--run run_2 --since boot} => throws naming both flags', () => {
+      expect(() =>
+        resultsArgsParseTransformer({
+          args: ['--instance', 'inst_7f3a9c21', '--run', 'run_2', '--since', 'boot'],
+        }),
+      ).toThrow(
+        /^--run and --since are mutually exclusive: --run names one run's evidence, --since reads the whole boot timeline, and both were given\.$/u,
+      );
+    });
+
+    it('INVALID: {--since boot --run run_2} => throws naming both flags regardless of argv order', () => {
+      expect(() =>
+        resultsArgsParseTransformer({
+          args: ['--instance', 'inst_7f3a9c21', '--since', 'boot', '--run', 'run_2'],
+        }),
+      ).toThrow(
+        /^--run and --since are mutually exclusive: --run names one run's evidence, --since reads the whole boot timeline, and both were given\.$/u,
+      );
     });
   });
 
@@ -154,7 +176,7 @@ describe('resultsArgsParseTransformer', () => {
         where: { path: null, method: null, nth: null, level: null, steps: '9-4' },
         fields: null,
         since: null,
-        json: false,
+        isJson: false,
       });
     });
   });

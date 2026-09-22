@@ -52,7 +52,7 @@ describe('architectureOverviewBroker', () => {
       const result = architectureOverviewBroker();
 
       expect(result).toMatch(
-        /^\*\*Allowed in:\*\* `widgets\/`, `adapters\/`, `brokers\/`, `responders\/` only$/mu,
+        /^\*\*Allowed in:\*\* `flows\/`, `widgets\/`, `adapters\/`, `brokers\/`, `responders\/` only$/mu,
       );
     });
 

@@ -6,12 +6,12 @@ import { SiegelensePruneResponderProxy } from './siegelense-prune-responder.prox
 
 describe('SiegelensePruneResponder', () => {
   describe('the JSON default', () => {
-    it('VALID: {human: false} => writes the whole PruneAnswer as one indented JSON document, refusal and citing file included', async () => {
+    it('VALID: {isJson: true} => writes the whole PruneAnswer as one indented JSON document, refusal and citing file included', async () => {
       const proxy = SiegelensePruneResponderProxy();
       const answer = PruneAnswerStub();
       proxy.stageAnswer({ answer });
 
-      const result = await SiegelensePruneResponder({ query: PruneQueryStub(), human: false });
+      const result = await SiegelensePruneResponder({ query: PruneQueryStub(), isJson: true });
 
       expect(result).toStrictEqual({ success: true });
       expect(proxy.getStdoutWrites()).toStrictEqual([
@@ -30,7 +30,7 @@ describe('SiegelensePruneResponder', () => {
       });
       proxy.stageAnswer({ answer });
 
-      await SiegelensePruneResponder({ query: PruneQueryStub(), human: false });
+      await SiegelensePruneResponder({ query: PruneQueryStub(), isJson: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
@@ -39,7 +39,7 @@ describe('SiegelensePruneResponder', () => {
   });
 
   describe('the operator table', () => {
-    it('VALID: {no human param} => writes the four-line reclaim table by default', async () => {
+    it('VALID: {no isJson param} => writes the four-line reclaim table by default', async () => {
       const proxy = SiegelensePruneResponderProxy();
       proxy.stageAnswer({ answer: PruneAnswerStub() });
 
@@ -54,11 +54,11 @@ describe('SiegelensePruneResponder', () => {
       ]);
     });
 
-    it('VALID: {human: true} => writes the four-line reclaim table instead of JSON', async () => {
+    it('VALID: {isJson: false} => writes the four-line reclaim table instead of JSON', async () => {
       const proxy = SiegelensePruneResponderProxy();
       proxy.stageAnswer({ answer: PruneAnswerStub() });
 
-      const result = await SiegelensePruneResponder({ query: PruneQueryStub(), human: true });
+      const result = await SiegelensePruneResponder({ query: PruneQueryStub(), isJson: false });
 
       expect(result).toStrictEqual({ success: true });
       expect(proxy.getStdoutWrites()).toStrictEqual([

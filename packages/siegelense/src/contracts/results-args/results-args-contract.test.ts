@@ -16,7 +16,7 @@ describe('resultsArgsContract', () => {
         where: null,
         fields: null,
         since: null,
-        json: false,
+        isJson: false,
       });
     });
 
@@ -29,7 +29,7 @@ describe('resultsArgsContract', () => {
         where: { path: '/api/quests', method: 'POST', nth: null, level: null, steps: null },
         fields: ['status', 'responseBody'],
         since: null,
-        json: false,
+        isJson: false,
       });
 
       const result = resultsArgsContract.parse(args);
@@ -42,7 +42,7 @@ describe('resultsArgsContract', () => {
         where: { path: '/api/quests', method: 'POST', nth: null, level: null, steps: null },
         fields: ['status', 'responseBody'],
         since: null,
-        json: false,
+        isJson: false,
       });
     });
   });
@@ -58,7 +58,7 @@ describe('resultsArgsContract', () => {
           where: null,
           fields: null,
           since: null,
-          json: false,
+          isJson: false,
         } as never),
       ).toThrow(/Unrecognized key\(s\) in object: 'instance'/u);
     });
@@ -73,7 +73,7 @@ describe('resultsArgsContract', () => {
         where: null,
         fields: null,
         since: null,
-        json: false,
+        isJson: false,
       });
 
       expect(result.success).toBe(false);

@@ -3,25 +3,25 @@ import { RecipesArgsStub } from './recipes-args.stub';
 
 describe('recipesArgsContract', () => {
   describe('valid args', () => {
-    it('VALID: {human: false} => the JSON default parses', () => {
-      const args = RecipesArgsStub({ human: false });
+    it('VALID: {isJson: true} => the JSON default parses', () => {
+      const args = RecipesArgsStub({ isJson: true });
 
       const result = recipesArgsContract.parse(args);
 
-      expect(result).toStrictEqual({ human: false });
+      expect(result).toStrictEqual({ isJson: true });
     });
 
-    it('VALID: {human: true} => the human-block form parses', () => {
-      const args = RecipesArgsStub({ human: true });
+    it('VALID: {isJson: false} => the human-block form parses', () => {
+      const args = RecipesArgsStub({ isJson: false });
 
       const result = recipesArgsContract.parse(args);
 
-      expect(result).toStrictEqual({ human: true });
+      expect(result).toStrictEqual({ isJson: false });
     });
   });
 
   describe('invalid args', () => {
-    it('INVALID: {missing human} => raises exactly one issue, scoped to human', () => {
+    it('INVALID: {missing isJson} => raises exactly one issue, scoped to isJson', () => {
       const result = recipesArgsContract.safeParse({});
 
       expect(result.success).toBe(false);
@@ -30,7 +30,7 @@ describe('recipesArgsContract', () => {
           code: 'invalid_type',
           expected: 'boolean',
           received: 'undefined',
-          path: ['human'],
+          path: ['isJson'],
           message: 'Required',
         },
       ]);
@@ -39,7 +39,7 @@ describe('recipesArgsContract', () => {
     it('INVALID: {extra key "instanceId"} => throws Unrecognized key, no extra field is accepted', () => {
       expect(() =>
         recipesArgsContract.parse({
-          human: false,
+          isJson: true,
           instanceId: 'inst_7f3a9c21',
         } as never),
       ).toThrow(/Unrecognized key/u);

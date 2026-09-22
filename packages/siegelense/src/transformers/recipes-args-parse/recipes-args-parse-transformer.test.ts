@@ -5,15 +5,15 @@ describe('recipesArgsParseTransformer', () => {
     it('EMPTY: {args: []} => defaults to human view', () => {
       const result = recipesArgsParseTransformer({ args: [] });
 
-      expect(result).toStrictEqual({ human: true });
+      expect(result).toStrictEqual({ isJson: false });
     });
   });
 
   describe('the flag --json', () => {
-    it('VALID: {args: [--json]} => human is false', () => {
+    it('VALID: {args: [--json]} => isJson is true', () => {
       const result = recipesArgsParseTransformer({ args: ['--json'] });
 
-      expect(result).toStrictEqual({ human: false });
+      expect(result).toStrictEqual({ isJson: true });
     });
   });
 

@@ -26,7 +26,7 @@ describe('laneSpecStatics', () => {
             {
               name: 'web',
               command: 'npm',
-              args: ['run', 'dev', '--workspace=@dungeonmaster/web'],
+              args: ['run', 'dev:no-watch', '--workspace=@dungeonmaster/web'],
               portRole: 'web',
               readyPath: '/',
               logFileName: 'web-server.log',

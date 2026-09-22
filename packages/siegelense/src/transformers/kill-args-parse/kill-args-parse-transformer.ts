@@ -63,6 +63,6 @@ export const killArgsParseTransformer = ({ args }: { args: readonly string[] }):
       flag: INSTANCE_FLAG,
       parse: () => instanceIdContract.parse(rawInstanceId),
     }),
-    json: args.includes(siegelenseOutputStatics.flags.json),
+    isJson: args.includes(siegelenseOutputStatics.flags.json),
   });
 };

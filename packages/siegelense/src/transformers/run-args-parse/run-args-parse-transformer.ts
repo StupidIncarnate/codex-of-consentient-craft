@@ -17,7 +17,7 @@
  *   args: ['--instance', 'inst_7f3a9c21', '--steps', '[{"step":"goto","path":"/"}]'],
  *   stepsFileContent: null,
  * });
- * // Returns { instanceId: 'inst_7f3a9c21', steps: [{ step: 'goto', path: '/', node: null, expect: 'ok' }], stopOn: 'error', json: false }
+ * // Returns { instanceId: 'inst_7f3a9c21', steps: [{ step: 'goto', path: '/', node: null, expect: 'ok' }], stopOn: 'error', isJson: false }
  */
 
 import type { ContentText } from '@dungeonmaster/shared/contracts';
@@ -140,7 +140,7 @@ export const runArgsParseTransformer = ({
         instanceId,
         steps: parsedSteps,
         stopOn,
-        json: args.includes(siegelenseOutputStatics.flags.json),
+        isJson: args.includes(siegelenseOutputStatics.flags.json),
       }),
   });
 };

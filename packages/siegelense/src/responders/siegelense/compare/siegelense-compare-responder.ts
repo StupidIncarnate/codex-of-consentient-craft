@@ -23,14 +23,14 @@ import { compareAnswerRenderTransformer } from '../../../transformers/compare-an
 
 export const SiegelenseCompareResponder = async ({
   query,
-  json = false,
+  isJson = false,
 }: {
   query: CompareQuery;
-  json?: boolean | undefined;
+  isJson?: boolean | undefined;
 }): Promise<AdapterResult> => {
   const answer = await compareReadBroker({ query });
   process.stdout.write(
-    json
+    isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : compareAnswerRenderTransformer({ answer }),
   );

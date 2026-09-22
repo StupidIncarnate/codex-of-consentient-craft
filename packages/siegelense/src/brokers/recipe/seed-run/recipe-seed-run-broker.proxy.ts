@@ -5,17 +5,18 @@
  * USAGE:
  * const proxy = recipeSeedRunBrokerProxy();
  * proxy.bookPresent();
- * proxy.guildLaneAnswers({ ... });
+ * proxy.guildWithThreeQuestsAnswers({ guild, quests });
  */
 
-import type { ContentText, FilePath, Guild } from '@dungeonmaster/shared/contracts';
-import { ContentTextStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import type { FilePath, Guild, Quest } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
 import { runtimeDynamicImportAdapterProxy } from '@dungeonmaster/shared/testing';
 
 import { SeedResultStub } from '../../../contracts/seed-result/seed-result.stub';
-import type { SeedResult } from '../../../contracts/seed-result/seed-result-contract';
 import { recipesLocateBrokerProxy } from '../../recipes/locate/recipes-locate-broker.proxy';
+
+type SeedResult = ReturnType<typeof SeedResultStub>;
 
 const ENTRY_PATH: FilePath = FilePathStub({
   value: '/repo/packages/hydration-recipes/dist/index.js',
@@ -26,11 +27,13 @@ export const recipeSeedRunBrokerProxy = (): {
   bookPresent: () => void;
   bookPresentAt: (params: { packagePath: string }) => void;
   bookMissing: () => void;
-  guildLaneAnswers: (params: {
-    apiBaseUrl: ContentText;
+  guildWithThreeQuestsAnswers: (params: {
     guild: Guild;
-    questIds: readonly ContentText[];
+    questCreated: Quest;
+    questInProgress: Quest;
+    questComplete: Quest;
   }) => void;
+  malformedAnswer: () => void;
 } => {
   const locateProxy = recipesLocateBrokerProxy();
   const importProxy = runtimeDynamicImportAdapterProxy();
@@ -63,24 +66,37 @@ export const recipeSeedRunBrokerProxy = (): {
       locateProxy.setupPackageMissing({ cwdPath: '/repo', packagePath: PACKAGE_PATH });
     },
 
-    guildLaneAnswers: ({
-      apiBaseUrl: _apiBaseUrl,
+    // Shaped like `dmRegistryBroker.run`'s own real return for `guild-with-three-quests` — the
+    // FULL saved row under each `saveRecordAs` name, never a flattened id (see
+    // recipes-guild-with-three-quests-broker.integration.test.ts, the real producer this fakes).
+    guildWithThreeQuestsAnswers: ({
       guild,
-      questIds,
+      questCreated,
+      questInProgress,
+      questComplete,
     }: {
-      apiBaseUrl: ContentText;
       guild: Guild;
-      questIds: readonly ContentText[];
+      questCreated: Quest;
+      questInProgress: Quest;
+      questComplete: Quest;
     }): void => {
       stageEntry();
-      const firstQuestId =
-        questIds[0] ?? ContentTextStub({ value: 'bbbbbbbb-2222-4222-8222-222222222222' });
       const result: SeedResult = SeedResultStub({
-        guildId: guild.id,
-        guildSlug: ContentTextStub({ value: guild.urlSlug ?? 'siege-guild' }),
-        questId: firstQuestId,
+        guild,
+        questCreated,
+        questInProgress,
+        questComplete,
       });
       moduleExports[recipesConventionStatics.exports.seed] = jest.fn().mockResolvedValue(result);
+    },
+
+    // Neither a ContentText nor a saved-row record — fails BOTH branches of `seedResultContract`'s
+    // union, for the error-surface case: a shape neither this fixture nor any real recipe produces.
+    malformedAnswer: (): void => {
+      stageEntry();
+      moduleExports[recipesConventionStatics.exports.seed] = jest
+        .fn()
+        .mockResolvedValue({ guild: 123 });
     },
   };
 };

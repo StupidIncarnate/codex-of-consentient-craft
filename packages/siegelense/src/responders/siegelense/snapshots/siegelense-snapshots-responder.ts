@@ -24,14 +24,14 @@ import { snapshotsAnswerRenderTransformer } from '../../../transformers/snapshot
 
 export const SiegelenseSnapshotsResponder = async ({
   instanceId,
-  json = false,
+  isJson = false,
 }: {
   instanceId: InstanceId;
-  json?: boolean | undefined;
+  isJson?: boolean | undefined;
 }): Promise<AdapterResult> => {
   const answer = await snapshotListBroker({ instanceId });
   process.stdout.write(
-    json
+    isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : snapshotsAnswerRenderTransformer({
           answer,

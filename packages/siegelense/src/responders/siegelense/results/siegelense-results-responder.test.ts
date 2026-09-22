@@ -21,13 +21,13 @@ describe('SiegelenseResultsResponder', () => {
       expect(proxy.getStdoutWrites()).toStrictEqual([resultsAnswerRenderTransformer({ answer })]);
     });
 
-    it('VALID: {json: true} => writes the complete ResultsAnswer as raw JSON', async () => {
+    it('VALID: {isJson: true} => writes the complete ResultsAnswer as raw JSON', async () => {
       const proxy = SiegelenseResultsResponderProxy();
       const query = ResultsQueryStub({ runId: RunIdStub({ value: 'run_2' }) });
       const answer = ResultsAnswerStub({ instanceId: query.instanceId, runId: query.runId });
       proxy.stageAnswer({ answer });
 
-      await SiegelenseResultsResponder({ query, json: true });
+      await SiegelenseResultsResponder({ query, isJson: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
@@ -46,7 +46,7 @@ describe('SiegelenseResultsResponder', () => {
       });
       proxy.stageAnswer({ answer });
 
-      await SiegelenseResultsResponder({ query, json: true });
+      await SiegelenseResultsResponder({ query, isJson: true });
 
       expect(proxy.getWrittenAnswer()).toStrictEqual(answer);
     });

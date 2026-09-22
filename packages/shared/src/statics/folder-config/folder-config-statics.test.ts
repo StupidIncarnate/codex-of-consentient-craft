@@ -131,15 +131,16 @@ describe('folderConfigStatics', () => {
         ],
         disallowAdhocTypes: true,
         requireProxy: false,
-        allowsLayerFiles: false,
+        allowsLayerFiles: true,
         allowRegex: false,
         requireContractDeclarations: true,
         testType: 'integration',
         requireStub: false,
         meta: {
           purpose:
-            'Top-level orchestration components (React) that wire up responders. Entry points for major application flows.',
-          whenToUse: 'Define routes or entry points',
+            'Top-level orchestration components (React) that wire up responders. One flow file per entry point — a route, a command, a subcommand — with the domain-level file routing to a layer flow per entry point rather than wiring every entry point inline.',
+          whenToUse:
+            'Define a route or entry point; one file per entry point, routed through a layer flow',
         },
       },
       adapters: {

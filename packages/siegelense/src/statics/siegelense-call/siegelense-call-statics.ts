@@ -30,7 +30,6 @@ export const siegelenseCallStatics = {
       'recipes',
       'docs',
     ],
-    humanRenderers: ['status', 'cleanup', 'prune', 'recipes', 'docs'],
   },
   docs: {
     scopes: ['operating', 'planning', 'walking', 'attacking', 'fixing', 'driving', 'operational'],

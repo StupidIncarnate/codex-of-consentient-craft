@@ -9,14 +9,14 @@ describe('docsArgsParseTransformer', () => {
       (scope) => {
         const result = docsArgsParseTransformer({ args: ['--for', scope] });
 
-        expect(result).toStrictEqual({ scope, json: false });
+        expect(result).toStrictEqual({ scope, isJson: false });
       },
     );
 
-    it('VALID: {args: ["--for", "walking", "--json"]} => one scope with json flag', () => {
+    it('VALID: {args: ["--for", "walking", "--json"]} => one scope with isJson flag', () => {
       const result = docsArgsParseTransformer({ args: ['--for', 'walking', '--json'] });
 
-      expect(result).toStrictEqual({ scope: 'walking', json: true });
+      expect(result).toStrictEqual({ scope: 'walking', isJson: true });
     });
   });
 

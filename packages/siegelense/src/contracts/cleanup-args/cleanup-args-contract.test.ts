@@ -3,25 +3,25 @@ import { CleanupArgsStub } from './cleanup-args.stub';
 
 describe('cleanupArgsContract', () => {
   describe('valid args', () => {
-    it('VALID: {human: true} => the default human form parses', () => {
+    it('VALID: {isJson: false} => the default human form parses', () => {
       const args = CleanupArgsStub();
 
       const result = cleanupArgsContract.parse(args);
 
-      expect(result).toStrictEqual({ human: true });
+      expect(result).toStrictEqual({ isJson: false });
     });
 
-    it('VALID: {human: false} => the explicit JSON form parses', () => {
-      const args = CleanupArgsStub({ human: false });
+    it('VALID: {isJson: true} => the explicit JSON form parses', () => {
+      const args = CleanupArgsStub({ isJson: true });
 
       const result = cleanupArgsContract.parse(args);
 
-      expect(result).toStrictEqual({ human: false });
+      expect(result).toStrictEqual({ isJson: true });
     });
   });
 
   describe('invalid args', () => {
-    it('INVALID: {missing human} => raises exactly one issue, scoped to human', () => {
+    it('INVALID: {missing isJson} => raises exactly one issue, scoped to isJson', () => {
       const result = cleanupArgsContract.safeParse({});
 
       expect(result.success).toBe(false);
@@ -30,7 +30,7 @@ describe('cleanupArgsContract', () => {
           code: 'invalid_type',
           expected: 'boolean',
           received: 'undefined',
-          path: ['human'],
+          path: ['isJson'],
           message: 'Required',
         },
       ]);
@@ -39,7 +39,7 @@ describe('cleanupArgsContract', () => {
     it('INVALID: {extra key "instanceId"} => throws Unrecognized key, no extra field is accepted', () => {
       expect(() =>
         cleanupArgsContract.parse({
-          human: false,
+          isJson: true,
           instanceId: 'inst_7f3a9c21',
         } as never),
       ).toThrow(/Unrecognized key/u);

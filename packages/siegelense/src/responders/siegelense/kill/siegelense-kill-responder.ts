@@ -28,10 +28,10 @@ import { killAnswerRenderTransformer } from '../../../transformers/kill-answer-r
 
 export const SiegelenseKillResponder = async ({
   instanceId,
-  json = false,
+  isJson = false,
 }: {
   instanceId: InstanceId;
-  json?: boolean | undefined;
+  isJson?: boolean | undefined;
 }): Promise<AdapterResult> => {
   const registry = await registryReadBroker();
   const isKnownInstance = registry.instances.some((candidate) => candidate.id === instanceId);
@@ -41,7 +41,7 @@ export const SiegelenseKillResponder = async ({
 
   const result = await instanceKillBroker({ instanceId });
   process.stdout.write(
-    json
+    isJson
       ? `${JSON.stringify(result, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : killAnswerRenderTransformer({ result }),
   );

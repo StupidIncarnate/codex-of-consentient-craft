@@ -5,6 +5,6 @@ import type { CleanupArgs } from './cleanup-args-contract';
 
 export const CleanupArgsStub = ({ ...props }: StubArgument<CleanupArgs> = {}): CleanupArgs =>
   cleanupArgsContract.parse({
-    human: true,
+    isJson: false,
     ...props,
   });

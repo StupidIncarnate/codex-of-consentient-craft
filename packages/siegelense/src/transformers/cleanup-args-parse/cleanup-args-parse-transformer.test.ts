@@ -5,13 +5,13 @@ describe('cleanupArgsParseTransformer', () => {
     it('EMPTY: {args: []} => the human default', () => {
       const result = cleanupArgsParseTransformer({ args: [] });
 
-      expect(result).toStrictEqual({ human: true });
+      expect(result).toStrictEqual({ isJson: false });
     });
 
     it('VALID: {args: [--json]} => json flag parses to raw JSON output', () => {
       const result = cleanupArgsParseTransformer({ args: ['--json'] });
 
-      expect(result).toStrictEqual({ human: false });
+      expect(result).toStrictEqual({ isJson: true });
     });
 
     it('INVALID: {args: [--human]} => --human is refused as an unknown flag', () => {

@@ -42,12 +42,6 @@ Im having to reach for harnesses for quick fixes cause I know I dont need a full
 or
 I need chaoswhisper to choose a playbook depending on user request.
 
-# Orchastrator needs to be json configurable
-
-Right now its very code driven do this then this then this. Its not flexible to change if I need to test stuff or try
-different models.
-So we need to generalize the orchastrator via config so that pivots are easier.
-
 # Flow graphs are gonna need a simplier starter to make them easier to consume and then figure out if observables are too granular or if we need user observables and then llm observables.
 
 Theyre already feeling granular which is annoying. Figure out what I care about vs not.

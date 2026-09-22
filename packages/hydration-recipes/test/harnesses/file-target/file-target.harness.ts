@@ -41,6 +41,13 @@
  * prove a refused delete left a quest's directory untouched, since a thrown error alone never
  * observed the filesystem.
  *
+ * `readQuestByTitle` walks every guild directory's quest folders and parses each `quest.json`,
+ * returning the first whose `title` matches. Reach for it when a plan run REJECTS partway through
+ * (a real gate refusing a later hop) and the rejection loses every `saveRecordAs` result the run
+ * would otherwise have returned — the quest rows a plan already created and wrote before the
+ * refusing op are still real files on disk, and this is how a test reads their actual last-landed
+ * state rather than asserting nothing about them at all.
+ *
  * `denyWrites` chmods the target's own root to `0o500` (read/execute, no write), so a route's own
  * `mkdir`/`writeFile` underneath it fails with a real `EACCES` — the same mechanism
  * `plan-run-broker.integration.test.ts` uses one package over. `allowWrites` restores `0o700` before
@@ -66,8 +73,10 @@ import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import type { DmTarget } from '../../../src/contracts/dm-target/dm-target-contract';
 
 type GuildId = ReturnType<typeof GuildStub>['id'];
-type QuestFolder = ReturnType<typeof QuestStub>['folder'];
-type QuestOperations = ReturnType<typeof QuestStub>['operations'];
+type Quest = ReturnType<typeof QuestStub>;
+type QuestFolder = Quest['folder'];
+type QuestOperations = Quest['operations'];
+type QuestTitle = Quest['title'];
 
 const DUNGEONMASTER_HOME_ENV_VAR = 'DUNGEONMASTER_HOME';
 const EMPTY_GUILD_CONFIG = { guilds: [] };
@@ -80,6 +89,7 @@ export const fileTargetHarness = (): {
     guildId: GuildId;
     questFolder: QuestFolder;
   }) => QuestOperations;
+  readQuestByTitle: (params: { title: QuestTitle }) => Quest;
   questFolderExists: (params: { guildId: GuildId; questFolder: QuestFolder }) => boolean;
   denyWrites: () => void;
   allowWrites: () => void;
@@ -140,6 +150,52 @@ export const fileTargetHarness = (): {
       const parsedJson = JSON.parse(String(contents)) as StubArgument<ReturnType<typeof QuestStub>>;
       const parsed = QuestStub(parsedJson);
       return parsed.operations;
+    },
+    readQuestByTitle: ({ title }: { title: QuestTitle }): Quest => {
+      if (testbed === undefined) {
+        throw new Error(
+          'fileTargetHarness: readQuestByTitle() called outside beforeEach/afterEach',
+        );
+      }
+      const guildIds =
+        testbed.listDir({
+          relativePath: RelativePathStub({ value: dungeonmasterHomeStatics.paths.guildsDir }),
+        }) ?? [];
+      for (const guildId of guildIds) {
+        const questFolders =
+          testbed.listDir({
+            relativePath: RelativePathStub({
+              value: [
+                dungeonmasterHomeStatics.paths.guildsDir,
+                guildId,
+                dungeonmasterHomeStatics.paths.questsDir,
+              ].join('/'),
+            }),
+          }) ?? [];
+        for (const questFolder of questFolders) {
+          const relativePath = RelativePathStub({
+            value: [
+              dungeonmasterHomeStatics.paths.guildsDir,
+              guildId,
+              dungeonmasterHomeStatics.paths.questsDir,
+              questFolder,
+              dungeonmasterHomeStatics.paths.questFile,
+            ].join('/'),
+          });
+          const contents = testbed.readFile({ relativePath });
+          if (contents === null) {
+            continue;
+          }
+          const parsedJson = JSON.parse(String(contents)) as StubArgument<
+            ReturnType<typeof QuestStub>
+          >;
+          const parsed = QuestStub(parsedJson);
+          if (parsed.title === title) {
+            return parsed;
+          }
+        }
+      }
+      throw new Error(`fileTargetHarness: no quest found with title "${String(title)}"`);
     },
     questFolderExists: ({
       guildId,

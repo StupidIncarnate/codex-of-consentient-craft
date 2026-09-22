@@ -3,20 +3,20 @@ import { KillArgsStub } from './kill-args.stub';
 
 describe('killArgsContract', () => {
   describe('valid args', () => {
-    it('VALID: {instanceId: "inst_7f3a9c21"} => parses with json: false by default', () => {
+    it('VALID: {instanceId: "inst_7f3a9c21"} => parses with isJson: false by default', () => {
       const args = KillArgsStub({ instanceId: 'inst_7f3a9c21' });
 
       const result = killArgsContract.parse(args);
 
-      expect(result).toStrictEqual({ instanceId: 'inst_7f3a9c21', json: false });
+      expect(result).toStrictEqual({ instanceId: 'inst_7f3a9c21', isJson: false });
     });
 
-    it('VALID: {instanceId, json: true} => parses with json: true', () => {
-      const args = KillArgsStub({ instanceId: 'inst_7f3a9c21', json: true });
+    it('VALID: {instanceId, isJson: true} => parses with isJson: true', () => {
+      const args = KillArgsStub({ instanceId: 'inst_7f3a9c21', isJson: true });
 
       const result = killArgsContract.parse(args);
 
-      expect(result).toStrictEqual({ instanceId: 'inst_7f3a9c21', json: true });
+      expect(result).toStrictEqual({ instanceId: 'inst_7f3a9c21', isJson: true });
     });
   });
 

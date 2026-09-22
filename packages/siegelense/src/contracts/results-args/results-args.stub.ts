@@ -13,6 +13,6 @@ export const ResultsArgsStub = ({ ...props }: StubArgument<ResultsArgs> = {}): R
     where: null,
     fields: null,
     since: null,
-    json: false,
+    isJson: false,
     ...props,
   });

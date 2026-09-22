@@ -1,7 +1,7 @@
 /**
  * PURPOSE: The surface `dungeonmaster siegelense prune` serves — the operator's reclaim table through
- * `pruneAnswerRenderTransformer` by default (when `human` is true or omitted), or one JSON document on
- * stdout (the raw `PruneAnswer`) when `human` is false (opted into with `--json`). Writes through
+ * `pruneAnswerRenderTransformer` by default (when `isJson` is false or omitted), or one JSON document
+ * on stdout (the raw `PruneAnswer`) when `isJson` is true (opted into with `--json`). Writes through
  * `process.stdout.write`, never `console.log`, matching every other siegelense responder. Carries no
  * refusal of its own: the argv parser has already rejected an unreadable window and a bad instance id
  * under their own flag names, and `pruneRunBroker` throws `InstanceUnknownError` for an id the registry
@@ -13,7 +13,7 @@
  * await SiegelensePruneResponder({ query: PruneQueryStub() });
  * // Writes what was freed, what was taken, what was refused and which citation kinds went unchecked
  *
- * await SiegelensePruneResponder({ query: PruneQueryStub(), human: false });
+ * await SiegelensePruneResponder({ query: PruneQueryStub(), isJson: true });
  * // Writes the PruneAnswer as one JSON document
  */
 
@@ -27,16 +27,16 @@ import { pruneAnswerRenderTransformer } from '../../../transformers/prune-answer
 
 export const SiegelensePruneResponder = async ({
   query,
-  human = true,
+  isJson = false,
 }: {
   query: PruneQuery;
-  human?: boolean;
+  isJson?: boolean;
 }): Promise<AdapterResult> => {
   const answer = await pruneRunBroker({ query });
   process.stdout.write(
-    human
-      ? pruneAnswerRenderTransformer({ answer })
-      : `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+    isJson
+      ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
+      : pruneAnswerRenderTransformer({ answer }),
   );
   return adapterResultContract.parse({ success: true });
 };

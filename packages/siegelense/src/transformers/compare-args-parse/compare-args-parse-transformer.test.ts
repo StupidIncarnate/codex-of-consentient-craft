@@ -11,13 +11,13 @@ describe('compareArgsParseTransformer', () => {
         instanceId: 'inst_7f3a9c21',
         runA: 'run_4',
         runB: 'run_5',
-        json: false,
+        isJson: false,
       });
     });
   });
 
-  describe('--json sets json: true', () => {
-    it('VALID: {--instance, --run-a, --run-b, --json} => returns object with json: true', () => {
+  describe('--json sets isJson: true', () => {
+    it('VALID: {--instance, --run-a, --run-b, --json} => returns object with isJson: true', () => {
       const result = compareArgsParseTransformer({
         args: ['--instance', 'inst_7f3a9c21', '--run-a', 'run_4', '--run-b', 'run_5', '--json'],
       });
@@ -26,7 +26,7 @@ describe('compareArgsParseTransformer', () => {
         instanceId: 'inst_7f3a9c21',
         runA: 'run_4',
         runB: 'run_5',
-        json: true,
+        isJson: true,
       });
     });
   });

@@ -23,17 +23,14 @@ import { profileAnswerRenderTransformer } from '../../../transformers/profile-an
 export const SiegelenseProfileResponder = async ({
   specName,
   isJson = false,
-  human,
 }: {
   specName: SpecName;
   isJson?: boolean;
-  human?: boolean;
 }): Promise<AdapterResult> => {
   const profile = await profileReadBroker({ specName });
-  const shouldOutputJson = human === undefined ? isJson : !human;
 
   process.stdout.write(
-    shouldOutputJson
+    isJson
       ? `${JSON.stringify(profile, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : profileAnswerRenderTransformer({ profile }),
   );

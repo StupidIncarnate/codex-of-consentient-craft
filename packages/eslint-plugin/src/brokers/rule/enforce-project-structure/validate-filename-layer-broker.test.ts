@@ -398,7 +398,7 @@ describe('validateFilenameLayerBroker', () => {
       });
     });
 
-    it('INVALID: flow missing -flow.tsx => reports invalidFileSuffix', () => {
+    it('INVALID: flow missing -flow.tsx => reports invalidFileSuffixWithLayer', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -417,7 +417,7 @@ describe('validateFilenameLayerBroker', () => {
       expect(result).toBe(false);
       expect(mockReport).toHaveBeenCalledWith({
         node,
-        messageId: 'invalidFileSuffix',
+        messageId: 'invalidFileSuffixWithLayer',
         data: { expected: '-flow.ts or -flow.tsx', folderType: firstFolder },
       });
     });

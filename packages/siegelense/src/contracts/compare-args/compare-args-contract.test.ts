@@ -16,16 +16,16 @@ describe('compareArgsContract', () => {
         instanceId: 'inst_7f3a9c21',
         runA: 'run_4',
         runB: 'run_5',
-        json: false,
+        isJson: false,
       });
     });
 
-    it('VALID: {json: true} => parses with json: true', () => {
+    it('VALID: {isJson: true} => parses with isJson: true', () => {
       const args = CompareArgsStub({
         instanceId: 'inst_7f3a9c21',
         runA: 'run_4',
         runB: 'run_5',
-        json: true,
+        isJson: true,
       });
 
       const result = compareArgsContract.parse(args);
@@ -34,7 +34,7 @@ describe('compareArgsContract', () => {
         instanceId: 'inst_7f3a9c21',
         runA: 'run_4',
         runB: 'run_5',
-        json: true,
+        isJson: true,
       });
     });
   });

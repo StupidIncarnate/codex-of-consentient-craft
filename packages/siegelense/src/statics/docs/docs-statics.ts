@@ -53,7 +53,7 @@ export const docsStatics = {
             'This command only affects stale instances. It never shuts down an active instance, so it is safe to run at any time, even while a test pass is running.',
             'It removes stale instances, frees up their network ports, removes the registry lock, and deletes old assets based on their age. It uses the exact same safety checks as the prune command, so it will not delete any evidence that is still needed by a verified test or an open issue.',
             'The command output will tell you if any instances were intentionally left alone. This helps you confirm that the cleanup process worked correctly.',
-            'You can add the --human flag to see the output as a readable table. By default, it returns a single JSON object.',
+            'By default, the output renders as a readable table. Add the --json flag to get a single JSON object instead.',
           ],
         },
         {
@@ -74,7 +74,7 @@ export const docsStatics = {
             'Running status without arguments will not list the individual runs or evidence for an instance. To see those, you must provide a specific instance ID. This prevents unnecessary browsing: operators only need high-level fleet state to manage instances.',
             'Run dungeonmaster siegelense status --instance <id> to see full details for a single instance. This includes its last heartbeat, the last step it executed, its memory usage at that time, any leftover orphan processes, paths to its saved evidence, and a likely cause of failure.',
             'When an instance is cleaned up, its entry becomes a tombstone and remains visible as long as its evidence exists on disk. This allows investigators to check the status of an instance even after it has been shut down.',
-            'You can add the --human flag to format the fleet status as a readable table.',
+            'By default, the fleet status renders as a readable table. Add the --json flag to get the raw JSON document instead.',
           ],
         },
         {

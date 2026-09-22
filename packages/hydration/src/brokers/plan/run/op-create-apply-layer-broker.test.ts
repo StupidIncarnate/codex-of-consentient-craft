@@ -232,7 +232,7 @@ describe('opCreateApplyLayerBroker', () => {
           state,
         }),
       ).rejects.toThrow(
-        /^recipe "guild-mid-execution": ingredient "guild"'s "api" route refused the connection with no URL known: Error: connect ECONNREFUSED 127\.0\.0\.1:1$/u,
+        /^recipe "guild-mid-execution": ingredient "guild"'s "api" route failed with no URL known: Error: connect ECONNREFUSED 127\.0\.0\.1:1$/u,
       );
     });
 

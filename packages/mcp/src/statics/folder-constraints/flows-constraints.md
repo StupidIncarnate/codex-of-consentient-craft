@@ -11,7 +11,30 @@ flows/
   install/
     install-flow.ts      # Package: delegates to responder
     install-flow.integration.test.ts
+  widget-cli/
+    widget-cli-flow.ts                                # Router: resolves command -> layer flow
+    widget-cli-flow.integration.test.ts
+    widget-cli-create-layer-flow.ts                    # One entry point: the `create` command
+    widget-cli-create-layer-flow.integration.test.ts
+    widget-cli-list-layer-flow.ts                      # One entry point: the `list` command
+    widget-cli-list-layer-flow.integration.test.ts
 ```
+
+**ONE FLOW FILE PER ENTRY POINT:**
+
+An entry point is one route, one command, or one subcommand. A flow wiring N entry points holds N
+layer files. A single map, switch or router with every entry point inline is the shape this rule
+refuses.
+
+- The root `-flow.ts` is routing and nothing else — it resolves an entry point to its layer flow. It
+  parses no arguments, calls no responder directly, and holds no per-entry-point logic.
+- A layer flow owns exactly ONE entry point and that entry point's whole argument surface.
+- Every layer flow carries its own `.integration.test.ts`, beside it — same as the root.
+
+Layer flows sit flat beside the router, never in a subfolder: `flows/` keeps `folderDepth: 1` and
+takes layer files the same way `widgets/` and `brokers/` do. Naming follows the layer convention —
+`{descriptive-name}-layer-flow.ts`, exporting `{DescriptiveName}LayerFlow` — and a layer flow carries
+no `.proxy.ts`, same as the root: flows never require one, so their layers don't either.
 
 **THREE TYPES OF FLOWS:**
 

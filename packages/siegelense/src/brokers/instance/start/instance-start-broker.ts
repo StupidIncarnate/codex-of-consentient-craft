@@ -360,6 +360,18 @@ export const instanceStartBroker = async ({
         }) === bootedEntry.ports.web,
     );
 
+    // Same reasoning as `hasWebSurface`, for the `api` half of the pair — both built-in specs
+    // (`dungeonmaster-stack` and `dungeonmaster-api`) carry the same `API_PROCESS` entry, so this is
+    // true for either today, but a future spec with no api process gets an honestly-omitted `apiUrl`
+    // rather than a URL built off a port nothing binds.
+    const hasApiSurface = spec.processes.some(
+      (laneProcess) =>
+        laneProcessPortResolveTransformer({
+          portRole: laneProcess.portRole,
+          ports: bootedEntry.ports,
+        }) === bootedEntry.ports.api,
+    );
+
     // `--seed` runs from THIS side rather than down the driver socket: the client half already
     // holds the booted lane's api port and the deterministic home, so building a RecipeContext
     // costs nothing, and routing it through `run` instead would burn a run id and write a
@@ -389,6 +401,15 @@ export const instanceStartBroker = async ({
             `http://${environmentStatics.hostname}:${String(bootedEntry.ports.web)}`,
           )
         : null,
+      // `apiUrl` is `.optional()`, not `.nullable()` (unlike `baseUrl`) — omitted entirely rather
+      // than set to `null` when the spec has no api surface, matching exactOptionalPropertyTypes.
+      ...(hasApiSurface
+        ? {
+            apiUrl: contentTextContract.parse(
+              `http://${environmentStatics.hostname}:${String(bootedEntry.ports.api)}`,
+            ),
+          }
+        : {}),
       home: homePath,
       evidence: evidenceRepoLocal,
       logs: { api: apiLogRepoLocal, web: webLogRepoLocal },

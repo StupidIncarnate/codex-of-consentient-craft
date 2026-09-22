@@ -26,18 +26,15 @@ export const SiegelenseCapacityResponder = async ({
   specName,
   poolSize,
   isJson = false,
-  human,
 }: {
   specName: SpecName;
   poolSize: ProfilePoolSize | null;
   isJson?: boolean;
-  human?: boolean;
 }): Promise<AdapterResult> => {
   const answer = await capacityReadBroker({ specName, poolSize });
-  const shouldOutputJson = human === undefined ? isJson : !human;
 
   process.stdout.write(
-    shouldOutputJson
+    isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : capacityAnswerRenderTransformer({ answer }),
   );

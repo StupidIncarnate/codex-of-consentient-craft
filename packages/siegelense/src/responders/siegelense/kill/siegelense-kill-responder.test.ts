@@ -28,7 +28,7 @@ describe('SiegelenseKillResponder', () => {
       ]);
     });
 
-    it('VALID: {json: true} => writes the complete KillResult as one JSON document', async () => {
+    it('VALID: {isJson: true} => writes the complete KillResult as one JSON document', async () => {
       const proxy = SiegelenseKillResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c1234' });
       const registry = RegistryStub({
@@ -38,7 +38,7 @@ describe('SiegelenseKillResponder', () => {
       proxy.stageRegistry({ registry });
       proxy.stageKillResult({ result: killResult });
 
-      await SiegelenseKillResponder({ instanceId, json: true });
+      await SiegelenseKillResponder({ instanceId, isJson: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(killResult, null, siegelenseOutputStatics.json.indentSpaces)}\n`,

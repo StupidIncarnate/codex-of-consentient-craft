@@ -1,12 +1,12 @@
 /**
- * PURPOSE: What `dungeonmaster siegelense cleanup`'s argv parses into — `human` is the ONLY field,
+ * PURPOSE: What `dungeonmaster siegelense cleanup`'s argv parses into — `isJson` is the ONLY field,
  * because `cleanup` takes no other input (siegelense-tooling.md line 2409): human-readable output
  * is the default, and `--json` selects the raw JSON output.
  * Reach for this over `z.object({})` directly: a bare empty object gives a reader nothing to name
  * when the parser rejects every other flag.
  *
  * USAGE:
- * cleanupArgsContract.parse({ human: true });
+ * cleanupArgsContract.parse({ isJson: false });
  * // Returns a validated CleanupArgs
  */
 
@@ -14,7 +14,7 @@ import { z } from 'zod';
 
 export const cleanupArgsContract = z
   .object({
-    human: z.boolean(),
+    isJson: z.boolean(),
   })
   .strict();
 

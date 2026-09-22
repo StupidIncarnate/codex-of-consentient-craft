@@ -168,8 +168,7 @@ export const questStatusInputAllowlistStatics = {
     // `operationPlans`, the plan it reads back rather than holding in context. Every
     // execution role also appends `questNotes`, the durable side channel for open questions,
     // tooling errors, out-of-scope observations, and walk resets; this is the only status those
-    // roles run at, so it is the only status that need accept them. Verification sign-offs are not
-    // here at all — they ride `flows`, on the element that carries them.
+    // roles run at, so it is the only status that need accept them.
     allowedPlanningNotesFields: 'all',
   },
   paused: {

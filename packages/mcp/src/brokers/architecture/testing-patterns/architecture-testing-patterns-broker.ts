@@ -699,6 +699,33 @@ Integration tests that spawn processes or poll for state can time out silently �
 4. **Search SOURCE, not \`dist/\`:** jest reads source, so a stale \`dist/\` never explains an in-process hang. Use \`discover({ grep: 'oldFieldName' })\`; bash \`grep\` is hook-blocked.
 5. **Check poll helpers:** If the test uses \`pollForStatus\` or similar, the poll may be waiting for a status that the system will never reach (e.g., polling for \`complete\` when the quest went to \`blocked\`).`;
 
+  // Argument Coverage for Entry Points
+  const argumentCoverage = `**Every documented argument of an entry point needs a test.** Covering the entry point's default invocation is not covering the entry point — a flag no test ever sets is a flag no test ever proves works.
+
+**"Every argument" means, for each entry point:**
+
+- Each flag present.
+- Each flag absent, where absence changes behaviour.
+- Each value of a documented enum flag.
+- The refusal when a required flag is missing.
+- Each documented combination that is mutually exclusive or co-required.
+
+**A test that exercises only the argument PARSER does not cover the argument.** Asserting that a flag parses into the right field proves the parser works, not that the flag does anything. The test must reach the BEHAVIOUR the argument selects — the effect the documentation promises, not the value on the way in.
+
+\`\`\`typescript
+// ❌ WRONG - proves the parser assigns the field, proves nothing about what --format does
+const args = widgetCliArgsParse(['create', '--format', 'json']);
+expect(args.format).toBe('json');
+
+// ✅ CORRECT - drives the real command and asserts the effect --format documents
+const result = await WidgetCliCreateLayerFlow({ args: { format: 'json' } });
+expect(result.output).toMatch(/^\\{/u);
+\`\`\`
+
+**A test that stages a boundary with a shape the real producer never emits passes while the feature is broken.** Where a flow's argument crosses a package boundary, the coverage that counts is an integration test running the real code on both sides. A unit test whose mock is the only description of that boundary describes the mock, not the boundary, and the two can drift apart with nothing to catch it — a mock invented to match the caller's assumptions, not the producer's real output, is how a documented flag ships broken.
+
+**Restated:** a green suite that never drove a flag through its real path is not evidence the flag works. Cover the default invocation AND the full argument surface — every documented flag, every enum value, every required-flag refusal, every mutually exclusive or co-required combination — crossing every package boundary for real.`;
+
   // Lint rules that BLOCK the edit (pre-edit hook)
   const editBlockingRules = `The pre-edit-lint hook runs these rules BEFORE your Edit/Write lands. A violation BLOCKS the edit — the file is NOT written, so re-submit the ENTIRE corrected edit, not a surgical follow-up (nothing was applied). Top offenders when writing tests:
 
@@ -857,6 +884,10 @@ ${endpointMock}
 
 ${integrationTesting}
 
+## Argument Coverage for Entry Points
+
+${argumentCoverage}
+
 ## No Hooks or Conditionals
 
 ${noHooksConditionals}
@@ -889,6 +920,7 @@ Before writing any test, verify:
 - [ ] Each test is self-contained and isolated
 - [ ] DSL/query logic uses integration tests (real execution)
 - [ ] Parameterized state matrices with \`it.each\`/\`describe.each\` when 3+ cases differ only by input value
+- [ ] Every documented argument of an entry point is covered — each flag present, each flag absent, each enum value, the required-flag refusal, each mutually exclusive or co-required combination — reaching real behaviour across any package boundary it crosses
 `;
 
   return contentTextContract.parse(markdown);

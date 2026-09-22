@@ -1,7 +1,7 @@
 /**
  * PURPOSE: The surface `dungeonmaster siegelense recipes [--json]` serves — the per-recipe block
  * `recipesAnswerRenderTransformer` renders by default, or one JSON document on stdout (the raw
- * `RecipesAnswer`) when `human` is false. Takes no `instanceId`: `recipes`
+ * `RecipesAnswer`) when `isJson` is true. Takes no `instanceId`: `recipes`
  * lists what states CAN be created, not what a running instance is doing (siegelense-recipes.md's
  * "The calls this document uses" section, "No instance needed"), so — unlike
  * `SiegelenseStatusResponder` — this responder never resolves or touches a live instance. Wraps
@@ -18,7 +18,7 @@
  * await SiegelenseRecipesResponder();
  * // Writes one block per recipe, or 'no recipes declared yet' when the listing is empty
  *
- * await SiegelenseRecipesResponder({ human: false });
+ * await SiegelenseRecipesResponder({ isJson: true });
  * // Writes the RecipesAnswer as one JSON document
  */
 
@@ -31,16 +31,16 @@ import { siegelenseOutputStatics } from '../../../statics/siegelense-output/sieg
 import { recipesAnswerRenderTransformer } from '../../../transformers/recipes-answer-render/recipes-answer-render-transformer';
 
 export const SiegelenseRecipesResponder = async ({
-  human = true,
+  isJson = false,
 }: {
-  human?: boolean;
+  isJson?: boolean;
 } = {}): Promise<AdapterResult> => {
   const recipes = await recipesReadBroker();
   const answer = recipesAnswerContract.parse({ recipes });
   process.stdout.write(
-    human
-      ? recipesAnswerRenderTransformer({ answer })
-      : `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+    isJson
+      ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
+      : recipesAnswerRenderTransformer({ answer }),
   );
   return adapterResultContract.parse({ success: true });
 };

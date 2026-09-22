@@ -8,7 +8,7 @@
  *
  * USAGE:
  * recipesArgsParseTransformer({ args: [] });
- * // Returns { human: true } as RecipesArgs
+ * // Returns { isJson: false } as RecipesArgs
  */
 
 import {
@@ -41,7 +41,7 @@ export const recipesArgsParseTransformer = ({ args }: { args: readonly string[] 
     );
   }
 
-  const human = !args.includes(siegelenseOutputStatics.flags.json);
+  const isJson = args.includes(siegelenseOutputStatics.flags.json);
 
-  return recipesArgsContract.parse({ human });
+  return recipesArgsContract.parse({ isJson });
 };
