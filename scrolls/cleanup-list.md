@@ -97,3 +97,6 @@ Orchastrator rules for yourself and the two orchastrators being launched in step
   agent to unblock.
 - "Pre-existing bugs" and clean up items that make code cleaner are not to be ignored and tabled. We have a couple large
   feature sets trying to merge at once and we need to make sure alls clean by the time we're done.
+- Orchastrators are free to use best judgment if decision calls come up. A user will manually review all functionality
+  once these feature sets get merged into master after they are feature complement and fully implemented.
+- Do not ask the user questions about requirements. Make best judgement call based on info available. 
