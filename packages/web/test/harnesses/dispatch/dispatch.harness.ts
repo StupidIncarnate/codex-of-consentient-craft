@@ -33,6 +33,8 @@ import {
   WardQueueResponseStub,
   questContract,
 } from '@dungeonmaster/shared/contracts';
+import { dmHttpResponseContract } from '@dungeonmaster/hydration-recipes/contracts';
+import type { DmHttpResponse } from '@dungeonmaster/hydration-recipes/contracts';
 
 import { claudeMockHarness } from '../claude-mock/claude-mock.harness';
 import { dispatchPauseHarness } from '../dispatch-pause/dispatch-pause.harness';
@@ -130,6 +132,15 @@ export const dispatchHarness = ({
     predicate: (params: { quest: Quest }) => boolean;
     timeoutMs: number;
   }) => Promise<Quest>;
+  // Plays the dispatcher directly, with no quest seeded and no script queued — for a spec that
+  // measures the leak between specs rather than driving a real relay. See its own body for why
+  // this is RAW ON PURPOSE.
+  forcePlayDispatcher: () => Promise<{ status: DmHttpResponse['status'] }>;
+  // Calls the real POST /api/quests/:questId/start route — the same one the Begin Quest button
+  // calls — and hands back its status code. See its own body for why this is RAW ON PURPOSE.
+  startQuestViaStartRoute: (params: {
+    questId: string;
+  }) => Promise<{ status: DmHttpResponse['status'] }>;
 } => {
   const claudeMock = claudeMockHarness({
     guildPath,
@@ -312,6 +323,31 @@ export const dispatchHarness = ({
         return poll();
       };
       return poll();
+    },
+    // RAW ON PURPOSE — no domain record models "the dispatcher is playing": it is a live
+    // orchestration toggle, not a guild/quest/session/operation row, so no dmRegistryBroker
+    // ingredient carries a verb for it (the same gap `dispatchPauseHarness.pause` already
+    // documents for the pause route's own construction site). Reaches the play route directly,
+    // the same force:true POST `playAndDrive` makes internally, standalone — for a spec that
+    // plays the dispatcher with no quest seeded at all and needs the raw response status back.
+    forcePlayDispatcher: async (): Promise<{ status: DmHttpResponse['status'] }> => {
+      const response = await request.post(DISPATCH_PLAY_ROUTE, { data: { force: true } });
+      return { status: dmHttpResponseContract.shape.status.parse(response.status()) };
+    },
+    // RAW ON PURPOSE — the quest ingredient's `transitions.reach` (questReachRouteBroker in
+    // @dungeonmaster/hydration-recipes) CAN walk a quest to `in_progress` through this exact
+    // production route, via `.set({ status: 'in_progress' })` on an api target — but its own
+    // dmHttpResponseUnwrapAdapter discards the real HTTP status on success, returning only the
+    // parsed body ("Returns ... the parsed body on a success status ... or throws ... otherwise").
+    // A caller that needs the LITERAL status code back, not just success/failure, has no route
+    // through the framework for it, so this calls the same production endpoint directly.
+    startQuestViaStartRoute: async ({
+      questId,
+    }: {
+      questId: string;
+    }): Promise<{ status: DmHttpResponse['status'] }> => {
+      const response = await request.post(`/api/quests/${questId}/start`);
+      return { status: dmHttpResponseContract.shape.status.parse(response.status()) };
     },
   };
 };

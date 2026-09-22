@@ -6,6 +6,7 @@ import { sessionHarness } from '../../../test/harnesses/session/session.harness'
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
+import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-bughunt-begin-transition';
 const MODAL_TIMEOUT = 5_000;
@@ -236,6 +237,7 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     const guilds = guildHarness({ request });
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
+    const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
 
     const guild = await guilds.createGuild({ name: 'Bug Hunt Restart Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
@@ -282,8 +284,8 @@ test.describe('Bug-hunt Begin Quest transition', () => {
 
     // First Start: real, through the same endpoint the button calls. The ledger the rest of this
     // test measures is therefore one Start actually produced, not one the fixture hand-wrote.
-    const firstStart = await request.post(`/api/quests/${questId}/start`);
-    expect(firstStart.status()).toBe(HTTP_OK);
+    const firstStart = await dispatch.startQuestViaStartRoute({ questId });
+    expect(firstStart.status).toBe(HTTP_OK);
 
     const afterFirstStartResponse = await request.get(`/api/quests/${questId}`);
     const afterFirstStart = await afterFirstStartResponse.json();

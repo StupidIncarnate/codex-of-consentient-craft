@@ -3,7 +3,6 @@ import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harne
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-dispatch-pause-between-specs';
-const DISPATCH_PLAY_ROUTE = '/api/orchestration/dispatch/play';
 const HTTP_OK = 200;
 
 // The dispatcher is ONE in-memory singleton for the whole run — `workers: 1` and
@@ -29,11 +28,11 @@ test.describe('The dispatcher never leaks a playing loop into the next spec', ()
     // real worktree against whatever a previous spec left behind.
     await guildHarness({ request }).cleanGuilds();
 
-    // `force: true` skips the play gate, the same override `dispatchHarness.playAndDrive` uses, so
-    // a stale MCP heartbeat from an earlier spec cannot refuse this and make the leak vanish.
-    const playResponse = await request.post(DISPATCH_PLAY_ROUTE, { data: { force: true } });
+    // `forcePlayDispatcher` skips the play gate the same way `dispatchHarness.playAndDrive` does,
+    // so a stale MCP heartbeat from an earlier spec cannot refuse this and make the leak vanish.
+    const playResponse = await dispatch.forcePlayDispatcher();
 
-    expect(playResponse.status()).toBe(HTTP_OK);
+    expect(playResponse.status).toBe(HTTP_OK);
     // Read back from the server rather than trusted from the response body: the leak this file
     // stages is the SERVER's mode, and that is the only place it is real.
     expect(await dispatch.isDispatchPlaying()).toBe(true);
