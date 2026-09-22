@@ -21,7 +21,7 @@ describe('isIngredientDeclarationFileGuard', () => {
     it('VALID: {filename: a real *-ingredient-broker.ts path in a *-recipes package} => returns true', () => {
       const result = isIngredientDeclarationFileGuard({
         filename:
-          '/repo/packages/siegelense-recipes/src/brokers/quest/ingredient/quest-ingredient-broker.ts',
+          '/repo/packages/hydration-recipes/src/brokers/quest/ingredient/quest-ingredient-broker.ts',
       });
 
       expect(result).toBe(true);
@@ -30,7 +30,7 @@ describe('isIngredientDeclarationFileGuard', () => {
     it('VALID: {filename: a real *-ingredient-broker.tsx path in a *-recipes package} => returns true', () => {
       const result = isIngredientDeclarationFileGuard({
         filename:
-          '/repo/packages/siegelense-recipes/src/brokers/quest/ingredient/quest-ingredient-broker.tsx',
+          '/repo/packages/hydration-recipes/src/brokers/quest/ingredient/quest-ingredient-broker.tsx',
       });
 
       expect(result).toBe(true);
@@ -75,7 +75,7 @@ describe('isIngredientDeclarationFileGuard', () => {
     it('INVALID: {filename: a route broker beside a real ingredient} => returns false', () => {
       const result = isIngredientDeclarationFileGuard({
         filename:
-          '/repo/packages/siegelense-recipes/src/brokers/quest/write-route/quest-write-route-broker.ts',
+          '/repo/packages/hydration-recipes/src/brokers/quest/write-route/quest-write-route-broker.ts',
       });
 
       expect(result).toBe(false);
@@ -83,7 +83,7 @@ describe('isIngredientDeclarationFileGuard', () => {
 
     it('INVALID: {filename: *-ingredient-broker.ts outside an ingredient/ folder} => returns false', () => {
       const result = isIngredientDeclarationFileGuard({
-        filename: '/repo/packages/siegelense-recipes/src/brokers/quest/quest-ingredient-broker.ts',
+        filename: '/repo/packages/hydration-recipes/src/brokers/quest/quest-ingredient-broker.ts',
       });
 
       expect(result).toBe(false);
