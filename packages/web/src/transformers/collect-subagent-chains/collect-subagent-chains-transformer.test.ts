@@ -947,4 +947,56 @@ describe('collectSubagentChainsTransformer', () => {
       ]);
     });
   });
+
+  describe('regression: a nested chain body entry sorts before its own Task line', () => {
+    it('EDGE: {taskA + singleB1(agent-b, source:subagent) delivered BEFORE taskB(agent-b, parent:agent-a)} => singleB1 renders once, nested inside chainB, never duplicated as a trailing orphan single', () => {
+      const taskA = TaskToolUseChatEntryStub({ agentId: 'agent-a' });
+      // singleB1 belongs to chain B, but arrives in entries BEFORE taskB — the Task line that
+      // identifies chain B. indexSubagentEntriesTransformer buckets it under 'agent-b' regardless
+      // of order, so it is not yet `consumed` when this transformer's main loop reaches it and it
+      // gets buffered into normalBuffer as an ordinary single.
+      const singleB1 = AssistantTextChatEntryStub({
+        source: 'subagent',
+        agentId: 'agent-b',
+        content: 'b1',
+      });
+      const taskB = TaskToolUseChatEntryStub({
+        agentId: 'agent-b',
+        parentAgentId: 'agent-a',
+        source: 'subagent',
+      });
+
+      const result = collectSubagentChainsTransformer({
+        entries: [taskA, singleB1, taskB],
+      });
+
+      // taskA already has a chain in chainsByAgentId when taskB is processed, so taskB's chain
+      // splices straight into chainA.innerGroups — the ONLY branch that flushes normalBuffer never
+      // runs. singleB1 must therefore appear exactly once, nested inside chainB, with no second
+      // copy surfacing from the unconditional trailing flush at the end of the loop.
+      expect(result).toStrictEqual([
+        {
+          kind: 'subagent-chain',
+          agentId: 'agent-a',
+          description: 'Run tests',
+          taskToolUse: taskA,
+          innerGroups: [
+            {
+              kind: 'subagent-chain',
+              agentId: 'agent-b',
+              description: 'Run tests',
+              taskToolUse: taskB,
+              innerGroups: [{ kind: 'single', entry: singleB1 }],
+              taskNotification: null,
+              entryCount: 1,
+              contextTokens: null,
+            },
+          ],
+          taskNotification: null,
+          entryCount: 0,
+          contextTokens: null,
+        },
+      ]);
+    });
+  });
 });
