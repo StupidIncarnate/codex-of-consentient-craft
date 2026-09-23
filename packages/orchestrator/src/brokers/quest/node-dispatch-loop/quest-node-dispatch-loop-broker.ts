@@ -8,11 +8,12 @@
  * that only appeared after a pause. That pair is the graceful pause point: in-flight children
  * finish, nothing new dispatches.
  *
- * `run-ward` and `run-riftcarver` are still members of `NextStep` (removed in a later unit), but
- * nothing produces them any more — every family carrying a `ward`/`riftcarver` role runs it as a
- * deterministic step instead, which the `run-step` branch above already handles. The final branch
- * narrows to `spawn-agents` explicitly and THROWS for anything else, rather than reading `.agents`
- * off a variant that may not carry it.
+ * `NextStep` is `idle | run-step | spawn-agents`, `idle` returns above, and `run-step` is the
+ * first branch below — so the trailing `else` is `spawn-agents` BY EXHAUSTION, not by a redundant
+ * `step.type === 'spawn-agents'` check (which `@typescript-eslint/no-unnecessary-condition` would
+ * flag as always-true once only one member is left to narrow to). Reading `step.agents` there is
+ * itself the exhaustiveness guard: a future member added to the union without a branch here fails
+ * to COMPILE the moment this `else` no longer narrows to a shape carrying `.agents`.
  *
  * USAGE:
  * await questNodeDispatchLoopBroker({ isPlaying: () => orchestrationDispatchState.getIsPlaying() });
@@ -101,7 +102,9 @@ export const questNodeDispatchLoopBroker = async ({
         onStepLine({ questId: stepQuestId, workItemId: stepWorkItemId, line });
       },
     });
-  } else if (step.type === 'spawn-agents') {
+  } else {
+    // `spawn-agents` BY EXHAUSTION — see the file header for why this is not a redundant
+    // `step.type === 'spawn-agents'` check.
     await spawnBatchLayerBroker({
       agents: step.agents,
       // Threaded so an API-overload backoff inside the spawn layer — which can sleep for minutes
@@ -110,13 +113,6 @@ export const questNodeDispatchLoopBroker = async ({
       ...(registerProcess === undefined ? {} : { registerProcess }),
       ...(unregisterProcess === undefined ? {} : { unregisterProcess }),
     });
-  } else {
-    // `run-ward` / `run-riftcarver` — still typed on `NextStep`, but nothing produces them any
-    // more (see the file header). Named rather than silent, so a future producer regression is a
-    // thrown message instead of a batch call missing `.agents`.
-    throw new Error(
-      `questNodeDispatchLoopBroker: unreachable NextStep type "${step.type}" — no producer mints a step-less command item any more`,
-    );
   }
 
   return questNodeDispatchLoopBroker({

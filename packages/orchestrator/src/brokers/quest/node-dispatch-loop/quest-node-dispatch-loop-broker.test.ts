@@ -159,51 +159,5 @@ describe('questNodeDispatchLoopBroker', () => {
         { agents: secondAgents, isPlaying },
       ]);
     });
-
-    // `run-ward` / `run-riftcarver` are still members of `NextStep` (removed in unit N2), but
-    // nothing produces them any more — every family with a `ward`/`riftcarver` role runs it as a
-    // deterministic `run-step` instead. The loop's final branch narrows to `spawn-agents`
-    // explicitly and throws for anything else, so a step of either shape reaching this broker is a
-    // named error rather than a crash inside `spawnBatchLayerBroker` reading `.agents` off a
-    // variant that does not carry it.
-    it('ERROR: {run-ward step queued} => throws a named error, never calls spawnBatchLayerBroker', async () => {
-      const proxy = questNodeDispatchLoopBrokerProxy();
-      proxy.queueStep({
-        step: NextStepStub({
-          type: 'run-ward',
-          questId: 'add-auth',
-          workItemId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        } as never),
-      });
-
-      await expect(
-        questNodeDispatchLoopBroker({
-          isPlaying: (): boolean => true,
-          onStepLine: () => undefined,
-        }),
-      ).rejects.toThrow(/unreachable NextStep type "run-ward"/u);
-
-      expect(proxy.getSpawnBatchCalls()).toStrictEqual([]);
-    });
-
-    it('ERROR: {run-riftcarver step queued} => throws a named error, never calls spawnBatchLayerBroker', async () => {
-      const proxy = questNodeDispatchLoopBrokerProxy();
-      proxy.queueStep({
-        step: NextStepStub({
-          type: 'run-riftcarver',
-          questId: 'add-auth',
-          workItemId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
-        } as never),
-      });
-
-      await expect(
-        questNodeDispatchLoopBroker({
-          isPlaying: (): boolean => true,
-          onStepLine: () => undefined,
-        }),
-      ).rejects.toThrow(/unreachable NextStep type "run-riftcarver"/u);
-
-      expect(proxy.getSpawnBatchCalls()).toStrictEqual([]);
-    });
   });
 });

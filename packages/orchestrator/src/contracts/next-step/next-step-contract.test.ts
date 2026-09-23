@@ -1,4 +1,4 @@
-import { QuestIdStub, QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts';
 
 import { SpawnInstructionStub } from '../spawn-instruction/spawn-instruction.stub';
 import { nextStepContract } from './next-step-contract';
@@ -80,94 +80,6 @@ describe('nextStepContract', () => {
     });
   });
 
-  describe('run-ward variant', () => {
-    it('VALID: {type: run-ward, questId, workItemId} => parses successfully', () => {
-      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
-      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
-
-      const result = nextStepContract.parse({
-        type: 'run-ward',
-        questId,
-        workItemId,
-      });
-
-      expect(result).toStrictEqual({
-        type: 'run-ward',
-        questId,
-        workItemId,
-      });
-    });
-
-    // `wardFull` is the only family whose role is `ward`, so this variant always means the whole
-    // monorepo and carries no scope of its own. A family's own committed ward is a deterministic
-    // STEP and arrives as `run-step`, with the scope in that step's `args`.
-    it('EDGE: {type: run-ward, mode: committed} => strips the scope key', () => {
-      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
-      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
-
-      const result = nextStepContract.parse({
-        type: 'run-ward',
-        questId,
-        workItemId,
-        mode: 'committed',
-      });
-
-      expect(result).toStrictEqual({
-        type: 'run-ward',
-        questId,
-        workItemId,
-      });
-    });
-  });
-
-  describe('run-riftcarver variant', () => {
-    it('VALID: {type: run-riftcarver, questId, workItemId} => parses successfully', () => {
-      const questId = QuestIdStub({ value: 'cccccccc-1111-4222-9333-444444444444' });
-      const workItemId = QuestWorkItemIdStub({ value: 'dddddddd-1111-4222-9333-444444444444' });
-
-      const result = nextStepContract.parse({
-        type: 'run-riftcarver',
-        questId,
-        workItemId,
-      });
-
-      expect(result).toStrictEqual({
-        type: 'run-riftcarver',
-        questId,
-        workItemId,
-      });
-    });
-
-    // A carve has one job and reads its scope off the quest, so a `mode` handed to it is a caller
-    // confusing it with ward. Zod strips the unknown key rather than carrying it onto the wire.
-    it('EDGE: {type: run-riftcarver, mode: full} => strips the ward-only mode key', () => {
-      const questId = QuestIdStub({ value: 'cccccccc-1111-4222-9333-444444444444' });
-      const workItemId = QuestWorkItemIdStub({ value: 'dddddddd-1111-4222-9333-444444444444' });
-
-      const result = nextStepContract.parse({
-        type: 'run-riftcarver',
-        questId,
-        workItemId,
-        mode: 'full',
-      });
-
-      expect(result).toStrictEqual({
-        type: 'run-riftcarver',
-        questId,
-        workItemId,
-      });
-    });
-
-    it('INVALID: {type: run-riftcarver, missing workItemId} => throws Required', () => {
-      expect(() =>
-        nextStepContract.parse({
-          type: 'run-riftcarver',
-          questId: QuestIdStub({ value: 'cccccccc-1111-4222-9333-444444444444' }),
-        }),
-      ).toThrow(/Required/u);
-    });
-  });
-
   describe('invalid inputs', () => {
     it('INVALID: {type: unknown} => throws discriminator error', () => {
       expect(() => nextStepContract.parse({ type: 'unknown' })).toThrow(
@@ -175,13 +87,28 @@ describe('nextStepContract', () => {
       );
     });
 
-    it('INVALID: {type: run-ward, missing questId} => throws Required', () => {
+    // `run-ward` and `run-riftcarver` no longer name members of this union — every family
+    // carrying a command role runs it through a `run-step` handler instead (`riftcarver`'s
+    // `carve`, `wardFull`'s `gate`). A regression that re-adds either literal here is the one
+    // thing these two tests exist to catch.
+    it('INVALID: {type: run-ward} => throws discriminator error', () => {
       expect(() =>
         nextStepContract.parse({
           type: 'run-ward',
-          workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
+          questId: 'add-auth',
+          workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/Invalid discriminator value/u);
+    });
+
+    it('INVALID: {type: run-riftcarver} => throws discriminator error', () => {
+      expect(() =>
+        nextStepContract.parse({
+          type: 'run-riftcarver',
+          questId: 'add-auth',
+          workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        }),
+      ).toThrow(/Invalid discriminator value/u);
     });
 
     it('INVALID: {type: spawn-agents, missing agents} => throws Required', () => {

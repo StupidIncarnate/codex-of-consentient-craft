@@ -164,14 +164,12 @@ export const scanOnceLayerBroker = async ({
   // and advance only mints a work item on the ledger. Both are safe to have run for a quest that
   // then blocks here. Every role other than riftcarver still trips the halt exactly as before.
   //
-  // WHAT LETS RIFTCARVER THROUGH IS THE HANDLER, not the step type. The carve is a deterministic
-  // step in the `riftcarver` family now, so it arrives as `run-step` carrying `handler:
-  // 'riftcarver'`; the `run-riftcarver` type is what a ledger without a step graph still returns.
-  // Matching only one of the two would block the quest on the one step that could have repaired it.
+  // WHAT LETS RIFTCARVER THROUGH IS THE HANDLER, not a role-keyed step type. The carve is a
+  // deterministic step in the `riftcarver` family, so it always arrives as `run-step` carrying
+  // `handler: 'riftcarver'` — `NextStep` carries no other member a step-less command item could
+  // have returned instead.
   const cwdResolution = await questCwdResolveBroker({ questId: quest.id });
-  const carvesTheWorktree =
-    step?.type === 'run-riftcarver' ||
-    (step?.type === 'run-step' && step.handler === RIFTCARVER_HANDLER);
+  const carvesTheWorktree = step?.type === 'run-step' && step.handler === RIFTCARVER_HANDLER;
 
   if (cwdResolution.kind === 'missing-worktree' && !carvesTheWorktree) {
     await blockOnMissingWorktreeLayerBroker({ quest, worktreePath: cwdResolution.worktreePath });

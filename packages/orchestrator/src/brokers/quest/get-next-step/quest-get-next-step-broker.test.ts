@@ -1,6 +1,8 @@
 import {
   GuildIdStub,
   GuildListItemStub,
+  OperationItemIdStub,
+  OperationItemStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
@@ -200,8 +202,8 @@ describe('questGetNextStepBroker', () => {
     });
   });
 
-  describe('run-ward path', () => {
-    it('VALID: {ready ward work item} => run-ward naming only questId and workItemId', async () => {
+  describe('run-step path (ward gate)', () => {
+    it('VALID: {ready ward gate step} => run-step naming the ward handler and no args', async () => {
       const proxy = questGetNextStepBrokerProxy();
       const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
@@ -209,15 +211,19 @@ describe('questGetNextStepBroker', () => {
       const wardId = QuestWorkItemIdStub({
         value: '99999999-1111-4222-9333-444444444444',
       });
+      const operationId = OperationItemIdStub({ value: '99900000-58cc-4372-a567-0e02b2c3d479' });
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
+        operations: [OperationItemStub({ id: operationId, role: 'ward', status: 'in_progress' })],
         workItems: [
           WorkItemStub({
             id: wardId,
             role: 'ward',
             status: 'pending',
             spawnerType: 'command',
+            step: 'gate',
+            relatedDataItems: [`operations/${operationId}` as never],
           }),
         ],
       });
@@ -234,9 +240,11 @@ describe('questGetNextStepBroker', () => {
       });
 
       expect(result).toStrictEqual({
-        type: 'run-ward',
+        type: 'run-step',
         questId,
         workItemId: wardId,
+        handler: 'ward',
+        args: [],
       });
       expect(setActive).toHaveBeenCalledWith({ questId });
     });
