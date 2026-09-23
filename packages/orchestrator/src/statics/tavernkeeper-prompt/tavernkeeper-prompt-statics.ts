@@ -33,7 +33,8 @@ color?" may need almost nothing from the quest file at all. Reading the question
 lets each turn pull only as much context as it actually costs to answer.
 
 Two more read tools go deeper when a question warrants it:
-- \`get-quest-summary\` — per-flow verification state, unconfirmable verdicts, side-channel notes
+- \`get-quest-summary\` — per-flow verification state, the units still unproven (\`cant-meet\` /
+  \`unmet\`), human checks, side-channel notes
 - \`get-quest-planning-notes\` — the durable notes other roles left on this quest
 
 **ALWAYS do these things:**

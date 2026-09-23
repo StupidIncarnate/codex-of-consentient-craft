@@ -43,7 +43,9 @@ Load standards using get-architecture and get-testing-patterns. Call get-folder-
 
 ### 4. Write the spec
 
-Write the spec with every unit assertion set at its FAILS IF value.
+Write the spec with every unit assertion set at its FAILS IF value. Set only the assertions that
+SETTLE a unit — a precondition (the page reached, the panel visible, the row present) stays true,
+because a precondition that fails stops the test before the assertions that matter ever run.
 
 ### 5. Run red
 
@@ -62,8 +64,7 @@ Correct the assertion to its ASSERT value, and run green.
 When the piece says \`browser\`:
 ## Proving something in the browser
 
-A browser walk is a Playwright \\\`.e2e.ts\\\` spec. Write these into your map ONCE, under
-\\\`HOW TO WRITE THESE\\\`; a brief names the kind and reads them there.
+A browser walk is a Playwright \\\`.e2e.ts\\\` spec.
 
 - **One test per path**, from the entry node to every end node. Cover all branches, success and
   failure. An error toast, a 4xx rendering and a rejection are first-class, never optional. "I walked
@@ -96,8 +97,7 @@ A browser walk is a Playwright \\\`.e2e.ts\\\` spec. Write these into your map O
 When the piece says \`below-browser\`:
 ## Proving something below the browser
 
-An integration or unit test, at whichever layer the claim actually lives. These go into your map the
-same way, beside the browser half.
+An integration or unit test, at whichever layer the claim actually lives.
 
 - **Assert on the side that makes the claim.** "The browser sent this body" is proved by intercepting
   the request. "The route answered 400 with this message" is proved by testing the route.
@@ -127,85 +127,15 @@ See the \`verifyByHuman\` rule further down this page for the whole picture.
 
 ### 11. Unmet units
 
-A unit you cannot reach at its served surface is \`unmet\` with the reason. **You may not pick an easier layer**, and the surface is not yours to amend — it comes from the unit's own \`checkSurface\`, and changing that is the reviewer's authority.
+A unit you cannot reach at its served surface is \`unmet\` with the reason. **You may not pick an easier layer**, and the surface is not yours to amend — it comes from the unit's own \`surface\` field on \`get-quest-work\`'s \`assignedUnits\`, and changing that is the reviewer's authority.
 
 ### 12. Ward and signal
 
-Ward your own paths only. Signal back with the uncommitted files.
-
----
-
-RED FIRST
-  Write the spec with every unit assertion set to its FAILS IF value, and run it. Every one
-  of those expects must FAIL, and each failure must report this unit's ASSERT value as what
-  it RECEIVED. Expected the wrong value, received the right one — that pair is the only thing
-  that proves the assertion runs and reads what it claims to. Then correct each one to its
-  ASSERT value and run again for green.
-  Set only the assertions that SETTLE a unit. A precondition — the page reached, the panel
-  visible, the row present — stays true, because a precondition that fails stops the test
-  before the assertions that matter ever run.
-  An expect that PASSES holding its FAILS IF value reads nothing. An expect that fails
-  reporting some OTHER received value reads the wrong thing. Both are the assertion's fault:
-  fix the assertion, never the FAILS IF value you were handed.
-  An assertion with no value to read — \\\`toBeVisible\\\`, \\\`toHaveCount\\\` against an absence —
-
-MIRROR
-  <the nearest existing spec to copy>
-
-TRAPS
-  <one line each: a rule THIS file trips that none of the sub-agent's own reading states.
-   It arrives having read get-architecture, get-testing-patterns, get-folder-detail for its
-   folder types and every session snippet, so a trap repeating one of those is a line it has
-   already read once. Name where you read the rule, so it can check you.>
-
-DO NOT TOUCH
-  <other sub-agents' files> · the Playwright config · another flow's harness
-
-DISCOVERY
-  This brief is meant to be enough. FILES, FACTS, FENCES, SURFACES, UNITS and MIRROR carry what
-  the operator already paid to find, so read them and start writing. Reach for the discover tool
-  only where one of them leaves you unable to work: a name you cannot resolve, a shape the
-  MIRROR does not show, a FACT the file contradicts. Searching for what the brief already told
-  you spends your context re-deriving it, and a SURFACE is never yours to re-derive at all.
-  When you do reach for it, open with get-project-map({ packages: [<every package your files
-  above touch>] }). It names the folders each package really has; discover globs into what it
-  named. A discover before that call guesses a path, and a glob that guessed wrong returns
-  nothing — which reads exactly like a package with nothing in it.
-  **Never dispatch a sub-agent to explore.** Exploring is how you learn the code you are about
-  to prove; hand it off and what it found lands in someone else's summary instead of in the
-  session writing the test.
-  You sit one level below the operator that briefed you, and nothing goes below you.
-
-PROVE
-  Call THIS EXACT command to prove your own work:
-  \\\`npm run ward -- -- <this brief's own paths>\\\`
-  Two separate \\\`--\\\` tokens — that is the real invocation, and one token is a different command.
-  **YOUR OWN PATHS AND NOTHING WIDER. NEVER --uncommitted. NEVER a bare ward. NEVER commit.**
-  **NEVER the run-ward MCP tool.** Different command: it grades the whole branch, and it wants a
-  quest id and a work item id you were not given, so reaching for it spends a turn on a
-  validation error. Call the Bash line above.
-  DISCOVERY MISMATCH on a check type = ward answering, not failing. --passWithNoTests is never the fix.
-
-
-  These directions are a best guess, made across a whole file set that proves one flow. You have
-  the code open and the session that wrote them does not. Where you find HARD EVIDENCE against a
-  direction — the value under ASSERT is not what the implementation returns, the SURFACE cannot
-  reach the unit — the evidence wins, and you follow the evidence.
-  **Report every deviation under NOT PROVED, or on the NEXT: rework line. Never as a note beside
-  NEXT: pass.**
-  This brief was written against the flow rather than the code in front of you, so a swap nobody is
-  told about is a change nobody reviewed.
-
-RETURN
-  FILES: <every path I created or changed. Mark each one this brief did not list:
-   "(not in brief)">
-  PROVED:
-    <unit-id> — <file:line> · <the assertion, quoted> · <the wrong value that turns it
-     red> · <the red I witnessed>
-  NOT PROVED:
-    <unit-id> — <why. The layer it actually needs, or what the unit does not account for.
-     Never "ran out of time".>
-  NEXT: pass | rework — <what is left> | wall — <what a person must change>
+Ward your own paths only: \`npm run ward -- -- <this piece's own paths>\` — never \`--uncommitted\`,
+never a bare ward, and never commit. Call \`signal-back\` once every assigned unit carries a mark.
+**Never dispatch a sub-agent to explore** — exploring is how you learn the code you are about to
+prove, and handing it off lands what it found in someone else's summary instead of in the session
+writing the test.
 
 ${declaredValueStatics.markdown}
 
