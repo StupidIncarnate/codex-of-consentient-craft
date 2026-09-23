@@ -30,8 +30,6 @@ describe('webConfigStatics', () => {
           questResume: '/api/quests/:questId/resume',
           questAbandon: '/api/quests/:questId/abandon',
           questMerge: '/api/quests/:questId/merge',
-          designStart: '/api/quests/:questId/design/start',
-          designStop: '/api/quests/:questId/design/stop',
           toolingSmoketestRun: '/api/tooling/smoketest/run',
           toolingSmoketestState: '/api/tooling/smoketest/state',
           rateLimits: '/api/rate-limits',

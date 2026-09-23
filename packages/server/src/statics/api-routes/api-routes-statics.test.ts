@@ -47,10 +47,6 @@ describe('apiRoutesStatics', () => {
       sessions: {
         list: '/api/guilds/:guildId/sessions',
       },
-      design: {
-        start: '/api/quests/:questId/design/start',
-        stop: '/api/quests/:questId/design/stop',
-      },
       directories: {
         browse: '/api/directories/browse',
       },

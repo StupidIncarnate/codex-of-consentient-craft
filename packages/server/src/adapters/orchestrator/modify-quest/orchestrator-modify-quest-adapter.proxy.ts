@@ -3,8 +3,7 @@ import type { ModifyQuestResult } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 // questId is optional: a caller that discards the result and doesn't have the questId available
-// at proxy-construction time (e.g. DesignStartResponderProxy, which fires-and-forgets a status
-// update after scaffolding) can omit it, which falls back to calledWith([]) — a real wildcard,
+// at proxy-construction time can omit it, which falls back to calledWith([]) — a real wildcard,
 // staged explicitly by whichever proxy calls it, not a hidden default.
 export const orchestratorModifyQuestAdapterProxy = (): {
   returns: (params: { questId?: string; result: ModifyQuestResult }) => void;

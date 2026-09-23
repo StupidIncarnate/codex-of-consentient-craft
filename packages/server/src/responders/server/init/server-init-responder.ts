@@ -51,7 +51,6 @@ import { chatOutputPayloadContract } from '../../../contracts/chat-output-payloa
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { wsEventDataContract } from '../../../contracts/ws-event-data/ws-event-data-contract';
 import { wsIncomingMessageContract } from '../../../contracts/ws-incoming-message/ws-incoming-message-contract';
-import { designProcessState } from '../../../state/design-process/design-process-state';
 import { chatEntriesExtractQuestIdTransformer } from '../../../transformers/chat-entries-extract-quest-id/chat-entries-extract-quest-id-transformer';
 import { monitorSessionFilterChatOutputTransformer } from '../../../transformers/monitor-session-filter-chat-output/monitor-session-filter-chat-output-transformer';
 import { parseChatOutputEntriesTransformer } from '../../../transformers/parse-chat-output-entries/parse-chat-output-entries-transformer';
@@ -958,14 +957,12 @@ export const ServerInitResponder = ({
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGTERM)' });
     clearInterval(flushIntervalHandle);
     orchestratorStopAllChatsAdapter();
-    designProcessState.stopAll();
     process.exit(0);
   });
   process.on('SIGINT', () => {
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGINT)' });
     clearInterval(flushIntervalHandle);
     orchestratorStopAllChatsAdapter();
-    designProcessState.stopAll();
     process.exit(0);
   });
   return adapterResultContract.parse({ success: true });

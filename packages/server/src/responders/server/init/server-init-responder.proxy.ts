@@ -64,7 +64,6 @@ import { webBundleResponseBrokerProxy } from '../../../brokers/web-bundle/respon
 import { wsEventRelayBroadcastBrokerProxy } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.proxy';
 import { processDevLogAdapterProxy } from '../../../adapters/process/dev-log/process-dev-log-adapter.proxy';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
-import { designProcessStateProxy } from '../../../state/design-process/design-process-state.proxy';
 import { ServerInitResponder } from './server-init-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -132,7 +131,6 @@ export const ServerInitResponderProxy = (): {
   wsEventRelayBroadcastBrokerProxy();
   questWaitForSessionStampBrokerProxy();
   const webBundleProxy = webBundleResponseBrokerProxy();
-  designProcessStateProxy();
   const portProxy = portResolveBrokerProxy();
   portProxy.setEnvPort({ value: '3737' });
 
