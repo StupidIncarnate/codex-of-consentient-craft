@@ -13,6 +13,7 @@ describe('questSummaryContract', () => {
         flows: [QuestSummaryFlowStub()],
         midQuestObservables: [QuestSummaryObservableStub()],
         debt: [QuestSummaryDebtStub()],
+        humanChecks: [QuestSummaryObservableStub()],
         noteGroups: [QuestSummaryNoteGroupStub()],
       });
     });
@@ -23,8 +24,43 @@ describe('questSummaryContract', () => {
         flows: [],
         midQuestObservables: [],
         debt: [],
+        humanChecks: [],
         noteGroups: [],
       });
+    });
+
+    it('EMPTY: {humanChecks: []} => a quest with no verifyByHuman criteria carries none', () => {
+      expect(QuestSummaryStub({ humanChecks: [] }).humanChecks).toStrictEqual([]);
+    });
+
+    it('VALID: {two humanChecks} => keeps both in the order given', () => {
+      expect(
+        QuestSummaryStub({
+          humanChecks: [
+            QuestSummaryObservableStub({
+              id: 'login-flow:observable:looks-right',
+              observableId: 'looks-right',
+              description: 'the new layout looks right',
+            }),
+            QuestSummaryObservableStub({
+              id: 'login-flow:observable:sounds-right',
+              observableId: 'sounds-right',
+              description: 'the confirmation chime plays once',
+            }),
+          ],
+        }).humanChecks,
+      ).toStrictEqual([
+        QuestSummaryObservableStub({
+          id: 'login-flow:observable:looks-right',
+          observableId: 'looks-right',
+          description: 'the new layout looks right',
+        }),
+        QuestSummaryObservableStub({
+          id: 'login-flow:observable:sounds-right',
+          observableId: 'sounds-right',
+          description: 'the confirmation chime plays once',
+        }),
+      ]);
     });
 
     it('VALID: {two flows} => keeps both in the order given', () => {

@@ -13,6 +13,7 @@ export const QuestSummaryStub = ({ ...props }: StubArgument<QuestSummary> = {}):
     flows: [QuestSummaryFlowStub()],
     midQuestObservables: [QuestSummaryObservableStub()],
     debt: [QuestSummaryDebtStub()],
+    humanChecks: [QuestSummaryObservableStub()],
     noteGroups: [QuestSummaryNoteGroupStub()],
     ...props,
   });

@@ -50,6 +50,7 @@ describe('questSummaryToTextTransformer', () => {
         '## COVERAGE — 1 flow(s), one row per track that measures each',
         '## MID-QUEST OBSERVABLES (1) — added AFTER the user approved the spec',
         '## DEBT (1) — every unit that is NOT proven',
+        '## HUMAN CHECK (1) — verifyByHuman criteria; only a person can settle these',
         '## NOTES — 1 kind(s), open questions first',
       ]);
     });
@@ -211,6 +212,47 @@ describe('questSummaryToTextTransformer', () => {
       ]).toStrictEqual([
         '## MID-QUEST OBSERVABLES (0) — added AFTER the user approved the spec',
         '(none — every observable on this quest was in the spec at approval)',
+      ]);
+    });
+  });
+
+  describe('human check', () => {
+    it('VALID: {one verifyByHuman criterion} => names the unit id, its type and the verbatim text', () => {
+      const lines = questSummaryToTextTransformer({
+        summary: QuestSummaryStub({
+          humanChecks: [
+            QuestSummaryObservableStub({
+              id: 'login-flow:observable:motion-feels-smooth',
+              observableId: 'motion-feels-smooth',
+              observableType: 'ui-state',
+              description: 'the dungeon-raid transition never stutters',
+            }),
+          ],
+        }),
+      }).split('\n');
+
+      expect([
+        lines.find((line) => line.startsWith('## HUMAN CHECK')),
+        lines.find((line) => line.startsWith('- `login-flow:observable:motion-feels-smooth`')),
+        lines.find((line) => line.startsWith('      the dungeon-raid')),
+      ]).toStrictEqual([
+        '## HUMAN CHECK (1) — verifyByHuman criteria; only a person can settle these',
+        '- `login-flow:observable:motion-feels-smooth` [ui-state]',
+        '      the dungeon-raid transition never stutters',
+      ]);
+    });
+
+    it('EMPTY: {humanChecks: []} => states no criterion on this quest needs a person', () => {
+      const lines = questSummaryToTextTransformer({
+        summary: QuestSummaryStub({ humanChecks: [] }),
+      }).split('\n');
+
+      expect([
+        lines.find((line) => line.startsWith('## HUMAN CHECK')),
+        lines.find((line) => line.startsWith('(none — no criterion')),
+      ]).toStrictEqual([
+        '## HUMAN CHECK (0) — verifyByHuman criteria; only a person can settle these',
+        '(none — no criterion on this quest requires a person to settle it)',
       ]);
     });
   });
@@ -538,6 +580,25 @@ describe('questSummaryToTextTransformer', () => {
       ]);
     });
 
+    it('EDGE: {four criteria past maxHumanChecks} => the heading names the cap and the dropped count', () => {
+      const overCap = questSummaryLimitsStatics.maxHumanChecks + 4;
+      const lines = questSummaryToTextTransformer({
+        summary: QuestSummaryStub({
+          humanChecks: Array.from({ length: overCap }, (_unused, index) =>
+            QuestSummaryObservableStub({ id: `login-flow:observable:check-${String(index)}` }),
+          ),
+        }),
+      }).split('\n');
+
+      expect([
+        lines.find((line) => line.startsWith('## HUMAN CHECK')),
+        lines.filter((line) => line.startsWith('- `login-flow:observable:check-')).length,
+      ]).toStrictEqual([
+        `## HUMAN CHECK (${String(overCap)}) — verifyByHuman criteria; only a person can settle these — TRUNCATED at the ${String(questSummaryLimitsStatics.maxHumanChecks)}-entry cap; 4 entry(s) NOT SHOWN`,
+        questSummaryLimitsStatics.maxHumanChecks,
+      ]);
+    });
+
     it('EDGE: {five notes past maxNotesPerKind in one group} => that kind heading names the cap and the dropped count', () => {
       const overCap = questSummaryLimitsStatics.maxNotesPerKind + 5;
       const lines = questSummaryToTextTransformer({
@@ -588,6 +649,11 @@ describe('questSummaryToTextTransformer', () => {
                 unitId: `login-flow:observable:hole-${String(index)}`,
               }),
           ),
+          humanChecks: Array.from(
+            { length: questSummaryLimitsStatics.maxHumanChecks },
+            (_unused, index) =>
+              QuestSummaryObservableStub({ id: `login-flow:observable:check-${String(index)}` }),
+          ),
           noteGroups: [
             QuestSummaryNoteGroupStub({
               id: 'open-question',
@@ -612,7 +678,7 @@ describe('questSummaryToTextTransformer', () => {
         withinVerbatimBudget: true,
         lineBeforeTheNotice: '',
         notice:
-          '[TRUNCATED at the 48000-character ceiling — 17230 character(s) were dropped from the END of this render, so the sections after this line are missing or cut short. Sections run coverage, mid-quest observables, debt, notes; read quest.json for whatever fell off.]',
+          '[TRUNCATED at the 48000-character ceiling — 25968 character(s) were dropped from the END of this render, so the sections after this line are missing or cut short. Sections run coverage, mid-quest observables, debt, human check, notes; read quest.json for whatever fell off.]',
       });
     });
   });
@@ -670,6 +736,9 @@ describe('questSummaryToTextTransformer', () => {
               toSettle: `Add a webServer block to playwright.config.ts, then drive hole-${String(index)} end to end.`,
             }),
           ),
+          // This realistic quest carries no `verifyByHuman` criterion — most quests don't — so the
+          // measured character total below stays the one this file's own statics header cites.
+          humanChecks: [],
           noteGroups: [
             QuestSummaryNoteGroupStub({
               id: 'open-question',

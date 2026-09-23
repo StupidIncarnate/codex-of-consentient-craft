@@ -1,8 +1,8 @@
 /**
  * PURPOSE: Renders a quest's whole verification state as compact text — per-flow/per-track coverage,
  * the observables added after approval and by whom, every unit carrying debt with BOTH its evidence
- * and the action that would settle it, and the side-channel notes grouped by kind with open
- * questions first
+ * and the action that would settle it, every `verifyByHuman` criterion no track can ever settle, and
+ * the side-channel notes grouped by kind with open questions first
  *
  * USAGE:
  * questSummaryToTextTransformer({ summary });
@@ -68,6 +68,13 @@ export const questSummaryToTextTransformer = ({
     debtDropped === 0
       ? ''
       : ` — TRUNCATED at the ${String(questSummaryLimitsStatics.maxUnconfirmable)}-entry cap; ${String(debtDropped)} entry(s) NOT SHOWN`;
+
+  const humanChecksShown = summary.humanChecks.slice(0, questSummaryLimitsStatics.maxHumanChecks);
+  const humanChecksDropped = summary.humanChecks.length - humanChecksShown.length;
+  const humanChecksNotice =
+    humanChecksDropped === 0
+      ? ''
+      : ` — TRUNCATED at the ${String(questSummaryLimitsStatics.maxHumanChecks)}-entry cap; ${String(humanChecksDropped)} entry(s) NOT SHOWN`;
 
   // Open questions lead. They are the only kind naming something NOBODY has answered, so a reader
   // deciding what to pick up needs them before the three record-keeping kinds.
@@ -150,6 +157,19 @@ export const questSummaryToTextTransformer = ({
         )),
   ].join('\n');
 
+  const humanChecks = [
+    '',
+    `## HUMAN CHECK (${String(summary.humanChecks.length)}) — verifyByHuman criteria; only a person can settle these${humanChecksNotice}`,
+    'No track counts these in COVERAGE — MET / NOT MET is recorded by a person in the browser, as a',
+    '`human-verdict` note keyed by the observable id, which also appears under NOTES once recorded.',
+    ...(humanChecksShown.length === 0
+      ? ['', '(none — no criterion on this quest requires a person to settle it)']
+      : humanChecksShown.map(
+          (criterion) =>
+            `\n- \`${String(criterion.id)}\` [${criterion.observableType}]\n      ${String(criterion.description)}`,
+        )),
+  ].join('\n');
+
   const notes = [
     '',
     `## NOTES — ${String(summary.noteGroups.length)} kind(s), open questions first`,
@@ -180,7 +200,7 @@ export const questSummaryToTextTransformer = ({
         })),
   ].join('\n');
 
-  const body = [header, coverage, observables, debt, notes].join('\n');
+  const body = [header, coverage, observables, debt, humanChecks, notes].join('\n');
 
   if (body.length <= questSummaryLimitsStatics.maxRenderChars) {
     return contentTextContract.parse(body);
@@ -193,6 +213,6 @@ export const questSummaryToTextTransformer = ({
   const kept = cut.slice(0, cut.lastIndexOf('\n') + 1);
 
   return contentTextContract.parse(
-    `${kept}\n[TRUNCATED at the ${String(questSummaryLimitsStatics.maxRenderChars)}-character ceiling — ${String(body.length - kept.length)} character(s) were dropped from the END of this render, so the sections after this line are missing or cut short. Sections run coverage, mid-quest observables, debt, notes; read quest.json for whatever fell off.]`,
+    `${kept}\n[TRUNCATED at the ${String(questSummaryLimitsStatics.maxRenderChars)}-character ceiling — ${String(body.length - kept.length)} character(s) were dropped from the END of this render, so the sections after this line are missing or cut short. Sections run coverage, mid-quest observables, debt, human check, notes; read quest.json for whatever fell off.]`,
   );
 };

@@ -59,9 +59,10 @@
  *   every role writing that field into one number no single track's work list computes.
  * - VERIFICATION METHOD. An observable flagged `verifyByHuman` resolves to `human-check`, which no
  *   track's `verificationMethods` lists, so it matches none of the four counts on any row —
- *   `verifyByHuman` wins over `verifyByReading` when an observable carries both. `QuestSummary` has
- *   no place yet for a criterion only a person can settle; the unit is excluded outright rather than
- *   parked somewhere no reader would find it.
+ *   `verifyByHuman` wins over `verifyByReading` when an observable carries both. The unit is
+ *   excluded from every track's denominator for that reason alone; `QuestSummary.humanChecks`
+ *   carries it instead — computed separately below, with no track-eligibility or origin filter of
+ *   its own — so a criterion only a person can settle still has a place a reader finds it.
  *
  * `packageNames` is an operation item's own slice and is threaded on top when a caller holds one,
  * because such a caller is asking exactly "what does MY work list say".
@@ -76,6 +77,11 @@
  * `midQuestObservables` DELIBERATELY IGNORES TRACK ELIGIBILITY. It answers "what did this quest grow
  * after the user approved it", which is a provenance question, not a coverage one — a Siegemaster
  * addition belongs on that list precisely because Flowrider's numbers exclude it.
+ *
+ * `humanChecks` LIKEWISE IGNORES BOTH TRACK ELIGIBILITY AND ORIGIN. It answers "which criteria can
+ * no track ever settle", so a `verifyByHuman` observable belongs on it whether the spec authored it
+ * at approval or a role wrote it in mid-quest — the same observable can therefore appear here AND in
+ * `midQuestObservables` at once, because the two lists answer different questions about it.
  *
  * THE FINAL `.parse()` TAKES `unknown`, SO TYPESCRIPT GRADES NOTHING HERE. `questSummaryContract` and
  * `questSummaryTrackCountsContract` are `.strict()` for that reason: a field renamed in the contract
@@ -139,8 +145,8 @@ export const questSummaryBuildTransformer = ({
               // names the METHOD nothing automated can perform, where `verifyByReading` only names
               // which automated method applies. No track's `verificationMethods` lists
               // `human-check` (`stepScopeStatics`), so a flagged unit matches none of them and is
-              // excluded here — `QuestSummary` has no place yet for a criterion only a person can
-              // settle (T3-21 adds one).
+              // excluded here — `humanChecks` below carries it instead, with no track filter of its
+              // own.
               if (unit.verifyByHuman === true) {
                 return eligibleMethods.has('human-check');
               }
@@ -240,6 +246,24 @@ export const questSummaryBuildTransformer = ({
     ),
 
     debt: trackScopes.flatMap((scope) => scope.debt),
+
+    humanChecks: enumeratedFlows.flatMap(({ units }) =>
+      units.flatMap((unit) =>
+        unit.kind === 'observable' && unit.verifyByHuman === true
+          ? [
+              {
+                id: unit.id,
+                flowId: unit.flowId,
+                nodeId: unit.nodeId,
+                observableId: unit.observableId,
+                addedBy: unit.addedBy,
+                observableType: unit.observableType,
+                description: unit.observableDescription,
+              },
+            ]
+          : [],
+      ),
+    ),
 
     noteGroups: questNoteKindContract.options.map((kind) => ({
       id: kind,

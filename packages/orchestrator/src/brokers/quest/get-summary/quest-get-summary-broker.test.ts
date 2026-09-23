@@ -129,6 +129,7 @@ describe('questGetSummaryBroker', () => {
         flows: [],
         midQuestObservables: [],
         debt: [],
+        humanChecks: [],
         noteGroups: [
           { id: 'open-question', notes: [] },
           { id: 'tooling-error', notes: [] },

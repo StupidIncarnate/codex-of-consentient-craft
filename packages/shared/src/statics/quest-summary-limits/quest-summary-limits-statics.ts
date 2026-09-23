@@ -7,7 +7,7 @@
  * questSummaryLimitsStatics.maxUnconfirmable;
  * // Returns the cap on rendered `unconfirmable` entries before that section truncates
  *
- * TWO BOUNDS, BECAUSE ONE IS NOT ENOUGH. The four `max*` counts are the INFORMATIVE bound: when a
+ * TWO BOUNDS, BECAUSE ONE IS NOT ENOUGH. The five `max*` counts are the INFORMATIVE bound: when a
  * section overflows, the reader is told how many ENTRIES were dropped, which is a number they can
  * act on. `maxRenderChars` is the GUARANTEED one: the counts multiplied by their measured per-entry
  * cost do NOT by themselves fit under the ceiling — 80 unconfirmable entries alone run about 45,000
@@ -38,14 +38,16 @@
  * downstream computes completion from it (`quest-handle-signal-back-responder` recomputes the
  * outstanding set server-side from the quest file). A truncated render can under-inform a reader,
  * which the loud notices and their exact dropped counts make visible; it can never let an unsigned
- * unit pass for a signed one. The section order — coverage, drift, unconfirmable, notes — is also
- * the priority order, so a character cut eats the notes before it reaches the routing surface.
+ * unit pass for a signed one. The section order — coverage, drift, unconfirmable, human check,
+ * notes — is also the priority order, so a character cut eats the notes before it reaches the
+ * routing surface.
  */
 
 export const questSummaryLimitsStatics = {
   maxFlows: 40,
   maxMidQuestObservables: 80,
   maxUnconfirmable: 80,
+  maxHumanChecks: 80,
   maxNotesPerKind: 40,
   maxRenderChars: 48_000,
 } as const;

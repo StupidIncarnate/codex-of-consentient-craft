@@ -3,6 +3,7 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { useQuestSummaryBindingProxy } from '../../bindings/use-quest-summary/use-quest-summary-binding.proxy';
 import { DebtRowLayerWidgetProxy } from './debt-row-layer-widget.proxy';
 import { FlowRowLayerWidgetProxy } from './flow-row-layer-widget.proxy';
+import { HumanCheckPanelLayerWidgetProxy } from './human-check-panel-layer-widget.proxy';
 import { NoteGroupLayerWidgetProxy } from './note-group-layer-widget.proxy';
 import { ObservableRowLayerWidgetProxy } from './observable-row-layer-widget.proxy';
 
@@ -15,6 +16,7 @@ export const QuestSummaryWidgetProxy = (): ReturnType<typeof useQuestSummaryBind
   FlowRowLayerWidgetProxy();
   ObservableRowLayerWidgetProxy();
   DebtRowLayerWidgetProxy();
+  HumanCheckPanelLayerWidgetProxy();
   NoteGroupLayerWidgetProxy();
   // A list key never reaches the DOM, so React's own duplicate-key warning is the only signal a
   // test can read for it. passthrough: true — console.error is a shared sink and the binding proxy

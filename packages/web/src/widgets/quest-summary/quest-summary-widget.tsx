@@ -1,8 +1,9 @@
 /**
  * PURPOSE: Renders one quest's verification summary as a pixel-art monospace panel — per-flow,
  * per-track mark counts; the observables added after approval and who added them; every unit
- * carrying debt with its mark, its evidence and whatever would settle it; and the side-channel
- * notes grouped by kind.
+ * carrying debt with its mark, its evidence and whatever would settle it; every `verifyByHuman`
+ * criterion no track can settle, with its recorded verdict or the controls to record one; and the
+ * side-channel notes grouped by kind.
  *
  * USAGE:
  * <QuestSummaryWidget questId={quest.id} />
@@ -30,6 +31,7 @@ import { useQuestSummaryBinding } from '../../bindings/use-quest-summary/use-que
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { DebtRowLayerWidget } from './debt-row-layer-widget';
 import { FlowRowLayerWidget } from './flow-row-layer-widget';
+import { HumanCheckPanelLayerWidget } from './human-check-panel-layer-widget';
 import { NoteGroupLayerWidget } from './note-group-layer-widget';
 import { ObservableRowLayerWidget } from './observable-row-layer-widget';
 
@@ -171,6 +173,12 @@ export const QuestSummaryWidget = ({ questId }: QuestSummaryWidgetProps): React.
           data.debt.map((entry) => <DebtRowLayerWidget key={entry.id} entry={entry} />)
         )}
       </Box>
+
+      <HumanCheckPanelLayerWidget
+        questId={questId}
+        criteria={data.humanChecks}
+        notes={data.noteGroups.find((group) => group.id === 'human-verdict')?.notes ?? []}
+      />
 
       <Box data-testid="QUEST_SUMMARY_SECTION_NOTES">
         <Text

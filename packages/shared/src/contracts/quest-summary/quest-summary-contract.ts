@@ -28,6 +28,8 @@
  *   did not contain it.
  * - `debt` is every unit that is not proven — settled without proof, or still outstanding — with the
  *   evidence behind each and the action that would settle it.
+ * - `humanChecks` is every observable flagged `verifyByHuman` across the quest's flows — a criterion
+ *   no track's denominator can carry, because only a person can settle it.
  * - `noteGroups` is everything a role learned that belongs to nobody's verdict.
  *
  * EVERY COLLECTION IS AN ID-BEARING ARRAY, never a `Record`. That is the shape the quest deep-merge
@@ -76,6 +78,12 @@ export const questSummaryContract = z
       .default([])
       .describe(
         'Every unit on the quest that is not proven — `cant-meet` settled it without proof, `unmet` leaves work outstanding — each carried whole so its evidence and its next action travel with it. This is the only place they surface.',
+      ),
+    humanChecks: z
+      .array(questSummaryObservableContract)
+      .default([])
+      .describe(
+        'Every observable flagged `verifyByHuman` across the quest, regardless of track eligibility or origin — a criterion only a person can settle, judged in the browser and recorded as a `human-verdict` note.',
       ),
     noteGroups: z
       .array(questSummaryNoteGroupContract)

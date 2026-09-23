@@ -238,6 +238,7 @@ describe('QuestFlow', () => {
           },
         ],
         debt: [],
+        humanChecks: [],
         noteGroups: [
           { id: 'open-question', notes: [harness.toPlain(openQuestionNote)] },
           { id: 'tooling-error', notes: [harness.toPlain(toolingErrorNote)] },

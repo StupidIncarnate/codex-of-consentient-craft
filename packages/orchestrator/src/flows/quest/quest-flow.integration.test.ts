@@ -155,6 +155,7 @@ describe('QuestFlow', () => {
           },
         ],
         debt: [],
+        humanChecks: [],
         noteGroups: [
           {
             id: 'open-question',

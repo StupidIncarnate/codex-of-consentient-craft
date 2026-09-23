@@ -1182,6 +1182,115 @@ describe('questSummaryBuildTransformer', () => {
     });
   });
 
+  describe('humanChecks', () => {
+    it('VALID: {observable flagged verifyByHuman} => listed with its verbatim text, even though it counts toward no track', () => {
+      const quest = QuestStub({
+        flows: [
+          FlowStub({
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                label: 'Login Page',
+                type: 'state',
+                observables: [
+                  FlowObservableStub({
+                    id: 'looks-right-to-a-person',
+                    type: 'ui-state',
+                    description: 'the new layout looks right',
+                    verifyByHuman: true,
+                  }),
+                ],
+              }),
+              FlowNodeStub({ id: 'dashboard', label: 'Dashboard', type: 'state' }),
+            ],
+            edges: LOGIN_EDGES,
+          }),
+        ],
+      });
+
+      const result = questSummaryBuildTransformer({ quest });
+
+      expect(result.humanChecks).toStrictEqual([
+        {
+          id: 'login-flow:observable:looks-right-to-a-person',
+          flowId: 'login-flow',
+          nodeId: 'login-page',
+          observableId: 'looks-right-to-a-person',
+          addedBy: 'spec',
+          observableType: 'ui-state',
+          description: 'the new layout looks right',
+        },
+      ]);
+    });
+
+    it('VALID: {observable added mid-quest AND flagged verifyByHuman} => appears on both humanChecks and midQuestObservables', () => {
+      const quest = QuestStub({
+        flows: [
+          FlowStub({
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                label: 'Login Page',
+                type: 'state',
+                observables: [
+                  FlowObservableStub({
+                    id: 'motion-feels-smooth',
+                    type: 'ui-state',
+                    description: 'the dungeon-raid transition never stutters',
+                    addedBy: 'siegemaster',
+                    verifyByHuman: true,
+                  }),
+                ],
+              }),
+              FlowNodeStub({ id: 'dashboard', label: 'Dashboard', type: 'state' }),
+            ],
+            edges: LOGIN_EDGES,
+          }),
+        ],
+      });
+
+      const result = questSummaryBuildTransformer({ quest });
+
+      // The two lists answer different questions about the same observable — provenance
+      // (midQuestObservables) and settleability (humanChecks) — so it earns a place on both.
+      expect({
+        humanChecks: result.humanChecks,
+        midQuestObservables: result.midQuestObservables,
+      }).toStrictEqual({
+        humanChecks: [
+          {
+            id: 'login-flow:observable:motion-feels-smooth',
+            flowId: 'login-flow',
+            nodeId: 'login-page',
+            observableId: 'motion-feels-smooth',
+            addedBy: 'siegemaster',
+            observableType: 'ui-state',
+            description: 'the dungeon-raid transition never stutters',
+          },
+        ],
+        midQuestObservables: [
+          {
+            id: 'login-flow:observable:motion-feels-smooth',
+            flowId: 'login-flow',
+            nodeId: 'login-page',
+            observableId: 'motion-feels-smooth',
+            addedBy: 'siegemaster',
+            observableType: 'ui-state',
+            description: 'the dungeon-raid transition never stutters',
+          },
+        ],
+      });
+    });
+
+    it('EMPTY: {no observable flagged verifyByHuman} => the list is empty', () => {
+      const quest = QuestStub({ flows: [MARKED_FLOW] });
+
+      const result = questSummaryBuildTransformer({ quest });
+
+      expect(result.humanChecks).toStrictEqual([]);
+    });
+  });
+
   describe('quest notes grouped by kind', () => {
     it('VALID: {one note of each kind, plus a second open question} => one group per kind, in quest order, with a walked note keeping its branded ids', () => {
       const quest = QuestStub({
@@ -1271,6 +1380,7 @@ describe('questSummaryBuildTransformer', () => {
         flows: [],
         midQuestObservables: [],
         debt: [],
+        humanChecks: [],
         noteGroups: [
           { id: 'open-question', notes: [] },
           { id: 'tooling-error', notes: [] },

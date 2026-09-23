@@ -366,6 +366,90 @@ describe('QuestSummaryWidget', () => {
     });
   });
 
+  describe('human check section', () => {
+    it('VALID: {one verifyByHuman criterion, no matching note} => renders the section with the criterion unjudged', async () => {
+      const proxy = QuestSummaryWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupSummary({
+        summary: QuestSummaryStub({
+          questId: 'q-summary',
+          humanChecks: [
+            QuestSummaryObservableStub({
+              id: 'login-flow:observable:motion-feels-smooth',
+              observableId: 'motion-feels-smooth',
+              description: 'the dungeon-raid transition never stutters',
+            }),
+          ],
+        }),
+      });
+
+      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+
+      await screen.findByTestId('QUEST_SUMMARY');
+
+      expect(
+        screen.getByTestId('QUEST_SUMMARY_SECTION_HUMAN_CHECK').getAttribute('data-testid'),
+      ).toBe('QUEST_SUMMARY_SECTION_HUMAN_CHECK');
+      expect(screen.getByTestId('HUMAN_CHECK_DESCRIPTION').textContent).toBe(
+        'the dungeon-raid transition never stutters',
+      );
+      expect(screen.queryByTestId('HUMAN_CHECK_VERDICT')).toBe(null);
+    });
+
+    it("VALID: {criterion matched by the human-verdict note group's own note} => renders the recorded verdict", async () => {
+      const proxy = QuestSummaryWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupSummary({
+        summary: QuestSummaryStub({
+          questId: 'q-summary',
+          humanChecks: [
+            QuestSummaryObservableStub({
+              id: 'login-flow:observable:motion-feels-smooth',
+              observableId: 'motion-feels-smooth',
+              description: 'the dungeon-raid transition never stutters',
+            }),
+          ],
+          noteGroups: [
+            QuestSummaryNoteGroupStub({
+              id: 'human-verdict',
+              notes: [
+                QuestNoteStub({
+                  id: 'human-verdict-motion-feels-smooth',
+                  kind: 'human-verdict',
+                  unitId: 'motion-feels-smooth',
+                  outcome: 'met',
+                  detail: 'Watched it end to end.',
+                }),
+              ],
+            }),
+          ],
+        }),
+      });
+
+      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+
+      await screen.findByTestId('QUEST_SUMMARY');
+
+      expect(screen.getByTestId('HUMAN_CHECK_VERDICT').textContent).toBe(
+        '[met] Watched it end to end.',
+      );
+    });
+
+    it('EMPTY: {humanChecks: []} => renders no human-check section at all', async () => {
+      const proxy = QuestSummaryWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupSummary({
+        summary: QuestSummaryStub({ questId: 'q-summary', humanChecks: [] }),
+      });
+
+      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+
+      await screen.findByTestId('QUEST_SUMMARY');
+
+      expect(screen.queryByTestId('QUEST_SUMMARY_SECTION_HUMAN_CHECK')).toBe(null);
+    });
+  });
+
   describe('note groups section', () => {
     it('VALID: {a populated group and an empty group} => renders both titles with their counts and only the populated group has a row', async () => {
       const proxy = QuestSummaryWidgetProxy();
