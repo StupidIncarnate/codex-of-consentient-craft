@@ -1,7 +1,41 @@
 import { getBlightChecklistInputContract } from './get-blight-checklist-input-contract';
 import { GetBlightChecklistInputStub } from './get-blight-checklist-input.stub';
 
+const scopeDescription =
+  getBlightChecklistInputContract.unwrap().shape.scope.unwrap().description ?? '';
+
+const hasIn = ({ text, needle }: { text: string; needle: string }): boolean =>
+  text.includes(needle);
+
 describe('getBlightChecklistInputContract', () => {
+  // THE SERVED TOOL DESCRIPTION IS WHAT A DISPATCHED AGENT ACTUALLY READS. No session on a pass
+  // commits its own work anymore — a family's deterministic `commit` step does, once, right after
+  // the `review` step's `done` routes there — so the description must say THAT, never that "the
+  // reviewer commits once at the end".
+  describe('the working-tree scope description', () => {
+    it('VALID: description => names the deterministic commit step, and no session committing its own work, never the reviewer as committer', () => {
+      expect({
+        namesDeterministicCommit: hasIn({
+          text: scopeDescription,
+          needle:
+            "the family's deterministic `commit` step lands it once, right after `review`'s `done`",
+        }),
+        namesNoSessionCommitsItsOwnWork: hasIn({
+          text: scopeDescription,
+          needle: 'no session on a pass commits its own work',
+        }),
+        stillNamesTheReviewerAsCommitting: hasIn({
+          text: scopeDescription,
+          needle: 'the reviewer commits once',
+        }),
+      }).toStrictEqual({
+        namesDeterministicCommit: true,
+        namesNoSessionCommitsItsOwnWork: true,
+        stillNamesTheReviewerAsCommitting: false,
+      });
+    });
+  });
+
   describe('valid inputs', () => {
     it('VALID: {questId: "add-auth"} => parses successfully', () => {
       expect(getBlightChecklistInputContract.parse(GetBlightChecklistInputStub())).toStrictEqual({
@@ -27,8 +61,9 @@ describe('getBlightChecklistInputContract', () => {
       ).toStrictEqual({ questId: 'add-auth', scope: 'quest' });
     });
 
-    // THE REVIEWER-MINION'S SCOPE. No worker commits anything, so a whole round sits uncommitted
-    // until its reviewer commits it once at the end — and this is the only scope that sees it, the
+    // THE REVIEWER'S SCOPE. No session on a pass commits its own work, so a whole pass sits
+    // uncommitted through the `review` step's own turn — the family's deterministic `commit` step
+    // lands it once, right after `review`'s `done` — and this is the only scope that sees it, the
     // only one that unions in untracked files, and the only one needing no review base.
     it("VALID: {questId, scope: 'working-tree'} => parses, so a reviewer can scope to its uncommitted round", () => {
       expect(
@@ -38,9 +73,9 @@ describe('getBlightChecklistInputContract', () => {
       ).toStrictEqual({ questId: 'add-auth', scope: 'working-tree' });
     });
 
-    // NO LONGER the reviewer's scope. Before that session commits, `@{upstream}..HEAD` holds the
-    // planner's commit of the round document and nothing else. It stays parseable for a caller whose
-    // subject really is published-or-not.
+    // NO LONGER the reviewer's scope. Before the deterministic `commit` step runs, `@{upstream}..HEAD`
+    // holds nothing from this pass at all. It stays parseable for a caller whose subject really is
+    // published-or-not.
     it("VALID: {questId, scope: 'unpushed'} => parses, so a caller measuring unpublished commits can ask", () => {
       expect(
         getBlightChecklistInputContract.parse(

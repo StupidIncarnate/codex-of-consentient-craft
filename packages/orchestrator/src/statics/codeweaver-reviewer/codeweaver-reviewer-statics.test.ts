@@ -1,6 +1,5 @@
 import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 
-import { flowEvidenceContractStatics } from '../flow-evidence-contract/flow-evidence-contract-statics';
 import { standardsReviewConcernsStatics } from '../standards-review-concerns/standards-review-concerns-statics';
 
 import { codeweaverReviewerStatics } from './codeweaver-reviewer-statics';
@@ -28,34 +27,32 @@ describe('codeweaverReviewerStatics', () => {
   });
 
   // MEASURED WITH `standardsReviewConcernsStatics.markdown` ALREADY INTERPOLATED — `TEMPLATE` here IS
-  // the resolved text the MCP layer weighs.
+  // the resolved text the MCP layer weighs. 22,325 bytes measured against a 50,000 ceiling.
   it('VALID: served template => fits the MCP verbatim ceiling in bytes', () => {
     expect(Buffer.byteLength(TEMPLATE, 'utf8')).toBeLessThan(mcpToolResultStatics.maxVerbatimChars);
   });
 
-  // THE SHARED STANDARDS BLOCK OPENS WITH ITS OWN `##` HEADING, landing between step 4 and step 5 of
-  // this file's own workflow — the interpolation adds a section this file never writes itself.
-  it('VALID: served template => names its six top-level sections in document order', () => {
+  // THE SHARED STANDARDS BLOCK OPENS WITH ITS OWN `##` HEADING, landing after step 7 of this file's
+  // own workflow — the interpolation adds a section this file never writes itself.
+  it('VALID: served template => names its five top-level sections in document order', () => {
     expect(Array.from(TEMPLATE.matchAll(/^## .+$/gmu), (match) => match[0])).toStrictEqual([
       '## What you were given',
       '## Rules',
       '## Workflow',
       '## The five standing concerns',
-      '## On a sweep brief',
       '## The quest id',
     ]);
   });
 
-  it('VALID: served template => names its eight workflow steps in order', () => {
+  it('VALID: served template => names its seven workflow steps in order', () => {
     expect(Array.from(TEMPLATE.matchAll(/^### \d+\. .+$/gmu), (match) => match[0])).toStrictEqual([
       '### 1. Load the standards',
-      '### 2. Read the quest',
+      '### 2. Fetch your scope',
       '### 3. Find out what changed',
       '### 4. Judge one file at a time, writing the judgement down before you open the next',
       '### 5. Fix what you can',
       '### 6. Ward',
-      '### 7. Commit and push',
-      '### 8. Return',
+      '### 7. Mark every assigned unit, then signal',
     ]);
   });
 
@@ -81,14 +78,27 @@ describe('codeweaverReviewerStatics', () => {
     }).toStrictEqual({ question: true, whyNothingElseCatchesIt: true, bothVerdicts: true });
   });
 
-  // THIS SESSION SIGNALS NOTHING — its parent does, once, after reading its return.
-  it('VALID: served template => never calls signal-back, and the parent signals instead', () => {
-    expect(
-      hasIn({
-        needle: '**You never call `signal-back`.** Your parent signals, once, after you return.',
+  // THIS SESSION IS ITS OWN WORK ITEM, dispatched with a real workItemId, and `subagentStopNeedsBlockGuard`
+  // holds it open until it calls `signal-back` itself — there is no parent to signal for it.
+  it('VALID: served template => calls signal-back itself, once every assigned unit carries a mark', () => {
+    expect({
+      signalRule: hasIn({
+        needle:
+          '**[SIGNAL] You call `signal-back` yourself, once, after every assigned unit carries a mark.** Nobody\nsignals for you, and nothing ends your turn without it',
         text: TEMPLATE,
       }),
-    ).toBe(true);
+      callShape: hasIn({
+        needle: "signal: 'complete',",
+        text: TEMPLATE,
+      }),
+      noParentSignals: hasIn({ needle: 'Your parent signals', text: TEMPLATE }),
+      noNeverCallSignalBack: hasIn({ needle: 'You never call `signal-back`', text: TEMPLATE }),
+    }).toStrictEqual({
+      signalRule: true,
+      callShape: true,
+      noParentSignals: false,
+      noNeverCallSignalBack: false,
+    });
   });
 
   // THE READING STEP IS A LOOP, NOT A BATCH. A live reviewer of this shape ran twenty reads back to
@@ -179,15 +189,13 @@ describe('codeweaverReviewerStatics', () => {
     });
   });
 
-  // ONE WARD, AND IT IS THIS SESSION'S ALONE — every sibling on the pass runs a ward scoped to its
-  // own paths, so a `--uncommitted` run before this one has read the work grades what nobody read.
-  // BOTH ward-gate sites name the written comments, because "I have read everything" is a claim the
-  // session makes about itself and one comment per file is a condition anybody can count.
+  // ONE WARD, AND IT IS THIS SESSION'S ALONE — `work` wards only its own piece's paths, never
+  // `--uncommitted`, so a run before this one has read the work grades what nobody read.
   it('VALID: served template => wards once, scoped to --uncommitted, gated on every file carrying its comment', () => {
     expect({
       scopeRule: hasIn({
         needle:
-          "**[WARD SCOPE] `npm run ward -- --uncommitted` is yours, once, and only once every file on your list carries its own written comment.** Nobody else on the pass runs it. You run no bare `npm run ward`; that is the dispatcher's.",
+          "**[WARD SCOPE] `npm run ward -- --uncommitted` is yours, once, and only once every file on your list carries its own written comment.** No other SESSION on the pass runs it — `work` wards only its own piece's paths, never `--uncommitted` — and you run no bare `npm run ward`; that is the dispatcher's.",
         text: TEMPLATE,
       }),
       neverWidensASubAgentsRun: hasIn({
@@ -209,6 +217,11 @@ describe('codeweaverReviewerStatics', () => {
         needle: '**Diagnose a red before you fix it.**',
         text: TEMPLATE,
       }),
+      whyRunItHere: hasIn({
+        needle:
+          'a DETERMINISTIC\n`ward` step re-grades the whole family `--committed --uncommitted` anyway — but a red it finds\nroutes to a `spiritmender` repair',
+        text: TEMPLATE,
+      }),
     }).toStrictEqual({
       scopeRule: true,
       neverWidensASubAgentsRun: true,
@@ -216,94 +229,142 @@ describe('codeweaverReviewerStatics', () => {
       wardStepGate: true,
       twiceAtMost: true,
       flakeIsolation: true,
+      whyRunItHere: true,
     });
   });
 
   // THE UNCHECKABLE CLAIM IS GONE, not merely joined by a checkable one. Left standing anywhere, it
   // is the sentence a session quotes back at itself to justify warding after zero written comments.
   it('VALID: served template => carries no self-reported "after you have read everything" gate', () => {
-    expect({
-      oldWardScopeClaim: hasIn({ needle: 'after you have read everything', text: TEMPLATE }),
-      oldWardStepClaim: hasIn({
-        needle: 'Run it once, in the foreground, after you have read everything.',
-        text: TEMPLATE,
-      }),
-      oldStepFourHeading: hasIn({
-        needle: '### 4. Open every file the work produced',
-        text: TEMPLATE,
-      }),
-    }).toStrictEqual({
-      oldWardScopeClaim: false,
-      oldWardStepClaim: false,
-      oldStepFourHeading: false,
-    });
+    expect(hasIn({ needle: 'after you have read everything', text: TEMPLATE })).toBe(false);
   });
 
-  // THE PASS ARRIVES ENTIRELY UNCOMMITTED, so `git status` / `git diff HEAD` plus the untracked
-  // files ARE the pass — and that measurement has to happen BEFORE the commit that would empty it.
-  it('VALID: served template => enumerates what changed before it commits anything', () => {
+  // THE PASS ARRIVES ENTIRELY UNCOMMITTED, and NOTHING in this session's own turn ever commits it —
+  // the deterministic `commit` step does that after `done`. Reading git before opening a single file
+  // is still the rule; it is no longer protecting against this session's own commit, because this
+  // session has none to make.
+  it('VALID: served template => enumerates what changed before it opens a single file', () => {
     expect({
-      enumerateFirst: hasIn({
-        needle: 'Commit first and both come back empty, and you would review nothing at all',
-        text: TEMPLATE,
-      }),
-      doThisBeforeCommitting: hasIn({
-        needle: 'Run both BEFORE you commit anything',
+      readBeforeOpening: hasIn({
+        needle: '**Run both before you open a single file.**',
         text: TEMPLATE,
       }),
       order:
         TEMPLATE.indexOf('### 3. Find out what changed') <
-        TEMPLATE.indexOf('### 7. Commit and push'),
-    }).toStrictEqual({ enumerateFirst: true, doThisBeforeCommitting: true, order: true });
+        TEMPLATE.indexOf('### 4. Judge one file at a time'),
+    }).toStrictEqual({ readBeforeOpening: true, order: true });
   });
 
-  // ONE COMMIT, THEN A BARE PUSH — no `-u`, and nobody else here touches git at all.
-  it('VALID: served template => commits with git add -A, then pushes bare', () => {
+  // NEITHER A COMMIT NOR A PUSH IS THIS SESSION'S TO MAKE — `review`'s `done` routes to a
+  // deterministic `commit` step (`stepHandlerCommitBroker`) that runs both, from a message built off
+  // this session's own marks. A session that ran `git add -A` / `git commit` / `git push` here would
+  // race that step on the same worktree for nothing it could keep.
+  it('VALID: served template => never runs git add, git commit or git push, and says so', () => {
     expect({
-      addAll: hasIn({ needle: 'git add -A', text: TEMPLATE }),
-      barePush: /^git push$/mu.exec(TEMPLATE) !== null,
-    }).toStrictEqual({ addAll: true, barePush: true });
-  });
-
-  // THE RETURN BLOCK IS A WIRE FORMAT its parent parses by field name — a field renamed or dropped
-  // here is a parent reading nothing back for it.
-  it('VALID: served template => returns exactly these seven fields, in order', () => {
-    expect(Array.from(TEMPLATE.matchAll(/^([A-Z]+):/gmu), (match) => match[1])).toStrictEqual([
-      'VERDICT',
-      'READ',
-      'FIXES',
-      'FINDINGS',
-      'WARD',
-      'COMMIT',
-      'NEXT',
-    ]);
-  });
-
-  // ONLY THIS `NEXT:` LINE DECIDES THE PASS, and it carries exactly three values.
-  it('VALID: served template => ends its return on a NEXT: line carrying exactly pass, rework and wall', () => {
-    expect(
-      hasIn({
+      gitRule: hasIn({
         needle:
-          'NEXT:      pass | rework — <what is not done> | wall — <what a person must change>',
+          '**[GIT] You read git; you never write it.** `git status`, `git diff HEAD`, `git log`,\n`git rev-parse` — run as many of these as you need. **Never `git add`, `git commit`, `git push`,\n`git stash`, `git reset`, `git checkout --`, `git clean` or `git rebase`.**',
         text: TEMPLATE,
       }),
-    ).toBe(true);
+      whyNotRace: hasIn({
+        needle: 'writing git yourself\nraces that step on the same worktree for nothing',
+        text: TEMPLATE,
+      }),
+      addAllAbsent: /^git add -A$/mu.exec(TEMPLATE) === null,
+      commitAbsent: !TEMPLATE.includes('git commit -m'),
+      barePushAbsent: /^git push$/mu.exec(TEMPLATE) === null,
+    }).toStrictEqual({
+      gitRule: true,
+      whyNotRace: true,
+      addAllAbsent: true,
+      commitAbsent: true,
+      barePushAbsent: true,
+    });
   });
 
-  // THIS REVIEWER TAKES THE STANDING CONCERNS ONLY — it judges product code built to a spec, never a
-  // test suite (that is `flowrider-reviewer`'s judging half) and never a hand-driven repair.
-  it('VALID: served template => carries the standing concerns and withholds the evidence contract', () => {
+  // THE OLD RETURN-BLOCK PROTOCOL IS GONE ENTIRELY — nothing reads free-form prose from this session
+  // anymore. What persists is the `quest-work` observation on each unit and the `signal-back` call.
+  it('VALID: served template => carries no VERDICT/READ/FIXES/FINDINGS/WARD/COMMIT/NEXT return block', () => {
+    expect(Array.from(TEMPLATE.matchAll(/^([A-Z]+):/gmu), (match) => match[1])).toStrictEqual([]);
+  });
+
+  // THE MARKING CALL IS THE REPLACEMENT WIRE FORMAT — every assigned unit needs a mark or
+  // `signal-back` refuses the call by name.
+  it('VALID: served template => marks every assigned unit through quest-work before signalling', () => {
+    expect({
+      observationsCall: hasIn({
+        needle: "payload: {\n    kind: 'observations',",
+        text: TEMPLATE,
+      }),
+      metMark: hasIn({ needle: "mark: 'met',", text: TEMPLATE }),
+      cantMeetMark: hasIn({ needle: "mark: 'cant-meet',", text: TEMPLATE }),
+      unmetMark: hasIn({ needle: "mark: 'unmet',", text: TEMPLATE }),
+      gateNamesTheGap: hasIn({
+        needle:
+          '**Every unit in `assignedUnits` needs one of these three, or `signal-back` refuses your call by\nname**',
+        text: TEMPLATE,
+      }),
+      unmetMintsWork: hasIn({
+        needle:
+          'only `unmet` mints a successor,\nscoped to exactly the units you marked that way, back at `work`',
+        text: TEMPLATE,
+      }),
+      wallOutcome: hasIn({
+        needle: "payload: { kind: 'outcome', word: 'wall', reason:",
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      observationsCall: true,
+      metMark: true,
+      cantMeetMark: true,
+      unmetMark: true,
+      gateNamesTheGap: true,
+      unmetMintsWork: true,
+      wallOutcome: true,
+    });
+  });
+
+  // THIS REVIEWER TAKES THE STANDING CONCERNS ONLY — the evidence contract's judging half belongs to
+  // `flowrider-reviewer`, which grades a test suite rather than product code.
+  it('VALID: served template => carries the standing concerns and withholds the flow evidence contract', () => {
     expect({
       standards: hasIn({ needle: standardsReviewConcernsStatics.markdown, text: TEMPLATE }),
-      judging: hasIn({ needle: flowEvidenceContractStatics.judgingMarkdown, text: TEMPLATE }),
-      authoring: hasIn({ needle: flowEvidenceContractStatics.authoringMarkdown, text: TEMPLATE }),
-    }).toStrictEqual({ standards: true, judging: false, authoring: false });
+      evidenceContractHeading: hasIn({
+        needle: 'The Evidence Contract — what makes an observable COVERED',
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({ standards: true, evidenceContractHeading: false });
   });
 
-  // THIS IS A MINION FETCH — no work item of its own, so a `workItemId` never belongs here. A minion
-  // carrying one could signal on its parent's work item and complete it early.
-  it('VALID: served template => never carries a workItemId', () => {
-    expect(hasIn({ needle: 'workItemId', text: TEMPLATE })).toBe(false);
+  // THIS IS A REAL WORK-ITEM SESSION, not a parent-summoned minion — `get-agent-prompt` is called
+  // WITH a workItemId, which is what holds this session inside `subagentStopNeedsBlockGuard` until it
+  // signals. The four substituted lines and both MCP calls this page tells it to make all name one.
+  it('VALID: served template => carries workItemId as a real, required field', () => {
+    expect(hasIn({ needle: 'Work Item ID: <id>', text: TEMPLATE })).toBe(true);
+  });
+
+  it('VALID: served template => carries no false claims about a briefing parent or a retired brief line', () => {
+    expect({
+      yourParent: hasIn({ needle: 'Your parent', text: TEMPLATE }),
+      briefingSubAgents: hasIn({ needle: 'briefing sub-agents', text: TEMPLATE }),
+      operationLine: hasIn({ needle: 'an `OPERATION:` line', text: TEMPLATE }),
+      flowLineInBrief: hasIn({ needle: 'the FLOW: line in your brief', text: TEMPLATE }),
+      readChecksLine: hasIn({ needle: 'A `READ-CHECKS:` line', text: TEMPLATE }),
+      sweepLine: hasIn({ needle: 'A `SWEEP:` line', text: TEMPLATE }),
+      onASweepBriefHeading: hasIn({ needle: 'On a sweep brief', text: TEMPLATE }),
+      getQuestFlowCall: hasIn({ needle: "get-quest({ questId: 'QUEST_ID'", text: TEMPLATE }),
+      getQaChecklist: hasIn({ needle: 'get-qa-checklist', text: TEMPLATE }),
+    }).toStrictEqual({
+      yourParent: false,
+      briefingSubAgents: false,
+      operationLine: false,
+      flowLineInBrief: false,
+      readChecksLine: false,
+      sweepLine: false,
+      onASweepBriefHeading: false,
+      getQuestFlowCall: false,
+      getQaChecklist: false,
+    });
   });
 
   it('VALID: served template => carries no round-protocol or sibling-role vocabulary', () => {
