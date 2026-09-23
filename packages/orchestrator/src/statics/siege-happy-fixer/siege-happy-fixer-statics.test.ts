@@ -274,19 +274,25 @@ describe('siegeHappyFixerStatics', () => {
     });
   });
 
-  it('VALID: template => runs no ward but its own, scoped, never uncommitted or bare or run-ward', () => {
+  it('VALID: template => runs no ward but its own, scoped, never uncommitted or bare, and names the dispatcher ward step as the regression pass', () => {
     expect({
       scopedOnce: has(
         '[WARD SCOPE] You run ward exactly once, scoped to your own paths, in the foreground',
       ),
       neverUncommitted: has('Never `--uncommitted`.'),
-      neverBare: has('Never a bare `npm run ward`.'),
-      neverRunWardTool: has('Never the `run-ward` MCP tool'),
+      neverBare: has('Never a bare `npm run ward` — grading the whole branch is not your job'),
+      regressionPassIsTheWardStep: has(
+        "the family's own deterministic `ward` step is the regression pass",
+      ),
+      noRunWardMcpTool: TEMPLATE.includes('run-ward'),
+      noRunRiftcarverMcpTool: TEMPLATE.includes('run-riftcarver'),
     }).toStrictEqual({
       scopedOnce: true,
       neverUncommitted: true,
       neverBare: true,
-      neverRunWardTool: true,
+      regressionPassIsTheWardStep: true,
+      noRunWardMcpTool: false,
+      noRunRiftcarverMcpTool: false,
     });
   });
 });

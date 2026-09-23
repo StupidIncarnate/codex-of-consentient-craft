@@ -230,7 +230,8 @@ describe('codeweaverWorkerStatics', () => {
   });
 
   // SCOPE IS THE WHOLE RULE. Ward picks its check types off the paths it is handed, and the widened
-  // forms grade someone else's work and land the red on this session's own work item.
+  // forms grade someone else's work — the family's own deterministic ward step is the regression pass,
+  // not a tool this session reaches for.
   it('VALID: served template => scopes its own ward run to its own piece and forbids every wider form by name', () => {
     expect({
       scopedRun: hasIn({
@@ -246,26 +247,25 @@ describe('codeweaverWorkerStatics', () => {
           'npm run ward -- --uncommitted                   grades the whole tree, not your piece',
         text: TEMPLATE,
       }),
-      neverRunWardMcpTool: hasIn({
-        needle: '**NEVER the run-ward MCP tool.** It is not another route to the same result',
-        text: TEMPLATE,
-      }),
-      landsRedOnWorkItem: hasIn({
+      regressionPassIsTheWardStep: hasIn({
         needle:
-          'a red anywhere on it lands on YOUR work item, not on the piece that actually caused it',
+          "Grading\nthe whole branch is not your job: the family's own deterministic `ward` step is the regression pass",
         text: TEMPLATE,
       }),
       discoveryMismatch: hasIn({
         needle: 'DISCOVERY MISMATCH on a check type = ward answering, not failing.',
         text: TEMPLATE,
       }),
+      noRunWardMcpTool: TEMPLATE.includes('run-ward'),
+      noRunRiftcarverMcpTool: TEMPLATE.includes('run-riftcarver'),
     }).toStrictEqual({
       scopedRun: true,
       neverUncommitted: true,
       neverBareInTools: true,
-      neverRunWardMcpTool: true,
-      landsRedOnWorkItem: true,
+      regressionPassIsTheWardStep: true,
       discoveryMismatch: true,
+      noRunWardMcpTool: false,
+      noRunRiftcarverMcpTool: false,
     });
   });
 

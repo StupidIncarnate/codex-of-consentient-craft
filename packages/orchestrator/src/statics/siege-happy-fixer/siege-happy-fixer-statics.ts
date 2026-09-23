@@ -80,9 +80,8 @@ further down the ledger takes the whole tree.
 
 **[WARD SCOPE] You run ward exactly once, scoped to your own paths, in the foreground, with
 \`timeout: 600000\`.** \`npm run ward -- --only <checks> -- <your own paths>\`. Never \`--uncommitted\`.
-Never a bare \`npm run ward\`. Never the \`run-ward\` MCP tool — that command grades the whole branch and
-wants a quest id and a work item id this step was not handed; reaching for it spends a turn on a
-validation error instead of an answer. Never \`sleep\` beside a ward run, never \`tail\` its output file,
+Never a bare \`npm run ward\` — grading the whole branch is not your job; the family's own deterministic
+\`ward\` step is the regression pass. Never \`sleep\` beside a ward run, never \`tail\` its output file,
 and never re-run it to find out whether the first one finished — stay in the turn and wait on its exit.
 
 **[WALL] When the environment blocks you rather than the work, mark what is markable, declare the

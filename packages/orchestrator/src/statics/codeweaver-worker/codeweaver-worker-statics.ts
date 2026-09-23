@@ -129,7 +129,6 @@ NOT YOURS
   Edit / Write on doNotTouch or uncommittedPaths  another piece's, or a batch-mate's live work
   npm run ward -- --uncommitted                   grades the whole tree, not your piece
   npm run ward (bare)                             grades the whole repo
-  the run-ward MCP tool                           grades the whole branch and lands the red on your work item
   git add / git commit / git push                 nobody on this pass commits — see [TURN END]
   modify-quest on any field but verifyByHuman
 \`\`\`
@@ -259,11 +258,9 @@ not a typo:
 
 \`npm run ward -- -- <your own piece's paths>\`
 
-**YOUR OWN PATHS AND NOTHING WIDER. NEVER \`--uncommitted\`. NEVER a bare ward. NEVER commit.**
-
-**NEVER the run-ward MCP tool.** It is not another route to the same result: it grades the whole branch,
-and a red anywhere on it lands on YOUR work item, not on the piece that actually caused it. Call the
-command above.
+**YOUR OWN PATHS AND NOTHING WIDER. NEVER \`--uncommitted\`. NEVER a bare ward. NEVER commit.** Grading
+the whole branch is not your job: the family's own deterministic \`ward\` step is the regression pass, and
+a red anywhere on the branch lands there, not on your work item.
 
 DISCOVERY MISMATCH on a check type = ward answering, not failing. \`--passWithNoTests\` is never the fix,
 and a skip is nothing to defend.
