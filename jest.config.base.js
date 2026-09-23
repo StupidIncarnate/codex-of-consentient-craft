@@ -6,6 +6,13 @@ module.exports = {
   // `source` first is what makes a test read a sibling workspace package's TypeScript rather than
   // its last build — see packages/config/src/module-resolution.integration.test.ts.
   testEnvironmentOptions: { customExportConditions: ['source', 'require', 'default'] },
+  // Runs once, in the main process, before any worker forks — the only place a `HOME` assignment
+  // reaches every worker's real environ. See jest.setup-global.js's own header for why a
+  // `setupFiles`/`setupFilesAfterEnv` entry cannot do this job. No package below sets its own
+  // `globalSetup`/`globalTeardown` — confirmed by a repo-wide grep before adding these — so nothing
+  // here needs chaining.
+  globalSetup: '<rootDir>/../../packages/testing/src/jest.setup-global.js',
+  globalTeardown: '<rootDir>/../../packages/testing/src/jest.setup-global-teardown.js',
   // `setupFiles`, not `setupFilesAfterEnv`: this one has to run before the test file's own imports,
   // because the orchestrator barrel bootstraps a guardrail poller at module load that reads
   // `DUNGEONMASTER_HOME` on its first pass. The file itself says what that costs when it resolves to

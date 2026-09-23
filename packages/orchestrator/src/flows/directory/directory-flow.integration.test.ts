@@ -6,6 +6,7 @@ import {
 } from '@dungeonmaster/testing';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts';
 
+import { homeDirectoryMarkerHarness } from '../../../test/harnesses/home-directory-marker/home-directory-marker.harness';
 import { DirectoryFlow } from './directory-flow';
 
 describe('DirectoryFlow', () => {
@@ -177,17 +178,23 @@ describe('DirectoryFlow', () => {
   });
 
   describe('default path (no path provided)', () => {
-    it('VALID: {path: undefined} => returns array of directory entries from home directory', () => {
+    const marker = homeDirectoryMarkerHarness();
+
+    it('VALID: {path: undefined} => returns array of directory entries from home directory', async () => {
+      const { name, path } = await marker.create();
+
       const result = DirectoryFlow({});
 
-      expect(Array.isArray(result)).toBe(true);
+      marker.cleanup({ path });
 
       for (const entry of result) {
         expect(entry.isDirectory).toBe(true);
         expect(entry.name.startsWith('.')).toBe(false);
       }
 
-      expect(result.length).toBeGreaterThan(0);
+      const matched = result.find((entry) => String(entry.name) === String(name));
+
+      expect(matched).toStrictEqual({ name, path, isDirectory: true });
     });
   });
 

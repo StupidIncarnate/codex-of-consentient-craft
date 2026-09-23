@@ -1,32 +1,32 @@
-// Gives every jest process a sandbox dungeonmaster home, and it runs as a `setupFiles` entry
-// rather than `setupFilesAfterEnv` because that is the only hook that lands BEFORE the test file's
-// own imports.
+// Gives every jest WORKER its own sandbox `DUNGEONMASTER_HOME`, one per worker pid, reused across
+// every test file that worker runs. Runs as a `setupFiles` entry, not `setupFilesAfterEnv`, because
+// that is the only hook that lands BEFORE the test file's own imports: `@dungeonmaster/orchestrator`'s
+// barrel runs six bootstraps at MODULE LOAD, one of which is the rate-limit guardrail poller, and
+// its first pass reads whatever `DUNGEONMASTER_HOME` names at that moment — a harness that only
+// sets the env var inside a test body sets it too late for that first pass.
 //
-// `@dungeonmaster/orchestrator`'s barrel runs six bootstraps at MODULE LOAD, one of which is the
-// rate-limit guardrail poller. Its first pass reads whatever `DUNGEONMASTER_HOME` names at that
-// moment — and a harness sets that inside a test body, long after the import. So without this file
-// the first pass resolves to the developer's real `~/.dungeonmaster`, and from there
-// `usageLedgerScanBroker` walks the developer's own `~/.claude/projects`: 2,235 transcripts and
-// 1.93 GB on one measured machine, of which the 623 files touched in the last seven days are read
-// from byte 0. That read lands inside whichever test happens to be running and is billed to it.
-// Measured on one integration sweep: 117.6s with the real home, 49.6s with this sandbox, and the
-// slow-test gate went from failing to silent.
+// This sandbox holds `DUNGEONMASTER_HOME` only — the dungeonmaster-specific data dir (guild
+// configs, the usage ledger, dispatch state). It is separate from, and complementary to, the
+// process-wide `HOME` sandbox `jest.setup-global.js` builds in the `globalSetup` hook, before any
+// worker forks — which is what lets THAT file redirect the real `os.homedir()` itself; a
+// `setupFiles` entry like this one cannot, because jest-environment-node hands each test FILE a
+// copied `process.env` proxy, so an assignment made here never reaches the real environ libuv
+// already read when this worker started.
 //
-// The ledger stamped NOW is what makes the scan take its throttle path (`minIntervalMs`) instead.
-// A home with no ledger gets the default one, stamped at the epoch, which every pass reads as a
-// measurement due. The same seed rides every harness that re-points `DUNGEONMASTER_HOME` at a home
-// of its own, since a fresh directory has no ledger either.
-//
-// `os.homedir()` cannot be redirected from inside jest — its `process.env` is a copied object, so
-// assigning HOME never reaches the environ libuv reads — so the ledger's timestamp is the only
-// lever that keeps that tree out of a run.
+// Because `HOME` is now sandboxed for the whole run, `usageLedgerScanBroker`'s walk of
+// `locationsClaudeProjectsRootFindBroker()` (which resolves through `osUserHomedirAdapter`, the
+// real `os.homedir()`) lands on an empty directory rather than the developer's own
+// `~/.claude/projects` tree, so this file no longer seeds a ledger stamped at the current time to
+// keep that walk off its slow path — an absent ledger already resolves to the epoch-stamped
+// default, and the walk it triggers now finds nothing to read either way. The rate-limits-watcher
+// integration harness still seeds its OWN ledger, deliberately, to test specific window/ceiling
+// states — that is a different mechanism and is untouched by this file.
 
 const { mkdirSync, readdirSync, rmSync, writeFileSync } = require('fs');
 const { tmpdir } = require('os');
 const { join } = require('path');
 
 const GUILD_CONFIG_FILENAME = 'config.json';
-const USAGE_LEDGER_FILENAME = 'usage-ledger.json';
 const HOME_PREFIX = 'dungeonmaster-jest-home-';
 // This file runs once per test FILE; the work under this flag is worth one pass per WORKER.
 const ONCE_PER_WORKER_FLAG = '__dungeonmasterJestHomeOnce';
@@ -79,17 +79,5 @@ mkdirSync(homePath, { recursive: true });
 // `cause instanceof Error`, and an error node's own fs raised outside jest's vm realm fails that
 // check — so a home with no config.json throws where an empty one returns the default.
 writeFileSync(join(homePath, GUILD_CONFIG_FILENAME), JSON.stringify({ guilds: [] }));
-
-// Re-stamped per test file rather than once per worker, so the throttle window cannot lapse partway
-// through a long suite and let one scan through.
-writeFileSync(
-  join(homePath, USAGE_LEDGER_FILENAME),
-  JSON.stringify({
-    buckets: {},
-    cursors: {},
-    ceilings: { fiveHour: null, sevenDay: null },
-    updatedAt: new Date().toISOString(),
-  }),
-);
 
 process.env.DUNGEONMASTER_HOME = homePath;
