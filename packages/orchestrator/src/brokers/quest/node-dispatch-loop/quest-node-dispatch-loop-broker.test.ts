@@ -13,8 +13,6 @@ describe('questNodeDispatchLoopBroker', () => {
 
       const result = await questNodeDispatchLoopBroker({
         isPlaying: (): boolean => false,
-        onWardLine: () => undefined,
-        onRiftcarverLine: () => undefined,
         onStepLine: () => undefined,
       });
 
@@ -38,8 +36,6 @@ describe('questNodeDispatchLoopBroker', () => {
 
       const result = await questNodeDispatchLoopBroker({
         isPlaying,
-        onWardLine: () => undefined,
-        onRiftcarverLine: () => undefined,
         onStepLine: () => undefined,
       });
 
@@ -58,30 +54,6 @@ describe('questNodeDispatchLoopBroker', () => {
     // The scan is a LONG POLL: it sits waiting for work for up to `longPollTotalMs`, and a quest
     // seeded during that wait is what it eventually returns. A pause pressed inside that window
     // must win — the work the poll found was found AFTER the dispatcher was told to stop.
-    it('VALID: {pause lands while the scan long-polls, then the scan returns ward work} => the ward never runs', async () => {
-      const proxy = questNodeDispatchLoopBrokerProxy();
-      proxy.queueStep({
-        step: NextStepStub({
-          type: 'run-ward',
-          questId: 'add-auth',
-          workItemId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-          mode: 'committed',
-        } as never),
-      });
-      const isPlaying = jest.fn().mockReturnValueOnce(true).mockReturnValue(false);
-
-      const result = await questNodeDispatchLoopBroker({
-        isPlaying,
-        onWardLine: () => undefined,
-        onRiftcarverLine: () => undefined,
-        onStepLine: () => undefined,
-      });
-
-      expect(result).toStrictEqual(AdapterResultStub());
-      expect(proxy.getRunWardCalls()).toStrictEqual([]);
-      expect(proxy.getSpawnBatchCalls()).toStrictEqual([]);
-    });
-
     it('VALID: {pause lands while the scan long-polls, then the scan returns agent work} => no batch spawns', async () => {
       const proxy = questNodeDispatchLoopBrokerProxy();
       const agents = [SpawnInstructionStub()];
@@ -90,14 +62,11 @@ describe('questNodeDispatchLoopBroker', () => {
 
       const result = await questNodeDispatchLoopBroker({
         isPlaying,
-        onWardLine: () => undefined,
-        onRiftcarverLine: () => undefined,
         onStepLine: () => undefined,
       });
 
       expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([]);
-      expect(proxy.getRunWardCalls()).toStrictEqual([]);
     });
   });
 
@@ -107,8 +76,6 @@ describe('questNodeDispatchLoopBroker', () => {
 
       const result = await questNodeDispatchLoopBroker({
         isPlaying: (): boolean => true,
-        onWardLine: () => undefined,
-        onRiftcarverLine: () => undefined,
         onStepLine: () => undefined,
       });
 
@@ -122,113 +89,6 @@ describe('questNodeDispatchLoopBroker', () => {
         },
       ]);
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([]);
-      expect(proxy.getRunWardCalls()).toStrictEqual([]);
-    });
-
-    it('VALID: {run-ward step then idle} => runs ward with questId/workItemId then recurses to idle', async () => {
-      const proxy = questNodeDispatchLoopBrokerProxy();
-      const wardStep = NextStepStub({
-        type: 'run-ward',
-        questId: 'add-auth',
-        workItemId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-      } as never);
-      proxy.queueStep({ step: wardStep });
-
-      const result = await questNodeDispatchLoopBroker({
-        isPlaying: (): boolean => true,
-        onWardLine: () => undefined,
-        onRiftcarverLine: () => undefined,
-        onStepLine: () => undefined,
-      });
-
-      expect(result).toStrictEqual(AdapterResultStub());
-      expect(proxy.getRunWardCalls()).toStrictEqual([
-        {
-          questId: 'add-auth',
-          workItemId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-          // Ward's only route to a UI — the loop must hand it down, never drop it.
-          onLine: expect.any(Function),
-        },
-      ]);
-      expect(proxy.getSpawnBatchCalls()).toStrictEqual([]);
-    });
-
-    it('VALID: {run-riftcarver step then idle} => runs the carve with questId/workItemId then recurses to idle', async () => {
-      const proxy = questNodeDispatchLoopBrokerProxy();
-      const carveStep = NextStepStub({
-        type: 'run-riftcarver',
-        questId: 'add-auth',
-        workItemId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
-      } as never);
-      proxy.queueStep({ step: carveStep });
-
-      const result = await questNodeDispatchLoopBroker({
-        isPlaying: (): boolean => true,
-        onWardLine: () => undefined,
-        onRiftcarverLine: () => undefined,
-        onStepLine: () => undefined,
-      });
-
-      expect(result).toStrictEqual(AdapterResultStub());
-      expect(proxy.getRunRiftcarverCalls()).toStrictEqual([
-        {
-          questId: 'add-auth',
-          workItemId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
-          // No `mode`: a carve reads its scope off the quest, where ward has to be told which slice.
-          onLine: expect.any(Function),
-        },
-      ]);
-      expect(proxy.getSpawnBatchCalls()).toStrictEqual([]);
-      expect(proxy.getRunWardCalls()).toStrictEqual([]);
-    });
-
-    // A riftcarver work item is `spawnerType: 'command'` with no sessionId, so no JSONL watcher can
-    // ever tail it. Asserting the LINES that arrive — not that a callback was handed over — is the
-    // only assertion that fails when the wiring silently streams nothing.
-    it('VALID: {carve streams three lines} => onRiftcarverLine receives each line verbatim, keyed on the step questId and workItemId', async () => {
-      const proxy = questNodeDispatchLoopBrokerProxy();
-      proxy.queueStep({
-        step: NextStepStub({
-          type: 'run-riftcarver',
-          questId: 'add-auth',
-          workItemId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
-        } as never),
-      });
-      proxy.setupCarveOutput({
-        lines: [
-          '— git worktree add /repo/worktrees/add-auth-a1b2c3d4 (branch quest/add-auth-a1b2c3d4) —',
-          '— skip @dungeonmaster/web (already populated) —',
-          'Build succeeded',
-        ],
-      });
-      const received: unknown[] = [];
-
-      await questNodeDispatchLoopBroker({
-        isPlaying: (): boolean => true,
-        onWardLine: () => undefined,
-        onRiftcarverLine: (params): void => {
-          received.push(params);
-        },
-        onStepLine: () => undefined,
-      });
-
-      expect(received).toStrictEqual([
-        {
-          questId: 'add-auth',
-          workItemId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
-          line: '— git worktree add /repo/worktrees/add-auth-a1b2c3d4 (branch quest/add-auth-a1b2c3d4) —',
-        },
-        {
-          questId: 'add-auth',
-          workItemId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
-          line: '— skip @dungeonmaster/web (already populated) —',
-        },
-        {
-          questId: 'add-auth',
-          workItemId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
-          line: 'Build succeeded',
-        },
-      ]);
     });
 
     it('VALID: {spawn-agents step then idle} => spawns the batch then recurses to idle', async () => {
@@ -240,14 +100,11 @@ describe('questNodeDispatchLoopBroker', () => {
 
       const result = await questNodeDispatchLoopBroker({
         isPlaying,
-        onWardLine: () => undefined,
-        onRiftcarverLine: () => undefined,
         onStepLine: () => undefined,
       });
 
       expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([{ agents, isPlaying }]);
-      expect(proxy.getRunWardCalls()).toStrictEqual([]);
     });
 
     it('VALID: {registerProcess provided with spawn step} => threads registerProcess to the batch layer', async () => {
@@ -260,8 +117,6 @@ describe('questNodeDispatchLoopBroker', () => {
 
       await questNodeDispatchLoopBroker({
         isPlaying,
-        onWardLine: () => undefined,
-        onRiftcarverLine: () => undefined,
         onStepLine: () => undefined,
         registerProcess,
       });
@@ -279,8 +134,6 @@ describe('questNodeDispatchLoopBroker', () => {
 
       await questNodeDispatchLoopBroker({
         isPlaying,
-        onWardLine: () => undefined,
-        onRiftcarverLine: () => undefined,
         onStepLine: () => undefined,
         unregisterProcess,
       });
@@ -298,8 +151,6 @@ describe('questNodeDispatchLoopBroker', () => {
 
       await questNodeDispatchLoopBroker({
         isPlaying,
-        onWardLine: () => undefined,
-        onRiftcarverLine: () => undefined,
         onStepLine: () => undefined,
       });
 
@@ -307,6 +158,52 @@ describe('questNodeDispatchLoopBroker', () => {
         { agents: firstAgents, isPlaying },
         { agents: secondAgents, isPlaying },
       ]);
+    });
+
+    // `run-ward` / `run-riftcarver` are still members of `NextStep` (removed in unit N2), but
+    // nothing produces them any more — every family with a `ward`/`riftcarver` role runs it as a
+    // deterministic `run-step` instead. The loop's final branch narrows to `spawn-agents`
+    // explicitly and throws for anything else, so a step of either shape reaching this broker is a
+    // named error rather than a crash inside `spawnBatchLayerBroker` reading `.agents` off a
+    // variant that does not carry it.
+    it('ERROR: {run-ward step queued} => throws a named error, never calls spawnBatchLayerBroker', async () => {
+      const proxy = questNodeDispatchLoopBrokerProxy();
+      proxy.queueStep({
+        step: NextStepStub({
+          type: 'run-ward',
+          questId: 'add-auth',
+          workItemId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        } as never),
+      });
+
+      await expect(
+        questNodeDispatchLoopBroker({
+          isPlaying: (): boolean => true,
+          onStepLine: () => undefined,
+        }),
+      ).rejects.toThrow(/unreachable NextStep type "run-ward"/u);
+
+      expect(proxy.getSpawnBatchCalls()).toStrictEqual([]);
+    });
+
+    it('ERROR: {run-riftcarver step queued} => throws a named error, never calls spawnBatchLayerBroker', async () => {
+      const proxy = questNodeDispatchLoopBrokerProxy();
+      proxy.queueStep({
+        step: NextStepStub({
+          type: 'run-riftcarver',
+          questId: 'add-auth',
+          workItemId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+        } as never),
+      });
+
+      await expect(
+        questNodeDispatchLoopBroker({
+          isPlaying: (): boolean => true,
+          onStepLine: () => undefined,
+        }),
+      ).rejects.toThrow(/unreachable NextStep type "run-riftcarver"/u);
+
+      expect(proxy.getSpawnBatchCalls()).toStrictEqual([]);
     });
   });
 });

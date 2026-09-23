@@ -1,9 +1,6 @@
 /**
  * PURPOSE: Layer helper for questGetNextStepBroker — turns one active quest into the single dispatch
- * decision for it. The load-bearing part is the split it enforces: anything that is NOT a Claude
- * session is returned alone under its own step type, and only what is left is batched as agents,
- * which is what keeps a non-agent role out of buildSpawnInstructionLayerBroker's agentRoleContract
- * parse.
+ * decision for it.
  *
  * USAGE:
  * const step = computeNextStepFromQuestLayerBroker({ quest });
@@ -11,11 +8,15 @@
  *
  * THE STEP DECIDES BEFORE THE ROLE. A `kind: 'deterministic'` step runs a handler, never a session,
  * and its work item carries the ROLE of the scope it belongs to — a `commit` step inside a
- * codeweaver scope reads `role: 'codeweaver'`. Keying on the role alone would spawn a Claude session
- * for it; keying on the role alone would also send the `repair` step inside `wardFull` (a
- * spiritmender PROMPT) to the ward command path, because that scope's role is `ward`. So the step
- * node is resolved first, and the role-keyed command split below answers only for a work item that
- * runs no step graph at all.
+ * codeweaver scope reads `role: 'codeweaver'`. Every family whose role is a COMMAND role (`ward`,
+ * `riftcarver`) runs that role through a deterministic step of its own — riftcarver's `carve`,
+ * wardFull's `gate` — so the branch below always catches it.
+ *
+ * A COMMAND-role work item with no step node is unreachable in production: nothing mints that shape
+ * any more. It is filtered out of readiness rather than reaching
+ * buildSpawnInstructionLayerBroker, whose agentRoleContract parse throws for any role Claude cannot
+ * be dispatched as — scanOnceLayerBroker has no per-quest try/catch, so a throw here would take
+ * down the scan for every active quest, not just this one.
  */
 
 import type { Quest } from '@dungeonmaster/shared/contracts';
@@ -27,14 +28,16 @@ import { buildSpawnInstructionLayerBroker } from './build-spawn-instruction-laye
 import { computeReadyWorkItemsLayerBroker } from './compute-ready-work-items-layer-broker';
 import { selectBatchLayerBroker } from './select-batch-layer-broker';
 
-const RIFTCARVER_ROLE = 'riftcarver';
-
 export const computeNextStepFromQuestLayerBroker = ({
   quest,
 }: {
   quest: Quest;
 }): NextStep | null => {
-  const ready = computeReadyWorkItemsLayerBroker({ workItems: quest.workItems });
+  const ready = computeReadyWorkItemsLayerBroker({ workItems: quest.workItems }).filter(
+    (item) =>
+      !isCommandWorkItemRoleGuard({ role: item.role }) ||
+      workItemStepNodeTransformer({ quest, workItem: item }) !== undefined,
+  );
   if (ready.length === 0) {
     return null;
   }
@@ -57,31 +60,6 @@ export const computeNextStepFromQuestLayerBroker = ({
       workItemId: head.id,
       handler: headNode.handler,
       args: headNode.args ?? [],
-    });
-  }
-
-  // A COMMAND work item that runs no step graph — a hydrated quest's ward, a legacy ledger's carve.
-  // Each command owns the whole tree for the length of its run, so it is returned alone and BEFORE
-  // the batch below, which is what keeps a riftcarver item out of buildSpawnInstructionLayerBroker:
-  // that layer parses agentRoleContract and throws for any role Claude cannot be dispatched as.
-  const commandItem =
-    headNode === undefined
-      ? ready.find((item) => isCommandWorkItemRoleGuard({ role: item.role }))
-      : undefined;
-
-  if (commandItem !== undefined && commandItem.role === RIFTCARVER_ROLE) {
-    return nextStepContract.parse({
-      type: 'run-riftcarver',
-      questId: quest.id,
-      workItemId: commandItem.id,
-    });
-  }
-
-  if (commandItem !== undefined) {
-    return nextStepContract.parse({
-      type: 'run-ward',
-      questId: quest.id,
-      workItemId: commandItem.id,
     });
   }
 
