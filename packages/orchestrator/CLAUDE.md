@@ -1194,8 +1194,10 @@ Four things about that append are load-bearing, and all four live inside `questO
   Left alone they would keep the quest deriving `merging` forever instead of settling at `merged`, and would let the
   dispatch scan's advance self-heal mint an abandoned relay item into the worktree the moment the merge finishes.
 
-It is `locked: true`, which enrolls it in the `slotManagerStatics.warpgate.maxAttempts` pt budget — the only bound on an
-agent that never converges on its own. A double-click on Teleport is two POSTs that both clear the mergeable-status gate
+It is `locked: true`, which protects it from `modify-quest` deletion — the same protection the plan item and the
+fixed verify tail carry (`operationItemContract`'s own words) — not a budget. The bound on an agent that never
+converges on its own is the `merge` step's own `maxVisits: 3` in `agentFlowStatics.warpgate`, the ordinary
+step-graph ceiling every gate/repair loop uses. A double-click on Teleport is two POSTs that both clear the mergeable-status gate
 before either writes, so the update callback refuses a second warpgate operation from inside the lock; without that
 guard N clicks mint N merge agents against the one worktree. The responder also kills any running follow-up chat
 (`isPostQuestChatWorkItemRoleGuard`) before writing anything, because tavernkeeper spawns outside the ledger and nothing

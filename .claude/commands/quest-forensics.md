@@ -17,16 +17,33 @@ brief the analyzers, keep the spine, and hand off to the compiler.
 
 ## Step 1 — index the quest
 
-```bash
-python3 scripts/quest-forensics.py quest $ARGUMENTS > tmp/quest-forensics/$ARGUMENTS/index.txt
-```
+No single tool builds this index — there is no `quest` subcommand and no `scripts/quest-forensics.py`
+(checked: `scripts/` holds no such file). Assemble it yourself, read-only, from two real sources.
 
-`mkdir -p tmp/quest-forensics/$ARGUMENTS` first. Read the index. It gives you, per work item: role,
-status, session id, wall clock, operation text, flow ids, package names, transcript size and
-sub-agent count — plus ward and riftcarver results and the original user request.
+`mkdir -p tmp/quest-forensics/$ARGUMENTS` first.
+
+**The ledger.** `get-quest({ questId: "$ARGUMENTS", format: 'json' })` returns the whole quest.json in
+one call: `workItems[]` (role, status, step, sessionId, agentId, createdAt/startedAt/completedAt,
+`relatedDataItems`, `lastWardRunId`), `operations[]` (each item's `text`, `flowIds`, `packageNames`),
+`wardResults[]` / `riftcarverResults[]` (the rows a work item's `relatedDataItems` or `lastWardRunId`
+point at), and the top-level `userRequest`. Join each work item to its operation item via the
+`operations/<id>` entry in `relatedDataItems` for the operation text/flow ids/package names. Wall
+clock per item is `completedAt - startedAt` (fall back to `createdAt` when `startedAt` is absent) —
+no tool computes this either; subtract the timestamps yourself.
+
+**Transcript size and sub-agent count.** Filesystem facts, not something any tool renders — `ls` is
+not blocked. Each work item's transcript is `~/.claude/projects/<encoded-cwd>/<sessionId>.jsonl`,
+where `<encoded-cwd>` is that SESSION's own working directory with every `/` replaced by `-` (see
+"Where transcripts live" below — a carved quest splits across two different `<encoded-cwd>`
+directories, so resolve each work item's own, never assume one covers the whole quest). `ls -la` that
+file for size, and `ls <that dir>/<sessionId>/subagents/ | wc -l` for sub-agent count.
+
+Write the joined table to `tmp/quest-forensics/$ARGUMENTS/index.txt` with `Write` — role, status,
+session id, wall clock, operation text, flow ids, package names, transcript size, sub-agent count,
+ward/riftcarver result, and `userRequest` once at the top. Read it back before Step 2.
 
 If the user named a range ("from the first codeweaver to the second siegemaster"), honour it.
-Otherwise analyze every work item that has a `sessionId`. Work items with `spawner=command`
+Otherwise analyze every work item that has a `sessionId`. Work items with `spawnerType: 'command'`
 (`ward`, `riftcarver`) have no transcript — fold each into the analyzer for the agent item next to
 it rather than giving it an analyzer of its own, and say so in that analyzer's brief.
 
@@ -38,35 +55,52 @@ everything common and nothing item-specific. It must contain:
 **The quest.** Id, title, the user's original request quoted in full, the worktree path, and the
 path to the index from step 1.
 
-**Where transcripts live.** `~/.claude/projects/<encoded-worktree-path>/` — the `quest` subcommand
-prints the resolved directory. Main session at `<sessionId>.jsonl`; its sub-agents at
+**Where transcripts live.** `~/.claude/projects/<encoded-cwd>/` — no subcommand resolves this for
+you; encode a cwd by replacing every `/` with `-`. **A carved quest's transcripts split across TWO
+such directories**: the intake session's cwd is the repo root, every role dispatched after the carve
+runs from the worktree — resolve each work item's own directory from its own session's cwd, never
+assume one directory covers the whole quest (`packages/orchestrator/CLAUDE.md`'s "Which directory
+those files are in" has the full reasoning). Main session at `<sessionId>.jsonl`; its sub-agents at
 `<sessionId>/subagents/agent-<id>.jsonl` beside `agent-<id>.meta.json` (which carries `agentType`,
 `model`, `description`, `spawnDepth`); oversized tool results spilled to `<sessionId>/tool-results/`.
-Sub-agent transcripts have the same shape as main sessions, so every subcommand works on both.
+Sub-agent transcripts have the same shape as main sessions, so every command below works on both.
 
-**The tool.** `python3 scripts/quest-forensics.py <cmd> <sessionId|agent-id>`, run from the repo
-root. Give them this table:
+**The tool.** `npx dungeonmaster-session-forensics <cmd> <sessionId|agent-id>`, run from the repo
+root. It needs `packages/session-forensics/dist/` already built — this is read-only analysis, so if
+that is missing, stop and say so rather than building it. It has exactly FOUR commands, none taking
+flags — a fixed shape each, no `--minutes`/`--floor-seconds`/`--max`:
 
 | Command | What it gives |
 |---|---|
-| `summary` | wall clock, message counts, model, token totals (input / cache_read / cache_creation / output / thinking), tool-call histogram, tool-result bytes, sub-agent count |
-| `buckets --minutes N` | chronological buckets: API calls, tool calls, output tokens, context-in tokens, tool-result bytes, top tools |
-| `timeline [--max N]` | every assistant turn: elapsed, gap seconds, tokens, and the text said or `CALL tool(args)`. Marks injected prompts and oversized results |
-| `subagents` | roster in start order: start, duration, type, model, depth, turns, output, context-in, tool histogram, description |
-| `gaps [--floor-seconds N]` | **every gap between assistant turns, labelled with which sub-agents were live during it** — then totals splitting wall clock into blocked-on-sub-agent versus true idle |
-| `text` / `prompts` | assistant prose and thinking / every user and injected message |
-| `errors` | turns and results matching an error, failure, retry or denial pattern |
-| `result <toolRegex>` | full tool-result payloads by tool name |
-| `grep <regex>` | first match per record with surrounding characters |
+| `summary <sessionId\|agent-id>` | wall clock, record/message counts, model, token totals (input / cache_read / cache_creation / output / thinking), tool-call histogram, tool-result bytes, sub-agent count |
+| `buckets <sessionId\|agent-id>` | chronological 15-minute buckets (fixed width): API-response count, tool calls, output tokens, context-in tokens, tool-result bytes, top 4 tools |
+| `gaps <sessionId\|agent-id>` | **every gap of 120s+ (fixed floor) between assistant turns, labelled with which sub-agents were live during it** — then totals splitting wall clock into blocked-on-sub-agent versus true idle |
+| `coverage <questId>` | per flow, per track (codeweaver/flowrider/siegemaster): required/signed/met/can't-meet/unmet/not-signed — an upper bound, not the authoritative reading (Step 7 has the caveat) |
+
+`summary`, `buckets` and `gaps` all take a SUB-AGENT id directly (`agent-<realAgentId>`, the filename
+under `subagents/`) with no parent session needed — the tool scans every project directory's every
+session for a match. That is the whole "sub-agent" capability that exists: there is no roster
+command. Build a roster by hand: `ls <sessionDir>/subagents/` for the list, `Read` each
+`agent-<id>.meta.json` for its `agentType`/`model`/`description`/`spawnDepth`, and run `summary` (and
+`gaps`) against each id for its own timing and tokens.
+
+**There is no `timeline`, `text`/`prompts`, `errors`, `result <toolRegex>`, or `grep <regex>`
+command.** None of those five was ever built — do not tell an analyzer to run one; the call fails on
+a script that is not there. For anything the four real commands above don't answer — turn-by-turn
+ordering, quoted prose, one tool's raw result payload, a pattern search — read the transcript JSONL
+directly: `Read` it in slices (`offset`/`limit` — a session can run to hundreds of megabytes, never
+load a whole one in one call), or write a short `python3` script that parses each line as JSON. The
+line shapes (`message.content` blocks, `message.usage`, `toolUseResult`, `parentToolUseId` vs
+`agentId`) are documented in `packages/orchestrator/CLAUDE.md`'s "Line-shape cheat sheet".
 
 **Use `gaps`, not arithmetic, for the idle question.** A session parked while a sub-agent works is
 not idle — it is serialized. Those are different defects with different fixes, and only `gaps`
 separates them. An analyzer that reports "N% idle" without running `gaps` has not measured it.
 
-**Note on `timeline` token columns.** One API response spans several records — text, thinking, each
-`tool_use` — and every record repeats that response's usage. Adjacent identical OUT/CTX-IN values are
-one response, not several. `summary` and `buckets` count correctly; quote those as authoritative and
-use `timeline` for ordering and content.
+**Note on token columns when reading the raw transcript.** One API response spans several records —
+text, thinking, each `tool_use` — and every record repeats that response's usage. Adjacent identical
+OUT/CTX-IN values are one response, not several. `summary` and `buckets` count correctly; quote those
+as authoritative and reserve a manual JSONL read for ordering and content.
 
 **The prompt family for each role.** Role prompts are TypeScript statics under
 `packages/orchestrator/src/statics/`. Tell each analyzer to read its role's family IN FULL:
@@ -78,9 +112,10 @@ use `timeline` for ordering and content.
 | siegemaster | `siege-planner/`, `siege-happy-walker/`, `siege-adversarial-walker/`, `siege-happy-fixer/`, `siege-adversarial-fixer/`, `siegemaster-reader/`, `recipe-maker/`, `work-item-context-block/` |
 | spiritmender | `spiritmender-prompt/`, `work-item-context-block/` |
 
-Then recover the RENDERED prompt with
-`python3 scripts/quest-forensics.py result <sessionId> get-agent-prompt --max-chars 40000` and diff
-it against the static. A placeholder that rendered empty, a context block that came out huge, an
+Then recover the RENDERED prompt the session actually received. There is no `result`-by-tool-name
+command — read the session's own transcript for the `tool_result` that followed its
+`get-agent-prompt` tool_use call (`Read` the JSONL, or a `python3` one-liner over it) and diff that
+against the static. A placeholder that rendered empty, a context block that came out huge, an
 instruction that arrived with no data behind it — those are the findings this post-mortem wants.
 
 **Environment.** This repo's PreToolUse hooks block the native Grep, Glob and Search tools, and Bash
@@ -120,8 +155,9 @@ Spell out what each section holds:
   the cost in minutes and tokens, and whether the prompt permitted, required or forbade it.
 - **§6** — one numbered fix per finding, naming the FILE and the concrete edit, ranked by
   minutes-or-tokens saved with the estimate shown.
-- **§7** — `summary` and `subagents` output pasted verbatim. Every number quoted above must trace
-  to a command here.
+- **§7** — `summary` output pasted verbatim, plus the sub-agent roster assembled by hand (Step 2's
+  `ls`/`.meta.json`/`summary` walk — there is no `subagents` command). Every number quoted above
+  must trace to a command or a `.meta.json` read here.
 
 **Rules for analyzers.** Copy figures, never paraphrase them. Cite every claim with an elapsed
 timestamp, a sub-agent id, or a quoted line. Never guess — write "not measurable from the
@@ -234,28 +270,43 @@ standalone when the question is only about spec-to-delivery fit.
 
 ## Step 7 — the coverage baseline
 
+No single command prints all of the below — there is no `scripts/quest-forensics.py`. Assemble it
+from three real calls:
+
 ```bash
-python3 scripts/quest-forensics.py coverage $ARGUMENTS > tmp/quest-forensics/$ARGUMENTS/coverage.txt
+npx dungeonmaster-session-forensics coverage $ARGUMENTS
 ```
 
-That prints, computed from `quest.json` rather than from any agent's claim:
+prints, per flow, a table with one row per track (codeweaver, flowrider, siegemaster): REQUIRED,
+signed, met, can't-meet, unmet, NOT SIGNED — computed from `workItem.observations[]` grouped by which
+role's work items touched each unit, last observation per role wins. Its own trailing caveat block
+says "ask `get-qa-checklist({questId, operationItemId})` for the exact numbers" — that tool is
+retired; the current equivalent, exactly as the caveat below this list already says, is
+`get-quest-work({ questId, workItemId })`.
 
+- **Coverage, per unit.** The table above is a per-track UPPER BOUND, never a stored field: a unit
+  carries ONE current mark overall (the observation on the LATEST work item ever assigned it,
+  whatever its role — `unitCurrentMarkTransformer`), and the `coverage` table separately tracks each
+  ROLE's own latest mark on that same unit. Read a track's `signed`/`NOT SIGNED` counts as "this
+  role's own work items did / did not record anything," not as a ledger status.
 - **Flow shape** per flow — node counts by type, edges and how many are labelled (a labelled edge is
-  a signable branch; an unlabelled one is not a choice anyone made), observable count, off-map
-  families, and the package tags on the nodes.
-- **Coverage** — per flow: how many units carry `met`, `cant-meet`, `unmet`, or no observation at all.
-  There is no per-track tally any more — a unit carries ONE current mark, the observation on the
-  LATEST work item ever assigned it (`unitCurrentMarkTransformer`), so "per track" below means "per
-  family whose step touched this unit," read off the observation sequence, not a stored field.
-- **Unmarked units** — the work the quest still owes, named.
-- **Observables by provenance** — `addedBy: spec` survived Gate #2; anything else was found DURING
-  execution. **This is the planning-adequacy measurement, taken directly.** The listing names each
-  mid-quest observable, its flow and its author.
-- **`cant-meet` marks** with their `toSettle` instruction.
-- **Who marked what** — each unit's observation names the work item that recorded it, so it maps back
-  to exactly one session.
-- **Quest notes** by kind and role, with detail — the side channel that never closes a unit.
-- **Contracts and packages the spec declared.**
+  a signable branch; an unlabelled one is not a choice anyone made), observable count, the package
+  tags on the nodes. No tool renders these counts; read them off `get-quest({ questId, format: 'json'
+  })`'s `flows[]` array and count them yourself. The off-map probe families are fixed
+  (`qaOffMapProbeStatics`, seven of them) and apply to every flow alike, not a per-flow count.
+- **Unmarked units, named** — `coverage`'s `NOT SIGNED` count says how many per track; naming which
+  ones needs `get-quest-work({ questId, workItemId })` per relevant work item (its `assignedUnits`/
+  `inScopeUnits` carry `mark: null` for the unmarked ones).
+- **Observables by provenance** — `get-quest-summary({ questId })`: every observable added AFTER Gate
+  #2, with the role that added it. **This is the planning-adequacy measurement, taken directly.**
+- **`cant-meet` marks** with their `toSettle` instruction — also from `get-quest-summary({ questId
+  })`.
+- **Who marked what** — each unit's observation names the work item that recorded it
+  (`get-quest-work`'s `markedBy` per unit), so it maps back to exactly one session.
+- **Quest notes** by kind, with detail — `get-quest-summary({ questId })` — the side channel that
+  never closes a unit.
+- **Contracts and packages the spec declared** — `get-quest({ questId, format: 'json' })`'s
+  `contracts[]` and `packagesAffected[]`.
 
 **One caveat the analyzers must respect.** This command derives units by a plain reading of the
 graph — observables, labelled edges, off-map families. The authoritative denominator is
@@ -271,7 +322,7 @@ and reconcile.
 `scrolls/reports/$ARGUMENTS/chain-<slug>.md`.
 
 **Tell every analyzer which flows have incomplete coverage, and why.** A quest paused mid-run leaves
-a track unsigned by circumstance, not by failure. Reporting "siegemaster 0 of 67" as a role failure
+a track with no observations recorded by circumstance, not by failure. Reporting "siegemaster 0 of 67" as a role failure
 when no siegemaster was ever dispatched is the single easiest way to make this whole phase worthless.
 Name each flow's state — ran to completion, cut off mid-loop, never dispatched — in the brief, and
 instruct the analyzers to write "not yet attempted" every time they touch an untried track.
@@ -283,7 +334,8 @@ prompt: the other flows' conclusions get measured against it.
 
 Its subject is the intake work item — the `chaoswhisperer` (or `bughunt`) session at index [0]. It is
 expensive and often unwanted: **spec adequacy is measurable from the artifact alone**, through each
-observable's `addedBy` in the `coverage` output, without reading the intake session at all. Run this
+observable's `addedBy` in `get-quest-summary({ questId })`'s output, without reading the intake
+session at all. Run this
 analyzer only when the user asks for it. When they decline, tell the flow analyzers to measure spec
 adequacy from provenance and to leave the intake session alone.
 
@@ -306,21 +358,27 @@ Each takes one flow and walks it forward through every session that touched it. 
 id, the coverage baseline, the Phase 1 reports for its own work items, and these questions:
 
 1. **What was each role owed on this flow, and what did it deliver?** Build a table: unit, kind,
-   owning package, then one column per track with verdict and the work item that signed it. Name
-   every unit no track settled.
+   owning package, then one column per track — codeweaver, flowrider, siegemaster. Each cell carries
+   that track's OWN current mark on the unit (the mark on the LATEST work item of that role ever
+   assigned it — `met` / `cant-meet` / `unmet` / unmarked), the STEP that work item ran at, and the
+   work item id. For a cell marked `unmet`, name the successor work item that settles it: `mintedBy`
+   is stamped on the SUCCESSOR pointing back at this one, so search `workItems[]` forward for whichever
+   one's `mintedBy` names the item you are looking at — never assume the direction runs the other way.
+   Name every unit no track has recorded any observation on at all.
 2. **Did the cell decomposition match where the work actually was?** The codeweaver ledger fans out
-   per (package, flow). Compare each cell's sign-off count against the observables tagged to its
-   package. A cell that signed one unit and a cell that signed fifty are both worth explaining.
+   per (package, flow). Compare each cell's observation count — how many distinct units its own work
+   items ever recorded a mark on, of any value — against the observables tagged to its package. A
+   cell that marked one unit and a cell that marked fifty are both worth explaining.
 3. **Did each role have what it needed at the moment it started?** List the facts each session had to
    derive for itself that the spec, or a prior session's map, could have carried. Quote the
    derivation from the transcript and price it.
-4. **Did the roles overlap or leave a seam?** A unit proven by all three tracks is either defence in
-   depth or waste — decide which, and say why. A unit proven by none is a gap; name who should have
-   owned it.
+4. **Did the roles overlap or leave a seam?** A unit marked `met` by all three tracks is either
+   defence in depth or waste — decide which, and say why. A unit no track has recorded any
+   observation on is a gap; name who should have owned it.
 5. **What did the reviewers have to fix at the end?** For each role's reviewer, separate what it
-   fixed itself from what it returned as `rework`, and judge whether each fix was inside the role's
-   own scope or a gap handed down from upstream. **A reviewer repairing the same class of thing on
-   every pass is a missing step, not a diligent reviewer.**
+   fixed itself from what it left `unmet` (minting a fresh `work` step to take back), and judge
+   whether each fix was inside the role's own scope or a gap handed down from upstream. **A reviewer
+   repairing the same class of thing on every pass is a missing step, not a diligent reviewer.**
 6. **What did the LAST role find that an earlier one should have?** Every mid-quest observable and
    every quest note carries a role. Work backwards: could the flowrider's suites have caught what the
    siegemaster found by hand? Could a codeweaver unit test have caught what the flowrider found? Cost
