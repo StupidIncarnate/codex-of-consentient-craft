@@ -732,13 +732,28 @@ briefs another, and no step dispatches a sub-agent to do its work.
   the router on a ward or riftcarver red.
 
 Every step's work item carries its SCOPE's role (`workItem.role`, e.g. `codeweaver` for every step inside a
-codeweaver scope — see "Dispatch — the STEP decides before the ROLE" above), and dispatch resolves the CLI
-`--model` flag off that role through `roleToModelStatics`: `buildSpawnInstructionLayerBroker` sets no `model` on the
-`SpawnInstruction` it builds, so `spawnOneAgentLayerBroker` falls through to `roleToModelTransformer({ role })` for
-every real dispatch. `codeweaver`, `flowrider` and `siegemaster` all read `opus` there, uniformly across every step
-of that family's scope. The `model` field `agentNameToPromptTransformer` returns per PROMPT NAME (the roster table
-under "Callouts" above) is a SEPARATE value that `get-agent-prompt` only REPORTS to the session — it is not what the
-CLI flag actually spawns on.
+codeweaver scope — see "Dispatch — the STEP decides before the ROLE" above), but the CLI `--model` flag comes off
+the STEP, not the role. Every `kind: 'prompt'` step in `agentFlowStatics` declares its own `model` — `codeweaver.plan`
+is `opus`, `codeweaver.work` is `sonnet`, both inside the same `codeweaver` scope — and `buildSpawnInstructionLayerBroker`
+reads that declared value (via `stepDispatchRoleTransformer`, the same helper it already uses for the step's prompt
+name) onto the `SpawnInstruction` it builds. A work item running NO step graph — a role-keyed spiritmender or
+warpgate dispatch, or a hydrated/legacy quest with no step recorded — has no node to read, and falls back to
+`roleToModelTransformer({ role })` off `roleToModelStatics`, keyed on the resolved AgentRole.
+
+**Both dispatchers read this ONE `SpawnInstruction.model` field, and neither computes its own.** Node dispatch
+(`spawnOneAgentLayerBroker`) passes `instruction.model ?? roleToModelTransformer({ role: instruction.role })`
+straight to the CLI `--model` flag — the transformer fallback there is now defensive rather than the everyday path,
+since `buildSpawnInstructionLayerBroker` already resolved it. The MCP/Task dispatcher (`/dumpster-launch`) reads the
+identical `NextStep` payload `get-next-step()` returns and is instructed to pass `model: agent.model` to each Task()
+call, so a headless Node child and a Task-dispatched sub-agent run the SAME step on the SAME model.
+
+**`get-agent-prompt`'s REPORTED model agrees with the spawned one, because both read the same step node.**
+`workItemToPromptTransformer` resolves the model it reports the SAME way `buildSpawnInstructionLayerBroker` resolves
+the one it spawns on — the work item's own step node, with the identical scope-role fallback for a stepless item —
+never off `agentNameToPromptTransformer`'s per-PROMPT-NAME table. That table's `model` field is read only when
+SERVING A PARENT-SUMMONED MINION (which has no work item and no step to read); reporting it for a role or step
+prompt instead is exactly how `codeweaver-worker` used to be reported as `opus` (`roleToModelStatics.codeweaver`)
+while its step declares `sonnet` and the session was dispatched on `sonnet` all along.
 
 ### Siegemaster: the inverse step graph
 

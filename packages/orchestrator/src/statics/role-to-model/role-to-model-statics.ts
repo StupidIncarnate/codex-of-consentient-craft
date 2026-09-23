@@ -5,11 +5,19 @@
  * roleToModelStatics.codeweaver;
  * // Returns 'opus'
  *
- * THIS MAP IS WHAT THE ROLE ACTUALLY RUNS ON. `buildSpawnInstructionLayerBroker` never sets a
- * `model` on the instruction it builds — only a smoketest override does — so
- * `spawn-one-agent-layer-broker` falls through to `roleToModelTransformer({ role })` and reads this
- * for every real dispatch. The `model` field on `agentNameToPromptTransformer`'s result is a
- * separate value that `get-agent-prompt` REPORTS; changing that one alone moves nothing.
+ * THIS MAP IS THE FALLBACK MODEL FOR A WORK ITEM RUNNING NO STEP GRAPH. Every `kind: 'prompt'` step
+ * in `agentFlowStatics` declares its own `model`, and `buildSpawnInstructionLayerBroker` reads that
+ * node first — `codeweaver.work` spawns on `sonnet`, `codeweaver.plan` on `opus`, even though both
+ * sit inside a `codeweaver` scope. This map answers ONLY for a work item with no step node to read:
+ * a role-keyed spiritmender/warpgate dispatch, or a hydrated/legacy quest with no step recorded.
+ * `roleToModelTransformer({ role })` is that fallback, read by `buildSpawnInstructionLayerBroker`
+ * (the real Node dispatch and the MCP/Task instruction alike) and by `workItemToPromptTransformer`
+ * (what `get-agent-prompt` REPORTS) — the same fallback in both places, so a stepless work item is
+ * reported on the model it actually runs on. It is also the whole answer for the four CHAT roles
+ * and the model `agentNameToPromptTransformer` states for the operator-family PROMPT names below
+ * (`codeweaver-planner`, `-worker`, etc.) — that per-name value is read only when SERVING a
+ * parent-summoned MINION, never for a role or step prompt, which resolve their model off the work
+ * item's own step node instead.
  *
  * THE THREE OPERATOR ROLES RUN ON OPUS, because each of them reads code. An operator plans the
  * work it hands out, judges what comes back against the files it opened, and decides whether its

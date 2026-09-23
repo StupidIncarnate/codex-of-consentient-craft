@@ -251,7 +251,12 @@ describe('agentFlowStatics', () => {
             model: 'sonnet',
             maxVisits: 40,
             needsLane: true,
-            routes: { done: 'adversarial', empty: 'adversarial', unmet: 'fixHappy', wall: '@blocked' },
+            routes: {
+              done: 'adversarial',
+              empty: 'adversarial',
+              unmet: 'fixHappy',
+              wall: '@blocked',
+            },
           },
           fixHappy: {
             role: 'worker',

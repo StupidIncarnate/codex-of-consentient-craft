@@ -277,6 +277,15 @@ describe('slashCommandsStatics', () => {
       expect(body.indexOf('Startup:')).toBe(-1);
     });
 
+    it('VALID: dumpsterLaunch.body => spawn-agents instruction passes model: agent.model to each Task call', () => {
+      const needle = 'Pass `model: agent.model` on every Task call';
+      const { body } = slashCommandsStatics.dumpsterLaunch;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
     it('VALID: dumpsterLaunch.body => instructs calling get-next-step with no arguments', () => {
       const needle = 'mcp__dungeonmaster__get-next-step()';
       const { body } = slashCommandsStatics.dumpsterLaunch;

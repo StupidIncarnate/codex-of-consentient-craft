@@ -1,13 +1,24 @@
 /**
  * PURPOSE: Layer helper for questGetNextStepBroker — converts a single WorkItem + the quest holding
- * it into a fully-formed SpawnInstruction, resolving the role the session is dispatched as and
- * interpolating the taskPrompt template.
+ * it into a fully-formed SpawnInstruction, resolving the role the session is dispatched as, the
+ * Claude CLI model it runs on, and interpolating the taskPrompt template.
  *
  * CLAUDE IS SPAWNED AS THE SCOPE'S ROLE, AND READS THE STEP'S PROMPT. The two are distinct: what
  * Claude is spawned as is `workItem.role` (e.g. `codeweaver`), but the prompt it is instructed to
  * fetch in `taskPrompt` is always the step's own prompt name (e.g. `codeweaver-planner`,
  * `codeweaver-worker`). For a repair step inside a command scope (such as `ward`), the role falls
  * back to the step prompt (`spiritmender`) because command scopes have no agent role.
+ *
+ * THE MODEL RIDES THE STEP, NOT THE ROLE. `stepDispatchRoleTransformer` reads the work item's own
+ * step node off `agentFlowStatics` and hands back its declared `model` (e.g. `codeweaver.work` is
+ * `sonnet`, `codeweaver.plan` is `opus`) — the SAME node this broker already reads for `taskPrompt`.
+ * A work item running no step graph at all — a role-keyed spiritmender or warpgate dispatch, or a
+ * hydrated/legacy quest with no step recorded — has no node to read, so `model` falls back to
+ * `roleToModelTransformer({ role })`, the resolved AgentRole above. This is the ONE place a
+ * `SpawnInstruction.model` is set: `spawnOneAgentLayerBroker` (Node dispatch) passes it straight to
+ * the CLI `--model` flag, and the `/dumpster-launch` slash command (MCP/Task dispatch) is instructed
+ * to pass the same `agent.model` to each Task() call — so both dispatchers run a step on the model
+ * `agentFlowStatics` declares for it, uniformly.
  *
  * NEVER CLOBBER A SESSION. A retained `sessionId` is work already done, so ANY work item that has
  * one is re-dispatched as a resume (`resumeSessionId` + the resume-variant prompt) regardless of
@@ -51,6 +62,7 @@ import {
 } from '../../../contracts/agent-role/agent-role-contract';
 import type { SpawnInstruction } from '../../../contracts/spawn-instruction/spawn-instruction-contract';
 import { agentTaskPromptTransformer } from '../../../transformers/agent-task-prompt/agent-task-prompt-transformer';
+import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { stepDispatchRoleTransformer } from '../../../transformers/step-dispatch-role/step-dispatch-role-transformer';
 
 export const buildSpawnInstructionLayerBroker = ({
@@ -61,12 +73,14 @@ export const buildSpawnInstructionLayerBroker = ({
   workItem: WorkItem;
 }): SpawnInstruction => {
   const questId = quest.id;
-  const { prompt: stepPrompt } = stepDispatchRoleTransformer({ quest, workItem });
+  const { prompt: stepPrompt, model: stepModel } = stepDispatchRoleTransformer({ quest, workItem });
   const promptToFetch = stepPrompt ?? agentPromptNameContract.parse(workItem.role);
 
   const role: AgentRole = agentRoleContract.safeParse(workItem.role).success
     ? agentRoleContract.parse(workItem.role)
     : agentRoleContract.parse(promptToFetch);
+
+  const model = stepModel ?? roleToModelTransformer({ role });
 
   const canResume = workItem.sessionId !== undefined && workItem.agentId === undefined;
   const override = workItem.smoketestPromptOverride;
@@ -74,6 +88,7 @@ export const buildSpawnInstructionLayerBroker = ({
     questId,
     role,
     workItemId: workItem.id,
+    model,
     taskPrompt:
       override ??
       agentTaskPromptTransformer({

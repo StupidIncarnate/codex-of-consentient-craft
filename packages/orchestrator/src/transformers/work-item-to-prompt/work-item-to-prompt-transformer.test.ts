@@ -188,9 +188,12 @@ describe('workItemToPromptTransformer', () => {
         'Ward detail blob: <questFolder>/ward-results/cccccccc-1212-4222-9333-444444444444.json',
       ].join('\n');
 
-      expect(result.prompt).toBe(
-        spiritmenderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
-      );
+      // agentFlowStatics.wardFull.steps.repair.model — the step's own declared model, not
+      // roleToModelStatics.ward (which does not even exist: ward is a command role).
+      expect(result).toStrictEqual({
+        prompt: spiritmenderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        model: 'sonnet',
+      });
     });
 
     it('VALID: {codeweaver scope work item at the work step} => serves the codeweaver worker prompt', () => {
@@ -224,9 +227,13 @@ describe('workItemToPromptTransformer', () => {
         'Your operation item: [codeweaver] core: config load+validate adapter',
       ].join('\n');
 
-      expect(result.prompt).toBe(
-        codeweaverWorkerStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
-      );
+      // agentFlowStatics.codeweaver.steps.work.model is `sonnet` — deliberately DIFFERENT from
+      // roleToModelStatics.codeweaver (`opus`), which is what this test would have read before the
+      // reported model was resolved off the step node instead of the per-prompt-name table.
+      expect(result).toStrictEqual({
+        prompt: codeweaverWorkerStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        model: 'sonnet',
+      });
     });
   });
 

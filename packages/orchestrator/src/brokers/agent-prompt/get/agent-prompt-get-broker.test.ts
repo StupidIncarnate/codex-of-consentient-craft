@@ -190,6 +190,41 @@ describe('agentPromptGetBroker', () => {
       });
     });
 
+    // The step this work item actually runs — not `base.model`'s per-PROMPT-NAME literal, which
+    // reads `roleToModelStatics.codeweaver` ('opus') for `codeweaver-worker` while the step itself
+    // declares `sonnet`. This is the drift the broker's `model` line resolves.
+    it("VALID: {codeweaver scope work item AT THE WORK STEP} => reports the step's own model, sonnet, not roleToModelStatics.codeweaver", async () => {
+      const proxy = agentPromptGetBrokerProxy();
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-2121-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-2121-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: 'core: config load+validate adapter',
+        status: 'pending',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        step: 'work',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        operations: [operation],
+        workItems: [workItem],
+      });
+      proxy.setupQuestFound({ quest });
+
+      const result = await agentPromptGetBroker({
+        agent: 'codeweaver-worker',
+        questId: quest.id,
+        workItemId,
+      });
+
+      expect(result.model).toBe('sonnet');
+    });
+
     it('ERROR: {agent: codeweaver-planner, questId, workItemId not on quest} => throws workItem-not-found error', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const quest = QuestStub({

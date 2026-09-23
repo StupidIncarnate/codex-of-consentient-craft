@@ -46,6 +46,18 @@ describe('agentStepNodeContract', () => {
         'reviewer',
       );
     });
+
+    it('VALID: {a PROMPT step off agentFlowStatics} => carries the model dispatch spawns it on', () => {
+      expect(agentStepNodeContract.parse(agentFlowStatics.codeweaver.steps.work).model).toBe(
+        'sonnet',
+      );
+    });
+
+    it('EMPTY: {a DETERMINISTIC step off agentFlowStatics} => carries no model, because it spawns no session', () => {
+      expect(agentStepNodeContract.parse(agentFlowStatics.codeweaver.steps.ward).model).toBe(
+        undefined,
+      );
+    });
   });
 
   describe('invalid input', () => {

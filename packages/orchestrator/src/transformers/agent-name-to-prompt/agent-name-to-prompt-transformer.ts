@@ -25,10 +25,13 @@
  * `agent`'s type is not), and the throw names the name rather than letting `entry.model` fail against
  * `undefined`. `as const` still preserves each entry's real type for the reads below.
  *
- * MODELS ARE READ, NEVER LITERAL, for the roles. `roleToModelStatics` is what the CLI `--model` flag
- * resolves through — `buildSpawnInstructionLayerBroker` sets no model, so every real dispatch falls
- * through to it — while the value here is only what `get-agent-prompt` REPORTS. A literal would let
- * the two disagree in the direction nothing surfaces. Minion models have no such map and are stated
+ * THE `model` FIELD HERE IS READ ONLY WHEN SERVING A PARENT-SUMMONED MINION.
+ * `workItemToPromptTransformer` resolves the model `get-agent-prompt` reports for every ROLE or
+ * STEP prompt off the work item's own `agentFlowStatics` step node instead — the same node
+ * `buildSpawnInstructionLayerBroker` reads for the real dispatch — so the two can never disagree.
+ * `roleToModelStatics` is read here (rather than a literal) purely so a role's ROW in this table
+ * still names a real value if anything ever reads it directly; changing a row here moves nothing a
+ * dispatched role or step session actually runs on. Minion models have no such map and are stated
  * here, all on sonnet: a minion arrives with its scope already narrowed by the brief that summoned
  * it, and its parent is the opus session that decided that scope.
  */
