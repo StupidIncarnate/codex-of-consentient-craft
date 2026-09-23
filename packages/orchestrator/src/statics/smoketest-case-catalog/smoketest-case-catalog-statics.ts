@@ -51,16 +51,9 @@ export const smoketestCaseCatalogStatics = {
       promptKey: 'signalDone',
       expectedSignal: 'complete',
     },
-    {
-      caseId: 'signal-partial',
-      name: 'Signal: partial',
-      promptKey: 'signalPartial',
-      expectedSignal: 'complete',
-    },
   ],
   orchestration: [
     smoketestScenariosStatics.orchHappyPath,
-    smoketestScenariosStatics.orchCodeweaverPartial,
     smoketestScenariosStatics.orchReachesFlowrider,
   ],
 } as const;

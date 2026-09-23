@@ -1,9 +1,8 @@
 /**
- * PURPOSE: Canned prompt bank for smoketest scenarios — signal prompts (`signalComplete`, and the
- * `signalDone` / `signalPartial` pair kept as two script-step names for callers that reference them
- * by name, even though `signal-back` carries no operation-outcome field anymore and both now emit
- * the same call), a dynamically-generated probe prompt per MCP tool from `mcpToolsStatics.tools.names`,
- * and a dev-server verification prompt
+ * PURPOSE: Canned prompt bank for smoketest scenarios — signal prompts (`signalComplete` and
+ * `signalDone`, each a script-step name for a scripted agent's one-line canned turn), a
+ * dynamically-generated probe prompt per MCP tool from `mcpToolsStatics.tools.names`, and a
+ * dev-server verification prompt
  *
  * USAGE:
  * smoketestPromptsStatics.signalComplete;
@@ -71,7 +70,6 @@ const probePrompts = Object.fromEntries(probePromptEntries);
 export const smoketestPromptsStatics = {
   signalComplete: `Do exactly one thing and nothing else: Call "${SIGNAL}" with { ${SIGNAL_IDS}, "signal": "complete", "summary": "smoketest-complete" }. Do not output anything else.`,
   signalDone: `Do exactly one thing and nothing else: Call "${SIGNAL}" with { ${SIGNAL_IDS}, "signal": "complete" }. Do not output anything else.`,
-  signalPartial: `Do exactly one thing and nothing else: Call "${SIGNAL}" with { ${SIGNAL_IDS}, "signal": "complete" }. Do not output anything else.`,
 
   ...probePrompts,
 
