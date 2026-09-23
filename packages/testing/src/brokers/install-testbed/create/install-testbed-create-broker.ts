@@ -12,6 +12,7 @@
 
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { fsSymlinkAdapter } from '../../../adapters/fs/symlink/fs-symlink-adapter';
 import { fsExistsAdapter } from '../../../adapters/fs/exists/fs-exists-adapter';
 import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
@@ -114,6 +115,21 @@ export const installTestbedCreateBroker = ({
       }
       const content = fsReadFileAdapter({ filePath: fullPath });
       return fileContentContract.parse(content);
+    },
+
+    createSymlink: ({
+      relativePath,
+      targetPath,
+    }: {
+      relativePath: RelativePath;
+      targetPath: FilePath;
+    }): void => {
+      const fullPath = pathJoinAdapter({ paths: [projectPath, relativePath] });
+      const dir = pathDirnameAdapter({ filePath: fullPath });
+      if (!fsExistsAdapter({ filePath: dir })) {
+        fsMkdirAdapter({ dirPath: dir, recursive: true });
+      }
+      fsSymlinkAdapter({ targetPath, linkPath: fullPath });
     },
 
     listDir: ({ relativePath }: { relativePath: RelativePath }): readonly FileName[] | null => {

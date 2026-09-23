@@ -8,6 +8,7 @@
 
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { fsSymlinkAdapterProxy } from '../../../adapters/fs/symlink/fs-symlink-adapter.proxy';
 import { fsExistsAdapterProxy } from '../../../adapters/fs/exists/fs-exists-adapter.proxy';
 import { fsMkdirAdapterProxy } from '../../../adapters/fs/mkdir/fs-mkdir-adapter.proxy';
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
@@ -21,6 +22,7 @@ import { findRepoRootLayerBrokerProxy } from './find-repo-root-layer-broker.prox
 export const installTestbedCreateBrokerProxy = (): Record<PropertyKey, never> => {
   fsWriteFileAdapterProxy();
   fsReadFileAdapterProxy();
+  fsSymlinkAdapterProxy();
   fsExistsAdapterProxy();
   fsMkdirAdapterProxy();
   fsRmAdapterProxy();

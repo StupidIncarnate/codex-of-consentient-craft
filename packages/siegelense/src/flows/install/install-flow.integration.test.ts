@@ -108,5 +108,51 @@ describe('InstallFlow', () => {
       expect(assetsDirEntries).toStrictEqual(['siegelense-assets']);
       expect(linkEntries).toStrictEqual([]);
     });
+
+    it('VALID: {a flat legacy .siegelense symlink from a pre-nesting install} => removes it and still creates the nested link', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'siegelense-flow-legacy-link' }),
+      });
+
+      const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
+      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+
+      // A pre-nesting install's flat link, at repo root rather than under `.dungeonmaster-assets/`
+      // — the target need not exist, since a dangling legacy link is still a symlink and the
+      // responder's readlink-based check never follows it.
+      testbed.createSymlink({
+        relativePath: RelativePathStub({ value: '.siegelense' }),
+        targetPath: FilePathStub({ value: `${dungeonmasterHomePath}-pre-nesting-legacy` }),
+      });
+
+      const result = await InstallFlow({
+        context: {
+          targetProjectRoot: FilePathStub({ value: testbed.guildPath }),
+          dungeonmasterRoot: FilePathStub({ value: `${testbed.guildPath}/.wrong-cli-root` }),
+        },
+      });
+
+      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+
+      // listDir follows a symlink to list its target's contents and returns null when the path
+      // itself is gone — the legacy link no longer being there is exactly what this proves.
+      const legacyLinkEntries = testbed.listDir({
+        relativePath: RelativePathStub({ value: '.siegelense' }),
+      });
+      const nestedLinkEntries = testbed.listDir({
+        relativePath: RelativePathStub({ value: '.dungeonmaster-assets/siegelense-assets' }),
+      });
+
+      testbed.cleanup();
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/siegelense',
+        success: true,
+        action: 'created',
+        message: `Created .dungeonmaster-assets/siegelense-assets -> ${dungeonmasterHomePath}/siegelense; removed legacy .siegelense symlink; Created .gitignore with .dungeonmaster-assets/siegelense-assets; Created packages/hydration-recipes/src/`,
+      });
+      expect(legacyLinkEntries).toBe(null);
+      expect(nestedLinkEntries).toStrictEqual([]);
+    });
   });
 });

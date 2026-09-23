@@ -54,6 +54,15 @@ describe('InstallLinkCreateResponder', () => {
       ]);
       expect(proxy.assertMkdirCalledBeforeSymlink()).toBe(true);
     });
+
+    it('EMPTY: {no legacy .siegelense symlink} => makes no unlink call for it', async () => {
+      const proxy = InstallLinkCreateResponderProxy();
+      proxy.setupNoLink();
+
+      await proxy.callResponder({ context: CONTEXT });
+
+      expect(proxy.getUnlinkedPaths()).toStrictEqual([]);
+    });
   });
 
   describe('link already points at the right target', () => {
@@ -72,6 +81,7 @@ describe('InstallLinkCreateResponder', () => {
       });
       expect(proxy.getSymlinkCalls()).toStrictEqual([]);
       expect(proxy.getReadlinkCalls()).toStrictEqual([
+        AbsoluteFilePathStub({ value: '/project/.siegelense' }),
         AbsoluteFilePathStub({ value: '/project/.dungeonmaster-assets/siegelense-assets' }),
       ]);
     });
@@ -103,6 +113,54 @@ describe('InstallLinkCreateResponder', () => {
           type: 'dir',
         },
       ]);
+    });
+  });
+
+  describe('legacy flat .siegelense symlink from a pre-nesting install', () => {
+    it('VALID: {legacy .siegelense is a symlink} => unlinks it and says so in the message', async () => {
+      const proxy = InstallLinkCreateResponderProxy();
+      proxy.setupLegacySymlinkPresent();
+
+      const result = await proxy.callResponder({ context: CONTEXT });
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/siegelense',
+        success: true,
+        action: 'skipped',
+        message:
+          '.dungeonmaster-assets/siegelense-assets already points at /home/user/.dungeonmaster/siegelense; removed legacy .siegelense symlink',
+      });
+      expect(proxy.getUnlinkedPaths()).toStrictEqual([
+        AbsoluteFilePathStub({ value: '/project/.siegelense' }),
+      ]);
+    });
+
+    it('EDGE: {legacy .siegelense is a real directory} => leaves it untouched and says so in the message', async () => {
+      const proxy = InstallLinkCreateResponderProxy();
+      proxy.setupLegacyRealDirectory();
+
+      const result = await proxy.callResponder({ context: CONTEXT });
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/siegelense',
+        success: true,
+        action: 'skipped',
+        message:
+          '.dungeonmaster-assets/siegelense-assets already points at /home/user/.dungeonmaster/siegelense; .siegelense is a real directory or file; left untouched',
+      });
+      expect(proxy.getUnlinkedPaths()).toStrictEqual([]);
+    });
+
+    it('EMPTY: {legacy .siegelense absent} => makes no unlink call and leaves the message unchanged', async () => {
+      const proxy = InstallLinkCreateResponderProxy();
+      proxy.setupCorrectLink();
+
+      const result = await proxy.callResponder({ context: CONTEXT });
+
+      expect(proxy.getUnlinkedPaths()).toStrictEqual([]);
+      expect(result.message).toBe(
+        '.dungeonmaster-assets/siegelense-assets already points at /home/user/.dungeonmaster/siegelense',
+      );
     });
   });
 });
