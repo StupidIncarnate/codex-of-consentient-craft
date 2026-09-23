@@ -28,10 +28,11 @@ export const driverStatics = {
     connectTimeoutMs: 5_000,
     // The outer backstop on one whole request/response round trip, not a per-step ceiling —
     // `run.defaultStepTimeoutMs` below already bounds each step, and a `run` request's real
-    // ceiling is the sum of its batch's own step timeouts. `run-ward` and `run-riftcarver`
-    // already block through MCP for minutes (siegelense-tooling.md line 104), so this cannot be
-    // tight; it exists only to eventually surface a driver that stopped answering entirely
-    // mid-batch, rather than leaving the calling MCP tool blocked forever.
+    // ceiling is the sum of its batch's own step timeouts. A ward run over the whole monorepo, or
+    // a riftcarver carve (worktree + node_modules mirror + typecheck), already takes minutes
+    // elsewhere in this system, so this cannot be tight; it exists only to eventually surface a
+    // driver that stopped answering entirely mid-batch, rather than leaving the calling MCP tool
+    // blocked forever.
     requestTimeoutMs: 300_000,
     // Bounds the serialized request the driver reads off the socket, so a malformed or runaway
     // batch cannot make it buffer without limit. Ten times the 50,000-char ceiling the design

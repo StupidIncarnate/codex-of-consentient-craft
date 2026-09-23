@@ -214,9 +214,10 @@ describe('OrchestrationStartResponder', () => {
 
       const persisted = proxy.getPersistedQuestAt({ index: 0 });
 
-      // `spawnerType: 'command'` is the load-bearing field: it routes this item to the dispatcher's
-      // own run path (questRunRiftcarverBroker), which is what streams the carve into the execution
-      // row instead of leaving the panel to render nothing while a POST blocks.
+      // `spawnerType: 'command'` marks this item's output as command chat rather than agent chat.
+      // The `step: 'carve'` node alongside it is what actually routes the carve, through `run-step`
+      // to `stepHandlerRiftcarverBroker`, which streams into the execution row instead of leaving
+      // the panel to render nothing while a POST blocks.
       expect(persisted.workItems).toStrictEqual([
         {
           id: SEEDED_UUIDS[2],

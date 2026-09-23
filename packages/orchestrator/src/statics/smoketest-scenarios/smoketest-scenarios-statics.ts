@@ -24,7 +24,7 @@ import { smoketestBlueprintsStatics } from '../smoketest-blueprints/smoketest-bl
 
 // Every relay role that receives a scripted agent work item once ward is skipped. The scenario
 // driver dispenses these per role, one per work item, as the relay creates them in order. Each role
-// signals `complete` (operationStatus done) so the orchestrator advances to the next operation item.
+// signals `complete` so the orchestrator advances to the next operation item.
 //
 // The `flowrider` entry is dispensed only because the blueprint's flow is `runtime` — the tail's
 // flow fan-out cuts each seed over the flow types its own track measures, and flowrider measures

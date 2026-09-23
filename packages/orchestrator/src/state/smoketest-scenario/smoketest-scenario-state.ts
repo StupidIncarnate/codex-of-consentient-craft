@@ -2,9 +2,9 @@
  * PURPOSE: Multi-active per-quest scenario state keyed by QuestId — holds per-role script of canned prompt names plus per-role call ordinals; dispense returns and advances one prompt at a time for the given quest
  *
  * USAGE:
- * smoketestScenarioState.register({ questId, scripts: { codeweaver: ['signalPartial', 'signalDone'] } });
+ * smoketestScenarioState.register({ questId, scripts: { codeweaver: ['signalComplete', 'signalDone'] } });
  * smoketestScenarioState.dispense({ questId, role: 'codeweaver' });
- * // Returns: 'signalPartial' (first call), then 'signalDone' (second), then null (exhausted)
+ * // Returns: 'signalComplete' (first call), then 'signalDone' (second), then null (exhausted)
  * smoketestScenarioState.getActive({ questId });
  * smoketestScenarioState.unregister({ questId });
  *
