@@ -68,8 +68,9 @@ The handle broker owns the per-handle lifecycle:
   triggers)
 - Auto-dispatch of `chatSubagentTailBroker` on every `agent-detected` signal
 - Memoized `sessionId` capture from the first system/init line
-- Plain-text fallback for non-JSON lines (`spawnerType: 'command'` ward runs invoked via the
-  `run-ward` MCP tool) so ward output renders verbatim as a single assistant-text entry
+- Plain-text fallback for non-JSON lines (`spawnerType: 'command'` steps — ward, riftcarver,
+  commit, cleanup — run through the Node dispatcher's `run-step`) so their output renders verbatim
+  as a single assistant-text entry
 - `stop()` to compose into teardown callbacks; `initialDrains()` to await pre-existing
   sub-agent JSONL drain before declaring catch-up complete
 
@@ -371,9 +372,9 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
   `agentNameToPromptTransformer`'s `AGENT_PROMPTS` table actually carries — `promptNames` also keeps three retired
   role names (`codeweaver`, `flowrider`, `siegemaster`) so a quest that ran under one still loads, but each of those
   throws `Unknown agent prompt name` if dispatched today; the transformer's own test names them
-  `UNSERVED_PROMPT_NAMES` and asserts the throw. `siegemaster-verifier` and `siegemaster-stress` are not retired
-  names on this list at all — they were removed from it outright when the siege walkers replaced them (see
-  "Siegemaster: the inverse step graph" below).
+  `UNSERVED_PROMPT_NAMES` and asserts the throw. `siegemaster-reviewer`, `siegemaster-verifier` and
+  `siegemaster-stress` are not retired names on this list at all — they were removed from it outright when the
+  siege walkers replaced them (see "Siegemaster: the inverse step graph" below).
 
   | Name | Kind | File | Model |
   |---|---|---|---|
@@ -403,11 +404,10 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
   prompt of its own any more — dispatch always reaches one of that family's named steps instead.
 
   Two shared blocks are interpolated into those prompts rather than repeated:
-  `standardsReviewConcernsStatics.markdown` — the five standing quality concerns, in all three reviewers — and
-  `flowEvidenceContractStatics`, whose judging half (`judgingMarkdown`) goes into `flowrider-reviewer`. Its authoring
-  half (`authoringMarkdown`) reaches no served prompt today — `flowrider-planner-statics.ts` names exactly the two
-  shared blocks it interpolates (`spilledToolResultStatics`, `sadPathRoutingStatics`) and `authoringMarkdown` is not
-  one of them.
+  `standardsReviewConcernsStatics.markdown` — the five standing quality concerns, in both reviewers — and
+  `flowEvidenceContractStatics.judgingMarkdown`, which goes into `flowrider-reviewer` alone, since it grades a test
+  suite `codeweaver-reviewer` does not produce. `flowEvidenceContractStatics` carries no authoring half — a reviewer
+  does not need the method that produced the artifact it grades, so this block carries only the judging side.
 
   The valid names are `agentPromptClassificationStatics.promptNames` — `agentPromptNameContract` brands an OPEN
   string rather than a closed enum, so a quest that ran under a renamed prompt name still loads.
@@ -452,7 +452,7 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
 ## Editing or Creating a Prompt in `statics/`
 
 Every statics file in this package holding agent-facing markdown — each family's `<role>-planner-statics` /
-`<role>-worker-statics` pair, the three `<role>-reviewer-statics`, siegemaster's named walk/fix/read steps
+`<role>-worker-statics` pair, the two `<role>-reviewer-statics`, siegemaster's named walk/fix/read steps
 (`siege-planner`, `siege-happy-walker`, `siege-adversarial-walker`, `siege-happy-fixer`, `siege-adversarial-fixer`,
 `siegemaster-reader`, `recipe-maker`), `chaoswhisperer-gap-minion-statics`, `standards-review-concerns-statics`,
 `flow-evidence-contract-statics`, and the bespoke `spiritmender` / `warpgate` / `tavernkeeper` / `dumpster-*`
@@ -478,11 +478,11 @@ not widen its wording.**
 
 ### 3. A shared block is a contract on every prompt that interpolates it
 
-`standardsReviewConcernsStatics` lands in all three reviewer prompts and `flowEvidenceContractStatics`'s judging
-half lands in `flowrider-reviewer` alone — its authoring half reaches no served prompt today. An edit to either
+`standardsReviewConcernsStatics` lands in both reviewer prompts and `flowEvidenceContractStatics`'s judging
+half lands in `flowrider-reviewer` alone — the statics file carries no authoring half at all. An edit to either
 is unfinished until every prompt that reads it still agrees with it. A question only ONE kind of
 reviewer asks belongs in that reviewer's own prompt, never in the shared block — a block that hedges
-across three readers serves each of them answers it cannot use.
+across both readers serves each of them answers it cannot use.
 
 ### 4. Check the RENDERER before promising a session what it will be handed
 
@@ -511,8 +511,8 @@ restart rewinds.
 each served text has to clear ON ITS OWN, and each prompt's colocated test measures it. Over the
 ceiling the MCP layer spills that result to a FILE and hands the agent an error stub — the session
 then holds a path instead of its instructions, and nothing reports a failure. The shared blocks are
-where an edit costs the most: a character in `standardsReviewConcernsStatics` is three characters
-served. `flowrider-reviewer` is the largest of the three reviewer prompts, so measure that one first
+where an edit costs the most: a character in `standardsReviewConcernsStatics` is two characters
+served. `flowrider-reviewer` is the larger of the two reviewer prompts, so measure that one first
 after any edit to either shared block.
 
 ## Quest Pipeline
@@ -553,10 +553,9 @@ Web UI "Start Quest" button ──► server orchestration-start-responder
   │
   ▼
 User runs /dumpster-launch (long-lived dispatch loop in their session)
-  │   Loop: get-next-step() → Task() / run-step() → await → repeat. `run-step` covers every
-  │   deterministic step of a normal quest, including the carve and the wardFull gate; the legacy
-  │   run-riftcarver() / run-ward() MCP tools answer only a work item with no step node (a hydrated
-  │   or legacy-blueprint quest).
+  │   Loop: get-next-step() → Task() for spawn-agents → await → repeat. `run-step` covers every
+  │   deterministic step, including the carve and the wardFull gate — MCP mode has no tool that
+  │   answers one; on a `run-step` response it tells the user and STOPS the loop.
   │   Each response dispatches ONE work item (= one agent session, or one command run) for the
   │   operation item the relay marked in_progress; on signal-back / command exit the relay advances
   │   to the next pending item.
@@ -678,10 +677,9 @@ MANY work items** — one per step the router mints on that scope, one per piece
   handler, never a session, and it owns the whole tree for the length of its run. Its work item carries
   the ROLE of its SCOPE (a `commit` step inside a codeweaver scope reads `role: 'codeweaver'`), so keying
   on the role alone would spawn a Claude session for it;
-- a work item running NO step graph falls through to the role-keyed command split — `run-riftcarver` for
-  a carve, `run-ward` for a gate — which is what keeps a riftcarver item out of
-  `buildSpawnInstructionLayerBroker`, whose `agentRoleContract` parse throws for any role Claude cannot
-  be dispatched as;
+- a command-role work item with NO step node is filtered OUT of readiness before this point ever runs —
+  nothing mints that shape any more, so it can never reach `buildSpawnInstructionLayerBroker`, whose
+  `agentRoleContract` parse throws for any role Claude cannot be dispatched as;
 - otherwise the batch is every ready item sharing the head's ROLE **and** its STEP, which is a router
   mint read back off the ledger. Several sessions of ONE step run in parallel by design; two different
   steps never do.
@@ -709,7 +707,7 @@ briefs another, and no step dispatches a sub-agent to do its work.
   itself: "there is no operator above you deciding what to brief and no sub-agent below you doing the typing — the
   two are the same session now" (`codeweaver-worker-statics.ts`'s own words). It marks each assigned unit `met` /
   `cant-meet` through `quest-work`, wards only its own piece's paths (`npm run ward -- -- <its own paths>` — never
-  `--uncommitted`, never bare, never the `run-ward` MCP tool), and **never commits**.
+  `--uncommitted`, never bare), and **never commits**.
 - **`review`** (`codeweaver-reviewer` / `flowrider-reviewer`) reads the quest and the flow, finds what the pass
   produced via `git status` + `git diff HEAD`, opens every changed file IN FULL — not the diff, which is what finds
   the false green a diff hides — judges it against the flow and **the five standing concerns** (`craft`, `perf`,
@@ -848,13 +846,13 @@ step the router mints on that scope, one per piece inside a parallel step. `step
   session dispatched against an empty denominator. A family that mints zero scopes is routed PAST by
   walking its `empty` edge.
 - **Dispatch** (`quest-get-next-step-broker`): FIFO-scans active quests, picks the oldest with incomplete
-  work, and returns a `NextStep` (`spawn-agents` / `run-step` / `run-riftcarver` / `run-ward` / `idle`).
+  work, and returns a `NextStep` (`spawn-agents` / `run-step` / `idle` — the only three members).
   **The STEP decides before the ROLE:** a `kind: 'deterministic'` step returns `run-step` carrying its
-  handler and the step's own `args`, ALONE; a work item running no step graph falls through to the
-  role-keyed command split; otherwise the batch is every ready item sharing the head's ROLE and its STEP.
-  `scan-once-layer-broker`'s missing-worktree halt exempts the carve and only the carve — matched on the
-  `run-step` handler as well as on the legacy `run-riftcarver` type, because matching one of the two
-  would block on the other.
+  handler and the step's own `args`, ALONE; a command-role work item with no step node is filtered OUT of
+  readiness before a dispatch decision is made — nothing mints that shape any more; otherwise the batch
+  is every ready item sharing the head's ROLE and its STEP. `scan-once-layer-broker`'s missing-worktree
+  halt exempts the carve and only the carve — matched on the `run-step` handler alone, since there is no
+  legacy `run-riftcarver` type left to also match.
 - **Session tracking**: each work item carries `sessionId` (parent /dumpster-launch session UUID) AND
   `agentId` (the sub-agent's realAgentId, used to scope chat replay to one `subagents/agent-<id>.jsonl`
   file). For chat roles — ChaosWhisperer, BugHunt, matched by the shared
@@ -1083,9 +1081,9 @@ take the whole quest.
 |----------------|-------------------------------------------------------------------------------------------------------------------------|------------------------------------------|--------------------------------------------------------------------------------------------------|
 | ChaosWhisperer | `/dumpster-create` (interactive)                                                                                        | N/A (spec)                               | `modify-quest`: full spec surface (flows, observables, contracts, packagesAffected) — never `operations`         |
 | Tavernkeeper   | follow-up chat (interactive, AFTER the quest ends)                                                                      | N/A (chat; no operation item)            | none                                                                                             |
-| riftcarver     | its `carve` step is `kind: 'deterministic'`, so a normal quest reaches it via `run-step` → `stepHandlerRiftcarverBroker`; the `run-riftcarver` MCP tool / Node-loop branch (command) only fires for a work item with no step node (a hydrated or legacy-blueprint quest) — ALWAYS the ledger's first item | exit code (green / repairable / blocked) | none (broker writes `branchName`/`baseBranch`/`worktreePath`/`baseRef` + riftcarverResults + item status) |
+| riftcarver     | its `carve` step is `kind: 'deterministic'`, so it always reaches it via `run-step` → `stepHandlerRiftcarverBroker` — ALWAYS the ledger's first item, and only the Node dispatcher can run it | exit code (green / repairable / blocked) | none (broker writes `branchName`/`baseBranch`/`worktreePath`/`baseRef` + riftcarverResults + item status) |
 | codeweaver     | `/dumpster-launch` via Task(), ONE SCOPE PER (PACKAGE, FLOW) CELL running its own `plan → work → review → commit → ward` step graph — product code + its unit tests | family done / blocked | `quest-work`: a plan (planner), an `observations[]` mark per unit plus an outcome word (worker, reviewer); `modify-quest` narrowly (`packagesAffected` from the planner, `verifyByHuman` from the worker) |
-| ward           | `wardFull`'s `gate` step is `kind: 'deterministic'`, so a normal quest reaches it via `run-step` → `stepHandlerWardBroker`; the `run-ward` MCP tool / Node-loop branch (command) only fires for the same no-step-node fallback                                                                     | exit code (green / red)                  | none (broker writes wardResults + item status)                                                   |
+| ward           | `wardFull`'s `gate` step is `kind: 'deterministic'`, so it always reaches it via `run-step` → `stepHandlerWardBroker`, and only the Node dispatcher can run it                                                                     | exit code (green / red)                  | none (broker writes wardResults + item status)                                                   |
 | flowrider      | `/dumpster-launch` via Task(), ONE SCOPE PER FLOW running the same step graph as codeweaver — the test suites that prove that flow                   | family done / blocked | same shape as codeweaver's row above                                            |
 | siegemaster    | `/dumpster-launch` via Task(), ONE SCOPE PER FLOW running its own `sweepIn → plan → happyWalk ⇄ fixHappy → adversarial ⇄ fixAdversarial → commit → ward → sweepOut` graph — hands-on QA against a running system | family done / blocked | `quest-work`: a plan (planner), an `observations[]` mark per unit the walkers settle plus an outcome word (every step); an `invalidation` payload appends a `walk-reset` note |
 | spiritmender   | `/dumpster-launch` via Task() (inserted on a ward red, or on a REPAIRABLE riftcarver red). Bespoke prompt                | complete (done / partial / blocked)      | none                                                                                             |
@@ -1429,11 +1427,11 @@ The MCP `modify-quest` tool gates writes by the per-status allowlist (`quest-sta
   ledger is DERIVED at Start (`fanOutBy: 'implementation'`), not authored by ChaosWhisperer, and every runtime
   mutation goes through `questOperationsUpdateBroker`, which bypasses this allowlist.
 - `workItems` — server-only, managed by the advance / signal-back / ward / riftcarver brokers.
-- `wardResults` — server-only, written by `quest-run-ward-broker` (the no-step-node fallback) or `stepHandlerWardBroker`
-  (a normal quest's deterministic `ward` / `gate` step), which reuses the former's non-routing result-append.
-- `riftcarverResults` — server-only, written by `quest-run-riftcarver-broker` (the fallback) or
-  `stepHandlerRiftcarverBroker` (a normal quest's deterministic `carve` step), one entry appended per carve attempt so
-  a re-carve chain leaves its whole history rather than overwriting the attempt that failed.
+- `wardResults` — server-only, written by `stepHandlerWardBroker` (every `ward` / `gate` step's own non-routing
+  result-append).
+- `riftcarverResults` — server-only, written by `stepHandlerRiftcarverBroker` (every `carve` step's own
+  result-append), one entry appended per carve attempt so a re-carve chain leaves its whole history rather than
+  overwriting the attempt that failed.
 
 **Every timestamp a modify-quest payload writes is REPLACED with the server's clock, and the caller's value is
 discarded** — `questInputServerTimestampsTransformer`, running before any branch of `questModifyBroker` reads the
@@ -1468,29 +1466,29 @@ Quest mutations use a **file outbox** for cross-process notification. Transient 
 `quest-get-next-step-broker` is the single dispatch brain. Two dispatchers drive it:
 
 - **MCP mode (`/dumpster-launch`)** — the user's interactive Claude session polls the
-  `get-next-step` MCP tool and dispatches via Task() sub-agents, or calls the `run-riftcarver` /
-  `run-ward` MCP tool for a COMMAND step. Runs under the user's plan.
+  `get-next-step` MCP tool and dispatches via Task() sub-agents for `spawn-agents`. It has no tool
+  that can run a `run-step`: on one it tells the user the quest is waiting on the Node dispatcher and
+  stops the loop. Runs under the user's plan.
 - **Node mode (the `/queue` page's play button)** — the server's Node dispatch runner
   (`quest-node-dispatch-runner-broker` + `quest-node-dispatch-loop-broker`, bootstrapped by
   `OrchestrationDispatchBootstrapResponder`) calls the same broker in-process and dispatches by
   spawning headless `claude -p` children (one per SpawnInstruction, same `taskPrompt` stub) via
-  `agentSpawnUnifiedBroker`, or by running a COMMAND step synchronously in-process. The spawn-batch
-  layer pre-stamps each work item `in_progress`
+  `agentSpawnUnifiedBroker`, or by running a deterministic step's handler synchronously in-process via
+  `stepHandlerRunBroker`. The spawn-batch layer pre-stamps each work item `in_progress`
   before spawning and stamps `sessionId` from the child's init line (which activates the
   quest-driven watcher tail for live chat; `agentId` stays unset for top-level sessions).
   Pause is graceful: `isPlaying()` is checked between steps, in-flight children finish.
 
-**Both dispatchers drive both commands, and both wire the output.** The Node loop takes `onWardLine`
-and `onRiftcarverLine` as REQUIRED parameters (brokers cannot import `state/`, so the bootstrap
-responder supplies the real `orchestrationEventsState` emit and tests inject a stub); the MCP side has
-the mirror pair, `QuestRunWardResponder` and `QuestRunRiftcarverResponder`. All four emit sites route
-through ONE construction, `commandChatOutputEmitTransformer`, rather than each keeping its own copy of
-the event shape — copies are what let a third command role ship with a subtly different `processId`
-and render its rows detached from the row they belong to. **The `processId` is the WORK ITEM id**, not
-a session id: a command work item has no sessionId to key on, and the execution panel's
-`workItemEntries` lookup groups rows by exactly that value, so live streaming needs no web-side change
-at all. Dropping any of the four callbacks means minutes of a dead panel with nothing else able to
-fill it.
+**Only the Node dispatcher ever runs a `run-step`, so only it wires the output.**
+`quest-node-dispatch-loop-broker` takes a single `onStepLine` as a REQUIRED parameter (brokers cannot
+import `state/`, so the bootstrap responder supplies the real `orchestrationEventsState` emit and
+tests inject a stub) — one callback for every deterministic step (`ward`, `carve`, `repair`, `commit`,
+`cleanup`), not a pair keyed on role. It routes through ONE construction,
+`commandChatOutputEmitTransformer`, so every command role's chat-output event shares the same shape.
+**The `processId` is the WORK ITEM id**, not a session id: a command work item has no sessionId to
+key on, and the execution panel's `workItemEntries` lookup groups rows by exactly that value, so live
+streaming needs no web-side change at all. Dropping the callback means minutes of a dead panel with
+nothing else able to fill it.
 
 **Exclusivity** is file-backed at `<dungeonmasterHome>/dispatch-state.json`
 (`dispatchStateContract`) because the MCP server is a separate OS process: every MCP
@@ -1508,7 +1506,7 @@ restart.
 |----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `/dumpster-create` slash command       | Primary entry point (feature). Runs ChaosWhisperer in the user's Claude session; creates the new quest via MCP as its first action.                                       |
 | `/dumpster-hunt` slash command         | Primary entry point (bug-hunt). Runs the BugHunt intake; first action is `create-quest` with `questType: 'bug-hunt'`, then captures the repro flow + expected observable. |
-| `/dumpster-launch` slash command       | MCP dispatch mode. Long-lived dispatch loop in the user's Claude session; calls `get-next-step()` → Task() / `run-ward` → await → repeat across all approved quests.      |
+| `/dumpster-launch` slash command       | MCP dispatch mode. Long-lived dispatch loop in the user's Claude session; calls `get-next-step()` → `Task()` for `spawn-agents` → await → repeat across all approved quests. On a `run-step` it tells the user and stops — only the Node dispatcher runs one. |
 | Web UI `/queue` page play button       | Node dispatch mode. `POST /api/orchestration/dispatch/play` starts the server-side runner (headless `claude -p` children); pause stops new dispatches gracefully.         |
 | MCP `create-quest` tool                | Programmatic quest creation (used by ChaosWhisperer/BugHunt). Accepts optional `questType` so `/dumpster-hunt` births a `bug-hunt` quest.                                 |
 | MCP `start-quest` tool                 | Programmatic transition from `approved` to `in_progress` (status mutation only — the active dispatcher picks the quest up on its next pass).                              |

@@ -251,7 +251,7 @@ primary driver.**
 | Surface                          | Dispatcher                     | What it does                                                                                                                                        |
 |----------------------------------|---------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
 | Web UI `/queue` page play button | **Node/UI mode (primary)**     | The server-side Node dispatch runner loops `get-next-step` in-process, spawns headless `claude -p` children (one per SpawnInstruction), and runs a `run-step` through `questRunStepBroker` → `stepHandlerRunBroker`. |
-| `/dumpster-launch` slash command | **MCP mode**                   | A brainless loop in the user's own Claude session: `get-next-step()` → `Task()` for agents / `run-ward` or `run-riftcarver` MCP tool for a command work item → await → repeat. It has **no tool for a `run-step`** yet, so a deterministic step returned by the scan is Node/UI mode's alone to run. |
+| `/dumpster-launch` slash command | **MCP mode**                   | A brainless loop in the user's own Claude session: `get-next-step()` → `Task()` for agents → await → repeat. It has **no tool for a `run-step`** — on one it tells the user the quest is waiting on a deterministic step only the Node dispatcher can run, then stops the loop. |
 | Web UI "Start Quest" button      | —                              | Calls `OrchestrationStartResponder`: seeds the relay and flips status `approved → in_progress`. **Spawns nothing and touches no git** — pure `quest.json` bookkeeping, so the POST answers in milliseconds and the active dispatcher picks the quest up. |
 
 The two modes are mutually exclusive via `<dungeonmasterHome>/dispatch-state.json`. `get-next-step`
@@ -414,10 +414,9 @@ back. **The STEP decides before the ROLE:**
    `ward` grades the tree, `cleanup` kills every siegelense instance). Its work item carries the ROLE of
    the SCOPE it belongs to — a `commit` step inside a codeweaver scope reads `role: 'codeweaver'` — so
    keying on the role alone would spawn a Claude session for it.
-2. A work item that runs NO step graph (a hydrated quest's ward, a pre-graph ledger's carve) falls
-   through to the role-keyed command split: `run-riftcarver` for a carve, `run-ward` for a gate. That
-   split is what keeps a riftcarver item out of `build-spawn-instruction-layer-broker`, which parses
-   `agentRoleContract` and throws for any role Claude cannot be dispatched as.
+2. A command-role work item with no step node is filtered OUT of `ready` before this point ever runs —
+   nothing mints that shape any more, so it can never reach `build-spawn-instruction-layer-broker`, whose
+   `agentRoleContract` parse throws for any role Claude cannot be dispatched as.
 3. Otherwise the batch is every ready item sharing the head's ROLE **and** its STEP, which is a router
    batch read back off the ledger — one step of one family, which is what a router mint is by
    construction. `ready` spans every scope the relay has open, and two codeweaver cells legitimately sit
@@ -433,8 +432,8 @@ quest whose recorded `worktreePath` does not resolve, because dispatching any ot
 against the repo-root checkout. The carve OWNS creating that path — its own done-check reads a
 recorded-but-missing directory as "not done" and re-creates it — so halting ahead of it would leave the
 quest permanently blocked by the one step that could have repaired it. The exemption keys on the
-HANDLER (`run-step` carrying `handler: 'riftcarver'`) as well as on the legacy `run-riftcarver` step
-type, because matching only one of the two would block on the other.
+HANDLER alone (`run-step` carrying `handler: 'riftcarver'`) — there is no legacy `run-riftcarver` step
+type left to also match.
 
 ### Status derivation (`workItemsToQuestStatusTransformer`)
 

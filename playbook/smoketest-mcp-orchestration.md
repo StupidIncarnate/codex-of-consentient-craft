@@ -8,10 +8,9 @@ execution view.**
 
 **This playbook's reach is narrower than the old operations-relay model let it be.** `ward`, `carve`, `repair`,
 `commit` and `cleanup` are now `deterministic` steps — code, not a Claude session — and `get-next-step` returns
-`{ type: 'run-step', handler, args }` for them. **MCP mode has no tool that can run a `run-step`.** The
-`run-ward`/`run-riftcarver` MCP tools still exist, but they take no scope argument and only fire for a work item
-with NO step node at all (a hydrated or pre-step-graph quest) — for a quest seeded by today's
-`questBuildRelayGraphBroker`, every work item has a step node, so these two tools are unreachable. **This playbook can
+`{ type: 'run-step', handler, args }` for them. **MCP mode has no tool that can run a `run-step`.** There is no
+`run-ward`/`run-riftcarver` MCP tool any more — a command-role work item with no step node is filtered out of
+readiness entirely rather than falling through to one, since nothing mints that shape any more. **This playbook can
 drive every `prompt`-kind step by hand** (`plan`, `work`, `review`, `happyWalk`, `adversarial`, `fixHappy`,
 `fixAdversarial`, `recipe`, `read`) via a stub `Task()` that calls `get-agent-prompt` → `quest-work` → `signal-back`.
 **It cannot drive a `deterministic` step by hand** — verifying `carve`/`repair`/`commit`/`ward`/`cleanup` needs the
@@ -296,7 +295,7 @@ Source of truth for "what value should each field be at each transition." Assert
 | Field              | Enum / type                                                         | Seeded    | Who writes it & when                                                                                          |
 |--------------------|-------------------------------------------------------------------|-----------|------------------------------------------------------------------------------------------------------------|
 | `status`           | `pending \| queued \| in_progress \| complete \| failed \| skipped` | `pending` | `get-agent-prompt` → `in_progress`; `signal-back` → `complete`; a deterministic step's handler → `complete`/`failed`; block → `skipped` |
-| `step`             | a key in `agentFlowStatics[family].steps`                          | per seed  | the router mints each fresh work item at a named step; ABSENT means a legacy command work item                |
+| `step`             | a key in `agentFlowStatics[family].steps`                          | per seed  | the router mints each fresh work item at a named step; every dispatchable item carries one — one with none is filtered out of readiness |
 | `sessionId`        | uuid (parent)                                                       | absent    | **get-agent-prompt** (identity resolved MCP-side); retained across an orphan resume                          |
 | `agentId`          | realAgentId                                                         | absent    | **get-agent-prompt**; retained across an orphan resume                                                       |
 | `assignedUnitIds`  | `UnitId[]`                                                          | per seed  | a `worker` step's assignment comes from its piece; a `reviewer`/walker step's is its scope's whole in-scope set |
@@ -309,7 +308,7 @@ Source of truth for "what value should each field be at each transition." Assert
 | `relatedDataItems` | `operations/<id>[]` (+ `wardResults/<id>` on a ward step's work item) | per seed  | **exactly one `operations/<id>`** always                                                                       |
 | `resume`           | marker                                                              | absent    | `recover-orphaned-work-items-layer-broker` on an orphaned `in_progress` item (kept `sessionId`)              |
 | `retryCount`       | int                                                                 | 0         | bumped on each orphan resume; `≥ slotManagerStatics.orphanRecovery.maxResets` → `blocked`                     |
-| `spawnerType`      | `agent \| command`                                                  | per seed  | `command` for ward/riftcarver's LEGACY no-step-node path only; `agent` for every current-model step             |
+| `spawnerType`      | `agent \| command`                                                  | per seed  | `command` when the work item's OWN role is `ward` or `riftcarver` (`isCommandWorkItemRoleGuard`); `agent` for every other role — independent of whether the step itself is `prompt` or `deterministic` (a `commit` step inside a codeweaver scope is still `agent`) |
 
 ## A3. Quest status derivation (`workItemsToQuestStatusTransformer`, family-graph-aware, precedence order)
 
@@ -514,9 +513,10 @@ You are a SMOKETEST STUB AGENT. Do NOT do real work, do NOT read/write source fi
 
 ### Gotchas to keep front of mind
 
-- **G1 — a `deterministic` step is not dispatchable from MCP mode, ever, for a current-model quest.** `run-ward`/
-  `run-riftcarver` still exist but take no scope argument and only fire on a work item with NO `step` field — seeding
-  one with a `step` set routes it through `run-step` instead, which MCP mode cannot run.
+- **G1 — a `deterministic` step is not dispatchable from MCP mode, ever.** There is no `run-ward`/`run-riftcarver`
+  MCP tool any more; a work item with no `step` field is filtered out of readiness entirely rather than falling
+  through to one. Every work item you seed needs a real `step` — it always routes through `run-step`, which MCP
+  mode cannot run.
 - **G2 — `quest-work` must mark EVERY assigned unit before `signal-back`.** `signal-back` throws naming every
   unmarked unit if you skip straight to it.
 - **G3 — get-agent-prompt stamping is identity-resolved.** No identity → no `in_progress`/`sessionId`/`agentId`

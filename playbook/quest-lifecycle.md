@@ -20,12 +20,11 @@ state machine that works the graphs one work item at a time. A dispatcher drives
       `run-step` through `questRunStepBroker` → `stepHandlerRunBroker` for `deterministic` steps (carve, repair,
       commit, ward, cleanup).
     - **MCP mode** — `/dumpster-launch`, a brainless loop in the user's own Claude session: `get-next-step()` →
-      `Task()` for a `prompt` step → await → repeat. **It has no tool for a `run-step`.** For a normal, current-model
-      quest every work item carries a step node, so a `deterministic` step (carve, repair, commit, ward, cleanup)
-      simply cannot be dispatched from MCP mode at all — only Node/UI mode can run one. (The `run-ward`/
-      `run-riftcarver` MCP tools still exist, but only as a fallback for a quest with no step node at all — a
-      hydrated or pre-step-graph quest; they take no scope argument and always mean the whole family's own default,
-      never a single step.)
+      `Task()` for a `prompt` step → await → repeat. **It has no tool for a `run-step`.** Every work item now carries
+      a step node — a command-role item with none is filtered out of readiness entirely — so a `deterministic` step
+      (carve, repair, commit, ward, cleanup) simply cannot be dispatched from MCP mode. On a `run-step` response the
+      loop tells the user the quest is waiting on the Node dispatcher and STOPS — start it with `dungeonmaster start`
+      or the web UI's `/queue` page play button.
 2. **MCP stdio child** — exposes the tools (`create-quest`, `get-next-step`, `get-agent-prompt`, `quest-work`,
    `signal-back`, `modify-quest`, `get-quest-work`, …). Quest tools route to the orchestrator.
 3. **Orchestrator service** — owns `quest.operations[]` (the scope ledger), `quest.workItems[]` (the sessions), and
@@ -170,11 +169,11 @@ The dispatcher polls `get-next-step()`. Each call:
 2. **Compute the ready work item(s).** `select-batch-layer-broker` admits every ready item sharing the head item's
    role AND step — several sessions of one step run in PARALLEL by design (nine codeweaver cells, a step's pieces);
    two different steps or two different families never dispatch at once.
-3. **Return a `NextStep`:**
+3. **Return a `NextStep`** — `spawn-agents` / `run-step` / `idle`, the only three members:
     - the head item's step is `kind: 'deterministic'` → `{ type: 'run-step', questId, workItemId, handler, args }` —
       Node/UI mode alone can run this (see §1);
-    - a work item with NO step node at all (a hydrated or pre-step-graph quest) → `{ type: 'run-ward', ... }` /
-      `{ type: 'run-riftcarver', ... }`, dispatched alone;
+    - a command-role work item with NO step node is filtered out of readiness before this point — nothing mints
+      that shape any more, so it never reaches a dispatch decision at all;
     - otherwise → `{ type: 'spawn-agents', agents: [{ questId, role, workItemId, taskPrompt }] }`, one entry per
       ready work item sharing the batch's role+step;
     - nothing ready → long-poll (~25s) → `{ type: 'idle' }`.
@@ -283,10 +282,10 @@ step creates the branch, the git worktree, mirrors `node_modules`, and runs the 
 routes to `repair`, which returns to `carve` to re-verify; `carve`'s `done` routes onward and mints the codeweaver
 family.
 
-The `run-ward` / `run-riftcarver` MCP tools still exist, but they take no scope argument at all and only fire when a
-work item carries NO step node — a hydrated quest, or one built before the step graph existed. For a quest built by
-today's `questBuildRelayGraphBroker`, every work item has a step node, so these two tools are unreachable in
-practice; **use Node/UI mode's dispatcher to exercise a `ward`/`carve`/`repair`/`commit`/`cleanup` step.**
+There is no `run-ward` / `run-riftcarver` MCP tool any more. A command-role work item with NO step node is filtered
+out of readiness entirely rather than falling through to a fallback tool — nothing mints that shape any more, for a
+quest built by today's `questBuildRelayGraphBroker` or otherwise. **Use Node/UI mode's dispatcher to exercise a
+`ward`/`carve`/`repair`/`commit`/`cleanup` step.**
 
 ---
 
@@ -400,8 +399,8 @@ satisfy those invariants.
 - A work item's `relatedDataItems` MUST include exactly one `operations/<id>` pointing at an `operations[]` item that
   exists on the quest (or `get-agent-prompt` cannot resolve the scope).
 - A work item that is meant to be dispatched needs a `step` field naming a real step in
-  `agentFlowStatics[family].steps` — a work item with no `step` falls through to the legacy `run-ward`/
-  `run-riftcarver` command path instead of the step graph.
+  `agentFlowStatics[family].steps` — a command-role work item with no `step` is filtered out of readiness entirely
+  and never dispatches at all; there is no fallback command path any more.
 - `dependsOn` between work items is the ONLY ordering mechanism — no hardcoded role sequence.
 - A `deterministic` step (`carve`, `repair`, `commit`, `ward`, `cleanup`) can only be advanced by Node/UI mode's
   dispatcher; there is no MCP tool call that runs one for a current-model quest.

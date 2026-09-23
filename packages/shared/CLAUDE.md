@@ -70,10 +70,10 @@ choice, and it is load-bearing:
 - An optional callback makes "no live output" the default, and choosing it is **invisible**: the
   code compiles, the command runs, the returned result is correct, and the only symptom is a
   surface that shows nothing. Nobody reviews an argument that isn't there.
-- Ward shipped exactly that way — `questRunWardBroker` called this adapter without `onLine`, with a
-  comment claiming a JSONL watcher covered it. The watcher keys on `workItems[].sessionId` and tails
-  Claude session JSONL; a ward work item is `spawnerType: 'command'` with no sessionId and ward is
-  not Claude, so nothing tailed it. Ward ran for minutes with a dead panel, in BOTH dispatch modes.
+- A `spawnerType: 'command'` work item (ward, riftcarver, commit, cleanup) has no `sessionId`, so no
+  JSONL watcher can ever tail it — this callback is the ONLY route its output has to a UI. Every
+  deterministic-step handler (`stepHandlerRunBroker`'s dispatch table) and the Node dispatch loop
+  that drives it take this parameter as REQUIRED for exactly that reason.
 
 Making the parameter required turns that into a compile error, so every caller has to answer "where
 does this output go?" To opt out deliberately, pass `() => undefined` — then the decision is on the

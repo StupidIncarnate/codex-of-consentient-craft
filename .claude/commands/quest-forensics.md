@@ -73,10 +73,10 @@ use `timeline` for ordering and content.
 
 | Role | Files |
 |---|---|
-| codeweaver | `codeweaver-prompt/`, `codeweaver-reviewer/`, `transformers/codeweaver-scope-block/`, `work-item-context-block/` |
-| flowrider | `flowrider-prompt/`, `flowrider-reviewer/`, `flow-evidence-contract/`, `work-item-context-block/` |
-| siegemaster | `siegemaster-prompt/`, `siegemaster-reviewer/`, `siegemaster-walker/`, `smoketest-*/`, `work-item-context-block/` |
-| spiritmender | `spiritmender-prompt/`, `run-ward-refusal/`, `work-item-context-block/` |
+| codeweaver | `codeweaver-planner/`, `codeweaver-worker/`, `codeweaver-reviewer/`, `standards-review-concerns/`, `work-item-context-block/` |
+| flowrider | `flowrider-planner/`, `flowrider-worker/`, `flowrider-reviewer/`, `flow-evidence-contract/`, `standards-review-concerns/`, `work-item-context-block/` |
+| siegemaster | `siege-planner/`, `siege-happy-walker/`, `siege-adversarial-walker/`, `siege-happy-fixer/`, `siege-adversarial-fixer/`, `siegemaster-reader/`, `recipe-maker/`, `work-item-context-block/` |
+| spiritmender | `spiritmender-prompt/`, `work-item-context-block/` |
 
 Then recover the RENDERED prompt with
 `python3 scripts/quest-forensics.py result <sessionId> get-agent-prompt --max-chars 40000` and diff
@@ -243,22 +243,27 @@ That prints, computed from `quest.json` rather than from any agent's claim:
 - **Flow shape** per flow — node counts by type, edges and how many are labelled (a labelled edge is
   a signable branch; an unlabelled one is not a choice anyone made), observable count, off-map
   families, and the package tags on the nodes.
-- **Coverage by track** — per flow, per track: signed, confirmed, unconfirmable, UNSIGNED.
-- **Unsigned units** — the work the quest still owes, per track, named.
+- **Coverage** — per flow: how many units carry `met`, `cant-meet`, `unmet`, or no observation at all.
+  There is no per-track tally any more — a unit carries ONE current mark, the observation on the
+  LATEST work item ever assigned it (`unitCurrentMarkTransformer`), so "per track" below means "per
+  family whose step touched this unit," read off the observation sequence, not a stored field.
+- **Unmarked units** — the work the quest still owes, named.
 - **Observables by provenance** — `addedBy: spec` survived Gate #2; anything else was found DURING
   execution. **This is the planning-adequacy measurement, taken directly.** The listing names each
   mid-quest observable, its flow and its author.
-- **Unconfirmable verdicts** with their `toSettle` instruction.
-- **Who signed what** — sign-offs per work item, so a track's output maps back to a session.
+- **`cant-meet` marks** with their `toSettle` instruction.
+- **Who marked what** — each unit's observation names the work item that recorded it, so it maps back
+  to exactly one session.
 - **Quest notes** by kind and role, with detail — the side channel that never closes a unit.
 - **Contracts and packages the spec declared.**
 
 **One caveat the analyzers must respect.** This command derives units by a plain reading of the
 graph — observables, labelled edges, off-map families. The authoritative denominator is
-`get-qa-checklist({ questId, operationItemId })`, which derives scope through
-`operationSignoffScopeTransformer`. Where the two disagree, **the MCP tool is right and the
-discrepancy is itself a finding** — it means a session and its measurer were counting differently.
-Call `get-qa-checklist` for at least one operation item per role and reconcile.
+`get-quest-work({ questId, workItemId })`, which narrows the operation item's own flows and packages
+through `stepInScopeUnitsTransformer` against `stepScopeStatics.byFamilyStep[family][step]`. Where the
+two disagree, **the MCP tool is right and the discrepancy is itself a finding** — it means a session
+and its measurer were counting differently. Call `get-quest-work` for at least one work item per role
+and reconcile.
 
 ## Step 8 — dispatch the chain analyzers
 
@@ -346,7 +351,7 @@ post-mortem. It writes `scrolls/reports/$ARGUMENTS/00-DELIVERY-CHAIN-AUDIT.md`:
 
 ```
 ## A. The chain as designed, and the chain as run
-## B. Coverage — every flow, every track, signed and unsigned    (a matrix, from step 7's baseline)
+## B. Coverage — every flow, every unit, marked and unmarked     (a matrix, from step 7's baseline)
 ## C. Did the spec give the workers what they needed?            (provenance, cost of each late find)
 ## D. Obligation versus delivery, per role                       (what each role owes, and met)
 ## E. Where the chain leaks                                      (seams, overlaps, unowned units)

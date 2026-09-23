@@ -105,8 +105,10 @@ Long-lived dispatch loop in your session, across ALL approved quests in FIFO ord
 1. Registers its session with the server via `register-monitor-session` so the web UI can
    stream live chat from your session's JSONL files.
 2. Loops forever: calls `get-next-step()` (no args) → on `spawn-agents` dispatches the
-   returned agents in parallel via `Task()` and awaits → on `run-ward` calls the
-   `run-ward` MCP tool and waits → on `idle` immediately re-calls.
+   returned agents in parallel via `Task()` and awaits → on `run-step` (a deterministic step —
+   ward, carve, repair, commit, cleanup — which no MCP tool can dispatch) tells the user the
+   quest is waiting on the Node dispatcher and stops the loop → on `idle` immediately re-calls
+   (or backs off if another dispatcher is playing).
 
 Run `/dumpster-launch` once and let it work. Quests reach `complete` and the loop
 advances to the next FIFO entry without intervention.

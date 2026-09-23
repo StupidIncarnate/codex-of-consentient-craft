@@ -32,12 +32,13 @@ prompt directly off `agentFlowStatics[family].steps[step].prompt` (`codeweaver-w
 `siege-happy-walker`, …); there is no role-level prompt for `codeweaver`/`flowrider`/`siegemaster` themselves.
 
 **`ward` and `carve`/`repair`/`commit`/`cleanup` are `deterministic` steps — code, not a session — and MCP mode has
-NO tool that can dispatch one for a current-model quest.** `get-next-step` returns `{ type: 'run-step', handler,
-args }` for these; only Node/UI mode's dispatcher runs a `run-step`. The `run-ward`/`run-riftcarver` MCP tools still
-exist, but they take no scope argument and only fire for a work item with NO step node at all (a hydrated or
-pre-step-graph quest) — for a normal quest built by today's seed, they are unreachable. **This playbook can drive
-`prompt` steps by hand (stub `Task()` + `quest-work` + `signal-back`); it cannot drive a `deterministic` step by
-hand — those need the real Node/UI dispatcher running, observed through `quest.json` and the web UI.**
+NO tool that can dispatch one.** `get-next-step` returns `{ type: 'run-step', handler, args }` for these; only
+Node/UI mode's dispatcher runs a `run-step`. There is no `run-ward`/`run-riftcarver` MCP tool any more — a
+command-role work item with no step node is filtered out of readiness entirely (nothing mints that shape any more).
+On a `run-step` response, MCP mode (`/dumpster-launch`) tells the user the quest is waiting on a deterministic step
+only the Node dispatcher can run, then stops the loop. **This playbook can drive `prompt` steps by hand (stub
+`Task()` + `quest-work` + `signal-back`); it cannot drive a `deterministic` step by hand — those need the real
+Node/UI dispatcher running, observed through `quest.json` and the web UI.**
 
 plus the three non-failure "sad" paths and the sole block path:
 
