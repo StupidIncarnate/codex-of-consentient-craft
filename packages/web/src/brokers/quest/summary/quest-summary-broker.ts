@@ -4,8 +4,8 @@
  *
  * USAGE:
  * const summary = await questSummaryBroker({ questId });
- * // Returns QuestSummary (per-flow/per-track counts, mid-quest observables, unconfirmable
- * // verdicts with their reason and question, and the note groups)
+ * // Returns QuestSummary (per-flow/per-track counts, mid-quest observables, the units carrying
+ * // debt with their evidence and next action, and the note groups)
  */
 
 import type { QuestId, QuestSummary } from '@dungeonmaster/shared/contracts';

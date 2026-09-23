@@ -40,9 +40,8 @@
  * defined in terms of them: `qaOffMapProbeStatics.byFamily.interruption` is "kill the process
  * mid-action", and `qaCheckSurfaceStatics.byOutcomeType['process-state']` is "the real OS process —
  * that it is running or absent, its argv, or its exit code". Both are units in Siegemaster's own
- * denominator, so a denial does not halt anything: it quietly turns every one of them into an
- * `unconfirmable`, which is the deferral-behind-a-responsible-verdict the reviewer blocks exist to
- * reopen. `pkill` stays out deliberately — the manual-qa pack forbids a bare-name kill BY NAME,
+ * denominator, so a denial does not halt anything: it quietly turns every one of them into a
+ * `cant-meet` — debt the reviewer blocks exist to reopen. `pkill` stays out deliberately — the manual-qa pack forbids a bare-name kill BY NAME,
  * because it reaps processes the session did not start, and a grant would undercut that sentence.
  *
  * `python3` is here because the manual-qa pack offers `.js`/`.py` throwaway drivers as a matched

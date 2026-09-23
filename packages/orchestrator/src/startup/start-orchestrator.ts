@@ -206,8 +206,8 @@ export const StartOrchestrator = {
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getPlanningNotes>>> =>
     QuestFlow.getPlanningNotes({ questId }),
 
-  // The quest's whole verification state: per-flow/per-track sign-off counts, the observables added
-  // after approval, every `unconfirmable` verdict with its question, and the side-channel notes.
+  // The quest's whole verification state: per-flow/per-track mark counts, the observables added
+  // after approval, every unit carrying debt (`cant-meet` / `unmet`), and the side-channel notes.
   getQuestSummary: async ({
     questId,
   }: {

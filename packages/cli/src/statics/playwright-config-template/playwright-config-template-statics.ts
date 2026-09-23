@@ -1,10 +1,10 @@
 /**
  * PURPOSE: The self-contained Playwright config `dungeonmaster init` scaffolds into an end-user
- * repo. It carries a webServer block rather than test discovery alone, because a config without one
- * discovers specs that can never reach a running app — which is the state every fresh install used
- * to land in, and which surfaces to the operator only as an `unconfirmable` sign-off much later.
- * The command it names is deliberately one most repos do not have yet: npm fails loudly on the
- * missing script, next to the comment saying what to point it at and why that script must not watch.
+ * repo. It carries a webServer block rather than test discovery alone: a config without one
+ * discovers specs that can never reach a running app, and that failure surfaces only much later —
+ * as debt on the quest summary, never as a failure at test time. The command it names is
+ * deliberately one most repos do not have yet: npm fails loudly on the missing script, next to the
+ * comment saying what to point it at and why that script must not watch.
  *
  * USAGE:
  * playwrightConfigTemplateStatics.content;

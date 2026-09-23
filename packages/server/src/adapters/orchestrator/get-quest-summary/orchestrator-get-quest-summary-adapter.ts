@@ -3,8 +3,8 @@
  *
  * USAGE:
  * const summary = await orchestratorGetQuestSummaryAdapter({ questId });
- * // Returns: QuestSummary — per-flow/per-track coverage, mid-quest observables, unconfirmable
- * // verdicts and the note groups — or throws when the quest cannot be found
+ * // Returns: QuestSummary — per-flow/per-track coverage, mid-quest observables, the units carrying
+ * // debt (`cant-meet` / `unmet`) and the note groups — or throws when the quest cannot be found
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';

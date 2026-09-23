@@ -4,8 +4,8 @@
  *
  * USAGE:
  * const summary = await QuestGetSummaryResponder({ questId: 'add-auth' });
- * // Returns QuestSummary — coverage per flow and track, mid-quest observables, unconfirmable
- * // verdicts, and the side-channel notes grouped by kind
+ * // Returns QuestSummary — coverage per flow and track, mid-quest observables, the units carrying
+ * // debt (`cant-meet` / `unmet`), and the side-channel notes grouped by kind
  *
  * IT RETURNS THE STRUCTURE, NOT TEXT, and it does not wrap failures in a result envelope. The MCP
  * tool renders it for an agent and the web renders it for a person; both need the same fields, and

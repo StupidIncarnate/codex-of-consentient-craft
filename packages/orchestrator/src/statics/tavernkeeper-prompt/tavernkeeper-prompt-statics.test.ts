@@ -52,8 +52,8 @@ describe('tavernkeeperPromptStatics', () => {
   });
 
   // `get-quest-summary` RETURNS `debt` (units marked cant-meet/unmet) AND `humanChecks`
-  // (verifyByHuman observables) — `questSummaryContract`'s own fields. The prior wording named
-  // "unconfirmable verdicts", a vocabulary the three-track sign-off system retired.
+  // (verifyByHuman observables) — `questSummaryContract`'s own fields, and neither carries an
+  // `unconfirmable` mark.
   describe('get-quest-summary description', () => {
     it("VALID: template => names get-quest-summary's real sections (unproven units, human checks) rather than the retired 'unconfirmable' vocabulary", () => {
       const line = TEMPLATE_LINES.find((candidate) => candidate.includes('get-quest-summary'));
