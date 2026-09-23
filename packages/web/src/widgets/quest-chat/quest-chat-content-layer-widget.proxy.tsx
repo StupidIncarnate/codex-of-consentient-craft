@@ -106,12 +106,17 @@ export const QuestChatContentLayerWidgetProxy = (): {
   getStartRequestCount: () => RequestCount;
   getShownNotification: () => unknown;
 } => {
-  // Created BEFORE the chat binding proxy: both compose webSocketChannelStateProxy, whose WebSocket
-  // spy is addressed on the same url, so the LAST registration owns the created socket. The chat
-  // binding must win, because every WS frame these tests deliver goes through binding.deliverWsMessage
-  // — and the summary binding's own subscription still sees those frames, since the channel state is
-  // one singleton.
+  // Created BEFORE the chat binding proxy: this, the summary widget, AND the execution panel's own
+  // projection binding all compose webSocketChannelStateProxy, whose WebSocket spy is addressed on
+  // the same url, so the LAST registration owns the created socket. The chat binding must win,
+  // because every WS frame these tests deliver goes through binding.deliverWsMessage — and the
+  // summary/projection bindings' own subscriptions still see those frames, since the channel state is
+  // one singleton. ExecutionPanelWidgetProxy connects that channel unconditionally at construction
+  // (defaulting the projection endpoint to 404) — built AFTER the chat binding, it re-stages the spy
+  // and every later deliverWsMessage lands on a socket production code never wrote to, so
+  // quest-modified never reaches `quest` state.
   const summary = QuestSummaryWidgetProxy();
+  const executionPanel = ExecutionPanelWidgetProxy();
   const binding = useQuestChatBindingProxy();
   // Every rendering test must call setupMode before render to configure the declared-mode endpoint.
   const mode = useOrchestrationModeBindingProxy();
@@ -134,7 +139,6 @@ export const QuestChatContentLayerWidgetProxy = (): {
   const notifications = mantineNotificationsShowAdapterProxy();
   setupAutoScrollContainer();
   setupChatEntryList();
-  const executionPanel = ExecutionPanelWidgetProxy();
   const merge = questMergeBrokerProxy();
   FormDropdownWidgetProxy();
   DumpsterCommandBannerWidgetProxy();
