@@ -52,8 +52,6 @@ import type { DispatchPlayResponse } from '../contracts/dispatch-play-response/d
 import type { NextStep } from '../contracts/next-step/next-step-contract';
 import type { PromptText } from '../contracts/prompt-text/prompt-text-contract';
 import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
-import type { QuestRunRiftcarverResult } from '../contracts/quest-run-riftcarver-result/quest-run-riftcarver-result-contract';
-import type { QuestRunWardResult } from '../contracts/quest-run-ward-result/quest-run-ward-result-contract';
 
 import type { ClarificationQuestion } from '../contracts/clarification-question/clarification-question-contract';
 import { AgentPromptFlow } from '../flows/agent-prompt/agent-prompt-flow';
@@ -472,26 +470,8 @@ export const StartOrchestrator = {
   // MCP-driven get-next-step (/dumpster-launch dispatch loop)
   getNextStep: async (): Promise<NextStep> => QuestFlow.getNextStep(),
 
-  // MCP-driven run-ward (synchronous ward run + persist)
-  runWard: async ({
-    questId,
-    workItemId,
-  }: {
-    questId: QuestId;
-    workItemId: QuestWorkItemId;
-  }): Promise<QuestRunWardResult> => QuestFlow.runWard({ questId, workItemId }),
-
-  // MCP-driven run-riftcarver (synchronous branch + worktree + preflight typecheck, then persist)
-  runRiftcarver: async ({
-    questId,
-    workItemId,
-  }: {
-    questId: QuestId;
-    workItemId: QuestWorkItemId;
-  }): Promise<QuestRunRiftcarverResult> => QuestFlow.runRiftcarver({ questId, workItemId }),
-
   // MCP-driven signal-back post-processing — applies the session's operation outcome
-  // (done/partial/blocked) to the ledger atomically, then advances the relay.
+  // (done/blocked) to the ledger atomically, then advances the relay.
   handleSignalBack: async ({
     questId,
     workItemId,
@@ -502,7 +482,6 @@ export const StartOrchestrator = {
     workItemId: QuestWorkItemId;
     signal: 'complete';
     operationItemId?: OperationItemId;
-    operationStatus?: 'done' | 'partial' | 'blocked';
     blockedReason?: BlockedReason;
   }): Promise<AdapterResult> =>
     QuestFlow.handleSignalBack({ questId, workItemId, signal, ...operationOutcome }),

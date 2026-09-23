@@ -15,8 +15,6 @@
  * const blightChecklist = await QuestFlow.getBlightChecklist({ questId });
  * const created = await QuestFlow.mcpCreate({ userRequest });
  * const next = await QuestFlow.getNextStep();
- * const wardResult = await QuestFlow.runWard({ questId, workItemId });
- * const riftcarverResult = await QuestFlow.runRiftcarver({ questId, workItemId });
  * const config = QuestFlow.getServerConfig();
  */
 
@@ -39,8 +37,6 @@ import { QuestMcpCreateResponder } from '../../responders/quest/mcp-create/quest
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
 import { QuestRecordSessionResponder } from '../../responders/quest/record-session/quest-record-session-responder';
 import { QuestMonitorWatcherStartResponder } from '../../responders/quest/monitor-watcher-start/quest-monitor-watcher-start-responder';
-import { QuestRunRiftcarverResponder } from '../../responders/quest/run-riftcarver/quest-run-riftcarver-responder';
-import { QuestRunWardResponder } from '../../responders/quest/run-ward/quest-run-ward-responder';
 import { QuestWorkResponder } from '../../responders/quest/work/quest-work-responder';
 
 type AddParams = Parameters<typeof QuestUserAddResponder>[0];
@@ -83,12 +79,6 @@ type McpCreateParams = Parameters<typeof QuestMcpCreateResponder>[0];
 type McpCreateResult = Awaited<ReturnType<typeof QuestMcpCreateResponder>>;
 
 type GetNextStepResult = Awaited<ReturnType<typeof QuestGetNextStepResponder>>;
-
-type RunWardParams = Parameters<typeof QuestRunWardResponder>[0];
-type RunWardResult = Awaited<ReturnType<typeof QuestRunWardResponder>>;
-
-type RunRiftcarverParams = Parameters<typeof QuestRunRiftcarverResponder>[0];
-type RunRiftcarverResult = Awaited<ReturnType<typeof QuestRunRiftcarverResponder>>;
 
 type HandleSignalBackParams = Parameters<typeof QuestHandleSignalBackResponder>[0];
 type HandleSignalBackResult = Awaited<ReturnType<typeof QuestHandleSignalBackResponder>>;
@@ -186,21 +176,11 @@ export const QuestFlow = {
 
   getNextStep: async (): Promise<GetNextStepResult> => QuestGetNextStepResponder(),
 
-  runWard: async ({ questId, workItemId }: RunWardParams): Promise<RunWardResult> =>
-    QuestRunWardResponder({ questId, workItemId }),
-
-  runRiftcarver: async ({
-    questId,
-    workItemId,
-  }: RunRiftcarverParams): Promise<RunRiftcarverResult> =>
-    QuestRunRiftcarverResponder({ questId, workItemId }),
-
   handleSignalBack: async ({
     questId,
     workItemId,
     signal,
     operationItemId,
-    operationStatus,
     blockedReason,
   }: HandleSignalBackParams): Promise<HandleSignalBackResult> =>
     QuestHandleSignalBackResponder({
@@ -208,7 +188,6 @@ export const QuestFlow = {
       workItemId,
       signal,
       ...(operationItemId === undefined ? {} : { operationItemId }),
-      ...(operationStatus === undefined ? {} : { operationStatus }),
       ...(blockedReason === undefined ? {} : { blockedReason }),
     }),
 

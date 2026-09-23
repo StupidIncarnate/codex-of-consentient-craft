@@ -1,7 +1,6 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import {
   AddQuestInputStub,
-  BlockedReasonStub,
   CommentBatchEntryStub,
   FlowEdgeStub,
   FlowNodeStub,
@@ -18,7 +17,6 @@ import {
   QuestPackageEntryStub,
   QuestStub,
   QuestWorkItemIdStub,
-  WardRunIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -1378,6 +1376,94 @@ describe('QuestFlow', () => {
     }, 30_000);
   });
 
+  // QuestHandleSignalBackResponder still declares an `operationStatus` param (kept for unit SB1),
+  // but QuestFlow.handleSignalBack no longer forwards it. A 'blocked' value must therefore produce
+  // the exact same outcome as a plain 'complete' signal — never the environment-wall halt
+  // (`isEnvironmentWall`, failed work item, blocked quest) the responder would still apply if the
+  // flow forwarded it. `blockedReason` is a SEPARATE field the flow still forwards (out of O1's
+  // scope), so this test omits it — passing it would set `errorMessage` regardless of
+  // `operationStatus` and prove nothing about the field under test.
+  describe('operations relay — operationStatus is dropped at the flow boundary', () => {
+    it('VALID: {codeweaver signals complete with operationStatus: blocked} => the operation completes and advances exactly as a plain done signal would, never blocking the quest', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-relay-operationstatus-dropped' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d1' });
+      const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d2' });
+      const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        operations: [
+          OperationItemStub({
+            id: cwOpId,
+            role: 'codeweaver',
+            text: 'build core',
+            status: 'in_progress',
+            locked: false,
+          }),
+          OperationItemStub({
+            id: flowOpId,
+            role: 'flowrider',
+            text: 'verify flows',
+            status: 'pending',
+            locked: true,
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: cwWorkItemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            spawnerType: 'agent',
+            relatedDataItems: [`operations/${String(cwOpId)}`],
+            dependsOn: [],
+            createdAt: new Date().toISOString(),
+          }),
+        ],
+      });
+
+      await QuestFlow.handleSignalBack({
+        questId,
+        workItemId: cwWorkItemId,
+        signal: 'complete',
+        operationItemId: cwOpId,
+        operationStatus: 'blocked',
+      });
+
+      const afterSignal = await QuestGetResponder({ questId });
+      const cwWorkItem = afterSignal.quest!.workItems.find((wi) => wi.id === cwWorkItemId);
+      const flowWorkItem = afterSignal.quest!.workItems.find((wi) => wi.role === 'flowrider');
+
+      testbed.cleanup();
+
+      expect({
+        questStatus: afterSignal.quest!.status,
+        operations: afterSignal.quest!.operations.map((op) => ({
+          role: op.role,
+          status: op.status,
+          text: String(op.text),
+        })),
+        cwWorkItemStatus: cwWorkItem?.status,
+        cwWorkItemErrorMessage: cwWorkItem?.errorMessage,
+        flowWorkItemStatus: flowWorkItem?.status,
+      }).toStrictEqual({
+        questStatus: 'in_progress',
+        operations: [
+          { role: 'codeweaver', status: 'complete', text: 'build core' },
+          { role: 'flowrider', status: 'in_progress', text: 'verify flows' },
+        ],
+        cwWorkItemStatus: 'complete',
+        cwWorkItemErrorMessage: undefined,
+        flowWorkItemStatus: 'pending',
+      });
+    }, 30_000);
+  });
+
   // A STEPPED scope is the router's, and the signal is only a session-terminal marker on ONE work
   // item of it. This drives the real dispatch scan (QuestFlow.getNextStep -> scanOnceLayerBroker ->
   // questRouteScopeBroker) against a ledger whose work item carries a `step`, which is the shape
@@ -1496,404 +1582,6 @@ describe('QuestFlow', () => {
             taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver-worker",\n  workItemId: "${String(mintedWorkItem!.id)}",\n  questId: "${String(questId)}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${String(questId)}",\n  workItemId: "${String(mintedWorkItem!.id)}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${String(questId)}",\n  workItemId: "${String(mintedWorkItem!.id)}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${String(questId)}",\n  workItemId: "${String(mintedWorkItem!.id)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
           },
         ],
-      });
-    }, 30_000);
-  });
-
-  describe('operations relay — duplicate-on-partial', () => {
-    it('VALID: {codeweaver signals complete/partial} => operation completes, a pt continuation is appended, and a fresh codeweaver work item runs it', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-relay-partial' }),
-      });
-      envHarness.setupHome({ tempDir: testbed.guildPath });
-
-      const { questId } = await questHelper.createGuildAndQuest({ testbed });
-
-      const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000c2' });
-      const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f2' });
-      const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-
-      await questHelper.seedInProgressRelay({
-        questId,
-        operations: [
-          OperationItemStub({
-            id: cwOpId,
-            role: 'codeweaver',
-            text: 'build core',
-            status: 'in_progress',
-            locked: false,
-          }),
-          OperationItemStub({
-            id: flowOpId,
-            role: 'flowrider',
-            text: 'verify flows',
-            status: 'pending',
-            locked: true,
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: cwWorkItemId,
-            role: 'codeweaver',
-            status: 'in_progress',
-            spawnerType: 'agent',
-            relatedDataItems: [`operations/${String(cwOpId)}`],
-            dependsOn: [],
-            createdAt: new Date().toISOString(),
-          }),
-        ],
-      });
-
-      await QuestFlow.handleSignalBack({
-        questId,
-        workItemId: cwWorkItemId,
-        signal: 'complete',
-        operationStatus: 'partial',
-      });
-
-      const afterPartial = await QuestGetResponder({ questId });
-      const freshWorkItem = afterPartial.quest!.workItems.find((wi) => wi.id !== cwWorkItemId);
-      const continuationOperation = afterPartial.quest!.operations.find(
-        (op) => String(op.text) === 'pt 2: build core',
-      );
-
-      testbed.cleanup();
-
-      expect({
-        questStatus: afterPartial.quest!.status,
-        operations: afterPartial.quest!.operations.map((op) => ({
-          role: op.role,
-          status: op.status,
-          text: String(op.text),
-        })),
-        // The partial's OWN continuation is still work waiting to be dispatched — it has no work
-        // item yet, so codeweaver still owns exactly the one session that just ended.
-        codeweaverWorkItemCount: afterPartial.quest!.workItems.filter(
-          (wi) => wi.role === 'codeweaver',
-        ).length,
-        freshWorkItemRole: freshWorkItem?.role,
-        freshWorkItemStatus: freshWorkItem?.status,
-        freshWorkItemLink: freshWorkItem?.relatedDataItems,
-      }).toStrictEqual({
-        questStatus: 'in_progress',
-        // The continuation is inserted DIRECTLY after the completed item — nothing is appended
-        // between them, because the standards review ran inside the session's own turn.
-        operations: [
-          { role: 'codeweaver', status: 'complete', text: 'build core' },
-          { role: 'codeweaver', status: 'in_progress', text: 'pt 2: build core' },
-          { role: 'flowrider', status: 'pending', text: 'verify flows' },
-        ],
-        codeweaverWorkItemCount: 2,
-        freshWorkItemRole: 'codeweaver',
-        freshWorkItemStatus: 'pending',
-        freshWorkItemLink: [`operations/${String(continuationOperation!.id)}`],
-      });
-    }, 30_000);
-  });
-
-  describe('operations relay — blocked halts on the environment wall', () => {
-    it('VALID: {codeweaver signals complete/blocked} => work item failed with the reason, pt continuation queued for a resume, downstream skipped, quest blocked', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-relay-blocked' }),
-      });
-      envHarness.setupHome({ tempDir: testbed.guildPath });
-
-      const { questId } = await questHelper.createGuildAndQuest({ testbed });
-
-      const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000b1' });
-      const wardOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000b2' });
-      const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-      const wardWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-
-      await questHelper.seedInProgressRelay({
-        questId,
-        operations: [
-          OperationItemStub({
-            id: cwOpId,
-            role: 'codeweaver',
-            text: 'build core',
-            status: 'in_progress',
-            locked: true,
-          }),
-          OperationItemStub({
-            id: wardOpId,
-            role: 'ward',
-            text: 'ward (committed)',
-            status: 'pending',
-            locked: true,
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: cwWorkItemId,
-            role: 'codeweaver',
-            status: 'in_progress',
-            spawnerType: 'agent',
-            relatedDataItems: [`operations/${String(cwOpId)}`],
-            dependsOn: [],
-            createdAt: new Date().toISOString(),
-          }),
-          WorkItemStub({
-            id: wardWorkItemId,
-            role: 'ward',
-            status: 'pending',
-            spawnerType: 'command',
-            relatedDataItems: [`operations/${String(wardOpId)}`],
-            dependsOn: [cwWorkItemId],
-            createdAt: new Date().toISOString(),
-          }),
-        ],
-      });
-
-      await QuestFlow.handleSignalBack({
-        questId,
-        workItemId: cwWorkItemId,
-        signal: 'complete',
-        operationItemId: cwOpId,
-        operationStatus: 'blocked',
-        blockedReason: BlockedReasonStub({
-          value: 'git commit is denied in this dispatched session',
-        }),
-      });
-
-      const afterBlocked = await QuestGetResponder({ questId });
-      const cwWorkItem = afterBlocked.quest!.workItems.find((wi) => wi.id === cwWorkItemId);
-      const ptOp = afterBlocked.quest!.operations.find((op) => String(op.text).startsWith('pt 2:'));
-
-      testbed.cleanup();
-
-      expect({
-        questStatus: afterBlocked.quest!.status,
-        operations: afterBlocked.quest!.operations.map((op) => ({
-          role: op.role,
-          status: op.status,
-          text: String(op.text),
-        })),
-        signalledWorkItem: {
-          status: cwWorkItem?.status,
-          errorMessage: String(cwWorkItem?.errorMessage),
-        },
-        downstreamWardStatus: afterBlocked.quest!.workItems.find((wi) => wi.id === wardWorkItemId)
-          ?.status,
-        // The continuation has NO work item: a resume's advance mints one and re-dispatches
-        // this same scope. Advance must not have run here.
-        continuationHasWorkItem: afterBlocked.quest!.workItems.some((wi) =>
-          wi.relatedDataItems.some((ref) => String(ref) === `operations/${String(ptOp!.id)}`),
-        ),
-      }).toStrictEqual({
-        questStatus: 'blocked',
-        operations: [
-          { role: 'codeweaver', status: 'complete', text: 'build core' },
-          { role: 'codeweaver', status: 'pending', text: 'pt 2: build core' },
-          { role: 'ward', status: 'pending', text: 'ward (committed)' },
-        ],
-        signalledWorkItem: {
-          status: 'failed',
-          errorMessage: 'git commit is denied in this dispatched session',
-        },
-        downstreamWardStatus: 'skipped',
-        continuationHasWorkItem: false,
-      });
-    }, 30_000);
-  });
-
-  describe('ward operation item — green advances the relay', () => {
-    it('VALID: {ward exits 0} => ward operation item completes and advance dispatches the next verify role', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-ward-green' }),
-      });
-      const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-
-      const { questId } = await questHelper.createGuildAndQuest({ testbed });
-
-      const wardOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000a1' });
-      const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000a2' });
-      const wardWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-
-      await questHelper.seedInProgressRelay({
-        questId,
-        operations: [
-          OperationItemStub({
-            id: wardOpId,
-            role: 'ward',
-            text: 'ward (committed)',
-            status: 'in_progress',
-            locked: true,
-          }),
-          OperationItemStub({
-            id: flowOpId,
-            role: 'flowrider',
-            text: 'verify flows',
-            status: 'pending',
-            locked: true,
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: wardWorkItemId,
-            role: 'ward',
-            status: 'in_progress',
-            spawnerType: 'command',
-            relatedDataItems: [`operations/${String(wardOpId)}`],
-            dependsOn: [],
-            createdAt: new Date().toISOString(),
-          }),
-        ],
-      });
-
-      queue.enqueue({
-        queueDir: env.wardQueueDir,
-        response: {
-          exitCode: 0,
-          runId: WardRunIdStub({ value: `1739625600000-a1f${String(Date.now() % 100000)}` }),
-          wardResultJson: { checks: [] },
-        },
-      });
-
-      const wardRun = await QuestFlow.runWard({
-        questId,
-        workItemId: wardWorkItemId,
-      });
-
-      const afterWard = await QuestGetResponder({ questId });
-      const flowWorkItem = afterWard.quest!.workItems.find((wi) => wi.role === 'flowrider');
-
-      testbed.cleanup();
-
-      expect({
-        exitCode: wardRun.exitCode,
-        questStatus: afterWard.quest!.status,
-        operations: afterWard.quest!.operations.map((op) => ({ role: op.role, status: op.status })),
-        wardWorkItemStatus: afterWard.quest!.workItems.find((wi) => wi.id === wardWorkItemId)
-          ?.status,
-        flowWorkItemStatus: flowWorkItem?.status,
-        flowWorkItemLink: flowWorkItem?.relatedDataItems,
-      }).toStrictEqual({
-        exitCode: 0,
-        questStatus: 'in_progress',
-        operations: [
-          { role: 'ward', status: 'complete' },
-          { role: 'flowrider', status: 'in_progress' },
-        ],
-        wardWorkItemStatus: 'complete',
-        flowWorkItemStatus: 'pending',
-        flowWorkItemLink: [`operations/${String(flowOpId)}`],
-      });
-    }, 30_000);
-  });
-
-  describe('ward operation item — red inserts a spiritmender then a fresh ward', () => {
-    it('VALID: {ward exits 1} => ward completes, a spiritmender + fresh ward are appended, and advance dispatches the spiritmender (never another ward)', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-ward-red' }),
-      });
-      const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
-
-      const { questId } = await questHelper.createGuildAndQuest({ testbed });
-
-      const wardOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000b1' });
-      const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000b2' });
-      const wardWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-
-      await questHelper.seedInProgressRelay({
-        questId,
-        operations: [
-          OperationItemStub({
-            id: wardOpId,
-            role: 'ward',
-            text: 'ward (committed)',
-            status: 'in_progress',
-            locked: true,
-          }),
-          OperationItemStub({
-            id: flowOpId,
-            role: 'flowrider',
-            text: 'verify flows',
-            status: 'pending',
-            locked: true,
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: wardWorkItemId,
-            role: 'ward',
-            status: 'in_progress',
-            spawnerType: 'command',
-            relatedDataItems: [`operations/${String(wardOpId)}`],
-            dependsOn: [],
-            createdAt: new Date().toISOString(),
-          }),
-        ],
-      });
-
-      queue.enqueue({
-        queueDir: env.wardQueueDir,
-        response: {
-          exitCode: 1,
-          runId: WardRunIdStub({ value: `1739625600000-b1f${String(Date.now() % 100000)}` }),
-          wardResultJson: {
-            checks: [
-              {
-                projectResults: [
-                  {
-                    errors: [
-                      {
-                        filePath: '/repo/src/brokers/auth/login/auth-login-broker.ts',
-                        message: 'Property loginUser does not exist on type AuthService',
-                        line: 42,
-                        column: 7,
-                        rule: 'no-undef-property',
-                      },
-                    ],
-                    testFailures: [],
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      });
-
-      const wardRun = await QuestFlow.runWard({
-        questId,
-        workItemId: wardWorkItemId,
-      });
-
-      const afterRed = await QuestGetResponder({ questId });
-      const spiritOp = afterRed.quest!.operations.find((op) => op.role === 'spiritmender');
-      const spiritWorkItem = afterRed.quest!.workItems.find((wi) => wi.role === 'spiritmender');
-
-      testbed.cleanup();
-
-      expect({
-        exitCode: wardRun.exitCode,
-        questStatus: afterRed.quest!.status,
-        operations: afterRed.quest!.operations.map((op) => ({
-          role: op.role,
-          status: op.status,
-        })),
-        // The fresh ward is the SAME scope continued, which its `pt N:` text is what now says.
-        freshWardText: afterRed
-          .quest!.operations.filter((op) => op.role === 'ward')
-          .find((op) => op.id !== wardOpId)
-          ?.text.toString(),
-        wardWorkItemStatus: afterRed.quest!.workItems.find((wi) => wi.id === wardWorkItemId)
-          ?.status,
-        spiritWorkItemStatus: spiritWorkItem?.status,
-        spiritWorkItemLink: spiritWorkItem?.relatedDataItems,
-      }).toStrictEqual({
-        exitCode: 1,
-        questStatus: 'in_progress',
-        operations: [
-          { role: 'ward', status: 'complete' },
-          { role: 'spiritmender', status: 'in_progress' },
-          { role: 'ward', status: 'pending' },
-          { role: 'flowrider', status: 'pending' },
-        ],
-        freshWardText: 'pt 2: ward (committed)',
-        wardWorkItemStatus: 'failed',
-        spiritWorkItemStatus: 'pending',
-        spiritWorkItemLink: [`operations/${String(spiritOp!.id)}`],
       });
     }, 30_000);
   });
