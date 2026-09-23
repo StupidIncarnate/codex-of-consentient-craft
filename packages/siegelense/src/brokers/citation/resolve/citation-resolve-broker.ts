@@ -30,7 +30,6 @@ import type { RegistryEntry } from '../../../contracts/registry-entry/registry-e
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { locationsCitationQuestFilePathFindBroker } from '../../locations/citation-quest-file-path-find/locations-citation-quest-file-path-find-broker';
 import { questRecordParseLayerBroker } from './quest-record-parse-layer-broker';
-import { unjudgedScreencastLayerBroker } from './unjudged-screencast-layer-broker';
 import { verifiedPreludeLayerBroker } from './verified-prelude-layer-broker';
 import { walkedNoteLayerBroker } from './walked-note-layer-broker';
 
@@ -126,26 +125,11 @@ export const citationResolveBroker = async ({
     questFilePath,
   });
 
-  const screencasts = await unjudgedScreencastLayerBroker({
-    instanceId: entry.id,
-    guildId: entry.guildId,
-    quest,
-    questFilePath,
-  });
-
-  if (screencasts.blocked !== null) {
-    return citationResolutionContract.parse({
-      references: [],
-      gaps: [],
-      blocked: screencasts.blocked,
-    });
-  }
-
   const { worktreePath } = quest;
 
   if (worktreePath === undefined) {
     return citationResolutionContract.parse({
-      references: [...walked, ...screencasts.references],
+      references: [...walked],
       gaps: [NO_PRELUDE_GAP, OPEN_ISSUE_GAP],
       blocked: null,
     });
@@ -158,7 +142,7 @@ export const citationResolveBroker = async ({
   });
 
   return citationResolutionContract.parse({
-    references: [...walked, ...screencasts.references, ...preludes],
+    references: [...walked, ...preludes],
     gaps: [OPEN_ISSUE_GAP],
     blocked: null,
   });
