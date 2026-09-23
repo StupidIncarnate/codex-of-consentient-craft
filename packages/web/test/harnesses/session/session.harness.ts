@@ -1218,9 +1218,25 @@ export const sessionHarness = ({
   // RAW ON PURPOSE — same teardown reasoning as cleanSessionFiles above; this is the
   // beforeEach/afterEach hook, wiping the whole per-guild session directory regardless of what
   // wrote into it.
+  //
+  // `maxRetries`/`retryDelay` are load-bearing, not defensive padding: an aborted-XHR spec's
+  // real POST already reached the server before the browser tears down its own request, so the
+  // fake Claude CLI it spawned keeps writing (mkdirSync/writeFileSync/appendFileSync) into this
+  // SAME directory as an orphan, past the point the test's own assertions return. `fs.rm`'s
+  // recursive removal is readdir-then-delete-children-then-rmdir, and a line the orphan appends
+  // between the readdir and the final rmdir throws ENOTEMPTY (`syscall: 'rmdir'`, even though
+  // nothing here calls `fs.rmdir`) — reproduced live via `send-images-chat-route.e2e.ts`'s
+  // "chat POST aborted mid-flight" case. `recursive: true` alone does not retry — Node's default
+  // `maxRetries` is 0 — so the race was previously a guaranteed flake whenever the orphan's next
+  // write landed inside that window; the retry budget rides out the write.
   const cleanSessionDirectory = async (): Promise<void> => {
     const jsonlDir = getJsonlDir();
-    await fs.promises.rm(jsonlDir, { recursive: true, force: true });
+    await fs.promises.rm(jsonlDir, {
+      recursive: true,
+      force: true,
+      maxRetries: 5,
+      retryDelay: 100,
+    });
   };
 
   const createSessionWithAssistantText = async ({
