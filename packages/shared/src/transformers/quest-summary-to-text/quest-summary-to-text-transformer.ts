@@ -173,7 +173,7 @@ export const questSummaryToTextTransformer = ({
                   [
                     `- ${String(note.summary)}`,
                     `      ${String(note.detail)}`,
-                    `      ${String(note.role)} · work item ${String(note.workItemId)} · ${String(note.at)}${note.flowId === undefined ? '' : ` · flow \`${String(note.flowId)}\``}${note.unitId === undefined ? '' : ` · unit \`${String(note.unitId)}\``}`,
+                    `      ${String(note.role)}${note.workItemId === undefined ? '' : ` · work item ${String(note.workItemId)}`} · ${String(note.at)}${note.flowId === undefined ? '' : ` · flow \`${String(note.flowId)}\``}${note.unitId === undefined ? '' : ` · unit \`${String(note.unitId)}\``}`,
                   ].join('\n'),
                 )),
           ].join('\n');

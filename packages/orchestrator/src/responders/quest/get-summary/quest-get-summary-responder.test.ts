@@ -65,6 +65,7 @@ describe('QuestGetSummaryResponder', () => {
         { id: 'out-of-scope', notes: [] },
         { id: 'walk-reset', notes: [] },
         { id: 'walked', notes: [] },
+        { id: 'human-verdict', notes: [] },
       ]);
     });
 

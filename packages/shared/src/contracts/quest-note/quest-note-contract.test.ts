@@ -19,6 +19,30 @@ describe('questNoteContract', () => {
     });
   });
 
+  describe('workItemId nullish', () => {
+    it('VALID: {workItemId: null} => parses, so a note reloaded off disk with a cleared work item still validates', () => {
+      const result = questNoteContract.parse({
+        id: 'open-question-comment-anchor-scope',
+        kind: 'open-question',
+        role: 'siegemaster',
+        workItemId: null,
+        summary: 'Should a stale anchor notify per box or once per batch?',
+        detail: 'The batch send drops boxes whose node id no longer exists in the flow.',
+        at: '2026-01-01T00:00:00.000Z',
+      });
+
+      expect(result).toStrictEqual({
+        id: 'open-question-comment-anchor-scope',
+        kind: 'open-question',
+        role: 'siegemaster',
+        workItemId: null,
+        summary: 'Should a stale anchor notify per box or once per batch?',
+        detail: 'The batch send drops boxes whose node id no longer exists in the flow.',
+        at: '2026-01-01T00:00:00.000Z',
+      });
+    });
+  });
+
   describe('walked note', () => {
     it('VALID: {kind: walked, instanceId, runId} => parses, and the ids come back branded', () => {
       const result = questNoteContract.parse({
@@ -158,6 +182,32 @@ describe('questNoteContract', () => {
         outcome: 'not-met',
         summary: 'Motion feels smooth: rejected',
         detail: 'The panel jumps two pixels right before it settles — visibly janky.',
+        at: '2026-09-14T00:00:00.000Z',
+      });
+    });
+
+    it('VALID: {kind: human-verdict, no workItemId} => parses, because a person clicking a browser button has no work item', () => {
+      const result = questNoteContract.parse({
+        id: 'human-verdict-motion-feels-smooth',
+        kind: 'human-verdict',
+        role: 'operator',
+        flowId: 'login-flow',
+        unitId: 'motion-feels-smooth',
+        outcome: 'met',
+        summary: 'Motion feels smooth: confirmed',
+        detail: 'Watched run_7/walk.webm end to end — the transition never stutters.',
+        at: '2026-09-14T00:00:00.000Z',
+      });
+
+      expect(result).toStrictEqual({
+        id: 'human-verdict-motion-feels-smooth',
+        kind: 'human-verdict',
+        role: 'operator',
+        flowId: 'login-flow',
+        unitId: 'motion-feels-smooth',
+        outcome: 'met',
+        summary: 'Motion feels smooth: confirmed',
+        detail: 'Watched run_7/walk.webm end to end — the transition never stutters.',
         at: '2026-09-14T00:00:00.000Z',
       });
     });

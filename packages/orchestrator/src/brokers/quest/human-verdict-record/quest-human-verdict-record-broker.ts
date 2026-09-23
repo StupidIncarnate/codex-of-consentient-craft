@@ -24,16 +24,13 @@
  * semantic would work mechanically; replace is what keeps the questNotes list from growing every
  * time a person re-watches the clip and changes their mind.
  *
- * `workItemId` HAS NO HONEST VALUE HERE. `questNoteContract.workItemId` is a required
- * `questWorkItemIdContract` (an actual work-item UUID) — but a person clicking a button in the
- * browser has no work item, and `questNoteContract` carries no `.optional()`/`.nullish()` escape for
- * this kind the way `instanceId`/`runId` carry for `walked`. Stamping a real-looking random UUID
- * would misdirect a reader who tries to follow up with "the work item that wrote this". This broker
- * stamps the NIL UUID (`00000000-0000-0000-0000-000000000000`, never produced by
- * `crypto.randomUUID()`) as an explicit "no work item" sentinel instead. **BLOCKED**:
- * `questNoteContract.workItemId` needs to become optional (or nullish, matching `instanceId`/
- * `runId`) for `kind: 'human-verdict'` so this broker stops fabricating an id — that contract change
- * is outside this broker's own fence.
+ * `workItemId` IS OMITTED. A person clicking a button in the browser has no work item, and
+ * `questNoteContract.workItemId` is `.nullish()` for exactly this kind. Stamping a real-looking
+ * random UUID would misdirect a reader who tries to follow up with "the work item that wrote this",
+ * and a fabricated sentinel (a prior version of this broker used the nil UUID,
+ * `00000000-0000-0000-0000-000000000000`) is a fake value in a real field — indistinguishable from a
+ * genuine id to a reader that does not know the sentinel's exact string. Omitting the key entirely is
+ * the honest shape: a reader checks presence instead.
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
@@ -53,10 +50,6 @@ import { questPersistBroker } from '../persist/quest-persist-broker';
 import { questWithModifyLockBroker } from '../with-modify-lock/quest-with-modify-lock-broker';
 
 const JSON_INDENT_SPACES = 2;
-
-// Never produced by crypto.randomUUID() — an explicit "no work item" sentinel, not a fabricated
-// look-alike id. See this file's PURPOSE for why no honest UUID exists here.
-const NO_WORK_ITEM_SENTINEL = '00000000-0000-0000-0000-000000000000';
 
 export const questHumanVerdictRecordBroker = async ({
   questId,
@@ -107,7 +100,6 @@ export const questHumanVerdictRecordBroker = async ({
         id: questNoteContract.shape.id.parse(`human-verdict-${unitId}`),
         kind: questNoteContract.shape.kind.parse('human-verdict'),
         role: questNoteContract.shape.role.parse('operator'),
-        workItemId: questNoteContract.shape.workItemId.parse(NO_WORK_ITEM_SENTINEL),
         flowId: questNoteContract.shape.flowId.parse(match.flow.id),
         unitId: questNoteContract.shape.unitId.parse(unitId),
         outcome: questNoteContract.shape.outcome.parse(outcome),

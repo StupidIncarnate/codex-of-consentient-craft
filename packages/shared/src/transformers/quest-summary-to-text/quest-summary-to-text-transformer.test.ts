@@ -420,6 +420,35 @@ describe('questSummaryToTextTransformer', () => {
       );
     });
 
+    it('EDGE: {human-verdict note carrying no workItemId} => omits the work-item trailer entirely', () => {
+      const lines = questSummaryToTextTransformer({
+        summary: QuestSummaryStub({
+          noteGroups: [
+            QuestSummaryNoteGroupStub({
+              id: 'human-verdict',
+              notes: [
+                QuestNoteStub({
+                  kind: 'human-verdict',
+                  role: 'operator',
+                  workItemId: undefined,
+                  flowId: 'login-flow',
+                  unitId: 'motion-feels-smooth',
+                  outcome: 'met',
+                  summary: 'the transition feels smooth: confirmed',
+                  detail: 'Watched run_7/walk.webm end to end — the transition never stutters.',
+                  at: '2026-02-03T04:05:06.000Z',
+                }),
+              ],
+            }),
+          ],
+        }),
+      }).split('\n');
+
+      expect(lines.find((line) => line.startsWith('      operator ·'))).toBe(
+        '      operator · 2026-02-03T04:05:06.000Z · flow `login-flow` · unit `motion-feels-smooth`',
+      );
+    });
+
     it('EMPTY: {group with no notes} => renders the kind with an explicit none, so "none" and "nobody looked" differ', () => {
       const lines = questSummaryToTextTransformer({
         summary: QuestSummaryStub({

@@ -1238,6 +1238,7 @@ describe('questSummaryBuildTransformer', () => {
             }),
           ],
         },
+        { id: 'human-verdict', notes: [] },
       ]);
       expect(result.noteGroups[4]?.notes[0]?.instanceId).toBe('inst_9b2c1234');
       expect(result.noteGroups[4]?.notes[0]?.runId).toBe('run_2');
@@ -1254,6 +1255,7 @@ describe('questSummaryBuildTransformer', () => {
         { id: 'out-of-scope', notes: [] },
         { id: 'walk-reset', notes: [] },
         { id: 'walked', notes: [] },
+        { id: 'human-verdict', notes: [] },
       ]);
     });
   });
@@ -1275,6 +1277,7 @@ describe('questSummaryBuildTransformer', () => {
           { id: 'out-of-scope', notes: [] },
           { id: 'walk-reset', notes: [] },
           { id: 'walked', notes: [] },
+          { id: 'human-verdict', notes: [] },
         ],
       });
     });

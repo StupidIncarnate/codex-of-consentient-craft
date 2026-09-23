@@ -35,6 +35,17 @@
  * a sentence. They are the SHARED-side brand (`siegeInstanceIdContract`/`siegeRunIdContract`, not
  * siegelense's own) — see those contracts' headers for why shared cannot import siegelense's.
  *
+ * `workItemId` IS `.nullish()` FOR THE SAME REASON, AND FOR ONE KIND ALONE: `human-verdict`. Every
+ * other kind is written by an execution agent's own work item and always carries one — that write
+ * path (`quest-work-input-contract.ts`, `modify-quest-input-contract.ts`) still requires it at its
+ * own input contract, unaffected by the widening here. A `human-verdict` note is different: it
+ * records a PERSON's judgment from the browser, and a person clicking a button has no work item.
+ * Before this field widened, `questHumanVerdictRecordBroker` stamped the nil UUID
+ * (`00000000-0000-0000-0000-000000000000`) as a "no work item" sentinel — a fake value in a real
+ * field, indistinguishable from a genuine id to any reader that looks it up. Omitting the field
+ * entirely is the honest shape: a reader checks presence instead of comparing against a magic
+ * constant it has to know about.
+ *
  * `outcome` is the WIDENING this file carries for `human-verdict`. A `verifyByHuman` observable is
  * filtered out of every role's mark surface by design, so `workItem.observations[]` — the
  * `met`/`cant-meet`/`unmet` vocabulary a role writes — can never carry a verdict for one; this note
@@ -72,7 +83,13 @@ export const questNoteContract = z.object({
     .min(1)
     .brand<'QuestNoteRole'>()
     .describe('The role that appended this note — who a reader follows up with.'),
-  workItemId: questWorkItemIdContract,
+  workItemId: questWorkItemIdContract
+    .nullish()
+    .describe(
+      'The work item that appended this note. Required on every kind but `human-verdict`, whose ' +
+        "note records a person's judgment from the browser — nobody's work item. `.nullish()` " +
+        'because this contract also parses `quest.json` straight off disk, not only a fresh write.',
+    ),
   flowId: flowIdContract
     .optional()
     .describe('Present when the note is scoped to one flow. Absent means quest-wide.'),
