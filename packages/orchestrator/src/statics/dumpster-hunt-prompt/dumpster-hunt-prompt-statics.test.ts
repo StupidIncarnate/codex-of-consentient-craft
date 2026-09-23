@@ -1,3 +1,4 @@
+import { claudeCliArgvStatics } from '../claude-cli-argv/claude-cli-argv-statics';
 import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 
 import { dumpsterHuntPromptStatics } from './dumpster-hunt-prompt-statics';
@@ -38,6 +39,18 @@ describe('dumpsterHuntPromptStatics', () => {
         mcp: expect.stringMatching(/^.+$/su),
       },
     });
+  });
+
+  // childProcessSpawnStreamJsonAdapter passes chatPromptBuildTransformer's composed prompt as ONE
+  // argv element to the Claude CLI, and $ARGUMENTS (the user's own message) is substituted into
+  // THIS template at spawn time — so the template's own bytes have to clear the single-argv
+  // ceiling with claudeCliArgvStatics.budgets.userMessageBytes still free for that substitution.
+  it('VALID: prompt template => clears the single-argv ceiling with the $ARGUMENTS budget still free', () => {
+    const bytes = Buffer.byteLength(dumpsterHuntPromptStatics.prompt.template, 'utf8');
+    const ceiling =
+      claudeCliArgvStatics.limits.maxArgBytes - claudeCliArgvStatics.budgets.userMessageBytes;
+
+    expect(bytes).toBeLessThanOrEqual(ceiling);
   });
 
   it('VALID: mint bootstrap => instructs create-quest with questType bug-hunt', () => {

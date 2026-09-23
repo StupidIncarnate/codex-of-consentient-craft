@@ -1,3 +1,4 @@
+import { claudeCliArgvStatics } from '../claude-cli-argv/claude-cli-argv-statics';
 import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 
 import { dumpsterCreatePromptStatics } from './dumpster-create-prompt-statics';
@@ -43,6 +44,18 @@ describe('dumpsterCreatePromptStatics', () => {
 
   it('VALID: prompt template => length exceeds 30000 characters', () => {
     expect(dumpsterCreatePromptStatics.prompt.template.length).toBeGreaterThan(30000);
+  });
+
+  // childProcessSpawnStreamJsonAdapter passes chatPromptBuildTransformer's composed prompt as ONE
+  // argv element to the Claude CLI, and $ARGUMENTS (the user's own message) is substituted into
+  // THIS template at spawn time — so the template's own bytes have to clear the single-argv
+  // ceiling with claudeCliArgvStatics.budgets.userMessageBytes still free for that substitution.
+  it('VALID: prompt template => clears the single-argv ceiling with the $ARGUMENTS budget still free', () => {
+    const bytes = Buffer.byteLength(dumpsterCreatePromptStatics.prompt.template, 'utf8');
+    const ceiling =
+      claudeCliArgvStatics.limits.maxArgBytes - claudeCliArgvStatics.budgets.userMessageBytes;
+
+    expect(bytes).toBeLessThanOrEqual(ceiling);
   });
 
   it('VALID: prompt template => Phase 5 no longer instructs calling validate-spec MCP tool', () => {
