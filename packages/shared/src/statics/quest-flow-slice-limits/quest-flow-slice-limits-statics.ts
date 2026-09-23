@@ -23,7 +23,7 @@
  * tokenizing worse than the four-characters-per-token estimate `maxVerbatimChars` is derived from.
  *
  * TRUNCATING IS SAFE. The slice is a spec READ, never a gate: nothing downstream computes coverage
- * or completion from it (`get-qa-checklist` derives the denominator server-side from quest.json).
+ * or completion from it (`get-quest-work` derives the denominator server-side from quest.json).
  * A cut can under-inform a session, which the notice and its exact dropped count make visible; it
  * can never let an unsigned unit pass for a signed one.
  */

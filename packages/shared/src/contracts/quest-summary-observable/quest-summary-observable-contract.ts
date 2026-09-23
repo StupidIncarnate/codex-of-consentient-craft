@@ -27,7 +27,7 @@
  * origin, `spec` included.
  *
  * `id` is the DERIVED verification unit id (`<flowId>:observable:<observableId>`), not the raw
- * observable id, so an entry here addresses the same unit `get-qa-checklist` prints and a track's
+ * observable id, so an entry here addresses the same unit id `get-quest-work` serves and a track's
  * own work list names. `observableId` is kept alongside it because that is what a modify-quest write
  * names.
  */

@@ -96,17 +96,18 @@ describe('agentRoleContract', () => {
       },
     );
 
-    // A minion is summoned by a parent inside that parent's turn and owns no work item, so none can
-    // ever hold an operation item of its own. A role-prefixed minion LOOKS like a role, which is
-    // exactly why it has to be refused here.
+    // A step's own prompt name (codeweaver-reviewer, flowrider-reviewer, siege-happy-walker,
+    // siegemaster-reader) is not a role — its work item carries its SCOPE's role instead, never its
+    // own step name. A minion (chaoswhisperer-gap-minion) is summoned by a parent inside that
+    // parent's turn and owns no work item, so it can never hold an operation item of its own either.
     it.each([
       'codeweaver-reviewer',
       'flowrider-reviewer',
-      'siegemaster-reviewer',
-      'siegemaster-walker',
+      'siege-happy-walker',
+      'siegemaster-reader',
       'chaoswhisperer-gap-minion',
     ])(
-      'INVALID: %s => throws validation error (a minion is never a dispatchable role)',
+      'INVALID: %s => throws validation error (a step prompt name or the minion is never a dispatchable role)',
       (value) => {
         expect(() => {
           agentRoleContract.parse(value);
