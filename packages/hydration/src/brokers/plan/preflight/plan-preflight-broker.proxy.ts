@@ -6,4 +6,9 @@
  * USAGE:
  * planPreflightBrokerProxy();
  */
-export const planPreflightBrokerProxy = (): Record<PropertyKey, never> => ({});
+import { verbCheckLayerBrokerProxy } from './verb-check-layer-broker.proxy';
+
+export const planPreflightBrokerProxy = (): Record<PropertyKey, never> => {
+  verbCheckLayerBrokerProxy();
+  return {};
+};

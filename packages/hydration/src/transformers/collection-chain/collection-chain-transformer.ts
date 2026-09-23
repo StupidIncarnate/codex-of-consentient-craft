@@ -19,8 +19,13 @@
  * supplied VALUES ride along into every row `rowHandleChainTransformer` hangs off THIS row's own
  * child accessors, unchanged — a guild id supplied here is as true of a grandchild reached through
  * one of those accessors as it is of this row, and `under()`'s ids-win merge already lets a
- * descendant's own `under()` call override what rode down. Reach for `entryChainTransformer` at the
- * top level instead; a collection below that always arrives through a handle's own child accessor.
+ * descendant's own `under()` call override what rode down. `attach` shares `add`'s own `CallIndex`
+ * counter (a row it binds needs a ref just as unique as one a row it mints does) and reuses
+ * `under()`'s own link-satisfying rule for its `where`, since the row it binds was never minted
+ * here either — there is no ancestor REF in this run to read a link value off, so a `where` key
+ * naming a link both narrows the query and supplies that link's value directly. Reach for
+ * `entryChainTransformer` at the top level instead; a collection below that always arrives through
+ * a handle's own child accessor.
  *
  * USAGE:
  * collectionChainTransformer({
@@ -60,6 +65,7 @@ import { opExtraTransformer } from '../op-extra/op-extra-transformer';
 import { rowHandleChainTransformer } from '../row-handle-chain/row-handle-chain-transformer';
 import { matchedSetChainTransformer } from '../matched-set-chain/matched-set-chain-transformer';
 import { buildSequenceMarkTransformer } from '../build-sequence-mark/build-sequence-mark-transformer';
+import { opAttachTransformer } from '../op-attach/op-attach-transformer';
 
 export const collectionChainTransformer = <
   I,
@@ -195,6 +201,49 @@ export const collectionChainTransformer = <
         ancestorNames: [...ancestorNames, ...suppliedNames],
         under: merged,
       });
+    },
+    attach: (where: Record<string, unknown>, build: (row: Handle<R, I, Anc>) => Op[]): Op => {
+      const currentBuildSequence = buildSequenceMarkTransformer({ advance: false });
+      if (lastSeenBuildSequence !== currentBuildSequence) {
+        lastSeenBuildSequence = currentBuildSequence;
+        nextCallIndex = 0;
+      }
+      const callIndex = callIndexContract.parse(nextCallIndex);
+      nextCallIndex += 1;
+
+      const attachOp = opAttachTransformer({
+        ingredient: ingredientConfig.name,
+        callIndex,
+        ancestors,
+        where: fieldValuesContract.parse(where),
+      });
+
+      // Same rule `under()` uses to decide which links a caller's values satisfy — a `where` key
+      // matching a link's OWN `as` field both narrows the query AND grows the ancestor chain by
+      // that link, since the attached row has no ancestor REF in THIS run for the child's own
+      // link value to read.
+      const satisfiedLinks = (ingredientConfig.links ?? []).filter((link) =>
+        Reflect.has(where, link.as),
+      );
+      const linkValues = Object.fromEntries(
+        satisfiedLinks.map((link) => [link.as, where[link.as]]),
+      );
+      const suppliedNames = satisfiedLinks.map((link) => link.of);
+      const mergedUnder = { ...(underValues ?? {}), ...linkValues };
+
+      const row = rowHandleChainTransformer<I, R, Anc>({
+        registry,
+        ingredientConfig,
+        ref: attachOp.ref,
+        ancestors,
+        ancestorNames: [...ancestorNames, ...suppliedNames],
+        ...(Object.keys(mergedUnder).length > 0 ? { under: mergedUnder } : {}),
+      });
+
+      const results = build(row as unknown as Handle<R, I, Anc>);
+      const flattened = results.flatMap((op) => op as unknown as readonly HydrationOp[]);
+
+      return [attachOp, ...flattened] as unknown as Op;
     },
   } as unknown as Collection<R, I, Anc>;
 };

@@ -29,6 +29,7 @@ import { opExtraApplyLayerBroker } from './op-extra-apply-layer-broker';
 import { opSetApplyLayerBroker } from './op-set-apply-layer-broker';
 import { opUpdateApplyLayerBroker } from './op-update-apply-layer-broker';
 import { opFilterApplyLayerBroker } from './op-filter-apply-layer-broker';
+import { opAttachApplyLayerBroker } from './op-attach-apply-layer-broker';
 import { hydrationRunResultContract } from '../../../contracts/hydration-run-result/hydration-run-result-contract';
 import type { HydrationRunResult } from '../../../contracts/hydration-run-result/hydration-run-result-contract';
 import type {
@@ -112,9 +113,16 @@ export const planRunBroker = async <TOut = HydrationRunResult>({
       }
       return;
     }
+    if (op.op === 'attach') {
+      const config = configByName.get(op.ingredient);
+      if (config !== undefined) {
+        await opAttachApplyLayerBroker({ op, target, config, state });
+      }
+      return;
+    }
     // Every other op kind returns above, so only `filter` reaches here — TypeScript proves it by
-    // eliminating the other five members of `HydrationOp`, which is what makes a plan calling a
-    // SEVENTH op kind (one this file has not been taught) a compile error at this call site
+    // eliminating the other six members of `HydrationOp`, which is what makes a plan calling an
+    // EIGHTH op kind (one this file has not been taught) a compile error at this call site
     // rather than a runtime throw.
     const config = configByName.get(op.ingredient);
     if (config !== undefined) {

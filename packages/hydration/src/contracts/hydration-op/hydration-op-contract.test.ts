@@ -6,9 +6,10 @@ import { OpRemoveStub } from '../op-remove/op-remove.stub';
 import { OpSaveRecordStub } from '../op-save-record/op-save-record.stub';
 import { OpExtraStub } from '../op-extra/op-extra.stub';
 import { OpFilterStub } from '../op-filter/op-filter.stub';
+import { OpAttachStub } from '../op-attach/op-attach.stub';
 
-// One stub per member of the six-kind union, in the SAME order `hydrationOpContract` declares its
-// branches — the round-trip below parses each branch against its own stub, so a seventh branch
+// One stub per member of the seven-kind union, in the SAME order `hydrationOpContract` declares
+// its branches — the round-trip below parses each branch against its own stub, so an eighth branch
 // with no matching stub here fails the array-length comparison instead of passing silently.
 const OP_STUBS = [
   OpCreateStub,
@@ -17,6 +18,7 @@ const OP_STUBS = [
   OpSaveRecordStub,
   OpExtraStub,
   OpFilterStub,
+  OpAttachStub,
 ] as const;
 
 describe('hydrationOpContract', () => {

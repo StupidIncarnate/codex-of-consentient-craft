@@ -5,6 +5,7 @@ import { OpCreateStub } from '../../../contracts/op-create/op-create.stub';
 import { OpSetStub } from '../../../contracts/op-set/op-set.stub';
 import { OpRemoveStub } from '../../../contracts/op-remove/op-remove.stub';
 import { OpFilterStub } from '../../../contracts/op-filter/op-filter.stub';
+import { OpAttachStub } from '../../../contracts/op-attach/op-attach.stub';
 import { OpSaveRecordStub } from '../../../contracts/op-save-record/op-save-record.stub';
 import { OpExtraStub } from '../../../contracts/op-extra/op-extra.stub';
 import { IngredientConfigStub } from '../../../contracts/ingredient-config/ingredient-config.stub';
@@ -151,6 +152,25 @@ describe('planPreflightBroker', () => {
       ).toThrow(
         /^recipe "guild-mid-execution": ingredient "quest" calls fromSaved\("origin"\), but no op in this plan saves that name\. Names saved by this plan: origin$/u,
       );
+    });
+
+    it('INVALID: {an attach\'s own where carries fromSaved("origin"), nothing saves it} => throws HydrationSavedRecordMissingError', () => {
+      planPreflightBrokerProxy();
+      const plan = HydrationPlanStub({
+        ops: [
+          OpAttachStub({
+            ingredient: 'quest',
+            ref: 'quest[0:0]',
+            ancestors: [],
+            where: { id: SavedRefStub({ name: 'origin' }) },
+          }),
+        ],
+      });
+      const ingredients = [IngredientConfigStub({ name: 'quest' })];
+
+      expect(() =>
+        planPreflightBroker({ plan, target: HydrationTargetStub({}), ingredients }),
+      ).toThrow(HydrationSavedRecordMissingError);
     });
   });
 
@@ -431,6 +451,37 @@ describe('planPreflightBroker', () => {
       ).toThrow(
         /^recipe "guild-mid-execution": ingredient "quest" declares no "remove" route, so a call needing one cannot run$/u,
       );
+    });
+
+    it('INVALID: {an attach over an ingredient with no query route} => throws naming "query"', () => {
+      planPreflightBrokerProxy();
+      const plan = HydrationPlanStub({
+        ops: [OpAttachStub({ ingredient: 'quest', ref: 'quest[0:0]', ancestors: [] })],
+      });
+      const ingredients = [IngredientConfigStub({ name: 'quest' })];
+
+      expect(() =>
+        planPreflightBroker({ plan, target: HydrationTargetStub({}), ingredients }),
+      ).toThrow(
+        /^recipe "guild-mid-execution": ingredient "quest" declares no "query" route, so a call needing one cannot run$/u,
+      );
+    });
+
+    it('VALID: {an attach over an ingredient with a query route} => returns a route plan naming no route for it — attach never selects write/api', () => {
+      planPreflightBrokerProxy();
+      const plan = HydrationPlanStub({
+        ops: [OpAttachStub({ ingredient: 'quest', ref: 'quest[0:0]', ancestors: [] })],
+      });
+      const ingredients = [
+        IngredientConfigStub({
+          name: 'quest',
+          routes: { write: (): unknown => undefined, query: (): unknown => [] },
+        }),
+      ];
+
+      const result = planPreflightBroker({ plan, target: HydrationTargetStub({}), ingredients });
+
+      expect(result).toStrictEqual({});
     });
 
     // A `set` the fold cannot fold — no `create` op anywhere in this plan shares its `ref` — is an

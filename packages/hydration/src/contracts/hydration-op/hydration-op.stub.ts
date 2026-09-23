@@ -5,6 +5,7 @@ import { OpRemoveStub } from '../op-remove/op-remove.stub';
 import { OpSaveRecordStub } from '../op-save-record/op-save-record.stub';
 import { OpExtraStub } from '../op-extra/op-extra.stub';
 import { OpFilterStub } from '../op-filter/op-filter.stub';
+import { OpAttachStub } from '../op-attach/op-attach.stub';
 import { hydrationOpContract } from './hydration-op-contract';
 import type { HydrationOp } from './hydration-op-contract';
 
@@ -24,7 +25,9 @@ export const HydrationOpStub = ({ ...props }: StubArgument<HydrationOp> = {}): H
             ? OpExtraStub()
             : opKind === 'filter'
               ? OpFilterStub()
-              : OpCreateStub();
+              : opKind === 'attach'
+                ? OpAttachStub()
+                : OpCreateStub();
 
   return hydrationOpContract.parse({ ...base, ...props });
 };

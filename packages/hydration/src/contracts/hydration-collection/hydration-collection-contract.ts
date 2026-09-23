@@ -19,6 +19,7 @@ import type { FilterExpect } from '../filter-expect/filter-expect-contract';
 import type { FieldValuesFor } from '../field-values/field-values-contract';
 import type {
   FieldsOf,
+  RecordOf,
   Registry,
   AnyIngredient,
   UnderAncestor,
@@ -56,6 +57,15 @@ export interface FilterArgsFor<I> {
   expect?: FilterExpect;
 }
 
+/**
+ * What `attach` may match on — every FIELD the ingredient's create-time input accepts (a link like
+ * `guildId`) UNIONED with every column its own RECORD carries. `id` in particular is never a
+ * `FieldsOf<I>` member (the ingredient MINTS it; a caller never supplies it at create time), so
+ * `filter`'s narrower `FieldValuesFor<FieldsOf<I>>` cannot express "attach by id" at all — this is
+ * the one place both halves are queryable together.
+ */
+export type AttachWhereFor<I> = FieldValuesFor<FieldsOf<I> & RecordOf<I>>;
+
 export interface Collection<R extends Registry, I, Anc extends AnyIngredient[] = []> {
   add: <N extends number, const Ops extends readonly Op<unknown>[]>(
     count: N,
@@ -73,6 +83,23 @@ export interface Collection<R extends Registry, I, Anc extends AnyIngredient[] =
   under: <Ids extends FieldValuesFor<FieldsOf<I>>>(
     ids: Ids,
   ) => Collection<R, I, [...Anc, UnderAncestor<I, Ids>]>;
+  /**
+   * Brings an EXISTING row into scope by a `where` match the ingredient's own `query` route
+   * resolves at RUN time, expecting exactly one. Reach for this over `add` whenever the row was
+   * minted by an EARLIER, separate `run()` — a plan's own `state.saved` cannot reach a row it did
+   * not create, and this is the one verb that QUERIES rather than WRITES. A `where` key matching
+   * one of the ingredient's own `links` (`guildId`) grows the ancestor chain by that link, exactly
+   * as `under()`'s own `ids` does — the row this binds was never minted here, so there is no
+   * ancestor REF for the runner to read a link value off; supplying it directly is the only way a
+   * child collection minted off the returned handle (`row.operations.add(...)`) can fill ITS OWN
+   * `guildId` link. `build` collects everything the caller does with the attached row — child
+   * `add`s, extras, `saveRecordAs` — into ONE op, the same shape `add`'s own builder returns, so
+   * the attach itself runs exactly once regardless of how many verbs the caller calls on `row`.
+   */
+  attach: <Ids extends AttachWhereFor<I>, const Ops extends readonly Op<unknown>[]>(
+    where: Ids,
+    build: (row: Handle<R, I, [...Anc, UnderAncestor<I, Ids>]>) => Ops,
+  ) => Op<SavedOf<Ops>>;
 }
 
 /** Entry points: one per registered ingredient that needs no ancestor. */

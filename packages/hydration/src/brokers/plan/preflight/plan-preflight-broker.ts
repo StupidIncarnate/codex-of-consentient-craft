@@ -16,6 +16,7 @@ import { rowRefIngredientTransformer } from '../../../transformers/row-ref-ingre
 import { linkValuesTransformer } from '../../../transformers/link-values/link-values-transformer';
 import { planSavedNamesTransformer } from '../../../transformers/plan-saved-names/plan-saved-names-transformer';
 import { planFoldWritesTransformer } from '../../../transformers/plan-fold-writes/plan-fold-writes-transformer';
+import { verbCheckLayerBroker } from './verb-check-layer-broker';
 import { isSavedRefGuard } from '../../../guards/is-saved-ref/is-saved-ref-guard';
 import { isReachableTransitionGuard } from '../../../guards/is-reachable-transition/is-reachable-transition-guard';
 import { savedRefContract } from '../../../contracts/saved-ref/saved-ref-contract';
@@ -36,7 +37,6 @@ import { HydrationRouteUnavailableError } from '../../../errors/hydration-route-
 import { HydrationSavedFieldMissingError } from '../../../errors/hydration-saved-field-missing/hydration-saved-field-missing-error';
 import { HydrationSavedRecordMissingError } from '../../../errors/hydration-saved-record-missing/hydration-saved-record-missing-error';
 import { HydrationUnlinkedRowError } from '../../../errors/hydration-unlinked-row/hydration-unlinked-row-error';
-import { HydrationRouteVerbUnavailableError } from '../../../errors/hydration-route-verb-unavailable/hydration-route-verb-unavailable-error';
 import { HydrationTransitionUnreachableError } from '../../../errors/hydration-transition-unreachable/hydration-transition-unreachable-error';
 import { HydrationRemovedHandleVerbError } from '../../../errors/hydration-removed-handle-verb/hydration-removed-handle-verb-error';
 
@@ -105,7 +105,7 @@ export const planPreflightBroker = ({
           ? op.written
           : op.op === 'extra'
             ? op.args
-            : op.op === 'filter'
+            : op.op === 'filter' || op.op === 'attach'
               ? op.where
               : undefined;
 
@@ -190,43 +190,13 @@ export const planPreflightBroker = ({
   // matching route (Q2's ruling). Folded first: a `filter`'s nested `set` never folds (it never
   // matches a top-level `create.ref`), and a top-level `set` that DOES fold away needs no `update`
   // route at all, so folding is what tells the two apart without re-deriving
-  // `planFoldWritesTransformer`'s own condition here.
+  // `planFoldWritesTransformer`'s own condition here. Delegated to `verbCheckLayerBroker`, one node
+  // at a time, so this function's own cyclomatic complexity stays under the enforced ceiling — see
+  // that layer's own header.
   const folded = planFoldWritesTransformer({ plan });
   const verbCheckStack: HydrationOp[] = [...folded.ops].reverse();
   for (let op = verbCheckStack.pop(); op !== undefined; op = verbCheckStack.pop()) {
-    if (op.op === 'filter') {
-      const query = configByName.get(op.ingredient)?.routes.query;
-      if (query === undefined) {
-        throw new HydrationRouteVerbUnavailableError({
-          recipeName: plan.recipeName,
-          ingredientName: op.ingredient,
-          verb: 'query',
-        });
-      }
-      verbCheckStack.push(...[...op.ops].reverse());
-    }
-    if (op.op === 'remove') {
-      const ingredientName = rowRefIngredientTransformer({ rowRef: op.ref });
-      const remove = configByName.get(ingredientName)?.routes.remove;
-      if (remove === undefined) {
-        throw new HydrationRouteVerbUnavailableError({
-          recipeName: plan.recipeName,
-          ingredientName,
-          verb: 'remove',
-        });
-      }
-    }
-    if (op.op === 'set' && Object.keys(op.written).length > 0) {
-      const ingredientName = rowRefIngredientTransformer({ rowRef: op.ref });
-      const update = configByName.get(ingredientName)?.routes.update;
-      if (update === undefined) {
-        throw new HydrationRouteVerbUnavailableError({
-          recipeName: plan.recipeName,
-          ingredientName,
-          verb: 'update',
-        });
-      }
-    }
+    verbCheckStack.push(...[...verbCheckLayerBroker({ op, plan, configByName })].reverse());
   }
 
   // 5. TRANSITIONS — a `set`'s transition asks for a `to` the ingredient does not reach by asking.

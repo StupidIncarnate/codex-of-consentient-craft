@@ -72,6 +72,9 @@ export * from './src/contracts/link-values-result/link-values-result.stub';
 export * from './src/contracts/matched-set/matched-set-contract';
 export * from './src/contracts/matched-set/matched-set.stub';
 
+export * from './src/contracts/op-attach/op-attach-contract';
+export * from './src/contracts/op-attach/op-attach.stub';
+
 export * from './src/contracts/op-create/op-create-contract';
 export * from './src/contracts/op-create/op-create.stub';
 

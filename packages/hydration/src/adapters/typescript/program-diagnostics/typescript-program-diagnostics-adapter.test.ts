@@ -111,6 +111,9 @@ const BAD_EXPECT = RepoRelativePathStub({
 const BAD_WHERE_FIELD = RepoRelativePathStub({
   value: 'packages/hydration/test/type-fixtures/call-site/bad-where-field.ts',
 });
+const ATTACH_BAD_WHERE_FIELD = RepoRelativePathStub({
+  value: 'packages/hydration/test/type-fixtures/call-site/attach-bad-where-field.ts',
+});
 // Rows 3 and 11, re-proven on the DATABASE shape — §4: "nothing proves those three rows against a
 // foreign-key shape until these fixtures exist." Row 7b's own re-proof needs no separate file: its
 // primary fixture, `child-links-unsatisfied.ts` above, is ALREADY the database shape, since the
@@ -147,6 +150,7 @@ const callSiteFixtureDiagnostics = typescriptProgramDiagnosticsAdapter({
     FILTER_HAS_NO_ADD,
     BAD_EXPECT,
     BAD_WHERE_FIELD,
+    ATTACH_BAD_WHERE_FIELD,
     DB_UNREACHABLE_STATUS,
     DB_UNKNOWN_COLUMN,
     POSITIVE_EVERY_CHAINABLE,
@@ -384,6 +388,23 @@ describe('the malformed call sites that must not compile', () => {
         code: 2353,
         message:
           'Object literal may only specify known properties, and \'nope\' does not exist in type \'FieldValuesFor<{ status: "queued" | "accepted" | "underway" | "stalled" | "finished"; title: string & BRAND<"QuestTitle">; userRequest: string & BRAND<"QuestUserRequest">; guildId: string & BRAND<...>; }>\'.',
+      }),
+    ]);
+  });
+
+  it("INVALID: {attach({nope: 1}, () => [])} => refuses to compile, naming 'nope'", () => {
+    typescriptProgramDiagnosticsAdapterProxy();
+    const result = callSiteFixtureDiagnostics.filter(
+      (diagnostic) => diagnostic.file === ATTACH_BAD_WHERE_FIELD,
+    );
+
+    expect(result).toStrictEqual([
+      TypeDiagnosticStub({
+        file: ATTACH_BAD_WHERE_FIELD,
+        line: LineCountStub({ value: 8 }),
+        code: 2353,
+        message:
+          'Object literal may only specify known properties, and \'nope\' does not exist in type \'FieldValuesFor<{ status: "queued" | "accepted" | "underway" | "stalled" | "finished"; title: string & BRAND<"QuestTitle">; userRequest: string & BRAND<"QuestUserRequest">; guildId: string & BRAND<...>; } & { ...; }>\'.',
       }),
     ]);
   });

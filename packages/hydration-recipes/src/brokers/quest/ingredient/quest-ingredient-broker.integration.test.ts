@@ -1,3 +1,7 @@
+import { fromSavedRefTransformer } from '@dungeonmaster/hydration/transformers';
+import { SavedRecordNameStub, FieldNameStub } from '@dungeonmaster/hydration/contracts';
+import { GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
 import { QuestFieldsStub } from '../../../contracts/quest-fields/quest-fields.stub';
@@ -5,6 +9,9 @@ import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-t
 
 const { recipe } = recipesHydrationCreateBroker();
 const RENAMED_TITLE = QuestFieldsStub({ title: 'Renamed through the update route' }).title;
+const CROSS_PLAN_WORK_ITEM_CREATED_AT = '2024-01-01T00:00:00.000Z';
+const NEW_OPERATION_SAVED_NAME = SavedRecordNameStub({ value: 'newOperation' });
+const OPERATION_ID_FIELD = FieldNameStub({ value: 'id' });
 
 // Real disk, real `questModifyBroker`, real `questGetBroker` — no adapter or child broker is
 // mocked. `quest-reach-route-broker.test.ts` beside this one proves the routing logic against a
@@ -115,5 +122,103 @@ describe('quest ingredient — transitions.reach walks the real gates (integrati
     await expect(dmRegistryBroker.run(refusedWalkRecipe(), fileTarget.target())).rejects.toThrow(
       /^recipe "quest-status-walk-refused": ingredient "quest" cannot go to "flows_approved" from "created": questReachRouteBroker: could not reach "flows_approved" — Missing required content for transition to flows_approved$/u,
     );
+  });
+});
+
+// Proves the cross-plan gap `packages/hydration/CLAUDE.md`'s "A later op reads an earlier row's
+// id through `fromSaved`" section and `packages/hydration-recipes/CLAUDE.md`'s `attachWorkItem`
+// section both named as still open: a plan's own `state.saved` is scoped to ONE `run()` call, so a
+// SECOND, separate plan cannot reach a row the FIRST one created by name — only by a query the row's
+// own ingredient supports. `attach` is that query. Two full `dmRegistryBroker.run()` calls, never
+// one plan split in two: the first's own `state.saved` is gone by the time the second begins, which
+// is the exact gap being proven closed.
+describe('quest ingredient — attach reaches a row an EARLIER, SEPARATE run() created (integration — real disk)', () => {
+  const fileTarget = fileTargetHarness();
+
+  it('VALID: {plan 1 creates a guild+quest; plan 2, a separate run(), attaches that quest by id and links a new work item to a new operation on it} => the on-disk quest carries both', async () => {
+    const seedRecipe = recipe(
+      {
+        name: 'cross-plan-attach-seed',
+        description: 'one guild holding one quest, for a later, separate plan to attach',
+      },
+      () => [
+        dmRegistryBroker.guilds.add(1, (g) => [
+          g[0].quests.add(1, (q) => [q[0].saveRecordAs({ name: 'quest' })]),
+          g[0].saveRecordAs({ name: 'guild' }),
+        ]),
+      ],
+    );
+
+    const seeded = (await dmRegistryBroker.run(seedRecipe(), fileTarget.target())) as Record<
+      PropertyKey,
+      unknown
+    >;
+    const seededGuild = seeded.guild as Record<PropertyKey, unknown>;
+    const seededQuest = seeded.quest as Record<PropertyKey, unknown>;
+    const seededQuestId = QuestIdStub({ value: String(seededQuest.id) });
+    const seededGuildId = GuildIdStub({ value: String(seededGuild.id) });
+
+    // A SEPARATE recipe, run through a SEPARATE `dmRegistryBroker.run()` call — plan 1's own
+    // `state.saved` (`seeded.quest`/`seeded.guild`) is already gone; only the real ids extracted
+    // above cross the boundary. `operations` is minted through its OWN top-level `.under()`, not
+    // through `attach(...).operations.add(...)`: the attached quest has no live GUILD ancestor in
+    // THIS run for the operation's second link to read (see this file's own `attach` section in
+    // `packages/hydration/CLAUDE.md`), so `.under({questId, guildId})` supplies both foreign keys
+    // directly instead, exactly as it already does for `quest-advances-one-step`.
+    const attachRecipe = recipe(
+      {
+        name: 'cross-plan-attach-link',
+        description:
+          'attaches an existing quest by id and links a new work item to a new operation on it',
+      },
+      () => [
+        dmRegistryBroker.operations
+          .under({ questId: seededQuestId, guildId: seededGuildId })
+          .add(1, (ops) => [ops[0].saveRecordAs({ name: NEW_OPERATION_SAVED_NAME })]),
+        dmRegistryBroker.quests.attach({ id: seededQuestId, guildId: seededGuildId }, (q) => [
+          q.attachWorkItem({
+            role: 'codeweaver',
+            status: 'complete',
+            spawnerType: 'agent',
+            createdAt: CROSS_PLAN_WORK_ITEM_CREATED_AT,
+            operationId: fromSavedRefTransformer({
+              name: NEW_OPERATION_SAVED_NAME,
+              field: OPERATION_ID_FIELD,
+            }),
+          }),
+        ]),
+      ],
+    );
+
+    await dmRegistryBroker.run(attachRecipe(), fileTarget.target());
+
+    const onDisk = fileTarget.readQuestByTitle({
+      title: QuestFieldsStub({ title: String(seededQuest.title) }).title,
+    });
+    const mintedOperationIds = onDisk.operations.map((operation) => operation.id);
+    const workItemsWithAnyId = onDisk.workItems.map((workItem) => ({ ...workItem, id: 'any' }));
+
+    expect({
+      operationsCount: onDisk.operations.length,
+      workItems: workItemsWithAnyId,
+    }).toStrictEqual({
+      operationsCount: 1,
+      workItems: [
+        {
+          id: 'any',
+          role: 'codeweaver',
+          status: 'complete',
+          spawnerType: 'agent',
+          createdAt: CROSS_PLAN_WORK_ITEM_CREATED_AT,
+          relatedDataItems: mintedOperationIds.map((operationId) => `operations/${operationId}`),
+          dependsOn: [],
+          attempt: 0,
+          maxAttempts: 1,
+          retryCount: 0,
+          observations: [],
+          assignedUnitIds: [],
+        },
+      ],
+    });
   });
 });

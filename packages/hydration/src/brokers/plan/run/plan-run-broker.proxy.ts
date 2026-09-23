@@ -15,6 +15,7 @@ import { opExtraApplyLayerBrokerProxy } from './op-extra-apply-layer-broker.prox
 import { opSetApplyLayerBrokerProxy } from './op-set-apply-layer-broker.proxy';
 import { opUpdateApplyLayerBrokerProxy } from './op-update-apply-layer-broker.proxy';
 import { opFilterApplyLayerBrokerProxy } from './op-filter-apply-layer-broker.proxy';
+import { opAttachApplyLayerBrokerProxy } from './op-attach-apply-layer-broker.proxy';
 
 export const planRunBrokerProxy = (): Record<PropertyKey, never> => {
   planPreflightBrokerProxy();
@@ -25,5 +26,6 @@ export const planRunBrokerProxy = (): Record<PropertyKey, never> => {
   opSetApplyLayerBrokerProxy();
   opUpdateApplyLayerBrokerProxy();
   opFilterApplyLayerBrokerProxy();
+  opAttachApplyLayerBrokerProxy();
   return {};
 };

@@ -15,6 +15,7 @@ import {
   guildFieldsContract,
   questIngredient,
   questFieldsContract,
+  questRecordContract,
   operationIngredient,
   sessionIngredient,
   nestedChainArgsContract,
@@ -70,3 +71,15 @@ export const everyChainable = dm.guilds.add(1, (g) => [
 export const standaloneQuest = dm.quests
   .under({ guildId: questFieldsContract.shape.guildId.parse('guild-1') })
   .add(1, (q) => [q[0].operations.filter({ where: { role: 'ward' } }).remove()]);
+
+// attach — brings an EXISTING row into scope by a `where` query, never a `write`: the row was not
+// minted here, so `id` (a RECORD field, never one `FieldsOf<I>` carries) is what a caller matches
+// on. `set`, `saveRecordAs` and the ingredient's own extras all work off the returned handle
+// exactly as they do off a freshly `add`-ed row's.
+export const attachedQuest = dm.quests.attach(
+  { id: questRecordContract.shape.id.parse('00000000-0000-4000-8000-000000000001') },
+  (q) => [
+    q.set({ title: questFieldsContract.shape.title.parse('Reopened') }),
+    q.saveRecordAs({ name: 'reattached' }),
+  ],
+);

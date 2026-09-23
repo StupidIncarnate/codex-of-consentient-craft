@@ -34,6 +34,46 @@ op, in its own declared position, so it is the plain way to write a value that m
 SIBLING row minted later in the same plan. `packages/hydration-recipes/CLAUDE.md`'s `attachWorkItem`
 is the worked example.
 
+## `attach` brings a row an EARLIER, SEPARATE `run()` made into THIS plan's scope
+
+`saveRecordAs`/`fromSaved` only ever resolve a name THIS plan itself saved — `state.saved` is
+scoped to one `run()` call, so a plan cannot reach a row a prior, already-finished plan created, no
+matter what it names. `attach(where, build)` is the verb for that case: it queries the ingredient's
+own `query` route for `where`, requires EXACTLY one match, and binds the match onto a real `ref` —
+same shape as `add`, minus the write. The builder receives ONE row `Handle`, carrying the same
+`set`/`setRaw`/`saveRecordAs`/`remove`/extras/child-accessors surface a freshly `add`-ed row's does,
+and `attach` itself returns one `Op` wrapping the attach node followed by whatever the builder
+returned — so it runs exactly once regardless of how many verbs the caller calls on the row.
+
+`where` is typed `AttachWhereFor<I>` (`hydration-collection-contract.ts`), not `filter`'s narrower
+`FieldValuesFor<FieldsOf<I>>`: `id` is a RECORD field an ingredient MINTS, never one `FieldsOf<I>`
+(the create-time input shape) carries, so attaching "by id" needs BOTH the fields shape (for a link
+field like `guildId`) and the record shape (for `id` itself) unioned together. A `where` key that
+also happens to name one of the ingredient's own `links` (`guildId`) does double duty, exactly as
+`under()`'s own `ids` argument does: it narrows the query AND grows the ancestor chain by that link,
+since the attached row was never minted here — there is no ancestor REF in this run for a CHILD's
+own link value to read off, so the value has to ride along as a literal instead. The runtime side
+reuses `under()`'s own mechanism verbatim: a `where` key matching a link becomes part of the `under`
+value threaded into `rowHandleChainTransformer`, so a child minted off the attached row gets that
+link's value merged straight into its own create-time fields.
+
+**Chaining a child accessor off an attach whose EXTRA ancestor comes from `where` hits the same
+TypeScript limit `under()` already has.** `dm.quests.attach({id, guildId}, (q) => [q.operations.add(...)])`
+does not compile — `q.operations` reads `possibly undefined` (`TS18048`) — because the mapped
+`ChildAccessors` type cannot resolve a key contributed by a GENERIC `Ids` type parameter at this
+compile-time depth, the identical mechanism (and the identical failure) `under()`'s own entry below
+already documents. The RUNTIME value is correct regardless (child accessors are computed off plain
+object keys at run time, never off the static type), so the workaround is the same one that section
+recommends: reach the child ingredient through ITS OWN top-level `.under(...)`
+(`dm.operations.under({questId, guildId}).add(...)`) instead of chaining through the attach. A
+`saveRecordAs` or an EXTRA called directly on the attached row (`q.attachWorkItem(...)`) needs no
+workaround at all — neither depends on `Anc`/`ChildAccessors`.
+
+`packages/hydration-recipes/CLAUDE.md`'s `attach reaches a row an EARLIER, SEPARATE run() created`
+section has the worked example: two full `dmRegistryBroker.run()` calls against real ingredients,
+the second attaching a quest the first created and linking a new work item to a new operation on
+it, asserted against the real file on disk.
+
 ## Every verb but `add` takes an object
 
 A scalar names no axis: an ingredient growing a second thing to set — a second transition field, a

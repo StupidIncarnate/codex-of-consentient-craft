@@ -229,7 +229,11 @@ fixture (`packages/hydration/test/type-fixtures/positive/every-chainable.ts`) ne
 accessor off it either — read in hindsight, that is this same limitation, not an unexercised case.
 `quest-advances-one-step-recipe-broker.ts`'s own header carries the full finding; its own
 workaround is to write the ledger through the quest's plain `operations` FIELD via `set()` rather
-than through the `operation` ingredient's child accessor.
+than through the `operation` ingredient's child accessor. `attach` (below) shares the identical
+limitation for the identical reason — its own ancestor extension is ALSO a generic `Ids` type
+parameter the mapped `ChildAccessors` type cannot resolve at this compile-time depth — so a child
+minted off an attached row is reached through the child ingredient's own top-level `.under(...)`
+too, never through `attach(...).child.add(...)` directly.
 
 ## Two of the three recipes diverge from Part 5's own worked examples, by necessity
 
@@ -269,6 +273,41 @@ to the file — the same `questGetBroker` + `questPersistDirectBroker` shape
 has the framework side of this; nothing in `packages/hydration` changed to build it — `saveRecordAs`,
 `fromSavedRefTransformer` and the `extras` mechanism already reached this far.
 
+## `attach` reaches a row an EARLIER, SEPARATE `run()` created — the cross-plan gap is closed
+
+Q7-6 of the chunk-7 plan named this case `attach({id})`: `fromSaved` only ever resolves a name THIS
+plan itself saved, so `quest-advances-one-step`'s own divergence (below) needing to reach into a
+quest an EARLIER, ALREADY-FINISHED plan created had no answer — `state.saved` is scoped to one
+`run()` call, and a second, separate plan starts with an empty one. `packages/hydration/CLAUDE.md`'s
+own `attach` section has the framework side: a new op kind, a runner apply layer that loads the row
+through the ingredient's `query` route, and a `collectionChainTransformer` verb typed
+`AttachWhereFor<I>`.
+
+`quest-ingredient-broker.integration.test.ts`'s own `attach reaches a row an EARLIER, SEPARATE run()
+created` describe block is the proof, end to end against real disk: one `dmRegistryBroker.run()`
+creates a guild and a quest; a SECOND, separate `dmRegistryBroker.run()` — a fresh recipe, no shared
+state — attaches that quest by `{id, guildId}`, mints a new operation through
+`operations.under({questId, guildId}).add(...)` (a sibling top-level call, not a child accessor off
+the attach — see the next section for why), and links a new work item to it through
+`q.attachWorkItem({..., operationId: fromSavedRefTransformer({name: 'newOperation', field: 'id'})})`
+— the SAME-PLAN mechanism this file's own `attachWorkItem` section already documents, now reading a
+`fromSaved` name a SIBLING op in THIS second plan saved, not one the first plan did. The on-disk
+quest read back afterward carries exactly one operation and one work item, the work item's
+`relatedDataItems` naming the operation's real, run-time-minted id.
+
+`quest-advances-one-step` itself is NOT converted to use `attach`: its own gap (below) is about
+`.under()`'s child-accessor typing, not about reaching a row from an earlier plan — everything it
+does happens inside ONE run — and `attach`'s own ancestor extension hits the IDENTICAL typing limit
+when a child accessor is chained off it, so `attach` would not let it drop the workaround any more
+cleanly than `.under()` already could. Converting it (minting its two operations through
+`operations.under({questId: fromSavedRefTransformer(...), guildId}).add(...)` instead of embedding
+them as a fixed-literal `operations` field) is possible and would drop the fixed UUIDs, but it also
+changes what this recipe `makes` (`operation: 2` joins `quest: 1`), which ripples into
+`recipes-catalog-broker.test.ts`, `recipe-listing-probe-statics.ts` and
+`hydration-recipes-exports.integration.test.ts` — the last reads BUILT `dist` output, so confirming
+it stays green needs a rebuild this pass did not run. Left as a follow-up rather than done
+speculatively against an unverified rebuild.
+
 ## One known gap this chunk did not close, named rather than worked around
 
 - **Every operation-status change in this package's own tests arrives already-set** — through
@@ -276,11 +315,3 @@ has the framework side of this; nothing in `packages/hydration` changed to build
   ingredient here reaches a single operation row and flips its OWN status field after creation
   (`operation` declares no `transitions` either, and nothing in this chunk's build order names an
   `operationReachRouteBroker`).
-
-`quest-advances-one-step`'s own divergence above is a DIFFERENT gap from the one `attachWorkItem`
-closes: it needs to reach into a quest an EARLIER, ALREADY-FINISHED plan created — a row this run's
-own `state.saved` never held in the first place, since that map is scoped to ONE `run()` call. Q7-6
-of the chunk-7 plan named that cross-plan case `attach({id})`; `fromSaved` only ever resolves a name
-THIS plan itself saved, so it answers the same-plan sibling case (`attachWorkItem`'s own operation
-reference) and leaves the cross-plan one exactly as open as before — closing it would still need a
-runner apply layer that loads a row through the ingredient's own `query` route by id.

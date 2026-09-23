@@ -3,6 +3,7 @@ import { planRunBrokerProxy } from './plan-run-broker.proxy';
 import { HydrationPlanStub } from '../../../contracts/hydration-plan/hydration-plan.stub';
 import { OpCreateStub } from '../../../contracts/op-create/op-create.stub';
 import { OpSaveRecordStub } from '../../../contracts/op-save-record/op-save-record.stub';
+import { OpAttachStub } from '../../../contracts/op-attach/op-attach.stub';
 import { OpSetStub } from '../../../contracts/op-set/op-set.stub';
 import { IngredientConfigStub } from '../../../contracts/ingredient-config/ingredient-config.stub';
 import { TransitionSpecStub } from '../../../contracts/transition-spec/transition-spec.stub';
@@ -251,6 +252,43 @@ describe('planRunBroker', () => {
         guild: { id: 'g1', title: 'Guild' },
         quest: { id: 'q1', title: 'Quest 1' },
       });
+    });
+  });
+
+  describe('an attach op — brings an existing row into scope by a query, never a write', () => {
+    it('VALID: {a query route returning one matching record} => saveRecordAs off the attached ref lands in the output', async () => {
+      planRunBrokerProxy();
+      const receivedWheres: Record<string, unknown>[] = [];
+      const questConfig = IngredientConfigStub({
+        name: 'quest',
+        routes: {
+          write: (): unknown => ({ id: 'q1', title: 'Never written' }),
+          query: ({ where }: { where: Record<string, unknown> }): unknown => {
+            receivedWheres.push(where);
+            return [{ id: 'q1', title: 'Existing quest' }];
+          },
+        },
+      });
+      const plan = HydrationPlanStub({
+        ops: [
+          OpAttachStub({
+            ingredient: 'quest',
+            ref: 'quest[0:0]',
+            ancestors: [],
+            where: { id: 'q1' },
+          }),
+          OpSaveRecordStub({ ref: 'quest[0:0]', name: 'quest' }),
+        ],
+      });
+
+      const result = await planRunBroker({
+        plan,
+        target: HydrationTargetStub({}),
+        ingredients: [questConfig],
+      });
+
+      expect(result).toStrictEqual({ quest: { id: 'q1', title: 'Existing quest' } });
+      expect(receivedWheres).toStrictEqual([{ id: 'q1' }]);
     });
   });
 

@@ -13,6 +13,7 @@ export * from './src/transformers/from-saved-ref/from-saved-ref-transformer';
 export * from './src/transformers/link-values/link-values-transformer';
 export * from './src/transformers/matched-ref/matched-ref-transformer';
 export * from './src/transformers/matched-set-chain/matched-set-chain-transformer';
+export * from './src/transformers/op-attach/op-attach-transformer';
 export * from './src/transformers/op-create/op-create-transformer';
 export * from './src/transformers/op-extra/op-extra-transformer';
 export * from './src/transformers/op-filter/op-filter-transformer';
