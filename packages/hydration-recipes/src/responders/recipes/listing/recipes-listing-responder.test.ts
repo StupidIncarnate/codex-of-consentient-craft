@@ -47,7 +47,10 @@ describe('RecipesListingResponder', () => {
             'one quest under an existing guild, its ledger already one operation along — the first item complete and the second running',
           inputKeys: ['guildId'],
           runs: { serverless: true },
-          makes: [{ ingredient: 'quest', count: 1 }],
+          makes: [
+            { ingredient: 'quest', count: 1 },
+            { ingredient: 'operation', count: 2 },
+          ],
         },
         {
           recipeName: 'quest-completed',

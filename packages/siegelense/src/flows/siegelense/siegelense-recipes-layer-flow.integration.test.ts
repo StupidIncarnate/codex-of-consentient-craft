@@ -44,7 +44,7 @@ const EXPECTED_HUMAN_OUTPUT = `  guild-empty
     one quest under an existing guild, its ledger already one operation along — the first item complete and the second running
     inputs:  guildId
     runs:    serverless
-    makes:   quest ×1
+    makes:   quest ×1, operation ×2
 
   quest-completed
     one guild holding one completed quest with all workflow operations and work items finished
@@ -151,7 +151,10 @@ describe('SiegelenseRecipesLayerFlow', () => {
               'one quest under an existing guild, its ledger already one operation along — the first item complete and the second running',
             inputKeys: ['guildId'],
             runs: { serverless: true },
-            makes: [{ ingredient: 'quest', count: 1 }],
+            makes: [
+              { ingredient: 'quest', count: 1 },
+              { ingredient: 'operation', count: 2 },
+            ],
           },
           {
             recipeName: 'quest-completed',

@@ -2,6 +2,7 @@ import type { GuildStub, QuestStub } from '@dungeonmaster/shared/contracts';
 import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts';
 
 import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-target.harness';
+import { QuestFieldsStub } from '../../../contracts/quest-fields/quest-fields.stub';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
 import { recipesGuildMidExecutionBroker } from '../guild-mid-execution/recipes-guild-mid-execution-broker';
 import { recipesQuestAdvancesOneStepBroker } from './recipes-quest-advances-one-step-broker';
@@ -13,6 +14,7 @@ const { run } = dmRegistryBroker;
 
 const GUILD_NAME = SavedRecordNameStub({ value: 'guild' });
 const QUEST_NAME = SavedRecordNameStub({ value: 'quest' });
+const QUEST_TITLE = QuestFieldsStub({ title: 'Advancing quest' }).title;
 
 describe('recipesQuestAdvancesOneStepBroker', () => {
   describe('the manifest identity chunk 8 reads off this same export', () => {
@@ -77,6 +79,19 @@ describe('recipesQuestAdvancesOneStepBroker', () => {
         rolesOnDisk: ['codeweaver', 'ward'],
         statusesOnDisk: ['complete', 'in_progress'],
       });
+    });
+
+    it('VALID: {guildId from an earlier step} => on disk, both operation ids are distinct, real, run-time-minted uuids', async () => {
+      const target = fileTarget.target();
+      const earlierStep = await run(recipesGuildMidExecutionBroker(), target);
+      const guild = earlierStep[GUILD_NAME] as unknown as Guild;
+
+      await run(recipesQuestAdvancesOneStepBroker({ guildId: guild.id }), target);
+      const quest = fileTarget.readQuestByTitle({ title: QUEST_TITLE });
+
+      const operationIds = quest.operations.map((operation) => operation.id);
+
+      expect(new Set(operationIds).size).toBe(operationIds.length);
     });
   });
 });

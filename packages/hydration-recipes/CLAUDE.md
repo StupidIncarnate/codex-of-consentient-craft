@@ -228,8 +228,9 @@ concerned, even though the runtime link value is real. The specification's own w
 fixture (`packages/hydration/test/type-fixtures/positive/every-chainable.ts`) never chains a child
 accessor off it either — read in hindsight, that is this same limitation, not an unexercised case.
 `quest-advances-one-step-recipe-broker.ts`'s own header carries the full finding; its own
-workaround is to write the ledger through the quest's plain `operations` FIELD via `set()` rather
-than through the `operation` ingredient's child accessor. `attach` (below) shares the identical
+workaround is to mint its ledger operations through the `operation` ingredient's OWN top-level
+`.under({questId: fromSavedRefTransformer(...), guildId})`, as a sibling top-level call, rather
+than through `q[0].operations.add(...)`. `attach` (below) shares the identical
 limitation for the identical reason — its own ancestor extension is ALSO a generic `Ids` type
 parameter the mapped `ChildAccessors` type cannot resolve at this compile-time depth — so a child
 minted off an attached row is reached through the child ingredient's own top-level `.under(...)`
@@ -295,18 +296,19 @@ the attach — see the next section for why), and links a new work item to it th
 quest read back afterward carries exactly one operation and one work item, the work item's
 `relatedDataItems` naming the operation's real, run-time-minted id.
 
-`quest-advances-one-step` itself is NOT converted to use `attach`: its own gap (below) is about
-`.under()`'s child-accessor typing, not about reaching a row from an earlier plan — everything it
-does happens inside ONE run — and `attach`'s own ancestor extension hits the IDENTICAL typing limit
-when a child accessor is chained off it, so `attach` would not let it drop the workaround any more
-cleanly than `.under()` already could. Converting it (minting its two operations through
-`operations.under({questId: fromSavedRefTransformer(...), guildId}).add(...)` instead of embedding
-them as a fixed-literal `operations` field) is possible and would drop the fixed UUIDs, but it also
-changes what this recipe `makes` (`operation: 2` joins `quest: 1`), which ripples into
-`recipes-catalog-broker.test.ts`, `recipe-listing-probe-statics.ts` and
-`hydration-recipes-exports.integration.test.ts` — the last reads BUILT `dist` output, so confirming
-it stays green needs a rebuild this pass did not run. Left as a follow-up rather than done
-speculatively against an unverified rebuild.
+`quest-advances-one-step` itself uses no `attach`: its own gap is about `.under()`'s child-accessor
+typing, not about reaching a row from an earlier plan — everything it does happens inside ONE run —
+and `attach`'s own ancestor extension hits the IDENTICAL typing limit when a child accessor is
+chained off it, so `attach` would not let it drop the workaround any more cleanly than `.under()`
+already does. It mints its two ledger operations through `operations.under({questId:
+fromSavedRefTransformer({name: 'quest', field: 'id'}), guildId}).add(2, ...)` — a SIBLING top-level
+call, never `q[0].operations.add(...)` — so no fixed-literal operation id remains anywhere in the
+recipe; both ids are minted by `operationWriteRouteBroker` at run time, the same as
+`quest-completed`'s own recipe. This also changes what the recipe `makes`: `{ ingredient:
+'operation', count: 2 }` joins `{ ingredient: 'quest', count: 1 }`, which `recipes-catalog-broker.test.ts`,
+`recipes-listing-responder.test.ts`, `hydration-recipes-exports.integration.test.ts` and
+`siegelense-recipes-layer-flow.integration.test.ts` all pin — the last two read BUILT `dist` output,
+so confirming they stay green needs a rebuild.
 
 ## One known gap this chunk did not close, named rather than worked around
 
