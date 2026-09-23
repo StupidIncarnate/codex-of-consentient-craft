@@ -552,6 +552,7 @@ describe('workItemToPromptTransformer', () => {
         const workItem = WorkItemStub({
           id: workItemId,
           role: 'warpgate',
+          step: 'merge',
           relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
         });
         const quest = QuestStub({
@@ -594,6 +595,7 @@ describe('workItemToPromptTransformer', () => {
         const workItem = WorkItemStub({
           id: workItemId,
           role: 'warpgate',
+          step: 'merge',
           relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
         });
         const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
@@ -878,8 +880,8 @@ describe('workItemToPromptTransformer', () => {
               apiUrl: null,
               home: '/tmp/dm-siege-inst_7f3a9c21',
               logs: {
-                api: '/repo/.siegelense/g1/instances/inst_7f3a9c21/api-server.log',
-                web: '/repo/.siegelense/g1/instances/inst_7f3a9c21/web-server.log',
+                api: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/api-server.log',
+                web: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/web-server.log',
               },
             },
           },
@@ -929,8 +931,8 @@ describe('workItemToPromptTransformer', () => {
               apiUrl: null,
               home: '/tmp/dm-siege-inst_7f3a9c21',
               logs: {
-                api: '/repo/.siegelense/g1/instances/inst_7f3a9c21/api-server.log',
-                web: '/repo/.siegelense/g1/instances/inst_7f3a9c21/web-server.log',
+                api: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/api-server.log',
+                web: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/web-server.log',
               },
             },
           },
@@ -1016,8 +1018,8 @@ describe('workItemToPromptTransformer', () => {
               apiUrl: null,
               home: '/tmp/dm-siege-inst_7f3a9c21',
               logs: {
-                api: '/repo/.siegelense/g1/instances/inst_7f3a9c21/api-server.log',
-                web: '/repo/.siegelense/g1/instances/inst_7f3a9c21/web-server.log',
+                api: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/api-server.log',
+                web: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/web-server.log',
               },
             },
           },
@@ -1077,10 +1079,12 @@ describe('workItemToPromptTransformer', () => {
 
   describe('errors', () => {
     // The contract no longer closes the set (agentPromptNameContract is an open branded string), so
-    // an unknown agent name PARSES here and falls to the minion branch, which reaches
-    // agentNameToPromptTransformer — the one place that still refuses it, loudly, by name.
-    it('ERROR: {agent: unknown name} => throws naming the unknown name', () => {
-      const workItem = WorkItemStub();
+    // an unknown agent name PARSES here — but it is neither a minionName nor a WorkItemRole, and the
+    // work item carries no step, so this transformer refuses it directly rather than falling through
+    // to agentNameToPromptTransformer's own generic throw.
+    it('ERROR: {agent: unknown name, no step} => throws naming the unknown name and the missing step', () => {
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-7070-4222-9333-444444444444' });
+      const workItem = WorkItemStub({ id: workItemId });
       const quest = QuestStub({ workItems: [workItem] });
 
       expect(() =>
@@ -1090,7 +1094,27 @@ describe('workItemToPromptTransformer', () => {
           agentName: 'unknown-agent',
         }),
       ).toThrow(
-        "Unknown agent prompt name: 'unknown-agent'. No prompt is registered for it in AGENT_PROMPTS — check agentPromptClassificationStatics.promptNames and this table still agree.",
+        `workItemToPromptTransformer: 'unknown-agent' names a step prompt, but work item ${String(workItemId)} carries no step to serve it at. Only chaoswhisperer-gap-minion may be fetched with no step at all.`,
+      );
+    });
+
+    // The narrowing this unit adds: a real STEP prompt name (`codeweaver-planner` — a serving,
+    // known agentPromptClassificationStatics.promptNames entry) is no minion either, and a work item
+    // with no step has no operation-relay context to substitute for it — this used to be silently
+    // served through the minion's two-line substitution instead.
+    it('ERROR: {agent: codeweaver-planner, work item carries no step} => throws naming the step prompt and the missing step, never served as a minion', () => {
+      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-7070-4222-9333-444444444444' });
+      const workItem = WorkItemStub({ id: workItemId, role: 'codeweaver' });
+      const quest = QuestStub({ workItems: [workItem] });
+
+      expect(() =>
+        workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: AgentPromptNameStub({ value: 'codeweaver-planner' }),
+        }),
+      ).toThrow(
+        `workItemToPromptTransformer: 'codeweaver-planner' names a step prompt, but work item ${String(workItemId)} carries no step to serve it at. Only chaoswhisperer-gap-minion may be fetched with no step at all.`,
       );
     });
   });
