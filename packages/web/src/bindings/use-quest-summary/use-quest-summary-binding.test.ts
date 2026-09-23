@@ -208,8 +208,10 @@ describe('useQuestSummaryBinding', () => {
         },
       });
 
-      // Allow any microtasks a stray refetch would have queued to settle.
-      await Promise.resolve();
+      // A stray refetch lands a macrotask later, so one microtask tick would let a broken filter pass.
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0);
+      });
 
       expect(proxy.getSummaryRequestCount()).toBe(1);
       expect(result.current).toStrictEqual({ data: initial, loading: false, error: null });
