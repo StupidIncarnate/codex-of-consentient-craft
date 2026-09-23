@@ -254,6 +254,7 @@ export const ExecutionRowLayerWidget = ({
   const { statusLabel, statusColor, roleColor } = executionRowDisplayResolveTransformer({
     status,
     role,
+    workItem,
   });
   const isExpandable = EXPANDABLE_STATUSES.includes(status) || hasEntries;
   const subtitle = executionRowSubtitleTransformer({ status, dependsOn, files });
@@ -308,6 +309,7 @@ export const ExecutionRowLayerWidget = ({
       >
         <Text
           ff="monospace"
+          data-testid="execution-row-chevron"
           style={{
             fontSize: HEADER_FONT_SIZE,
             color: isExpandable ? colors[roleColor] : colors['text-dim'],

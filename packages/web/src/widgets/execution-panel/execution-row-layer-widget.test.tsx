@@ -140,6 +140,30 @@ describe('ExecutionRowLayerWidget', () => {
     });
   });
 
+  describe('step colour (T2-9b)', () => {
+    it('VALID: {role: "codeweaver", workItem.step: "ward"} => paints the role badge and chevron in the ward warning colour', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            workItem={WorkItemStub({ step: 'ward' })}
+          />
+        ),
+      });
+
+      const badge = screen.getByTestId('execution-row-role-badge');
+      const chevron = screen.getByTestId('execution-row-chevron');
+
+      expect([badge.style.color, chevron.style.color]).toStrictEqual([
+        'rgb(245, 158, 11)',
+        'rgb(245, 158, 11)',
+      ]);
+    });
+  });
+
   describe('step name', () => {
     it('VALID: {name: "Build auth flow"} => renders step name', () => {
       ExecutionRowLayerWidgetProxy();
