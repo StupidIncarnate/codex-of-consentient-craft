@@ -25,10 +25,10 @@
  *   specName: 'dungeonmaster-stack',
  *   baseUrl: 'http://localhost:34173',
  *   home: '/tmp/dm-siege-inst_7f3a9c21',
- *   evidence: { path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21', linkPresent: true },
+ *   evidence: { path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21', linkPresent: true },
  *   logs: {
- *     api: { path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/api-server.log', linkPresent: true },
- *     web: { path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/web-server.log', linkPresent: true },
+ *     api: { path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/api-server.log', linkPresent: true },
+ *     web: { path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/web-server.log', linkPresent: true },
  *   },
  *   seeded: { guildSlug: 'siege-guild', guildId: '7306b468-…' },
  *   queuedMs: 34000,

@@ -8,13 +8,14 @@ describe('DriverBootFailedError', () => {
         instanceId: 'inst_7f3a9c21',
         driverMessage:
           'Lane spec dungeonmaster-stack requires a fake agent CLI, and the environment supplies none of it: set CLAUDE_CLI_PATH to a stub Claude CLI binary.',
-        driverLogPath: '/repo/.siegelense/unowned/instances/inst_7f3a9c21/driver.log',
+        driverLogPath:
+          '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/driver.log',
       });
 
       expect({ name: error.name, message: error.message }).toStrictEqual({
         name: 'DriverBootFailedError',
         message:
-          'Lane dungeonmaster-stack for instance inst_7f3a9c21 failed to boot: Lane spec dungeonmaster-stack requires a fake agent CLI, and the environment supplies none of it: set CLAUDE_CLI_PATH to a stub Claude CLI binary. Driver log: /repo/.siegelense/unowned/instances/inst_7f3a9c21/driver.log',
+          'Lane dungeonmaster-stack for instance inst_7f3a9c21 failed to boot: Lane spec dungeonmaster-stack requires a fake agent CLI, and the environment supplies none of it: set CLAUDE_CLI_PATH to a stub Claude CLI binary. Driver log: /repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/driver.log',
       });
     });
   });
@@ -25,7 +26,8 @@ describe('DriverBootFailedError', () => {
         specName: 'dungeonmaster-stack',
         instanceId: 'inst_7f3a9c21',
         driverMessage: 'CLAUDE_CLI_PATH is required',
-        driverLogPath: '/repo/.siegelense/unowned/instances/inst_7f3a9c21/driver.log',
+        driverLogPath:
+          '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/driver.log',
       });
 
       expect(error instanceof DriverBootFailedError).toBe(true);
@@ -36,7 +38,8 @@ describe('DriverBootFailedError', () => {
         specName: 'dungeonmaster-stack',
         instanceId: 'inst_7f3a9c21',
         driverMessage: 'CLAUDE_CLI_PATH is required',
-        driverLogPath: '/repo/.siegelense/unowned/instances/inst_7f3a9c21/driver.log',
+        driverLogPath:
+          '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/driver.log',
       });
 
       expect(error instanceof Error).toBe(true);

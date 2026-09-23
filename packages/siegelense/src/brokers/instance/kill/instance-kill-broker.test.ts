@@ -39,7 +39,7 @@ describe('instanceKillBroker', () => {
       const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
 
       expect(result.evidenceKept.path).toBe(
-        '/default/cwd/.siegelense/unowned/instances/inst_7f3a9c21',
+        '/default/cwd/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21',
       );
       expect(proxy.getRemovedPaths()).toStrictEqual([]);
     });

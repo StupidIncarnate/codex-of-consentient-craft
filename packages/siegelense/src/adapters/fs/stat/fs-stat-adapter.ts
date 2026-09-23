@@ -7,7 +7,7 @@
  * millisecond precision.
  *
  * USAGE:
- * await fsStatAdapter({ filePath: AbsoluteFilePathStub({ value: '/repo/.siegelense/run_2/step7.png' }) });
+ * await fsStatAdapter({ filePath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/run_2/step7.png' }) });
  * // Returns { sizeBytes, modifiedAtMs }, or null if the file does not exist
  */
 

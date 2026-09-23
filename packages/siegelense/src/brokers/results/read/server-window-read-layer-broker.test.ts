@@ -8,7 +8,7 @@ import { serverWindowReadLayerBroker } from './server-window-read-layer-broker';
 import { serverWindowReadLayerBrokerProxy } from './server-window-read-layer-broker.proxy';
 
 const EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: '/repo/.siegelense/unowned/instances/inst_1',
+  value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1',
 });
 
 const LINE_OUTSIDE = '20:10:00 ERROR outside-window issue\n';

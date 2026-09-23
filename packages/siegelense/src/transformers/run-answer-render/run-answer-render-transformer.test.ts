@@ -70,7 +70,9 @@ describe('runAnswerRenderTransformer', () => {
     it('VALID: {shots with one screenshot} => renders SCREENSHOTS line with filename and path', () => {
       const shot = ShotListingStub({
         step: StepIndexStub({ value: 1 }),
-        path: AbsoluteFilePathStub({ value: '/repo/.siegelense/runs/run_1/step1.png' }),
+        path: AbsoluteFilePathStub({
+          value: '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_1/step1.png',
+        }),
       });
       const result = RunResultStub({
         runId: RunIdStub({ value: 'run_1' }),
@@ -84,18 +86,22 @@ describe('runAnswerRenderTransformer', () => {
 
       expect(output).toBe(
         'RUN: run_1 (status: done, steps: 1, duration: 0ms)\n' +
-          'SCREENSHOTS: step1.png (/repo/.siegelense/runs/run_1/step1.png)\n',
+          'SCREENSHOTS: step1.png (/repo/.dungeonmaster-assets/siegelense-assets/runs/run_1/step1.png)\n',
       );
     });
 
     it('VALID: {stoppedAt and shots} => renders header, stopped line, and screenshots line', () => {
       const shot1 = ShotListingStub({
         step: StepIndexStub({ value: 1 }),
-        path: AbsoluteFilePathStub({ value: '/repo/.siegelense/runs/run_4/step1.png' }),
+        path: AbsoluteFilePathStub({
+          value: '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_4/step1.png',
+        }),
       });
       const shot2 = ShotListingStub({
         step: StepIndexStub({ value: 2 }),
-        path: AbsoluteFilePathStub({ value: '/repo/.siegelense/runs/run_4/step2_error.png' }),
+        path: AbsoluteFilePathStub({
+          value: '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_4/step2_error.png',
+        }),
       });
       const stoppedAt = StoppedAtStub({
         step: StepIndexStub({ value: 2 }),
@@ -117,7 +123,7 @@ describe('runAnswerRenderTransformer', () => {
       expect(output).toBe(
         'RUN: run_4 (status: timeout, steps: 2, duration: 5000ms)\n' +
           'STOPPED AT: step 2 (waitFor) — timeout waiting for element\n' +
-          'SCREENSHOTS: step1.png (/repo/.siegelense/runs/run_4/step1.png), step2_error.png (/repo/.siegelense/runs/run_4/step2_error.png)\n',
+          'SCREENSHOTS: step1.png (/repo/.dungeonmaster-assets/siegelense-assets/runs/run_4/step1.png), step2_error.png (/repo/.dungeonmaster-assets/siegelense-assets/runs/run_4/step2_error.png)\n',
       );
     });
   });

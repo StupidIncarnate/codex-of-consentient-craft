@@ -222,7 +222,7 @@ describe('statusReadBroker', () => {
       proxy.setupWebLogPresent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.siegelense' }),
+        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
         homeDir,
         homePath,
         rootPath,
@@ -270,7 +270,7 @@ describe('statusReadBroker', () => {
               orphans: [{ pgid: 33_812, cmd: 'npm run dev:no-watch', alive: true }],
               evidence: {
                 dir: {
-                  path: `/repo/.siegelense/guilds/${guildId}/instances/${instanceId}`,
+                  path: `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}`,
                   linkPresent: true,
                 },
                 transcript: 'run_2.jsonl',

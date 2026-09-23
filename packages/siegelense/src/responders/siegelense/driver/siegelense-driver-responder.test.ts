@@ -59,7 +59,9 @@ describe('SiegelenseDriverResponder', () => {
         specName: entry.specName,
         instanceId,
         unready: ['api'],
-        logPaths: ['/repo/.siegelense/guilds/g1/instances/inst_bad60071/api.log'],
+        logPaths: [
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_bad60071/api.log',
+        ],
       });
       proxy.stageRegistryRow({ entry });
       proxy.stageBootFails({ error: bootError });
@@ -98,7 +100,9 @@ describe('SiegelenseDriverResponder', () => {
         specName: entry.specName,
         instanceId,
         unready: ['api'],
-        logPaths: ['/repo/.siegelense/guilds/g1/instances/inst_bad60071/api.log'],
+        logPaths: [
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_bad60071/api.log',
+        ],
       });
       proxy.stageRegistryRow({ entry });
       proxy.stageBootFailsAndMarkerWriteFails({

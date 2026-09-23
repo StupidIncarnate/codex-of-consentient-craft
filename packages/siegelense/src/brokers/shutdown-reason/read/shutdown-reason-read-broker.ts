@@ -9,7 +9,7 @@
  *
  * USAGE:
  * await shutdownReasonReadBroker({
- *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.siegelense/unowned/instances/inst_1' }),
+ *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1' }),
  * });
  * // Returns the parsed ShutdownReason, or null if shutdown-reason.json does not exist
  */

@@ -17,14 +17,14 @@ export const InstanceManifestStub = ({
     baseUrl: 'http://localhost:34173',
     home: '/tmp/dm-siege-inst_7f3a9c21',
     evidence: RepoLocalPathStub({
-      path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21',
+      path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
     }),
     logs: {
       api: RepoLocalPathStub({
-        path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/api-server.log',
+        path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/api-server.log',
       }),
       web: RepoLocalPathStub({
-        path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/web-server.log',
+        path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/web-server.log',
       }),
     },
     seeded: null,

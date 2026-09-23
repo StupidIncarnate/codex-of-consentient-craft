@@ -33,7 +33,7 @@
  *   ports: PortPairStub(),
  *   instanceId: InstanceIdStub(),
  *   homePath: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1' }),
- *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.siegelense/unowned/instances/inst_1' }),
+ *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1' }),
  * });
  * // Resolves a LaneSession with browser: null (browserless spec) and every pgid it spawned
  */

@@ -32,7 +32,8 @@ describe('stepDispatchBroker', () => {
       const { lane, captureCallArgs } = proxy.happyLane();
       const step = StepStub({ step: 'click', target: SelectorStub() });
       const shotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
       const backgroundPixel = [0x0d, 0x09, 0x07, 255];
       const foregroundPixel = [255, 255, 255, 255];
@@ -63,7 +64,7 @@ describe('stepDispatchBroker', () => {
         ok: true,
         expected: 'ok',
         reading: 'clicked [data-testid="GUILD_ADD"]',
-        shot: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        shot: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
         pixelChange: null,
         blank: false,
         blankColour: null,
@@ -74,7 +75,12 @@ describe('stepDispatchBroker', () => {
         endedAtMs: FIXED_NOW_MS,
       });
       expect(captureCallArgs()).toStrictEqual([
-        [{ filePath: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png' }],
+        [
+          {
+            filePath:
+              '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+          },
+        ],
       ]);
     });
   });
@@ -85,7 +91,8 @@ describe('stepDispatchBroker', () => {
       const { lane } = proxy.happyLane();
       const step = StepStub({ step: 'click', target: SelectorStub() });
       const shotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
       const backgroundPixel = [0x0d, 0x09, 0x07, 255];
       const pixels = new Uint8Array(Array.from({ length: 8 }, () => backgroundPixel).flat());
@@ -109,7 +116,7 @@ describe('stepDispatchBroker', () => {
         ok: true,
         expected: 'ok',
         reading: 'clicked [data-testid="GUILD_ADD"]',
-        shot: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        shot: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
         pixelChange: null,
         blank: true,
         blankColour: '#0d0907',
@@ -128,7 +135,8 @@ describe('stepDispatchBroker', () => {
       const { lane } = proxy.happyLane();
       const step = StepStub({ step: 'click', target: SelectorStub() });
       const shotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
 
       const result = await stepDispatchBroker({
@@ -151,10 +159,12 @@ describe('stepDispatchBroker', () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane } = proxy.happyLane();
       const firstShotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
       const secondShotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step2.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step2.png',
       });
       const whitePixels = new Uint8Array(400).fill(255);
       const blackPixels = new Uint8Array(400).fill(255);
@@ -213,7 +223,8 @@ describe('stepDispatchBroker', () => {
       const { lane } = proxy.laneRejectingClickMatch({ error: new Error('boom') });
       const step = StepStub({ step: 'click', target: SelectorStub(), expect: 'error' });
       const shotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
       const backgroundPixel = [0x0d, 0x09, 0x07, 255];
       const pixels = new Uint8Array(Array.from({ length: 8 }, () => backgroundPixel).flat());
@@ -237,7 +248,7 @@ describe('stepDispatchBroker', () => {
         ok: true,
         expected: 'error',
         reading: 'boom',
-        shot: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        shot: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
         pixelChange: null,
         blank: true,
         blankColour: '#0d0907',
@@ -603,7 +614,8 @@ describe('stepDispatchBroker', () => {
       });
       const step = StepStub({ step: 'click', target: SelectorStub() });
       const shotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
 
       const error = await stepDispatchBroker({
@@ -632,7 +644,12 @@ describe('stepDispatchBroker', () => {
         underlyingMessage: 'AMBIGUOUS: 2 elements match [data-testid="X"]',
       });
       expect(captureCallArgs()).toStrictEqual([
-        [{ filePath: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png' }],
+        [
+          {
+            filePath:
+              '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+          },
+        ],
       ]);
     });
 
@@ -671,7 +688,8 @@ describe('stepDispatchBroker', () => {
       });
       const step = StepStub({ step: 'click', target: SelectorStub() });
       const shotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
 
       const error = await stepDispatchBroker({
@@ -700,7 +718,12 @@ describe('stepDispatchBroker', () => {
         underlyingMessage: 'AMBIGUOUS: 2 elements match [data-testid="X"]',
       });
       expect(captureCallArgs()).toStrictEqual([
-        [{ filePath: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png' }],
+        [
+          {
+            filePath:
+              '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+          },
+        ],
       ]);
     });
 
@@ -708,7 +731,8 @@ describe('stepDispatchBroker', () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane: firstLane } = proxy.happyLane();
       const firstShotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
       const backgroundPixel = [0x0d, 0x09, 0x07, 255];
       const backgroundPixels = new Uint8Array(
@@ -736,7 +760,8 @@ describe('stepDispatchBroker', () => {
         error: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
       });
       const secondShotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step2.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step2.png',
       });
       const whitePixel = [0xff, 0xff, 0xff, 255];
       const whitePixels = new Uint8Array(Array.from({ length: 8 }, () => whitePixel).flat());
@@ -775,7 +800,8 @@ describe('stepDispatchBroker', () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane: firstLane } = proxy.happyLane();
       const firstShotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
       const backgroundPixel = [0x0d, 0x09, 0x07, 255];
       const backgroundPixels = new Uint8Array(
@@ -803,7 +829,8 @@ describe('stepDispatchBroker', () => {
         error: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
       });
       const secondShotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step2.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step2.png',
       });
       // An evidence read failure proves measurement failures degrade gracefully instead of masking
       // the step's own error.
@@ -991,7 +1018,8 @@ describe('stepDispatchBroker', () => {
       const { lane, captureCallArgs } = proxy.happyLane();
       const step = StepStub({ step: 'screenshot', name: FileNameStub({ value: 'step1.png' }) });
       const shotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
       const backgroundPixel = [0x0d, 0x09, 0x07, 255];
       const pixels = new Uint8Array(Array.from({ length: 8 }, () => backgroundPixel).flat());
@@ -1009,10 +1037,15 @@ describe('stepDispatchBroker', () => {
       });
 
       expect(result.reading).toBe(
-        '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       );
       expect(captureCallArgs()).toStrictEqual([
-        [{ filePath: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png' }],
+        [
+          {
+            filePath:
+              '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+          },
+        ],
       ]);
     });
 
@@ -1021,7 +1054,8 @@ describe('stepDispatchBroker', () => {
       const { lane, captureCallArgs } = proxy.happyLane();
       const step = StepStub({ step: 'health' });
       const shotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
       const backgroundPixel = [0x0d, 0x09, 0x07, 255];
       const pixels = new Uint8Array(Array.from({ length: 8 }, () => backgroundPixel).flat());
@@ -1042,7 +1076,12 @@ describe('stepDispatchBroker', () => {
         'DOWN      root present · page blank (#0d0907) · console clean · no 5xx · server log clean',
       );
       expect(captureCallArgs()).toStrictEqual([
-        [{ filePath: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png' }],
+        [
+          {
+            filePath:
+              '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+          },
+        ],
       ]);
     });
 
@@ -1051,7 +1090,8 @@ describe('stepDispatchBroker', () => {
       const { lane, captureCallArgs } = proxy.happyLane();
       const step = StepStub({ step: 'hold', frames: 2, everyMs: 1000 });
       const shotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
       const backgroundPixel = [0x0d, 0x09, 0x07, 255];
       const pixels = new Uint8Array(Array.from({ length: 8 }, () => backgroundPixel).flat());
@@ -1069,7 +1109,7 @@ describe('stepDispatchBroker', () => {
       });
 
       expect(result.reading).toBe(
-        '{"frames":2,"differing":0,"verdict":"NOTHING CHANGED across 1s","shots":["/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1_frame1.png","/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1_frame2.png"]}',
+        '{"frames":2,"differing":0,"verdict":"NOTHING CHANGED across 1s","shots":["/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1_frame1.png","/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1_frame2.png"]}',
       );
       expect(captureCallArgs()).toStrictEqual([]);
     });
@@ -1109,7 +1149,8 @@ describe('stepDispatchBroker', () => {
       const { lane } = proxy.happyLane({ keyListings: [beforeListing, afterListing] });
       const step = StepStub({ step: 'click', target: SelectorStub() });
       const shotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
 
       const result = await stepDispatchBroker({
@@ -1147,7 +1188,8 @@ describe('stepDispatchBroker', () => {
       });
       const step = StepStub({ step: 'click', target: SelectorStub() });
       const shotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
 
       const error = await stepDispatchBroker({
@@ -1190,7 +1232,8 @@ describe('stepDispatchBroker', () => {
       });
       const step = StepStub({ step: 'click', target: SelectorStub(), expect: 'error' });
       const shotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
 
       const result = await stepDispatchBroker({

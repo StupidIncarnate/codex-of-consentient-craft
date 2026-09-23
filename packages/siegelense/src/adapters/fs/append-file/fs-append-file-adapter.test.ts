@@ -6,7 +6,9 @@ describe('fsAppendFileAdapter', () => {
   describe('successful appends', () => {
     it('VALID: {filePath, contents} => appends the file successfully', async () => {
       const proxy = fsAppendFileAdapterProxy();
-      const filePath = AbsoluteFilePathStub({ value: '/repo/.siegelense/runs/run_2.jsonl' });
+      const filePath = AbsoluteFilePathStub({
+        value: '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_2.jsonl',
+      });
       const contents = FileContentsStub({ value: '{"step":1}\n' });
 
       proxy.succeeds({ filePath });
@@ -18,7 +20,9 @@ describe('fsAppendFileAdapter', () => {
 
     it('VALID: {filePath, two flushes} => appends both chunks in order', async () => {
       const proxy = fsAppendFileAdapterProxy();
-      const filePath = AbsoluteFilePathStub({ value: '/repo/.siegelense/runs/run_2.jsonl' });
+      const filePath = AbsoluteFilePathStub({
+        value: '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_2.jsonl',
+      });
       const first = FileContentsStub({ value: '{"step":1}\n' });
       const second = FileContentsStub({ value: '{"step":2}\n' });
 

@@ -10,7 +10,7 @@
  *
  * USAGE:
  * const { readServerLogSince, serverLogLength } = serverLogReaderLayerBroker({
- *   logPath: AbsoluteFilePathStub({ value: '/repo/.siegelense/guilds/g1/instances/inst_1/api-server.log' }),
+ *   logPath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/api-server.log' }),
  * });
  * serverLogLength(); // the file's current byte length
  * readServerLogSince({ fromByte: 0 }); // every non-empty line, from the start

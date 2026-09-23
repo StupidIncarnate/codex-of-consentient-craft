@@ -15,7 +15,7 @@
  *
  * USAGE:
  * await bufferReadLayerBroker({
- *   bufferPath: AbsoluteFilePathStub({ value: '/repo/.siegelense/.../network.jsonl' }),
+ *   bufferPath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/.../network.jsonl' }),
  *   runId: RunIdStub({ value: 'run_2' }), sinceBoot: false, step: StepIndexStub({ value: 7 }),
  *   where: null,
  * });

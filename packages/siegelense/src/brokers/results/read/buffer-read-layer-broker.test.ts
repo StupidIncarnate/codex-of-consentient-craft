@@ -8,7 +8,7 @@ import { bufferReadLayerBroker } from './buffer-read-layer-broker';
 import { bufferReadLayerBrokerProxy } from './buffer-read-layer-broker.proxy';
 
 const BUFFER_PATH = AbsoluteFilePathStub({
-  value: '/repo/.siegelense/unowned/instances/inst_1/network.jsonl',
+  value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1/network.jsonl',
 });
 const RUN_2 = RunIdStub({ value: 'run_2' });
 

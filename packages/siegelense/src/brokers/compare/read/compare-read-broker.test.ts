@@ -113,7 +113,8 @@ describe('compareReadBroker', () => {
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
       const previousPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png',
       });
 
       proxy.setupInstance({
@@ -149,10 +150,12 @@ describe('compareReadBroker', () => {
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
       const previousPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png',
       });
       const currentPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/runs/run_5/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_5/step1.png',
       });
       const previousPixels = new Uint8Array(400).fill(255);
       const currentPixels = new Uint8Array(400).fill(255);
@@ -206,7 +209,8 @@ describe('compareReadBroker', () => {
       const guildId = GuildIdStub();
       const runId = RunIdStub({ value: 'run_4' });
       const shotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png',
       });
       const identicalPixels = new Uint8Array(400).fill(255);
 

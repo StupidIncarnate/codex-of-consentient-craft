@@ -46,7 +46,7 @@ const ONE_MATCH_COUNT = 1;
 type BufferKind = 'console' | 'network' | 'websocket';
 
 const EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: '/repo/.siegelense/guilds/g1/instances/inst_1',
+  value: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1',
 });
 
 // `CWD_PATH_VALUE` is `processCwdAdapterProxy`'s OWN sticky default, reused rather than staged, so
@@ -62,9 +62,12 @@ const EVIDENCE_PATH = AbsoluteFilePathStub({
 // another caller's join, because the arguments differ.
 const CWD_PATH_VALUE = '/default/cwd';
 const CONFIG_FILE_PATH = FilePathStub({ value: `${CWD_PATH_VALUE}/.dungeonmaster.json` });
-// A REAL `path.join(CWD_PATH_VALUE, '.siegelense')` — matches what the broker's own unstaged
-// `pathJoinAdapter` call computes, so this address is exactly what a real run would check.
-const LINK_PATH = FilePathStub({ value: `${CWD_PATH_VALUE}/.siegelense` });
+// A REAL `path.join(CWD_PATH_VALUE, '.dungeonmaster-assets', 'siegelense-assets')` — matches what
+// the broker's own unstaged `pathJoinAdapter` call computes, so this address is exactly what a
+// real run would check.
+const LINK_PATH = FilePathStub({
+  value: `${CWD_PATH_VALUE}/.dungeonmaster-assets/siegelense-assets`,
+});
 
 // `/home/default` is `osHomedirAdapterProxy`'s OWN sticky default — `stageRepoLinkPresent` below
 // only has to clear `DUNGEONMASTER_HOME` (a prior test, or the real environment, could have it
@@ -82,7 +85,7 @@ const HOME_ROOTED_EVIDENCE_PATH = AbsoluteFilePathStub({
 const SEED_HOME_PATH = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_seed' });
 
 const REPO_LOCAL_EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: `${CWD_PATH_VALUE}/.siegelense/guilds/g1/instances/inst_2`,
+  value: `${CWD_PATH_VALUE}/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_2`,
 });
 
 export const runExecuteBrokerProxy = (): {
@@ -196,8 +199,9 @@ export const runExecuteBrokerProxy = (): {
   // finds `.dungeonmaster.json` at CWD_PATH_VALUE itself, so the walk never has to climb a parent
   // directory this file never stages.
   accessHandle.calledWith([CONFIG_FILE_PATH]).resolves({ success: true as const });
-  // No `.siegelense` anywhere, by default — every test below gets `linkPresent: false` and the
-  // real `shotsDir` it was given, unchanged, unless it calls `stageRepoLinkPresent` below.
+  // No `.dungeonmaster-assets/siegelense-assets` link anywhere, by default — every test below gets
+  // `linkPresent: false` and the real `shotsDir` it was given, unchanged, unless it calls
+  // `stageRepoLinkPresent` below.
   existsHandle.calledWith([]).returns(false);
 
   // The three real buffer paths for EVIDENCE_PATH, computed with the REAL (pure, deterministic)
@@ -250,7 +254,8 @@ export const runExecuteBrokerProxy = (): {
       return paths;
     },
 
-    // A `.siegelense` symlink at CWD_PATH_VALUE, resolving to SIEGELENSE_ROOT_VALUE. Every stage
+    // A `.dungeonmaster-assets/siegelense-assets` symlink at CWD_PATH_VALUE, resolving to
+    // SIEGELENSE_ROOT_VALUE. Every stage
     // here is keyed on its EXACT argument (a path, or `[]` for homedir's own no-args call), so it
     // is safe regardless of how many other real `pathJoinAdapter` calls happen before or after it
     // — see this file's header comment on CWD_PATH_VALUE for why that matters.

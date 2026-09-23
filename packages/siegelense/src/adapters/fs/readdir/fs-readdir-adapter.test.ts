@@ -6,7 +6,9 @@ describe('fsReaddirAdapter', () => {
   describe('a directory with entries', () => {
     it('VALID: {dir with three files} => returns all three file names', async () => {
       const proxy = fsReaddirAdapterProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/repo/.siegelense/guilds/g1' });
+      const dirPath = AbsoluteFilePathStub({
+        value: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1',
+      });
       proxy.resolves({ dirPath, entries: ['a.json', 'b.json', 'c.json'] });
 
       const result = await fsReaddirAdapter({ dirPath });
@@ -22,7 +24,9 @@ describe('fsReaddirAdapter', () => {
   describe('a directory that does not exist', () => {
     it('EMPTY: {ENOENT} => returns an empty list', async () => {
       const proxy = fsReaddirAdapterProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/repo/.siegelense/guilds/missing' });
+      const dirPath = AbsoluteFilePathStub({
+        value: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/missing',
+      });
       proxy.rejects({
         dirPath,
         error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
@@ -37,7 +41,9 @@ describe('fsReaddirAdapter', () => {
   describe('a directory this process cannot read', () => {
     it('ERROR: {EACCES} => rejects rather than reporting an empty machine', async () => {
       const proxy = fsReaddirAdapterProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/repo/.siegelense/guilds/locked' });
+      const dirPath = AbsoluteFilePathStub({
+        value: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/locked',
+      });
       proxy.rejects({
         dirPath,
         error: Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' }),

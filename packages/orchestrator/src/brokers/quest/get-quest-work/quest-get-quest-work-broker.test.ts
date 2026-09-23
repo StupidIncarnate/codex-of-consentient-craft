@@ -353,8 +353,8 @@ describe('questGetQuestWorkBroker', () => {
                 apiUrl: 'http://localhost:34172',
                 home: '/tmp/dm-siege-inst_7f3a9c21',
                 logs: {
-                  api: '/repo/.siegelense/instances/inst_7f3a9c21/api-server.log',
-                  web: '/repo/.siegelense/instances/inst_7f3a9c21/web-server.log',
+                  api: '/repo/.dungeonmaster-assets/siegelense-assets/instances/inst_7f3a9c21/api-server.log',
+                  web: '/repo/.dungeonmaster-assets/siegelense-assets/instances/inst_7f3a9c21/web-server.log',
                 },
               },
             },
@@ -375,8 +375,8 @@ describe('questGetQuestWorkBroker', () => {
         apiUrl: 'http://localhost:34172',
         home: '/tmp/dm-siege-inst_7f3a9c21',
         logs: {
-          api: '/repo/.siegelense/instances/inst_7f3a9c21/api-server.log',
-          web: '/repo/.siegelense/instances/inst_7f3a9c21/web-server.log',
+          api: '/repo/.dungeonmaster-assets/siegelense-assets/instances/inst_7f3a9c21/api-server.log',
+          web: '/repo/.dungeonmaster-assets/siegelense-assets/instances/inst_7f3a9c21/web-server.log',
         },
       });
     });
@@ -394,8 +394,8 @@ describe('questGetQuestWorkBroker', () => {
                 apiUrl: 'http://localhost:34172',
                 home: '/tmp/dm-siege-inst_7f3a9c21',
                 logs: {
-                  api: '/repo/.siegelense/instances/inst_7f3a9c21/api-server.log',
-                  web: '/repo/.siegelense/instances/inst_7f3a9c21/web-server.log',
+                  api: '/repo/.dungeonmaster-assets/siegelense-assets/instances/inst_7f3a9c21/api-server.log',
+                  web: '/repo/.dungeonmaster-assets/siegelense-assets/instances/inst_7f3a9c21/web-server.log',
                 },
               },
             },

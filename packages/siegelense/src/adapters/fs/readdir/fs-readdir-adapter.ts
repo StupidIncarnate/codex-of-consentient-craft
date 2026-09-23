@@ -9,7 +9,7 @@
  * importing it.
  *
  * USAGE:
- * await fsReaddirAdapter({ dirPath: AbsoluteFilePathStub({ value: '/repo/.siegelense/guilds' }) });
+ * await fsReaddirAdapter({ dirPath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/guilds' }) });
  * // Returns every file name directly under dirPath, or [] if dirPath does not exist
  */
 

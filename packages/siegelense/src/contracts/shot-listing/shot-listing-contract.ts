@@ -14,7 +14,7 @@
  *
  * USAGE:
  * shotListingContract.parse({
- *   step: 2, path: '/repo/.siegelense/…/run_2/step2.png', open: true, why: 'start', node: null,
+ *   step: 2, path: '/repo/.dungeonmaster-assets/siegelense-assets/…/run_2/step2.png', open: true, why: 'start', node: null,
  *   pixelChange: '4%', blank: false, blankColour: null,
  * });
  * // Returns a validated ShotListing

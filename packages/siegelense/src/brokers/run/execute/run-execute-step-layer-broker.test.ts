@@ -145,7 +145,8 @@ describe('runExecuteStepLayerBroker', () => {
       });
       const step = StepStub({ step: 'goto', path: UrlPathStub({ value: '/guilds' }) });
       const shotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step3.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step3.png',
       });
 
       const outcome = await runExecuteStepLayerBroker({
@@ -168,7 +169,7 @@ describe('runExecuteStepLayerBroker', () => {
           ok: false,
           expected: 'ok',
           reading: 'page.goto: Timeout 30000ms exceeded.',
-          shot: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step3.png',
+          shot: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step3.png',
           pixelChange: null,
           blank: false,
           blankColour: null,
@@ -198,7 +199,8 @@ describe('runExecuteStepLayerBroker', () => {
       });
       const step = StepStub({ step: 'goto', path: UrlPathStub({ value: '/guilds' }) });
       const shotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step3.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step3.png',
       });
 
       const outcome = await runExecuteStepLayerBroker({

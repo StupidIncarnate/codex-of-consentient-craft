@@ -10,7 +10,8 @@ describe('bufferAppendBroker', () => {
     it('VALID: {two entries} => the raw written bytes are two newline-terminated JSON lines', async () => {
       const proxy = bufferAppendBrokerProxy();
       const bufferPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/console.jsonl',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/console.jsonl',
       });
       const first = BufferEntryStub({});
       const second = BufferEntryStub({});
@@ -26,7 +27,8 @@ describe('bufferAppendBroker', () => {
     it('VALID: {two entries} => the written bytes parse back to exactly those two entries', async () => {
       const proxy = bufferAppendBrokerProxy();
       const bufferPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/console.jsonl',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/console.jsonl',
       });
       const first = BufferEntryStub({});
       const second = BufferEntryStub({});
@@ -43,7 +45,8 @@ describe('bufferAppendBroker', () => {
     it('EMPTY: {entries: []} => appends nothing and still returns success', async () => {
       const proxy = bufferAppendBrokerProxy();
       const bufferPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/console.jsonl',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/console.jsonl',
       });
       proxy.succeeds({ bufferPath });
 
@@ -58,7 +61,8 @@ describe('bufferAppendBroker', () => {
     it('ERROR: {disk write fails} => the append broker rejects with the same error', async () => {
       const proxy = bufferAppendBrokerProxy();
       const bufferPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/network.jsonl',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/network.jsonl',
       });
       proxy.throws({ bufferPath, error: new Error('ENOSPC') });
 

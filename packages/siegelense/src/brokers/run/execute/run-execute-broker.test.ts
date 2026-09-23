@@ -964,7 +964,7 @@ describe('runExecuteBroker', () => {
   });
 
   describe('the repo-local shot path', () => {
-    it('VALID: {a .siegelense symlink at the repo root} => the shot RunResult reports and the path session.capture actually wrote to are the same repo-local address', async () => {
+    it('VALID: {a .dungeonmaster-assets/siegelense-assets symlink at the repo root} => the shot RunResult reports and the path session.capture actually wrote to are the same repo-local address', async () => {
       const proxy = runExecuteBrokerProxy();
       proxy.stageRepoLinkPresent();
       const runId = RunIdStub({ value: 'run_1' });
@@ -987,7 +987,7 @@ describe('runExecuteBroker', () => {
       const expectedShotPath = `${String(proxy.repoLocalEvidencePath())}/runs/run_1/step1.png`;
 
       // The complete string, not a startsWith on a fragment: packages/siegelense/CLAUDE.md's
-      // "every path handed back is repo-local, through <repoRoot>/.siegelense" is a claim about
+      // "every path handed back is repo-local, through <repoRoot>/.dungeonmaster-assets/siegelense-assets" is a claim about
       // the WHOLE path, and a fragment match would still pass if the tail after the repo root
       // silently drifted from what the write actually used.
       expect(result.shots.map((shot) => String(shot.path))).toStrictEqual([expectedShotPath]);
@@ -997,7 +997,7 @@ describe('runExecuteBroker', () => {
       expect(captureCalls().map((path) => String(path))).toStrictEqual([expectedShotPath]);
     });
 
-    it('VALID: {no .siegelense symlink at the repo root} => the shot path stays the real home-rooted one, unchanged from before this resolution existed', async () => {
+    it('VALID: {no .dungeonmaster-assets/siegelense-assets symlink at the repo root} => the shot path stays the real home-rooted one, unchanged from before this resolution existed', async () => {
       const proxy = runExecuteBrokerProxy();
       const runId = RunIdStub({ value: 'run_1' });
       const { shotsDir } = proxy.stagePaths({ runId });

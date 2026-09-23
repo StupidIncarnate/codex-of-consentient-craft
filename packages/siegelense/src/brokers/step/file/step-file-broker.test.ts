@@ -33,13 +33,14 @@ describe('stepFileBroker', () => {
       const proxy = stepFileBrokerProxy();
       const lane = LaneSessionStub({
         homePath: '/tmp/test-lane-home',
-        evidencePath: '/repo/.siegelense/guilds/g1/instances/inst_1',
+        evidencePath: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1',
         browser: null,
       });
       const path = StepFilePathStub({ value: 'api-server.log' });
       const homeFilePath = AbsoluteFilePathStub({ value: '/tmp/test-lane-home/api-server.log' });
       const evidenceFilePath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/api-server.log',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/api-server.log',
       });
 
       proxy.setupFileNotFound({ filePath: homeFilePath });
@@ -59,13 +60,14 @@ describe('stepFileBroker', () => {
       const proxy = stepFileBrokerProxy();
       const lane = LaneSessionStub({
         homePath: '/tmp/test-lane-home',
-        evidencePath: '/repo/.siegelense/guilds/g1/instances/inst_1',
+        evidencePath: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1',
         browser: null,
       });
       const path = StepFilePathStub({ value: 'missing.log' });
       const filePath = AbsoluteFilePathStub({ value: '/tmp/test-lane-home/missing.log' });
       const evidenceFilePath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/missing.log',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/missing.log',
       });
 
       proxy.setupFileNotFound({ filePath, evidenceFilePath });

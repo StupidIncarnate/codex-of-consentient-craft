@@ -10,8 +10,8 @@
  * USAGE:
  * await runMissingCheckLayerBroker({
  *   instanceId: InstanceIdStub(), runId: RunIdStub({ value: 'run_999' }),
- *   storedReturnPath: AbsoluteFilePathStub({ value: '/repo/.siegelense/.../run_999.json' }),
- *   transcriptPath: AbsoluteFilePathStub({ value: '/repo/.siegelense/.../run_999.jsonl' }),
+ *   storedReturnPath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/.../run_999.json' }),
+ *   transcriptPath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/.../run_999.jsonl' }),
  * });
  * // Throws RunMissingError when neither file exists; otherwise returns the stored return's raw
  * // FileContents (or null, for a run that crashed before its closing write)

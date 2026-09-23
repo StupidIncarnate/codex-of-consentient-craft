@@ -8,7 +8,8 @@ describe('shotChangeReadBroker', () => {
     it('EDGE: {previousPath: null} => returns null, never 0 — spec line 708: reporting 0 would manufacture a no-change finding on the opening step of every walk', async () => {
       shotChangeReadBrokerProxy();
       const currentPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
 
       const result = await shotChangeReadBroker({ previousPath: null, currentPath });
@@ -21,10 +22,12 @@ describe('shotChangeReadBroker', () => {
     it("VALID: {2 of 100 pixels differ} => returns '2%'", async () => {
       const proxy = shotChangeReadBrokerProxy();
       const previousPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
       const currentPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step2.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step2.png',
       });
       const previousPixels = new Uint8Array(400).fill(255);
       const currentPixels = new Uint8Array(400).fill(255);
@@ -49,10 +52,12 @@ describe('shotChangeReadBroker', () => {
     it("VALID: {0 of 100 differ} => returns '0%', a real reading that must not collapse to null", async () => {
       const proxy = shotChangeReadBrokerProxy();
       const previousPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step3.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step3.png',
       });
       const currentPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step4.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step4.png',
       });
       const identicalPixels = new Uint8Array(400).fill(255);
 
@@ -77,10 +82,12 @@ describe('shotChangeReadBroker', () => {
     it("VALID: {100 of 100 differ} => returns '100%'", async () => {
       const proxy = shotChangeReadBrokerProxy();
       const previousPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step5.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step5.png',
       });
       const currentPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step6.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step6.png',
       });
       const whitePixels = new Uint8Array(400).fill(255);
       const blackPixels = new Uint8Array(400).fill(0);
@@ -102,10 +109,12 @@ describe('shotChangeReadBroker', () => {
     it("VALID: {frames of different sizes} => returns '100%'", async () => {
       const proxy = shotChangeReadBrokerProxy();
       const previousPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step7.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step7.png',
       });
       const currentPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step8.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step8.png',
       });
 
       proxy.stagesShot({

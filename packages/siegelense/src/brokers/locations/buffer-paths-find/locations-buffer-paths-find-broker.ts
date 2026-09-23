@@ -8,12 +8,12 @@
  *
  * USAGE:
  * locationsBufferPathsFindBroker({
- *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.siegelense/guilds/g1/instances/inst_1' }),
+ *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1' }),
  * });
  * // Returns {
- * //   console: '/repo/.siegelense/guilds/g1/instances/inst_1/console.jsonl',
- * //   network: '/repo/.siegelense/guilds/g1/instances/inst_1/network.jsonl',
- * //   websocket: '/repo/.siegelense/guilds/g1/instances/inst_1/ws.jsonl',
+ * //   console: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/console.jsonl',
+ * //   network: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/network.jsonl',
+ * //   websocket: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/ws.jsonl',
  * // }
  */
 

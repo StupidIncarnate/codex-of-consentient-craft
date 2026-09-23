@@ -23,7 +23,7 @@ const rawShot = ({
   ShotListingStub({
     step: StepIndexStub({ value: step }),
     path: AbsoluteFilePathStub({
-      value: `/repo/.siegelense/.../runs/run_1/step${String(step)}.png`,
+      value: `/repo/.dungeonmaster-assets/siegelense-assets/.../runs/run_1/step${String(step)}.png`,
     }),
     open,
     why: why === null ? null : ShotOpenReasonStub({ value: why }),

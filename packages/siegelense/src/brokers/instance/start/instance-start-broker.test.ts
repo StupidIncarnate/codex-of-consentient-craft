@@ -523,7 +523,7 @@ describe('instanceStartBroker', () => {
       });
 
       expect(result.evidence.path).toBe(
-        '/default/cwd/.siegelense/unowned/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479',
+        '/default/cwd/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479',
       );
     });
 
@@ -551,7 +551,7 @@ describe('instanceStartBroker', () => {
       });
 
       expect(result.evidence.path).toBe(
-        `/default/cwd/.siegelense/guilds/${guildId}/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479`,
+        `/default/cwd/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479`,
       );
     });
   });
@@ -574,7 +574,7 @@ describe('instanceStartBroker', () => {
       });
 
       expect(result.evidence).toStrictEqual({
-        path: '/default/cwd/.siegelense/unowned/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479',
+        path: '/default/cwd/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479',
         linkPresent: true,
       });
     });

@@ -8,7 +8,7 @@ describe('locationsRunPathsFindBroker', () => {
     it('VALID: {evidencePath, runId: run_2} => returns the transcript, stored return and shots dir paths', () => {
       locationsRunPathsFindBrokerProxy();
       const evidencePath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21',
+        value: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
       });
       const runId = RunIdStub({ value: 'run_2' });
 
@@ -16,13 +16,16 @@ describe('locationsRunPathsFindBroker', () => {
 
       expect(result).toStrictEqual({
         transcript: AbsoluteFilePathStub({
-          value: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/runs/run_2.jsonl',
+          value:
+            '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_2.jsonl',
         }),
         storedReturn: AbsoluteFilePathStub({
-          value: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/runs/run_2.json',
+          value:
+            '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_2.json',
         }),
         shotsDir: AbsoluteFilePathStub({
-          value: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/runs/run_2',
+          value:
+            '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_2',
         }),
       });
     });
@@ -32,7 +35,7 @@ describe('locationsRunPathsFindBroker', () => {
     it('VALID: {runId: run_1} vs {runId: run_2} => shotsDir differs between the two runs', () => {
       locationsRunPathsFindBrokerProxy();
       const evidencePath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21',
+        value: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
       });
 
       const firstRun = locationsRunPathsFindBroker({
@@ -46,10 +49,12 @@ describe('locationsRunPathsFindBroker', () => {
 
       expect([firstRun.shotsDir, secondRun.shotsDir]).toStrictEqual([
         AbsoluteFilePathStub({
-          value: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/runs/run_1',
+          value:
+            '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_1',
         }),
         AbsoluteFilePathStub({
-          value: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/runs/run_2',
+          value:
+            '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_2',
         }),
       ]);
     });

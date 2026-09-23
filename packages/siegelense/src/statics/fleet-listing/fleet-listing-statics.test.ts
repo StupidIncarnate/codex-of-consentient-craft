@@ -9,7 +9,8 @@ describe('fleetListingStatics', () => {
         cellPadding: 2,
       },
       evidence: {
-        shapeLine: 'evidence: <repoRoot>/.siegelense/{unowned|guilds/<guildId>}/instances/<id>/\n',
+        shapeLine:
+          'evidence: <repoRoot>/.dungeonmaster-assets/siegelense-assets/{unowned|guilds/<guildId>}/instances/<id>/\n',
       },
       killedFooter: {
         tombstoneSingular: 'tombstone',

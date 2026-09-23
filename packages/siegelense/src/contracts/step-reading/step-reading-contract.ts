@@ -26,7 +26,7 @@
  * USAGE:
  * stepReadingContract.parse({
  *   step: 2, verb: 'click', node: null, ok: true, expected: 'ok',
- *   reading: 'clicked [data-testid="GUILD_ADD"]', shot: '/repo/.siegelense/…/run_2/step2.png',
+ *   reading: 'clicked [data-testid="GUILD_ADD"]', shot: '/repo/.dungeonmaster-assets/siegelense-assets/…/run_2/step2.png',
  *   pixelChange: '4%', blank: false, blankColour: null,
  *   previousReading: null, delta: null,
  *   serverWindow: { fromByte: 1024, toByte: 2048 },

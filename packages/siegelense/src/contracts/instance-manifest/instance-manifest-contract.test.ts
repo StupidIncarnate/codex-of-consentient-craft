@@ -10,16 +10,16 @@ describe('instanceManifestContract', () => {
         baseUrl: 'http://localhost:34173',
         home: '/tmp/dm-siege-inst_7f3a9c21',
         evidence: {
-          path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21',
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
           linkPresent: true,
         },
         logs: {
           api: {
-            path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/api-server.log',
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/api-server.log',
             linkPresent: true,
           },
           web: {
-            path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/web-server.log',
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/web-server.log',
             linkPresent: true,
           },
         },
@@ -37,16 +37,16 @@ describe('instanceManifestContract', () => {
         baseUrl: 'http://localhost:34173',
         home: '/tmp/dm-siege-inst_7f3a9c21',
         evidence: {
-          path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21',
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
           linkPresent: true,
         },
         logs: {
           api: {
-            path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/api-server.log',
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/api-server.log',
             linkPresent: true,
           },
           web: {
-            path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/web-server.log',
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/web-server.log',
             linkPresent: true,
           },
         },
@@ -59,14 +59,17 @@ describe('instanceManifestContract', () => {
 
     it('VALID: {an unowned instance, evidence under unowned/} => parses with the unowned partition in the path', () => {
       const manifest = InstanceManifestStub({
-        evidence: { path: '/repo/.siegelense/unowned/instances/inst_7f3a9c21', linkPresent: true },
+        evidence: {
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21',
+          linkPresent: true,
+        },
         logs: {
           api: {
-            path: '/repo/.siegelense/unowned/instances/inst_7f3a9c21/api-server.log',
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/api-server.log',
             linkPresent: true,
           },
           web: {
-            path: '/repo/.siegelense/unowned/instances/inst_7f3a9c21/web-server.log',
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/web-server.log',
             linkPresent: true,
           },
         },
@@ -75,7 +78,7 @@ describe('instanceManifestContract', () => {
       const result = instanceManifestContract.parse(manifest);
 
       expect(result.evidence).toStrictEqual({
-        path: '/repo/.siegelense/unowned/instances/inst_7f3a9c21',
+        path: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21',
         linkPresent: true,
       });
     });
@@ -163,16 +166,16 @@ describe('instanceManifestContract', () => {
           baseUrl: 'http://localhost:34173',
           home: '/tmp/dm-siege-inst_7f3a9c21',
           evidence: {
-            path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21',
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
             linkPresent: true,
           },
           logs: {
             api: {
-              path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/api-server.log',
+              path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/api-server.log',
               linkPresent: true,
             },
             web: {
-              path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/web-server.log',
+              path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/web-server.log',
               linkPresent: true,
             },
           },

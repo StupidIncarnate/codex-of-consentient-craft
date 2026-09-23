@@ -7,8 +7,8 @@
  *
  * USAGE:
  * throw new ShotDimensionMismatchError({
- *   previousPath: '/repo/.siegelense/.../run_1/step2.png',
- *   currentPath: '/repo/.siegelense/.../run_2/step1.png',
+ *   previousPath: '/repo/.dungeonmaster-assets/siegelense-assets/.../run_1/step2.png',
+ *   currentPath: '/repo/.dungeonmaster-assets/siegelense-assets/.../run_2/step1.png',
  *   previousSize: '1280x720',
  *   currentSize: '1024x768',
  * });

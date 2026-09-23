@@ -3,7 +3,8 @@ import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import { locationsPruneAssetPathsFindBroker } from './locations-prune-asset-paths-find-broker';
 import { locationsPruneAssetPathsFindBrokerProxy } from './locations-prune-asset-paths-find-broker.proxy';
 
-const EVIDENCE_DIR = '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21';
+const EVIDENCE_DIR =
+  '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21';
 
 describe('locationsPruneAssetPathsFindBroker', () => {
   describe('instance-level asset resolution', () => {
@@ -34,12 +35,14 @@ describe('locationsPruneAssetPathsFindBroker', () => {
     it('VALID: {an unowned evidencePath} => the same set under the unowned partition, so no branch of prune is guild-only', () => {
       locationsPruneAssetPathsFindBrokerProxy();
       const evidencePath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/unowned/instances/inst_9b2c0001',
+        value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_9b2c0001',
       });
 
       const result = locationsPruneAssetPathsFindBroker({ evidencePath });
 
-      expect(result.runsDir).toBe('/repo/.siegelense/unowned/instances/inst_9b2c0001/runs');
+      expect(result.runsDir).toBe(
+        '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_9b2c0001/runs',
+      );
     });
   });
 });

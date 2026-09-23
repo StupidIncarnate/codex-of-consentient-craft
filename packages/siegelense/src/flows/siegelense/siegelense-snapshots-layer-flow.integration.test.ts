@@ -6,7 +6,7 @@
  * alone answers `killed`/`pruned`/`unknown`, but a POPULATED answer needs real captures on disk: a
  * snapshot store lives inside the instance's THROWAWAY HOME
  * (`locationsInstanceHomePathFindBroker`'s own header — under `os.tmpdir()`, never
- * `<repoRoot>/.siegelense`), which `flows/` cannot reach through a broker or a `.proxy.ts`
+ * `<repoRoot>/.dungeonmaster-assets/siegelense-assets`), which `flows/` cannot reach through a broker or a `.proxy.ts`
  * (`enforce-import-dependencies`, `enforce-test-proxy-imports`), and this file cannot reach through
  * `fs`/`os`/`path` either (the pre-edit lint hook refuses those in a test scenario file, integration
  * tests included). `snapshotStoreHarness` (`test/harnesses/snapshot-store/`) is the door through: it

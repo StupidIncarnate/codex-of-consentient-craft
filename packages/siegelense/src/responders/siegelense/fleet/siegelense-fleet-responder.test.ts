@@ -53,7 +53,7 @@ describe('SiegelenseFleetResponder', () => {
           '│ inst_0ac4219441534a54872b9c3a478d99d8 │ killed │ dungeonmaster-stack │ 33107/34781 │ 13h       │\n' +
           '│ inst_46d7275f6223479b9d6933ba5b8f0381 │ killed │ dungeonmaster-stack │ 33683/42907 │ -         │\n' +
           '└───────────────────────────────────────┴────────┴─────────────────────┴─────────────┴───────────┘\n',
-        '\nevidence: <repoRoot>/.siegelense/{unowned|guilds/<guildId>}/instances/<id>/\n',
+        '\nevidence: <repoRoot>/.dungeonmaster-assets/siegelense-assets/{unowned|guilds/<guildId>}/instances/<id>/\n',
         '\n2 killed — tombstones, not leaks: no process, no port, no memory. The row and its evidence\n' +
           'are kept so `results` and `status` still answer for a dead instance, which is the normal\n' +
           'case for anyone reading a run that broke. No built call removes them; that is `prune`.\n',
@@ -94,7 +94,7 @@ describe('SiegelenseFleetResponder', () => {
           '│ inst_7f3a9c21 │ alive │ dungeonmaster-stack │ 34172/34173 │ 9h        │\n' +
           '│ inst_00000000 │ dead  │ dungeonmaster-api   │ 34180/34181 │ -         │\n' +
           '└───────────────┴───────┴─────────────────────┴─────────────┴───────────┘\n',
-        '\nevidence: <repoRoot>/.siegelense/{unowned|guilds/<guildId>}/instances/<id>/\n',
+        '\nevidence: <repoRoot>/.dungeonmaster-assets/siegelense-assets/{unowned|guilds/<guildId>}/instances/<id>/\n',
       ]);
     });
   });

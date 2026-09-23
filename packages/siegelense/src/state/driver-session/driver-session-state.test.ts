@@ -167,7 +167,8 @@ describe('driverSessionState', () => {
       const proxy = driverSessionStateProxy();
       proxy.setupEmpty();
       const path = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2/step4.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step4.png',
       });
 
       driverSessionState.setLastShotPath({ path });
@@ -208,7 +209,8 @@ describe('driverSessionState', () => {
       });
       driverSessionState.setLastShotPath({
         path: AbsoluteFilePathStub({
-          value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2/step4.png',
+          value:
+            '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step4.png',
         }),
       });
 

@@ -11,7 +11,8 @@ export const ShotListingStub = ({ ...props }: StubArgument<ShotListing> = {}): S
   shotListingContract.parse({
     step: StepIndexStub({ value: 1 }),
     path: AbsoluteFilePathStub({
-      value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2/step1.png',
+      value:
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step1.png',
     }),
     open: true,
     why: ShotOpenReasonStub({ value: 'start' }),

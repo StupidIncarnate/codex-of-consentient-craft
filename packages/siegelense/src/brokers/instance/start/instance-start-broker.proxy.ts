@@ -18,6 +18,7 @@ import {
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
 import type { FilePath, NetworkPort, TimeoutMs } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { capacityReadBroker } from '../../capacity/read/capacity-read-broker';
 import { capacityReadBrokerProxy } from '../../capacity/read/capacity-read-broker.proxy';
@@ -72,7 +73,15 @@ const REGISTRY_LOCK_PATH_VALUE = `${ROOT_PATH_VALUE}/registry.lock`;
 const BOOT_LOCK_PATH_VALUE = `${ROOT_PATH_VALUE}/boot.lock`;
 const CWD_PATH_VALUE = '/default/cwd';
 const CONFIG_FILE_PATH_VALUE = `${CWD_PATH_VALUE}/.dungeonmaster.json`;
-const LINK_PATH_VALUE = `${CWD_PATH_VALUE}/.siegelense`;
+// Built from locationsStatics rather than a re-hardcoded literal, so this constant tracks
+// locationsRepoLinkPathFindBroker's own linkPath composition instead of drifting the moment the
+// nesting under repoRoot changes again. Plain string interpolation, NOT the real `join` adapter
+// call every other path below uses: `join` (imported at the top of this file from 'path') is one
+// of the functions `registerMock` governs, so calling it here at MODULE scope — before any proxy
+// in this file has run its constructor and staged the real-passthrough default — hits the
+// unconfigured mock and resolves to `undefined`, exactly as `join()` would if called at module
+// scope anywhere else in this file. `locationsStatics` itself is a plain object, never mocked.
+const LINK_PATH_VALUE = `${CWD_PATH_VALUE}/${locationsStatics.repoRoot.dungeonmasterAssets}/${locationsStatics.repoRoot.siegelenseLink}`;
 const TMP_DIR_VALUE = '/tmp';
 // cliPackageBinResolveAdapter resolves @dungeonmaster/cli's package root through a REAL
 // require.resolve() call (never mocked — see cliPackageBinResolveAdapterProxy's own comment).
@@ -280,6 +289,14 @@ export const instanceStartBrokerProxy = (): {
     registry: Registry;
     idleTimeoutMs?: TimeoutMs;
   }): void => {
+    // dungeonmasterHomeFindBroker checks DUNGEONMASTER_HOME before falling back to os.homedir() —
+    // cleared explicitly here (the instanceKillBrokerProxy.setupRegistry pattern), rather than
+    // relying on bootLockAcquireBrokerProxy's own constructor incidentally clearing it via the
+    // dungeonmasterHomeFindBrokerProxy it composes: that clear is a side effect of an unrelated
+    // proxy's setup, not a guarantee this file controls, and jest's own global setup stamps a real
+    // tmp path here that would otherwise win.
+    Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+
     // Drains the onceFor entries boot-lock-acquire-broker.proxy.ts and
     // boot-lock-release-broker.proxy.ts queued unconditionally at construction time (see the note
     // on PATH_JOIN_DRAIN_COUNT above) — done here rather than in the constructor because this

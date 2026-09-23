@@ -9,7 +9,7 @@
  *
  * USAGE:
  * await bootFailureMarkerWriteBroker({
- *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.siegelense/unowned/instances/inst_1' }),
+ *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1' }),
  *   message: ContentTextStub({ value: 'CLAUDE_CLI_PATH is required' }),
  * });
  * // Writes boot-failure.json under that directory and returns the written BootFailureMarker

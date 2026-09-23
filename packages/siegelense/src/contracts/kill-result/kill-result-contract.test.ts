@@ -10,7 +10,7 @@ describe('killResultContract', () => {
         portsReleased: [34_172, 34_173],
         homeRemoved: true,
         evidenceKept: {
-          path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21',
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
           linkPresent: true,
         },
         reapedPgids: [],
@@ -24,7 +24,7 @@ describe('killResultContract', () => {
         portsReleased: [34_172, 34_173],
         homeRemoved: true,
         evidenceKept: {
-          path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21',
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
           linkPresent: true,
         },
         reapedPgids: [],
@@ -75,7 +75,7 @@ describe('killResultContract', () => {
           portsReleased: [34_172, 34_173],
           homeRemoved: true,
           evidenceKept: {
-            path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21',
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
             linkPresent: true,
           },
           reapedPgids: [],

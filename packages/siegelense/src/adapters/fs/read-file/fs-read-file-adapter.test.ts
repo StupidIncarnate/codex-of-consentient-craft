@@ -49,7 +49,8 @@ describe('fsReadFileAdapter', () => {
     it("VALID: {encoding: 'latin1'} => calls readFile with 'latin1' rather than the utf8 default", async () => {
       const proxy = fsReadFileAdapterProxy();
       const filePath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
       });
       proxy.resolves({ filePath, content: FileContentsStub({ value: 'raw-bytes' }) });
 

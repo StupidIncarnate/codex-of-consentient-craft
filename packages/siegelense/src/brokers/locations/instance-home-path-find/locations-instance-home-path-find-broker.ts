@@ -4,7 +4,7 @@
  * placeholder), and the one `laneTeardownBroker` removes on `kill`. Lives under the OS scratch
  * directory rather than the siegelense root, mirroring `locationsSocketPathFindBroker` — this is
  * state a live lane owns for its own run, never evidence, so it has no business under
- * `<repoRoot>/.siegelense` where a reader's `Read` would go looking for something durable.
+ * `<repoRoot>/.dungeonmaster-assets/siegelense-assets` where a reader's `Read` would go looking for something durable.
  *
  * USAGE:
  * locationsInstanceHomePathFindBroker({ instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }) });

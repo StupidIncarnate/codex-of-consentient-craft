@@ -1,12 +1,12 @@
 /**
  * PURPOSE: Resolves the real, symlink-chain-followed target of a path — the only way to tell WHAT
- * `<repoRoot>/.siegelense` points at, since `existsSync`/`access` only answer whether something
+ * `<repoRoot>/.dungeonmaster-assets/siegelense-assets` points at, since `existsSync`/`access` only answer whether something
  * resolves there, never its identity. No shared adapter wraps `fs.realpath` yet, so this one is
  * local to siegelense; `locationsRepoLinkPathFindBroker` is its one caller, distinguishing a link
  * onto this machine's siegelense root from a link left over onto a different one.
  *
  * USAGE:
- * await fsRealpathAdapter({ filePath: FilePathStub({ value: '/repo/.siegelense' }) });
+ * await fsRealpathAdapter({ filePath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }) });
  * // Returns AbsoluteFilePath — the resolved target, e.g. '/home/user/.dungeonmaster/siegelense'
  */
 

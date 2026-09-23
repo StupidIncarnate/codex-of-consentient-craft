@@ -8,10 +8,12 @@ import { runMissingCheckLayerBrokerProxy } from './run-missing-check-layer-broke
 const INSTANCE_ID = InstanceIdStub();
 const RUN_ID = RunIdStub({ value: 'run_999' });
 const STORED_RETURN_PATH = AbsoluteFilePathStub({
-  value: '/repo/.siegelense/unowned/instances/inst_7f3a9c21/runs/run_999.json',
+  value:
+    '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/runs/run_999.json',
 });
 const TRANSCRIPT_PATH = AbsoluteFilePathStub({
-  value: '/repo/.siegelense/unowned/instances/inst_7f3a9c21/runs/run_999.jsonl',
+  value:
+    '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/runs/run_999.jsonl',
 });
 
 describe('runMissingCheckLayerBroker', () => {

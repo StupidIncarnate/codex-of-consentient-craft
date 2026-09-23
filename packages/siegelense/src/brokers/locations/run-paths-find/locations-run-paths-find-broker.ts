@@ -9,13 +9,13 @@
  *
  * USAGE:
  * locationsRunPathsFindBroker({
- *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.siegelense/guilds/g1/instances/inst_1' }),
+ *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1' }),
  *   runId: RunIdStub({ value: 'run_2' }),
  * });
  * // Returns {
- * //   transcript: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2.jsonl',
- * //   storedReturn: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2.json',
- * //   shotsDir: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2',
+ * //   transcript: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2.jsonl',
+ * //   storedReturn: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2.json',
+ * //   shotsDir: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2',
  * // }
  */
 
