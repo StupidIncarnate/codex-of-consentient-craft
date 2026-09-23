@@ -1,15 +1,13 @@
 /**
- * PURPOSE: `transcriptResolveBroker` always resolves against the REAL `os.homedir()` — deliberately,
- * so a forensic read never depends on `DUNGEONMASTER_HOME` — and Node's own `os.homedir()` cannot be
- * redirected from inside a running jest process (`process.env.HOME` never reaches the environ libuv
- * already read; see `packages/testing/src/jest.setup-home.js`'s header for the measurement). A flow
- * integration test therefore cannot mock its way to a populated transcript the way a broker's own
- * unit test does — it has to write one under the real `~/.claude/projects/`, in a uniquely-named
- * project directory nothing else will ever read, and delete that directory again once the test has
- * read what it wrote. This harness is the one place that does it.
+ * PURPOSE: `transcriptResolveBroker` walks every project directory under the same Claude projects
+ * root every production reader resolves — `locationsClaudeProjectsRootFindBroker()` — so a flow
+ * integration test cannot mock its way to a populated transcript the way a broker's own unit test
+ * does. It has to write one under that real resolved root, in a uniquely-named project directory
+ * nothing else will ever read, and delete that directory again once the test has read what it
+ * wrote. This harness is the one place that does it.
  *
  * USAGE:
- * const harness = realTranscriptHarness(); // created at describe scope
+ * const harness = claudeTranscriptHarness(); // created at describe scope
  * await harness.writeSession({
  *   sessionId: SessionIdStub({ value: 'abc-123' }),
  *   content: ContentTextStub({ value: '{"type":"assistant"}' }),
@@ -20,9 +18,9 @@
  * // no test calls it directly
  */
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { join } from 'node:path';
 
+import { locationsClaudeProjectsRootFindBroker } from '@dungeonmaster/shared/brokers';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type {
   SessionIdStub,
@@ -40,7 +38,7 @@ const SUBAGENTS_DIR_NAME = 'subagents';
 const META_SUFFIX = '.meta.json';
 const JSONL_SUFFIX = '.jsonl';
 
-export const realTranscriptHarness = (): {
+export const claudeTranscriptHarness = (): {
   writeSession: (params: {
     sessionId: SessionId;
     content: ContentText;
@@ -65,9 +63,7 @@ export const realTranscriptHarness = (): {
     }): Promise<void> => {
       const projectDir = absoluteFilePathContract.parse(
         join(
-          homedir(),
-          '.claude',
-          'projects',
+          locationsClaudeProjectsRootFindBroker(),
           `${PROJECT_DIR_PREFIX}${String(process.pid)}-${String(Date.now())}-${Math.random().toString(36).slice(2)}`,
         ),
       );
@@ -82,7 +78,7 @@ export const realTranscriptHarness = (): {
             join(subagentsDir, `${agentId}${META_SUFFIX}`),
             JSON.stringify({
               agentType: 'general-purpose',
-              description: 'real-transcript harness fixture',
+              description: 'claude-transcript harness fixture',
               toolUseId: `toolu_${agentId}`,
               spawnDepth: 1,
             }),

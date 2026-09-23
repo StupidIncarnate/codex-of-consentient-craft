@@ -26,11 +26,11 @@
  * await session.close();
  */
 
-import * as os from 'os';
 import * as path from 'path';
 
 import { chromium } from '@playwright/test';
 import { z } from 'zod';
+import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
@@ -142,7 +142,11 @@ export const playwrightSessionAdapter = async ({
   baseUrl: string;
   evidencePath: AbsoluteFilePath;
 }): Promise<BrowserSession> => {
-  process.env.PLAYWRIGHT_BROWSERS_PATH ??= path.join(os.homedir(), '.cache', 'ms-playwright');
+  process.env.PLAYWRIGHT_BROWSERS_PATH ??= path.join(
+    osUserHomedirAdapter(),
+    '.cache',
+    'ms-playwright',
+  );
 
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({

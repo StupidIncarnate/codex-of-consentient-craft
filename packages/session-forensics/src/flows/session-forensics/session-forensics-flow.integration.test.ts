@@ -17,7 +17,7 @@ import {
 
 import { SessionForensicsFlow } from './session-forensics-flow';
 import { TranscriptRecordStub } from '../../contracts/transcript-record/transcript-record.stub';
-import { realTranscriptHarness } from '../../../test/harnesses/real-transcript/real-transcript.harness';
+import { claudeTranscriptHarness } from '../../../test/harnesses/claude-transcript/claude-transcript.harness';
 
 const USAGE_BLOCK_TEXT = [
   'usage: session-forensics <command> <target>',
@@ -32,7 +32,7 @@ const USAGE_BLOCK_TEXT = [
 
 describe('SessionForensicsFlow', () => {
   describe('valid commands', () => {
-    const harness = realTranscriptHarness();
+    const harness = claudeTranscriptHarness();
 
     it('VALID: {argv: [summary, target resolving to no transcript]} => routes to DigestRunResponder and returns the no-transcript render', () => {
       const target = SessionIdStub({ value: 'session-forensics-flow-summary-ghost' });
@@ -211,7 +211,7 @@ describe('SessionForensicsFlow', () => {
   });
 
   describe('CLI flags', () => {
-    const harness = realTranscriptHarness();
+    const harness = claudeTranscriptHarness();
 
     it('VALID: {argv: [buckets, target, --minutes, 5]} => a 10-minute gap between real records splits into two 5-minute buckets', async () => {
       const target = SessionIdStub({ value: 'session-flow-buckets-minutes-flag' });
