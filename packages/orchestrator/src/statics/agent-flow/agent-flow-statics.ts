@@ -246,7 +246,7 @@ export const agentFlowStatics = {
         // A lane IS a siegelense instance. How many may run at once is measured, not
         // declared, and the ROUTER starts and stops them. Both walkers draw on the one pool.
         needsLane: true,
-        routes: { done: 'adversarial', unmet: 'fixHappy', wall: '@blocked' },
+        routes: { done: 'adversarial', empty: 'adversarial', unmet: 'fixHappy', wall: '@blocked' },
       },
       // No `done` route — mark-minted, so `done` returns to the walker that minted it.
       fixHappy: {
@@ -264,7 +264,7 @@ export const agentFlowStatics = {
         model: 'sonnet',
         maxVisits: 40,
         needsLane: true,
-        routes: { done: 'commit', unmet: 'fixAdversarial', wall: '@blocked' },
+        routes: { done: 'commit', empty: 'commit', unmet: 'fixAdversarial', wall: '@blocked' },
       },
       fixAdversarial: {
         role: 'worker',

@@ -1367,10 +1367,10 @@ describe('siegemaster', () => {
     }, 30_000);
   });
 
-  describe('FINDING — happyWalk declares no `empty` route, unlike its `plan` counterpart', () => {
-    it("ERROR: {a `happyWalk` item is assigned no units and drains empty} => the router folds it to `empty`, finds no route for it AND no `mintedBy` to return to, and BLOCKS the quest with reason `no-minter` — `plan`'s own `empty` route sends the identical case to `sweepOut` instead, so an all-off-map or zero-unit happyWalk pass has no forward path at all", async () => {
+  describe('happyWalk — empty mints adversarial, like done', () => {
+    it("VALID: {a `happyWalk` item is assigned no units and drains empty} => mints `adversarial` — a happy path with nothing to walk still gets attacked, the same forward edge `plan`'s `empty` takes to `sweepOut`", async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'rsb-sm-happywalk-empty-gap' }),
+        baseName: BaseNameStub({ value: 'rsb-sm-happywalk-empty' }),
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
@@ -1397,7 +1397,7 @@ describe('siegemaster', () => {
 
       const result = await questRouteScopeBroker({ questId });
       const after = await quest.reload({ questId });
-      const item = after.workItems.find((workItem) => workItem.id === happyWalkItemId);
+      const minted = after.workItems.find((workItem) => workItem.id !== happyWalkItemId);
 
       await quest.afterEach();
       testbed.cleanup();
@@ -1405,17 +1405,15 @@ describe('siegemaster', () => {
       expect({
         result,
         questStatus: after.status,
-        itemStatus: item?.status,
-        itemErrorMessage: item?.errorMessage,
+        mintedStep: minted?.step,
+        mintedRole: minted?.role,
+        mintedAssignedUnitIds: minted?.assignedUnitIds.map(String).sort(),
       }).toStrictEqual({
-        result: { routed: false, blocked: true },
-        questStatus: 'blocked',
-        itemStatus: 'failed',
-        itemErrorMessage:
-          'step `happyWalk` in family `siegemaster` folded to `empty`, which it declares no route ' +
-          'for, and the work item that recorded it names no minter to return to. An undeclared ' +
-          'outcome returns to whoever minted the step; with neither a route nor a minter the scope ' +
-          'has nowhere to go.',
+        result: { routed: true, blocked: false },
+        questStatus: 'in_progress',
+        mintedStep: 'adversarial',
+        mintedRole: 'siegemaster',
+        mintedAssignedUnitIds: [...OFF_MAP_UNITS].sort(),
       });
     }, 30_000);
   });

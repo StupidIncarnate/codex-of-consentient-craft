@@ -319,7 +319,7 @@ describe('nextActionTransformer', () => {
       // The walked count rides along so the sweep cannot pass by walking nothing. It moves with
       // the graph, exactly as `agent-flow-statics.test.ts`'s own full-value pin does.
       expect({ walked: ALL_ROUTES.length, unresolved: UNRESOLVED_ROUTES }).toStrictEqual({
-        walked: 89,
+        walked: 91,
         unresolved: [],
       });
     });
