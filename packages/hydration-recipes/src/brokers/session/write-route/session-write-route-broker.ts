@@ -5,8 +5,11 @@
  * broker.
  *
  * Reach for `target.claudeHome`, never `os.homedir()`: `claudePathSlugEncoderTransformer`
- * resolves against whatever home it is handed, and a route reading the real one would write a
- * transcript into the developer's own `~/.claude` during `npm run ward`.
+ * resolves against whatever home it is handed, and this route runs against whatever `DmTarget` its
+ * caller builds, not the ambient process environment — a jest run's own `HOME` sandbox
+ * (`jest.setup-global.js`, assigned once for the whole run) is a single value shared by every
+ * worker and every test file, not one scoped per target, so reading it directly here would silently
+ * ignore a test's own `claudeHome` and write wherever that shared sandbox points instead.
  *
  * USAGE:
  * await sessionWriteRouteBroker({ target, fields: { sessionId, cwd, lines } });

@@ -87,6 +87,25 @@ Playwright config bootstraps an isolated environment so tests never touch real u
 Guild working directories (e.g. `/tmp/dm-e2e-quest-approve/`) are created by individual tests via `mkdirSync` and must
 exist on disk because the server spawns the fake CLI with `cwd: guildPath`.
 
+### The jest side: `unit`/`integration` runs get the same isolation a different way
+
+`packages/testing/src/jest.setup-global.js` is a Jest `globalSetup` — it runs once, in Jest's own parent process,
+before any worker forks, and assigns a sandboxed `HOME` there. That timing is the whole point: a worker inherits
+`process.env` from the OS process that spawned it, so a `HOME` assigned here reaches the real environ every worker's
+`os.homedir()` reads, and — because a spawned child inherits its parent's environment too — every process a test
+spawns (a fake Claude CLI, a real `git`). A `setupFiles` entry (`jest.setup-home.js`, run per test FILE inside an
+already-forked worker) cannot do this: jest hands each test file a copied `process.env` proxy, so an assignment made
+there never reaches the real environ libuv already read when the worker started — that sandbox stays scoped to
+`DUNGEONMASTER_HOME` alone.
+
+`jest.setup-global.js` also writes a throwaway `.gitconfig` into the sandbox (`user.name`, `user.email`,
+`init.defaultBranch = main`, signing off) and sets `XDG_CONFIG_HOME`, `XDG_CACHE_HOME` and `GIT_CONFIG_NOSYSTEM=1`,
+so a fixture's `git commit` never depends on the operator's own global git identity. It pins `PLAYWRIGHT_BROWSERS_PATH`
+at the real browser cache first, so the sandboxed `HOME` never looks like a reason to download a fresh Chromium.
+`jest.setup-global-teardown.js` is the counterpart: it fails the whole run if a new directory appears under the
+developer's REAL `~/.claude/projects` — the one guard left for code the lint rule `ban-bare-os-home-tmp` can't see,
+since the fake CLI has no file extension and `jest.setup*.js` is itself lint-ignored.
+
 ## Claude CLI Mock
 
 `packages/web/test/harnesses/claude-mock/` provides the fake `claude` CLI.

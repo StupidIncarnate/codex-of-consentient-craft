@@ -4,8 +4,11 @@
  * this shape; reach for it over inventing a target inline so a caller with no `baseUrl` (a Jest
  * integration test against a temp dir) can still run every ingredient that declares a `write`
  * route. `claudeHome` exists as its own field rather than being derived from `os.homedir()`
- * because nothing sets `HOME` for a Jest run, and a route that read the real one would write a
- * transcript into the developer's own `~/.claude` during `npm run ward`.
+ * because a route runs against whatever `DmTarget` its caller builds, not against the ambient
+ * process environment — a jest run's own `HOME` sandbox (`jest.setup-global.js`, assigned once for
+ * the whole run) is a single value shared by every worker and every test file, not one scoped per
+ * target, so a route that read it directly would silently ignore a test's own `claudeHome` and read
+ * whatever that shared sandbox holds instead of the target the test actually built.
  *
  * USAGE:
  * dmTargetContract.parse({ home: '/tmp/guild-1', claudeHome: '/tmp/guild-1' });

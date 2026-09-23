@@ -16,12 +16,14 @@ describe('RateLimitsFlow', () => {
     // process on the machine writes its own ledger through.
     //
     // beforeAll is what keeps the COST off a test. Serving this route walks every Claude transcript
-    // under the OS user home, which is the one thing a jest test cannot isolate — `os.homedir()`
-    // reads the real environ through libuv, and jest hands the test a COPY of `process.env`, so
-    // assigning HOME here looks like it worked and changes nothing. That walk is the suite's price
-    // of admission, paid once; jest brackets `beforeEach` inside a test's measured window and
-    // leaves `beforeAll` outside it, so charging it to whichever test happened to run first
-    // reported a machine-wide disk walk as a slow test.
+    // under `os.homedir()`. `jest.setup-global.js`'s `globalSetup` sandboxes `HOME` for the whole
+    // run, once, before any worker forks, so that walk reads the run's own sandbox rather than a
+    // real developer's transcript tree — but it is still a real disk walk, over whatever OTHER
+    // tests in this same run have already written there (every worker shares the one sandbox). Doing
+    // it once, in `beforeAll`, rather than once per `it`, is what keeps that walk off any single
+    // test's own measured window; jest brackets `beforeEach` inside a test's window and leaves
+    // `beforeAll` outside it, so paying the walk per-`it` would report shared setup cost as though it
+    // belonged to whichever test happened to run first.
     let firstResponse: Response | undefined;
     let secondResponse: Response | undefined;
     let firstBody: unknown;

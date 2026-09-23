@@ -178,8 +178,12 @@ The server uses two different homedir adapters for two distinct storage location
 
 | Data | Adapter | Resolves to | Why |
 |---|---|---|---|
-| Session JSONL files | `osUserHomedirAdapter` | Real `~/.claude/` (the OS user homedir) | Claude CLI writes session files here. It has no env var to redirect this path, so we must read from the real homedir. |
+| Session JSONL files | `osUserHomedirAdapter` | `os.homedir()` — Claude CLI's own `~/.claude/` | Claude CLI writes session files under whatever `HOME` names. We read the same value rather than tracking a second, dungeonmaster-controlled path for it. |
 | Dungeonmaster data (guilds, quests) | `osHomedirAdapter` | `DUNGEONMASTER_HOME` verbatim if set, else `os.homedir() + '/.dungeonmaster'` | We control this path. In dev/prod scripts and E2E tests, `DUNGEONMASTER_HOME` isolates dungeonmaster data per scenario. |
 
 In E2E tests, `HOME` is set to the test directory so that `os.homedir()` (used by `osUserHomedirAdapter`) resolves to
-the same isolated temp dir. This way the fake Claude CLI writes session files where the server expects to find them.
+the same isolated temp dir, and the fake Claude CLI writes session files where the server expects to find them. Jest's
+own `unit`/`integration` runs get the same isolation a different way: `packages/testing/src/jest.setup-global.js`'s
+`globalSetup` assigns a sandboxed `HOME` once, in Jest's own parent process, before any worker forks — the only point
+in a jest run where assigning it actually redirects `os.homedir()` for every worker and every process a test spawns
+(a fake Claude CLI, a real `git`).

@@ -263,11 +263,13 @@ export const serverAppHarness = (): {
     process.env.DUNGEONMASTER_HOME = tempDir;
     mkdirSync(tempDir, { recursive: true });
     writeFileSync(join(tempDir, 'config.json'), JSON.stringify({ guilds: [] }));
-    // A ledger stamped NOW, so usageLedgerScanBroker takes its throttle path instead of walking the
-    // developer's own ~/.claude/projects. `packages/testing/src/jest.setup-home.js` carries the full
-    // reasoning and seeds the same pair into the process-wide sandbox home; every harness that
-    // re-points DUNGEONMASTER_HOME at a fresh directory owes it again, because a new directory has
-    // no ledger and the default one is stamped at the epoch.
+    // A ledger stamped NOW, so usageLedgerScanBroker takes its throttle path instead of walking
+    // `~/.claude/projects`. That path is now a run-wide jest sandbox (`jest.setup-global.js`), not
+    // the developer's own, but the sandbox is SHARED across every worker and every test file in the
+    // run — an unthrottled walk here would pick up transcripts other tests' fake Claude CLIs already
+    // wrote into it. A fresh ledger has no `updatedAt` at all and the default resolves that to the
+    // epoch, which reads as a measurement due, so every harness that re-points DUNGEONMASTER_HOME at
+    // a brand-new directory owes this same stamp again.
     writeFileSync(
       join(tempDir, 'usage-ledger.json'),
       JSON.stringify({

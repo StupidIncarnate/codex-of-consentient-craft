@@ -312,11 +312,14 @@ export const rateLimitsWatcherHarness = (): {
       fs.writeFileSync(path.join(tempDir, GUILD_CONFIG_FILENAME), JSON.stringify({ guilds: [] }));
 
       // A ledger stamped NOW, so usageLedgerScanBroker takes its throttle path and returns what is
-      // on disk. Without this the default ledger is stamped at the epoch, every guardrail pass
-      // reads that as a measurement due, and the scan walks the DEVELOPER'S OWN ~/.claude/projects
-      // — minutes of wall clock, and a reading no test wrote. `os.homedir()` cannot be redirected
-      // from inside jest (its `process.env` is a copied object, so assigning HOME never reaches the
-      // real environ libuv reads), so a fresh ledger is what keeps that tree out of the run.
+      // on disk, deliberately, rather than a fresh walk: this test drives the watcher across many
+      // poll cycles (POLL_INTERVAL_MS = 25ms) and then calls `seedLedger` to push it through
+      // specific window/ceiling states, so the baseline has to be a KNOWN, just-written ledger, not
+      // whatever an unthrottled walk of `~/.claude/projects` happens to compute. That path is a
+      // run-wide jest sandbox (`jest.setup-global.js` assigns `HOME` once, before any worker forks)
+      // shared across every worker and test file in the run, so an unthrottled walk here would also
+      // pick up transcripts other tests' fake Claude CLIs wrote into it, not just spend time reading
+      // them — either way, not the deterministic state this harness's own callers need.
       fs.writeFileSync(
         path.join(tempDir, USAGE_LEDGER_FILENAME),
         JSON.stringify({

@@ -43,8 +43,10 @@ const USAGE_LEDGER_FILENAME = 'usage-ledger.json';
 // Both files a dungeonmaster home needs before anything reads it. The ledger stamped NOW is what
 // makes usageLedgerScanBroker take its throttle path — a fresh directory has none, the default one
 // is stamped at the epoch, and every guardrail pass then reads that as a measurement due and walks
-// the developer's own ~/.claude/projects. `packages/testing/src/jest.setup-home.js` carries the
-// full reasoning and seeds the same pair into the process-wide sandbox home.
+// `~/.claude/projects`. That path is a run-wide jest sandbox (`jest.setup-global.js`'s `globalSetup`
+// assigns `HOME` once, before any worker forks), shared across every worker and every test file in
+// the run — an unthrottled walk here would pick up transcripts other tests' fake Claude CLIs already
+// wrote into it, not just spend time reading them.
 const seedHomeFiles = ({ homeDir }: { homeDir: GuildPath }): void => {
   fs.mkdirSync(homeDir, { recursive: true });
   fs.writeFileSync(path.join(homeDir, GUILD_CONFIG_FILENAME), JSON.stringify({ guilds: [] }));
