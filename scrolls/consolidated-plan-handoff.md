@@ -257,3 +257,33 @@ The user stopped new dispatches here. These five were in flight; each landed and
   Also found: tests in `agent-prompt-get-broker.test.ts` and `agent-prompt-flow.integration.test.ts` named for the
   "operation-context relay path" build a work item with no `step`, so they exercise the MINION branch instead.
   Their titles mislead.
+
+## Finish — the session that closed the plan
+
+**Before:** the four run-alone units, the rebuild, the owed e2e, the full ward and two scope questions were open.
+**After:** all done, and the branch merged into `master`. The full `npm run ward` exited 0 on run `1790147432370-058a`: lint, typecheck, unit and integration across every package, and 132 e2e specs.
+
+### Owner decisions from that session
+
+1. **`verifyByHuman` and siegelense video are separate features.** A human check is a person looking after the quest. Video is an on-request siegelense step. The screencast hold, the `unjudged-screencast` citation kind and the "no recording" line are deleted.
+2. **The passive screencast release question is closed.** The hold it released no longer exists.
+3. **The legacy pt-N path is removed.**
+   - What goes: the `run-ward` and `run-riftcarver` MCP tools, their NextStep variants, their brokers, responders and exports, `operationStatus`, the `partial` signal, `operation-pt-chain-transformer`, and the per-role slot budgets.
+   - What remains: decision D1, made by the operator. A step-less agent scope, which only the e2e dispatch harness and the smoketest catalog seed, completes its linked operation and advances. A step-less command item is filtered out of readiness.
+
+### Also landed
+
+- **Ward typecheck.** A file- or directory-scoped typecheck fails on an error anywhere in the touched package. The errors outside the named paths are listed under their own heading. The trap "A file-scoped ward run can report typecheck PASS on a broken package" no longer holds.
+- **Siegelense install.** It removes a pre-upgrade flat `.siegelense` symlink, but only when that path is a symlink.
+- **The hooks stop message** no longer asks agents for `operationStatus`, which the signal-back contracts reject.
+- **Track 2** is complete, including T2-9a and T2-9b.
+- **Known gaps closed:** U6, U8, U9, U10 and U11.
+
+### Left for a later session
+
+- `nextActionTransformer` typing against `routedGraphContract`. Skipped: consistency only.
+- The `attach({id})` hydration verb. Deferred, because quest-completed no longer needs it.
+- `packages/session-forensics`:
+  - `buckets` and `gaps` take no threshold flags. The transformers accept them, but `digest-run-responder` never forwards them.
+  - There is no command that joins the per-work-item quest index that `/quest-forensics` Step 1 assembles by hand.
+- Generated files in a checkout go stale until `npm run build`, `npm link --workspaces` and `npm run init` run again: `.claude/commands/dumpster-launch.md`, `.agents/plugins/dungeonmaster/rules/AGENTS.md`, and the `run-ward` and `run-riftcarver` grants in `.claude/settings.json`.
