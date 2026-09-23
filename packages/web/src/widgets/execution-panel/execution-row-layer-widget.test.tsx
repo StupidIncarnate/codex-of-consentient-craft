@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event';
 import {
   ContractNameStub,
   ErrorMessageStub,
-  ObservableIdStub,
   RiftcarverResultStub,
   UnitObservationStub,
   WardResultStub,
@@ -1276,8 +1275,8 @@ describe('ExecutionRowLayerWidget', () => {
     });
   });
 
-  describe('observables rendering', () => {
-    it('VALID: {observablesSatisfied with items} => renders observables list', async () => {
+  describe('unit marks readout wiring', () => {
+    it('VALID: {workItem with assigned units} => renders the units-marks readout via the work item, not a separate prop', async () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
@@ -1285,9 +1284,61 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'complete' })}
-            observablesSatisfied={[
-              ObservableIdStub({ value: 'login-redirects' }),
-              ObservableIdStub({ value: 'session-persists' }),
+            workItem={WorkItemStub({
+              assignedUnitIds: ['send-flow:observable:check-badge-count-text'],
+              observations: [UnitObservationStub({ mark: 'met' })],
+            })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      expect(screen.getByTestId('execution-row-unit-marks-summary').textContent).toBe(
+        'Units: 1/1 marked',
+      );
+    });
+
+    it('EMPTY: {workItem: undefined} => does not render the units-marks readout', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      expect(screen.queryByTestId('execution-row-unit-marks')).toBe(null);
+    });
+  });
+
+  describe('scope churn wiring', () => {
+    it('VALID: {scopeWorkItems where a unit was marked twice} => renders the churn sequence', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            scopeWorkItems={[
+              WorkItemStub({
+                id: 'f47ac10b-58cc-4372-a567-0e02b2c3d475',
+                step: 'work',
+                observations: [UnitObservationStub({ mark: 'unmet' })],
+              }),
+              WorkItemStub({
+                id: 'f47ac10b-58cc-4372-a567-0e02b2c3d476',
+                step: 'review',
+                observations: [UnitObservationStub({ mark: 'met' })],
+              }),
             ]}
           />
         ),
@@ -1296,12 +1347,12 @@ describe('ExecutionRowLayerWidget', () => {
       const header = screen.getByTestId('execution-row-header');
       await userEvent.click(header);
 
-      const obsEl = screen.getByTestId('execution-row-observables');
-
-      expect(obsEl.textContent).toBe('Satisfies: login-redirects, session-persists');
+      expect(screen.getByTestId('execution-row-scope-churn-entry').textContent).toBe(
+        'send-flow:observable:check-badge-count-text: unmet (work) → met (review)',
+      );
     });
 
-    it('EMPTY: {empty observablesSatisfied} => does not render observables element', async () => {
+    it('EMPTY: {scopeWorkItems: undefined} => does not render the churn view', async () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
@@ -1309,7 +1360,6 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'complete' })}
-            observablesSatisfied={[]}
           />
         ),
       });
@@ -1317,7 +1367,7 @@ describe('ExecutionRowLayerWidget', () => {
       const header = screen.getByTestId('execution-row-header');
       await userEvent.click(header);
 
-      expect(screen.queryByTestId('execution-row-observables')).toBe(null);
+      expect(screen.queryByTestId('execution-row-scope-churn')).toBe(null);
     });
   });
 

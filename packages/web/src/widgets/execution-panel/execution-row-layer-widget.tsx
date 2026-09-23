@@ -18,7 +18,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type {
   ContractName,
   ErrorMessage,
-  ObservableId,
   QuestId,
   RiftcarverResult,
   WardResult,
@@ -47,6 +46,8 @@ import { runningRowNowTransformer } from '../../transformers/running-row-now/run
 import { stickyHeaderZIndexTransformer } from '../../transformers/sticky-header-z-index/sticky-header-z-index-transformer';
 import { ChatEntryListWidget } from '../chat-entry-list/chat-entry-list-widget';
 import { ExecutionRowMintedByBadgeLayerWidget } from './execution-row-minted-by-badge-layer-widget';
+import { ExecutionRowScopeChurnLayerWidget } from './execution-row-scope-churn-layer-widget';
+import { ExecutionRowUnitMarksLayerWidget } from './execution-row-unit-marks-layer-widget';
 import { ExecutionRowUnmetListLayerWidget } from './execution-row-unmet-list-layer-widget';
 import { RiftcarverResultRowLayerWidget } from './riftcarver-result-row-layer-widget';
 import { StreamingBarLayerWidget } from './streaming-bar-layer-widget';
@@ -73,13 +74,16 @@ export interface ExecutionRowLayerWidgetProps {
   // rather than six flattened WorkItem['x'] properties, so a caller passes the work item it already
   // has instead of picking it apart field by field.
   workItem?: WorkItem;
+  // The scope's own work items, in array order — set ONLY on a scope HEADER row (which carries no
+  // `workItem` of its own), so ExecutionRowScopeChurnLayerWidget can read the churn sequence a
+  // single claimed row's own `workItem` cannot see past. Undefined for every other row.
+  scopeWorkItems?: WorkItem[];
   entries?: ChatEntry[];
   isStreaming?: boolean;
   autoExpand?: boolean;
   // The panel's shared 60-second tick supplies this; it is the end point a RUNNING item's figure
   // measures to, and a finished item ignores it.
   now?: IsoTimestamp;
-  observablesSatisfied?: ObservableId[];
   inputContracts?: ContractName[];
   outputContracts?: ContractName[];
   wardResults?: WardResult[];
@@ -138,11 +142,11 @@ export const ExecutionRowLayerWidget = ({
   mintedByLabel,
   errorMessage,
   workItem,
+  scopeWorkItems,
   entries,
   isStreaming,
   autoExpand,
   now,
-  observablesSatisfied,
   inputContracts,
   outputContracts,
   wardResults,
@@ -443,19 +447,8 @@ export const ExecutionRowLayerWidget = ({
             borderRadius: ROW_MARGIN_BOTTOM,
           }}
         >
-          {observablesSatisfied?.length ? (
-            <Text
-              ff="monospace"
-              data-testid="execution-row-observables"
-              style={{
-                fontSize: EXPANDED_DETAIL_FONT_SIZE,
-                color: colors['text-dim'],
-                marginBottom: EXPANDED_DETAIL_MARGIN_BOTTOM,
-              }}
-            >
-              Satisfies: {observablesSatisfied.join(', ')}
-            </Text>
-          ) : null}
+          <ExecutionRowScopeChurnLayerWidget scopeWorkItems={scopeWorkItems} />
+          <ExecutionRowUnitMarksLayerWidget workItem={workItem} />
           <ExecutionRowUnmetListLayerWidget workItem={workItem} />
           {inputContracts?.length ? (
             <Text
