@@ -71,4 +71,19 @@ describe('executionRowDisplayResolveTransformer', () => {
       });
     });
   });
+
+  describe('a stale quest.json carrying the removed partially_complete status', () => {
+    it('VALID: {status: "partially_complete" (removed from executionStepStatusConfigStatics), role: "codeweaver"} => renders the raw status as its own label, with the neutral fallback colour, instead of crashing', () => {
+      const result = executionRowDisplayResolveTransformer({
+        status: 'partially_complete' as never,
+        role: ExecutionRoleStub({ value: 'codeweaver' }),
+      });
+
+      expect(result).toStrictEqual({
+        statusLabel: 'partially_complete',
+        statusColor: 'text-dim',
+        roleColor: 'primary',
+      });
+    });
+  });
 });

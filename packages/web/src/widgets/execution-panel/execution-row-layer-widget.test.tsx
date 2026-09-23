@@ -260,6 +260,34 @@ describe('ExecutionRowLayerWidget', () => {
         'rgb(138, 114, 96)',
       ]);
     });
+
+    it('VALID: {status: "partially_complete" (a stale quest.json a family that still minted this status wrote, removed from this build)} => renders the raw status as its own label, with the neutral fallback colour, instead of crashing', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status={'partially_complete' as never} />,
+      });
+
+      const badge = screen.getByTestId('execution-row-status-badge');
+
+      expect([badge.textContent, badge.style.color]).toStrictEqual([
+        'partially_complete',
+        'rgb(138, 114, 96)',
+      ]);
+    });
+
+    it('VALID: {status: "partially_complete" (removed from EXPANDABLE_STATUSES), no entries} => clicking the header does not expand the row, same as any other unrecognized status', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status={'partially_complete' as never} />,
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
+    });
   });
 
   describe('ad-hoc tag', () => {

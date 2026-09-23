@@ -90,7 +90,6 @@ export interface ExecutionRowLayerWidgetProps {
 const EXPANDABLE_STATUSES: ExecutionStepStatus[] = [
   'in_progress' as ExecutionStepStatus,
   'complete' as ExecutionStepStatus,
-  'partially_complete' as ExecutionStepStatus,
   'failed' as ExecutionStepStatus,
 ];
 

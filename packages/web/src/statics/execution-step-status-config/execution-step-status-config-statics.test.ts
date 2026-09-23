@@ -33,7 +33,6 @@ describe('executionStepStatusConfigStatics', () => {
         in_progress: { label: 'RUNNING', color: 'primary', symbol: '▶' },
         complete: { label: 'DONE', color: 'success', symbol: '✓' },
         failed: { label: 'FAILED', color: 'danger', symbol: '✗' },
-        partially_complete: { label: 'PARTIAL', color: 'warning', symbol: '◇' },
         blocked: { label: 'BLOCKED', color: 'warning', symbol: '■' },
         skipped: { label: 'SKIPPED', color: 'text-dim', symbol: '⊘' },
       },

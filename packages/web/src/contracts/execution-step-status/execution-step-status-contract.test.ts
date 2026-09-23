@@ -33,12 +33,6 @@ describe('executionStepStatusContract', () => {
       expect(result).toBe('failed');
     });
 
-    it('VALID: {value: "partially_complete"} => parses partially_complete status', () => {
-      const result = executionStepStatusContract.parse('partially_complete');
-
-      expect(result).toBe('partially_complete');
-    });
-
     it('VALID: {value: "blocked"} => parses blocked status', () => {
       const result = executionStepStatusContract.parse('blocked');
 
@@ -59,6 +53,12 @@ describe('executionStepStatusContract', () => {
 
     it('INVALID: {value: 123} => throws for number', () => {
       expect(() => executionStepStatusContract.parse(123)).toThrow(/received number/u);
+    });
+
+    it('INVALID: {value: "partially_complete"} => throws, since the persisted work-item-status enum never produces it and the orchestrator signal contract rejects it', () => {
+      expect(() => executionStepStatusContract.parse('partially_complete')).toThrow(
+        /Invalid enum value/u,
+      );
     });
   });
 
