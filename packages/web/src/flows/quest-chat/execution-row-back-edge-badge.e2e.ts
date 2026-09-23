@@ -22,6 +22,17 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 // `mintedBy` by copying the ORIGINAL gate's `mintedBy` (undefined here, since this scope's ward is
 // the family's own entry step) rather than minting a new edge — so only the repair row, minted
 // directly off the red gate, ever carries a back-edge badge.
+//
+// THE SCRIPT DRIVES PAST THIS SCOPE ON PURPOSE. The dispatcher stays in "playing" mode for the
+// whole `playAndDrive` call, and the codeweaver family draining auto-routes onward through the
+// family graph (questFlowStatics: riftcarver -> codeweaver -> flowrider -> siegemaster -> wardFull
+// -> @complete, the same chain `dispatch-survives-unparseable-quest-file.e2e.ts` drives) with no
+// pause in between — server-side, the whole cascade resolves faster than an HTTP poll can ever
+// catch the ledger sitting at exactly the codeweaver scope's three items, so there is no clean
+// stopping point to wait for. Rather than race that, the script also answers every family the
+// router mints behind codeweaver, so the relay runs to a real, race-free
+// `quest.status === 'complete'`. Every assertion below is still scoped BY NAME to the codeweaver
+// scope's own rows, so the rows those later families add are irrelevant to what this spec checks.
 test.describe('Execution row back-edge badge: codeweaver ward red -> repair -> fresh ward', () => {
   // The full relay (a real in-process ward run for the deterministic step, plus a fake-CLI child
   // for the repair) plus the deadline-bounded poll runs past the 10s default per-test budget.
@@ -92,12 +103,18 @@ test.describe('Execution row back-edge badge: codeweaver ward red -> repair -> f
     // FIFO maps outcomes to dispatches: `ward` (a deterministic step, so it runs through the ward
     // mock) -> red, routing `unmet` to `repair`; `repair` (a `spiritmender` worker, an agent
     // dispatch) -> done, returning to a FRESH `ward`; that fresh `ward` -> green, completing the
-    // scope.
+    // codeweaver scope. The cascade then continues on its own, one outcome per family the router
+    // mints behind codeweaver (the same shape `dispatch-survives-unparseable-quest-file.e2e.ts`
+    // drives): `flowrider` -> done, `siegemaster` -> done, the wardFull family's own `gate` -> green,
+    // completing the quest.
     await dispatch.playAndDrive({
       questId: String(questId),
       script: [
         { role: 'ward', outcome: 'red' },
         { role: 'spiritmender', outcome: 'done' },
+        { role: 'ward', outcome: 'green' },
+        { role: 'flowrider', outcome: 'done' },
+        { role: 'siegemaster', outcome: 'done' },
         { role: 'ward', outcome: 'green' },
       ],
     });
@@ -106,32 +123,40 @@ test.describe('Execution row back-edge badge: codeweaver ward red -> repair -> f
       questId: String(questId),
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
-        quest.workItems.length === 3 && quest.workItems.every((wi) => wi.status === 'complete'),
+        quest.status === 'complete' &&
+        quest.operations.length === 4 &&
+        quest.operations.every((op) => op.status === 'complete'),
     });
 
-    // The recovery loop stayed on THIS scope — no operation item was spliced, and the router never
-    // ran a gate back-to-back: `repair` sits between the two `ward` items.
     expect(
-      finalQuest.workItems.map((wi) => (wi.step === undefined ? null : String(wi.step))),
+      finalQuest.operations.map((op) => ({ role: String(op.role), status: op.status })),
+    ).toStrictEqual([
+      { role: 'codeweaver', status: 'complete' },
+      { role: 'flowrider', status: 'complete' },
+      { role: 'siegemaster', status: 'complete' },
+      { role: 'ward', status: 'complete' },
+    ]);
+
+    // The recovery loop stayed on THIS scope — no operation item was spliced, and the router never
+    // ran a gate back-to-back: `repair` sits between the two `ward` items. Filtered to the
+    // codeweaver role alone, because siegemaster's own family fans out to more than one work item
+    // from a single queued outcome (see the sibling spec above) and this spec makes no claim about
+    // that shape.
+    expect(
+      finalQuest.workItems
+        .filter((wi) => wi.role === 'codeweaver')
+        .map((wi) => (wi.step === undefined ? null : String(wi.step))),
     ).toStrictEqual(['ward', 'repair', 'ward']);
 
-    // Stop here, before the codeweaver family's own drain mints the next family's scopes — driving
-    // that mint would dispatch against a queue this spec never loads.
-    await dispatch.afterEach();
-
-    // AFTER: the scope now holds three work items, so it grows an operation HEADER (role badge only
-    // — every child row is indented and drops its own [ROLE] badge) plus one nested row per step:
-    // `ward pt: 1`, `repair`, `ward pt: 2` (the panel's own tiering — two same-step items with no
-    // `pieceId` are numbered in array order).
-    await expect(rows).toHaveCount(4, { timeout: LEDGER_TIMEOUT });
-    await expect(
-      rows
-        .filter({
-          has: page.getByTestId('execution-row-name').getByText(OPERATION_TEXT, { exact: true }),
-        })
-        .getByTestId('execution-row-role-badge'),
-    ).toHaveText('[CODEWEAVER]');
-
+    // AFTER: the codeweaver scope now holds three work items, so it grows an operation HEADER (role
+    // badge only — every child row is indented and drops its own [ROLE] badge) plus one nested row
+    // per step: `ward pt: 1`, `repair`, `ward pt: 2` (the panel's own tiering — two same-step items
+    // with no `pieceId` are numbered in array order). The relay also added rows for flowrider,
+    // siegemaster and the wardFull gate beyond this scope, so every assertion below is scoped BY
+    // NAME rather than by a total row count — the count includes rows this spec has no stake in.
+    const headerRow = rows.filter({
+      has: page.getByTestId('execution-row-name').getByText(OPERATION_TEXT, { exact: true }),
+    });
     const wardPt1Row = rows.filter({
       has: page.getByTestId('execution-row-name').getByText('ward pt: 1', { exact: true }),
     });
@@ -142,6 +167,12 @@ test.describe('Execution row back-edge badge: codeweaver ward red -> repair -> f
       has: page.getByTestId('execution-row-name').getByText('ward pt: 2', { exact: true }),
     });
 
+    await expect(headerRow).toHaveCount(1, { timeout: LEDGER_TIMEOUT });
+    await expect(wardPt1Row).toHaveCount(1);
+    await expect(repairRow).toHaveCount(1);
+    await expect(wardPt2Row).toHaveCount(1);
+
+    await expect(headerRow.getByTestId('execution-row-role-badge')).toHaveText('[CODEWEAVER]');
     await expect(wardPt1Row.getByTestId('execution-row-status-badge')).toHaveText('DONE');
     await expect(repairRow.getByTestId('execution-row-status-badge')).toHaveText('DONE');
     await expect(wardPt2Row.getByTestId('execution-row-status-badge')).toHaveText('DONE');

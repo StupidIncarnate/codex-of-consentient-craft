@@ -153,8 +153,12 @@ test.describe('Dispatch with an unparseable sibling quest file', () => {
       { role: 'ward', status: 'complete' },
     ]);
 
+    // Eight rows, not seven: each codeweaver scope and the flowrider and ward scopes hold exactly
+    // one work item each and stay BARE, but siegemaster's single scope holds all three of its work
+    // items and grows an operation HEADER plus one nested row per item — 2 (codeweaver) + 1
+    // (flowrider) + 4 (siegemaster header + 3 nested) + 1 (ward) = 8.
     await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(
-      ['DONE', 'DONE', 'DONE', 'DONE', 'DONE', 'DONE', 'DONE'],
+      ['DONE', 'DONE', 'DONE', 'DONE', 'DONE', 'DONE', 'DONE', 'DONE'],
       { timeout: LEDGER_TIMEOUT },
     );
   });

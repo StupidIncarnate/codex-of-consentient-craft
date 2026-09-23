@@ -263,17 +263,18 @@ test.describe('Ward as an operation (advance on green, step-graph repair loop on
       { role: 'ward', step: 'gate' },
     ]);
 
-    // AFTER (UI): the list grew live to five rows — the flowrider, the red gate, the repair, its
-    // commit, and the fresh gate that came back green.
+    // AFTER (UI): the flowrider scope holds one visible work item, so it stays BARE; the ward scope
+    // now holds four (the red gate, the repair, its commit, and the fresh gate that came back
+    // green), so it grows an operation HEADER plus one nested row per step — six rows in all, every
+    // one DONE.
     await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(
-      ['DONE', 'DONE', 'DONE', 'DONE', 'DONE'],
+      ['DONE', 'DONE', 'DONE', 'DONE', 'DONE', 'DONE'],
       { timeout: LEDGER_TIMEOUT },
     );
+    // Only the flowrider row and the ward HEADER carry a role badge — the four nested step rows are
+    // indented and drop their own [ROLE] badge, since the header already names the scope's role.
     await expect(rows.getByTestId('execution-row-role-badge')).toHaveText([
       '[FLOWRIDER]',
-      '[WARD]',
-      '[WARD]',
-      '[WARD]',
       '[WARD]',
     ]);
   });
