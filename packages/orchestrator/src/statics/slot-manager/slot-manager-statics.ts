@@ -1,64 +1,14 @@
 /**
- * PURPOSE: Defines immutable configuration values for slot-based orchestration phases
+ * PURPOSE: Defines the reset budget for re-dispatching a crashed or killed (orphaned) agent
+ * session. Reach for this over a hardcoded ceiling inline — `recoverOrphanedWorkItemsLayerBroker`
+ * is the sole reader, and it is what blocks the quest for a human once the budget is spent instead
+ * of resuming the same crash loop forever.
  *
  * USAGE:
- * slotManagerStatics.codeweaver.maxAttempts;
+ * slotManagerStatics.orphanRecovery.maxResets;
  * // Returns 3
  */
-
-// `maxAttempts` on a role = the pt-continuation chain budget for its LOCKED (verify-tail)
-// operation items: each `operationStatus: 'partial'` outcome completes the current item and
-// appends a "pt N" continuation; once the chain reaches maxAttempts the quest blocks instead of
-// looping. It gates LOCKED items only — a codeweaver item is minted UNLOCKED precisely so its chain
-// stays unbounded, because the flows are the acceptance target and the work has to land. That is
-// why `codeweaver` still has a key here despite never being gated by it: the ladder's final `else`
-// hands an unnamed role spiritmender's budget, so the key documents the role rather than budgeting
-// it, and removing it would silently start bounding codeweaver the day an item is minted locked.
 export const slotManagerStatics = {
-  codeweaver: {
-    maxAttempts: 3,
-  },
-  flowrider: {
-    maxAttempts: 3,
-  },
-  siegemaster: {
-    maxAttempts: 3,
-  },
-  spiritmender: {
-    maxAttempts: 3,
-  },
-  // Every dispatched role needs its own key: the pt-budget ladder's final `else` hands any role it
-  // does not name spiritmender's budget, so a role without a key here is silently mis-budgeted
-  // rather than erroring.
-  warpgate: {
-    maxAttempts: 3,
-  },
-  // NOT a server-enforced budget — unlike every `maxAttempts`/`maxRetries`/`maxResets` in this file,
-  // nothing server-side counts rounds. This is the brief→work→review loop cap each operator prompt
-  // carries in its own prose, honoured by the operator SESSION on its own
-  // recognizance inside ONE relay dispatch — never read or enforced by `quest-handle-signal-back-responder`
-  // or any other server code. Conflating it with a role's `maxAttempts` above is the exact confusion
-  // this comment exists to head off: they are TWO DIFFERENT BOUNDS ON TWO DIFFERENT THINGS. A session
-  // that spends this round budget and still has a remainder signals `operationStatus: 'partial'`,
-  // which server-side duplicate-on-partial appends a `pt N` continuation that spends ONE of that
-  // role's THREE ENFORCED `maxAttempts` pt-chain attempts. This key bounds a LOOP inside one session;
-  // `maxAttempts` bounds a CHAIN of sessions across a quest.
-  operator: {
-    maxRoundsPerSession: 3,
-  },
-  ward: {
-    // Red-ward chain budget: the count of ward operation items since the last GREEN ward.
-    // Reaching it blocks the quest instead of appending another spiritmender + fresh-ward pair.
-    maxRetries: 3,
-  },
-  riftcarver: {
-    // Red-carve chain budget: the count of riftcarver operation items since the last GREEN
-    // riftcarver. Only the repairable failures (push, node_modules, typecheck) spend it — a git-state or
-    // permission failure blocks on the spot, whatever the budget says. `maxRetries` rather than
-    // `maxAttempts` because, exactly like ward, the chain is counted from the ledger's own
-    // role-filtered history rather than from one item's pt continuations.
-    maxRetries: 3,
-  },
   orphanRecovery: {
     // Give-up budget for re-dispatching a crashed/killed (orphaned) agent session. Each
     // recovery flips the item back to pending (resume marker + retained sessionId) and bumps
