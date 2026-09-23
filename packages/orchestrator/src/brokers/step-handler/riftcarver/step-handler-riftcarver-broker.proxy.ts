@@ -2,10 +2,9 @@
  * PURPOSE: Proxy for stepHandlerRiftcarverBroker — mocks ONLY the child-process and fs adapter
  * boundaries and backs them with a virtual quest-file store plus a virtual git/worktree world, so
  * every broker between them (worktreePrepareBroker, worktreeProvisionBroker and the mirror, seed
- * and audit under it, questModifyBroker, questOperationsUpdateBroker) runs REAL — the same shape
- * the equivalent questRunRiftcarverBroker proxy already uses, minus questAdvanceBroker and
- * questBlockOnFailureBroker (this handler never routes, so neither is wired) and minus the
- * work-item status tracking (this handler never stamps one).
+ * and audit under it, questModifyBroker, questOperationsUpdateBroker) runs REAL — minus
+ * questAdvanceBroker and questBlockOnFailureBroker (this handler never routes, so neither is
+ * wired) and minus the work-item status tracking (this handler never stamps one).
  *
  * USAGE:
  * const proxy = stepHandlerRiftcarverBrokerProxy();

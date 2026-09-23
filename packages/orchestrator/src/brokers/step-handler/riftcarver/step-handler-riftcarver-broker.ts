@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Carves the quest's branch, worktree, node_modules mirror and preflight typecheck, and
- * classifies the result. Reuses `questRunRiftcarverBroker`'s whole carve pipeline verbatim (every
+ * classifies the result. Runs the whole carve pipeline (every
  * done-check, the base-ref pin, the carve-time push, the provision call, the typecheck) — that IS
  * the "run code" job, not routing — and drops the "mark work item running" stamp and the whole
  * `questOperationsUpdateBroker` ledger block (operation completion, the work item's terminal
@@ -300,8 +300,9 @@ export const stepHandlerRiftcarverBroker = async ({
       ? carve.error.message
       : String(carve.error);
 
-  // Every carve ends on a verdict line, green included — see questRunRiftcarverBroker's own
-  // header for why a red log that just trails off on the last TS6305 line is unreadable.
+  // Every carve ends on a verdict line, green included: a first build pass emits hundreds of
+  // TS6305 lines before a later one clears, so a log that just trails off on the last one reads
+  // as an unreadable failure even when the carve is green.
   if (carve.ok) {
     stream.emit(`— CARVED: ${carve.branchName} at ${carve.baseRef} —`);
   } else {
