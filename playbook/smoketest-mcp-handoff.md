@@ -1,93 +1,90 @@
 # Smoke Test (MCP Orchestration) — Session Handoff
 
 Running-state handoff for sessions driving `playbook/smoketest-mcp-orchestration.md`. That playbook is a surgical
-state-machine probe of the operations relay: you play the dispatcher, seed quest state on disk, call the MCP, assert the
-`quest.json` mutation and the live web execution view. Keep a per-probe findings log at `/tmp/smoke-mcp-notes.md` (may
-not survive a reboot — the essentials belong here).
+state-machine probe of the family graph + step graph: you play the dispatcher, seed quest state on disk, call the
+MCP, assert the `quest.json` mutation and the live web execution view. Keep a per-probe findings log at
+`/tmp/smoke-mcp-notes.md` (may not survive a reboot — the essentials belong here).
 
-Companion model reference: `playbook/quest-lifecycle.md` (create → spec → Start → operations relay). Shared fix/bug
-process: `playbook/smoketest-orchastrator.md`.
+Companion model reference: `playbook/quest-lifecycle.md` (create → spec → Start → the family/step relay) and
+`docs/quest-role-paths.md` (the deep reference — every family's step table, the router's rules, the invariants).
+Shared fix/bug process: `playbook/smoketest-orchastrator.md`.
 
 ## What the MCP smoke test validates
 
-The operations relay end to end, one agent session at a time — IDENTICAL for `feature` and `bug-hunt` quests except the
-intake role:
+The relay end to end — IDENTICAL for `feature` and `bug-hunt` quests except the intake role:
 
 ```
-riftcarver → codeweaver ×N (one session per PACKAGE, DERIVED at Start) → ward(changed)
-  → flowrider ×N (one session per FLOW) → siegemaster ×N (one session per flow, in declaration order)
-  → ward(full)
+riftcarver (ONE scope)
+  → codeweaver ×N (one scope per PACKAGE×FLOW cell)
+  → flowrider ×N (one scope per RUNTIME flow)
+  → siegemaster ×N (one scope per flow)
+  → wardFull (ONE scope)
   → quest derives complete
 ```
 
-`codeweaver`, `flowrider` and `siegemaster` are **operators** (`agentPromptClassificationStatics.operatorRoleNames`),
-each running on **opus**: it reads code itself, briefs GENERIC `general-purpose` sub-agents in its own words to make the
-edits, reads the diff itself, then summons exactly ONE named sonnet reviewer sub-agent —
-`codeweaver-reviewer`/`flowrider-reviewer`/`siegemaster-reviewer` — to grade the pass. **Siegemaster drives nothing
-itself**: it runs ROUNDS, one per path walk, each dispatching a `siegemaster-verifier` and a `siegemaster-stress` pair
-together — each in its own isolated lane (an API server, a Vite server and a headless Chromium the minion boots itself
-from a bare lane name) — the verifier signing the observable/terminal/branch units on its path and the stress tester
-signing its round's allocated off-map family, both directly. The operator's own signal table offers only `done` and
-`blocked`; codeweaver and flowrider loop, unbounded, until their own reviewer's `NEXT:` line reads `pass`, and
-siegemaster loops the same way until every round and re-walk is clean — its own `siegemaster-reviewer` runs only if a
-fixer changed code, so a quest whose every round comes back clean signals `done` off its own checklist arithmetic
-instead.
+Inside each scope a STEP GRAPH runs its own sessions one at a time (or, for a parallel step, several sessions of that
+SAME step at once — never two different steps or two different families together). `codeweaver` is
+`plan → work → review → commit → ward`; `flowrider` is the same shape plus an on-request `recipe` step; `siegemaster`
+is `sweepIn → plan → happyWalk ⇄ fixHappy → adversarial ⇄ fixAdversarial → commit → ward → sweepOut`, plus on-request
+`recipe`/`read` steps. **Every step is an ordinary router-dispatched session — there is no briefing layer above a
+step and no sub-agent it dispatches to do its own edit or its own grading.** `get-agent-prompt` resolves a step's
+prompt directly off `agentFlowStatics[family].steps[step].prompt` (`codeweaver-worker`, `codeweaver-reviewer`,
+`siege-happy-walker`, …); there is no role-level prompt for `codeweaver`/`flowrider`/`siegemaster` themselves.
+
+**`ward` and `carve`/`repair`/`commit`/`cleanup` are `deterministic` steps — code, not a session — and MCP mode has
+NO tool that can dispatch one for a current-model quest.** `get-next-step` returns `{ type: 'run-step', handler,
+args }` for these; only Node/UI mode's dispatcher runs a `run-step`. The `run-ward`/`run-riftcarver` MCP tools still
+exist, but they take no scope argument and only fire for a work item with NO step node at all (a hydrated or
+pre-step-graph quest) — for a normal quest built by today's seed, they are unreachable. **This playbook can drive
+`prompt` steps by hand (stub `Task()` + `quest-work` + `signal-back`); it cannot drive a `deterministic` step by
+hand — those need the real Node/UI dispatcher running, observed through `quest.json` and the web UI.**
 
 plus the three non-failure "sad" paths and the sole block path:
 
-- **partial → pt N (mechanism-only for the three operators)** — the responder still applies `operationStatus:
-  'partial'` generically to any code-changing role: it marks the operation item `complete` and appends a
-  `"pt N: {text}"` continuation; a fresh work item runs it. For `ward` this is the verify fixpoint: a `pt N` chain
-  converging on a green run. `codeweaver`/`flowrider`/`siegemaster`'s own prompts never send `partial` — each signals
-  only `done` or `blocked`. Codeweaver and flowrider signal `done` once their own named reviewer says `pass`, and
-  `blocked` once that reviewer names an environment wall. Siegemaster signals `done` once every round and re-walk is
-  clean — via its `siegemaster-reviewer`'s `pass` where a fixer ran, or straight off its own checklist arithmetic
-  where none did — and `blocked` when ANY round minion (verifier, stress tester, fixer, or the reviewer) reports the
-  wall.
-- **ward red → spiritmender → re-ward** — a red ward marks its work item `failed` + its operation item `complete`, then
-  appends a `spiritmender` operation item + a fresh ward (`pt N`, same `wardMode`); the spiritmender runs before the
-  re-ward (never two wards back-to-back).
+- **`unmet` → a re-cut batch** — a step that leaves units unsettled does not fail; the router mints a fresh batch of
+  work items on the SAME scope, scoped to exactly those units, grouped by the piece that originally claimed them. No
+  new operation item is appended — this is work items on the scope that is already open.
+- **a red gate → `repair` → the gate re-runs** — `ward`'s (or `carve`'s) `unmet` routes to `repair`, which declares
+  no `done` route and so returns to the gate that minted it; a repair that comes back `done` takes the gate's own
+  `done` edge onward. Bounded by that step's own `maxVisits`.
 - **orphan → resume** — an `in_progress` work item observed during a scan flips back to `pending` keeping
-  `sessionId`/`agentId` + a `resume` marker; Node/UI dispatch resumes the session (`claude --resume`). No duplicate work
-  item (strict 1:1).
-- **blocked** — the sole block path (`quest-block-on-failure-broker`), reached only from a spent bounded loop
-  (ward-retry, riftcarver-retry, a locked role's `pt N` chain, or orphan-recovery exhaustion) or an agent-reported
-  environment wall. Drains pending work items to `skipped`, sets `blocked`; the user resumes.
+  `sessionId`/`agentId` + a `resume` marker; Node/UI dispatch resumes the session (`claude --resume`).
+- **`wall` → `@blocked`** — the sole block path (`quest-block-on-failure-broker`), reached from the router routing an
+  outcome to `@blocked` (`wall`, `max-visits`, `unknown-step`/`unknown-route-target`, `no-minter`) or from
+  orphan-recovery exhaustion. Drains pending work items to `skipped`, sets `blocked`; the user resumes.
 
-**There is exactly ONE computed gate on `signal-back`: commit-before-signal.** No sign-off-completeness gate, no
-review-coverage gate — an unsigned `codeweaverSignoff`/`flowriderSignoff`/`siegemasterSignoff` refuses nothing, and the
-five standards concerns a named reviewer takes are guidance only, recorded nowhere in `quest.json`.
+**Marks, not sign-offs.** A session records what it measured through `quest-work`'s `observations` payload — an
+array of `{ unitId, mark: 'met' | 'cant-meet' | 'unmet', evidence, toSettle? }` — BEFORE it ever calls `signal-back`.
+`signal-back` itself carries only `{ questId, workItemId, signal: 'complete', operationItemId?, blockedReason? }` —
+there is no `operationStatus`, no `partial`, and no `pt N` continuation in the current model. **One gate refuses the
+call outright: the unmarked-unit gate** — `signal-back`/`quest-work` throws while any of the work item's
+`assignedUnitIds` carries no observation. There is no separate sign-off-completeness gate, and no
+`codeweaverSignoff`/`flowriderSignoff`/`siegemasterSignoff` field anywhere — those are retired; `workItem.
+observations[]` IS the record.
 
 ## Operational discipline (learned the hard way — still true)
 
-- **`run-ward`/`run-riftcarver`'s MCP argument is `mode`, NOT `wardMode`.** The work-item/operation-item field is
-  spelled `wardMode`, but the tool arg is `mode`. Passing `wardMode` errors `Unrecognized key(s): wardMode` and the ward
-  never runs.
-- **One logical step per turn; act only on echoed ids.** Drive strictly off the `questId`/`workItemId` the immediately
-  preceding tool result returned — never one retyped from a seed array or memory. Batching a pipeline against a guessed
-  id makes the first scratch command fail and cancels the whole batch.
-- **Dispatch exactly what a single `get-next-step()` returns, then wait for it to land before calling `get-next-step()`
-  again.** The relay hands you one session at a time; you never run ahead of it. A ready command dispatches alone via
-  `run-ward`/`run-riftcarver`.
-- **`signal-back` carries the outcome, not a failure.** `signal: 'complete'` is the sole kind; the outcome is
-  `operationStatus: 'done' | 'partial' | 'blocked'` (`failed` is rejected). The handler applies it server-side — a stub
-  cannot "forget" to patch the ledger because agents never write it. A stub sending `partial` for `codeweaver` /
-  `flowrider` / `siegemaster` is testing the responder's generic mechanism, not real prompt behavior — those three
-  roles' own prompts never choose it.
-- **Before each flow, abandon all other non-terminal quests** (`modify-quest status: 'abandoned'`) — `get-next-step` is
-  FIFO-oldest, so a stale `in_progress` quest steals dispatch.
-- **A direct `quest.json` disk seed** fires no outbox event, so the web reflects it only via the ~3s fallback poll; MCP
-  `get-next-step` reads disk fresh immediately. MCP-driven mutations go through `questPersistBroker` → outbox → web,
+- **One logical step per turn; act only on echoed ids.** Drive strictly off the `questId`/`workItemId` the
+  immediately preceding tool result returned — never one retyped from a seed array or memory.
+- **Dispatch exactly what a single `get-next-step()` returns, then wait for it to land before calling
+  `get-next-step()` again.** A batch may hold several work items when they share one role AND one step (a parallel
+  step); it never mixes steps or families.
+- **A stub agent's job is `get-agent-prompt` → mark its assigned units via `quest-work` → `signal-back`.** It must
+  NOT skip the marking step — `signal-back` throws if any assigned unit is unmarked.
+- **Before each flow, abandon all other non-terminal quests** (`modify-quest status: 'abandoned'`) — `get-next-step`
+  is FIFO-oldest, so a stale `in_progress` quest steals dispatch.
+- **A direct `quest.json` disk seed** fires no outbox event, so the web reflects it only via the ~3s fallback poll;
+  MCP `get-next-step` reads disk fresh immediately. MCP-driven mutations go through the outbox and reach the web
   near-instant.
-- **Flowrider and Siegemaster each fan out to ONE OPERATION ITEM PER FLOW** — when hand-seeding, never construct a
-  single flowrider item covering every quest flow; that shape belonged to an earlier design and no longer exists.
+- **`flowrider` and `siegemaster` each fan out to ONE SCOPE PER FLOW** — when hand-seeding, never construct a single
+  scope covering every quest flow.
 
 ## Build-vs-MCP gotcha (documented in `packages/mcp/CLAUDE.md` + the playbook §1)
 
-`npm run build` overwrites `packages/mcp/dist`, which the running MCP stdio child loaded at boot → the child dies and the
-`mcp__dungeonmaster__*` tools drop. After ANY rebuild, `/mcp` → reconnect dungeonmaster before resuming MCP-driven
-probes. Any fix to orchestrator/MCP code only takes effect after a rebuild AND an MCP reconnect. Batch source fixes so
-you rebuild + reconnect once.
+`npm run build` overwrites `packages/mcp/dist`, which the running MCP stdio child loaded at boot → the child dies and
+the `mcp__dungeonmaster__*` tools drop. After ANY rebuild, `/mcp` → reconnect dungeonmaster before resuming
+MCP-driven probes. Any fix to orchestrator/MCP code only takes effect after a rebuild AND an MCP reconnect. Batch
+source fixes so you rebuild + reconnect once.
 
 ## How to resume (next session)
 
@@ -95,16 +92,15 @@ you rebuild + reconnect once.
 2. **Setup (§1):** `npm run prod:kill`; wipe quests
    (`rm -rf .dungeonmaster/guilds/21523917-83f7-4e23-a6de-8db1cae2ad96/quests`); `npm run build`; `npm run prod`
    (server 4800 / web 4801). Open a fresh browser tab on `http://dungeonmaster.localhost:4801/codex/quest/<id>`.
-3. The dungeonmaster MCP child runs the orchestrator **in-process** — `signal-back`/`run-ward`/`run-riftcarver`/
-   `get-next-step`/advance status derivation happens there, NOT in the prod server. After ANY rebuild, `/mcp` →
-   reconnect.
-4. **Seeding rules** (per `quest-lifecycle.md` §14): every work item carries exactly one `operations/<id>` link to an
-   `operations[]` item that exists on the quest; each operation item is worked by exactly one work item (strict 1:1);
-   work-item `id` + `dependsOn` entries are UUIDs; `dependsOn` between work items is the only ordering mechanism; a ready
-   ward or riftcarver item dispatches via its own MCP tool alone. `get-agent-prompt` serves siegemaster no dev-server
-   config at all, so either flow type is safe to seed.
-5. Stub-agent recipe: a real `Task()` that calls `get-agent-prompt` then `signal-back` (a real Task is required for
-   identity resolution via `_meta.claudecode/toolUseId` → `subagents/agent-*.jsonl`). Dispatch with `model: sonnet`.
+3. The dungeonmaster MCP child runs the orchestrator **in-process** — `quest-work`/`signal-back`/`get-next-step`/
+   advance/route happen there, NOT in the prod server. After ANY rebuild, `/mcp` → reconnect.
+4. **Seeding rules:** every work item carries exactly one `operations/<id>` link to an `operations[]` item that
+   exists on the quest, and a `step` field naming a real step of its family's `agentFlowStatics` graph;
+   `dependsOn` between work items is the only ordering mechanism. `get-agent-prompt` serves siegemaster no
+   dev-server config at all, so either flow type is safe to seed.
+5. Stub-agent recipe: a real `Task()` that calls `get-agent-prompt`, then `quest-work` to mark every assigned unit,
+   then `signal-back` (a real Task is required for identity resolution via `_meta.claudecode/toolUseId` →
+   `subagents/agent-*.jsonl`). Dispatch with `model: sonnet`.
 
 ## Testbed state
 

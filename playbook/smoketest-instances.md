@@ -68,13 +68,14 @@ npm run prod:kill
 
 ---
 
-## Scenario 3: A siegelense lane — a siegemaster round's isolated QA lane
+## Scenario 3: A siegelense lane — one siegemaster step's isolated QA lane
 
-Siegemaster resolves no dev-server config and owns no server of its own. Each round dispatches a
-`siegemaster-verifier` and a `siegemaster-stress` minion pair, and each minion boots its OWN
-throwaway lane — an API server, a Vite server, and (for a spec that asks for one) a headless
-Chromium — through `dungeonmaster siegelense start`, backed by `packages/siegelense`'s
-`laneBootBroker` and `playwrightSessionAdapter`. A lane never touches the prod or dev queue: the OS
+Siegemaster resolves no dev-server config and owns no server of its own. `happyWalk` and `adversarial` are the two
+steps of its own step graph flagged `needsLane`; each provisions its OWN throwaway lane — an API server, a Vite
+server, and (for a spec that asks for one) a headless Chromium — through `dungeonmaster siegelense start`, backed by
+`packages/siegelense`'s `laneBootBroker` and `playwrightSessionAdapter`. `sweepIn`/`sweepOut`, the family's own
+`cleanup`-kind steps at the head and tail of the scope, make the first capacity reading honest and catch whatever a
+pass leaked. A lane never touches the prod or dev queue: the OS
 picks its port pair and the instance gets its own throwaway home under the OS tmp dir
 (`dm-siege-<instanceId>`), so several lanes run at once without colliding with each other or with a
 running `npm run prod` / `npm run dev`. A lane closes itself once nothing drives it for the idle
