@@ -120,7 +120,6 @@ describe('the exports @dungeonmaster/siegelense reads off this package', () => {
         makes: [
           { ingredient: 'guild', count: 1 },
           { ingredient: 'quest', count: 1 },
-          { ingredient: 'operation', count: 2 },
         ],
       },
       {

@@ -2,6 +2,7 @@ import type { GuildStub, QuestStub } from '@dungeonmaster/shared/contracts';
 import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts';
 
 import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-target.harness';
+import { QuestFieldsStub } from '../../../contracts/quest-fields/quest-fields.stub';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
 import { recipesQuestCompletedBroker } from './recipes-quest-completed-broker';
 
@@ -12,6 +13,7 @@ const { run } = dmRegistryBroker;
 
 const GUILD_NAME = SavedRecordNameStub({ value: 'guild' });
 const QUEST_NAME = SavedRecordNameStub({ value: 'quest' });
+const QUEST_TITLE = QuestFieldsStub({ title: 'Verified Flow' }).title;
 
 describe('recipesQuestCompletedBroker', () => {
   describe('the manifest identity chunk 8 reads off this same export', () => {
@@ -40,7 +42,7 @@ describe('recipesQuestCompletedBroker', () => {
 
     it('VALID: {} => quest is complete with title "Verified Flow"', async () => {
       const result = await run(recipesQuestCompletedBroker(), fileTarget.target());
-      const quest = result[QUEST_NAME] as unknown as Quest;
+      const quest = (result as Record<PropertyKey, unknown>)[QUEST_NAME] as Quest;
 
       expect({ status: quest.status, title: quest.title }).toStrictEqual({
         status: 'complete',
@@ -50,8 +52,8 @@ describe('recipesQuestCompletedBroker', () => {
 
     it('VALID: {} => on disk, the quest has codeweaver and ward operations in its ledger, both complete', async () => {
       const result = await run(recipesQuestCompletedBroker(), fileTarget.target());
-      const guild = result[GUILD_NAME] as unknown as Guild;
-      const quest = result[QUEST_NAME] as unknown as Quest;
+      const guild = (result as Record<PropertyKey, unknown>)[GUILD_NAME] as Guild;
+      const quest = (result as Record<PropertyKey, unknown>)[QUEST_NAME] as Quest;
 
       const operationsOnDisk = fileTarget.readQuestFileOperations({
         guildId: guild.id,
@@ -68,7 +70,7 @@ describe('recipesQuestCompletedBroker', () => {
 
     it('VALID: {} => the quest carries two work items, one per operation, both in a terminal complete state', async () => {
       const result = await run(recipesQuestCompletedBroker(), fileTarget.target());
-      const quest = result[QUEST_NAME] as unknown as Quest;
+      const quest = (result as Record<PropertyKey, unknown>)[QUEST_NAME] as Quest;
 
       expect(
         quest.workItems.map((workItem) => ({
@@ -80,6 +82,25 @@ describe('recipesQuestCompletedBroker', () => {
         { role: 'codeweaver', status: 'complete', spawnerType: 'agent' },
         { role: 'ward', status: 'complete', spawnerType: 'command' },
       ]);
+    });
+
+    it('VALID: {} => on disk, each work item relatedDataItems names an operation on the ledger', async () => {
+      await run(recipesQuestCompletedBroker(), fileTarget.target());
+      const quest = fileTarget.readQuestByTitle({ title: QUEST_TITLE });
+
+      expect({
+        operationIds: quest.operations.map((operation) => operation.id),
+        workItemRelatedDataItems: quest.workItems.map((workItem) => workItem.relatedDataItems),
+      }).toStrictEqual({
+        operationIds: [
+          '00000000-0000-4000-8000-000000000201',
+          '00000000-0000-4000-8000-000000000202',
+        ],
+        workItemRelatedDataItems: [
+          ['operations/00000000-0000-4000-8000-000000000201'],
+          ['operations/00000000-0000-4000-8000-000000000202'],
+        ],
+      });
     });
   });
 });
