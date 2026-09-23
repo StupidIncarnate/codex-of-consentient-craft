@@ -62,11 +62,12 @@ const BUDGET_USER_REQUEST =
     ' Keep the queue visible while the batch is in flight.',
   );
 
-// A pathological pt-chain ledger: 34 settled scopes (the authored relay plus every `pt N`
-// continuation it accumulated), the 35th in flight — the dispatched agent's own — and five still
-// pending behind it. Two or three retries on a real quest reach this shape. The ledger was the one
-// term in the served block that grew without bound, which is why the block no longer carries it at
-// all; this shape is what proves the growth is gone rather than merely bounded.
+// A pathological ledger: 34 settled scopes (a relay-scale quest's fan-out across many
+// (package, flow) cells), the 35th in flight — the dispatched agent's own — and five still
+// pending behind it. A wide quest touching several packages across several flows reaches this
+// shape. The ledger was the one term in the served block that could have grown without bound,
+// which is why the block no longer carries it at all; this shape is what proves the growth is
+// gone rather than merely bounded.
 const PATHOLOGICAL_COMPLETE_COUNT = 34;
 const PATHOLOGICAL_OWN_INDEX = 34;
 const PATHOLOGICAL_PENDING_COUNT = 5;
@@ -459,12 +460,13 @@ describe('workItemToPromptTransformer', () => {
         expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.split('$ARGUMENTS').join(expectedArgs));
       });
 
-      // The ledger was the one term that grew without bound — every `partial` outcome appends a
-      // `pt N` continuation — and a block that outgrew `mcpToolResultStatics.maxVerbatimChars` was
-      // spilled to a file, leaving the session holding a path instead of its gates and numbered
-      // rules. A 40-item ledger substituting BYTE-IDENTICALLY to a 1-item one is what proves the
-      // growth is gone rather than merely bounded.
-      it('VALID: {40-item pt-chain ledger} => substitutes byte-identically to a single-item ledger', () => {
+      // The ledger was the one term that could have grown without bound — a wide quest fanning
+      // out across many (package, flow) cells — and a block that outgrew
+      // `mcpToolResultStatics.maxVerbatimChars` was spilled to a file, leaving the session holding
+      // a path instead of its gates and numbered rules. A 40-item ledger substituting
+      // BYTE-IDENTICALLY to a 1-item one is what proves the growth is gone rather than merely
+      // bounded.
+      it('VALID: {40-item ledger} => substitutes byte-identically to a single-item ledger', () => {
         const questId = QuestIdStub({ value: 'my-quest' });
         const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-6161-4222-9333-444444444444' });
         const ownOperationId = OperationItemIdStub({
@@ -1186,11 +1188,12 @@ describe('workItemToPromptTransformer', () => {
       },
     );
 
-    // The ledger is the one term in the served block that grows without bound: a quest that takes
-    // two or three retries accumulates `pt N` continuations until the block overflows and the MCP
-    // layer spills it to a file, leaving the agent holding a path instead of its gates and rules.
+    // The ledger is the one term in the served block that could grow without bound: a wide quest
+    // fanning out across many (package, flow) cells accumulates operation items until the block
+    // overflows and the MCP layer spills it to a file, leaving the agent holding a path instead of
+    // its gates and rules.
     it.each(BUDGET_ROLES)(
-      'VALID: {agent: %s, relay-scale quest with a 40-item pt-chain ledger} => served MCP block stays within the verbatim budget',
+      'VALID: {agent: %s, relay-scale quest with a 40-item ledger} => served MCP block stays within the verbatim budget',
       (agentName) => {
         const ownOperationId = OperationItemIdStub({
           value: `cccccccc-3333-4222-9333-4444444444${String(PATHOLOGICAL_OWN_INDEX).padStart(2, '0')}`,

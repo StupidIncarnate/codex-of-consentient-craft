@@ -156,7 +156,7 @@ export const scanOnceLayerBroker = async ({
   // It is what lets riftcarver through: riftcarver is the role that OWNS creating this worktree and
   // its own done-check treats a recorded-but-missing path as "not done" and re-creates it, so
   // halting ahead of it would make that recovery unreachable and leave the quest permanently
-  // blocked by the one step that could have fixed it. And a `pt N` carve whose work item was never
+  // blocked by the one step that could have fixed it. And a re-carve whose work item was never
   // minted (a crash between the previous carve's ledger write and its advance call) arrives here as
   // a NULL step, so a gate placed above the self-heal would block before the self-heal could mint
   // that work item — and every resume would re-run the identical sequence. Nothing above this point

@@ -10,8 +10,9 @@
  *   `pending`, `retryCount` cleared to 0, and — when a `sessionId` was retained — the `resume`
  *   marker set, so Node dispatch resumes that Claude session (`claude --resume`) instead of
  *   throwing away the work it already did. An item whose operation item is `complete` is genuinely
- *   done and is left alone, which is what keeps a red ward's `failed` work item (already
- *   superseded by a spliced spiritmender + fresh ward) from being resurrected.
+ *   done and is left alone, which is what keeps a red ward's `failed` work item — already
+ *   superseded once its minted `repair` step (a spiritmender pass) returns to a fresh `ward` —
+ *   from being resurrected.
  *
  * USAGE:
  * const patches = questResumeRearmWorkItemsTransformer({ workItems, operations });

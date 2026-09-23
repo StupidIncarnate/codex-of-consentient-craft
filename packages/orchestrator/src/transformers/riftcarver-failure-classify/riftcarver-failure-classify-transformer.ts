@@ -1,7 +1,8 @@
 /**
  * PURPOSE: Classifies a failed riftcarver carve into the one of two outcomes a carve step can
- * reach on its own account — `unmet` (repairable: earns a spiritmender pass and a fresh `pt N`
- * carve) or `wall` (git-state: no worktree exists to send a repair into, so the quest halts).
+ * reach on its own account — `unmet` (repairable: routes to a `repair` step, a spiritmender pass,
+ * which returns to a fresh `carve`) or `wall` (git-state: no worktree exists to send a repair
+ * into, so the quest halts).
  * Derives the step→class lookup from `worktreePrepareStepStatics.classifications` via
  * `Object.entries` rather than a listed table, so an eighth step added later fails loudly instead
  * of silently defaulting to `wall`. `isPermissionDeniedErrorGuard` is checked FIRST and overrides
