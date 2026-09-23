@@ -83,7 +83,9 @@ import { questReachRouteBroker } from '../reach-route/quest-reach-route-broker';
 import { questRemoveRouteBroker } from '../remove-route/quest-remove-route-broker';
 import { questUpdateRouteBroker } from '../update-route/quest-update-route-broker';
 import { questWardResultDetailWriteBroker } from '../ward-result-detail-write/quest-ward-result-detail-write-broker';
+import { questWorkItemAttachBroker } from '../work-item-attach/quest-work-item-attach-broker';
 import { questWriteRouteBroker } from '../write-route/quest-write-route-broker';
+import { workItemAttachArgsContract } from '../../../contracts/work-item-attach-args/work-item-attach-args-contract';
 import type { QuestFields } from '../../../contracts/quest-fields/quest-fields-contract';
 
 const { ingredient } = recipesHydrationCreateBroker();
@@ -121,6 +123,10 @@ export const questIngredientBroker = ingredient({
     withWardResultDetail: {
       args: wardResultDetailArgsContract,
       apply: questWardResultDetailWriteBroker,
+    },
+    attachWorkItem: {
+      args: workItemAttachArgsContract,
+      apply: questWorkItemAttachBroker,
     },
   },
 });

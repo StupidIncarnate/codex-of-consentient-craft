@@ -34,10 +34,15 @@ describe('recipesQuestCompletedBroker', () => {
   describe('run against a real temporary directory', () => {
     const fileTarget = fileTargetHarness();
 
-    it('VALID: {} => saves guild and quest', async () => {
+    it('VALID: {} => saves guild, quest and each operation named for a later attachWorkItem reference', async () => {
       const result = await run(recipesQuestCompletedBroker(), fileTarget.target());
 
-      expect(Object.keys(result).sort()).toStrictEqual(['guild', 'quest']);
+      expect(Object.keys(result).sort()).toStrictEqual([
+        'codeweaverOperation',
+        'guild',
+        'quest',
+        'wardOperation',
+      ]);
     });
 
     it('VALID: {} => quest is complete with title "Verified Flow"', async () => {
@@ -68,9 +73,9 @@ describe('recipesQuestCompletedBroker', () => {
       ]);
     });
 
-    it('VALID: {} => the quest carries two work items, one per operation, both in a terminal complete state', async () => {
-      const result = await run(recipesQuestCompletedBroker(), fileTarget.target());
-      const quest = (result as Record<PropertyKey, unknown>)[QUEST_NAME] as Quest;
+    it('VALID: {} => on disk, the quest carries two work items, one per operation, both in a terminal complete state', async () => {
+      await run(recipesQuestCompletedBroker(), fileTarget.target());
+      const quest = fileTarget.readQuestByTitle({ title: QUEST_TITLE });
 
       expect(
         quest.workItems.map((workItem) => ({
@@ -84,23 +89,41 @@ describe('recipesQuestCompletedBroker', () => {
       ]);
     });
 
-    it('VALID: {} => on disk, each work item relatedDataItems names an operation on the ledger', async () => {
+    it('VALID: {} => each work item on disk names the REAL, run-time-minted id of the operation sharing its role', async () => {
       await run(recipesQuestCompletedBroker(), fileTarget.target());
       const quest = fileTarget.readQuestByTitle({ title: QUEST_TITLE });
 
-      expect({
-        operationIds: quest.operations.map((operation) => operation.id),
-        workItemRelatedDataItems: quest.workItems.map((workItem) => workItem.relatedDataItems),
-      }).toStrictEqual({
-        operationIds: [
-          '00000000-0000-4000-8000-000000000201',
-          '00000000-0000-4000-8000-000000000202',
-        ],
-        workItemRelatedDataItems: [
-          ['operations/00000000-0000-4000-8000-000000000201'],
-          ['operations/00000000-0000-4000-8000-000000000202'],
-        ],
-      });
+      const operationIdByRole = new Map(
+        quest.operations.map((operation) => [operation.role, operation.id] as const),
+      );
+
+      expect(
+        quest.workItems.map((workItem) => ({
+          role: workItem.role,
+          relatedDataItems: workItem.relatedDataItems,
+        })),
+      ).toStrictEqual([
+        {
+          role: 'codeweaver',
+          relatedDataItems: [`operations/${operationIdByRole.get('codeweaver')}`],
+        },
+        {
+          role: 'ward',
+          relatedDataItems: [`operations/${operationIdByRole.get('ward')}`],
+        },
+      ]);
+    });
+
+    it('VALID: {} => on disk, every operation id and work item id is a distinct real uuid', async () => {
+      await run(recipesQuestCompletedBroker(), fileTarget.target());
+      const quest = fileTarget.readQuestByTitle({ title: QUEST_TITLE });
+
+      const allIds = [
+        ...quest.operations.map((operation) => operation.id),
+        ...quest.workItems.map((workItem) => workItem.id),
+      ];
+
+      expect(new Set(allIds).size).toBe(allIds.length);
     });
   });
 });

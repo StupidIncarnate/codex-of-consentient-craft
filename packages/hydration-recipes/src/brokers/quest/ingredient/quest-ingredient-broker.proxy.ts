@@ -6,6 +6,7 @@ import { questReachRouteBrokerProxy } from '../reach-route/quest-reach-route-bro
 import { questRemoveRouteBrokerProxy } from '../remove-route/quest-remove-route-broker.proxy';
 import { questUpdateRouteBrokerProxy } from '../update-route/quest-update-route-broker.proxy';
 import { questWardResultDetailWriteBrokerProxy } from '../ward-result-detail-write/quest-ward-result-detail-write-broker.proxy';
+import { questWorkItemAttachBrokerProxy } from '../work-item-attach/quest-work-item-attach-broker.proxy';
 import { questWriteRouteBrokerProxy } from '../write-route/quest-write-route-broker.proxy';
 
 // This file's declaration runs at IMPORT TIME (`ingredient({...})` is a real call, not a
@@ -21,6 +22,7 @@ export const questIngredientBrokerProxy = (): Record<PropertyKey, never> => {
   questRemoveRouteBrokerProxy();
   questUpdateRouteBrokerProxy();
   questWardResultDetailWriteBrokerProxy();
+  questWorkItemAttachBrokerProxy();
   questWriteRouteBrokerProxy();
   return {};
 };

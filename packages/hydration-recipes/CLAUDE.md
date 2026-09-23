@@ -244,14 +244,43 @@ than through the `operation` ingredient's child accessor.
   above. Its description says exactly what it does: "its ledger already one operation along", not
   "advanced" — nothing in this recipe walks anything.
 
-## Two known gaps this chunk did not close, named rather than worked around
+## `attachWorkItem` links a work item to an operation an earlier `add()` IN THE SAME PLAN minted
+
+`quest-completed-broker.ts` mints its two operations through the real `operation` ingredient's
+`.add()` — the same route `questOperationsUpdateBroker` would run in production — rather than
+embedding a hand-typed `OperationItem` literal in the quest's own `operations` field. That means
+each operation's `id` is unknown until its OWN create op runs, and a work item's
+`relatedDataItems: ['operations/<id>']` needs that id.
+
+`workItems` sits on NO status's `questStatusInputAllowlistStatics` entry (`quest-ingredient-broker.ts`'s
+own header — the same allowlist `operations` sits off of), so a plain `q[0].set({workItems: [...]})`
+issued after the quest's own create is refused by `questModifyBroker` at every status, and a value
+that needs an operation's real id cannot ride the create-time `setRaw` fold either (that operation is
+created AFTER the quest, never before it). `attachWorkItem` — a `quest` extra, declared in
+`quest-ingredient-broker.ts`, implemented in `quest-work-item-attach-broker.ts` — is the way around
+both: an `extra` op always runs as its own standalone step, never folded, so `operationId:
+fromSavedRefTransformer({name: 'codeweaverOperation', field: 'id'})` resolves against `state.saved`
+at THIS op's own turn in the walk, after the sibling operation's `saveRecordAs` already ran. The
+broker itself re-reads the quest fresh off disk (never trusting the `record` argument, which froze at
+the quest's own CREATE and would still show an empty `operations`/`workItems`) and persists straight
+to the file — the same `questGetBroker` + `questPersistDirectBroker` shape
+`operationWriteRouteBroker` already uses to bypass the identical gate for `operations`.
+`packages/hydration/CLAUDE.md`'s "A later op reads an earlier row's id through `fromSaved`" section
+has the framework side of this; nothing in `packages/hydration` changed to build it — `saveRecordAs`,
+`fromSavedRefTransformer` and the `extras` mechanism already reached this far.
+
+## One known gap this chunk did not close, named rather than worked around
 
 - **Every operation-status change in this package's own tests arrives already-set** — through
   `defaults`/`set` at create time, or a quest's own `operations` field written wholesale. No
   ingredient here reaches a single operation row and flips its OWN status field after creation
   (`operation` declares no `transitions` either, and nothing in this chunk's build order names an
   `operationReachRouteBroker`).
-- **No recipe or ingredient here can modify a row an EARLIER seed step created, addressed only by
-  its id** — Q7-6 of the chunk-7 plan names this directly: "If a verb is wanted later it is
-  `attach({id})` on a collection." `quest-advances-one-step`'s own divergence above is the
-  concrete cost of that gap.
+
+`quest-advances-one-step`'s own divergence above is a DIFFERENT gap from the one `attachWorkItem`
+closes: it needs to reach into a quest an EARLIER, ALREADY-FINISHED plan created — a row this run's
+own `state.saved` never held in the first place, since that map is scoped to ONE `run()` call. Q7-6
+of the chunk-7 plan named that cross-plan case `attach({id})`; `fromSaved` only ever resolves a name
+THIS plan itself saved, so it answers the same-plan sibling case (`attachWorkItem`'s own operation
+reference) and leaves the cross-plan one exactly as open as before — closing it would still need a
+runner apply layer that loads a row through the ingredient's own `query` route by id.

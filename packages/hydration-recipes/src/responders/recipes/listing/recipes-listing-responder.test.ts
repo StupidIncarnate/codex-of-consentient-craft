@@ -58,6 +58,7 @@ describe('RecipesListingResponder', () => {
           makes: [
             { ingredient: 'guild', count: 1 },
             { ingredient: 'quest', count: 1 },
+            { ingredient: 'operation', count: 2 },
           ],
         },
         {

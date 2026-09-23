@@ -10,6 +10,30 @@ Nothing exists yet while the chain builds: `add`'s builder receives references t
 made readable — an id resolves only after a route runs, and it travels forward through
 `saveRecordAs`.
 
+## A later op reads an earlier row's id through `fromSaved`, never `q[0].id`
+
+`saveRecordAs({name})` puts a row's WHOLE record on the run's `state.saved` map the moment that
+row's `create` applies. `fromSavedRefTransformer({name, field})` is the other half: it builds a
+`SavedRef` — `{__savedRef: true, name, field?}` — that a recipe drops into any LATER op's values in
+place of a literal. `fieldValuesResolveTransformer` is wired into every apply layer that hands
+values to a route or an extra — `create`'s `fields`, `update`'s `written`, `filter`'s `where`, and an
+`extra`'s own `args` — and swaps each `SavedRef` it finds for `state.saved`'s real value at THAT
+op's own turn in the serial walk, never at build time. No new op kind, no ancestor typing: the whole
+mechanism is `saveRecordAs` on one side and `fromSaved` on the other, and it already reaches every
+verb that takes values.
+
+**Folding a `set`/`setRaw` into its own `create` narrows this further.** `planFoldWritesTransformer`
+only folds a write whose `SavedRef`s name something saved BEFORE THE MATCHING `create` op, not
+merely before the `set` itself — folding moves the write earlier, onto the create, so a reference
+that was only safe at the set's own position would resolve against a `state.saved` that does not
+exist yet once folded. A `SavedRef` naming a row created AFTER the row it is attached to (a child
+row's id referenced from its own PARENT's create-time fields, for instance) fails that check and is
+left as a standalone `set` — which then hits whatever gate that ingredient's `update` route enforces
+for the field in question. An `extra` verb has no such fold to navigate: it always runs as its own
+op, in its own declared position, so it is the plain way to write a value that must reference a
+SIBLING row minted later in the same plan. `packages/hydration-recipes/CLAUDE.md`'s `attachWorkItem`
+is the worked example.
+
 ## Every verb but `add` takes an object
 
 A scalar names no axis: an ingredient growing a second thing to set — a second transition field, a

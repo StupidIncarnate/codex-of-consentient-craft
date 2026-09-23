@@ -50,7 +50,7 @@ const EXPECTED_HUMAN_OUTPUT = `  guild-empty
     one guild holding one completed quest with all workflow operations and work items finished
     inputs:  none
     runs:    serverless
-    makes:   guild ×1, quest ×1
+    makes:   guild ×1, quest ×1, operation ×2
 
   session-single-turn
     one session under an existing guild, holding a single turn prompt and response
@@ -162,6 +162,7 @@ describe('SiegelenseRecipesLayerFlow', () => {
             makes: [
               { ingredient: 'guild', count: 1 },
               { ingredient: 'quest', count: 1 },
+              { ingredient: 'operation', count: 2 },
             ],
           },
           {

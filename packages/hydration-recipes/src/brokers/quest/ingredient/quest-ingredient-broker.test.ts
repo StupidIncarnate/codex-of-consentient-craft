@@ -64,12 +64,13 @@ describe('questIngredientBroker', () => {
   });
 
   describe('extras', () => {
-    it('VALID: {} => declares exactly corruptToLegacySchema and withWardResultDetail', () => {
+    it('VALID: {} => declares exactly attachWorkItem, corruptToLegacySchema and withWardResultDetail', () => {
       questIngredientBrokerProxy();
       const config = questIngredientBroker as unknown as IngredientConfigData;
       const extras = config.extras as Record<PropertyKey, unknown>;
 
       expect(Object.keys(extras).sort()).toStrictEqual([
+        'attachWorkItem',
         'corruptToLegacySchema',
         'withWardResultDetail',
       ]);
