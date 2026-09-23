@@ -307,23 +307,161 @@ describe('checkRunTypecheckBroker', () => {
     });
   });
 
-  describe('directory-scoped run: unchanged', () => {
-    // A directory arg never equals an error's own file path, so the fileSet-based filter below
-    // matches nothing — same as before `elsewhereErrors` existed. Fixing that is a separate,
-    // future change; this test pins today's (still filter-then-pass) behavior so it isn't
-    // disturbed by accident.
-    it('VALID: {tsc fails, error inside the scoped directory} => still reports pass, unchanged from before', async () => {
+  describe('directory-scoped run: an error anywhere in the package still fails', () => {
+    // `fileList: []` (a bare package arg such as `-- packages/ward` never reaches this broker as a
+    // passthrough entry at all — see `multiPackageLayerBroker`) is exercised by every test above
+    // that passes an empty `fileList`, and stays untouched: `namedErrors`/`elsewhereErrors` both
+    // fall to their `fileList.length > 0` ternaries' empty branch, same as before this change.
+
+    it('VALID: {tsc fails, error only outside the scoped directory} => fails and lists it under elsewhereErrors', async () => {
       const proxy = checkRunTypecheckBrokerProxy();
       const projectFolder = ProjectFolderStub();
       const tscOutput = [
         '/home/user/project/packages/ward/src/index.ts',
-        'src/other.ts(5,1): error TS2345: Type mismatch.',
+        'src/other/thing.ts(5,1): error TS2345: Type mismatch.',
       ].join('\n');
       proxy.setupFail({ projectFolder, stdout: tscOutput });
 
       const result = await checkRunTypecheckBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'src' })],
+        fileList: [GitRelativePathStub({ value: 'src/widgets' })],
+      });
+
+      const elsewhereError = ErrorEntryStub({
+        filePath: 'src/other/thing.ts',
+        line: 5,
+        column: 1,
+        message: 'TS2345: Type mismatch.',
+        severity: 'error',
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'fail',
+          errors: [elsewhereError],
+          elsewhereErrors: [elsewhereError],
+          testFailures: [],
+          filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.ts'],
+          rawOutput: RawOutputStub({
+            stdout: 'src/other/thing.ts(5,1): error TS2345: Type mismatch.',
+            stderr: '',
+            exitCode: 1,
+          }),
+        }),
+      );
+    });
+
+    it('VALID: {tsc fails, error inside the scoped directory} => lists it first, under errors, nothing elsewhere', async () => {
+      const proxy = checkRunTypecheckBrokerProxy();
+      const projectFolder = ProjectFolderStub();
+      const tscOutput = [
+        '/home/user/project/packages/ward/src/index.ts',
+        'src/widgets/button.ts(10,5): error TS2345: Argument mismatch.',
+      ].join('\n');
+      proxy.setupFail({ projectFolder, stdout: tscOutput });
+
+      const result = await checkRunTypecheckBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/widgets' })],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'fail',
+          errors: [
+            ErrorEntryStub({
+              filePath: 'src/widgets/button.ts',
+              line: 10,
+              column: 5,
+              message: 'TS2345: Argument mismatch.',
+              severity: 'error',
+            }),
+          ],
+          elsewhereErrors: [],
+          testFailures: [],
+          filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.ts'],
+          rawOutput: RawOutputStub({
+            stdout: 'src/widgets/button.ts(10,5): error TS2345: Argument mismatch.',
+            stderr: '',
+            exitCode: 1,
+          }),
+        }),
+      );
+    });
+
+    it('VALID: {tsc fails, errors both inside and outside the scoped directory} => inside error lists first, outside under elsewhereErrors', async () => {
+      const proxy = checkRunTypecheckBrokerProxy();
+      const projectFolder = ProjectFolderStub();
+      const tscOutput = [
+        '/home/user/project/packages/ward/src/index.ts',
+        'src/widgets/button.ts(10,5): error TS2345: Argument mismatch.',
+        'src/other/thing.ts(5,1): error TS2345: Type mismatch.',
+      ].join('\n');
+      proxy.setupFail({ projectFolder, stdout: tscOutput });
+
+      const result = await checkRunTypecheckBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/widgets' })],
+      });
+
+      const insideError = ErrorEntryStub({
+        filePath: 'src/widgets/button.ts',
+        line: 10,
+        column: 5,
+        message: 'TS2345: Argument mismatch.',
+        severity: 'error',
+      });
+      const outsideError = ErrorEntryStub({
+        filePath: 'src/other/thing.ts',
+        line: 5,
+        column: 1,
+        message: 'TS2345: Type mismatch.',
+        severity: 'error',
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'fail',
+          errors: [insideError, outsideError],
+          elsewhereErrors: [outsideError],
+          testFailures: [],
+          filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.ts'],
+          rawOutput: RawOutputStub({
+            stdout: [
+              'src/widgets/button.ts(10,5): error TS2345: Argument mismatch.',
+              'src/other/thing.ts(5,1): error TS2345: Type mismatch.',
+            ].join('\n'),
+            stderr: '',
+            exitCode: 1,
+          }),
+        }),
+      );
+    });
+
+    it('VALID: {tsc exits 0, directory-scoped} => passes with no errors named or elsewhere', async () => {
+      const proxy = checkRunTypecheckBrokerProxy();
+      const projectFolder = ProjectFolderStub();
+      const listFilesOutput = [
+        '/home/user/project/packages/ward/node_modules/typescript/lib/lib.es5.d.ts',
+        '/home/user/project/packages/ward/src/index.ts',
+      ].join('\n');
+      proxy.setupPass({ projectFolder, stdout: listFilesOutput });
+
+      const result = await checkRunTypecheckBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/widgets' })],
       });
 
       expect(result).toStrictEqual(
@@ -337,8 +475,50 @@ describe('checkRunTypecheckBroker', () => {
           filesCount: 1,
           onlyDiscovered: ['discovered.ts'],
           onlyProcessed: ['src/index.ts'],
+          rawOutput: RawOutputStub({ stdout: '', exitCode: 0 }),
+        }),
+      );
+    });
+
+    // THE SEPARATOR IS THE WHOLE FIX. Scoped to `src/widget`, an error in the SIBLING directory
+    // `src/widgets-extra` must not read as "inside the scope" just because the string
+    // `src/widgets-extra` starts with `src/widget` — dropping the trailing `/` in the prefix check
+    // is exactly the mutation this test exists to catch.
+    it('VALID: {tsc fails, error in a same-prefix sibling directory} => is NOT inside the scope, lists under elsewhereErrors', async () => {
+      const proxy = checkRunTypecheckBrokerProxy();
+      const projectFolder = ProjectFolderStub();
+      const tscOutput = [
+        '/home/user/project/packages/ward/src/index.ts',
+        'src/widgets-extra/panel.ts(3,2): error TS2322: Type mismatch.',
+      ].join('\n');
+      proxy.setupFail({ projectFolder, stdout: tscOutput });
+
+      const result = await checkRunTypecheckBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/widget' })],
+      });
+
+      const siblingError = ErrorEntryStub({
+        filePath: 'src/widgets-extra/panel.ts',
+        line: 3,
+        column: 2,
+        message: 'TS2322: Type mismatch.',
+        severity: 'error',
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'fail',
+          errors: [siblingError],
+          elsewhereErrors: [siblingError],
+          testFailures: [],
+          filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.ts'],
           rawOutput: RawOutputStub({
-            stdout: 'src/other.ts(5,1): error TS2345: Type mismatch.',
+            stdout: 'src/widgets-extra/panel.ts(3,2): error TS2322: Type mismatch.',
             stderr: '',
             exitCode: 1,
           }),

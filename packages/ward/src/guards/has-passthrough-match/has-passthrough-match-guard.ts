@@ -9,6 +9,7 @@
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { CliArg } from '../../contracts/cli-arg/cli-arg-contract';
 import type { ProjectFolder } from '../../contracts/project-folder/project-folder-contract';
+import { isPathUnderDirectoryGuard } from '../is-path-under-directory/is-path-under-directory-guard';
 
 export const hasPassthroughMatchGuard = ({
   passthroughArg,
@@ -24,7 +25,6 @@ export const hasPassthroughMatchGuard = ({
   }
 
   const relativePath = projectFolder.path.slice(rootPath.length + 1);
-  const prefix = `${relativePath}/`;
 
-  return passthroughArg === relativePath || passthroughArg.startsWith(prefix);
+  return isPathUnderDirectoryGuard({ path: String(passthroughArg), directory: relativePath });
 };
