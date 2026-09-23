@@ -1,11 +1,11 @@
 /**
  * PURPOSE: Appends a `human-verdict` quest note for one `verifyByHuman` observable, persisting
  * through the same `questPersistBroker` path every quest mutation uses so the outbox fires
- * `quest-modified`. This is the write path a browser POST hits once a person judges a screencast —
- * see `unjudgedScreencastLayerBroker` (`@dungeonmaster/siegelense`), the reader this note releases.
+ * `quest-modified`. This is the write path a browser POST hits once a person records their
+ * verdict on a `verifyByHuman` observable.
  *
  * USAGE:
- * await questHumanVerdictRecordBroker({ questId, unitId, outcome: 'met', reason: 'Watched the clip end to end.' });
+ * await questHumanVerdictRecordBroker({ questId, unitId, outcome: 'met', reason: 'Confirmed by hand.' });
  * // Returns { quest } — the persisted quest, carrying the new note — or throws when unitId names no
  * // verifyByHuman observable
  *
@@ -20,9 +20,8 @@
  * (`human-verdict-<unitId>`), so restating a verdict upserts onto the same entry — the same shape
  * `questNoteIdContract`'s own header documents ("a role writing a note names it after what the note
  * is about, so a later pass re-stating the same open question upserts onto it instead of appending a
- * duplicate"). The hold this releases only checks that a matching-id note EXISTS, so either
- * semantic would work mechanically; replace is what keeps the questNotes list from growing every
- * time a person re-watches the clip and changes their mind.
+ * duplicate"). Replace is what keeps the questNotes list from growing every time a person
+ * reconsiders and changes their mind.
  *
  * `workItemId` IS OMITTED. A person clicking a button in the browser has no work item, and
  * `questNoteContract.workItemId` is `.nullish()` for exactly this kind. Stamping a real-looking
@@ -74,8 +73,7 @@ export const questHumanVerdictRecordBroker = async ({
       const quest = await questLoadBroker({ questFilePath });
 
       // A branded observable id is a plain string at runtime, so `String()` on both sides is what
-      // lets this compare against the raw `unitId` the browser sent — the same comparison
-      // `unjudgedScreencastLayerBroker` makes against a `human-verdict` note's `unitId`.
+      // lets this compare against the raw `unitId` the browser sent.
       const [match] = quest.flows
         .flatMap((flow) => flow.nodes.map((node) => ({ flow, node })))
         .flatMap(({ flow, node }) =>

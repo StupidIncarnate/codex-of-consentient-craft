@@ -23,9 +23,7 @@
  *
  * A `verifyByHuman` observable is filtered out of every role's mark surface by design, so
  * `workItem.observations[]` can never carry a verdict for it — a note is the only record a
- * person's judgment has anywhere to live. `unjudgedScreencastLayerBroker` (`@dungeonmaster/siegelense`)
- * is what reads it: a screencast citation for a criterion holds until a `human-verdict` note names
- * that same criterion, which is the one release condition this kind exists to provide.
+ * person's judgment has anywhere to live.
  */
 
 import { z } from 'zod';

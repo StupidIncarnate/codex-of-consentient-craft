@@ -40,7 +40,7 @@ describe('questHumanVerdictRecordBroker', () => {
         questId: 'add-auth',
         unitId: 'motion-feels-smooth',
         outcome: 'met',
-        reason: 'Watched run_7/walk.webm end to end — the transition never stutters.',
+        reason: 'Watched the raid transition twice; it stutters on the third frame.',
       });
 
       const persisted = proxy.getLastPersistedQuest();
@@ -59,7 +59,7 @@ describe('questHumanVerdictRecordBroker', () => {
             unitId: 'motion-feels-smooth',
             outcome: 'met',
             summary: 'the transition feels smooth: confirmed',
-            detail: 'Watched run_7/walk.webm end to end — the transition never stutters.',
+            detail: 'Watched the raid transition twice; it stutters on the third frame.',
             at: '2024-01-15T10:00:00.000Z',
           },
         ],

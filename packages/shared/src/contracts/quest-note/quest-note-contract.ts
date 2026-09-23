@@ -40,11 +40,8 @@
  * path (`quest-work-input-contract.ts`, `modify-quest-input-contract.ts`) still requires it at its
  * own input contract, unaffected by the widening here. A `human-verdict` note is different: it
  * records a PERSON's judgment from the browser, and a person clicking a button has no work item.
- * Before this field widened, `questHumanVerdictRecordBroker` stamped the nil UUID
- * (`00000000-0000-0000-0000-000000000000`) as a "no work item" sentinel — a fake value in a real
- * field, indistinguishable from a genuine id to any reader that looks it up. Omitting the field
- * entirely is the honest shape: a reader checks presence instead of comparing against a magic
- * constant it has to know about.
+ * Omitting the field entirely is the honest shape: a reader checks presence instead of comparing
+ * against a magic constant it has to know about.
  *
  * `outcome` is the WIDENING this file carries for `human-verdict`. A `verifyByHuman` observable is
  * filtered out of every role's mark surface by design, so `workItem.observations[]` — the
@@ -52,9 +49,7 @@
  * kind is the only place a person's judgment on such a criterion has anywhere to live. It is its
  * own closed two-way set rather than a reuse of `unitMarkContract`: a person's final say on a
  * criterion never "mints a successor" the way an `unmet` mark does, so that third value has nothing
- * to mean here. `unitId` on a `human-verdict` note carries the OBSERVABLE id the person judged — the
- * same id `unjudgedScreencastLayerBroker` (`@dungeonmaster/siegelense`) matches a screencast
- * citation against to decide the hold is released.
+ * to mean here. `unitId` on a `human-verdict` note carries the OBSERVABLE id the person judged.
  *
  * NO `.superRefine()` PAIRS `outcome`/`unitId` WITH `kind: 'human-verdict'`, unlike
  * `unitObservationContract`'s `toSettle`/`cant-meet` pairing. This contract carries no refinement

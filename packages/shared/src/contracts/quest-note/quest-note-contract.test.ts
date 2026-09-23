@@ -142,7 +142,7 @@ describe('questNoteContract', () => {
         unitId: 'motion-feels-smooth',
         outcome: 'met',
         summary: 'Motion feels smooth: confirmed',
-        detail: 'Watched run_7/walk.webm end to end — the transition never stutters.',
+        detail: 'Watched the raid transition twice; it stutters on the third frame.',
         at: '2026-09-14T00:00:00.000Z',
       });
 
@@ -155,7 +155,7 @@ describe('questNoteContract', () => {
         unitId: 'motion-feels-smooth',
         outcome: 'met',
         summary: 'Motion feels smooth: confirmed',
-        detail: 'Watched run_7/walk.webm end to end — the transition never stutters.',
+        detail: 'Watched the raid transition twice; it stutters on the third frame.',
         at: '2026-09-14T00:00:00.000Z',
       });
     });
@@ -195,7 +195,7 @@ describe('questNoteContract', () => {
         unitId: 'motion-feels-smooth',
         outcome: 'met',
         summary: 'Motion feels smooth: confirmed',
-        detail: 'Watched run_7/walk.webm end to end — the transition never stutters.',
+        detail: 'Watched the raid transition twice; it stutters on the third frame.',
         at: '2026-09-14T00:00:00.000Z',
       });
 
@@ -207,7 +207,7 @@ describe('questNoteContract', () => {
         unitId: 'motion-feels-smooth',
         outcome: 'met',
         summary: 'Motion feels smooth: confirmed',
-        detail: 'Watched run_7/walk.webm end to end — the transition never stutters.',
+        detail: 'Watched the raid transition twice; it stutters on the third frame.',
         at: '2026-09-14T00:00:00.000Z',
       });
     });

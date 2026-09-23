@@ -477,7 +477,7 @@ describe('questSummaryToTextTransformer', () => {
                   unitId: 'motion-feels-smooth',
                   outcome: 'met',
                   summary: 'the transition feels smooth: confirmed',
-                  detail: 'Watched run_7/walk.webm end to end — the transition never stutters.',
+                  detail: 'Watched the raid transition twice; it stutters on the third frame.',
                   at: '2026-02-03T04:05:06.000Z',
                 }),
               ],

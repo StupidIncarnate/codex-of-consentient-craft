@@ -11,7 +11,7 @@ import { QuestHumanVerdictResponder } from './quest-human-verdict-responder';
 const QUEST_ID = 'add-auth';
 const UNIT_ID = 'motion-feels-smooth';
 const OUTCOME = 'met';
-const REASON = 'Watched run_7/walk.webm end to end — the transition never stutters.';
+const REASON = 'Watched the raid transition twice; it stutters on the third frame.';
 
 export const QuestHumanVerdictResponderProxy = (): {
   setupSucceeds: () => void;
