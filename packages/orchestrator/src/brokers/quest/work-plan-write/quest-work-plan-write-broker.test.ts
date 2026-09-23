@@ -104,6 +104,7 @@ describe('questWorkPlanWriteBroker', () => {
                 pieces: [
                   {
                     id: 'pc-1',
+                    pieceName: 'bogus unit piece',
                     step: 'work',
                     assignedUnitIds: ['no-such-flow:observable:bogus'],
                     contextUnitIds: [],

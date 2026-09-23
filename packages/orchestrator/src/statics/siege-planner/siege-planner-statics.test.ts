@@ -69,6 +69,21 @@ describe('siegePlannerStatics', () => {
     ]);
   });
 
+  // A PIECE'S HUMAN NAME IS DISTINCT FROM ITS `id`. The router carries `pieceName` onto the minted
+  // work item's payload, and the execution panel reads it to label a step's rows — a piece skeleton
+  // missing the field is a plan every downstream reader can only label by its bare id.
+  it('VALID: served template => requires pieceName on a piece, distinct from id', () => {
+    expect({
+      fieldInSkeleton: hasIn({
+        needle: "pieceName: '<a short human name — the path's own subject",
+      }),
+      requiredAndDistinctFromId: hasIn({
+        needle:
+          '**`pieceName` is required, and it is not `id`.** `id` is your own cross-reference mnemonic;',
+      }),
+    }).toStrictEqual({ fieldInSkeleton: true, requiredAndDistinctFromId: true });
+  });
+
   it('VALID: served template => interpolates sad-path and spilled shared blocks, and takes no marking block', () => {
     expect({
       sadPaths: TEMPLATE.split(sadPathRoutingStatics.markdown).length - 1,

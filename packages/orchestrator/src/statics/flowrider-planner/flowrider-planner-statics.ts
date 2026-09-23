@@ -448,6 +448,7 @@ paragraph is a paragraph the worker skims.
 \`\`\`
 {
   id: '<short, unique in this plan — you type it>',
+  pieceName: '<a short human name — what a reader calls this piece, e.g. "login-flow happy path">',
   step: 'work',
   assignedUnitIds: ['<unit id>', …],
   contextUnitIds: ['<unit id this piece reads but never marks>', …],
@@ -463,6 +464,10 @@ paragraph is a paragraph the worker skims.
   }
 }
 \`\`\`
+
+**\`pieceName\` is required, and it is not \`id\`.** \`id\` is your own cross-reference mnemonic;
+\`pieceName\` is what the execution panel shows a person — the spec file's own subject, never a
+restatement of the id or the step.
 
 **You do not write the test, not even as a sketch.** A piece carrying a spec's body in pseudo-code
 makes the worker a typist and you the author. It derives that body from what you DO give it: the
