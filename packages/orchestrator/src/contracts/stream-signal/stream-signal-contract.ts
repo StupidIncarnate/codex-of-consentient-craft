@@ -10,14 +10,13 @@ import { z } from 'zod';
 
 import { blockedReasonContract, operationItemIdContract } from '@dungeonmaster/shared/contracts';
 
-// Mirror of MCP's signalBackInputContract for local validation. `complete` is the sole signal
-// kind (session-terminal marker); the outcome rides on the call as operationStatus. The handler
-// applies it server-side: 'done' → the linked operation item completes and dispatch advances;
-// 'partial' → the item completes AND a "pt N" continuation is appended for a fresh session;
-// 'blocked' → the continuation is appended too, but the quest halts with `blockedReason` recorded
-// because the wall is outside the agent's reach. There is no failure signal for work an agent
-// could have done — agents fix their own problems and move forward; the only other failure
-// concept is a ward exit-code red, handled inside quest-run-ward-broker.
+// Mirrors the shape of a `signal-back` tool_use call AS EMITTED into an agent's own session
+// stream — a JSONL transcript already on disk may carry an older call shape, so this parser stays
+// more permissive than the live tool's input contract (`signalBackInputContract`, `.strict()`, no
+// `operationStatus` key at all). `complete` is the sole signal kind, a session-terminal marker.
+// The only other failure concept is a ward exit-code red, classified by whichever ward handler ran
+// it — `stepHandlerWardBroker` for a normal quest's deterministic step, `questRunWardBroker` for a
+// step-less item.
 export const streamSignalContract = z.object({
   signal: z.literal('complete'),
   operationItemId: operationItemIdContract.optional(),

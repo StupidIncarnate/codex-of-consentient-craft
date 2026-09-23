@@ -91,7 +91,7 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
         // drive the loop far enough to observe this callback (they assert argv/options, not
         // lifecycle). Unref makes packages/testing's isTimerHoldingLoopGuard read it as not holding
         // the loop, so it stops reporting as a leaked handle, while still firing in the same order
-        // for callers (chat-spawn-broker, quest-run-riftcarver-broker) that DO await it.
+        // for callers (chat-spawn-broker, agent-launch-broker) that DO await it.
         setImmediate(() => {
           mockChildProcess.emit('exit', config.exitCodeOnKill);
         }).unref();

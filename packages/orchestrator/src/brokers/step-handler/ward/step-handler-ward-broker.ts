@@ -1,10 +1,9 @@
 /**
  * PURPOSE: Runs ward with a deterministic step's own `args`, verbatim, and classifies the exit
- * into one of the four `Outcome` words. Reuses `questRunWardBroker`'s non-routing parts — the cwd
- * resolve, the spawn, the run-id transformer and the detail-blob persist plus the `wardResults`
- * ref append — and drops everything from `quest-run-ward-broker.ts:198-320`: that block is
- * terminal work-item status, operation-item completion and the spiritmender splice, which is
- * routing the router (story 15) owns now.
+ * into one of the four `Outcome` words: the cwd resolve, the spawn, the run-id transformer and
+ * the detail-blob persist, plus the `wardResults` ref append. It writes no terminal work-item
+ * status, completes no operation item and splices no spiritmender step — routing belongs to the
+ * router.
  *
  * `args` carries no `run` subcommand — that is ward's own subcommand, this handler's own
  * constant, prepended here so `step.args` never has to name it.

@@ -14,10 +14,10 @@
  * });
  * // Returns: RunStep
  *
- * IT CARRIES A HANDLER RATHER THAN A ROLE, and that is the whole reason it exists beside
- * `run-ward` / `run-riftcarver`. Those two key on the work item's ROLE, which only ever names the
- * two family-level command scopes; a `commit` step inside a codeweaver scope reads
- * `role: 'codeweaver'` and either of them would spawn a Claude session for it.
+ * IT CARRIES A HANDLER RATHER THAN A ROLE, because a deterministic step's work item carries the
+ * ROLE OF ITS SCOPE, not of the step itself: a `commit` step inside a codeweaver scope reads
+ * `role: 'codeweaver'`, and dispatching on that role alone would spawn a Claude session for a step
+ * that has to run a handler instead.
  *
  * `args` RIDE THE STEP, not the work item: `agentFlowStatics` is where a ward step declares
  * `['--committed', '--uncommitted']` and the full gate declares `[]`, and passing them VERBATIM is

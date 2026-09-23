@@ -6,7 +6,7 @@
  *
  * USAGE:
  * const step = await QuestGetNextStepResponder();
- * // Returns: NextStep — { type: 'idle', reason? } | { type: 'spawn-agents', agents } | { type: 'run-ward', ... }
+ * // Returns: NextStep — { type: 'idle', reason? } | { type: 'spawn-agents', agents } | { type: 'run-step', handler, args }
  *
  * The facade is inert because per-emission active-quest tagging is no longer used — the
  * broadcaster derives questId from each entry's workItem.questId mapping. The facade
