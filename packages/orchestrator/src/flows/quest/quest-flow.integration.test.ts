@@ -1260,11 +1260,10 @@ describe('QuestFlow', () => {
     }, 30_000);
   });
 
-  // The operations relay: an agent session ends with signal-back complete carrying an
-  // operationStatus. The real handle-signal-back responder → operations-update broker → advance
-  // broker chain applies the outcome to the ledger and creates the next work item, all against the
-  // real filesystem. These drive QuestFlow end-to-end (not mocked) — the seam the broker unit tests
-  // mock.
+  // The operations relay: an agent session ends with signal-back complete. The real
+  // handle-signal-back responder → operations-update broker → advance broker chain applies the
+  // outcome to the ledger and creates the next work item, all against the real filesystem. These
+  // drive QuestFlow end-to-end (not mocked) — the seam the broker unit tests mock.
   describe('operations relay — advance on done', () => {
     // Nothing is appended beside the completed item: the standards review happened inside the
     // codeweaver session's own turn, via the reviewer-minion whose disposition the review-coverage
@@ -1327,7 +1326,6 @@ describe('QuestFlow', () => {
         questId,
         workItemId: cwWorkItemId,
         signal: 'complete',
-        operationStatus: 'done',
       });
 
       const afterAdvance = await QuestGetResponder({ questId });
@@ -1372,94 +1370,6 @@ describe('QuestFlow', () => {
             taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "flowrider-planner",\n  workItemId: "${String(flowWorkItem!.id)}",\n  questId: "${String(questId)}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${String(questId)}",\n  workItemId: "${String(flowWorkItem!.id)}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${String(questId)}",\n  workItemId: "${String(flowWorkItem!.id)}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${String(questId)}",\n  workItemId: "${String(flowWorkItem!.id)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
           },
         ],
-      });
-    }, 30_000);
-  });
-
-  // QuestHandleSignalBackResponder still declares an `operationStatus` param (kept for unit SB1),
-  // but QuestFlow.handleSignalBack no longer forwards it. A 'blocked' value must therefore produce
-  // the exact same outcome as a plain 'complete' signal — never the environment-wall halt
-  // (`isEnvironmentWall`, failed work item, blocked quest) the responder would still apply if the
-  // flow forwarded it. `blockedReason` is a SEPARATE field the flow still forwards (out of O1's
-  // scope), so this test omits it — passing it would set `errorMessage` regardless of
-  // `operationStatus` and prove nothing about the field under test.
-  describe('operations relay — operationStatus is dropped at the flow boundary', () => {
-    it('VALID: {codeweaver signals complete with operationStatus: blocked} => the operation completes and advances exactly as a plain done signal would, never blocking the quest', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-relay-operationstatus-dropped' }),
-      });
-      envHarness.setupHome({ tempDir: testbed.guildPath });
-
-      const { questId } = await questHelper.createGuildAndQuest({ testbed });
-
-      const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d1' });
-      const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d2' });
-      const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-
-      await questHelper.seedInProgressRelay({
-        questId,
-        operations: [
-          OperationItemStub({
-            id: cwOpId,
-            role: 'codeweaver',
-            text: 'build core',
-            status: 'in_progress',
-            locked: false,
-          }),
-          OperationItemStub({
-            id: flowOpId,
-            role: 'flowrider',
-            text: 'verify flows',
-            status: 'pending',
-            locked: true,
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: cwWorkItemId,
-            role: 'codeweaver',
-            status: 'in_progress',
-            spawnerType: 'agent',
-            relatedDataItems: [`operations/${String(cwOpId)}`],
-            dependsOn: [],
-            createdAt: new Date().toISOString(),
-          }),
-        ],
-      });
-
-      await QuestFlow.handleSignalBack({
-        questId,
-        workItemId: cwWorkItemId,
-        signal: 'complete',
-        operationItemId: cwOpId,
-        operationStatus: 'blocked',
-      });
-
-      const afterSignal = await QuestGetResponder({ questId });
-      const cwWorkItem = afterSignal.quest!.workItems.find((wi) => wi.id === cwWorkItemId);
-      const flowWorkItem = afterSignal.quest!.workItems.find((wi) => wi.role === 'flowrider');
-
-      testbed.cleanup();
-
-      expect({
-        questStatus: afterSignal.quest!.status,
-        operations: afterSignal.quest!.operations.map((op) => ({
-          role: op.role,
-          status: op.status,
-          text: String(op.text),
-        })),
-        cwWorkItemStatus: cwWorkItem?.status,
-        cwWorkItemErrorMessage: cwWorkItem?.errorMessage,
-        flowWorkItemStatus: flowWorkItem?.status,
-      }).toStrictEqual({
-        questStatus: 'in_progress',
-        operations: [
-          { role: 'codeweaver', status: 'complete', text: 'build core' },
-          { role: 'flowrider', status: 'in_progress', text: 'verify flows' },
-        ],
-        cwWorkItemStatus: 'complete',
-        cwWorkItemErrorMessage: undefined,
-        flowWorkItemStatus: 'pending',
       });
     }, 30_000);
   });

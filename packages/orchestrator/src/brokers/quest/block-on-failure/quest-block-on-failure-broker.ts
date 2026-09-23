@@ -17,14 +17,14 @@
  * //   item, flips quest status to `blocked`, and persists via questModifyBroker. Returns
  * //   { blocked }.
  *
- * WHEN-TO-USE: From the three bounded-loop-exhaustion paths that route to BLOCK —
- *   quest-run-ward-broker (ward retry budget spent), quest-handle-signal-back-responder (a
- *   locked role's pt-N chain spent), and recover-orphaned-work-items-layer-broker
- *   (orphan-recovery reset budget spent). These are the ONLY routes to `blocked` — the
- *   orchestrator has no other failure signal.
- * WHEN-NOT-TO-USE: While any of those budgets still has room — the quest stays `in_progress`
- *   and the loop continues (a fresh ward retry, pt-N continuation, or orphan reset) instead of
- *   blocking.
+ * WHEN-TO-USE: From any halt route the dispatch loop or the router can take — a missing recorded
+ *   worktree (`blockOnMissingWorktreeLayerBroker`), a spent orphan-recovery reset budget
+ *   (`recoverOrphanedWorkItemsLayerBroker`), the router's own halt on a step's route
+ *   (`questRouteScopeBroker`), or a resume/restart path that finds the same cause still present
+ *   (`OrchestrationResumeResponder`, `RecoverGuildLayerResponder`). These are the orchestrator's
+ *   only routes to `blocked` — it has no other failure signal.
+ * WHEN-NOT-TO-USE: While the underlying budget or condition still has room to retry — the quest
+ *   stays `in_progress` and the loop continues instead of blocking.
  */
 
 import type {

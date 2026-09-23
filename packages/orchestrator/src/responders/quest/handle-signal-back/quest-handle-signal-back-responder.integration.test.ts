@@ -2,7 +2,6 @@ import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing
 import {
   AbsoluteFilePathStub,
   BaseBranchNameStub,
-  BlockedReasonStub,
   ErrorMessageStub,
   FileContentsStub,
   FileNameStub,
@@ -154,7 +153,6 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
       workItemId: cwWorkItemId,
       signal: 'complete',
       operationItemId: cwOpId,
-      operationStatus: 'done',
     });
 
     const after = await questHelper.reload({ questId });
@@ -274,7 +272,6 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
         workItemId: cwWorkItemId,
         signal: 'complete',
         operationItemId: cwOpId,
-        operationStatus: 'done',
       });
 
       const after = await questHelper.reload({ questId });
@@ -336,7 +333,6 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
       workItemId: cwWorkItemId,
       signal: 'complete',
       operationItemId: cwOpId,
-      operationStatus: 'done',
     });
 
     const after = await questHelper.reload({ questId });
@@ -426,7 +422,6 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
       workItemId: cwWorkItemId,
       signal: 'complete',
       operationItemId: cwOpId,
-      operationStatus: 'done',
     });
 
     const after = await questHelper.reload({ questId });
@@ -538,7 +533,6 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
       workItemId: cwWorkItemId,
       signal: 'complete',
       operationItemId: cwOpId,
-      operationStatus: 'done',
     });
 
     const after = await questHelper.reload({ questId });
@@ -553,98 +547,6 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
       responderResult: { success: true },
       operationStatus: 'complete',
       workItemStatus: 'complete',
-    });
-  }, 30_000);
-
-  it("VALID: {codeweaver 'blocked' on the same dirty worktree} => also succeeds, because nothing reads the tree on any outcome", async () => {
-    const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'sb-dirty-blocked' }),
-    });
-    envHarness.setupHome({ tempDir: testbed.guildPath });
-
-    const { questId } = await questHelper.createGuildAndQuest({ testbed });
-
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
-    await git.initRepoWithPackages({
-      repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' })],
-    });
-
-    const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/dirty-blocked-a1b2c3d4`,
-    });
-    const branchName = QuestBranchNameStub({ value: 'quest/dirty-blocked-a1b2c3d4' });
-    await gitWorktreeAddAdapter({
-      cwd: repoPath,
-      worktreePath,
-      branchName,
-      baseBranch: BaseBranchNameStub({ value: 'main' }),
-      mode: 'create-branch',
-    });
-
-    const strayPath = RepoRelativePathStub({ value: 'packages/shared/stray-broker.ts' });
-    git.dirtyTrackedFile({
-      repoPath: worktreePath,
-      relativePath: strayPath,
-      content: FileContentsStub({ value: 'export const strayBroker = (): number => 1;\n' }),
-    });
-
-    const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d4' });
-    const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-
-    await questHelper.seedInProgressRelay({
-      questId,
-      worktreePath,
-      branchName,
-      operations: [
-        OperationItemStub({
-          id: cwOpId,
-          role: 'codeweaver',
-          text: 'core: config adapter',
-          status: 'in_progress',
-        }),
-      ],
-      workItems: [
-        WorkItemStub({
-          id: cwWorkItemId,
-          role: 'codeweaver',
-          status: 'in_progress',
-          spawnerType: 'agent',
-          relatedDataItems: [`operations/${String(cwOpId)}`],
-          dependsOn: [],
-          createdAt: new Date().toISOString(),
-        }),
-      ],
-    });
-
-    const seeded = await questHelper.reload({ questId });
-
-    expect(String(seeded.worktreePath)).toBe(String(worktreePath));
-
-    const result = await QuestHandleSignalBackResponder({
-      questId,
-      workItemId: cwWorkItemId,
-      signal: 'complete',
-      operationItemId: cwOpId,
-      operationStatus: 'blocked',
-      blockedReason: BlockedReasonStub({
-        value: 'the CI token this round needs is not on this machine',
-      }),
-    });
-
-    const after = await questHelper.reload({ questId });
-
-    testbed.cleanup();
-
-    expect({
-      responderResult: result,
-      questStatus: after.status,
-      workItemStatus: after.workItems.find((wi) => wi.id === cwWorkItemId)?.status,
-    }).toStrictEqual({
-      responderResult: { success: true },
-      questStatus: 'blocked',
-      workItemStatus: 'failed',
     });
   }, 30_000);
 
@@ -719,7 +621,6 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
       workItemId: cwWorkItemId,
       signal: 'complete',
       operationItemId: cwOpId,
-      operationStatus: 'done',
     });
 
     const after = await questHelper.reload({ questId });
@@ -815,7 +716,6 @@ describe('QuestHandleSignalBackResponder (integration) — the two verification 
         workItemId: flowWorkItemId,
         signal: 'complete',
         operationItemId: flowOpId,
-        operationStatus: 'done',
       });
 
       const afterQuest = await questHelper.reload({ questId });
@@ -894,7 +794,6 @@ describe('QuestHandleSignalBackResponder (integration) — the two verification 
         workItemId: flowWorkItemId,
         signal: 'complete',
         operationItemId: flowOpId,
-        operationStatus: 'done',
       });
 
       const afterQuest = await questHelper.reload({ questId });
@@ -978,7 +877,6 @@ describe('QuestHandleSignalBackResponder (integration) — the two verification 
         workItemId: siegeWorkItemId,
         signal: 'complete',
         operationItemId: siegeOpId,
-        operationStatus: 'done',
       });
 
       const afterQuest = await questHelper.reload({ questId });
@@ -1075,7 +973,6 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
       workItemId: warpgateWorkItemId,
       signal: 'complete',
       operationItemId: warpgateOpId,
-      operationStatus: 'done',
     });
 
     const afterQuest = await questHelper.reload({ questId });
@@ -1098,9 +995,9 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
     expect({
       responderResult: result,
       questStatus: afterQuest.status,
-      // warpgate-merge:observable:warpgate-signals-done — the {signal:'complete',
-      // operationStatus:'done'} call a finished warpgate session sends marks ITS OWN operation
-      // item complete and terminalizes its work item. Read directly rather than inferred from
+      // warpgate-merge:observable:warpgate-signals-done — the {signal:'complete'} call a finished
+      // warpgate session sends marks ITS OWN operation item complete and terminalizes its work
+      // item. Read directly rather than inferred from
       // `merged`: the derived status is what the ledger drained TO, so a responder that settled
       // the quest without ever completing this item would have to be caught here.
       warpgateOperationStatus: warpgateOperation?.status,

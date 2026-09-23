@@ -28,10 +28,10 @@ describe('orchestratorHandleSignalBackAdapter', () => {
       expect(result).toStrictEqual(expected);
     });
 
-    // signalBackInputContract (mcp and server, both `.strict()`) has no `operationStatus` key —
-    // StartOrchestrator.handleSignalBack's own type still carries the optional field, so a
-    // regression that starts forwarding it again would typecheck silently. Asserting the FULL
-    // call payload is what catches that: the address match above only compares the keys it names.
+    // signalBackInputContract (mcp and server, both `.strict()`) has no `operationStatus` key, and
+    // neither does StartOrchestrator.handleSignalBack's own type. Asserting the FULL call payload
+    // is what catches a regression that starts forwarding it again: the address match above only
+    // compares the keys it names.
     it('VALID: {questId, workItemId, signal: complete, operationItemId, blockedReason} => calls StartOrchestrator.handleSignalBack with exactly those fields, and no operationStatus', async () => {
       const proxy = orchestratorHandleSignalBackAdapterProxy();
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
