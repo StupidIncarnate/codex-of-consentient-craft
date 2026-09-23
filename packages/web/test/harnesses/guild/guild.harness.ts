@@ -35,9 +35,9 @@ export const guildHarness = ({
   // Same plan shape as createGuild, run against the `write` target instead of the `api` one — for a
   // spec proving the two routes produce equivalent domain state for the same ingredient.
   createGuildViaWriteRoute: (params: { name: string; path: string }) => Promise<GuildRecord>;
-  // Removes one guild through dmRegistryBroker's `remove` route (guildRemoveRouteBroker), the same
-  // guildRemoveBroker call the real DELETE responder makes — see that route's own header for why it
-  // calls the broker in-process rather than over HTTP even against an apiTarget.
+  // Removes one guild through dmRegistryBroker's `remove` route (guildRemoveRouteBroker), which
+  // sends `DELETE /api/guilds/:guildId` over HTTP whenever the target carries a `baseUrl` — see
+  // that route's own header for the full resolution.
   deleteGuild: (params: { guildId: string }) => Promise<void>;
   extractGuildId: (params: { guild: GuildRecord }) => GuildId;
   extractUrlSlug: (params: { guild: GuildRecord }) => UrlSlug;
