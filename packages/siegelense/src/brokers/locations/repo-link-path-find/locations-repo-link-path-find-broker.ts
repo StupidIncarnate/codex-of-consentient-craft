@@ -1,15 +1,15 @@
 /**
  * PURPOSE: Turns an absolute path under the siegelense home into the form a `Read` can actually
- * reach — `<repoRoot>/.siegelense/…` through the symlink `dungeonmaster init` writes onto
- * `<home>/.dungeonmaster/siegelense/` — because a shot is a PNG and the only way a model sees one is
- * a `Read` of its path. Answers `linkPresent: false` with the real home path whenever the link
- * cannot be trusted to reach the right tree: absent (`init` never ran here), or present but pointing
- * at a DIFFERENT siegelense root — a link left over from another checkout, the case likeliest to be
- * missed since the link still resolves to something real.
+ * reach — `<repoRoot>/.dungeonmaster-assets/siegelense-assets/…` through the symlink
+ * `dungeonmaster init` writes onto `<home>/.dungeonmaster/siegelense/` — because a shot is a PNG and
+ * the only way a model sees one is a `Read` of its path. Answers `linkPresent: false` with the real
+ * home path whenever the link cannot be trusted to reach the right tree: absent (`init` never ran
+ * here), or present but pointing at a DIFFERENT siegelense root — a link left over from another
+ * checkout, the case likeliest to be missed since the link still resolves to something real.
  *
  * USAGE:
  * await locationsRepoLinkPathFindBroker({ homePath });
- * // Returns RepoLocalPath — { path: '<repoRoot>/.siegelense/...', linkPresent: true }
+ * // Returns RepoLocalPath — { path: '<repoRoot>/.dungeonmaster-assets/siegelense-assets/...', linkPresent: true }
  */
 
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
@@ -37,7 +37,11 @@ export const locationsRepoLinkPathFindBroker = async ({
   const repoRoot = await cwdResolveBroker({ startPath: cwdPath, kind: 'repo-root' });
 
   const linkPath = pathJoinAdapter({
-    paths: [repoRoot, locationsStatics.repoRoot.siegelenseLink],
+    paths: [
+      repoRoot,
+      locationsStatics.repoRoot.dungeonmasterAssets,
+      locationsStatics.repoRoot.siegelenseLink,
+    ],
   });
 
   const linkExists = fsExistsSyncAdapter({ filePath: linkPath });

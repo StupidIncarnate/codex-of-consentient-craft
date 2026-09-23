@@ -48,7 +48,7 @@ Logs, captures and the transcript are evidence and outlive the instance.
 a fixer reading one is the normal case rather than the edge. Routing a read at the socket answers a
 bare connection error, which cannot be told from a crash.
 
-## Every path handed back is repo-local, through `<repoRoot>/.siegelense`
+## Every path handed back is repo-local, through `<repoRoot>/.dungeonmaster-assets/siegelense-assets`
 
 A shot is only evidence if the reader's `Read` reaches it. Same reason `npm run prod` keeps its home
 inside this repo.
