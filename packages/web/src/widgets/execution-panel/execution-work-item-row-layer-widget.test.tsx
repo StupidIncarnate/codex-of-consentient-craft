@@ -153,6 +153,43 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
     });
   });
 
+  describe('back-edge badge (mintedBy)', () => {
+    it('VALID: {mintedByLabel provided} => forwards it to the row as the back-edge badge', () => {
+      ExecutionWorkItemRowLayerWidgetProxy();
+      const workItem = WorkItemStub({
+        id: WORK_ITEM_ID,
+        role: 'codeweaver',
+        status: 'in_progress',
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionWorkItemRowLayerWidget
+            {...defaultParams({ workItem })}
+            mintedByLabel={DisplayLabelStub({ value: 'walk pt: 1' })}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('execution-row-minted-by-badge').textContent).toBe('↩ walk pt: 1');
+    });
+
+    it('EMPTY: {mintedByLabel omitted} => the row carries no back-edge badge', () => {
+      ExecutionWorkItemRowLayerWidgetProxy();
+      const workItem = WorkItemStub({
+        id: WORK_ITEM_ID,
+        role: 'codeweaver',
+        status: 'in_progress',
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionWorkItemRowLayerWidget {...defaultParams({ workItem })} />,
+      });
+
+      expect(screen.queryByTestId('execution-row-minted-by-badge')).toBe(null);
+    });
+  });
+
   describe('dependsOn labels', () => {
     it('VALID: {dependsOn id present in workItemIdToLabel} => subtitle shows the resolved role label', () => {
       ExecutionWorkItemRowLayerWidgetProxy();

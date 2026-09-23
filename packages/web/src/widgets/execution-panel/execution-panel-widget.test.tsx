@@ -653,6 +653,95 @@ describe('ExecutionPanelWidget', () => {
     });
   });
 
+  describe('back-edge badge (mintedBy, 27f)', () => {
+    it('VALID: {two bare scopes, the second mintedBy the first} => the badge names the minter’s own row label, not its raw id', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'ward',
+            status: 'pending',
+            mintedBy: 'a0000000-0000-0000-0000-000000000001',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getStepRows().map((r) => r.textContent)).toStrictEqual([
+        '▸01[CODEWEAVER]CodeweaverDONE',
+        '···02[WARD]Ward↩ CodeweaverPENDING',
+      ]);
+    });
+
+    it('VALID: {a nested scope, the second child mintedBy the first} => the badge names the minter’s own step-tier label, not the scope name', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({
+            id: OP_ID_1,
+            role: 'codeweaver',
+            text: 'build the broker',
+            status: 'in_progress',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'plan',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'pending',
+            step: 'work',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+            mintedBy: 'a0000000-0000-0000-0000-000000000001',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(screen.getByTestId('execution-row-minted-by-badge').textContent).toBe('↩ plan');
+    });
+
+    it('EMPTY: {no work item carries mintedBy} => no row renders a back-edge badge', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(screen.queryByTestId('execution-row-minted-by-badge')).toBe(null);
+    });
+  });
+
   describe('dependsOn labels', () => {
     it('VALID: {work item with dependsOn} => subtitle shows the dependency role labels', () => {
       ExecutionPanelWidgetProxy();

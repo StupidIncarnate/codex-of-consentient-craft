@@ -36,16 +36,18 @@ import type { ExecutionStepStatus } from '../../contracts/execution-step-status/
 import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { RowOrder } from '../../contracts/row-order/row-order-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
-import { executionStepStatusConfigStatics } from '../../statics/execution-step-status-config/execution-step-status-config-statics';
 import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
 import { computeRowContextTotalTransformer } from '../../transformers/compute-row-context-total/compute-row-context-total-transformer';
 import { durationDisplayTransformer } from '../../transformers/duration-display/duration-display-transformer';
 import { elapsedPartsTransformer } from '../../transformers/elapsed-parts/elapsed-parts-transformer';
+import { executionRowDisplayResolveTransformer } from '../../transformers/execution-row-display-resolve/execution-row-display-resolve-transformer';
 import { executionRowSubtitleTransformer } from '../../transformers/execution-row-subtitle/execution-row-subtitle-transformer';
 import { mergeCommandOutputEntriesTransformer } from '../../transformers/merge-command-output-entries/merge-command-output-entries-transformer';
 import { runningRowNowTransformer } from '../../transformers/running-row-now/running-row-now-transformer';
 import { stickyHeaderZIndexTransformer } from '../../transformers/sticky-header-z-index/sticky-header-z-index-transformer';
 import { ChatEntryListWidget } from '../chat-entry-list/chat-entry-list-widget';
+import { ExecutionRowMintedByBadgeLayerWidget } from './execution-row-minted-by-badge-layer-widget';
+import { ExecutionRowUnmetListLayerWidget } from './execution-row-unmet-list-layer-widget';
 import { RiftcarverResultRowLayerWidget } from './riftcarver-result-row-layer-widget';
 import { StreamingBarLayerWidget } from './streaming-bar-layer-widget';
 import { WardResultRowLayerWidget } from './ward-result-row-layer-widget';
@@ -62,6 +64,10 @@ export interface ExecutionRowLayerWidgetProps {
   // Set on a step row nested under an operation header (decision 2's NESTED ruling): shifts the
   // row right and drops its own [ROLE] badge, since the header already names the scope's role.
   indented?: boolean;
+  // The back-edge badge: set when `workItem.mintedBy` names a real predecessor, resolved by the
+  // panel to that row's own four-tier label (T2-1) rather than a raw id. Never derived from
+  // `insertedBy` — that field means a retry splice superseding a failed item, a different edge.
+  mintedByLabel?: DisplayLabel;
   errorMessage?: ErrorMessage;
   // Carries summary, attempt, maxAttempts, startedAt, completedAt and actualSignal as ONE object
   // rather than six flattened WorkItem['x'] properties, so a caller passes the work item it already
@@ -130,6 +136,7 @@ export const ExecutionRowLayerWidget = ({
   dependsOn,
   isAdhoc,
   indented,
+  mintedByLabel,
   errorMessage,
   workItem,
   entries,
@@ -222,8 +229,10 @@ export const ExecutionRowLayerWidget = ({
         : undefined,
     [startedAt, elapsedEndPoint],
   );
-  const statusCfg = executionStepStatusConfigStatics.statusConfig[status];
-  const roleColor = executionStepStatusConfigStatics.roleColors[role];
+  const { statusLabel, statusColor, roleColor } = executionRowDisplayResolveTransformer({
+    status,
+    role,
+  });
   const isExpandable = EXPANDABLE_STATUSES.includes(status) || hasEntries;
   const subtitle = executionRowSubtitleTransformer({ status, dependsOn, files });
   const headerContextLabel = computeRowContextTotalTransformer({ entries: entries ?? [] });
@@ -365,6 +374,8 @@ export const ExecutionRowLayerWidget = ({
           </Text>
         ) : null}
 
+        <ExecutionRowMintedByBadgeLayerWidget mintedByLabel={mintedByLabel} />
+
         {durationLabel === undefined ? null : (
           <Text
             ff="monospace"
@@ -398,12 +409,12 @@ export const ExecutionRowLayerWidget = ({
           data-testid="execution-row-status-badge"
           style={{
             fontSize: HEADER_FONT_SIZE,
-            color: colors[statusCfg.color],
+            color: colors[statusColor],
             fontWeight: 600,
             flexShrink: 0,
           }}
         >
-          {statusCfg.label}
+          {statusLabel}
         </Text>
       </UnstyledButton>
 
@@ -446,6 +457,7 @@ export const ExecutionRowLayerWidget = ({
               Satisfies: {observablesSatisfied.join(', ')}
             </Text>
           ) : null}
+          <ExecutionRowUnmetListLayerWidget workItem={workItem} />
           {inputContracts?.length ? (
             <Text
               ff="monospace"

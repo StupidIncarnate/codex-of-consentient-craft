@@ -414,6 +414,33 @@ export const ExecutionPanelWidget = ({
     });
   });
 
+  // Resolves `workItem.mintedBy` to the label of the row it names, for the back-edge badge (27f) —
+  // the SAME four-tier text (T2-1) that row renders for itself, never the raw id. Built once over
+  // ALL of quest.workItems, not just visibleWorkItems: a minter can already be filtered out by the
+  // skip guard while its own label is still the right one to show. A nested row's label is the tier
+  // label already computed above; a bare row falls back to the identical scope-label rule
+  // ExecutionWorkItemRowLayerWidget applies for its own name (operation text, or the capitalized role).
+  const workItemIdToDisplayLabel = new Map<WorkItem['id'], DisplayLabel>();
+  quest.workItems.forEach((wi) => {
+    const tierLabel = stepLabelByWorkItemId.get(wi.id);
+    if (tierLabel !== undefined) {
+      workItemIdToDisplayLabel.set(wi.id, tierLabel);
+      return;
+    }
+    const operationRef = wi.relatedDataItems.find((ref) => ref.startsWith(OPERATIONS_PREFIX));
+    const operation =
+      operationRef === undefined
+        ? undefined
+        : operationsById.get(
+            operationRef.slice(OPERATIONS_PREFIX_LENGTH) as (typeof quest.operations)[0]['id'],
+          );
+    workItemIdToDisplayLabel.set(
+      wi.id,
+      operation
+        ? displayLabelContract.parse(operation.text)
+        : displayLabelContract.parse(`${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)}`),
+    );
+  });
   // The ONE numbered list this widget renders, built once so the JSX below is a single flat
   // `.map()`. Order is assigned only to a TOP-LEVEL row — a bare work item, an operation header, or
   // an unclaimed operation — never to a step row nested under a header, which carries `stepLabel`
@@ -428,6 +455,7 @@ export const ExecutionPanelWidget = ({
         order?: RowOrder;
         indented?: boolean;
         stepLabel?: DisplayLabel;
+        mintedByLabel?: DisplayLabel;
       }
     | { kind: 'unclaimed'; operation: (typeof quest.operations)[0]; order: RowOrder };
 
@@ -448,10 +476,15 @@ export const ExecutionPanelWidget = ({
     if (group.length < SCOPE_HOLDS_MULTIPLE_SESSIONS) {
       const [soleItem] = group;
       if (soleItem !== undefined) {
+        const soleItemMintedByLabel =
+          soleItem.mintedBy === undefined
+            ? undefined
+            : workItemIdToDisplayLabel.get(soleItem.mintedBy);
         renderRows.push({
           kind: 'workItem',
           workItem: soleItem,
           order: nextRowOrder++ as RowOrder,
+          ...(soleItemMintedByLabel === undefined ? {} : { mintedByLabel: soleItemMintedByLabel }),
         });
       }
       return;
@@ -459,11 +492,14 @@ export const ExecutionPanelWidget = ({
     renderRows.push({ kind: 'header', scopeKey, order: nextRowOrder++ as RowOrder });
     group.forEach((child) => {
       const childStepLabel = stepLabelByWorkItemId.get(child.id);
+      const childMintedByLabel =
+        child.mintedBy === undefined ? undefined : workItemIdToDisplayLabel.get(child.mintedBy);
       renderRows.push({
         kind: 'workItem',
         workItem: child,
         indented: true,
         ...(childStepLabel === undefined ? {} : { stepLabel: childStepLabel }),
+        ...(childMintedByLabel === undefined ? {} : { mintedByLabel: childMintedByLabel }),
       });
     });
   });
@@ -609,6 +645,7 @@ export const ExecutionPanelWidget = ({
                   {...(row.order === undefined ? {} : { order: row.order })}
                   {...(row.indented === true ? { indented: true } : {})}
                   {...(row.stepLabel === undefined ? {} : { stepLabel: row.stepLabel })}
+                  {...(row.mintedByLabel === undefined ? {} : { mintedByLabel: row.mintedByLabel })}
                 />
               );
             })}

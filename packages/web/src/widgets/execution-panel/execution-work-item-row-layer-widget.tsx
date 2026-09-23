@@ -82,6 +82,10 @@ export interface ExecutionWorkItemRowLayerWidgetProps {
   stepLabel?: DisplayLabel;
   // Mirrors ExecutionRowLayerWidgetProps.indented — set together with `stepLabel` by the panel.
   indented?: boolean;
+  // The back-edge badge's text: the panel's own resolved label for `workItem.mintedBy`, the SAME
+  // four-tier text (T2-1) that minting row renders for itself — see the panel's own
+  // `workItemIdToDisplayLabel` comment. Undefined when this work item carries no `mintedBy`.
+  mintedByLabel?: DisplayLabel;
 }
 
 export const ExecutionWorkItemRowLayerWidget = ({
@@ -99,6 +103,7 @@ export const ExecutionWorkItemRowLayerWidget = ({
   operationsById,
   stepLabel,
   indented,
+  mintedByLabel,
 }: ExecutionWorkItemRowLayerWidgetProps): React.JSX.Element => {
   const ownEntries =
     workItemEntries.get(workItem.id) ??
@@ -164,6 +169,7 @@ export const ExecutionWorkItemRowLayerWidget = ({
       {...(workItem.sessionId ? { sessionId: workItem.sessionId } : {})}
       {...(guildSlug ? { guildSlug } : {})}
       {...(indented === true ? { indented: true } : {})}
+      {...(mintedByLabel === undefined ? {} : { mintedByLabel })}
     />
   );
 };
