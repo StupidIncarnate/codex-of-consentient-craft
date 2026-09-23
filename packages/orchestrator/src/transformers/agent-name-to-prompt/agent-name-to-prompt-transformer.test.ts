@@ -21,13 +21,7 @@ import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spi
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 import { agentNameToPromptTransformer } from './agent-name-to-prompt-transformer';
 
-const UNSERVED_PROMPT_NAMES = [
-  'codeweaver',
-  'flowrider',
-  'siegemaster',
-  'siegemaster-stress',
-  'siegemaster-verifier',
-] as const;
+const UNSERVED_PROMPT_NAMES = ['codeweaver', 'flowrider', 'siegemaster'] as const;
 
 type UnservedPromptName = typeof UNSERVED_PROMPT_NAMES extends readonly (infer U)[] ? U : never;
 
@@ -244,6 +238,21 @@ describe('agentNameToPromptTransformer', () => {
       }).toThrow(
         "Unknown agent prompt name: 'a-prompt-nobody-declared'. No prompt is registered for it in AGENT_PROMPTS — check agentPromptClassificationStatics.promptNames and this table still agree.",
       );
+    });
+  });
+
+  // A name landing in NEITHER `SERVED_PROMPT_NAMES` nor `UNSERVED_PROMPT_NAMES` is exactly the
+  // drift that let a dangling roster entry go unnoticed: added to `promptNames`, never given a row
+  // in `AGENT_PROMPTS`, and never declared as a documented retired name either — silent until the
+  // day something dispatches it. This closes the gap the two lists above leave open between them.
+  describe('every name in promptNames is accounted for', () => {
+    it('VALID: {promptNames} => each one is served or is a documented retired name, with none left over', () => {
+      const accountedFor = new Set([...SERVED_PROMPT_NAMES, ...UNSERVED_PROMPT_NAMES]);
+      const unaccountedNames = agentPromptClassificationStatics.promptNames.filter(
+        (name) => !accountedFor.has(name),
+      );
+
+      expect(unaccountedNames).toStrictEqual([]);
     });
   });
 });

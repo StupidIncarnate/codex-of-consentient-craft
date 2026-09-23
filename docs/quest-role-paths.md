@@ -247,11 +247,11 @@ one answerable for them, and the earlier one never has to mark a unit against a 
 yet. The earlier cell reaches the far half through its piece's `contextUnitIds`, which are context and
 never claims.
 
-**`flowrider` and `siegemaster` each fan out to ONE SCOPE PER FLOW THEIR OWN TRACK MEASURES**
+**`flowrider` and `siegemaster` each fan out to ONE SCOPE PER FLOW THEIR OWN STEPS MEASURE**
 (`fanOutBy: 'flow'`), each carrying a single `flowId` and a text suffixed `— flow: <id>`. The cut reads
-`signoffTrackEligibilityStatics.byTrack[role].flowTypes`, the one place every denominator reader shares,
-so the ledger cannot mint a scope measured at zero: siegemaster takes flows of either type, flowrider
-`runtime` alone. With no eligible flow at all, the family keeps ONE whole-quest scope only when
+`stepScopeStatics.byFamilyStep[family][step].flowTypes`, the one place every denominator reader shares,
+so the ledger cannot mint a scope measured at zero: both siegemaster's steps and flowrider's `review`
+step take `runtime` alone. With no eligible flow at all, the family keeps ONE whole-quest scope only when
 `off-map` is in its `unitKinds` — the probe families are properties of the BUILT SYSTEM rather than of
 any drawn flow, so siegemaster keeps this quest's only security (`hostile-input`) and performance
 (`perf`) coverage owned, while flowrider gets nothing rather than a session dispatched against an empty
@@ -296,28 +296,27 @@ long-polls internally (~25s) before returning `{ type: 'idle' }` when nothing is
 ```
 created → explore_flows → review_flows → [Gate#1 user approves] → flows_approved
         → explore_observables → review_observables → [Gate#2 user approves] → approved
-        → (optional) explore_design → review_design → [Gate#3 user approves] → design_approved
         → in_progress → complete
                         ├→ blocked → in_progress      (needs-human; user resumes)
                         └→ abandoned
    (paused is reachable from any pre-terminal status and returns to it)
 ```
 
-There are no `seek_*` statuses. **`approved → in_progress` and `design_approved → in_progress` are
-direct** — the only manual transitions in the execution phase. Everything after `in_progress` is
+There are no `seek_*` statuses. **`approved → in_progress` is
+direct** — the only manual transition in the execution phase. Everything after `in_progress` is
 driven by the operations relay.
 
 | Status                                          | Set by                                    | Notes                                                                       |
 |-------------------------------------------------|--------------------------------------------|-----------------------------------------------------------------------------|
 | `created`                                       | `create-quest`                            | Intake agent's first action; seeds the plan operation item (see below)      |
 | `explore_flows` … `review_observables`          | ChaosWhisperer (via `modify-quest`)       | The only roles that set status directly                                     |
-| `flows_approved`, `approved`, `design_approved` | **User** (APPROVE button)                 | The approval gates; each requires non-empty `flows` — nothing else         |
+| `flows_approved`, `approved` | **User** (APPROVE button)                 | The approval gates; each requires non-empty `flows` — nothing else         |
 | `in_progress`                                   | `start-quest` / Start Quest button        | Spec locked; the relay is seeded and dispatch begins. Start is pure `quest.json` bookkeeping — it spawns nothing and touches no git, so the panel swap is immediate; the branch, worktree, `node_modules` mirror and preflight typecheck belong to the `riftcarver` item it seeds at the head of the ledger |
 | `complete`, `blocked`                           | Derived / set by the orchestrator         | `complete` derived by `workItemsToQuestStatusTransformer` **off the FAMILY GRAPH's position**, never off a drained ledger; `blocked` set only by `quest-block-on-failure-broker` |
 | `paused`, `abandoned`                           | User                                      | Not derived over — owned by the user                                        |
 
 **The approval gate** (`quest-gate-content-requirements-statics`) requires only non-empty `flows` for
-`flows_approved`, `approved`, and `design_approved` alike — for EVERY quest type. It demands no ledger item at all:
+`flows_approved` and `approved` alike — for EVERY quest type. It demands no ledger item at all:
 the implementation ledger is DERIVED at Start (`fanOutBy: 'implementation'`), not authored at spec time by anyone, so
 coverage is definitional rather than checked — a quest that clears `flows_approved` already carries every input the
 generator reads. The gate is enforced in `quest-modify-broker` (the `approved` transition) and the web approve
@@ -518,7 +517,7 @@ a session padding marks to get past the gate.
 
 | Role               | Operation item                          | Happy                                                                    | Sad                                                                 |
 |--------------------|-----------------------------------------|--------------------------------------------------------------------------|--------------------------------------------------------------------|
-| **ChaosWhisperer** | the plan item (seeded `in_progress`, locked) | Authors flows/observables/contracts/`packagesAffected` — never `operations`; at Start Quest `questBuildRelayGraphBroker` force-marks the plan item `complete` and mints the ENTRY family's scopes. The codeweaver scopes are cut later, when the family graph routes to that family. | No execution sad path. The approval gate rejects `approved`/`flows_approved`/`design_approved` only for empty `flows`; it demands no ledger item. |
+| **ChaosWhisperer** | the plan item (seeded `in_progress`, locked) | Authors flows/observables/contracts/`packagesAffected` — never `operations`; at Start Quest `questBuildRelayGraphBroker` force-marks the plan item `complete` and mints the ENTRY family's scopes. The codeweaver scopes are cut later, when the family graph routes to that family. | No execution sad path. The approval gate rejects `approved`/`flows_approved` only for empty `flows`; it demands no ledger item. |
 | **BugHunt**        | the plan item (seeded `in_progress`, locked) | Captures the reproduction flow (one flow per bug, `ACTUAL:`/`EXPECTED:` terminal fork) and its observables; force-completed at Start exactly like ChaosWhisperer. Implementation lands on the same codeweaver scopes a feature quest gets. | No execution sad path.                                            |
 
 ### Inside one family — the step paths
@@ -605,10 +604,13 @@ actually proved — leave a unit you did not reach unsigned rather than reaching
 THREE fields (`signoffTrackContract`) and THREE denominators (`signoffDenominatorTrackContract`) — `codeweaver |
 flowrider | siegemaster` — kept as separate enums on purpose even though they hold the same three names today: a
 denominator that shares another track's field is representable, and the day one lands the two lists diverge.
-`signoffTrackEligibilityStatics.byTrack` decides which units each denominator could ever have signed: `codeweaver` and
-`siegemaster` cover both `runtime` and `operational` flows, `flowrider` covers `runtime` flows only; only `siegemaster`
-carries `off-map` in its `unitKinds`; every track excludes observables whose `addedBy` postdates it (`flowrider` and
-`codeweaver` both exclude `addedBy: 'siegemaster'`, since siegemaster runs strictly after them). Every track shares
+`stepScopeStatics.byFamilyStep` decides which units each step could ever settle: `codeweaver`'s `review` step covers
+both `runtime` and `operational` flows; `flowrider`'s `review` step and both of `siegemaster`'s steps (`happyWalk`,
+`adversarial`) cover `runtime` flows only — operational units settle inside codeweaver's own reviewer instead, since
+an operational flow is a one-time task sequence with no repeatable walk for a siege lane to drive; only
+`siegemaster`'s two steps carry `off-map` in their `unitKinds`. Every step excludes observables whose `addedBy`
+postdates it (`flowrider` and `codeweaver` both exclude `addedBy: 'siegemaster'`, since siegemaster runs strictly
+after them). Every track shares
 `flowScope: 'declared'` (a scope is measured on the flows it names) and `packageScope: 'intersection'`,
 which awards a unit to the scope whose package its owning NODE tags — with ONE refinement for a SEAM: a
 node carrying more than one package gives its units to the LATER-ordered cell alone, so the side that

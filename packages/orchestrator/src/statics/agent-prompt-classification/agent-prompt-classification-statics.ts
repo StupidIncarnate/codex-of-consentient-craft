@@ -51,8 +51,6 @@ export const agentPromptClassificationStatics = {
     'siege-planner',
     'siegemaster',
     'siegemaster-reader',
-    'siegemaster-stress',
-    'siegemaster-verifier',
     'spiritmender',
     'warpgate',
   ],

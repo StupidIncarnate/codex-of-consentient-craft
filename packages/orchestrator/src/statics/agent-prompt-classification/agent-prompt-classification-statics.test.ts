@@ -22,8 +22,6 @@ describe('agentPromptClassificationStatics', () => {
           'siege-planner',
           'siegemaster',
           'siegemaster-reader',
-          'siegemaster-stress',
-          'siegemaster-verifier',
           'spiritmender',
           'warpgate',
         ],
@@ -77,7 +75,7 @@ describe('agentPromptClassificationStatics', () => {
   });
 
   describe('step prompts are in promptNames but neither role nor minion', () => {
-    it('VALID: {promptNames} => remaining prompts outside roleNames and minionNames are the 15 step prompts', () => {
+    it('VALID: {promptNames} => remaining prompts outside roleNames and minionNames are the 13 step prompts', () => {
       const nonStepNames = new Set<unknown>([
         ...agentPromptClassificationStatics.roleNames,
         ...agentPromptClassificationStatics.minionNames,
@@ -100,8 +98,6 @@ describe('agentPromptClassificationStatics', () => {
         'siege-happy-walker',
         'siege-planner',
         'siegemaster-reader',
-        'siegemaster-stress',
-        'siegemaster-verifier',
       ]);
     });
   });
