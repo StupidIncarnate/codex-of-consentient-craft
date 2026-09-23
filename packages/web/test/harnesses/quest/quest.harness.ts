@@ -147,6 +147,15 @@ export const questHarness = ({
         toSettle?: string;
         at?: string;
       }[];
+      // What this work item was ASSIGNED (`workItemContract`'s own field) — the denominator
+      // `execution-row-unit-marks` reads against `observations` to render "N/M marked".
+      assignedUnitIds?: string[];
+      // The return edge: which work item's `unmet` marks or `request` caused this one to exist —
+      // resolved by the panel to that row's own label for the back-edge badge.
+      mintedBy?: string;
+      // The planner's own piece id, verbatim — groups several same-step work items under one
+      // `step - piece` tier label instead of `step pt: N`.
+      pieceId?: string;
     }[];
     steps?: { id: string; name: string }[];
     userRequest?: string;
@@ -463,6 +472,9 @@ export const questHarness = ({
         toSettle?: string;
         at?: string;
       }[];
+      assignedUnitIds?: string[];
+      mintedBy?: string;
+      pieceId?: string;
     }[];
     steps: { id: string; name: string }[];
     userRequest: string;
@@ -535,6 +547,9 @@ export const questHarness = ({
                 at: obs.at ?? new Date().toISOString(),
               })),
             }),
+        ...(wi.assignedUnitIds === undefined ? {} : { assignedUnitIds: wi.assignedUnitIds }),
+        ...(wi.mintedBy === undefined ? {} : { mintedBy: wi.mintedBy }),
+        ...(wi.pieceId === undefined ? {} : { pieceId: wi.pieceId }),
       })),
       userRequest,
       designDecisions: [],
@@ -660,6 +675,15 @@ export const questHarness = ({
         toSettle?: string;
         at?: string;
       }[];
+      // What this work item was ASSIGNED (`workItemContract`'s own field) — the denominator
+      // `execution-row-unit-marks` reads against `observations` to render "N/M marked".
+      assignedUnitIds?: string[];
+      // The return edge: which work item's `unmet` marks or `request` caused this one to exist —
+      // resolved by the panel to that row's own label for the back-edge badge.
+      mintedBy?: string;
+      // The planner's own piece id, verbatim — groups several same-step work items under one
+      // `step - piece` tier label instead of `step pt: N`.
+      pieceId?: string;
     }[];
     steps?: { id: string; name: string }[];
     userRequest?: string;
