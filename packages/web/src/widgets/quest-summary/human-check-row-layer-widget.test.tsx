@@ -1,3 +1,5 @@
+import { waitFor } from '@testing-library/react';
+
 import {
   QuestIdStub,
   QuestNoteStub,
@@ -95,6 +97,30 @@ describe('HumanCheckRowLayerWidget', () => {
       await expect(proxy.getRequestBodies()).resolves.toStrictEqual([
         { unitId: 'motion-feels-smooth', outcome: 'not-met', reason: 'Visibly janky.' },
       ]);
+    });
+
+    it('VALID: {click MET, held response} => disables both controls in flight, re-enables once released', async () => {
+      const proxy = HumanCheckRowLayerWidgetProxy();
+      const criterion = QuestSummaryObservableStub({ observableId: 'motion-feels-smooth' });
+      const { release } = proxy.setupHeld();
+
+      mantineRenderAdapter({
+        ui: <HumanCheckRowLayerWidget questId={QUEST_ID} criterion={criterion} note={null} />,
+      });
+
+      await proxy.typeReason({ text: 'Watched it end to end.' });
+      await proxy.clickMet();
+
+      expect(proxy.isMetDisabled()).toBe(true);
+      expect(proxy.isNotMetDisabled()).toBe(true);
+
+      release();
+
+      await waitFor(() => {
+        expect(proxy.isMetDisabled()).toBe(false);
+      });
+
+      expect(proxy.isNotMetDisabled()).toBe(false);
     });
 
     it('ERROR: {broker refuses} => renders the server message and re-enables the controls', async () => {

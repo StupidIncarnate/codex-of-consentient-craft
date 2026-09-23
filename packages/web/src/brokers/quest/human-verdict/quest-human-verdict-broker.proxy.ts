@@ -16,6 +16,7 @@ export const questHumanVerdictBrokerProxy = (): {
   setupBadRequestNoBody: () => void;
   setupBadRequestOkBody: () => void;
   setupNetworkError: () => void;
+  setupHeld: () => { release: () => void };
   getRequestBodies: () => Promise<unknown[]>;
   getRequestCount: () => RequestCount;
 } => {
@@ -44,6 +45,9 @@ export const questHumanVerdictBrokerProxy = (): {
     setupNetworkError: (): void => {
       endpoint.networkError();
     },
+    // Answers only once release() is called — lets a test assert the in-flight disabled state a
+    // same-tick setupRecorded() settles too fast to observe.
+    setupHeld: (): { release: () => void } => endpoint.holdsOpen({ data: { ok: true } }),
     getRequestBodies: async (): Promise<unknown[]> => endpoint.getRequestBodies(),
     getRequestCount: (): RequestCount => endpoint.getRequestCount(),
   };

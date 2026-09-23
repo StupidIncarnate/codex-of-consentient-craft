@@ -80,6 +80,36 @@ describe('EndpointMockListenResponder', () => {
     });
   });
 
+  describe('holdsOpen', () => {
+    it('VALID: {holdsOpen with data, then release} => request stays pending until release, then resolves with data', async () => {
+      EndpointMockListenResponderProxy();
+
+      const endpoint = EndpointMockListenResponder({
+        method: 'get',
+        url: `${BASE}/test/held`,
+      });
+
+      const { release } = endpoint.holdsOpen({ data: { id: 'held-1' } });
+      const responsePromise = fetch(`${BASE}/test/held`);
+      const stillPendingSentinel = Symbol('still-pending');
+      const stillPendingWait = new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(stillPendingSentinel);
+        }, 20);
+      });
+
+      const raceResult = await Promise.race([responsePromise, stillPendingWait]);
+
+      expect(raceResult).toBe(stillPendingSentinel);
+
+      release();
+      const response = await responsePromise;
+      const body = await parseBody(response);
+
+      expect(body).toStrictEqual({ id: 'held-1' });
+    });
+  });
+
   describe('networkError', () => {
     it('VALID: {networkError} => fetch rejects with error', async () => {
       EndpointMockListenResponderProxy();
