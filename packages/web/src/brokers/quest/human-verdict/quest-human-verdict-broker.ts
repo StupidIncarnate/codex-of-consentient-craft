@@ -2,8 +2,7 @@
  * PURPOSE: Records a person's verdict on one `verifyByHuman` observable by POSTing to the per-quest
  * human-verdict endpoint. `unitId` is the RAW observable id (`QuestSummaryObservable.observableId`),
  * not the derived checklist unit id — `questHumanVerdictRecordBroker` (orchestrator) matches it
- * against `String(observable.id)` off the flow graph, the same key `unjudgedScreencastLayerBroker`
- * (siegelense) matches a released citation against.
+ * against `String(observable.id)` off the flow graph.
  *
  * USAGE:
  * const result = await questHumanVerdictBroker({ questId, unitId, outcome: 'met', reason });

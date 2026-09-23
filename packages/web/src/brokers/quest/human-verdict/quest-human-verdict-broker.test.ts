@@ -16,7 +16,7 @@ describe('questHumanVerdictBroker', () => {
         questId,
         unitId,
         outcome: 'met',
-        reason: 'Watched run_7/walk.webm end to end — the transition never stutters.',
+        reason: 'Watched the raid transition end to end — it never stutters.',
       });
 
       expect(result).toStrictEqual({ ok: true });
@@ -33,14 +33,14 @@ describe('questHumanVerdictBroker', () => {
         questId,
         unitId,
         outcome: 'met',
-        reason: 'Watched run_7/walk.webm end to end — the transition never stutters.',
+        reason: 'Watched the raid transition end to end — it never stutters.',
       });
 
       await expect(proxy.getRequestBodies()).resolves.toStrictEqual([
         {
           unitId: 'motion-feels-smooth',
           outcome: 'met',
-          reason: 'Watched run_7/walk.webm end to end — the transition never stutters.',
+          reason: 'Watched the raid transition end to end — it never stutters.',
         },
       ]);
     });

@@ -14,8 +14,7 @@
  *
  * MATCHING IS BY `unitId`, THE RAW OBSERVABLE ID. `note.unitId` and `criterion.observableId` are two
  * DIFFERENT brands over the same plain string, so `String()` on both sides is required —
- * `questHumanVerdictRecordBroker` (orchestrator) and `unjudgedScreencastLayerBroker` (siegelense)
- * both compare the same way, against the same id.
+ * `questHumanVerdictRecordBroker` (orchestrator) compares the same way, against the same id.
  */
 
 import { Box, Text } from '@mantine/core';

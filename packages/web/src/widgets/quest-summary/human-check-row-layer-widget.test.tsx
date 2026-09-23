@@ -12,7 +12,7 @@ const QUEST_ID = QuestIdStub({ value: 'add-auth' });
 
 describe('HumanCheckRowLayerWidget', () => {
   describe('an unjudged criterion', () => {
-    it('VALID: {note: null} => renders the description and "no recording", never a fabricated link', () => {
+    it('VALID: {note: null} => renders the description', () => {
       const proxy = HumanCheckRowLayerWidgetProxy();
       const criterion = QuestSummaryObservableStub({
         description: 'The dungeon-raid transition never stutters',
@@ -23,7 +23,6 @@ describe('HumanCheckRowLayerWidget', () => {
       });
 
       expect(proxy.descriptionText()).toBe('The dungeon-raid transition never stutters');
-      expect(proxy.evidenceText()).toBe('no recording');
     });
 
     it('VALID: {note: null} => renders a reason field and MET / NOT MET controls, no verdict line', () => {
@@ -127,7 +126,7 @@ describe('HumanCheckRowLayerWidget', () => {
         kind: 'human-verdict',
         unitId: 'motion-feels-smooth',
         outcome: 'met',
-        detail: 'Watched run_7/walk.webm end to end — the transition never stutters.',
+        detail: 'Watched the raid transition end to end — it never stutters.',
       });
 
       mantineRenderAdapter({
@@ -135,7 +134,7 @@ describe('HumanCheckRowLayerWidget', () => {
       });
 
       expect(proxy.verdictText()).toBe(
-        '[met] Watched run_7/walk.webm end to end — the transition never stutters.',
+        '[met] Watched the raid transition end to end — it never stutters.',
       );
       expect(proxy.hasReasonField()).toBe(false);
     });

@@ -12,7 +12,6 @@ import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 
 export const HumanCheckRowLayerWidgetProxy = (): ReturnType<typeof questHumanVerdictBrokerProxy> & {
   descriptionText: () => HTMLElement['textContent'];
-  evidenceText: () => HTMLElement['textContent'];
   hasReasonField: () => boolean;
   typeReason: (params: { text: HTMLTextAreaElement['value'] }) => Promise<void>;
   clickMet: () => Promise<void>;
@@ -44,8 +43,6 @@ export const HumanCheckRowLayerWidgetProxy = (): ReturnType<typeof questHumanVer
     ...broker,
     descriptionText: (): HTMLElement['textContent'] =>
       screen.queryByTestId('HUMAN_CHECK_DESCRIPTION')?.textContent ?? null,
-    evidenceText: (): HTMLElement['textContent'] =>
-      screen.queryByTestId('HUMAN_CHECK_EVIDENCE')?.textContent ?? null,
     hasReasonField: (): boolean => screen.queryByTestId('HUMAN_CHECK_REASON') !== null,
     typeReason: async ({ text }: { text: HTMLTextAreaElement['value'] }): Promise<void> => {
       await user.type(screen.getByTestId('HUMAN_CHECK_REASON'), text);

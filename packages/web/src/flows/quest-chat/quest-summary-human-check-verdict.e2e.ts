@@ -66,7 +66,7 @@ test.describe('A verifyByHuman criterion is judged from the summary panel', () =
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('VALID: {verifyByHuman observable with no verdict yet} => the summary lists it unjudged with "no recording", and submitting NOT MET with a reason records it live', async ({
+  test('VALID: {verifyByHuman observable with no verdict yet} => the summary lists it unjudged, and submitting NOT MET with a reason records it live', async ({
     page,
     request,
   }) => {
@@ -126,7 +126,6 @@ test.describe('A verifyByHuman criterion is judged from the summary panel', () =
 
     const row = page.getByTestId('HUMAN_CHECK_ROW');
     await expect(row.getByTestId('HUMAN_CHECK_DESCRIPTION')).toHaveText(CRITERION_DESCRIPTION);
-    await expect(row.getByTestId('HUMAN_CHECK_EVIDENCE')).toHaveText('no recording');
     await expect(row.getByTestId('HUMAN_CHECK_VERDICT')).toHaveCount(0);
 
     await row.getByTestId('HUMAN_CHECK_REASON').fill(VERDICT_REASON);

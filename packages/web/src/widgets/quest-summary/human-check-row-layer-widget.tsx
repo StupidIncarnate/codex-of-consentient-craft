@@ -1,16 +1,12 @@
 /**
  * PURPOSE: Renders ONE `verifyByHuman` criterion's row in the verification summary — its
- * description, the evidence line, and either its recorded verdict or the MET / NOT MET controls a
- * person uses to record one. Reach for this when you have a single criterion; `HumanCheckPanelWidget`
- * is the section that mounts one of these per criterion.
+ * description, and either its recorded verdict or the MET / NOT MET controls a person uses to
+ * record one. Reach for this when you have a single criterion; `HumanCheckPanelWidget` is the
+ * section that mounts one of these per criterion.
  *
  * USAGE:
  * <HumanCheckRowLayerWidget questId={questId} criterion={criterion} note={note} />
  * // note === null renders a reason field plus MET / NOT MET controls; a note renders the verdict
- *
- * THE EVIDENCE LINE ALWAYS READS "no recording". Decision 3 cites a screencast for a person to judge
- * against, but nothing writes a `.webm` yet (`pruneStatics.ts` marks the video step NOT STARTED) —
- * fabricating a link here would point at a recording that does not exist. Render what exists.
  */
 
 import { useState } from 'react';
@@ -59,13 +55,6 @@ export const HumanCheckRowLayerWidget = ({
         style={{ fontSize: ROW_FONT_SIZE, color: colors.text }}
       >
         {criterion.description}
-      </Text>
-      <Text
-        ff="monospace"
-        data-testid="HUMAN_CHECK_EVIDENCE"
-        style={{ fontSize: ROW_FONT_SIZE, color: colors['text-dim'] }}
-      >
-        no recording
       </Text>
       {note === null ? (
         <Stack gap={4}>
