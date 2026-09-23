@@ -711,8 +711,66 @@ export const flowDiagramHarness = ({
 
     // The real React Flow pane is `.react-flow__pane` (no testid). Clicking it must deselect
     // via React Flow's onPaneClick — a DOM-testid sniff would never fire in the real browser.
+    // No fixed pixel is safe: the recipe callout floats top-left, the node detail panel
+    // top-right (open for the duration of this click), the zoom controls bottom-left, React
+    // Flow's own attribution chip bottom-right (dimmed but not hidden — see
+    // attributionIsDimmedNotHidden below), and the graph's own node/observable cards sit
+    // wherever ELK placed them. This probes a handful of edge-midpoints against every one of
+    // those boxes at runtime and clicks the first that is clear of all of them.
     clickPaneBackground: async (): Promise<void> => {
-      await page.locator('.react-flow__pane').click({ position: { x: 5, y: 5 } });
+      const pane = page.locator('.react-flow__pane');
+      const paneBox = await pane.boundingBox();
+      if (paneBox === null) {
+        throw new Error('flow diagram pane has no bounding box');
+      }
+
+      const obstacleLocators = [
+        page.getByTestId('FLOW_RECIPE_CALLOUT'),
+        page.getByTestId('FLOW_NODE_DETAIL_PANEL'),
+        page.getByTestId('FLOW_DIAGRAM_CONTROLS'),
+        page.locator('.react-flow__attribution'),
+        page.getByTestId('FLOW_NODE'),
+        page.getByTestId('FLOW_OBSERVABLE_NODE'),
+      ];
+      const obstacleCounts = await Promise.all(
+        obstacleLocators.map(async (locator) => locator.count()),
+      );
+      const obstacleBoxes = (
+        await Promise.all(
+          obstacleLocators.flatMap((locator, locatorIndex) =>
+            Array.from({ length: obstacleCounts[locatorIndex] ?? 0 }, async (_unused, index) =>
+              locator.nth(index).boundingBox(),
+            ),
+          ),
+        )
+      ).filter(
+        (candidateBox): candidateBox is NonNullable<typeof candidateBox> => candidateBox !== null,
+      );
+
+      const margin = 20;
+      const candidatePoints = [
+        { x: paneBox.width / 2, y: margin },
+        { x: paneBox.width - margin, y: paneBox.height / 2 },
+        { x: paneBox.width / 2, y: paneBox.height - margin },
+        { x: margin, y: paneBox.height / 2 },
+        { x: paneBox.width / 2, y: paneBox.height / 2 },
+      ];
+      const clearPoint = candidatePoints.find((point) => {
+        const pageX = paneBox.x + point.x;
+        const pageY = paneBox.y + point.y;
+        return !obstacleBoxes.some(
+          (obstacleBox) =>
+            pageX >= obstacleBox.x &&
+            pageX <= obstacleBox.x + obstacleBox.width &&
+            pageY >= obstacleBox.y &&
+            pageY <= obstacleBox.y + obstacleBox.height,
+        );
+      });
+      if (clearPoint === undefined) {
+        throw new Error('flow diagram pane has no point clear of every overlay and node card');
+      }
+
+      await pane.click({ position: clearPoint });
     },
 
     // The diagram ships ONE set of controls: the custom RPG buttons. React Flow's native
