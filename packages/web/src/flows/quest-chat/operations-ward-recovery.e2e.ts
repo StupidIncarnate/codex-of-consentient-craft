@@ -22,10 +22,10 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 // THE RECOVERY IS THE STEP GRAPH'S OWN LOOP, not a spliced operation. `agentFlowStatics.wardFull`
 // declares `gate --unmet--> repair --done--> commit --done--> gate`, so a red gate mints a repair
 // work item on the SAME scope and the fresh gate that follows it is another work item on that same
-// scope — the ledger gains no operation item at all. The `pt N` continuation the ledger used to
-// grow is reachable only through `questRunWardBroker`, which answers a ward work item carrying NO
-// step; a gate work item carrying one is dispatched as a `run-step` and routed by
-// `questRouteScopeBroker` instead.
+// scope — the ledger gains no operation item at all. Every work item this loop mints carries a
+// `step` (`gate`, then `repair`, then `commit`, then `gate` again) — `questAdvanceBroker` stamps the
+// first on scope entry, `questRouteScopeBroker` every one after — so each one dispatches as a
+// `run-step`; no ward work item on this scope is ever step-less.
 //
 // THE GATE IS THE LEDGER'S LAST SCOPE. `wardFull` is the only family whose edge reaches
 // `@complete`, and `familyGraphCompleteDetectTransformer` derives the quest complete the moment

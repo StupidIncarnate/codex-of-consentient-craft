@@ -22,12 +22,13 @@ const FLOW_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-000000000021';
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 
 // THE WARD GATE IS THE LEDGER'S LAST SCOPE (`wardFull` is the only family whose edge reaches
-// `@complete`), and `questRunWardBroker` — the Node dispatch loop's `run-ward` handler — answers its
-// work item directly with a REQUIRED `onLine` callback: a command work item carries no sessionId, so
-// no JSONL watcher can tail it, and that callback is the ONLY route its output ever has to a UI (see
-// that broker's header). This spec proves the callback's output actually lands in the execution
-// panel. `operations-ward-recovery.e2e.ts` already proves the gate's status transitions and its
-// repair loop end to end, so this spec asserts none of that again — only the streamed TEXT.
+// `@complete`), and its `gate` step is `kind: 'deterministic'`, so the dispatcher runs it through
+// `questRunStepBroker` → `stepHandlerWardBroker` with a REQUIRED `onLine` callback: a deterministic
+// step's work item carries no sessionId, so no JSONL watcher can tail it, and that callback is the
+// ONLY route its output ever has to a UI (see `questRunStepBroker`'s header). This spec proves the
+// callback's output actually lands in the execution panel. `operations-ward-recovery.e2e.ts` already
+// proves the gate's status transitions and its repair loop end to end, so this spec asserts none of
+// that again — only the streamed TEXT.
 test.describe('Ward Execution Streaming', () => {
   // Drives the real relay (fake-CLI children + an in-process ward run) past the 10s default budget.
   test.describe.configure({ timeout: 60_000 });

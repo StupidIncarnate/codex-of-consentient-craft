@@ -91,7 +91,8 @@ export const dispatchHarness = ({
       // seeded item is left for `questAdvanceBroker` to enter at its family's ENTRY step.
       workItemId?: string;
       // The `agentFlowStatics` step that seeded work item carries. Omit it for a scope that runs no
-      // step graph — its own `signal-back` completes it, and no family route fires behind it.
+      // step graph — its own `signal-back` completes the linked operation item directly and
+      // `questAdvanceBroker` opens the next scope, with no `questRouteScopeBroker` route in between.
       step?: string;
     }[];
     firstWorkItemId: string;
@@ -177,8 +178,9 @@ export const dispatchHarness = ({
   //
   // `done` IS THE ONLY AGENT OUTCOME A QUEUED RESPONSE CAN SPELL, because `signal-back` carries no
   // outcome word: the four words ride on `quest-work`, which this fake CLI has no MCP client to
-  // call. The continuation a `partial` used to mint is now the ward red splice (green/red below)
-  // and the router's `unmet` re-mint.
+  // call. A ward outcome is spelled through the ward queue instead (green/red below): a red routes
+  // `unmet` to a `repair` work item on the same scope, and the router returns that repair to a
+  // fresh ward on its own `done`.
   const queueScript = ({
     script,
     agentLineDelayMs,
@@ -207,8 +209,10 @@ export const dispatchHarness = ({
           }),
         });
       } else {
-        // Root queue: run-ward spawns the fake ward with the server's cwd, not the guild path, so
-        // the cwd-scoped queue never matches — the fake ward falls back to the root queue.
+        // Root queue: the ward step (`stepHandlerWardBroker`, dispatched through `run-step`)
+        // resolves cwd via `questCwdResolveBroker` and spawns the fake ward there — the quest's own
+        // WORKTREE path, not the guild path — so the cwd-scoped queue never matches and the fake
+        // ward falls back to this root queue.
         wardMock.queueRootResponse({
           response: WardQueueResponseStub({
             exitCode: step.outcome === 'green' ? 0 : 1,
