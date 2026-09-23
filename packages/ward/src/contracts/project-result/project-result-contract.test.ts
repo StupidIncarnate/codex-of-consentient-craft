@@ -11,6 +11,7 @@ describe('projectResultContract', () => {
         projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
         status: 'pass',
         errors: [],
+        elsewhereErrors: [],
         testFailures: [],
         rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
         filesCount: 0,
@@ -53,6 +54,7 @@ describe('projectResultContract', () => {
             severity: 'error',
           },
         ],
+        elsewhereErrors: [],
         testFailures: [],
         rawOutput: { stdout: '', stderr: 'Error', exitCode: 1, signal: null },
         filesCount: 0,
@@ -84,6 +86,7 @@ describe('projectResultContract', () => {
         projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
         status: 'fail',
         errors: [],
+        elsewhereErrors: [],
         testFailures: [
           {
             suitePath: 'src/index.test.ts',
@@ -110,6 +113,7 @@ describe('projectResultContract', () => {
         projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
         status: 'skip',
         errors: [],
+        elsewhereErrors: [],
         testFailures: [],
         rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
         filesCount: 0,
@@ -236,6 +240,7 @@ describe('projectResultContract', () => {
         projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
         status: 'pass',
         errors: [],
+        elsewhereErrors: [],
         testFailures: [],
         rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
         filesCount: 0,
@@ -369,6 +374,46 @@ describe('projectResultContract', () => {
           name: 'Error',
           message: 'TCPSERVERWRAP',
           stack: 'at Server.listen (src/startup/start-server.ts:12:5)',
+        },
+      ]);
+    });
+  });
+
+  describe('elsewhereErrors defaults', () => {
+    it('VALID: {elsewhereErrors omitted} => defaults to empty array', () => {
+      const result = projectResultContract.parse({
+        projectFolder: { name: 'ward', path: '/path' },
+        status: 'pass',
+        errors: [],
+        testFailures: [],
+        rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
+      });
+
+      expect(result.elsewhereErrors).toStrictEqual([]);
+    });
+
+    it('VALID: {elsewhereErrors provided} => preserves value', () => {
+      const result = projectResultContract.parse(
+        ProjectResultStub({
+          elsewhereErrors: [
+            {
+              filePath: 'src/other.ts',
+              line: 5,
+              column: 1,
+              message: 'Error found',
+              severity: 'error',
+            },
+          ],
+        }),
+      );
+
+      expect(result.elsewhereErrors).toStrictEqual([
+        {
+          filePath: 'src/other.ts',
+          line: 5,
+          column: 1,
+          message: 'Error found',
+          severity: 'error',
         },
       ]);
     });

@@ -119,7 +119,19 @@ export const resultToSummaryTransformer = ({
     }
 
     const fileEntries = check.projectResults.flatMap((project) => {
-      const errorLines = project.errors.map((error) => {
+      // `elsewhereErrors` is a SUBSET of `errors` (checkRunTypecheckBroker appends it there too,
+      // named errors first), never additional to it — so the named-only list for display is
+      // `errors` minus that subset, matched on file path rather than object identity: the whole
+      // ProjectResult round-trips through `projectResultContract.parse`, which builds a fresh
+      // object per array entry, so the two arrays never share references even for the same error.
+      const elsewhereFilePaths = new Set(
+        project.elsewhereErrors.map((error) => String(error.filePath)),
+      );
+      const namedErrors = project.errors.filter(
+        (error) => !elsewhereFilePaths.has(String(error.filePath)),
+      );
+
+      const errorLines = namedErrors.map((error) => {
         const displayPath = toCwdRelativePathTransformer({
           filePath: error.filePath,
           projectPath: project.projectFolder.path,
@@ -129,6 +141,23 @@ export const resultToSummaryTransformer = ({
         const linePart = error.line === 0 ? '' : ` (line ${error.line})`;
         return `${displayPath}\n  ${rulePart}${error.message}${linePart}`;
       });
+
+      const elsewhereLines = project.elsewhereErrors.map((error) => {
+        const displayPath = toCwdRelativePathTransformer({
+          filePath: error.filePath,
+          projectPath: project.projectFolder.path,
+          cwd,
+        });
+        const rulePart = error.rule ? `${error.rule} ` : '';
+        const linePart = error.line === 0 ? '' : ` (line ${error.line})`;
+        return `${displayPath}\n  ${rulePart}${error.message}${linePart}`;
+      });
+      const elsewhereBlock =
+        elsewhereLines.length > 0
+          ? [
+              `  --- errors elsewhere in ${project.projectFolder.name} ---\n${elsewhereLines.join('\n')}`,
+            ]
+          : [];
 
       const failureLines = project.testFailures.map((failure) => {
         const displayPath = toCwdRelativePathTransformer({
@@ -171,7 +200,7 @@ export const resultToSummaryTransformer = ({
         return [`${project.projectFolder.name}\n  (crash) no output captured`];
       }
 
-      return [...errorLines, ...failureLines];
+      return [...errorLines, ...failureLines, ...elsewhereBlock];
     });
 
     if (fileEntries.length === 0) {

@@ -23,6 +23,12 @@ export const projectResultContract = z.object({
   projectFolder: projectFolderContract,
   status: checkStatusContract,
   errors: z.array(errorEntryContract),
+  // A SUBSET of `errors`, never additional to it — populated only by a genuinely file-scoped
+  // typecheck run (see checkRunTypecheckBroker), naming which of `errors` sit in a file the
+  // caller did NOT name. Every other check, and every non-file-scoped run, leaves this empty and
+  // `errors` carries the full truthful list either way, so every existing consumer of `errors`
+  // (crash detection, failing-file counts) stays correct without knowing this field exists.
+  elsewhereErrors: z.array(errorEntryContract).default([]),
   testFailures: z.array(testFailureContract),
   rawOutput: rawOutputContract.default({ stdout: '', stderr: '', exitCode: 0 }),
   filesCount: z.number().int().nonnegative().brand<'FilesCount'>().default(0),

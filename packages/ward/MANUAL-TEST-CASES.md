@@ -130,7 +130,7 @@ Only the requested check type appears in the output. No other check types should
 | [5b](#5b-package-scope)                                  | `--only typecheck -- packages/ward`                                                              | `tc ... PASS`\*             | unit, int, e2e, lint |
 | [5c](#5c-no-scope-all-packages)                          | `--only typecheck`                                                                               | `tc ... PASS` (all pkgs)\*  | unit, int, e2e, lint |
 
-`*` = typecheck always runs full project, post-filters errors to passthrough files
+`*` = typecheck always runs full project; a file-scoped run fails on any error anywhere in it
 `†` = via `--findRelatedTests`, N depends on how many tests import the file
 All commands prefixed with `npm run ward --`. Paths abbreviated with `...` — see linked detail for full path.
 
@@ -163,7 +163,7 @@ All failures require modifying source files — see linked detail for exact chan
 | [4h](#4h-lint-failure--file-scoped-other-files-clean)                 | add unused `broken` param            | `--only lint -- .../is-check-type-guard.test.ts`                |          |          |          | PASS     |          |
 | [4i](#4i-lint-failure--package-scope-catches-it)                      | add unused `broken` param            | `--only lint -- packages/ward`                                  |          |          |          | **FAIL** |          |
 | [5d](#5d-typecheck-failure--scoped-to-broken-file)                    | return `.safeParse()` not `.success` | `--only typecheck -- .../is-check-type-guard.ts`                |          |          |          |          | **FAIL** |
-| [5e](#5e-typecheck-failure--scoped-to-different-file-error-filtering) | return `.safeParse()` not `.success` | `--only typecheck -- .../is-run-id-guard.ts`                    |          |          |          |          | PASS     |
+| [5e](#5e-typecheck-failure--scoped-to-different-file-errors-elsewhere-still-fail) | return `.safeParse()` not `.success` | `--only typecheck -- .../is-run-id-guard.ts`                    |          |          |          |          | **FAIL** |
 | [5f](#5f-typecheck-failure--package-scope-catches-it)                 | return `.safeParse()` not `.success` | `--only typecheck -- packages/ward`                             |          |          |          |          | **FAIL** |
 | [9a](#9a-unit-fails-lint-and-typecheck-pass)                          | flip assertion in `.test.ts`         | `--only unit,lint,typecheck -- .../is-check-type-guard.test.ts` | **FAIL** |          |          | PASS     | PASS     |
 | [9b](#9b-lint-fails-unit-also-fails-shared-violation)                 | add unused `broken` param            | `--only lint,unit -- .../is-check-type-guard.ts`                | **FAIL** |          |          | **FAIL** |          |
@@ -730,9 +730,12 @@ npm run ward -- --only lint -- packages/ward
 
 ### 5. Typecheck
 
-Typecheck runs `tsc --noEmit`. It ALWAYS checks the entire project regardless of file scope.
-When passthrough files are provided, typecheck post-filters errors: only errors in passthrough files are reported. If
-tsc fails but no errors match the passthrough, status is reported as `pass`.
+Typecheck runs `tsc --noEmit`. It ALWAYS checks the entire project regardless of file scope. When
+every passthrough entry names a FILE, a real error anywhere in the package fails the run: errors
+in the named files print first under `--- typecheck ---`, and errors in the rest of the package
+print under a separate "errors elsewhere in `<package>`" heading. A directory or package scope
+keeps matching a passthrough entry against the exact error path, which never matches a directory
+string, so that scope's report is unaffected by this split.
 Skips if no `tsconfig.json` exists in the package.
 
 #### 5g. Multiple files
@@ -744,7 +747,7 @@ npm run ward -- --only typecheck -- packages/ward/src/guards/is-check-type/is-ch
 **Expected:**
 
 - Live: `typecheck ... PASS` (tsc always runs full project regardless of file scope)
-- Both files are in the post-filter set for error reporting
+- Both files are the named scope; an error anywhere else in the package would still fail the run
 
 **Should NOT see:**
 
@@ -809,7 +812,7 @@ npm run ward -- --only typecheck -- packages/ward/src/guards/is-check-type/is-ch
 
 **Revert change after testing.**
 
-#### 5e. Typecheck failure — scoped to DIFFERENT file (error filtering)
+#### 5e. Typecheck failure — scoped to DIFFERENT file (errors elsewhere still fail)
 
 **Modify:** `packages/ward/src/guards/is-check-type/is-check-type-guard.ts`
 **Change:** Change `.safeParse(value).success` to `.safeParse(value)` (returns object where boolean expected)
@@ -820,13 +823,17 @@ npm run ward -- --only typecheck -- packages/ward/src/guards/is-run-id/is-run-id
 
 **Expected:**
 
-- Live: `typecheck @dungeonmaster/ward PASS ...`
-- tsc actually fails, but the error is in `is-check-type-guard.ts` which is NOT in the passthrough
-- Typecheck post-filters errors and finds none matching the scoped file, so reports `pass`
+- Live: `typecheck @dungeonmaster/ward FAIL ...`
+- tsc actually fails, and the error is in `is-check-type-guard.ts`, which is NOT the scoped file —
+  it is real anywhere in the package, so the run fails
+- Error detail: `--- typecheck ---` shows `  --- errors elsewhere in @dungeonmaster/ward ---`
+  followed by the `is-check-type-guard.ts` error; the scoped file has no error of its own to list
+  first
 
 **Should NOT see:**
 
-- FAIL status — the error is outside the passthrough scope
+- PASS status — an error real anywhere in the package must not be silently dropped because it sits
+  outside the passthrough scope
 
 **Revert change after testing.**
 
@@ -1253,7 +1260,8 @@ npm run ward -- --uncommitted
 - All five check types run, each scoped to BOTH files — the edited one and the never-added one
 - lint: scoped to those source files only — `lint @dungeonmaster/ward PASS  2 files, N discovered`
 - unit: scoped to those source files via `--findRelatedTests`
-- typecheck: runs full tsc, post-filters errors to those source files
+- typecheck: runs full tsc across the whole package; a real error anywhere in the package fails
+  the run, with the named files' errors listed first and the rest under a separate heading
 - e2e: skip in packages that are not e2e-eligible
 - With a clean tree, the run prints the empty-scope line and exits 0 having run NOTHING
 
