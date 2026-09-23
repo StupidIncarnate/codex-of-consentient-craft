@@ -1,11 +1,11 @@
 /**
  * PURPOSE: Adapter for StartOrchestrator.handleSignalBack that wraps the orchestrator package.
- * Lets the env-gated HTTP signal-back endpoint apply a session's operation outcome
- * (done/partial/blocked) to the quest ledger and advance the relay without crossing the package
+ * Lets the env-gated HTTP signal-back endpoint mark the work item terminal, apply the linked
+ * operation's outcome to the quest ledger, and advance the relay without crossing the package
  * boundary inline — the same orchestrator surface the MCP signal-back tool uses.
  *
  * USAGE:
- * await orchestratorHandleSignalBackAdapter({ questId, workItemId, signal: 'complete', operationItemId, operationStatus: 'done' });
+ * await orchestratorHandleSignalBackAdapter({ questId, workItemId, signal: 'complete', operationItemId });
  * // Marks the work item terminal, applies the operation outcome, advances the relay.
  */
 
@@ -23,14 +23,12 @@ export const orchestratorHandleSignalBackAdapter = async ({
   workItemId,
   signal,
   operationItemId,
-  operationStatus,
   blockedReason,
 }: {
   questId: QuestId;
   workItemId: QuestWorkItemId;
   signal: 'complete';
   operationItemId?: OperationItemId;
-  operationStatus?: 'done' | 'partial' | 'blocked';
   blockedReason?: BlockedReason;
 }): Promise<AdapterResult> =>
   StartOrchestrator.handleSignalBack({
@@ -38,6 +36,5 @@ export const orchestratorHandleSignalBackAdapter = async ({
     workItemId,
     signal,
     ...(operationItemId === undefined ? {} : { operationItemId }),
-    ...(operationStatus === undefined ? {} : { operationStatus }),
     ...(blockedReason === undefined ? {} : { blockedReason }),
   });

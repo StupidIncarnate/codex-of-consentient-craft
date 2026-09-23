@@ -16,10 +16,22 @@ export const orchestratorHandleSignalBackAdapterProxy = (): {
     result: AdapterResult;
   }) => void;
   throws: (params: { questId?: QuestId; workItemId?: QuestWorkItemId; error: Error }) => void;
+  getCallArgs: (params: { questId: QuestId; workItemId: QuestWorkItemId }) => unknown;
 } => {
   const handle = registerMock({ fn: StartOrchestrator.handleSignalBack });
 
   return {
+    // Captures exactly what StartOrchestrator.handleSignalBack was called WITH, so a test can
+    // assert the full object rather than only that a matching call happened — the only way to
+    // catch a field (e.g. a re-added `operationStatus`) that the address match ignores, since
+    // `callsMatching` addresses on the keys named and stays silent about every other key present.
+    getCallArgs: ({
+      questId,
+      workItemId,
+    }: {
+      questId: QuestId;
+      workItemId: QuestWorkItemId;
+    }): unknown => handle.callsMatching([{ questId, workItemId }]).at(-1)?.[0],
     resolves: ({
       questId,
       workItemId,
