@@ -646,8 +646,8 @@ describe('QuestHandleSignalBackResponder (integration) — the two verification 
   const envHarness = orchestrationEnvironmentHarness();
   const questHelper = orchestrationQuestHarness();
 
-  describe("flowrider: 'done' succeeds however its units are observed — there is no flowriderSignoff column left to gate on", () => {
-    it('VALID: {done, one unit `confirmed` and one `unconfirmable`} => both verdicts clear the gate, operation + work item complete', async () => {
+  describe("flowrider: 'done' succeeds whatever the flow holds, because the work item carries no assigned units to mark", () => {
+    it('VALID: {done, a two-node RUNTIME flow, work item assigned no units} => accepted, operation + work item complete', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'sb-flowrider-admit' }),
       });
@@ -806,7 +806,7 @@ describe('QuestHandleSignalBackResponder (integration) — the two verification 
     }, 30_000);
   });
 
-  describe("siegemaster: 'done' succeeds however its units are observed — there is no siegemasterSignoff column left to gate on", () => {
+  describe("siegemaster: 'done' succeeds whatever the flow's off-map signoffs hold, because the work item carries no assigned units to mark", () => {
     it("VALID: {siegemaster 'done', the flow's off-map families are all recorded} => the gate clears", async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'sb-tracks-both-signed' }),
