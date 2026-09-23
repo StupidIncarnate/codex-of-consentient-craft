@@ -62,11 +62,12 @@ const BUDGET_USER_REQUEST =
     ' Keep the queue visible while the batch is in flight.',
   );
 
-// A pathological pt-chain ledger: 34 settled scopes (the authored relay plus every `pt N`
-// continuation it accumulated), the 35th in flight — the dispatched agent's own — and five still
-// pending behind it. Two or three retries on a real quest reach this shape. The ledger was the one
-// term in the served block that grew without bound, which is why the block no longer carries it at
-// all; this shape is what proves the growth is gone rather than merely bounded.
+// A pathological ledger: 34 settled scopes (a relay-scale quest's fan-out across many
+// (package, flow) cells), the 35th in flight — the dispatched agent's own — and five still
+// pending behind it. A wide quest touching several packages across several flows reaches this
+// shape. The ledger was the one term in the served block that could have grown without bound,
+// which is why the block no longer carries it at all; this shape is what proves the growth is
+// gone rather than merely bounded.
 const PATHOLOGICAL_COMPLETE_COUNT = 34;
 const PATHOLOGICAL_OWN_INDEX = 34;
 const PATHOLOGICAL_PENDING_COUNT = 5;
@@ -188,9 +189,12 @@ describe('workItemToPromptTransformer', () => {
         'Ward detail blob: <questFolder>/ward-results/cccccccc-1212-4222-9333-444444444444.json',
       ].join('\n');
 
-      expect(result.prompt).toBe(
-        spiritmenderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
-      );
+      // agentFlowStatics.wardFull.steps.repair.model — the step's own declared model, not
+      // roleToModelStatics.ward (which does not even exist: ward is a command role).
+      expect(result).toStrictEqual({
+        prompt: spiritmenderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        model: 'sonnet',
+      });
     });
 
     it('VALID: {codeweaver scope work item at the work step} => serves the codeweaver worker prompt', () => {
@@ -224,13 +228,17 @@ describe('workItemToPromptTransformer', () => {
         'Your operation item: [codeweaver] core: config load+validate adapter',
       ].join('\n');
 
-      expect(result.prompt).toBe(
-        codeweaverWorkerStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
-      );
+      // agentFlowStatics.codeweaver.steps.work.model is `sonnet` — deliberately DIFFERENT from
+      // roleToModelStatics.codeweaver (`opus`), which is what this test would have read before the
+      // reported model was resolved off the step node instead of the per-prompt-name table.
+      expect(result).toStrictEqual({
+        prompt: codeweaverWorkerStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        model: 'sonnet',
+      });
     });
   });
 
-  describe('chat roles (chaoswhisperer/glyphsmith are not served by get-agent-prompt)', () => {
+  describe('chat roles (chaoswhisperer is not served by get-agent-prompt)', () => {
     it('ERROR: {workItem.role: chaoswhisperer} => throws not-served-by-get-agent-prompt error', () => {
       const workItem = WorkItemStub({ role: 'chaoswhisperer' });
       const quest = QuestStub({ workItems: [workItem] });
@@ -242,19 +250,6 @@ describe('workItemToPromptTransformer', () => {
           agentName: AgentPromptNameStub({ value: 'codeweaver' }),
         }),
       ).toThrow(/role chaoswhisperer is not served by get-agent-prompt/u);
-    });
-
-    it('ERROR: {workItem.role: glyphsmith} => throws not-served-by-get-agent-prompt error', () => {
-      const workItem = WorkItemStub({ role: 'glyphsmith' });
-      const quest = QuestStub({ workItems: [workItem] });
-
-      expect(() =>
-        workItemToPromptTransformer({
-          quest,
-          workItem,
-          agentName: AgentPromptNameStub({ value: 'codeweaver' }),
-        }),
-      ).toThrow(/role glyphsmith is not served by get-agent-prompt/u);
     });
   });
 
@@ -465,12 +460,13 @@ describe('workItemToPromptTransformer', () => {
         expect(result.prompt).toBe(CODEWEAVER_TEMPLATE.split('$ARGUMENTS').join(expectedArgs));
       });
 
-      // The ledger was the one term that grew without bound — every `partial` outcome appends a
-      // `pt N` continuation — and a block that outgrew `mcpToolResultStatics.maxVerbatimChars` was
-      // spilled to a file, leaving the session holding a path instead of its gates and numbered
-      // rules. A 40-item ledger substituting BYTE-IDENTICALLY to a 1-item one is what proves the
-      // growth is gone rather than merely bounded.
-      it('VALID: {40-item pt-chain ledger} => substitutes byte-identically to a single-item ledger', () => {
+      // The ledger was the one term that could have grown without bound — a wide quest fanning
+      // out across many (package, flow) cells — and a block that outgrew
+      // `mcpToolResultStatics.maxVerbatimChars` was spilled to a file, leaving the session holding
+      // a path instead of its gates and numbered rules. A 40-item ledger substituting
+      // BYTE-IDENTICALLY to a 1-item one is what proves the growth is gone rather than merely
+      // bounded.
+      it('VALID: {40-item ledger} => substitutes byte-identically to a single-item ledger', () => {
         const questId = QuestIdStub({ value: 'my-quest' });
         const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-6161-4222-9333-444444444444' });
         const ownOperationId = OperationItemIdStub({
@@ -558,6 +554,7 @@ describe('workItemToPromptTransformer', () => {
         const workItem = WorkItemStub({
           id: workItemId,
           role: 'warpgate',
+          step: 'merge',
           relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
         });
         const quest = QuestStub({
@@ -600,6 +597,7 @@ describe('workItemToPromptTransformer', () => {
         const workItem = WorkItemStub({
           id: workItemId,
           role: 'warpgate',
+          step: 'merge',
           relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
         });
         const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
@@ -884,8 +882,8 @@ describe('workItemToPromptTransformer', () => {
               apiUrl: null,
               home: '/tmp/dm-siege-inst_7f3a9c21',
               logs: {
-                api: '/repo/.siegelense/g1/instances/inst_7f3a9c21/api-server.log',
-                web: '/repo/.siegelense/g1/instances/inst_7f3a9c21/web-server.log',
+                api: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/api-server.log',
+                web: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/web-server.log',
               },
             },
           },
@@ -935,8 +933,8 @@ describe('workItemToPromptTransformer', () => {
               apiUrl: null,
               home: '/tmp/dm-siege-inst_7f3a9c21',
               logs: {
-                api: '/repo/.siegelense/g1/instances/inst_7f3a9c21/api-server.log',
-                web: '/repo/.siegelense/g1/instances/inst_7f3a9c21/web-server.log',
+                api: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/api-server.log',
+                web: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/web-server.log',
               },
             },
           },
@@ -1022,8 +1020,8 @@ describe('workItemToPromptTransformer', () => {
               apiUrl: null,
               home: '/tmp/dm-siege-inst_7f3a9c21',
               logs: {
-                api: '/repo/.siegelense/g1/instances/inst_7f3a9c21/api-server.log',
-                web: '/repo/.siegelense/g1/instances/inst_7f3a9c21/web-server.log',
+                api: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/api-server.log',
+                web: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/web-server.log',
               },
             },
           },
@@ -1083,10 +1081,12 @@ describe('workItemToPromptTransformer', () => {
 
   describe('errors', () => {
     // The contract no longer closes the set (agentPromptNameContract is an open branded string), so
-    // an unknown agent name PARSES here and falls to the minion branch, which reaches
-    // agentNameToPromptTransformer — the one place that still refuses it, loudly, by name.
-    it('ERROR: {agent: unknown name} => throws naming the unknown name', () => {
-      const workItem = WorkItemStub();
+    // an unknown agent name PARSES here — but it is neither a minionName nor a WorkItemRole, and the
+    // work item carries no step, so this transformer refuses it directly rather than falling through
+    // to agentNameToPromptTransformer's own generic throw.
+    it('ERROR: {agent: unknown name, no step} => throws naming the unknown name and the missing step', () => {
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-7070-4222-9333-444444444444' });
+      const workItem = WorkItemStub({ id: workItemId });
       const quest = QuestStub({ workItems: [workItem] });
 
       expect(() =>
@@ -1096,7 +1096,27 @@ describe('workItemToPromptTransformer', () => {
           agentName: 'unknown-agent',
         }),
       ).toThrow(
-        "Unknown agent prompt name: 'unknown-agent'. No prompt is registered for it in AGENT_PROMPTS — check agentPromptClassificationStatics.promptNames and this table still agree.",
+        `workItemToPromptTransformer: 'unknown-agent' names a step prompt, but work item ${String(workItemId)} carries no step to serve it at. Only chaoswhisperer-gap-minion may be fetched with no step at all.`,
+      );
+    });
+
+    // The narrowing this unit adds: a real STEP prompt name (`codeweaver-planner` — a serving,
+    // known agentPromptClassificationStatics.promptNames entry) is no minion either, and a work item
+    // with no step has no operation-relay context to substitute for it — this used to be silently
+    // served through the minion's two-line substitution instead.
+    it('ERROR: {agent: codeweaver-planner, work item carries no step} => throws naming the step prompt and the missing step, never served as a minion', () => {
+      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-7070-4222-9333-444444444444' });
+      const workItem = WorkItemStub({ id: workItemId, role: 'codeweaver' });
+      const quest = QuestStub({ workItems: [workItem] });
+
+      expect(() =>
+        workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: AgentPromptNameStub({ value: 'codeweaver-planner' }),
+        }),
+      ).toThrow(
+        `workItemToPromptTransformer: 'codeweaver-planner' names a step prompt, but work item ${String(workItemId)} carries no step to serve it at. Only chaoswhisperer-gap-minion may be fetched with no step at all.`,
       );
     });
   });
@@ -1168,11 +1188,12 @@ describe('workItemToPromptTransformer', () => {
       },
     );
 
-    // The ledger is the one term in the served block that grows without bound: a quest that takes
-    // two or three retries accumulates `pt N` continuations until the block overflows and the MCP
-    // layer spills it to a file, leaving the agent holding a path instead of its gates and rules.
+    // The ledger is the one term in the served block that could grow without bound: a wide quest
+    // fanning out across many (package, flow) cells accumulates operation items until the block
+    // overflows and the MCP layer spills it to a file, leaving the agent holding a path instead of
+    // its gates and rules.
     it.each(BUDGET_ROLES)(
-      'VALID: {agent: %s, relay-scale quest with a 40-item pt-chain ledger} => served MCP block stays within the verbatim budget',
+      'VALID: {agent: %s, relay-scale quest with a 40-item ledger} => served MCP block stays within the verbatim budget',
       (agentName) => {
         const ownOperationId = OperationItemIdStub({
           value: `cccccccc-3333-4222-9333-4444444444${String(PATHOLOGICAL_OWN_INDEX).padStart(2, '0')}`,

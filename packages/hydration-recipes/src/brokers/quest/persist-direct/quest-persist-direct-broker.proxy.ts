@@ -9,6 +9,7 @@ export const questPersistDirectBrokerProxy = (): {
   succeeds: ({ questFilePath, outboxPath }: { questFilePath: string; outboxPath: string }) => void;
   getWrittenContents: ({ questFilePath }: { questFilePath: string }) => unknown;
   getOutboxLine: ({ outboxPath }: { outboxPath: string }) => DmQuestOutboxLine;
+  pathsTouched: () => readonly unknown[];
 } => {
   const writeProxy = fsWriteFileAdapterProxy();
   const renameProxy = fsRenameAdapterProxy();
@@ -33,5 +34,14 @@ export const questPersistDirectBrokerProxy = (): {
       const appended = appendProxy.getAppendedContents({ filePath: outboxPath });
       return JSON.parse(String(appended)) as DmQuestOutboxLine;
     },
+    // Every filesystem path this broker reached, in the order it reached them: the temp file, the
+    // name it renamed that to, then the outbox it appended. A caller asserting containment inside a
+    // target reads this rather than the staged addresses — a staged address only proves the mock
+    // was told about a path, never that the code went there.
+    pathsTouched: (): readonly unknown[] => [
+      ...writeProxy.getWrittenPaths(),
+      ...renameProxy.getRenameTargets(),
+      ...appendProxy.getAppendedPaths(),
+    ],
   };
 };

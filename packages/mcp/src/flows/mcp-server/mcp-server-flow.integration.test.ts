@@ -1636,8 +1636,6 @@ describe('McpServerFlow', () => {
       'get-quest-planning-notes',
       'get-blight-checklist',
       'get-agent-prompt',
-      'run-ward',
-      'run-riftcarver',
       'create-worktree',
       'ask-user-question',
       'get-quest-summary',

@@ -2,8 +2,8 @@
  * PURPOSE: Refuses a plan, before the first write, whose chain calls `query`, `update` or `remove`
  * against an ingredient that declares no matching route. Reach for this over
  * `HydrationRouteUnavailableError`: that class is about what the TARGET lacks for a MAKE route
- * (`api`/`write`/`recording`); this one is about a VERB the ingredient itself never declared, which
- * reads wrong phrased as a target gap.
+ * (`api`/`write`); this one is about a VERB the ingredient itself never declared, which reads wrong
+ * phrased as a target gap.
  *
  * USAGE:
  * throw new HydrationRouteVerbUnavailableError({

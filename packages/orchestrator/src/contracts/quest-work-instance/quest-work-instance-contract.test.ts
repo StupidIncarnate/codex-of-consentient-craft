@@ -10,8 +10,8 @@ describe('questWorkInstanceContract', () => {
         apiUrl: 'http://localhost:34170',
         home: '/tmp/dm-siege-inst_7f3a9c21',
         logs: {
-          api: '/repo/.siegelense/g1/instances/inst_7f3a9c21/api-server.log',
-          web: '/repo/.siegelense/g1/instances/inst_7f3a9c21/web-server.log',
+          api: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/api-server.log',
+          web: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/web-server.log',
         },
       });
 
@@ -23,8 +23,8 @@ describe('questWorkInstanceContract', () => {
         apiUrl: 'http://localhost:34170',
         home: '/tmp/dm-siege-inst_7f3a9c21',
         logs: {
-          api: '/repo/.siegelense/g1/instances/inst_7f3a9c21/api-server.log',
-          web: '/repo/.siegelense/g1/instances/inst_7f3a9c21/web-server.log',
+          api: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/api-server.log',
+          web: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/web-server.log',
         },
       });
     });

@@ -6,7 +6,7 @@
  * broker never derives a path of its own.
  *
  * USAGE:
- * await stepScreenshotBroker({ session, filePath: '/repo/.siegelense/.../runs/run_2/step4.png' });
+ * await stepScreenshotBroker({ session, filePath: '/repo/.dungeonmaster-assets/siegelense-assets/.../runs/run_2/step4.png' });
  * // Captures the page to filePath and returns it as the reading
  */
 

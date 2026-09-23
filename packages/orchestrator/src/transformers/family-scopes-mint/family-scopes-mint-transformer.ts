@@ -51,9 +51,9 @@ export const familyScopesMintTransformer = ({
     );
   }
 
-  // `locked` enrols a scope in its role's `slotManagerStatics` pt budget. It defaults TRUE and only
-  // codeweaver sets it false, because the flows are the acceptance target and that chain has to stay
-  // unbounded.
+  // `locked` protects a scope from `modify-quest` deletion (operationItemContract's own `.describe()`
+  // on the field). It defaults TRUE and only codeweaver sets it false, because the flows are the
+  // acceptance target and that chain has to stay unbounded.
   const locked = 'locked' in familyEntry ? familyEntry.locked : true;
 
   // Every package the quest's spine is tagged with, first-tagged order, deduplicated — the fallback

@@ -27,9 +27,8 @@
  * marked `unmet` through `quest-work`, and the router mints a successor scoped to exactly those
  * units.
  *
- * `operationStatus` HAS NO WRITER LEFT: both `signalBackInputContract` copies (mcp and server)
- * dropped the field, so it always arrives `undefined` and the `partial` pt-continuation ladder and
- * the environment-wall halt below are unreachable from a real signal.
+ * `blockedReason`, when a session sends one, rides onto the terminal work item as `errorMessage` — a
+ * diagnostic note, not a status: the item still completes.
  *
  * USAGE:
  * await QuestHandleSignalBackResponder({ questId, workItemId, signal: 'complete', operationItemId });
@@ -38,8 +37,6 @@
 import type {
   AdapterResult,
   BlockedReason,
-  ErrorMessage,
-  OperationItem,
   OperationItemId,
   QuestId,
   QuestWorkItemId,
@@ -51,33 +48,24 @@ import {
   operationItemContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import {
-  isChatWorkItemRoleGuard,
-  isCommandWorkItemRoleGuard,
-  isTerminalWorkItemStatusGuard,
-} from '@dungeonmaster/shared/guards';
+import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { questAdvanceBroker } from '../../../brokers/quest/advance/quest-advance-broker';
-import { questBlockOnFailureBroker } from '../../../brokers/quest/block-on-failure/quest-block-on-failure-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questOperationsUpdateBroker } from '../../../brokers/quest/operations-update/quest-operations-update-broker';
-import { operationPtChainTransformer } from '../../../transformers/operation-pt-chain/operation-pt-chain-transformer';
 import { signalGateTransformer } from '../../../transformers/signal-gate/signal-gate-transformer';
-import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 
 export const QuestHandleSignalBackResponder = async ({
   questId,
   workItemId,
   signal,
   operationItemId,
-  operationStatus,
   blockedReason,
 }: {
   questId: QuestId;
   workItemId: QuestWorkItemId;
   signal: 'complete';
   operationItemId?: OperationItemId;
-  operationStatus?: 'done' | 'partial' | 'blocked';
   blockedReason?: BlockedReason;
 }): Promise<AdapterResult> => {
   const input = getQuestInputContract.parse({ questId });
@@ -107,8 +95,8 @@ export const QuestHandleSignalBackResponder = async ({
     );
   }
 
-  // IDEMPOTENCY: a redelivered signal for an already-terminal work item must not mint a second
-  // pt N continuation + work item. The first delivery already applied the outcome atomically.
+  // IDEMPOTENCY: a redelivered signal for an already-terminal work item is a no-op — the first
+  // delivery already applied the outcome atomically.
   if (isTerminalWorkItemStatusGuard({ status: signaledItem.status })) {
     return adapterResultContract.parse({ success: true });
   }
@@ -122,15 +110,6 @@ export const QuestHandleSignalBackResponder = async ({
     throw new Error(gateResult.message);
   }
 
-  // Object holder (not a bare `let`): the flag is assigned inside the update callback, which
-  // TypeScript's flow analysis cannot see — a bare boolean would read as always-false.
-  //
-  // It carries the CHAIN DETAIL as well as the flag, because a spent chain is the one halt route
-  // that leaves nothing to read: the signalling item stays `complete` (only an environment wall
-  // marks it `failed`), so with no reason passed to questBlockOnFailureBroker the quest goes
-  // `blocked` with every row green and no `errorMessage` anywhere naming why.
-  const blockedOnSpentPtChain: { value: boolean; reason?: ErrorMessage } = { value: false };
-  const isEnvironmentWall = operationStatus === 'blocked';
   // Read ONCE, off the same item the gate above graded, and spent in both places the scope could be
   // moved from — the persist below and the advance after it. A work item's `step` is written at mint
   // and never rewritten, so the pre-lock read and the callback's re-read cannot disagree about it.
@@ -145,13 +124,11 @@ export const QuestHandleSignalBackResponder = async ({
       }
 
       const completedAt = new Date().toISOString();
-      // An environment wall is a `failed` work item carrying the reason, so the execution row
-      // renders WHY the quest halted. Every other outcome is a `complete` session.
       const nextWorkItems = quest.workItems.map((wi) =>
         wi.id === workItemId
           ? workItemContract.parse({
               ...wi,
-              status: isEnvironmentWall ? 'failed' : 'complete',
+              status: 'complete',
               completedAt,
               actualSignal: 'complete',
               ...(blockedReason === undefined
@@ -178,104 +155,17 @@ export const QuestHandleSignalBackResponder = async ({
         return { workItems: nextWorkItems };
       }
 
+      // A step-less scope (no family carries this role, or a ledger seeded before the step graph)
+      // completes its linked operation item here, in the same atomic persist.
       const completedOperations = quest.operations.map((operation) =>
         operation.id === linkedOperation.id
           ? operationItemContract.parse({ ...operation, status: 'complete' })
           : operation,
       );
 
-      // Duplicate-on-partial: append "pt N: {text}" right after the completed item. Locked
-      // (verify tail) roles are bounded — a spent pt chain blocks instead of looping forever.
-      const needsContinuation = operationStatus === 'partial' || isEnvironmentWall;
-      const { base, chainLength } = operationPtChainTransformer({
-        operations: quest.operations,
-        item: linkedOperation,
-      });
-      const maxAttempts = ((): typeof slotManagerStatics.codeweaver.maxAttempts | undefined => {
-        const role: OperationItem['role'] = linkedOperation.role;
-        // A COMMAND role never reaches this ladder honestly: it is terminal by exit code and never
-        // calls signal-back, and its retry chain is counted by its own broker against
-        // `slotManagerStatics.<role>.maxRetries`. Matching the whole command subset rather than
-        // `ward` alone is what keeps a later command role out of the ladder's final `else`, which
-        // would otherwise hand it spiritmender's budget.
-        if (isChatWorkItemRoleGuard({ role }) || isCommandWorkItemRoleGuard({ role })) {
-          return undefined;
-        }
-        const budgets = slotManagerStatics;
-        return role === 'codeweaver'
-          ? budgets.codeweaver.maxAttempts
-          : role === 'flowrider'
-            ? budgets.flowrider.maxAttempts
-            : role === 'siegemaster'
-              ? budgets.siegemaster.maxAttempts
-              : role === 'warpgate'
-                ? budgets.warpgate.maxAttempts
-                : budgets.spiritmender.maxAttempts;
-      })();
-      // The pt budget gates `partial` only. An environment wall always appends its continuation:
-      // the quest blocks either way, and withholding the append would leave the operation with no
-      // pending item, so a resume would silently skip this scope entirely.
-      const chainSpent =
-        operationStatus === 'partial' &&
-        linkedOperation.locked &&
-        maxAttempts !== undefined &&
-        chainLength >= maxAttempts;
-
-      if (chainSpent) {
-        blockedOnSpentPtChain.value = true;
-        blockedOnSpentPtChain.reason = errorMessageContract.parse(
-          `${linkedOperation.role} pt chain for "${String(base)}" is spent: ${String(chainLength)} attempt(s) signalled 'partial' against a budget of ${String(maxAttempts)}. The remaining scope is on the last 'pt' operation item; a resume re-dispatches it.`,
-        );
-        return { operations: completedOperations, workItems: nextWorkItems };
-      }
-
-      // `flowIds` AND `packageNames` ride along with the role and lock. Both carry scope: a
-      // flow-sliced item (flowrider/siegemaster) whose continuation lost its flows, or a
-      // package-sliced item (codeweaver) whose continuation lost its packages, hands the fresh
-      // session no slice at all — so it silently works the whole quest instead of the remainder
-      // the `partial` was about.
-      const continuations = needsContinuation
-        ? [
-            operationItemContract.parse({
-              id: crypto.randomUUID(),
-              role: linkedOperation.role,
-              text: `pt ${String(chainLength + 1)}: ${base}`,
-              status: 'pending',
-              locked: linkedOperation.locked,
-              flowIds: linkedOperation.flowIds,
-              packageNames: linkedOperation.packageNames,
-            }),
-          ]
-        : [];
-
-      const insertIndex =
-        completedOperations.findIndex((operation) => operation.id === linkedOperation.id) + 1;
-
-      return {
-        operations: [
-          ...completedOperations.slice(0, insertIndex),
-          ...continuations,
-          ...completedOperations.slice(insertIndex),
-        ],
-        workItems: nextWorkItems,
-      };
+      return { operations: completedOperations, workItems: nextWorkItems };
     },
   });
-
-  // Both halt routes drain pending work items and flip the quest to `blocked`; neither advances,
-  // because the next session would hit the very wall (or spent budget) that stopped this one.
-  if (blockedOnSpentPtChain.value || isEnvironmentWall) {
-    // An environment wall already carries its `blockedReason` on the work item's `errorMessage`,
-    // written in the persist above. A spent chain has no such carrier, so its reason is supplied
-    // here — otherwise `blocked` is the only thing the user is told.
-    const { reason } = blockedOnSpentPtChain;
-    await questBlockOnFailureBroker({
-      questId,
-      failedWorkItemId: workItemId,
-      ...(reason === undefined ? {} : { reason }),
-    });
-    return adapterResultContract.parse({ success: true });
-  }
 
   // ENTERING the next scope belongs to whoever COMPLETED the last one. A stepped scope is still open
   // here, so advance would find the first `pending` operation item — the family's next cell — and

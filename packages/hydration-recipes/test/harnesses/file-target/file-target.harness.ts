@@ -8,17 +8,14 @@
  *
  * Also sets `process.env.DUNGEONMASTER_HOME` to the same directory for the test's duration, and
  * seeds an empty `config.json` there — a finding, not a convenience. `target.home` alone is NOT
- * enough: `guildWriteRouteBroker` calls `StartOrchestrator.addGuild`, whose `guildAddBroker`
- * resolves its home via `dungeonmasterHomeEnsureBroker()` (no `target` parameter, confirmed by
- * reading it directly), and `operationWriteRouteBroker` calls `StartOrchestrator.getQuest`, which
- * resolves the SAME way — both read the GLOBAL env var, never the `target` object a route was
- * handed. Measured directly: without the env var, a guild registers into whatever
- * `~/.dungeonmaster` the process defaults to while the quest and guild FILES this package's own
- * routes write land correctly under `target.home`, so a later `operationWriteRouteBroker` call
- * cannot find the quest it needs. Without the seeded `config.json`,
- * `guildConfigReadBroker`'s ENOENT fallback never fires — the orchestrator's own
- * `fsReadFileAdapter` throws a differently-shaped error first — so `guildAddBroker` fails outright
- * on the very first guild. This mirrors
+ * enough: `operationWriteRouteBroker` calls `questGetBroker`, which takes no `target` parameter
+ * (confirmed by reading it directly) and resolves the GLOBAL env var, so without it a quest
+ * written correctly under `target.home` is one a later `operationWriteRouteBroker` call cannot
+ * find. `guildWriteRouteBroker` is the route this no longer covers: it hands `guildAddBroker` an
+ * explicit `home: target.home` and needs no env var at all. Without the seeded `config.json`,
+ * `guildConfigReadBroker`'s ENOENT fallback never fires under jest — it tests
+ * `cause instanceof Error`, and the cause is an `fs/promises` error from outside the sandbox
+ * realm — so `guildAddBroker` fails outright on the very first guild. This mirrors
  * `packages/orchestrator/test/harnesses/orchestration-environment/orchestration-environment.harness.ts`'s
  * own `setupHome`, which this package cannot import (it lives under another package's `test/`, not
  * its public surface).

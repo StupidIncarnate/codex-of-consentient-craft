@@ -25,6 +25,12 @@ describe('driverStatics', () => {
         defaultStepTimeoutMs: 30_000,
         untilPollMs: 100,
       },
+      settle: {
+        quietWindowMs: 250,
+        ceilingMs: 5_000,
+        pollMs: 50,
+        pollerRepeatThreshold: 3,
+      },
     });
   });
 });

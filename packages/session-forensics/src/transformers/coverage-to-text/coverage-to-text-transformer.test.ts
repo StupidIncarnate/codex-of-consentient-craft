@@ -4,10 +4,9 @@ import { TrackCoverageStub } from '../../contracts/track-coverage/track-coverage
 const CAVEAT_LINE_ONE = 'These counts can be too high.';
 const CAVEAT_LINE_TWO =
   'This reading has no operation item, so it counts rows a real checklist would leave out.';
-const CAVEAT_LINE_THREE =
-  'For the exact numbers, ask get-qa-checklist({questId, operationItemId}).';
+const CAVEAT_LINE_THREE = 'For the exact numbers, ask get-quest-work({questId, operationItemId}).';
 const HEADER_LINE =
-  "  sign-off track         REQUIRED  signed  confirmed  can't confirm  NOT SIGNED";
+  "  sign-off track         REQUIRED  marked        met     can't meet    unmet    unmarked";
 
 describe('coverageToTextTransformer', () => {
   describe('one flow, three rows', () => {
@@ -19,8 +18,8 @@ describe('coverageToTextTransformer', () => {
           track: 'flowrider',
           owed: 10,
           signed: 8,
-          confirmed: 8,
-          unconfirmable: 0,
+          met: 8,
+          cantMeet: 0,
           unsigned: 2,
         }),
         TrackCoverageStub({
@@ -28,8 +27,8 @@ describe('coverageToTextTransformer', () => {
           track: 'siegemaster',
           owed: 20,
           signed: 15,
-          confirmed: 10,
-          unconfirmable: 5,
+          met: 10,
+          cantMeet: 5,
           unsigned: 5,
         }),
       ];
@@ -40,9 +39,9 @@ describe('coverageToTextTransformer', () => {
         [
           'Flow flow-one',
           HEADER_LINE,
-          '  codeweaver                   58      58         55              3           0',
-          '  flowrider                    10       8          8              0           2',
-          '  siegemaster                  20      15         10              5           5',
+          '  codeweaver                   58      58         55              3        0           0',
+          '  flowrider                    10       8          8              0        0           2',
+          '  siegemaster                  20      15         10              5        0           5',
           '',
           CAVEAT_LINE_ONE,
           CAVEAT_LINE_TWO,
@@ -60,8 +59,8 @@ describe('coverageToTextTransformer', () => {
           track: 'codeweaver',
           owed: 5,
           signed: 5,
-          confirmed: 5,
-          unconfirmable: 0,
+          met: 5,
+          cantMeet: 0,
           unsigned: 0,
         }),
         TrackCoverageStub({
@@ -69,8 +68,8 @@ describe('coverageToTextTransformer', () => {
           track: 'flowrider',
           owed: 5,
           signed: 4,
-          confirmed: 4,
-          unconfirmable: 0,
+          met: 4,
+          cantMeet: 0,
           unsigned: 1,
         }),
         TrackCoverageStub({
@@ -78,8 +77,8 @@ describe('coverageToTextTransformer', () => {
           track: 'siegemaster',
           owed: 7,
           signed: 0,
-          confirmed: 0,
-          unconfirmable: 0,
+          met: 0,
+          cantMeet: 0,
           unsigned: 7,
         }),
         TrackCoverageStub({
@@ -87,8 +86,8 @@ describe('coverageToTextTransformer', () => {
           track: 'codeweaver',
           owed: 3,
           signed: 3,
-          confirmed: 2,
-          unconfirmable: 1,
+          met: 2,
+          cantMeet: 1,
           unsigned: 0,
         }),
         TrackCoverageStub({
@@ -96,8 +95,8 @@ describe('coverageToTextTransformer', () => {
           track: 'flowrider',
           owed: 0,
           signed: 0,
-          confirmed: 0,
-          unconfirmable: 0,
+          met: 0,
+          cantMeet: 0,
           unsigned: 0,
         }),
         TrackCoverageStub({
@@ -105,8 +104,8 @@ describe('coverageToTextTransformer', () => {
           track: 'siegemaster',
           owed: 7,
           signed: 1,
-          confirmed: 1,
-          unconfirmable: 0,
+          met: 1,
+          cantMeet: 0,
           unsigned: 6,
         }),
       ];
@@ -117,15 +116,15 @@ describe('coverageToTextTransformer', () => {
         [
           'Flow flow-alpha',
           HEADER_LINE,
-          '  codeweaver                    5       5          5              0           0',
-          '  flowrider                     5       4          4              0           1',
-          '  siegemaster                   7       0          0              0           7',
+          '  codeweaver                    5       5          5              0        0           0',
+          '  flowrider                     5       4          4              0        0           1',
+          '  siegemaster                   7       0          0              0        0           7',
           '',
           'Flow flow-beta',
           HEADER_LINE,
-          '  codeweaver                    3       3          2              1           0',
-          '  flowrider                     0       0          0              0           0',
-          '  siegemaster                   7       1          1              0           6',
+          '  codeweaver                    3       3          2              1        0           0',
+          '  flowrider                     0       0          0              0        0           0',
+          '  siegemaster                   7       1          1              0        0           6',
           '',
           CAVEAT_LINE_ONE,
           CAVEAT_LINE_TWO,
@@ -151,8 +150,8 @@ describe('coverageToTextTransformer', () => {
           track: 'flowrider',
           owed: 6,
           signed: 0,
-          confirmed: 0,
-          unconfirmable: 0,
+          met: 0,
+          cantMeet: 0,
           unsigned: 6,
         }),
       ];
@@ -163,7 +162,7 @@ describe('coverageToTextTransformer', () => {
         [
           'Flow flow-never-ran',
           HEADER_LINE,
-          '  flowrider                     6       0          0              0           6',
+          '  flowrider                     6       0          0              0        0           6',
           '',
           CAVEAT_LINE_ONE,
           CAVEAT_LINE_TWO,
@@ -173,17 +172,47 @@ describe('coverageToTextTransformer', () => {
     });
   });
 
-  describe('non-zero unconfirmable', () => {
-    it('VALID: {unconfirmable: 3} => the unconfirmable column carries the non-zero count', () => {
-      const coverage = [TrackCoverageStub({ flowId: 'flow-unconfirmable' })];
+  describe('non-zero cantMeet', () => {
+    it('VALID: {cantMeet: 3} => the cantMeet column carries the non-zero count', () => {
+      const coverage = [TrackCoverageStub({ flowId: 'flow-cant-meet' })];
 
       const result = coverageToTextTransformer({ coverage });
 
       expect(String(result)).toBe(
         [
-          'Flow flow-unconfirmable',
+          'Flow flow-cant-meet',
           HEADER_LINE,
-          '  codeweaver                   58      58         55              3           0',
+          '  codeweaver                   58      58         55              3        0           0',
+          '',
+          CAVEAT_LINE_ONE,
+          CAVEAT_LINE_TWO,
+          CAVEAT_LINE_THREE,
+        ].join('\n'),
+      );
+    });
+  });
+
+  describe('non-zero unmet', () => {
+    it('VALID: {unmet: 3} => the unmet column carries the non-zero count', () => {
+      const coverage = [
+        TrackCoverageStub({
+          flowId: 'flow-unmet',
+          owed: 10,
+          signed: 10,
+          met: 6,
+          cantMeet: 1,
+          unmet: 3,
+          unsigned: 0,
+        }),
+      ];
+
+      const result = coverageToTextTransformer({ coverage });
+
+      expect(String(result)).toBe(
+        [
+          'Flow flow-unmet',
+          HEADER_LINE,
+          '  codeweaver                   10      10          6              1        3           0',
           '',
           CAVEAT_LINE_ONE,
           CAVEAT_LINE_TWO,

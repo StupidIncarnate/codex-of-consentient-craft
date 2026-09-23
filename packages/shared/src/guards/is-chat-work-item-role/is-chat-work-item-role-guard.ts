@@ -4,7 +4,7 @@
  *
  * USAGE:
  * isChatWorkItemRoleGuard({ role: 'bughunt' });
- * // Returns true for chaoswhisperer, glyphsmith, and bughunt; false for every execution role.
+ * // Returns true for chaoswhisperer and bughunt; false for every execution role.
  *
  * WHEN-TO-USE: Anywhere the distinction "is this work item the user's own conversation?" decides
  *   behaviour — resolving which sessionId a chat/comment/clarify POST resumes, force-completing

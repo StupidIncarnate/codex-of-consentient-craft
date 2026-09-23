@@ -5,7 +5,7 @@ import type { RepoLocalPath } from './repo-local-path-contract';
 
 export const RepoLocalPathStub = ({ ...props }: StubArgument<RepoLocalPath> = {}): RepoLocalPath =>
   repoLocalPathContract.parse({
-    path: '/repo/.siegelense/guilds/g1/instances/inst_1',
+    path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1',
     linkPresent: true,
     ...props,
   });

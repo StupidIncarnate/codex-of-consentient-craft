@@ -28,7 +28,6 @@ export * from './src/guards/is-startable-quest-status/is-startable-quest-status-
 export * from './src/guards/is-recoverable-quest-status/is-recoverable-quest-status-guard';
 export * from './src/guards/is-auto-resumable-quest-status/is-auto-resumable-quest-status-guard';
 export * from './src/guards/is-gate-approved-quest-status/is-gate-approved-quest-status-guard';
-export * from './src/guards/is-design-phase-quest-status/is-design-phase-quest-status-guard';
 export * from './src/guards/should-render-execution-panel-quest-status/should-render-execution-panel-quest-status-guard';
 export * from './src/guards/should-show-begin-quest-modal-quest-status/should-show-begin-quest-modal-quest-status-guard';
 export * from './src/guards/is-before-spec-approved-quest-status/is-before-spec-approved-quest-status-guard';

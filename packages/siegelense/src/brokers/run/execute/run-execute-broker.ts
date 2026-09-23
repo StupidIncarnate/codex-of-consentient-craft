@@ -35,7 +35,7 @@
  * hands them down explicitly, the same way `mintRunId` already does. Every step's own shot joins
  * under `locationsRepoLinkPathFindBroker`'s repo-local alias of `shotsDir`, never the raw `shotsDir`
  * itself (packages/siegelense/CLAUDE.md: "every path handed back is repo-local, through
- * <repoRoot>/.siegelense") — the same address is both what the step actually captures to and what
+ * <repoRoot>/.dungeonmaster-assets/siegelense-assets") — the same address is both what the step actually captures to and what
  * `RunResult.shots`/the transcript report, so a later `results` read of this run's own evidence never
  * disagrees with what this run just returned. It also mints the automatic snapshot pair — one capture
  * of the lane's throwaway home before the first step and one after the last, named `run_N:start` and
@@ -133,7 +133,7 @@ export const runExecuteBroker = async ({
   await fsMkdirAdapter({ filepath: filePathContract.parse(shotsDir) });
 
   // packages/siegelense/CLAUDE.md: "every path handed back is repo-local, through
-  // <repoRoot>/.siegelense" — `start`, `status` and `kill` already resolve their evidence path
+  // <repoRoot>/.dungeonmaster-assets/siegelense-assets" — `start`, `status` and `kill` already resolve their evidence path
   // through `locationsRepoLinkPathFindBroker` before returning; this broker skipped it, so a run's
   // own shots (and, via the transcript and the stored return this run persists, every later
   // `results` read of them) reported the real home path instead. `shotsDir` above stays real — the

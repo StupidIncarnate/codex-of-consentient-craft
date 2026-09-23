@@ -6,7 +6,11 @@
  * move under that run — and its `DUNGEONMASTER_WEB_PORT` requirement for the web process. `{apiPort}`,
  * `{webPort}`, `{home}`, `{claudeQueueDir}` and `{wardQueueDir}` are placeholders `lane-boot-broker`
  * substitutes into `args`, `env` and `readyPath` once an instance exists to claim real values for
- * them; nothing here computes a port or mints a home. `CLAUDE_CLI_PATH` and `WARD_CLI_PATH` are
+ * them; nothing here computes a port or mints a home. `{apiWorkspace}`/`{webWorkspace}` are the SAME
+ * kind of placeholder, resolved by `laneWorkspaceResolveBroker` off the target repo's own disk rather
+ * than a hardcoded `@dungeonmaster/server`/`@dungeonmaster/web` — this package ships to repos that
+ * name their http-backend and frontend-react packages however they like, or carry more than one
+ * candidate for either role. `CLAUDE_CLI_PATH` and `WARD_CLI_PATH` are
  * deliberately ABSENT from `API_PROCESS.env`: the fake-CLI binaries they would need to name live
  * under `packages/web/test/**` and `packages/orchestrator/test-fixtures/**`, neither shipped in this
  * package's published `dist/` (see `package.json`'s `files`) nor a complete filename/dirname
@@ -35,7 +39,7 @@ import { driverStatics } from '../driver/driver-statics';
 const API_PROCESS = {
   name: 'api',
   command: 'npm',
-  args: ['run', 'dev:no-watch', '--workspace=@dungeonmaster/server'],
+  args: ['run', 'dev:no-watch', '--workspace={apiWorkspace}'],
   portRole: 'api',
   readyPath: '/api/guilds',
   logFileName: locationsStatics.siegelense.apiLog,
@@ -52,7 +56,7 @@ const API_PROCESS = {
 const WEB_PROCESS = {
   name: 'web',
   command: 'npm',
-  args: ['run', 'dev:no-watch', '--workspace=@dungeonmaster/web'],
+  args: ['run', 'dev:no-watch', '--workspace={webWorkspace}'],
   portRole: 'web',
   readyPath: '/',
   logFileName: locationsStatics.siegelense.webLog,

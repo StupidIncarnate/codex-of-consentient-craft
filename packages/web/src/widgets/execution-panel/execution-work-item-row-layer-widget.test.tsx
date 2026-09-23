@@ -35,6 +35,7 @@ const defaultParams = ({ workItem }: { workItem: WorkItem }) => ({
   workItemEntries: new Map(),
   sessionEntries: new Map(),
   workItemIdToLabel: new Map(),
+  workItemIdToScopeLabel: new Map(),
   wardResultsById: new Map(),
   riftcarverResultsById: new Map(),
   operationsById: new Map(),
@@ -84,7 +85,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
       );
     });
 
-    it('VALID: {sessionDisambiguator provided, operation resolves} => row name appends it to the resolved operation text', () => {
+    it('VALID: {stepLabel provided, operation resolves} => row name is the stepLabel ALONE, replacing the operation text (decision 2 NESTED ruling)', () => {
       ExecutionWorkItemRowLayerWidgetProxy();
       const workItem = WorkItemStub({
         id: WORK_ITEM_ID,
@@ -99,15 +100,15 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
             operationsById={new Map([[operation.id, operation]])}
-            sessionDisambiguator={DisplayLabelStub({ value: 'work' })}
+            stepLabel={DisplayLabelStub({ value: 'work - login broker' })}
           />
         ),
       });
 
-      expect(screen.getByTestId('execution-row-name').textContent).toBe('build the broker (work)');
+      expect(screen.getByTestId('execution-row-name').textContent).toBe('work - login broker');
     });
 
-    it('VALID: {sessionDisambiguator provided, operation does not resolve} => row name appends it to the capitalized role fallback', () => {
+    it('VALID: {stepLabel provided, operation does not resolve} => row name is the stepLabel ALONE, replacing the capitalized role fallback', () => {
       ExecutionWorkItemRowLayerWidgetProxy();
       const workItem = WorkItemStub({
         id: WORK_ITEM_ID,
@@ -119,20 +120,81 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
-            sessionDisambiguator={DisplayLabelStub({ value: 'session-worker-two' })}
+            stepLabel={DisplayLabelStub({ value: 'work pt: 2' })}
           />
         ),
       });
 
-      expect(screen.getByTestId('execution-row-name').textContent).toBe(
-        'Codeweaver (session-worker-two)',
-      );
+      expect(screen.getByTestId('execution-row-name').textContent).toBe('work pt: 2');
+    });
+
+    it('VALID: {stepLabel and indented both provided} => the row carries no [ROLE] badge, and its own name is the stepLabel alone', () => {
+      ExecutionWorkItemRowLayerWidgetProxy();
+      const workItem = WorkItemStub({
+        id: WORK_ITEM_ID,
+        role: 'codeweaver',
+        status: 'in_progress',
+        relatedDataItems: [`operations/${OPERATION_ID}`],
+      });
+      const operation = OperationItemStub({ id: OPERATION_ID, text: 'build the broker' });
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionWorkItemRowLayerWidget
+            {...defaultParams({ workItem })}
+            operationsById={new Map([[operation.id, operation]])}
+            stepLabel={DisplayLabelStub({ value: 'plan' })}
+            indented={true}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('execution-row-name').textContent).toBe('plan');
+      expect(screen.queryByTestId('execution-row-role-badge')).toBe(null);
     });
   });
 
-  describe('dependsOn labels', () => {
-    it('VALID: {dependsOn id present in workItemIdToLabel} => subtitle shows the resolved role label', () => {
+  describe('back-edge badge (mintedBy)', () => {
+    it('VALID: {mintedByLabel provided} => forwards it to the row as the back-edge badge', () => {
       ExecutionWorkItemRowLayerWidgetProxy();
+      const workItem = WorkItemStub({
+        id: WORK_ITEM_ID,
+        role: 'codeweaver',
+        status: 'in_progress',
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionWorkItemRowLayerWidget
+            {...defaultParams({ workItem })}
+            mintedByLabel={DisplayLabelStub({ value: 'walk pt: 1' })}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('execution-row-minted-by-badge').textContent).toBe('↩ walk pt: 1');
+    });
+
+    it('EMPTY: {mintedByLabel omitted} => the row carries no back-edge badge', () => {
+      ExecutionWorkItemRowLayerWidgetProxy();
+      const workItem = WorkItemStub({
+        id: WORK_ITEM_ID,
+        role: 'codeweaver',
+        status: 'in_progress',
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionWorkItemRowLayerWidget {...defaultParams({ workItem })} />,
+      });
+
+      expect(screen.queryByTestId('execution-row-minted-by-badge')).toBe(null);
+    });
+  });
+
+  describe('dependsOn labels (T2-9a: session identity, keyed on the dependency’s own row label)', () => {
+    it('VALID: {dependency in the same scope as this row} => subtitle shows its bare tier label, with no scope prefix', () => {
+      ExecutionWorkItemRowLayerWidgetProxy();
+      const depId = QuestWorkItemIdStub({ value: WORK_ITEM_ID });
       const workItem = WorkItemStub({
         id: OTHER_WORK_ITEM_ID,
         role: 'codeweaver',
@@ -144,19 +206,68 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
-            workItemIdToLabel={
-              new Map([[QuestWorkItemIdStub({ value: WORK_ITEM_ID }), 'chaoswhisperer']])
-            }
+            workItemIdToLabel={new Map([[depId, DisplayLabelStub({ value: 'work pt: 1' })]])}
+            workItemIdToScopeLabel={new Map([[depId, DisplayLabelStub({ value: 'Codeweaver' })]])}
           />
         ),
       });
 
       expect(screen.getByTestId('execution-row-subtitle').textContent).toBe(
-        '└─ depends on: chaoswhisperer',
+        '└─ depends on: work pt: 1',
       );
     });
 
-    it('EDGE: {dependsOn id absent from workItemIdToLabel} => subtitle falls back to the raw id', () => {
+    it('VALID: {nested dependency in a different scope} => subtitle prefixes the dependency’s scope: "Other scope › ward pt: 2"', () => {
+      ExecutionWorkItemRowLayerWidgetProxy();
+      const depId = QuestWorkItemIdStub({ value: WORK_ITEM_ID });
+      const workItem = WorkItemStub({
+        id: OTHER_WORK_ITEM_ID,
+        role: 'codeweaver',
+        status: 'pending',
+        dependsOn: [WORK_ITEM_ID],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionWorkItemRowLayerWidget
+            {...defaultParams({ workItem })}
+            workItemIdToLabel={new Map([[depId, DisplayLabelStub({ value: 'ward pt: 2' })]])}
+            workItemIdToScopeLabel={new Map([[depId, DisplayLabelStub({ value: 'Other scope' })]])}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('execution-row-subtitle').textContent).toBe(
+        '└─ depends on: Other scope › ward pt: 2',
+      );
+    });
+
+    it('VALID: {bare dependency in a different scope} => subtitle shows the scope alone, with no repeated prefix', () => {
+      ExecutionWorkItemRowLayerWidgetProxy();
+      const depId = QuestWorkItemIdStub({ value: WORK_ITEM_ID });
+      const workItem = WorkItemStub({
+        id: OTHER_WORK_ITEM_ID,
+        role: 'codeweaver',
+        status: 'pending',
+        dependsOn: [WORK_ITEM_ID],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionWorkItemRowLayerWidget
+            {...defaultParams({ workItem })}
+            workItemIdToLabel={new Map([[depId, DisplayLabelStub({ value: 'Other scope' })]])}
+            workItemIdToScopeLabel={new Map([[depId, DisplayLabelStub({ value: 'Other scope' })]])}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('execution-row-subtitle').textContent).toBe(
+        '└─ depends on: Other scope',
+      );
+    });
+
+    it('EDGE: {dangling dependsOn id, absent from workItemIdToLabel} => subtitle falls back to the raw id', () => {
       ExecutionWorkItemRowLayerWidgetProxy();
       const workItem = WorkItemStub({
         id: OTHER_WORK_ITEM_ID,
@@ -171,6 +282,43 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
 
       expect(screen.getByTestId('execution-row-subtitle').textContent).toBe(
         `└─ depends on: ${WORK_ITEM_ID}`,
+      );
+    });
+
+    it('VALID: {two dependencies sharing the same role} => two DISTINCT labels — the regression: a role-only lookup used to read "codeweaver, codeweaver"', () => {
+      ExecutionWorkItemRowLayerWidgetProxy();
+      const dep1Id = QuestWorkItemIdStub({ value: WORK_ITEM_ID });
+      const dep2Id = QuestWorkItemIdStub({ value: OTHER_WORK_ITEM_ID });
+      const thisWorkItemId = 'a0000000-0000-0000-0000-000000000003';
+      const workItem = WorkItemStub({
+        id: thisWorkItemId,
+        role: 'codeweaver',
+        status: 'pending',
+        dependsOn: [WORK_ITEM_ID, OTHER_WORK_ITEM_ID],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionWorkItemRowLayerWidget
+            {...defaultParams({ workItem })}
+            workItemIdToLabel={
+              new Map([
+                [dep1Id, DisplayLabelStub({ value: 'work pt: 1' })],
+                [dep2Id, DisplayLabelStub({ value: 'work pt: 2' })],
+              ])
+            }
+            workItemIdToScopeLabel={
+              new Map([
+                [dep1Id, DisplayLabelStub({ value: 'Codeweaver' })],
+                [dep2Id, DisplayLabelStub({ value: 'Codeweaver' })],
+              ])
+            }
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('execution-row-subtitle').textContent).toBe(
+        '└─ depends on: work pt: 1, work pt: 2',
       );
     });
   });

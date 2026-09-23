@@ -59,30 +59,6 @@ describe('questStatusContract', () => {
       expect(result).toBe('approved');
     });
 
-    it('VALID: explore_design => parses successfully', () => {
-      const status = QuestStatusStub({ value: 'explore_design' });
-
-      const result = questStatusContract.parse(status);
-
-      expect(result).toBe('explore_design');
-    });
-
-    it('VALID: review_design => parses successfully', () => {
-      const status = QuestStatusStub({ value: 'review_design' });
-
-      const result = questStatusContract.parse(status);
-
-      expect(result).toBe('review_design');
-    });
-
-    it('VALID: design_approved => parses successfully', () => {
-      const status = QuestStatusStub({ value: 'design_approved' });
-
-      const result = questStatusContract.parse(status);
-
-      expect(result).toBe('design_approved');
-    });
-
     it('VALID: pending => parses successfully', () => {
       const status = QuestStatusStub({ value: 'pending' });
 
@@ -176,6 +152,24 @@ describe('questStatusContract', () => {
     it('INVALID: seek_walk => throws validation error (removed status)', () => {
       expect(() => {
         questStatusContract.parse('seek_walk');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: explore_design => throws validation error (removed status)', () => {
+      expect(() => {
+        questStatusContract.parse('explore_design');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: review_design => throws validation error (removed status)', () => {
+      expect(() => {
+        questStatusContract.parse('review_design');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: design_approved => throws validation error (removed status)', () => {
+      expect(() => {
+        questStatusContract.parse('design_approved');
       }).toThrow(/Invalid enum value/u);
     });
   });

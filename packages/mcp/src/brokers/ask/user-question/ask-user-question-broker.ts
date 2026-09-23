@@ -6,7 +6,7 @@
  * where the native AskUserQuestion tool is unavailable (no interactive TTY).
  *
  * The reply has to serve TWO caller shapes, and telling both to wait strands one of them: an
- * interactive chat session (ChaosWhisperer / Glyphsmith) IS resumed with the user's answer and must
+ * interactive chat session (ChaosWhisperer) IS resumed with the user's answer and must
  * stop, whereas a dispatched relay agent (Siegemaster, Flowrider) never receives another user turn —
  * if it waits it ends its turn without `signal-back`, leaving its work item `in_progress` forever and
  * wedging every role behind it. So the instruction names the condition instead of assuming the

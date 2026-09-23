@@ -1,6 +1,8 @@
 /**
  * PURPOSE: Proxy for questBlockOnFailureBroker — two roles:
- *   1) Downstream callers (signal-back handler, run-ward broker) stub the broker via setupBlocked.
+ *   1) Downstream callers (blockOnMissingWorktreeLayerBroker, recoverOrphanedWorkItemsLayerBroker,
+ *      questRouteScopeBroker, OrchestrationResumeResponder, RecoverGuildLayerResponder) stub the
+ *      broker via setupBlocked.
  *   2) The broker's own test runs the real implementation (setupPassthrough) and composes
  *      questGet/questModify proxies so the full block flow exercises real code.
  *

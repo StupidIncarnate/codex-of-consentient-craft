@@ -415,8 +415,9 @@ describe('QuestChatContentLayerWidget', () => {
               tracks: [
                 QuestSummaryTrackCountsStub({
                   id: 'siegemaster',
-                  confirmed: 0,
-                  unconfirmable: 1,
+                  met: 0,
+                  cantMeet: 1,
+                  unmet: 2,
                   outstanding: 9,
                 }),
               ],

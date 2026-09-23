@@ -22,10 +22,10 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 // THE RECOVERY IS THE STEP GRAPH'S OWN LOOP, not a spliced operation. `agentFlowStatics.wardFull`
 // declares `gate --unmet--> repair --done--> commit --done--> gate`, so a red gate mints a repair
 // work item on the SAME scope and the fresh gate that follows it is another work item on that same
-// scope — the ledger gains no operation item at all. The `pt N` continuation the ledger used to
-// grow is reachable only through `questRunWardBroker`, which answers a ward work item carrying NO
-// step; a gate work item carrying one is dispatched as a `run-step` and routed by
-// `questRouteScopeBroker` instead.
+// scope — the ledger gains no operation item at all. Every work item this loop mints carries a
+// `step` (`gate`, then `repair`, then `commit`, then `gate` again) — `questAdvanceBroker` stamps the
+// first on scope entry, `questRouteScopeBroker` every one after — so each one dispatches as a
+// `run-step`; no ward work item on this scope is ever step-less.
 //
 // THE GATE IS THE LEDGER'S LAST SCOPE. `wardFull` is the only family whose edge reaches
 // `@complete`, and `familyGraphCompleteDetectTransformer` derives the quest complete the moment
@@ -263,17 +263,18 @@ test.describe('Ward as an operation (advance on green, step-graph repair loop on
       { role: 'ward', step: 'gate' },
     ]);
 
-    // AFTER (UI): the list grew live to five rows — the flowrider, the red gate, the repair, its
-    // commit, and the fresh gate that came back green.
+    // AFTER (UI): the flowrider scope holds one visible work item, so it stays BARE; the ward scope
+    // now holds four (the red gate, the repair, its commit, and the fresh gate that came back
+    // green), so it grows an operation HEADER plus one nested row per step — six rows in all, every
+    // one DONE.
     await expect(rows.getByTestId('execution-row-status-badge')).toHaveText(
-      ['DONE', 'DONE', 'DONE', 'DONE', 'DONE'],
+      ['DONE', 'DONE', 'DONE', 'DONE', 'DONE', 'DONE'],
       { timeout: LEDGER_TIMEOUT },
     );
+    // Only the flowrider row and the ward HEADER carry a role badge — the four nested step rows are
+    // indented and drop their own [ROLE] badge, since the header already names the scope's role.
     await expect(rows.getByTestId('execution-row-role-badge')).toHaveText([
       '[FLOWRIDER]',
-      '[WARD]',
-      '[WARD]',
-      '[WARD]',
       '[WARD]',
     ]);
   });

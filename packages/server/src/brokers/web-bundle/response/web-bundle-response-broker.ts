@@ -21,6 +21,7 @@ import {
   webBundleContentTypeTransformer,
   type WebBundleContentType,
 } from '../../../transformers/web-bundle-content-type/web-bundle-content-type-transformer';
+import { webBundlePackageResolveBroker } from '../../web-bundle-package/resolve/web-bundle-package-resolve-broker';
 
 const INDEX_HTML_PATH = '/index.html';
 
@@ -33,7 +34,8 @@ export const webBundleResponseBroker = async ({
   contentType: WebBundleContentType;
   status: typeof httpStatusStatics.success.ok | typeof httpStatusStatics.serverError.internal;
 }> => {
-  const distPath = webBundleDistPathAdapter();
+  const packageName = await webBundlePackageResolveBroker();
+  const distPath = webBundleDistPathAdapter({ packageName });
 
   if (distPath === null) {
     return {

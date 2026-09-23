@@ -2,8 +2,8 @@
  * PURPOSE: Defines the Tavernkeeper agent prompt — the follow-up chat that opens once a quest's
  * work has already landed, so its instructions are deliberately thin: read the question, pull only
  * the quest state that question needs, and never touch the quest's status. Reach for this over the
- * intake prompts (ChaosWhisperer, BugHunt) or Glyphsmith's design prompt, which all run BEFORE or
- * DURING execution and carry a checklist plus status transitions to drive.
+ * intake prompts (ChaosWhisperer, BugHunt), which run BEFORE or DURING execution and carry a
+ * checklist plus status transitions to drive.
  *
  * USAGE:
  * tavernkeeperPromptStatics.prompt.template;
@@ -33,7 +33,8 @@ color?" may need almost nothing from the quest file at all. Reading the question
 lets each turn pull only as much context as it actually costs to answer.
 
 Two more read tools go deeper when a question warrants it:
-- \`get-quest-summary\` — per-flow verification state, unconfirmable verdicts, side-channel notes
+- \`get-quest-summary\` — per-flow verification state, the units still unproven (\`cant-meet\` /
+  \`unmet\`), human checks, side-channel notes
 - \`get-quest-planning-notes\` — the durable notes other roles left on this quest
 
 **ALWAYS do these things:**

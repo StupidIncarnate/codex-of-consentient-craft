@@ -35,10 +35,10 @@ export const pruneStatics = {
     },
   },
   assets: {
-    // The one evidence extension `evidenceFileStatics` does not hold, because no built step writes
-    // one yet — Part 7 item 11 (`hold` and `video`) is NOT STARTED. It lives here rather than
-    // there so `prune --kind video` is a real extension match the day a screencast lands beside
-    // its shots, instead of a branch that has to be remembered and wired then.
+    // The one evidence extension `evidenceFileStatics` does not hold: `playwrightSessionAdapter`
+    // writes a screencast through Playwright's own `recordVideo`, not through this package's shot
+    // or transcript writers, so it lives here rather than there — `prune --kind video` is a real
+    // extension match against that recording, not a branch waiting to be wired.
     videoExtension: '.webm',
   },
   size: {

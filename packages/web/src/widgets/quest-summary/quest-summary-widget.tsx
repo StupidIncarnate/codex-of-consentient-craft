@@ -1,20 +1,26 @@
 /**
  * PURPOSE: Renders one quest's verification summary as a pixel-art monospace panel — per-flow,
- * per-track sign-off counts; the observables added after approval and who added them; every
- * `unconfirmable` verdict with its reason text and its open question; and the side-channel notes
- * grouped by kind.
+ * per-track mark counts; the observables added after approval and who added them; every unit
+ * carrying debt with its mark, its evidence and whatever would settle it; every `verifyByHuman`
+ * criterion no track can settle, with its recorded verdict or the controls to record one; and the
+ * side-channel notes grouped by kind.
  *
  * USAGE:
  * <QuestSummaryWidget questId={quest.id} />
  * // Seeds from GET /api/quests/:questId/summary and repaints on that quest's quest-modified
- * // broadcasts, so a sign-off write lands here without a reload
+ * // broadcasts, so a mark written mid-quest lands here without a reload
  *
  * IT SHOWS WHAT `quest.status` DOES NOT. A quest reaches `complete` when its operations ledger
- * drains, not when its three tracks (codeweaver, flowrider, siegemaster) have SIGNED every unit,
- * and `unconfirmable` signs a unit exactly as `confirmed` does — so a complete quest can still
- * carry real holes, scope nobody approved, and unanswered questions. Every section here is one of
- * those blind spots, which is why an empty section renders its own "none" line rather than
+ * drains, not when every unit is marked `met`: a `cant-meet` settles a unit without proving it and
+ * an `unmet` leaves the work open, and neither one holds the ledger — so a complete quest can
+ * still carry real holes, scope nobody approved, and unanswered questions. Every section here is
+ * one of those blind spots, which is why an empty section renders its own "none" line rather than
  * disappearing: "nobody recorded any" and "nobody looked" must not read the same.
+ *
+ * THE DEBT SECTION RENDERS AN ABSENT `toSettle` AS ITS OWN LINE. `cant-meet` carries the action
+ * that would settle the unit; `unmet` is owed a successor instead and carries none. Skipping the
+ * line on `unmet` leaves a blank where the reader cannot tell "nothing hands this over" from "the
+ * handover is missing", which is the distinction the two marks exist to draw.
  */
 
 import { Box, Text } from '@mantine/core';
@@ -23,10 +29,11 @@ import type { QuestId } from '@dungeonmaster/shared/contracts';
 
 import { useQuestSummaryBinding } from '../../bindings/use-quest-summary/use-quest-summary-binding';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { DebtRowLayerWidget } from './debt-row-layer-widget';
 import { FlowRowLayerWidget } from './flow-row-layer-widget';
+import { HumanCheckPanelLayerWidget } from './human-check-panel-layer-widget';
 import { NoteGroupLayerWidget } from './note-group-layer-widget';
 import { ObservableRowLayerWidget } from './observable-row-layer-widget';
-import { UnconfirmableRowLayerWidget } from './unconfirmable-row-layer-widget';
 
 export interface QuestSummaryWidgetProps {
   questId: QuestId;
@@ -152,22 +159,26 @@ export const QuestSummaryWidget = ({ questId }: QuestSummaryWidgetProps): React.
           data-testid="QUEST_SUMMARY_SECTION_TITLE"
           style={{ fontSize: ROW_FONT_SIZE, color: colors['loot-gold'], fontWeight: 600 }}
         >
-          UNCONFIRMABLE
+          DEBT
         </Text>
-        {data.unconfirmable.length === 0 ? (
+        {data.debt.length === 0 ? (
           <Text
             ff="monospace"
             data-testid="QUEST_SUMMARY_DEBT_EMPTY"
             style={{ fontSize: ROW_FONT_SIZE, color: colors['text-dim'], paddingLeft: ROW_INDENT }}
           >
-            no unconfirmable verdicts
+            every unit is proven
           </Text>
         ) : (
-          data.unconfirmable.map((entry) => (
-            <UnconfirmableRowLayerWidget key={entry.id} entry={entry} />
-          ))
+          data.debt.map((entry) => <DebtRowLayerWidget key={entry.id} entry={entry} />)
         )}
       </Box>
+
+      <HumanCheckPanelLayerWidget
+        questId={questId}
+        criteria={data.humanChecks}
+        notes={data.noteGroups.find((group) => group.id === 'human-verdict')?.notes ?? []}
+      />
 
       <Box data-testid="QUEST_SUMMARY_SECTION_NOTES">
         <Text

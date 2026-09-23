@@ -8,6 +8,7 @@ import type { WorkPlanPiece } from './work-plan-piece-contract';
 export const WorkPlanPieceStub = ({ ...props }: StubArgument<WorkPlanPiece> = {}): WorkPlanPiece =>
   workPlanPieceContract.parse({
     id: 'pc-badge',
+    pieceName: 'comment count badge',
     step: 'work',
     assignedUnitIds: ['send-flow:observable:check-badge-count-text'],
     contextUnitIds: ['send-flow:terminal:batch-sent'],

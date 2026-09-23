@@ -1,7 +1,7 @@
 /**
- * PURPOSE: Computes a quest's whole verification state — per-flow, per-track sign-off counts; the
- * observables added after approval and by whom; every `unconfirmable` verdict with its reason and
- * its question; and the durable side-channel notes grouped by kind
+ * PURPOSE: Computes a quest's whole verification state — per-flow, per-track mark counts; the
+ * observables added after approval and by whom; every unit carrying debt with its evidence and the
+ * action that would settle it; and the durable side-channel notes grouped by kind
  *
  * USAGE:
  * questSummaryBuildTransformer({ quest });
@@ -14,15 +14,32 @@
  * PURE. It reads the quest it is handed and nothing else, so the same quest file always produces the
  * same summary and a caller can build one from an in-memory quest without touching disk.
  *
- * WHY THIS EXISTS. A quest reaches `complete` when its operations ledger drains, not when its three
- * sign-off tracks (codeweaver, flowrider, siegemaster) finish signing every unit — and
- * `unconfirmable` signs a unit exactly as `confirmed` does, clearing the ABSENCE of a verdict rather
- * than demanding an honest one. So `status: complete` is compatible with real holes, real scope
- * nobody approved, and real unanswered questions, and none of that is legible from a quest file
+ * WHY THIS EXISTS. A quest reaches `complete` when its operations ledger drains, not when every unit
+ * is marked `met` — a `cant-meet` settles a unit without proving it and an `unmet` leaves the work
+ * open, and neither one holds the ledger. So `status: complete` is compatible with real holes, real
+ * scope nobody approved, and real unanswered questions, and none of that is legible from a quest file
  * without re-deriving the enumeration by hand.
  *
- * THE DENOMINATOR IS PER-TRACK, AND IT IS DATA. Every exclusion comes from
- * `stepScopeStatics`, never from a comparison invented here:
+ * THE FOUR COUNTS PARTITION THE DENOMINATOR, AND `unmet` NEVER FOLDS INTO `outstanding`. `unmet` is a
+ * session of THIS track that looked at the unit and left work open; `outstanding` is a unit no session
+ * of this track has marked at all. One has a verdict behind it and a successor owed to it, the other
+ * has nobody — and a reader deciding what to pick up needs the two apart. `outstanding` is therefore
+ * DERIVED (denominator minus the units this track marked) rather than counted, which is what makes
+ * `met + cantMeet + unmet + outstanding` equal the denominator by construction.
+ *
+ * COUNTS ATTRIBUTE PER TRACK, off `workItem.role`. A unit a codeweaver work item marked `met` leaves
+ * flowrider's row untouched and stays in flowrider's `outstanding`: two roles produce two independent
+ * verdicts on the same unit, which is the whole reason marks moved onto the work item. The record read
+ * is `workItem.observations` — the single per-unit record every role writes — and the ATTRIBUTION rule
+ * is the one `qaChecklistBuildTransformer` already applies to `remainingItemIds`.
+ *
+ * LAST WRITE PER (UNIT, TRACK) WINS, BY WORK-ITEM ARRAY ORDER. A `review` step that marked a unit
+ * `unmet` mints a successor, and that successor's `met` is the track's current verdict. Array order is
+ * what the router itself reads for "the last work item on this scope" — `createdAt` is not, because a
+ * parallel batch is minted inside one persist and shares a timestamp.
+ *
+ * THE DENOMINATOR IS PER-TRACK, AND IT IS DATA. Every exclusion comes from `stepScopeStatics`, never
+ * from a comparison invented here:
  *
  * - FLOW TYPE. A track only gets a row on a flow whose type it measures. The authoring tracks
  *   measure runtime flows alone, so an operational flow carries a codeweaver row and nothing else —
@@ -32,32 +49,51 @@
  * - PROVENANCE. This is the subtle one. The relay runs
  *   spec → chaoswhisperer → codeweaver → flowrider → siegemaster, so an observable a Siegemaster
  *   walker added mid-walk did not exist while the authoring tracks were working and can never
- *   receive their sign-off. `observableOrigins` omits `siegemaster` on both for exactly that
- *   reason, and filtering on it is what keeps such an observable out of their `outstanding` instead
- *   of parking it there forever. NO TIMESTAMP IS COMPARED — `at` records when a sign-off was
- *   written, not when a role's item completed, and ordering roles by wall-clock would break the
- *   moment a resumed session wrote out of order.
+ *   receive their mark. `observableOrigins` omits `siegemaster` on both for exactly that reason, and
+ *   filtering on it is what keeps such an observable out of their `outstanding` instead of parking
+ *   it there forever. NO TIMESTAMP IS COMPARED — `at` records when a mark was written, not when a
+ *   role's item completed, and ordering roles by wall-clock would break the moment a resumed session
+ *   wrote out of order.
  * - PACKAGE KIND. A ROW IS KEYED ON THE DENOMINATOR TRACK, so `quest.packagesAffected` IS passed and
- *   each row narrows to the package kinds its own role measures. A single row per sign-off FIELD
- *   would fuse every role writing that field into one number no single track's work list computes.
+ *   each row narrows to the package kinds its own role measures. A single row per FIELD would fuse
+ *   every role writing that field into one number no single track's work list computes.
+ * - VERIFICATION METHOD. An observable flagged `verifyByHuman` resolves to `human-check`, which no
+ *   track's `verificationMethods` lists, so it matches none of the four counts on any row —
+ *   `verifyByHuman` wins over `verifyByReading` when an observable carries both. The unit is
+ *   excluded from every track's denominator for that reason alone; `QuestSummary.humanChecks`
+ *   carries it instead — computed separately below, with no track-eligibility or origin filter of
+ *   its own — so a criterion only a person can settle still has a place a reader finds it.
  *
- * `outstanding` IS TAKEN FROM `signoffFlowOutstandingTransformer`, the same call
- * `signoffOutstandingTransformer` and `get-qa-checklist` both make, handed the same
- * `packagesAffected`. The number a reader sees here is therefore the same number that item's own
- * work list reports, rather than a second derivation that can drift from it. `packageNames` is the
- * operation item's own slice and is threaded on top when a caller holds one, because such a caller
- * is asking exactly "what does MY work list say".
+ * `packageNames` is an operation item's own slice and is threaded on top when a caller holds one,
+ * because such a caller is asking exactly "what does MY work list say".
+ *
+ * THE DEBT LIST IS WHOLE-QUEST AND CARRIES EXACTLY THE UNPROVEN MARKS. One entry per (unit, track)
+ * whose current mark is `cant-meet` or `unmet`, keyed on both because one unit can carry debt on more
+ * than one track for different reasons. `met` is excluded — a proven unit is not debt — and so is an
+ * `outstanding` unit, which has no evidence, no work item and no moment to report and is already
+ * counted in its track's row. The entry copies `evidence`, `toSettle`, `workItemId` and `at` off the
+ * observation so a reader can route the debt without re-joining to the work item.
  *
  * `midQuestObservables` DELIBERATELY IGNORES TRACK ELIGIBILITY. It answers "what did this quest grow
  * after the user approved it", which is a provenance question, not a coverage one — a Siegemaster
  * addition belongs on that list precisely because Flowrider's numbers exclude it.
+ *
+ * `humanChecks` LIKEWISE IGNORES BOTH TRACK ELIGIBILITY AND ORIGIN. It answers "which criteria can
+ * no track ever settle", so a `verifyByHuman` observable belongs on it whether the spec authored it
+ * at approval or a role wrote it in mid-quest — the same observable can therefore appear here AND in
+ * `midQuestObservables` at once, because the two lists answer different questions about it.
+ *
+ * THE FINAL `.parse()` TAKES `unknown`, SO TYPESCRIPT GRADES NOTHING HERE. `questSummaryContract` and
+ * `questSummaryTrackCountsContract` are `.strict()` for that reason: a field renamed in the contract
+ * and missed here throws on the first call instead of being stripped in silence and rendering as a
+ * defaulted zero.
  */
 
 import type { PackageName, Quest, QuestSummary } from '@dungeonmaster/shared/contracts';
 import {
   questNoteKindContract,
   questSummaryContract,
-  signoffDenominatorTrackContract,
+  verificationTrackContract,
 } from '@dungeonmaster/shared/contracts';
 
 import { stepScopeStatics } from '../../statics/step-scope/step-scope-statics';
@@ -79,9 +115,9 @@ export const questSummaryBuildTransformer = ({
   }));
 
   // One scope per (flow, track) the track actually measures, carrying that track's denominator on
-  // that flow.
+  // that flow, its four counts and its share of the quest's debt.
   const trackScopes = enumeratedFlows.flatMap(({ flow, units }) =>
-    signoffDenominatorTrackContract.options
+    verificationTrackContract.options
       .filter((track) => {
         const familySteps = stepScopeStatics.byFamilyStep[track];
         const stepScope = 'review' in familySteps ? familySteps.review : familySteps.happyWalk;
@@ -100,22 +136,75 @@ export const questSummaryBuildTransformer = ({
           units: units
             .filter((unit) => eligibleKinds.has(unit.kind))
             .filter((unit) => unit.kind !== 'observable' || eligibleOrigins.has(unit.addedBy))
-            .filter(
-              (unit) =>
-                unit.kind !== 'observable' ||
-                eligibleMethods.has(unit.verifyByReading === true ? 'reading' : 'test'),
-            ),
+            .filter((unit) => {
+              if (unit.kind !== 'observable') {
+                return true;
+              }
+
+              // `verifyByHuman` wins over `verifyByReading` when an observable carries both — it
+              // names the METHOD nothing automated can perform, where `verifyByReading` only names
+              // which automated method applies. No track's `verificationMethods` lists
+              // `human-check` (`stepScopeStatics`), so a flagged unit matches none of them and is
+              // excluded here — `humanChecks` below carries it instead, with no track filter of its
+              // own.
+              if (unit.verifyByHuman === true) {
+                return eligibleMethods.has('human-check');
+              }
+
+              return eligibleMethods.has(unit.verifyByReading === true ? 'reading' : 'test');
+            }),
           track,
           packagesAffected: quest.packagesAffected,
           packageNames,
           packageGraph: quest.packageGraph,
         });
 
+        // THIS track's marks alone, keyed by unit. A later entry overwrites an earlier one, so the
+        // map holds each unit's current verdict for this track and a re-minted successor supersedes
+        // the `unmet` that minted it.
+        const marksByUnitId = new Map(
+          quest.workItems
+            .filter((workItem) => workItem.role === track)
+            .flatMap((workItem) =>
+              workItem.observations.map(
+                (observation) =>
+                  [String(observation.unitId), { observation, workItemId: workItem.id }] as const,
+              ),
+            ),
+        );
+
+        const markedUnits = eligibleUnits.flatMap((unit) => {
+          const mark = marksByUnitId.get(String(unit.id));
+
+          return mark === undefined ? [] : [{ unit, ...mark }];
+        });
+
         return {
           flowId: String(flow.id),
-          flow,
           track,
-          outstanding: eligibleUnits.length,
+          met: markedUnits.filter(({ observation }) => observation.mark === 'met').length,
+          cantMeet: markedUnits.filter(({ observation }) => observation.mark === 'cant-meet')
+            .length,
+          unmet: markedUnits.filter(({ observation }) => observation.mark === 'unmet').length,
+          // Denominator minus what this track marked, so the four numbers reconcile against the unit
+          // count without a fifth read of the same set that could disagree with them.
+          outstanding: eligibleUnits.length - markedUnits.length,
+          debt: markedUnits
+            .filter(({ observation }) => observation.mark !== 'met')
+            .map(({ unit, observation, workItemId }) => ({
+              id: `${String(unit.id)}:${track}`,
+              unitId: unit.id,
+              flowId: unit.flowId,
+              kind: unit.kind,
+              track,
+              mark: observation.mark,
+              evidence: observation.evidence,
+              // Spread rather than assigned: the debt contract REFUSES a `toSettle` on an `unmet`,
+              // and `exactOptionalPropertyTypes` refuses an explicit `undefined` in its place.
+              ...(observation.toSettle === undefined ? {} : { toSettle: observation.toSettle }),
+              workItemId,
+              at: observation.at,
+            })),
         };
       }),
   );
@@ -131,8 +220,9 @@ export const questSummaryBuildTransformer = ({
         .filter((scope) => scope.flowId === String(flow.id))
         .map((scope) => ({
           id: scope.track,
-          confirmed: 0,
-          unconfirmable: 0,
+          met: scope.met,
+          cantMeet: scope.cantMeet,
+          unmet: scope.unmet,
           outstanding: scope.outstanding,
         })),
     })),
@@ -155,7 +245,25 @@ export const questSummaryBuildTransformer = ({
       ),
     ),
 
-    unconfirmable: [],
+    debt: trackScopes.flatMap((scope) => scope.debt),
+
+    humanChecks: enumeratedFlows.flatMap(({ units }) =>
+      units.flatMap((unit) =>
+        unit.kind === 'observable' && unit.verifyByHuman === true
+          ? [
+              {
+                id: unit.id,
+                flowId: unit.flowId,
+                nodeId: unit.nodeId,
+                observableId: unit.observableId,
+                addedBy: unit.addedBy,
+                observableType: unit.observableType,
+                description: unit.observableDescription,
+              },
+            ]
+          : [],
+      ),
+    ),
 
     noteGroups: questNoteKindContract.options.map((kind) => ({
       id: kind,

@@ -11,14 +11,6 @@ describe('workItemRoleContract', () => {
       expect(result).toBe('chaoswhisperer');
     });
 
-    it('VALID: glyphsmith => parses successfully', () => {
-      const role = WorkItemRoleStub({ value: 'glyphsmith' });
-
-      const result = workItemRoleContract.parse(role);
-
-      expect(result).toBe('glyphsmith');
-    });
-
     it('VALID: codeweaver => parses successfully', () => {
       const role = WorkItemRoleStub({ value: 'codeweaver' });
 

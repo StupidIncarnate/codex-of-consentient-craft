@@ -36,9 +36,9 @@ describe('smoketestCaseCatalogStatics', () => {
     expect(hasStartQuest).toBe(false);
   });
 
-  it('VALID: {signals} => case IDs list matches the complete/done/partial signal set', () => {
+  it('VALID: {signals} => case IDs list matches the complete/done signal set', () => {
     expect(smoketestCaseCatalogStatics.signals.map((c) => c.caseId).sort()).toStrictEqual(
-      ['signal-complete', 'signal-done', 'signal-partial'].sort(),
+      ['signal-complete', 'signal-done'].sort(),
     );
   });
 
@@ -46,13 +46,12 @@ describe('smoketestCaseCatalogStatics', () => {
     expect(smoketestCaseCatalogStatics.signals.map((c) => c.expectedSignal)).toStrictEqual([
       'complete',
       'complete',
-      'complete',
     ]);
   });
 
-  it('VALID: {orchestration} => references the 3 scenarios from smoketestScenariosStatics', () => {
+  it('VALID: {orchestration} => references the 2 scenarios from smoketestScenariosStatics', () => {
     expect(smoketestCaseCatalogStatics.orchestration.map((c) => c.caseId).sort()).toStrictEqual(
-      ['orch-codeweaver-partial', 'orch-happy-path', 'orch-reaches-flowrider'].sort(),
+      ['orch-happy-path', 'orch-reaches-flowrider'].sort(),
     );
   });
 
@@ -64,7 +63,6 @@ describe('smoketestCaseCatalogStatics', () => {
     }));
 
     expect(shapes).toStrictEqual([
-      { hasBlueprint: true, hasScripts: true, hasAssertions: true },
       { hasBlueprint: true, hasScripts: true, hasAssertions: true },
       { hasBlueprint: true, hasScripts: true, hasAssertions: true },
     ]);

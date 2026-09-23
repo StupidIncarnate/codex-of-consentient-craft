@@ -230,30 +230,6 @@ describe('agentLaunchBroker', () => {
       expect(result.processId).toBe(`chat-${PROCESS_UUID}`);
     });
 
-    it('VALID: {prefix: "design"} => processId is "design-<uuid>"', () => {
-      const proxy = agentLaunchBrokerProxy();
-      proxy.setupSpawnAndEmitLines({ lines: [], exitCode: 0 });
-
-      const result = agentLaunchBroker({
-        questId: QuestIdStub({ value: 'q-prefix-design' }),
-        questWorkItemId: QuestWorkItemIdStub({
-          value: 'f47ac10b-58cc-4372-a567-0e02b2c3d484',
-        }),
-        processIdPrefix: ProcessIdPrefixStub({ value: 'design' }),
-        prompt: PromptTextStub({ value: 'p' }),
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
-        model: ClaudeModelStub(),
-        onEntries: () => {},
-        onText: () => {},
-        onSignal: () => {},
-        onSessionId: () => {},
-        onComplete: () => {},
-        registerProcess: () => {},
-      });
-
-      expect(result.processId).toBe(`design-${PROCESS_UUID}`);
-    });
-
     it('VALID: {prefix: "proc"} => processId is "proc-<uuid>"', () => {
       const proxy = agentLaunchBrokerProxy();
       proxy.setupSpawnAndEmitLines({ lines: [], exitCode: 0 });

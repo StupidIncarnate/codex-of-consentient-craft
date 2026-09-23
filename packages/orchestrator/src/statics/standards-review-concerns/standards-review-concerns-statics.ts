@@ -1,25 +1,23 @@
 /**
- * PURPOSE: The five standing quality concerns, written once and interpolated into all three reviewer
- * prompts. Reach for this when you want to change what EVERY reviewer looks for; a question only one
- * kind of reviewer asks belongs in that reviewer's own prompt instead.
+ * PURPOSE: The five standing quality concerns, written once and interpolated into both reviewer
+ * prompts (`codeweaver-reviewer`, `flowrider-reviewer`). Reach for this when you want to change what
+ * EVERY reviewer looks for; a question only one kind of reviewer asks belongs in that reviewer's own
+ * prompt instead.
  *
  * USAGE:
  * standardsReviewConcernsStatics.markdown;
  * // The five concerns as review questions, ready to interpolate into a reviewer prompt
  *
  * THIS IS GUIDANCE, NOT A LEDGER. Nothing counts what a reviewer answers here and no gate refuses a
- * signal over a concern nobody took. An earlier version made each (file, concern) pair a unit with a
- * recorded disposition, and the server refused the parent's `done` until every one carried an entry.
- * That measured 18 dispositions competing with real review work inside one session's turn, so the
- * ledger, the checklist tool and the gate all went. What is left is the five questions.
+ * signal over a concern nobody took. What is left is the five questions.
  *
  * WHY THESE FIVE AND NOT MORE. Every mechanical rule is already enforced by lint, so a concern that
  * repeats one buys nothing and costs a reading pass. What is here is the judgement a linter cannot
  * make. Dead code is deliberately absent — whether an export has a consumer is a property of the
  * whole import graph after later work lands, and no session can answer it from inside its own scope.
  *
- * BUDGET: three reviewer prompts interpolate this whole block, so a character here is three
- * characters served, and each of those three prompts has to clear
+ * BUDGET: two reviewer prompts interpolate this whole block, so a character here is two
+ * characters served, and each of those two prompts has to clear
  * `mcpToolResultStatics.maxVerbatimChars` on its own.
  */
 
@@ -33,8 +31,8 @@ to the next file. Do not make five passes over the same tree.
 no-any, proxy colocation, stub usage, no-console, silent catches, unused code, test name prefixes,
 \`describe\` shape. Lint has those. What is left is judgement.
 
-**Fix what you find, where the fix is small and clearly yours.** Hand up anything structural, anything
-crossing into work you do not own, and anything needing a decision.
+**Fix what you find, where the fix is small and clearly yours.** Mark \`unmet\` anything structural,
+anything crossing into work you do not own, and anything needing a decision, naming what is left.
 
 ### craft
 

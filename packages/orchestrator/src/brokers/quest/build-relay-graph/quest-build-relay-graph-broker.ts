@@ -60,7 +60,7 @@ export const questBuildRelayGraphBroker = ({
 }): { operations: OperationItem[]; workItems: WorkItem[] } => {
   const entryFamily = questFlowStatics[quest.questType].entry;
 
-  // Intake plan items (every chat role — chaoswhisperer/glyphsmith/bughunt) are done by the time
+  // Intake plan items (every chat role — chaoswhisperer/bughunt) are done by the time
   // the user starts the quest — force any the intake agent forgot to complete, so advance never
   // tries to dispatch a fresh chat session for them.
   const settledExisting = quest.operations.map((operation) =>

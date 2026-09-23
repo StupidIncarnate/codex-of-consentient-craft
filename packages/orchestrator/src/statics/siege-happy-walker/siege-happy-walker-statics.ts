@@ -24,15 +24,17 @@
  * `unmet` mark's fixer writes its own failing test, watches it fail, and turns it green in one
  * session, so no orphaned red ever reaches a ward gate.
  *
- * FOUR SHARED BLOCKS ARE INTERPOLATED: `declaredValueStatics`, `sadPathRoutingStatics`,
- * `spilledToolResultStatics`, `unitMarkingStatics`. This is the one prompt in the family that takes
- * `declaredValueStatics` — a walker is the session that meets an unflagged declared-value observable
- * with nothing else telling it what to do, since the authoring role is the only one that may flag one.
+ * FIVE SHARED BLOCKS ARE INTERPOLATED: `declaredValueStatics`, `observableAutomatabilityStatics`,
+ * `sadPathRoutingStatics`, `spilledToolResultStatics`, `unitMarkingStatics`. This is the one prompt
+ * in the family that takes `declaredValueStatics` — a walker is the session that meets an unflagged
+ * declared-value observable with nothing else telling it what to do, since the authoring role is the
+ * only one that may flag one.
  *
  * BUDGET: `mcpToolResultStatics.maxVerbatimChars` (50,000), measured by the colocated test.
  */
 
 import { declaredValueStatics } from '../declared-value/declared-value-statics';
+import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 import { sadPathRoutingStatics } from '../sad-path-routing/sad-path-routing-statics';
 import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
 import { unitMarkingStatics } from '../unit-marking/unit-marking-statics';
@@ -145,6 +147,9 @@ ${spilledToolResultStatics.markdown}
 \`\`\`
 dungeonmaster siegelense docs --for walking
 \`\`\`
+
+Bare \`dungeonmaster siegelense docs\`, with no \`--for\`, serves the tool's own overview instead of a
+role's manual — \`--for walking\` above is the one you want here.
 
 Everything about driving your instance — the reading ladder, the verbs, how a batch answers, how to
 read results back — is taught there, kept current, and stays out of this page so a copy here cannot
@@ -313,6 +318,13 @@ modify-quest({ questId: 'QUEST_ID', flows: [ { id: '<flow id>', nodes: [ { id: '
 then mark that new unit the same way as any other. **Two defects on one unit is two units, never two
 marks on one.**
 
+**Where a unit resists everything you can try, and nothing at any layer could ever settle it either —
+not a later session, not a later walk, nothing but a person's own judgment once the quest is done: on
+an OBSERVABLE, set \`verifyByHuman: true\` on it through the same \`modify-quest\` call above instead of
+writing \`cant-meet\`. On a terminal or branch unit, which carries no such field, \`cant-meet\` is the
+honest mark — name the person's check as its \`toSettle\`.** See the \`verifyByHuman\` rule further down
+this page for the whole picture.
+
 **Amend the plan where a driving field proved wrong** — a branch label that names a branch that does
 not exist, a recipe that does not reach what it claims:
 
@@ -355,6 +367,8 @@ that, then signal again.
 ${declaredValueStatics.markdown}
 
 ${unitMarkingStatics.markdown}
+
+${observableAutomatabilityStatics.markdown}
 
 ${sadPathRoutingStatics.markdown}
 

@@ -24,9 +24,9 @@
  * the last thing it does. Riftcarver published the branch itself at carve time, so what each of
  * these pushes lands is that pass's own commit — the only way the pass leaves the worktree.
  * Denied, the reviewer reads its own prompt's mandated step coming back `This command requires
- * approval`, which its `[WALL]` operating rule defines as an environment wall; the most COMPLIANT
- * reading of that denial is `NEXT: wall`, its operator turns that into an
- * `operationStatus: 'blocked'`, and the first pass of the first operator item halts the quest.
+ * approval`, which its `[WALL]` operating rule defines as an environment wall: it declares the
+ * outcome `wall` through `quest-work` and signals `blocked` with a `blockedReason`, and the router
+ * routes `wall` straight to `@blocked`, halting the quest on the first pass of the first scope.
  * Publishing the quest's own branch is not history rewriting: it is how the relay hands work
  * forward, exactly as the commit is.
  *
@@ -42,7 +42,7 @@
  * hook reads the arguments, so that is where the narrowing lives.
  *
  * `rev-parse` and `merge-base` are granted because a dispatched session routinely needs to resolve
- * a REF rather than read a diff — a `codeweaver-reviewer` / `flowrider-reviewer` / `siegemaster-reviewer`
+ * a REF rather than read a diff — a `codeweaver-reviewer` / `flowrider-reviewer`
  * pass reading "git log with bodies on this branch" reaches for `git rev-parse @{upstream}` to find
  * where an earlier pass's own work starts (measured directly: four reviewer passes on one audited
  * quest hit `This command requires approval` on that exact call and fell back to the poorer

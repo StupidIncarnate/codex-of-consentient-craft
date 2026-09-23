@@ -4,7 +4,7 @@ import { recipesCatalogBrokerProxy } from './recipes-catalog-broker.proxy';
 
 describe('recipesCatalogBroker', () => {
   describe('catalog entries', () => {
-    it('VALID: {} => returns 8 registered recipes in catalog', () => {
+    it('VALID: {} => returns 9 registered recipes in catalog', () => {
       recipesCatalogBrokerProxy();
 
       const entries = recipesCatalogBroker();
@@ -18,6 +18,7 @@ describe('recipesCatalogBroker', () => {
         'session-single-turn',
         'session-with-nested-chain',
         'guild-active-suite',
+        'session-with-nested-subagent',
       ]);
     });
   });
@@ -172,7 +173,6 @@ describe('recipesCatalogBroker', () => {
         makes: [
           { ingredient: 'guild', count: 1 },
           { ingredient: 'quest', count: 1 },
-          { ingredient: 'operation', count: 2 },
         ],
         inputKeys: [],
       });
@@ -301,6 +301,55 @@ describe('recipesCatalogBroker', () => {
           target: DmTargetStub(),
         }),
       ).rejects.toThrow(/recipe 'guild-active-suite' takes no params, got: extra/u);
+    });
+  });
+
+  describe('session-with-nested-subagent entry', () => {
+    it('VALID: probeListing() => returns needsServerFor guild, session/subagent makes and guild inputKey', () => {
+      recipesCatalogBrokerProxy();
+
+      const entry = recipesCatalogBroker().find(
+        (candidate) => candidate.recipeName === 'session-with-nested-subagent',
+      );
+
+      expect(entry?.probeListing()).toStrictEqual({
+        runs: { serverless: false, needsServerFor: 'guild' },
+        makes: [
+          { ingredient: 'session', count: 1 },
+          { ingredient: 'subagent', count: 2 },
+        ],
+        inputKeys: ['guild'],
+      });
+    });
+
+    it('INVALID: execute({ params: {} }) => throws refused params error', async () => {
+      recipesCatalogBrokerProxy();
+
+      const entry = recipesCatalogBroker().find(
+        (candidate) => candidate.recipeName === 'session-with-nested-subagent',
+      );
+
+      await expect(
+        entry?.execute({
+          params: {},
+          target: DmTargetStub(),
+        }),
+      ).rejects.toThrow(/recipe 'session-with-nested-subagent' refused params/u);
+    });
+
+    it('ERROR: execute({ params: { guild: a real GuildId }, target with no baseUrl }) => throws needs a baseUrl error', async () => {
+      recipesCatalogBrokerProxy();
+
+      const entry = recipesCatalogBroker().find(
+        (candidate) => candidate.recipeName === 'session-with-nested-subagent',
+      );
+
+      await expect(
+        entry?.execute({
+          params: { guild: '7306b468-0f2d-4a5e-9c3b-2d1e8f0a6b41' },
+          target: DmTargetStub(),
+        }),
+      ).rejects.toThrow(/recipe 'session-with-nested-subagent' needs a target with a baseUrl/u);
     });
   });
 

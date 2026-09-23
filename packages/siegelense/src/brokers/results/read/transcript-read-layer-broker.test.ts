@@ -6,7 +6,7 @@ import { transcriptReadLayerBroker } from './transcript-read-layer-broker';
 import { transcriptReadLayerBrokerProxy } from './transcript-read-layer-broker.proxy';
 
 const TRANSCRIPT_PATH = AbsoluteFilePathStub({
-  value: '/repo/.siegelense/unowned/instances/inst_1/runs/run_2.jsonl',
+  value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1/runs/run_2.jsonl',
 });
 
 describe('transcriptReadLayerBroker', () => {

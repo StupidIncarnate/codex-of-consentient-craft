@@ -6,14 +6,14 @@
  * domain folder outside it, so no location satisfies `@dungeonmaster/eslint-plugin`'s own
  * `-ingredient.ts` filename convention today.
  *
- * `transitions.to` HOLDS a narrower runtime set than `QuestStatus` (18 values) — every value left
+ * `transitions.to` HOLDS a narrower runtime set than `QuestStatus` (15 values) — every value left
  * off is reached by something other than a caller asking. It reads
  * `questTransitionTargetStatusesStatics.value`, an inline literal tuple, rather than filtering
  * `questStatusContract.options` through `isTransitionTargetQuestStatusGuard` at this declaration
  * site: `@dungeonmaster-local/ban-quest-status-literals` refuses an inline array or set holding two
  * or more recognized status literals everywhere EXCEPT the one statics folder its allowlist now
  * names for exactly this list (see that statics file's own header), so the literal tuple can live
- * there and keep its narrow type. `to`'s STATIC TYPE is therefore the twelve-member literal union
+ * there and keep its narrow type. `to`'s STATIC TYPE is therefore the nine-member literal union
  * the statics file declares, not the un-narrowed `QuestStatus[]` a `.filter()` call would produce —
  * `set({ status: 'blocked' })` correctly FAILS TO COMPILE here, matching the specification. The
  * pre-flight (`HydrationTransitionUnreachableError`) still refuses an unreachable status at RUN
@@ -37,7 +37,7 @@
  *   flip, and by that item's own eventual `git merge --squash`. Neither is a plain status ask, and
  *   the machinery behind both is out of this ingredient's reach.
  *
- * Every other status — the ChaosWhisperer/Glyphsmith spec lifecycle, `in_progress`, `complete` and
+ * Every other status — the ChaosWhisperer spec lifecycle, `in_progress`, `complete` and
  * `abandoned` — IS reached by a caller literally asking `questModifyBroker` for it (`complete` and
  * `abandoned` are both legal next values off `in_progress` in `questStatusTransitionsStatics`, and
  * neither carries a `hasQuestGateContentGuard` requirement), so all of them stay on `to`.

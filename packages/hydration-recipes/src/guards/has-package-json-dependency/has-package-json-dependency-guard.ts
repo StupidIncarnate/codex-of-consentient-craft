@@ -5,7 +5,7 @@
  * without this guard doing the lookup on its behalf.
  *
  * USAGE:
- * hasPackageJsonDependencyGuard({ packageJson, dependencyName: '@dungeonmaster/siegelense-recipes' });
+ * hasPackageJsonDependencyGuard({ packageJson, dependencyName: '@dungeonmaster/hydration-recipes' });
  * // Returns true when packageJson.dependencies has that key
  */
 

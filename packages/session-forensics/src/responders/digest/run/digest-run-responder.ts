@@ -40,8 +40,8 @@ export const DigestRunResponder = ({
 }): ContentText => {
   if (command === 'coverage') {
     const questId = questIdContract.parse(target);
-    const flows = questLoadBroker({ questId });
-    const coverage = questToCoverageTransformer({ flows });
+    const { flows, workItems } = questLoadBroker({ questId });
+    const coverage = questToCoverageTransformer({ flows, workItems });
     return coverageToTextTransformer({ coverage });
   }
 

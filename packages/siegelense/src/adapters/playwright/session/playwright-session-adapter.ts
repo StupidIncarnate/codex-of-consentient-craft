@@ -53,6 +53,7 @@ import type {
   MatchCount,
 } from '../../../contracts/browser-session/browser-session-contract';
 import type { KeyReading } from '../../../contracts/key-reading/key-reading-contract';
+import type { SettleReading } from '../../../contracts/settle-reading/settle-reading-contract';
 import type { StorageReading } from '../../../contracts/storage-reading/storage-reading-contract';
 import { videoResultContract } from '../../../contracts/video-result/video-result-contract';
 import type { VideoResult } from '../../../contracts/video-result/video-result-contract';
@@ -63,6 +64,7 @@ import { keyReadLayerAdapter } from './key-read-layer-adapter';
 import { listenersLayerAdapter } from './listeners-layer-adapter';
 import { refRegistryLayerAdapter } from './ref-registry-layer-adapter';
 import { rootCheckLayerAdapter } from './root-check-layer-adapter';
+import { settleWaitLayerAdapter } from './settle-wait-layer-adapter';
 import { viewportSetLayerAdapter } from './viewport-set-layer-adapter';
 import { initScriptAddLayerAdapter } from './init-script-add-layer-adapter';
 import { storageReadLayerAdapter } from './storage-read-layer-adapter';
@@ -161,6 +163,13 @@ export const playwrightSessionAdapter = async ({
   const domReader = domReadLayerAdapter();
   const keyPress = keyPressLayerAdapter();
   const rootChecker = rootCheckLayerAdapter();
+  // `pollerRepeatThreshold` at CONSTRUCTION, from `driverStatics.settle` — not the layer's own
+  // built-in default, which happens to carry the same number today but would silently drift from
+  // this static the moment either one changed without the other.
+  const settleWait = settleWaitLayerAdapter({
+    page,
+    pollerRepeatThreshold: driverStatics.settle.pollerRepeatThreshold,
+  });
   // See the header: a HOLDER, not a reassigned `let`, and the one piece of ref state Node keeps.
   const mintState = { highest: 0 };
   const videoState = { isRecording: false };
@@ -168,6 +177,9 @@ export const playwrightSessionAdapter = async ({
   // Installed before the page's own script on EVERY document, so a navigation empties the registry
   // by construction rather than by anyone remembering to clear it.
   await page.addInitScript(refRegistry.initScriptSource());
+  // The settle detector's MutationObserver, armed on the same terms and for the same reason: an
+  // observer installed when a WAIT starts has already missed the render that wait was asked about.
+  await page.addInitScript(settleWait.initScriptSource());
 
   // Every listener below is armed HERE, once, before the page has navigated anywhere. A listener
   // attached when a read is asked for has already missed every message that read was asked about.
@@ -195,9 +207,21 @@ export const playwrightSessionAdapter = async ({
     );
   });
 
+  // The ONE listener the existing plumbing cannot supply: `response` and `requestfailed` both
+  // report a request ENDING, so without a start edge a three-second fetch still in flight is
+  // indistinguishable from an idle page and the settle detector would call it quiet.
+  page.on('request', (request) => {
+    settleWait.noteRequestStarted({
+      method: request.method(),
+      url: request.url(),
+      resourceType: request.resourceType(),
+    });
+  });
+
   page.on('response', (response) => {
     const request = response.request();
     const resourceType = request.resourceType();
+    settleWait.noteRequestSettled({ method: request.method(), url: request.url() });
     const bodyPromise = linesBuild.isBodySkippedResourceType({ resourceType })
       ? Promise.resolve(linesBuild.skippedBodyPlaceholder())
       : response.text().then(
@@ -226,6 +250,7 @@ export const playwrightSessionAdapter = async ({
   });
 
   page.on('requestfailed', (request) => {
+    settleWait.noteRequestSettled({ method: request.method(), url: request.url() });
     networkLines.push(
       linesBuild.requestFailedLine({
         at: epochMsContract.parse(Date.now()),
@@ -455,6 +480,16 @@ export const playwrightSessionAdapter = async ({
     }): Promise<void> => {
       await page.waitForFunction(source, undefined, { timeout: timeoutMs });
     },
+
+    waitForSettle: async ({
+      quietWindowMs,
+      ceilingMs,
+      pollMs,
+    }: {
+      quietWindowMs?: number | undefined;
+      ceilingMs?: number | undefined;
+      pollMs?: number | undefined;
+    }): Promise<SettleReading> => settleWait.waitForSettle({ quietWindowMs, ceilingMs, pollMs }),
 
     capture: async ({ filePath }: { filePath: string }): Promise<void> => {
       await page.screenshot({ path: filePath, animations: 'disabled', caret: 'hide' });

@@ -39,7 +39,6 @@
  *
  * Role semantics:
  * - `chaoswhisperer` — feature spec intake (/dumpster-create). Chat.
- * - `glyphsmith` — design intake. Chat.
  * - `bughunt` — bug-hunt regression intake (/dumpster-hunt), the chaoswhisperer counterpart. Chat.
  *   The implementation that follows it is `codeweaver`, the same role a feature quest seeds.
  * - `tavernkeeper` — post-quest follow-up conversation about a finished quest. Chat, and the one
@@ -63,7 +62,6 @@
 export const workItemRoleStatics = {
   names: [
     'chaoswhisperer',
-    'glyphsmith',
     'bughunt',
     'tavernkeeper',
     'riftcarver',
@@ -74,7 +72,7 @@ export const workItemRoleStatics = {
     'siegemaster',
     'warpgate',
   ],
-  chat: ['chaoswhisperer', 'glyphsmith', 'bughunt', 'tavernkeeper'],
+  chat: ['chaoswhisperer', 'bughunt', 'tavernkeeper'],
   command: ['ward', 'riftcarver'],
   excludedFromStatusDerivation: ['tavernkeeper'],
   postQuestChat: ['tavernkeeper'],

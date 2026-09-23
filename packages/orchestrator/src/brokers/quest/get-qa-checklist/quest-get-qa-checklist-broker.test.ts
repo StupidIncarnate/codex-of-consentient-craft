@@ -7,6 +7,8 @@ import {
   QuestIdStub,
   QuestPackageEntryStub,
   QuestStub,
+  UnitObservationStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questGetQaChecklistBroker } from './quest-get-qa-checklist-broker';
@@ -376,6 +378,96 @@ describe('questGetQaChecklistBroker', () => {
       });
 
       expect(checklists.checklists[0]?.remainingItemIds).toStrictEqual([
+        'checkout-flow:terminal:n-done',
+        'checkout-flow:branch:e-submit',
+        'checkout-flow:branch:e-ok',
+        'checkout-flow:observable:obs-cart',
+        'checkout-flow:observable:obs-charge',
+        'checkout-flow:off-map:re-entry',
+        'checkout-flow:off-map:concurrency',
+        'checkout-flow:off-map:interruption',
+        'checkout-flow:off-map:staleness',
+        'checkout-flow:off-map:configuration',
+        'checkout-flow:off-map:hostile-input',
+        'checkout-flow:off-map:perf',
+      ]);
+    });
+  });
+
+  // The loaded quest carries the work items, and the work items carry the marks. A broker that
+  // builds the checklist without handing the quest over reports the whole flow outstanding whatever
+  // any session already settled, which is a work list that gates nothing.
+  describe('what the asking track already settled', () => {
+    it('VALID: {a flowrider item, one unit met by a flowrider work item and one by a codeweaver work item} => only the FLOWRIDER-settled unit leaves the list', async () => {
+      const proxy = questGetQaChecklistBrokerProxy();
+      const scopeItem = OperationItemStub({
+        id: OP_ID as never,
+        role: 'flowrider',
+        flowIds: ['checkout-flow'] as never,
+      });
+      const quest = QuestStub({
+        ...TAGGED_QUEST,
+        operations: [scopeItem],
+        workItems: [
+          WorkItemStub({
+            id: 'b2b2b2b2-2222-4333-9444-555555555555',
+            role: 'flowrider',
+            observations: [
+              UnitObservationStub({ unitId: 'checkout-flow:observable:obs-cart', mark: 'met' }),
+            ],
+          }),
+          WorkItemStub({
+            id: 'd4d4d4d4-4444-4555-9666-777777777777',
+            role: 'codeweaver',
+            observations: [
+              UnitObservationStub({ unitId: 'checkout-flow:observable:obs-charge', mark: 'met' }),
+            ],
+          }),
+        ],
+      });
+      proxy.setupQuestFound({ quest });
+
+      const { checklists } = await questGetQaChecklistBroker({
+        questId: QuestIdStub({ value: TAGGED_QUEST.id }),
+        operationItemId: OP_ID as never,
+      });
+
+      expect(checklists[0]?.remainingItemIds).toStrictEqual([
+        'checkout-flow:terminal:n-done',
+        'checkout-flow:branch:e-submit',
+        'checkout-flow:branch:e-ok',
+        'checkout-flow:observable:obs-charge',
+        'checkout-flow:off-map:re-entry',
+        'checkout-flow:off-map:concurrency',
+        'checkout-flow:off-map:interruption',
+        'checkout-flow:off-map:staleness',
+        'checkout-flow:off-map:configuration',
+        'checkout-flow:off-map:hostile-input',
+        'checkout-flow:off-map:perf',
+      ]);
+    });
+
+    it('VALID: {no operationItemId, the same settled quest} => every unit is listed, because the whole-quest read applies no track', async () => {
+      const proxy = questGetQaChecklistBrokerProxy();
+      const quest = QuestStub({
+        ...TAGGED_QUEST,
+        workItems: [
+          WorkItemStub({
+            id: 'b2b2b2b2-2222-4333-9444-555555555555',
+            role: 'flowrider',
+            observations: [
+              UnitObservationStub({ unitId: 'checkout-flow:observable:obs-cart', mark: 'met' }),
+            ],
+          }),
+        ],
+      });
+      proxy.setupQuestFound({ quest });
+
+      const { checklists } = await questGetQaChecklistBroker({
+        questId: QuestIdStub({ value: TAGGED_QUEST.id }),
+      });
+
+      expect(checklists[0]?.remainingItemIds).toStrictEqual([
         'checkout-flow:terminal:n-done',
         'checkout-flow:branch:e-submit',
         'checkout-flow:branch:e-ok',

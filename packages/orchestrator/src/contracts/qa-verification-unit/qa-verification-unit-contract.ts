@@ -24,8 +24,9 @@
  * anchor the caller already knows is present, and those fallbacks are unreachable branches that
  * cannot be tested honestly.
  *
- * `addedBy` and `verifyByReading` live on the `observable` variant alone because provenance and
- * verification method are axes observables have and nodes/edges/off-map families do not.
+ * `addedBy`, `verifyByReading` and `verifyByHuman` live on the `observable` variant alone because
+ * provenance and verification method are axes observables have and nodes/edges/off-map families do
+ * not.
  */
 
 import { z } from 'zod';
@@ -73,6 +74,7 @@ export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
     // reports, never a reason to drop the unit and quietly shrink the definition of done.
     observableDescription: flowObservableContract.shape.description,
     verifyByReading: flowObservableContract.shape.verifyByReading,
+    verifyByHuman: flowObservableContract.shape.verifyByHuman,
     addedBy: observableOriginContract,
   }),
   z.object({

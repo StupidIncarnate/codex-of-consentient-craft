@@ -17,7 +17,7 @@
  *   baseUrl: 'http://localhost:34173',
  *   apiUrl: null,
  *   home: '/tmp/dm-siege-inst_7f3a9c21',
- *   logs: { api: '/repo/.siegelense/g1/instances/inst_7f3a9c21/api-server.log', web: '/repo/.siegelense/g1/instances/inst_7f3a9c21/web-server.log' },
+ *   logs: { api: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/api-server.log', web: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/web-server.log' },
  * });
  * // Returns a validated QuestWorkInstance
  */

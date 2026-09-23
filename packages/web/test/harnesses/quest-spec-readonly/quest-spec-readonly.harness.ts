@@ -6,7 +6,7 @@
  *
  * USAGE:
  * const specReadonly = questSpecReadonlyHarness();
- * await quests.writeQuestFile({ questId, questFolder, questFilePath, status: 'review_design', workItems });
+ * await quests.writeQuestFile({ questId, questFolder, questFilePath, status: 'review_observables', workItems });
  * await specReadonly.seedDesignDecisionsAndTooling({
  *   questFilePath,
  *   designDecisions: [DesignDecisionStub({ id: 'dd-one' }), DesignDecisionStub({ id: 'dd-two' })],

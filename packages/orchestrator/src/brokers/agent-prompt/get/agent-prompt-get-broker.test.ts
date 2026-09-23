@@ -8,11 +8,11 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { agentFlowStatics } from '../../../statics/agent-flow/agent-flow-statics';
 import { agentPromptClassificationStatics } from '../../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { chaoswhispererGapMinionStatics } from '../../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { codeweaverPlannerStatics } from '../../../statics/codeweaver-planner/codeweaver-planner-statics';
 import { codeweaverReviewerStatics } from '../../../statics/codeweaver-reviewer/codeweaver-reviewer-statics';
-import { roleToModelStatics } from '../../../statics/role-to-model/role-to-model-statics';
 
 import { agentPromptGetBroker } from './agent-prompt-get-broker';
 import { agentPromptGetBrokerProxy } from './agent-prompt-get-broker.proxy';
@@ -116,7 +116,11 @@ describe('agentPromptGetBroker', () => {
   });
 
   describe('operation-context relay path', () => {
-    it('VALID: {role: codeweaver-planner, operation linked on loaded quest} => prompt carries the operation-relay context resolved from the loaded quest', async () => {
+    // Was titled as if it exercised this path while its WorkItemStub carried no `step` — that
+    // combination actually hit the minion branch (a two-line Quest-ID/Work-Item-ID substitution,
+    // never the four-id operation-relay context this describe block is named for). Fixed by giving
+    // the work item the `step: 'plan'` a real codeweaver-planner dispatch always carries.
+    it("VALID: {role: codeweaver-planner, work item AT THE PLAN STEP} => prompt carries the four-id operation-relay context and the step's own model", async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-2020-4222-9333-444444444444' });
       const operationId = OperationItemIdStub({ value: 'bbbbbbbb-2020-4222-9333-444444444444' });
@@ -129,6 +133,7 @@ describe('agentPromptGetBroker', () => {
       const workItem = WorkItemStub({
         id: workItemId,
         role: 'codeweaver',
+        step: 'plan',
         relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
       });
       const quest = QuestStub({
@@ -144,16 +149,29 @@ describe('agentPromptGetBroker', () => {
         workItemId,
       });
 
-      const expectedArgs = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItemId)}`;
+      const expectedArgs = [
+        `Quest ID: ${String(quest.id)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [codeweaver] core: config load+validate adapter',
+      ].join('\n');
 
       expect(result).toStrictEqual({
         name: 'codeweaver-planner',
-        model: roleToModelStatics.codeweaver,
+        // The step's own declared model (agentFlowStatics.codeweaver.steps.plan.model) — read live
+        // rather than roleToModelStatics.codeweaver, which is the role FALLBACK for a work item
+        // running no step graph, not what a stepped dispatch actually reports.
+        model: agentFlowStatics.codeweaver.steps.plan.model,
         prompt: codeweaverPlannerStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       });
     });
 
-    it('VALID: {role: codeweaver-reviewer, operation linked on loaded quest} => step prompt proceeds down work item branch and substitutes operation context', async () => {
+    // Same fixture bug as above, and it hid a real drift: the minion table's per-name literal for
+    // `codeweaver-reviewer` is `sonnet` (agent-name-to-prompt-transformer.ts), but the step itself
+    // declares `opus` (agentFlowStatics.codeweaver.steps.review.model) — the exact mismatch this
+    // package's own model-agreement rule exists to prevent. The old, step-less fixture asserted the
+    // WRONG one.
+    it("VALID: {role: codeweaver-reviewer, work item AT THE REVIEW STEP} => prompt carries the four-id operation-relay context and the step's own model, opus, not the minion table's sonnet", async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-3030-4222-9333-444444444444' });
       const operationId = OperationItemIdStub({ value: 'bbbbbbbb-3030-4222-9333-444444444444' });
@@ -166,6 +184,7 @@ describe('agentPromptGetBroker', () => {
       const workItem = WorkItemStub({
         id: workItemId,
         role: 'codeweaver',
+        step: 'review',
         relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
       });
       const quest = QuestStub({
@@ -181,13 +200,53 @@ describe('agentPromptGetBroker', () => {
         workItemId,
       });
 
-      const expectedArgs = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItemId)}`;
+      const expectedArgs = [
+        `Quest ID: ${String(quest.id)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [codeweaver] core: reviewer step',
+      ].join('\n');
 
       expect(result).toStrictEqual({
         name: 'codeweaver-reviewer',
-        model: 'sonnet',
+        model: agentFlowStatics.codeweaver.steps.review.model,
         prompt: codeweaverReviewerStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       });
+    });
+
+    // The step this work item actually runs — not `base.model`'s per-PROMPT-NAME literal, which
+    // reads `roleToModelStatics.codeweaver` ('opus') for `codeweaver-worker` while the step itself
+    // declares `sonnet`. This is the drift the broker's `model` line resolves.
+    it("VALID: {codeweaver scope work item AT THE WORK STEP} => reports the step's own model, sonnet, not roleToModelStatics.codeweaver", async () => {
+      const proxy = agentPromptGetBrokerProxy();
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-2121-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-2121-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: 'core: config load+validate adapter',
+        status: 'pending',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        step: 'work',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        operations: [operation],
+        workItems: [workItem],
+      });
+      proxy.setupQuestFound({ quest });
+
+      const result = await agentPromptGetBroker({
+        agent: 'codeweaver-worker',
+        questId: quest.id,
+        workItemId,
+      });
+
+      expect(result.model).toBe('sonnet');
     });
 
     it('ERROR: {agent: codeweaver-planner, questId, workItemId not on quest} => throws workItem-not-found error', async () => {
@@ -249,6 +308,7 @@ describe('agentPromptGetBroker', () => {
           WorkItemStub({
             id: workItemId,
             role: 'codeweaver',
+            step: 'plan',
             status: 'in_progress',
             relatedDataItems,
           }),
@@ -271,6 +331,7 @@ describe('agentPromptGetBroker', () => {
             WorkItemStub({
               id: workItemId,
               role: 'codeweaver',
+              step: 'plan',
               status: 'in_progress',
               relatedDataItems,
               startRef: FIRST_ROUND_SHA,
@@ -296,6 +357,7 @@ describe('agentPromptGetBroker', () => {
           WorkItemStub({
             id: workItemId,
             role: 'codeweaver',
+            step: 'plan',
             status: 'in_progress',
             relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
             startRef: FIRST_ROUND_SHA,
@@ -331,6 +393,7 @@ describe('agentPromptGetBroker', () => {
           WorkItemStub({
             id: workItemId,
             role: 'codeweaver',
+            step: 'plan',
             status: 'in_progress',
             relatedDataItems,
           }),
@@ -343,6 +406,7 @@ describe('agentPromptGetBroker', () => {
           WorkItemStub({
             id: workItemId,
             role: 'codeweaver',
+            step: 'plan',
             status: 'in_progress',
             relatedDataItems,
             startRef: FIRST_ROUND_SHA,
@@ -380,6 +444,7 @@ describe('agentPromptGetBroker', () => {
           WorkItemStub({
             id: workItemId,
             role: 'codeweaver',
+            step: 'plan',
             status: 'in_progress',
             relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
           }),
@@ -416,6 +481,7 @@ describe('agentPromptGetBroker', () => {
           WorkItemStub({
             id: workItemId,
             role: 'codeweaver',
+            step: 'plan',
             status: 'in_progress',
             relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
           }),
@@ -430,7 +496,12 @@ describe('agentPromptGetBroker', () => {
         workItemId,
       });
 
-      const expectedArgs = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItemId)}`;
+      const expectedArgs = [
+        `Quest ID: ${String(quest.id)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [codeweaver] core: config load+validate adapter',
+      ].join('\n');
 
       expect({
         stamped: proxy.getStampedWorkItems(),
@@ -459,6 +530,7 @@ describe('agentPromptGetBroker', () => {
           WorkItemStub({
             id: workItemId,
             role: 'codeweaver',
+            step: 'plan',
             status: 'in_progress',
             relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
           }),
@@ -473,7 +545,12 @@ describe('agentPromptGetBroker', () => {
         workItemId,
       });
 
-      const expectedArgs = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItemId)}`;
+      const expectedArgs = [
+        `Quest ID: ${String(quest.id)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [codeweaver] core: config load+validate adapter',
+      ].join('\n');
 
       expect({
         stamped: proxy.getStampedWorkItems(),

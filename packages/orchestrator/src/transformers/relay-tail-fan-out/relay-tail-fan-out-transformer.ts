@@ -241,8 +241,8 @@ export const relayTailFanOutTransformer = ({
     // observables, the contracts — is rendered live at dispatch by `workItemToPromptTransformer`,
     // because a scope baked in here is a snapshot: an observable a mid-quest session ADDS to a flow
     // would be invisible to every item minted before it. The label still names BOTH dimensions,
-    // because it is what `operationPtChainTransformer` keys a pt chain on — a text naming only the
-    // package would share one budget across every cell that package owns.
+    // because `operation.text` is what the execution panel renders verbatim as the row name — a
+    // text naming only the package would render two identical rows for a package's two cells.
     if (ordered.length > 0) {
       return ordered.flatMap((slice) =>
         slice.flowIds.length === 0

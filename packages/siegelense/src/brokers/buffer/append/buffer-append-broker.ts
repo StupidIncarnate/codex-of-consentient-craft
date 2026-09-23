@@ -9,7 +9,7 @@
  *
  * USAGE:
  * await bufferAppendBroker({
- *   bufferPath: AbsoluteFilePathStub({ value: '/repo/.siegelense/.../console.jsonl' }),
+ *   bufferPath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/.../console.jsonl' }),
  *   entries: [BufferEntryStub(), BufferEntryStub()],
  * });
  * // Appends two newline-terminated JSON lines in one write, then returns { success: true }

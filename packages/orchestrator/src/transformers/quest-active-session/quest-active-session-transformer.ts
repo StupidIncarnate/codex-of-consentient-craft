@@ -6,7 +6,7 @@
  * // Returns: { sessionId: SessionId | undefined, role: WorkItemRole | undefined }
  *
  * Resolution order:
- *   1. Active chat work item (chaoswhisperer/glyphsmith/bughunt) with sessionId.
+ *   1. Active chat work item (chaoswhisperer/bughunt) with sessionId.
  *   2. Most-recent completed chat work item with sessionId.
  *   3. Active non-chat work item with sessionId (covers smoketest quests that
  *      have no chat phase — codeweaver/etc work items expose their own sessions).

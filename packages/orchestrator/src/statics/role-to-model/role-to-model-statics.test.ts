@@ -9,7 +9,6 @@ describe('roleToModelStatics', () => {
   it('VALID: exports exact role→model mapping', () => {
     expect(roleToModelStatics).toStrictEqual({
       chaoswhisperer: 'opus',
-      glyphsmith: 'opus',
       bughunt: 'opus',
       tavernkeeper: 'opus',
       flowrider: 'opus',
@@ -31,18 +30,16 @@ describe('roleToModelStatics', () => {
     ]);
   });
 
-  // The four CHAT roles are live conversations with the user where the spec produced IS the
+  // The three CHAT roles are live conversations with the user where the spec produced IS the
   // deliverable, and warpgate resolves merge conflicts with no plan under it.
   it('VALID: {the conversational roles and warpgate} => stay on opus', () => {
     expect({
       chaoswhisperer: roleToModelStatics.chaoswhisperer,
-      glyphsmith: roleToModelStatics.glyphsmith,
       bughunt: roleToModelStatics.bughunt,
       tavernkeeper: roleToModelStatics.tavernkeeper,
       warpgate: roleToModelStatics.warpgate,
     }).toStrictEqual({
       chaoswhisperer: 'opus',
-      glyphsmith: 'opus',
       bughunt: 'opus',
       tavernkeeper: 'opus',
       warpgate: 'opus',

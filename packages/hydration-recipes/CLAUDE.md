@@ -19,8 +19,8 @@ ingredients and recipes were built from.
 `quest` declares `transitions` on `status`, walked by `quest-reach-route-broker.ts`
 (`brokers/quest/reach-route/`). `set({ status: … })` on a quest is a WALK, never a plain field
 write, for every value on the declared `to` list: `explore_flows`, `review_flows`,
-`flows_approved`, `explore_observables`, `review_observables`, `approved`, `explore_design`,
-`review_design`, `design_approved`, `in_progress`, `complete`, `abandoned`. `created`, `pending`,
+`flows_approved`, `explore_observables`, `review_observables`, `approved`,
+`in_progress`, `complete`, `abandoned`. `created`, `pending`,
 `paused`, `blocked`, `merging` and `merged` are deliberately off the list — see
 `quest-ingredient-broker.ts`'s own header for why each one is excluded. `setRaw({ status: … })` is
 still the only way onto an excluded value, or onto a value the real gates would refuse.
@@ -30,7 +30,7 @@ call.** `@dungeonmaster-local/ban-quest-status-literals` refuses an inline array
 or more recognized status literals everywhere except the one path its allowlist names for exactly
 this list — `statics/quest-transition-target-statuses/` — so the tuple lives there instead of at the
 declaration site, and `quest-ingredient-broker.ts` imports it. `to`'s STATIC TYPE is therefore the
-twelve-member literal union the statics file declares, not the un-narrowed `QuestStatus[]` a
+nine-member literal union the statics file declares, not the un-narrowed `QuestStatus[]` a
 `.filter()` call would produce, so `set({ status: 'blocked' })` correctly FAILS TO COMPILE here,
 matching the specification. `isTransitionTargetQuestStatusGuard` still computes the same set at
 run time (and still backs `questStatusWalkPathTransformer`'s BFS pruning) — the guard's own test
@@ -69,11 +69,12 @@ empty — the exact silent drift `packages/orchestrator/CLAUDE.md` warns `writeQ
 Both resolve the quest file via the GLOBAL `process.env.DUNGEONMASTER_HOME`, never via
 `target.home` — confirmed by reading `quest-modify-broker.ts` and `quest-get-broker.ts` directly,
 neither takes a `target` parameter at all. `quest-reach-route-broker.ts` and
-`quest-update-route-broker.ts` both inherit this rather than fixing it, for the same reason the
-guild and operation write routes do: fixing it is a `@dungeonmaster/orchestrator` change, not an
-ingredient one. `fileTargetHarness` sets that env var for a test's duration for exactly this
-reason — a caller building a `DmTarget` by hand and skipping the harness will see these two routes
-read and write whatever `~/.dungeonmaster` the process already defaults to.
+`quest-update-route-broker.ts` both inherit this, as does `operationWriteRouteBroker`: closing it
+is a `@dungeonmaster/orchestrator` change (an optional `home` parameter threaded to every path the
+broker touches, the shape `guildAddBroker` now carries), not an ingredient one. `fileTargetHarness`
+sets that env var for a test's duration for exactly this reason — a caller building a `DmTarget` by
+hand and skipping the harness will see these routes read and write whatever `~/.dungeonmaster` the
+process already defaults to.
 
 **`quest-update-route-broker.ts` returns the reloaded `Quest` record, never `questModifyBroker`'s own
 result envelope.** `ModifyQuestResult` is `{ success, error?, failedChecks? }` — it carries no quest
@@ -102,7 +103,7 @@ the full reasoning.
 
 ## This package is NOT in the root `package.json` `dependencies`, and a test pins it
 
-`src/statics/hydration-recipes/hydration-recipes-statics.test.ts` reads the root `package.json`
+`src/hydration-recipes-not-shipped.integration.test.ts` reads the root `package.json`
 (walking UP from `__dirname`, never `process.cwd()`) and asserts
 `rootPackageJson.dependencies['@dungeonmaster/hydration-recipes']` is `undefined`, and that this
 package's OWN `package.json` carries `"private": true`. `dungeonmaster create-package` adds a
@@ -187,20 +188,23 @@ runner is asking a registry that was never told about it. `dm-registry-broker.ts
 ONE binding this package exports `run` off (`dmRegistryBroker.run`), and nowhere else in this
 package calls `.run()` off its own local `recipesHydrationCreateBroker()`.
 
-## A `DmTarget` alone does not isolate a `write` route from the real machine
+## A `DmTarget` alone does not isolate every `write` route from the real machine
 
-`guildWriteRouteBroker` and `operationWriteRouteBroker` both route through brokers reached BY PATH
-from `@dungeonmaster/orchestrator`'s `/brokers` subpath (`guildAddBroker`, `questGetBroker`), which
-resolve their home via the GLOBAL `process.env.DUNGEONMASTER_HOME`, never via the `target` object a
-route was handed. A test (or a
-future `seed` step caller) that only builds a `DmTarget` and never sets this env var will see a
-guild register into whatever `~/.dungeonmaster` the process defaults to, while the quest and guild
-FILES this package's own routes write land correctly under `target.home` — so a later
-`operationWriteRouteBroker` call cannot find the quest it needs.
+`guildWriteRouteBroker` is the one route that no longer depends on the environment: it hands
+`guildAddBroker` an explicit `home: target.home`, and that broker resolves the config read, the
+`guilds/<id>/quests` directory and the config write against it, reaching
+`process.env.DUNGEONMASTER_HOME` only when no caller supplies a home.
+`packages/orchestrator/src/brokers/guild/add/guild-add-broker.integration.test.ts` pins the env var
+at one temp directory, hands the broker another, and reads both back.
+
+`operationWriteRouteBroker` still routes through `questGetBroker`, which takes no `target`
+parameter at all and resolves the GLOBAL `process.env.DUNGEONMASTER_HOME`. A test (or a future
+`seed` step caller) that only builds a `DmTarget` and never sets this env var writes its quest and
+guild FILES correctly under `target.home` and then cannot find the quest it needs.
 `test/harnesses/file-target/file-target.harness.ts` sets and restores this env var (and seeds an
-empty `config.json`, since `guildConfigReadBroker`'s ENOENT fallback never fires without one) for
-exactly this reason — reach for that harness rather than building a `DmTarget` by hand in a new
-test.
+empty `config.json`, since `guildConfigReadBroker`'s ENOENT fallback tests `cause instanceof Error`
+and under jest the cause is an `fs/promises` error from outside the sandbox realm) for exactly this
+reason — reach for that harness rather than building a `DmTarget` by hand in a new test.
 
 ## `saveRecordAs` freezes a row's record at CREATE time — it is not a live read
 

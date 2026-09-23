@@ -84,7 +84,23 @@ const questBlightLedgerEntryForUpsertContract = questBlightLedgerEntryContract.e
   createdAt: serverStampedTimestamp,
 });
 
-const questNoteForUpsertContract = questNoteContract.extend({ at: serverStampedTimestamp });
+// `questNoteContract.workItemId` widened to `.nullish()` for the ONE kind a person's browser click
+// writes with no work item behind it (`human-verdict` — see that contract's own header). This
+// refinement is what keeps every OTHER kind an execution agent writes through modify-quest still
+// owing a reader "who wrote this" — the widening at the base contract must not loosen this path too.
+const questNoteForUpsertContract = questNoteContract
+  .extend({ at: serverStampedTimestamp })
+  .superRefine((value, ctx) => {
+    const hasNoWorkItemId = value.workItemId === undefined || value.workItemId === null;
+
+    if (value.kind !== 'human-verdict' && hasNoWorkItemId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['workItemId'],
+        message: `workItemId is required on a "${value.kind}" note — only a human-verdict note may omit it.`,
+      });
+    }
+  });
 
 const operationPlanForUpsertContract = operationPlanContract.extend({ at: serverStampedTimestamp });
 
@@ -235,13 +251,6 @@ export const modifyQuestInputContract = z
       )
       .optional(),
     title: z.string().min(1).describe('New title for the quest').optional(),
-    designPort: z
-      .number()
-      .int()
-      .positive()
-      .brand<'DesignPort'>()
-      .describe('Port of per-quest Vite design sandbox')
-      .optional(),
     workItems: z
       .array(workItemForUpsertContract)
       .describe('Work items to upsert (existing ID updates, new ID adds)')

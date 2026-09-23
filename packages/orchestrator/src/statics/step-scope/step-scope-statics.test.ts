@@ -30,6 +30,23 @@ const CANONICAL_PACKAGE_TYPES_SORTED = [
   'programmatic-service',
 ];
 
+// The automated methods each entry is measured over, pinned per entry so a widened element type
+// cannot quietly drop one of the real ones.
+const DECLARED_METHODS = [
+  [
+    'codeweaver.review',
+    stepScopeStatics.byFamilyStep.codeweaver.review,
+    ['test', 'reading'],
+  ] as const,
+  ['flowrider.review', stepScopeStatics.byFamilyStep.flowrider.review, ['test']] as const,
+  ['siegemaster.happyWalk', stepScopeStatics.byFamilyStep.siegemaster.happyWalk, ['test']] as const,
+  [
+    'siegemaster.adversarial',
+    stepScopeStatics.byFamilyStep.siegemaster.adversarial,
+    ['test'],
+  ] as const,
+];
+
 // Flattened to "family.step" labels, so membership is a single Set lookup with no conditional
 // operator inside the test body — a table-driven sweep over both statics at once.
 const AGENT_FLOW_FAMILY_STEP_LABELS = new Set(
@@ -54,6 +71,40 @@ describe('stepScopeStatics', () => {
       expect(
         verificationMethods.map(String).filter((method) => method === 'reading'),
       ).toStrictEqual([]);
+    });
+  });
+
+  describe('human-check verification method', () => {
+    it('VALID: {human-check} => is a member of the verificationMethods element type, which is what lets a filter resolve a verifyByHuman criterion to it', () => {
+      // `===` against a literal outside the element union is a compile error (TS2367), so this
+      // comparison only builds while 'human-check' is a member of that union.
+      expect(
+        stepScopeStatics.byFamilyStep.codeweaver.review.verificationMethods.filter(
+          (method) => method === 'human-check',
+        ),
+      ).toStrictEqual([]);
+    });
+
+    it.each(REVIEW_STEPS)(
+      'VALID: {step: %s} => lists no human-check, so a human-only criterion falls out of this scope',
+      (_label, scope) => {
+        expect(
+          scope.verificationMethods.filter((method) => method === 'human-check'),
+        ).toStrictEqual([]);
+      },
+    );
+
+    it.each(DECLARED_METHODS)(
+      'VALID: {step: %s} => still lists exactly the automated methods it is measured over',
+      (_label, scope, expected) => {
+        expect(scope.verificationMethods).toStrictEqual(expected);
+      },
+    );
+
+    it('VALID: {swept entries} => the absence sweep covers every (family, step) the statics declares', () => {
+      expect(REVIEW_STEPS.map(([label]) => label)).toStrictEqual(
+        DECLARED_FAMILY_STEPS.map(([family, step]) => `${family}.${step}`),
+      );
     });
   });
 

@@ -1,12 +1,19 @@
 /**
  * PURPOSE: The brief a work item carries when it has no piece of its own — the ORIGINATING piece's
- * payload, copied and narrowed to the units actually being minted. Reach for this over reading
- * `piece.payload` directly whenever the payload is about to land on a work item: a raw copy carries a
- * unit list belonging to a different session and an instance id that is stale the moment it is read.
+ * payload, copied and narrowed to the units actually being minted, with the piece's human `pieceName`
+ * always stamped onto it. Reach for this over reading `piece.payload` directly whenever the payload
+ * is about to land on a work item: a raw copy carries a unit list belonging to a different session,
+ * an instance id that is stale the moment it is read, and no name at all.
  *
  * USAGE:
  * pieceBriefPayloadTransformer({ piece, unitIds: [unitId] });
- * // Returns: the piece's payload with `units[]` narrowed to `unitIds`, or undefined
+ * // Returns: the piece's payload with `units[]` narrowed to `unitIds` and `pieceName` carried on
+ *
+ * `pieceName` IS ALWAYS PRESENT ON THE RETURN, because `workPlanPieceContract` requires it on every
+ * piece — this is the ONE key this transformer adds rather than merely copies, since it lives on the
+ * piece itself, not inside `piece.payload`. It is what the execution panel reads
+ * (`execution-work-item-row-layer-widget.tsx`'s `payload?.pieceName`) to label a step's rows as
+ * `step - pieceName` once a scope holds more than one piece at that step.
  *
  * `'units' in carried`, NEVER `safeParse` SUCCESS ALONE. `workItemAssignmentContract.units` carries
  * `.default([])`, so a siegemaster payload — `{ path, offMapFamily }` and nothing else — parses clean
@@ -40,19 +47,21 @@ export const pieceBriefPayloadTransformer = ({
   const parsed = mintedWorkItemContract.shape.payload.safeParse(piece.payload);
   const source = parsed.success ? parsed.data : undefined;
 
-  if (source === undefined) {
-    return piece.baselineFor === undefined ? undefined : { baselineFor: piece.baselineFor };
-  }
-
-  const carried = Object.fromEntries(
-    Object.entries(source).filter((entry) => entry[0] !== 'instanceId' && entry[0] !== 'runId'),
-  );
+  const carried =
+    source === undefined
+      ? {}
+      : Object.fromEntries(
+          Object.entries(source).filter(
+            (entry) => entry[0] !== 'instanceId' && entry[0] !== 'runId',
+          ),
+        );
 
   const retained = new Set(unitIds.map(String));
   const assignment = workItemAssignmentContract.safeParse(carried);
 
   return {
     ...carried,
+    pieceName: piece.pieceName,
     ...('units' in carried && assignment.success
       ? { units: assignment.data.units.filter((unit) => retained.has(String(unit.unitId))) }
       : {}),

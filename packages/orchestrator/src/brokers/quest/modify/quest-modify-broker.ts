@@ -30,7 +30,7 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { questPersistBroker } from '../persist/quest-persist-broker';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { ModifyQuestInput, Signoff } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput, UnitObservation } from '@dungeonmaster/shared/contracts';
 import { modifyQuestResultContract } from '@dungeonmaster/shared/contracts';
 import type { ModifyQuestResult } from '@dungeonmaster/shared/contracts';
 import { verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
@@ -73,7 +73,7 @@ export const questModifyBroker = async ({
     // untouched and keeps the time it was really made.
     const validated = questInputServerTimestampsTransformer({
       input: modifyQuestInputContract.parse(input),
-      at: new Date().toISOString() as Signoff['at'],
+      at: new Date().toISOString() as UnitObservation['at'],
     });
 
     // Serialize the read-modify-write critical section per questId to prevent lost writes
@@ -103,7 +103,6 @@ export const questModifyBroker = async ({
         // Tier 2: per-status input allowlist (runs BEFORE any mutation)
         const forbiddenFieldOffenders = questInputForbiddenFieldsTransformer({
           input: validated,
-          currentQuest: loadedQuest,
           currentStatus: loadedQuest.status,
           ...(validated.status === undefined ? {} : { nextStatus: validated.status }),
         });
@@ -282,10 +281,6 @@ export const questModifyBroker = async ({
 
         if (validated.title) {
           quest.title = validated.title as typeof quest.title;
-        }
-
-        if (validated.designPort !== undefined) {
-          quest.designPort = validated.designPort as typeof quest.designPort;
         }
 
         if (validated.workItems) {

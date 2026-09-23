@@ -6,10 +6,9 @@
  * folder outside it — kept for a consumer repo not bound by this architecture.
  * `brokerFileNameSuffixes` + `recipePackageNameSuffix` is what a file under THIS repo's own
  * `enforce-project-structure` actually looks like: `<name>-ingredient-broker.ts(x)`, inside an
- * `ingredient/` folder, inside a package named `*-recipes` (`siegelense-recipes` today,
- * `hydration-recipes` per the rename the spec describes). `declarationFunctionName` is the one
- * signal that needs no path convention at all: the literal name of the function every ingredient
- * declaration calls, wherever the file lives.
+ * `ingredient/` folder, inside a package named `*-recipes` (`hydration-recipes` today).
+ * `declarationFunctionName` is the one signal that needs no path convention at all: the literal
+ * name of the function every ingredient declaration calls, wherever the file lives.
  *
  * USAGE:
  * ingredientDeclarationStatics.fileNameSuffixes;

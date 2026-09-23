@@ -27,63 +27,73 @@ describe('flowriderReviewerStatics', () => {
     });
   });
 
-  // MEASURED WITH BOTH SHARED BLOCKS ALREADY INTERPOLATED — the largest of the three reviewer
-  // prompts, so it is the one to measure first after an edit to either shared block.
+  // MEASURED WITH BOTH SHARED BLOCKS ALREADY INTERPOLATED — the larger of the two reviewer
+  // prompts, so it is the one to measure first after an edit to either shared block. 25,046 bytes
+  // measured against a 50,000 ceiling.
   it('VALID: served template => fits the MCP verbatim ceiling in bytes', () => {
     expect(Buffer.byteLength(TEMPLATE, 'utf8')).toBeLessThan(mcpToolResultStatics.maxVerbatimChars);
   });
 
   // TWO SHARED BLOCKS INTERPOLATE HERE, and `judgingMarkdown` alone opens THREE `##` headings of its
-  // own — landing inside step 4, ahead of `standardsReviewConcernsStatics`'s one, ahead of step 5.
-  // Each is a section this file never writes itself; a rename inside either shared block reds this.
-  it('VALID: served template => names its nine top-level sections in document order', () => {
+  // own, landing after step 7 of this file's own workflow, ahead of `standardsReviewConcernsStatics`'s
+  // one. Each is a section this file never writes itself; a rename inside either shared block reds this.
+  it('VALID: served template => names its eight top-level sections in document order', () => {
     expect(Array.from(TEMPLATE.matchAll(/^## .+$/gmu), (match) => match[0])).toStrictEqual([
       '## What you were given',
       '## Rules',
       '## Workflow',
       '## The Evidence Contract — what makes an observable COVERED',
       '## Known false greens — reject on sight',
-      '## Verdicts — a unit carries one sign-off per track, and there are three',
+      '## Marks — every assigned unit ends the pass carrying one of three',
       '## The five standing concerns',
-      '## On a sweep brief',
       '## The quest id',
     ]);
   });
 
-  it('VALID: served template => names its eight workflow steps in order', () => {
+  it('VALID: served template => names its seven workflow steps in order', () => {
     expect(Array.from(TEMPLATE.matchAll(/^### \d+\. .+$/gmu), (match) => match[0])).toStrictEqual([
       '### 1. Load the standards',
-      '### 2. Read the quest and the units',
+      '### 2. Fetch your scope',
       '### 3. Find out what changed',
       "### 4. Judge the tests ONE FILE AT A TIME, and write each file's comment before you open the next",
       '### 5. Take the standing concerns on the same files',
       '### 6. Ward',
-      '### 7. Commit and push',
-      '### 8. Return',
+      '### 7. Mark every assigned unit, then signal',
     ]);
   });
 
-  it('VALID: served template => never calls signal-back, and the parent signals instead', () => {
-    expect(
-      hasIn({
-        needle: '**You never call `signal-back`.** Your parent signals, once, after you return.',
+  // THIS SESSION IS ITS OWN WORK ITEM, dispatched with a real workItemId, and `subagentStopNeedsBlockGuard`
+  // holds it open until it calls `signal-back` itself — there is no parent to signal for it.
+  it('VALID: served template => calls signal-back itself, once every assigned unit carries a mark', () => {
+    expect({
+      signalRule: hasIn({
+        needle:
+          '**[SIGNAL] You call `signal-back` yourself, once, after every assigned unit carries a mark.** Nobody\nsignals for you, and nothing ends your turn without it',
         text: TEMPLATE,
       }),
-    ).toBe(true);
+      callShape: hasIn({ needle: "signal: 'complete',", text: TEMPLATE }),
+      noParentSignals: hasIn({ needle: 'Your parent signals', text: TEMPLATE }),
+      noNeverCallSignalBack: hasIn({ needle: 'You never call `signal-back`', text: TEMPLATE }),
+    }).toStrictEqual({
+      signalRule: true,
+      callShape: true,
+      noParentSignals: false,
+      noNeverCallSignalBack: false,
+    });
   });
 
-  // ONE WARD, AND IT IS THIS SESSION'S ALONE — every sibling on the pass runs a ward scoped to its
-  // own paths, so a `--uncommitted` run before this one has read the work grades what nobody read.
-  it("VALID: served template => wards once, scoped to --uncommitted, and never widens a sub-agent's run", () => {
+  // ONE WARD, AND IT IS THIS SESSION'S ALONE — `work` wards only its own piece's paths, never
+  // `--uncommitted`, so a run before this one has read the work grades what nobody read.
+  it("VALID: served template => wards once, scoped to --uncommitted, and never widens a work piece's run", () => {
     expect({
       whoseItIs: hasIn({
         needle:
-          "Nobody else on the pass runs it. You run no bare `npm run ward`; that is the dispatcher's.",
+          "No other SESSION on the pass runs it — `work` wards only its own\npiece's paths, never `--uncommitted` — and you run no bare `npm run ward`; that is the dispatcher's.",
         text: TEMPLATE,
       }),
       neverWidensASubAgentsRun: hasIn({
         needle:
-          "You never widen a sub-agent's scoped run into a `--uncommitted` of your own before its files carry their comments.",
+          "You never widen a `work` piece's scoped run into a `--uncommitted` of your own before its files carry\ntheir comments.",
         text: TEMPLATE,
       }),
       lineFenced: hasIn({ needle: '```bash\nnpm run ward -- --uncommitted\n```', text: TEMPLATE }),
@@ -91,11 +101,17 @@ describe('flowriderReviewerStatics', () => {
         needle: '**Fix reds, then run it once more. Twice at most.**',
         text: TEMPLATE,
       }),
+      whyRunItHere: hasIn({
+        needle:
+          'a DETERMINISTIC\n`ward` step re-grades the whole family `--committed --uncommitted` anyway — but a red it finds routes\nto a `spiritmender` repair',
+        text: TEMPLATE,
+      }),
     }).toStrictEqual({
       whoseItIs: true,
       neverWidensASubAgentsRun: true,
       lineFenced: true,
       twiceAtMost: true,
+      whyRunItHere: true,
     });
   });
 
@@ -187,6 +203,18 @@ describe('flowriderReviewerStatics', () => {
     });
   });
 
+  // `LAYER` NOW READS A REAL FIELD `get-quest-work` HANDS BACK, never a legend cross-reference — the
+  // per-unit `surface` field replaces the retired `## CHECK SURFACES` join.
+  it("VALID: served template => reads a unit's LAYER off get-quest-work's own surface field", () => {
+    expect(
+      hasIn({
+        needle:
+          "**`LAYER`.** Read the unit's own `surface` field off `get-quest-work` — a terminal or a branch carries\none too, from its own row — and reject an assertion whose layer disagrees with it, on that\ndisagreement alone.",
+        text: TEMPLATE,
+      }),
+    ).toBe(true);
+  });
+
   // WARD IS GATED ON A CHECKABLE CONDITION, IN BOTH PLACES THAT NAME ONE. "After you have read
   // everything" is a claim the session makes about itself and nothing checks; "every file carries its
   // comment" is a condition its own transcript either shows or does not.
@@ -223,86 +251,143 @@ describe('flowriderReviewerStatics', () => {
 
   // A 0-FILE GIT SCOPE RUNS NOTHING AND EXITS 0. `--uncommitted` takes its scope from whatever the
   // tree happens to hold, so a pass whose only changes are the map file resolves to no source files at
-  // all. Read as green, that is a pass reported over a run that graded nothing.
-  it('VALID: served template => reports a 0-file ward scope as empty rather than green', () => {
+  // all. Read as green, that is a pass reported over a run that graded nothing — and nothing here
+  // reads that as evidence any unit is settled.
+  it('VALID: served template => treats a 0-file ward scope as a clean run, never as evidence a unit is met', () => {
     expect(
       hasIn({
         needle:
-          '**A ward reporting that the file scope resolved to 0 source files is EMPTY, not green.** Nothing was staged for it to grade. Report it as `WARD: empty — 0 files`, never as green.',
+          '**A ward reporting that the file scope resolved to 0 source files is EMPTY, not green.** Nothing was staged for it to grade. Treat that as a clean run, never as evidence any unit is `met`.',
         text: TEMPLATE,
       }),
     ).toBe(true);
   });
 
-  it('VALID: served template => enumerates what changed before it commits anything', () => {
+  // THE PASS ARRIVES ENTIRELY UNCOMMITTED, and NOTHING in this session's own turn ever commits it —
+  // the deterministic `commit` step does that after `done`.
+  it('VALID: served template => enumerates what changed before it opens a single file', () => {
     expect({
-      enumerateFirst: hasIn({
-        needle: 'Commit first and both come back empty, and you would review nothing at all',
-        text: TEMPLATE,
-      }),
-      doThisBeforeCommitting: hasIn({
-        needle: 'Run both BEFORE you commit anything',
+      readBeforeOpening: hasIn({
+        needle: '**Run both before you open a single file.**',
         text: TEMPLATE,
       }),
       order:
         TEMPLATE.indexOf('### 3. Find out what changed') <
-        TEMPLATE.indexOf('### 7. Commit and push'),
-    }).toStrictEqual({ enumerateFirst: true, doThisBeforeCommitting: true, order: true });
+        TEMPLATE.indexOf('### 4. Judge the tests ONE FILE AT A TIME'),
+    }).toStrictEqual({ readBeforeOpening: true, order: true });
   });
 
-  it('VALID: served template => commits with git add -A, then pushes bare', () => {
+  // NEITHER A COMMIT NOR A PUSH IS THIS SESSION'S TO MAKE — `review`'s `done` routes to a
+  // deterministic `commit` step that runs both, from a message built off this session's own marks.
+  it('VALID: served template => never runs git add, git commit or git push, and says so', () => {
     expect({
-      addAll: hasIn({ needle: 'git add -A', text: TEMPLATE }),
-      barePush: /^git push$/mu.exec(TEMPLATE) !== null,
-    }).toStrictEqual({ addAll: true, barePush: true });
-  });
-
-  // THIS REVIEWER GRADES ONE THING ITS SIBLINGS DO NOT — WHETHER A TEST BITES — so its return carries
-  // `BITES` and `UNCOVERED` on top of the shared fields the other two reviewers also return.
-  it('VALID: served template => returns exactly these nine fields, in order', () => {
-    expect(Array.from(TEMPLATE.matchAll(/^([A-Z]+):/gmu), (match) => match[1])).toStrictEqual([
-      'VERDICT',
-      'READ',
-      'BITES',
-      'UNCOVERED',
-      'FIXES',
-      'FINDINGS',
-      'WARD',
-      'COMMIT',
-      'NEXT',
-    ]);
-  });
-
-  it('VALID: served template => ends its return on a NEXT: line carrying exactly pass, rework and wall', () => {
-    expect(
-      hasIn({
+      gitRule: hasIn({
         needle:
-          'NEXT:      pass | rework — <what is not done> | wall — <what a person must change>',
+          '**[GIT] You read git; you never write it.** `git status`, `git diff HEAD`, `git log`,\n`git rev-parse` — run as many of these as you need. **Never `git add`, `git commit`, `git push`,\n`git stash`, `git reset`, `git checkout --`, `git clean` or `git rebase`.**',
         text: TEMPLATE,
       }),
-    ).toBe(true);
+      addAllAbsent: /^git add -A$/mu.exec(TEMPLATE) === null,
+      commitAbsent: !TEMPLATE.includes('git commit -m'),
+      barePushAbsent: /^git push$/mu.exec(TEMPLATE) === null,
+    }).toStrictEqual({
+      gitRule: true,
+      addAllAbsent: true,
+      commitAbsent: true,
+      barePushAbsent: true,
+    });
   });
 
-  // THIS REVIEWER TAKES BOTH HALVES OF THE SHARED SURFACE ITS FAMILY OWNS: the judging half of the
-  // evidence contract (never the authoring half — that is the flowrider PROMPT's) AND the standing
-  // concerns every reviewer takes.
-  it('VALID: served template => carries the judging evidence contract and the standing concerns, and withholds authoring', () => {
+  // THE OLD RETURN-BLOCK PROTOCOL IS GONE ENTIRELY — this reviewer used to answer with nine labelled
+  // fields (VERDICT/READ/BITES/UNCOVERED/FIXES/FINDINGS/WARD/COMMIT/NEXT); what persists now is the
+  // `quest-work` observation on each unit and the `signal-back` call.
+  it('VALID: served template => carries no VERDICT/READ/BITES/UNCOVERED/FIXES/FINDINGS/WARD/COMMIT/NEXT block', () => {
+    expect(Array.from(TEMPLATE.matchAll(/^([A-Z]+):/gmu), (match) => match[1])).toStrictEqual([]);
+  });
+
+  // THE MARKING CALL IS THE REPLACEMENT WIRE FORMAT — every assigned unit needs a mark or
+  // `signal-back` refuses the call by name.
+  it('VALID: served template => marks every assigned unit through quest-work before signalling', () => {
+    expect({
+      observationsCall: hasIn({ needle: "payload: {\n    kind: 'observations',", text: TEMPLATE }),
+      metMark: hasIn({ needle: "mark: 'met',", text: TEMPLATE }),
+      cantMeetMark: hasIn({ needle: "mark: 'cant-meet',", text: TEMPLATE }),
+      unmetMark: hasIn({ needle: "mark: 'unmet',", text: TEMPLATE }),
+      gateNamesTheGap: hasIn({
+        needle:
+          '**Every unit in `assignedUnits` needs one of these three, or `signal-back` refuses your call by\nname**',
+        text: TEMPLATE,
+      }),
+      unmetMintsWork: hasIn({
+        needle:
+          'only `unmet` mints a successor,\nscoped to exactly the units you marked that way, back at `work`',
+        text: TEMPLATE,
+      }),
+      wallOutcome: hasIn({
+        needle: "payload: { kind: 'outcome', word: 'wall', reason:",
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      observationsCall: true,
+      metMark: true,
+      cantMeetMark: true,
+      unmetMark: true,
+      gateNamesTheGap: true,
+      unmetMintsWork: true,
+      wallOutcome: true,
+    });
+  });
+
+  // THIS REVIEWER TAKES THE ONLY HALF THE SHARED SURFACE ITS FAMILY OWNS: the judging half of the
+  // evidence contract, plus the standing concerns every reviewer takes.
+  it('VALID: served template => carries the judging evidence contract and the standing concerns', () => {
     expect({
       judging: hasIn({ needle: flowEvidenceContractStatics.judgingMarkdown, text: TEMPLATE }),
       standards: hasIn({ needle: standardsReviewConcernsStatics.markdown, text: TEMPLATE }),
-      authoring: hasIn({ needle: flowEvidenceContractStatics.authoringMarkdown, text: TEMPLATE }),
-    }).toStrictEqual({ judging: true, standards: true, authoring: false });
+    }).toStrictEqual({ judging: true, standards: true });
   });
 
-  // `workItemId` IS PRESENT HERE, UNLIKE THE OTHER THREE MINION PROMPTS — the judging half of the
-  // evidence contract this reviewer takes describes a sign-off's own SHAPE,
-  // `{ verdict, evidence, toSettle?, workItemId, at }`, naming a field on the OBJECT it grades rather
-  // than telling this session to pass one anywhere. That field name arrives by identity as part of
-  // `judgingMarkdown`; this reviewer's own fetch and return still carry none of its own.
-  it("VALID: served template => carries workItemId only as the sign-off contract's own field name", () => {
-    expect(
-      hasIn({ needle: '`{ verdict, evidence, toSettle?, workItemId, at }`', text: TEMPLATE }),
-    ).toBe(true);
+  // THE SHARED JUDGING BLOCK NO LONGER NAMES THE RETIRED TOOL OR THE RETIRED THREE-TRACK SIGN-OFF
+  // SHAPE — both were rewritten in place to the current mechanism: `get-quest-work` for scope, a
+  // single `quest-work` observation per unit.
+  it('VALID: served template => carries no stale tool name or retired sign-off shape', () => {
+    expect({
+      staleToolNamedInJudging: hasIn({ needle: 'get-qa-checklist', text: TEMPLATE }),
+      staleSignOffShapeNamedInJudging: hasIn({
+        needle: '`{ verdict, evidence, toSettle?, workItemId, at }`',
+        text: TEMPLATE,
+      }),
+      thisFileNamesGetQuestWorkInstead: hasIn({
+        needle: "get-quest-work({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID' })",
+        text: TEMPLATE,
+      }),
+      thisFileNamesOneObservationInstead: hasIn({
+        needle: "kind: 'observations',",
+        text: TEMPLATE,
+      }),
+    }).toStrictEqual({
+      staleToolNamedInJudging: false,
+      staleSignOffShapeNamedInJudging: false,
+      thisFileNamesGetQuestWorkInstead: true,
+      thisFileNamesOneObservationInstead: true,
+    });
+  });
+
+  it('VALID: served template => carries no false claims about a briefing parent or a retired brief line', () => {
+    expect({
+      yourParentSignals: hasIn({ needle: 'Your parent signals', text: TEMPLATE }),
+      briefingSubAgents: hasIn({ needle: 'briefing sub-agents', text: TEMPLATE }),
+      operationLine: hasIn({ needle: 'an `OPERATION:` line', text: TEMPLATE }),
+      flowLineInBrief: hasIn({ needle: 'the FLOW: line in your brief', text: TEMPLATE }),
+      sweepLine: hasIn({ needle: 'A `SWEEP:` line', text: TEMPLATE }),
+      onASweepBriefHeading: hasIn({ needle: 'On a sweep brief', text: TEMPLATE }),
+    }).toStrictEqual({
+      yourParentSignals: false,
+      briefingSubAgents: false,
+      operationLine: false,
+      flowLineInBrief: false,
+      sweepLine: false,
+      onASweepBriefHeading: false,
+    });
   });
 
   it('VALID: served template => carries no round-protocol or sibling-role vocabulary', () => {

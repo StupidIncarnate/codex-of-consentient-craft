@@ -20,7 +20,6 @@ import {
   QuestSummaryFlowStub,
   QuestSummaryStub,
   QuestSummaryTrackCountsStub,
-  QuestWorkItemIdStub,
   ToolingRequirementStub,
   UrlSlugStub,
 } from '@dungeonmaster/shared/contracts';
@@ -427,26 +426,6 @@ describe('QuestHandleResponder', () => {
         args: {
           questId: 'test-quest-id',
           pausedAtStatus: 'in_progress',
-        },
-      });
-
-      const passedInput = proxy.getLastModifyInput({ questId: 'test-quest-id' });
-
-      expect(passedInput).toStrictEqual({
-        questId: 'test-quest-id',
-      });
-    });
-
-    it('EDGE: {designPort in args} => strips designPort before passing to adapter', async () => {
-      const proxy = QuestHandleResponderProxy();
-      const modifyResult = ModifyQuestResultStub();
-      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
-
-      await proxy.callResponder({
-        tool: ToolNameStub({ value: 'modify-quest' }),
-        args: {
-          questId: 'test-quest-id',
-          designPort: 5173,
         },
       });
 
@@ -1289,15 +1268,16 @@ describe('QuestHandleResponder', () => {
               tracks: [
                 QuestSummaryTrackCountsStub({
                   id: 'flowrider',
-                  confirmed: 9,
-                  unconfirmable: 2,
+                  met: 9,
+                  cantMeet: 1,
+                  unmet: 1,
                   outstanding: 4,
                 }),
               ],
             }),
           ],
           midQuestObservables: [],
-          unconfirmable: [],
+          debt: [],
           noteGroups: [],
         }),
       });
@@ -1315,7 +1295,7 @@ describe('QuestHandleResponder', () => {
       }).toStrictEqual({
         isError: undefined,
         title: '# QUEST SUMMARY — `test-quest-id`',
-        trackRow: '    flowrider: confirmed 9 / unconfirmable 2 / outstanding 4',
+        trackRow: '    flowrider: met 9 / cant-meet 1 / unmet 1 / outstanding 4',
       });
     });
 
@@ -1513,152 +1493,6 @@ describe('QuestHandleResponder', () => {
     });
   });
 
-  describe('run-ward', () => {
-    it('VALID: {questId, workItemId} => returns QuestRunWardResult JSON', async () => {
-      const proxy = QuestHandleResponderProxy();
-      const wardResult = proxy.buildRunWardResult();
-      proxy.setupRunWardReturns({
-        questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-        workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        result: wardResult,
-      });
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'run-ward' }),
-        args: {
-          questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-          workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        },
-      });
-
-      expect(result).toStrictEqual({
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(wardResult, null, JSON_INDENT_SPACES),
-          },
-        ],
-      });
-    });
-
-    it('INVALID: {mode: "committed"} => throws validation error (ward takes no scope argument)', async () => {
-      const proxy = QuestHandleResponderProxy();
-
-      await expect(
-        proxy.callResponder({
-          tool: ToolNameStub({ value: 'run-ward' }),
-          args: {
-            questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-            workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-            mode: 'committed',
-          },
-        }),
-      ).rejects.toThrow(/Unrecognized key/u);
-    });
-
-    it('ERROR: {adapter throws} => returns error response', async () => {
-      const proxy = QuestHandleResponderProxy();
-      proxy.setupRunWardThrows({
-        questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-        workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        error: new Error('Ward died'),
-      });
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'run-ward' }),
-        args: {
-          questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-          workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        },
-      });
-
-      expect(result).toStrictEqual({
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({ success: false, error: 'Ward died' }, null, JSON_INDENT_SPACES),
-          },
-        ],
-        isError: true,
-      });
-    });
-  });
-
-  describe('run-riftcarver', () => {
-    it('VALID: {questId, workItemId} => returns QuestRunRiftcarverResult JSON', async () => {
-      const proxy = QuestHandleResponderProxy();
-      const riftcarverResult = proxy.buildRunRiftcarverResult();
-      proxy.setupRunRiftcarverReturns({
-        questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-        workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        result: riftcarverResult,
-      });
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'run-riftcarver' }),
-        args: {
-          questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-          workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        },
-      });
-
-      expect(result).toStrictEqual({
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(riftcarverResult, null, JSON_INDENT_SPACES),
-          },
-        ],
-      });
-    });
-
-    it('INVALID: {mode: "changed"} => throws validation error (riftcarver takes no mode)', async () => {
-      const proxy = QuestHandleResponderProxy();
-
-      await expect(
-        proxy.callResponder({
-          tool: ToolNameStub({ value: 'run-riftcarver' }),
-          args: {
-            questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-            workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-            mode: 'committed',
-          },
-        }),
-      ).rejects.toThrow(/Unrecognized key/u);
-    });
-
-    it('ERROR: {adapter throws} => returns error response', async () => {
-      const proxy = QuestHandleResponderProxy();
-      proxy.setupRunRiftcarverThrows({
-        questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-        workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        error: new Error('git worktree add failed'),
-      });
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'run-riftcarver' }),
-        args: {
-          questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-          workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        },
-      });
-
-      expect(result).toStrictEqual({
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(
-              { success: false, error: 'git worktree add failed' },
-              null,
-              JSON_INDENT_SPACES,
-            ),
-          },
-        ],
-        isError: true,
-      });
-    });
-  });
-
   describe('get-server-config', () => {
     it('VALID: {} => returns { baseUrl, port } JSON', async () => {
       const proxy = QuestHandleResponderProxy();
@@ -1716,6 +1550,31 @@ describe('QuestHandleResponder', () => {
       await expect(
         proxy.callResponder({
           tool: ToolNameStub({ value: 'unknown-tool' }),
+          args: {},
+        }),
+      ).rejects.toThrow(/Unknown quest tool/u);
+    });
+
+    // run-ward and run-riftcarver are retired MCP tools: the pt-N dispatch path they served is
+    // gone, so a caller naming either now falls through to the same unknown-tool refusal as any
+    // other unregistered name, rather than reaching the orchestrator.
+    it('ERROR: {tool: run-ward} => throws unknown tool error', async () => {
+      const proxy = QuestHandleResponderProxy();
+
+      await expect(
+        proxy.callResponder({
+          tool: ToolNameStub({ value: 'run-ward' }),
+          args: {},
+        }),
+      ).rejects.toThrow(/Unknown quest tool/u);
+    });
+
+    it('ERROR: {tool: run-riftcarver} => throws unknown tool error', async () => {
+      const proxy = QuestHandleResponderProxy();
+
+      await expect(
+        proxy.callResponder({
+          tool: ToolNameStub({ value: 'run-riftcarver' }),
           args: {},
         }),
       ).rejects.toThrow(/Unknown quest tool/u);

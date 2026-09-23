@@ -29,7 +29,7 @@ const OTHER_INSTANCE = 'inst_1d090002';
 
 const OPEN_ISSUE_WHY =
   'not checked: no issue record exists to check. Nothing in this repo stores an issue carrying ' +
-  'a typed instanceId/runId — signoffContract has neither field and questNoteKindContract has ' +
+  "a typed instanceId/runId — a workItem's own observation carries neither field and questNoteKindContract has " +
   'no issue member — so a walker records a defect as a failing test or as prose in a note, ' +
   'neither of which a resolver can match an instance against.';
 

@@ -2,7 +2,7 @@ import { mcpPermissionsCreatorTransformer } from './mcp-permissions-creator-tran
 
 describe('mcpPermissionsCreatorTransformer', () => {
   describe('permission generation', () => {
-    it('VALID: {} => returns all 26 MCP permission strings with correct format', () => {
+    it('VALID: {} => returns all 24 MCP permission strings with correct format', () => {
       const result = mcpPermissionsCreatorTransformer();
 
       expect(result).toStrictEqual([
@@ -25,8 +25,6 @@ describe('mcpPermissionsCreatorTransformer', () => {
         'mcp__dungeonmaster__get-project-inventory',
         'mcp__dungeonmaster__create-quest',
         'mcp__dungeonmaster__get-next-step',
-        'mcp__dungeonmaster__run-ward',
-        'mcp__dungeonmaster__run-riftcarver',
         'mcp__dungeonmaster__get-server-config',
         'mcp__dungeonmaster__get-quest-summary',
         'mcp__dungeonmaster__create-worktree',

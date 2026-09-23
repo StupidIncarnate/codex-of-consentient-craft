@@ -34,7 +34,7 @@ const EVIDENCE_PATH = AbsoluteFilePathStub({
   value: '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_1',
 });
 const REPO_LOCAL_EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: '/repo/.siegelense/guilds/g1/instances/inst_1',
+  value: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1',
 });
 
 export const laneTeardownBrokerProxy = (): {
@@ -109,7 +109,7 @@ export const laneTeardownBrokerProxy = (): {
     setupEvidenceResolved: (): void => {
       evidenceProxy.setupLinkResolvesToRoot({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.siegelense' }),
+        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
         homeDir: '/home/user',
         homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
         rootPath: FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),

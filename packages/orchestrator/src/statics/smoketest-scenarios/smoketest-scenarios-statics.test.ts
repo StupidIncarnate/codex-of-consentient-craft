@@ -21,27 +21,6 @@ describe('smoketestScenariosStatics', () => {
     });
   });
 
-  it('VALID: {orchCodeweaverPartial} => codeweaver scripts partial-then-done and asserts two codeweaver work items', () => {
-    expect({
-      caseId: smoketestScenariosStatics.orchCodeweaverPartial.caseId,
-      name: smoketestScenariosStatics.orchCodeweaverPartial.name,
-      scripts: smoketestScenariosStatics.orchCodeweaverPartial.scripts,
-      assertions: smoketestScenariosStatics.orchCodeweaverPartial.assertions,
-    }).toStrictEqual({
-      caseId: 'orch-codeweaver-partial',
-      name: 'Orchestration: codeweaver partial spawns a pt continuation',
-      scripts: {
-        codeweaver: ['signalPartial', 'signalDone'],
-        flowrider: ['signalDone'],
-        siegemaster: ['signalDone'],
-      },
-      assertions: [
-        { kind: 'quest-status', expected: 'complete' },
-        { kind: 'work-item-role-count', role: 'codeweaver', minCount: 2 },
-      ],
-    });
-  });
-
   it('VALID: {orchReachesFlowrider} => asserts complete plus at least one flowrider work item', () => {
     expect({
       caseId: smoketestScenariosStatics.orchReachesFlowrider.caseId,
@@ -57,16 +36,12 @@ describe('smoketestScenariosStatics', () => {
     });
   });
 
-  it('VALID: {all scenarios} => exported set of case IDs matches expected three', () => {
+  it('VALID: {all scenarios} => exported set of case IDs matches expected two', () => {
     const caseIds = Object.values(smoketestScenariosStatics)
       .map((s) => s.caseId)
       .sort();
 
-    expect(caseIds).toStrictEqual([
-      'orch-codeweaver-partial',
-      'orch-happy-path',
-      'orch-reaches-flowrider',
-    ]);
+    expect(caseIds).toStrictEqual(['orch-happy-path', 'orch-reaches-flowrider']);
   });
 
   it('VALID: {all scenarios} => every scenario references the same minimal blueprint', () => {
@@ -75,7 +50,7 @@ describe('smoketestScenariosStatics', () => {
 
     expect({ allSame, count: blueprints.length }).toStrictEqual({
       allSame: true,
-      count: 3,
+      count: 2,
     });
   });
 });

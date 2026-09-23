@@ -10,12 +10,23 @@
  * element with no ambiguity to resolve, so it needs no `within`; the reading naming `ref 14` rather
  * than a selector is what keeps the transcript honest about what was actually aimed at.
  *
+ * **The fill's own timeout bounds the action; `waitForSettle` bounds what happens after it.** They
+ * answer different questions — whether the element accepted the value at all, and whether the page
+ * finished reacting to it — so a fill that lands but leaves the page mid-update still gets reported.
+ * `waitForSettle` never throws on `settled: false`; this broker reads that flag and, only when it is
+ * false, appends the reason and the still-moving signals to the reading it returns, using
+ * `driverStatics.settle`'s quiet window, ceiling and poll cadence rather than inventing its own.
+ *
  * USAGE:
  * await stepTypeBroker({ session, target: '[data-testid="NAME_INPUT"]', within: null, ref: null, value: 'x', timeoutMs: null });
  * // Fills the match and returns a reading naming the value and the target it was typed into
  *
  * await stepTypeBroker({ session, target: null, within: null, ref: 14, value: 'guild-alpha', timeoutMs: null });
  * // Fills the element ref 14 binds to, and says so
+ *
+ * await stepTypeBroker({ session, target: '[data-testid="SLOW_INPUT"]', within: null, ref: null, value: 'x', timeoutMs: null });
+ * // If the page never settles: 'typed "x" into [data-testid="SLOW_INPUT"]; did not settle after
+ * // 5000ms (still moving: network)'
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
@@ -23,6 +34,7 @@ import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
+import { settleReadingRenderTransformer } from '../../../transformers/settle-reading-render/settle-reading-render-transformer';
 
 export const stepTypeBroker = async ({
   session,
@@ -43,7 +55,15 @@ export const stepTypeBroker = async ({
 
   if (ref !== null) {
     await session.fillRef({ ref, value, timeoutMs: resolvedTimeoutMs });
-    return contentTextContract.parse(`typed "${value}" into ref ${String(ref)}`);
+    const settleReading = await session.waitForSettle({
+      quietWindowMs: driverStatics.settle.quietWindowMs,
+      ceilingMs: driverStatics.settle.ceilingMs,
+      pollMs: driverStatics.settle.pollMs,
+    });
+    return settleReadingRenderTransformer({
+      baseMessage: contentTextContract.parse(`typed "${value}" into ref ${String(ref)}`),
+      settleReading,
+    });
   }
 
   if (target === null) {
@@ -58,10 +78,18 @@ export const stepTypeBroker = async ({
       : { target, within, value, timeoutMs: resolvedTimeoutMs };
 
   await session.fillMatch(matchParams);
+  const settleReading = await session.waitForSettle({
+    quietWindowMs: driverStatics.settle.quietWindowMs,
+    ceilingMs: driverStatics.settle.ceilingMs,
+    pollMs: driverStatics.settle.pollMs,
+  });
 
-  return contentTextContract.parse(
-    within === null
-      ? `typed "${value}" into ${target}`
-      : `typed "${value}" into ${target} within ${within}`,
-  );
+  return settleReadingRenderTransformer({
+    baseMessage: contentTextContract.parse(
+      within === null
+        ? `typed "${value}" into ${target}`
+        : `typed "${value}" into ${target} within ${within}`,
+    ),
+    settleReading,
+  });
 };

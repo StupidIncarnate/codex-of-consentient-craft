@@ -8,6 +8,7 @@ describe('workPlanPieceContract', () => {
 
       expect({
         id: piece.id,
+        pieceName: piece.pieceName,
         step: piece.step,
         assignedUnitIds: piece.assignedUnitIds,
         contextUnitIds: piece.contextUnitIds,
@@ -15,6 +16,7 @@ describe('workPlanPieceContract', () => {
         notes: piece.notes,
       }).toStrictEqual({
         id: 'pc-badge',
+        pieceName: 'comment count badge',
         step: 'work',
         assignedUnitIds: ['send-flow:observable:check-badge-count-text'],
         contextUnitIds: ['send-flow:terminal:batch-sent'],
@@ -30,6 +32,7 @@ describe('workPlanPieceContract', () => {
     it('VALID: {no assignedUnitIds or contextUnitIds keys} => both default to empty', () => {
       const piece = workPlanPieceContract.parse({
         id: 'pc-contracts',
+        pieceName: 'send-flow contracts',
         step: 'work',
         context: 'contracts only — nothing here is proved by this piece',
         payload: { files: [], units: [] },
@@ -65,7 +68,7 @@ describe('workPlanPieceContract', () => {
   });
 
   describe('invalid pieces', () => {
-    it('EMPTY: {empty object} => refused, since id, step and context carry no defaults', () => {
+    it('EMPTY: {empty object} => refused, since id, pieceName, step and context carry no defaults', () => {
       expect(workPlanPieceContract.safeParse({}).success).toBe(false);
     });
 
@@ -73,6 +76,19 @@ describe('workPlanPieceContract', () => {
       expect(() => WorkPlanPieceStub({ context: '' })).toThrow(
         /String must contain at least 1 character/u,
       );
+    });
+
+    it('EMPTY: {pieceName: empty string} => refused, since a plan file with no name re-authors rather than falls back', () => {
+      expect(() => WorkPlanPieceStub({ pieceName: '' })).toThrow(
+        /String must contain at least 1 character/u,
+      );
+    });
+
+    it('EMPTY: {no pieceName key} => refused, the same as a missing id or step', () => {
+      const piece = { ...WorkPlanPieceStub() };
+      Reflect.deleteProperty(piece, 'pieceName');
+
+      expect(workPlanPieceContract.safeParse(piece).success).toBe(false);
     });
 
     it("INVALID: {assignedUnitIds: ['obs-3']} => refused, since a unit id is <flowId>:<kind>:<localId>", () => {

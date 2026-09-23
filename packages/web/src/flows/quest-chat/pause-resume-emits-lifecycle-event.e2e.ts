@@ -133,9 +133,7 @@ test.describe('Pause/Resume emits lifecycle events', () => {
       ],
     });
 
-    await request.patch(`/api/quests/${questId}`, {
-      data: { pausedAtStatus: 'in_progress' },
-    });
+    await quests.seedPausedAtStatus({ questId: String(questId), pausedAtStatus: 'in_progress' });
 
     const expectedQuestId = String(questId);
     const wsCapture = wsQuestLifecycleHarness({ page, questId: expectedQuestId });

@@ -7,7 +7,7 @@
  * flow it turned 7 typed-terminal nodes into 7 units when only 3 had no outgoing edge. The other
  * four were three `reject-*-back` loops and `restored-draft-to-send`. That is four phantom units on
  * every sign-off track, a sign-off track being one reviewing role — codeweaver, flowrider or
- * siegemaster. `get-qa-checklist` prints the corrected count of 3, and this guard is what produces
+ * siegemaster. `get-quest-work` prints the corrected count of 3, and this guard is what produces
  * it.
  *
  * USAGE:

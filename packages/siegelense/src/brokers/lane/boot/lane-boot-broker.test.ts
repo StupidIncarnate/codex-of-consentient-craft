@@ -15,13 +15,15 @@ import { fakeAgentCliStatics } from '../../../statics/fake-agent-cli/fake-agent-
 const INSTANCE_ID = InstanceIdStub();
 const HOME_PATH = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_7f3a9c21' });
 const EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: '/repo/.siegelense/unowned/instances/inst_7f3a9c21',
+  value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21',
 });
 const API_LOG_PATH = AbsoluteFilePathStub({
-  value: '/repo/.siegelense/unowned/instances/inst_7f3a9c21/api-server.log',
+  value:
+    '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/api-server.log',
 });
 const WEB_LOG_PATH = AbsoluteFilePathStub({
-  value: '/repo/.siegelense/unowned/instances/inst_7f3a9c21/web-server.log',
+  value:
+    '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/web-server.log',
 });
 
 describe('laneBootBroker', () => {
@@ -460,6 +462,7 @@ describe('laneBootBroker', () => {
       process.env.WARD_CLI_PATH = '/tmp/dm-siege-fake-ward-cli';
       const proxy = laneBootBrokerProxy();
       const repoRoot = proxy.resolveRepoRoot();
+      proxy.setupWorkspacesResolved({ repoRoot, apiPackageName: '@dungeonmaster/server' });
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiFd = FileDescriptorStub({ value: 10 });
       // Statics hold raw, unbranded data (see lane-spec-statics.ts's PURPOSE) — routing it through
@@ -767,6 +770,7 @@ describe('laneBootBroker', () => {
       const proxy = laneBootBrokerProxy();
       const repoRoot = proxy.resolveRepoRoot();
       proxy.setupAgentCliFixturesFound({ repoRoot });
+      proxy.setupWorkspacesResolved({ repoRoot, apiPackageName: '@dungeonmaster/server' });
       const apiFd = FileDescriptorStub({ value: 10 });
       const spec = LaneSpecStub({ ...laneSpecStatics.specs['dungeonmaster-api'] });
       proxy.setupProcessBoot({
@@ -1139,7 +1143,8 @@ describe('laneBootBroker', () => {
         env: {},
       });
       const workerLogPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/unowned/instances/inst_7f3a9c21/worker.log',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/worker.log',
       });
       proxy.setupProcessBoot({
         logPath: API_LOG_PATH,

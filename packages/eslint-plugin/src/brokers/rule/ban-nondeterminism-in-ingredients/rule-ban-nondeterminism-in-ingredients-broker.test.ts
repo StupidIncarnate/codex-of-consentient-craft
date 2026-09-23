@@ -7,14 +7,14 @@ const ingredientFixture = '/repo/packages/hydration-recipes/src/quest/quest-ingr
 const nonIngredientFixture = '/repo/packages/hydration-recipes/src/quest/quest-broker.ts';
 // The REAL shape on disk: `enforce-project-structure` refuses a bare `-ingredient.ts` file, so
 // every actual ingredient is named `<name>-ingredient-broker.ts` inside an `ingredient/` folder of
-// a `*-recipes` package — see `packages/siegelense-recipes/src/brokers/quest/ingredient/`.
+// a `*-recipes` package — see `packages/hydration-recipes/src/brokers/quest/ingredient/`.
 const realRepoIngredientFixture =
-  '/repo/packages/siegelense-recipes/src/brokers/quest/ingredient/quest-ingredient-broker.ts';
+  '/repo/packages/hydration-recipes/src/brokers/quest/ingredient/quest-ingredient-broker.ts';
 // A route broker beside a real ingredient, minting a real id — `quest-write-route-broker.ts`'s own
 // header documents this exact call as legitimate and out of this rule's scope: same `*-recipes`
 // package, but not an `ingredient/` folder and no `ingredient({...})` call of its own.
 const recipesRouteBrokerFixture =
-  '/repo/packages/siegelense-recipes/src/brokers/quest/write-route/quest-write-route-broker.ts';
+  '/repo/packages/hydration-recipes/src/brokers/quest/write-route/quest-write-route-broker.ts';
 // Under NEITHER path convention — only the behavioral signal (calling `ingredient({...})`) can
 // catch this one.
 const unconventionallyNamedIngredientFixture =
@@ -133,7 +133,7 @@ ruleTester.run('ban-nondeterminism-in-ingredients', ruleBanNondeterminismInIngre
       ],
     },
     // === REAL REPO PATH: a `<name>-ingredient-broker.ts` file inside an `ingredient/` folder of a
-    // `*-recipes` package — the exact shape `packages/siegelense-recipes` uses on disk, invisible
+    // `*-recipes` package — the exact shape `packages/hydration-recipes` uses on disk, invisible
     // to the bare `-ingredient.ts` filename convention alone ===
     {
       code: 'crypto.randomUUID();',

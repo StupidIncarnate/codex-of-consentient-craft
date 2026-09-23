@@ -13,11 +13,11 @@ import { portResolveBroker } from '@dungeonmaster/shared/brokers';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { childProcessExecAdapter } from '../../../adapters/child-process/exec/child-process-exec-adapter';
-
-const SERVER_MODULE_NAME = '@dungeonmaster/server';
+import { httpBackendPackageResolveBroker } from '../../../brokers/http-backend-package/resolve/http-backend-package-resolve-broker';
 
 export const CliServeResponder = async (): Promise<AdapterResult> => {
-  const serverPath = filePathContract.parse(require.resolve(SERVER_MODULE_NAME));
+  const serverPackageName = await httpBackendPackageResolveBroker();
+  const serverPath = filePathContract.parse(require.resolve(serverPackageName));
   const serverModule = await runtimeDynamicImportAdapter<{
     StartServer: (args?: { serveWebBundle?: boolean }) => AdapterResult;
   }>({

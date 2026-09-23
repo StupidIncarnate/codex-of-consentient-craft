@@ -232,6 +232,41 @@ describe('qaUnitEnumerateTransformer', () => {
         },
       ]);
     });
+
+    it('VALID: {an observable with verifyByHuman} => verifyByHuman is preserved on the unit', () => {
+      const flow = FlowStub({
+        id: 'login-flow',
+        nodes: [
+          FlowNodeStub({
+            id: 'dashboard',
+            label: 'Dashboard',
+            observables: [
+              FlowObservableStub({
+                id: 'check-vibe',
+                verifyByHuman: true,
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+
+      expect(
+        qaUnitEnumerateTransformer({ flow }).filter((unit) => unit.kind === 'observable'),
+      ).toStrictEqual([
+        {
+          kind: 'observable',
+          id: 'login-flow:observable:check-vibe',
+          flowId: 'login-flow',
+          nodeId: 'dashboard',
+          observableId: 'check-vibe',
+          observableType: 'ui-state',
+          observableDescription: 'redirects to dashboard',
+          verifyByHuman: true,
+          addedBy: 'spec',
+        },
+      ]);
+    });
   });
 
   describe('off-map units', () => {

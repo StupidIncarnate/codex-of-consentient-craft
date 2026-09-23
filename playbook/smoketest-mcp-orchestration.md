@@ -1,76 +1,94 @@
-# Smoke Test — MCP Orchestration State Machine (operations relay)
+# Smoke Test — MCP Orchestration State Machine (family graph + step graph)
 
-A manual, MCP-driven smoke test of the operations relay. You (an LLM session) play the **dispatcher** — either the
-`/queue` play button (Node/UI mode, the primary driver) or `/dumpster-launch` (MCP mode). Instead of running real
-agents you **seed quest state on disk, call the MCP, assert what comes back, dispatch a stub agent that just does the
-MCP handshake, then verify the mutation landed in `quest.json` AND streamed correctly into the web execution view.**
+A manual, MCP-driven smoke test of the relay. You (an LLM session) play the **dispatcher** for `prompt`-kind steps —
+either the `/queue` play button (Node/UI mode, the primary driver) or `/dumpster-launch` (MCP mode). Instead of
+running real agents you **seed quest state on disk, call the MCP, assert what comes back, dispatch a stub agent that
+just does the MCP handshake, then verify the mutation landed in `quest.json` AND streamed correctly into the web
+execution view.**
+
+**This playbook's reach is narrower than the old operations-relay model let it be.** `ward`, `carve`, `repair`,
+`commit` and `cleanup` are now `deterministic` steps — code, not a Claude session — and `get-next-step` returns
+`{ type: 'run-step', handler, args }` for them. **MCP mode has no tool that can run a `run-step`.** There is no
+`run-ward`/`run-riftcarver` MCP tool any more — a command-role work item with no step node is filtered out of
+readiness entirely rather than falling through to one, since nothing mints that shape any more. **This playbook can
+drive every `prompt`-kind step by hand** (`plan`, `work`, `review`, `happyWalk`, `adversarial`, `fixHappy`,
+`fixAdversarial`, `recipe`, `read`) via a stub `Task()` that calls `get-agent-prompt` → `quest-work` → `signal-back`.
+**It cannot drive a `deterministic` step by hand** — verifying `carve`/`repair`/`commit`/`ward`/`cleanup` needs the
+real Node/UI dispatcher running, observed through `quest.json` and the web UI, exactly as a real run would exercise
+it.
 
 This is a different test from `playbook/smoketest-orchastrator.md` — that one is a heavyweight full-live UI run
 (browser → ChaosWhisperer → Start Quest → real agents). This one is a surgical state-machine probe: it does **not**
-build a real spec or write real code. It proves the *plumbing* — `get-next-step` math, `signal-back` outcome
-application, the operation↔work-item strict-1:1 relay, `questAdvanceBroker` advance, duplicate-on-partial, ward-as-
-operation-item, prompt delivery, identity stamping, ward-result rendering, and live web streaming — behaves correctly
-for every role and every path.
+build a real spec or write real code. It proves the *plumbing* — `get-next-step` math, `quest-work`'s marks and
+outcome, `signal-back`'s terminal handoff, the router's re-cut/complete/block decisions, prompt delivery, identity
+stamping, ward-result rendering, and live web streaming — behaves correctly for every step of every family it can
+reach.
 
-> **Why this exists.** Almost every orchestration decision is reachable through the MCP. The bugs that only show up when
-> the relay runs — wrong `get-next-step` output, an operation item that never flips status, a duplicate work item minted
-> for one operation, ward results not showing in the UI, duplicate rows rendering the same agent log — a single LLM can
-> exercise deterministically by driving the MCP directly and watching both `quest.json` and the browser.
+> **Why this exists.** Almost every orchestration decision reachable from a `prompt` step is reachable through the
+> MCP. The bugs that only show up when the relay runs — wrong `get-next-step` output, a scope that never advances, a
+> re-cut batch minted against the wrong units, ward results not showing in the UI, duplicate rows rendering the same
+> agent log — a single LLM can exercise deterministically by driving the MCP directly and watching both `quest.json`
+> and the browser.
 
-> **Prerequisite — read `playbook/quest-lifecycle.md` first.** It's the soup-to-nuts model of how a quest is created and
-> moves (create → spec → Start Quest → operations relay → complete), what each role does, how
-> `get-agent-prompt`/`signal-back`/`run-ward` mutate state, and what the validation gates check. This doc assumes that
-> understanding; without it the seeding rules below won't make sense.
+> **Prerequisite — read `playbook/quest-lifecycle.md` first.** It's the soup-to-nuts model of how a quest is created
+> and moves (create → spec → Start Quest → the family graph + step graph relay → complete), and
+> `docs/quest-role-paths.md` for the exact step table of any one family. This doc assumes that understanding; without
+> it the seeding rules below won't make sense.
 
 When a probe finds a real bug, switch to the **Fix Agent Launch Protocol**, **TDD-First Fix Process**, and **Bug
 Procedure** in `playbook/smoketest-orchastrator.md` — those rules are shared and unchanged.
 
 ---
 
-## How the system works (quick recap — full model in `quest-lifecycle.md`)
+## How the system works (quick recap — full model in `quest-lifecycle.md` and `docs/quest-role-paths.md`)
 
-Execution is a **reactive relay over the quest's `operations` ledger** — an ordered `OperationItem[]`. Three actors:
+Execution is a relay over **the family graph** (`riftcarver → codeweaver → flowrider → siegemaster → wardFull →
+@complete`) and, inside each scope, **the step graph** (`agentFlowStatics[family].steps`). Three actors:
 
-1. **Dispatcher** (here: you) — polls `get-next-step()` → `Task()` (agents) / `run-ward` (ward) → await → repeat. Runs
-   one session at a time.
+1. **Dispatcher** (here: you) — polls `get-next-step()` → `Task()` (a `prompt` step) / Node-mode-only for a
+   `deterministic` step → await → repeat.
 2. **The MCP stdio child** — exposes the tools; quest tools route to the orchestrator via `orchestrator*Adapter`s.
-3. **The orchestrator service** — owns `quest.operations[]` (the ledger), `quest.workItems[]` (the sessions), and all
-   "what runs next" math. Reads `quest.json` fresh from disk every scan; never spawns Claude itself.
+3. **The orchestrator service** — owns `quest.operations[]` (one item per SCOPE) and `quest.workItems[]` (one item
+   per STEP session, or per piece inside a parallel step), and all "what runs next" math. Reads `quest.json` fresh
+   from disk every scan; never spawns Claude itself.
 
-The closed loop, per operation item:
+The closed loop, per `prompt`-kind step:
 
 ```
-seed quest.json (status: in_progress, operations[...] + ONE work item linked operations/<id>)   ← you, on disk (bypasses gates)
+seed quest.json (status: in_progress, operations[...] + ONE work item at that scope's current step)  ← you, on disk
         │
         ▼
-get-next-step()  ── MCP ──►  orchestrator scans guilds (FIFO oldest), returns NextStep (spawn-agents / run-ward / idle)
-        ▲                            │
+get-next-step()  ── MCP ──►  orchestrator scans quests (FIFO oldest), returns NextStep
+        ▲                            │  (spawn-agents for a prompt step; run-step for a deterministic one — Node/UI only)
    assert NextStep ◄─────────────────┘
         │
         ▼
 Task(stub agent)  ──►  get-agent-prompt(role, workItemId, questId)
-        │                    │  ← flips the work item pending→in_progress, stamps sessionId+agentId+startedAt,
-        │                    │     resolves the linked operation item (operations/<id>) and interpolates its scope
-        │              signal-back(questId, workItemId, signal:'complete', operationItemId?, operationStatus?)
-        │                    │  ← marks the work item terminal, then applies the OUTCOME server-side:
-        │                    │      operationStatus 'done'    → operation item complete → advance to the next item
-        │                    │      operationStatus 'partial' → operation item complete + a "pt N" continuation → advance to it
+        │                    │  ← flips the work item pending→in_progress, stamps sessionId+agentId,
+        │                    │     serves the STEP's own prompt (agentFlowStatics[family].steps[step].prompt)
+        │              quest-work(questId, workItemId, { kind: 'observations', observations: [...] })
+        │                    │  ← marks every assigned unit met/cant-meet/unmet, with evidence
+        │              quest-work(questId, workItemId, { kind: 'outcome', word, reason })
+        │                    │  ← the step's own classification: done | unmet | empty | wall
+        │              signal-back(questId, workItemId, signal: 'complete')
+        │                    │  ← marks the work item terminal; the ROUTER (not the session) decides what's next
         ▼                    ▼
 assert quest.json fields    assert web execution view (status badge labels, distinct per-row logs,
 (exact values)              ward exit-code + detail, operations ledger + new rows appear live)
         │
         ▼
-back to get-next-step()  (advance)
+back to get-next-step()  (advance / route)
 ```
 
-Ward is the one role with `spawnerType: 'command'`. `get-next-step` returns `run-ward` for it (always alone, never
-batched). You call the `run-ward` MCP tool instead of dispatching an agent. Ward's terminal state + the spiritmender/
-re-ward append come from the **real ward exit code inside `quest-run-ward-broker`**, not a `signal-back`. Riftcarver
-is the other command role, dispatched the same way via `run-riftcarver`.
+**There is no failure signal.** `signal: 'complete'` is the sole signal kind; the session's own verdict on its run
+rides on the separate `quest-work` `outcome` payload (`done | unmet | empty | wall`), recorded BEFORE `signal-back`.
+The router reads that record on the next scan and decides: re-cut a batch (`unmet`), complete the scope (`done`/
+`empty`, once every work item at the step is terminal), or halt (`wall`). **The orchestrator applies it server-side —
+authoritative, because agents never write the ledger.**
 
-**There is no failure signal.** `signal: 'complete'` is the sole signal kind; the outcome rides on `operationStatus`
-(`done | partial | blocked`; `failed` is rejected). The orchestrator applies it server-side (authoritative — an agent
-cannot forget to patch the ledger, because agents never write it).
+**One gate can refuse the whole handshake: the unmarked-unit gate.** `signalGateTransformer` refuses `signal-back`
+while any of the work item's `assignedUnitIds` carries no `observations[]` entry. A mark's VALUE is irrelevant — only
+the absence of an entry counts.
 
 ### Quest data transport to the web (matters for every UI assertion)
 
@@ -81,47 +99,42 @@ quest.json → questPersistBroker → event-outbox.jsonl ("quest-modified")
 ```
 
 **The entire quest object — status, every operation item, every work item's fields, wardResults, and work-item
-INSERTIONS (advance's next item, a `pt N` continuation) — arrives live over the single WS `quest-modified` broadcast. No
-HTTP refetch.** The **only** HTTP fetch in the execution view is the **ward-result detail breakdown** (GET
+INSERTIONS (a re-cut batch, the next family's scopes) — arrives live over the single WS `quest-modified` broadcast.
+No HTTP refetch.** The **only** HTTP fetch in the execution view is the **ward-result detail breakdown** (GET
 `/api/quests/:questId/ward-results/:wardResultId`).
 
 > **Seed visibility:** a direct `quest.json` edit (your seed) bypasses `questPersistBroker`, so **no outbox event
-> fires** — the web picks it up only via a ~3s fallback poll. MCP `get-next-step` reads disk fresh, so it sees the seed
-> immediately. Every *subsequent* mutation you cause through MCP tools goes through `questOperationsUpdateBroker` /
-> `questModifyBroker` → outbox → web updates ~instantly. So: wait ~3s after a seed before asserting the web; MCP-driven
-> changes are near-instant.
+> fires** — the web picks it up only via a ~3s fallback poll. MCP `get-next-step` reads disk fresh, so it sees the
+> seed immediately. Every *subsequent* mutation you cause through MCP tools goes through the orchestrator's own
+> update broker → outbox → web updates ~instantly.
 
-### The relay shape — identical for both quest types
+### The relay shape — identical for both quest types, and there is no separate "ward" ledger row
 
-- **feature** (`questType: feature`): the intake role (ChaosWhisperer) authors NO ledger at all — `operations` is off
-  its modify-quest allowlist. Start Quest DERIVES the `codeweaver` items (`fanOutBy: 'implementation'`, ONE ITEM PER
-  PACKAGE, each carrying every flow that package tags a node in plus every contract whose `source` resolves under it)
-  and appends the verify tail `ward(changed) → flowrider → siegemaster → ward(full)` (all `locked`). `flowrider` and
-  `siegemaster` each fan out (`fanOutBy: 'flow'`) to ONE OPERATION ITEM PER FLOW, of either flow type — a flow-less
-  quest still gets exactly one item of each, so the off-map probe families keep an owner. **There is no
-  standards-review item on the tail and none is ever appended to it** — the five standards concerns are guidance a
-  role's own named reviewer takes, and nothing about that review lands in `quest.json`.
-- **bug-hunt** (`questType: bug-hunt`): Start Quest seeds the SAME relay — the only difference is the intake role
-  (`bughunt` instead of `chaoswhisperer`, driven by `/dumpster-hunt`). Its spec shape is ONE FLOW PER BUG, forking into
-  `ACTUAL:`/`EXPECTED:` terminal nodes with observables on the `EXPECTED:` side; each becomes a failing test written by
-  the codeweaver session that owns the package the fix lands in. There is no separate bug-hunt implementation role.
+- **feature** (`questType: feature`): the intake role (ChaosWhisperer) authors NO ledger at all — `operations` is
+  off its `modify-quest` allowlist. Start Quest mints ONLY the entry family's scopes
+  (`familyScopesMintTransformer({ family: 'riftcarver' })` — one scope). `codeweaver`'s scopes (one per
+  PACKAGE×FLOW cell) are minted when riftcarver's `done` routes there; `flowrider`'s (one per RUNTIME flow) when
+  codeweaver's last cell completes; `siegemaster`'s (one per flow) when flowrider's last scope completes;
+  `wardFull`'s ONE whole-quest scope when siegemaster's last scope completes.
+- **bug-hunt** (`questType: bug-hunt`): Start Quest mints the SAME family graph — the only difference is the intake
+  role (`bughunt` instead of `chaoswhisperer`, driven by `/dumpster-hunt`). Its spec shape is ONE FLOW PER BUG,
+  forking into `ACTUAL:`/`EXPECTED:` terminal nodes with observables on the `EXPECTED:` side; each becomes a failing
+  test written by the codeweaver scope that owns the package the fix lands in.
 
-Each of `codeweaver`, `flowrider`, `siegemaster` is an **operator** (`agentPromptClassificationStatics.operatorRoleNames`)
-running on **opus**. It briefs GENERIC `general-purpose` sub-agents in its own words to make edits and summons exactly
-ONE named sonnet reviewer sub-agent to grade the pass — `codeweaver-reviewer`, `flowrider-reviewer`, or
-`siegemaster-reviewer`. Codeweaver and flowrider read code themselves and read the diff before summoning their
-reviewer. **Siegemaster reads no code and drives nothing itself**: it runs ROUNDS, one per path walk, each
-dispatching a `siegemaster-verifier` and a `siegemaster-stress` pair together, each in its own isolated lane — its own
-API server, Vite server and headless Chromium, booted by the minion itself from a bare lane name — the verifier
-signing the observable/terminal/branch units on its path and the stress tester signing its round's allocated off-map
-family, both directly via their own `modify-quest` call. The operator's own signal table offers only `done` and
-`blocked` — codeweaver and flowrider loop, unbounded, until their own reviewer's `NEXT:` line reads `pass`; siegemaster
-loops the same way until every round and every re-walk is clean, and its own `siegemaster-reviewer` runs only if a
-fixer changed code — a quest whose every round comes back clean signals `done` straight off its own checklist
-arithmetic instead. A `partial` (and its `pt N` continuation) is a mechanism the responder still applies generically
-to any code-changing role, but these three operators never choose it. Only the named reviewer wards (`npm run
-ward -- --uncommitted`), commits (once), and pushes (bare) — no code-writing sub-agent does any of that, and neither
-does a verifier or a stress tester.
+**`ward` is NOT its own operation item any more.** Every family that changes code (`codeweaver`, `flowrider`,
+`siegemaster`) carries its OWN `ward` step as the LAST step of its OWN step graph — one codeweaver cell runs
+`plan → work → review → commit → ward` inside ONE scope, not four separate ledger rows. `wardFull` is the one family
+whose ENTIRE scope is a bare ward gate (`args: []`) over the whole monorepo, reached once every other family has
+drained. There is no `wardMode` field on the OPERATION ITEM any more — a family's own `ward` step carries
+`args: ['--committed', '--uncommitted']` and `wardFull`'s carries `args: []`, passed to the handler verbatim. The
+field survives on the `WardResult` ref each run appends to `quest.wardResults[]` (`wardMode?: 'committed' | 'full'`)
+purely to label WHICH kind of run produced it for display — see B3.
+
+Every `plan`/`work`/`review`/`happyWalk`/`adversarial`/`fixHappy`/`fixAdversarial` step is an ORDINARY
+router-dispatched session — there is no operator layer above a step and no sub-agent it dispatches to make the edit
+or grade the pass. `get-agent-prompt` resolves `agentFlowStatics[family].steps[step].prompt` directly
+(`codeweaver-worker`, `codeweaver-reviewer`, `siege-happy-walker`, …); dispatching the bare role name
+(`codeweaver`/`flowrider`/`siegemaster`) throws.
 
 ---
 
@@ -153,15 +166,13 @@ prod after any source change (prod serves `dist/`, not source).
 
 > If `.dungeonmaster/config.json` ever loses the `codex` guild, recreate it (`dungeonmaster init`, the web "add guild"
 > on `:4801`, or `POST /api/guilds { name, path }` with `path` = repo root) — `create-quest` throws
-> `"No guild registered for current directory…"` when no guild matches the cwd. Auto-create-on-first-quest is an
-> in-progress feature, not yet merged.
+> `"No guild registered for current directory…"` when no guild matches the cwd.
 
 ### 2. Confirm MCP ↔ server ↔ browser share the prod home
 
 Sanity check: `mcp__dungeonmaster__list-guilds` returns the `codex` guild, and after your first `create-quest`,
 `mcp__dungeonmaster__list-quests` returns that quest. If list-quests is empty, the MCP child's `DUNGEONMASTER_HOME`
-isn't `<repo>/.dungeonmaster` — stop and fix the `.mcp.json` wrapper before proceeding (nothing downstream will line
-up).
+isn't `<repo>/.dungeonmaster` — stop and fix the `.mcp.json` wrapper before proceeding.
 
 ### 3. The guild + clean FIFO
 
@@ -170,203 +181,201 @@ up).
 
 `get-next-step` picks the **oldest `in_progress` quest with incomplete work** (FIFO by `createdAt`), so before **every**
 flow set every other non-terminal quest to `abandoned` (`mcp__dungeonmaster__modify-quest` `status: 'abandoned'`) so
-your seeded quest is the only active one. (Wiping the quests dir in §1 already gives a clean slate for the first flow.)
+your seeded quest is the only active one.
 
 ### 4. Browser on the execution view
 
 Open `http://dungeonmaster.localhost:4801/...` for the seeded quest. Many assertions are about what the UI *streams*.
 **Never refresh** — it kills live agents and corrupts state. If something doesn't appear live, that is the bug.
 
-### 5. (Ward paths) deterministic ward via a real, ward-catchable defect
+### 5. (Ward paths) deterministic ward via a real, ward-catchable defect — Node/UI mode only
 
-`run-ward` shells out to `dungeonmaster-ward` and routes recovery on the **real exit code** inside
-`quest-run-ward-broker` (it can't be staged by editing `quest.json`). The repo is green, so:
+Ward is a `deterministic` step now, so exercising it means running the REAL Node/UI dispatcher (the `/queue` play
+button), not a hand-driven MCP call. The repo is green, so:
 
-- **Ward happy paths (exit 0 → operation item complete → advance):** just run real `run-ward` against the clean tree.
-- **Ward failure paths (exit ≠ 0 → spiritmender + fresh ward):** **break something real ward catches**, then run real
-  `run-ward`. Introduce a genuine defect in a git-changed source file that ward will flag — a TS type error, an eslint
-  violation, or a failing assertion in a colocated `*.test.ts`. `wardMode: 'committed'` scopes to the files this branch has committed on top of origin, so
-  the broken file must be a working-tree change (editing it makes it one). Real ward then exits non-zero and the broker
-  appends the spiritmender + fresh ward on that real exit code. **Restore the file** (`git checkout -- <path>`) once the
-  case is asserted so the tree is clean for the next run.
-- **Fallback:** if you can't get a changed file in front of ward, assert ward-fail recovery via
-  `quest-run-ward-broker.test.ts` (the append/block lives inside the broker, keyed on the real exit code).
+- **Ward happy path (exit 0 → step's `done` → scope routes onward):** let the dispatcher run `ward` against a clean
+  tree.
+- **Ward failure path (exit ≠ 0 → `unmet` → `repair` → `ward` re-runs):** **break something real ward catches** in a
+  git-changed source file (a TS type error, an eslint violation, a failing `*.test.ts`), then let the dispatcher run
+  `ward` for real — routing is keyed on ward's own exit code inside `stepHandlerWardBroker`, not something you can
+  stage by editing `quest.json`. **Restore the file** once the case is asserted.
 
 ### 6. The seeding technique (the crux)
 
-**MCP `modify-quest` strips `workItems`, `wardResults`, `riftcarverResults`, `pausedAtStatus`** (`quest-handle-responder.ts`),
-AND the input allowlist forbids `operations` entirely, so you can't stage work-item/operation states through the
-MCP. You stage them by **editing the ready-made `quest.json` directly on disk** — which bypasses the status-transition
-gates and the input allowlist, so you can drop the quest into any state:
+**MCP `modify-quest` strips `workItems`/`pausedAtStatus` and forbids `operations` entirely**, so you stage relay
+states by **editing the ready-made `quest.json` directly on disk** — which bypasses the status-transition gates and
+the input allowlist:
 
-1. `mcp__dungeonmaster__create-quest({ userRequest, questType? })` mints a schema-valid quest at status `created` with a
-   seeded intake work item AND a seeded **plan** operation item the work item links (`operations/<planId>`).
-   Note the returned `questId` (+ `guildSlug: "codex"`).
+1. `mcp__dungeonmaster__create-quest({ userRequest, questType? })` mints a schema-valid quest at status `created` with
+   a seeded intake work item AND a seeded **plan** operation item the work item links (`operations/<planId>`). Note
+   the returned `questId` (+ `guildSlug: "codex"`).
 2. Open the ready-made file: `.dungeonmaster/guilds/21523917-83f7-4e23-a6de-8db1cae2ad96/quests/<questId>/quest.json`.
-3. Patch `"status": "in_progress"`, replace `operations[]` with the ledger for the state you want, and replace
-   `workItems[]` with work items that each link **exactly one** `operations/<id>` (see "Seeding reference").
-4. Save. MCP `get-next-step` sees it immediately (reads disk fresh each scan); the web reflects a raw disk seed within
-   ~3s (no outbox event fires for a direct write).
+3. Patch `"status": "in_progress"`, replace `operations[]` with the scope(s) you want, and replace `workItems[]` with
+   work items each carrying `step` and linked to exactly one `operations/<id>` (see "Seeding reference").
+4. Save. MCP `get-next-step` sees it immediately; the web reflects a raw disk seed within ~3s.
 
-> **Two non-obvious constraints (both will bite you — see `quest-lifecycle.md` for the why):**
-> 1. **`get-agent-prompt` resolves the work item's linked operation item (`operations/<id>`) and interpolates its scope.
->    If that ref points at an operation item not present in `operations[]`, it can't build the prompt.** So a seeded work
->    item is only dispatchable if the matching operation item exists in the ledger. STRICT 1:1: every work item links
->    exactly one operation item, and each operation item is worked by exactly one work item.
-> 2. **Every `get-agent-prompt`/`signal-back`/`run-ward` mutation re-runs save-invariants on the whole quest.** A
->    malformed seed makes the mutation silently fail and the work item never leaves `pending`. The invariants are lenient
->    (no duplicate ids; `dependsOn` resolve; `relatedDataItems` reference valid collections + existing ids; DAG) — the
->    minimal shapes below satisfy them.
+> **Two non-obvious constraints:**
+> 1. **`get-agent-prompt` resolves the work item's linked operation item AND its `step`.** A seeded work item is only
+>    dispatchable if its operation item exists in the ledger AND its `step` names a real key in
+>    `agentFlowStatics[family].steps`.
+> 2. **Every mutation re-runs save-invariants on the whole quest.** A malformed seed makes the mutation silently
+>    fail and the work item never leaves `pending`. The invariants are lenient (no duplicate ids; `dependsOn`
+>    resolve; `relatedDataItems` reference valid collections + existing ids; DAG) — the shapes below satisfy them.
 
 ### 7. Seeding reference — minimal objects that pass save-invariants
 
 Paste these into `quest.json`, swapping ids as needed. Operation-item ids are UUIDs (branded `OperationItemId`); the
-`related-data-item-contract` regex is `^(operations|wardResults|riftcarverResults|flows)/[a-z0-9-]+$`. **`get-agent-prompt`
-serves siegemaster no dev-server config at all** — a seeded siegemaster item never triggers `.dungeonmaster.json`
-dev-server resolution, whatever the flow type (a seeded flowrider still brings its own via the project's Playwright
-config on a runtime flow, and needs none on an operational one).
+`related-data-item-contract` regex is `^operations/[a-z0-9-]+$`.
 
 ```jsonc
-// quest.operations[] — the ledger; each item is worked by exactly one work item
+// quest.operations[] — one item per SCOPE (one family's slice of the quest)
 "operations": [
-  { "id": "11111111-1111-1111-1111-111111111111", "role": "codeweaver", "text": "smoketest: build core adapter", "status": "pending", "locked": false },
-  { "id": "22222222-2222-2222-2222-222222222222", "role": "ward", "text": "ward (changed)", "status": "pending", "locked": true, "wardMode": "changed" },
-  { "id": "33333333-3333-3333-3333-333333333333", "role": "flowrider", "text": "author the flow-perspective test suite — flow: flow-1", "status": "pending", "locked": true, "flowIds": ["flow-1"] }
+  {
+    "id": "11111111-1111-1111-1111-111111111111",
+    "role": "codeweaver",
+    "text": "Codeweaver: build this slice — package: web · flow: send-flow",
+    "status": "in_progress",
+    "locked": false,
+    "flowIds": ["send-flow"],
+    "packageNames": ["web"]
+  }
 ],
-// quest.workItems[] — one session per operation item, strict 1:1 link
+// quest.workItems[] — one session per STEP the router has minted on that scope
 "workItems": [
-  { "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "codeweaver", "status": "pending", "spawnerType": "agent",   "dependsOn": [],                                       "relatedDataItems": ["operations/11111111-1111-1111-1111-111111111111"], "createdAt": "..." },
-  { "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "role": "ward",       "status": "pending", "spawnerType": "command", "dependsOn": ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"], "wardMode": "changed",                                                     "relatedDataItems": ["operations/22222222-2222-2222-2222-222222222222"], "createdAt": "..." }
+  {
+    "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "role": "codeweaver",
+    "step": "work",
+    "status": "pending",
+    "spawnerType": "agent",
+    "pieceId": "pc-badge",
+    "assignedUnitIds": ["send-flow::terminal::execution-live"],
+    "dependsOn": [],
+    "relatedDataItems": ["operations/11111111-1111-1111-1111-111111111111"],
+    "createdAt": "2026-01-01T00:00:00.000Z"
+  }
 ],
-// quest.flows[] — read by flowrider/siegemaster for context
+// quest.flows[] — read by the step's own session for context
 "flows": [
-  { "id": "flow-1", "name": "smoketest flow", "flowType": "operational", "entryPoint": "cli", "exitPoints": ["done"], "nodes": [], "edges": [] }
+  { "id": "send-flow", "name": "smoketest flow", "flowType": "runtime", "entryPoint": "cli", "exitPoints": ["done"],
+    "nodes": [{ "id": "execution-live", "label": "…", "type": "terminal", "packages": ["web"] }], "edges": [] }
 ]
 ```
 
-- Seed only the work items you want dispatched next; you do NOT need to pre-seed the whole chain of work items — the
-  relay creates the next work item on advance. But every operation item you want the relay to reach must be in
-  `operations[]`, and the FIRST actionable one needs a linked work item (or let advance create it via the scan
-  self-heal). To test the full chain deterministically, pre-seed the operations ledger AND one work item for the first
-  pending item.
-- Keep work-item `dependsOn` chained after the prior terminal item (advance does this at runtime; match it when
-  hand-seeding).
-- **Flowrider and Siegemaster each fan out to ONE OPERATION ITEM PER FLOW** — seed one item per `quest.flows[]` entry
-  for each role, each naming a single `flowId` (never every flow id on one item). Each item's work item links
-  `operations/<id>` (NOT a `flows/<id>` ref) — `flowIds` on the operation item is what `get-agent-prompt` interpolates
-  as the session's flow, and the session reads `quest.flows` directly for the rest of the context.
+- Seed only the work item you want dispatched next — the relay creates each subsequent one on advance/route. But
+  every operation item you want the relay to reach must be in `operations[]`.
+- `assignedUnitIds` must name real unit ids the work item's own step could mark (see
+  `docs/quest-role-paths.md`'s "Marking a unit" table) — the stub's `quest-work` call marks exactly these.
+- **`flowrider` and `siegemaster` each fan out to ONE SCOPE PER FLOW** — seed one operation item per `quest.flows[]`
+  entry for each family, each naming a single `flowId` (never every flow id on one item).
+- A `deterministic` step (`commit`, `ward`, `cleanup`, `carve`, `repair`) is NOT hand-dispatchable — seed a
+  `prompt`-kind step instead if you want to drive the scope by hand, and expect the dispatcher (not you) to carry it
+  through any deterministic step in between.
 
 ---
 
 # REFERENCE A — quest.json transition data points
 
-Source of truth for "what value should each field be at each transition." Assert these in `quest.json` (read on disk —
-the MCP `get-quest` view strips `workItems`/`wardResults`).
+Source of truth for "what value should each field be at each transition." Assert these in `quest.json` (read on disk
+— the MCP `get-quest` view strips `workItems`).
 
 ## A1. Operation-item fields (`quest.operations[]`)
 
 | Field      | Enum / type                          | Who writes it & when                                                                                                                                                                  |
 |------------|---------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `status`   | `pending \| in_progress \| complete` | advance → `in_progress` (when it creates the work item); signal-back/run-ward → `complete`. NO `partial`                                                                              |
-| `role`     | `workItemRoleContract`               | seeded by the relay seed / advance — no agent authors it                                                                                                                              |
-| `text`     | branded string                       | prose; a continuation is auto-named `"pt N: {text}"` by `operationPtChainTransformer`                                                                                                 |
-| `locked`   | boolean                              | orchestrator-owned items (the plan item + the fixed verify tail) are `locked`; codeweaver = false                                                                                     |
-| `wardMode` | `changed \| full`                    | present only on `role: ward` items; preserved on the `pt N` re-ward                                                                                                                   |
-| `flowIds`  | `FlowId[]`, defaults `[]`            | the flows the item lands on. Each `flowrider`/`siegemaster` item (one per flow) gets a single-element array naming its own flow; other tail roles get none. Copied onto the `pt N` continuation |
+| `status`   | `pending \| in_progress \| complete` | `questAdvanceBroker` → `in_progress` (when it creates the scope's first work item); `questRouteScopeBroker` → `complete` once the router answers `{ kind: 'complete' }`               |
+| `role`     | `workItemRoleContract`               | seeded by the relay seed / the family-scope mint — no agent authors it                                                                                                                |
+| `text`     | branded string                       | prose describing the scope, e.g. `"Codeweaver: build this slice — package: web · flow: send-flow"`                                                                                    |
+| `locked`   | boolean                              | `codeweaver` scopes are UNLOCKED (`locked: false`); every other family's scopes are `locked: true`                                                                                     |
+| `flowIds`  | `FlowId[]`, defaults `[]`            | each `flowrider`/`siegemaster` scope (one per flow) names a single-element array; `codeweaver` cells name every flow the cell's package tags a node in; `wardFull`/`riftcarver` carry `[]` |
+| `packageNames` | `string[]`, defaults `[]`        | a `codeweaver` cell names its own package; other families carry `[]`                                                                                                                    |
 
 ## A2. Work-item fields (the ones that move)
 
 | Field              | Enum / type                                                         | Seeded    | Who writes it & when                                                                                          |
-|--------------------|-----------------------------------------------------------------------|-----------|------------------------------------------------------------------------------------------------------------|
-| `status`           | `pending \| queued \| in_progress \| complete \| failed \| skipped` | `pending` | get-agent-prompt → `in_progress`; signal-back → `complete`; run-ward → `complete`/`failed`; block → `skipped` |
+|--------------------|-------------------------------------------------------------------|-----------|------------------------------------------------------------------------------------------------------------|
+| `status`           | `pending \| queued \| in_progress \| complete \| failed \| skipped` | `pending` | `get-agent-prompt` → `in_progress`; `signal-back` → `complete`; a deterministic step's handler → `complete`/`failed`; block → `skipped` |
+| `step`             | a key in `agentFlowStatics[family].steps`                          | per seed  | the router mints each fresh work item at a named step; every dispatchable item carries one — one with none is filtered out of readiness |
 | `sessionId`        | uuid (parent)                                                       | absent    | **get-agent-prompt** (identity resolved MCP-side); retained across an orphan resume                          |
 | `agentId`          | realAgentId                                                         | absent    | **get-agent-prompt**; retained across an orphan resume                                                       |
-| `startedAt`        | ISO ts                                                              | absent    | **get-agent-prompt** (same stamp). NOT set for ward (no get-agent-prompt)                                     |
-| `completedAt`      | ISO ts                                                              | absent    | signal-back / run-ward on terminal                                                                           |
-| `actualSignal`     | `complete`                                                          | absent    | signal-back on terminal (the sole signal kind)                                                               |
-| `errorMessage`     | branded string                                                      | absent    | run-ward red only → `'ward_failed'`; run-riftcarver red → `riftcarver_<step>_failed`. Agents never fail so no agent sets it, except a `blocked` signal's `blockedReason` |
-| `dependsOn`        | uuid[]                                                              | per seed  | advance chains each new work item after the most-recent terminal work item                                   |
-| `relatedDataItems` | `(operations\|wardResults\|riftcarverResults\|flows)/<id>[]`         | per seed  | **exactly one `operations/<id>`** always; run-ward stamps `wardResults/<id>` on the ward item at completion   |
+| `assignedUnitIds`  | `UnitId[]`                                                          | per seed  | a `worker` step's assignment comes from its piece; a `reviewer`/walker step's is its scope's whole in-scope set |
+| `observations`     | `UnitObservation[]`, default `[]`                                   | `[]`      | `quest-work`'s `observations` payload — `{ unitId, mark, evidence, toSettle? }` per entry                       |
+| `pieceId`          | branded id, optional                                                | per seed  | present on a work item minted from a planner's piece; absent on a reviewer's whole-scope assignment            |
+| `mintedBy`         | a work item id, optional                                            | absent    | the RETURN EDGE — set by the router when a step declares no `done` route of its own (e.g. `repair`)            |
+| `completedAt`      | ISO ts                                                              | absent    | `signal-back` / a deterministic step's handler on terminal                                                     |
+| `errorMessage`     | branded string                                                      | absent    | a `wall` outcome, or the router's own block message, lands here                                                |
+| `dependsOn`        | uuid[]                                                              | per seed  | advance/route chains each new work item after the most-recent terminal work item OF THIS SCOPE                |
+| `relatedDataItems` | `operations/<id>[]` (+ `wardResults/<id>` on a ward step's work item) | per seed  | **exactly one `operations/<id>`** always                                                                       |
 | `resume`           | marker                                                              | absent    | `recover-orphaned-work-items-layer-broker` on an orphaned `in_progress` item (kept `sessionId`)              |
 | `retryCount`       | int                                                                 | 0         | bumped on each orphan resume; `≥ slotManagerStatics.orphanRecovery.maxResets` → `blocked`                     |
-| `wardMode`         | `changed \| full`                                                   | per seed  | ward items; preserved on the `pt N` re-ward                                                                  |
-| `spawnerType`      | `agent \| command`                                                  | per seed  | `command` for ward/riftcarver, `agent` for everything else                                                   |
+| `spawnerType`      | `agent \| command`                                                  | per seed  | `command` when the work item's OWN role is `ward` or `riftcarver` (`isCommandWorkItemRoleGuard`); `agent` for every other role — independent of whether the step itself is `prompt` or `deterministic` (a `commit` step inside a codeweaver scope is still `agent`) |
 
-## A3. Quest status derivation (`workItemsToQuestStatusTransformer`, operation-aware, precedence order)
+## A3. Quest status derivation (`workItemsToQuestStatusTransformer`, family-graph-aware, precedence order)
 
-1. Pre-execution / user-paused / abandoned / **`blocked`** → **unchanged** (nothing implicitly reopens `blocked`).
-2. **Never derive `complete` while any operation item is `pending` or `in_progress`** — the "last session finished,
-   advance hasn't created the next work item yet" window. This is the no-false-complete invariant.
-3. Every work item terminal AND the ledger drained (all operations `complete`) → **`complete`**.
+1. Pre-execution / user-paused / abandoned / **`blocked`** / `merged` → **unchanged**.
+2. **`complete` means the FAMILY GRAPH reached `@complete`**, never that the ledger drained — a family that routes to
+   `@complete` must hold scopes, all of them complete.
+3. Every work item terminal AND the graph complete → **`complete`**.
 4. Any work item active → **`in_progress`**.
 5. Only pending work items remain, all dead-ended on a `failed` dep, ledger drained → **`blocked`**; else
    **`in_progress`**.
 
-> `blocked` is set explicitly by `questBlockOnFailureBroker` (status `blocked`, pending work items → `skipped`); it
-> doesn't wait on derivation. Derivation governs `complete` and the implicit cases.
+> `blocked` is set explicitly by `questBlockOnFailureBroker`; it doesn't wait on derivation.
 
 ## A4. Enums + the dependency rule
 
-- **operation-item status:** `pending, in_progress, complete` (no `partial` — a `partial` outcome makes the item
-  `complete` and appends a `pt N` continuation).
+- **operation-item status:** `pending, in_progress, complete`.
 - **work-item status:** `pending, queued, in_progress, complete, failed, skipped`.
     - `isActive` = {queued, in_progress}. `isTerminal` = {complete, failed, skipped}.
-    - **`satisfiesDependency` = {complete, failed}** — **`skipped` does NOT satisfy** (a skipped dep dead-ends its
-      dependents permanently).
+    - **`satisfiesDependency` = {complete, failed}** — **`skipped` does NOT satisfy**.
 - **a work item is READY** when `status === pending` AND every `dependsOn` id is `complete` or `failed`.
-- **signal-back:** `signal: 'complete'` is the SOLE kind. The outcome is `operationStatus: 'done' | 'partial' | 'blocked'`
-  (`failed` is explicitly rejected). The three operator roles' own prompts choose only `done`/`blocked`.
-- **quest status (15):** `created, explore_flows, review_flows, flows_approved, explore_observables,
-  review_observables, approved, explore_design, review_design, design_approved, in_progress, paused, blocked, complete,
-  abandoned`. Terminal = {complete, abandoned}. **`blocked` is NOT terminal** (resumable → in_progress). There are NO
-  `seek_*` statuses.
-- **roles** (`workItemRoleContract`, 11): `chaoswhisperer, glyphsmith, bughunt, tavernkeeper, riftcarver, codeweaver,
-  ward, spiritmender, flowrider, siegemaster, warpgate`. The Claude-dispatched agent-role subset
-  (`agentRoleContract`, 5) is `codeweaver, flowrider, siegemaster, spiritmender, warpgate` — `riftcarver`/`ward` are
-  deliberately excluded (they are commands, terminal by exit code) and the four chat roles are excluded too. No
-  minion name is ever a role: `codeweaver-reviewer`, `flowrider-reviewer`, `siegemaster-reviewer`,
-  `siegemaster-verifier`, `siegemaster-stress`, and `chaoswhisperer-gap-minion` are `agentPromptNameContract` names
-  only — a parent summons them via the `Agent` tool with `{ agent, questId }` and NO `workItemId`, so they are never
-  work items and never appear on the ledger. `agentPromptClassificationStatics.roleNames` and `.minionNames` are
-  DISJOINT, and the colocated test pins that.
-- **ward retry budget** = `slotManagerStatics.ward.maxRetries` (the red-ward chain of a `wardMode` since the last green
-  of that mode); riftcarver's repairable chain uses `slotManagerStatics.riftcarver.maxRetries` the same way. A locked
-  role's `pt N` chain (if ever exercised) = `slotManagerStatics.<role>.maxAttempts` (3 for codeweaver, flowrider,
-  siegemaster, spiritmender, warpgate). `flowrider` and `siegemaster` each get one budget PER FLOW. That pt
-  budget is a DIFFERENT bound from the operator's own internal loop, which has no server-enforced cap — a session
-  that spends its own patience and still has a remainder is expected to signal `done` once its reviewer says `pass`,
-  or `blocked` on a genuine wall, never `partial`.
+- **`quest-work`'s payload kinds:** `plan`, `observations` (`{ unitId, mark: 'met' | 'cant-meet' | 'unmet',
+  evidence, toSettle? }[]`), `amendment`, `outcome` (`{ word: 'done' | 'unmet' | 'empty' | 'wall', reason }`),
+  `invalidation`, `request`.
+- **`signal-back`:** `{ questId, workItemId, signal: 'complete', operationItemId?, blockedReason? }` — `complete` is
+  the SOLE kind. There is no `operationStatus` field.
+- **quest status (15):** `created, pending, explore_flows, review_flows, flows_approved, explore_observables,
+  review_observables, approved, in_progress, paused, blocked, complete, merging, merged, abandoned`. Terminal =
+  {complete, abandoned}. `blocked` is NOT terminal (resumable → `in_progress`). `merging`/`merged` follow a
+  `complete` quest through the merge action (`orchestration-merge-responder`, the `warpgate` family's own scope).
+- **roles** (`workItemRoleContract`): `chaoswhisperer, bughunt, tavernkeeper, riftcarver, codeweaver, flowrider,
+  siegemaster, ward, spiritmender, warpgate`. `wardFull` is a FAMILY key in `questFlowStatics`, never a role value —
+  its one scope carries `role: 'ward'` (the ONLY family whose role is `'ward'`, so nothing needs to disambiguate it).
+  Every code-changing family's own internal `ward` STEP runs inside a scope whose role is that FAMILY's name
+  (`codeweaver`/`flowrider`/`siegemaster`), not `'ward'` — only `wardFull`'s dedicated scope carries `role: 'ward'`.
+- **the one remaining named sub-agent:** `chaoswhisperer-gap-minion` — fetches with `{ agent, questId }` and NO
+  `workItemId`, never a work item, never `signal-back`. `codeweaver-reviewer`/`flowrider-reviewer` are now ordinary
+  STEP prompts (`agentPromptClassificationStatics.promptNames`), dispatched by the router like any other step —
+  `siegemaster-reviewer`/`siegemaster-verifier`/`siegemaster-stress` are gone from every roster.
+- **ward/riftcarver budget** = each step's own `maxVisits` on `agentFlowStatics[family].steps[step]`, counted as the
+  work items on THIS scope at THAT step — not a chain of separate ledger items.
 
-## A5. signal-back outcome application (assert the `quest.json` result)
+## A5. `quest-work` + `signal-back` (assert the `quest.json` result)
 
-`quest-handle-signal-back-responder`, in ONE atomic `questOperationsUpdateBroker` persist, marks the work item terminal
-(`complete`, `completedAt`, `actualSignal`), resolves the linked operation item, then applies the outcome:
+Applied server-side, in ONE atomic persist per call:
 
-| operationStatus       | result in `quest.json`                                                                                                                    |
-|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------|
-| `done` (or absent)    | operation item → `complete`; advance creates the work item for the next `pending` operation item                                          |
-| `partial`             | operation item → `complete` AND a `"pt N: {text}"` continuation appended immediately after it (same role, `locked`/`wardMode` preserved); advance creates a fresh work item for it. Locked role → the `pt N` chain is bounded by `slotManagerStatics.<role>.maxAttempts`; spent → `blocked`. Unlocked codeweaver → unbounded |
-| `blocked`             | operation item → `complete` AND the same `pt N` continuation as `partial`, but the work item is `failed` carrying `blockedReason`; the pt budget is bypassed and the quest halts immediately (advance does NOT run) |
+| Call | Result in `quest.json` |
+|---|---|
+| `quest-work({ kind: 'observations', ... })` | one `UnitObservation` appended to the work item's `observations[]` per entry |
+| `quest-work({ kind: 'outcome', word, reason })` | the work item's `declaredWord`/outcome record is set; nothing is routed yet |
+| `signal-back({ signal: 'complete' })` | the work item is marked terminal (`complete`/`failed`, `completedAt`); on the NEXT scan, `questRouteScopeBroker` reads every terminal work item's outcome and mints a re-cut batch (`unmet`), completes the scope (`done`/`empty`), or halts (`wall`) |
 
-**Before any of the above, exactly ONE gate can refuse the call outright: commit-before-signal** — for the three
-operator roles plus `spiritmender`/`warpgate`, `signal-back` throws while the quest worktree carries uncommitted
-changes (tracked or untracked), on `done`/`partial`/`blocked` alike. There is no sign-off-completeness gate and no
-review-coverage gate — an unsigned verification unit refuses nothing.
+**Before any of the above, exactly ONE gate can refuse the call outright: the unmarked-unit gate** (`quest-work`
+`observations`/`outcome` and `signal-back` alike) — refuses while any of the work item's `assignedUnitIds` carries no
+`observations[]` entry. There is no sign-off-completeness gate and no review-coverage gate.
 
-The handler is **idempotent**: a redelivered signal for an already-terminal work item is a no-op (no second `pt N`, no
-second work item).
+The handler is **idempotent**: a redelivered signal for an already-terminal work item is a no-op.
 
-## A6. run-ward routing (ward only, inside `quest-run-ward-broker`, keyed on the real exit code)
+## A6. Deterministic-step routing (ward/carve/repair/commit/cleanup — Node/UI mode only)
 
-- **Exit 0 (green):** ward operation item → `complete`; ward work item → `complete`; `wardResults[]` ref appended;
-  `relatedDataItems += wardResults/<id>`; advance → the next role (never another ward).
-- **Exit ≠ 0 (red), budget remains:** ward work item → `failed` + `errorMessage: 'ward_failed'`; ward operation item →
-  `complete`; a `spiritmender` operation item PLUS a fresh ward operation item (`pt N`, same `wardMode`) appended after
-  it; `wardResults[]` ref (exitCode ≠ 0); advance → the **spiritmender** is next (never a ward back-to-back), then the
-  fresh ward re-verifies.
-- **Exit ≠ 0 (red), budget spent:** the red-ward chain of this `wardMode` since the last green of the mode reached
-  `slotManagerStatics.ward.maxRetries` → `questBlockOnFailureBroker` (ward item `failed`, pending work items →
-  `skipped`, quest `blocked`) — no further fix loop.
+- **`ward` (any family's own step) — exit 0 (green):** the step's `declaredWord` is `done`; the router takes that
+  step's own `done` route (onward, or — for siegemaster — to `sweepOut`).
+- **exit ≠ 0 (red), budget remains:** `declaredWord` is `unmet`; the router routes to `repair`, which returns to
+  `ward` once it reports `done`.
+- **exit ≠ 0 (red), budget spent:** the step's own `maxVisits` is spent → `{ kind: 'block', reason: 'max-visits' }`.
+- **`carve` (riftcarver's own step):** a repairable red (`node_modules`/typecheck) routes to `repair`, same shape; a
+  `git-state` red or a permission denial is a `wall` → `@blocked` immediately, since no worktree exists to dispatch
+  a repair into.
 
 ---
 
@@ -389,38 +398,35 @@ Verify in the browser **wherever it makes sense**. Root: `data-testid="execution
 
 ## B2. Work-item row anchors (`execution-row-layer-widget`, one per row — scope by `.nth(N)` / query within the row)
 
-Rows render in `workItems` order; each row name is its linked operation item's text. Click `execution-row-header` to
-expand.
+Rows render in `workItems` order; each row name is its linked operation item's text, and its OWN `step`. Click
+`execution-row-header` to expand.
 
 | Field / transition               | testid                                            | shows                              | notes                                                    |
-|-----------------------------------|-----------------------------------------------------|--------------------------------------|------------------------------------------------------------|
-| role                             | `execution-row-role-badge`                        | `[CODEWEAVER]` etc. (uppercased)   | ward/riftcarver badges are warning-colored               |
+|-----------------------------------|-----------------------------------------------------|--------------------------------------|--------------------------------------------------------------|
+| role                             | `execution-row-role-badge`                        | `[CODEWEAVER]` etc. (uppercased)   | a deterministic step's row is warning-colored             |
 | status                           | `execution-row-status-badge`                      | label from B1                      | live                                                     |
-| ward exit code                   | `execution-row-ward-result`                       | `Ward exit code: {n}` (+ `(mode)`) | green if 0 else red — see B3                             |
+| ward exit code                   | `execution-row-ward-result`                       | `Ward exit code: {n}` (+ `(committed)`/`(full)` when the result carries a `wardMode`) | green if 0 else red — see B3 |
 | ward detail                      | `execution-row-ward-detail`                       | per-failure lines                  | HTTP fetch — see B3                                      |
-| error                            | `execution-row-error-message`                     | `Error: ...`                       | populates for a failed **ward**/**riftcarver** run, or a `blocked` signal's `blockedReason` |
-| agent transcript                 | inside `execution-row-expanded` (chat-entry-list) | text/tool rows/sub-agent chains    | auto-expands while `in_progress`; an operator's briefed sub-agents and its named reviewer render as sub-agent chains inside its own row — for siegemaster, so do each round's `siegemaster-verifier`/`siegemaster-stress` pair, any fixers, and its reviewer where one runs |
+| error                            | `execution-row-error-message`                     | `Error: ...`                       | populates on a `wall` outcome, or a router block message   |
+| agent transcript                 | inside `execution-row-expanded` (chat-entry-list) | text/tool rows                     | auto-expands while `in_progress`                          |
 
 ## B2b. Operations ledger (rendered in BOTH the execution panel AND the QUEST SPEC tab)
 
 `data-testid="OPERATIONS_LEDGER"`, rows `OPERATIONS_LEDGER_ROW` — each row is `OPERATIONS_LEDGER_ROW_MARKER` (status
 marker) + `OPERATIONS_LEDGER_ROW_ROLE` (role) + `OPERATIONS_LEDGER_ROW_TEXT` (text) + `OPERATIONS_LEDGER_ROW_FLOWS`
-(`[Flow Name]` — present iff the item carries `flowIds`; an id that no longer resolves to a quest flow renders as the
-raw id) + `OPERATIONS_LEDGER_ROW_WARD_MODE` (`(changed)`/`(full)` on ward rows). Each `flowrider` and `siegemaster` row
-lists its OWN single flow name; every other tail row carries no flows element at all. The ledger grows live
-as advance appends a `pt N` / spiritmender / fresh ward.
+(`[Flow Name]` — present iff the item carries `flowIds`). Each `flowrider` and `siegemaster` row lists its OWN
+single flow name. The ledger grows live as the router mints the next family's scopes.
 
 Status bar: `execution-status-bar-layer-widget` → `EXECUTION — {completedOps}/{totalOps} OPERATIONS`, or `EXECUTION —
 AWAITING PLAN` when the ledger is empty (pre-seed). Pause/Resume: `EXECUTION_PAUSE_BUTTON` (visible iff
-`isAnyAgentRunning(status)`), `EXECUTION_RESUME_BUTTON` (visible iff `isQuestResumable(status)` = {paused, blocked}) —
-keyed on real `quest.status`.
+`isAnyAgentRunning(status)`), `EXECUTION_RESUME_BUTTON` (visible iff `isQuestResumable(status)` = {paused, blocked}).
 
 ## B3. Ward result rendering (two stages, both must hold)
 
-**Stage 1 — exit-code row (live via WS):** a `[WARD]` row shows `execution-row-ward-result` ("Ward exit code: N") ONLY
-when **(a)** the ward work item has `relatedDataItems: ['wardResults/<id>']`, **(b)** a matching `wardResults[]` entry
-with that id exists on the quest, AND **(c)** the row renders in the normal work-item-row branch. Assert the exit-code
-**text**, not just visibility.
+**Stage 1 — exit-code row (live via WS):** a ward step's row shows `execution-row-ward-result` ("Ward exit code: N",
+with `(committed)` or `(full)` appended when the `WardResult` entry carries a `wardMode`) ONLY when the work item has
+`relatedDataItems` including a `wardResults/<id>` ref matching an entry on the quest. Assert the exit-code **text**,
+not just visibility.
 
 **Stage 2 — detail breakdown (HTTP, on mount):** `execution-row-ward-detail` fetches GET
 `/api/quests/:questId/ward-results/:wardResultId` when the row's detail widget mounts. It renders **nothing** while
@@ -430,28 +436,23 @@ detail breakdown only for a known-**failing** ward run.
 ## B4. Agent-log grouping (the "duplicate rows show the same log" surface — two distinct keys)
 
 - **Which transcript a row shows = `workItemId`.** The binding keeps `entriesByWorkItem` keyed by work-item id; a row
-  resolves `entriesByWorkItem.get(wi.id) ?? (wi.sessionId ? entriesBySession.get(wi.sessionId) : []) ?? []`. Sub-agents
-  dispatched under one parent session **share one parent `sessionId`** — if a row falls back to the session bucket it
-  shows the **merged** logs → **duplicate identical logs across rows**. Scope to `execution-row-layer-widget`.nth(N) and
-  assert each row's transcript is **distinct**.
-- **Sub-agent chain collapse inside one transcript = `toolUseId`** (`collectSubagentChainsTransformer`). Chain header
-  `SUBAGENT_CHAIN_HEADER` (`▾ SUB-AGENT "{desc}" ({n} entries)`), group `SUBAGENT_CHAIN`. A generic code-writing
-  sub-agent, a named reviewer (`codeweaver-reviewer`/`flowrider-reviewer`/`siegemaster-reviewer`), or — for
-  siegemaster — a round's `siegemaster-verifier`/`siegemaster-stress` pair, all render as a chain inside their parent
-  operator's row.
+  resolves `entriesByWorkItem.get(wi.id) ?? (wi.sessionId ? entriesBySession.get(wi.sessionId) : []) ?? []`. Scope to
+  `execution-row-layer-widget`.nth(N) and assert each row's transcript is **distinct**.
+- **A step's own session may still dispatch a bounded, plain sub-agent for a SEARCH** (a planner step's own prompt
+  allows this) — that renders as a chain inside the parent row via `collectSubagentChainsTransformer`
+  (`SUBAGENT_CHAIN_HEADER`, `SUBAGENT_CHAIN`). A `work`/`review`/`happyWalk`/`adversarial` step's own session
+  dispatches no sub-agent at all — its own served prompt says so directly.
 
 ## B5. NOT observable in the UI — assert ONLY in `quest.json`
 
 - **`skipped` work items are hidden** in the active render branches. A BLOCK shows the failed row as `FAILED` and its
   skipped siblings **vanish** — assert skipped in `quest.json`.
-- **`blocked` does not render the status banner** (`execution-panel-status-banner` uses
-  `shouldRenderStatusBanner` = {complete, merging, merged, abandoned}). A blocked quest keeps the status bar + the
-  RESUME button; verify `blocked` via `quest.json` status + the failed row.
-- `relatedDataItems` linkage, operation-item `locked`, `pausedAtStatus` value, `questType`, and `resume`/`retryCount`
-  are not shown as text (only effects are). Assert in `quest.json`. **Sign-off fields (`codeweaverSignoff` /
-  `flowriderSignoff` / `siegemasterSignoff`) and standards-review activity are never rendered in the execution panel at
-  all** — read them from `quest.json` (sign-offs) or accept that standards review leaves no trace in quest state to
-  assert against.
+- **`blocked` does not render the status banner** (`shouldRenderStatusBanner` = {complete, merging, merged,
+  abandoned}). A blocked quest keeps the status bar + the RESUME button; verify `blocked` via `quest.json` status +
+  the failed row.
+- `relatedDataItems` linkage, operation-item `locked`, `pausedAtStatus` value, `questType`, `mintedBy`, and
+  `resume`/`retryCount` are not shown as text (only effects are). Assert in `quest.json`. **`observations[]` is
+  never rendered in the execution panel at all** — read it from `quest.json`.
 
 ---
 
@@ -459,45 +460,35 @@ detail breakdown only for a known-**failing** ward run.
 
 > ## ⛔ HARD RULE — DISPATCH EXACTLY WHAT ONE `get-next-step()` RETURNS
 > **You may ONLY dispatch what a single `get-next-step()` returns, then wait for it to land before calling
-> `get-next-step()` again.** The relay hands you exactly the one session that is ready; you do not pick the next item or
-> run ahead of the ledger.
->
-> - The relay is **one session at a time.** `questAdvanceBroker` creates ONE work item for the first `pending` operation
->   item and does not create the next until that session's outcome is applied. So `get-next-step` returns exactly one
->   `spawn-agents` entry (or one `run-ward`/`run-riftcarver`). **Never add an entry the orchestrator did not return, and
->   never parallel-dispatch different roles** — `signal-back` does not gate on readiness, so a hand-batched pipeline
->   force-completes items out of order and invalidates the run.
-> - The ONLY sub-agent activity in the model is a real operator role briefing generic sub-agents and its own named
->   reviewer (or, for siegemaster, each round's `siegemaster-verifier`/`siegemaster-stress` pair) via the `Agent` tool.
->   Those are inside the parent's turn, not separate
->   `get-next-step` dispatches — you never dispatch them, and a smoketest stub agent should not simulate them either
->   (the stub's whole point is to exercise `get-agent-prompt`/`signal-back`, not the operator's internal briefing loop).
-> - **Operationally:** ONE `get-next-step` → dispatch its single returned entry → wait → assert `quest.json` →
+> `get-next-step()` again.** `select-batch-layer-broker` admits every ready item sharing ONE role AND ONE step, so a
+> batch may hold several entries (several codeweaver cells' pieces at the same step) — it never mixes steps or
+> families. **Never add an entry the orchestrator did not return.**
+> - **You cannot dispatch a `deterministic` step at all.** If `get-next-step` returns `{ type: 'run-step', handler,
+>   ... }`, that step is Node/UI mode's alone to run — stop the MCP probe there, start the real dispatcher, and
+>   resume the probe once the scope has moved past it.
+> - **Operationally:** ONE `get-next-step` → dispatch its returned entry/entries → wait → assert `quest.json` →
 >   `get-next-step` again. Drive strictly off the returned `workItemId`; never off the seed array or a remembered id.
->   When in doubt, do one tool call per turn.
 
 Every step of every flow is the same six beats:
 
 1. **CALL** `get-next-step()`.
-2. **ASSERT NextStep** JSON: `type` (`spawn-agents`/`run-ward`/`run-riftcarver`/`idle`), the single `agents[].role` +
-   `workItemId` (or the command's `mode`). Record raw JSON.
-3. **DISPATCH** the stub agent per the recipe below (or `run-ward`/`run-riftcarver` for a command step) with the
-   test-case `operationStatus`.
+2. **ASSERT NextStep** JSON: `type` (`spawn-agents` / `run-step` / `idle`), the `agents[].role` + `step` +
+   `workItemId` (or the `run-step`'s `handler`). Record raw JSON.
+3. **DISPATCH** the stub agent per the recipe below (for a `spawn-agents` entry) — or start the real dispatcher for a
+   `run-step` entry and wait for it to land.
 4. **ASSERT quest.json** (on disk):
-    - after get-agent-prompt: work item `in_progress` + non-empty `sessionId`+`agentId`+`startedAt`; its operation item
-      `in_progress` (if these stay empty, identity resolution failed — a finding);
-    - after signal-back: work item terminal (`complete` + `completedAt` + `actualSignal`); operation item `complete`;
-      on `partial`/`blocked`, a `pt N` continuation appended; the NEXT operation item's work item created by advance
-      (skipped on `blocked`);
-    - after run-ward/run-riftcarver: work item + operation item per A6 (green → both `complete` + a result ref; red →
-      `failed`/`complete` + spiritmender + fresh command, or `blocked` when the budget is spent);
-    - confirm strict 1:1: no second work item minted for one operation item.
+    - after `get-agent-prompt`: work item `in_progress` + non-empty `sessionId`+`agentId`; its operation item
+      `in_progress`;
+    - after `quest-work` + `signal-back`: work item terminal (`complete` + `completedAt`); on `unmet`, a fresh
+      re-cut batch minted on the SAME scope; on `done`/`empty` with every work item at the step terminal, the scope
+      moves to its next step or completes;
+    - after a `run-step` (ward/carve/repair/commit/cleanup): the work item + scope per A6;
+    - confirm the `operations/<id>` link never re-points and the operation item's status matches the scope's real
+      progress.
 5. **ASSERT web** (no refresh):
     - the row status badge shows the right **label** (B1): `RUNNING` on dispatch → `DONE`/`FAILED` on outcome;
-    - the agent's log renders **under its own row**; a briefed sub-agent or named reviewer (or, for siegemaster, a
-      round's verifier/stress pair) renders as a chain (B4);
-    - **work-item insertions appear live** (advance's next row, a `pt N` continuation, a spliced spiritmender/fresh
-      command) within a couple seconds; the operations ledger (B2b) grows;
+    - **work-item insertions appear live** (a re-cut batch, the next family's scopes) within a couple seconds; the
+      operations ledger (B2b) grows;
     - ward rows show `Ward exit code: N` (+ detail for a failing run) (B3).
 6. **ADVANCE** (back to beat 1) until terminal.
 
@@ -511,36 +502,34 @@ Dispatch one real `Task()` for the single entry the current `get-next-step` retu
 You are a SMOKETEST STUB AGENT. Do NOT do real work, do NOT read/write source files.
 1. Call mcp__dungeonmaster__get-agent-prompt({ agent:"<role>", workItemId:"<id>", questId:"<id>" }).
 2. Paste the FULL prompt text you received into your final report.
-3. Call mcp__dungeonmaster__signal-back({ questId:"<id>", workItemId:"<id>", signal:"complete",
-   operationStatus:"<done|partial|blocked>" }).
-4. Report: the prompt you got, the operationStatus you sent, any error from either call.
+3. Call mcp__dungeonmaster__quest-work({ questId:"<id>", workItemId:"<id>", payload: { kind: "observations",
+   observations: [{ unitId: "<id>", mark: "met", evidence: "smoketest stub — no real measurement" }, ...one per
+   assignedUnitId] } }).
+4. Call mcp__dungeonmaster__quest-work({ questId:"<id>", workItemId:"<id>", payload: { kind: "outcome",
+   word: "<done|unmet|empty|wall>", reason: "smoketest stub" } }).
+5. Call mcp__dungeonmaster__signal-back({ questId:"<id>", workItemId:"<id>", signal:"complete" }).
+6. Report: the prompt you got, the marks + outcome you sent, any error from any call.
 ```
-
-Optionally pre-seed `smoketestPromptOverride` (trivial prompt) + `smoketestExpectedSignal`.
 
 ### Gotchas to keep front of mind
 
-- **G1 — `run-ward`/`run-riftcarver`'s param is `mode`/its own inputs, NOT `wardMode`.** The work-item/operation-item
-  field is spelled `wardMode`, but the **MCP tool argument is `mode`**. Passing `wardMode` errors `Unrecognized
-  key(s): wardMode` and the ward never runs. Always call `run-ward({ questId, workItemId, mode })`.
-- **G2 — `signal: 'complete'` is the sole kind; the outcome is `operationStatus`.** There is no `failed`/`failed-replan`
-  signal. `operationStatus: 'partial'` is the "more remains" outcome; the orchestrator continues it as a `pt N` item —
-  but a real codeweaver/flowrider/siegemaster session never sends it, so a stub sending `partial` for one of these
-  roles is testing the responder's generic mechanism, not a real prompt behavior.
-- **G3 — get-agent-prompt stamping is identity-resolved.** No identity → no `in_progress`/`sessionId`/`agentId` stamp.
-  Verify the stamp happened.
-- **G4 — get-agent-prompt needs the linked operation item present.** A seeded work item whose `operations/<id>` has no
-  matching ledger entry can't have its prompt built. Seed the operation item.
+- **G1 — a `deterministic` step is not dispatchable from MCP mode, ever.** There is no `run-ward`/`run-riftcarver`
+  MCP tool any more; a work item with no `step` field is filtered out of readiness entirely rather than falling
+  through to one. Every work item you seed needs a real `step` — it always routes through `run-step`, which MCP
+  mode cannot run.
+- **G2 — `quest-work` must mark EVERY assigned unit before `signal-back`.** `signal-back` throws naming every
+  unmarked unit if you skip straight to it.
+- **G3 — get-agent-prompt stamping is identity-resolved.** No identity → no `in_progress`/`sessionId`/`agentId`
+  stamp. Verify the stamp happened.
+- **G4 — get-agent-prompt needs the linked operation item present AND the work item's `step` to be real.** A seeded
+  work item whose `operations/<id>` has no matching ledger entry, or whose `step` names nothing in
+  `agentFlowStatics[family].steps`, can't have its prompt built.
 - **G5 — skipped rows vanish in the UI; blocked shows no banner** (B5). Assert those in `quest.json`.
-- **G6 — ward detail renders null** while loading / on error / when green. Only assert the breakdown for a failing ward.
-- **G7 — never parallel-dispatch different roles; one logical step per turn; act only on echoed ids.** This is the
-  ⛔ HARD RULE above, restated because violating it is the single most common way a run goes bad:
-    - `signal-back` does not gate on readiness, so concurrently dispatching e.g. two `flowrider` items out of ledger
-      order force-completes them out of order — the end-state can *look* complete while never having exercised each
-      advance. The relay is one session at a time; there is no legal cross-role parallel dispatch.
-    - **Hallucinated / remembered ids → cancelled batch + possible corruption.** Use ONLY the `questId`/`workItemId`
-      echoed back by the immediately-preceding tool result — never one retyped from the seed array or memory. When in
-      doubt, do one tool call per turn.
+- **G6 — ward detail renders null** while loading / on error / when green. Only assert the breakdown for a failing
+  ward run.
+- **G7 — never parallel-dispatch different steps or families; one logical step per turn; act only on echoed ids.**
+  Use ONLY the `questId`/`workItemId` echoed back by the immediately-preceding tool result — never one retyped from
+  the seed array or memory.
 
 ---
 
@@ -555,218 +544,139 @@ actually regress.
 `create-quest` (feature), then patch `quest.json` on disk to a launch-ready spec — the disk write bypasses the gates:
 
 - `"status": "approved"`
-- `flows[]`: THREE operational flows, ids `flow-a`, `flow-b`, `flow-c` (three so a count-off-by-one is visible)
-- `operations[]`: the seeded plan item (leave it) plus ONE `{ role: 'codeweaver', locked: false, status: 'pending' }`
-  item — `OrchestrationStartResponder` validates startability, and the relay needs an implementation item to hang its
-  first work item on
-- leave `workItems[]` as created
+- `flows[]`: THREE runtime flows, ids `flow-a`, `flow-b`, `flow-c`, each tagging ONE package's node
+- `packagesAffected`: the one package those flows tag
 
 ### Probe
 
-1. Call `mcp__dungeonmaster__start-quest({ questId })`. It routes through the same
-   `OrchestrationStartResponder` → `questBuildRelayGraphBroker` seed the Web UI's Start Quest button uses.
+1. Call `mcp__dungeonmaster__start-quest({ questId })`. It routes through the same `OrchestrationStartResponder` →
+   `questBuildRelayGraphBroker` seed the Web UI's Start Quest button uses.
 2. **ASSERT `quest.json`:**
     - status `in_progress`; the intake plan item force-completed to `complete`.
-    - The appended tail is EXACTLY eight locked items in this order: `ward(changed)`, THREE `flowrider` (one per
-      flow), THREE `siegemaster` (one per flow), `ward(full)`. **No standards-review item is seeded and none is
-      appended later** — assert `operations.filter(o => o.role === 'flowrider').length === 3` and
-      `operations.filter(o => o.role === 'siegemaster').length === 3`.
-    - Each `flowrider` item's `flowIds` is a single-element array naming its own flow, and its `text` is suffixed
-      `— flow: <id>`. Each `siegemaster` item is the same shape.
-    - `ward` items' `flowIds` is `[]`.
-    - ONE work item was created, for the first pending item, linked `operations/<id>`.
-3. **ASSERT web** (~3s): the operations ledger shows 10 rows (plan item + codeweaver + the eight-item tail); each
-   flowrider row and each siegemaster row shows its own single flow NAME in `OPERATIONS_LEDGER_ROW_FLOWS`; the status
-   bar reads `EXECUTION — 1/10 OPERATIONS` (the force-completed plan item is the 1).
+    - **ONLY the entry family's scope exists** — one `riftcarver` operation item, `pending`, `locked: true`,
+      `flowIds: []`, `packageNames: []`. **No `codeweaver`/`flowrider`/`siegemaster`/`wardFull` scope exists yet** —
+      those are minted later, as the family graph is routed to them.
+    - ONE work item was created, at `step: 'carve'`, linked to the riftcarver scope.
+3. **ASSERT web** (~3s): the operations ledger shows 2 rows (the force-completed plan item + the pending riftcarver
+   scope); the status bar reads `EXECUTION — 1/2 OPERATIONS`.
 4. Abandon the quest — Flow 1 needs a clean FIFO.
 
-**Repeat once with a ZERO-flow quest** (same seed, `flows: []`): both `flowrider` and `siegemaster` still get exactly
-ONE item each (the flow-less fallback, so the off-map probe families — this quest's only security and performance
-coverage — keep an owner), each with `flowIds: []`; the ledger rows render no flows element at all.
-
-**PASS:** one `flowrider` item and one `siegemaster` item PER quest flow (or exactly one of each, on a flow-less
-quest), each carrying its own single flow id.
+**PASS:** the ledger at Start holds ONLY the entry family's scope — proving the LAZY-MINT invariant (later families'
+scopes do not exist until the family graph routes to them).
 
 ---
 
-# Flow 1 — Happy path relay (feature, pre-seeded)
+# Flow 1 — Driving one codeweaver scope through its own step graph
 
-Pre-seed the full operations ledger + the first work item, then drive the relay one session at a time to `complete`.
-This mirrors the state a quest is in right after Start Quest seeded the relay.
+Pre-seed ONE codeweaver scope already `in_progress` with its first work item at `plan`, then drive it through
+`plan → work → review → commit → ward` — noting exactly where MCP mode's reach ends.
 
 ### Seed
 
-`create-quest` (feature), then patch `quest.json`: `status: in_progress`, an `operations[]` ledger with a codeweaver
-item + the verify tail as operation items (all `locked` except the codeweaver), TWO `flows[]` operational flows, and a
-FIRST work item for the codeweaver operation item. Two flows is deliberate: the tail is SEVEN items — TWO `flowrider`
-items and TWO `siegemaster` items, one of each per flow.
+`create-quest` (feature), then patch `quest.json`: `status: in_progress`, one `flows[]` runtime flow tagging one
+package, ONE `codeweaver` operation item for that (package, flow) cell, and a work item at `step: 'plan'`.
 
 ```jsonc
 "operations": [
-  { "id": "op-cw",     "role": "codeweaver",   "text": "smoketest: core adapter", "status": "pending", "locked": false },
-  { "id": "op-ward1",  "role": "ward",         "text": "ward (changed)",          "status": "pending", "locked": true, "wardMode": "changed" },
-  { "id": "op-flow1",  "role": "flowrider",    "text": "author the flow-perspective test suite — flow: flow-1", "status": "pending", "locked": true, "flowIds": ["flow-1"] },
-  { "id": "op-flow2",  "role": "flowrider",    "text": "author the flow-perspective test suite — flow: flow-2", "status": "pending", "locked": true, "flowIds": ["flow-2"] },
-  { "id": "op-siege1", "role": "siegemaster",  "text": "manual-QA this flow and review its test suite — flow: flow-1", "status": "pending", "locked": true, "flowIds": ["flow-1"] },
-  { "id": "op-siege2", "role": "siegemaster",  "text": "manual-QA this flow and review its test suite — flow: flow-2", "status": "pending", "locked": true, "flowIds": ["flow-2"] },
-  { "id": "op-ward2",  "role": "ward",         "text": "ward (full)",             "status": "pending", "locked": true, "wardMode": "full" }
+  { "id": "op-cw", "role": "codeweaver", "text": "Codeweaver: build this slice — package: web · flow: send-flow",
+    "status": "in_progress", "locked": false, "flowIds": ["send-flow"], "packageNames": ["web"] }
 ],
 "workItems": [
-  { "id": "wi-cw", "role": "codeweaver", "status": "pending", "spawnerType": "agent", "dependsOn": [], "relatedDataItems": ["operations/op-cw"], "createdAt": "..." }
+  { "id": "wi-plan", "role": "codeweaver", "step": "plan", "status": "pending", "spawnerType": "agent",
+    "dependsOn": [], "relatedDataItems": ["operations/op-cw"], "createdAt": "..." }
 ],
 "flows": [
-  { "id": "flow-1", "name": "smoketest flow", "flowType": "operational", "entryPoint": "cli", "exitPoints": ["done"], "nodes": [], "edges": [] },
-  { "id": "flow-2", "name": "second smoketest flow", "flowType": "operational", "entryPoint": "cli", "exitPoints": ["done"], "nodes": [], "edges": [] }
+  { "id": "send-flow", "name": "smoketest flow", "flowType": "runtime", "entryPoint": "cli", "exitPoints": ["done"],
+    "nodes": [{ "id": "execution-live", "label": "…", "type": "terminal", "packages": ["web"] }], "edges": [] }
 ]
 ```
 
-(Use real UUIDs for the operation ids. Seed only the FIRST work item — the relay creates each subsequent work item on
-advance.)
-
 ### Probe sequence
 
-| # | get-next-step                                     | dispatch                 | quest.json                                                                                                                                                                                              | web                                                                |
-|---|-----------------------------------------------------|----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
-| 1 | `spawn-agents`, 1× `codeweaver` (`wi-cw`)         | stub `done`              | `wi-cw`: in_progress(+sessionId/agentId/startedAt) → complete; `op-cw` → complete; advance creates a `ward` work item for `op-ward1`                                                                    | `RUNNING`→`DONE`; ledger row `op-cw` marks complete                |
-| 2 | `run-ward`, `mode: changed`                       | `run-ward` (real, green) | ward work item complete; `op-ward1` complete; `wardResults[]` +1; ward `relatedDataItems` gains `wardResults/<id>`; advance → the FIRST `flowrider` work item                                            | `Ward exit code: 0 (changed)`; no detail (green)                   |
-| 3 | `spawn-agents`, 1× `flowrider` (`op-flow1`)       | stub `done`              | `op-flow1` complete; advance → `op-flow2` (a SECOND, distinct `flowrider` work item — strict 1:1 holds because each links its own operation item)                                                       | `RUNNING`→`DONE`; the row lists ONLY `flow-1`'s name               |
-| 4 | `spawn-agents`, 1× `flowrider` (`op-flow2`)       | stub `done`              | `op-flow2` complete; advance → `op-siege1`. Assert exactly TWO `role: flowrider` items total, each with a single-element `flowIds` naming its own flow                                                   | `RUNNING`→`DONE`; the row lists ONLY `flow-2`'s name               |
-| 5 | `spawn-agents`, 1× `siegemaster` (`op-siege1`)    | stub `done`              | `op-siege1` complete; advance → `op-siege2`                                                                                                                                                              | `RUNNING`→`DONE`; the row lists ONLY `flow-1`'s name               |
-| 6 | `spawn-agents`, 1× `siegemaster` (`op-siege2`)    | stub `done`              | `op-siege2` complete; advance → `ward(full)` work item. Assert exactly TWO `role: siegemaster` items total, each with a single-element `flowIds` naming its own flow, **and that NO new operation item was appended after `op-siege2`** — no standards-review item is ever minted | `RUNNING`→`DONE`; the row lists ONLY `flow-2`'s name               |
-| 7 | `run-ward`, `mode: full`                          | `run-ward` (real, green) | ward complete; `op-ward2` complete; **no pending operation item → quest derives `complete`**                                                                                                            | terminal banner; all rows `DONE`; `EXECUTION — 7/7 OPERATIONS`     |
-| 8 | `idle` (~25s long-poll)                           | —                        | no incomplete work                                                                                                                                                                                      | —                                                                  |
+| # | get-next-step | dispatch | assert |
+|---|---|---|---|
+| 1 | `spawn-agents`, `codeweaver`/`plan` (`wi-plan`) | stub: `outcome: 'done'` (a planner marks no units) | `wi-plan` terminal; the router mints the FIRST `work` piece(s) as fresh work item(s) on `op-cw` |
+| 2 | `spawn-agents`, `codeweaver`/`work` | stub marks its `assignedUnitIds` `met`, `outcome: 'done'` | work item terminal; once every `work` piece has drained, the router mints `review` |
+| 3 | `spawn-agents`, `codeweaver`/`review` | stub marks the scope's whole in-scope set, `outcome: 'done'` | review terminal; router mints `commit` |
+| 4 | `run-step`, handler `commit` | **STOP — start the real Node/UI dispatcher here.** MCP mode cannot run this. | once it lands: `commit` step's work item `complete`; router mints `ward` |
+| 5 | `run-step`, handler `ward` | (Node/UI dispatcher, real ward) | on green: `ward`'s work item `complete`, `relatedDataItems` gains `wardResults/<id>`; `op-cw`'s scope marked `complete`; once EVERY codeweaver cell is complete, the family graph mints `flowrider`'s scopes |
+| 6 | `idle` or the next family's first step | — | confirm no stray work item was minted twice for `op-cw` |
 
-**PASS:** quest `complete`, every field asserted in `quest.json` and mirrored live (correct labels, distinct logs, ward
-exit-code shown, ledger drained), terminal banner present. The two-flow quest ran SEVEN operation items — TWO
-flowrider sessions and TWO siegemaster sessions, one of each per flow.
+**PASS:** every `prompt` step (`plan`, `work`, `review`) was driven entirely by hand through the MCP; every
+`deterministic` step (`commit`, `ward`) required the real dispatcher, and `quest.json` shows exactly one scope
+(`op-cw`) carrying every one of those work items via the SAME `operations/<id>` link.
 
-> **get-agent-prompt will fail** at any agent step if the linked operation item isn't in `operations[]` — that's the
-> missing-seed failure mode (§6 / G4), not an orchestration bug. Confirm the operation items are present before
-> dispatching.
-
----
-
-# Flow 2 — Sad paths (partial → pt N, and the operator's real signal table)
-
-None of these is a failure. Each keeps the quest `in_progress` and moves it forward.
-
-The orchestrator's handling of `partial`/`blocked` is identical for every locked role — complete the item, append
-`pt N`, bound the `partial` chain by `slotManagerStatics.<role>.maxAttempts`. What DIFFERS is what a REAL session of
-each role ever sends: `flowrider` and `siegemaster` are **operators** whose own prompts offer only `done` and
-`blocked` — each loops internally, unbounded, until its own named reviewer's verdict says `pass`, and never emits
-`partial` at all. A stub sending `partial` for one of these roles is exercising the responder's generic mechanism
-(useful for proving the plumbing), not something a real prompt does.
-
-### 2A — Codeweaver `partial` → pt N (unbounded, mechanism-only)
-
-Seed a single codeweaver operation item + work item (as Flow 1 step 1). Dispatch the stub with
-`operationStatus: 'partial'` to exercise the generic mechanism.
-
-| # | get-next-step                     | dispatch      | assert                                                                                                            |
-|---|-------------------------------------|----------------|--------------------------------------------------------------------------------------------------------------------|
-| 1 | `spawn-agents`, 1× `codeweaver`   | stub `partial`| work item terminal (`complete`); `op-cw` → `complete`; a `"pt 2: {text}"` operation item appended; advance creates a FRESH codeweaver work item for it (new `execution-row-layer-widget` row live; ledger grows) |
-| 2 | `spawn-agents`, 1× `codeweaver` (pt 2) | stub `done` | `op-cw pt 2` → `complete`; advance moves on. **Strict 1:1** — assert NO operation item ever had two work items    |
-
-Repeat `partial` several times to confirm the codeweaver `pt N` chain is **unbounded** (unlocked role — never blocks).
-
-### 2B — Flowrider / Siegemaster: `blocked` on a wall, `done` on a real pass (bounded `partial` is mechanism-only)
-
-Seed the Flow 1 ledger (TWO flows, two flowrider items + two siegemaster items) so the first `flowrider` item is
-next.
-
-- **The real path:** dispatch `done` once the stub reports its reviewer would say `pass`. `op-flow1` completes with no
-  append; advance moves to `op-flow2`.
-- **The wall path:** dispatch `blocked` with a `blockedReason`. `op-flow1` completes, a `pt 2` flowrider item is
-  appended carrying the SAME single `flowId`, the work item is `failed` carrying the reason, and the quest halts
-  immediately — advance does NOT run. This is the only sad path a real flowrider/siegemaster session takes.
-- **Mechanism-only path (`partial`):** dispatch `partial` repeatedly to prove the generic pt-chain bound still works
-  for a locked role — the chain grows until it reaches `slotManagerStatics.flowrider.maxAttempts` (3) → **`blocked`**
-  (no more append). This is a responder-level property, not something a real flowrider prompt would ever trigger.
-
-Repeat the whole table with a `siegemaster` item next (e.g. `op-siege1`): same shape, but its continuation (were
-`partial` ever sent) carries only THAT item's single `flowId` — a chain reaching
-`slotManagerStatics.siegemaster.maxAttempts` on one flow's item blocks the quest without touching the other flow's
-separate item and separate budget.
-
-There is no standards-review role to repeat this with: after the last `siegemaster` item settles, the next dispatched
-item is `ward(full)` and NOTHING is appended in between. Assert that directly — a run that mints an extra operation
-item after a committing session is the regression this shape exists to catch.
-
-**Critical:** confirm the redelivery no-op (G/A5) — call `signal-back` twice for the same terminal work item; the second
-must NOT mint a second `pt N` or a second work item.
+> **A re-cut batch, not a continuation.** If a stub sends `outcome: 'unmet'` at `review`, the router mints a FRESH
+> work item at `work` (review's own `routes.unmet`), scoped to exactly the units still `unmet` — there is no `pt N`
+> append, and no second scope. Confirm this directly: send `unmet` once during step 3 above, watch the router mint a
+> `work` item instead of `commit`, mark it `met`, and only then see `review` re-run and reach `commit`.
 
 ---
 
-# Flow 3 — Ward, block, and resume
+# Flow 2 — The `wall` halt
 
-### 3A — Ward red → spiritmender operation item → re-ward (no ward loop)
+Seed a scope's work item exactly as Flow 1, but at step 3 (`review`) mark every assigned unit and send
+`quest-work({ kind: 'outcome', word: 'wall', reason: '<a made-up environment wall>' })`, then `signal-back`.
 
-Seed so a `ward(changed)` item is next. Break a real ward-catchable defect in a git-changed file (§5), then run real
-`run-ward`.
+- **Assert:**
+    - The router reads `wall`, answers `{ kind: 'block', reason: 'wall', message: '<reason>' }`.
+    - `quest-block-on-failure-broker` marks the work item `failed` carrying the message as `errorMessage`, and the
+      quest goes `blocked` immediately — no re-cut batch is minted, nothing advances.
+    - `get-next-step` for that quest now returns `idle` (the scan filters on `in_progress`).
+    - UI: the failed row shows `FAILED` + the error message; no terminal banner; RESUME button visible.
+- Resume: `mcp__dungeonmaster__modify-quest({ questId, status: 'in_progress' })` through the resume path rearms
+  every work item on an unfinished scope back to `pending` — confirm the SAME `review` step re-dispatches rather
+  than a fresh scope being minted.
 
-| # | get-next-step               | dispatch                | assert                                                                                                                                         |
-|---|-------------------------------|----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1 | `run-ward`, `mode: changed` | `run-ward` (real, red)  | ward work item `failed` + `errorMessage: ward_failed`; ward operation item `complete`; `wardResults[]` +1 (exitCode 1); a `spiritmender` operation item + a fresh `ward` operation item (`pt N`, same `wardMode`) appended AFTER it; advance → the **spiritmender** is next | UI: ward row `FAILED` + `Ward exit code: 1 (changed)` + detail breakdown; new spiritmender + fresh ward rows appear live |
-| 2 | `spawn-agents`, 1× `spiritmender` | stub `done`       | spiritmender operation item complete; advance → the fresh ward re-runs                                                                          |
-| 3 | `run-ward`, `mode: changed` | `run-ward` (real, green — restore the file first) | fresh ward operation item complete; advance → the next role                                                        |
+**PASS:** `wall` halts on the FIRST occurrence, names the reason on the failed row, and resume rearms the same scope
+rather than skipping or duplicating it.
 
-### 3B — Ward budget exhausted → blocked
+---
 
-Repeat 3A's red ward without fixing until the red-ward chain of the `wardMode` reaches `slotManagerStatics.ward.maxRetries`.
-
-| # | get-next-step               | dispatch               | assert                                                                                                                      |
-|---|--------------------------------|--------------------------|----------------------------------------------------------------------------------------------------------------------------|
-| N | `run-ward`, `mode: changed` | `run-ward` (real, red) | budget spent → `questBlockOnFailureBroker`: ward item `failed`, every pending work item → `skipped`, quest `blocked`; nothing appended | next `get-next-step` → `idle`; UI: `FAILED` row, skipped hidden, no banner, RESUME visible |
-
-### 3C — Orphan → resume (no restart, no duplicate)
+# Flow 3 — Orphan → resume (no restart, no duplicate)
 
 Seed a work item at `in_progress` (as if a session was mid-flight), then call `get-next-step`.
 
-- **Assert:** `recover-orphaned-work-items-layer-broker` flips the orphaned `in_progress` work item back to `pending`,
-  **keeps** its `sessionId`/`agentId`, sets a `resume` marker, and bumps `retryCount`. Node/UI dispatch then resumes the
-  retained Claude session (`claude --resume`). **No duplicate work item** (strict 1:1). A crash-looping session reaching
-  `slotManagerStatics.orphanRecovery.maxResets` → `blocked`.
-- (The MCP `/dumpster-launch` Task path fresh-spawns rather than resumes — its `sessionId` is the parent loop session.)
+- **Assert:** `recover-orphaned-work-items-layer-broker` flips the orphaned `in_progress` work item back to
+  `pending`, **keeps** its `sessionId`/`agentId`, sets a `resume` marker, and bumps `retryCount`. Node/UI dispatch
+  then resumes the retained Claude session (`claude --resume`). **No duplicate work item** — the SAME `step` and the
+  SAME `operations/<id>` link. A crash-looping session reaching `slotManagerStatics.orphanRecovery.maxResets` →
+  `blocked`.
+- (The MCP `/dumpster-launch` Task path fresh-spawns rather than resumes — its `sessionId` is the parent loop
+  session.)
 
 ---
 
 # Prompt-walk pass (static desk-check)
 
-Verify each agent prompt still gives an LLM enough to do its job — every capability maps to a real, callable thing.
+Verify each served prompt still gives an LLM enough to do its job — every capability maps to a real, callable thing.
 **Static desk-check only** — read and trace; do not execute.
 
 ### Targets
 
-The three operator roles each carry their OWN prompt file, and each summons its own named reviewer sub-agent(s):
-`codeweaver-prompt` (+ `codeweaver-reviewer`), `flowrider-prompt` (+ `flowrider-reviewer`), `siegemaster-prompt` (+
-`siegemaster-reviewer`, `siegemaster-verifier` and `siegemaster-stress`), plus the shared blocks they interpolate
+Every entry in `agentPromptClassificationStatics.promptNames` — one file per step (`codeweaver-planner`,
+`codeweaver-worker`, `codeweaver-reviewer`, `flowrider-planner`, `flowrider-worker`, `flowrider-reviewer`,
+`siege-planner`, `siege-happy-walker`, `siege-happy-fixer`, `siege-adversarial-walker`, `siege-adversarial-fixer`,
+`siegemaster-reader`, `recipe-maker`, …), plus the shared blocks they interpolate
 (`standards-review-concerns-statics`, `flow-evidence-contract-statics`), the bespoke prompts `spiritmender-prompt`,
-`warpgate-prompt`, `glyphsmith-prompt`, `tavernkeeper-prompt`, `dumpster-create-prompt`, `dumpster-hunt-prompt`, plus
-`chaoswhisperer-gap-minion`. There is no shared operator template and no generic planner/worker/reviewer minion any
-more — walk each of the eleven `agentPromptClassificationStatics.promptNames` files on its own.
+`warpgate-prompt`, `tavernkeeper-prompt`, `dumpster-create-prompt`, `dumpster-hunt-prompt`, plus
+`chaoswhisperer-gap-minion`. There is no shared operator template and no generic planner/worker/reviewer minion —
+walk each prompt file on its own.
 
 ### Procedure (per prompt)
 
 1. **Read** the static.
-2. **Enumerate the required capabilities.** For codeweaver/flowrider: does it verify the item against git + the
-   ledger itself, read the code it needs to change, write its own working notes, brief generic sub-agents in its own
-   words, read the diff, summon exactly its own named reviewer, loop on `rework`, and stop only on `pass` (→ `done`)
-   or `wall` (→ `blocked`)? For siegemaster, which reads no code and drives nothing itself: does it allocate a pair of
-   lane names and dispatch a `siegemaster-verifier`/`siegemaster-stress` pair per round, brief fixers once across
-   every round's findings, send fresh verifiers back over any path that had an issue, and summon its own
-   `siegemaster-reviewer` only when a fixer changed code? For a named reviewer (a LEAF — it summons no sub-agent of
-   its own): does it load the standards itself where relevant, does it fetch with `{ agent, questId }` and no
-   `workItemId`, does it refuse `signal-back`, and does it do the git it owns — ward `--uncommitted`, commit
-   once, push bare? For `siegemaster-verifier`/`siegemaster-stress` — the one exception that DOES dispatch, its own
-   pass-2 sub-agents, one level deeper and no further: does it walk its whole scope before dispatching anything, does
-   it brief each pass-2 sub-agent to write a FAILING test and nothing else, does it sign only what it measured
-   directly via `modify-quest`, and does it refuse `signal-back` too?
+2. **Enumerate the required capabilities.** For a `worker` step: does it read the code it needs to change, write the
+   edit itself (no sub-agent), mark its assigned units through `quest-work`, and record an `outcome`? For a
+   `reviewer`/walker step: does it read every file the pass produced, take its own judgment (and, for
+   `codeweaver`/`flowrider`'s `review` step, the five standards concerns), mark the scope's whole in-scope set, ward
+   `--uncommitted`, commit once, push bare? For a `planner` step: does it cut pieces, use `Agent()` for a SEARCH ONLY
+   and nowhere else?
 3. **Trace each capability to a real mechanism:** does the prompt name the exact MCP tool / command / file path /
-   static, and does it still exist? (`discover` to confirm — don't trust the prompt.) Are referenced signals/fields
-   valid against current contracts (`signal-back` = `complete` + `operationStatus`; agents never write `operations`;
-   `get-qa-checklist({ questId, operationItemId })` derives the track/flows/packages from the item itself)? Any holes —
-   a value never provided in the interpolated scope, a tool the role can't call, a file read before it's written, stale
-   wording?
+   static, and does it still exist? (`discover` to confirm — don't trust the prompt.) Are referenced tools valid
+   against current contracts (`quest-work`'s six payload kinds; `signal-back` = `complete` only; agents never write
+   `operations`)? Any holes — a value never provided in the interpolated scope, a tool the step can't call, a file
+   read before it's written, stale wording?
 4. **Record findings:** capabilities covered ✓, capabilities with a hole ✗ (name the missing link), stale/ambiguous
    wording. A hole is a real bug — the agent stalls or improvises at runtime.
 
@@ -774,14 +684,14 @@ more — walk each of the eleven `agentPromptClassificationStatics.promptNames` 
 
 # Findings log + execution order
 
-Keep `/tmp/smoke-mcp-notes.md`: per probe, the role, **expected vs observed** for the `NextStep` JSON, the `quest.json`
-mutation, and the web view; quest/operation/work-item ids; screenshots for any web discrepancy. Classify blocking (wrong
-next step, mutation didn't land, strict-1:1 violated, UI mis-rendered) vs non-blocking vs prompt-walk hole. On a real
-bug, use the Fix Agent / TDD-First / Bug Procedure from `playbook/smoketest-orchastrator.md`; the orchestrator does not
-edit source directly. Session-level running state goes in `playbook/smoketest-mcp-handoff.md`.
+Keep `/tmp/smoke-mcp-notes.md`: per probe, the family/step, **expected vs observed** for the `NextStep` JSON, the
+`quest.json` mutation, and the web view; quest/operation/work-item ids; screenshots for any web discrepancy. Classify
+blocking (wrong next step, mutation didn't land, a scope's link broke, UI mis-rendered) vs non-blocking vs
+prompt-walk hole. On a real bug, use the Fix Agent / TDD-First / Bug Procedure from
+`playbook/smoketest-orchastrator.md`; the orchestrator does not edit source directly. Session-level running state
+goes in `playbook/smoketest-mcp-handoff.md`.
 
 **Order:** (1) setup — build, **wipe `.dungeonmaster/guilds/21523917-…/quests`**, `npm run prod`, browser on `:4801`;
-(2) Flow 0 (Start Quest seed shape / per-flow fan-out); (3) Flow 1 (pre-seeded relay) end to end; (4) Flow 2
-(partial → pt N — the responder's generic mechanism, plus the operator's real `done`/`blocked` signal table); (5) Flow
-3 (ward red → spiritmender, ward budget → block, orphan → resume), clean FIFO before each; (6) prompt-walk; (7) abandon
-all smoketest quests, confirm the quest queue is clean.
+(2) Flow 0 (Start Quest seed shape — the lazy-mint invariant); (3) Flow 1 (one codeweaver scope's own step graph,
+noting the MCP/Node-mode boundary); (4) Flow 2 (`wall` → block → resume); (5) Flow 3 (orphan → resume), clean FIFO
+before each; (6) prompt-walk; (7) abandon all smoketest quests, confirm the quest queue is clean.

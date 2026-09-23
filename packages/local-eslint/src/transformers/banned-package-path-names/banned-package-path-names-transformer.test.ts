@@ -41,13 +41,33 @@ describe('bannedPackagePathNamesTransformer', () => {
         }),
       ).toStrictEqual(['server']);
     });
+
+    it('VALID: {text: scoped specifier as data} => returns the name', () => {
+      expect(
+        bannedPackagePathNamesTransformer({
+          text: "const specifier = '@dungeonmaster/web';",
+          packageNames: ['web'],
+          workspaceDirNames: ['packages'],
+        }),
+      ).toStrictEqual(['web']);
+    });
   });
 
   describe('non-matching', () => {
-    it('VALID: {text: scoped module specifier} => returns empty array', () => {
+    it('VALID: {text: scoped specifier with longer sibling name} => returns empty array', () => {
       expect(
         bannedPackagePathNamesTransformer({
-          text: "import { x } from '@dungeonmaster/web';",
+          text: "const root = '@dungeonmaster/webhooks';",
+          packageNames: ['web'],
+          workspaceDirNames: ['packages'],
+        }),
+      ).toStrictEqual([]);
+    });
+
+    it('VALID: {text: @-prefixed string with no scope separator} => returns empty array', () => {
+      expect(
+        bannedPackagePathNamesTransformer({
+          text: "const mention = '@web-team';",
           packageNames: ['web'],
           workspaceDirNames: ['packages'],
         }),

@@ -1,21 +1,17 @@
 import { DocsScopeStub } from '../../contracts/docs-scope/docs-scope.stub';
 import { docsStatics } from '../../statics/docs/docs-statics';
-import { siegelenseCallStatics } from '../../statics/siegelense-call/siegelense-call-statics';
-import { stepStatics } from '../../statics/step/step-statics';
 
 import { docsAnswerComposeTransformer } from './docs-answer-compose-transformer';
 
 describe('docsAnswerComposeTransformer', () => {
-  describe('the whole surface', () => {
-    it('EMPTY: {scope: null} => serves every pinned scope, in the pinned order', () => {
+  describe('the bare call — about alone', () => {
+    it('EMPTY: {scope: null} => serves no scope documents at all', () => {
       const result = docsAnswerComposeTransformer({ scope: null });
 
-      expect(result.scopes.map((document) => document.scope)).toStrictEqual([
-        ...siegelenseCallStatics.docs.scopes,
-      ]);
+      expect(result.scopes).toStrictEqual([]);
     });
 
-    it('EMPTY: {scope: null} => requested stays null, so a caller can tell all-by-default from all-by-request', () => {
+    it('EMPTY: {scope: null} => requested stays null, so a caller can tell the overview from a real request', () => {
       const result = docsAnswerComposeTransformer({ scope: null });
 
       expect(result.requested).toBe(null);
@@ -43,15 +39,6 @@ describe('docsAnswerComposeTransformer', () => {
         ],
       });
     });
-
-    it('VALID: {scope: operating} => the served document names no step verb at all', () => {
-      const result = docsAnswerComposeTransformer({ scope: DocsScopeStub({ value: 'operating' }) });
-      const servedText = JSON.stringify(result.scopes).toLowerCase();
-
-      expect(
-        stepStatics.verbs.all.filter((verb) => new RegExp(`\\b${verb}\\b`, 'u').test(servedText)),
-      ).toStrictEqual([]);
-    });
   });
 
   describe('the preamble', () => {
@@ -64,7 +51,7 @@ describe('docsAnswerComposeTransformer', () => {
     it('VALID: {scope: walking} => the about block names the 50,000-character ceiling this call routes around', () => {
       const result = docsAnswerComposeTransformer({ scope: DocsScopeStub({ value: 'walking' }) });
 
-      expect(result.about[5]).toBe(
+      expect(result.about[6]).toBe(
         'These instructions are provided via a command rather than being hardcoded into agent prompts for three reasons. First, any agent can fetch them dynamically. Second, there is only one central source of documentation to maintain. Third, system prompts have character limits; serving the manual dynamically saves valuable prompt space.',
       );
     });

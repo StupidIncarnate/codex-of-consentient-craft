@@ -30,6 +30,7 @@ import type { DomTextMode } from '../dom-text-mode/dom-text-mode-contract';
 import type { KeyListing } from '../key-listing/key-listing-contract';
 import type { KeyReading } from '../key-reading/key-reading-contract';
 import type { RefResolution } from '../ref-resolution/ref-resolution-contract';
+import type { SettleReading } from '../settle-reading/settle-reading-contract';
 import type { StepCandidate } from '../step-candidate/step-candidate-contract';
 import type { StorageReading } from '../storage-reading/storage-reading-contract';
 import type { VideoAction } from '../video-action/video-action-contract';
@@ -130,6 +131,19 @@ export type BrowserSession = z.infer<typeof browserSessionContract> & {
   // `page.waitForFunction`. No `within`: a predicate is arbitrary JS, not a selector, so scoping it
   // to a region is the expression's own job, not this call's.
   waitForPredicate: ({ source, timeoutMs }: { source: string; timeoutMs: number }) => Promise<void>;
+  // The weakest of the three waits, and the only one that needs no target: it ends when the page
+  // has STOPPED MOVING — network, DOM mutation and animation all quiet — rather than when a timer
+  // expires. Reach for `waitForMatch`/`waitForPredicate` whenever you can name the one thing you
+  // are waiting for; reach for this when a screenshot or a whole-screen read needs everything to
+  // have finished. It never throws on a page that will not settle: the SettleReading says
+  // `settled: false` and names the signals still moving, so the step above reports a real outcome.
+  // Every parameter is optional and carries the detector's own default; a caller that wants a
+  // different ceiling passes one rather than the detector reading a static it does not own.
+  waitForSettle: (params: {
+    quietWindowMs?: number | undefined;
+    ceilingMs?: number | undefined;
+    pollMs?: number | undefined;
+  }) => Promise<SettleReading>;
   capture: ({ filePath }: { filePath: string }) => Promise<void>;
   captureLive: ({ filePath }: { filePath: string }) => Promise<void>;
   evaluateSource: ({ source }: { source: string }) => Promise<ContentText>;

@@ -18,12 +18,6 @@ describe('previousReviewQuestStatusTransformer', () => {
 
       expect(result).toBe('review_observables');
     });
-
-    it('VALID: {status: design_approved} => returns review_design', () => {
-      const result = previousReviewQuestStatusTransformer({ status: 'design_approved' });
-
-      expect(result).toBe('review_design');
-    });
   });
 
   describe('state matrix — delegates to metadata', () => {

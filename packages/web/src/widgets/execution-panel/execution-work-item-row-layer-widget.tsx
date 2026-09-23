@@ -2,10 +2,14 @@
  * PURPOSE: Derives one visible-work-item row's entries, dependency labels, ward/riftcarver results,
  * status and display name from the quest-wide lookups the panel builds once, then renders the row.
  * This is what the panel's one numbered list maps over for a claimed work item — the counterpart to
- * rendering ExecutionRowLayerWidget directly for an unclaimed operation, which has none of this to
- * derive. The name is the row's SCOPE label (its operation, or the role fallback) plus, only when
- * the panel flags a sibling sharing that scope, `sessionDisambiguator` — see the panel's own
- * scope-grouping comment for how that value is chosen.
+ * rendering ExecutionRowLayerWidget directly for an unclaimed operation, or for a scope's own
+ * operation header, neither of which has any of this to derive. Decision 2's NESTED ruling: a scope
+ * holding one visible work item renders BARE — this row's name is its SCOPE label (its operation
+ * text, or the capitalized role) and `stepLabel` stays unset. A scope holding several instead gets
+ * an operation header row (built by the panel) and this row renders `stepLabel` alone, indented —
+ * see the panel's own tiering comment for how that four-tier label (`step`, `step - piece`,
+ * `step pt: N`) is computed. Each dependency label (T2-9a) is the dependency's OWN row label, cross-
+ * scope prefixed when the dependency sits in a different scope from this row.
  *
  * USAGE:
  * <ExecutionWorkItemRowLayerWidget
@@ -15,10 +19,12 @@
  *   includeSkipped={includeSkipped}
  *   workItemEntries={workItemEntries}
  *   sessionEntries={sessionEntries}
- *   workItemIdToLabel={workItemIdToLabel}
+ *   workItemIdToLabel={workItemIdToDisplayLabel}
+ *   workItemIdToScopeLabel={workItemIdToScopeLabel}
  *   wardResultsById={wardResultsById}
  *   riftcarverResultsById={riftcarverResultsById}
  *   operationsById={operationsById}
+ *   isRunningFocus={isRunningFocus}
  * />
  */
 
@@ -35,7 +41,7 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import { riftcarverResultContract } from '@dungeonmaster/shared/contracts';
 
-import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
+import { dependencyLabelContract } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
 import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
@@ -52,9 +58,14 @@ const RIFTCARVER_RESULTS_PREFIX = 'riftcarverResults/';
 const RIFTCARVER_RESULTS_PREFIX_LENGTH = RIFTCARVER_RESULTS_PREFIX.length;
 const OPERATIONS_PREFIX = 'operations/';
 const OPERATIONS_PREFIX_LENGTH = OPERATIONS_PREFIX.length;
+// T2-9a's cross-scope dependency prefix: "<dep scope label> › <dep row label>" — without it, a
+// scope's first item (whose sole dependency is the previous scope's last item) would read just its
+// bare tier label, with nothing on screen saying which scope it returns to.
+const CROSS_SCOPE_DEPENDENCY_SEPARATOR = ' › ';
 
 export interface ExecutionWorkItemRowLayerWidgetProps {
-  order: RowOrder;
+  // Omitted for a step row nested under an operation header — the header alone is numbered.
+  order?: RowOrder;
   workItem: WorkItem;
   questId: QuestId;
   now?: IsoTimestamp;
@@ -65,17 +76,34 @@ export interface ExecutionWorkItemRowLayerWidgetProps {
   workItemEntries: Map<QuestWorkItemId, ChatEntry[]>;
   sessionEntries: Map<SessionId, ChatEntry[]>;
   // Built once for the whole quest, above the row list — rebuilding it per row would be
-  // O(work items × dependencies) instead of O(work items). Keyed by QuestWorkItemId rather than
-  // WorkItem['id'] so this stays at one indexed WorkItem property (`role`).
-  workItemIdToLabel: Map<QuestWorkItemId, WorkItem['role']>;
+  // O(work items × dependencies) instead of O(work items). The dependency's OWN row label: its tier
+  // label (T2-1) when it renders nested, else its scope label — the SAME map the back-edge badge
+  // reads. Distinguishes duplicate roles inside one dependsOn list, which a role-only lookup could
+  // not (T2-9a's regression: two codeweaver dependencies used to read "codeweaver, codeweaver").
+  workItemIdToLabel: Map<QuestWorkItemId, DisplayLabel>;
+  // The dependency's SCOPE alone (operation text, or capitalized role) — never its tier label — so
+  // this row can tell whether a dependency sits in ITS OWN scope (this row's own `scopeLabel` below)
+  // or a different one, and prefix the cross-scope case with the dependency's scope name (T2-9a).
+  workItemIdToScopeLabel: Map<QuestWorkItemId, DisplayLabel>;
   wardResultsById: Map<WardResult['id'], WardResult>;
   riftcarverResultsById: Map<RiftcarverResult['id'], RiftcarverResult>;
   operationsById: Map<OperationItem['id'], OperationItem>;
-  // Set by the panel ONLY when this row's scope (its resolved operation, or the role fallback) is
-  // shared by another visible row — the panel is the one place that can see every sibling at once.
-  // A row on a scope nothing else is working never receives one, so its name renders exactly as
-  // before. See the panel's own scope-grouping comment for what this value resolves to.
-  sessionDisambiguator?: DisplayLabel;
+  // Set by the panel ONLY when this row's scope (its resolved operation, or the role fallback) holds
+  // more than one visible work item — the panel is the one place that can see every sibling at once.
+  // A row on a scope nothing else is working never receives one, so its name renders the bare scope
+  // label exactly as before. See the panel's own tiering comment for how this value is computed.
+  stepLabel?: DisplayLabel;
+  // Mirrors ExecutionRowLayerWidgetProps.indented — set together with `stepLabel` by the panel.
+  indented?: boolean;
+  // The back-edge badge's text: the panel's own resolved label for `workItem.mintedBy`, the SAME
+  // four-tier text (T2-1) that minting row renders for itself — see the panel's own
+  // `workItemIdToDisplayLabel` comment. Undefined when this work item carries no `mintedBy`.
+  mintedByLabel?: DisplayLabel;
+  // The panel's own choice of which running row currently holds the auto-expand focus (T2-9a) —
+  // forwarded to ExecutionRowLayerWidget as-is. Omitted keeps that row's default (every running row
+  // with a transcript auto-expands); the panel passes an explicit `false` for every OTHER running
+  // row once one has already claimed focus, so at most one expands without a click.
+  isRunningFocus?: boolean;
 }
 
 export const ExecutionWorkItemRowLayerWidget = ({
@@ -88,10 +116,14 @@ export const ExecutionWorkItemRowLayerWidget = ({
   workItemEntries,
   sessionEntries,
   workItemIdToLabel,
+  workItemIdToScopeLabel,
   wardResultsById,
   riftcarverResultsById,
   operationsById,
-  sessionDisambiguator,
+  stepLabel,
+  indented,
+  mintedByLabel,
+  isRunningFocus,
 }: ExecutionWorkItemRowLayerWidgetProps): React.JSX.Element => {
   const ownEntries =
     workItemEntries.get(workItem.id) ??
@@ -101,9 +133,6 @@ export const ExecutionWorkItemRowLayerWidget = ({
     ownEntries,
     poolEntries: workItem.sessionId ? (sessionEntries.get(workItem.sessionId) ?? []) : [],
   });
-  const depLabels = workItem.dependsOn
-    .map((depId) => workItemIdToLabel.get(depId) ?? depId)
-    .filter((label) => label.length > 0);
   const wardRefs = workItem.relatedDataItems.filter((ref) => ref.startsWith(WARD_RESULTS_PREFIX));
   const wardResults = wardRefs
     .map((ref) => wardResultsById.get(ref.slice(WARD_RESULTS_PREFIX_LENGTH) as WardResult['id']))
@@ -128,36 +157,56 @@ export const ExecutionWorkItemRowLayerWidget = ({
   const operation = operationRef
     ? operationsById.get(operationRef.slice(OPERATIONS_PREFIX_LENGTH) as OperationItem['id'])
     : undefined;
-  // The scope label alone (the operation this row works, or the role fallback) is what the panel
-  // GROUPS rows by — it stays the row's primary, human-recognisable identity. sessionDisambiguator
-  // is appended only when the panel found a sibling row sharing that same scope, which is exactly
-  // when the bare scope label stops being unique.
+  // Bare tier (decision 2): a scope holding this one visible work item alone has no header row
+  // above it, so this row carries the scope label itself — the operation this row works, or the
+  // role fallback. `stepLabel` REPLACES that name entirely, rather than appending to it, once the
+  // panel's operation header is already carrying the scope's text — see this file's own PURPOSE.
   const scopeLabel = operation
-    ? operation.text
-    : `${workItem.role.charAt(0).toUpperCase()}${workItem.role.slice(1)}`;
-  const name = displayLabelContract.parse(
-    sessionDisambiguator === undefined ? scopeLabel : `${scopeLabel} (${sessionDisambiguator})`,
-  );
+    ? displayLabelContract.parse(operation.text)
+    : displayLabelContract.parse(
+        `${workItem.role.charAt(0).toUpperCase()}${workItem.role.slice(1)}`,
+      );
+  const name = displayLabelContract.parse(stepLabel ?? scopeLabel);
+  // Session identity for a dependency (T2-9a): the dependency's OWN row label, prefixed with its
+  // scope only when that scope differs from BOTH this row's own scope (same-scope dependencies need
+  // no prefix) and the dependency's row label (a bare dependency's row label already IS its scope,
+  // so prefixing would repeat the same text twice). A dangling id — no entry in workItemIdToLabel —
+  // falls back to the raw id.
+  const depLabels = workItem.dependsOn.map((depId) => {
+    const rowLabel = workItemIdToLabel.get(depId);
+    if (rowLabel === undefined) {
+      return dependencyLabelContract.parse(depId);
+    }
+    const depScopeLabel = workItemIdToScopeLabel.get(depId);
+    const label =
+      depScopeLabel !== undefined && depScopeLabel !== scopeLabel && depScopeLabel !== rowLabel
+        ? `${depScopeLabel}${CROSS_SCOPE_DEPENDENCY_SEPARATOR}${rowLabel}`
+        : rowLabel;
+    return dependencyLabelContract.parse(label);
+  });
 
   return (
     <ExecutionRowLayerWidget
-      order={order}
       name={name}
       role={workItem.role as unknown as ExecutionRole}
       status={status}
       files={[] as DisplayFilePath[]}
-      dependsOn={depLabels as unknown as DependencyLabel[]}
+      dependsOn={depLabels}
       isAdhoc={workItem.insertedBy !== undefined}
       entries={entries}
       isStreaming={status === ('in_progress' as ExecutionStepStatus)}
       {...(includeSkipped ? { autoExpand: true } : {})}
       workItem={workItem}
+      {...(order === undefined ? {} : { order })}
       {...(now === undefined ? {} : { now })}
       {...(workItem.errorMessage ? { errorMessage: workItem.errorMessage } : {})}
       {...(wardResults.length > 0 ? { wardResults, questId } : {})}
       {...(riftcarverResults.length > 0 ? { riftcarverResults, questId } : {})}
       {...(workItem.sessionId ? { sessionId: workItem.sessionId } : {})}
       {...(guildSlug ? { guildSlug } : {})}
+      {...(indented === true ? { indented: true } : {})}
+      {...(mintedByLabel === undefined ? {} : { mintedByLabel })}
+      {...(isRunningFocus === undefined ? {} : { isRunningFocus })}
     />
   );
 };

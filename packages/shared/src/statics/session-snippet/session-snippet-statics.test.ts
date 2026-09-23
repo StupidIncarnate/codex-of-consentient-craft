@@ -30,7 +30,7 @@ describe('sessionSnippetStatics', () => {
 
   it('VALID: wardDiscipline snippet => splits FULL-run ownership by dispatch surface', () => {
     expect(sessionSnippetStatics.wardDiscipline).toMatch(
-      /^\*\*Who owns a FULL run\.\*\* An agent working directly for the user makes a full `npm run ward` exit 0 and owns every failure in it, including ones it did not cause\. An orchestrator-dispatched role never runs the full sweep; its Operating Rules name its rung, and the dispatcher's own `run-ward` item is the regression pass\.$/mu,
+      /^\*\*Who owns a FULL run\.\*\* An agent working directly for the user makes a full `npm run ward` exit 0 and owns every failure in it, including ones it did not cause\. An orchestrator-dispatched role never runs the full sweep; its Operating Rules name its rung, and the family's own `ward` step is the regression pass\.$/mu,
     );
   });
 

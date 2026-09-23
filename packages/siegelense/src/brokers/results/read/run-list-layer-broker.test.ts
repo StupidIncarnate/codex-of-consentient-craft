@@ -4,7 +4,7 @@ import { runListLayerBroker } from './run-list-layer-broker';
 import { runListLayerBrokerProxy } from './run-list-layer-broker.proxy';
 
 const EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: '/repo/.siegelense/unowned/instances/inst_1',
+  value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1',
 });
 
 describe('runListLayerBroker', () => {

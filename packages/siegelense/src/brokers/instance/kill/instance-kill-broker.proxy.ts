@@ -48,7 +48,7 @@ const REGISTRY_LOCK_PATH_ABS = AbsoluteFilePathStub({ value: REGISTRY_LOCK_PATH_
 const TMP_DIR_VALUE = '/tmp';
 const CWD_PATH_VALUE = '/default/cwd';
 const CONFIG_FILE_PATH_VALUE = `${CWD_PATH_VALUE}/.dungeonmaster.json`;
-const LINK_PATH_VALUE = `${CWD_PATH_VALUE}/.siegelense`;
+const LINK_PATH_VALUE = `${CWD_PATH_VALUE}/.dungeonmaster-assets/siegelense-assets`;
 const CONFIG_FILE_PATH = FilePathStub({ value: CONFIG_FILE_PATH_VALUE });
 const LINK_PATH_FILE = FilePathStub({ value: LINK_PATH_VALUE });
 

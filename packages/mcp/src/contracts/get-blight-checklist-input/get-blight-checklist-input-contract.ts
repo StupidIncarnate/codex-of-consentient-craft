@@ -18,11 +18,14 @@
  * rejection rather than a silently ignored argument. `working-tree` is the reviewer's surface, and
  * the `.describe()` below is what tells the agent so.
  *
- * NO SUB-AGENT COMMITS, so a pass reaches its reviewer entirely uncommitted and that reviewer
- * commits ONCE at the end. `working-tree` is the only scope that sees an uncommitted pass, and
- * alone among them it unions in untracked files — which a fresh pass is mostly made of. Under
- * `unpushed` a reviewer would enumerate `@{upstream}..HEAD`, which at that moment holds nothing
- * from the pass it is grading: a checklist that looks green with not a line of the new code in it.
+ * NO SESSION ON A PASS COMMITS ITS OWN WORK, so a pass reaches its `review` step entirely
+ * uncommitted and stays that way through the reviewer's own turn: the family's deterministic
+ * `commit` step lands everything ONCE, right after `review`'s `done` routes there —
+ * `stepHandlerCommitBroker`, never the reviewer itself. `working-tree` is the only scope that sees
+ * that uncommitted pass, and alone among them it unions in untracked files — which a fresh pass is
+ * mostly made of. Under `unpushed` a reviewer would enumerate `@{upstream}..HEAD`, which at that
+ * moment (before the deterministic commit has run) holds nothing from the pass it is grading: a
+ * checklist that looks green with not a line of the new code in it.
  */
 
 import { z } from 'zod';
@@ -37,7 +40,7 @@ export const getBlightChecklistInputContract = z
     scope: z
       .enum(['quest', 'commit', 'working-tree', 'unpushed'])
       .describe(
-        "Which diff to enumerate. 'working-tree' measures ONE ROUND — everything changed since HEAD and NOT YET COMMITTED, INCLUDING untracked files — and is the reviewer's scope: no sub-agent commits anything, so a pass reaches its reviewer entirely uncommitted and the reviewer commits once at the end. Enumerate before that commit, or this scope is empty. 'unpushed' measures what is committed in this worktree and not yet pushed (@{upstream}..HEAD); before a reviewer commits, that holds nothing from the pass it is grading. 'commit' measures the LAST COMMIT alone (HEAD~1...HEAD) — one session's landed output, for a caller auditing history. 'quest' (the default) measures the whole quest diff from the pinned baseRef, every file every session has touched, and is what a post-push re-review passes.",
+        "Which diff to enumerate. 'working-tree' measures ONE ROUND — everything changed since HEAD and NOT YET COMMITTED, INCLUDING untracked files — and is the reviewer's scope: no session on a pass commits its own work, so a pass reaches its `review` step entirely uncommitted and stays that way through the reviewer's own turn — the family's deterministic `commit` step lands it once, right after `review`'s `done`. Enumerate before that deterministic commit runs, or this scope is empty. 'unpushed' measures what is committed in this worktree and not yet pushed (@{upstream}..HEAD); before that deterministic commit runs, that holds nothing from the pass it is grading. 'commit' measures the LAST COMMIT alone (HEAD~1...HEAD) — one pass's landed output, for a caller auditing history. 'quest' (the default) measures the whole quest diff from the pinned baseRef, every file every session has touched, and is what a post-push re-review passes.",
       )
       .optional(),
   })

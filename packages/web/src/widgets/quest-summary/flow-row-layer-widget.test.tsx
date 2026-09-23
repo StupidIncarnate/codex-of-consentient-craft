@@ -26,7 +26,7 @@ describe('FlowRowLayerWidget', () => {
   });
 
   describe('track rows', () => {
-    it('VALID: {flow measured by two tracks} => renders one QUEST_SUMMARY_TRACK_ROW per track, carrying that track real counts', () => {
+    it('VALID: {flow measured by two tracks} => renders one QUEST_SUMMARY_TRACK_ROW per track, each carrying its own four counts', () => {
       FlowRowLayerWidgetProxy();
       const flow = QuestSummaryFlowStub({
         id: 'login-flow',
@@ -35,14 +35,16 @@ describe('FlowRowLayerWidget', () => {
         tracks: [
           QuestSummaryTrackCountsStub({
             id: 'flowrider',
-            confirmed: 1,
-            unconfirmable: 0,
-            outstanding: 1,
+            met: 12,
+            cantMeet: 1,
+            unmet: 2,
+            outstanding: 3,
           }),
           QuestSummaryTrackCountsStub({
             id: 'siegemaster',
-            confirmed: 0,
-            unconfirmable: 1,
+            met: 0,
+            cantMeet: 1,
+            unmet: 4,
             outstanding: 9,
           }),
         ],
@@ -53,8 +55,74 @@ describe('FlowRowLayerWidget', () => {
       const trackRows = screen.getAllByTestId('QUEST_SUMMARY_TRACK_ROW');
 
       expect(trackRows.map((row) => String(row.textContent))).toStrictEqual([
-        'FLOWRIDER1 confirmed0 unconfirmable1 outstanding',
-        'SIEGEMASTER0 confirmed1 unconfirmable9 outstanding',
+        'FLOWRIDER12 met1 cant-meet2 unmet3 outstanding',
+        'SIEGEMASTER0 met1 cant-meet4 unmet9 outstanding',
+      ]);
+    });
+
+    it('VALID: {two tracks with different unmet and outstanding} => each row keeps its own two figures and never the sibling figures', () => {
+      FlowRowLayerWidgetProxy();
+      const flow = QuestSummaryFlowStub({
+        id: 'login-flow',
+        tracks: [
+          QuestSummaryTrackCountsStub({
+            id: 'flowrider',
+            met: 0,
+            cantMeet: 0,
+            unmet: 2,
+            outstanding: 3,
+          }),
+          QuestSummaryTrackCountsStub({
+            id: 'siegemaster',
+            met: 0,
+            cantMeet: 0,
+            unmet: 5,
+            outstanding: 8,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <FlowRowLayerWidget flow={flow} /> });
+
+      expect(
+        screen.getAllByTestId('QUEST_SUMMARY_TRACK_UNMET').map((cell) => String(cell.textContent)),
+      ).toStrictEqual(['2 unmet', '5 unmet']);
+      expect(
+        screen
+          .getAllByTestId('QUEST_SUMMARY_TRACK_OUTSTANDING')
+          .map((cell) => String(cell.textContent)),
+      ).toStrictEqual(['3 outstanding', '8 outstanding']);
+    });
+
+    it('VALID: {a track nobody has touched beside a fully met one} => the untouched row is all outstanding and the met row is all met', () => {
+      FlowRowLayerWidgetProxy();
+      const flow = QuestSummaryFlowStub({
+        id: 'login-flow',
+        tracks: [
+          QuestSummaryTrackCountsStub({
+            id: 'codeweaver',
+            met: 6,
+            cantMeet: 0,
+            unmet: 0,
+            outstanding: 0,
+          }),
+          QuestSummaryTrackCountsStub({
+            id: 'siegemaster',
+            met: 0,
+            cantMeet: 0,
+            unmet: 0,
+            outstanding: 6,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <FlowRowLayerWidget flow={flow} /> });
+
+      const trackRows = screen.getAllByTestId('QUEST_SUMMARY_TRACK_ROW');
+
+      expect(trackRows.map((row) => String(row.textContent))).toStrictEqual([
+        'CODEWEAVER6 met0 cant-meet0 unmet0 outstanding',
+        'SIEGEMASTER0 met0 cant-meet0 unmet6 outstanding',
       ]);
     });
 

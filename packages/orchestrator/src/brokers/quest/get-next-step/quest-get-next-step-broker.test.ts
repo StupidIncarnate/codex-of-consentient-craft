@@ -1,6 +1,8 @@
 import {
   GuildIdStub,
   GuildListItemStub,
+  OperationItemIdStub,
+  OperationItemStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
@@ -115,6 +117,7 @@ describe('questGetNextStepBroker', () => {
           {
             questId,
             role: 'codeweaver',
+            model: 'opus',
             workItemId,
             taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
           },
@@ -154,6 +157,7 @@ describe('questGetNextStepBroker', () => {
           {
             questId,
             role: 'codeweaver',
+            model: 'opus',
             workItemId: cwId,
             taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cwId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
           },
@@ -189,6 +193,7 @@ describe('questGetNextStepBroker', () => {
           {
             questId,
             role: 'spiritmender',
+            model: 'sonnet',
             workItemId: bwId,
             taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "spiritmender",\n  workItemId: "${bwId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${bwId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${bwId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${bwId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
           },
@@ -197,8 +202,8 @@ describe('questGetNextStepBroker', () => {
     });
   });
 
-  describe('run-ward path', () => {
-    it('VALID: {ready ward work item} => run-ward naming only questId and workItemId', async () => {
+  describe('run-step path (ward gate)', () => {
+    it('VALID: {ready ward gate step} => run-step naming the ward handler and no args', async () => {
       const proxy = questGetNextStepBrokerProxy();
       const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
@@ -206,15 +211,19 @@ describe('questGetNextStepBroker', () => {
       const wardId = QuestWorkItemIdStub({
         value: '99999999-1111-4222-9333-444444444444',
       });
+      const operationId = OperationItemIdStub({ value: '99900000-58cc-4372-a567-0e02b2c3d479' });
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
+        operations: [OperationItemStub({ id: operationId, role: 'ward', status: 'in_progress' })],
         workItems: [
           WorkItemStub({
             id: wardId,
             role: 'ward',
             status: 'pending',
             spawnerType: 'command',
+            step: 'gate',
+            relatedDataItems: [`operations/${operationId}` as never],
           }),
         ],
       });
@@ -231,9 +240,11 @@ describe('questGetNextStepBroker', () => {
       });
 
       expect(result).toStrictEqual({
-        type: 'run-ward',
+        type: 'run-step',
         questId,
         workItemId: wardId,
+        handler: 'ward',
+        args: [],
       });
       expect(setActive).toHaveBeenCalledWith({ questId });
     });
@@ -294,6 +305,7 @@ describe('questGetNextStepBroker', () => {
           {
             questId: olderQuestId,
             role: 'codeweaver',
+            model: 'opus',
             workItemId: olderWorkItemId,
             taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${olderWorkItemId}",\n  questId: "${olderQuestId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${olderQuestId}",\n  workItemId: "${olderWorkItemId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${olderQuestId}",\n  workItemId: "${olderWorkItemId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${olderQuestId}",\n  workItemId: "${olderWorkItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
           },
@@ -347,6 +359,7 @@ describe('questGetNextStepBroker', () => {
           {
             questId: newerQuestId,
             role: 'codeweaver',
+            model: 'opus',
             workItemId: newerWorkItemId,
             taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${newerWorkItemId}",\n  questId: "${newerQuestId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${newerQuestId}",\n  workItemId: "${newerWorkItemId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${newerQuestId}",\n  workItemId: "${newerWorkItemId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${newerQuestId}",\n  workItemId: "${newerWorkItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
           },
@@ -400,6 +413,7 @@ describe('questGetNextStepBroker', () => {
           {
             questId,
             role: 'codeweaver',
+            model: 'opus',
             workItemId: orphanId,
             taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${orphanId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
           },
@@ -449,6 +463,7 @@ describe('questGetNextStepBroker', () => {
           {
             questId,
             role: 'spiritmender',
+            model: 'sonnet',
             workItemId: readyId,
             taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "spiritmender",\n  workItemId: "${readyId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${readyId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${readyId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${readyId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
           },
@@ -492,6 +507,7 @@ describe('questGetNextStepBroker', () => {
           {
             questId,
             role: 'codeweaver',
+            model: 'opus',
             workItemId,
             taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
           },

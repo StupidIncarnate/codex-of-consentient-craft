@@ -10,8 +10,8 @@ describe('questSummaryFlowContract', () => {
         name: 'Login Flow',
         flowType: 'runtime',
         tracks: [
-          { id: 'flowrider', confirmed: 12, unconfirmable: 1, outstanding: 3 },
-          { id: 'siegemaster', confirmed: 12, unconfirmable: 1, outstanding: 3 },
+          { id: 'flowrider', met: 12, cantMeet: 1, unmet: 2, outstanding: 3 },
+          { id: 'siegemaster', met: 12, cantMeet: 1, unmet: 2, outstanding: 3 },
         ],
       });
     });
@@ -25,8 +25,9 @@ describe('questSummaryFlowContract', () => {
           tracks: [
             QuestSummaryTrackCountsStub({
               id: 'siegemaster',
-              confirmed: 4,
-              unconfirmable: 0,
+              met: 4,
+              cantMeet: 0,
+              unmet: 0,
               outstanding: 0,
             }),
           ],
@@ -35,7 +36,7 @@ describe('questSummaryFlowContract', () => {
         id: 'lint-rule-registration',
         name: 'Register the lint rule',
         flowType: 'operational',
-        tracks: [{ id: 'siegemaster', confirmed: 4, unconfirmable: 0, outstanding: 0 }],
+        tracks: [{ id: 'siegemaster', met: 4, cantMeet: 0, unmet: 0, outstanding: 0 }],
       });
     });
 

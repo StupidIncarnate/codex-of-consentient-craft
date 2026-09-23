@@ -346,6 +346,7 @@ paragraph is a paragraph the session skims.
 \`\`\`
 {
   id: '<short, unique in this plan — you type it>',
+  pieceName: '<a short human name — the path's own subject on a happyWalk piece, the family name on an adversarial one>',
   step: 'happyWalk' | 'adversarial',
   assignedUnitIds: ['<unit id>', …],
   recipeId: '<the seed this piece starts from — omit where it needs none>',
@@ -358,6 +359,11 @@ paragraph is a paragraph the session skims.
   }
 }
 \`\`\`
+
+**\`pieceName\` is required, and it is not \`id\`.** \`id\` is your own cross-reference mnemonic;
+\`pieceName\` is what the execution panel shows a person — on a \`happyWalk\` piece, the path's own
+subject ("queue has entries → batch sent"); on an \`adversarial\` piece, its \`offMapFamily\` ("hostile
+input").
 
 ### \`payload.path\` is the controls AND the forcing
 

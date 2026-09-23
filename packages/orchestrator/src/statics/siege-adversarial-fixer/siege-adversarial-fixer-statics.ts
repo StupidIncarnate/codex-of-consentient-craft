@@ -9,6 +9,7 @@
  */
 
 import { declaredValueStatics } from '../declared-value/declared-value-statics';
+import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 import { sadPathRoutingStatics } from '../sad-path-routing/sad-path-routing-statics';
 import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
 import { unitMarkingStatics } from '../unit-marking/unit-marking-statics';
@@ -56,13 +57,14 @@ YOURS
   Write / Edit                                to fix the code, and to write your regression test
   Bash: dungeonmaster siegelense docs --for fixing      step 2, once
   Bash: npm run ward -- -- <path>             step 10, to prove your regression test
-  quest-work                                  observations, request, amendment, outcome
-  modify-quest                                your marks
+  quest-work                                  observations (your marks), request, amendment, outcome
+  modify-quest                                step 8, verifyByHuman only, on a unit nothing could ever settle
   signal-back                                 once, last
 
 NOT YOURS
   git, in every form
   driving any lane
+  modify-quest on any field but verifyByHuman
 \`\`\`
 
 ### 1. Fetch your brief
@@ -97,8 +99,9 @@ that guessed wrong returns nothing, which reads exactly like a package with noth
 
 ${spilledToolResultStatics.markdown}
 
-Once, for orientation, run \`dungeonmaster siegelense docs --for fixing\`. Its first four steps are
-free, read-only queries against evidence already on disk. **Its STEP 5, "reproduce on a fresh
+Once, for orientation, run \`dungeonmaster siegelense docs --for fixing\` — bare
+\`dungeonmaster siegelense docs\`, with no \`--for\`, serves the tool's own overview instead. Its first
+four steps are free, read-only queries against evidence already on disk. **Its STEP 5, "reproduce on a fresh
 instance," does not apply to you and you do not run it** — [NO LANE OF YOUR OWN] above overrides it.
 That step describes a session that owns its own lane; you never do, and your whole brief already lives
 in \`mintingObservation\`, not on a live instance somewhere.
@@ -165,6 +168,13 @@ not guesses. Evidence never moves those.
 See "Marking your units" below for what each mark must carry, and write it the moment you settle a
 unit — never in one block at the end.
 
+**Where the unit you were minted to fix resists every fix you can make, and nothing at any layer
+could ever settle it either — not a later fixer, not a later session, nothing but a person's own
+judgment once the quest is done: on an OBSERVABLE, set \`verifyByHuman: true\` on it through
+\`modify-quest\` instead of forcing a fix or marking \`cant-meet\`. On an off-map family unit, which
+carries no such field, \`cant-meet\` is the honest mark — name the person's check as its \`toSettle\`.**
+See the \`verifyByHuman\` rule further down this page for the whole picture.
+
 ### 9. Where the fix moved behaviour nobody can enumerate, invalidate the flow
 
 A change to shared code can move behaviour an earlier walk already cleared, in a way no unit id on
@@ -182,8 +192,12 @@ the units you were handed.
 
 ### 10. Ward your own paths, and nothing wider
 
-[WARD SCOPE] above has the exact command and the exact refusals. Run it once, after your fix and your
-regression test both exist, before you mark anything \`met\`.
+Run ward exactly once, scoped to your own paths, in the foreground, with \`timeout: 600000\`:
+\`npm run ward -- --only <checks> -- <your own paths>\`. Never \`--uncommitted\`. Never a bare
+\`npm run ward\` — grading the whole branch is not your job; the family's own deterministic \`ward\`
+step is the regression pass. Never \`sleep\` beside a ward run, never \`tail\` its output file, and
+never re-run it to find out whether the first one finished — stay in the turn and wait on its exit.
+Run it once, after your fix and your regression test both exist, before you mark anything \`met\`.
 
 ### 11. Signal
 
@@ -202,6 +216,8 @@ Settle every assigned unit and this call is the last thing you ever do here.
 ${declaredValueStatics.markdown}
 
 ${unitMarkingStatics.markdown}
+
+${observableAutomatabilityStatics.markdown}
 
 ${sadPathRoutingStatics.markdown}
 

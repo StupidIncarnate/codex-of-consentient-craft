@@ -167,6 +167,7 @@ describe('stepEntryBatchTransformer', () => {
           payload: {
             path: { nodeIds: ['web-node'], branchLabels: [], exitsFlow: false },
             offMapFamily: 'perf',
+            pieceName: 'comment count badge',
           },
           needsLane: true,
         },
@@ -230,6 +231,7 @@ describe('stepEntryBatchTransformer', () => {
           payload: {
             path: { nodeIds: ['web-node'], branchLabels: [], exitsFlow: false },
             offMapFamily: 'perf',
+            pieceName: 'comment count badge',
           },
           needsLane: false,
         },
@@ -241,6 +243,7 @@ describe('stepEntryBatchTransformer', () => {
           payload: {
             path: { nodeIds: ['web-node'], branchLabels: [], exitsFlow: false },
             offMapFamily: 'hostile-input',
+            pieceName: 'comment count badge',
           },
           needsLane: false,
         },
@@ -312,6 +315,7 @@ describe('stepEntryBatchTransformer', () => {
           payload: {
             path: { nodeIds: ['web-node'], branchLabels: [], exitsFlow: false },
             offMapFamily: 'perf',
+            pieceName: 'comment count badge',
           },
           needsLane: false,
         },

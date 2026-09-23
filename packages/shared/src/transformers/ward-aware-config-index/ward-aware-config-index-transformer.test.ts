@@ -38,12 +38,12 @@ describe('wardAwareConfigIndexTransformer', () => {
       expect(result).toBe(7);
     });
 
-    it('VALID: {role: bughunt} => returns 2 (HOMEBASE entrance, like the other intake roles)', () => {
+    it('VALID: {role: bughunt} => returns 1 (HOMEBASE entrance, like the other intake roles)', () => {
       const workItem = WorkItemStub({ role: 'bughunt' });
 
       const result = wardAwareConfigIndexTransformer({ workItem });
 
-      expect(result).toBe(2);
+      expect(result).toBe(1);
     });
   });
 });

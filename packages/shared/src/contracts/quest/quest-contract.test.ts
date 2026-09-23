@@ -39,7 +39,6 @@ describe('questContract', () => {
         contracts: [],
         flows: [FlowStub()],
         comments: [],
-        needsDesign: false,
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
@@ -77,7 +76,6 @@ describe('questContract', () => {
         contracts: [],
         flows: [FlowStub()],
         comments: [],
-        needsDesign: false,
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
@@ -115,7 +113,6 @@ describe('questContract', () => {
         contracts: [],
         flows: [FlowStub()],
         comments: [],
-        needsDesign: false,
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
@@ -198,58 +195,12 @@ describe('questContract', () => {
       expect(result.comments).toStrictEqual([]);
     });
 
-    it('VALID: needsDesign defaults to false => parses successfully', () => {
+    it('INVALID: quest with a designPort field => the field is stripped, the design sandbox that read it is gone', () => {
       const quest = QuestStub();
 
-      const result = questContract.parse(quest);
+      const result = questContract.parse({ ...quest, designPort: 5173 });
 
-      expect(result.needsDesign).toBe(false);
-    });
-
-    it('VALID: designPort is optional => parses without it', () => {
-      const quest = QuestStub();
-
-      const result = questContract.parse(quest);
-
-      expect(result.designPort).toBe(undefined);
-    });
-
-    it('VALID: quest with design fields => parses successfully', () => {
-      const quest = QuestStub({
-        needsDesign: true,
-        designPort: 5173,
-      });
-
-      const result = questContract.parse(quest);
-
-      expect(result).toStrictEqual({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        title: 'Add Authentication',
-        status: 'in_progress',
-        createdAt: '2024-01-15T10:00:00.000Z',
-        designDecisions: [],
-        operations: [],
-        toolingRequirements: [],
-        packagesAffected: [],
-        packageGraph: [],
-        contracts: [],
-        flows: [FlowStub()],
-        comments: [],
-        needsDesign: true,
-        designPort: 5173,
-        questType: 'feature',
-        userRequest: 'Add authentication to the application',
-        workItems: [],
-        wardResults: [],
-        riftcarverResults: [],
-        sessions: [],
-        planningNotes: {
-          blightLedger: [],
-          questNotes: [],
-          operationPlans: [],
-        },
-      });
+      expect(Object.hasOwn(result, 'designPort')).toBe(false);
     });
 
     it('VALID: quest without flows field => backward compat defaults to empty array', () => {
@@ -577,7 +528,6 @@ describe('questContract', () => {
         contracts: [],
         flows: [FlowStub()],
         comments: [],
-        needsDesign: false,
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],

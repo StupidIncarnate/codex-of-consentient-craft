@@ -1,7 +1,7 @@
 /**
- * PURPOSE: The seven `docs --for <scope>` values — one per tool-using role — derived from
+ * PURPOSE: The five `docs --for <scope>` values — one per tool-using role — derived from
  * `siegelenseCallStatics.docs.scopes` rather than retyped, the same way `stepVerbContract` derives
- * its enum, so an eighth role never leaves two lists to keep in sync. Reach for this over a raw
+ * its enum, so a sixth role never leaves two lists to keep in sync. Reach for this over a raw
  * scope string anywhere a value is validated as belonging to the closed set rather than merely
  * being shaped like one of its members — the argv parser's refusal for an unknown scope is built
  * from this contract's own option list.

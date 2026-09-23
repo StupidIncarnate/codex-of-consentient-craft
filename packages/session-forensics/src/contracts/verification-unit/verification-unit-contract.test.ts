@@ -13,9 +13,9 @@ describe('verificationUnitContract', () => {
         packages: ['web'],
         addedBy: 'siegemaster',
         verificationMethod: 'reading',
-        trackVerdicts: {
-          codeweaver: 'confirmed',
-          siegemaster: 'confirmed',
+        trackMarks: {
+          codeweaver: 'met',
+          siegemaster: 'met',
         },
       });
 
@@ -24,10 +24,32 @@ describe('verificationUnitContract', () => {
           nodeId: 'transcript-panel',
           addedBy: 'siegemaster',
           verificationMethod: 'reading',
-          trackVerdicts: {
-            codeweaver: 'confirmed',
-            siegemaster: 'confirmed',
+          trackMarks: {
+            codeweaver: 'met',
+            siegemaster: 'met',
           },
+        }),
+      );
+    });
+
+    it('VALID: {verificationMethod: human-check} => returns the branded unit', () => {
+      const result = verificationUnitContract.parse({
+        flowId: 'render-images-in-transcript',
+        flowType: 'runtime',
+        kind: 'observable',
+        unitId: 'looks-right-to-a-person',
+        nodeId: 'transcript-panel',
+        packages: ['web'],
+        verificationMethod: 'human-check',
+        trackMarks: {},
+      });
+
+      expect(result).toStrictEqual(
+        VerificationUnitStub({
+          unitId: 'looks-right-to-a-person',
+          nodeId: 'transcript-panel',
+          verificationMethod: 'human-check',
+          trackMarks: {},
         }),
       );
     });
@@ -41,9 +63,9 @@ describe('verificationUnitContract', () => {
         nodeId: 'compose-node',
         packages: ['web'],
         verificationMethod: 'test',
-        trackVerdicts: {
-          codeweaver: 'confirmed',
-          flowrider: 'confirmed',
+        trackMarks: {
+          codeweaver: 'met',
+          flowrider: 'met',
         },
       });
 
@@ -53,9 +75,9 @@ describe('verificationUnitContract', () => {
           kind: 'branch',
           unitId: 'edge-attach-fails-to-error',
           nodeId: 'compose-node',
-          trackVerdicts: {
-            codeweaver: 'confirmed',
-            flowrider: 'confirmed',
+          trackMarks: {
+            codeweaver: 'met',
+            flowrider: 'met',
           },
         }),
       );
@@ -68,8 +90,8 @@ describe('verificationUnitContract', () => {
         kind: 'off-map',
         unitId: 'unhandled-rejection',
         verificationMethod: 'test',
-        trackVerdicts: {
-          siegemaster: 'confirmed',
+        trackMarks: {
+          siegemaster: 'met',
         },
       });
 
@@ -79,14 +101,14 @@ describe('verificationUnitContract', () => {
           kind: 'off-map',
           unitId: 'unhandled-rejection',
           packages: [],
-          trackVerdicts: {
-            siegemaster: 'confirmed',
+          trackMarks: {
+            siegemaster: 'met',
           },
         }),
       );
     });
 
-    it('VALID: {trackVerdicts mixes confirmed and unconfirmable} => both keys present, siegemaster key absent', () => {
+    it('VALID: {trackMarks mixes met and cant-meet} => both keys present, siegemaster key absent', () => {
       const result = verificationUnitContract.parse({
         flowId: 'render-images-in-transcript',
         flowType: 'runtime',
@@ -94,17 +116,17 @@ describe('verificationUnitContract', () => {
         unitId: 'check-thumbnail-renders',
         packages: ['web'],
         verificationMethod: 'test',
-        trackVerdicts: {
-          codeweaver: 'confirmed',
-          flowrider: 'unconfirmable',
+        trackMarks: {
+          codeweaver: 'met',
+          flowrider: 'cant-meet',
         },
       });
 
       expect(result).toStrictEqual(
         VerificationUnitStub({
-          trackVerdicts: {
-            codeweaver: 'confirmed',
-            flowrider: 'unconfirmable',
+          trackMarks: {
+            codeweaver: 'met',
+            flowrider: 'cant-meet',
           },
         }),
       );
@@ -120,10 +142,10 @@ describe('verificationUnitContract', () => {
         unitId: 'composer-shows-thumbnail',
         nodeId: 'composer-node',
         verificationMethod: 'test',
-        trackVerdicts: {
-          codeweaver: 'confirmed',
-          flowrider: 'confirmed',
-          siegemaster: 'confirmed',
+        trackMarks: {
+          codeweaver: 'met',
+          flowrider: 'met',
+          siegemaster: 'met',
         },
       });
 
@@ -134,10 +156,10 @@ describe('verificationUnitContract', () => {
           unitId: 'composer-shows-thumbnail',
           nodeId: 'composer-node',
           packages: [],
-          trackVerdicts: {
-            codeweaver: 'confirmed',
-            flowrider: 'confirmed',
-            siegemaster: 'confirmed',
+          trackMarks: {
+            codeweaver: 'met',
+            flowrider: 'met',
+            siegemaster: 'met',
           },
         }),
       );
@@ -151,10 +173,10 @@ describe('verificationUnitContract', () => {
         unitId: 'composer-shows-thumbnail',
         nodeId: 'composer-node',
         packages: ['web'],
-        trackVerdicts: {
-          codeweaver: 'confirmed',
-          flowrider: 'confirmed',
-          siegemaster: 'confirmed',
+        trackMarks: {
+          codeweaver: 'met',
+          flowrider: 'met',
+          siegemaster: 'met',
         },
       });
 
@@ -165,18 +187,18 @@ describe('verificationUnitContract', () => {
           unitId: 'composer-shows-thumbnail',
           nodeId: 'composer-node',
           verificationMethod: 'test',
-          trackVerdicts: {
-            codeweaver: 'confirmed',
-            flowrider: 'confirmed',
-            siegemaster: 'confirmed',
+          trackMarks: {
+            codeweaver: 'met',
+            flowrider: 'met',
+            siegemaster: 'met',
           },
         }),
       );
     });
   });
 
-  describe('empty trackVerdicts', () => {
-    it('EMPTY: {trackVerdicts: {}} => every track key absent', () => {
+  describe('empty trackMarks', () => {
+    it('EMPTY: {trackMarks: {}} => every track key absent', () => {
       const result = verificationUnitContract.parse({
         flowId: 'render-images-in-transcript',
         flowType: 'runtime',
@@ -184,12 +206,12 @@ describe('verificationUnitContract', () => {
         unitId: 'check-thumbnail-renders',
         packages: ['web'],
         verificationMethod: 'test',
-        trackVerdicts: {},
+        trackMarks: {},
       });
 
       expect(result).toStrictEqual(
         VerificationUnitStub({
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
     });
@@ -208,10 +230,10 @@ describe('verificationUnitContract', () => {
       );
     });
 
-    it('INVALID: {trackVerdicts.codeweaver: nonsense} => throws', () => {
+    it('INVALID: {trackMarks.codeweaver: nonsense} => throws', () => {
       expect(() =>
         VerificationUnitStub({
-          trackVerdicts: { codeweaver: 'nonsense' as never },
+          trackMarks: { codeweaver: 'nonsense' as never },
         }),
       ).toThrow(/Invalid enum value/u);
     });

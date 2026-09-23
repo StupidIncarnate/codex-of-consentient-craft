@@ -14,7 +14,7 @@
  *   specName: 'dungeonmaster-stack',
  *   instanceId: 'inst_7f3a9c21',
  *   driverMessage: 'Lane spec dungeonmaster-stack requires a fake agent CLI...',
- *   driverLogPath: '/repo/.siegelense/unowned/instances/inst_7f3a9c21/driver.log',
+ *   driverLogPath: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/driver.log',
  * });
  * // Throws error naming the spec and instance, the driver's own diagnosis, and its log path
  *

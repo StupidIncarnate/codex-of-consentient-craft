@@ -4,6 +4,10 @@ import {
   QuestIdStub,
   ContentTextStub,
   FlowStub,
+  FlowNodeStub,
+  FlowObservableStub,
+  WorkItemStub,
+  UnitObservationStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { DigestRunResponder } from './digest-run-responder';
@@ -252,14 +256,14 @@ describe('DigestRunResponder', () => {
       expect(String(result)).toBe(
         [
           'Flow bare-flow',
-          "  sign-off track         REQUIRED  signed  confirmed  can't confirm  NOT SIGNED",
-          '  codeweaver                    0       0          0              0           0',
-          '  flowrider                     0       0          0              0           0',
-          '  siegemaster                   7       0          0              0           7',
+          "  sign-off track         REQUIRED  marked        met     can't meet    unmet    unmarked",
+          '  codeweaver                    0       0          0              0        0           0',
+          '  flowrider                     0       0          0              0        0           0',
+          '  siegemaster                   7       0          0              0        0           7',
           '',
           'These counts can be too high.',
           'This reading has no operation item, so it counts rows a real checklist would leave out.',
-          'For the exact numbers, ask get-qa-checklist({questId, operationItemId}).',
+          'For the exact numbers, ask get-quest-work({questId, operationItemId}).',
         ].join('\n'),
       );
     });
@@ -274,6 +278,50 @@ describe('DigestRunResponder', () => {
       });
 
       expect(String(result)).toBe('');
+    });
+
+    it('VALID: {quest carries a codeweaver work item that marked an observable met} => the rendered row reflects it, end to end', () => {
+      const proxy = DigestRunResponderProxy();
+      const questId = QuestIdStub({ value: 'marked-observable-quest' });
+      const observable = FlowObservableStub({ id: 'shows-toast', package: 'web' });
+      const node = FlowNodeStub({
+        id: 'compose-node',
+        type: 'state',
+        packages: ['web'],
+        observables: [observable],
+      });
+      const flow = FlowStub({
+        id: 'marked-flow',
+        flowType: 'runtime',
+        nodes: [node],
+        edges: [],
+      });
+      const workItem = WorkItemStub({
+        role: 'codeweaver',
+        observations: [
+          UnitObservationStub({ unitId: 'marked-flow:observable:shows-toast', mark: 'met' }),
+        ],
+      });
+      proxy.setupQuest({ questId, questJson: { flows: [flow], workItems: [workItem] } });
+
+      const result = DigestRunResponder({
+        command: DigestCommandStub({ value: 'coverage' }),
+        target: questId,
+      });
+
+      expect(String(result)).toBe(
+        [
+          'Flow marked-flow',
+          "  sign-off track         REQUIRED  marked        met     can't meet    unmet    unmarked",
+          '  codeweaver                    1       1          1              0        0           0',
+          '  flowrider                     1       0          0              0        0           1',
+          '  siegemaster                   8       0          0              0        0           8',
+          '',
+          'These counts can be too high.',
+          'This reading has no operation item, so it counts rows a real checklist would leave out.',
+          'For the exact numbers, ask get-quest-work({questId, operationItemId}).',
+        ].join('\n'),
+      );
     });
   });
 });

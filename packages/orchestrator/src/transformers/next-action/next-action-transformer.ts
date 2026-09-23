@@ -38,6 +38,17 @@
  * No `mintedBy` and no route for the outcome is `reason: 'no-minter'`: not a stall, and not a silent
  * pass.
  *
+ * A PLAIN DECLARED-ROUTE MINT (QUESTION 4's forward edge) ALSO STAMPS `mintedBy` — naming the step's
+ * own current terminal item — WHENEVER THE TARGET STEP DECLARES NO `done` ROUTE OF ITS OWN. `ward`
+ * (`kind: 'deterministic'`) mints with `assignedUnitIds: []`, so its `unmet` route to `repair` never
+ * takes question 2's mark-mint branch (there is no per-unit mark to group by) — it is a plain forward
+ * route, exactly like `work`'s `done` route to `review`. The two differ only in what the TARGET
+ * declares: `review` has its own `done`/`unmet` routes and never needs a minter back; `repair` (and
+ * `fixHappy`/`fixAdversarial`) declare no `done` route at all and rely ENTIRELY on the return edge to
+ * get back to the gate that routed them in. Stamping `mintedBy` only where the target lacks `done`
+ * keeps a target that DOES declare one free to hit `no-minter` on a genuine gap in its own route
+ * table, rather than silently absorbing it into an unintended return.
+ *
  * THIS FILE TAKES NO LOCK, EVER. `questWithModifyLockBroker` is deliberately non-reentrant and
  * wrapping a write in it deadlocks that questId, so the router is pure and synchronous and its caller
  * reads the plan BEFORE it enters the lock — which is also why `plan` arrives as an argument rather
@@ -569,22 +580,35 @@ export const nextActionTransformer = ({
   }
 
   const routeTarget = stepNameContract.parse(target);
+  const routeBatch = stepEntryBatchTransformer({
+    quest,
+    plan,
+    operationItemId,
+    step: routeTarget,
+    itemRole: operationItem.role,
+    stepRole: targetNode.role,
+    deterministic: targetNode.kind === 'deterministic',
+    needsLane: targetNode.needsLane === true,
+  });
+
+  // The target declares no `done` route of its own (`repair`, `fixHappy`, `fixAdversarial`) — it is
+  // designed to be return-only, so THIS mint has to carry the return edge's fuel because no mark-mint
+  // ever will. `routeGateId` is the same "current item at this step" fallback question 2's mark-mint
+  // already uses; a target that DOES declare `done` (`review`, `work`, riftcarver's and wardFull's own
+  // `repair`) is left untouched, so a genuine gap in ITS OWN route table still surfaces as
+  // `no-minter` instead of a silent, unintended return.
+  const routeGateId = terminalStepItems.at(-1)?.id;
+  const batch =
+    targetNode.routes.done === undefined && routeGateId !== undefined
+      ? routeBatch.map((item) => mintedWorkItemContract.parse({ ...item, mintedBy: routeGateId }))
+      : routeBatch;
 
   return mintNextActionTransformer({
     quest,
     operationItemId,
     family,
     step: routeTarget,
-    batch: stepEntryBatchTransformer({
-      quest,
-      plan,
-      operationItemId,
-      step: routeTarget,
-      itemRole: operationItem.role,
-      stepRole: targetNode.role,
-      deterministic: targetNode.kind === 'deterministic',
-      needsLane: targetNode.needsLane === true,
-    }),
+    batch,
     cause: 'plan-batch',
     maxVisits: targetNode.maxVisits,
     maxConcurrent: targetNode.maxConcurrent,

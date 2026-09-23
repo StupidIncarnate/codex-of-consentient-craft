@@ -2,7 +2,7 @@ import { RecipesListingResponderProxy } from './recipes-listing-responder.proxy'
 
 describe('RecipesListingResponder', () => {
   describe('delegation to recipesListingBuildBroker', () => {
-    it('VALID: {} => delegates to broker and returns all 8 declared recipes', () => {
+    it('VALID: {} => delegates to broker and returns all 9 declared recipes', () => {
       const proxy = RecipesListingResponderProxy();
 
       const result = proxy.callResponder();
@@ -30,7 +30,9 @@ describe('RecipesListingResponder', () => {
         {
           recipeName: 'guild-mid-execution',
           description:
-            'one guild holding three quests, the first running with its riftcarver item dropped',
+            'one guild holding three quests — the first running with its riftcarver item dropped, ' +
+            'the second and third both freshly created and told apart only by their seeded title ' +
+            'and request text ("Quest 2"/"Quest 3")',
           inputKeys: [],
           runs: { serverless: true },
           makes: [
@@ -50,13 +52,12 @@ describe('RecipesListingResponder', () => {
         {
           recipeName: 'quest-completed',
           description:
-            'one guild holding one completed quest with all workflow operations finished',
+            'one guild holding one completed quest with all workflow operations and work items finished',
           inputKeys: [],
           runs: { serverless: true },
           makes: [
             { ingredient: 'guild', count: 1 },
             { ingredient: 'quest', count: 1 },
-            { ingredient: 'operation', count: 2 },
           ],
         },
         {
@@ -69,7 +70,9 @@ describe('RecipesListingResponder', () => {
         },
         {
           recipeName: 'session-with-nested-chain',
-          description: 'one session under an existing guild, holding a nested sub-agent chain',
+          description:
+            'one session under an existing guild, holding a nested sub-agent chain two levels ' +
+            'deep — a top agent with one sub-agent nested under it',
           inputKeys: ['guildPath'],
           runs: { serverless: true },
           makes: [{ ingredient: 'session', count: 1 }],
@@ -85,6 +88,17 @@ describe('RecipesListingResponder', () => {
             { ingredient: 'quest', count: 2 },
             { ingredient: 'session', count: 1 },
             { ingredient: 'subagent', count: 1 },
+          ],
+        },
+        {
+          recipeName: 'session-with-nested-subagent',
+          description:
+            'one session transcript holding an outer sub-agent chain with one chain nested inside it, both finished',
+          inputKeys: ['guild'],
+          runs: { serverless: false, needsServerFor: 'guild' },
+          makes: [
+            { ingredient: 'session', count: 1 },
+            { ingredient: 'subagent', count: 2 },
           ],
         },
       ]);

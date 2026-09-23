@@ -15,7 +15,7 @@
  * stale-process watchdog at module scope, and this package is a short-lived hydration tool, not
  * the long-running server those exist for. Both brokers still resolve their quest file via the
  * GLOBAL `process.env.DUNGEONMASTER_HOME`, never via `target.home` — the same escape-the-target
- * trap `packages/siegelense-recipes/CLAUDE.md` already documents for `guildWriteRouteBroker` and
+ * trap `packages/hydration-recipes/CLAUDE.md` already documents for `guildWriteRouteBroker` and
  * `operationWriteRouteBroker`. This route inherits it rather than fixing it: `fileTargetHarness`
  * sets that env var for the duration of a test for exactly this reason.
  *

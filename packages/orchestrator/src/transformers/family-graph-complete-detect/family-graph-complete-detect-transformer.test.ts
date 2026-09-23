@@ -99,7 +99,7 @@ describe('familyGraphCompleteDetectTransformer', () => {
       ).toBe(false);
     });
 
-    it('VALID: {a complete wardFull scope beside a pt N wardFull scope still pending} => false', () => {
+    it('VALID: {a complete wardFull scope beside a second wardFull scope still pending} => false', () => {
       expect(
         familyGraphCompleteDetectTransformer({
           operations: [
@@ -107,7 +107,7 @@ describe('familyGraphCompleteDetectTransformer', () => {
             OperationItemStub({
               id: 'f6a7b8c9-58cc-4372-a567-0e02b2c3d479',
               role: 'ward',
-              text: 'pt 2: Ward gate (full monorepo)',
+              text: 'Ward gate (full monorepo) — second scope',
               status: 'pending',
               locked: true,
             }),

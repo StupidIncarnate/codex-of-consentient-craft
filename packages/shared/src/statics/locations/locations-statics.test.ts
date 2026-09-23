@@ -36,7 +36,8 @@ describe('locationsStatics', () => {
         dungeonmasterQuests: '.dungeonmaster-quests',
         dungeonmasterDevHome: '.dungeonmaster-dev',
         wardLocalDir: '.ward',
-        siegelenseLink: '.siegelense',
+        dungeonmasterAssets: '.dungeonmaster-assets',
+        siegelenseLink: 'siegelense-assets',
       },
       dungeonmasterHome: {
         dir: '.dungeonmaster',
@@ -57,7 +58,6 @@ describe('locationsStatics', () => {
       quest: {
         wardResultsDir: 'ward-results',
         riftcarverResultsDir: 'riftcarver-results',
-        designDir: 'design',
         questFile: 'quest.json',
         imagesDir: 'images',
         plannedWorkDir: 'planned-work',

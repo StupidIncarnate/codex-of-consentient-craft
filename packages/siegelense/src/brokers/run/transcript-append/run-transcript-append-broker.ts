@@ -8,7 +8,7 @@
  *
  * USAGE:
  * await runTranscriptAppendBroker({
- *   transcriptPath: AbsoluteFilePathStub({ value: '/repo/.siegelense/.../runs/run_2.jsonl' }),
+ *   transcriptPath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/.../runs/run_2.jsonl' }),
  *   reading: StepReadingStub(),
  * });
  * // Appends one JSON line, then returns { success: true }

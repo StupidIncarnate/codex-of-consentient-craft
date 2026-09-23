@@ -17,18 +17,18 @@ describe('HydrationRouteUnavailableError', () => {
       });
     });
 
-    it('EDGE: {availableRoutes: [api, recording]} => lists every route the ingredient declares', () => {
+    it('EDGE: {availableRoutes: [api, write]} => lists every route the ingredient declares', () => {
       const error = new HydrationRouteUnavailableError({
         recipeName: 'guild-mid-execution',
         ingredientName: 'session',
-        availableRoutes: ['api', 'recording'],
+        availableRoutes: ['api', 'write'],
         targetLacks: 'a baseUrl',
       });
 
       expect({ name: error.name, message: error.message }).toStrictEqual({
         name: 'HydrationRouteUnavailableError',
         message:
-          'recipe "guild-mid-execution": ingredient "session" needs a route this target cannot serve. Routes it declares: api, recording. The target lacks a baseUrl',
+          'recipe "guild-mid-execution": ingredient "session" needs a route this target cannot serve. Routes it declares: api, write. The target lacks a baseUrl',
       });
     });
   });

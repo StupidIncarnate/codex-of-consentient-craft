@@ -95,7 +95,6 @@ export const questCreateBroker = async ({
     toolingRequirements: [],
     contracts: [],
     flows: [],
-    needsDesign: false,
     userRequest: input.userRequest,
     workItems: linkedWorkItems,
     wardResults: [],

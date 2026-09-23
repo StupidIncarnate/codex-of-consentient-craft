@@ -5,8 +5,8 @@
  * ref this one already put in the walk's state.
  *
  * A route that THROWS is classified by which kind the pre-flight selected: a `write` route's failure
- * is named by its path (`HydrationWriteFailedError`); an `api` or `recording` route's failure is
- * named by its URL, status and body (`HydrationRouteFailedError`). The runner has no independent
+ * is named by its path (`HydrationWriteFailedError`); an `api` route's failure is named by its URL,
+ * status and body (`HydrationRouteFailedError`). The runner has no independent
  * source for the URL (`RouteFn` carries `target` and `fields`, never a URL) — it passes through
  * whatever `routeFailureTransformer` mined, `null` included, and the error names that honestly
  * rather than fabricating one.

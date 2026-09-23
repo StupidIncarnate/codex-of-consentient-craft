@@ -5,6 +5,8 @@ import {
   FlowNodeStub,
   FlowEdgeStub,
   FlowObservableStub,
+  WorkItemStub,
+  UnitObservationStub,
 } from '@dungeonmaster/shared/contracts';
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
@@ -22,7 +24,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -33,7 +35,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'checkout-success',
           nodeId: 'checkout-success',
           packages: ['web'],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
@@ -56,7 +58,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -76,7 +78,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -87,7 +89,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'order-cancelled',
           nodeId: 'order-cancelled',
           packages: ['web'],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         VerificationUnitStub({
           flowId: 'order-flow',
@@ -95,7 +97,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'order-shipped',
           nodeId: 'order-shipped',
           packages: ['web'],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
@@ -120,7 +122,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -131,7 +133,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'attach-fails',
           nodeId: 'compose-node->error-node',
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
@@ -149,7 +151,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -179,7 +181,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -191,7 +193,7 @@ describe('questToUnitsTransformer', () => {
           nodeId: 'compose-node',
           packages: ['web'],
           verificationMethod: 'reading',
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
@@ -214,7 +216,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -226,10 +228,70 @@ describe('questToUnitsTransformer', () => {
           nodeId: 'compose-node',
           packages: ['web'],
           verificationMethod: 'test',
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
+    });
+
+    it('VALID: {verifyByHuman: true} => verificationMethod human-check', () => {
+      const observable = FlowObservableStub({
+        id: 'looks-right-to-a-person',
+        package: 'web',
+        verifyByHuman: true,
+      });
+      const node = FlowNodeStub({
+        id: 'compose-node',
+        packages: ['web'],
+        observables: [observable],
+      });
+      const flow = FlowStub({ id: 'flow-human', nodes: [node], edges: [] });
+
+      const result = questToUnitsTransformer({ flows: [flow] });
+
+      const offMapUnits = Object.keys(qaOffMapProbeStatics.byFamily).map((family) =>
+        VerificationUnitStub({
+          flowId: 'flow-human',
+          kind: 'off-map',
+          unitId: family,
+          packages: [],
+          trackMarks: {},
+        }),
+      );
+
+      expect(result).toStrictEqual([
+        VerificationUnitStub({
+          flowId: 'flow-human',
+          kind: 'observable',
+          unitId: 'looks-right-to-a-person',
+          nodeId: 'compose-node',
+          packages: ['web'],
+          verificationMethod: 'human-check',
+          trackMarks: {},
+        }),
+        ...offMapUnits,
+      ]);
+    });
+
+    it('VALID: {verifyByReading: true AND verifyByHuman: true} => verificationMethod human-check, verifyByHuman wins', () => {
+      const observable = FlowObservableStub({
+        id: 'imports-the-shared-limit-and-looks-right',
+        package: 'web',
+        verifyByReading: true,
+        verifyByHuman: true,
+      });
+      const node = FlowNodeStub({
+        id: 'compose-node',
+        packages: ['web'],
+        observables: [observable],
+      });
+      const flow = FlowStub({ id: 'flow-both-flags', nodes: [node], edges: [] });
+
+      const result = questToUnitsTransformer({ flows: [flow] });
+
+      const observableUnit = result.find((unit) => unit.kind === 'observable');
+
+      expect(observableUnit?.verificationMethod).toBe('human-check');
     });
 
     it('VALID: {addedBy: siegemaster} => carried through', () => {
@@ -253,7 +315,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -265,7 +327,7 @@ describe('questToUnitsTransformer', () => {
           nodeId: 'compose-node',
           packages: ['web'],
           addedBy: 'siegemaster',
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
@@ -288,7 +350,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -299,7 +361,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'in-spec-from-start',
           nodeId: 'compose-node',
           packages: ['web'],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
@@ -323,7 +385,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -334,7 +396,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'shows-spinner',
           nodeId: 'compose-node',
           packages: ['web'],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         VerificationUnitStub({
           flowId: 'flow-two-obs',
@@ -342,7 +404,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'shows-result',
           nodeId: 'compose-node',
           packages: ['web'],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
@@ -350,7 +412,7 @@ describe('questToUnitsTransformer', () => {
   });
 
   describe('off-map units', () => {
-    it('EDGE: {zero offMapSignoffs entries} => seven units, all trackVerdicts empty', () => {
+    it('EDGE: {zero offMapSignoffs entries} => seven units, all trackMarks empty', () => {
       const node = FlowNodeStub({ id: 'idle', type: 'state', packages: ['web'] });
       const flow = FlowStub({
         id: 'no-signoffs-flow',
@@ -367,7 +429,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -408,7 +470,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -419,7 +481,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'confirm-done',
           nodeId: 'confirm-done',
           packages: ['web'],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         VerificationUnitStub({
           flowId: 'combo-flow',
@@ -427,7 +489,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'shows-thumbnail',
           nodeId: 'compose-node',
           packages: ['web'],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         VerificationUnitStub({
           flowId: 'combo-flow',
@@ -435,7 +497,7 @@ describe('questToUnitsTransformer', () => {
           unitId: 'attach-fails',
           nodeId: 'compose-node->error-node',
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
         ...offMapUnits,
       ]);
@@ -455,7 +517,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
       const offMapUnitsB = Object.keys(qaOffMapProbeStatics.byFamily).map((family) =>
@@ -464,7 +526,7 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
@@ -490,11 +552,152 @@ describe('questToUnitsTransformer', () => {
           kind: 'off-map',
           unitId: family,
           packages: [],
-          trackVerdicts: {},
+          trackMarks: {},
         }),
       );
 
       expect(result).toStrictEqual(offMapUnits);
+    });
+  });
+
+  describe('trackMarks from workItem observations', () => {
+    it('VALID: {codeweaver work item observes met} => that unit carries codeweaver: met, nothing else marked', () => {
+      const observable = FlowObservableStub({ id: 'shows-toast', package: 'web' });
+      const node = FlowNodeStub({
+        id: 'compose-node',
+        packages: ['web'],
+        observables: [observable],
+      });
+      const flow = FlowStub({ id: 'send-flow', nodes: [node], edges: [] });
+      const workItem = WorkItemStub({
+        role: 'codeweaver',
+        observations: [
+          UnitObservationStub({ unitId: 'send-flow:observable:shows-toast', mark: 'met' }),
+        ],
+      });
+
+      const result = questToUnitsTransformer({ flows: [flow], workItems: [workItem] });
+
+      const observableUnit = result.find((unit) => unit.kind === 'observable');
+
+      expect(observableUnit?.trackMarks).toStrictEqual({ codeweaver: 'met' });
+
+      const offMapUnit = result.find((unit) => unit.kind === 'off-map');
+
+      expect(offMapUnit?.trackMarks).toStrictEqual({});
+    });
+
+    it("VALID: {codeweaver marks met, flowrider marks cant-meet on the SAME unit} => each track's own mark lands, per R2", () => {
+      const observable = FlowObservableStub({ id: 'shows-toast', package: 'web' });
+      const node = FlowNodeStub({
+        id: 'compose-node',
+        packages: ['web'],
+        observables: [observable],
+      });
+      const flow = FlowStub({ id: 'send-flow', nodes: [node], edges: [] });
+      const codeweaverItem = WorkItemStub({
+        role: 'codeweaver',
+        observations: [
+          UnitObservationStub({ unitId: 'send-flow:observable:shows-toast', mark: 'met' }),
+        ],
+      });
+      const flowriderItem = WorkItemStub({
+        id: '11111111-1111-4111-8111-111111111111',
+        role: 'flowrider',
+        observations: [
+          UnitObservationStub({
+            unitId: 'send-flow:observable:shows-toast',
+            mark: 'cant-meet',
+            toSettle: 'wire the toast assertion',
+          }),
+        ],
+      });
+
+      const result = questToUnitsTransformer({
+        flows: [flow],
+        workItems: [codeweaverItem, flowriderItem],
+      });
+
+      const observableUnit = result.find((unit) => unit.kind === 'observable');
+
+      expect(observableUnit?.trackMarks).toStrictEqual({
+        codeweaver: 'met',
+        flowrider: 'cant-meet',
+      });
+    });
+
+    it('VALID: {two codeweaver work items mark the same unit, unmet then met} => the LATER work item wins, by array order', () => {
+      const observable = FlowObservableStub({ id: 'shows-toast', package: 'web' });
+      const node = FlowNodeStub({
+        id: 'compose-node',
+        packages: ['web'],
+        observables: [observable],
+      });
+      const flow = FlowStub({ id: 'send-flow', nodes: [node], edges: [] });
+      const firstAttempt = WorkItemStub({
+        role: 'codeweaver',
+        observations: [
+          UnitObservationStub({
+            unitId: 'send-flow:observable:shows-toast',
+            mark: 'unmet',
+            evidence: 'left the toast unimplemented',
+          }),
+        ],
+      });
+      const successor = WorkItemStub({
+        id: '22222222-2222-4222-8222-222222222222',
+        role: 'codeweaver',
+        observations: [
+          UnitObservationStub({ unitId: 'send-flow:observable:shows-toast', mark: 'met' }),
+        ],
+      });
+
+      const result = questToUnitsTransformer({
+        flows: [flow],
+        workItems: [firstAttempt, successor],
+      });
+
+      const observableUnit = result.find((unit) => unit.kind === 'observable');
+
+      expect(observableUnit?.trackMarks).toStrictEqual({ codeweaver: 'met' });
+    });
+
+    it('EDGE: {observation.unitId names a different flow} => no unit matches, trackMarks stays empty', () => {
+      const observable = FlowObservableStub({ id: 'shows-toast', package: 'web' });
+      const node = FlowNodeStub({
+        id: 'compose-node',
+        packages: ['web'],
+        observables: [observable],
+      });
+      const flow = FlowStub({ id: 'send-flow', nodes: [node], edges: [] });
+      const workItem = WorkItemStub({
+        role: 'codeweaver',
+        observations: [
+          UnitObservationStub({ unitId: 'other-flow:observable:shows-toast', mark: 'met' }),
+        ],
+      });
+
+      const result = questToUnitsTransformer({ flows: [flow], workItems: [workItem] });
+
+      const observableUnit = result.find((unit) => unit.kind === 'observable');
+
+      expect(observableUnit?.trackMarks).toStrictEqual({});
+    });
+
+    it('EMPTY: {workItems omitted} => every unit still carries an empty trackMarks, exactly as before', () => {
+      const observable = FlowObservableStub({ id: 'shows-toast', package: 'web' });
+      const node = FlowNodeStub({
+        id: 'compose-node',
+        packages: ['web'],
+        observables: [observable],
+      });
+      const flow = FlowStub({ id: 'send-flow', nodes: [node], edges: [] });
+
+      const result = questToUnitsTransformer({ flows: [flow] });
+
+      const observableUnit = result.find((unit) => unit.kind === 'observable');
+
+      expect(observableUnit?.trackMarks).toStrictEqual({});
     });
   });
 });

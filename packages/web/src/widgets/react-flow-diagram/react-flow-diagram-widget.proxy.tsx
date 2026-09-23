@@ -11,6 +11,7 @@ import { FlowNodeCardLayerWidgetProxy } from './flow-node-card-layer-widget.prox
 import { FlowNodeDetailPanelLayerWidgetProxy } from './flow-node-detail-panel-layer-widget.proxy';
 import { FlowObservableNodeLayerWidgetProxy } from './flow-observable-node-layer-widget.proxy';
 import { FlowPortalNodeLayerWidgetProxy } from './flow-portal-node-layer-widget.proxy';
+import { FlowRecipeCalloutLayerWidgetProxy } from './flow-recipe-callout-layer-widget.proxy';
 
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 
@@ -49,6 +50,9 @@ interface ReactFlowDiagramWidgetProxyResult {
   getPackageChipsOnNode: (params: { nodeId: string }) => HTMLElement['textContent'][];
   getPackageChipTypesOnNode: (params: { nodeId: string }) => HTMLElement['textContent'][];
   getObservablePackageNames: () => HTMLElement['textContent'][];
+  hasRecipeCallout: () => boolean;
+  getRecipeNames: () => HTMLElement['textContent'][];
+  getRecipeCitations: () => HTMLElement['textContent'][];
 }
 
 export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult => {
@@ -62,6 +66,7 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
   FlowNodeDetailPanelLayerWidgetProxy();
   FlowObservableNodeLayerWidgetProxy();
   FlowPortalNodeLayerWidgetProxy();
+  const recipeCalloutProxy = FlowRecipeCalloutLayerWidgetProxy();
   const user = userEvent.setup(userEventStatics.options);
   // The widget logs a rejected ELK layout directly from its catch (no thrown error surfaces to
   // React), so any test that triggers that path would otherwise throw here. passthrough: true —
@@ -185,6 +190,9 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
     },
     getObservablePackageNames: (): HTMLElement['textContent'][] =>
       screen.queryAllByTestId('FLOW_OBSERVABLE_NODE_PACKAGE').map((element) => element.textContent),
+    hasRecipeCallout: (): boolean => recipeCalloutProxy.hasCallout(),
+    getRecipeNames: (): HTMLElement['textContent'][] => recipeCalloutProxy.getRecipeNames(),
+    getRecipeCitations: (): HTMLElement['textContent'][] => recipeCalloutProxy.getRecipeCitations(),
     hasCommentsSection: (): boolean => screen.queryByTestId('FLOW_DETAIL_PANEL_COMMENTS') !== null,
     getPanelCommentTexts: (): HTMLElement['textContent'][] =>
       screen

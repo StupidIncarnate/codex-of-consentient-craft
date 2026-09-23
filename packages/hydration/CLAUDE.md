@@ -63,7 +63,29 @@ diagnosis of a broken ingredient opens with a hunt for the counterpart instead o
 |---|---|
 | `api` | the real code path changed. Read the handler |
 | `write` | diff what `copies:` writes NOW against what the ingredient writes — it is a copy that stopped matching |
-| `recording` | the recording is of a version that no longer exists. Re-capture, do not patch |
+
+## Every path a `write` route touches resolves inside the target it was handed
+
+A `write` route may CREATE the directories its own output needs — a target is a bare directory and
+nothing else stands them up — but it creates them only underneath the target, and it writes only
+underneath the target. A route that reaches outside is the worst failure this framework has: the
+seed reports success, the spec reads an empty target, and the directory that did get written is
+somewhere no `cleanup()` will ever reach — the operator's own data directory, when the target is
+that.
+
+Two things make the check itself wrong more often than the rule:
+
+- **Resolve before you compare.** A caller's path segment may carry `..`, so a string that begins
+  with the target walks above it. Anchor the path on the target and normalise it, then compare.
+- **Compare with the separator.** `startsWith(target)` alone accepts a SIBLING whose name merely
+  begins with the target's own, and drops the write next to the target instead of in it.
+
+What a route does with a path that fails the check is the ingredient's call, and the two answers
+divide on whether the value has a legitimate life outside the target. A field naming something the
+target OWNS — a record's own file — has none, so an outside path is bad data and the route throws,
+naming the resolved path and the target. A field naming something the target merely POINTS AT — a
+project directory on the operator's machine — legitimately sits outside, so the route records it as
+given and creates nothing.
 
 ## Determinism is structural, not a rule to remember
 

@@ -15,9 +15,8 @@
  * added. A visit that crashed still burned a dispatch, so a `pending`, an `in_progress` and a
  * `failed` item at that step each count exactly as a completed one does. `retryCount` is orphan
  * recovery's budget and a crash-resumed session is the SAME visit; `attempt` / `maxAttempts` are
- * written once at mint and never read back. `operationPtChainTransformer` counts a pt chain the same
- * way and for the same reason: a counter is a second source of truth that a crash, a replay or a
- * hand-edited `quest.json` desyncs from the record it claims to summarise.
+ * written once at mint and never read back. A counter field is a second source of truth that a
+ * crash, a replay or a hand-edited `quest.json` desyncs from the record it claims to summarise.
  *
  * THE CHECK RUNS BEFORE THE MINT, over `visits + batch.length`, so a parallel batch cannot step over
  * the ceiling one item at a time.

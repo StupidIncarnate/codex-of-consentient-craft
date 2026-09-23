@@ -14,7 +14,6 @@ export const executionStepStatusContract = z.enum([
   'in_progress',
   'complete',
   'failed',
-  'partially_complete',
   'blocked',
   'skipped',
 ]);

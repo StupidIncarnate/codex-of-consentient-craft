@@ -2,6 +2,7 @@ import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 import { CountDeltaStub } from '../count-delta/count-delta.stub';
+import { ElementDeltaStub } from '../element-delta/element-delta.stub';
 import { InstanceIdStub } from '../instance-id/instance-id.stub';
 import { RunIdStub } from '../run-id/run-id.stub';
 import { compareAnswerContract } from './compare-answer-contract';
@@ -25,5 +26,9 @@ export const CompareAnswerStub = ({ ...props }: StubArgument<CompareAnswer> = {}
       new: [ContentTextStub({ value: 'POST /api/guilds 500' })],
     },
     pixels: ContentTextStub({ value: 'last capture differs 12%' }),
+    elements: {
+      runA: ElementDeltaStub(),
+      runB: ElementDeltaStub(),
+    },
     ...props,
   });

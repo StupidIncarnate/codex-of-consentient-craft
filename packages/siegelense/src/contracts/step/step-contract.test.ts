@@ -298,14 +298,14 @@ describe('stepContract', () => {
       const result = stepContract.parse({
         step: 'seed',
         recipe: 'session-with-nested-chain',
-        params: { guildPath: '/repo/.siegelense/guilds/g1' },
+        params: { guildPath: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1' },
         as: 'g',
       });
 
       expect(result).toStrictEqual({
         step: 'seed',
         recipe: 'session-with-nested-chain',
-        params: { guildPath: '/repo/.siegelense/guilds/g1' },
+        params: { guildPath: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1' },
         as: 'g',
         node: null,
         expect: 'ok',

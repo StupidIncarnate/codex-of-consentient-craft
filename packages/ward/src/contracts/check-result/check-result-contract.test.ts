@@ -55,6 +55,7 @@ describe('checkResultContract', () => {
                 severity: 'error',
               },
             ],
+            elsewhereErrors: [],
             testFailures: [],
             filesCount: 0,
             discoveredCount: 0,

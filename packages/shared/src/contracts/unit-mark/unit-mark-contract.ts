@@ -1,7 +1,6 @@
 /**
  * PURPOSE: Defines the three-way outcome a session records against one unit — `met` and `cant-meet`
- * both settle it, `unmet` means real work remains. Replaces the mismatched vocabulary the old
- * sign-off tracks each used for the same idea (`confirmed`/`unconfirmable`/`rework`/`pass`/`green`).
+ * both settle it, `unmet` means real work remains.
  *
  * USAGE:
  * unitMarkContract.parse('cant-meet');

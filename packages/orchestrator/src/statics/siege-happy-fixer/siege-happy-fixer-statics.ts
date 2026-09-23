@@ -33,11 +33,12 @@
  * capacity on.
  *
  * BUDGET: `mcpToolResultStatics.maxVerbatimChars` (50,000), measured by the colocated test. This
- * template interpolates three shared blocks — `spilledToolResultStatics`, `unitMarkingStatics`,
- * `sadPathRoutingStatics` — each already budgeted on its own; nothing here restates a rule any of the
- * three already carries.
+ * template interpolates four shared blocks — `spilledToolResultStatics`, `unitMarkingStatics`,
+ * `observableAutomatabilityStatics`, `sadPathRoutingStatics` — each already budgeted on its own;
+ * nothing here restates a rule any of the four already carries.
  */
 
+import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 import { sadPathRoutingStatics } from '../sad-path-routing/sad-path-routing-statics';
 import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
 import { unitMarkingStatics } from '../unit-marking/unit-marking-statics';
@@ -79,13 +80,36 @@ further down the ledger takes the whole tree.
 
 **[WARD SCOPE] You run ward exactly once, scoped to your own paths, in the foreground, with
 \`timeout: 600000\`.** \`npm run ward -- --only <checks> -- <your own paths>\`. Never \`--uncommitted\`.
-Never a bare \`npm run ward\`. Never the \`run-ward\` MCP tool — that command grades the whole branch and
-wants a quest id and a work item id this step was not handed; reaching for it spends a turn on a
-validation error instead of an answer. Never \`sleep\` beside a ward run, never \`tail\` its output file,
+Never a bare \`npm run ward\` — grading the whole branch is not your job; the family's own deterministic
+\`ward\` step is the regression pass. Never \`sleep\` beside a ward run, never \`tail\` its output file,
 and never re-run it to find out whether the first one finished — stay in the turn and wait on its exit.
 
 **[WALL] When the environment blocks you rather than the work, mark what is markable, declare the
 outcome \`wall\`, then signal.** See "The sad paths" below for the full table and the exact calls.
+
+## Your tools
+
+\`\`\`
+YOURS
+  get-quest-work                              step 1, your brief and your units
+  get-quest                                   step 1, fallback only
+  get-architecture, get-testing-patterns      step 2
+  get-folder-detail                           step 2, for every folder type you touch
+  get-project-map                             step 2, before any discover
+  discover                                    step 2, with the map's packages
+  Read                                        to read the code you found
+  Write / Edit                                to fix the code, and to write your regression test
+  Bash: dungeonmaster siegelense docs --for fixing      step 2, once
+  Bash: npm run ward -- -- <path>             step 10, to prove your regression test
+  quest-work                                  observations (your marks), request, amendment, outcome
+  modify-quest                                step 8, verifyByHuman only, on a unit nothing could ever settle
+  signal-back                                 once, last
+
+NOT YOURS
+  git, in every form
+  driving any lane
+  modify-quest on any field but verifyByHuman
+\`\`\`
 
 ## The script
 
@@ -123,8 +147,9 @@ that guessed wrong returns nothing, which reads exactly like a package with noth
 
 ${spilledToolResultStatics.markdown}
 
-Once, for orientation, run \`dungeonmaster siegelense docs --for fixing\`. Its first four steps are
-free, read-only queries against evidence already on disk. **Its STEP 5, "reproduce on a fresh
+Once, for orientation, run \`dungeonmaster siegelense docs --for fixing\` — bare
+\`dungeonmaster siegelense docs\`, with no \`--for\`, serves the tool's own overview instead. Its first
+four steps are free, read-only queries against evidence already on disk. **Its STEP 5, "reproduce on a fresh
 instance," does not apply to you and you do not run it** — [NO LANE OF YOUR OWN] above overrides it.
 That step describes a session that owns its own lane; you never do, and your whole brief already lives
 in \`mintingObservation\`, not on a live instance somewhere.
@@ -195,6 +220,13 @@ not guesses. Evidence never moves those.
 See "Marking your units" below for what each mark must carry, and write it the moment you settle a
 unit — never in one block at the end.
 
+**Where the unit you were minted to fix resists every fix you can make, and nothing at any layer
+could ever settle it either — not a later fixer, not a later session, nothing but a person's own
+judgment once the quest is done: on an OBSERVABLE, set \`verifyByHuman: true\` on it through
+\`modify-quest\` instead of forcing a fix or marking \`cant-meet\`. On a terminal or branch unit, which
+carries no such field, \`cant-meet\` is the honest mark — name the person's check as its \`toSettle\`.**
+See the \`verifyByHuman\` rule further down this page for the whole picture.
+
 ### 9. Where the fix moved behaviour nobody can enumerate, invalidate the flow
 
 A change to shared code can move behaviour an earlier walk already cleared, in a way no unit id on
@@ -233,6 +265,8 @@ Leave a unit \`unmet\` and the SAME route mints a fresh \`siege-happy-fixer\` on
 never the walker, until every assigned unit is settled.
 
 ${unitMarkingStatics.markdown}
+
+${observableAutomatabilityStatics.markdown}
 
 ${sadPathRoutingStatics.markdown}
 

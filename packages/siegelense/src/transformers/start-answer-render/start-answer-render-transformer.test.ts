@@ -13,7 +13,7 @@ describe('startAnswerRenderTransformer', () => {
         baseUrl: 'http://localhost:34173',
         home: '/tmp/dm-siege-inst_7f3a9c21',
         evidence: {
-          path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21',
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
           linkPresent: true,
         },
         bootMs: 21_000,
@@ -27,7 +27,7 @@ describe('startAnswerRenderTransformer', () => {
           'URL: http://localhost:34173\n' +
           'API: -\n' +
           'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
-          'EVIDENCE: /repo/.siegelense/guilds/g1/instances/inst_7f3a9c21\n' +
+          'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
           'BOOT: 21000ms\n' +
           'SEEDED: none\n',
       );
@@ -42,7 +42,7 @@ describe('startAnswerRenderTransformer', () => {
         baseUrl: 'http://localhost:34173',
         home: '/tmp/dm-siege-inst_7f3a9c21',
         evidence: {
-          path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21',
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
           linkPresent: true,
         },
         bootMs: 15_000,
@@ -56,7 +56,7 @@ describe('startAnswerRenderTransformer', () => {
           'URL: http://localhost:34173\n' +
           'API: -\n' +
           'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
-          'EVIDENCE: /repo/.siegelense/guilds/g1/instances/inst_7f3a9c21\n' +
+          'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
           'BOOT: 15000ms\n' +
           'SEEDED: (empty)\n',
       );
@@ -71,7 +71,7 @@ describe('startAnswerRenderTransformer', () => {
         baseUrl: 'http://localhost:34173',
         home: '/tmp/dm-siege-inst_7f3a9c21',
         evidence: {
-          path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21',
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
           linkPresent: true,
         },
         bootMs: 15_000,
@@ -85,7 +85,7 @@ describe('startAnswerRenderTransformer', () => {
           'URL: http://localhost:34173\n' +
           'API: -\n' +
           'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
-          'EVIDENCE: /repo/.siegelense/guilds/g1/instances/inst_7f3a9c21\n' +
+          'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
           'BOOT: 15000ms\n' +
           'SEEDED:\n' +
           '  guildSlug: siege-guild\n',
@@ -102,7 +102,7 @@ describe('startAnswerRenderTransformer', () => {
         baseUrl: 'http://localhost:34173',
         home: '/tmp/dm-siege-inst_7f3a9c21',
         evidence: {
-          path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21',
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
           linkPresent: true,
         },
         bootMs: 15_000,
@@ -116,7 +116,7 @@ describe('startAnswerRenderTransformer', () => {
           'URL: http://localhost:34173\n' +
           'API: -\n' +
           'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
-          'EVIDENCE: /repo/.siegelense/guilds/g1/instances/inst_7f3a9c21\n' +
+          'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
           'BOOT: 15000ms\n' +
           'SEEDED:\n' +
           '  guild: 7306b468-0f2d-4a5e-9c3b-2d1e8f0a6b41 (name: Siege Guild, urlSlug: siege-guild)\n',
@@ -137,7 +137,7 @@ describe('startAnswerRenderTransformer', () => {
         baseUrl: 'http://localhost:34173',
         home: '/tmp/dm-siege-inst_7f3a9c21',
         evidence: {
-          path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21',
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
           linkPresent: true,
         },
         bootMs: 15_000,
@@ -151,7 +151,7 @@ describe('startAnswerRenderTransformer', () => {
           'URL: http://localhost:34173\n' +
           'API: -\n' +
           'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
-          'EVIDENCE: /repo/.siegelense/guilds/g1/instances/inst_7f3a9c21\n' +
+          'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
           'BOOT: 15000ms\n' +
           'SEEDED:\n' +
           '  guild: 7306b468-0f2d-4a5e-9c3b-2d1e8f0a6b41 (name: Siege Guild, urlSlug: siege-guild)\n' +
@@ -173,7 +173,7 @@ describe('startAnswerRenderTransformer', () => {
         baseUrl: 'http://localhost:34173',
         home: '/tmp/dm-siege-inst_7f3a9c21',
         evidence: {
-          path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21',
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
           linkPresent: true,
         },
         bootMs: 15_000,
@@ -187,7 +187,7 @@ describe('startAnswerRenderTransformer', () => {
           'URL: http://localhost:34173\n' +
           'API: -\n' +
           'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
-          'EVIDENCE: /repo/.siegelense/guilds/g1/instances/inst_7f3a9c21\n' +
+          'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
           'BOOT: 15000ms\n' +
           'SEEDED:\n' +
           '  guild: -\n',
@@ -203,7 +203,7 @@ describe('startAnswerRenderTransformer', () => {
         baseUrl: null,
         home: '/tmp/dm-siege-inst_7f3a9c21',
         evidence: {
-          path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21',
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
           linkPresent: true,
         },
         bootMs: 5000,
@@ -217,7 +217,7 @@ describe('startAnswerRenderTransformer', () => {
           'URL: -\n' +
           'API: -\n' +
           'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
-          'EVIDENCE: /repo/.siegelense/guilds/g1/instances/inst_7f3a9c21\n' +
+          'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
           'BOOT: 5000ms\n' +
           'SEEDED: none\n',
       );
@@ -233,7 +233,7 @@ describe('startAnswerRenderTransformer', () => {
         apiUrl: ContentTextStub({ value: 'http://dungeonmaster.localhost:37895' }),
         home: '/tmp/dm-siege-inst_1c60cf225b13465d8b32449607d69529',
         evidence: {
-          path: '/repo/.siegelense/guilds/g1/instances/inst_1c60cf225b13465d8b32449607d69529',
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1c60cf225b13465d8b32449607d69529',
           linkPresent: true,
         },
         bootMs: 18_000,
@@ -247,7 +247,7 @@ describe('startAnswerRenderTransformer', () => {
           'URL: http://dungeonmaster.localhost:41385\n' +
           'API: http://dungeonmaster.localhost:37895\n' +
           'HOME: /tmp/dm-siege-inst_1c60cf225b13465d8b32449607d69529\n' +
-          'EVIDENCE: /repo/.siegelense/guilds/g1/instances/inst_1c60cf225b13465d8b32449607d69529\n' +
+          'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1c60cf225b13465d8b32449607d69529\n' +
           'BOOT: 18000ms\n' +
           'SEEDED: none\n',
       );

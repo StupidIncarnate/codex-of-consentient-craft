@@ -21,84 +21,16 @@ export const docsStatics = {
     notBuilt: NOT_BUILT,
   },
   about: [
+    'Run dungeonmaster siegelense docs with no --for flag to see this overview alone. Add --for <scope> to fetch the manual for one role instead.',
     'The siegelense tool launches an instance of an application, interacts with it, and returns readings. You run it using: dungeonmaster siegelense <call>. Steps are passed as values within a run batch; they are not standalone commands.',
     'A command only returns measured readings. It does not decide if a test passes or fails. Comparing two values is a reading, but determining if the result means pass or fail is left to the user.',
     `If a line ends with ${NOT_BUILT}, it describes a planned feature that is not implemented yet. Do not try to use it. If a different command can do the same job right now, the instructions will tell you. If a line does not have this marker, the feature is fully built and ready to use.`,
-    'You can use the --for flag to show instructions for a specific role. If you omit this flag, you will see the instructions for all seven roles.',
-    'Each of the seven scopes corresponds to a specific role that uses this tool. There is no scope for a code-reading role. This is intentional: an agent that only reads code does not need instructions on how to use siegelense to drive a web browser.',
+    'You can use the --for flag to show instructions for a specific role. If you omit this flag, you will see this overview alone, with no per-role instructions.',
+    'Each of the five scopes corresponds to a specific role that uses this tool. There is no scope for a code-reading role. This is intentional: an agent that only reads code does not need instructions on how to use siegelense to drive a web browser.',
     'These instructions are provided via a command rather than being hardcoded into agent prompts for three reasons. First, any agent can fetch them dynamically. Second, there is only one central source of documentation to maintain. Third, system prompts have character limits; serving the manual dynamically saves valuable prompt space.',
     'Running dungeonmaster siegelense <call> --help provides different information. It shows the specific flags, errors, and an example for that command. This document is the role-specific manual. Use --help to learn how to run a command, and use this document to understand the rules and concepts.',
   ],
   scopes: {
-    operating: {
-      audience:
-        'the operator — the session that opens and closes a pool of instances and assigns tasks to other agents.',
-      summary:
-        'This scope covers instance and fleet management. As an operator, you do not interact with web pages directly or submit run batches. Therefore, this section does not include any browser-driving commands.',
-      sections: [
-        {
-          heading: 'PRIOR TO OPENING A POOL',
-          lines: [
-            'Run dungeonmaster siegelense capacity to see how many instances the machine can currently handle. Run this prior to opening a pool.',
-            'It returns a suggested pool size, a hard maximum limit, the reasoning behind these numbers, the specific measurements, and the profile group it used for the calculation.',
-            'The suggested size is based on actual performance measurements for the given instance spec. If no profile exists yet, it suggests 2 instances, and running those two will generate the initial profile.',
-            'The capacity calculation accounts for instances that were started by other sessions. This is an advisory recommendation, but the start command will strictly refuse to run if the machine cannot handle another instance.',
-            'You can run dungeonmaster siegelense profile --spec <specName> to see the exact measurements that the capacity command uses. These samples are grouped by pool size. Make sure to check the group that matches the pool size you plan to open.',
-          ],
-        },
-        {
-          heading: 'CLEANUP, AT BOTH ENDS OF THE PASS',
-          lines: [
-            'Run dungeonmaster siegelense cleanup at the beginning and the end of your testing pass.',
-            'This command only affects stale instances. It never shuts down an active instance, so it is safe to run at any time, even while a test pass is running.',
-            'It removes stale instances, frees up their network ports, removes the registry lock, and deletes old assets based on their age. It uses the exact same safety checks as the prune command, so it will not delete any evidence that is still needed by a verified test or an open issue.',
-            'The command output will tell you if any instances were intentionally left alone. This helps you confirm that the cleanup process worked correctly.',
-            'By default, the output renders as a readable table. Add the --json flag to get a single JSON object instead.',
-          ],
-        },
-        {
-          heading: 'PRUNE ACTS ON ASSETS; CLEANUP ACTS ON INSTANCES',
-          lines: [
-            'Run dungeonmaster siegelense prune to manually reclaim disk space used by assets, rather than waiting for them to expire automatically. You can filter by --older-than, --instance, or --kind. It will actively refuse to delete protected assets and will provide the specific path that is keeping the asset protected.',
-            `Note that open issue records are NOT CHECKED to protect assets. This is because the repository does not store issue records that link to specific instances. The command will list open issues under the unresolved section. ${NOT_BUILT}`,
-            'The command refuses to delete protected assets rather than just warning you. If an asset is referenced by a verified test, an open issue, or an active test run, it will not be deleted. The refusal message includes the exact path citing the asset so you can verify it yourself.',
-            'If the prune command deleted evidence that someone still needed to read, it would defeat the purpose of keeping evidence in the first place.',
-            'If an instance was started without being attached to a specific quest, it has no protections and its assets can be pruned immediately. This is the intended behavior for unowned instances.',
-            'Remember: cleanup manages stale instances and cleans up old assets as a side effect. prune manages assets directly and does not affect instances.',
-          ],
-        },
-        {
-          heading: 'STATUS — THE POST-MORTEM',
-          lines: [
-            'Run dungeonmaster siegelense status to see the current state of the machine, all active and dead instances, and the names of the metrics being tracked.',
-            'Running status without arguments will not list the individual runs or evidence for an instance. To see those, you must provide a specific instance ID. This prevents unnecessary browsing: operators only need high-level fleet state to manage instances.',
-            'Run dungeonmaster siegelense status --instance <id> to see full details for a single instance. This includes its last heartbeat, the last step it executed, its memory usage at that time, any leftover orphan processes, paths to its saved evidence, and a likely cause of failure.',
-            'When an instance is cleaned up, its entry becomes a tombstone and remains visible as long as its evidence exists on disk. This allows investigators to check the status of an instance even after it has been shut down.',
-            'By default, the fleet status renders as a readable table. Add the --json flag to get the raw JSON document instead.',
-          ],
-        },
-        {
-          heading: 'READING WHAT A MINION BRINGS BACK',
-          lines: [
-            'If an instance dies, it means the current task needs to be retried, but it does not mean the entire testing pass must stop. A tool crash is expected, and starting a new instance will likely succeed.',
-            'If a sub-agent reports that its instance crashed, it will provide the instance ID and the status output. The sub-agent must not start a replacement instance, it must not try to clean up orphan processes, and it must not try to rerun the batch of steps.',
-            'Do not falsely report a tool crash as a defect in the application itself. This will corrupt the test records.',
-            'If an instance dies because it ran out of memory, a replacement instance will likely die the exact same way. If sub-agents automatically replaced their own crashed instances, they would get stuck in a loop of failures.',
-            'Only the operator has a full view of the instance pool. A sub-agent only knows about its own instance, while the operator knows the overall machine state. Therefore, only the operator can decide whether to reduce the pool size or stop the testing phase.',
-          ],
-        },
-        {
-          heading: 'REAPING RULES',
-          lines: [
-            'An application instance consists of three processes, two network ports, two open descriptors, a temporary home directory, and various saved state data. A session cannot see if its own instance is leaking resources. Even if a test completes and appears successful, the processes might still be running.',
-            'The most common cause of resource leaks is when a session forgets to close its instance, or if the session is terminated early. The only safety net is an idle timeout, which waits 900 seconds prior to automatically shutting down the instance.',
-            'If a session crashes in the middle of a test, the instance will leak. The instance is not a direct child process of the session, so it will not shut down automatically when the session crashes.',
-            'Closing an instance deletes its temporary home directory, but it never deletes the evidence directory. The logs, screenshots, and test transcripts are kept on disk so they can be reviewed later.',
-            'If network ports are not released prior to a new instance starting, two instances might try to use the same port. The cleanup command ensures these ports are properly released.',
-          ],
-        },
-      ],
-    },
     planning: {
       audience:
         'the planner — the session that writes the test sequence and proves that the application reaches its starting state.',
@@ -454,58 +386,6 @@ export const docsStatics = {
             'Run dungeonmaster siegelense results --instance <id> --run <runId> [--step <n>] [--kind <kind>] to read the detailed test data from disk. This command does not start any instances and works even after the instance is shut down.',
             'Run dungeonmaster siegelense status --instance <id> to see the full details of your instance, including why it crashed if it failed.',
             'Run dungeonmaster siegelense kill --instance <id> to shut down your instance, free up network ports, and remove temporary files. The test evidence will be saved.',
-          ],
-        },
-      ],
-    },
-    operational: {
-      audience:
-        'a session verifying a flow that has no screen, where siege is the only verification track there is.',
-      summary:
-        'This scope covers the headless browser lane, reading server logs, and the specific test steps available for headless flows. You use request and file to drive the flow, and until { file } to wait for background tasks.',
-      sections: [
-        {
-          heading: 'WHAT THIS SCOPE IS',
-          lines: [
-            'An operational flow has no web interface, so the standard browser-driving commands do not apply. The siege tool is the only way to verify these background processes.',
-            'Background processes can still be attacked and tested for performance. Since you cannot click or type, you interact with the process by sending direct network requests and reading files.',
-          ],
-        },
-        {
-          heading: 'THE BROWSERLESS LANE SPEC',
-          lines: [
-            'Run dungeonmaster siegelense start --spec dungeonmaster-api to start an instance without Chromium. A headless spec is treated exactly the same as a normal spec.',
-            'The capacity command automatically handles headless specs. Since they use fewer resources, the machine can typically run more of them at the same time.',
-            'If you accidentally send a browser command to a headless instance, it will fail immediately with a clear error message. It will not silently ignore the command. The following browser commands will explicitly fail on a headless instance: goto, waitFor, click, type, screenshot, eval, look, box, dom, key, health, and resize.',
-            'A headless instance still boots the fake agent CLI, because it needs to run the background processes that manage agents and tests.',
-            `The default application configurations still assume a web interface exists. ${NOT_BUILT}`,
-          ],
-        },
-        {
-          heading: 'THE STEPS A FLOW WITH NO SCREEN USES',
-          lines: [
-            'Use { step: "request", method: "POST", path: "/api/guilds", body: { name: "x", path: "/tmp/x" } } to send direct HTTP requests. This is fully built.',
-            'Use { step: "file", path: "guilds/<id>/quests/<id>/quest.json" } to read a file generated by the background process. This is fully built.',
-            'Use { step: "until", file: "guilds/<id>/quests/<id>/quest.json", timeoutMs: 10000 } to wait for a specific file to be created or updated. This is fully built. It is the only wait condition you can use on a headless instance.',
-            'You cannot use { step: "until", response: { method: "POST", path: "/api/quests" } } on a headless instance because it requires a browser to monitor the network traffic.',
-            'The { step: "storage", prefix: "dm-" } command is for browser storage. Since a headless instance has no browser, you must use the file command instead to read saved data. This is fully built.',
-          ],
-        },
-        {
-          heading: 'RESULTS KIND SERVER — THE READING NOTHING ELSE SURFACES',
-          lines: [
-            'Run dungeonmaster siegelense results --instance <id> --run <runId> --kind server [--where-level error] [--where-steps 4-9] to read the server logs. This is fully built.',
-            'The instance saves the server logs in its own directory, but the tool does not automatically broadcast their location.',
-            'Since there is no web browser, the standard console logs will be empty. The server log contains all the important information.',
-            'Every server log entry is tagged with the step number it occurred during. This allows you to easily find logs for a specific part of your test.',
-            'The standard network logs are also browser-only and will be empty. The server log is the only way to see network activity on a headless instance.',
-          ],
-        },
-        {
-          heading: 'WHAT IS MISSING BEFORE THIS SCOPE IS USABLE',
-          lines: [
-            'The request, file, and storage commands are fully built. The until { file } command is built and is the only until form allowed on a headless instance. All other until forms (visible, predicate, console, response) will fail with an error. Right now, you can boot a headless instance, shut it down, read its server logs, and test it using request, file, and until { file }.',
-            'You can now fully test headless flows using the request and file commands. Any browser-specific commands or storage checks will explicitly fail.',
           ],
         },
       ],

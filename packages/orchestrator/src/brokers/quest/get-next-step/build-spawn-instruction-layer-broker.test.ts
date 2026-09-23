@@ -11,8 +11,23 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
+import { agentFlowStatics } from '../../../statics/agent-flow/agent-flow-statics';
+import { roleToModelStatics } from '../../../statics/role-to-model/role-to-model-statics';
+import { workItemToPromptTransformer } from '../../../transformers/work-item-to-prompt/work-item-to-prompt-transformer';
 import { buildSpawnInstructionLayerBroker } from './build-spawn-instruction-layer-broker';
 import { buildSpawnInstructionLayerBrokerProxy } from './build-spawn-instruction-layer-broker.proxy';
+
+// Every `kind: 'prompt'` step across every family, paired with the SCOPE ROLE its operation item
+// and work item carry on the ledger — identical to the family key for five of the six, and `ward`
+// for `wardFull` alone (a command scope has no family-named role; see
+// `stepDispatchRoleTransformer`'s own fixtures for the same pairing). A `kind: 'deterministic'`
+// step never reaches this broker (it runs through `run-step` instead), so it is excluded here
+// rather than given a case that could never dispatch.
+const PROMPT_STEP_CASES = Object.entries(agentFlowStatics).flatMap(([family, graph]) =>
+  Object.entries(graph.steps)
+    .filter(([, node]) => node.kind === 'prompt')
+    .map(([step]) => [family, step, family === 'wardFull' ? 'ward' : family] as const),
+);
 
 describe('buildSpawnInstructionLayerBroker', () => {
   describe('fresh dispatch', () => {
@@ -33,6 +48,7 @@ describe('buildSpawnInstructionLayerBroker', () => {
         questId,
         role: 'codeweaver',
         workItemId,
+        model: 'opus',
         taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
       });
     });
@@ -59,6 +75,7 @@ describe('buildSpawnInstructionLayerBroker', () => {
         questId,
         role: 'flowrider',
         workItemId,
+        model: 'opus',
         taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "flowrider",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
       });
     });
@@ -90,6 +107,7 @@ describe('buildSpawnInstructionLayerBroker', () => {
         questId,
         role: 'siegemaster',
         workItemId,
+        model: 'opus',
         taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "siegemaster",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
       });
     });
@@ -119,6 +137,7 @@ describe('buildSpawnInstructionLayerBroker', () => {
         questId,
         role: 'codeweaver',
         workItemId,
+        model: 'opus',
         taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
         resumeSessionId: sessionId,
         resumePrompt: `You were CUT OFF mid-work on this item — your session was killed, not paused cleanly. The context above therefore stops abruptly and your LAST ACTION MAY NEVER HAVE COMPLETED: an edit may not have been written, a command may have died mid-run, a commit may not exist. Do not treat your own context as a record of what landed.\n\nRE-ESTABLISH THE CURRENT STATE FIRST, before doing any new work:\n1. Run \`git status\` and \`git log --oneline -5\` — what is actually committed, and what is still uncommitted?\n2. Re-read the files you believe you edited, and confirm the change is really on disk.\n3. Re-run whatever you were in the middle of verifying (a test, a ward run, a browser step) instead of trusting the remembered result.\n\nOnly once you know the real state: finish the remaining scope of your operation item and commit a prose handoff. Then RECORD what you did through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})\n\nIf you have no usable context above, call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions from the top.`,
@@ -149,6 +168,7 @@ describe('buildSpawnInstructionLayerBroker', () => {
         questId,
         role: 'codeweaver',
         workItemId,
+        model: 'opus',
         taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
         resumeSessionId: sessionId,
         resumePrompt: `You were CUT OFF mid-work on this item — your session was killed, not paused cleanly. The context above therefore stops abruptly and your LAST ACTION MAY NEVER HAVE COMPLETED: an edit may not have been written, a command may have died mid-run, a commit may not exist. Do not treat your own context as a record of what landed.\n\nRE-ESTABLISH THE CURRENT STATE FIRST, before doing any new work:\n1. Run \`git status\` and \`git log --oneline -5\` — what is actually committed, and what is still uncommitted?\n2. Re-read the files you believe you edited, and confirm the change is really on disk.\n3. Re-run whatever you were in the middle of verifying (a test, a ward run, a browser step) instead of trusting the remembered result.\n\nOnly once you know the real state: finish the remaining scope of your operation item and commit a prose handoff. Then RECORD what you did through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})\n\nIf you have no usable context above, call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions from the top.`,
@@ -211,6 +231,7 @@ describe('buildSpawnInstructionLayerBroker', () => {
         questId,
         role: 'codeweaver',
         workItemId,
+        model: 'opus',
         taskPrompt: override,
       });
     });
@@ -243,6 +264,7 @@ describe('buildSpawnInstructionLayerBroker', () => {
         questId,
         role: 'flowrider',
         workItemId,
+        model: 'opus',
         taskPrompt: override,
         resumeSessionId: sessionId,
         resumePrompt: override,
@@ -336,6 +358,126 @@ describe('buildSpawnInstructionLayerBroker', () => {
         declined: [],
       });
     });
+  });
+
+  describe('the model rides the step', () => {
+    it("VALID: {codeweaver scope work item at the work step} => spawns on sonnet, the step's own declared model", () => {
+      buildSpawnInstructionLayerBrokerProxy();
+      const questId = QuestIdStub({ value: 'quest-model-work' });
+      const workItemId = QuestWorkItemIdStub({
+        value: 'eaaaaaaa-1111-4222-9333-444444444444',
+      });
+      const operationId = OperationItemIdStub({
+        value: 'eaaaaaaa-2222-4222-9333-444444444444',
+      });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: 'core: config load+validate adapter',
+        status: 'in_progress',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        status: 'pending',
+        step: 'work',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+      const result = buildSpawnInstructionLayerBroker({ quest, workItem });
+
+      expect(result.model).toBe('sonnet');
+    });
+
+    it("VALID: {codeweaver scope work item at the plan step} => spawns on opus, the step's own declared model", () => {
+      buildSpawnInstructionLayerBrokerProxy();
+      const questId = QuestIdStub({ value: 'quest-model-plan' });
+      const workItemId = QuestWorkItemIdStub({
+        value: 'ebaaaaaa-1111-4222-9333-444444444444',
+      });
+      const operationId = OperationItemIdStub({
+        value: 'ebaaaaaa-2222-4222-9333-444444444444',
+      });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: 'core: config load+validate adapter',
+        status: 'in_progress',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        status: 'pending',
+        step: 'plan',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+      const result = buildSpawnInstructionLayerBroker({ quest, workItem });
+
+      expect(result.model).toBe('opus');
+    });
+
+    it('VALID: {spiritmender work item carrying no step at all} => falls back to roleToModelStatics.spiritmender', () => {
+      buildSpawnInstructionLayerBrokerProxy();
+      const questId = QuestIdStub({ value: 'quest-model-spiritmender-no-step' });
+      const workItemId = QuestWorkItemIdStub({
+        value: 'ecaaaaaa-1111-4222-9333-444444444444',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'spiritmender',
+        status: 'pending',
+      });
+      const quest = QuestStub({ id: questId, workItems: [workItem] });
+
+      const result = buildSpawnInstructionLayerBroker({ quest, workItem });
+
+      expect(result.model).toBe(roleToModelStatics.spiritmender);
+    });
+
+    // The convergence this whole story exists for: the model Node dispatch (and the MCP/Task
+    // dispatcher, which reads the same `SpawnInstruction.model`) actually spawns a session on must
+    // be the SAME model `get-agent-prompt` reports to that session. Both read the identical step
+    // node off `agentFlowStatics`, so they can never drift apart — this walks every `kind: 'prompt'`
+    // step in every family and proves it.
+    it.each(PROMPT_STEP_CASES)(
+      'VALID: {family: %s, step: %s} => the spawned model and the get-agent-prompt reported model agree',
+      (family, step, scopeRole) => {
+        buildSpawnInstructionLayerBrokerProxy();
+        const questId = QuestIdStub({ value: 'quest-model-parity' });
+        const workItemId = QuestWorkItemIdStub({
+          value: 'edaaaaaa-1111-4222-9333-444444444444',
+        });
+        const operationId = OperationItemIdStub({
+          value: 'edaaaaaa-2222-4222-9333-444444444444',
+        });
+        const operation = OperationItemStub({
+          id: operationId,
+          role: scopeRole,
+          text: `${family} scope at ${step}`,
+          status: 'in_progress',
+        });
+        const workItem = WorkItemStub({
+          id: workItemId,
+          role: scopeRole,
+          status: 'pending',
+          step,
+          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        });
+        const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+        const spawnInstruction = buildSpawnInstructionLayerBroker({ quest, workItem });
+        const { model: reportedModel } = workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: scopeRole,
+        });
+
+        expect(reportedModel).toBe(spawnInstruction.model);
+      },
+    );
   });
 
   describe('invalid roles', () => {

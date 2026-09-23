@@ -18,12 +18,6 @@ describe('smoketestPromptsStatics', () => {
     );
   });
 
-  it('VALID: {signalPartial} => emits the same bare complete signal as signalDone', () => {
-    expect(smoketestPromptsStatics.signalPartial).toBe(
-      'Do exactly one thing and nothing else: Call "mcp__dungeonmaster__signal-back" with { "questId": "{{questId}}", "workItemId": "{{workItemId}}", "signal": "complete" }. Do not output anything else.',
-    );
-  });
-
   it('VALID: {discover probe} => call-then-report-on-error, signal complete only on success', () => {
     expect(smoketestPromptsStatics['discover' as keyof typeof smoketestPromptsStatics]).toBe(
       'Do exactly two things and nothing else: 1) Call "mcp__dungeonmaster__discover" with {"glob":"packages/*/src/statics/**"}. 2) If the tool call errors, report the error and stop without signaling. If the tool call succeeds, call "mcp__dungeonmaster__signal-back" with { "questId": "{{questId}}", "workItemId": "{{workItemId}}", "signal": "complete", "summary": "mcp-discover-probe-ok" }. Do not output anything else.',

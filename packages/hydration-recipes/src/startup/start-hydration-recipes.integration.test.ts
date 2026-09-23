@@ -28,6 +28,7 @@ describe('StartHydrationRecipes', () => {
         'session-single-turn',
         'session-with-nested-chain',
         'guild-active-suite',
+        'session-with-nested-subagent',
       ]);
     });
 
@@ -35,7 +36,7 @@ describe('StartHydrationRecipes', () => {
       await expect(
         StartHydrationRecipes.seed({ recipeName: 'no-such-recipe', home: UNUSED_HOME }),
       ).rejects.toThrow(
-        /^recipesSeedRunBroker: unknown recipe 'no-such-recipe' — known recipes: guild-empty, guild-with-three-quests, guild-mid-execution, quest-advances-one-step, quest-completed, session-single-turn, session-with-nested-chain, guild-active-suite$/u,
+        /^recipesSeedRunBroker: unknown recipe 'no-such-recipe' — known recipes: guild-empty, guild-with-three-quests, guild-mid-execution, quest-advances-one-step, quest-completed, session-single-turn, session-with-nested-chain, guild-active-suite, session-with-nested-subagent$/u,
       );
     });
   });

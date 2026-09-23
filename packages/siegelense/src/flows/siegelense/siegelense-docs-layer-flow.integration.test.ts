@@ -10,26 +10,39 @@ import { SiegelenseDocsLayerFlow } from './siegelense-docs-layer-flow';
 
 describe('SiegelenseDocsLayerFlow', () => {
   describe('the --for flag missing entirely', () => {
-    it('INVALID: {callArgs: []} => refuses, listing the seven scopes so a bare call cannot flood context', async () => {
-      await expect(SiegelenseDocsLayerFlow({ callArgs: [] })).rejects.toThrow(
-        '--for <scope> is required: specify the role whose instructions to read.\n\n' +
-          'Accepted scopes: operating, planning, walking, attacking, fixing, driving, operational\n\n' +
-          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
-      );
+    it('EMPTY: {callArgs: []} => serves the about overview alone rather than refusing', async () => {
+      const writes: ReturnType<typeof ContentTextStub>[] = [];
+      const originalWrite = process.stdout.write.bind(process.stdout);
+      process.stdout.write = ((chunk: string): boolean => {
+        writes.push(ContentTextStub({ value: chunk }));
+        return true;
+      }) as unknown as typeof process.stdout.write;
+
+      await SiegelenseDocsLayerFlow({ callArgs: [] });
+
+      process.stdout.write = originalWrite;
+
+      const [wholeOutput] = writes;
+      const expectedMarkdown = docsAnswerRenderTransformer({
+        answer: docsAnswerComposeTransformer({ scope: null }),
+      });
+
+      expect(wholeOutput).toBe(expectedMarkdown);
     });
   });
 
   describe('an unrecognised scope', () => {
-    it('INVALID: {callArgs: [--for, reader]} => refuses naming reader and lists the seven scopes that exist', async () => {
+    it('INVALID: {callArgs: [--for, reader]} => refuses naming reader, lists the five scopes and the bare-docs overview', async () => {
       await expect(SiegelenseDocsLayerFlow({ callArgs: ['--for', 'reader'] })).rejects.toThrow(
         'Unknown docs scope: reader\n\n' +
-          'docs serves one scope per tool-using role. The scopes that exist are: operating, planning, walking, attacking, fixing, driving, operational.\n\n' +
-          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
+          'docs serves one scope per tool-using role. The scopes that exist are: planning, walking, attacking, fixing, driving. ' +
+          'Omit --for entirely to get the tool overview alone.\n\n' +
+          'Usage: dungeonmaster siegelense docs [--for <scope>] [--json]',
       );
     });
   });
 
-  describe('every one of the seven scopes, through --json', () => {
+  describe('every one of the five scopes, through --json', () => {
     it.each(siegelenseCallStatics.docs.scopes)(
       'VALID: {callArgs: [--for, %s, --json]} => serves the %s document alone, carrying its own audience',
       async (scope) => {
@@ -85,7 +98,7 @@ describe('SiegelenseDocsLayerFlow', () => {
       ).rejects.toThrow(
         'Unknown flag: --human\n\n' +
           'Accepted flags: --for, --json\n\n' +
-          'Usage: dungeonmaster siegelense docs --for <scope> [--json]',
+          'Usage: dungeonmaster siegelense docs [--for <scope>] [--json]',
       );
     });
 

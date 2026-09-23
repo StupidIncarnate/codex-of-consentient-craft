@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Spawns chaos/glyph agents from the orchestration loop. Delegates the spawn lifecycle to `agentLaunchBroker` so chat-from-loop launches identically to chat-from-server (chatSpawnBroker) and to every other orchestration agent. Builds the prompt via chatPromptBuildTransformer, resolves cwd, and forwards the launcher's onEntries to the loop's onAgentEntry. Writes sessionId + completion status back to the work item once the spawn exits.
+ * PURPOSE: Spawns chat agents from the orchestration loop. Delegates the spawn lifecycle to `agentLaunchBroker` so chat-from-loop launches identically to chat-from-server (chatSpawnBroker) and to every other orchestration agent. Builds the prompt via chatPromptBuildTransformer, resolves cwd, and forwards the launcher's onEntries to the loop's onAgentEntry. Writes sessionId + completion status back to the work item once the spawn exits.
  *
  * USAGE:
  * await runChatLayerBroker({ questId, workItem, userMessage, onAgentEntry });
@@ -60,10 +60,7 @@ export const runChatLayerBroker = async ({
 
   const model = roleToModelTransformer({ role: workItem.role });
 
-  // 'design' is glyphsmith's alone; every spec-intake role (chaoswhisperer, bughunt) is a chat.
-  const processIdPrefix = processIdPrefixContract.parse(
-    workItem.role === 'glyphsmith' ? 'design' : 'chat',
-  );
+  const processIdPrefix = processIdPrefixContract.parse('chat');
 
   try {
     const resolution = await questCwdResolveBroker({ questId });

@@ -15,11 +15,20 @@
  * in this package reads a quest's folder name, and `questPersistDirectBroker` only needs a real
  * `questFilePath`.
  *
+ * EVERY PATH THIS ROUTE TOUCHES RESOLVES INSIDE `target.home`, and a `folder` that escapes it is
+ * REFUSED rather than written. `questContract.shape.folder` is `z.string().min(1)`, so a caller's
+ * `folder` may carry `..` segments or a leading `/`; joined raw, either walks the quest file out of
+ * the target and into whatever sits above it — a seed that reports success while the test reads an
+ * empty target, and the operator's own `~/.dungeonmaster` when the target IS that. Unlike a
+ * guild's `path`, no quest file has a legitimate home outside the target, so this throws naming
+ * the resolved path instead of quietly writing nothing. `pathResolveAdapter` rather than a bare
+ * prefix test: `<home>/guilds/<id>/quests/../../..` starts with `target.home` and resolves above it.
+ *
  * USAGE:
  * await questWriteRouteBroker({ target, fields: { title, userRequest, status, guildId, … } });
  * // Returns the full Quest record, written to <target.home>/guilds/<guildId>/quests/<id>/quest.json
  */
-import { fsMkdirAdapter } from '@dungeonmaster/shared/adapters';
+import { fsMkdirAdapter, pathResolveAdapter } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import {
   fileContentsContract,
@@ -49,7 +58,23 @@ export const questWriteRouteBroker = async ({
 
   const quest = questContract.parse({ ...parsedFields, id, folder, createdAt });
 
-  const questFolderPath = `${target.home}/${dungeonmasterHomeStatics.paths.guildsDir}/${parsedFields.guildId}/${dungeonmasterHomeStatics.paths.questsDir}/${folder}`;
+  const targetRoot = pathResolveAdapter({ paths: [target.home] });
+  const questFolderPath = pathResolveAdapter({
+    paths: [
+      target.home,
+      dungeonmasterHomeStatics.paths.guildsDir,
+      parsedFields.guildId,
+      dungeonmasterHomeStatics.paths.questsDir,
+      folder,
+    ],
+  });
+
+  if (!questFolderPath.startsWith(`${targetRoot}/`)) {
+    throw new Error(
+      `questWriteRouteBroker: folder "${folder}" resolves to "${questFolderPath}", outside the target home "${targetRoot}"`,
+    );
+  }
+
   const questFilePath = filePathContract.parse(
     `${questFolderPath}/${dungeonmasterHomeStatics.paths.questFile}`,
   );

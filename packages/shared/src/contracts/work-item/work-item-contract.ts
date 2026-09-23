@@ -32,7 +32,7 @@ export const workItemContract = z.object({
   // Set when the work item is a Task-dispatched sub-agent under /dumpster-launch — value is
   // Claude CLI's realAgentId (the filename in `<sessionId>/subagents/agent-<agentId>.jsonl`).
   // Combined with `sessionId` (parent /dumpster-launch session) it locates the exact JSONL
-  // file the replay should read. Absent for chat roles (chaoswhisperer, glyphsmith) whose
+  // file the replay should read. Absent for chat roles (chaoswhisperer) whose
   // `sessionId` already points at a top-level `<sessionId>.jsonl`.
   agentId: agentIdContract.optional(),
   // INVARIANT (behavioral, enforced by every seeding path — quest-create, the relay graph

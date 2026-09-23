@@ -4,6 +4,8 @@ import {
   FlowNodeStub,
   FlowEdgeStub,
   FlowObservableStub,
+  WorkItemStub,
+  UnitObservationStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questLoadBroker } from './quest-load-broker';
@@ -30,7 +32,7 @@ describe('questLoadBroker', () => {
 
       const result = questLoadBroker({ questId });
 
-      expect(result).toStrictEqual([flowOne, flowTwo]);
+      expect(result).toStrictEqual({ flows: [flowOne, flowTwo], workItems: [] });
     });
 
     it('VALID: {flow carrying nodes, edges and observables} => nested shape survives intact', () => {
@@ -47,7 +49,25 @@ describe('questLoadBroker', () => {
 
       const result = questLoadBroker({ questId });
 
-      expect(result).toStrictEqual([flow]);
+      expect(result).toStrictEqual({ flows: [flow], workItems: [] });
+    });
+  });
+
+  describe('quest found with work items', () => {
+    it('VALID: {quest with one work item carrying an observation} => returns it alongside the flows', () => {
+      const proxy = questLoadBrokerProxy();
+      const questId = QuestIdStub({ value: 'work-item-quest' });
+      const flow = FlowStub({ id: 'solo-flow' });
+      const workItem = WorkItemStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        observations: [UnitObservationStub({ unitId: 'solo-flow:observable:obs-a' })],
+      });
+      proxy.setupQuest({ questId, questJson: { flows: [flow], workItems: [workItem] } });
+
+      const result = questLoadBroker({ questId });
+
+      expect(result).toStrictEqual({ flows: [flow], workItems: [workItem] });
     });
   });
 
@@ -59,7 +79,7 @@ describe('questLoadBroker', () => {
 
       const result = questLoadBroker({ questId });
 
-      expect(result).toStrictEqual([]);
+      expect(result).toStrictEqual({ flows: [], workItems: [] });
     });
   });
 
@@ -71,7 +91,7 @@ describe('questLoadBroker', () => {
 
       const result = questLoadBroker({ questId });
 
-      expect(result).toStrictEqual([]);
+      expect(result).toStrictEqual({ flows: [], workItems: [] });
     });
 
     it('EMPTY: {flows is an empty array} => returns []', () => {
@@ -81,7 +101,34 @@ describe('questLoadBroker', () => {
 
       const result = questLoadBroker({ questId });
 
-      expect(result).toStrictEqual([]);
+      expect(result).toStrictEqual({ flows: [], workItems: [] });
+    });
+  });
+
+  describe('quest document missing usable work items', () => {
+    it('EMPTY: {quest document has no workItems key} => flows still load, workItems is []', () => {
+      const proxy = questLoadBrokerProxy();
+      const questId = QuestIdStub({ value: 'no-work-items-key-quest' });
+      const flow = FlowStub({ id: 'flow-alone' });
+      proxy.setupQuest({ questId, questJson: { flows: [flow] } });
+
+      const result = questLoadBroker({ questId });
+
+      expect(result).toStrictEqual({ flows: [flow], workItems: [] });
+    });
+
+    it('EDGE: {a workItems entry fails the contract} => flows still load, workItems is []', () => {
+      const proxy = questLoadBrokerProxy();
+      const questId = QuestIdStub({ value: 'invalid-work-item-entry-quest' });
+      const flow = FlowStub({ id: 'flow-alone' });
+      proxy.setupQuest({
+        questId,
+        questJson: { flows: [flow], workItems: [{ id: 'incomplete-work-item' }] },
+      });
+
+      const result = questLoadBroker({ questId });
+
+      expect(result).toStrictEqual({ flows: [flow], workItems: [] });
     });
   });
 
@@ -93,7 +140,7 @@ describe('questLoadBroker', () => {
 
       const result = questLoadBroker({ questId });
 
-      expect(result).toStrictEqual([]);
+      expect(result).toStrictEqual({ flows: [], workItems: [] });
     });
 
     it('EDGE: {a flows entry fails the contract} => returns [], no throw', () => {
@@ -103,7 +150,7 @@ describe('questLoadBroker', () => {
 
       const result = questLoadBroker({ questId });
 
-      expect(result).toStrictEqual([]);
+      expect(result).toStrictEqual({ flows: [], workItems: [] });
     });
   });
 });

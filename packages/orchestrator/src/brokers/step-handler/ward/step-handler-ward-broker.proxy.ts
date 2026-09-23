@@ -1,9 +1,8 @@
 /**
  * PURPOSE: Proxy for stepHandlerWardBroker — mocks the child-process/fs adapter boundaries plus
- * two sibling brokers that each carry their own dedicated test suite (questCwdResolveBroker,
+ * three sibling brokers that each carry their own dedicated test suite (questCwdResolveBroker,
  * questFindQuestPathBroker, questModifyBroker), module-mocked directly rather than driven through
- * their own real logic, exactly as the equivalent questRunWardBroker proxy already treats
- * questCwdResolveBroker. `pathJoinAdapter` is left on its real passthrough (its own proxy's
+ * their own real logic. `pathJoinAdapter` is left on its real passthrough (its own proxy's
  * default) — the ward-results write path is computed for real and matched below rather than
  * stubbed, which is what makes the detail-write assertion meaningful.
  *

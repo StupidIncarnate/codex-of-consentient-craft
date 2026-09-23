@@ -1,7 +1,4 @@
-import { signoffTracksStatics } from '../signoff-tracks/signoff-tracks-statics';
 import { textDisplaySymbolsStatics } from './text-display-symbols-statics';
-
-const MARKED_FIELDS = Object.keys(textDisplaySymbolsStatics.signoffTrackMarks);
 
 describe('textDisplaySymbolsStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
@@ -26,8 +23,6 @@ describe('textDisplaySymbolsStatics', () => {
         '  (terminal)                  end state, no outgoing edges',
         '  (read-check)                settled by opening the source file, not by running a test',
         '  +codeweaver                 this observable was ADDED mid-quest by that role, not in the spec at approval',
-        '  [C✓ F✓ S?]                  one mark per track that HAS signed — C Codeweaver, F Flowrider, S Siegemaster',
-        '                              ✓ confirmed, ? unconfirmable; a track that has not signed is absent, not blank',
         '  _delete:true                removes the entity when sent via modify-quest',
         '---',
       ],
@@ -50,8 +45,6 @@ describe('textDisplaySymbolsStatics', () => {
         '  ↗ cross-flow                edge into another flow, resolved on the lines under it',
         '  ← MERGE                     node reachable from multiple paths',
         '  (terminal)                  end state, no outgoing edges',
-        '  [C✓ F✓ S?]                  one mark per track that HAS signed — C Codeweaver, F Flowrider, S Siegemaster',
-        '                              ✓ confirmed, ? unconfirmable; a track that has not signed is absent, not blank',
         '---',
       ],
       flowSliceWholeFlowLegendLines: [
@@ -68,8 +61,6 @@ describe('textDisplaySymbolsStatics', () => {
         '  ↗ cross-flow                edge into another flow, resolved on the lines under it',
         '  ← MERGE                     node reachable from multiple paths',
         '  (terminal)                  end state, no outgoing edges',
-        '  [C✓ F✓ S?]                  one mark per track that HAS signed — C Codeweaver, F Flowrider, S Siegemaster',
-        '                              ✓ confirmed, ? unconfirmable; a track that has not signed is absent, not blank',
         '---',
       ],
       sectionHeaders: {
@@ -85,18 +76,6 @@ describe('textDisplaySymbolsStatics', () => {
       backRef: '\u21A9',
       crossFlow: '\u2197 cross-flow',
       merge: '\u2190 MERGE',
-      signoffTrackMarks: {
-        codeweaver: 'C',
-        flowrider: 'F',
-        siegemaster: 'S',
-      },
-      signoffVerdictMarks: {
-        confirmed: '\u2713',
-        unconfirmable: '?',
-        met: '\u2713',
-        'cant-meet': '?',
-        unmet: '\u2717',
-      },
       unitMarkMarks: {
         met: '\u2713',
         'cant-meet': '?',
@@ -113,39 +92,18 @@ describe('textDisplaySymbolsStatics', () => {
     });
   });
 
-  // ONE MARK PER SIGN-OFF FIELD, and the fields are `signoffTracksStatics.fields` — never the
-  // DENOMINATOR list, which carries a third member that writes no column of its own. A field with no
-  // glyph would render nothing on a graph line that carries a real sign-off; a glyph naming no field
-  // is a column that does not exist.
-  it('VALID: {marker keys} => 1:1 with the sign-off field list, in neither direction short', () => {
-    const marked = new Set(MARKED_FIELDS);
-
-    expect([
-      signoffTracksStatics.fields.filter((field) => !marked.has(field)),
-      MARKED_FIELDS.filter((mark) => !signoffTracksStatics.fields.some((field) => field === mark)),
-    ]).toStrictEqual([[], []]);
-  });
-
-  // Every mark is exactly one character. The flow graph carries one marker per signed unit inside
+  // Every mark is exactly one character. The flow graph carries one marker per marked unit inside
   // `mcpToolResultStatics.maxVerbatimChars`, so a two-character mark doubles the cost of the
   // feature on a big quest.
-  it('VALID: {marker glyphs} => every track and verdict mark is one character', () => {
+  it('VALID: {marker glyphs} => every unit mark is one character', () => {
     expect([
-      textDisplaySymbolsStatics.signoffTrackMarks.codeweaver.length,
-      textDisplaySymbolsStatics.signoffTrackMarks.flowrider.length,
-      textDisplaySymbolsStatics.signoffTrackMarks.siegemaster.length,
-      textDisplaySymbolsStatics.signoffVerdictMarks.confirmed.length,
-      textDisplaySymbolsStatics.signoffVerdictMarks.unconfirmable.length,
-      textDisplaySymbolsStatics.signoffVerdictMarks.met.length,
-      textDisplaySymbolsStatics.signoffVerdictMarks['cant-meet'].length,
-      textDisplaySymbolsStatics.signoffVerdictMarks.unmet.length,
       textDisplaySymbolsStatics.unitMarkMarks.met.length,
       textDisplaySymbolsStatics.unitMarkMarks['cant-meet'].length,
       textDisplaySymbolsStatics.unitMarkMarks.unmet.length,
       textDisplaySymbolsStatics.unitMarkSymbols.met.length,
       textDisplaySymbolsStatics.unitMarkSymbols['cant-meet'].length,
       textDisplaySymbolsStatics.unitMarkSymbols.unmet.length,
-    ]).toStrictEqual([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+    ]).toStrictEqual([1, 1, 1, 1, 1, 1]);
   });
 
   // THE TWO SLICE LEGENDS ARE ONE LEGEND WITH ONE DIFFERENCE, and this is what keeps them that way.

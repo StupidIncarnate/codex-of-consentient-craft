@@ -16,7 +16,7 @@
  * advance has not created the next work item yet, so "every work item is terminal" alone would
  * read as "nothing left to do" mid-relay.
  *
- * Chat-role work items (chaoswhisperer / glyphsmith / bughunt / tavernkeeper) never count as
+ * Chat-role work items (chaoswhisperer / bughunt / tavernkeeper) never count as
  * dispatchable — `computeReadyWorkItemsLayerBroker` excludes them outright, and the orchestration
  * loop only ever runs one from a real user message, never from a resume. A lingering non-terminal
  * chat item (a tavernkeeper follow-up thread nobody drove to completion, for instance) would

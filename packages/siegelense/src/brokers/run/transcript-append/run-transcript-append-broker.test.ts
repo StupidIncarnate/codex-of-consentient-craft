@@ -10,7 +10,8 @@ describe('runTranscriptAppendBroker', () => {
     it('VALID: {reading} => appends one JSON line and returns success', async () => {
       const proxy = runTranscriptAppendBrokerProxy();
       const transcriptPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2.jsonl',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2.jsonl',
       });
       const reading = StepReadingStub();
       proxy.succeeds({ transcriptPath });
@@ -23,7 +24,8 @@ describe('runTranscriptAppendBroker', () => {
     it('VALID: {two readings} => each is appended as its own line, in order', async () => {
       const proxy = runTranscriptAppendBrokerProxy();
       const transcriptPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2.jsonl',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2.jsonl',
       });
       const firstReading = StepReadingStub({});
       const secondReading = StepReadingStub({});
@@ -43,7 +45,8 @@ describe('runTranscriptAppendBroker', () => {
     it('ERROR: {disk write fails} => the append broker rejects with the same error', async () => {
       const proxy = runTranscriptAppendBrokerProxy();
       const transcriptPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2.jsonl',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2.jsonl',
       });
       proxy.throws({ transcriptPath, error: new Error('ENOSPC') });
 

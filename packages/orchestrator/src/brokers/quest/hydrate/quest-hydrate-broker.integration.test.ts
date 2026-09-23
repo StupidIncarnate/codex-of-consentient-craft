@@ -1,6 +1,7 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import { GetQuestInputStub, GuildNameStub, GuildPathStub } from '@dungeonmaster/shared/contracts';
 
+import { IsoTimestampStub } from '../../../contracts/iso-timestamp/iso-timestamp.stub';
 import { QuestBlueprintStub } from '../../../contracts/quest-blueprint/quest-blueprint.stub';
 import { smoketestBlueprintsStatics } from '../../../statics/smoketest-blueprints/smoketest-blueprints-statics';
 import { orchestrationEnvironmentHarness } from '../../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
@@ -188,6 +189,170 @@ describe('questHydrateBroker', () => {
       minionItems: [],
       wardOpCount: 0,
       workItemRoles: ['codeweaver'],
+    });
+  });
+
+  it('VALID: {blueprint.fixedWorkItemId} => the first work item lands on disk with exactly that id', async () => {
+    const testbed = installTestbedCreateBroker({
+      baseName: BaseNameStub({ value: 'hydrate-fixed-work-item-id' }),
+    });
+    const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+    await envHarness.seedQuestRepoPackages({
+      repoRoot: testbed.guildPath,
+      locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+      sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
+    });
+
+    const guild = await guildAddBroker({
+      name: GuildNameStub({ value: 'Fixed Work Item Id Guild' }),
+      path: GuildPathStub({ value: testbed.guildPath }),
+    });
+    const blueprint = QuestBlueprintStub({
+      ...smoketestBlueprintsStatics.minimal,
+      fixedWorkItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+    });
+
+    const { questId } = await questHydrateBroker({ blueprint, guildId: guild.id });
+
+    const loaded = await questGetBroker({ input: GetQuestInputStub({ questId }) });
+
+    restore();
+    testbed.cleanup();
+
+    expect(loaded.quest!.workItems.map((wi) => wi.id)).toStrictEqual([
+      'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+    ]);
+  });
+
+  it('VALID: {no blueprint.fixedWorkItemId} => two hydrates mint two different real uuids', async () => {
+    const testbed = installTestbedCreateBroker({
+      baseName: BaseNameStub({ value: 'hydrate-mints-work-item-id' }),
+    });
+    const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+    await envHarness.seedQuestRepoPackages({
+      repoRoot: testbed.guildPath,
+      locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+      sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
+    });
+
+    const guild = await guildAddBroker({
+      name: GuildNameStub({ value: 'Mints Work Item Id Guild' }),
+      path: GuildPathStub({ value: testbed.guildPath }),
+    });
+    const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
+
+    const first = await questHydrateBroker({ blueprint, guildId: guild.id });
+    const second = await questHydrateBroker({ blueprint, guildId: guild.id });
+
+    const firstLoaded = await questGetBroker({
+      input: GetQuestInputStub({ questId: first.questId }),
+    });
+    const secondLoaded = await questGetBroker({
+      input: GetQuestInputStub({ questId: second.questId }),
+    });
+
+    restore();
+    testbed.cleanup();
+
+    const firstWorkItemIds = firstLoaded.quest!.workItems.map((wi) => wi.id);
+    const secondWorkItemIds = secondLoaded.quest!.workItems.map((wi) => wi.id);
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u;
+    const idsAreValidUuids = [...firstWorkItemIds, ...secondWorkItemIds].every((id) =>
+      uuidPattern.test(id),
+    );
+    const idsDiffer = firstWorkItemIds[0] !== secondWorkItemIds[0];
+
+    expect({ workItemCount: firstWorkItemIds.length, idsAreValidUuids, idsDiffer }).toStrictEqual({
+      workItemCount: 1,
+      idsAreValidUuids: true,
+      idsDiffer: true,
+    });
+  });
+
+  it('VALID: {createdAt, updatedAt} => the work item createdAt and quest updatedAt land on disk exactly as supplied', async () => {
+    const testbed = installTestbedCreateBroker({
+      baseName: BaseNameStub({ value: 'hydrate-fixed-clocks' }),
+    });
+    const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+    await envHarness.seedQuestRepoPackages({
+      repoRoot: testbed.guildPath,
+      locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+      sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
+    });
+
+    const guild = await guildAddBroker({
+      name: GuildNameStub({ value: 'Fixed Clocks Guild' }),
+      path: GuildPathStub({ value: testbed.guildPath }),
+    });
+    const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
+
+    const fixedCreatedAt = IsoTimestampStub({ value: '2024-01-01T00:00:00.000Z' });
+    const fixedUpdatedAt = IsoTimestampStub({ value: '2024-06-15T12:30:00.000Z' });
+
+    const { questId } = await questHydrateBroker({
+      blueprint,
+      guildId: guild.id,
+      createdAt: fixedCreatedAt,
+      updatedAt: fixedUpdatedAt,
+    });
+
+    const loaded = await questGetBroker({ input: GetQuestInputStub({ questId }) });
+
+    restore();
+    testbed.cleanup();
+
+    expect({
+      workItemCreatedAts: loaded.quest!.workItems.map((wi) => wi.createdAt),
+      questUpdatedAt: loaded.quest!.updatedAt,
+    }).toStrictEqual({
+      workItemCreatedAts: [fixedCreatedAt],
+      questUpdatedAt: fixedUpdatedAt,
+    });
+  });
+
+  it('VALID: {no createdAt, no updatedAt} => both still mint from the real clock at call time', async () => {
+    const testbed = installTestbedCreateBroker({
+      baseName: BaseNameStub({ value: 'hydrate-mints-clocks' }),
+    });
+    const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+    await envHarness.seedQuestRepoPackages({
+      repoRoot: testbed.guildPath,
+      locations: smoketestBlueprintsStatics.minimal.packagesAffected.map((entry) => entry.location),
+      sources: smoketestBlueprintsStatics.minimal.contracts.map((entry) => entry.source),
+    });
+
+    const guild = await guildAddBroker({
+      name: GuildNameStub({ value: 'Mints Clocks Guild' }),
+      path: GuildPathStub({ value: testbed.guildPath }),
+    });
+    const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
+
+    const before = new Date().toISOString();
+    const { questId } = await questHydrateBroker({ blueprint, guildId: guild.id });
+    const after = new Date().toISOString();
+
+    const loaded = await questGetBroker({ input: GetQuestInputStub({ questId }) });
+
+    restore();
+    testbed.cleanup();
+
+    const workItemCreatedAt = loaded.quest!.workItems[0]!.createdAt;
+    const questUpdatedAt = loaded.quest!.updatedAt!;
+    const createdAtAfterBefore = workItemCreatedAt >= before;
+    const createdAtBeforeAfter = workItemCreatedAt <= after;
+    const updatedAtAfterBefore = questUpdatedAt >= before;
+    const updatedAtBeforeAfter = questUpdatedAt <= after;
+
+    expect({
+      createdAtAfterBefore,
+      createdAtBeforeAfter,
+      updatedAtAfterBefore,
+      updatedAtBeforeAfter,
+    }).toStrictEqual({
+      createdAtAfterBefore: true,
+      createdAtBeforeAfter: true,
+      updatedAtAfterBefore: true,
+      updatedAtBeforeAfter: true,
     });
   });
 });

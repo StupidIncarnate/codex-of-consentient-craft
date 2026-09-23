@@ -17,7 +17,7 @@ const QUEST_START_REJECTED_STATUSES: readonly StatusKey[] = STATUSES.filter(
 );
 
 const QUEST_START_REJECTED_ERROR =
-  'Quest must be in a startable status (approved or design_approved) to start execution';
+  'Quest must be in a startable status (approved) to start execution';
 
 describe('QuestStartResponder', () => {
   describe('allowed statuses', () => {

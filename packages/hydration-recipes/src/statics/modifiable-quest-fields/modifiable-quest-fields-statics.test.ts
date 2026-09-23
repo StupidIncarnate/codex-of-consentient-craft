@@ -13,7 +13,6 @@ describe('modifiableQuestFieldsStatics', () => {
         'status',
         'pausedAtStatus',
         'title',
-        'designPort',
         'workItems',
         'wardResults',
         'planningNotes',

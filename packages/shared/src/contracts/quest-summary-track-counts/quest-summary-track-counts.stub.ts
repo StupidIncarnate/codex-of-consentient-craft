@@ -8,8 +8,9 @@ export const QuestSummaryTrackCountsStub = ({
 }: StubArgument<QuestSummaryTrackCounts> = {}): QuestSummaryTrackCounts =>
   questSummaryTrackCountsContract.parse({
     id: 'flowrider',
-    confirmed: 12,
-    unconfirmable: 1,
+    met: 12,
+    cantMeet: 1,
+    unmet: 2,
     outstanding: 3,
     ...props,
   });

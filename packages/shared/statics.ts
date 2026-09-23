@@ -50,8 +50,6 @@ export * from './src/statics/quest-summary-limits/quest-summary-limits-statics';
 // Flow slice render bound — the character ceiling get-quest's per-flow render is cut at.
 export * from './src/statics/quest-flow-slice-limits/quest-flow-slice-limits-statics';
 
-// Flow Sign-off Evidence
-
 // The wording get-quest refuses a conflicting argument pair with, shared by the input contract and
 // the MCP wrapper that extends it.
 export * from './src/statics/get-quest-input-conflicts/get-quest-input-conflicts-statics';
@@ -76,10 +74,10 @@ export * from './src/statics/graph-outcome-word/graph-outcome-word-statics';
 // calls).
 export * from './src/statics/package-build-order/package-build-order-statics';
 
-// The two verification track lists — the sign-off FIELDS a unit carries and the DENOMINATORS
-// measured over them — consumed by signoffTrackContract and signoffDenominatorTrackContract to
-// build their enums, and by every test that enumerates either list.
-export * from './src/statics/signoff-tracks/signoff-tracks-statics';
+// The ROLES measured over verification units, in relay order — consumed by
+// verificationTrackContract to build its enum, and by every test that enumerates the role
+// set.
+export * from './src/statics/verification-tracks/verification-tracks-statics';
 
 // Pasted-image limits, token patterns and prompt trailer — one source read by the browser's
 // paste path, the server's write path and the orchestrator's prompt builder.

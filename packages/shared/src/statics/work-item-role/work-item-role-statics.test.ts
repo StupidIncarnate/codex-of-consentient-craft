@@ -5,7 +5,6 @@ describe('workItemRoleStatics', () => {
     expect(workItemRoleStatics).toStrictEqual({
       names: [
         'chaoswhisperer',
-        'glyphsmith',
         'bughunt',
         'tavernkeeper',
         'riftcarver',
@@ -16,7 +15,7 @@ describe('workItemRoleStatics', () => {
         'siegemaster',
         'warpgate',
       ],
-      chat: ['chaoswhisperer', 'glyphsmith', 'bughunt', 'tavernkeeper'],
+      chat: ['chaoswhisperer', 'bughunt', 'tavernkeeper'],
       command: ['ward', 'riftcarver'],
       excludedFromStatusDerivation: ['tavernkeeper'],
       postQuestChat: ['tavernkeeper'],

@@ -35,6 +35,18 @@
  * `baselineFor` names the happy-walk piece an ADVERSARIAL piece measures against. An attack is an
  * ABSENCE claim — I attacked this and it did not fall over — and an absence is only evidence against
  * a known-good reading taken first, so without this field the antagonist has nothing behind its claim.
+ *
+ * `pieceName` IS REQUIRED, AND SITS ON THE PIECE RATHER THAN INSIDE `payload`. It is family-agnostic
+ * exactly like `context` and `notes`, so it needs no per-family payload contract to carry it, and
+ * `pieceBriefPayloadTransformer` copies it onto the minted work item's `payload.pieceName` — the one
+ * key the execution panel already reads (`execution-work-item-row-layer-widget.tsx`) to label a
+ * step's rows as \`step - pieceName\` once a scope holds more than one piece at that step. `id` stays
+ * the planner's own mnemonic for cross-referencing a plan; `pieceName` is what a reader is shown. A
+ * plan file written before this field existed fails `workPlanContract.parse()` on its next read —
+ * deliberately, per this package's own "no migration logic, still greenfield" rule: a plan file is a
+ * working forecast for the operation item's CURRENT pass, not persisted quest state, so the fix is
+ * the planner re-authoring it, the same as any other required field this contract has always refused
+ * a plan for omitting (`id`, `step`, `context`).
  */
 
 import { pieceIdContract, stepNameContract, unitIdContract } from '@dungeonmaster/shared/contracts';
@@ -44,6 +56,15 @@ import { recipeIdContract } from '../recipe-id/recipe-id-contract';
 
 export const workPlanPieceContract = z.object({
   id: pieceIdContract,
+  pieceName: z
+    .string()
+    .min(1)
+    .brand<'PieceName'>()
+    .describe(
+      'A short human name for this piece, in the planner’s own words — what a reader calls it, ' +
+        'never what it proves or which files it touches. Renders on the execution panel as ' +
+        '`step - pieceName` once a scope holds more than one piece at that step.',
+    ),
   step: stepNameContract.describe(
     "Which step of this family's graph the piece runs — resolved against that graph by the plan validator, not here.",
   ),

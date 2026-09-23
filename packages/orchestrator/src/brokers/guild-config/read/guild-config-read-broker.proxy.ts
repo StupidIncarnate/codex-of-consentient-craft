@@ -20,6 +20,7 @@ const DEFAULT_CONFIG_FILE_PATH = FilePathStub({ value: '/home/user/.dungeonmaste
 
 export const guildConfigReadBrokerProxy = (): {
   setupConfig: (params: { config: GuildConfig }) => void;
+  setupConfigAt: (params: { configFilePath: FilePath; config: GuildConfig }) => void;
   setupConfigExists: (params: {
     homeDir: string;
     homePath: FilePath;
@@ -53,6 +54,22 @@ export const guildConfigReadBrokerProxy = (): {
         filePath: DEFAULT_CONFIG_FILE_PATH,
         content: JSON.stringify(config),
       });
+    },
+
+    // For a caller-supplied home: stages the READ alone, at the exact config path, and stages
+    // nothing on `dungeonmasterHomeFindBroker` or `pathJoinAdapter`. `pathJoinAdapterProxy`'s own
+    // default is a real passthrough, so the path the broker computes off the supplied home is the
+    // genuine one — which is what lets a test assert that path instead of a staged stand-in, and
+    // what makes a broker that fell back to the process-wide home read a DIFFERENT path and throw
+    // on an unmatched call.
+    setupConfigAt: ({
+      configFilePath,
+      config,
+    }: {
+      configFilePath: FilePath;
+      config: GuildConfig;
+    }): void => {
+      readFileProxy.resolves({ filePath: configFilePath, content: JSON.stringify(config) });
     },
 
     setupConfigExists: ({

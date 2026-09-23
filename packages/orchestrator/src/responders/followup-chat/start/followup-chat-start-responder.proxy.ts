@@ -24,8 +24,7 @@ type WorktreePath = NonNullable<Quest['worktreePath']>;
 // crypto.randomUUID is sticky-mocked to this literal by chatSpawnBrokerProxy's own constructor
 // (its last registration wins over agentLaunchBrokerProxy's own uuid mock). FollowupChatStartResponder
 // mints a fresh tavernkeeper work item id off the SAME global mock, so this is the id it computes
-// whenever no existing item is found — matching the literal design-chat-start-responder.test.ts
-// asserts for its own crypto.randomUUID-minted glyphWorkItemId.
+// whenever no existing item is found.
 const MINTED_WORK_ITEM_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
 // Pins createdAt/startedAt/completedAt (this responder's own timestamps) AND quest.updatedAt
@@ -60,8 +59,8 @@ export const FollowupChatStartResponderProxy = (): {
   // Guild default staging, the questModifyBroker auto-mock, and the launcher's crypto.randomUUID +
   // chatStreamProcessHandle + main-tail + kill-layer + spawn-adapter wiring — everything
   // chatSpawnBroker's real internal chain needs to complete a full spawn. This proxy's own quest-
-  // resolution scenario methods (setupGlyphsmithSession, setupSessionLinkQuest, ...) are never
-  // called directly — they are chaoswhisperer/glyphsmith-shaped and cannot address a tavernkeeper
+  // resolution scenario methods (setupSessionLinkQuest, ...) are never
+  // called directly — they are chaoswhisperer-shaped and cannot address a tavernkeeper
   // quest. Only its spawn-adapter-level methods (setupResumeSession, setupResumeWithWorktree,
   // setupResumeWithMissingWorktree, getSpawnedArgs) are used below, addressed so their OWN bundled
   // quest resolution never collides with this responder's real reads (see CWD_STAGING_QUEST_ID).

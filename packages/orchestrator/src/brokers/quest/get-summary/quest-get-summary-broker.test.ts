@@ -63,9 +63,9 @@ describe('questGetSummaryBroker', () => {
           name: 'Login Flow',
           flowType: 'runtime',
           tracks: [
-            { id: 'codeweaver', confirmed: 0, unconfirmable: 0, outstanding: 2 },
-            { id: 'flowrider', confirmed: 0, unconfirmable: 0, outstanding: 2 },
-            { id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 9 },
+            { id: 'codeweaver', met: 0, cantMeet: 0, unmet: 0, outstanding: 2 },
+            { id: 'flowrider', met: 0, cantMeet: 0, unmet: 0, outstanding: 2 },
+            { id: 'siegemaster', met: 0, cantMeet: 0, unmet: 0, outstanding: 9 },
           ],
         },
       ]);
@@ -128,13 +128,15 @@ describe('questGetSummaryBroker', () => {
         questId: 'add-auth',
         flows: [],
         midQuestObservables: [],
-        unconfirmable: [],
+        debt: [],
+        humanChecks: [],
         noteGroups: [
           { id: 'open-question', notes: [] },
           { id: 'tooling-error', notes: [] },
           { id: 'out-of-scope', notes: [] },
           { id: 'walk-reset', notes: [] },
           { id: 'walked', notes: [] },
+          { id: 'human-verdict', notes: [] },
         ],
       });
     });

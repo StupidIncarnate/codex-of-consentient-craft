@@ -462,8 +462,8 @@ export * from './src/contracts/modify-quest-input/modify-quest-input-contract';
 export * from './src/contracts/modify-quest-input/modify-quest-input.stub';
 
 // QA Checklist Contracts (the deterministic enumeration of a flow into atomic verification units.
-// Coverage is settled by the per-unit `codeweaverSignoff` / `flowriderSignoff` / `siegemasterSignoff`
-// on the flow element itself, which `get-qa-checklist` and the quest summary both recompute)
+// Coverage is settled by an observation on the work item assigned to a unit
+// (`workItem.observations[]`), which `get-qa-checklist` and the quest summary both recompute)
 export * from './src/contracts/qa-checklist-kind/qa-checklist-kind-contract';
 export * from './src/contracts/qa-checklist-kind/qa-checklist-kind.stub';
 
@@ -502,30 +502,21 @@ export * from './src/contracts/blight-checklist/blight-checklist.stub';
 export * from './src/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry-contract';
 export * from './src/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
 
-// Sign-off Contracts (three independent verification tracks — Codeweaver in the unit tests beside
-// the code, Flowrider at the flow/test layer, Siegemaster off the running system — each recorded on
-// its own top-level field, with provenance carried on a separate axis so a track is never charged
-// for units it could not have reached)
-export * from './src/contracts/signoff-verdict/signoff-verdict-contract';
-export * from './src/contracts/signoff-verdict/signoff-verdict.stub';
-
-export * from './src/contracts/signoff-track/signoff-track-contract';
-export * from './src/contracts/signoff-track/signoff-track.stub';
-
-export * from './src/contracts/signoff-denominator-track/signoff-denominator-track-contract';
-export * from './src/contracts/signoff-denominator-track/signoff-denominator-track.stub';
+// Verification Track Contracts (the three tracks that measure a unit independently — Codeweaver in
+// the unit tests beside the code, Flowrider at the flow/test layer, Siegemaster off the running
+// system — each writing its own mark onto workItem.observations[], with provenance carried on a
+// separate axis so a track is never charged for units it could not have reached)
+export * from './src/contracts/verification-track/verification-track-contract';
+export * from './src/contracts/verification-track/verification-track.stub';
 
 export * from './src/contracts/observable-origin/observable-origin-contract';
 export * from './src/contracts/observable-origin/observable-origin.stub';
-
-export * from './src/contracts/signoff/signoff-contract';
-export * from './src/contracts/signoff/signoff.stub';
 
 export * from './src/contracts/flow-off-map-signoff/flow-off-map-signoff-contract';
 export * from './src/contracts/flow-off-map-signoff/flow-off-map-signoff.stub';
 
 // Unit Observation Contracts (the generic mark — met/cant-meet/unmet — that a session records
-// against one unit, replacing the three separate sign-off tracks above)
+// against one unit, on the work item that was assigned it)
 export * from './src/contracts/unit-id/unit-id-contract';
 export * from './src/contracts/unit-id/unit-id.stub';
 
@@ -556,10 +547,10 @@ export * from './src/contracts/quest-note-kind/quest-note-kind.stub';
 export * from './src/contracts/quest-note/quest-note-contract';
 export * from './src/contracts/quest-note/quest-note.stub';
 
-// Quest Summary Contracts (what actually happened on a quest: per-flow/per-track sign-off coverage,
-// the observables added after approval, every `unconfirmable` verdict — settled without being
-// proven — and the side-channel notes grouped by kind. Shared rather than orchestrator-local
-// because the web renders the same shape the orchestrator computes)
+// Quest Summary Contracts (what actually happened on a quest: per-flow/per-track mark counts,
+// the observables added after approval, every unit carrying debt — `cant-meet` (settled without
+// being proven) or `unmet` (left open) — and the side-channel notes grouped by kind. Shared
+// rather than orchestrator-local because the web renders the same shape the orchestrator computes)
 export * from './src/contracts/quest-summary-track-counts/quest-summary-track-counts-contract';
 export * from './src/contracts/quest-summary-track-counts/quest-summary-track-counts.stub';
 
@@ -569,14 +560,19 @@ export * from './src/contracts/quest-summary-flow/quest-summary-flow.stub';
 export * from './src/contracts/quest-summary-observable/quest-summary-observable-contract';
 export * from './src/contracts/quest-summary-observable/quest-summary-observable.stub';
 
-export * from './src/contracts/quest-summary-unconfirmable/quest-summary-unconfirmable-contract';
-export * from './src/contracts/quest-summary-unconfirmable/quest-summary-unconfirmable.stub';
+export * from './src/contracts/quest-summary-debt/quest-summary-debt-contract';
+export * from './src/contracts/quest-summary-debt/quest-summary-debt.stub';
 
 export * from './src/contracts/quest-summary-note-group/quest-summary-note-group-contract';
 export * from './src/contracts/quest-summary-note-group/quest-summary-note-group.stub';
 
 export * from './src/contracts/quest-summary/quest-summary-contract';
 export * from './src/contracts/quest-summary/quest-summary.stub';
+
+// Quest Projection Contracts — the likely remainder of a quest's execution, walked forward through
+// agentFlowStatics from its real scopes and work items (T2-0, R7)
+export * from './src/contracts/quest-projection/quest-projection-contract';
+export * from './src/contracts/quest-projection/quest-projection.stub';
 
 // Chat Entry Contracts
 export * from './src/contracts/chat-entry/chat-entry-contract';

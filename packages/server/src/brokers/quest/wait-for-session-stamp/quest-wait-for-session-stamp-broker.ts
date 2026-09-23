@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Polls a quest until its chaoswhisperer/glyphsmith workItem has a sessionId stamped, or until the deadline passes
+ * PURPOSE: Polls a quest until its chaoswhisperer workItem has a sessionId stamped, or until the deadline passes
  *
  * USAGE:
  * const ready = await questWaitForSessionStampBroker({ questId });

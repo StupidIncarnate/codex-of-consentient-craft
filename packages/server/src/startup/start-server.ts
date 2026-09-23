@@ -7,7 +7,6 @@
  */
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { DesignFlow } from '../flows/design/design-flow';
 import { GuildFlow } from '../flows/guild/guild-flow';
 import { QuestFlow } from '../flows/quest/quest-flow';
 import { ProcessFlow } from '../flows/process/process-flow';
@@ -52,7 +51,6 @@ export const StartServer = ({
       DirectoryFlow(),
       HealthFlow(),
       ImagesFlow(),
-      DesignFlow(),
       ToolingFlow(),
       RateLimitsFlow(),
       OrchestrationFlow(),

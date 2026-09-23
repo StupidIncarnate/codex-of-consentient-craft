@@ -14,7 +14,7 @@
  *   stopped: true,
  *   portsReleased: [34172, 34173],
  *   homeRemoved: true,
- *   evidenceKept: { path: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21', linkPresent: true },
+ *   evidenceKept: { path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21', linkPresent: true },
  *   reapedPgids: [],
  * });
  * // Returns a validated KillResult

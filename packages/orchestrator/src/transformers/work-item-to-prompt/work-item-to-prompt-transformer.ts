@@ -28,11 +28,28 @@
  * fetch), which role's conditional extras render — the failed ward result the repair session is being
  * sent to fix — and which template is served.
  *
- * **Path discrimination — minion vs role:** only when a work item has no step prompt and its agent
- * name is run through `workItemRoleContract.safeParse` and fails is it treated as a parent-summoned
- * minion receiving a minimal "Quest ID + Work Item ID" substitution; the parent briefs the context
- * inline. Stepped work items are relay work items that need the operation context substituted in
- * `$ARGUMENTS`, never minions.
+ * **Path discrimination — minion vs role vs error:** a work item with no step prompt is classified
+ * by its resolved prompt name, never by "fails `workItemRoleContract`" alone. A name in
+ * `agentPromptClassificationStatics.minionNames` is a parent-summoned minion and gets a minimal
+ * "Quest ID + Work Item ID" substitution; the parent briefs the context inline. A name that IS a
+ * `WorkItemRole` (a role-keyed item with no step graph — a hydrated/legacy quest, or a role no
+ * family carries) falls through to the relay path below instead. Any OTHER name — a STEP prompt
+ * name (`codeweaver-planner`, `siege-happy-walker`, …) reaching a work item that carries no step —
+ * is neither, and throws BY NAME rather than being served through the minion's two-line
+ * substitution, which would silently hide the operation-relay context that name's real dispatch
+ * needed. Stepped work items are relay work items that need the operation context substituted in
+ * `$ARGUMENTS`, and always take that path regardless of promptName.
+ *
+ * **THE REPORTED MODEL AGREES WITH THE SPAWNED ONE, BECAUSE BOTH READ THE SAME STEP NODE.** A
+ * minion reports whatever `agentNameToPromptTransformer`'s per-PROMPT-NAME table states for it —
+ * the only value available, since a minion has no work item and no step. Every other path (a role
+ * at a step, or a role-keyed work item with none) reports the work item's own step model — the
+ * SAME `agentFlowStatics` node `buildSpawnInstructionLayerBroker` reads for the real dispatch, with
+ * the same scope-role fallback (`roleToModelTransformer({ role: workItem.role })`) for a work item
+ * that runs no step graph. Reporting `agentNameToPromptTransformer`'s per-name model here instead
+ * — `codeweaver-worker` reads `roleToModelStatics.codeweaver` (`opus`) there, while the step itself
+ * declares `sonnet` — is exactly how a session could be told it is running on a model different
+ * from the one dispatch actually gave it.
  *
  * Every parent prompt instructs its minion to fetch with `{ agent, questId }` and NO `workItemId`,
  * which routes to `agentPromptGetBroker`'s minion-fetch branch (a bare `Quest ID:` substitution, no
@@ -44,13 +61,16 @@
  * branch below stays for a caller that echoes an id anyway; it must not become the documented path.
  *
  * USAGE:
- * const { prompt } = workItemToPromptTransformer({ quest, workItem, agentName });
- * // Returns ContentText prompt with $ARGUMENTS replaced by operation-relay context
+ * const { prompt, model } = workItemToPromptTransformer({ quest, workItem, agentName });
+ * // Returns ContentText prompt with $ARGUMENTS replaced by operation-relay context, and the
+ * // ClaudeModel this same work item is dispatched on
  */
 
 import {
+  agentPromptResultContract,
   contentTextContract,
   workItemRoleContract,
+  type AgentPromptResult,
   type ContentText,
   type Quest,
   type WorkItem,
@@ -59,7 +79,9 @@ import { isChatWorkItemRoleGuard, isCommandWorkItemRoleGuard } from '@dungeonmas
 
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { questWorkInstanceContract } from '../../contracts/quest-work-instance/quest-work-instance-contract';
+import { agentPromptClassificationStatics } from '../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name-to-prompt-transformer';
+import { roleToModelTransformer } from '../role-to-model/role-to-model-transformer';
 import { workItemStepNodeTransformer } from '../work-item-step-node/work-item-step-node-transformer';
 
 export const workItemToPromptTransformer = ({
@@ -70,7 +92,7 @@ export const workItemToPromptTransformer = ({
   quest: Quest;
   workItem: WorkItem;
   agentName: string;
-}): { prompt: ContentText } => {
+}): { prompt: ContentText; model: AgentPromptResult['model'] } => {
   const node = workItemStepNodeTransformer({ quest, workItem });
   const hasStepPrompt = node?.kind === 'prompt' && node.prompt !== undefined;
   const promptName =
@@ -79,17 +101,35 @@ export const workItemToPromptTransformer = ({
       : (agentPromptNameContract.safeParse(agentName).data ??
         agentPromptNameContract.parse(workItem.role));
 
-  // Minion path: agent name does not correspond to a WorkItemRole — it's parent-dispatched
-  // via the Agent tool, with the parent's workItemId echoed in the get-agent-prompt call.
-  // Stepped work items are relay work items that need the operation context substituted in
-  // $ARGUMENTS, never minions.
   const isWorkItemRole = workItemRoleContract.safeParse(promptName).success;
-  if (!hasStepPrompt && !isWorkItemRole) {
+  const isMinionName = agentPromptClassificationStatics.minionNames.some(
+    (name) => name === String(promptName),
+  );
+
+  // Minion path: NARROWED to the true minion roster, never "any name that fails
+  // workItemRoleContract" — a STEP prompt name (`codeweaver-planner`, …) fails that same parse, and
+  // serving it through the minion's two-line substitution would silently hide the operation-relay
+  // context a step-less item's dispatch actually needed. It's parent-dispatched via the Agent tool,
+  // with the parent's workItemId echoed in the get-agent-prompt call. Stepped work items are relay
+  // work items that need the operation context substituted in $ARGUMENTS, never minions.
+  if (!hasStepPrompt && isMinionName) {
     const minionArguments = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItem.id)}`;
-    const { prompt: template } = agentNameToPromptTransformer({ agent: promptName });
+    const { prompt: template, model } = agentNameToPromptTransformer({ agent: promptName });
     return {
       prompt: contentTextContract.parse(template.replace('$ARGUMENTS', () => minionArguments)),
+      model,
     };
+  }
+
+  // A name that is neither a minion nor a WorkItemRole has nothing lawful to serve it: a STEP
+  // prompt name (`codeweaver-planner`, `siege-happy-walker`, …) only ever belongs on a work item AT
+  // that step, so one arriving with no step is a caller passing the wrong pair, not a minion —
+  // named here instead of falling through to `agentNameToPromptTransformer`'s own generic "Unknown
+  // agent prompt name" throw, which would blame the name instead of the missing step.
+  if (!hasStepPrompt && !isWorkItemRole) {
+    throw new Error(
+      `workItemToPromptTransformer: '${String(promptName)}' names a step prompt, but work item ${String(workItem.id)} carries no step to serve it at. Only ${agentPromptClassificationStatics.minionNames.join(', ')} may be fetched with no step at all.`,
+    );
   }
 
   // Every COMMAND role, not `ward` alone. A command work item is run by the dispatcher itself and
@@ -106,8 +146,8 @@ export const workItemToPromptTransformer = ({
   if (isChatWorkItemRoleGuard({ role: workItem.role })) {
     // Chat roles are briefed by their own entry point, not by the dispatch loop: chaoswhisperer
     // and bughunt run as the /dumpster-create and /dumpster-hunt slash command bodies (or as a
-    // headless node-mode spawn built by chatPromptBuildTransformer); glyphsmith runs through the
-    // chat-broker design flow. None has a dispatch-loop lifecycle.
+    // headless node-mode spawn built by chatPromptBuildTransformer). None has a dispatch-loop
+    // lifecycle.
     throw new Error(
       `workItemToPromptTransformer: role ${workItem.role} is not served by get-agent-prompt`,
     );
@@ -148,8 +188,11 @@ export const workItemToPromptTransformer = ({
   // being set at all: a quest reaches `merging` only after Start Quest recorded its git context,
   // but the field stays optional on the contract, so an unset value is omitted rather than
   // rendered as the literal string "undefined".
-  const isWarpgate =
-    (node?.kind === 'prompt' && node.prompt === 'warpgate') || workItem.role === 'warpgate';
+  //
+  // No role-keyed fallback here: `OrchestrationMergeResponder` is the SOLE creator of a warpgate
+  // work item and always stamps `step: 'merge'` on it, so `node.prompt === 'warpgate'` alone is
+  // reachable for every warpgate dispatch there is.
+  const isWarpgate = node?.kind === 'prompt' && node.prompt === 'warpgate';
   if (isWarpgate && quest.baseBranch !== undefined) {
     parts.push(
       contentTextContract.parse(''),
@@ -157,9 +200,16 @@ export const workItemToPromptTransformer = ({
     );
   }
 
-  // Keyed on the step prompt or role, which is how a `repair` step inside a ward scope gets the blob
-  // it was minted to fix: its work item reads `role: 'ward'`, and a spiritmender served without these
-  // two lines has nothing naming the failure.
+  // Keyed on the step prompt or role. The first clause is how a `repair` step inside another
+  // family's scope gets the blob it was minted to fix: its work item reads e.g. `role: 'ward'` while
+  // its step declares `prompt: 'spiritmender'`, and a spiritmender served without these two lines has
+  // nothing naming the failure. The second clause is a role-keyed spiritmender item with NO step:
+  // `questAdvanceBroker` stamps one whenever an operation item's role carries no family, which today
+  // is every spiritmender entry the pt-splice machinery still appends directly to the ledger — no
+  // other current path creates a `role: 'spiritmender'` work item at all, since a modern repair step
+  // keeps its work item's role at the owning family's (`ward`, `codeweaver`, …) and only its STEP
+  // names `spiritmender`. This clause goes dead once that ledger-insertion path is removed; it stays
+  // live and load-bearing until then.
   const isSpiritmender =
     (node?.kind === 'prompt' && node.prompt === 'spiritmender') || workItem.role === 'spiritmender';
   if (isSpiritmender) {
@@ -202,10 +252,28 @@ export const workItemToPromptTransformer = ({
     agent: promptName,
   });
 
+  // THE MODEL COMES OFF THE STEP NODE, NEVER OFF `agentNameToPromptTransformer`'s per-PROMPT-NAME
+  // table — that table is what let `get-agent-prompt` report a model different from the one dispatch
+  // actually spawned (see this file's own header). The same condition that decided `hasStepPrompt`
+  // above guards which side supplies it: a stepped work item reads its step's own declared model,
+  // and a role-keyed one with no step graph (a legacy/hydrated quest, or a directly-minted
+  // spiritmender item — warpgate always carries `step: 'merge'`) falls back to the scope role's
+  // model — the identical fallback `buildSpawnInstructionLayerBroker` applies for the real
+  // dispatch. `workItem.role` is guaranteed
+  // non-command and non-chat here: both throw above. Re-parsed into `AgentPromptResult`'s own
+  // `model` brand at the boundary — `ClaudeModel` and `AgentPromptResultModel` carry the same
+  // values but are deliberately distinct brands, one scoped to the CLI flag this package resolves,
+  // the other to the shared wire contract `get-agent-prompt` serves.
+  const resolvedModel = agentPromptResultContract.shape.model.parse(
+    (node?.kind === 'prompt' && node.prompt !== undefined ? node.model : undefined) ??
+      roleToModelTransformer({ role: workItem.role }),
+  );
+
   // Function replacement, not a string one: operation text is authored prose that can contain a
   // `$` sequence (`$&`, `` $` ``, `$'`), which a string replacement would expand against the match
   // — `` $` `` splices the whole preceding prompt in. A function replacement is taken verbatim.
   return {
     prompt: contentTextContract.parse(template.replace('$ARGUMENTS', () => parts.join('\n'))),
+    model: resolvedModel,
   };
 };

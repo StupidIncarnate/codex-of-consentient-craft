@@ -1,5 +1,6 @@
 import { browserSessionContract } from './browser-session-contract';
 import { BrowserSessionStub } from './browser-session.stub';
+import { SettleReadingStub } from '../settle-reading/settle-reading.stub';
 import { StorageReadingStub } from '../storage-reading/storage-reading.stub';
 import { VideoActionStub } from '../video-action/video-action.stub';
 import { VideoResultStub } from '../video-result/video-result.stub';
@@ -59,6 +60,45 @@ describe('browserSessionContract', () => {
       await expect(session.waitForPredicate({ source: 'true', timeoutMs: 1000 })).resolves.toBe(
         undefined,
       );
+    });
+
+    it('VALID: {} => waitForSettle resolves to a settled reading by default', async () => {
+      const session = BrowserSessionStub();
+
+      const reading = await session.waitForSettle({});
+
+      expect(reading).toStrictEqual({
+        settled: true,
+        reason: 'quiet',
+        waitedMs: 0,
+        unsettled: [],
+        pendingRequests: 0,
+        pollersDiscounted: [],
+      });
+    });
+
+    it('VALID: {waitForSettle: mock} => waitForSettle uses the handed-in implementation', async () => {
+      const ceilingReading = SettleReadingStub({
+        settled: false,
+        reason: 'ceiling',
+        waitedMs: 5000,
+        unsettled: ['network'],
+        pendingRequests: 1,
+      });
+      const mockWaitForSettle = jest.fn().mockResolvedValue(ceilingReading);
+      const session = BrowserSessionStub({ waitForSettle: mockWaitForSettle });
+
+      const reading = await session.waitForSettle({ ceilingMs: 5000 });
+
+      expect(reading).toStrictEqual({
+        settled: false,
+        reason: 'ceiling',
+        waitedMs: 5000,
+        unsettled: ['network'],
+        pendingRequests: 1,
+        pollersDiscounted: [],
+      });
+      expect(mockWaitForSettle).toHaveBeenCalledWith({ ceilingMs: 5000 });
     });
 
     it('VALID: {} => checkRootPresent resolves to true by default', async () => {

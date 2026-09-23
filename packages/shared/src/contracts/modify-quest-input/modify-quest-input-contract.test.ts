@@ -680,6 +680,61 @@ describe('modifyQuestInputContract', () => {
     });
   });
 
+  it('INVALID: {open-question note with no workItemId} => throws, because only a human-verdict note may omit it — a session\'s note still owes a reader "who wrote this"', () => {
+    expect(() =>
+      modifyQuestInputContract.parse({
+        questId: 'add-auth',
+        planningNotes: {
+          questNotes: [
+            {
+              id: 'open-question-comment-anchor-scope',
+              kind: 'open-question',
+              role: 'siegemaster',
+              summary: 'Should a stale anchor notify per box or once per batch?',
+              detail: 'The batch send drops boxes whose node id no longer exists in the flow.',
+            },
+          ],
+        },
+      }),
+    ).toThrow(/workItemId is required on a.*open-question.*note — only a human-verdict/u);
+  });
+
+  it("VALID: {human-verdict note with no workItemId} => parses, the one kind a person's browser click writes with no work item", () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      planningNotes: {
+        questNotes: [
+          {
+            id: 'human-verdict-motion-feels-smooth',
+            kind: 'human-verdict',
+            role: 'operator',
+            unitId: 'motion-feels-smooth',
+            outcome: 'met',
+            summary: 'the transition feels smooth: confirmed',
+            detail: 'Watched the raid transition twice; it stutters on the third frame.',
+          },
+        ],
+      },
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      planningNotes: {
+        questNotes: [
+          {
+            id: 'human-verdict-motion-feels-smooth',
+            kind: 'human-verdict',
+            role: 'operator',
+            unitId: 'motion-feels-smooth',
+            outcome: 'met',
+            summary: 'the transition feels smooth: confirmed',
+            detail: 'Watched the raid transition twice; it stutters on the third frame.',
+          },
+        ],
+      },
+    });
+  });
+
   // Regression guard: modifyQuestInputContract originally had no `operationPlans` field at all, so
   // a planning sub-agent's plan was silently stripped by planningNotes' non-strict .partial() shape —
   // parse succeeded, the field just vanished, with no error anywhere. This pins the field surviving
@@ -736,16 +791,13 @@ describe('modifyQuestInputContract', () => {
     });
   });
 
-  it('VALID: {designPort} => parses successfully', () => {
-    const result = modifyQuestInputContract.parse({
-      questId: 'add-auth',
-      designPort: 5173,
-    });
-
-    expect(result).toStrictEqual({
-      questId: 'add-auth',
-      designPort: 5173,
-    });
+  it('INVALID: {designPort} => throws, the field no longer exists on this contract', () => {
+    expect(() =>
+      modifyQuestInputContract.parse({
+        questId: 'add-auth',
+        designPort: 5173,
+      }),
+    ).toThrow(/Unrecognized key/u);
   });
 
   it('VALID: {status} => parses successfully', () => {

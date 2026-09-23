@@ -27,12 +27,15 @@ import * as path from 'path';
 import type { APIRequestContext } from '@playwright/test';
 import { z } from 'zod';
 
-import type { FilePath, Quest, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, ProcessId, Quest, QuestId } from '@dungeonmaster/shared/contracts';
 import {
   SimpleTextResponseStub,
   WardQueueResponseStub,
+  processIdContract,
   questContract,
 } from '@dungeonmaster/shared/contracts';
+import { dmHttpResponseContract } from '@dungeonmaster/hydration-recipes/contracts';
+import type { DmHttpResponse } from '@dungeonmaster/hydration-recipes/contracts';
 
 import { claudeMockHarness } from '../claude-mock/claude-mock.harness';
 import { dispatchPauseHarness } from '../dispatch-pause/dispatch-pause.harness';
@@ -88,17 +91,13 @@ export const dispatchHarness = ({
       // seeded item is left for `questAdvanceBroker` to enter at its family's ENTRY step.
       workItemId?: string;
       // The `agentFlowStatics` step that seeded work item carries. Omit it for a scope that runs no
-      // step graph — its own `signal-back` completes it, and no family route fires behind it.
+      // step graph — its own `signal-back` completes the linked operation item directly and
+      // `questAdvanceBroker` opens the next scope, with no `questRouteScopeBroker` route in between.
       step?: string;
     }[];
     firstWorkItemId: string;
     firstWorkItemStatus?: string;
     firstWorkItemSessionId?: string;
-    // Seeds the quest's runtime flow with the Flowrider track's sign-offs already written — the
-    // state a real flowrider session reaches before it signals. Required whenever the ledger
-    // carries a `flowrider` item this spec drives to `done`, because signal-back recomputes that
-    // scope and refuses `done` while any verification unit on it is unsigned.
-    flowriderScopeSignedOff?: boolean;
     // Seeds the quest as ALREADY CARVED — the state every role after riftcarver runs in. Its
     // sessions run in the worktree, so their JSONL lands under the worktree's path encoding and
     // the server has to resolve their tails through this field rather than the guild path.
@@ -112,12 +111,21 @@ export const dispatchHarness = ({
       // tell one role's transcript from the next one's — which is what an assertion about a role
       // TRANSITION needs, and what the shared default text cannot express.
       text?: string;
+      // A green/red step only: the stdout lines the fake ward CLI writes before its `run: <id>`
+      // line, for a spec asserting those lines reach the execution panel. Ignored on `done` — an
+      // agent outcome has no ward stdout to carry it.
+      outputLines?: string[];
     }[];
     agentLineDelayMs?: number;
   }) => void;
   playAndDrive: (params: {
     questId: string;
-    script: { role: string; outcome: 'done' | 'green' | 'red'; text?: string }[];
+    script: {
+      role: string;
+      outcome: 'done' | 'green' | 'red';
+      text?: string;
+      outputLines?: string[];
+    }[];
     agentLineDelayMs?: number;
   }) => Promise<void>;
   holdQueueWithMcpHeartbeat: () => void;
@@ -130,6 +138,17 @@ export const dispatchHarness = ({
     predicate: (params: { quest: Quest }) => boolean;
     timeoutMs: number;
   }) => Promise<Quest>;
+  // Plays the dispatcher directly, with no quest seeded and no script queued — for a spec that
+  // measures the leak between specs rather than driving a real relay. See its own body for why
+  // this is RAW ON PURPOSE.
+  forcePlayDispatcher: () => Promise<{ status: DmHttpResponse['status'] }>;
+  // Calls the real POST /api/quests/:questId/start route — the same one the Begin Quest button
+  // calls — and hands back its status code plus the processId the body carries, since a caller
+  // that polls `/api/process/:processId` next needs that id and no ingredient exposes it. See its
+  // own body for why this is RAW ON PURPOSE.
+  startQuestViaStartRoute: (params: {
+    questId: string;
+  }) => Promise<{ status: DmHttpResponse['status']; processId: ProcessId }>;
 } => {
   const claudeMock = claudeMockHarness({
     guildPath,
@@ -159,13 +178,19 @@ export const dispatchHarness = ({
   //
   // `done` IS THE ONLY AGENT OUTCOME A QUEUED RESPONSE CAN SPELL, because `signal-back` carries no
   // outcome word: the four words ride on `quest-work`, which this fake CLI has no MCP client to
-  // call. The continuation a `partial` used to mint is now the ward red splice (green/red below)
-  // and the router's `unmet` re-mint.
+  // call. A ward outcome is spelled through the ward queue instead (green/red below): a red routes
+  // `unmet` to a `repair` work item on the same scope, and the router returns that repair to a
+  // fresh ward on its own `done`.
   const queueScript = ({
     script,
     agentLineDelayMs,
   }: {
-    script: { role: string; outcome: 'done' | 'green' | 'red'; text?: string }[];
+    script: {
+      role: string;
+      outcome: 'done' | 'green' | 'red';
+      text?: string;
+      outputLines?: string[];
+    }[];
     // Milliseconds the fake CLI waits between the stream lines it emits, which is what decides
     // how long its work item reads `in_progress`. At the 10 ms default a whole dispatch —
     // spawn, three lines, signal-back — lands inside ~30 ms, so a spec asserting that a row is
@@ -184,13 +209,16 @@ export const dispatchHarness = ({
           }),
         });
       } else {
-        // Root queue: run-ward spawns the fake ward with the server's cwd, not the guild path, so
-        // the cwd-scoped queue never matches — the fake ward falls back to the root queue.
+        // Root queue: the ward step (`stepHandlerWardBroker`, dispatched through `run-step`)
+        // resolves cwd via `questCwdResolveBroker` and spawns the fake ward there — the quest's own
+        // WORKTREE path, not the guild path — so the cwd-scoped queue never matches and the fake
+        // ward falls back to this root queue.
         wardMock.queueRootResponse({
           response: WardQueueResponseStub({
             exitCode: step.outcome === 'green' ? 0 : 1,
             runId: `e2e-dispatch-ward-${nextUnique()}`,
             wardResultJson: { checks: [] },
+            ...(step.outputLines === undefined ? {} : { outputLines: step.outputLines }),
           }),
         });
       }
@@ -222,7 +250,6 @@ export const dispatchHarness = ({
       firstWorkItemId,
       firstWorkItemStatus,
       firstWorkItemSessionId,
-      flowriderScopeSignedOff,
       worktreePath,
     }) => {
       const created = await quests.createQuest({ guildId, title, userRequest });
@@ -235,7 +262,6 @@ export const dispatchHarness = ({
         firstWorkItemId,
         ...(firstWorkItemStatus === undefined ? {} : { firstWorkItemStatus }),
         ...(firstWorkItemSessionId === undefined ? {} : { firstWorkItemSessionId }),
-        ...(flowriderScopeSignedOff === undefined ? {} : { flowriderScopeSignedOff }),
         ...(worktreePath === undefined ? {} : { worktreePath }),
       });
       return {
@@ -312,6 +338,35 @@ export const dispatchHarness = ({
         return poll();
       };
       return poll();
+    },
+    // RAW ON PURPOSE — no domain record models "the dispatcher is playing": it is a live
+    // orchestration toggle, not a guild/quest/session/operation row, so no dmRegistryBroker
+    // ingredient carries a verb for it (the same gap `dispatchPauseHarness.pause` already
+    // documents for the pause route's own construction site). Reaches the play route directly,
+    // the same force:true POST `playAndDrive` makes internally, standalone — for a spec that
+    // plays the dispatcher with no quest seeded at all and needs the raw response status back.
+    forcePlayDispatcher: async (): Promise<{ status: DmHttpResponse['status'] }> => {
+      const response = await request.post(DISPATCH_PLAY_ROUTE, { data: { force: true } });
+      return { status: dmHttpResponseContract.shape.status.parse(response.status()) };
+    },
+    // RAW ON PURPOSE — the quest ingredient's `transitions.reach` (questReachRouteBroker in
+    // @dungeonmaster/hydration-recipes) CAN walk a quest to `in_progress` through this exact
+    // production route, via `.set({ status: 'in_progress' })` on an api target — but its own
+    // dmHttpResponseUnwrapAdapter discards the real HTTP status on success, returning only the
+    // parsed body ("Returns ... the parsed body on a success status ... or throws ... otherwise").
+    // A caller that needs the LITERAL status code back, not just success/failure, has no route
+    // through the framework for it, so this calls the same production endpoint directly.
+    startQuestViaStartRoute: async ({
+      questId,
+    }: {
+      questId: string;
+    }): Promise<{ status: DmHttpResponse['status']; processId: ProcessId }> => {
+      const response = await request.post(`/api/quests/${questId}/start`);
+      const body: unknown = await response.json();
+      return {
+        status: dmHttpResponseContract.shape.status.parse(response.status()),
+        processId: processIdContract.parse((body as Record<PropertyKey, unknown>).processId),
+      };
     },
   };
 };

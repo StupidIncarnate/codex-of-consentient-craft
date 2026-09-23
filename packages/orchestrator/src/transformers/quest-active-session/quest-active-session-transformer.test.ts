@@ -47,9 +47,9 @@ describe('questActiveSessionTransformer', () => {
       });
     });
 
-    it('VALID: {completed chaos + in_progress glyph} => returns glyph', () => {
+    it('VALID: {completed chaos + in_progress bughunt} => returns bughunt', () => {
       const chaosSession = SessionIdStub({ value: 'session-chaos-1' });
-      const glyphSession = SessionIdStub({ value: 'session-glyph-1' });
+      const bughuntSession = SessionIdStub({ value: 'session-bughunt-1' });
 
       const completedChaos = WorkItemStub({
         id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
@@ -58,20 +58,20 @@ describe('questActiveSessionTransformer', () => {
         sessionId: chaosSession,
         completedAt: '2024-01-15T10:00:00.000Z',
       });
-      const activeGlyph = WorkItemStub({
+      const activeBughunt = WorkItemStub({
         id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
-        role: 'glyphsmith',
+        role: 'bughunt',
         status: 'in_progress',
-        sessionId: glyphSession,
+        sessionId: bughuntSession,
       });
 
       const result = questActiveSessionTransformer({
-        workItems: [completedChaos, activeGlyph],
+        workItems: [completedChaos, activeBughunt],
       });
 
       expect(result).toStrictEqual({
-        sessionId: glyphSession,
-        role: 'glyphsmith',
+        sessionId: bughuntSession,
+        role: 'bughunt',
       });
     });
   });

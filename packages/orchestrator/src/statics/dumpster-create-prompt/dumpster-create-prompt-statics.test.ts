@@ -1,3 +1,6 @@
+import { claudeCliArgvStatics } from '../claude-cli-argv/claude-cli-argv-statics';
+import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
+
 import { dumpsterCreatePromptStatics } from './dumpster-create-prompt-statics';
 
 // PROSE COMPARES IGNORE WRAPPING. `template` is bound with every whitespace run — spaces,
@@ -41,6 +44,18 @@ describe('dumpsterCreatePromptStatics', () => {
 
   it('VALID: prompt template => length exceeds 30000 characters', () => {
     expect(dumpsterCreatePromptStatics.prompt.template.length).toBeGreaterThan(30000);
+  });
+
+  // childProcessSpawnStreamJsonAdapter passes chatPromptBuildTransformer's composed prompt as ONE
+  // argv element to the Claude CLI, and $ARGUMENTS (the user's own message) is substituted into
+  // THIS template at spawn time — so the template's own bytes have to clear the single-argv
+  // ceiling with claudeCliArgvStatics.budgets.userMessageBytes still free for that substitution.
+  it('VALID: prompt template => clears the single-argv ceiling with the $ARGUMENTS budget still free', () => {
+    const bytes = Buffer.byteLength(dumpsterCreatePromptStatics.prompt.template, 'utf8');
+    const ceiling =
+      claudeCliArgvStatics.limits.maxArgBytes - claudeCliArgvStatics.budgets.userMessageBytes;
+
+    expect(bytes).toBeLessThanOrEqual(ceiling);
   });
 
   it('VALID: prompt template => Phase 5 no longer instructs calling validate-spec MCP tool', () => {
@@ -598,6 +613,30 @@ describe('dumpsterCreatePromptStatics', () => {
 
     it('VALID: Observable Format => keeps a painted-geometry claim in the TEST column of the good-and-bad table', () => {
       const needle = '| "at 400px the duration label does not overlap the name" |';
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+  });
+
+  // THE SHARED BLOCK, WHOLE, EXACTLY ONCE. Restating it is text served twice against the family's
+  // own budget; missing it is a rule every observable-authoring and walking prompt agreed on that
+  // this one silently drops.
+  describe('the verifyByHuman block this file interpolates', () => {
+    it('VALID: prompt template => takes the observable-automatability block whole, exactly once', () => {
+      expect(
+        dumpsterCreatePromptStatics.prompt.template.split(observableAutomatabilityStatics.markdown)
+          .length - 1,
+      ).toBe(1);
+    });
+
+    // THE ROLE-SPECIFIC SENTENCE, IN CHAOSWHISPERER'S OWN AUTHORING TERMS. The shared block explains
+    // the flag once, for every host; this prompt still owes its own reader the moment inside ITS OWN
+    // observable-authoring list where the flag applies, alongside `verifyByReading`.
+    it('VALID: prompt template => tells ChaosWhisperer when to flag an observable verifyByHuman, in its own authoring terms', () => {
+      const needle =
+        '- `verifyByHuman` (optional): `true` when no automated check — no test, no reading of the source — could ever settle the criterion at all, because it names a judgment only a person can make, and only once the quest is done.';
       const foundIndex = template.indexOf(needle);
       const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
 

@@ -37,7 +37,7 @@ test.describe('Malformed quest.json is reported on the quest route', () => {
     });
     const questId = String(created.questId);
 
-    await quests.writeQuestFile({
+    await quests.writeMalformedQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
@@ -99,7 +99,7 @@ test.describe('Malformed quest.json is reported on the quest route', () => {
     });
     const questId = String(created.questId);
 
-    await quests.writeQuestFile({
+    await quests.writeMalformedQuestFile({
       questId,
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),

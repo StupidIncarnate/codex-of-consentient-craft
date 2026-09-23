@@ -105,25 +105,44 @@ test.describe('Two Task-dispatched rows that share one parent /dumpster-launch s
 
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
+    // THREE rows, not two: neither codeweaver work item carries a `relatedDataItems` operation ref,
+    // so both fall into the shared ROLE-FALLBACK scope (`role:codeweaver`) and decision 2's NESTED
+    // ruling renders one operation header ("Codeweaver", carrying the [CODEWEAVER] badge) plus this
+    // scope's two work items nested beneath it. Neither carries a `step`, so both fall back to the
+    // scope-role step key and, sharing that key with no `pieceId` to tell them apart, tier to a true
+    // duplicate — "codeweaver role pt: 1" / "codeweaver role pt: 2" — which itself still contains the
+    // case-insensitive substring "codeweaver" that `hasText` matches on, alongside the header's own
+    // [CODEWEAVER] badge.
     await expect(
       executionPanel.getByTestId('execution-row-layer-widget').filter({ hasText: 'CODEWEAVER' }),
-    ).toHaveCount(2);
+    ).toHaveCount(3);
 
-    // Each in_progress codeweaver row auto-expands and renders its transcript via a
-    // `collapseToTail` ChatEntryListWidget, which shows ONLY the most-recent message anchor.
-    // So a row that owns a single sub-agent entry shows exactly that entry's text.
-    //
-    // REGRESSION: both markers must be visible — text-one in the first codeweaver row,
-    // text-two in the second. With the bug, the web buckets every sub-agent under the shared
-    // parentSessionId, so sessionEntries.get(wi.sessionId) hands BOTH rows the merged union
-    // [text-one, text-two]; collapseToTail then shows only the later-arriving marker in BOTH
-    // rows, leaving the other marker hidden behind "Show earlier" in BOTH — so exactly one of
-    // these two assertions fails (whichever marker sorted earlier).
-    await expect(executionPanel.getByText(subagentTextOne).first()).toBeVisible({
+    // Only the FIRST in_progress row, in render order, auto-expands (the panel's running-row
+    // focus, T2-9a) — every other in_progress row starts collapsed until clicked. codeweaverOneId
+    // is first in `workItems` array order, so it renders as "pt: 1" and takes the focus; the
+    // second row ("pt: 2") needs an explicit click on its own header before its transcript renders
+    // at all. Both row locators are scoped to their OWN row's DOM subtree — not the whole
+    // panel — so a merged transcript is still caught: the regression this test guards against
+    // buckets every sub-agent under the shared parentSessionId, so sessionEntries.get(wi.sessionId)
+    // would hand BOTH rows the merged union [text-one, text-two] and each row's own scope would
+    // then contain the OTHER row's marker too.
+    const firstCodeweaverRow = executionPanel
+      .getByTestId('execution-row-layer-widget')
+      .filter({ hasText: 'pt: 1' });
+    const secondCodeweaverRow = executionPanel
+      .getByTestId('execution-row-layer-widget')
+      .filter({ hasText: 'pt: 2' });
+
+    await expect(firstCodeweaverRow.getByText(subagentTextOne)).toBeVisible({
       timeout: REPLAY_TEXT_TIMEOUT,
     });
-    await expect(executionPanel.getByText(subagentTextTwo).first()).toBeVisible({
+    await expect(firstCodeweaverRow.getByText(subagentTextTwo)).toHaveCount(0);
+
+    await secondCodeweaverRow.getByTestId('execution-row-header').click();
+
+    await expect(secondCodeweaverRow.getByText(subagentTextTwo)).toBeVisible({
       timeout: REPLAY_TEXT_TIMEOUT,
     });
+    await expect(secondCodeweaverRow.getByText(subagentTextOne)).toHaveCount(0);
   });
 });

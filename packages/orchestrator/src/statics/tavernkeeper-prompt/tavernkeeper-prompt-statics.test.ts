@@ -50,4 +50,24 @@ describe('tavernkeeperPromptStatics', () => {
       expect(line).toBe('- Call `signal-back` — it owns no operation item and no ledger entry');
     });
   });
+
+  // `get-quest-summary` RETURNS `debt` (units marked cant-meet/unmet) AND `humanChecks`
+  // (verifyByHuman observables) — `questSummaryContract`'s own fields, and neither carries an
+  // `unconfirmable` mark.
+  describe('get-quest-summary description', () => {
+    it("VALID: template => names get-quest-summary's real sections (unproven units, human checks) rather than the retired 'unconfirmable' vocabulary", () => {
+      const line = TEMPLATE_LINES.find((candidate) => candidate.includes('get-quest-summary'));
+
+      expect(line).toBe(
+        '- `get-quest-summary` — per-flow verification state, the units still unproven (`cant-meet` /',
+      );
+      expect({
+        namesUnconfirmable: template.includes('unconfirmable'),
+        namesHumanChecks: template.includes('human checks'),
+      }).toStrictEqual({
+        namesUnconfirmable: false,
+        namesHumanChecks: true,
+      });
+    });
+  });
 });

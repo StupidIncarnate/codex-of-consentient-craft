@@ -1670,54 +1670,6 @@ describe('questModifyBroker', () => {
     });
   });
 
-  describe('designPort handling (orchestrator-only field)', () => {
-    it('VALID: {designPort: 5173} => sets quest.designPort', async () => {
-      const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'in_progress',
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        designPort: 5173,
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect(persisted.designPort).toBe(5173);
-    });
-
-    it('VALID: {no designPort in input} => leaves quest.designPort unchanged', async () => {
-      const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'in_progress',
-        designPort: 4173,
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({ questId: 'add-auth' });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect(persisted.designPort).toBe(4173);
-    });
-  });
-
   describe('mutex behavior (concurrency safety)', () => {
     it('VALID: {10 concurrent modify calls on same questId} => all 10 persist calls complete (serialized, none dropped)', async () => {
       const proxy = questModifyBrokerProxy();
@@ -2489,26 +2441,6 @@ describe('questModifyBroker', () => {
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'approved',
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        status: 'in_progress',
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-    });
-
-    it('VALID: {design_approved -> in_progress} => transitions and persists', async () => {
-      const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'design_approved',
       });
 
       proxy.setupQuestFound({ quest });

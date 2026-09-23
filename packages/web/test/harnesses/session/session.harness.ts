@@ -11,7 +11,13 @@ import * as os from 'os';
 import * as path from 'path';
 
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
-import { dmTargetContract } from '@dungeonmaster/hydration-recipes/contracts';
+import {
+  dmTargetContract,
+  sessionFieldsContract,
+  subagentFieldsContract,
+  taskDescriptionContract,
+  toolUseIdContract,
+} from '@dungeonmaster/hydration-recipes/contracts';
 import type { DmTarget } from '@dungeonmaster/hydration-recipes/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import {
@@ -26,9 +32,6 @@ import {
   TaskNotificationUserTextStreamLineStub,
   TaskToolResultStreamLineStub,
   UserTextStringStreamLineStub,
-  absoluteFilePathContract,
-  sessionIdContract,
-  streamJsonLineContract,
 } from '@dungeonmaster/shared/contracts';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
@@ -282,6 +285,105 @@ export const sessionHarness = ({
       projectPath: AbsoluteFilePathStub({ value: guildPath }),
     });
 
+  // Writes a session's OWN JSONL lines through dmRegistryBroker's session ingredient — no raw-fs
+  // fallback. A shape sessionFieldsContract rejects throws here, naming the field, rather than
+  // silently dropping to a hand-rolled fs.writeFile: see questHarness.writeQuestFile's own header
+  // for why a fallback that never reports it fired is worse than an unconverted method.
+  const writeSessionLines = async ({
+    cwd,
+    sessionId,
+    lines,
+  }: {
+    cwd: string;
+    sessionId: string;
+    lines: string[];
+  }): Promise<void> => {
+    const parsedFields = sessionFieldsContract.safeParse({ sessionId, cwd, lines });
+    if (!parsedFields.success) {
+      throw new Error(
+        `sessionHarness: could not write session "${sessionId}" — the assembled fields do not ` +
+          `parse as sessionFieldsContract, so dmRegistryBroker's session ingredient cannot write ` +
+          `them: ${parsedFields.error.message}`,
+      );
+    }
+
+    const plan = recipe(
+      {
+        name: 'write-session-lines',
+        description: 'write session transcript lines via dmRegistryBroker',
+      },
+      () => [
+        dmRegistryBroker.sessions
+          .under({ cwd: parsedFields.data.cwd })
+          .add(1, (s) => [s[0].setRaw(parsedFields.data)]),
+      ],
+    )();
+
+    await dmRegistryBroker.run(plan, resolvedTarget());
+  };
+
+  // Writes ONE sub-agent's own `agent-<agentId>.jsonl` through dmRegistryBroker's subagent
+  // ingredient — no raw-fs fallback, same reasoning as writeSessionLines above.
+  //
+  // `completed` is always false here, deliberately: the subagent ingredient's `write` route can
+  // auto-append the Task-completion correlation line onto the PARENT session when `completed:
+  // true`, but that auto-generated line is built through `userToolResultStreamLineContract`,
+  // which carries no `uuid`/`timestamp` fields — subagent-write-route-broker.ts's own header names
+  // this exactly: "the 'stable per-line uuid/timestamp' dedup property session.harness.ts...
+  // describes cannot be reproduced through this shared contract as it stands today — a finding,
+  // not a workaround." Every caller here builds its OWN correlation tool_result line, with the
+  // uuid/timestamp the orchestrator's replay dedup needs, as part of the SESSION's own `lines` —
+  // so the ingredient's auto-append would only write a second, uncorrelated duplicate.
+  const writeSubagentLines = async ({
+    cwd,
+    sessionId,
+    agentId,
+    toolUseId,
+    taskDescription,
+    taskPrompt,
+    lines,
+  }: {
+    cwd: string;
+    sessionId: string;
+    agentId: string;
+    toolUseId: string;
+    taskDescription: string;
+    taskPrompt: string;
+    lines: string[];
+  }): Promise<void> => {
+    const parsedFields = subagentFieldsContract.safeParse({
+      agentId,
+      toolUseId,
+      taskDescription,
+      taskPrompt,
+      lines,
+      completed: false,
+      sessionId,
+      cwd,
+    });
+    if (!parsedFields.success) {
+      throw new Error(
+        `sessionHarness: could not write sub-agent "${agentId}" transcript for session ` +
+          `"${sessionId}" — the assembled fields do not parse as subagentFieldsContract, so ` +
+          `dmRegistryBroker's subagent ingredient cannot write them: ${parsedFields.error.message}`,
+      );
+    }
+
+    const plan = recipe(
+      {
+        name: 'write-subagent-lines',
+        description: "write a sub-agent's own transcript lines via dmRegistryBroker",
+      },
+      () => [
+        dmRegistryBroker.subagents
+          .under({ cwd: parsedFields.data.cwd, sessionId: parsedFields.data.sessionId })
+          .add(1, (a) => [a[0].setRaw(parsedFields.data)]),
+      ],
+    )();
+
+    await dmRegistryBroker.run(plan, resolvedTarget());
+  };
+
   const createMultiEntrySessionFile = async ({
     sessionId,
     lines,
@@ -289,35 +391,7 @@ export const sessionHarness = ({
     sessionId: string;
     lines: string[];
   }): Promise<void> => {
-    const writeRawSessionFile = async (): Promise<void> => {
-      const jsonlDir = getJsonlDir();
-      const jsonlPath = path.join(jsonlDir, `${sessionId}.jsonl`);
-
-      await fs.promises.mkdir(jsonlDir, { recursive: true });
-      await fs.promises.writeFile(jsonlPath, `${lines.join('\n')}\n`);
-    };
-
-    try {
-      const parsedSessionId = sessionIdContract.parse(sessionId);
-      const parsedCwd = absoluteFilePathContract.parse(guildPath);
-      const parsedLines = lines.map((line) => streamJsonLineContract.parse(line));
-
-      const plan = recipe(
-        { name: 'seed-session-file', description: 'seed session transcript via write route' },
-        () => [
-          dmRegistryBroker.sessions.under({ cwd: parsedCwd }).add(1, (s) => [
-            s[0].setRaw({
-              sessionId: parsedSessionId,
-              lines: parsedLines,
-            }),
-          ]),
-        ],
-      )();
-
-      await dmRegistryBroker.run(plan, resolvedTarget());
-    } catch {
-      await writeRawSessionFile();
-    }
+    await writeSessionLines({ cwd: guildPath, sessionId, lines });
   };
 
   const createSessionFile = async ({
@@ -348,8 +422,6 @@ export const sessionHarness = ({
     mainAssistantText: string;
     subagentText: string;
   }): Promise<void> => {
-    const jsonlDir = getJsonlDir();
-
     // Stable per-line uuid + timestamp so the orchestrator's dedup-by-uuid stays correct
     // when subscribe-quest triggers replay more than once. Real Claude CLI writes both
     // fields on every JSONL line; the harness must too or the web binding sees two
@@ -406,14 +478,7 @@ export const sessionHarness = ({
       }),
     ];
 
-    await fs.promises.mkdir(jsonlDir, { recursive: true });
-    await fs.promises.writeFile(
-      path.join(jsonlDir, `${sessionId}.jsonl`),
-      `${mainLines.join('\n')}\n`,
-    );
-
-    const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
-    await fs.promises.mkdir(subagentDir, { recursive: true });
+    await writeSessionLines({ cwd: guildPath, sessionId, lines: mainLines });
 
     const subagentLines = [
       JSON.stringify({
@@ -429,15 +494,15 @@ export const sessionHarness = ({
       }),
     ];
 
-    // Real Claude CLI writes sub-agent JSONLs as `agent-<realAgentId>.jsonl`. The replay
-    // broker's `stripAgentFilenamePrefixTransformer` expects that prefix. Keep the filename
-    // consistent with the other harness helpers (createSubagentTailOnly,
-    // createSubagentSessionWithInternalTool, createBackgroundAgentSession) so E2E specs
-    // exercise the real shape.
-    await fs.promises.writeFile(
-      path.join(subagentDir, `agent-${agentId}.jsonl`),
-      `${subagentLines.join('\n')}\n`,
-    );
+    await writeSubagentLines({
+      cwd: guildPath,
+      sessionId,
+      agentId,
+      toolUseId,
+      taskDescription: 'Sub-agent work',
+      taskPrompt: 'Do the thing',
+      lines: subagentLines,
+    });
   };
 
   const createInFlightSubagentSessionFiles = async ({
@@ -457,8 +522,6 @@ export const sessionHarness = ({
     taskPrompt: string;
     subagentText: string;
   }): Promise<void> => {
-    const jsonlDir = getJsonlDir();
-
     // Main session JSONL: user kickoff + assistant Task tool_use. NO completion
     // user.tool_result line — that's the in-flight condition. Without the
     // completion, the replay broker's pass-1a (which keys on tool_use_result.agentId)
@@ -492,20 +555,13 @@ export const sessionHarness = ({
       }),
     ];
 
-    await fs.promises.mkdir(jsonlDir, { recursive: true });
-    await fs.promises.writeFile(
-      path.join(jsonlDir, `${sessionId}.jsonl`),
-      `${mainLines.join('\n')}\n`,
-    );
+    await writeSessionLines({ cwd: guildPath, sessionId, lines: mainLines });
 
     // Subagent JSONL: line 0 is a user-text line whose `message.content` is the
     // taskPrompt verbatim — that's the byte-identical string Claude CLI passes
     // both to the parent's Task.input.prompt AND to the spawned subagent's first
     // line. The replay broker's pass-1b prompt-match scan reads exactly this line
     // when pairing the realAgentId (filename) with the toolUseId.
-    const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
-    await fs.promises.mkdir(subagentDir, { recursive: true });
-
     const subagentLines = [
       JSON.stringify({
         ...UserTextStringStreamLineStub({
@@ -525,10 +581,15 @@ export const sessionHarness = ({
       }),
     ];
 
-    await fs.promises.writeFile(
-      path.join(subagentDir, `agent-${agentId}.jsonl`),
-      `${subagentLines.join('\n')}\n`,
-    );
+    await writeSubagentLines({
+      cwd: guildPath,
+      sessionId,
+      agentId,
+      toolUseId,
+      taskDescription,
+      taskPrompt,
+      lines: subagentLines,
+    });
   };
 
   const createMultiSubagentSessionFiles = async ({
@@ -547,9 +608,6 @@ export const sessionHarness = ({
       completed: boolean;
     }[];
   }): Promise<void> => {
-    const jsonlDir = getJsonlDir();
-    await fs.promises.mkdir(jsonlDir, { recursive: true });
-
     // Timestamp generator. The kickoff sits at 00:00; each Task tool_use + its
     // companion subagent activity gets its own minute slot so timestamps stay
     // monotonically increasing across both files (the replay broker sorts every
@@ -564,36 +622,6 @@ export const sessionHarness = ({
         timestamp: ts(0),
       }),
     ];
-
-    const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
-    await fs.promises.mkdir(subagentDir, { recursive: true });
-
-    const subagentWriteTasks = subagents.map(async (sub, idx) => {
-      const slotStart = (idx + 1) * 60;
-      const subagentLines = [
-        JSON.stringify({
-          ...UserTextStringStreamLineStub({
-            message: { role: 'user', content: sub.taskPrompt },
-          }),
-          timestamp: ts(slotStart + 1),
-        }),
-        JSON.stringify({
-          ...AssistantTextStreamLineStub({
-            message: {
-              role: 'assistant',
-              content: [{ type: 'text', text: sub.subagentText }],
-              usage: { input_tokens: 50, output_tokens: 20 },
-            },
-          }),
-          timestamp: ts(slotStart + 2),
-        }),
-      ];
-
-      return fs.promises.writeFile(
-        path.join(subagentDir, `agent-${sub.agentId}.jsonl`),
-        `${subagentLines.join('\n')}\n`,
-      );
-    });
 
     for (const [idx, sub] of subagents.entries()) {
       const slotStart = (idx + 1) * 60;
@@ -644,10 +672,44 @@ export const sessionHarness = ({
       }
     }
 
-    await Promise.all([
-      ...subagentWriteTasks,
-      fs.promises.writeFile(path.join(jsonlDir, `${sessionId}.jsonl`), `${mainLines.join('\n')}\n`),
-    ]);
+    await writeSessionLines({ cwd: guildPath, sessionId, lines: mainLines });
+
+    // Sequential, not Promise.all: planRunBroker's own runner is serial by design (see its
+    // header — concurrent file-backed writes race), and each of these is its own separate
+    // dmRegistryBroker.run() call, so this reduce keeps that same one-at-a-time discipline
+    // rather than firing several runs against the guild's directory at once.
+    await Array.from(subagents.entries()).reduce(async (previous, [idx, sub]) => {
+      await previous;
+      const slotStart = (idx + 1) * 60;
+      const subagentLines = [
+        JSON.stringify({
+          ...UserTextStringStreamLineStub({
+            message: { role: 'user', content: sub.taskPrompt },
+          }),
+          timestamp: ts(slotStart + 1),
+        }),
+        JSON.stringify({
+          ...AssistantTextStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [{ type: 'text', text: sub.subagentText }],
+              usage: { input_tokens: 50, output_tokens: 20 },
+            },
+          }),
+          timestamp: ts(slotStart + 2),
+        }),
+      ];
+
+      await writeSubagentLines({
+        cwd: guildPath,
+        sessionId,
+        agentId: sub.agentId,
+        toolUseId: sub.toolUseId,
+        taskDescription: sub.taskDescription,
+        taskPrompt: sub.taskPrompt,
+        lines: subagentLines,
+      });
+    }, Promise.resolve());
   };
 
   const createSubagentSessionWithInternalTool = async ({
@@ -671,8 +733,6 @@ export const sessionHarness = ({
     subagentToolInput: Record<string, unknown>;
     subagentToolResult: string;
   }): Promise<void> => {
-    const jsonlDir = getJsonlDir();
-
     const mainLines = [
       JSON.stringify({
         ...UserTextStringStreamLineStub({ message: { role: 'user', content: userMessage } }),
@@ -706,14 +766,7 @@ export const sessionHarness = ({
       }),
     ];
 
-    await fs.promises.mkdir(jsonlDir, { recursive: true });
-    await fs.promises.writeFile(
-      path.join(jsonlDir, `${sessionId}.jsonl`),
-      `${mainLines.join('\n')}\n`,
-    );
-
-    const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
-    await fs.promises.mkdir(subagentDir, { recursive: true });
+    await writeSessionLines({ cwd: guildPath, sessionId, lines: mainLines });
 
     const subagentLines = [
       JSON.stringify({
@@ -749,10 +802,15 @@ export const sessionHarness = ({
       }),
     ];
 
-    await fs.promises.writeFile(
-      path.join(subagentDir, `agent-${agentId}.jsonl`),
-      `${subagentLines.join('\n')}\n`,
-    );
+    await writeSubagentLines({
+      cwd: guildPath,
+      sessionId,
+      agentId,
+      toolUseId: taskToolUseId,
+      taskDescription,
+      taskPrompt: 'Do the thing',
+      lines: subagentLines,
+    });
   };
 
   const createBackgroundAgentSession = async ({
@@ -772,7 +830,6 @@ export const sessionHarness = ({
     notificationSummary: string;
     notificationResult: string;
   }): Promise<void> => {
-    const jsonlDir = getJsonlDir();
     const notificationContent = [
       '<task-notification>',
       `<task-id>${agentId}</task-id>`,
@@ -823,16 +880,10 @@ export const sessionHarness = ({
       }),
     ];
 
-    await fs.promises.mkdir(jsonlDir, { recursive: true });
-    await fs.promises.writeFile(
-      path.join(jsonlDir, `${sessionId}.jsonl`),
-      `${mainLines.join('\n')}\n`,
-    );
+    await writeSessionLines({ cwd: guildPath, sessionId, lines: mainLines });
 
     // Stub out the sub-agent JSONL so the replay broker sees the expected sub-agent file
     // layout, even though we don't care about its internal tool calls for this test.
-    const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
-    await fs.promises.mkdir(subagentDir, { recursive: true });
     const subagentLines = [
       JSON.stringify(
         AssistantTextStreamLineStub({
@@ -843,10 +894,15 @@ export const sessionHarness = ({
         }),
       ),
     ];
-    await fs.promises.writeFile(
-      path.join(subagentDir, `agent-${agentId}.jsonl`),
-      `${subagentLines.join('\n')}\n`,
-    );
+    await writeSubagentLines({
+      cwd: guildPath,
+      sessionId,
+      agentId,
+      toolUseId: taskToolUseId,
+      taskDescription,
+      taskPrompt: 'Run background work',
+      lines: subagentLines,
+    });
   };
 
   const createNestedSubagentSessionFiles = async ({
@@ -872,8 +928,6 @@ export const sessionHarness = ({
     parentText: string;
     nestedText: string;
   }): Promise<void> => {
-    const jsonlDir = getJsonlDir();
-
     // Monotonically increasing timestamps across all three files. The replay broker sorts
     // every line across main + subagent JSONLs into one timestamp-ordered PASS 2 stream, so
     // Task(A) must sort before Task(B) which must sort before B's marker for chain A to exist
@@ -924,14 +978,7 @@ export const sessionHarness = ({
       }),
     ];
 
-    await fs.promises.mkdir(jsonlDir, { recursive: true });
-    await fs.promises.writeFile(
-      path.join(jsonlDir, `${sessionId}.jsonl`),
-      `${mainLines.join('\n')}\n`,
-    );
-
-    const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
-    await fs.promises.mkdir(subagentDir, { recursive: true });
+    await writeSessionLines({ cwd: guildPath, sessionId, lines: mainLines });
 
     // Sub-agent A's JSONL: A's own text, the nested Task(B) launch, then B's completion
     // tool_result (carries tool_use_result.agentId = realB; lives in A's file so the replay
@@ -984,10 +1031,15 @@ export const sessionHarness = ({
       }),
     ];
 
-    await fs.promises.writeFile(
-      path.join(subagentDir, `agent-${parentRealAgentId}.jsonl`),
-      `${agentALines.join('\n')}\n`,
-    );
+    await writeSubagentLines({
+      cwd: guildPath,
+      sessionId,
+      agentId: parentRealAgentId,
+      toolUseId: parentToolUseId,
+      taskDescription: parentDescription,
+      taskPrompt: 'Parent prompt',
+      lines: agentALines,
+    });
 
     // Sub-agent B's JSONL: the nested marker text only.
     const agentBLines = [
@@ -1004,10 +1056,15 @@ export const sessionHarness = ({
       }),
     ];
 
-    await fs.promises.writeFile(
-      path.join(subagentDir, `agent-${nestedRealAgentId}.jsonl`),
-      `${agentBLines.join('\n')}\n`,
-    );
+    await writeSubagentLines({
+      cwd: guildPath,
+      sessionId,
+      agentId: nestedRealAgentId,
+      toolUseId: nestedToolUseId,
+      taskDescription: nestedDescription,
+      taskPrompt: 'Nested prompt',
+      lines: agentBLines,
+    });
   };
 
   const createSubagentTailOnly = async ({
@@ -1019,9 +1076,6 @@ export const sessionHarness = ({
     agentId: string;
     assistantText: string;
   }): Promise<void> => {
-    const jsonlDir = getJsonlDir();
-    const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
-    await fs.promises.mkdir(subagentDir, { recursive: true });
     const subagentLines = [
       JSON.stringify(
         AssistantTextStreamLineStub({
@@ -1033,10 +1087,20 @@ export const sessionHarness = ({
         }),
       ),
     ];
-    await fs.promises.writeFile(
-      path.join(subagentDir, `agent-${agentId}.jsonl`),
-      `${subagentLines.join('\n')}\n`,
-    );
+    // No Task tool_use is ever written on any main session file for this fixture — that's the
+    // whole point ("no main session file"), so there is no real toolUseId/taskDescription/
+    // taskPrompt to thread through. subagentFieldsContract requires all three regardless (they
+    // are the ingredient's own bookkeeping fields, never written into the JSONL content itself),
+    // so these are synthetic placeholders nothing reads or asserts on.
+    await writeSubagentLines({
+      cwd: guildPath,
+      sessionId,
+      agentId,
+      toolUseId: toolUseIdContract.parse(`toolu_tail_${agentId}`),
+      taskDescription: taskDescriptionContract.parse('Sub-agent tail only'),
+      taskPrompt: 'Tail-only fixture',
+      lines: subagentLines,
+    });
   };
 
   const createSubagentTailMultiEntry = async ({
@@ -1048,15 +1112,28 @@ export const sessionHarness = ({
     agentId: string;
     lines: string[];
   }): Promise<void> => {
-    const jsonlDir = getJsonlDir();
-    const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
-    await fs.promises.mkdir(subagentDir, { recursive: true });
-    await fs.promises.writeFile(
-      path.join(subagentDir, `agent-${agentId}.jsonl`),
-      `${lines.join('\n')}\n`,
-    );
+    // Same synthetic-placeholder reasoning as createSubagentTailOnly above.
+    await writeSubagentLines({
+      cwd: guildPath,
+      sessionId,
+      agentId,
+      toolUseId: toolUseIdContract.parse(`toolu_tail_${agentId}`),
+      taskDescription: taskDescriptionContract.parse('Sub-agent tail only'),
+      taskPrompt: 'Tail-only fixture',
+      lines,
+    });
   };
 
+  // RAW ON PURPOSE — framework gap, not a fallback. This appends to an agent-<agentId>.jsonl a
+  // PRIOR, separate step already created (a dispatched agent already driving, or an earlier
+  // harness call in this same test) — a row this plan did not mint. dmRegistryBroker has no verb
+  // that reaches a row outside the plan that creates it: hydration-recipes/CLAUDE.md's own "Two
+  // known gaps" section names exactly this — "No recipe or ingredient here can modify a row an
+  // EARLIER seed step created, addressed only by its id... If a verb is wanted later it is
+  // attach({id}) on a collection" — and remaining-build-items.md item 5b tracks the same verb as
+  // unbuilt. Do not route this through `.add()` again to fake an append: that mints a SECOND
+  // create op against an identity the framework never promised idempotent re-creation for, which
+  // is inventing a workaround around the documented gap, not using a route the framework offers.
   const appendSubagentLine = async ({
     sessionId,
     agentId,
@@ -1076,6 +1153,9 @@ export const sessionHarness = ({
     await fs.promises.appendFile(path.join(subagentDir, `agent-${agentId}.jsonl`), `${line}\n`);
   };
 
+  // RAW ON PURPOSE — same framework gap as appendSubagentLine above: this appends to a
+  // <sessionId>.jsonl a prior step already created (or that a dispatched agent is already
+  // driving), and dmRegistryBroker has no `attach({id})` verb to reach it.
   const appendMainSessionLine = async ({
     sessionId,
     line,
@@ -1116,6 +1196,12 @@ export const sessionHarness = ({
     });
   };
 
+  // RAW ON PURPOSE — teardown, not seeding. dmRegistryBroker's `remove` route deletes ONE record
+  // this plan already knows the identity of; it has no glob/bulk verb for "delete whatever is in
+  // this directory, whoever wrote it" — the target's contents here may include files this harness
+  // never created (a real orchestrator-driven session from an earlier test in the same suite run).
+  // seed-census.py's own header agrees: "A test that takes a temp directory... and never builds
+  // one is not a target" — cleanup of a directory is the same shape as that exclusion, mirrored.
   const cleanSessionFiles = async (): Promise<void> => {
     const jsonlDir = getJsonlDir();
     try {
@@ -1129,6 +1215,9 @@ export const sessionHarness = ({
     }
   };
 
+  // RAW ON PURPOSE — same teardown reasoning as cleanSessionFiles above; this is the
+  // beforeEach/afterEach hook, wiping the whole per-guild session directory regardless of what
+  // wrote into it.
   const cleanSessionDirectory = async (): Promise<void> => {
     const jsonlDir = getJsonlDir();
     await fs.promises.rm(jsonlDir, { recursive: true, force: true });
@@ -1178,6 +1267,14 @@ export const sessionHarness = ({
   // Session JSONL files live under ~/.claude/projects/<encoded-guildPath>/ — outside the
   // dungeonmaster home where quest folders live. A quest delete must NOT touch this tree,
   // so a session file present before the delete must still exist afterward.
+  //
+  // RAW ON PURPOSE — this is a synchronous boolean READ used directly in an assertion, not a
+  // seed operation. dmRegistryBroker has no existence-check verb: `filter` is the nearest route,
+  // and it deliberately THROWS on zero matches rather than returning false (a filter matching
+  // nothing almost always means a real bug — see hydration/CLAUDE.md's "no-pick rule"), and
+  // `run()` is async regardless, so reaching for it here would force this method's signature from
+  // a synchronous boolean to a Promise, touching every caller for a call that is fundamentally a
+  // fs.existsSync check on a path this harness already knows how to encode.
   const sessionFileExists = ({ sessionId }: { sessionId: string }): boolean =>
     fs.existsSync(path.join(getJsonlDir(), `${sessionId}.jsonl`));
 

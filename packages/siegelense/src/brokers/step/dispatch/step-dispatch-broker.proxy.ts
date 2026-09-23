@@ -10,6 +10,7 @@ import type {
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
+import type { KeyListing } from '../../../contracts/key-listing/key-listing-contract';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { perceptionStatics } from '../../../statics/perception/perception-statics';
@@ -50,7 +51,10 @@ const DEFAULT_SHOT_PNG_CONTENT = PNG.sync.write(defaultPng).toString('latin1');
 
 export const stepDispatchBrokerProxy = (): {
   browserlessLane: (params: { specName: string }) => LaneSession;
-  happyLane: () => { lane: LaneSession; captureCallArgs: () => readonly unknown[] };
+  happyLane: (params?: { keyListings?: readonly [KeyListing, KeyListing] }) => {
+    lane: LaneSession;
+    captureCallArgs: () => readonly unknown[];
+  };
   stagesSeedRecipe: (params: { result: unknown }) => {
     getSeedRunCallArgs: () => readonly unknown[];
   };
@@ -58,7 +62,10 @@ export const stepDispatchBrokerProxy = (): {
     lane: LaneSession;
   };
   laneWithTwoMatches: () => { lane: LaneSession; clickMatchCallArgs: () => readonly unknown[] };
-  laneRejectingClickMatch: (params: { error: Error }) => {
+  laneRejectingClickMatch: (params: {
+    error: Error;
+    keyListings?: readonly [KeyListing, KeyListing];
+  }) => {
     lane: LaneSession;
     captureCallArgs: () => readonly unknown[];
   };
@@ -122,8 +129,11 @@ export const stepDispatchBrokerProxy = (): {
     }): { getSeedRunCallArgs: () => readonly unknown[] } =>
       verbLayerProxy.stagesSeedRecipe({ result }),
 
-    happyLane: (): { lane: LaneSession; captureCallArgs: () => readonly unknown[] } => {
+    happyLane: (params?: {
+      keyListings?: readonly [KeyListing, KeyListing];
+    }): { lane: LaneSession; captureCallArgs: () => readonly unknown[] } => {
       const captureMock = jest.fn().mockResolvedValue(undefined);
+      const keyListings = params?.keyListings;
       const lane = LaneSessionStub({
         browser: {
           goto: jest.fn().mockResolvedValue(undefined),
@@ -133,6 +143,14 @@ export const stepDispatchBrokerProxy = (): {
           waitForMatch: jest.fn().mockResolvedValue(undefined),
           capture: captureMock,
           evaluateSource: jest.fn().mockResolvedValue(contentTextContract.parse('"Guild Hall"')),
+          ...(keyListings === undefined
+            ? {}
+            : {
+                look: jest
+                  .fn()
+                  .mockResolvedValueOnce(keyListings[0])
+                  .mockResolvedValueOnce(keyListings[1]),
+              }),
         },
       });
       return {
@@ -180,8 +198,10 @@ export const stepDispatchBrokerProxy = (): {
 
     laneRejectingClickMatch: ({
       error,
+      keyListings,
     }: {
       error: Error;
+      keyListings?: readonly [KeyListing, KeyListing];
     }): { lane: LaneSession; captureCallArgs: () => readonly unknown[] } => {
       const captureMock = jest.fn().mockResolvedValue(undefined);
       const lane = LaneSessionStub({
@@ -189,6 +209,14 @@ export const stepDispatchBrokerProxy = (): {
           countMatches: jest.fn().mockResolvedValue(matchCountContract.parse(ONE_MATCH_COUNT)),
           clickMatch: jest.fn().mockRejectedValue(error),
           capture: captureMock,
+          ...(keyListings === undefined
+            ? {}
+            : {
+                look: jest
+                  .fn()
+                  .mockResolvedValueOnce(keyListings[0])
+                  .mockResolvedValueOnce(keyListings[1]),
+              }),
         },
       });
       return {

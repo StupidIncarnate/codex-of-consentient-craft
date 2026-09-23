@@ -17,11 +17,17 @@
  * how a return proves a unit — restated as first-person instructions for the session that now carries
  * them out itself, rather than text an operator copied into a brief every time.
  *
+ * `modify-quest` IS GRANTED FOR EXACTLY ONE FIELD: `verifyByHuman`, the flag `observableAutomatabilityStatics`
+ * explains. A session that hits a unit nothing automated could ever settle — during THIS pass, not
+ * "nobody has written the test yet" — sets it rather than inventing a proxy measurement or leaving a
+ * `cant-meet` behind for every future piece to rediscover the same wall.
+ *
  * BUDGET: `mcpToolResultStatics.maxVerbatimChars` (50,000) is the ceiling, and the colocated test
  * measures it. Over that ceiling Claude Code spills the tool result to a file and hands the agent an
  * error stub, so the session holds a path instead of its instructions and nothing reports a failure.
  */
 
+import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 import { sadPathRoutingStatics } from '../sad-path-routing/sad-path-routing-statics';
 import { unitMarkingStatics } from '../unit-marking/unit-marking-statics';
 
@@ -88,6 +94,8 @@ git any more; read the served rows instead of reaching for the tool.
 
 ${unitMarkingStatics.markdown}
 
+${observableAutomatabilityStatics.markdown}
+
 ## What your evidence carries
 
 Your piece's \`payload.units[]\` — not \`assignedUnits\` — carries each unit's \`assert\` (what the test
@@ -112,6 +120,7 @@ YOURS
   Write / Edit                                    on your piece's own files, and any it left for you to add
   npm run ward -- -- <your own piece's paths>     step 7
   quest-work                                      observations to mark; an amendment where the piece is wrong; an outcome on a wall or a zero-unit piece
+  modify-quest                                    verifyByHuman only, on a unit nothing could ever settle
   signal-back                                     once, and it ends your turn
 
 NOT YOURS
@@ -120,8 +129,8 @@ NOT YOURS
   Edit / Write on doNotTouch or uncommittedPaths  another piece's, or a batch-mate's live work
   npm run ward -- --uncommitted                   grades the whole tree, not your piece
   npm run ward (bare)                             grades the whole repo
-  the run-ward MCP tool                           grades the whole branch and lands the red on your work item
   git add / git commit / git push                 nobody on this pass commits — see [TURN END]
+  modify-quest on any field but verifyByHuman
 \`\`\`
 
 ## Your piece is a best guess
@@ -227,6 +236,14 @@ implementation file to break it. Never fabricate a red you did not watch.
 Then correct each assertion to its \`assert\` value and run again for green. Mark the unit now — see
 "Marking your units" above; a session that dies having marked nothing loses the whole piece.
 
+**Where a unit resists everything your reading and your tests can try, and nothing at any layer — not
+a later piece, not a later pass, nothing but a person's own judgment once the quest is done — could
+ever settle it either: on an OBSERVABLE, set \`verifyByHuman: true\` on it through \`modify-quest\`
+instead of marking \`cant-meet\`, naming its flow, node and observable id — the merge only touches
+fields you send, so nothing else on the observable needs restating. On a terminal or branch unit,
+which carries no such field, \`cant-meet\` is the honest mark instead, with a \`toSettle\` naming the
+person's check.** See the \`verifyByHuman\` rule further down this page for the whole picture.
+
 ### 6. Create what your piece could not name
 
 Your piece's \`files\` names what the planner could plan for. The work routinely needs one more file it
@@ -241,11 +258,9 @@ not a typo:
 
 \`npm run ward -- -- <your own piece's paths>\`
 
-**YOUR OWN PATHS AND NOTHING WIDER. NEVER \`--uncommitted\`. NEVER a bare ward. NEVER commit.**
-
-**NEVER the run-ward MCP tool.** It is not another route to the same result: it grades the whole branch,
-and a red anywhere on it lands on YOUR work item, not on the piece that actually caused it. Call the
-command above.
+**YOUR OWN PATHS AND NOTHING WIDER. NEVER \`--uncommitted\`. NEVER a bare ward. NEVER commit.** Grading
+the whole branch is not your job: the family's own deterministic \`ward\` step is the regression pass, and
+a red anywhere on the branch lands there, not on your work item.
 
 DISCOVERY MISMATCH on a check type = ward answering, not failing. \`--passWithNoTests\` is never the fix,
 and a skip is nothing to defend.

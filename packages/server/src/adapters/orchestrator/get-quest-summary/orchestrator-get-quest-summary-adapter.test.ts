@@ -20,8 +20,9 @@ describe('orchestratorGetQuestSummaryAdapter', () => {
             tracks: [
               QuestSummaryTrackCountsStub({
                 id: 'siegemaster',
-                confirmed: 4,
-                unconfirmable: 1,
+                met: 4,
+                cantMeet: 1,
+                unmet: 2,
                 outstanding: 9,
               }),
             ],

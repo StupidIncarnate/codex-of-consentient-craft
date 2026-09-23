@@ -7,15 +7,16 @@
  *   id: 'login-flow',
  *   name: 'Login Flow',
  *   flowType: 'runtime',
- *   tracks: [{ id: 'flowrider', confirmed: 12, unconfirmable: 1, outstanding: 3 }],
+ *   tracks: [{ id: 'flowrider', met: 12, cantMeet: 1, unmet: 2, outstanding: 3 }],
  * });
  * // Returns: QuestSummaryFlow — one element of QuestSummary.flows[]
  *
  * `tracks` CARRIES ONLY THE DENOMINATORS THIS FLOW IS MEASURED BY, which is why it is a list and not
- * a fixed set. `signoffTrackEligibilityStatics` says which flow types each denominator includes, and
- * the two authoring ones are runtime flows alone: an operational flow is verified by checking its
- * end state, never by a flow-perspective suite or a browser walk, so printing their rows on one
- * would report outstanding counts no session of either role can ever bring to zero.
+ * a fixed set. `stepScopeStatics` (`packages/orchestrator/src/statics/step-scope`) says which flow
+ * types each family's steps include, and every step outside codeweaver's `review` measures runtime
+ * flows alone: an operational flow is verified by checking its end state, never by a flow-perspective
+ * suite or a browser walk, so printing their rows on one would report outstanding counts no session
+ * of either role can ever bring to zero.
  *
  * `name` and `flowType` are carried rather than left for the reader to join back to `quest.flows`,
  * because the summary's whole job is to be the one thing a reader has to load.

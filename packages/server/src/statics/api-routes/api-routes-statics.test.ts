@@ -32,7 +32,9 @@ describe('apiRoutesStatics', () => {
         wardDetail: '/api/quests/:questId/ward-results/:wardResultId',
         riftcarverDetail: '/api/quests/:questId/riftcarver-results/:riftcarverResultId',
         summary: '/api/quests/:questId/summary',
+        humanVerdict: '/api/quests/:questId/human-verdict',
         signalBack: '/api/quests/:questId/signal-back',
+        projection: '/api/quests/:questId/projection',
       },
       process: {
         status: '/api/process/:processId',
@@ -44,11 +46,6 @@ describe('apiRoutesStatics', () => {
       },
       sessions: {
         list: '/api/guilds/:guildId/sessions',
-      },
-      design: {
-        start: '/api/quests/:questId/design/start',
-        stop: '/api/quests/:questId/design/stop',
-        session: '/api/quests/:questId/design/session',
       },
       directories: {
         browse: '/api/directories/browse',

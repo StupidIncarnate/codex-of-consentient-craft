@@ -178,7 +178,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupWebLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.siegelense' }),
+        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
         rootPath: ROOT_PATH,
@@ -206,7 +206,7 @@ describe('instanceEntryLayerBroker', () => {
           orphans: [],
           evidence: {
             dir: {
-              path: '/repo/.siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0001',
+              path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0001',
               linkPresent: true,
             },
             transcript: null,
@@ -266,7 +266,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupWebLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.siegelense' }),
+        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
         rootPath: ROOT_PATH,
@@ -294,7 +294,7 @@ describe('instanceEntryLayerBroker', () => {
           orphans: [],
           evidence: {
             dir: {
-              path: '/repo/.siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0004',
+              path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0004',
               linkPresent: true,
             },
             transcript: null,
@@ -362,7 +362,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupWebLogPresent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.siegelense' }),
+        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
         rootPath: ROOT_PATH,
@@ -404,7 +404,7 @@ describe('instanceEntryLayerBroker', () => {
           orphans: [{ pgid: 33_812, cmd: 'npm run dev:no-watch', alive: true }],
           evidence: {
             dir: {
-              path: '/repo/.siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0000',
+              path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0000',
               linkPresent: true,
             },
             transcript: 'run_2.jsonl',
@@ -459,7 +459,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupWebLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.siegelense' }),
+        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
         rootPath: ROOT_PATH,
@@ -493,7 +493,7 @@ describe('instanceEntryLayerBroker', () => {
           orphans: [],
           evidence: {
             dir: {
-              path: '/repo/.siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0002',
+              path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0002',
               linkPresent: true,
             },
             transcript: 'run_1.jsonl',
@@ -548,7 +548,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupWebLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
-        linkPath: FilePathStub({ value: '/repo/.siegelense' }),
+        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
         rootPath: ROOT_PATH,
@@ -582,7 +582,7 @@ describe('instanceEntryLayerBroker', () => {
           orphans: [],
           evidence: {
             dir: {
-              path: '/repo/.siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0003',
+              path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0003',
               linkPresent: true,
             },
             transcript: 'run_2.jsonl',

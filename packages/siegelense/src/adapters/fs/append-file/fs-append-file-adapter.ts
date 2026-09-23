@@ -7,7 +7,7 @@
  *
  * USAGE:
  * await fsAppendFileAdapter({
- *   filePath: AbsoluteFilePathStub({ value: '/repo/.siegelense/.../runs/run_2.jsonl' }),
+ *   filePath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/.../runs/run_2.jsonl' }),
  *   contents: FileContentsStub({ value: '{"step":1,"verb":"goto"}\n' }),
  * });
  * // Appends the contents, then returns { success: true }

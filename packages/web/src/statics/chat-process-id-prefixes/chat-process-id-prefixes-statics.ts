@@ -9,8 +9,8 @@
 export const chatProcessIdPrefixesStatics = {
   // chatProcessId values starting with one of these prefixes are NOT bare sessionIds —
   // they identify an orchestration process (queue runner, recovery loop, chat spawn,
-  // design spawn, replay request) and must NOT be treated as a per-session bucket key.
+  // replay request) and must NOT be treated as a per-session bucket key.
   // Live codeweaver chat-output emits stamp `chatProcessId = sessionId` (a bare UUID),
   // which is the case the bare-uuid guard recognizes.
-  nonSessionPrefixes: ['exec-replay-', 'replay-', 'chat-', 'design-', 'proc-'] as const,
+  nonSessionPrefixes: ['exec-replay-', 'replay-', 'chat-', 'proc-'] as const,
 } as const;

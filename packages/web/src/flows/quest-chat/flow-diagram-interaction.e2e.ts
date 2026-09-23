@@ -221,6 +221,17 @@ test.describe('Flow Diagram Interaction', () => {
     await expect(page.locator('[data-testid="FLOW_NODE"][data-selected="true"]')).toHaveCount(0);
   });
 
+  test('VALID: {flow with seed recipes} => the SPEC tab renders a recipe callout naming each seed', async ({
+    page,
+    request,
+  }) => {
+    const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await diagram.seedAndOpen({ guildName: 'Diagram Recipe Guild' });
+
+    expect(await diagram.recipeCalloutRendered()).toBe(true);
+    expect(await diagram.recipeNamesMatchSeeded()).toBe(true);
+  });
+
   test('VALID: {node clicked then detail panel closed} => panel opens with node label and closes on deselect', async ({
     page,
     request,

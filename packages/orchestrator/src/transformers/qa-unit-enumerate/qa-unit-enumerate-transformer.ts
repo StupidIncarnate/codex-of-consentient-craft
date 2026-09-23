@@ -81,6 +81,9 @@ export const qaUnitEnumerateTransformer = ({ flow }: { flow: Flow }): QaVerifica
         ...(observable.verifyByReading === undefined
           ? {}
           : { verifyByReading: observable.verifyByReading }),
+        ...(observable.verifyByHuman === undefined
+          ? {}
+          : { verifyByHuman: observable.verifyByHuman }),
         addedBy: observable.addedBy,
       }),
     ),

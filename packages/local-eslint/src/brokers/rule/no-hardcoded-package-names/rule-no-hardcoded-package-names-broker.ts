@@ -1,11 +1,12 @@
 /**
- * PURPOSE: Keeps a package name that means "the frontend" or "the backend" out of executable strings, so this system keeps working in a repo whose UI package is called something else — or that has several of them. It reads only what the parser hands it as a value, which is what leaves comments and JSDoc examples alone: those document a real path in THIS repo and decide nothing.
+ * PURPOSE: Keeps a package name that means "the frontend" or "the backend" out of executable strings, so this system keeps working in a repo whose UI package is called something else — or that has several of them. It reads only what the parser hands it as a value, which is what leaves comments and JSDoc examples alone: those document a real path in THIS repo and decide nothing. A literal's TEXT cannot distinguish a module specifier from the same string as data, so a literal whose parent is an `ImportDeclaration`, an `ImportExpression`, or a `require()` call is withheld before the text ever reaches the transformer — that distinction lives only in the parent node, never in the text itself.
  *
  * USAGE:
  * const rule = ruleNoHardcodedPackageNamesBroker();
  * // Returns ESLint rule that flags `const x = 'packages/web/src/brokers'`, `pkg === 'web'`, and
  * // `UI_PACKAGES.includes(pkg)` over `['web', 'app']` — and stays silent on the same text inside
- * // a comment, or on the same array nothing ever tests membership against.
+ * // a comment, on the same array nothing ever tests membership against, or on the same path spelled
+ * // as an import source, a dynamic `import()`, or a `require()` argument.
  *
  * WHEN-TO-USE: Registered in @dungeonmaster/local-eslint (this repo only, never shipped) to hold the standing "never hardcode on a package name" constraint — every such decision goes through `packageType`, resolved from the target repo's own disk, and every consumer handles a set.
  */
@@ -55,6 +56,24 @@ export const ruleNoHardcodedPackageNamesBroker = (): EslintRule => ({
       // Both node kinds carry a string the parser produced from source. A comment produces neither,
       // which is the whole exemption.
       'Literal, TemplateElement': (node: Tsestree): void => {
+        const { parent } = node;
+        const isRequireCallSource =
+          parent?.type === 'CallExpression' &&
+          parent.callee?.type === 'Identifier' &&
+          parent.callee.name === 'require';
+
+        // The literal's TEXT cannot tell a module specifier from the same string as data — an
+        // earlier transformer-only attempt at this exemption read only the text and flagged real
+        // imports. The parent node is the one place the distinction exists, so the withhold happens
+        // here, before the text ever reaches bannedPackagePathNamesTransformer.
+        if (
+          parent?.type === 'ImportDeclaration' ||
+          parent?.type === 'ImportExpression' ||
+          isRequireCallSource
+        ) {
+          return;
+        }
+
         const sourceText = ctx.sourceCode?.getText(node);
         const text = typeof sourceText === 'string' ? sourceText : '';
 

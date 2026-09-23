@@ -41,7 +41,7 @@ export const ChatReplayResponder = async ({
   // chat-output frames without those fields — the server filters them out of per-quest
   // broadcasts and routes them only to the requesting readonly viewer client.
   //
-  // Work item match: sessionId alone is enough for chat roles (chaos / glyphsmith — their
+  // Work item match: sessionId alone is enough for chat roles (chaos — their
   // sessionId is the unique top-level UUID). For Task-dispatched sub-agents multiple work
   // items can share the same parent sessionId, so the match also gates on agentId when
   // the caller supplied one.

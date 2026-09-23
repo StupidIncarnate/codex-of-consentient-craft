@@ -9,7 +9,7 @@ describe('holdReadingRenderTransformer', () => {
       const result = holdReadingRenderTransformer({ reading });
 
       expect(result).toBe(
-        '{"frames":4,"differing":0,"verdict":"NOTHING CHANGED across 4.5s","shots":["/repo/.siegelense/runs/run_1/step1_frame1.png","/repo/.siegelense/runs/run_1/step1_frame2.png"]}',
+        '{"frames":4,"differing":0,"verdict":"NOTHING CHANGED across 4.5s","shots":["/repo/.dungeonmaster-assets/siegelense-assets/runs/run_1/step1_frame1.png","/repo/.dungeonmaster-assets/siegelense-assets/runs/run_1/step1_frame2.png"]}',
       );
     });
   });

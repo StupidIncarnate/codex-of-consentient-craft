@@ -150,6 +150,21 @@ describe('isTrackOwedUnitGuard', () => {
     });
   });
 
+  describe('verification method exclusion — a human-check observable', () => {
+    it.each(ALL_TRACKS)(
+      'INVALID: {track: %s, verificationMethod: human-check} => no track owes it, human-check is on no track denominator',
+      (track) => {
+        const unit = VerificationUnitStub({
+          kind: 'observable',
+          addedBy: 'spec',
+          verificationMethod: 'human-check',
+        });
+
+        expect(isTrackOwedUnitGuard({ track, unit })).toBe(false);
+      },
+    );
+  });
+
   describe('non-observable units bypass provenance and method checks', () => {
     it.each(ALL_TRACKS)(
       'VALID: {track: %s, kind: terminal, addedBy omitted} => is owed',

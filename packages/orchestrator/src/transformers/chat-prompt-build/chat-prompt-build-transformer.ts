@@ -14,7 +14,6 @@ import type { PromptText } from '../../contracts/prompt-text/prompt-text-contrac
 import { imagePromptTrailerTransformer } from '../image-prompt-trailer/image-prompt-trailer-transformer';
 import { dumpsterCreatePromptStatics } from '../../statics/dumpster-create-prompt/dumpster-create-prompt-statics';
 import { dumpsterHuntPromptStatics } from '../../statics/dumpster-hunt-prompt/dumpster-hunt-prompt-statics';
-import { glyphsmithPromptStatics } from '../../statics/glyphsmith-prompt/glyphsmith-prompt-statics';
 import { tavernkeeperPromptStatics } from '../../statics/tavernkeeper-prompt/tavernkeeper-prompt-statics';
 
 export const chatPromptBuildTransformer = ({
@@ -34,10 +33,10 @@ export const chatPromptBuildTransformer = ({
 
   // The two spec-intake roles share a prompt shape: a $QUEST_BOOTSTRAP block selected by whether
   // the quest was pre-created, and a $CLARIFY_INSTRUCTION block selected by execution context.
-  // Glyphsmith and Tavernkeeper have neither, so they fall into the null arm below and are
-  // selected explicitly by role — each fills its own flat template ($ARGUMENTS + $QUEST_ID only)
-  // from its own statics module. Every chat role names its own template; a role outside the chat
-  // roster has no chat prompt at all and throws rather than silently inheriting one.
+  // Tavernkeeper has neither, so it falls into the null arm below and is selected explicitly by
+  // role — it fills its own flat template ($ARGUMENTS + $QUEST_ID only) from its own statics
+  // module. Every chat role names its own template; a role outside the chat roster has no chat
+  // prompt at all and throws rather than silently inheriting one.
   const intakeStatics =
     role === 'chaoswhisperer'
       ? dumpsterCreatePromptStatics
@@ -45,13 +44,7 @@ export const chatPromptBuildTransformer = ({
         ? dumpsterHuntPromptStatics
         : null;
 
-  const statics =
-    intakeStatics ??
-    (role === 'glyphsmith'
-      ? glyphsmithPromptStatics
-      : role === 'tavernkeeper'
-        ? tavernkeeperPromptStatics
-        : null);
+  const statics = intakeStatics ?? (role === 'tavernkeeper' ? tavernkeeperPromptStatics : null);
 
   if (statics === null) {
     throw new Error(

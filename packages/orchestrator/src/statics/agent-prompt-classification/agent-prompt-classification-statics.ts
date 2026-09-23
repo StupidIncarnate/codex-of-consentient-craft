@@ -26,7 +26,8 @@
  * ever hold; a role added to `minionNames` would let it fetch without a `workItemId` and escape
  * `subagentStopNeedsBlockGuard`, which is what holds a work-item session open until it signals.
  *
- * `operatorRoleNames` is the roles that own an operation item and brief sub-agents to do its work.
+ * `operatorRoleNames` is the roles that own an operation item and run its own `plan → work →
+ * review` step graph, each step dispatched as its own session with no session briefing another.
  * Membership is READ from here rather than listed at each call site, so a fourth operator role is
  * covered by the signal-back gates and the prompt renderer the day it is added — the same reason
  * `isChatWorkItemRoleGuard` reads `workItemRoleStatics.chat` instead of growing an `||` chain.
@@ -51,15 +52,14 @@ export const agentPromptClassificationStatics = {
     'siege-planner',
     'siegemaster',
     'siegemaster-reader',
-    'siegemaster-stress',
-    'siegemaster-verifier',
     'spiritmender',
     'warpgate',
   ],
   roleNames: [
-    /** The three operation-owning roles. Each one owns a work item and briefs sub-agents rather
-     * than writing the work itself — see `operatorRoleNames` below, which is this same three for
-     * the call sites that only want membership. */
+    /** The three operation-owning roles. Each one owns a scope whose own step graph — `plan →
+     * work → review` — runs as ordinary dispatched sessions that write the work directly, with no
+     * session briefing another; see `operatorRoleNames` below, which is this same three for the
+     * call sites that only want membership. */
     'codeweaver',
     'flowrider',
     'siegemaster',

@@ -129,27 +129,6 @@ describe('RecoverGuildLayerResponder', () => {
       expect(processIds).toStrictEqual(['proc-recovery-f47ac10b-58cc-4372-a567-0e02b2c3d479']);
     });
 
-    it('VALID: {quest status: explore_design} => registers process for recovery', async () => {
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
-      const questId = QuestIdStub({ value: 'quest-explore-design' });
-      const quest = QuestStub({
-        id: questId,
-        folder: '001-explore-design-quest',
-        status: 'explore_design',
-      });
-      const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
-
-      const proxy = RecoverGuildLayerResponderProxy();
-      proxy.setupGuildWithQuests({ guildId, guildPath, quests: [quest] });
-
-      await RecoverGuildLayerResponder({ guildItem });
-
-      const processIds = proxy.getRegisteredProcessIds();
-
-      expect(processIds).toStrictEqual(['proc-recovery-f47ac10b-58cc-4372-a567-0e02b2c3d479']);
-    });
-
     it('VALID: {quest status: in_progress} => registers process for recovery', async () => {
       const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
       const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
@@ -223,48 +202,6 @@ describe('RecoverGuildLayerResponder', () => {
         id: questId,
         folder: '001-approved-quest',
         status: 'approved',
-      });
-      const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
-
-      const proxy = RecoverGuildLayerResponderProxy();
-      proxy.setupGuildWithQuests({ guildId, guildPath, quests: [quest] });
-
-      await RecoverGuildLayerResponder({ guildItem });
-
-      const processIds = proxy.getRegisteredProcessIds();
-
-      expect(processIds).toStrictEqual([]);
-    });
-
-    it('VALID: {quest status: review_design} => does not register process', async () => {
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
-      const questId = QuestIdStub({ value: 'quest-review-design' });
-      const quest = QuestStub({
-        id: questId,
-        folder: '001-review-design-quest',
-        status: 'review_design',
-      });
-      const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
-
-      const proxy = RecoverGuildLayerResponderProxy();
-      proxy.setupGuildWithQuests({ guildId, guildPath, quests: [quest] });
-
-      await RecoverGuildLayerResponder({ guildItem });
-
-      const processIds = proxy.getRegisteredProcessIds();
-
-      expect(processIds).toStrictEqual([]);
-    });
-
-    it('VALID: {quest status: design_approved} => does not register process', async () => {
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
-      const questId = QuestIdStub({ value: 'quest-design-approved' });
-      const quest = QuestStub({
-        id: questId,
-        folder: '001-design-approved-quest',
-        status: 'design_approved',
       });
       const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
 

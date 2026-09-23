@@ -1,7 +1,11 @@
 import * as os from 'os';
 import * as path from 'path';
+import { readFileSync, readdirSync } from 'fs';
 import { defineConfig, devices } from '@playwright/test';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
+import { hasHonoOrExpressAdapterGuard } from '@dungeonmaster/shared/guards';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 // CI keeps one retry to absorb shared-runner infrastructure noise.
 const CI_RETRIES = 1;
@@ -26,6 +30,56 @@ const FAKE_WARD_CLI = path.resolve(
   '../orchestrator/test-fixtures/fake-ward-bin/dungeonmaster-ward',
 );
 const REAL_HOME = os.homedir();
+
+// The command below names the workspace this repo's own API server lives in. Hardcoding
+// '@dungeonmaster/server' there is what no-hardcoded-package-names bans: this file is this repo's
+// OWN e2e config and never ships to a consumer, so the portability concern the rule exists for does
+// not apply to it directly — but the honest fix is the same one the rule asks for everywhere else,
+// not an eslint-disable (banned outright by eslint-comments/no-use and by the pre-edit lint hook).
+// Resolved off disk via the SAME signal `detectPackageTypeLayerBroker` uses for the 'http-backend'
+// kind, so a repo rename or a package split is caught by a clear config-load throw instead of a
+// silently stale hardcoded name. Exactly one packages/* directory must carry a hono or express
+// adapter; zero or several is a repo-authoring mistake, not a case this file guesses through.
+const PACKAGES_ROOT = path.resolve(__dirname, '..');
+
+const resolveHttpBackendWorkspaceName = (): ContentText => {
+  const packageDirNames = readdirSync(PACKAGES_ROOT, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+
+  const matches = packageDirNames.flatMap((dirName) => {
+    const packageRoot = path.join(PACKAGES_ROOT, dirName);
+    const adapterDirNames = (() => {
+      try {
+        return readdirSync(path.join(packageRoot, 'src', 'adapters'), { withFileTypes: true })
+          .filter((entry) => entry.isDirectory())
+          .map((entry) => entry.name);
+      } catch {
+        return [];
+      }
+    })();
+    if (!hasHonoOrExpressAdapterGuard({ adapterDirNames })) {
+      return [];
+    }
+    const packageJson = JSON.parse(
+      readFileSync(path.join(packageRoot, 'package.json'), 'utf-8'),
+    ) as Record<PropertyKey, unknown> | undefined;
+    const packageName = packageJson?.name;
+    return typeof packageName === 'string' ? [packageName] : [];
+  });
+
+  if (matches.length !== 1) {
+    const found = matches.length === 0 ? '(none)' : matches.join(', ');
+    throw new Error(
+      `playwright.config.ts: expected exactly one packages/* directory detected as http-backend ` +
+        `(a hono or express adapter), found ${String(matches.length)}: ${found}.`,
+    );
+  }
+  const [httpBackendWorkspaceName] = matches;
+  return contentTextContract.parse(httpBackendWorkspaceName);
+};
+
+const HTTP_BACKEND_WORKSPACE = resolveHttpBackendWorkspaceName();
 
 process.env.E2E_TEST_HOME = TEST_HOME;
 process.env.DUNGEONMASTER_PORT = String(TEST_PORT);
@@ -82,7 +136,7 @@ export default defineConfig({
       // died. Measured: an editor saving one file every ~14 s during a full run produced six such
       // failures, each timestamp-matched to a save. The suite has no use for a watcher — Playwright
       // starts this process once and tears it down at the end.
-      command: 'npm run dev:no-watch --workspace=@dungeonmaster/server',
+      command: `npm run dev:no-watch --workspace=${HTTP_BACKEND_WORKSPACE}`,
       port: TEST_PORT,
       reuseExistingServer: false,
       env: {

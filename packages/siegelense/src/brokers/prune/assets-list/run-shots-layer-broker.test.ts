@@ -4,7 +4,7 @@ import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { runShotsLayerBroker } from './run-shots-layer-broker';
 import { runShotsLayerBrokerProxy } from './run-shots-layer-broker.proxy';
 
-const EVIDENCE = '/repo/.siegelense/unowned/instances/inst_9b2c0001';
+const EVIDENCE = '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_9b2c0001';
 const SHOTS_DIR = `${EVIDENCE}/runs/run_1`;
 
 describe('runShotsLayerBroker', () => {

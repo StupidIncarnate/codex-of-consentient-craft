@@ -4,15 +4,11 @@
  * USAGE:
  * nextStepContract.parse({ type: 'idle' });
  * nextStepContract.parse({ type: 'spawn-agents', agents: [SpawnInstruction, ...] });
- * nextStepContract.parse({ type: 'run-ward', questId, workItemId });
- * nextStepContract.parse({ type: 'run-riftcarver', questId, workItemId });
  * nextStepContract.parse({ type: 'run-step', questId, workItemId, handler: 'commit', args: [] });
  * // Returns: NextStep variant
  */
 
 import { z } from 'zod';
-
-import { questIdContract, questWorkItemIdContract } from '@dungeonmaster/shared/contracts';
 
 import { idleReasonContract } from '../idle-reason/idle-reason-contract';
 import { runStepContract } from '../run-step/run-step-contract';
@@ -23,23 +19,11 @@ export const nextStepContract = z.discriminatedUnion('type', [
     type: z.literal('spawn-agents'),
     agents: z.array(spawnInstructionContract),
   }),
-  z.object({
-    // `wardFull` is the only family whose role is `ward`, so this variant always means the full
-    // monorepo gate. A family's own committed ward is a deterministic STEP and dispatches as
-    // `run-step`, carrying its scope in the step's own `args`.
-    type: z.literal('run-ward'),
-    questId: questIdContract,
-    workItemId: questWorkItemIdContract,
-  }),
-  z.object({
-    // The other command role, and it reads its own scope off the quest.
-    type: z.literal('run-riftcarver'),
-    questId: questIdContract,
-    workItemId: questWorkItemIdContract,
-  }),
-  // A DETERMINISTIC step, dispatched by HANDLER rather than by the work item's role. Its own
-  // contract because `questRunStepBroker` takes exactly this member and nothing else — see that
-  // file's header for why the role-keyed members above cannot carry it.
+  // A DETERMINISTIC step, dispatched by HANDLER rather than by the work item's role — every
+  // family carrying a command role (`ward`, `riftcarver`) now runs it through a step of its own
+  // (`wardFull`'s `gate`, `riftcarver`'s `carve`), so this is the only member a command
+  // dispatches through. Its own contract because `questRunStepBroker` takes exactly this member
+  // and nothing else.
   runStepContract,
   z.object({
     type: z.literal('idle'),

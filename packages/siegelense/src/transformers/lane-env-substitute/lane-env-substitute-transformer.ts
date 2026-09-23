@@ -14,6 +14,8 @@
  *   home: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1' }),
  *   claudeQueueDir: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1/claude-queue' }),
  *   wardQueueDir: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1/ward-queue' }),
+ *   apiWorkspace: ContentTextStub({ value: '@dungeonmaster/server' }),
+ *   webWorkspace: ContentTextStub({ value: '@dungeonmaster/web' }),
  * });
  * // Returns the same keys, each value with every known placeholder substituted
  */
@@ -31,12 +33,16 @@ export const laneEnvSubstituteTransformer = ({
   home,
   claudeQueueDir,
   wardQueueDir,
+  apiWorkspace,
+  webWorkspace,
 }: {
   env: LaneSpec['env'];
   ports: PortPair;
   home: AbsoluteFilePath;
   claudeQueueDir: AbsoluteFilePath;
   wardQueueDir: AbsoluteFilePath;
+  apiWorkspace: ContentText;
+  webWorkspace: ContentText;
 }): Record<PropertyKey, ContentText> =>
   Object.fromEntries(
     Object.entries(env).map(([key, value]): [PropertyKey, ContentText] => [
@@ -47,6 +53,8 @@ export const laneEnvSubstituteTransformer = ({
         home,
         claudeQueueDir,
         wardQueueDir,
+        apiWorkspace,
+        webWorkspace,
       }),
     ]),
   );

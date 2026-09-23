@@ -1,9 +1,9 @@
 /**
  * PURPOSE: Which units a STEP is measured over, keyed by (family, step) rather than by track — so
  * filtering a step's denominator never depends on which TRACK its family happens to write to. Reach
- * for this once a caller needs a step-level scope; `signoffTrackEligibilityStatics` still answers the
- * track-scoped question every current reader asks, until story 26 retires the half of it duplicated
- * here.
+ * for this whenever a caller needs a step-level scope. `qaUnitsInPackageScopeTransformer`,
+ * `qaChecklistBuildTransformer`, `relayTailFanOutTransformer`, `stepInScopeUnitsTransformer` and
+ * `questGetQaChecklistBroker` all read this table; none reads a track-keyed one, because none exists.
  *
  * USAGE:
  * stepScopeStatics.byFamilyStep.flowrider.review.verificationMethods.includes('reading');
@@ -17,41 +17,46 @@
  * none, so neither has a filter to declare. Absence here is not an omission to fill in: a scope keyed
  * to a step nobody declared is a filter that can never fire.
  *
- * `flowScope` AND `packageScope` DO NOT SURVIVE THE RE-KEY, and dropping both costs nothing. Neither
- * rule is read by any production file today — `operation-signoff-scope-transformer.ts` narrows on an
- * item's own `flowIds` unconditionally, and `qa-units-in-package-scope-transformer.ts` hardcodes the
- * intersection rule in code — so there is no call site either field would re-point at this file. Story
- * 22 replaces the package rule outright (a glue seam's units go to the SECOND cell only, by the cell
- * ordering the orchestrator already computes, not to every cell intersecting the node's packages), and
- * carrying a value nothing reads and one story is about to invalidate buys nothing over leaving it out.
+ * `flowScope` AND `packageScope` HAVE NO FIELD HERE, and dropping both costs nothing. Neither rule is
+ * read by any production file: `qaUnitsInPackageScopeTransformer` hardcodes the intersection rule in
+ * code, and a glue seam's units go to the LAST-ORDERED cell alone, by the cell ordering the
+ * orchestrator already computes — never to every cell intersecting the node's packages. Carrying a
+ * value nothing reads buys nothing over leaving it out.
  *
- * VALUES ARE RESTATED HERE, NEVER IMPORTED, from `signoffTrackEligibilityStatics`'s matching track.
- * Three reasons: two entries have no counterpart to import at all (`siegemaster.adversarial` and its
- * `unitKinds: ['off-map']` appear nowhere in the old statics, and neither does either step key); the
- * old file's other half (`signoffField`) is deleted in story 26, and an import would put this file in
- * that deletion's blast radius for no gain; and the coupling is the exact thing this re-key exists to
- * break — importing would mean an edit to a TRACK's list silently changes a STEP's scope, which is a
- * track keying a step, the thing that stopped existing.
+ * VALUES ARE STATED DIRECTLY ON EACH STEP, never behind a track-keyed indirection. Two reasons: an
+ * import would mean an edit to some OTHER concept's list silently changes a STEP's scope, which is
+ * the exact coupling this file exists to avoid; and `siegemaster.adversarial`'s `unitKinds:
+ * ['off-map']` has no counterpart to share with any other entry, so there is nothing to factor out.
  *
- * SIEGEMASTER'S `flowTypes` IS A DELIBERATE NARROWING OF WHAT THE OLD TRACK CARRIES, NOT A COPY. The
- * old track carries `['runtime', 'operational']` (`signoffTrackEligibilityStatics.byTrack.siegemaster`);
- * both siege steps here carry `['runtime']` alone, because operational units move to codeweaver's
- * reviewer — the only family that can settle them, since an operational flow is a one-time task
- * sequence with no repeatable walk for a siege lane to drive. See each entry's own comment below.
+ * SIEGEMASTER'S STEPS CARRY `flowTypes: ['runtime']` ALONE, NOT `['runtime', 'operational']`, because
+ * operational units move to codeweaver's reviewer — the only family that can settle them, since an
+ * operational flow is a one-time task sequence with no repeatable walk for a siege lane to drive. See
+ * each entry's own comment below.
  *
- * `observableOrigins` IS CARRIED VERBATIM FROM EACH STEP'S MATCHING TRACK, pending an open design
- * question this file does not resolve: whether "strictly after" still holds once a back-edge can mint
- * a worker from a later family's `unmet`. Dropping the field would not deadlock either reading — the
- * reviewer would mark the unit `unmet` and the ordinary route would mint a worker — so it is carried
- * unchanged rather than decided here.
+ * `observableOrigins` IS STATED PER STEP, pending an open design question this file does not resolve:
+ * whether "strictly after" still holds once a back-edge can mint a worker from a later family's
+ * `unmet`. Dropping the field would not deadlock either reading — the reviewer would mark the unit
+ * `unmet` and the ordinary route would mint a worker — so it is carried unchanged rather than decided
+ * here.
+ *
+ * NO ENTRY LISTS `human-check`, AND THAT ABSENCE IS WHAT DROPS A HUMAN-ONLY CRITERION FROM EVERY
+ * STEP'S SCOPE. An observable flagged `verifyByHuman` resolves to `human-check`; because no
+ * (family, step) below declares that method, the unit matches no scope and falls out of every
+ * denominator at once, with no special case anywhere. Adding `human-check` to any list below hands
+ * that step a criterion no automated check can settle, which is the one thing the flag exists to
+ * prevent. The explicit element type is what makes the value expressible at all: under `as const`
+ * alone each array infers its own literal tuple, so a method nothing lists has nowhere to be
+ * declared.
  */
+
+type VerificationMethod = 'test' | 'reading' | 'human-check';
 
 export const stepScopeStatics = {
   byFamilyStep: {
     codeweaver: {
       review: {
         flowTypes: ['runtime', 'operational'],
-        verificationMethods: ['test', 'reading'],
+        verificationMethods: ['test', 'reading'] as readonly VerificationMethod[],
         unitKinds: ['terminal', 'branch', 'observable'],
         packageTypes: [
           'http-backend',
@@ -70,7 +75,7 @@ export const stepScopeStatics = {
     flowrider: {
       review: {
         flowTypes: ['runtime'],
-        verificationMethods: ['test'],
+        verificationMethods: ['test'] as readonly VerificationMethod[],
         unitKinds: ['terminal', 'branch', 'observable'],
         packageTypes: [
           'http-backend',
@@ -88,11 +93,11 @@ export const stepScopeStatics = {
     },
     siegemaster: {
       happyWalk: {
-        // NARROWED from the old track's ['runtime', 'operational']: operational units move to
-        // codeweaver's reviewer, the only family that can settle them — an operational flow is a
-        // one-time task sequence with no repeatable walk for a siege lane to drive.
+        // 'runtime' alone, never 'operational': operational units move to codeweaver's reviewer,
+        // the only family that can settle them — an operational flow is a one-time task sequence
+        // with no repeatable walk for a siege lane to drive.
         flowTypes: ['runtime'],
-        verificationMethods: ['test'],
+        verificationMethods: ['test'] as readonly VerificationMethod[],
         unitKinds: ['terminal', 'branch', 'observable', 'off-map'],
         packageTypes: [
           'http-backend',
@@ -118,7 +123,7 @@ export const stepScopeStatics = {
         // Same narrowing as happyWalk, and for the same reason: operational units move to
         // codeweaver's reviewer, so this step is never measured over them either.
         flowTypes: ['runtime'],
-        verificationMethods: ['test'],
+        verificationMethods: ['test'] as readonly VerificationMethod[],
         unitKinds: ['off-map'],
         packageTypes: [
           'http-backend',

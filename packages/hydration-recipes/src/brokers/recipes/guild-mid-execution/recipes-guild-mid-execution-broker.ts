@@ -3,6 +3,13 @@
  * with its riftcarver operation dropped from the ledger. Reach for this over other recipes when
  * testing guild and quest orchestration mid-flight.
  *
+ * `all.setRaw()` below touches only `status` — never `title` or `userRequest` — so quests 2 and 3
+ * keep `questIngredientBroker`'s own per-index `defaults` ('Quest 2'/'Quest 3',
+ * 'seeded quest 2'/'seeded quest 3') rather than collapsing onto one shared literal. That is the
+ * ONLY thing that tells them apart: both stay `created` with an empty ledger, on purpose — a
+ * mid-execution guild needs two untouched quests sitting in the queue behind the running one, not
+ * two more variations on "in progress".
+ *
  * USAGE:
  * const plan = recipesGuildMidExecutionBroker();
  * const result = await dmRegistryBroker.run(plan, target);
@@ -20,7 +27,9 @@ export const recipesGuildMidExecutionBroker = recipe(
   {
     name: 'guild-mid-execution',
     description:
-      'one guild holding three quests, the first running with its riftcarver item dropped',
+      'one guild holding three quests — the first running with its riftcarver item dropped, ' +
+      'the second and third both freshly created and told apart only by their seeded title ' +
+      'and request text ("Quest 2"/"Quest 3")',
   },
   () => [
     dmRegistryBroker.guilds.add(1, (g) => [

@@ -1,6 +1,7 @@
 /**
- * PURPOSE: Orchestrates siegelense's three install responders — the `.siegelense` symlink onto
- * the resolved siegelense root, the `.gitignore` (and eslint-ignore) entries that keep it off
+ * PURPOSE: Orchestrates siegelense's three install responders — the
+ * `.dungeonmaster-assets/siegelense-assets` symlink onto the resolved siegelense root, the
+ * `.gitignore` (and eslint-ignore) entries that keep it off
  * every check, and the `packages/hydration-recipes/src/` scaffold — into the one InstallResult
  * `dungeonmaster init` surfaces per package. `success` is the AND of all three, so one responder
  * failing is never read as an overall success. `action` takes the most significant of the three —

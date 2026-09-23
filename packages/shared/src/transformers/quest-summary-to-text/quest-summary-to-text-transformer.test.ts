@@ -1,11 +1,10 @@
 import { QuestNoteStub } from '../../contracts/quest-note/quest-note.stub';
+import { QuestSummaryDebtStub } from '../../contracts/quest-summary-debt/quest-summary-debt.stub';
 import { QuestSummaryFlowStub } from '../../contracts/quest-summary-flow/quest-summary-flow.stub';
 import { QuestSummaryNoteGroupStub } from '../../contracts/quest-summary-note-group/quest-summary-note-group.stub';
 import { QuestSummaryObservableStub } from '../../contracts/quest-summary-observable/quest-summary-observable.stub';
 import { QuestSummaryTrackCountsStub } from '../../contracts/quest-summary-track-counts/quest-summary-track-counts.stub';
-import { QuestSummaryUnconfirmableStub } from '../../contracts/quest-summary-unconfirmable/quest-summary-unconfirmable.stub';
 import { QuestSummaryStub } from '../../contracts/quest-summary/quest-summary.stub';
-import { SignoffStub } from '../../contracts/signoff/signoff.stub';
 import { mcpToolResultStatics } from '../../statics/mcp-tool-result/mcp-tool-result-statics';
 import { questSummaryLimitsStatics } from '../../statics/quest-summary-limits/quest-summary-limits-statics';
 import { questSummaryToTextTransformer } from './quest-summary-to-text-transformer';
@@ -24,17 +23,41 @@ describe('questSummaryToTextTransformer', () => {
       expect(lines[0]).toBe('# QUEST SUMMARY — `add-auth`');
     });
 
-    it('VALID: {any summary} => states that an unconfirmable verdict clears the absence of a verdict', () => {
+    it('VALID: {any summary} => states that neither a cant-meet nor an unmet holds the ledger', () => {
       const lines = questSummaryToTextTransformer({ summary: QuestSummaryStub() }).split('\n');
 
-      expect(lines.find((line) => line.startsWith('`unconfirmable` signs a unit'))).toBe(
-        '`unconfirmable` signs a unit exactly as `confirmed` does: it clears the',
-      );
+      expect([
+        lines.find((line) => line.startsWith('quest reaches `complete`')),
+        lines.find((line) => line.startsWith('marked `met`.')),
+        lines.find((line) => line.startsWith('open, and neither one')),
+      ]).toStrictEqual([
+        'quest reaches `complete` when its operations ledger drains, not when every verification unit is',
+        'marked `met`. A `cant-meet` settles a unit without proving it and an `unmet` leaves the work',
+        'open, and neither one holds that ledger. So a complete quest can still carry real holes, real',
+      ]);
+    });
+  });
+
+  // The truncation notice tells a reader which sections run in which order, so it can say where
+  // whatever fell off the end used to be. That promise is only true while the render matches it.
+  describe('section order — the truncation notice names it', () => {
+    it('VALID: {any summary} => the sections run coverage, mid-quest observables, debt, notes', () => {
+      const headings = questSummaryToTextTransformer({ summary: QuestSummaryStub() })
+        .split('\n')
+        .filter((line) => line.startsWith('## '));
+
+      expect(headings).toStrictEqual([
+        '## COVERAGE — 1 flow(s), one row per track that measures each',
+        '## MID-QUEST OBSERVABLES (1) — added AFTER the user approved the spec',
+        '## DEBT (1) — every unit that is NOT proven',
+        '## HUMAN CHECK (1) — verifyByHuman criteria; only a person can settle these',
+        '## NOTES — 1 kind(s), open questions first',
+      ]);
     });
   });
 
   describe('coverage', () => {
-    it('VALID: {one flow measured by both tracks} => one row per track carrying all three counts', () => {
+    it('VALID: {one flow measured by both tracks} => one row per track carrying all four counts', () => {
       const lines = questSummaryToTextTransformer({
         summary: QuestSummaryStub({
           flows: [
@@ -45,14 +68,16 @@ describe('questSummaryToTextTransformer', () => {
               tracks: [
                 QuestSummaryTrackCountsStub({
                   id: 'flowrider',
-                  confirmed: 12,
-                  unconfirmable: 1,
+                  met: 12,
+                  cantMeet: 1,
+                  unmet: 2,
                   outstanding: 3,
                 }),
                 QuestSummaryTrackCountsStub({
                   id: 'siegemaster',
-                  confirmed: 15,
-                  unconfirmable: 0,
+                  met: 15,
+                  cantMeet: 0,
+                  unmet: 4,
                   outstanding: 1,
                 }),
               ],
@@ -67,8 +92,8 @@ describe('questSummaryToTextTransformer', () => {
         lines.find((line) => line.startsWith('    siegemaster:')),
       ]).toStrictEqual([
         '### `login-flow` "Login Flow" [runtime]',
-        '    flowrider: confirmed 12 / unconfirmable 1 / outstanding 3',
-        '    siegemaster: confirmed 15 / unconfirmable 0 / outstanding 1',
+        '    flowrider: met 12 / cant-meet 1 / unmet 2 / outstanding 3',
+        '    siegemaster: met 15 / cant-meet 0 / unmet 4 / outstanding 1',
       ]);
     });
 
@@ -83,8 +108,9 @@ describe('questSummaryToTextTransformer', () => {
               tracks: [
                 QuestSummaryTrackCountsStub({
                   id: 'siegemaster',
-                  confirmed: 4,
-                  unconfirmable: 0,
+                  met: 4,
+                  cantMeet: 0,
+                  unmet: 0,
                   outstanding: 0,
                 }),
               ],
@@ -100,7 +126,7 @@ describe('questSummaryToTextTransformer', () => {
       ]).toStrictEqual([
         '### `register-lint-rule` "Register Lint Rule" [operational]',
         [],
-        '    siegemaster: confirmed 4 / unconfirmable 0 / outstanding 0',
+        '    siegemaster: met 4 / cant-meet 0 / unmet 0 / outstanding 0',
       ]);
     });
 
@@ -127,6 +153,20 @@ describe('questSummaryToTextTransformer', () => {
       ]).toStrictEqual([
         '## COVERAGE — 0 flow(s), one row per track that measures each',
         '(no flows on this quest — nothing decomposes into verification units)',
+      ]);
+    });
+
+    it('VALID: {any summary} => the section prose tells apart all four counts the rows print', () => {
+      const lines = questSummaryToTextTransformer({ summary: QuestSummaryStub() }).split('\n');
+
+      expect([
+        lines.find((line) => line.startsWith('`met` and `cant-meet`')),
+        lines.find((line) => line.startsWith('left work open on;')),
+        lines.find((line) => line.startsWith('work list, which nothing')),
+      ]).toStrictEqual([
+        '`met` and `cant-meet` are both settled; `unmet` is a unit a session of that track looked at and',
+        "left work open on; `outstanding` is one nobody of that track has marked at all — the track's",
+        'work list, which nothing refuses a `done` over. A track ABSENT from a flow does not measure it',
       ]);
     });
   });
@@ -176,41 +216,79 @@ describe('questSummaryToTextTransformer', () => {
     });
   });
 
-  describe('unconfirmable', () => {
-    it('VALID: {one entry} => renders the unit, the track, the evidence AND the toSettle AND who raised it', () => {
+  describe('human check', () => {
+    it('VALID: {one verifyByHuman criterion} => names the unit id, its type and the verbatim text', () => {
       const lines = questSummaryToTextTransformer({
         summary: QuestSummaryStub({
-          unconfirmable: [
-            QuestSummaryUnconfirmableStub({
-              id: 'login-flow:observable:rejects-bleh-payload:flowrider',
-              unitId: 'login-flow:observable:rejects-bleh-payload',
-              flowId: 'login-flow',
-              kind: 'observable',
-              track: 'flowrider',
-              signoff: SignoffStub({
-                verdict: 'unconfirmable',
-                evidence:
-                  'playwright.config.ts declares no webServer, so no e2e run reaches the app',
-                toSettle:
-                  'Add a webServer block to playwright.config.ts, then re-run this spec against it.',
-                workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-                at: '2026-02-03T04:05:06.000Z',
-              }),
+          humanChecks: [
+            QuestSummaryObservableStub({
+              id: 'login-flow:observable:motion-feels-smooth',
+              observableId: 'motion-feels-smooth',
+              observableType: 'ui-state',
+              description: 'the dungeon-raid transition never stutters',
             }),
           ],
         }),
       }).split('\n');
 
       expect([
-        lines.find((line) => line.startsWith('## UNCONFIRMABLE')),
+        lines.find((line) => line.startsWith('## HUMAN CHECK')),
+        lines.find((line) => line.startsWith('- `login-flow:observable:motion-feels-smooth`')),
+        lines.find((line) => line.startsWith('      the dungeon-raid')),
+      ]).toStrictEqual([
+        '## HUMAN CHECK (1) — verifyByHuman criteria; only a person can settle these',
+        '- `login-flow:observable:motion-feels-smooth` [ui-state]',
+        '      the dungeon-raid transition never stutters',
+      ]);
+    });
+
+    it('EMPTY: {humanChecks: []} => states no criterion on this quest needs a person', () => {
+      const lines = questSummaryToTextTransformer({
+        summary: QuestSummaryStub({ humanChecks: [] }),
+      }).split('\n');
+
+      expect([
+        lines.find((line) => line.startsWith('## HUMAN CHECK')),
+        lines.find((line) => line.startsWith('(none — no criterion')),
+      ]).toStrictEqual([
+        '## HUMAN CHECK (0) — verifyByHuman criteria; only a person can settle these',
+        '(none — no criterion on this quest requires a person to settle it)',
+      ]);
+    });
+  });
+
+  describe('debt', () => {
+    it('VALID: {one cant-meet entry} => renders the unit, the mark, the track, the evidence AND the toSettle AND who raised it', () => {
+      const lines = questSummaryToTextTransformer({
+        summary: QuestSummaryStub({
+          debt: [
+            QuestSummaryDebtStub({
+              id: 'login-flow:observable:rejects-bleh-payload:flowrider',
+              unitId: 'login-flow:observable:rejects-bleh-payload',
+              flowId: 'login-flow',
+              kind: 'observable',
+              track: 'flowrider',
+              mark: 'cant-meet',
+              evidence: 'playwright.config.ts declares no webServer, so no e2e run reaches the app',
+              toSettle:
+                'Add a webServer block to playwright.config.ts, then re-run this spec against it.',
+              workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+              at: '2026-02-03T04:05:06.000Z',
+            }),
+          ],
+        }),
+      }).split('\n');
+
+      expect([
+        lines.find((line) => line.startsWith('## DEBT')),
         lines.find((line) => line.startsWith('### `login-flow:observable')),
         lines.find((line) => line.startsWith('      flow:')),
         lines.find((line) => line.startsWith('      evidence:')),
         lines.find((line) => line.startsWith('      toSettle:')),
         lines.find((line) => line.startsWith('      raised by')),
       ]).toStrictEqual([
-        '## UNCONFIRMABLE (1) — settled, NOT proven',
-        '### `login-flow:observable:rejects-bleh-payload` [observable] — could not be confirmed on the flowrider track',
+        '## DEBT (1) — every unit that is NOT proven',
+        '### `login-flow:observable:rejects-bleh-payload` [observable] — cant-meet on the flowrider track',
         '      flow:     `login-flow`',
         '      evidence: playwright.config.ts declares no webServer, so no e2e run reaches the app',
         '      toSettle: Add a webServer block to playwright.config.ts, then re-run this spec against it.',
@@ -218,32 +296,79 @@ describe('questSummaryToTextTransformer', () => {
       ]);
     });
 
-    // `signoffContract` only requires `toSettle` on the `unconfirmable` verdict, so a sign-off
-    // carrying none can still reach this list. Saying so beats printing a blank field a reader
-    // would take for a rendering bug.
-    it('EDGE: {sign-off carrying no toSettle} => says none was recorded rather than printing an empty field', () => {
+    // An `unmet` entry carries no `toSettle` — the mark itself says work is outstanding rather than
+    // handed over. Saying so beats printing a blank field a reader would take for a rendering bug.
+    it('VALID: {one unmet entry} => names the unmet mark and says no toSettle was recorded', () => {
       const lines = questSummaryToTextTransformer({
         summary: QuestSummaryStub({
-          unconfirmable: [QuestSummaryUnconfirmableStub({ signoff: SignoffStub() })],
+          debt: [QuestSummaryDebtStub()],
         }),
       }).split('\n');
 
-      expect(lines.find((line) => line.startsWith('      toSettle:'))).toBe(
+      expect([
+        lines.find((line) => line.startsWith('### `login-flow:observable')),
+        lines.find((line) => line.startsWith('      toSettle:')),
+      ]).toStrictEqual([
+        '### `login-flow:observable:rejects-bleh-payload` [observable] — unmet on the flowrider track',
         '      toSettle: (none recorded)',
-      );
+      ]);
     });
 
-    it('EMPTY: {unconfirmable: []} => states every signed unit was confirmed', () => {
+    it('VALID: {a cant-meet and an unmet together} => both marks render in the one section', () => {
       const lines = questSummaryToTextTransformer({
-        summary: QuestSummaryStub({ unconfirmable: [] }),
+        summary: QuestSummaryStub({
+          debt: [
+            QuestSummaryDebtStub({
+              id: 'login-flow:observable:no-webserver:flowrider',
+              unitId: 'login-flow:observable:no-webserver',
+              mark: 'cant-meet',
+              toSettle: 'Add a webServer block to playwright.config.ts, then re-run this spec.',
+            }),
+            QuestSummaryDebtStub({
+              id: 'login-flow:observable:stale-badge:siegemaster',
+              unitId: 'login-flow:observable:stale-badge',
+              track: 'siegemaster',
+              mark: 'unmet',
+            }),
+          ],
+        }),
       }).split('\n');
 
       expect([
-        lines.find((line) => line.startsWith('## UNCONFIRMABLE')),
-        lines.find((line) => line.startsWith('(none — every signed')),
+        lines.find((line) => line.startsWith('## DEBT')),
+        ...lines.filter((line) => line.startsWith('### `login-flow:observable')),
       ]).toStrictEqual([
-        '## UNCONFIRMABLE (0) — settled, NOT proven',
-        '(none — every signed unit on this quest was confirmed)',
+        '## DEBT (2) — every unit that is NOT proven',
+        '### `login-flow:observable:no-webserver` [observable] — cant-meet on the flowrider track',
+        '### `login-flow:observable:stale-badge` [observable] — unmet on the siegemaster track',
+      ]);
+    });
+
+    it('VALID: {any summary} => the section prose separates what a cant-meet owes from what an unmet owes', () => {
+      const lines = questSummaryToTextTransformer({ summary: QuestSummaryStub() }).split('\n');
+
+      expect([
+        lines.find((line) => line.startsWith('Two marks land here')),
+        lines.find((line) => line.startsWith('and its `toSettle`')),
+        lines.find((line) => line.startsWith('carries no `toSettle`')),
+      ]).toStrictEqual([
+        'Two marks land here and they are different work. `cant-meet` settled a unit without proving it,',
+        'and its `toSettle` names the action that would. `unmet` means work is outstanding right now and',
+        'carries no `toSettle`, because a successor is owed it rather than a handover. `evidence` is what',
+      ]);
+    });
+
+    it('EMPTY: {debt: []} => states no unit carries either mark and points at COVERAGE for the rest', () => {
+      const lines = questSummaryToTextTransformer({
+        summary: QuestSummaryStub({ debt: [] }),
+      }).split('\n');
+
+      expect([
+        lines.find((line) => line.startsWith('## DEBT')),
+        lines.find((line) => line.startsWith('(none — no unit')),
+      ]).toStrictEqual([
+        '## DEBT (0) — every unit that is NOT proven',
+        '(none — no unit carries a cant-meet or an unmet mark; unmarked units are in COVERAGE)',
       ]);
     });
   });
@@ -252,10 +377,10 @@ describe('questSummaryToTextTransformer', () => {
     it('VALID: {open-question group listed last} => it still renders first', () => {
       const headings = questSummaryToTextTransformer({
         summary: QuestSummaryStub({
-          // The flow and unconfirmable sections use `### ` headings too, so this narrows the
-          // summary to notes alone rather than filtering their headings back out by shape.
+          // The flow and debt sections use `### ` headings too, so this narrows the summary to
+          // notes alone rather than filtering their headings back out by shape.
           flows: [],
-          unconfirmable: [],
+          debt: [],
           noteGroups: [
             QuestSummaryNoteGroupStub({ id: 'tooling-error', notes: [] }),
             QuestSummaryNoteGroupStub({ id: 'out-of-scope', notes: [] }),
@@ -337,6 +462,35 @@ describe('questSummaryToTextTransformer', () => {
       );
     });
 
+    it('EDGE: {human-verdict note carrying no workItemId} => omits the work-item trailer entirely', () => {
+      const lines = questSummaryToTextTransformer({
+        summary: QuestSummaryStub({
+          noteGroups: [
+            QuestSummaryNoteGroupStub({
+              id: 'human-verdict',
+              notes: [
+                QuestNoteStub({
+                  kind: 'human-verdict',
+                  role: 'operator',
+                  workItemId: undefined,
+                  flowId: 'login-flow',
+                  unitId: 'motion-feels-smooth',
+                  outcome: 'met',
+                  summary: 'the transition feels smooth: confirmed',
+                  detail: 'Watched the raid transition twice; it stutters on the third frame.',
+                  at: '2026-02-03T04:05:06.000Z',
+                }),
+              ],
+            }),
+          ],
+        }),
+      }).split('\n');
+
+      expect(lines.find((line) => line.startsWith('      operator ·'))).toBe(
+        '      operator · 2026-02-03T04:05:06.000Z · flow `login-flow` · unit `motion-feels-smooth`',
+      );
+    });
+
     it('EMPTY: {group with no notes} => renders the kind with an explicit none, so "none" and "nobody looked" differ', () => {
       const lines = questSummaryToTextTransformer({
         summary: QuestSummaryStub({
@@ -404,12 +558,12 @@ describe('questSummaryToTextTransformer', () => {
       ]);
     });
 
-    it('EDGE: {two entries past maxUnconfirmable} => the heading names the cap and the dropped count', () => {
-      const overCap = questSummaryLimitsStatics.maxUnconfirmable + 2;
+    it('EDGE: {two entries past the debt cap} => the heading names the cap and the dropped count', () => {
+      const overCap = questSummaryLimitsStatics.maxDebt + 2;
       const lines = questSummaryToTextTransformer({
         summary: QuestSummaryStub({
-          unconfirmable: Array.from({ length: overCap }, (_unused, index) =>
-            QuestSummaryUnconfirmableStub({
+          debt: Array.from({ length: overCap }, (_unused, index) =>
+            QuestSummaryDebtStub({
               id: `login-flow:observable:hole-${String(index)}:flowrider`,
               unitId: `login-flow:observable:hole-${String(index)}`,
             }),
@@ -418,11 +572,30 @@ describe('questSummaryToTextTransformer', () => {
       }).split('\n');
 
       expect([
-        lines.find((line) => line.startsWith('## UNCONFIRMABLE')),
+        lines.find((line) => line.startsWith('## DEBT')),
         lines.filter((line) => line.startsWith('      evidence:')).length,
       ]).toStrictEqual([
-        `## UNCONFIRMABLE (${String(overCap)}) — settled, NOT proven — TRUNCATED at the ${String(questSummaryLimitsStatics.maxUnconfirmable)}-entry cap; 2 entry(s) NOT SHOWN`,
-        questSummaryLimitsStatics.maxUnconfirmable,
+        `## DEBT (${String(overCap)}) — every unit that is NOT proven — TRUNCATED at the ${String(questSummaryLimitsStatics.maxDebt)}-entry cap; 2 entry(s) NOT SHOWN`,
+        questSummaryLimitsStatics.maxDebt,
+      ]);
+    });
+
+    it('EDGE: {four criteria past maxHumanChecks} => the heading names the cap and the dropped count', () => {
+      const overCap = questSummaryLimitsStatics.maxHumanChecks + 4;
+      const lines = questSummaryToTextTransformer({
+        summary: QuestSummaryStub({
+          humanChecks: Array.from({ length: overCap }, (_unused, index) =>
+            QuestSummaryObservableStub({ id: `login-flow:observable:check-${String(index)}` }),
+          ),
+        }),
+      }).split('\n');
+
+      expect([
+        lines.find((line) => line.startsWith('## HUMAN CHECK')),
+        lines.filter((line) => line.startsWith('- `login-flow:observable:check-')).length,
+      ]).toStrictEqual([
+        `## HUMAN CHECK (${String(overCap)}) — verifyByHuman criteria; only a person can settle these — TRUNCATED at the ${String(questSummaryLimitsStatics.maxHumanChecks)}-entry cap; 4 entry(s) NOT SHOWN`,
+        questSummaryLimitsStatics.maxHumanChecks,
       ]);
     });
 
@@ -468,13 +641,16 @@ describe('questSummaryToTextTransformer', () => {
             (_unused, index) =>
               QuestSummaryObservableStub({ id: `login-flow:observable:drift-${String(index)}` }),
           ),
-          unconfirmable: Array.from(
-            { length: questSummaryLimitsStatics.maxUnconfirmable },
+          debt: Array.from({ length: questSummaryLimitsStatics.maxDebt }, (_unused, index) =>
+            QuestSummaryDebtStub({
+              id: `login-flow:observable:hole-${String(index)}:flowrider`,
+              unitId: `login-flow:observable:hole-${String(index)}`,
+            }),
+          ),
+          humanChecks: Array.from(
+            { length: questSummaryLimitsStatics.maxHumanChecks },
             (_unused, index) =>
-              QuestSummaryUnconfirmableStub({
-                id: `login-flow:observable:hole-${String(index)}:flowrider`,
-                unitId: `login-flow:observable:hole-${String(index)}`,
-              }),
+              QuestSummaryObservableStub({ id: `login-flow:observable:check-${String(index)}` }),
           ),
           noteGroups: [
             QuestSummaryNoteGroupStub({
@@ -500,17 +676,17 @@ describe('questSummaryToTextTransformer', () => {
         withinVerbatimBudget: true,
         lineBeforeTheNotice: '',
         notice:
-          '[TRUNCATED at the 48000-character ceiling — 23960 character(s) were dropped from the END of this render, so the sections after this line are missing or cut short. Sections run coverage, mid-quest observables, unconfirmable, notes; read quest.json for whatever fell off.]',
+          '[TRUNCATED at the 48000-character ceiling — 25968 character(s) were dropped from the END of this render, so the sections after this line are missing or cut short. Sections run coverage, mid-quest observables, debt, human check, notes; read quest.json for whatever fell off.]',
       });
     });
   });
 
   // Over `mcpToolResultStatics.maxVerbatimChars` Claude Code does not deliver a tool result to the
   // model at all — it spills it to a file and hands the agent an error stub. For this tool that
-  // means the role reading the summary loses the unconfirmable list its routing depends on. This
-  // builds the largest realistic quest and measures the actual render.
+  // means the role reading the summary loses the debt list its routing depends on. This builds the
+  // largest realistic quest and measures the actual render.
   describe('scale — a real quest-sized summary', () => {
-    it('VALID: {7 flows, 281 units, 26 mid-quest observables, 35 unconfirmables, 24 notes} => renders under mcpToolResultStatics.maxVerbatimChars with no section truncated', () => {
+    it('VALID: {7 flows, 281 units, 26 mid-quest observables, 35 debt entries, 24 notes} => renders under mcpToolResultStatics.maxVerbatimChars with no section truncated', () => {
       const rendered = questSummaryToTextTransformer({
         summary: QuestSummaryStub({
           questId: 'comment-queue-persistence',
@@ -522,14 +698,16 @@ describe('questSummaryToTextTransformer', () => {
               tracks: [
                 QuestSummaryTrackCountsStub({
                   id: 'flowrider',
-                  confirmed: unitCount - 5,
-                  unconfirmable: 3,
+                  met: unitCount - 5,
+                  cantMeet: 3,
+                  unmet: 0,
                   outstanding: 2,
                 }),
                 QuestSummaryTrackCountsStub({
                   id: 'siegemaster',
-                  confirmed: unitCount - 3,
-                  unconfirmable: 2,
+                  met: unitCount - 3,
+                  cantMeet: 2,
+                  unmet: 0,
                   outstanding: 1,
                 }),
               ],
@@ -546,18 +724,19 @@ describe('questSummaryToTextTransformer', () => {
               description: `POST /api/quests/:questId/comments returns 400 when box ${String(index)} names a node id the flow no longer carries, instead of dropping it silently`,
             }),
           ),
-          unconfirmable: Array.from({ length: 35 }, (_unused, index) =>
-            QuestSummaryUnconfirmableStub({
+          debt: Array.from({ length: 35 }, (_unused, index) =>
+            QuestSummaryDebtStub({
               id: `packages-web-flows-quest-detail-comment-queue-0:observable:hole-${String(index)}:flowrider`,
               unitId: `packages-web-flows-quest-detail-comment-queue-0:observable:hole-${String(index)}`,
               flowId: 'packages-web-flows-quest-detail-comment-queue-0',
-              signoff: SignoffStub({
-                verdict: 'unconfirmable',
-                evidence: `the project playwright.config.ts declares no webServer, so no e2e run can reach the app to drive unit hole-${String(index)}; the integration layer cannot see the rendered badge either`,
-                toSettle: `Add a webServer block to playwright.config.ts, then drive hole-${String(index)} end to end.`,
-              }),
+              mark: 'cant-meet',
+              evidence: `the project playwright.config.ts declares no webServer, so no e2e run can reach the app to drive unit hole-${String(index)}; the integration layer cannot see the rendered badge either`,
+              toSettle: `Add a webServer block to playwright.config.ts, then drive hole-${String(index)} end to end.`,
             }),
           ),
+          // This realistic quest carries no `verifyByHuman` criterion — most quests don't — so the
+          // measured character total below stays the one this file's own statics header cites.
+          humanChecks: [],
           noteGroups: [
             QuestSummaryNoteGroupStub({
               id: 'open-question',

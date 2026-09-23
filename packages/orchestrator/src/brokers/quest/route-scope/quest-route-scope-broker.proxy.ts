@@ -21,7 +21,7 @@
  * A VIRTUAL STORE RATHER THAN CALL-ORDERED PATH STAGING, because this broker reads the quest TWICE
  * — once for its own scan, once inside `questOperationsUpdateBroker`'s lock — and a one-shot queue
  * cannot survive two walks: the second finds nothing and the lookup throws before the broker has
- * decided anything. `questRunWardBrokerProxy` reaches for the same store for the same reason.
+ * decided anything.
  *
  * EVERY MODULE THIS FILE MOCKS IS POINTED BACK AT ITS REAL IMPLEMENTATION AT CONSTRUCTION, and that
  * is load-bearing. A caller's proxy IMPORTS this file, so these `jest.mock` calls are hoisted for

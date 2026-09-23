@@ -1,7 +1,68 @@
+import { driverStatics } from '../../../statics/driver/driver-statics';
 import { stepClickBroker } from './step-click-broker';
 import { stepClickBrokerProxy } from './step-click-broker.proxy';
 
 describe('stepClickBroker', () => {
+  describe('waitForSettle wiring', () => {
+    it('VALID: {target, page settles promptly} => waits for settle with the settle statics, and pollerRepeatThreshold is not one of the arguments', async () => {
+      const proxy = stepClickBrokerProxy();
+      const { session, getWaitForSettleCalls } = proxy.session();
+
+      const result = await stepClickBroker({
+        session,
+        target: '[data-testid="PIXEL_BTN"]',
+        within: null,
+        ref: null,
+        timeoutMs: null,
+      });
+
+      expect(getWaitForSettleCalls()).toStrictEqual([
+        [
+          {
+            quietWindowMs: driverStatics.settle.quietWindowMs,
+            ceilingMs: driverStatics.settle.ceilingMs,
+            pollMs: driverStatics.settle.pollMs,
+          },
+        ],
+      ]);
+      expect(result).toBe('clicked [data-testid="PIXEL_BTN"]');
+    });
+
+    it('VALID: {ref, page settles promptly} => also waits for settle after driving by ref', async () => {
+      const proxy = stepClickBrokerProxy();
+      const { session, getWaitForSettleCalls } = proxy.session();
+
+      await stepClickBroker({ session, target: null, within: null, ref: 26, timeoutMs: null });
+
+      expect(getWaitForSettleCalls()).toStrictEqual([
+        [
+          {
+            quietWindowMs: driverStatics.settle.quietWindowMs,
+            ceilingMs: driverStatics.settle.ceilingMs,
+            pollMs: driverStatics.settle.pollMs,
+          },
+        ],
+      ]);
+    });
+
+    it('VALID: {target, page never settles} => reports the ceiling reason and the still-moving signals instead of the plain click message', async () => {
+      const proxy = stepClickBrokerProxy();
+      const { session } = proxy.sessionNeverSettling();
+
+      const result = await stepClickBroker({
+        session,
+        target: '[data-testid="PIXEL_BTN"]',
+        within: null,
+        ref: null,
+        timeoutMs: null,
+      });
+
+      expect(result).toBe(
+        'clicked [data-testid="PIXEL_BTN"]; did not settle after 5000ms (still moving: network)',
+      );
+    });
+  });
+
   describe('within given, explicit timeoutMs', () => {
     it('VALID: {target, within, timeoutMs} => drives session.clickMatch with the scoped arguments', async () => {
       const proxy = stepClickBrokerProxy();

@@ -20,7 +20,7 @@ describe('citationKindContract', () => {
   });
 
   describe('the closed set', () => {
-    it('VALID: {options} => exactly the three things the spec says hold evidence', () => {
+    it('VALID: {options} => exactly the things the spec says hold evidence', () => {
       expect(citationKindContract.unwrap().options).toStrictEqual([
         'verified-prelude',
         'open-issue',
@@ -40,6 +40,18 @@ describe('citationKindContract', () => {
       expect(() => {
         citationKindContract.parse('');
       }).toThrow(/Invalid enum value/u);
+    });
+
+    it('EMPTY: {value: null} => throws, rather than accepting an absent kind as a member', () => {
+      expect(() => {
+        citationKindContract.parse(null);
+      }).toThrow(/Expected 'verified-prelude' \| 'open-issue' \| 'walked-note', received null/u);
+    });
+
+    it('INVALID: {value: 4} => a number throws, rather than being coerced to a member', () => {
+      expect(() => {
+        citationKindContract.parse(4);
+      }).toThrow(/received number/u);
     });
   });
 });

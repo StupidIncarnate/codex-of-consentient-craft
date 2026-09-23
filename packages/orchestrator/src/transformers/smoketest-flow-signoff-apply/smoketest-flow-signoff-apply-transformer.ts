@@ -17,13 +17,13 @@
  * An off-map family owns no graph element until one exists: `flow.offMapSignoffs` is an upsert array
  * keyed on the family, so a named family absent from it is APPENDED rather than dropped.
  *
- * ALL SIGN-OFF FIELDS ARE RETIRED. The three sign-off fields (`codeweaverSignoff`, `flowriderSignoff`,
- * `siegemasterSignoff`) have been removed from verification units. `signoffField` and `signoff`
- * arguments are retained as optional parameters for backwards compatibility with callers.
+ * NO SIGN-OFF FIELD SURVIVES ON A VERIFICATION UNIT: `codeweaverSignoff`, `flowriderSignoff` and
+ * `siegemasterSignoff` are gone from every node, edge and observable, and this transformer takes no
+ * sign-off argument to write into them — it works entirely through `flow.offMapSignoffs`.
  */
 
 import { flowContract } from '@dungeonmaster/shared/contracts';
-import type { Flow, QaChecklistItemId, Signoff } from '@dungeonmaster/shared/contracts';
+import type { Flow, QaChecklistItemId } from '@dungeonmaster/shared/contracts';
 
 import { qaUnitEnumerateTransformer } from '../qa-unit-enumerate/qa-unit-enumerate-transformer';
 
@@ -33,8 +33,6 @@ export const smoketestFlowSignoffApplyTransformer = ({
 }: {
   flow: Flow;
   unitIds: readonly QaChecklistItemId[];
-  signoffField?: string;
-  signoff?: Signoff;
 }): Flow => {
   const targetIds = new Set(unitIds.map(String));
   const units = qaUnitEnumerateTransformer({ flow }).filter((unit) =>

@@ -54,32 +54,6 @@ test.describe('Quest Approved Modal', () => {
     await expect(page.getByText('Start a new Quest')).toHaveCount(0);
   });
 
-  test('VALID: modal does not appear when quest transitions to design_approved status via WS', async ({
-    page,
-    request,
-  }) => {
-    const sessionId = `e2e-design-approved-${Date.now()}`;
-    const { questId, urlSlug, quests } = await modalHarness.setupTest({
-      request,
-      guildName: 'Design Approved Guild',
-      sessionId,
-      status: 'review_design',
-    });
-
-    const nav = navigationHarness({ page });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
-
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
-
-    await quests.patchQuestStatus({ questId, status: 'design_approved' });
-
-    // Begin Quest modal is gated by shouldShowBeginQuestModalQuestStatusGuard which
-    // only returns true for 'approved' (spec/observables gate), not 'design_approved'.
-    await expect(page.getByText('Shall we go dumpster diving for some code?')).not.toBeVisible({
-      timeout: MODAL_TIMEOUT,
-    });
-  });
-
   test('VALID: clicking Begin Quest sends POST to quest start endpoint', async ({
     page,
     request,
@@ -183,7 +157,7 @@ test.describe('Quest Approved Modal', () => {
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // Transition to flows_approved (not approved or design_approved)
+    // Transition to flows_approved (not approved)
     await quests.patchQuestStatus({ questId, status: 'flows_approved' });
 
     // Modal should NOT appear — verify by asserting the modal text is not visible after events propagate

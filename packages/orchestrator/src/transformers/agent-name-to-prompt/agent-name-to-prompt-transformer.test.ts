@@ -21,13 +21,7 @@ import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spi
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 import { agentNameToPromptTransformer } from './agent-name-to-prompt-transformer';
 
-const UNSERVED_PROMPT_NAMES = [
-  'codeweaver',
-  'flowrider',
-  'siegemaster',
-  'siegemaster-stress',
-  'siegemaster-verifier',
-] as const;
+const UNSERVED_PROMPT_NAMES = ['codeweaver', 'flowrider', 'siegemaster'] as const;
 
 type UnservedPromptName = typeof UNSERVED_PROMPT_NAMES extends readonly (infer U)[] ? U : never;
 
@@ -58,11 +52,13 @@ const SERVED_PROMPT_NAMES = agentPromptClassificationStatics.promptNames.filter(
 // from the STATICS roster instead of from the contract keeps THIS list exhaustive regardless: a name
 // added to `agentPromptClassificationStatics.promptNames` with no entry here still fails to compile.
 //
-// MODELS. The ROLE names read `roleToModelStatics` instead of restating a literal, because that map
-// is what the CLI `--model` flag resolves through at spawn time — `get-agent-prompt` only REPORTS
-// this value, and a literal would let the reported model drift from the one the child actually ran.
-// The minions have no such map, so their models are stated: all sonnet, because a minion arrives
-// with its scope already narrowed by the brief that summoned it.
+// MODELS. The ROLE names read `roleToModelStatics` instead of restating a literal so a row here
+// still names a real value if anything reads it directly — this table's `model` is what
+// `agentNameToPromptTransformer` itself returns, exercised for its own sake below, but for a role
+// or step prompt the DISPATCHED model and the model `get-agent-prompt` REPORTS both resolve off the
+// work item's own `agentFlowStatics` step node instead (`workItemToPromptTransformer`), not off
+// this table. The minions have no such map, so their models are stated: all sonnet, because a
+// minion arrives with its scope already narrowed by the brief that summoned it.
 const EXPECTED_BY_NAME = {
   'chaoswhisperer-gap-minion': {
     model: 'sonnet',
@@ -244,6 +240,21 @@ describe('agentNameToPromptTransformer', () => {
       }).toThrow(
         "Unknown agent prompt name: 'a-prompt-nobody-declared'. No prompt is registered for it in AGENT_PROMPTS — check agentPromptClassificationStatics.promptNames and this table still agree.",
       );
+    });
+  });
+
+  // A name landing in NEITHER `SERVED_PROMPT_NAMES` nor `UNSERVED_PROMPT_NAMES` is exactly the
+  // drift that let a dangling roster entry go unnoticed: added to `promptNames`, never given a row
+  // in `AGENT_PROMPTS`, and never declared as a documented retired name either — silent until the
+  // day something dispatches it. This closes the gap the two lists above leave open between them.
+  describe('every name in promptNames is accounted for', () => {
+    it('VALID: {promptNames} => each one is served or is a documented retired name, with none left over', () => {
+      const accountedFor = new Set([...SERVED_PROMPT_NAMES, ...UNSERVED_PROMPT_NAMES]);
+      const unaccountedNames = agentPromptClassificationStatics.promptNames.filter(
+        (name) => !accountedFor.has(name),
+      );
+
+      expect(unaccountedNames).toStrictEqual([]);
     });
   });
 });

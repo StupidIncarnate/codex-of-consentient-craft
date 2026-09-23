@@ -87,17 +87,6 @@ export const questContract = z.object({
     .describe(
       'User comments queued against flow-diagram nodes and delivered to the LLM chat as a batch',
     ),
-  needsDesign: z
-    .boolean()
-    .default(false)
-    .describe('Whether quest requires UI design phase before implementation'),
-  designPort: z
-    .number()
-    .int()
-    .positive()
-    .brand<'DesignPort'>()
-    .optional()
-    .describe('Port of per-quest Vite design sandbox'),
   userRequest: z.string().min(1).brand<'UserRequest'>(),
   abandonReason: z.string().brand<'AbandonReason'>().optional(),
   pausedAtStatus: questStatusContract
@@ -161,7 +150,7 @@ export const questContract = z.object({
         .array(questNoteContract)
         .default([])
         .describe(
-          'The durable side channel every role appends to: open questions, tooling failures, out-of-scope observations, and walk resets. Keyed on `id` so a re-stated note upserts rather than appending a duplicate. Nothing here closes a verification unit — a flow unit is closed by its own `flowriderSignoff` / `siegemasterSignoff`, and a standards-review unit by its blightLedger disposition.',
+          'The durable side channel every role appends to: open questions, tooling failures, out-of-scope observations, and walk resets. Keyed on `id` so a re-stated note upserts rather than appending a duplicate. Nothing here closes a verification unit — a flow unit is closed by an observation on workItem.observations[], and a standards-review unit by its blightLedger disposition.',
         ),
       operationPlans: z
         .array(operationPlanContract)
@@ -176,7 +165,7 @@ export const questContract = z.object({
       operationPlans: [],
     })
     .describe(
-      'The per-unit standards-review ledger a reviewer writes, the durable side-channel quest notes, and planner sub-agent output plans. Verification coverage is NOT here: a flow unit is settled by its own `codeweaverSignoff` / `flowriderSignoff` / `siegemasterSignoff` on the flow element, recomputed by `get-qa-checklist` and the quest summary — neither of which is a gate.',
+      'The per-unit standards-review ledger a reviewer writes, the durable side-channel quest notes, and planner sub-agent output plans. Verification coverage is NOT here: a flow unit is settled by an observation on the work item assigned it (`workItem.observations[]`), recomputed by `get-qa-checklist` and the quest summary — neither of which is a gate.',
     ),
   questSource: questSourceContract
     .optional()

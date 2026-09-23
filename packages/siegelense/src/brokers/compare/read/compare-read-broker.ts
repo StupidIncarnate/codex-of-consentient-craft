@@ -1,12 +1,16 @@
 /**
  * PURPOSE: `compare` itself — the index delta between two runs of ONE instance, a READING never a
  * verdict (siegelense-tooling.md:2458). Reads both runs' stored `RunResult` returns off disk for the
- * signed count deltas and the last-shot pixel diff; `elements` stays absent on purpose (chunk-03 §3.F)
- * and `compareAnswerContract` is `.strict()`, so adding it back is a parse error, not a design choice
- * this file can make. `console.new` / `server.new` scope AT THE QUERY, via `where: { level: 'error' }`
- * — the same narrowing `results { where: { level } }` already offers a caller, so this reuses tested
- * plumbing rather than re-filtering rows here. Network has no such lever: `resultWhereContract` carries
- * no status-code field, so network rows are fetched unscoped and narrowed here, after the read.
+ * signed count deltas and the last-shot pixel diff, plus each run's own `steps` transcript for the
+ * element delta: `elements.runA`/`elements.runB` are each the `delta` off the LAST step that run
+ * recorded a non-null one (`elementDeltaLastLayerBroker`), reported side by side rather than merged
+ * into a fresh cross-run diff — `compare` reads stored evidence only and never re-drives a page, so
+ * each side's own last recorded delta is the minimum honest answer
+ * (`scrolls/seigelense/remaining-build-items.md` §13b). `console.new` / `server.new` scope AT THE
+ * QUERY, via `where: { level: 'error' }` — the same narrowing `results { where: { level } }` already
+ * offers a caller, so this reuses tested plumbing rather than re-filtering rows here. Network has no
+ * such lever: `resultWhereContract` carries no status-code field, so network rows are fetched
+ * unscoped and narrowed here, after the read.
  *
  * `network.errors` and `network.new` both come from the SAME filtered row set — a 4xx/5xx status, or
  * no status at all (a request that never got a response) — so the count and the list can never
@@ -61,6 +65,7 @@ import { locationsInstanceEvidencePathFindBroker } from '../../locations/instanc
 import { locationsRunPathsFindBroker } from '../../locations/run-paths-find/locations-run-paths-find-broker';
 import { resultsReadBroker } from '../../results/read/results-read-broker';
 import { shotChangeReadBroker } from '../../shot/change-read/shot-change-read-broker';
+import { elementDeltaLastLayerBroker } from './element-delta-last-layer-broker';
 import { newLinesLayerBroker } from './new-lines-layer-broker';
 
 // Both console and server scope their `new:` list to error lines only — the same category their
@@ -146,6 +151,8 @@ export const compareReadBroker = async ({
     serverAnswerB,
     networkAnswerA,
     networkAnswerB,
+    stepsAnswerA,
+    stepsAnswerB,
   ] = await Promise.all([
     resultsReadBroker({
       query: resultsQueryContract.parse({
@@ -213,6 +220,28 @@ export const compareReadBroker = async ({
         since: null,
       }),
     }),
+    resultsReadBroker({
+      query: resultsQueryContract.parse({
+        instanceId,
+        runId: runA,
+        step: null,
+        kind: 'steps',
+        where: null,
+        fields: null,
+        since: null,
+      }),
+    }),
+    resultsReadBroker({
+      query: resultsQueryContract.parse({
+        instanceId,
+        runId: runB,
+        step: null,
+        kind: 'steps',
+        where: null,
+        fields: null,
+        since: null,
+      }),
+    }),
   ]);
 
   const resultA = runResultContract.parse(JSON.parse(rawA));
@@ -275,5 +304,9 @@ export const compareReadBroker = async ({
       new: newLinesLayerBroker({ linesA: networkFailureRowsA, linesB: networkFailureRowsB }),
     },
     pixels,
+    elements: {
+      runA: elementDeltaLastLayerBroker({ rows: stepsAnswerA.rows }),
+      runB: elementDeltaLastLayerBroker({ rows: stepsAnswerB.rows }),
+    },
   });
 };

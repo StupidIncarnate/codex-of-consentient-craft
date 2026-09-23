@@ -9,6 +9,7 @@ import { keyReadLayerAdapterProxy } from './key-read-layer-adapter.proxy';
 import { listenersLayerAdapterProxy } from './listeners-layer-adapter.proxy';
 import { refRegistryLayerAdapterProxy } from './ref-registry-layer-adapter.proxy';
 import { rootCheckLayerAdapterProxy } from './root-check-layer-adapter.proxy';
+import { settleWaitLayerAdapterProxy } from './settle-wait-layer-adapter.proxy';
 import { viewportSetLayerAdapterProxy } from './viewport-set-layer-adapter.proxy';
 import { initScriptAddLayerAdapterProxy } from './init-script-add-layer-adapter.proxy';
 import { storageReadLayerAdapterProxy } from './storage-read-layer-adapter.proxy';
@@ -40,6 +41,9 @@ const STAMP_MARKER = "setAttribute('siege-target'";
 const UNSTAMP_MARKER = "removeAttribute('siege-target')";
 const BOX_MARKER = 'getComputedStyle';
 const ROOT_CHECK_MARKER = 'document.querySelector("#root")';
+// The settle probe carries the page-side global nothing else in this folder names, so it is matched
+// first and can never be confused with another source string.
+const SETTLE_PROBE_MARKER = '__siegeSettle';
 
 export const playwrightSessionAdapterProxy = (): {
   setLocatorCount: (params: { selector: string; count: number }) => void;
@@ -52,6 +56,8 @@ export const playwrightSessionAdapterProxy = (): {
   setEvaluateSourceResult: (params: { result: unknown }) => void;
   setFocusedResult: (params: { raw: unknown }) => void;
   setRootPresent: (params: { present: boolean }) => void;
+  setSettleProbeResult: (params: { raw: unknown }) => void;
+  getWaitForTimeoutCalls: () => readonly unknown[];
   setStorageResult: (params: { raw: unknown }) => void;
   getClearStorageCalls: () => readonly unknown[];
   getNewContextCalls: () => readonly unknown[];
@@ -87,6 +93,7 @@ export const playwrightSessionAdapterProxy = (): {
     requestBody: string | null;
     errorText: string;
   }) => void;
+  emitRequestStarted: (params: { method: string; url: string; resourceType: string }) => void;
   emitWebsocket: (params: { url: string }) => {
     frameSent: (params: { payload: string }) => void;
     frameReceived: (params: { payload: string }) => void;
@@ -102,6 +109,7 @@ export const playwrightSessionAdapterProxy = (): {
   refRegistryLayerAdapterProxy();
   domReadLayerAdapterProxy();
   rootCheckLayerAdapterProxy();
+  settleWaitLayerAdapterProxy();
   viewportSetLayerAdapterProxy();
   initScriptAddLayerAdapterProxy();
   storageReadLayerAdapterProxy();
@@ -117,6 +125,12 @@ export const playwrightSessionAdapterProxy = (): {
     domReadRaw: RawDomReadingStub() as unknown,
     focusedRaw: null as unknown,
     rootPresent: true,
+    settleProbeRaw: {
+      nowMs: FIXED_EPOCH_MS,
+      lastMutationAtMs: null,
+      runningAnimations: 0,
+    } as unknown,
+    waitForTimeoutCalls: [] as unknown[],
     storageReadingRaw: undefined as unknown,
     clearStorageCalls: [] as unknown[],
     keyboardPressCalls: [] as unknown[],
@@ -224,6 +238,9 @@ export const playwrightSessionAdapterProxy = (): {
         return undefined;
       }
       const source = String(pageFunction);
+      if (source.includes(SETTLE_PROBE_MARKER)) {
+        return Promise.resolve(state.settleProbeRaw);
+      }
       if (source.includes(DOM_READ_MARKER)) {
         return Promise.resolve(state.domReadRaw);
       }
@@ -264,6 +281,10 @@ export const playwrightSessionAdapterProxy = (): {
         return Promise.reject(new Error('Timeout 30000ms exceeded'));
       }
       return Promise.resolve(true);
+    },
+    waitForTimeout: async (ms: unknown) => {
+      state.waitForTimeoutCalls.push(ms);
+      return Promise.resolve(undefined);
     },
     addInitScript: async (script: unknown) => {
       state.initScripts.push(script);
@@ -339,6 +360,10 @@ export const playwrightSessionAdapterProxy = (): {
     setRootPresent: ({ present }: { present: boolean }): void => {
       state.rootPresent = present;
     },
+    setSettleProbeResult: ({ raw }: { raw: unknown }): void => {
+      state.settleProbeRaw = raw;
+    },
+    getWaitForTimeoutCalls: (): readonly unknown[] => state.waitForTimeoutCalls,
     setStorageResult: ({ raw }: { raw: unknown }): void => {
       state.storageReadingRaw = raw;
     },
@@ -413,6 +438,16 @@ export const playwrightSessionAdapterProxy = (): {
         failure: () => ({ errorText }),
       };
       page.emit('requestfailed', request);
+    },
+    // Drives the adapter's own `page.on('request', ...)` listener — the START edge
+    // `settleWaitLayerAdapter.noteRequestStarted` classifies against `pollerRepeatThreshold`.
+    emitRequestStarted: ({ method, url, resourceType }): void => {
+      const request = {
+        method: () => method,
+        url: () => url,
+        resourceType: () => resourceType,
+      };
+      page.emit('request', request);
     },
     emitWebsocket: ({ url }) => {
       const socket = Object.assign(new EventEmitter(), { url: () => url });

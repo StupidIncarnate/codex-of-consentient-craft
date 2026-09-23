@@ -91,13 +91,6 @@ export const chatSpawnBrokerProxy = (): {
     questId?: QuestId;
   }) => void;
   setupQuestCreationFailure: () => void;
-  setupGlyphsmithSession: (params: {
-    exitCode: ExitCode;
-    quest: Quest;
-    stdoutLines?: readonly string[];
-  }) => void;
-  setupQuestNotFound: () => void;
-  setupInvalidStatus: (params: { quest: Quest }) => void;
   setupSessionLinkQuest: (params: { quest: Quest }) => void;
   setupSessionLinkReject: (params: { error: Error }) => void;
   setupStderrCapture: () => SpyOnHandle;
@@ -127,8 +120,8 @@ export const chatSpawnBrokerProxy = (): {
   triggerMainTailChange: AgentLaunchProxy['triggerMainTailChange'];
   // Exposed for composing proxies (e.g. FollowupChatStartResponderProxy) that drive
   // chatSpawnBroker's own quest resolution directly via resolveChatQuestLayerBrokerProxy /
-  // questCwdResolveBrokerProxy rather than through setupNewSession/setupResumeSession/
-  // setupGlyphsmithSession — those three call this internally at the right point already;
+  // questCwdResolveBrokerProxy rather than through setupNewSession/setupResumeSession —
+  // those two call this internally at the right point already;
   // this lets a caller with its own resolution sequence stage the add-dir absorbers at the
   // exact point its OWN cwd-resolution cycle finishes, without duplicating the mocking logic.
   stageAddDirPathJoins: () => void;
@@ -244,42 +237,6 @@ export const chatSpawnBrokerProxy = (): {
       // The chaoswhisperer-new path calls questUserAddBroker. Fail it so callers asserting
       // on "Failed to create quest" see the expected error from resolveChatQuestLayerBroker.
       resolveProxy.setupQuestCreationFailure({ error: new Error('Create broker rejected') });
-    },
-
-    setupGlyphsmithSession: ({
-      exitCode,
-      quest,
-      stdoutLines,
-    }: {
-      exitCode: ExitCode;
-      quest: Quest;
-      stdoutLines?: readonly string[];
-    }): void => {
-      // resolveChatQuestLayerBroker's glyph path looks up a glyphsmith work item — seed
-      // one if the test stub didn't include workItems. Preserves the test's quest fields
-      // (id, status) while ensuring the work item lookup succeeds.
-      const hasGlyphItem = quest.workItems.some((wi) => wi.role === 'glyphsmith');
-      const seededQuest = hasGlyphItem
-        ? quest
-        : QuestStub({
-            ...quest,
-            workItems: [...quest.workItems, WorkItemStub({ role: 'glyphsmith' })],
-          });
-      resolveProxy.setupQuestFound({ quest: seededQuest });
-      cwdProxy.setupLegacyQuest({ quest: seededQuest, repoRoot: DEFAULT_REPO_ROOT });
-      stageAddDirPathJoins(); // chatSpawnBroker's own `--add-dir` computation — see header comment
-      launchProxy.setupSpawnAndEmitLines({
-        lines: stdoutLines ?? [],
-        exitCode,
-      });
-    },
-
-    setupQuestNotFound: (): void => {
-      resolveProxy.setupQuestNotFound();
-    },
-
-    setupInvalidStatus: ({ quest }: { quest: Quest }): void => {
-      resolveProxy.setupQuestFound({ quest });
     },
 
     setupSessionLinkQuest: ({ quest }: { quest: Quest }): void => {

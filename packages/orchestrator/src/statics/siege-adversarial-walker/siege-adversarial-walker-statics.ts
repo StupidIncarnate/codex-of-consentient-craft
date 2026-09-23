@@ -9,6 +9,7 @@
  */
 
 import { declaredValueStatics } from '../declared-value/declared-value-statics';
+import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 import { sadPathRoutingStatics } from '../sad-path-routing/sad-path-routing-statics';
 import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
 import { unitMarkingStatics } from '../unit-marking/unit-marking-statics';
@@ -20,6 +21,7 @@ export const siegeAdversarialWalkerStatics = {
 ${declaredValueStatics.markdown}
 ${sadPathRoutingStatics.markdown}
 ${unitMarkingStatics.markdown}
+${observableAutomatabilityStatics.markdown}
 
 ## Rules
 
@@ -39,7 +41,8 @@ get-quest-work({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID' })
 
 \`instance\` on that reply carries its id, \`baseUrl\`, \`apiUrl\`, \`home\` and its two log paths — the
 addresses every drive below quotes. Read \`dungeonmaster siegelense docs --for attacking\` once, for
-the reading ladder and the verbs.
+the reading ladder and the verbs. Bare \`dungeonmaster siegelense docs\`, with no \`--for\`, serves the
+tool's own overview instead of a role's manual.
 
 Nothing outside this session depends on that instance surviving your probes: drive the same request
 against it twice at once, hold one open while you fire another, send it input nobody sane would
@@ -188,6 +191,14 @@ An honest "N/A for this path because …" is \`met\`, with the justification as 
 was considered and ruled out, which is a measurement. It is never \`cant-meet\`, which needs a
 \`toSettle\`, and an N/A leaves nobody anything to do. A point you could not get real volume onto is
 recorded UNREACHED in your \`PLAN:\` file, never as held.
+
+**Where a break resists every attack you can mount, and nothing at any layer — not a later session,
+not a later round, nothing but a person's own judgment once the quest is done — could ever settle it
+either, flag it instead of marking \`cant-meet\` or writing it off as N/A: set \`verifyByHuman: true\`
+on its observable in the same \`modify-quest\` call above.** The family unit itself carries no such
+field — where the family unit, not a specific break, is what resists settling, \`cant-meet\` is the
+honest mark, with a \`toSettle\` naming the person's check. See the \`verifyByHuman\` rule further up
+this page for the whole picture.
 
 **Amend the plan where a driving field proved wrong:**
 

@@ -1,30 +1,37 @@
 /**
- * PURPOSE: Adds `.siegelense` to the target repo's `.gitignore`, and beside `worktrees` in every
- * config surface that already excludes it: eslint's `ignores` array, `tsconfig.json`'s `exclude`
- * array, and a root jest config's `testPathIgnorePatterns` array. A symlinked directory of
- * thousands of PNGs is something ESLint's whole-tree walk, tsc's program and jest's test-path scan
- * can all walk into in a CONSUMER repo, even where none of them do in this one. Mirrors
- * `@dungeonmaster/orchestrator`'s install-repo-scaffold-responder for the `.gitignore` half:
+ * PURPOSE: Adds `.dungeonmaster-assets/siegelense-assets` to the target repo's `.gitignore`, and
+ * beside `worktrees` in every config surface that already excludes it: eslint's `ignores` array,
+ * `tsconfig.json`'s `exclude` array, and a root jest config's `testPathIgnorePatterns` array. A
+ * symlinked directory of thousands of PNGs is something ESLint's whole-tree walk, tsc's program and
+ * jest's test-path scan can all walk into in a CONSUMER repo, even where none of them do in this one.
+ * Mirrors `@dungeonmaster/orchestrator`'s install-repo-scaffold-responder for the `.gitignore` half:
  * append-only, matched on the WHOLE line so a substring hit (`.claude/worktrees`) is never read as
  * a match. `tsconfig.json` is read and rewritten as TEXT LINES, never `JSON.parse`/`JSON.stringify`
  * — this repo's own tsconfig.json family permits comments, and a parse/stringify round-trip would
  * silently drop them and reformat the whole file for one inserted line.
  *
+ * The gitignore entry is the CHILD path, `.dungeonmaster-assets/siegelense-assets`, never the bare
+ * `.dungeonmaster-assets` parent: a committed oddities file lives directly in that parent, so a
+ * pattern that ignores the parent would hide a tracked file from git. This responder only ever
+ * checks for and writes its OWN exact entry — a consumer's `.gitignore` that already carries an
+ * unrelated `.dungeonmaster-assets` line, for whatever reason, is left exactly as it is.
+ *
  * The gitignore entry carries NO trailing slash. A trailing slash means "directory only" to git,
- * and `.siegelense` is a SYMLINK — git never treats a symlink as a directory, even one pointing at
- * one, so a slash-suffixed pattern never matches it (confirmed live: `git check-ignore -v
- * .siegelense` exits 1 against `.siegelense/` and exits 0 against bare `.siegelense`). A repo whose
- * `.gitignore` already carries that broken `.siegelense/` line gets it REPLACED in place with the
- * working pattern, rather than left dead beside a second, working line — the responder's job is
- * that the symlink ends up actually ignored, and a stale line achieves nothing.
+ * and `siegelense-assets` is a SYMLINK — git never treats a symlink as a directory, even one
+ * pointing at one, so a slash-suffixed pattern never matches it (confirmed live, before the path
+ * nested under `.dungeonmaster-assets/`: `git check-ignore -v .siegelense` exits 1 against
+ * `.siegelense/` and exits 0 against bare `.siegelense`; the same rule holds for the nested path).
+ * A repo whose `.gitignore` still carries the entry from BEFORE this path nested — bare
+ * `.siegelense`, or the already-broken `.siegelense/` — gets that line REPLACED in place with the
+ * working nested pattern, rather than left dead beside a second, working line.
  *
  * USAGE:
  * const result = await InstallIgnoreWriteResponder({ context });
- * // Appends `.siegelense` to .gitignore when missing (replacing a stale `.siegelense/` line in
- * // place if one is there), and inserts a `.siegelense` entry — shaped like its `worktrees`
- * // neighbour (bare, trailing-slash, or `/**`) — beside `worktrees` in eslint.config.*,
- * // tsconfig.json and jest.config.{js,cjs}, each only when that file already excludes `worktrees`
- * // and does not yet exclude `.siegelense`
+ * // Appends `.dungeonmaster-assets/siegelense-assets` to .gitignore when missing (replacing a
+ * // legacy `.siegelense` or `.siegelense/` line in place if one is there), and inserts a
+ * // `siegelense-assets` entry — shaped like its `worktrees` neighbour (bare, trailing-slash, or
+ * // `/**`) — beside `worktrees` in eslint.config.*, tsconfig.json and jest.config.{js,cjs}, each
+ * // only when that file already excludes `worktrees` and does not yet exclude `siegelense-assets`
  */
 
 import { fsExistsSyncAdapter, pathResolveAdapter } from '@dungeonmaster/shared/adapters';
@@ -43,12 +50,17 @@ import { ArrayEntryAnchorInsertLayerResponder } from './array-entry-anchor-inser
 
 const PACKAGE_NAME = '@dungeonmaster/siegelense';
 const GITIGNORE_FILENAME = '.gitignore';
-// Bare — no trailing slash. See the file header: a trailing slash means "directory only" to git,
-// and never matches the `.siegelense` symlink.
-const SIEGELENSE_GITIGNORE_ENTRY = locationsStatics.repoRoot.siegelenseLink;
-// The broken shape an earlier install wrote. Any `.gitignore` still carrying this line gets it
-// replaced with SIEGELENSE_GITIGNORE_ENTRY rather than left in place beside a second, working line.
-const SIEGELENSE_GITIGNORE_STALE_ENTRY = `${locationsStatics.repoRoot.siegelenseLink}/`;
+// The CHILD path, scoped under the parent — no trailing slash. See the file header: a trailing
+// slash means "directory only" to git and never matches the `siegelense-assets` symlink; the bare
+// parent alone would hide the committed oddities file that lives directly inside it.
+const SIEGELENSE_GITIGNORE_ENTRY = `${locationsStatics.repoRoot.dungeonmasterAssets}/${locationsStatics.repoRoot.siegelenseLink}`;
+// Two shapes an install wrote before this path nested under `.dungeonmaster-assets/` — bare (the
+// working shape at the time) and trailing-slash (an earlier, broken write that never matched the
+// symlink at all). Neither exists in locationsStatics any more, so both are held here as their own
+// literals; a `.gitignore` still carrying either gets it replaced with SIEGELENSE_GITIGNORE_ENTRY
+// rather than left in place beside a second, working line.
+const SIEGELENSE_GITIGNORE_LEGACY_ENTRY = '.siegelense';
+const SIEGELENSE_GITIGNORE_LEGACY_SLASH_ENTRY = '.siegelense/';
 
 // A repo may name its jest config `.js` or `.cjs` — this repo alone has packages using both — and
 // locationsStatics carries no jest-config-filename entry to reuse (unlike tsconfig.json, which
@@ -106,18 +118,25 @@ export const InstallIgnoreWriteResponder = async ({
   const gitignoreLines = existingGitignore.split('\n').map((line) => line.trimEnd());
   const gitignoreHasEntry = gitignoreLines.includes(SIEGELENSE_GITIGNORE_ENTRY);
   const staleEntryLineIndex = gitignoreLines.findIndex(
-    (line) => line === SIEGELENSE_GITIGNORE_STALE_ENTRY,
+    (line) =>
+      line === SIEGELENSE_GITIGNORE_LEGACY_ENTRY ||
+      line === SIEGELENSE_GITIGNORE_LEGACY_SLASH_ENTRY,
   );
-  const gitignoreHasStaleEntry = staleEntryLineIndex !== -1;
+  // `gitignoreLines[-1]` is `undefined` at runtime exactly when nothing matched, so this alone
+  // both narrows the type below and answers "is there a stale line" — no separate boolean needed.
+  const staleEntryLine = gitignoreLines[staleEntryLineIndex];
 
   if (!gitignoreHasEntry) {
-    const newGitignore = gitignoreHasStaleEntry
-      ? gitignoreLines
-          .map((line, index) => (index === staleEntryLineIndex ? SIEGELENSE_GITIGNORE_ENTRY : line))
-          .join('\n')
-      : existingGitignore
-        ? `${existingGitignore.trimEnd()}\n${SIEGELENSE_GITIGNORE_ENTRY}\n`
-        : `${SIEGELENSE_GITIGNORE_ENTRY}\n`;
+    const newGitignore =
+      staleEntryLine === undefined
+        ? existingGitignore
+          ? `${existingGitignore.trimEnd()}\n${SIEGELENSE_GITIGNORE_ENTRY}\n`
+          : `${SIEGELENSE_GITIGNORE_ENTRY}\n`
+        : gitignoreLines
+            .map((line, index) =>
+              index === staleEntryLineIndex ? SIEGELENSE_GITIGNORE_ENTRY : line,
+            )
+            .join('\n');
     await fsWriteFileAdapter({
       filePath: gitignorePath,
       contents: fileContentsContract.parse(newGitignore),
@@ -126,11 +145,11 @@ export const InstallIgnoreWriteResponder = async ({
 
   const gitignoreClause = gitignoreHasEntry
     ? `${SIEGELENSE_GITIGNORE_ENTRY} already in ${GITIGNORE_FILENAME}`
-    : gitignoreHasStaleEntry
-      ? `Replaced stale ${SIEGELENSE_GITIGNORE_STALE_ENTRY} with ${SIEGELENSE_GITIGNORE_ENTRY} in ${GITIGNORE_FILENAME}`
-      : gitignorePresent
+    : staleEntryLine === undefined
+      ? gitignorePresent
         ? `Added ${SIEGELENSE_GITIGNORE_ENTRY} to existing ${GITIGNORE_FILENAME}`
-        : `Created ${GITIGNORE_FILENAME} with ${SIEGELENSE_GITIGNORE_ENTRY}`;
+        : `Created ${GITIGNORE_FILENAME} with ${SIEGELENSE_GITIGNORE_ENTRY}`
+      : `Replaced stale ${staleEntryLine} with ${SIEGELENSE_GITIGNORE_ENTRY} in ${GITIGNORE_FILENAME}`;
 
   const clauses = [gitignoreClause];
   let anySurfaceWritten = false;
@@ -161,8 +180,8 @@ export const InstallIgnoreWriteResponder = async ({
       clauses.push(`${eslintResult.matchedEntryValue} already in eslint ignores`);
     }
     // Neither branch: this config does not exclude `worktrees` either, so there is nowhere for
-    // `.siegelense` to sit beside — quietly skipped, no clause. Same gate as tsconfig and jest
-    // below: a repo that does not exclude `worktrees` gets no edit, and that is the correct
+    // `siegelense-assets` to sit beside — quietly skipped, no clause. Same gate as tsconfig and
+    // jest below: a repo that does not exclude `worktrees` gets no edit, and that is the correct
     // outcome, not a failure.
   }
 

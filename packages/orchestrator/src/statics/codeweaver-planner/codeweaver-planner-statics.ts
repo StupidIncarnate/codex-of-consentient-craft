@@ -401,6 +401,7 @@ paragraph is a paragraph the worker skims.
 \`\`\`
 {
   id: '<short, unique in this plan — you type it>',
+  pieceName: '<a short human name — what a reader calls this piece, e.g. "login broker">',
   step: 'work',
   assignedUnitIds: ['<unit id>', …],
   contextUnitIds: ['<unit id a sibling cell owns>', …],
@@ -416,6 +417,10 @@ paragraph is a paragraph the worker skims.
   }
 }
 \`\`\`
+
+**\`pieceName\` is required, and it is not \`id\`.** \`id\` is your own cross-reference mnemonic;
+\`pieceName\` is what the execution panel shows a person — the file group's own name, never a
+restatement of the id or the step. "login broker" and "session adapter", not "pc-1" or "work piece".
 
 **You do not write the code, not even as a sketch.** A piece carrying a file's body in pseudo-code
 makes the worker a typist and you the author. It derives that body from three fields you DO give it:

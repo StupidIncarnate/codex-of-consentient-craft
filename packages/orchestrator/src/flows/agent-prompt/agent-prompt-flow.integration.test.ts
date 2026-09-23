@@ -22,9 +22,9 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { agentFlowStatics } from '../../statics/agent-flow/agent-flow-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { codeweaverPlannerStatics } from '../../statics/codeweaver-planner/codeweaver-planner-statics';
-import { roleToModelStatics } from '../../statics/role-to-model/role-to-model-statics';
 
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 import { questSeedHarness } from '../../../test/harnesses/quest-seed/quest-seed.harness';
@@ -56,7 +56,13 @@ describe('AgentPromptFlow', () => {
       });
     });
 
-    it('VALID: {agent: codeweaver, questId, workItemId, operation linked} => returns substituted prompt with the operation-relay context resolved from the persisted quest.json', async () => {
+    // Was titled "agent: codeweaver" while calling `codeweaver-planner` against a work item whose
+    // ROLE it set to `spiritmender` and whose `step` it left unset — that mismatched, step-less
+    // fixture actually hit the minion branch (a two-line Quest-ID/Work-Item-ID substitution, never
+    // the four-id operation-relay context this test's own name promised). Fixed by matching the
+    // work item's role to the agent's family and giving it the `step: 'plan'` a real
+    // codeweaver-planner dispatch always carries.
+    it("VALID: {agent: codeweaver-planner, questId, workItemId, work item AT THE PLAN STEP} => returns the four-id operation-relay context and the step's own model, resolved from the persisted quest.json", async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'agent-prompt-flow-codeweaver' }),
       });
@@ -65,13 +71,14 @@ describe('AgentPromptFlow', () => {
       const operationId = OperationItemIdStub({ value: 'cccccccc-2222-4222-9333-444444444444' });
       const operation = OperationItemStub({
         id: operationId,
-        role: 'spiritmender',
+        role: 'codeweaver',
         text: 'core: config load+validate adapter',
         status: 'pending',
       });
       const workItem = WorkItemStub({
         id: workItemId,
-        role: 'spiritmender',
+        role: 'codeweaver',
+        step: 'plan',
         relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
       });
       const quest = QuestStub({ operations: [operation], workItems: [workItem] });
@@ -89,14 +96,19 @@ describe('AgentPromptFlow', () => {
       const expectedArgs = [
         `Quest ID: ${String(quest.id)}`,
         `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [codeweaver] core: config load+validate adapter',
       ].join('\n');
 
       expect(result).toStrictEqual({
         name: 'codeweaver-planner',
-        // Read from the role map rather than restated: that map is what the CLI `--model` flag
-        // resolves through at spawn time, so a literal here could report one model while the
-        // dispatched child ran another.
-        model: roleToModelStatics.codeweaver,
+        // The step's own declared model (agentFlowStatics.codeweaver.steps.plan.model) — what
+        // `get-agent-prompt` actually reports for a STEPPED dispatch, and what
+        // `buildSpawnInstructionLayerBroker` reads for the real one. NOT roleToModelStatics.codeweaver:
+        // that map is only the fallback for a work item running no step graph at all, and reporting it
+        // for a stepped item is exactly how `codeweaver-worker` used to be reported as `opus` while its
+        // step declared (and the session ran on) `sonnet`.
+        model: agentFlowStatics.codeweaver.steps.plan.model,
         prompt: codeweaverPlannerStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       });
     });

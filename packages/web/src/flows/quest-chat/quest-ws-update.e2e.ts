@@ -72,20 +72,19 @@ test.describe('Quest WS Update', () => {
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible();
 
     // PATCH the quest to add a flow — this triggers quest-modified WS broadcast
-    await request.patch(`/api/quests/${questId}`, {
-      data: {
-        flows: [
-          {
-            id: 'ws-live-flow',
-            name: 'WS Live Flow',
-            flowType: 'runtime',
-            entryPoint: 'Start',
-            exitPoints: ['End'],
-            nodes: [],
-            edges: [],
-          },
-        ],
-      },
+    await quests.patchQuestFlows({
+      questId: String(questId),
+      flows: [
+        {
+          id: 'ws-live-flow',
+          name: 'WS Live Flow',
+          flowType: 'runtime',
+          entryPoint: 'Start',
+          exitPoints: ['End'],
+          nodes: [],
+          edges: [],
+        },
+      ],
     });
 
     // Flow should appear via WS without page refresh
@@ -145,20 +144,19 @@ test.describe('Quest WS Update', () => {
     await expect(page.getByText('Harness Flow')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
     // PATCH the quest to add a second flow via WS broadcast
-    await request.patch(`/api/quests/${questId}`, {
-      data: {
-        flows: [
-          {
-            id: 'live-ws-flow',
-            name: 'Live WS Flow',
-            flowType: 'runtime',
-            entryPoint: 'Begin',
-            exitPoints: ['Finish'],
-            nodes: [],
-            edges: [],
-          },
-        ],
-      },
+    await quests.patchQuestFlows({
+      questId: String(questId),
+      flows: [
+        {
+          id: 'live-ws-flow',
+          name: 'Live WS Flow',
+          flowType: 'runtime',
+          entryPoint: 'Begin',
+          exitPoints: ['Finish'],
+          nodes: [],
+          edges: [],
+        },
+      ],
     });
 
     // The new flow should appear via WS update without page refresh

@@ -1,15 +1,15 @@
 /**
- * PURPOSE: Loads a quest and computes its whole verification state — per-flow, per-track sign-off
- * counts, the observables added after approval, every `unconfirmable` verdict, and the side-channel
- * notes grouped by kind
+ * PURPOSE: Loads a quest and computes its whole verification state — per-flow, per-track mark
+ * counts, the observables added after approval, every unit carrying debt (`cant-meet` or `unmet`),
+ * and the side-channel notes grouped by kind
  *
  * USAGE:
  * const summary = await questGetSummaryBroker({ questId });
  * // Returns QuestSummary for that quest
  *
  * WHEN-TO-USE: Whenever a reader needs to know what a quest's status does NOT say. `complete` means
- * both tracks signed every unit, and `unconfirmable` signs a unit exactly as `confirmed` does, so a
- * green quest can still carry holes, scope nobody approved, and unanswered questions.
+ * the operations ledger drained, not that every unit is `met`, so a green quest can still carry
+ * holes, scope nobody approved, and unanswered questions.
  *
  * THE COMPUTATION IS THE TRANSFORMER'S, not this broker's. All this owns is resolving the quest file
  * and reading it, so the summary of an in-memory quest and the summary of the same quest on disk are

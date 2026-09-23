@@ -22,8 +22,7 @@
  */
 
 import type { RunFilters } from '../../contracts/run-filters/run-filters-contract';
-
-const NAMES_ONE_FILE = /\.[A-Za-z0-9]+$/u;
+import { isFilePathGuard } from '../is-file-path/is-file-path-guard';
 
 export const isCallerFileScopeGuard = ({ filters }: { filters?: RunFilters }): boolean => {
   if (filters === undefined) {
@@ -40,5 +39,5 @@ export const isCallerFileScopeGuard = ({ filters }: { filters?: RunFilters }): b
     return false;
   }
 
-  return passthrough.every((arg) => NAMES_ONE_FILE.test(String(arg)));
+  return passthrough.every((arg) => isFilePathGuard({ path: String(arg) }));
 };

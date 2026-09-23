@@ -7,20 +7,23 @@ describe('locationsBufferPathsFindBroker', () => {
     it('VALID: {evidencePath} => the three exact absolute paths', () => {
       locationsBufferPathsFindBrokerProxy();
       const evidencePath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21',
+        value: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
       });
 
       const result = locationsBufferPathsFindBroker({ evidencePath });
 
       expect(result).toStrictEqual({
         console: AbsoluteFilePathStub({
-          value: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/console.jsonl',
+          value:
+            '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/console.jsonl',
         }),
         network: AbsoluteFilePathStub({
-          value: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/network.jsonl',
+          value:
+            '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/network.jsonl',
         }),
         websocket: AbsoluteFilePathStub({
-          value: '/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/ws.jsonl',
+          value:
+            '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/ws.jsonl',
         }),
       });
     });

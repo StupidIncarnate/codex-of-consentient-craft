@@ -1,7 +1,9 @@
 /**
- * PURPOSE: The surface `dungeonmaster siegelense docs --for <scope> [--json]` serves —
+ * PURPOSE: The surface `dungeonmaster siegelense docs [--for <scope>] [--json]` serves —
  * clean, readable Markdown on stdout by default through `docsAnswerRenderTransformer`, or the raw
- * `DocsAnswer` JSON document when `isJson` is true. Writes through `process.stdout.write`, never
+ * `DocsAnswer` JSON document when `isJson` is true. `scope` is nullable: the bare call passes null
+ * through to `docsAnswerComposeTransformer` unchanged, which is what serves the about overview
+ * alone rather than any one role's page. Writes through `process.stdout.write`, never
  * `console.log`, matching every other siegelense call.
  *
  * It reaches no broker, and that is the shape rather than an omission: the manual is immutable
@@ -15,8 +17,8 @@
  * the call's entry the same shape as its siblings that really do wait on a broker.
  *
  * USAGE:
- * await SiegelenseDocsResponder({ scope: docsScopeContract.parse('operating'), isJson: false });
- * // Writes the operating instructions as formatted Markdown
+ * await SiegelenseDocsResponder({ scope: null, isJson: false });
+ * // Writes the about overview alone as formatted Markdown
  *
  * await SiegelenseDocsResponder({ scope: docsScopeContract.parse('walking'), isJson: true });
  * // Writes the walker's page as one JSON document
@@ -34,7 +36,7 @@ export const SiegelenseDocsResponder = async ({
   scope,
   isJson,
 }: {
-  scope: DocsScope;
+  scope: DocsScope | null;
   isJson: boolean;
 }): Promise<AdapterResult> => {
   const answer = docsAnswerComposeTransformer({ scope });

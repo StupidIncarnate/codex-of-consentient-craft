@@ -199,14 +199,14 @@ test.describe('Multi-widget coexistence', () => {
         text: 'Codeweaver scope analysis complete',
       }),
     });
-    await request.post(`/api/quests/${queuedQuestId}/start`);
+    await quests.startQuest({ questId: queuedQuestId });
 
     // 7c-bis. Pause the queued quest immediately so it stays in the execution queue with a stable
     //         status for the duration of the visibility/text assertions below. No dispatcher
     //         auto-runs in e2e (dispatch normalizes to paused on boot), so the quest sits enqueued
     //         either way; the pause just pins the status while the queue bar render settles.
     //         (Pattern mirrored from execution-queue-streaming.e2e.ts.)
-    await request.post(`/api/quests/${queuedQuestId}/pause`);
+    await quests.pauseQuest({ questId: queuedQuestId });
 
     // 7d. Queue bar must appear via WS — proves the binding received the
     //     execution-queue-updated event and re-fetched the queue without a reload.

@@ -45,7 +45,7 @@ export const questStatusInputAllowlistStatics = {
   // status precedes `approved` (#dd-comment-controls-before-approved), so a comment write arriving
   // at `approved` or later means the browser sent something it should never have offered. This is a
   // per-status decision, which is why it lives here rather than being unconditionally stripped like
-  // `workItems`/`wardResults`/`designPort` (see inspectable-modify-quest-input-fields-statics).
+  // `workItems`/`wardResults` (see inspectable-modify-quest-input-fields-statics).
   pending: {
     allowedFields: ['title', 'comments', 'status'],
     flowsRule: 'forbidden',
@@ -124,25 +124,6 @@ export const questStatusInputAllowlistStatics = {
     allowedPlanningNotesFields: [],
   },
   approved: {
-    allowedFields: ['status'],
-    flowsRule: 'forbidden',
-    allowedPlanningNotesFields: [],
-  },
-  explore_design: {
-    allowedFields: ['designDecisions', 'status'],
-    flowsRule: 'forbidden',
-    allowedPlanningNotesFields: [],
-  },
-  review_design: {
-    allowedFields: ['status'],
-    backTransitionFields: {
-      toStatus: 'explore_design',
-      fields: ['designDecisions'],
-    },
-    flowsRule: 'forbidden',
-    allowedPlanningNotesFields: [],
-  },
-  design_approved: {
     allowedFields: ['status'],
     flowsRule: 'forbidden',
     allowedPlanningNotesFields: [],

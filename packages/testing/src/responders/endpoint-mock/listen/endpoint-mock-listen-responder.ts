@@ -120,6 +120,34 @@ export const EndpointMockListenResponder = ({
       );
     },
 
+    holdsOpen: ({ data }: { data: unknown }): { release: () => void } => {
+      // Resolver lives on an object property, not a `let`, so nothing here is reassigned by name -
+      // only `gate.resolve` is overwritten, once, by the Promise constructor's own callback.
+      const gate: { resolve: () => void } = { resolve: (): void => undefined };
+      const opened = new Promise<void>((resolve) => {
+        gate.resolve = resolve;
+      });
+
+      server.use(
+        http[method](handlerUrl, async ({ request }) => {
+          requestLog.push(
+            request
+              .clone()
+              .json()
+              .catch((error: unknown) => ({ bodyParseError: String(error) })),
+          );
+          await opened;
+          return HttpResponse.json(data as never);
+        }),
+      );
+
+      return {
+        release: (): void => {
+          gate.resolve();
+        },
+      };
+    },
+
     getRequestCount: (): RequestCount => requestCountContract.parse(requestLog.length),
 
     getRequestBodies: async (): Promise<unknown[]> => Promise.all(requestLog),

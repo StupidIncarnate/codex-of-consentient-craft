@@ -1,3 +1,5 @@
+import { join } from 'path';
+
 import {
   cwdResolveBrokerProxy,
   processCwdAdapterProxy,
@@ -5,6 +7,7 @@ import {
   fsExistsSyncAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { locationsRootPathFindBrokerProxy } from '../root-path-find/locations-root-path-find-broker.proxy';
 import { fsRealpathAdapterProxy } from '../../../adapters/fs/realpath/fs-realpath-adapter.proxy';
@@ -26,6 +29,12 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
     rootPath: FilePath;
     elsewhereTarget: string;
   }) => void;
+  // The address for path.join is its SEGMENTS (see packages/testing/CLAUDE.md), but the shared
+  // pathJoinAdapterProxy stays on a no-args catch-all because dozens of composing proxies share it
+  // with no single caller-known segment list. registerMock keys on the `join` function reference,
+  // so a second registration here reads the SAME call history the shared proxy already records —
+  // this is the only way this broker's own test can prove which segments IT composed.
+  getJoinedSegments: () => unknown;
 } => {
   const cwdProxy = processCwdAdapterProxy();
   const resolveProxy = cwdResolveBrokerProxy();
@@ -33,6 +42,7 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
   const existsProxy = fsExistsSyncAdapterProxy();
   const rootPathProxy = locationsRootPathFindBrokerProxy();
   const realpathProxy = fsRealpathAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
 
   return {
     setupLinkResolvesToRoot: ({
@@ -85,5 +95,10 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
       rootPathProxy.setupRootPath({ homeDir, homePath, rootPath });
       realpathProxy.resolves({ filePath: linkPath, resolvedPath: elsewhereTarget });
     },
+
+    // callsMatching([]) hands back a RecordedCalls with no `.at()` (see mock-handle-contract.ts) —
+    // spreading it into a real array is how an unaddressed read is meant to inspect "the whole
+    // list" here, since this broker makes exactly one join() call per invocation.
+    getJoinedSegments: (): unknown => [...joinHandle.callsMatching([])].at(-1),
   };
 };

@@ -45,9 +45,10 @@
  *
  * `maxVisits` IS A CEILING ON A COUNT NOTHING STORES. It is derived where the router is about to
  * mint — the work items on this scope whose `step` equals this step's key — so no visit counter
- * field exists on the work item and none is to be added. Every other budget here is counted the
- * same way; `slotManagerStatics` says so at `riftcarver.maxRetries`. This file declares the ceiling
- * and nothing else: enforcement is the router's.
+ * field exists on the work item and none is to be added. Riftcarver's own retry bound is no
+ * exception: `carve` and `repair` each cap at `maxVisits: 3`, the same per-step ceiling every step
+ * in every family declares. This file declares the ceiling and nothing else: enforcement is the
+ * router's.
  *
  * `mintableOnRequest`, `needsLane` AND `maxConcurrent` EACH HAVE EXACTLY ONE READER, and a field
  * nobody reads silently means nothing. The first tells the reachability check that a step nothing
@@ -87,8 +88,9 @@ const CLOSE_OUT = {
     maxVisits: 3,
     // `empty` is a 0-file scope: green by exit code, but nothing was graded.
     // `wall` is a CRASH — ward never reported on the code, so a spiritmender has nothing
-    // to fix and the next run crashes the same way. quest-run-ward-broker.ts:249-253
-    // already blocks on it today, for that reason.
+    // to fix and the next run crashes the same way. step-handler-ward-broker.ts classifies
+    // ward's exit code 2 as `wall` for exactly that reason, and the `@blocked` route here is
+    // what keeps a repair step from ever being dispatched into it.
     routes: { done: '@done', empty: '@done', unmet: 'repair', wall: '@blocked' },
   },
   repair: {
@@ -246,7 +248,7 @@ export const agentFlowStatics = {
         // A lane IS a siegelense instance. How many may run at once is measured, not
         // declared, and the ROUTER starts and stops them. Both walkers draw on the one pool.
         needsLane: true,
-        routes: { done: 'adversarial', unmet: 'fixHappy', wall: '@blocked' },
+        routes: { done: 'adversarial', empty: 'adversarial', unmet: 'fixHappy', wall: '@blocked' },
       },
       // No `done` route — mark-minted, so `done` returns to the walker that minted it.
       fixHappy: {
@@ -264,7 +266,7 @@ export const agentFlowStatics = {
         model: 'sonnet',
         maxVisits: 40,
         needsLane: true,
-        routes: { done: 'commit', unmet: 'fixAdversarial', wall: '@blocked' },
+        routes: { done: 'commit', empty: 'commit', unmet: 'fixAdversarial', wall: '@blocked' },
       },
       fixAdversarial: {
         role: 'worker',

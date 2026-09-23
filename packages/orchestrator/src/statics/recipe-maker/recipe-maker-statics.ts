@@ -197,7 +197,7 @@ and nothing in the record says the seed was the problem.
 ### 9. Seed the same thing twice and compare
 
 The one check for a randomised on-screen value that works without knowing the domain. It is written
-out under **Seeding the same thing twice** below, together with what it waits on.
+out under **Seeding the same thing twice** below, together with the calls that run it.
 
 ### 10. Say what you could not find
 
@@ -292,23 +292,40 @@ Two rules go with every request you send:
 - **You re-run the setup yourself when it returns.** A returning session's claim that its ingredient
   works is not evidence, and that is as true of a repair as of a first draft.
 
-## Seeding the same thing twice, and what it waits on
+## Seeding the same thing twice, and reading what compare returns
 
-Seed ONE recipe into two fresh instances, read both screens, and compare them. Every value the
-recipe supplied is identical by construction, so **whatever differs is a value the app generated and
-then displayed.** That is why it works in a repo whose domain nobody here knows: it names no entity
-at all.
+Seed ONE recipe twice against ONE instance, then read what \`compare\` says about the two runs. Every
+value the recipe supplied is identical by construction, so **whatever differs is a value the app
+generated and then displayed.** That is why it works in a repo whose domain nobody here knows: it
+names no entity at all.
 
 A value a person can see must be handed in, not generated. Where the app displays a value and takes
 no supplied one, that is a finding about the app — it belongs to the asker as an observable, and no
 screen showing that value can compare clean until somebody fixes it.
 
-**This step waits on \`scrolls/seigelense/remaining-build-items.md\` §13, and is not runnable today.**
-It needs the element delta on \`look\` and \`compare\`'s \`elements\` field, and neither is built:
-\`compareAnswerContract\` is \`.strict()\`, and a test asserts that adding \`elements\` throws. So a call
-reaching for that field is refused, and **that refusal is §13, not a defect in the app and not an
-environment wall.** Record it against the recipes it would have checked and carry on with the rest
-of the script.
+**One instance, not two.** \`compare\` takes one \`--instance\` and two runs inside its own timeline;
+\`--instance-a\`/\`--instance-b\` are refused BY NAME, because two different instances "share nothing
+but a spec." Run the setup batch twice, back to back, against the SAME instance — the second run
+inherits whatever the first left there, which is exactly what isolates each run's OWN newly-created
+rows:
+
+\`\`\`
+dungeonmaster siegelense run --instance <id> --steps <the setup batch, verbatim>   # → run_1
+dungeonmaster siegelense run --instance <id> --steps <the same batch again>        # → run_2
+dungeonmaster siegelense compare --instance <id> --run-a run_1 --run-b run_2
+\`\`\`
+
+**End the batch on the step that reaches the entry state — a \`goto\` or a \`click\` — never on a
+trailing \`look\`.** \`compare\`'s \`elements.runA\`/\`elements.runB\` is each run's OWN delta off the
+LAST step in its transcript that recorded one, and a \`look\` always records one, empty, since
+looking changes nothing. A batch ending in \`look\` reports that empty delta and buries the one the
+seeding step actually produced.
+
+**Read the two deltas side by side — nothing diffs them for you.** \`compare\` reads stored evidence
+only and never re-drives a page, so \`elements.runA\`/\`elements.runB\` are each a report of what THAT
+run changed, not a verdict comparing the two. Whichever row differs between them — a different
+\`text\`, a different \`testId\`, one \`appeared\` where the other run's twin is missing — is the value
+the app generated. Neither reporting anything means this seed genuinely reproduces.
 
 ${sadPathRoutingStatics.markdown}
 

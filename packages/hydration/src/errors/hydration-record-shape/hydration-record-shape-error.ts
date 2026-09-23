@@ -6,8 +6,8 @@
  * wrong.
  *
  * A `write` route is pure file and broker code — it answers no status, so its message never claims
- * one. Every other route (`api`, `recording`, `update`) really did answer 2xx, so its message says so
- * and names which route.
+ * one. Every other route (`api`, `update`) really did answer 2xx, so its message says so and names
+ * which route.
  *
  * USAGE:
  * throw new HydrationRecordShapeError({

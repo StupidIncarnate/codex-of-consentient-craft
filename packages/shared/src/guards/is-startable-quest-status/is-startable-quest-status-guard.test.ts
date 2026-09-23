@@ -7,7 +7,6 @@ const STATUSES = Object.keys(
 
 const STARTABLE_STATUSES: ReadonlySet<keyof typeof questStatusMetadataStatics.statuses> = new Set([
   'approved',
-  'design_approved',
 ]);
 
 describe('isStartableQuestStatusGuard', () => {

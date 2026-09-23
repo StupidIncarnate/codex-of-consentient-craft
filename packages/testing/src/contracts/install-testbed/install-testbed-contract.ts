@@ -9,6 +9,7 @@
 import { z } from 'zod';
 import type { RelativePath } from '../relative-path/relative-path-contract';
 import type { FileContent } from '../file-content/file-content-contract';
+import type { FilePath } from '../file-path/file-path-contract';
 import type { ExitCode } from '../exit-code/exit-code-contract';
 import type { ProcessOutput } from '../process-output/process-output-contract';
 import type { TestbedConfig } from '../testbed-config/testbed-config-contract';
@@ -31,6 +32,13 @@ export type InstallTestbed = InstallTestbedData & {
     content: FileContent;
   }) => void;
   readFile: ({ relativePath }: { relativePath: RelativePath }) => FileContent | null;
+  createSymlink: ({
+    relativePath,
+    targetPath,
+  }: {
+    relativePath: RelativePath;
+    targetPath: FilePath;
+  }) => void;
   listDir: ({ relativePath }: { relativePath: RelativePath }) => readonly FileName[] | null;
   getClaudeSettings: () => unknown;
   getMcpConfig: () => unknown;

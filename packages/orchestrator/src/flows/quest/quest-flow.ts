@@ -11,11 +11,10 @@
  * const modified = await QuestFlow.modify({ questId, input });
  * const notes = await QuestFlow.getPlanningNotes({ questId });
  * const summary = await QuestFlow.getSummary({ questId });
+ * const projection = await QuestFlow.getProjection({ questId });
  * const blightChecklist = await QuestFlow.getBlightChecklist({ questId });
  * const created = await QuestFlow.mcpCreate({ userRequest });
  * const next = await QuestFlow.getNextStep();
- * const wardResult = await QuestFlow.runWard({ questId, workItemId });
- * const riftcarverResult = await QuestFlow.runRiftcarver({ questId, workItemId });
  * const config = QuestFlow.getServerConfig();
  */
 
@@ -28,6 +27,7 @@ import { QuestGetNextStepResponder } from '../../responders/quest/get-next-step/
 import { QuestGetPlanningNotesResponder } from '../../responders/quest/get-planning-notes/quest-get-planning-notes-responder';
 import { QuestGetQuestWorkResponder } from '../../responders/quest/get-quest-work/quest-get-quest-work-responder';
 import { QuestGetServerConfigResponder } from '../../responders/quest/get-server-config/quest-get-server-config-responder';
+import { QuestGetProjectionResponder } from '../../responders/quest/get-projection/quest-get-projection-responder';
 import { QuestGetSummaryResponder } from '../../responders/quest/get-summary/quest-get-summary-responder';
 import { QuestHandleSignalBackResponder } from '../../responders/quest/handle-signal-back/quest-handle-signal-back-responder';
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
@@ -37,8 +37,6 @@ import { QuestMcpCreateResponder } from '../../responders/quest/mcp-create/quest
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
 import { QuestRecordSessionResponder } from '../../responders/quest/record-session/quest-record-session-responder';
 import { QuestMonitorWatcherStartResponder } from '../../responders/quest/monitor-watcher-start/quest-monitor-watcher-start-responder';
-import { QuestRunRiftcarverResponder } from '../../responders/quest/run-riftcarver/quest-run-riftcarver-responder';
-import { QuestRunWardResponder } from '../../responders/quest/run-ward/quest-run-ward-responder';
 import { QuestWorkResponder } from '../../responders/quest/work/quest-work-responder';
 
 type AddParams = Parameters<typeof QuestUserAddResponder>[0];
@@ -52,6 +50,9 @@ type GetPlanningNotesResult = Awaited<ReturnType<typeof QuestGetPlanningNotesRes
 
 type GetSummaryParams = Parameters<typeof QuestGetSummaryResponder>[0];
 type GetSummaryResult = Awaited<ReturnType<typeof QuestGetSummaryResponder>>;
+
+type GetProjectionParams = Parameters<typeof QuestGetProjectionResponder>[0];
+type GetProjectionResult = Awaited<ReturnType<typeof QuestGetProjectionResponder>>;
 
 type GetQuestWorkParams = Parameters<typeof QuestGetQuestWorkResponder>[0];
 type GetQuestWorkResult = Awaited<ReturnType<typeof QuestGetQuestWorkResponder>>;
@@ -78,12 +79,6 @@ type McpCreateParams = Parameters<typeof QuestMcpCreateResponder>[0];
 type McpCreateResult = Awaited<ReturnType<typeof QuestMcpCreateResponder>>;
 
 type GetNextStepResult = Awaited<ReturnType<typeof QuestGetNextStepResponder>>;
-
-type RunWardParams = Parameters<typeof QuestRunWardResponder>[0];
-type RunWardResult = Awaited<ReturnType<typeof QuestRunWardResponder>>;
-
-type RunRiftcarverParams = Parameters<typeof QuestRunRiftcarverResponder>[0];
-type RunRiftcarverResult = Awaited<ReturnType<typeof QuestRunRiftcarverResponder>>;
 
 type HandleSignalBackParams = Parameters<typeof QuestHandleSignalBackResponder>[0];
 type HandleSignalBackResult = Awaited<ReturnType<typeof QuestHandleSignalBackResponder>>;
@@ -119,6 +114,9 @@ export const QuestFlow = {
 
   getSummary: async ({ questId }: GetSummaryParams): Promise<GetSummaryResult> =>
     QuestGetSummaryResponder({ questId }),
+
+  getProjection: async ({ questId }: GetProjectionParams): Promise<GetProjectionResult> =>
+    QuestGetProjectionResponder({ questId }),
 
   getQuestWork: async ({
     questId,
@@ -178,21 +176,11 @@ export const QuestFlow = {
 
   getNextStep: async (): Promise<GetNextStepResult> => QuestGetNextStepResponder(),
 
-  runWard: async ({ questId, workItemId }: RunWardParams): Promise<RunWardResult> =>
-    QuestRunWardResponder({ questId, workItemId }),
-
-  runRiftcarver: async ({
-    questId,
-    workItemId,
-  }: RunRiftcarverParams): Promise<RunRiftcarverResult> =>
-    QuestRunRiftcarverResponder({ questId, workItemId }),
-
   handleSignalBack: async ({
     questId,
     workItemId,
     signal,
     operationItemId,
-    operationStatus,
     blockedReason,
   }: HandleSignalBackParams): Promise<HandleSignalBackResult> =>
     QuestHandleSignalBackResponder({
@@ -200,7 +188,6 @@ export const QuestFlow = {
       workItemId,
       signal,
       ...(operationItemId === undefined ? {} : { operationItemId }),
-      ...(operationStatus === undefined ? {} : { operationStatus }),
       ...(blockedReason === undefined ? {} : { blockedReason }),
     }),
 

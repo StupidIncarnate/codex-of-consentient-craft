@@ -120,8 +120,8 @@ export const OrchestrationMergeResponder = async ({
         role: 'warpgate',
         text: warpgateOperationStatics.text,
         status: 'pending',
-        // locked enrolls warpgate in the pt-continuation budget (slotManagerStatics.warpgate.
-        // maxAttempts) — the only bound on an agent that never converges on its own.
+        // `locked` marks this orchestrator-minted item as protected from deletion via
+        // modify-quest, same as the ledger's other orchestrator/chaos-owned items.
         locked: true,
         flowIds: [],
       });

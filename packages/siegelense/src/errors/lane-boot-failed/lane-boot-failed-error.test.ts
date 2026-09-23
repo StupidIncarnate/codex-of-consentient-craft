@@ -7,13 +7,15 @@ describe('LaneBootFailedError', () => {
         specName: 'dungeonmaster-stack',
         instanceId: 'inst_7f3a9c21',
         unready: ['web'],
-        logPaths: ['/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/web.log'],
+        logPaths: [
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/web.log',
+        ],
       });
 
       expect({ name: error.name, message: error.message }).toStrictEqual({
         name: 'LaneBootFailedError',
         message:
-          'Lane dungeonmaster-stack for instance inst_7f3a9c21 did not become ready: web never answered their ready path. Logs: /repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/web.log',
+          'Lane dungeonmaster-stack for instance inst_7f3a9c21 did not become ready: web never answered their ready path. Logs: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/web.log',
       });
     });
 
@@ -23,15 +25,15 @@ describe('LaneBootFailedError', () => {
         instanceId: 'inst_00000000',
         unready: ['api', 'web'],
         logPaths: [
-          '/repo/.siegelense/unowned/instances/inst_00000000/api.log',
-          '/repo/.siegelense/unowned/instances/inst_00000000/web.log',
+          '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_00000000/api.log',
+          '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_00000000/web.log',
         ],
       });
 
       expect({ name: error.name, message: error.message }).toStrictEqual({
         name: 'LaneBootFailedError',
         message:
-          'Lane dungeonmaster-stack for instance inst_00000000 did not become ready: api, web never answered their ready path. Logs: /repo/.siegelense/unowned/instances/inst_00000000/api.log, /repo/.siegelense/unowned/instances/inst_00000000/web.log',
+          'Lane dungeonmaster-stack for instance inst_00000000 did not become ready: api, web never answered their ready path. Logs: /repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_00000000/api.log, /repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_00000000/web.log',
       });
     });
   });
@@ -42,7 +44,9 @@ describe('LaneBootFailedError', () => {
         specName: 'dungeonmaster-stack',
         instanceId: 'inst_7f3a9c21',
         unready: ['web'],
-        logPaths: ['/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/web.log'],
+        logPaths: [
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/web.log',
+        ],
       });
 
       expect(error instanceof LaneBootFailedError).toBe(true);
@@ -53,7 +57,9 @@ describe('LaneBootFailedError', () => {
         specName: 'dungeonmaster-stack',
         instanceId: 'inst_7f3a9c21',
         unready: ['web'],
-        logPaths: ['/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/web.log'],
+        logPaths: [
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/web.log',
+        ],
       });
 
       expect(error instanceof Error).toBe(true);

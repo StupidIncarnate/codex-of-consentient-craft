@@ -35,7 +35,7 @@ const EXPECTED_HUMAN_OUTPUT = `  guild-empty
     makes:   guild ×1, quest (varies)
 
   guild-mid-execution
-    one guild holding three quests, the first running with its riftcarver item dropped
+    one guild holding three quests — the first running with its riftcarver item dropped, the second and third both freshly created and told apart only by their seeded title and request text ("Quest 2"/"Quest 3")
     inputs:  none
     runs:    serverless
     makes:   guild ×1, quest ×3, operation (varies)
@@ -47,10 +47,10 @@ const EXPECTED_HUMAN_OUTPUT = `  guild-empty
     makes:   quest ×1
 
   quest-completed
-    one guild holding one completed quest with all workflow operations finished
+    one guild holding one completed quest with all workflow operations and work items finished
     inputs:  none
     runs:    serverless
-    makes:   guild ×1, quest ×1, operation ×2
+    makes:   guild ×1, quest ×1
 
   session-single-turn
     one session under an existing guild, holding a single turn prompt and response
@@ -59,7 +59,7 @@ const EXPECTED_HUMAN_OUTPUT = `  guild-empty
     makes:   session ×1
 
   session-with-nested-chain
-    one session under an existing guild, holding a nested sub-agent chain
+    one session under an existing guild, holding a nested sub-agent chain two levels deep — a top agent with one sub-agent nested under it
     inputs:  guildPath
     runs:    serverless
     makes:   session ×1
@@ -69,6 +69,12 @@ const EXPECTED_HUMAN_OUTPUT = `  guild-empty
     inputs:  none
     runs:    serverless
     makes:   guild ×1, quest ×2, session ×1, subagent ×1
+
+  session-with-nested-subagent
+    one session transcript holding an outer sub-agent chain with one chain nested inside it, both finished
+    inputs:  guild
+    runs:    needs a server: guild
+    makes:   session ×1, subagent ×2
 `;
 
 describe('SiegelenseRecipesLayerFlow', () => {
@@ -130,7 +136,7 @@ describe('SiegelenseRecipesLayerFlow', () => {
           {
             recipeName: 'guild-mid-execution',
             description:
-              'one guild holding three quests, the first running with its riftcarver item dropped',
+              'one guild holding three quests — the first running with its riftcarver item dropped, the second and third both freshly created and told apart only by their seeded title and request text ("Quest 2"/"Quest 3")',
             inputKeys: [],
             runs: { serverless: true },
             makes: [
@@ -150,13 +156,12 @@ describe('SiegelenseRecipesLayerFlow', () => {
           {
             recipeName: 'quest-completed',
             description:
-              'one guild holding one completed quest with all workflow operations finished',
+              'one guild holding one completed quest with all workflow operations and work items finished',
             inputKeys: [],
             runs: { serverless: true },
             makes: [
               { ingredient: 'guild', count: 1 },
               { ingredient: 'quest', count: 1 },
-              { ingredient: 'operation', count: 2 },
             ],
           },
           {
@@ -169,7 +174,8 @@ describe('SiegelenseRecipesLayerFlow', () => {
           },
           {
             recipeName: 'session-with-nested-chain',
-            description: 'one session under an existing guild, holding a nested sub-agent chain',
+            description:
+              'one session under an existing guild, holding a nested sub-agent chain two levels deep — a top agent with one sub-agent nested under it',
             inputKeys: ['guildPath'],
             runs: { serverless: true },
             makes: [{ ingredient: 'session', count: 1 }],
@@ -185,6 +191,17 @@ describe('SiegelenseRecipesLayerFlow', () => {
               { ingredient: 'quest', count: 2 },
               { ingredient: 'session', count: 1 },
               { ingredient: 'subagent', count: 1 },
+            ],
+          },
+          {
+            recipeName: 'session-with-nested-subagent',
+            description:
+              'one session transcript holding an outer sub-agent chain with one chain nested inside it, both finished',
+            inputKeys: ['guild'],
+            runs: { serverless: false, needsServerFor: 'guild' },
+            makes: [
+              { ingredient: 'session', count: 1 },
+              { ingredient: 'subagent', count: 2 },
             ],
           },
         ],

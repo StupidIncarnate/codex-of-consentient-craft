@@ -5,7 +5,6 @@ import { dumpsterCreatePromptStatics } from '../dumpster-create-prompt/dumpster-
 import { dumpsterHuntPromptStatics } from '../dumpster-hunt-prompt/dumpster-hunt-prompt-statics';
 import { flowriderPlannerStatics } from '../flowrider-planner/flowrider-planner-statics';
 import { flowriderReviewerStatics } from '../flowrider-reviewer/flowrider-reviewer-statics';
-import { glyphsmithPromptStatics } from '../glyphsmith-prompt/glyphsmith-prompt-statics';
 import { siegePlannerStatics } from '../siege-planner/siege-planner-statics';
 import { siegemasterReaderStatics } from '../siegemaster-reader/siegemaster-reader-statics';
 import { spiritmenderPromptStatics } from '../spiritmender-prompt/spiritmender-prompt-statics';
@@ -26,7 +25,6 @@ const HOSTS = [
   ['flowrider-reviewer', flowriderReviewerStatics.prompt.template],
   ['siegemaster-reader', siegemasterReaderStatics.prompt.template],
   ['chaoswhisperer-gap-minion', chaoswhispererGapMinionStatics.prompt.template],
-  ['glyphsmith', glyphsmithPromptStatics.prompt.template],
   ['tavernkeeper', tavernkeeperPromptStatics.prompt.template],
   // These two call `stage: 'spec'`, the largest render the tool produces, so they are the likeliest
   // of all hosts to meet a spill.
@@ -38,7 +36,7 @@ const HOSTS = [
 // they never name `get-blight-checklist`, which is the reviewer's alone — an earlier draft of this
 // block listed it and failed all seven at once. The rule holds for every fetch, so it needs no tool
 // name to state it.
-const ROLE_SCOPED_TOOL_NAMES = ['get-blight-checklist', 'get-qa-checklist', 'run-ward'];
+const ROLE_SCOPED_TOOL_NAMES = ['get-blight-checklist', 'get-qa-checklist'];
 
 describe('spilledToolResultStatics', () => {
   describe('the rule itself', () => {

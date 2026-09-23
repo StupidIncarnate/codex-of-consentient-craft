@@ -37,13 +37,13 @@ describe('StartInstall', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'created',
-        message: `Created .siegelense -> ${dungeonmasterHomePath}/siegelense; Created .gitignore with .siegelense; Created packages/hydration-recipes/src/`,
+        message: `Created .dungeonmaster-assets/siegelense-assets -> ${dungeonmasterHomePath}/siegelense; Created .gitignore with .dungeonmaster-assets/siegelense-assets; Created packages/hydration-recipes/src/`,
       });
     });
   });
 
-  describe('the .siegelense link', () => {
-    it('VALID: {fresh target} => .siegelense exists and resolves to the real siegelense root, not just to something', async () => {
+  describe('the siegelense-assets link', () => {
+    it('VALID: {fresh target} => .dungeonmaster-assets/siegelense-assets exists and resolves to the real siegelense root, not just to something', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'siegelense-start-install-link-resolves' }),
       });
@@ -63,9 +63,11 @@ describe('StartInstall', () => {
       // A write THROUGH the link path, read back through the REAL path under the dungeonmaster
       // home: a dangling link throws on the write, and a link pointing at the wrong directory
       // reads back null here — either way this fails loudly, unlike an existence check on
-      // `.siegelense` alone.
+      // `.dungeonmaster-assets/siegelense-assets` alone.
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.siegelense/probe.txt' }),
+        relativePath: RelativePathStub({
+          value: '.dungeonmaster-assets/siegelense-assets/probe.txt',
+        }),
         content: FileContentStub({ value: 'siegelense-link-resolves-here\n' }),
       });
       const readThroughRealPath = testbed.readFile({
@@ -79,7 +81,7 @@ describe('StartInstall', () => {
   });
 
   describe('the .gitignore entry', () => {
-    it('VALID: {install run twice} => the .siegelense line appears exactly once', async () => {
+    it('VALID: {install run twice} => the .dungeonmaster-assets/siegelense-assets line appears exactly once', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'siegelense-start-install-gitignore-twice' }),
       });
@@ -110,7 +112,7 @@ describe('StartInstall', () => {
 
       const entryLines = String(gitignoreContent)
         .split('\n')
-        .filter((line) => line === '.siegelense');
+        .filter((line) => line === '.dungeonmaster-assets/siegelense-assets');
       const entryCount = entryLines.length;
 
       expect(entryCount).toBe(1);

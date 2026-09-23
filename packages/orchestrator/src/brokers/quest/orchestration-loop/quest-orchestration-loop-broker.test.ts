@@ -14,7 +14,7 @@ import { orchestrationLoopSummaryTransformer } from '../../../transformers/orche
 import { questOrchestrationLoopBroker } from './quest-orchestration-loop-broker';
 import { questOrchestrationLoopBrokerProxy } from './quest-orchestration-loop-broker.proxy';
 
-// The orchestration loop dispatches only chat roles (chaoswhisperer / glyphsmith); every
+// The orchestration loop dispatches only chat roles (chaoswhisperer / bughunt); every
 // execution role is dispatched through `quest-get-next-step-broker`. The coverage below
 // exercises the state-mutation behaviour the loop owns: terminal/blocked transitions and
 // the abort / no-ready / execution-role-defer short-circuits.
@@ -249,10 +249,7 @@ describe('questOrchestrationLoopBroker', () => {
         abortSignal: new AbortController().signal,
       });
 
-      const chatRoles = [
-        WorkItemStub({ role: 'chaoswhisperer' }).role,
-        WorkItemStub({ role: 'glyphsmith' }).role,
-      ];
+      const chatRoles = [WorkItemStub({ role: 'chaoswhisperer' }).role];
       const { ready } = nextReadyWorkItemsTransformer({ workItems: quest.workItems });
       const expectedSnapshot = orchestrationLoopSummaryTransformer({
         questId,
@@ -307,10 +304,7 @@ describe('questOrchestrationLoopBroker', () => {
         abortSignal: new AbortController().signal,
       });
 
-      const chatRoles = [
-        WorkItemStub({ role: 'chaoswhisperer' }).role,
-        WorkItemStub({ role: 'glyphsmith' }).role,
-      ];
+      const chatRoles = [WorkItemStub({ role: 'chaoswhisperer' }).role];
       const { ready } = nextReadyWorkItemsTransformer({ workItems: quest.workItems });
       const expectedSnapshot = orchestrationLoopSummaryTransformer({
         questId,
@@ -358,10 +352,7 @@ describe('questOrchestrationLoopBroker', () => {
         abortSignal: new AbortController().signal,
       });
 
-      const chatRoles = [
-        WorkItemStub({ role: 'chaoswhisperer' }).role,
-        WorkItemStub({ role: 'glyphsmith' }).role,
-      ];
+      const chatRoles = [WorkItemStub({ role: 'chaoswhisperer' }).role];
       const { ready } = nextReadyWorkItemsTransformer({ workItems: quest.workItems });
       const expectedSnapshot = orchestrationLoopSummaryTransformer({
         questId,
@@ -409,10 +400,7 @@ describe('questOrchestrationLoopBroker', () => {
         abortSignal: new AbortController().signal,
       });
 
-      const chatRoles = [
-        WorkItemStub({ role: 'chaoswhisperer' }).role,
-        WorkItemStub({ role: 'glyphsmith' }).role,
-      ];
+      const chatRoles = [WorkItemStub({ role: 'chaoswhisperer' }).role];
       const { ready } = nextReadyWorkItemsTransformer({ workItems: quest.workItems });
       const expectedSnapshot = orchestrationLoopSummaryTransformer({
         questId,

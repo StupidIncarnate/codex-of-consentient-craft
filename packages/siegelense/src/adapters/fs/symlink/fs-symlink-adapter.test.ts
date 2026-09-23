@@ -7,7 +7,9 @@ describe('fsSymlinkAdapter', () => {
     it('VALID: {targetPath, linkPath} => creates the symlink successfully', async () => {
       const proxy = fsSymlinkAdapterProxy();
       const targetPath = AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/siegelense' });
-      const linkPath = AbsoluteFilePathStub({ value: '/repo/.siegelense' });
+      const linkPath = AbsoluteFilePathStub({
+        value: '/repo/.dungeonmaster-assets/siegelense-assets',
+      });
 
       proxy.succeeds({ targetPath, linkPath });
 
@@ -19,7 +21,9 @@ describe('fsSymlinkAdapter', () => {
     it('VALID: {targetPath, linkPath} => calls symlink with both paths and the dir type', async () => {
       const proxy = fsSymlinkAdapterProxy();
       const targetPath = AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/siegelense' });
-      const linkPath = AbsoluteFilePathStub({ value: '/repo/.siegelense' });
+      const linkPath = AbsoluteFilePathStub({
+        value: '/repo/.dungeonmaster-assets/siegelense-assets',
+      });
 
       proxy.succeeds({ targetPath, linkPath });
 
@@ -33,7 +37,9 @@ describe('fsSymlinkAdapter', () => {
     it('ERROR: {linkPath: already exists} => throws EEXIST error', async () => {
       const proxy = fsSymlinkAdapterProxy();
       const targetPath = AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/siegelense' });
-      const linkPath = AbsoluteFilePathStub({ value: '/repo/.siegelense' });
+      const linkPath = AbsoluteFilePathStub({
+        value: '/repo/.dungeonmaster-assets/siegelense-assets',
+      });
 
       proxy.throws({
         targetPath,

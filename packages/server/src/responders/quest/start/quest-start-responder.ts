@@ -67,8 +67,7 @@ export const QuestStartResponder = async ({
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: {
-          error:
-            'Quest must be in a startable status (approved or design_approved) to start execution',
+          error: 'Quest must be in a startable status (approved) to start execution',
         },
       });
     }

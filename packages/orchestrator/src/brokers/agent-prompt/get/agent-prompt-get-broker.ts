@@ -169,7 +169,13 @@ export const agentPromptGetBroker = async ({
     }
   }
 
-  const { prompt } = workItemToPromptTransformer({
+  // `model` comes off `workItemToPromptTransformer`, never off `base.model` — `base` exists here
+  // only to fail fast on an unknown agent name before the quest load above, and to supply `name`.
+  // Its `model` is a per-PROMPT-NAME literal that can (and, for `codeweaver-worker`/`-planner` and
+  // their flowrider/siege counterparts, does) disagree with the WORK ITEM's own step-declared
+  // model — the exact drift that let `get-agent-prompt` report a model different from the one this
+  // session was actually dispatched on.
+  const { prompt, model } = workItemToPromptTransformer({
     quest,
     workItem,
     agentName: parsedAgent,
@@ -177,7 +183,7 @@ export const agentPromptGetBroker = async ({
 
   return agentPromptResultContract.parse({
     name: base.name,
-    model: base.model,
+    model,
     prompt,
   });
 };

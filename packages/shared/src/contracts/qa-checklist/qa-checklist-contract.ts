@@ -13,9 +13,9 @@
  * This is the shape the `get-qa-checklist` MCP tool returns. `items` is produced by walking
  * `quest.flows` with no model in the loop, so it cannot summarise, skip a long tail, or lose
  * fidelity on a 45-observable flow. `remainingItemIds` is what that list still owes the CALLING
- * verification track — the units carrying no sign-off in that track's own field — which is what
- * makes completion a computed fact: a session asks what is left rather than recalling what it did,
- * and reads the very number that will refuse its `done`.
+ * verification track — the units no work item of that track has marked `met` or `cant-meet` — which
+ * is what makes completion a computed fact: a session asks what is left rather than recalling what
+ * it did.
  */
 
 import { z } from 'zod';
@@ -49,7 +49,7 @@ export const qaChecklistContract = z.object({
     .array(qaChecklistItemIdContract)
     .default([])
     .describe(
-      "The units still outstanding for the track that asked. Named a `track` and these are the units carrying no `flowriderSignoff` / `siegemasterSignoff` — the two tracks are independent, so a unit the other track has signed is still outstanding for yours. Empty is the only state in which that track's operation item may report `done`; `confirmed` and `unconfirmable` both clear a unit, so it always empties honestly.",
+      "The units still outstanding for the track that asked. A unit leaves this list on a `met` or a `cant-meet` recorded in `workItem.observations` by a work item whose ROLE is that track — the tracks are independent, so a unit another track settled is still outstanding for yours, and an `unmet` settles it for nobody, since `unmet` is what mints the successor that carries it again. Asked with no track, every unit is listed: that is the read-only whole-quest shape, not a claim about any track's coverage.",
     ),
 });
 

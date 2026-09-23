@@ -8,13 +8,13 @@ const ingredientTsxFixture = '/repo/packages/hydration-recipes/src/quest/quest-i
 const nonIngredientFixture = '/repo/packages/web/src/flows/quest/quest-flow.e2e.ts';
 // The REAL shape on disk: `enforce-project-structure` refuses a bare `-ingredient.ts` file, so
 // every actual ingredient is named `<name>-ingredient-broker.ts` inside an `ingredient/` folder of
-// a `*-recipes` package — see `packages/siegelense-recipes/src/brokers/quest/ingredient/`.
+// a `*-recipes` package — see `packages/hydration-recipes/src/brokers/quest/ingredient/`.
 const realRepoIngredientFixture =
-  '/repo/packages/siegelense-recipes/src/brokers/quest/ingredient/quest-ingredient-broker.ts';
+  '/repo/packages/hydration-recipes/src/brokers/quest/ingredient/quest-ingredient-broker.ts';
 // A route broker beside a real ingredient: same `*-recipes` package, but not an `ingredient/`
 // folder and not calling `ingredient({...})` itself — must stay out of scope.
 const recipesRouteBrokerFixture =
-  '/repo/packages/siegelense-recipes/src/brokers/quest/write-route/quest-write-route-broker.ts';
+  '/repo/packages/hydration-recipes/src/brokers/quest/write-route/quest-write-route-broker.ts';
 // Under NEITHER path convention — only the behavioral signal (calling `ingredient({...})`) can
 // catch this one.
 const unconventionallyNamedIngredientFixture =
@@ -180,7 +180,7 @@ ruleTester.run('ban-dom-handles-in-ingredients', ruleBanDomHandlesInIngredientsB
       ],
     },
     // === REAL REPO PATH: a `<name>-ingredient-broker.ts` file inside an `ingredient/` folder of a
-    // `*-recipes` package — the exact shape `packages/siegelense-recipes` uses on disk, invisible
+    // `*-recipes` package — the exact shape `packages/hydration-recipes` uses on disk, invisible
     // to the bare `-ingredient.ts` filename convention alone ===
     {
       code: "page.locator('button').click();",

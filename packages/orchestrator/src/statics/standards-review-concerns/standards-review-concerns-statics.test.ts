@@ -20,9 +20,9 @@ describe('standardsReviewConcernsStatics', () => {
     });
   });
 
-  // Three reviewer prompts (codeweaver-reviewer, flowrider-reviewer, siegemaster-reviewer) each
-  // interpolate this whole block, so it is measured three times over — once by each prompt's own
-  // colocated test. This test measures the block itself, on its own.
+  // Two reviewer prompts (codeweaver-reviewer, flowrider-reviewer) each interpolate this whole
+  // block, so it is measured twice over — once by each prompt's own colocated test. This test
+  // measures the block itself, on its own.
   it('VALID: markdown => stays under the MCP tool-result verbatim-delivery ceiling on its own', () => {
     const bytes = Buffer.byteLength(standardsReviewConcernsStatics.markdown, 'utf8');
 
@@ -38,7 +38,7 @@ describe('standardsReviewConcernsStatics', () => {
         '**Skip anything lint already enforces.** Naming, imports, exports, destructuring, return types, no-any, proxy colocation, stub usage, no-console, silent catches, unused code, test name prefixes, `describe` shape. Lint has those. What is left is judgement.',
       ),
       fixSmallOwnFindings: has(
-        '**Fix what you find, where the fix is small and clearly yours.** Hand up anything structural, anything crossing into work you do not own, and anything needing a decision.',
+        '**Fix what you find, where the fix is small and clearly yours.** Mark `unmet` anything structural, anything crossing into work you do not own, and anything needing a decision, naming what is left.',
       ),
     }).toStrictEqual({
       oneReading: true,

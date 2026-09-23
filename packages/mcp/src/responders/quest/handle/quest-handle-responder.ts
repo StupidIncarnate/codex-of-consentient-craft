@@ -13,7 +13,6 @@ import { orchestratorGetNextStepAdapter } from '../../../adapters/orchestrator/g
 import { orchestratorGetQuestPlanningNotesAdapter } from '../../../adapters/orchestrator/get-quest-planning-notes/orchestrator-get-quest-planning-notes-adapter';
 import { orchestratorGetServerConfigAdapter } from '../../../adapters/orchestrator/get-server-config/orchestrator-get-server-config-adapter';
 import { orchestratorModifyQuestAdapter } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
-import { orchestratorRunWardAdapter } from '../../../adapters/orchestrator/run-ward/orchestrator-run-ward-adapter';
 import { orchestratorStartQuestAdapter } from '../../../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter';
 import { orchestratorGetQuestStatusBroker } from '../../../brokers/orchestrator/get-quest-status/orchestrator-get-quest-status-broker';
 import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
@@ -22,7 +21,6 @@ import { BlightChecklistLayerResponder } from './blight-checklist-layer-responde
 import { CreateWorktreeLayerResponder } from './create-worktree-layer-responder';
 import { GetQuestLayerResponder } from './get-quest-layer-responder';
 import { QuestSummaryLayerResponder } from './quest-summary-layer-responder';
-import { RunRiftcarverLayerResponder } from './run-riftcarver-layer-responder';
 import { GetQuestWorkLayerResponder } from './get-quest-work-layer-responder';
 import { QuestWorkLayerResponder } from './quest-work-layer-responder';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
@@ -36,7 +34,6 @@ import { getQuestPlanningNotesInputContract } from '../../../contracts/get-quest
 import { getQuestStatusInputContract } from '../../../contracts/get-quest-status-input/get-quest-status-input-contract';
 import { getServerConfigOutputContract } from '../../../contracts/get-server-config-output/get-server-config-output-contract';
 import { listQuestsInputContract } from '../../../contracts/list-quests-input/list-quests-input-contract';
-import { runWardInputContract } from '../../../contracts/run-ward-input/run-ward-input-contract';
 import { startQuestInputContract } from '../../../contracts/start-quest-input/start-quest-input-contract';
 
 const JSON_INDENT_SPACES = 2;
@@ -52,7 +49,6 @@ const layerResponders = new Map<
   [toolNameContract.parse('get-quest'), GetQuestLayerResponder],
   [toolNameContract.parse('get-blight-checklist'), BlightChecklistLayerResponder],
   [toolNameContract.parse('get-quest-summary'), QuestSummaryLayerResponder],
-  [toolNameContract.parse('run-riftcarver'), RunRiftcarverLayerResponder],
   [toolNameContract.parse('create-worktree'), CreateWorktreeLayerResponder],
   [toolNameContract.parse('quest-work'), QuestWorkLayerResponder],
   [toolNameContract.parse('get-quest-work'), GetQuestWorkLayerResponder],
@@ -72,7 +68,7 @@ export const QuestHandleResponder = async ({
   if (tool === 'modify-quest') {
     const questId = questIdContract.parse(args.questId);
 
-    // Sanitize: strip fields agents must not set via MCP. workItems/wardResults/designPort/
+    // Sanitize: strip fields agents must not set via MCP. workItems/wardResults/
     // pausedAtStatus are server-only fields the orchestrator owns end to end. comments is
     // different: it is USER-owned, not server-only — an agent may not author, edit, or delete a
     // comment via MCP, but the comment-batch route legitimately writes this same field through
@@ -83,7 +79,6 @@ export const QuestHandleResponder = async ({
     const sanitized = { ...args };
     Reflect.deleteProperty(sanitized, 'workItems');
     Reflect.deleteProperty(sanitized, 'wardResults');
-    Reflect.deleteProperty(sanitized, 'designPort');
     Reflect.deleteProperty(sanitized, 'pausedAtStatus');
     Reflect.deleteProperty(sanitized, 'comments');
 
@@ -338,35 +333,6 @@ export const QuestHandleResponder = async ({
           {
             type: 'text',
             text: contentTextContract.parse(JSON.stringify(step, null, JSON_INDENT_SPACES)),
-          },
-        ],
-      };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      return {
-        content: [
-          {
-            type: 'text',
-            text: contentTextContract.parse(
-              JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
-            ),
-          },
-        ],
-        isError: true,
-      };
-    }
-  }
-
-  if (tool === 'run-ward') {
-    const { questId, workItemId } = runWardInputContract.parse(args);
-
-    try {
-      const result = await orchestratorRunWardAdapter({ questId, workItemId });
-      return {
-        content: [
-          {
-            type: 'text',
-            text: contentTextContract.parse(JSON.stringify(result, null, JSON_INDENT_SPACES)),
           },
         ],
       };

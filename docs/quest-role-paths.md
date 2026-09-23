@@ -53,7 +53,7 @@ routes an outcome to `@blocked`, when a bounded loop is spent, or when orphan re
   carries the `step` it is running. A **piece** is one line in a planner's forecast file — what a
   planner INTENDS, never a session that ran. A **unit** is the atom of verification: an observable, a
   terminal node, a labelled edge, or an off-map probe family.
-- **OperationItem** — `{ id, role, text, status, locked, wardMode?, flowIds, packageNames }`
+- **OperationItem** — `{ id, role, text, status, locked, flowIds, packageNames }`
   (`operation-item-contract.ts`). `status` is `pending | in_progress | complete`: a scope is `pending`
   until something enters it, `in_progress` while its step graph runs, and `complete` when the router
   routes one of its steps to `@done`. `text` is a prose description, and it is what a budget is keyed
@@ -61,8 +61,9 @@ routes an outcome to `@blocked`, when a bounded loop is spent, or when orphan re
   and its flow. `locked` enrols a scope in its family's `slotManagerStatics` budget; the `codeweaver`
   family is minted UNLOCKED on purpose, because the flows are the acceptance target and the work has to
   land. No agent can delete ANY operation item, locked or not — `operations` is off the modify-quest
-  allowlist entirely. `wardMode` is present only on `role: 'ward'` scopes and is what tells the FULL
-  gate apart from a COMMITTED one that belongs to no family.
+  allowlist entirely. `wardFull` is the ONLY family whose `role` is `'ward'`, so nothing on the item
+  itself needs to disambiguate it from another kind of ward scope — every code-changing family's own
+  internal `ward` STEP runs inside a scope whose `role` is that family's own name instead.
 - **Work item (`quest.workItems[]`)** — one agent *session* (`sessionId` / `agentId` / transcript), or
   one deterministic step's run. **Every work item links to exactly one operation item via
   `relatedDataItems: ['operations/<id>']`, and that link is never re-pointed and no work item's status
@@ -102,72 +103,39 @@ routes an outcome to `@blocked`, when a bounded loop is spent, or when orphan re
   comes back `done` takes the ward's own `done` edge onward. Convergence IS the verdict. `maxVisits` on
   each step is the bound: it is a ceiling on a count nothing stores — the work items on this scope whose
   `step` equals that step — so no visit counter exists on the work item and none is to be added.
-- **Operator role** — one of the three names in `agentPromptClassificationStatics.operatorRoleNames`: `codeweaver`,
-  `flowrider`, `siegemaster`. Each is served its OWN prompt file, `<role>-prompt-statics.ts`; there is no shared
-  template. All three run on **opus** (`roleToModelStatics`) — each reads code, plans what it hands out, judges what
-  comes back, and decides whether its scope is done, none of which is a lookup a smaller model can safely make.
-  `flowrider` absorbed the role a second, now-deleted test-authoring track once held: it owns every package kind,
-  including browser-reachable ones, and authors the test suites that prove a flow both in the browser and below it.
-  Only `spiritmender` and `warpgate` keep bespoke prompts and run no operator session of their own.
-- **Operator session** — the unit of work inside ONE operator's work item. There is no shared round-loop template
-  and no generic planner/worker/reviewer triad any more: each operator **reads code itself** (`git diff`, the files a
-  change touches — never the whole tree), writes its own working notes, and **briefs generic sub-agents** (plain
-  `general-purpose` `Agent` dispatches, in the operator's own words against what it read) to make the actual edits.
-  When sub-agents return, the operator reads the diff itself and summons exactly ONE **named** reviewer sub-agent —
-  `codeweaver-reviewer`, `flowrider-reviewer`, or `siegemaster-reviewer` — and reads that reviewer's terminal `NEXT:`
-  line: `pass` ends the session (`signal-back` with `done`), `rework` sends the named remainder back out for another
-  pass, `wall` stops the session and signals `blocked`. **Siegemaster is the one exception to "reads code itself":**
-  it drives nothing and reads no source of its own. Each ROUND instead dispatches a `siegemaster-verifier` and a
-  `siegemaster-stress` pair together, one per path walk, each in its own isolated lane, and each minion signs what it
-  measures directly — the operator itself signs nothing. Its own reviewer runs only once, after every round, and only
-  when a fixer changed code; a quest whose rounds all come back clean skips the reviewer and signals `done` straight
-  off its own checklist arithmetic instead. **The loop is unbounded and `partial` is not on an operator's signal
-  table** — another pass costs a pass inside the same session; a `partial` would cost a whole fresh session that has
-  to reconstruct the remainder out of git. No code-writing sub-agent commits or wards; the named reviewer,
-  where one runs, is the only session on the pass that runs `npm run ward -- --uncommitted`, and it
-  alone commits (once) and pushes (bare).
-- **Named sub-agent** — the six sub-agents with a served prompt (`agentPromptClassificationStatics.minionNames`):
-  `codeweaver-reviewer`, `flowrider-reviewer`, `siegemaster-reviewer`, `siegemaster-verifier`, `siegemaster-stress`,
-  and the spec-phase `chaoswhisperer-gap-minion`. All six run on **sonnet**. Each fetches with `{ agent, questId }`
-  and **no `workItemId`** — it owns no work item, and it never calls `signal-back`; everything narrower than "which
-  quest" (an operation item id, a flow, a set of paths, an off-map family) reaches it through its parent's own brief.
-  `codeweaver-reviewer`/`flowrider-reviewer`/`siegemaster-reviewer` and `chaoswhisperer-gap-minion` are LEAVES: each
-  summons no sub-agent of its own. `siegemaster-verifier` and `siegemaster-stress` are the one exception — each walks
-  its whole scope first, dispatching nothing, then dispatches its OWN `general-purpose` sub-agents two at a time
-  against the numbered list it just closed, one per defect or stress point recorded, each writing a FAILING test.
-  Depth stops there, by the same rule that keeps every sub-agent from spawning a third level of its own.
-  `codeweaver-reviewer`/`flowrider-reviewer`/`siegemaster-reviewer` each grade a different subject (product code
-  against the flow; whether a test suite bites; whether a repair touched the cause or just hid the symptom) but share
-  one shape — read every file the pass produced in full, take the five standards concerns in the same pass, fix what
-  is small and clearly theirs, ward, commit, push, and answer with a `NEXT:` line. `siegemaster-verifier`
-  drives one path through a flow by hand against the running system and signs the observable, terminal and branch
-  units it measures there, directly, via its own `modify-quest` call; `siegemaster-stress` drives the same path
-  adversarially against the one off-map family its round was allocated and signs that family the same way. Neither
-  writes product code, and neither wards or commits beyond the file-scoped `npm run ward -- -- <its own paths>` that
-  each of ITS OWN pass-2 sub-agents runs on the test file it just wrote — no `--only`, since ward picks the check
-  types from the paths it is handed.
-- **Operator convergence** — `codeweaver`, `flowrider` and `siegemaster` do NOT use the ward fixpoint, and do not
-  gate `done` on sign-off completeness. Each operator signals `done` once its own named reviewer's `NEXT:` line reads
-  `pass`, and `blocked` only on an environment wall its reviewer names `wall`. Sign-offs recorded along the way
-  (`codeweaverSignoff`, `flowriderSignoff`, `siegemasterSignoff`) are a durable proof record for the next reader, not
-  a completion gate — **an unsigned unit refuses nothing.** There is no aggregate status across the three tracks.
-  **Siegemaster is the one exception to "its reviewer's `NEXT:` line":** its reviewer runs only when a fixer changed
-  code — a quest whose every round comes back clean skips it and signals `done` straight off a fresh
-  `get-qa-checklist` read instead — and a `wall` can come from any round minion (verifier, stress tester, fixer, or
-  the reviewer when one runs), not the reviewer alone.
+- **Step session** — the unit of work inside ONE step's work item. There is no layer above a step and no sub-agent
+  briefed from inside one: `agentFlowStatics[family].steps[step].prompt` names the exact served prompt
+  (`codeweaver-planner`, `codeweaver-worker`, `codeweaver-reviewer`, `flowrider-planner`, `flowrider-worker`,
+  `flowrider-reviewer`, `siege-planner`, `siege-happy-walker`, `siege-happy-fixer`, `siege-adversarial-walker`,
+  `siege-adversarial-fixer`, `siegemaster-reader`, `recipe-maker`, …), and `get-agent-prompt` resolves it directly —
+  there is no role-level prompt for `codeweaver`/`flowrider`/`siegemaster` themselves, and dispatching one of those
+  three names throws. A `work` step's own session is the session that edits files; a `review`/`happyWalk`/
+  `adversarial` step's own session is the session that grades or attacks the pass — both are ordinary
+  router-dispatched work items, not something a bigger session summons. A planner step's own prompt allows a
+  bounded `Agent()` call for a SEARCH and nothing else; a worker, reviewer or walker step dispatches no sub-agent at
+  all — its own served prompt says so directly.
+- **The one remaining named sub-agent** — `chaoswhisperer-gap-minion` (`agentPromptClassificationStatics.minionNames`)
+  is the sole survivor of a wider parent-summoned-minion layer. It runs in the SPEC phase, before any operation item
+  exists, fetching with `{ agent, questId }` and no `workItemId` — it owns no work item and never calls
+  `signal-back`. Every other former minion is now either an ordinary step (`codeweaver-reviewer` and
+  `flowrider-reviewer` are `agentPromptClassificationStatics.promptNames` entries, dispatched by the router like any
+  other step) or gone outright: `siegemaster-reviewer`, `siegemaster-verifier` and `siegemaster-stress` are absent
+  from every roster — siegemaster's `happyWalk` and `adversarial` steps ARE its reviewer-role steps, run directly.
 - **Standards review** is NOT a role, NOT a ledger item, and writes NOTHING to `quest.json`. The five concerns
   (`craft`, `perf`, `dedup`, `integrity`, `test-cases`, from `standardsReviewConcernsStatics`) are GUIDANCE — "nothing
   counts what a reviewer answers here and no gate refuses a signal over a concern nobody took" (the statics file's own
-  words). They are taken by each operator's own named reviewer, in the same reading pass as that reviewer's
-  role-specific judgment, over the files the pass produced; the reviewer fixes what is small and hands up anything
-  structural or needing a decision.
-- **Sign-off** — `{ verdict, evidence, question?, workItemId, at }` on a verification unit, where `verdict` is
-  `confirmed | unconfirmable`. THREE independent top-level fields, one per track — `codeweaverSignoff`,
-  `flowriderSignoff`, `siegemasterSignoff` — matching THREE denominators (`codeweaver | flowrider | siegemaster`).
-  See "The three verification tracks" below.
+  words). They are taken by codeweaver's and flowrider's own `review` step, in the same reading pass as that step's
+  role-specific judgment, over the files the pass produced; siegemaster's `happyWalk`/`adversarial` steps take no
+  such pass.
+- **Sign-off** — there is no separate sign-off record. `workItem.observations[]` — one entry per
+  `{ unitId, mark, evidence, toSettle?, at }` (see "The three marks" above), written through `quest-work`'s
+  `observations` payload — IS the record of what was measured, by which session, and how. A unit's current state is
+  its most recent observation across the work items that have touched it; there is no `confirmed`/`unconfirmable`
+  verdict and no per-track field on the flow/node/edge/observable contracts themselves.
 - **Quest note** (`quest.planningNotes.questNotes[]`) — `{ id, kind, role, workItemId, flowId?, unitId?, summary,
-  detail, at }` with `kind` one of `open-question | tooling-error | out-of-scope | walk-reset`. A durable side channel
-  beside the tracks. **A note NEVER closes a unit.**
+  detail, at }` with `kind` one of `open-question | tooling-error | out-of-scope | walk-reset | walked |
+  human-verdict`. A durable side channel
+  beside the marks. **A note NEVER closes a unit.**
 - **Git is the record of what was built.** The ledger is the plan/status; commit messages are the
   cross-session handoff. A stale ledger self-heals because the next agent verifies against git first.
 
@@ -247,11 +215,11 @@ one answerable for them, and the earlier one never has to mark a unit against a 
 yet. The earlier cell reaches the far half through its piece's `contextUnitIds`, which are context and
 never claims.
 
-**`flowrider` and `siegemaster` each fan out to ONE SCOPE PER FLOW THEIR OWN TRACK MEASURES**
+**`flowrider` and `siegemaster` each fan out to ONE SCOPE PER FLOW THEIR OWN STEPS MEASURE**
 (`fanOutBy: 'flow'`), each carrying a single `flowId` and a text suffixed `— flow: <id>`. The cut reads
-`signoffTrackEligibilityStatics.byTrack[role].flowTypes`, the one place every denominator reader shares,
-so the ledger cannot mint a scope measured at zero: siegemaster takes flows of either type, flowrider
-`runtime` alone. With no eligible flow at all, the family keeps ONE whole-quest scope only when
+`stepScopeStatics.byFamilyStep[family][step].flowTypes`, the one place every denominator reader shares,
+so the ledger cannot mint a scope measured at zero: both siegemaster's steps and flowrider's `review`
+step take `runtime` alone. With no eligible flow at all, the family keeps ONE whole-quest scope only when
 `off-map` is in its `unitKinds` — the probe families are properties of the BUILT SYSTEM rather than of
 any drawn flow, so siegemaster keeps this quest's only security (`hostile-input`) and performance
 (`perf`) coverage owned, while flowrider gets nothing rather than a session dispatched against an empty
@@ -283,7 +251,7 @@ primary driver.**
 | Surface                          | Dispatcher                     | What it does                                                                                                                                        |
 |----------------------------------|---------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
 | Web UI `/queue` page play button | **Node/UI mode (primary)**     | The server-side Node dispatch runner loops `get-next-step` in-process, spawns headless `claude -p` children (one per SpawnInstruction), and runs a `run-step` through `questRunStepBroker` → `stepHandlerRunBroker`. |
-| `/dumpster-launch` slash command | **MCP mode**                   | A brainless loop in the user's own Claude session: `get-next-step()` → `Task()` for agents / `run-ward` or `run-riftcarver` MCP tool for a command work item → await → repeat. It has **no tool for a `run-step`** yet, so a deterministic step returned by the scan is Node/UI mode's alone to run. |
+| `/dumpster-launch` slash command | **MCP mode**                   | A brainless loop in the user's own Claude session: `get-next-step()` → `Task()` for agents → await → repeat. It has **no tool for a `run-step`** — on one it tells the user the quest is waiting on a deterministic step only the Node dispatcher can run, then stops the loop. |
 | Web UI "Start Quest" button      | —                              | Calls `OrchestrationStartResponder`: seeds the relay and flips status `approved → in_progress`. **Spawns nothing and touches no git** — pure `quest.json` bookkeeping, so the POST answers in milliseconds and the active dispatcher picks the quest up. |
 
 The two modes are mutually exclusive via `<dungeonmasterHome>/dispatch-state.json`. `get-next-step`
@@ -294,30 +262,31 @@ long-polls internally (~25s) before returning `{ type: 'idle' }` when nothing is
 ## Quest status lifecycle
 
 ```
-created → explore_flows → review_flows → [Gate#1 user approves] → flows_approved
+created (or pending) → explore_flows → review_flows → [Gate#1 user approves] → flows_approved
         → explore_observables → review_observables → [Gate#2 user approves] → approved
-        → (optional) explore_design → review_design → [Gate#3 user approves] → design_approved
-        → in_progress → complete
+        → in_progress → complete → merging → merged   (user presses Merge; see below)
                         ├→ blocked → in_progress      (needs-human; user resumes)
                         └→ abandoned
    (paused is reachable from any pre-terminal status and returns to it)
 ```
 
-There are no `seek_*` statuses. **`approved → in_progress` and `design_approved → in_progress` are
-direct** — the only manual transitions in the execution phase. Everything after `in_progress` is
-driven by the operations relay.
+There are no `seek_*` statuses. **`approved → in_progress` is
+direct** — the only manual transition in the execution phase. Everything after `in_progress` is
+driven by the operations relay. `pending` is a second entry status with the identical transition set as `created`
+(`questStatusTransitionsStatics`); nothing in this doc's relay treats it differently from `created`.
 
 | Status                                          | Set by                                    | Notes                                                                       |
 |-------------------------------------------------|--------------------------------------------|-----------------------------------------------------------------------------|
-| `created`                                       | `create-quest`                            | Intake agent's first action; seeds the plan operation item (see below)      |
+| `created`, `pending`                            | `create-quest`                            | Intake agent's first action; seeds the plan operation item (see below)      |
 | `explore_flows` … `review_observables`          | ChaosWhisperer (via `modify-quest`)       | The only roles that set status directly                                     |
-| `flows_approved`, `approved`, `design_approved` | **User** (APPROVE button)                 | The approval gates; each requires non-empty `flows` — nothing else         |
+| `flows_approved`, `approved` | **User** (APPROVE button)                 | The approval gates; each requires non-empty `flows` — nothing else         |
 | `in_progress`                                   | `start-quest` / Start Quest button        | Spec locked; the relay is seeded and dispatch begins. Start is pure `quest.json` bookkeeping — it spawns nothing and touches no git, so the panel swap is immediate; the branch, worktree, `node_modules` mirror and preflight typecheck belong to the `riftcarver` item it seeds at the head of the ledger |
 | `complete`, `blocked`                           | Derived / set by the orchestrator         | `complete` derived by `workItemsToQuestStatusTransformer` **off the FAMILY GRAPH's position**, never off a drained ledger; `blocked` set only by `quest-block-on-failure-broker` |
+| `merging`, `merged`                             | User (the merge action), then the orchestrator | `orchestration-merge-responder` — the server-side half of the merge action — flips a `complete` quest to `merging` and appends the `warpgate` family's own scope (its one step, `merge`; the family is routed to by nothing else); `merged` follows once that scope completes |
 | `paused`, `abandoned`                           | User                                      | Not derived over — owned by the user                                        |
 
 **The approval gate** (`quest-gate-content-requirements-statics`) requires only non-empty `flows` for
-`flows_approved`, `approved`, and `design_approved` alike — for EVERY quest type. It demands no ledger item at all:
+`flows_approved` and `approved` alike — for EVERY quest type. It demands no ledger item at all:
 the implementation ledger is DERIVED at Start (`fanOutBy: 'implementation'`), not authored at spec time by anyone, so
 coverage is definitional rather than checked — a quest that clears `flows_approved` already carries every input the
 generator reads. The gate is enforced in `quest-modify-broker` (the `approved` transition) and the web approve
@@ -346,7 +315,7 @@ Trace one feature quest end to end.
      then the status flip and the queue entry. It spawns no child and runs no git, which is what
      keeps the POST at millisecond scale and lets the WebSocket-driven panel swap land instantly.
    - `questBuildRelayGraphBroker` force-completes any non-complete intake (`chaoswhisperer` /
-     `glyphsmith` / `bughunt`) operation item, mints the **ENTRY family's scopes and nothing else**
+     `bughunt`) operation item, mints the **ENTRY family's scopes and nothing else**
      (`familyScopesMintTransformer({ quest, family: questFlowStatics[questType].entry })` — one
      `riftcarver` scope), and creates ONE work item for the first actionable (`pending`) one, carrying
      `step: 'carve'` — its family graph's own `entry` — and `spawnerType: 'command'` off
@@ -405,12 +374,13 @@ stopped between a scope completing and the advance still progresses on restart. 
    correct under many-work-items-per-scope because of WHERE the rest are minted: the router only mints
    inside an operation item that is already `in_progress`.
 3. Else create ONE work item for the operation's `role`, **at that family's ENTRY step** —
-   `agentFlowStatics[family].entry`, with the family resolved through `questFlowStatics` rather than
-   read off `operationItem.role`, because `wardFull` carries `role: 'ward'` and a role read back as a
-   family key enters the wrong graph. `wardMode` is compared too: the COMMITTED gate shares that role
-   and belongs to no family, so it is stamped with no step at all. `spawnerType` is `'command'` when
-   `isCommandWorkItemRoleGuard` matches — `workItemRoleStatics.command` is `['ward', 'riftcarver']` —
-   else `agent`. The item is linked `operations/<id>`, depends on the most-recent
+   `agentFlowStatics[family].entry`, with the family resolved through `workItemFamilyResolveTransformer`
+   (which reads `questFlowStatics[…].families` by role) rather than read off `operationItem.role`
+   directly, because `wardFull` carries `role: 'ward'` and a role read back as a family key enters the
+   wrong graph. A role no family carries (`spiritmender`, a chat role) resolves to `undefined` and is
+   stamped with no step at all — that is the honest record that nothing routes it. `spawnerType` is
+   `'command'` when `isCommandWorkItemRoleGuard` matches — `workItemRoleStatics.command` is `['ward',
+   'riftcarver']` — else `agent`. The item is linked `operations/<id>`, depends on the most-recent
    dependency-satisfying work item, and the operation is marked `in_progress`.
 
 ### `questRouteScopeBroker` — MOVES a scope
@@ -444,10 +414,9 @@ back. **The STEP decides before the ROLE:**
    `ward` grades the tree, `cleanup` kills every siegelense instance). Its work item carries the ROLE of
    the SCOPE it belongs to — a `commit` step inside a codeweaver scope reads `role: 'codeweaver'` — so
    keying on the role alone would spawn a Claude session for it.
-2. A work item that runs NO step graph (a hydrated quest's ward, a pre-graph ledger's carve) falls
-   through to the role-keyed command split: `run-riftcarver` for a carve, `run-ward` for a gate. That
-   split is what keeps a riftcarver item out of `build-spawn-instruction-layer-broker`, which parses
-   `agentRoleContract` and throws for any role Claude cannot be dispatched as.
+2. A command-role work item with no step node is filtered OUT of `ready` before this point ever runs —
+   nothing mints that shape any more, so it can never reach `build-spawn-instruction-layer-broker`, whose
+   `agentRoleContract` parse throws for any role Claude cannot be dispatched as.
 3. Otherwise the batch is every ready item sharing the head's ROLE **and** its STEP, which is a router
    batch read back off the ledger — one step of one family, which is what a router mint is by
    construction. `ready` spans every scope the relay has open, and two codeweaver cells legitimately sit
@@ -463,8 +432,8 @@ quest whose recorded `worktreePath` does not resolve, because dispatching any ot
 against the repo-root checkout. The carve OWNS creating that path — its own done-check reads a
 recorded-but-missing directory as "not done" and re-creates it — so halting ahead of it would leave the
 quest permanently blocked by the one step that could have repaired it. The exemption keys on the
-HANDLER (`run-step` carrying `handler: 'riftcarver'`) as well as on the legacy `run-riftcarver` step
-type, because matching only one of the two would block on the other.
+HANDLER alone (`run-step` carrying `handler: 'riftcarver'`) — there is no legacy `run-riftcarver` step
+type left to also match.
 
 ### Status derivation (`workItemsToQuestStatusTransformer`)
 
@@ -518,9 +487,8 @@ a session padding marks to get past the gate.
 
 | Role               | Operation item                          | Happy                                                                    | Sad                                                                 |
 |--------------------|-----------------------------------------|--------------------------------------------------------------------------|--------------------------------------------------------------------|
-| **ChaosWhisperer** | the plan item (seeded `in_progress`, locked) | Authors flows/observables/contracts/`packagesAffected` — never `operations`; at Start Quest `questBuildRelayGraphBroker` force-marks the plan item `complete` and mints the ENTRY family's scopes. The codeweaver scopes are cut later, when the family graph routes to that family. | No execution sad path. The approval gate rejects `approved`/`flows_approved`/`design_approved` only for empty `flows`; it demands no ledger item. |
+| **ChaosWhisperer** | the plan item (seeded `in_progress`, locked) | Authors flows/observables/contracts/`packagesAffected` — never `operations`; at Start Quest `questBuildRelayGraphBroker` force-marks the plan item `complete` and mints the ENTRY family's scopes. The codeweaver scopes are cut later, when the family graph routes to that family. | No execution sad path. The approval gate rejects `approved`/`flows_approved` only for empty `flows`; it demands no ledger item. |
 | **BugHunt**        | the plan item (seeded `in_progress`, locked) | Captures the reproduction flow (one flow per bug, `ACTUAL:`/`EXPECTED:` terminal fork) and its observables; force-completed at Start exactly like ChaosWhisperer. Implementation lands on the same codeweaver scopes a feature quest gets. | No execution sad path.                                            |
-| **Glyphsmith**     | (optional design phase)                 | Walks `approved → design_approved`; its plan item is force-completed at Start like ChaosWhisperer. | —                                                                  |
 
 ### Inside one family — the step paths
 
@@ -546,14 +514,23 @@ it. It declares no `done` route either, so it returns to whichever session reque
 
 **siegemaster** is the INVERSE of the other two — its reviewers run FIRST and find the work, its worker
 repairs — and the structure holds unchanged: `sweepIn → plan → happyWalk → adversarial → commit → ward →
-sweepOut`. `happyWalk` and `adversarial` are `reviewer` steps, each with its OWN fixer (`fixHappy`,
-`fixAdversarial`) that routes back to the walker that found the work — one shared fixer sent every
-adversarial finding back to the happy walk, which never measured it. **`happyWalk → adversarial` is the
-PHASE ORDER, and it is a route rather than a rule in a prompt:** a step's `done` fires only once every
-piece at that step has DRAINED, so every happy piece has recorded before the first attack is minted and
-an antagonist's baseline exists by the time the router mints it. `sweepIn` and `sweepOut` are `cleanup`
-handlers at both ends — the first makes the first capacity reading honest, the last catches what the
-pass leaked.
+sweepOut`. Two more steps sit OFF that chain, mintable ON REQUEST rather than by route: `recipe` (the
+same `recipe-maker` prompt flowrider requests — a recipe is flow-scoped, not family-scoped, so whichever
+family asks first authors it) and `read` (the `siegemaster-reader` prompt, opening source files so no
+walker has to). Neither declares any route but `wall`, so a planner asking up front or a walker asking
+mid-pass gets it back as a fresh work item at its own step, not a route target. `happyWalk` (the
+`siege-happy-walker` prompt) and `adversarial` (the `siege-adversarial-walker` prompt) are `reviewer`
+steps, each with its OWN fixer — `fixHappy` runs the `siege-happy-fixer` prompt, `fixAdversarial` the
+`siege-adversarial-fixer` prompt — that routes back to the walker that found the work — one shared fixer
+sent every adversarial finding back to the happy walk, which never measured it. **`happyWalk →
+adversarial` is the PHASE ORDER, and it is a route rather than a rule in a prompt:** a step's `done`
+fires only once every piece at that step has DRAINED, so every happy piece has recorded before the first
+attack is minted and an antagonist's baseline exists by the time the router mints it. `sweepIn` and
+`sweepOut` are `cleanup` handlers at both ends — the first makes the first capacity reading honest, the
+last catches what the pass leaked. **Siegemaster's `ward` step OVERRIDES the shared `CLOSE_OUT`
+routing**: every other family's `ward` sends `done` and `empty` straight to `@done`, but siegemaster's
+sends both to `sweepOut` instead — the pass is not over until the instances it opened are swept. `unmet`
+still routes to `repair`, unchanged from every other family's gate.
 
 **riftcarver** — `carve → repair → commit → carve`. **wardFull** — `gate → repair → commit → gate`.
 Both carry their own `commit`, because neither shares the `CLOSE_OUT` trio: without one a repair's fix
@@ -574,70 +551,73 @@ declares — the step-name contract is free-form so such a quest still LOADS, an
 place it may fail), and `no-minter` (an undeclared outcome on a step whose work item names nobody to
 return to: not a stall, and not a silent pass).
 
-### The three verification tracks
+### Marking a unit — `stepScopeStatics.byFamilyStep`
 
-Every verification unit — each terminal, each labelled branch, each observable, and each off-map probe family — carries
-THREE independent top-level sign-offs:
+Every verification unit — each terminal, each labelled branch, each embedded observable, and each off-map probe
+family — is marked through `quest-work`'s `observations` payload by whichever step's session actually measured it.
+There is no separate per-track field on the unit itself: `flow-node-contract`, `flow-edge-contract` and
+`flow-observable-contract` carry no `codeweaverSignoff`/`flowriderSignoff`/`siegemasterSignoff` — a unit's state is
+the most recent `{ unitId, mark, evidence, toSettle?, at }` observation recorded against it (see "The three marks"
+above), never a `confirmed`/`unconfirmable` verdict on a separate field.
 
-| Field | Written by | Answers |
+`stepScopeStatics.byFamilyStep` decides which units each step could ever mark — the one table every denominator
+reader shares (`qaUnitsInPackageScopeTransformer`, `stepInScopeUnitsTransformer`, `relayTailFanOutTransformer`, and
+the `get-quest-work` broker all read it; none reads a track-keyed one):
+
+| Family — step | `flowTypes` | `unitKinds` |
 |---|---|---|
-| `codeweaverSignoff` | the `codeweaver-reviewer` that grades a codeweaver pass | is this proven by a unit test beside the code? |
-| `flowriderSignoff` | the `flowrider-reviewer` that grades a flowrider pass | is this proven by a flow-perspective test, in the browser or below it? |
-| `siegemasterSignoff` | `siegemaster-verifier` (observable/terminal/branch units on its own path) or `siegemaster-stress` (its allocated off-map family), each directly, as it measures | does this hold when a person drives the real system? |
+| `codeweaver` — `review` | `runtime`, `operational` | `terminal`, `branch`, `observable` |
+| `flowrider` — `review` | `runtime` | `terminal`, `branch`, `observable` |
+| `siegemaster` — `happyWalk` | `runtime` | `terminal`, `branch`, `observable`, `off-map` |
+| `siegemaster` — `adversarial` | `runtime` | `off-map` only |
 
-Each is `{ verdict, evidence, question?, workItemId, at }` and each `verdict` is one of exactly TWO values:
+Operational units settle inside codeweaver's own `review` step alone, since an operational flow is a one-time task
+sequence with no repeatable walk for `flowrider` or `siegemaster` to drive. `adversarial`'s scope is `off-map` alone,
+so it never re-marks a terminal, branch or observable unit `happyWalk` already covers. Every step also excludes an
+observable whose `addedBy` postdates it (`flowrider`'s and `codeweaver`'s `review` steps exclude `addedBy:
+'siegemaster'`, since siegemaster runs strictly after them), and a seam's units go to the LATER-ordered cell alone,
+exactly as "A SEAM'S UNITS BELONG TO EXACTLY ONE CELL" above states for the codeweaver fan-out. An off-map unit is a
+unit like any other (`{ kind: 'off-map', id, flowId, offMapFamily }`, from `qaUnitEnumerateTransformer`) — marked
+through the same `observations` payload, not a separate collection.
 
-- **`confirmed`** — the test `file:line` PLUS what makes that test fail (codeweaver/flowrider), or the value measured
-  off the running system (siegemaster).
-- **`unconfirmable`** — genuinely unable to settle it after real effort. `evidence` says what was tried; a `question`
-  is REQUIRED and the contract refuses the verdict without one.
+**A `verifyByHuman` observable drops out of every step's list.** Setting it means no automated check — no test, no
+reading — can settle the criterion at all; only a person can, and only after the quest is done. It resolves to the
+verification method `human-check`, and no entry in `stepScopeStatics.byFamilyStep` lists `human-check` among its
+methods, so the unit is excluded from every step's in-scope set by construction — nothing marks it through
+`quest-work`. A person records the verdict separately, through the web UI, which calls
+`quest-human-verdict-record-broker({ questId, unitId, outcome: 'met' | 'not-met', reason })`; that call appends a
+`human-verdict` quest note rather than an observation — see `questNotes` below.
 
-**An unsigned unit refuses nothing, and there is no gate that counts sign-offs.** What gets marked is what somebody
-actually proved — leave a unit you did not reach unsigned rather than reaching for a verdict that closes it. There are
-THREE fields (`signoffTrackContract`) and THREE denominators (`signoffDenominatorTrackContract`) — `codeweaver |
-flowrider | siegemaster` — kept as separate enums on purpose even though they hold the same three names today: a
-denominator that shares another track's field is representable, and the day one lands the two lists diverge.
-`signoffTrackEligibilityStatics.byTrack` decides which units each denominator could ever have signed: `codeweaver` and
-`siegemaster` cover both `runtime` and `operational` flows, `flowrider` covers `runtime` flows only; only `siegemaster`
-carries `off-map` in its `unitKinds`; every track excludes observables whose `addedBy` postdates it (`flowrider` and
-`codeweaver` both exclude `addedBy: 'siegemaster'`, since siegemaster runs strictly after them). Every track shares
-`flowScope: 'declared'` (a scope is measured on the flows it names) and `packageScope: 'intersection'`,
-which awards a unit to the scope whose package its owning NODE tags — with ONE refinement for a SEAM: a
-node carrying more than one package gives its units to the LATER-ordered cell alone, so the side that
-can see both halves is the one answerable for them and no unit is owned twice.
-
-**A measured defect is a NEW observable, not a third verdict.** An observable is a positive expectation; "send it
-`bleh` and the server crashes instead of returning 400" is the INVERSE expectation, so it is ADDED to the flow through
-the additive spec authority every operator holds, and then carries its own three sign-offs. There is no `defect`,
-`deferred`, `gap` or `recorded` verdict.
+**A measured defect is a NEW observable, not a third mark value.** An observable is a positive expectation; "send it
+`bleh` and the server crashes instead of returning 400" is the INVERSE expectation, so it is ADDED to the flow
+through the additive spec authority every step holds, and it is then marked the same way any other observable is.
 
 **Provenance is a separate axis.** `addedBy` on the observable (`spec | chaoswhisperer | codeweaver | flowrider |
 siegemaster | operator`) answers "was this in the spec at approval, or added mid-quest, and by whom" — never whether
-the unit is settled.
+the unit is marked.
 
-**Sign-offs are written via `modify-quest`, batched.** One call patches `{ id, <track>Signoff }` on many elements at
-once — observables, nodes, edges, and `offMapSignoffs` entries (whose `id` IS the probe family).
+**Marks are written via `quest-work`'s `observations` payload, batched.** One call carries an array of `{ unitId,
+mark, evidence, toSettle? }` entries — terminal, branch, observable and off-map units alike.
 
-`get-qa-checklist({ questId, operationItemId })` derives the whole scope — the track, the flows, the packages — from
-the operation item itself, through `operationSignoffScopeTransformer`; `operationItemId` and a bare `flowId` (an
-un-scoped browse form) are mutually exclusive. That id is the only argument a caller needs, and it is the same
-derivation any completion-adjacent reasoning would use, so the number a session reads about its own scope cannot drift
-from the number anyone else computes for it.
+**`get-quest-work({ questId, workItemId })` is how a session reads its own scope.** It resolves the work item's
+linked operation item, reads that item's own `flowIds`/`packageNames` directly, and narrows them through
+`stepInScopeUnitsTransformer` against the work item's `step` — the same table above. That id is the only argument a
+caller needs, and it is the same derivation any other reader would use, so the number a session reads about its own
+scope cannot drift from the number anyone else computes for it.
 
-### The reset lever
+### Resetting a flow
 
-`reset-flow-signoffs({ questId, workItemId, flowId, reason })` clears **`siegemasterSignoff`** across ONE flow and
-appends a `walk-reset` note to `quest.planningNotes.questNotes`. It throws unless the calling work item's own linked
-operation item has `role: 'siegemaster'` and names that flow in its own `flowIds`. **`flowriderSignoff` and
-`codeweaverSignoff` are untouched by it** — there is no equivalent reset lever for either of those tracks.
+A siegemaster work item may re-open a flow's units for re-walking through `quest-work`'s `invalidation` payload —
+`{ kind: 'invalidation', flowId, reason }`. It throws unless the calling work item's own linked operation item
+resolves to the `siegemaster` family and names that flow in its own `flowIds`. The call edits no field on any unit —
+a unit's mark is already just the most recent observation recorded against it, so there is nothing to blank — it
+appends a `walk-reset` quest note, and the units it names are UNIONED onto the next work item the router mints for
+that scope.
 
-It exists because a sign-off is a measurement of a system at a moment. When Siegemaster fixes a defect mid-walk, every
-sign-off already written on that flow describes the code as it stood BEFORE the repair — each is now a claim about a
-system that no longer exists. The operator resets and re-walks rather than shipping a track full of measurements of
-deleted behaviour.
-
-**Resets are FREE within a session**: they cost no pt-chain attempt and carry no failure semantics. The `walk-reset`
-note is what makes the reset auditable after the session ends.
+It exists because an observation is a measurement of a system at a moment. When siegemaster fixes a defect mid-walk,
+every observation already recorded on that flow describes the code as it stood BEFORE the repair — each is now a
+claim about a system that no longer exists. The session resets and re-walks rather than leaving marks against
+deleted behaviour on the record.
 
 ### `questNotes` — the durable side channel
 
@@ -649,9 +629,11 @@ note is what makes the reset auditable after the session ends.
 | `open-question` | something genuinely unsettled that a later session or a human must answer |
 | `tooling-error` | a tool or harness that failed in a way the quest's own code cannot fix |
 | `out-of-scope` | a real finding this role has no authority to close — e.g. a coverage hole a mutation-only audit surfaced |
-| `walk-reset` | appended by `reset-flow-signoffs`, recording that a flow's Siegemaster track was cleared and why |
+| `walk-reset` | appended by `quest-work`'s `invalidation` payload, recording that a flow was re-opened for re-walking and why |
+| `walked` | recorded when a siegemaster walk drives a path, pairing it with the siegelense evidence (`instanceId`/`runId`) that path produced |
+| `human-verdict` | a person's verdict on one `verifyByHuman` unit (`outcome: 'met' \| 'not-met'`), recorded because no step can mark it through `quest-work` |
 
-**A note NEVER closes a unit.** Only a sign-off does. A note is how information that is not a verdict survives the
+**A note NEVER closes a unit.** Only an observation does. A note is how information that is not a mark survives the
 session that found it.
 
 ### Deterministic steps — the four handlers
@@ -1023,36 +1005,22 @@ dispatchable while the wreckage is still in place.
 
 ### Siegemaster
 
-- **SIEGE-1 — A lane that will not boot is a defect, never a wall.** Each round allocates two fresh lanes, one per
-  minion, each carrying its own API server, Vite server, headless Chromium page, `DUNGEONMASTER_HOME` and port pair,
-  never reused across minions or rounds. A lane that fails to start, or whose server dies mid-round, is something
-  that round's own minion reports and a fixer repairs like any other finding — not an environment wall, and not a
-  `blocked` signal.
-- **SIEGE-2 — Pass 1 dispatches nothing, and a truncated pass 1 is invisible.** `siegemaster-verifier` walks its
-  whole path, and `siegemaster-stress` enumerates its whole stress list, before either dispatches a single sub-agent;
-  a minion that interleaves — fix one, find the next — exhausts itself partway and nothing downstream can tell its
-  list was cut short, because nothing records that a tail was ever owed. This is an authoring discipline stated in
-  each minion's own served prompt, not a check any broker runs.
-- **SIEGE-3 — Pass 2 is graded against the minion's OWN closed list, so a truncation there IS visible.** Each
-  minion's `COVERAGE:` line reports dispatched-vs-listed against the numbered list it closed at the end of its own
-  pass 1, never against the flow in the abstract. Siegemaster does not move a round to its fix step until every list
-  entry carries a sub-agent's return or a recorded reason it does not.
-- **SIEGE-4 — A test must be proven RED before it is trusted.** Every pass-2 sub-agent — dispatched by either
-  minion — must watch its new or extended test fail, against unchanged source, for the reason its brief names, before
-  it reports the test's path back. A test that passes when it was required to fail is not reported as done; the
-  fixer's own claim that a repair works is never evidence on its own either — only a fresh re-walk from the reset
-  state proves that.
-- **SIEGE-5 — A unit is signed once; a second sign-off on it silently discards the first's evidence.**
-  `siegemaster-verifier` and `siegemaster-stress` each write `siegemasterSignoff` directly, via their own
-  `modify-quest` call — never the parent, and never a reviewer — and `questModifyBroker` merges by unit id. This is
-  why siegemaster briefs each round's verifier with only the units still REMAINING on its path (an already-confirmed
-  unit never re-enters a later round's list), why each off-map family is allocated to exactly one round, and why a
-  fix that could have moved an already-walked flow's behaviour goes through `reset-flow-signoffs` rather than a bare
-  re-walk.
-- **SIEGE-6 — The reviewer is conditional, not automatic.** Unlike `codeweaver-reviewer` and `flowrider-reviewer`,
-  which grade every pass, `siegemaster-reviewer` is summoned once, after every round has run, and only if a fixer
-  changed code. A quest whose every round comes back clean signals `done` with no reviewer pass at all — its
-  sign-offs are the verifiers' and stress testers' own, written as they measured, and were never waiting on a review.
+- **SIEGE-1 — A lane that will not boot is a defect, never a wall.** `happyWalk` and `adversarial` are the two steps
+  flagged `needsLane`; each provisions its own siegelense lane — an API server, a Vite server, a headless Chromium
+  page — before it runs. `sweepIn` and `sweepOut`, the family's own `cleanup`-kind steps at the head and tail of the
+  scope, make the first capacity reading honest and catch whatever a pass leaked. A lane that fails to start, or
+  whose server dies mid-walk, is something that step's own session reports and its fixer (`fixHappy` /
+  `fixAdversarial`) repairs like any other finding — not an environment wall.
+- **SIEGE-2 — `happyWalk → adversarial` is a route, not a prompt rule.** `happyWalk`'s `done` fires only once every
+  piece at that step has DRAINED, so every happy-path piece has recorded before the first `adversarial` piece is
+  minted — proven directly in `quest-route-scope-broker.integration.test.ts`'s own phase-order coverage.
+- **SIEGE-3 — `adversarial` never re-marks what `happyWalk` already covers.** Its `unitKinds` is `off-map` alone
+  (`stepScopeStatics.byFamilyStep.siegemaster.adversarial`) — proven by the route-scope broker's own off-map-scope
+  test — so an antagonist's finding on a terminal, branch or observable unit is a NEW observable, never a re-mark of
+  one `happyWalk` settled.
+- **SIEGE-4 — `ward` overrides the shared `CLOSE_OUT` routing.** Every other family's `ward` step sends `done` and
+  `empty` straight to `@done`; siegemaster's sends both to `sweepOut` instead — the pass is not over until the lanes
+  it opened are swept. `unmet` still routes to `repair`, unchanged from every other family's gate.
 
 ### Contract integrity
 
@@ -1062,7 +1030,7 @@ dispatchable while the wreckage is still in place.
   `riftcarverResults`, `flows` (the exact set `relatedDataItemContract`'s regex admits) — and existing
   ids.
 - **C-4 — Chat roles set status only within their phase** (ChaosWhisperer: `created` →
-  `review_observables`; Glyphsmith: `approved` → `design_approved`).
+  `review_observables`).
 
 ---
 

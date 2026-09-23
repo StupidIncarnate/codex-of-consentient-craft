@@ -34,12 +34,12 @@ describe('runChatLayerBroker', () => {
       ).resolves.toStrictEqual({ success: true });
     });
 
-    it('VALID: {glyphsmith work item} => spawns agent and completes work item', async () => {
+    it('VALID: {bughunt work item} => spawns agent and completes work item', async () => {
       const proxy = runChatLayerBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const workItem = WorkItemStub({
         id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
-        role: 'glyphsmith',
+        role: 'bughunt',
         status: 'in_progress',
       });
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', workItems: [workItem] });
@@ -49,7 +49,7 @@ describe('runChatLayerBroker', () => {
         runChatLayerBroker({
           questId,
           workItem,
-          userMessage: UserInputStub({ value: 'Design the login page' }),
+          userMessage: UserInputStub({ value: 'The save button does nothing' }),
           onAgentEntry: jest.fn(),
         }),
       ).resolves.toStrictEqual({ success: true });

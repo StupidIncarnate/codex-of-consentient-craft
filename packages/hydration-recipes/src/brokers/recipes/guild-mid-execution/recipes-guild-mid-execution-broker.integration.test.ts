@@ -25,7 +25,9 @@ describe('recipesGuildMidExecutionBroker', () => {
       }).toStrictEqual({
         recipeName: 'guild-mid-execution',
         description:
-          'one guild holding three quests, the first running with its riftcarver item dropped',
+          'one guild holding three quests — the first running with its riftcarver item dropped, ' +
+          'the second and third both freshly created and told apart only by their seeded title ' +
+          'and request text ("Quest 2"/"Quest 3")',
         inputs: undefined,
       });
     });
@@ -61,6 +63,26 @@ describe('recipesGuildMidExecutionBroker', () => {
         'Quest 2',
         'Quest 3',
       ]);
+    });
+
+    it('VALID: {} => the second and third quests are NOT byte-identical — status matches by design, title and userRequest do not', async () => {
+      const result = await run(recipesGuildMidExecutionBroker(), fileTarget.target());
+      const quest2 = result[QUEST2_NAME] as unknown as Quest;
+      const quest3 = result[QUEST3_NAME] as unknown as Quest;
+
+      expect({
+        sameStatus: quest2.status === quest3.status,
+        title2: quest2.title,
+        title3: quest3.title,
+        userRequest2: quest2.userRequest,
+        userRequest3: quest3.userRequest,
+      }).toStrictEqual({
+        sameStatus: true,
+        title2: 'Quest 2',
+        title3: 'Quest 3',
+        userRequest2: 'seeded quest 2',
+        userRequest3: 'seeded quest 3',
+      });
     });
 
     it('VALID: {} => on disk, the first quest is in_progress with the riftcarver operation dropped from its ledger', async () => {

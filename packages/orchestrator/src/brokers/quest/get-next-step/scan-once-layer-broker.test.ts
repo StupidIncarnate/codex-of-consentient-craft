@@ -81,6 +81,7 @@ describe('scanOnceLayerBroker', () => {
         {
           questId,
           role: 'codeweaver',
+          model: 'opus',
           workItemId: cwId,
           taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cwId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
         },
@@ -130,6 +131,7 @@ describe('scanOnceLayerBroker', () => {
         {
           questId,
           role: 'flowrider',
+          model: 'opus',
           workItemId: orphanId,
           taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "flowrider",\n  workItemId: "${orphanId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
         },
@@ -215,6 +217,7 @@ describe('scanOnceLayerBroker', () => {
         {
           questId,
           role: 'codeweaver',
+          model: 'opus',
           workItemId: orphanId,
           taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${orphanId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
           resumeSessionId: sessionId,
@@ -347,6 +350,7 @@ describe('scanOnceLayerBroker', () => {
           {
             questId,
             role: 'codeweaver',
+            model: 'opus',
             workItemId: newId,
             taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${newId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${newId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${newId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${newId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
           },
@@ -414,12 +418,13 @@ describe('scanOnceLayerBroker', () => {
   // below differs in exactly one value, the ready item's role, so a regression that drops either
   // half of the asymmetry fails here.
   describe('missing worktree: riftcarver passes the halt, every other role still trips it', () => {
-    it('VALID: {recorded worktree missing, ready riftcarver item} => returns run-riftcarver and blocks nothing', async () => {
+    it('VALID: {recorded worktree missing, ready carve step} => returns run-step for the carve handler and blocks nothing', async () => {
       const proxy = scanOnceLayerBrokerProxy();
       const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-missing-worktree-riftcarver' });
       const carveId = QuestWorkItemIdStub({ value: 'aab11111-1111-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'aab00000-58cc-4372-a567-0e02b2c3d479' });
       const worktreePath = AbsoluteFilePathStub({
         value: '/repo/worktrees/quest-carve-again-a1b2c3d4',
       });
@@ -427,12 +432,17 @@ describe('scanOnceLayerBroker', () => {
         id: questId,
         status: 'in_progress',
         worktreePath,
+        operations: [
+          OperationItemStub({ id: operationId, role: 'riftcarver', status: 'in_progress' }),
+        ],
         workItems: [
           WorkItemStub({
             id: carveId,
             role: 'riftcarver',
             status: 'pending',
             spawnerType: 'command',
+            step: 'carve',
+            relatedDataItems: [`operations/${operationId}` as never],
           }),
         ],
       });
@@ -456,7 +466,7 @@ describe('scanOnceLayerBroker', () => {
         clearCallCount: clear.mock.calls.length,
         setActiveCalls: setActive.mock.calls,
       }).toStrictEqual({
-        result: { type: 'run-riftcarver', questId, workItemId: carveId },
+        result: { type: 'run-step', questId, workItemId: carveId, handler: 'riftcarver', args: [] },
         blockCalls: [],
         spawnedArgs: [],
         clearCallCount: 0,
@@ -464,11 +474,71 @@ describe('scanOnceLayerBroker', () => {
       });
     });
 
+    // The exemption is keyed on the HANDLER, not on "any run-step" — a ward gate is a deterministic
+    // step exactly like the carve, and it must still trip the halt. Only riftcarver's own done-check
+    // can rebuild a lost worktree; wardFull's gate has no such recovery and dispatching it into the
+    // repo-root checkout would grade the wrong branch.
+    it('VALID: {recorded worktree missing, ready ward gate step instead} => returns null and blocks the quest naming the path', async () => {
+      const proxy = scanOnceLayerBrokerProxy();
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildItem = GuildListItemStub({ id: guildId, valid: true });
+      const questId = QuestIdStub({ value: 'q-scan-missing-worktree-ward' });
+      const wardId = QuestWorkItemIdStub({ value: 'aab33333-1111-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'aab00001-58cc-4372-a567-0e02b2c3d479' });
+      const worktreePath = AbsoluteFilePathStub({
+        value: '/repo/worktrees/quest-carve-again-a1b2c3d4',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        worktreePath,
+        operations: [OperationItemStub({ id: operationId, role: 'ward', status: 'in_progress' })],
+        workItems: [
+          WorkItemStub({
+            id: wardId,
+            role: 'ward',
+            status: 'pending',
+            spawnerType: 'command',
+            step: 'gate',
+            relatedDataItems: [`operations/${operationId}` as never],
+          }),
+        ],
+      });
+      proxy.setupGuildsAndQuests({
+        guildItems: [guildItem],
+        questsByGuildId: [{ guildId, quests: [quest] }],
+      });
+      proxy.setupWorktreeMissing({ quest, worktreePath });
+      const clear = jest.fn();
+      const setActive = jest.fn();
+      const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
+
+      const result = await scanOnceLayerBroker({ activeQuest });
+
+      expect({
+        result,
+        blockCalls: proxy.getBlockCalls(),
+        clearCallCount: clear.mock.calls.length,
+        setActiveCalls: setActive.mock.calls,
+      }).toStrictEqual({
+        result: null,
+        blockCalls: [
+          {
+            questId,
+            failedWorkItemId: wardId,
+            reason: `Worktree not found: ${worktreePath}`,
+          },
+        ],
+        clearCallCount: 1,
+        setActiveCalls: [],
+      });
+    });
+
     // The window the gate's PLACEMENT closes, not the role check: a crash between the previous
-    // carve's ledger write and its advance call leaves the `pt N` riftcarver operation item with no
+    // carve's ledger write and its advance call leaves the riftcarver operation item with no
     // work item, so the scan computes a NULL step. A gate above the self-heal blocks on that null,
     // pre-empting the very advance that would have minted the carve — and every resume repeats it.
-    it('VALID: {pending pt N riftcarver op with NO work item, recorded worktree gone} => the self-heal mints the carve and the scan dispatches it instead of blocking', async () => {
+    it('VALID: {pending riftcarver op with NO work item, recorded worktree gone} => the self-heal mints the carve and the scan dispatches it instead of blocking', async () => {
       const proxy = scanOnceLayerBrokerProxy();
       const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
@@ -502,6 +572,7 @@ describe('scanOnceLayerBroker', () => {
             role: 'riftcarver',
             status: 'pending',
             spawnerType: 'command',
+            step: 'carve',
             dependsOn: [mendedId],
             relatedDataItems: [`operations/${operationId}` as never],
           }),
@@ -539,7 +610,7 @@ describe('scanOnceLayerBroker', () => {
         clearCallCount: clear.mock.calls.length,
         setActiveCalls: setActive.mock.calls,
       }).toStrictEqual({
-        step: { type: 'run-riftcarver', questId, workItemId: carveId },
+        step: { type: 'run-step', questId, workItemId: carveId, handler: 'riftcarver', args: [] },
         blockCalls: [],
         persistedWorkItems: [
           {
@@ -642,6 +713,7 @@ describe('scanOnceLayerBroker', () => {
           {
             questId,
             role: 'codeweaver',
+            model: 'opus',
             workItemId: cwId,
             taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cwId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
           },
@@ -656,14 +728,16 @@ describe('scanOnceLayerBroker', () => {
   // must proceed past the missing-worktree guard exactly like repo-root does, never blocking. The
   // ward/agent pairing below is quest-agent-cwd:terminal:ward-scoped's other half: it proves the
   // path the dispatcher actually takes for a 'ward' item is discriminable from the 'agent' item —
-  // the same worktree resolution, two different NextStep shapes.
+  // the same worktree resolution, two different NextStep shapes (run-step for the gate, spawn-agents
+  // for the codeweaver).
   describe('quest-agent-cwd: worktree-present branch (kind: worktree, never missing)', () => {
-    it('VALID: {worktree present, ready ward item} => proceeds past the guard and returns run-ward, never blocking', async () => {
+    it('VALID: {worktree present, ready ward gate step} => proceeds past the guard and returns run-step, never blocking', async () => {
       const proxy = scanOnceLayerBrokerProxy();
       const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-worktree-ward' });
       const wardId = QuestWorkItemIdStub({ value: 'fff88888-1111-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'fff00000-58cc-4372-a567-0e02b2c3d479' });
       // Hostile fixture member (FIXTURE REQUIREMENTS): a path segment containing a space, and a
       // value that must be a DIFFERENT string from the default repo-root stub ('/test/repo/root')
       // so the two resolutions are distinguishable rather than accidentally matching.
@@ -674,12 +748,15 @@ describe('scanOnceLayerBroker', () => {
         id: questId,
         status: 'in_progress',
         worktreePath,
+        operations: [OperationItemStub({ id: operationId, role: 'ward', status: 'in_progress' })],
         workItems: [
           WorkItemStub({
             id: wardId,
             role: 'ward',
             status: 'pending',
             spawnerType: 'command',
+            step: 'gate',
+            relatedDataItems: [`operations/${operationId}` as never],
           }),
         ],
       });
@@ -703,7 +780,7 @@ describe('scanOnceLayerBroker', () => {
         clearCallCount: clear.mock.calls.length,
         setActiveCalls: setActive.mock.calls,
       }).toStrictEqual({
-        result: { type: 'run-ward', questId, workItemId: wardId },
+        result: { type: 'run-step', questId, workItemId: wardId, handler: 'ward', args: [] },
         blockCalls: [],
         clearCallCount: 0,
         setActiveCalls: [[{ questId }]],
@@ -751,6 +828,7 @@ describe('scanOnceLayerBroker', () => {
             {
               questId,
               role: 'codeweaver',
+              model: 'opus',
               workItemId: cwId,
               taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cwId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
             },
@@ -825,6 +903,7 @@ describe('scanOnceLayerBroker', () => {
             {
               questId,
               role: 'codeweaver',
+              model: 'opus',
               workItemId: cwId,
               taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cwId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
             },
@@ -889,6 +968,7 @@ describe('scanOnceLayerBroker', () => {
             {
               questId,
               role: 'codeweaver',
+              model: 'opus',
               workItemId: cwId,
               taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cwId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
             },

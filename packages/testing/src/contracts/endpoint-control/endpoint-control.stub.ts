@@ -12,6 +12,7 @@ export const EndpointControlStub = ({
     responds,
     respondRaw,
     networkError,
+    holdsOpen,
     getRequestCount,
     getRequestBodies,
     ...dataProps
@@ -25,6 +26,9 @@ export const EndpointControlStub = ({
     responds: responds ?? ((): void => undefined),
     respondRaw: respondRaw ?? ((): void => undefined),
     networkError: networkError ?? ((): void => undefined),
+    holdsOpen:
+      holdsOpen ??
+      ((): ReturnType<EndpointControl['holdsOpen']> => ({ release: (): void => undefined })),
     getRequestCount:
       getRequestCount ??
       ((): ReturnType<EndpointControl['getRequestCount']> => requestCountContract.parse(0)),

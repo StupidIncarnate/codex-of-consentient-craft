@@ -48,6 +48,8 @@ describe('runExecuteStepLayerBroker', () => {
           pixelChange: null,
           blank: null,
           blankColour: null,
+          previousReading: null,
+          delta: null,
           serverWindow: { fromByte: 0, toByte: 0 },
           startedAtMs: FIXED_NOW_MS,
           endedAtMs: FIXED_NOW_MS,
@@ -118,6 +120,8 @@ describe('runExecuteStepLayerBroker', () => {
           pixelChange: null,
           blank: null,
           blankColour: null,
+          previousReading: null,
+          delta: null,
           serverWindow: { fromByte: 0, toByte: 0 },
           startedAtMs: FIXED_NOW_MS,
           endedAtMs: FIXED_NOW_MS,
@@ -141,7 +145,8 @@ describe('runExecuteStepLayerBroker', () => {
       });
       const step = StepStub({ step: 'goto', path: UrlPathStub({ value: '/guilds' }) });
       const shotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step3.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step3.png',
       });
 
       const outcome = await runExecuteStepLayerBroker({
@@ -164,10 +169,12 @@ describe('runExecuteStepLayerBroker', () => {
           ok: false,
           expected: 'ok',
           reading: 'page.goto: Timeout 30000ms exceeded.',
-          shot: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step3.png',
+          shot: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step3.png',
           pixelChange: null,
           blank: false,
           blankColour: null,
+          previousReading: null,
+          delta: null,
           serverWindow: { fromByte: 0, toByte: 0 },
           startedAtMs: FIXED_NOW_MS,
           endedAtMs: FIXED_NOW_MS,
@@ -192,7 +199,8 @@ describe('runExecuteStepLayerBroker', () => {
       });
       const step = StepStub({ step: 'goto', path: UrlPathStub({ value: '/guilds' }) });
       const shotPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_1/step3.png',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step3.png',
       });
 
       const outcome = await runExecuteStepLayerBroker({
@@ -219,6 +227,8 @@ describe('runExecuteStepLayerBroker', () => {
           pixelChange: null,
           blank: null,
           blankColour: null,
+          previousReading: null,
+          delta: null,
           serverWindow: { fromByte: 0, toByte: 0 },
           startedAtMs: FIXED_NOW_MS,
           endedAtMs: FIXED_NOW_MS,
@@ -271,6 +281,8 @@ describe('runExecuteStepLayerBroker', () => {
           pixelChange: null,
           blank: null,
           blankColour: null,
+          previousReading: null,
+          delta: null,
           serverWindow: { fromByte: 0, toByte: 0 },
           startedAtMs: FIXED_NOW_MS,
           endedAtMs: FIXED_NOW_MS,
@@ -326,6 +338,8 @@ describe('runExecuteStepLayerBroker', () => {
           pixelChange: null,
           blank: null,
           blankColour: null,
+          previousReading: null,
+          delta: null,
           serverWindow: { fromByte: 0, toByte: 0 },
           startedAtMs: FIXED_NOW_MS,
           endedAtMs: FIXED_NOW_MS,
@@ -409,6 +423,8 @@ describe('runExecuteStepLayerBroker', () => {
           pixelChange: null,
           blank: null,
           blankColour: null,
+          previousReading: null,
+          delta: null,
           serverWindow: { fromByte: 0, toByte: 0 },
           startedAtMs: FIXED_NOW_MS,
           endedAtMs: FIXED_NOW_MS,
@@ -453,6 +469,8 @@ describe('runExecuteStepLayerBroker', () => {
           pixelChange: null,
           blank: null,
           blankColour: null,
+          previousReading: null,
+          delta: null,
           serverWindow: { fromByte: 0, toByte: 0 },
           startedAtMs: FIXED_NOW_MS,
           endedAtMs: FIXED_NOW_MS,

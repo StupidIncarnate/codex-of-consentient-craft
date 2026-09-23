@@ -21,8 +21,8 @@ const WORK_ITEM_STATUSES = Object.keys(
 ) as readonly WorkItemStatusKey[];
 
 // Matches the crypto.randomUUID literal sticky-mocked by chatSpawnBrokerProxy (composed inside
-// FollowupChatStartResponderProxy) and the 'chat' processIdPrefix every non-glyphsmith chat role
-// gets (chatSpawnBroker.ts: `role === 'glyphsmith' ? 'design' : 'chat'`).
+// FollowupChatStartResponderProxy) and the one 'chat' processIdPrefix every chat role gets
+// (chatSpawnBroker.ts: `processIdPrefixContract.parse('chat')`).
 const MINTED_CHAT_PROCESS_ID = 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479';
 const MINTED_WORK_ITEM_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
@@ -50,10 +50,10 @@ const stripTrailingAddDirPair = ({ args }: { args: unknown }): unknown => {
 };
 
 const awaitOnCompleteFireAndForget = async (): Promise<void> => {
-  // Mirrors design-chat-start-responder.test.ts's own wait for the onComplete fire-and-forget
-  // questModifyBroker chain: a nested setImmediate pair (spawn exit event, then the launcher's
-  // onComplete handler) followed by a setTimeout(0) so the questModifyBroker promise chain
-  // (find-quest-path -> load -> persist) settles before the assertion reads it.
+  // Waits out the onComplete fire-and-forget questModifyBroker chain: a nested setImmediate pair
+  // (spawn exit event, then the launcher's onComplete handler) followed by a setTimeout(0) so the
+  // questModifyBroker promise chain (find-quest-path -> load -> persist) settles before the
+  // assertion reads it.
   await new Promise<void>((resolve) => {
     setImmediate(() => {
       setImmediate(() => {

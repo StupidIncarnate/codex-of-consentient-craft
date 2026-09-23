@@ -18,7 +18,7 @@ describe('runResultContract', () => {
         shots: [
           {
             step: 1,
-            path: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2/step1.png',
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step1.png',
             open: true,
             why: 'start',
             node: null,
@@ -43,7 +43,7 @@ describe('runResultContract', () => {
         shots: [
           {
             step: 1,
-            path: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2/step1.png',
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step1.png',
             open: true,
             why: 'start',
             node: null,
@@ -203,7 +203,7 @@ describe('runResultContract', () => {
         shots: [
           {
             step: 1,
-            path: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2/step1.png',
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step1.png',
             open: true,
             why: 'start',
             node: null,

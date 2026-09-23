@@ -108,13 +108,9 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
       });
 
       // Act: pause via server endpoint
-      const pauseResponse = await request.post(`/api/quests/${questId}/pause`);
+      const pauseResult = await quests.pauseQuestResponse({ questId: String(questId) });
 
-      expect(pauseResponse.status()).toBe(HTTP_OK);
-
-      const pauseBody = await pauseResponse.json();
-
-      expect(pauseBody).toStrictEqual({ paused: true });
+      expect(pauseResult).toStrictEqual({ status: HTTP_OK, body: { paused: true } });
 
       // Assert: quest is paused and pausedAtStatus snapshot equals the original status
       const afterPauseResponse = await request.get(`/api/quests/${questId}`);
@@ -129,20 +125,19 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
       }).toStrictEqual({ status: 'paused', pausedAtStatus: status });
 
       // Act: resume via server endpoint
-      const resumeResponse = await request.post(`/api/quests/${questId}/resume`);
-
-      expect(resumeResponse.status()).toBe(HTTP_OK);
-
-      const resumeBody = await resumeResponse.json();
+      const resumeResult = await quests.resumeQuestResponse({ questId: String(questId) });
 
       // Every fixture here carries a drained ledger and no work item the dispatcher would pick up
       // (a chat-role item never counts — see `hasIncompleteQuestWorkGuard`), so resume leaves the
       // GLOBAL dispatcher alone — starting it would do nothing for this quest and would reach
       // across every other quest in the suite.
-      expect(resumeBody).toStrictEqual({
-        resumed: true,
-        restoredStatus: status,
-        dispatch: { started: false, reason: 'quest has no dispatchable work' },
+      expect(resumeResult).toStrictEqual({
+        status: HTTP_OK,
+        body: {
+          resumed: true,
+          restoredStatus: status,
+          dispatch: { started: false, reason: 'quest has no dispatchable work' },
+        },
       });
 
       // Assert: quest.status is back to the original pre-pause status

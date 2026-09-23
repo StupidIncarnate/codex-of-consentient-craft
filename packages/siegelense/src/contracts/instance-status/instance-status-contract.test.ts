@@ -53,7 +53,10 @@ describe('instanceStatusContract', () => {
         lastStep: { run: 'run_2', step: 7, verb: 'click' },
         orphans: [{ pgid: 33_812, cmd: 'npm run dev:no-watch', alive: true }],
         evidence: {
-          dir: { path: '/repo/.siegelense/guilds/g1/instances/inst_9b2c', linkPresent: true },
+          dir: {
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c',
+            linkPresent: true,
+          },
           transcript: 'run_2.jsonl',
           logs: ['api-server.log', 'web-server.log'],
           lastShot: 'run_2/step7.png',
@@ -77,7 +80,10 @@ describe('instanceStatusContract', () => {
         lastStep: { run: 'run_2', step: 7, verb: 'click' },
         orphans: [{ pgid: 33_812, cmd: 'npm run dev:no-watch', alive: true }],
         evidence: {
-          dir: { path: '/repo/.siegelense/guilds/g1/instances/inst_9b2c', linkPresent: true },
+          dir: {
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c',
+            linkPresent: true,
+          },
           transcript: 'run_2.jsonl',
           logs: ['api-server.log', 'web-server.log'],
           lastShot: 'run_2/step7.png',

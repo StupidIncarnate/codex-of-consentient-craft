@@ -59,13 +59,13 @@ test.describe('Quest Pause and Resume', () => {
       ],
     });
 
-    const pauseResponse = await request.post(`/api/quests/${questId}/pause`);
+    const { status: pauseStatus, body: pauseBody } = await quests.pauseQuestResponse({
+      questId: String(questId),
+    });
 
-    expect(pauseResponse.status()).toBe(HTTP_OK);
+    expect(pauseStatus).toBe(HTTP_OK);
 
-    const pauseData = await pauseResponse.json();
-
-    expect(pauseData.paused).toBe(true);
+    expect(pauseBody.paused).toBe(true);
 
     const questResponse = await request.get(`/api/quests/${questId}`);
 
@@ -115,20 +115,21 @@ test.describe('Quest Pause and Resume', () => {
       ],
     });
 
-    const pauseResponse = await request.post(`/api/quests/${questId}/pause`);
+    const pauseResult = await quests.pauseQuestResponse({ questId: String(questId) });
 
-    expect(pauseResponse.status()).toBe(HTTP_OK);
+    expect(pauseResult.status).toBe(HTTP_OK);
 
     const pausedResponse = await request.get(`/api/quests/${questId}`);
     const pausedData = await pausedResponse.json();
 
     expect(pausedData.quest.status).toBe('paused');
 
-    const resumeResponse = await request.patch(`/api/quests/${questId}`, {
-      data: { status: 'in_progress' },
+    const resumeResult = await quests.patchQuestStatusResponse({
+      questId: String(questId),
+      status: 'in_progress',
     });
 
-    expect(resumeResponse.status()).toBe(HTTP_OK);
+    expect(resumeResult.status).toBe(HTTP_OK);
 
     const resumedResponse = await request.get(`/api/quests/${questId}`);
     const resumedData = await resumedResponse.json();

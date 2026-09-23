@@ -6,6 +6,7 @@ import { sessionHarness } from '../../../test/harnesses/session/session.harness'
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
+import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-bughunt-begin-transition';
 const MODAL_TIMEOUT = 5_000;
@@ -54,6 +55,16 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 
 test.describe('Bug-hunt Begin Quest transition', () => {
   test.beforeEach(async ({ request }) => {
+    const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
+
+    // POST /start now plays the dispatcher on the user's behalf (mirroring resume), so without a
+    // held queue the Node dispatcher wakes on the enqueue inside the start request and races a REAL
+    // carve against the fixture repo underneath every assertion below — its failure blocks the
+    // quest before the poll ever observes `in_progress`. Same fix as
+    // quest-begin-transition.e2e.ts's own beforeEach, which documents the identical race.
+    await dispatch.beforeEach();
+    dispatch.holdQueueWithMcpHeartbeat();
+
     await guildHarness({ request }).cleanGuilds();
     await sessions.cleanSessionDirectory();
   });
@@ -236,6 +247,7 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     const guilds = guildHarness({ request });
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
+    const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
 
     const guild = await guilds.createGuild({ name: 'Bug Hunt Restart Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
@@ -282,8 +294,8 @@ test.describe('Bug-hunt Begin Quest transition', () => {
 
     // First Start: real, through the same endpoint the button calls. The ledger the rest of this
     // test measures is therefore one Start actually produced, not one the fixture hand-wrote.
-    const firstStart = await request.post(`/api/quests/${questId}/start`);
-    expect(firstStart.status()).toBe(HTTP_OK);
+    const firstStart = await dispatch.startQuestViaStartRoute({ questId });
+    expect(firstStart.status).toBe(HTTP_OK);
 
     const afterFirstStartResponse = await request.get(`/api/quests/${questId}`);
     const afterFirstStart = await afterFirstStartResponse.json();

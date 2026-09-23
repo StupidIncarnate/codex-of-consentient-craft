@@ -15,6 +15,18 @@ const EVIDENCE_PATH = AbsoluteFilePathStub({
 });
 const TARGET = '[data-testid="PIXEL_BTN"]';
 const WITHIN = '[data-testid="GUILD_LIST"]';
+// The second init script the session arms: the settle detector's MutationObserver, installed
+// straight after the ref registry's so a navigation re-arms both.
+const SETTLE_INIT_SOURCE = [
+  '(() => {',
+  '  const existing = window.__siegeSettle;',
+  '  if (existing !== undefined && existing.observer !== null) { return; }',
+  '  const state = { lastMutationAt: null, observer: null };',
+  '  window.__siegeSettle = state;',
+  '  state.observer = new MutationObserver(() => { state.lastMutationAt = Date.now(); });',
+  '  state.observer.observe(document, { subtree: true, childList: true, attributes: true, characterData: true });',
+  '})()',
+].join('\n');
 
 describe('playwrightSessionAdapter', () => {
   describe('countMatches()', () => {
@@ -386,6 +398,7 @@ describe('playwrightSessionAdapter', () => {
           '  }',
           '})()',
         ].join('\n'),
+        SETTLE_INIT_SOURCE,
       ]);
     });
 
@@ -819,7 +832,73 @@ describe('playwrightSessionAdapter', () => {
 
       await session.addInitScript({ source: 'window.__test = 1;' });
 
-      expect(proxy.getInitScripts().slice(1)).toStrictEqual([{ content: 'window.__test = 1;' }]);
+      expect(proxy.getInitScripts().slice(2)).toStrictEqual([{ content: 'window.__test = 1;' }]);
+    });
+  });
+
+  describe('waitForSettle()', () => {
+    it('VALID: {a page nothing has touched} => settles on the first probe, waiting no time at all', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const reading = await session.waitForSettle({});
+
+      expect(reading).toStrictEqual({
+        settled: true,
+        reason: 'quiet',
+        waitedMs: 0,
+        unsettled: [],
+        pendingRequests: 0,
+        pollersDiscounted: [],
+      });
+      expect(proxy.getWaitForTimeoutCalls()).toStrictEqual([]);
+    });
+
+    it('VALID: {a running animation, ceiling 100, poll 50} => reports the ceiling and names the animation signal', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      proxy.setSettleProbeResult({
+        raw: { nowMs: 1_700_000_000_000, lastMutationAtMs: null, runningAnimations: 2 },
+      });
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      const reading = await session.waitForSettle({ ceilingMs: 100, pollMs: 50 });
+
+      expect(reading).toStrictEqual({
+        settled: false,
+        reason: 'ceiling',
+        waitedMs: 0,
+        unsettled: ['animation'],
+        pendingRequests: 0,
+        pollersDiscounted: [],
+      });
+    });
+  });
+
+  describe('construction — pollerRepeatThreshold', () => {
+    it('VALID: {as many same-shape request starts as driverStatics.settle.pollerRepeatThreshold} => the last one is classified a discounted poller, pinning that the constructed settle detector honors driverStatics.settle.pollerRepeatThreshold rather than a number chosen independently of it', async () => {
+      const proxy = playwrightSessionAdapterProxy();
+      const session = await playwrightSessionAdapter({
+        baseUrl: BASE_URL,
+        evidencePath: EVIDENCE_PATH,
+      });
+
+      Array.from({ length: driverStatics.settle.pollerRepeatThreshold }).forEach(() => {
+        proxy.emitRequestStarted({
+          method: 'GET',
+          url: 'http://x/api/quests',
+          resourceType: 'fetch',
+        });
+      });
+
+      const reading = await session.waitForSettle({ ceilingMs: 10, pollMs: 10 });
+
+      expect(reading.pollersDiscounted).toStrictEqual(['GET http://x/api/quests']);
     });
   });
 

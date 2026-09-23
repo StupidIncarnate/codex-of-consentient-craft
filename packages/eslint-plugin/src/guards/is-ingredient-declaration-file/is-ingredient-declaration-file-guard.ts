@@ -12,9 +12,9 @@
  * USAGE:
  * isIngredientDeclarationFileGuard({ filename: 'packages/hydration-recipes/src/quest/quest-ingredient.ts' });
  * // Returns true — bare convention
- * isIngredientDeclarationFileGuard({ filename: '/repo/packages/siegelense-recipes/src/brokers/quest/ingredient/quest-ingredient-broker.ts' });
+ * isIngredientDeclarationFileGuard({ filename: '/repo/packages/hydration-recipes/src/brokers/quest/ingredient/quest-ingredient-broker.ts' });
  * // Returns true — this repo's real convention
- * isIngredientDeclarationFileGuard({ filename: '/repo/packages/siegelense-recipes/src/brokers/quest/write-route/quest-write-route-broker.ts' });
+ * isIngredientDeclarationFileGuard({ filename: '/repo/packages/hydration-recipes/src/brokers/quest/write-route/quest-write-route-broker.ts' });
  * // Returns false — a route broker the ingredient's config merely references, not a declaration
  */
 import { ingredientDeclarationStatics } from '../../statics/ingredient-declaration/ingredient-declaration-statics';

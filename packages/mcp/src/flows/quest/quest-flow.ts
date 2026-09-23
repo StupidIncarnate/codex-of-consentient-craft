@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-blight-checklist, create-quest, get-next-step, run-ward, run-riftcarver, get-server-config, get-quest-summary, create-worktree, quest-work)
+ * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-blight-checklist, create-quest, get-next-step, get-server-config, get-quest-summary, create-worktree, quest-work)
  *
  * USAGE:
  * const registrations = QuestFlow();
@@ -23,9 +23,7 @@ import { getQuestStatusInputContract } from '../../contracts/get-quest-status-in
 import { getQuestSummaryInputContract } from '../../contracts/get-quest-summary-input/get-quest-summary-input-contract';
 import { listQuestsInputContract } from '../../contracts/list-quests-input/list-quests-input-contract';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
-import { runRiftcarverInputContract } from '../../contracts/run-riftcarver-input/run-riftcarver-input-contract';
 import { questWorkInputContract } from '../../contracts/quest-work-input/quest-work-input-contract';
-import { runWardInputContract } from '../../contracts/run-ward-input/run-ward-input-contract';
 import { startQuestInputContract } from '../../contracts/start-quest-input/start-quest-input-contract';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
 import { QuestHandleResponder } from '../../responders/quest/handle/quest-handle-responder';
@@ -50,8 +48,6 @@ const getBlightChecklistSchema = zodToJsonSchema(
 );
 const createQuestSchema = zodToJsonSchema(createQuestInputContract as never, jsonSchemaOptions);
 const getNextStepSchema = zodToJsonSchema(getNextStepInputContract as never, jsonSchemaOptions);
-const runWardSchema = zodToJsonSchema(runWardInputContract as never, jsonSchemaOptions);
-const runRiftcarverSchema = zodToJsonSchema(runRiftcarverInputContract as never, jsonSchemaOptions);
 const getQuestSummarySchema = zodToJsonSchema(
   getQuestSummaryInputContract as never,
   jsonSchemaOptions,
@@ -135,23 +131,9 @@ export const QuestFlow = (): ToolRegistration[] => [
   {
     name: 'get-next-step' as never,
     description:
-      'Returns the next dispatch instruction for /dumpster-launch: spawn-agents | run-ward | idle. Long-polls internally up to ~25s.' as never,
+      'Returns the next dispatch instruction for /dumpster-launch: spawn-agents | idle. Long-polls internally up to ~25s.' as never,
     inputSchema: getNextStepSchema as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'get-next-step' as never, args }),
-  },
-  {
-    name: 'run-ward' as never,
-    description:
-      'Runs `npm run ward` synchronously over the whole monorepo and persists the result onto the named work item. Blocks until ward exits.' as never,
-    inputSchema: runWardSchema as never,
-    handler: async ({ args }) => QuestHandleResponder({ tool: 'run-ward' as never, args }),
-  },
-  {
-    name: 'run-riftcarver' as never,
-    description:
-      "Carves a quest its workspace: detects the base branch, creates the quest branch and git worktree, mirrors node_modules into it, and runs a scoped `ward run --only typecheck` to convergence — then persists the streamed log and applies the outcome to the ledger. Riftcarver is the FIRST item of every new quest's relay, so /dumpster-launch reaches it before any agent runs. It BLOCKS for minutes while the workspace is forged; AWAIT it and do not call get-next-step again until it returns. There is no mode — a carve has only one scope." as never,
-    inputSchema: runRiftcarverSchema as never,
-    handler: async ({ args }) => QuestHandleResponder({ tool: 'run-riftcarver' as never, args }),
   },
   {
     name: 'get-server-config' as never,
@@ -163,7 +145,7 @@ export const QuestFlow = (): ToolRegistration[] => [
   {
     name: 'get-quest-summary' as never,
     description:
-      'Returns what ACTUALLY happened on a quest, which `get-quest` and a status do not answer: per-flow, per-track sign-off coverage (confirmed / unconfirmable / outstanding); every observable added AFTER the user approved the spec, with the role that added it; every `unconfirmable` verdict with its evidence AND the question that would close it AND the work item that raised it; and the durable `questNotes` grouped by kind, open questions first. A quest reaches `complete` when its operations ledger drains, not when its three sign-off tracks (codeweaver, flowrider, siegemaster) finish — signing is a durable proof record, and `unconfirmable` signs a unit exactly as `confirmed` does, so a complete quest can still carry real holes, real unapproved scope and real unanswered questions, and this is the only surface that shows them. Call it when picking up a quest someone else worked, before a review, or before deciding what is left to do.' as never,
+      "Returns what ACTUALLY happened on a quest, which `get-quest` and a status do not answer: per-flow, per-track coverage (`met` / `cant-meet` / `unmet` / `outstanding`, one row per track that measures a flow); every observable added AFTER the user approved the spec, with the role that added it; the DEBT list — every unit settled without proof (`cant-meet`) or still left open (`unmet`), each with its evidence, its `toSettle` action where one exists, and the work item that raised it; every `verifyByHuman` criterion no track's denominator can ever carry; and the durable `noteGroups`, grouped by kind with open questions first. A quest reaches `complete` when its operations ledger drains, not when every unit is marked `met` — a `cant-meet` settles a unit without proving it and an `unmet` leaves the work open, and neither one holds that ledger — so a complete quest can still carry real holes, real unapproved scope and real unanswered questions, and this is the only surface that shows them. Call it when picking up a quest someone else worked, before a review, or before deciding what is left to do." as never,
     inputSchema: getQuestSummarySchema as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'get-quest-summary' as never, args }),
   },

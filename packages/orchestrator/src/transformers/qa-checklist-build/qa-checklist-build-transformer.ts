@@ -1,11 +1,12 @@
 /**
  * PURPOSE: Renders ONE flow's atomic verification units — every terminal, every labelled decision
  * branch, every embedded observable, and every off-map probe family — as the checklist a session
- * reads, with the walk's routes alongside them and all units initially remaining for verification
+ * reads, with the walk's routes alongside them and, for the track that asked, the units that track
+ * has yet to settle
  *
  * USAGE:
- * qaChecklistBuildTransformer({ flow });
- * // Returns QaChecklist whose `remainingItemIds` are all units in the flow initially remaining
+ * qaChecklistBuildTransformer({ flow, track: 'flowrider', quest });
+ * // Returns QaChecklist whose `remainingItemIds` are the units no flowrider work item has settled
  *
  * THE UNITS THEMSELVES COME FROM `qaUnitEnumerateTransformer`, which the quest summary reads too.
  * This file owns only the presentation on top of them: the label wording, the check surface, the
@@ -13,8 +14,15 @@
  * same ids every other reader of a track's coverage names — a second derivation would drift
  * silently.
  *
- * `remainingItemIds` IS THE WORK LIST, NOT A GATE. With sign-off fields retired from flows, all
- * checklist items are initially remaining, subject to verification by work items.
+ * `remainingItemIds` IS THE WORK LIST, NOT A GATE — nothing refuses a `done` over the number — and
+ * it is ATTRIBUTED PER TRACK. Two tracks produce two independent verdicts on the same unit, so a
+ * unit a codeweaver settled is still outstanding for flowrider: a unit leaves the list only on a
+ * `met` or a `cant-meet` carried by a work item whose ROLE is the asking track. `unmet` keeps it on
+ * the list, because `unmet` is what mints a successor rather than a settlement. The record read is
+ * `workItem.observations` — the single per-unit record every role writes.
+ *
+ * With no `track`, or no `quest` to read work items from, every unit is remaining. That is the
+ * whole-quest read-only shape, not a claim that no track has settled anything.
  *
  * NO MODEL IS IN THIS LOOP, and that is the entire point. A session asked to enumerate a
  * 45-observable flow summarises, drops the tail, or paraphrases the wording; this walks the data
@@ -39,6 +47,7 @@ import type {
   PackageGraphEntry,
   PackageName,
   QaChecklist,
+  Quest,
   QuestPackageEntry,
 } from '@dungeonmaster/shared/contracts';
 import {
@@ -53,10 +62,14 @@ import { qaWalkPathsTransformer } from '../qa-walk-paths/qa-walk-paths-transform
 
 export const qaChecklistBuildTransformer = ({
   flow,
+  track,
+  quest,
 }: {
   flow: Flow;
-  // Keyed on stepScopeStatics rather than retired signoffTrackEligibilityStatics.
   track?: keyof typeof stepScopeStatics.byFamilyStep;
+  // The work items are the only record of what any track settled, so a track-attributed answer is
+  // unanswerable without the quest holding them — and passing a track without one asks for one.
+  quest?: Quest;
   packagesAffected?: readonly QuestPackageEntry[];
   packageNames?: readonly PackageName[];
   packageGraph?: readonly PackageGraphEntry[];
@@ -109,6 +122,21 @@ export const qaChecklistBuildTransformer = ({
 
   const allPaths = qaWalkPathsTransformer({ flow });
 
+  // Attribution is by the WORK ITEM'S role, never by the mark alone: a `met` a codeweaver wrote
+  // settles nothing for flowrider, and `unmet` settles nothing for anyone — it is what mints the
+  // successor that will carry the unit again.
+  const settledForTrack = new Set(
+    track === undefined || quest === undefined
+      ? []
+      : quest.workItems
+          .filter((workItem) => workItem.role === track)
+          .flatMap((workItem) =>
+            workItem.observations
+              .filter((observation) => observation.mark !== 'unmet')
+              .map((observation) => String(observation.unitId)),
+          ),
+  );
+
   return qaChecklistContract.parse({
     flowId: flow.id,
     flowName: flow.name,
@@ -116,6 +144,8 @@ export const qaChecklistBuildTransformer = ({
     paths: allPaths.slice(0, qaChecklistLimitsStatics.maxPaths),
     pathsTruncated: allPaths.length > qaChecklistLimitsStatics.maxPaths,
     items,
-    remainingItemIds: items.map((item) => item.id),
+    remainingItemIds: items
+      .filter((item) => !settledForTrack.has(String(item.id)))
+      .map((item) => item.id),
   });
 };

@@ -52,7 +52,7 @@ module.exports = [
       '.git/**',
       'v1/**',
       'worktrees/**',
-      '.siegelense/**',
+      'siegelense-assets/**',
       'scripts/**',
       '**/*.d.ts',
       '*.md',

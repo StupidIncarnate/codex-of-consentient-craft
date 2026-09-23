@@ -19,7 +19,8 @@ export const StepReadingStub = ({ ...props }: StubArgument<StepReading> = {}): S
     expected: StepExpectationStub(),
     reading: ContentTextStub({ value: 'clicked [data-testid="GUILD_ADD"]' }),
     shot: AbsoluteFilePathStub({
-      value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2/step2.png',
+      value:
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step2.png',
     }),
     pixelChange: PixelChangeStub(),
     blank: false,

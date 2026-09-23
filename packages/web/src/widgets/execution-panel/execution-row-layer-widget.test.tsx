@@ -4,8 +4,8 @@ import userEvent from '@testing-library/user-event';
 import {
   ContractNameStub,
   ErrorMessageStub,
-  ObservableIdStub,
   RiftcarverResultStub,
+  UnitObservationStub,
   WardResultStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -57,6 +57,58 @@ describe('ExecutionRowLayerWidget', () => {
     });
   });
 
+  describe('nested step row (decision 2 NESTED ruling)', () => {
+    it('EMPTY: {order omitted} => renders no order number', () => {
+      ExecutionRowLayerWidgetProxy();
+      // Drop `order` from the stubbed props via a rest pattern rather than an inline object
+      // literal \u2014 enforce-stub-usage wants every Props-shaped value built through defaultProps().
+      const { order: _omittedOrder, ...propsWithoutOrder } = defaultProps();
+
+      mantineRenderAdapter({
+        ui: <ExecutionRowLayerWidget {...propsWithoutOrder} />,
+      });
+
+      const row = screen.getByTestId('execution-row-layer-widget');
+
+      expect(row.textContent).toBe('\u00B7\u00B7\u00B7[CODEWEAVER]Build auth flowPENDING');
+    });
+
+    it('VALID: {indented: true} => renders no [ROLE] badge, since the header above already names it', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ExecutionRowLayerWidget {...defaultProps()} indented={true} />,
+      });
+
+      expect(screen.queryByTestId('execution-row-role-badge')).toBe(null);
+    });
+
+    it('VALID: {indented: true} => shifts the row right with a left margin', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ExecutionRowLayerWidget {...defaultProps()} indented={true} />,
+      });
+
+      const row = screen.getByTestId('execution-row-layer-widget');
+
+      expect(row.style.marginLeft).toBe('20px');
+    });
+
+    it('EMPTY: {indented omitted} => renders the [ROLE] badge and carries no left margin', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ExecutionRowLayerWidget {...defaultProps()} />,
+      });
+
+      const row = screen.getByTestId('execution-row-layer-widget');
+
+      expect(screen.getByTestId('execution-row-role-badge').textContent).toBe('[CODEWEAVER]');
+      expect(row.style.marginLeft).toBe('0px');
+    });
+  });
+
   describe('role badge', () => {
     it('VALID: {role: "codeweaver"} => renders uppercase role badge', () => {
       ExecutionRowLayerWidgetProxy();
@@ -85,6 +137,30 @@ describe('ExecutionRowLayerWidget', () => {
       const badge = screen.getByTestId('execution-row-role-badge');
 
       expect(badge.textContent).toBe('[WARD]');
+    });
+  });
+
+  describe('step colour (T2-9b)', () => {
+    it('VALID: {role: "codeweaver", workItem.step: "ward"} => paints the role badge and chevron in the ward warning colour', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            workItem={WorkItemStub({ step: 'ward' })}
+          />
+        ),
+      });
+
+      const badge = screen.getByTestId('execution-row-role-badge');
+      const chevron = screen.getByTestId('execution-row-chevron');
+
+      expect([badge.style.color, chevron.style.color]).toStrictEqual([
+        'rgb(245, 158, 11)',
+        'rgb(245, 158, 11)',
+      ]);
     });
   });
 
@@ -174,6 +250,66 @@ describe('ExecutionRowLayerWidget', () => {
       const badge = screen.getByTestId('execution-row-status-badge');
 
       expect(badge.textContent).toBe('FAILED');
+    });
+  });
+
+  describe('unrecognized status/role fallback (a quest.json a newer family wrote)', () => {
+    it('VALID: {status: "reviewing_by_dragon" (unknown to this build)} => renders the raw status as its own label, with the neutral fallback colour, instead of crashing', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status={'reviewing_by_dragon' as never} />,
+      });
+
+      const badge = screen.getByTestId('execution-row-status-badge');
+
+      expect([badge.textContent, badge.style.color]).toStrictEqual([
+        'reviewing_by_dragon',
+        'rgb(138, 114, 96)',
+      ]);
+    });
+
+    it('VALID: {role: "questgiver" (unknown to this build)} => renders the role badge with the neutral fallback colour, instead of crashing', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ExecutionRowLayerWidget {...defaultProps()} role={'questgiver' as never} />,
+      });
+
+      const badge = screen.getByTestId('execution-row-role-badge');
+
+      expect([badge.textContent, badge.style.color]).toStrictEqual([
+        '[QUESTGIVER]',
+        'rgb(138, 114, 96)',
+      ]);
+    });
+
+    it('VALID: {status: "partially_complete" (a stale quest.json a family that still minted this status wrote, removed from this build)} => renders the raw status as its own label, with the neutral fallback colour, instead of crashing', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status={'partially_complete' as never} />,
+      });
+
+      const badge = screen.getByTestId('execution-row-status-badge');
+
+      expect([badge.textContent, badge.style.color]).toStrictEqual([
+        'partially_complete',
+        'rgb(138, 114, 96)',
+      ]);
+    });
+
+    it('VALID: {status: "partially_complete" (removed from EXPANDABLE_STATUSES), no entries} => clicking the header does not expand the row, same as any other unrecognized status', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status={'partially_complete' as never} />,
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
     });
   });
 
@@ -429,6 +565,45 @@ describe('ExecutionRowLayerWidget', () => {
 
       expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
       expect(screen.queryByTestId('subagent-chain-duration')).toBe(null);
+    });
+  });
+
+  describe('running focus (T2-9a)', () => {
+    it('VALID: {status: "in_progress", entries, isRunningFocus: false} => starts collapsed, and a header click still expands it', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={[AssistantTextChatEntryStub({ content: 'Working...' })]}
+            isRunningFocus={false}
+          />
+        ),
+      });
+
+      expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
+
+      await userEvent.click(screen.getByTestId('execution-row-header'));
+
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
+    });
+
+    it('VALID: {status: "in_progress", entries, isRunningFocus omitted} => auto-expands, as today', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={[AssistantTextChatEntryStub({ content: 'Working...' })]}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
     });
   });
 
@@ -1163,8 +1338,8 @@ describe('ExecutionRowLayerWidget', () => {
     });
   });
 
-  describe('observables rendering', () => {
-    it('VALID: {observablesSatisfied with items} => renders observables list', async () => {
+  describe('unit marks readout wiring', () => {
+    it('VALID: {workItem with assigned units} => renders the units-marks readout via the work item, not a separate prop', async () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
@@ -1172,9 +1347,61 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'complete' })}
-            observablesSatisfied={[
-              ObservableIdStub({ value: 'login-redirects' }),
-              ObservableIdStub({ value: 'session-persists' }),
+            workItem={WorkItemStub({
+              assignedUnitIds: ['send-flow:observable:check-badge-count-text'],
+              observations: [UnitObservationStub({ mark: 'met' })],
+            })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      expect(screen.getByTestId('execution-row-unit-marks-summary').textContent).toBe(
+        'Units: 1/1 marked',
+      );
+    });
+
+    it('EMPTY: {workItem: undefined} => does not render the units-marks readout', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      expect(screen.queryByTestId('execution-row-unit-marks')).toBe(null);
+    });
+  });
+
+  describe('scope churn wiring', () => {
+    it('VALID: {scopeWorkItems where a unit was marked twice} => renders the churn sequence', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            scopeWorkItems={[
+              WorkItemStub({
+                id: 'f47ac10b-58cc-4372-a567-0e02b2c3d475',
+                step: 'work',
+                observations: [UnitObservationStub({ mark: 'unmet' })],
+              }),
+              WorkItemStub({
+                id: 'f47ac10b-58cc-4372-a567-0e02b2c3d476',
+                step: 'review',
+                observations: [UnitObservationStub({ mark: 'met' })],
+              }),
             ]}
           />
         ),
@@ -1183,12 +1410,12 @@ describe('ExecutionRowLayerWidget', () => {
       const header = screen.getByTestId('execution-row-header');
       await userEvent.click(header);
 
-      const obsEl = screen.getByTestId('execution-row-observables');
-
-      expect(obsEl.textContent).toBe('Satisfies: login-redirects, session-persists');
+      expect(screen.getByTestId('execution-row-scope-churn-entry').textContent).toBe(
+        'send-flow:observable:check-badge-count-text: unmet (work) → met (review)',
+      );
     });
 
-    it('EMPTY: {empty observablesSatisfied} => does not render observables element', async () => {
+    it('EMPTY: {scopeWorkItems: undefined} => does not render the churn view', async () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
@@ -1196,7 +1423,6 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'complete' })}
-            observablesSatisfied={[]}
           />
         ),
       });
@@ -1204,7 +1430,111 @@ describe('ExecutionRowLayerWidget', () => {
       const header = screen.getByTestId('execution-row-header');
       await userEvent.click(header);
 
-      expect(screen.queryByTestId('execution-row-observables')).toBe(null);
+      expect(screen.queryByTestId('execution-row-scope-churn')).toBe(null);
+    });
+  });
+
+  describe('unmet observations list', () => {
+    it('VALID: {expanded, workItem with an unmet observation} => renders the unit id and evidence', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            workItem={WorkItemStub({
+              observations: [
+                UnitObservationStub({
+                  mark: 'unmet',
+                  evidence: 'still nothing renders the count',
+                }),
+              ],
+            })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      const unmetEl = screen.getByTestId('execution-row-unmet-observation');
+
+      expect(unmetEl.textContent).toBe(
+        '[unmet] send-flow:observable:check-badge-count-text: still nothing renders the count',
+      );
+    });
+
+    it('VALID: {expanded, workItem with both a met and an unmet observation} => renders only the unmet one', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            workItem={WorkItemStub({
+              observations: [
+                UnitObservationStub({
+                  unitId: 'send-flow:terminal:review-passes' as never,
+                  mark: 'met',
+                  evidence: 'review-passes-test.ts:12 — flips red on a bad review',
+                }),
+                UnitObservationStub({
+                  mark: 'unmet',
+                  evidence: 'still nothing renders the count',
+                }),
+              ],
+            })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      const unmetEls = screen.queryAllByTestId('execution-row-unmet-observation');
+
+      expect(unmetEls.map((el) => el.textContent)).toStrictEqual([
+        '[unmet] send-flow:observable:check-badge-count-text: still nothing renders the count',
+      ]);
+    });
+
+    it('EMPTY: {expanded, workItem with only a met observation} => does not render the unmet list', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            workItem={WorkItemStub({ observations: [UnitObservationStub({ mark: 'met' })] })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      expect(screen.queryByTestId('execution-row-unmet-list')).toBe(null);
+    });
+
+    it('EMPTY: {expanded, no workItem} => does not render the unmet list', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      expect(screen.queryByTestId('execution-row-unmet-list')).toBe(null);
     });
   });
 
@@ -1288,6 +1618,35 @@ describe('ExecutionRowLayerWidget', () => {
       });
 
       expect(screen.queryByTestId('execution-row-retry-badge')).toBe(null);
+    });
+  });
+
+  describe('back-edge badge (mintedBy)', () => {
+    it('VALID: {mintedByLabel: "walk pt: 1"} => renders a badge naming the row it returns to', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            mintedByLabel={DisplayLabelStub({ value: 'walk pt: 1' })}
+          />
+        ),
+      });
+
+      const badge = screen.getByTestId('execution-row-minted-by-badge');
+
+      expect(badge.textContent).toBe('↩ walk pt: 1');
+    });
+
+    it('EMPTY: {mintedByLabel omitted} => does not render the back-edge badge', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ExecutionRowLayerWidget {...defaultProps()} />,
+      });
+
+      expect(screen.queryByTestId('execution-row-minted-by-badge')).toBe(null);
     });
   });
 

@@ -89,7 +89,7 @@ export const OrchestrationStartResponder = async ({
   });
   const hasExistingRelay = quest.operations.some((operation) => operation.role === entryKey.role);
 
-  // Mark any non-complete chat work items (chaoswhisperer/glyphsmith/bughunt) as complete. The
+  // Mark any non-complete chat work items (chaoswhisperer/bughunt) as complete. The
   // spec phase is done by the time the user clicks "Begin Quest", but the work item status is
   // never explicitly set to complete during the chat phase.
   const promotedChatItems = quest.workItems.map((wi) =>

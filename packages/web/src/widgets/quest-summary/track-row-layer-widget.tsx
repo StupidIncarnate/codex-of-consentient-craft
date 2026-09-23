@@ -1,10 +1,18 @@
 /**
- * PURPOSE: Renders one verification track's coverage row for a flow — its denominator track name and
- * its confirmed/unconfirmable/outstanding unit counts.
+ * PURPOSE: Renders ONE verification track's coverage row for a flow — the track's name and the four
+ * counts that partition its denominator. Reach for this when you have a single track's numbers;
+ * `FlowRowLayerWidget` is the flow line that mounts one of these per track that measures it.
  *
  * USAGE:
  * <TrackRowLayerWidget track={track} />
- * // Renders QUEST_SUMMARY_TRACK_ROW with the track id and its three counts
+ * // Renders QUEST_SUMMARY_TRACK_ROW with the uppercased track id and its four counts
+ *
+ * `unmet` AND `outstanding` EACH GET THEIR OWN TESTID, LABEL AND COLOUR, and never share one. A
+ * session of this track looked at an `unmet` unit and left work open; nobody of this track has
+ * marked an `outstanding` one at all. Collapsed into a single figure, a reader cannot tell a track
+ * that tried and failed from one nothing has started — which is the question this row exists to
+ * answer, so `unmet` takes `danger` (open work with a verdict behind it) against `outstanding`'s
+ * `text-dim` (nobody yet).
  */
 
 import { Box, Text } from '@mantine/core';
@@ -43,17 +51,24 @@ export const TrackRowLayerWidget = ({ track }: TrackRowLayerWidgetProps): React.
       </Text>
       <Text
         ff="monospace"
-        data-testid="QUEST_SUMMARY_TRACK_CONFIRMED"
+        data-testid="QUEST_SUMMARY_TRACK_MET"
         style={{ fontSize: ROW_FONT_SIZE, color: colors.success, flexShrink: 0 }}
       >
-        {track.confirmed} confirmed
+        {track.met} met
       </Text>
       <Text
         ff="monospace"
-        data-testid="QUEST_SUMMARY_TRACK_UNCONFIRMABLE"
+        data-testid="QUEST_SUMMARY_TRACK_CANT_MEET"
         style={{ fontSize: ROW_FONT_SIZE, color: colors.warning, flexShrink: 0 }}
       >
-        {track.unconfirmable} unconfirmable
+        {track.cantMeet} cant-meet
+      </Text>
+      <Text
+        ff="monospace"
+        data-testid="QUEST_SUMMARY_TRACK_UNMET"
+        style={{ fontSize: ROW_FONT_SIZE, color: colors.danger, flexShrink: 0 }}
+      >
+        {track.unmet} unmet
       </Text>
       <Text
         ff="monospace"

@@ -52,8 +52,6 @@ import type { DispatchPlayResponse } from '../contracts/dispatch-play-response/d
 import type { NextStep } from '../contracts/next-step/next-step-contract';
 import type { PromptText } from '../contracts/prompt-text/prompt-text-contract';
 import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
-import type { QuestRunRiftcarverResult } from '../contracts/quest-run-riftcarver-result/quest-run-riftcarver-result-contract';
-import type { QuestRunWardResult } from '../contracts/quest-run-ward-result/quest-run-ward-result-contract';
 
 import type { ClarificationQuestion } from '../contracts/clarification-question/clarification-question-contract';
 import { AgentPromptFlow } from '../flows/agent-prompt/agent-prompt-flow';
@@ -63,7 +61,6 @@ import { ClarifyAnswerFlow } from '../flows/clarify-answer/clarify-answer-flow';
 import { CommentBatchFlow } from '../flows/comment-batch/comment-batch-flow';
 import { ChatStopFlow } from '../flows/chat-stop/chat-stop-flow';
 import { ChatStopAllFlow } from '../flows/chat-stop-all/chat-stop-all-flow';
-import { DesignChatStartFlow } from '../flows/design-chat-start/design-chat-start-flow';
 import { DirectoryFlow } from '../flows/directory/directory-flow';
 import { ExecutionQueueFlow } from '../flows/execution-queue/execution-queue-flow';
 import { FollowupChatStartFlow } from '../flows/followup-chat-start/followup-chat-start-flow';
@@ -209,14 +206,23 @@ export const StartOrchestrator = {
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getPlanningNotes>>> =>
     QuestFlow.getPlanningNotes({ questId }),
 
-  // The quest's whole verification state: per-flow/per-track sign-off counts, the observables added
-  // after approval, every `unconfirmable` verdict with its question, and the side-channel notes.
+  // The quest's whole verification state: per-flow/per-track mark counts, the observables added
+  // after approval, every unit carrying debt (`cant-meet` / `unmet`), and the side-channel notes.
   getQuestSummary: async ({
     questId,
   }: {
     questId: string;
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getSummary>>> =>
     QuestFlow.getSummary({ questId }),
+
+  // The likely remainder of the quest's execution: every MINTED scope's real work items,
+  // continued forward through `agentFlowStatics`'s `routes.done` edge to the next family boundary.
+  getQuestProjection: async ({
+    questId,
+  }: {
+    questId: string;
+  }): Promise<Awaited<ReturnType<typeof QuestFlow.getProjection>>> =>
+    QuestFlow.getProjection({ questId }),
 
   // MCP-driven get-quest-work — the ONE startup call every LLM step makes. `workItemId` serves
   // everything that session needs to start; `operationItemId` serves the whole plan as markdown for
@@ -366,20 +372,9 @@ export const StartOrchestrator = {
       ...(chatProcessId && { chatProcessId }),
     }),
 
-  // Design chat methods
-  startDesignChat: async ({
-    questId,
-    guildId,
-    message,
-  }: {
-    questId: QuestId;
-    guildId: GuildId;
-    message: string;
-  }): Promise<{ chatProcessId: ProcessId }> => DesignChatStartFlow({ questId, guildId, message }),
-
   // Follow-up chat methods — the FOLLOW-UP tab's post-quest conversation with the tavernkeeper.
-  // Same quest-scoped chat shape as startDesignChat, but resumes the single tavernkeeper work
-  // item across every message instead of minting a fresh chat item per turn.
+  // Quest-scoped chat, resuming the single tavernkeeper work item across every message instead
+  // of minting a fresh chat item per turn.
   startFollowupChat: async ({
     questId,
     guildId,
@@ -475,26 +470,8 @@ export const StartOrchestrator = {
   // MCP-driven get-next-step (/dumpster-launch dispatch loop)
   getNextStep: async (): Promise<NextStep> => QuestFlow.getNextStep(),
 
-  // MCP-driven run-ward (synchronous ward run + persist)
-  runWard: async ({
-    questId,
-    workItemId,
-  }: {
-    questId: QuestId;
-    workItemId: QuestWorkItemId;
-  }): Promise<QuestRunWardResult> => QuestFlow.runWard({ questId, workItemId }),
-
-  // MCP-driven run-riftcarver (synchronous branch + worktree + preflight typecheck, then persist)
-  runRiftcarver: async ({
-    questId,
-    workItemId,
-  }: {
-    questId: QuestId;
-    workItemId: QuestWorkItemId;
-  }): Promise<QuestRunRiftcarverResult> => QuestFlow.runRiftcarver({ questId, workItemId }),
-
   // MCP-driven signal-back post-processing — applies the session's operation outcome
-  // (done/partial/blocked) to the ledger atomically, then advances the relay.
+  // (done/blocked) to the ledger atomically, then advances the relay.
   handleSignalBack: async ({
     questId,
     workItemId,
@@ -505,7 +482,6 @@ export const StartOrchestrator = {
     workItemId: QuestWorkItemId;
     signal: 'complete';
     operationItemId?: OperationItemId;
-    operationStatus?: 'done' | 'partial' | 'blocked';
     blockedReason?: BlockedReason;
   }): Promise<AdapterResult> =>
     QuestFlow.handleSignalBack({ questId, workItemId, signal, ...operationOutcome }),

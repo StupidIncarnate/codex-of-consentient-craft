@@ -327,6 +327,113 @@ describe('resultToSummaryTransformer', () => {
     });
   });
 
+  describe('typecheck errors elsewhere in the package', () => {
+    it('VALID: {wardResult: typecheck fail with a named error and one elsewhere} => lists the named error first, then the other under its own heading', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'typecheck',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'ward', path: '/p/ward' },
+                status: 'fail',
+                filesCount: 20,
+                errors: [
+                  ErrorEntryStub({
+                    filePath: '/p/ward/src/named.ts',
+                    message: 'Named error',
+                    line: 3,
+                  }),
+                  ErrorEntryStub({
+                    filePath: '/p/ward/src/other.ts',
+                    message: 'Elsewhere error',
+                    line: 9,
+                  }),
+                ],
+                elsewhereErrors: [
+                  ErrorEntryStub({
+                    filePath: '/p/ward/src/other.ts',
+                    message: 'Elsewhere error',
+                    line: 9,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(String(result)).toBe(
+        [
+          'run: 1739625600000-a3f1',
+          'typecheck: FAIL  1 packages (18 files passed/2 files failed)  ward (2)',
+          '',
+          '--- typecheck ---',
+          'ward/src/named.ts',
+          '  Named error (line 3)',
+          '  --- errors elsewhere in ward ---',
+          'ward/src/other.ts',
+          '  Elsewhere error (line 9)',
+        ].join('\n'),
+      );
+    });
+
+    it('VALID: {wardResult: typecheck fail with errors only elsewhere} => shows only the elsewhere heading, no named lines', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'typecheck',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'ward', path: '/p/ward' },
+                status: 'fail',
+                filesCount: 20,
+                errors: [
+                  ErrorEntryStub({
+                    filePath: '/p/ward/src/other.ts',
+                    message: 'Elsewhere error',
+                    line: 9,
+                  }),
+                ],
+                elsewhereErrors: [
+                  ErrorEntryStub({
+                    filePath: '/p/ward/src/other.ts',
+                    message: 'Elsewhere error',
+                    line: 9,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: AbsoluteFilePathStub({ value: '/p' }),
+      });
+
+      expect(String(result)).toBe(
+        [
+          'run: 1739625600000-a3f1',
+          'typecheck: FAIL  1 packages (19 files passed/1 files failed)  ward (1)',
+          '',
+          '--- typecheck ---',
+          '  --- errors elsewhere in ward ---',
+          'ward/src/other.ts',
+          '  Elsewhere error (line 9)',
+        ].join('\n'),
+      );
+    });
+  });
+
   describe('fail edge cases', () => {
     it('VALID: {wardResult: fail status with 0 total files} => shows FAIL for summary line', () => {
       const wardResult = WardResultStub({

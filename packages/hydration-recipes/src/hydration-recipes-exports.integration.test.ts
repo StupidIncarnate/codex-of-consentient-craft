@@ -92,7 +92,9 @@ describe('the exports @dungeonmaster/siegelense reads off this package', () => {
       {
         recipeName: 'guild-mid-execution',
         description:
-          'one guild holding three quests, the first running with its riftcarver item dropped',
+          'one guild holding three quests — the first running with its riftcarver item dropped, ' +
+          'the second and third both freshly created and told apart only by their seeded title ' +
+          'and request text ("Quest 2"/"Quest 3")',
         inputKeys: [],
         runs: { serverless: true },
         makes: [
@@ -111,13 +113,13 @@ describe('the exports @dungeonmaster/siegelense reads off this package', () => {
       },
       {
         recipeName: 'quest-completed',
-        description: 'one guild holding one completed quest with all workflow operations finished',
+        description:
+          'one guild holding one completed quest with all workflow operations and work items finished',
         inputKeys: [],
         runs: { serverless: true },
         makes: [
           { ingredient: 'guild', count: 1 },
           { ingredient: 'quest', count: 1 },
-          { ingredient: 'operation', count: 2 },
         ],
       },
       {
@@ -130,7 +132,9 @@ describe('the exports @dungeonmaster/siegelense reads off this package', () => {
       },
       {
         recipeName: 'session-with-nested-chain',
-        description: 'one session under an existing guild, holding a nested sub-agent chain',
+        description:
+          'one session under an existing guild, holding a nested sub-agent chain two levels ' +
+          'deep — a top agent with one sub-agent nested under it',
         inputKeys: ['guildPath'],
         runs: { serverless: true },
         makes: [{ ingredient: 'session', count: 1 }],
@@ -146,6 +150,17 @@ describe('the exports @dungeonmaster/siegelense reads off this package', () => {
           { ingredient: 'quest', count: 2 },
           { ingredient: 'session', count: 1 },
           { ingredient: 'subagent', count: 1 },
+        ],
+      },
+      {
+        recipeName: 'session-with-nested-subagent',
+        description:
+          'one session transcript holding an outer sub-agent chain with one chain nested inside it, both finished',
+        inputKeys: ['guild'],
+        runs: { serverless: false, needsServerFor: 'guild' },
+        makes: [
+          { ingredient: 'session', count: 1 },
+          { ingredient: 'subagent', count: 2 },
         ],
       },
     ]);
@@ -173,7 +188,9 @@ describe('the exports @dungeonmaster/siegelense reads off this package', () => {
       {
         recipeName: 'guild-mid-execution',
         description:
-          'one guild holding three quests, the first running with its riftcarver item dropped',
+          'one guild holding three quests — the first running with its riftcarver item dropped, ' +
+          'the second and third both freshly created and told apart only by their seeded title ' +
+          'and request text ("Quest 2"/"Quest 3")',
       },
       {
         recipeName: 'quest-advances-one-step',
@@ -182,7 +199,8 @@ describe('the exports @dungeonmaster/siegelense reads off this package', () => {
       },
       {
         recipeName: 'quest-completed',
-        description: 'one guild holding one completed quest with all workflow operations finished',
+        description:
+          'one guild holding one completed quest with all workflow operations and work items finished',
       },
       {
         recipeName: 'session-single-turn',
@@ -191,12 +209,19 @@ describe('the exports @dungeonmaster/siegelense reads off this package', () => {
       },
       {
         recipeName: 'session-with-nested-chain',
-        description: 'one session under an existing guild, holding a nested sub-agent chain',
+        description:
+          'one session under an existing guild, holding a nested sub-agent chain two levels ' +
+          'deep — a top agent with one sub-agent nested under it',
       },
       {
         recipeName: 'guild-active-suite',
         description:
           'one active guild holding two quests (one in progress, one complete) and a session with subagent chain',
+      },
+      {
+        recipeName: 'session-with-nested-subagent',
+        description:
+          'one session transcript holding an outer sub-agent chain with one chain nested inside it, both finished',
       },
     ]);
   });
@@ -225,6 +250,7 @@ describe('the StartHydrationRecipes startup export', () => {
       'session-single-turn',
       'session-with-nested-chain',
       'guild-active-suite',
+      'session-with-nested-subagent',
     ]);
     expect(recipesListingShape.parse(listing)).toStrictEqual(listing);
   });

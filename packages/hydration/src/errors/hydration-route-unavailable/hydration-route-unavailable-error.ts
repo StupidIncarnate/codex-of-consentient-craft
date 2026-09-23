@@ -5,6 +5,11 @@
  * caller never burns a half-made instance finding out a route was never reachable in the first
  * place.
  *
+ * `availableRoutes` repeats `hydrationRouteContract`'s two literal values rather than importing its
+ * inferred `HydrationRoute` type: this file is a leaf node (`errors/` imports nothing), so it cannot
+ * reach the contract. The literal union still rejects a stale route name the way a bare `string[]`
+ * never did.
+ *
  * USAGE:
  * throw new HydrationRouteUnavailableError({
  *   recipeName: 'guild-mid-execution',
@@ -28,7 +33,7 @@ export class HydrationRouteUnavailableError extends Error {
   }: {
     recipeName: string;
     ingredientName: string;
-    availableRoutes: readonly string[];
+    availableRoutes: readonly ('api' | 'write')[];
     targetLacks: string;
   }) {
     super(

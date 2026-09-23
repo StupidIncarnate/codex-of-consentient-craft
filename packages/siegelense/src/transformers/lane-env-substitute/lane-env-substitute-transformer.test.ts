@@ -1,5 +1,5 @@
 import { laneEnvSubstituteTransformer } from './lane-env-substitute-transformer';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
 import { PortPairStub } from '../../contracts/port-pair/port-pair.stub';
 import { LaneSpecStub } from '../../contracts/lane-spec/lane-spec.stub';
 import { laneSpecStatics } from '../../statics/lane-spec/lane-spec-statics';
@@ -8,6 +8,8 @@ const PORTS = PortPairStub({ api: 34_172, web: 34_173 });
 const HOME = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1' });
 const CLAUDE_QUEUE_DIR = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1/claude-queue' });
 const WARD_QUEUE_DIR = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1/ward-queue' });
+const API_WORKSPACE = ContentTextStub({ value: '@dungeonmaster/server' });
+const WEB_WORKSPACE = ContentTextStub({ value: '@dungeonmaster/web' });
 
 describe('laneEnvSubstituteTransformer', () => {
   describe('the built-in specs, run through the real substitution', () => {
@@ -24,6 +26,8 @@ describe('laneEnvSubstituteTransformer', () => {
           home: HOME,
           claudeQueueDir: CLAUDE_QUEUE_DIR,
           wardQueueDir: WARD_QUEUE_DIR,
+          apiWorkspace: API_WORKSPACE,
+          webWorkspace: WEB_WORKSPACE,
         }),
         ...spec.processes.map((process) =>
           laneEnvSubstituteTransformer({
@@ -32,6 +36,8 @@ describe('laneEnvSubstituteTransformer', () => {
             home: HOME,
             claudeQueueDir: CLAUDE_QUEUE_DIR,
             wardQueueDir: WARD_QUEUE_DIR,
+            apiWorkspace: API_WORKSPACE,
+            webWorkspace: WEB_WORKSPACE,
           }),
         ),
       ].flatMap((record) => Object.values(record));
@@ -50,6 +56,8 @@ describe('laneEnvSubstituteTransformer', () => {
           home: HOME,
           claudeQueueDir: CLAUDE_QUEUE_DIR,
           wardQueueDir: WARD_QUEUE_DIR,
+          apiWorkspace: API_WORKSPACE,
+          webWorkspace: WEB_WORKSPACE,
         }),
         ...spec.processes.map((process) =>
           laneEnvSubstituteTransformer({
@@ -58,12 +66,40 @@ describe('laneEnvSubstituteTransformer', () => {
             home: HOME,
             claudeQueueDir: CLAUDE_QUEUE_DIR,
             wardQueueDir: WARD_QUEUE_DIR,
+            apiWorkspace: API_WORKSPACE,
+            webWorkspace: WEB_WORKSPACE,
           }),
         ),
       ].flatMap((record) => Object.values(record));
       const hasUnresolvedPlaceholder = substitutedValues.some((value) => value.includes('{'));
 
       expect(hasUnresolvedPlaceholder).toBe(false);
+    });
+  });
+
+  describe('a record with a workspace-name placeholder', () => {
+    it('VALID: {env with {apiWorkspace}/{webWorkspace}} => substitutes each, keeping the keys', () => {
+      const { env } = LaneSpecStub({
+        env: {
+          API_PKG_NAME: '{apiWorkspace}',
+          WEB_PKG_NAME: '{webWorkspace}',
+        },
+      });
+
+      const result = laneEnvSubstituteTransformer({
+        env,
+        ports: PORTS,
+        home: HOME,
+        claudeQueueDir: CLAUDE_QUEUE_DIR,
+        wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
+      });
+
+      expect(result).toStrictEqual({
+        API_PKG_NAME: '@dungeonmaster/server',
+        WEB_PKG_NAME: '@dungeonmaster/web',
+      });
     });
   });
 
@@ -85,6 +121,8 @@ describe('laneEnvSubstituteTransformer', () => {
         home: HOME,
         claudeQueueDir: CLAUDE_QUEUE_DIR,
         wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
       });
 
       expect(result).toStrictEqual({
@@ -107,6 +145,8 @@ describe('laneEnvSubstituteTransformer', () => {
         home: HOME,
         claudeQueueDir: CLAUDE_QUEUE_DIR,
         wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
       });
 
       expect(result).toStrictEqual({ E2E_SIGNAL_BACK_HTTP: '1' });
@@ -123,6 +163,8 @@ describe('laneEnvSubstituteTransformer', () => {
         home: HOME,
         claudeQueueDir: CLAUDE_QUEUE_DIR,
         wardQueueDir: WARD_QUEUE_DIR,
+        apiWorkspace: API_WORKSPACE,
+        webWorkspace: WEB_WORKSPACE,
       });
 
       expect(result).toStrictEqual({});

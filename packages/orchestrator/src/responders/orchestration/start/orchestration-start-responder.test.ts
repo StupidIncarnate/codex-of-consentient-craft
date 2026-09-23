@@ -214,9 +214,10 @@ describe('OrchestrationStartResponder', () => {
 
       const persisted = proxy.getPersistedQuestAt({ index: 0 });
 
-      // `spawnerType: 'command'` is the load-bearing field: it routes this item to the dispatcher's
-      // own run path (questRunRiftcarverBroker), which is what streams the carve into the execution
-      // row instead of leaving the panel to render nothing while a POST blocks.
+      // `spawnerType: 'command'` marks this item's output as command chat rather than agent chat.
+      // The `step: 'carve'` node alongside it is what actually routes the carve, through `run-step`
+      // to `stepHandlerRiftcarverBroker`, which streams into the execution row instead of leaving
+      // the panel to render nothing while a POST blocks.
       expect(persisted.workItems).toStrictEqual([
         {
           id: SEEDED_UUIDS[2],
@@ -475,28 +476,6 @@ describe('OrchestrationStartResponder', () => {
 
       expect(persisted.workItems[0]).toStrictEqual({
         ...chatItem,
-        status: 'complete',
-        completedAt: FIXED_TIMESTAMP,
-      });
-    });
-
-    it('VALID: {pending glyphsmith work item} => promoted to complete in the same operations persist', async () => {
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const glyphItem = WorkItemStub({
-        id: CHAT_ITEM_UUID,
-        role: 'glyphsmith',
-        status: 'pending',
-      });
-      const quest = QuestStub({ id: questId, status: 'approved', workItems: [glyphItem] });
-      const proxy = OrchestrationStartResponderProxy();
-      proxy.setupStart({ quest });
-
-      await proxy.callResponder({ questId });
-
-      const persisted = proxy.getPersistedQuestAt({ index: 0 });
-
-      expect(persisted.workItems[0]).toStrictEqual({
-        ...glyphItem,
         status: 'complete',
         completedAt: FIXED_TIMESTAMP,
       });

@@ -2,7 +2,6 @@ import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing
 import {
   AbsoluteFilePathStub,
   BaseBranchNameStub,
-  BlockedReasonStub,
   ErrorMessageStub,
   FileContentsStub,
   FileNameStub,
@@ -154,7 +153,6 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
       workItemId: cwWorkItemId,
       signal: 'complete',
       operationItemId: cwOpId,
-      operationStatus: 'done',
     });
 
     const after = await questHelper.reload({ questId });
@@ -274,7 +272,6 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
         workItemId: cwWorkItemId,
         signal: 'complete',
         operationItemId: cwOpId,
-        operationStatus: 'done',
       });
 
       const after = await questHelper.reload({ questId });
@@ -336,7 +333,6 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
       workItemId: cwWorkItemId,
       signal: 'complete',
       operationItemId: cwOpId,
-      operationStatus: 'done',
     });
 
     const after = await questHelper.reload({ questId });
@@ -426,7 +422,6 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
       workItemId: cwWorkItemId,
       signal: 'complete',
       operationItemId: cwOpId,
-      operationStatus: 'done',
     });
 
     const after = await questHelper.reload({ questId });
@@ -538,7 +533,6 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
       workItemId: cwWorkItemId,
       signal: 'complete',
       operationItemId: cwOpId,
-      operationStatus: 'done',
     });
 
     const after = await questHelper.reload({ questId });
@@ -553,98 +547,6 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
       responderResult: { success: true },
       operationStatus: 'complete',
       workItemStatus: 'complete',
-    });
-  }, 30_000);
-
-  it("VALID: {codeweaver 'blocked' on the same dirty worktree} => also succeeds, because nothing reads the tree on any outcome", async () => {
-    const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'sb-dirty-blocked' }),
-    });
-    envHarness.setupHome({ tempDir: testbed.guildPath });
-
-    const { questId } = await questHelper.createGuildAndQuest({ testbed });
-
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
-    await git.initRepoWithPackages({
-      repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' })],
-    });
-
-    const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/dirty-blocked-a1b2c3d4`,
-    });
-    const branchName = QuestBranchNameStub({ value: 'quest/dirty-blocked-a1b2c3d4' });
-    await gitWorktreeAddAdapter({
-      cwd: repoPath,
-      worktreePath,
-      branchName,
-      baseBranch: BaseBranchNameStub({ value: 'main' }),
-      mode: 'create-branch',
-    });
-
-    const strayPath = RepoRelativePathStub({ value: 'packages/shared/stray-broker.ts' });
-    git.dirtyTrackedFile({
-      repoPath: worktreePath,
-      relativePath: strayPath,
-      content: FileContentsStub({ value: 'export const strayBroker = (): number => 1;\n' }),
-    });
-
-    const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d4' });
-    const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-
-    await questHelper.seedInProgressRelay({
-      questId,
-      worktreePath,
-      branchName,
-      operations: [
-        OperationItemStub({
-          id: cwOpId,
-          role: 'codeweaver',
-          text: 'core: config adapter',
-          status: 'in_progress',
-        }),
-      ],
-      workItems: [
-        WorkItemStub({
-          id: cwWorkItemId,
-          role: 'codeweaver',
-          status: 'in_progress',
-          spawnerType: 'agent',
-          relatedDataItems: [`operations/${String(cwOpId)}`],
-          dependsOn: [],
-          createdAt: new Date().toISOString(),
-        }),
-      ],
-    });
-
-    const seeded = await questHelper.reload({ questId });
-
-    expect(String(seeded.worktreePath)).toBe(String(worktreePath));
-
-    const result = await QuestHandleSignalBackResponder({
-      questId,
-      workItemId: cwWorkItemId,
-      signal: 'complete',
-      operationItemId: cwOpId,
-      operationStatus: 'blocked',
-      blockedReason: BlockedReasonStub({
-        value: 'the CI token this round needs is not on this machine',
-      }),
-    });
-
-    const after = await questHelper.reload({ questId });
-
-    testbed.cleanup();
-
-    expect({
-      responderResult: result,
-      questStatus: after.status,
-      workItemStatus: after.workItems.find((wi) => wi.id === cwWorkItemId)?.status,
-    }).toStrictEqual({
-      responderResult: { success: true },
-      questStatus: 'blocked',
-      workItemStatus: 'failed',
     });
   }, 30_000);
 
@@ -719,7 +621,6 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
       workItemId: cwWorkItemId,
       signal: 'complete',
       operationItemId: cwOpId,
-      operationStatus: 'done',
     });
 
     const after = await questHelper.reload({ questId });
@@ -738,17 +639,15 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
   }, 30_000);
 });
 
-// The flowrider/siegemaster sign-off completion gate — refusing `done` while a track's units
-// carried no sign-off, exhaustively covered at the unit level by
-// signoff-flow-outstanding-transformer.test.ts — has been removed from the responder. These prove
-// `done` now completes regardless of what the persisted flowriderSignoff/siegemasterSignoff
-// columns hold, driven against real seeded quests rather than asserted from a mock.
-describe('QuestHandleSignalBackResponder (integration) — the two sign-off tracks', () => {
+// The flowrider/siegemaster completion gate holds no per-track sign-off column to refuse `done`
+// over — a unit's mark lives on `workItem.observations[]` instead. These prove that directly,
+// driven against real seeded quests rather than asserted from a mock.
+describe('QuestHandleSignalBackResponder (integration) — the two verification tracks', () => {
   const envHarness = orchestrationEnvironmentHarness();
   const questHelper = orchestrationQuestHarness();
 
-  describe("flowrider: 'done' succeeds whether or not runtime units carry a flowriderSignoff", () => {
-    it('VALID: {done, one unit `confirmed` and one `unconfirmable`} => both verdicts clear the gate, operation + work item complete', async () => {
+  describe("flowrider: 'done' succeeds whatever the flow holds, because the work item carries no assigned units to mark", () => {
+    it('VALID: {done, a two-node RUNTIME flow, work item assigned no units} => accepted, operation + work item complete', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'sb-flowrider-admit' }),
       });
@@ -817,7 +716,6 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
         workItemId: flowWorkItemId,
         signal: 'complete',
         operationItemId: flowOpId,
-        operationStatus: 'done',
       });
 
       const afterQuest = await questHelper.reload({ questId });
@@ -833,7 +731,7 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
       }).toStrictEqual({ workItemStatus: 'complete', operationStatus: 'complete' });
     }, 30_000);
 
-    it('VALID: {done, every flow OPERATIONAL, no flowriderSignoff anywhere} => accepted, because nothing gates on sign-off any more — not because of a runtime-only filter', async () => {
+    it('VALID: {done, every flow OPERATIONAL} => accepted, because nothing gates on a sign-off column any more — not because of a runtime-only filter', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'sb-flowrider-operational' }),
       });
@@ -844,8 +742,8 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
       const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f3' });
       const flowWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
 
-      // Carries no flowriderSignoff at all — proving this accepts because nothing gates on
-      // sign-off any more, not because of a runtime-flow-only filter still running underneath.
+      // No sign-off column exists on any unit — proving this accepts because nothing gates on
+      // one, not because of a runtime-flow-only filter still running underneath.
       await questHelper.seedInProgressRelay({
         questId,
         planningNotes: QuestStub({
@@ -896,7 +794,6 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
         workItemId: flowWorkItemId,
         signal: 'complete',
         operationItemId: flowOpId,
-        operationStatus: 'done',
       });
 
       const afterQuest = await questHelper.reload({ questId });
@@ -909,8 +806,8 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
     }, 30_000);
   });
 
-  describe("siegemaster: 'done' succeeds whether or not its units carry a siegemasterSignoff", () => {
-    it("VALID: {the same units also carry a siegemasterSignoff, siegemaster 'done'} => the gate clears", async () => {
+  describe("siegemaster: 'done' succeeds whatever the flow's off-map signoffs hold, because the work item carries no assigned units to mark", () => {
+    it("VALID: {siegemaster 'done', the flow's off-map families are all recorded} => the gate clears", async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'sb-tracks-both-signed' }),
       });
@@ -980,7 +877,6 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
         workItemId: siegeWorkItemId,
         signal: 'complete',
         operationItemId: siegeOpId,
-        operationStatus: 'done',
       });
 
       const afterQuest = await questHelper.reload({ questId });
@@ -1077,7 +973,6 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
       workItemId: warpgateWorkItemId,
       signal: 'complete',
       operationItemId: warpgateOpId,
-      operationStatus: 'done',
     });
 
     const afterQuest = await questHelper.reload({ questId });
@@ -1100,9 +995,9 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
     expect({
       responderResult: result,
       questStatus: afterQuest.status,
-      // warpgate-merge:observable:warpgate-signals-done — the {signal:'complete',
-      // operationStatus:'done'} call a finished warpgate session sends marks ITS OWN operation
-      // item complete and terminalizes its work item. Read directly rather than inferred from
+      // warpgate-merge:observable:warpgate-signals-done — the {signal:'complete'} call a finished
+      // warpgate session sends marks ITS OWN operation item complete and terminalizes its work
+      // item. Read directly rather than inferred from
       // `merged`: the derived status is what the ledger drained TO, so a responder that settled
       // the quest without ever completing this item would have to be caught here.
       warpgateOperationStatus: warpgateOperation?.status,

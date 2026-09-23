@@ -565,6 +565,7 @@ describe('SiegelenseFlow', () => {
           server: { errors: '-1', new: tree.serverRun2ErrorRows() },
           network: { errors: '+1', new: tree.networkRun2NonSuccessRows() },
           pixels: 'last capture differs 50%',
+          elements: { runA: null, runB: null },
         });
       });
     });

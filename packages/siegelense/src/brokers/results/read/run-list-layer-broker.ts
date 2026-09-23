@@ -10,7 +10,7 @@
  *
  * USAGE:
  * await runListLayerBroker({
- *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.siegelense/unowned/instances/inst_1' }),
+ *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1' }),
  * });
  * // Returns { runCount: 2, latestRunId: 'run_2', evidenceComplete: true } for an instance holding
  * // run_1.jsonl + run_1.json + run_2.jsonl + run_2.json

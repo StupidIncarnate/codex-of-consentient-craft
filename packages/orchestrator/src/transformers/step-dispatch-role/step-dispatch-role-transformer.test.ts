@@ -37,6 +37,7 @@ describe('stepDispatchRoleTransformer', () => {
 
       expect(stepDispatchRoleTransformer({ quest, workItem })).toStrictEqual({
         prompt: 'spiritmender',
+        model: 'sonnet',
       });
     });
 
@@ -61,6 +62,7 @@ describe('stepDispatchRoleTransformer', () => {
 
       expect(stepDispatchRoleTransformer({ quest, workItem })).toStrictEqual({
         prompt: 'spiritmender',
+        model: 'sonnet',
       });
     });
 
@@ -85,6 +87,7 @@ describe('stepDispatchRoleTransformer', () => {
 
       expect(stepDispatchRoleTransformer({ quest, workItem })).toStrictEqual({
         prompt: 'warpgate',
+        model: 'opus',
       });
     });
 
@@ -109,6 +112,7 @@ describe('stepDispatchRoleTransformer', () => {
 
       expect(stepDispatchRoleTransformer({ quest, workItem })).toStrictEqual({
         prompt: 'codeweaver-worker',
+        model: 'sonnet',
       });
     });
 
@@ -133,6 +137,7 @@ describe('stepDispatchRoleTransformer', () => {
 
       expect(stepDispatchRoleTransformer({ quest, workItem })).toStrictEqual({
         prompt: 'codeweaver-reviewer',
+        model: 'opus',
       });
     });
   });
@@ -159,6 +164,7 @@ describe('stepDispatchRoleTransformer', () => {
 
       expect(stepDispatchRoleTransformer({ quest, workItem })).toStrictEqual({
         prompt: null,
+        model: undefined,
       });
     });
 
@@ -182,6 +188,7 @@ describe('stepDispatchRoleTransformer', () => {
 
       expect(stepDispatchRoleTransformer({ quest, workItem })).toStrictEqual({
         prompt: null,
+        model: undefined,
       });
     });
 
@@ -199,6 +206,7 @@ describe('stepDispatchRoleTransformer', () => {
 
       expect(stepDispatchRoleTransformer({ quest, workItem })).toStrictEqual({
         prompt: null,
+        model: undefined,
       });
     });
   });

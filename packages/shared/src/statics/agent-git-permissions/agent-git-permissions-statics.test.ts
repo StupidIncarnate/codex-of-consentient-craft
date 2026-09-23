@@ -59,7 +59,8 @@ describe('agentGitPermissionsStatics', () => {
     // A `<role>-reviewer` pushes once at the end of every pass, as the last thing it does,
     // and that push is the only way the pass leaves the worktree. Denying it makes the reviewer's
     // own mandated step come back `This command requires approval`, which its `[WALL]` operating
-    // rule defines as an environment wall — so the pass returns `NEXT: wall` and the quest halts.
+    // rule defines as an environment wall — it declares the outcome `wall` and signals `blocked`,
+    // and the router routes that straight to `@blocked`.
     it("VALID: {allow} => grants the push a pass's reviewer makes to publish it", () => {
       const { allow } = agentGitPermissionsStatics;
 

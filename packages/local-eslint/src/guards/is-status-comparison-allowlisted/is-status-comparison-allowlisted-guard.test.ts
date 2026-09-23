@@ -66,9 +66,9 @@ describe('isStatusComparisonAllowlistedGuard', () => {
       '/repo/packages/web/src/widgets/foo/foo-widget.ts',
       '/repo/packages/orchestrator/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.ts',
       '/repo/packages/server/src/responders/quest/get/quest-get-responder.ts',
-      '/repo/packages/web/src/guards/is-design-tab-visible/is-design-tab-visible-guard.ts',
-      '/repo/packages/web/src/guards/is-design-start-visible/is-design-start-visible-guard.ts',
-      '/repo/packages/server/src/responders/design/start/design-start-responder.ts',
+      '/repo/packages/web/src/guards/is-quest-route/is-quest-route-guard.ts',
+      '/repo/packages/web/src/guards/is-gate-section-visible/is-gate-section-visible-guard.ts',
+      '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts',
       // Metadata/contract files contain only object-property values, z.enum, or z.object — no syntactic
       // pattern the rule fires on — so they need no path allowlist; the AST shape itself keeps them safe.
       '/repo/packages/shared/src/statics/quest-status-metadata/quest-status-metadata-statics.ts',

@@ -36,6 +36,16 @@ describe('instanceStateResolveBroker', () => {
     expect(result).toStrictEqual({ state: 'pruned', entry });
   });
 
+  it('VALID: {registry row state: unusable} => returns unusable with the row', async () => {
+    const proxy = instanceStateResolveBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'unusable' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+
+    const result = await instanceStateResolveBroker({ instanceId: INSTANCE_ID });
+
+    expect(result).toStrictEqual({ state: 'unusable', entry });
+  });
+
   it('VALID: {registry row state: killed} => returns killed with the row', async () => {
     const proxy = instanceStateResolveBrokerProxy();
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed', pid: null, pgids: [] });

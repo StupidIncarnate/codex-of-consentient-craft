@@ -5,6 +5,13 @@
  * const { questId } = await questHydrateBroker({ blueprint, guildId, questSource: 'smoketest-orchestration' });
  * // Returns: { questId }; quest.json is on disk under guild/quests/{questId}/quest.json at blueprint.targetStatus (default in_progress), tagged with the optional questSource
  *
+ * const { questId } = await questHydrateBroker({ blueprint, guildId, createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z' });
+ * // The first work item's createdAt and the quest's updatedAt land exactly at those values instead of the real clock
+ *
+ * `createdAt`/`updatedAt` default to the real clock when omitted, same as `blueprint.fixedWorkItemId` defaults to a
+ * fresh uuid. A caller supplies them so two independent seeds of the same scenario (a write-route vs an api-route
+ * comparison) produce byte-identical elapsed-time figures instead of two runs that can never match.
+ *
  * WHEN-TO-USE: Smoketests and integration tests that need a quest in a specific status without running the real agent pipeline.
  * WHEN-NOT-TO-USE: Anywhere the quest should be produced by a real ChaosWhisperer run.
  */
@@ -29,6 +36,7 @@ import type {
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
+import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { QuestBlueprint } from '../../../contracts/quest-blueprint/quest-blueprint-contract';
 import { agentFlowStatics } from '../../../statics/agent-flow/agent-flow-statics';
 import { questHydrateStrategyStatics } from '../../../statics/quest-hydrate-strategy/quest-hydrate-strategy-statics';
@@ -50,10 +58,14 @@ export const questHydrateBroker = async ({
   blueprint,
   guildId,
   questSource,
+  createdAt,
+  updatedAt,
 }: {
   blueprint: QuestBlueprint;
   guildId: GuildId;
   questSource?: QuestSource;
+  createdAt?: IsoTimestamp;
+  updatedAt?: IsoTimestamp;
 }): Promise<{ questId: QuestId }> => {
   const questId = blueprint.fixedQuestId ?? questIdContract.parse(crypto.randomUUID());
   const targetStatus: QuestStatus = blueprint.targetStatus ?? 'in_progress';
@@ -147,7 +159,7 @@ export const questHydrateBroker = async ({
       firstActionable === undefined
         ? undefined
         : workItemContract.parse({
-            id: questWorkItemIdContract.parse(crypto.randomUUID()),
+            id: blueprint.fixedWorkItemId ?? questWorkItemIdContract.parse(crypto.randomUUID()),
             role: firstActionable.role,
             status: 'pending',
             spawnerType: isCommandWorkItemRoleGuard({ role: firstActionable.role })
@@ -156,7 +168,7 @@ export const questHydrateBroker = async ({
             relatedDataItems: [`operations/${String(firstActionable.id)}`],
             dependsOn: [],
             maxAttempts: 1,
-            createdAt: now,
+            createdAt: createdAt ?? now,
             ...(entryStep === undefined ? {} : { step: stepNameContract.parse(entryStep) }),
             ...(blueprint.rolePromptOverrides[firstActionable.role] === undefined
               ? {}
@@ -177,7 +189,7 @@ export const questHydrateBroker = async ({
       operations: seededOperations,
       workItems:
         firstWorkItem === undefined ? quest.workItems : [...quest.workItems, firstWorkItem],
-      updatedAt: now,
+      updatedAt: updatedAt ?? now,
     });
 
     const finalJson = fileContentsContract.parse(

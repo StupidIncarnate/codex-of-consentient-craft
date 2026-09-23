@@ -2,23 +2,28 @@
  * PURPOSE: The Node-run orchestration loop — drives the SAME get-next-step state machine that
  * /dumpster-launch polls, but dispatches by spawning headless Claude CLI children instead of
  * Task() sub-agents. One recursion per dispatch decision: spawn-agents → spawn the batch and
- * await exits; run-step / run-ward / run-riftcarver → run that command synchronously; idle → return
- * control to the runner (which re-kicks on wake events — no sleep-polling). isPlaying() is read
- * TWICE per iteration — before the scan and again after it, because the scan long-polls and can
- * return work that only appeared after a pause. That pair is the graceful pause point: in-flight
- * children finish, nothing new dispatches.
+ * await exits; run-step → run that deterministic step synchronously; idle → return control to the
+ * runner (which re-kicks on wake events — no sleep-polling). isPlaying() is read TWICE per
+ * iteration — before the scan and again after it, because the scan long-polls and can return work
+ * that only appeared after a pause. That pair is the graceful pause point: in-flight children
+ * finish, nothing new dispatches.
+ *
+ * `NextStep` is `idle | run-step | spawn-agents`, `idle` returns above, and `run-step` is the
+ * first branch below — so the trailing `else` is `spawn-agents` BY EXHAUSTION, not by a redundant
+ * `step.type === 'spawn-agents'` check (which `@typescript-eslint/no-unnecessary-condition` would
+ * flag as always-true once only one member is left to narrow to). Reading `step.agents` there is
+ * itself the exhaustiveness guard: a future member added to the union without a branch here fails
+ * to COMPILE the moment this `else` no longer narrows to a shape carrying `.agents`.
  *
  * USAGE:
  * await questNodeDispatchLoopBroker({ isPlaying: () => orchestrationDispatchState.getIsPlaying() });
  * // Resolves when paused or when the state machine reports idle
  *
  * WHY isPlaying is a parameter: brokers cannot import state/ — the bootstrap responder supplies
- * the real orchestrationDispatchState facade; tests inject a stub. `onWardLine`,
- * `onRiftcarverLine` and `onStepLine` are parameters for the same reason, and all three are
- * REQUIRED: a command or deterministic-step work item carries no sessionId, so the JSONL watcher can
- * never tail it, and these callbacks are the only route their output has to a UI. Dropping one means
- * minutes of a dead panel with nothing at the call site to show for it — a carve stalls the panel
- * for longer than a ward run ever does.
+ * the real orchestrationDispatchState facade; tests inject a stub. `onStepLine` is a parameter for
+ * the same reason, and it is REQUIRED: a deterministic-step work item carries no sessionId, so the
+ * JSONL watcher can never tail it, and this callback is the only route its output has to a UI.
+ * Dropping it means minutes of a dead panel with nothing at the call site to show for it.
  */
 
 import type {
@@ -32,9 +37,7 @@ import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { ActiveQuestFacade } from '../../../contracts/active-quest-facade/active-quest-facade-contract';
 import { orchestrationDispatchStatics } from '../../../statics/orchestration-dispatch/orchestration-dispatch-statics';
 import { questGetNextStepBroker } from '../get-next-step/quest-get-next-step-broker';
-import { questRunRiftcarverBroker } from '../run-riftcarver/quest-run-riftcarver-broker';
 import { questRunStepBroker } from '../run-step/quest-run-step-broker';
-import { questRunWardBroker } from '../run-ward/quest-run-ward-broker';
 import { spawnBatchLayerBroker } from './spawn-batch-layer-broker';
 
 const INERT_ACTIVE_QUEST_FACADE: ActiveQuestFacade = {
@@ -46,17 +49,9 @@ export const questNodeDispatchLoopBroker = async ({
   isPlaying,
   registerProcess,
   unregisterProcess,
-  onWardLine,
-  onRiftcarverLine,
   onStepLine,
 }: {
   isPlaying: () => boolean;
-  onWardLine: (params: { questId: QuestId; workItemId: QuestWorkItemId; line: string }) => void;
-  onRiftcarverLine: (params: {
-    questId: QuestId;
-    workItemId: QuestWorkItemId;
-    line: string;
-  }) => void;
   onStepLine: (params: { questId: QuestId; workItemId: QuestWorkItemId; line: string }) => void;
   registerProcess?: (params: {
     processId: ProcessId;
@@ -86,8 +81,8 @@ export const questNodeDispatchLoopBroker = async ({
 
   // Re-read AFTER the scan, not just before it. The scan is a long poll: it sits waiting for work
   // for up to `longPollTotalMs`, so the step it hands back can describe a quest that only became
-  // dispatchable AFTER the user pressed pause. Acting on it would spawn a child (or run ward)
-  // against a dispatcher the user has already stopped.
+  // dispatchable AFTER the user pressed pause. Acting on it would spawn a child (or run a
+  // deterministic step) against a dispatcher the user has already stopped.
   if (!isPlaying()) {
     return ok;
   }
@@ -107,30 +102,9 @@ export const questNodeDispatchLoopBroker = async ({
         onStepLine({ questId: stepQuestId, workItemId: stepWorkItemId, line });
       },
     });
-  } else if (step.type === 'run-riftcarver') {
-    const carveQuestId = step.questId;
-    const carveWorkItemId = step.workItemId;
-    // The carve owns its own ledger outcome — it marks the work item in_progress, applies the
-    // result and calls advance-or-block itself — so the loop awaits it and then recurses, exactly
-    // as it does for ward.
-    await questRunRiftcarverBroker({
-      questId: carveQuestId,
-      workItemId: carveWorkItemId,
-      onLine: (line: string): void => {
-        onRiftcarverLine({ questId: carveQuestId, workItemId: carveWorkItemId, line });
-      },
-    });
-  } else if (step.type === 'run-ward') {
-    const wardQuestId = step.questId;
-    const wardWorkItemId = step.workItemId;
-    await questRunWardBroker({
-      questId: wardQuestId,
-      workItemId: wardWorkItemId,
-      onLine: (line: string): void => {
-        onWardLine({ questId: wardQuestId, workItemId: wardWorkItemId, line });
-      },
-    });
   } else {
+    // `spawn-agents` BY EXHAUSTION — see the file header for why this is not a redundant
+    // `step.type === 'spawn-agents'` check.
     await spawnBatchLayerBroker({
       agents: step.agents,
       // Threaded so an API-overload backoff inside the spawn layer — which can sleep for minutes
@@ -143,8 +117,6 @@ export const questNodeDispatchLoopBroker = async ({
 
   return questNodeDispatchLoopBroker({
     isPlaying,
-    onWardLine,
-    onRiftcarverLine,
     onStepLine,
     ...(registerProcess === undefined ? {} : { registerProcess }),
     ...(unregisterProcess === undefined ? {} : { unregisterProcess }),

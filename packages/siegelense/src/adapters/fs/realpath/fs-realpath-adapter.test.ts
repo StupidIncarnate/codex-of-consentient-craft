@@ -6,7 +6,7 @@ describe('fsRealpathAdapter', () => {
   describe('successful resolution', () => {
     it('VALID: {filePath: a symlink onto the siegelense root} => returns the resolved target', async () => {
       const proxy = fsRealpathAdapterProxy();
-      const filePath = FilePathStub({ value: '/repo/.siegelense' });
+      const filePath = FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' });
       const expectedTarget = AbsoluteFilePathStub({
         value: '/home/user/.dungeonmaster/siegelense',
       });
@@ -22,7 +22,7 @@ describe('fsRealpathAdapter', () => {
   describe('error cases', () => {
     it('ERROR: {filePath: does not exist} => rejects with the underlying error', async () => {
       const proxy = fsRealpathAdapterProxy();
-      const filePath = FilePathStub({ value: '/repo/.siegelense' });
+      const filePath = FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' });
       const notFoundError = Object.assign(new Error('ENOENT: no such file or directory'), {
         code: 'ENOENT',
       });

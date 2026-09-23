@@ -11,7 +11,7 @@
  *   specName: 'dungeonmaster-stack',
  *   instanceId: 'inst_7f3a9c21',
  *   unready: ['web'],
- *   logPaths: ['/repo/.siegelense/guilds/g1/instances/inst_7f3a9c21/web.log'],
+ *   logPaths: ['/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/web.log'],
  * });
  * // Throws error naming the spec, the instance, which processes never answered, and their logs
  *

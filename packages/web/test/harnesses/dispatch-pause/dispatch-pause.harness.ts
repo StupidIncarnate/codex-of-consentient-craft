@@ -26,6 +26,11 @@ export const dispatchPauseHarness = ({
     // Throws on a non-2xx rather than swallowing it. Every spec in the run depends on this call
     // landing, so a pause route answering 500 is the invariant genuinely broken — a silent catch
     // would hand the next spec a running loop and blame the spec for what it then does.
+    //
+    // RAW ON PURPOSE — the same gap dispatchHarness.forcePlayDispatcher documents for the play
+    // route: no domain record models "the dispatcher is playing", so no dmRegistryBroker
+    // ingredient carries a verb for pausing it either. This route is the only thing that reaches
+    // the in-memory loop (see the file header), so there is no framework path to go through.
     pause: async (): Promise<void> => {
       const response = await request.post(DISPATCH_PAUSE_ROUTE);
 

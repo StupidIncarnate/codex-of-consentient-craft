@@ -8,7 +8,7 @@
  *
  * USAGE:
  * await transcriptReadLayerBroker({
- *   transcriptPath: AbsoluteFilePathStub({ value: '/repo/.siegelense/.../runs/run_2.jsonl' }),
+ *   transcriptPath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/.../runs/run_2.jsonl' }),
  * });
  * // Returns every StepReading the transcript holds, dropping only a truncated final line
  */

@@ -1,6 +1,7 @@
 import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 
 import { declaredValueStatics } from '../declared-value/declared-value-statics';
+import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 import { sadPathRoutingStatics } from '../sad-path-routing/sad-path-routing-statics';
 import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
 import { unitMarkingStatics } from '../unit-marking/unit-marking-statics';
@@ -47,9 +48,9 @@ describe('siegeHappyWalkerStatics', () => {
     });
   });
 
-  // THE THREE HEADED SHARED BLOCKS LAND LAST, each opening with its own `##` heading, between the
+  // THE FOUR HEADED SHARED BLOCKS LAND LAST, each opening with its own `##` heading, between the
   // script and the operation context — sections this file never writes itself.
-  it('VALID: served template => names its eight top-level sections in document order', () => {
+  it('VALID: served template => names its nine top-level sections in document order', () => {
     expect(Array.from(TEMPLATE.matchAll(/^## .+$/gmu), (match) => match[0])).toStrictEqual([
       '## The words this page uses',
       '## What you do, and what you never do',
@@ -57,6 +58,7 @@ describe('siegeHappyWalkerStatics', () => {
       '## The script',
       '## What counts as a declared style value',
       '## Marking your units',
+      '## `verifyByHuman`',
       '## The sad paths, and where each lands',
       '## Operation Context',
     ]);
@@ -80,15 +82,49 @@ describe('siegeHappyWalkerStatics', () => {
     ]);
   });
 
-  // FOUR SHARED BLOCKS, EACH EXACTLY ONCE. Restating any of them is text served twice against the
+  // FIVE SHARED BLOCKS, EACH EXACTLY ONCE. Restating any of them is text served twice against the
   // same budget; missing one is a rule this whole family agreed on that this prompt silently drops.
-  it('VALID: served template => takes all four shared blocks whole, each exactly once', () => {
+  it('VALID: served template => takes all five shared blocks whole, each exactly once', () => {
     expect({
       declaredValue: TEMPLATE.split(declaredValueStatics.markdown).length - 1,
       sadPath: TEMPLATE.split(sadPathRoutingStatics.markdown).length - 1,
       spilled: TEMPLATE.split(spilledToolResultStatics.markdown).length - 1,
       marking: TEMPLATE.split(unitMarkingStatics.markdown).length - 1,
-    }).toStrictEqual({ declaredValue: 1, sadPath: 1, spilled: 1, marking: 1 });
+      automatability: TEMPLATE.split(observableAutomatabilityStatics.markdown).length - 1,
+    }).toStrictEqual({ declaredValue: 1, sadPath: 1, spilled: 1, marking: 1, automatability: 1 });
+  });
+
+  // THE ROLE-SPECIFIC SENTENCE, IN THE WALKER'S OWN TERMS. The shared block explains the flag once,
+  // for every host; this prompt still owes its own reader the moment inside ITS OWN workflow where
+  // the flag applies — right beside the `cant-meet` mark it exists to replace.
+  it('VALID: served template => tells the walker to flag verifyByHuman on an observable instead of cant-meet when nothing could ever settle a unit', () => {
+    expect(
+      hasIn({
+        needle:
+          "**Where a unit resists everything you can try, and nothing at any layer could ever settle it either — not a later session, not a later walk, nothing but a person's own judgment once the quest is done: on an OBSERVABLE, set `verifyByHuman: true` on it through the same `modify-quest` call above instead of writing `cant-meet`.",
+      }),
+    ).toBe(true);
+  });
+
+  // A TERMINAL OR BRANCH UNIT CARRIES NO verifyByHuman FIELD. This walker's own units span all
+  // three kinds (see "The words this page uses" — an observable, a terminal node, or a labelled
+  // branch edge), so the honest mark for the other two has to be spelled out rather than left to a
+  // blanket "flag it" that names no field on a unit that has none.
+  it("VALID: served template => tells the walker a terminal or branch unit takes cant-meet with a toSettle naming the person's check instead", () => {
+    expect(
+      hasIn({
+        needle:
+          "On a terminal or branch unit, which carries no such field, `cant-meet` is the honest mark — name the person's check as its `toSettle`.",
+      }),
+    ).toBe(true);
+  });
+
+  // THE OLD "toSettle NOTHING COULD CARRY OUT" CLAIM IS GONE. A person's check IS an instruction a
+  // toSettle can carry — that is exactly what unitMarkingStatics defines toSettle to be.
+  it('VALID: served template => never claims a toSettle is something nothing could ever carry out', () => {
+    expect({
+      oldClaimGone: TEMPLATE.includes('rather than a `toSettle` nothing could ever carry out'),
+    }).toStrictEqual({ oldClaimGone: false });
   });
 
   // THE SPILL RULE SITS BESIDE THE ONE FETCH IN THIS PROMPT THAT CAN ACTUALLY SPILL. `get-quest-work`
@@ -345,6 +381,17 @@ describe('siegeHappyWalkerStatics', () => {
       fetchesWalkingDocs: true,
       neverFetchesAttackingDocs: false,
     });
+  });
+
+  // DISCOVERABILITY: the docs tool's own overview exists and is one flag away — every prompt that
+  // reaches for `docs --for <scope>` says so, beside that same instruction.
+  it('VALID: served template => tells the reader that bare docs, with no --for, serves the tool overview', () => {
+    expect(
+      hasIn({
+        needle:
+          "Bare `dungeonmaster siegelense docs`, with no `--for`, serves the tool's own overview instead of a role's manual — `--for walking` above is the one you want here.",
+      }),
+    ).toBe(true);
   });
 
   it('VALID: served template => closes with a declared outcome then a single signal-back', () => {

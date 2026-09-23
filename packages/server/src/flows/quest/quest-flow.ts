@@ -16,6 +16,7 @@ import { QuestCommentBatchResponder } from '../../responders/quest/comment-batch
 import { QuestFindBySessionResponder } from '../../responders/quest/find-by-session/quest-find-by-session-responder';
 import { QuestFollowupResponder } from '../../responders/quest/followup/quest-followup-responder';
 import { QuestFollowupStopResponder } from '../../responders/quest/followup-stop/quest-followup-stop-responder';
+import { QuestHumanVerdictResponder } from '../../responders/quest/human-verdict/quest-human-verdict-responder';
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
 import { QuestMergeResponder } from '../../responders/quest/merge/quest-merge-responder';
@@ -25,6 +26,7 @@ import { QuestAbandonResponder } from '../../responders/quest/abandon/quest-aban
 import { QuestDeleteResponder } from '../../responders/quest/delete/quest-delete-responder';
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
 import { QuestPauseResponder } from '../../responders/quest/pause/quest-pause-responder';
+import { QuestProjectionResponder } from '../../responders/quest/projection/quest-projection-responder';
 import { QuestResumeResponder } from '../../responders/quest/resume/quest-resume-responder';
 import { QuestRiftcarverDetailResponder } from '../../responders/quest/riftcarver-detail/quest-riftcarver-detail-responder';
 import { QuestSignalBackResponder } from '../../responders/quest/signal-back/quest-signal-back-responder';
@@ -90,6 +92,21 @@ export const QuestFlow = (): Hono => {
   app.get(apiRoutesStatics.quests.summary, async (c) => {
     const result = await QuestSummaryResponder({
       params: { questId: c.req.param('questId') },
+    });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.get(apiRoutesStatics.quests.projection, async (c) => {
+    const result = await QuestProjectionResponder({
+      params: { questId: c.req.param('questId') },
+    });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.post(apiRoutesStatics.quests.humanVerdict, async (c) => {
+    const result = await QuestHumanVerdictResponder({
+      params: { questId: c.req.param('questId') },
+      body: await c.req.json(),
     });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });

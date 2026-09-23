@@ -10,7 +10,8 @@ describe('runReturnWriteBroker', () => {
     it('VALID: {result} => writes the JSON return and reports success', async () => {
       const proxy = runReturnWriteBrokerProxy();
       const storedReturnPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2.json',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2.json',
       });
       const result = RunResultStub();
       proxy.succeeds({ storedReturnPath });
@@ -23,7 +24,8 @@ describe('runReturnWriteBroker', () => {
     it('VALID: {result} => the written content is the whole result as one JSON line', async () => {
       const proxy = runReturnWriteBrokerProxy();
       const storedReturnPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2.json',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2.json',
       });
       const result = RunResultStub();
       proxy.succeeds({ storedReturnPath });
@@ -38,7 +40,8 @@ describe('runReturnWriteBroker', () => {
     it('ERROR: {disk write fails} => the return-write broker rejects with the same error', async () => {
       const proxy = runReturnWriteBrokerProxy();
       const storedReturnPath = AbsoluteFilePathStub({
-        value: '/repo/.siegelense/guilds/g1/instances/inst_1/runs/run_2.json',
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2.json',
       });
       proxy.throws({ storedReturnPath, error: new Error('ENOSPC') });
 

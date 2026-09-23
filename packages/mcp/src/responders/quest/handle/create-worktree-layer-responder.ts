@@ -6,7 +6,7 @@
  * const response = await CreateWorktreeLayerResponder({ args });
  * // Returns ToolResponse carrying { path }, or the JSON error shape
  *
- * Split out of QuestHandleResponder as a layer, mirroring run-riftcarver-layer-responder: that
+ * Split out of QuestHandleResponder as a layer, mirroring quest-summary-layer-responder: that
  * responder is one long tool switch sitting AT its complexity ceiling, and adding this branch
  * inline pushed it over.
  */

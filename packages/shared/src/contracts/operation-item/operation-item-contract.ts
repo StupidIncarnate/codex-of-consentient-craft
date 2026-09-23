@@ -1,5 +1,7 @@
 /**
- * PURPOSE: One durable entry on the quest operations ledger — the ordered plan/status record that drives dispatch
+ * PURPOSE: One SCOPE on the quest operations ledger — a family's slice of the quest (one riftcarver
+ * scope, one codeweaver (package, flow) cell, one flowrider/siegemaster flow, the one wardFull
+ * gate) — carrying the ordered plan/status record dispatch reads
  *
  * USAGE:
  * operationItemContract.parse({id: 'f47ac10b-...', role: 'codeweaver', text: 'core: config adapter', status: 'pending'});
@@ -7,12 +9,16 @@
  *
  * The ledger has exactly ONE writer: the orchestrator. `operations` is off the modify-quest
  * allowlist entirely, at every quest status — ChaosWhisperer never authors it, and no execution
- * agent ever writes it either. Its content comes from `questBuildRelayGraphBroker`, which derives it
- * at Start Quest from the flow nodes' `packages` tags and the contracts' `source` paths, and from
- * runtime mutation via `questOperationsUpdateBroker`. There is no `partial` status: an
- * `operationStatus: 'partial'` outcome on signal-back marks the item `complete` and appends a
- * "pt N: {text}" continuation item, keeping the strict 1:1 operation-item↔work-item invariant and an
- * immutable pt audit trail.
+ * agent ever writes it either. Its content comes from three orchestrator-owned mechanisms: Start
+ * mints the entry family's scopes (`questBuildRelayGraphBroker`, from the flow nodes' `packages`
+ * tags and the contracts' `source` paths), a family route mints the next family's scopes the moment
+ * every scope of the current family is complete (`mintNextFamilyLayerBroker`), and runtime mutation
+ * (`questOperationsUpdateBroker`) applies status transitions and the work items the router mints.
+ *
+ * ONE OPERATION ITEM CARRIES MANY WORK ITEMS — one per step its own family's step graph dispatches
+ * (`plan → work → review → commit → ward` for codeweaver/flowrider; the inverse shape for
+ * siegemaster), one per piece inside a parallel step, every one of them linking back to this SAME
+ * id. `status` only ever moves `pending` → `in_progress` → `complete`.
  */
 
 import { z } from 'zod';
@@ -25,11 +31,7 @@ import { workItemRoleContract } from '../work-item-role/work-item-role-contract'
 export const operationItemContract = z.object({
   id: operationItemIdContract,
   role: workItemRoleContract,
-  text: z
-    .string()
-    .min(1)
-    .brand<'OperationText'>()
-    .describe('Prose description of the operation. Continuations are auto-named "pt N: {text}"'),
+  text: z.string().min(1).brand<'OperationText'>().describe('Prose description of the operation.'),
   status: z.enum(['pending', 'in_progress', 'complete']),
   locked: z
     .boolean()

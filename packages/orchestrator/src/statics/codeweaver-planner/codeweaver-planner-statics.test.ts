@@ -396,6 +396,21 @@ describe('codeweaverPlannerStatics', () => {
     });
   });
 
+  // A PIECE'S HUMAN NAME IS DISTINCT FROM ITS `id`. The router carries `pieceName` onto the minted
+  // work item's payload, and the execution panel reads it to label a step's rows — a piece skeleton
+  // missing the field is a plan every downstream reader can only label by its bare id.
+  it('VALID: served template => requires pieceName on a piece, distinct from id', () => {
+    expect({
+      fieldInSkeleton: hasIn({
+        needle: "pieceName: '<a short human name — what a reader calls this piece",
+      }),
+      requiredAndDistinctFromId: hasIn({
+        needle:
+          '**`pieceName` is required, and it is not `id`.** `id` is your own cross-reference mnemonic;',
+      }),
+    }).toStrictEqual({ fieldInSkeleton: true, requiredAndDistinctFromId: true });
+  });
+
   it('VALID: served template => names the six payload blocks a piece carries, in order', () => {
     expect(Array.from(TEMPLATE.matchAll(/^### `.+`$/gmu), (match) => match[0])).toStrictEqual([
       '### `files`',

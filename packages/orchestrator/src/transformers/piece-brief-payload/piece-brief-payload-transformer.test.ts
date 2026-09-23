@@ -34,6 +34,7 @@ describe('pieceBriefPayloadTransformer', () => {
         traps: [],
         doNotTouch: [],
         units: [{ unitId: KEPT_UNIT_ID, layer: 'browser', assert: 'the badge reads 2' }],
+        pieceName: 'comment count badge',
       });
     });
   });
@@ -57,6 +58,7 @@ describe('pieceBriefPayloadTransformer', () => {
           exitsFlow: false,
         },
         offMapFamily: 'hostile-input',
+        pieceName: 'comment count badge',
       });
     });
   });
@@ -75,7 +77,11 @@ describe('pieceBriefPayloadTransformer', () => {
 
       const payload = pieceBriefPayloadTransformer({ piece, unitIds: [KEPT_UNIT_ID] });
 
-      expect(payload).toStrictEqual({ files: [], units: [{ unitId: KEPT_UNIT_ID }] });
+      expect(payload).toStrictEqual({
+        files: [],
+        units: [{ unitId: KEPT_UNIT_ID }],
+        pieceName: 'comment count badge',
+      });
     });
   });
 
@@ -95,11 +101,12 @@ describe('pieceBriefPayloadTransformer', () => {
       expect(payload).toStrictEqual({
         path: { nodeIds: ['batch-sent'], branchLabels: [], exitsFlow: false },
         offMapFamily: 'perf',
+        pieceName: 'comment count badge',
         baselineFor: 'pc-walk-1',
       });
     });
 
-    it('EMPTY: {payload is not an object, baselineFor set} => returns baselineFor alone', () => {
+    it('EMPTY: {payload is not an object, baselineFor set} => returns pieceName and baselineFor alone', () => {
       const piece = WorkPlanPieceStub({
         assignedUnitIds: [KEPT_UNIT_ID],
         baselineFor: 'pc-walk-1',
@@ -108,12 +115,12 @@ describe('pieceBriefPayloadTransformer', () => {
 
       const payload = pieceBriefPayloadTransformer({ piece, unitIds: [KEPT_UNIT_ID] });
 
-      expect(payload).toStrictEqual({ baselineFor: 'pc-walk-1' });
+      expect(payload).toStrictEqual({ pieceName: 'comment count badge', baselineFor: 'pc-walk-1' });
     });
   });
 
   describe('no payload at all', () => {
-    it('EMPTY: {payload is not an object, no baselineFor} => returns undefined', () => {
+    it('EMPTY: {payload is not an object, no baselineFor} => returns pieceName alone', () => {
       const piece = WorkPlanPieceStub({
         assignedUnitIds: [KEPT_UNIT_ID],
         payload: 'not-an-object',
@@ -121,7 +128,7 @@ describe('pieceBriefPayloadTransformer', () => {
 
       const payload = pieceBriefPayloadTransformer({ piece, unitIds: [KEPT_UNIT_ID] });
 
-      expect(payload).toBe(undefined);
+      expect(payload).toStrictEqual({ pieceName: 'comment count badge' });
     });
   });
 });

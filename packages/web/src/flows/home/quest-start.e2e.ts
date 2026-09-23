@@ -3,6 +3,7 @@ import { environmentHarness } from '../../../test/harnesses/environment/environm
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
+import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-quest-start';
 const HTTP_OK = 200;
@@ -65,13 +66,14 @@ test.describe('Quest Start Pipeline', () => {
       ],
     });
 
-    const startResponse = await request.post(`/api/quests/${questId}/start`);
+    const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
+    const { status: startStatus, processId } = await dispatch.startQuestViaStartRoute({
+      questId: String(questId),
+    });
 
-    expect(startResponse.status()).toBe(HTTP_OK);
+    expect(startStatus).toBe(HTTP_OK);
 
-    const startData = await startResponse.json();
-
-    expect(startData.processId).toMatch(
+    expect(processId).toMatch(
       /^proc-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u,
     );
 
@@ -129,11 +131,12 @@ test.describe('Quest Start Pipeline', () => {
       ],
     });
 
-    const startResponse = await request.post(`/api/quests/${questId}/start`);
+    const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
+    const { status: startStatus, processId } = await dispatch.startQuestViaStartRoute({
+      questId: String(questId),
+    });
 
-    expect(startResponse.status()).toBe(HTTP_OK);
-
-    const { processId } = await startResponse.json();
+    expect(startStatus).toBe(HTTP_OK);
 
     const statusResponse = await request.get(`/api/process/${processId}`);
 

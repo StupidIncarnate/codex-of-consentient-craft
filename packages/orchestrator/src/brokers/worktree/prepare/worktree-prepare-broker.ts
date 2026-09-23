@@ -8,7 +8,7 @@
  * the one moment a NEWLY created worktree's HEAD is guaranteed to equal the base branch tip the
  * quest forked from; recomputing it later would fold the quest's own commits into whatever measures
  * against it. (A caller re-carving a quest that already recorded a `baseRef` keeps its own record —
- * see quest-run-riftcarver-broker — so the sha returned here is a first-carve value, not an
+ * see step-handler-riftcarver-broker — so the sha returned here is a first-carve value, not an
  * authority that overrides one.)
  *
  * Whether the branch is MINTED or ATTACHED is decided by probing git, never by trusting a record:
