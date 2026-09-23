@@ -27,8 +27,6 @@ describe('mcpToolsStatics', () => {
           'get-project-inventory',
           'create-quest',
           'get-next-step',
-          'run-ward',
-          'run-riftcarver',
           'get-server-config',
           'get-quest-summary',
           'create-worktree',

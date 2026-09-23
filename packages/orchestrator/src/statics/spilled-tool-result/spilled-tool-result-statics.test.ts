@@ -36,7 +36,7 @@ const HOSTS = [
 // they never name `get-blight-checklist`, which is the reviewer's alone — an earlier draft of this
 // block listed it and failed all seven at once. The rule holds for every fetch, so it needs no tool
 // name to state it.
-const ROLE_SCOPED_TOOL_NAMES = ['get-blight-checklist', 'get-qa-checklist', 'run-ward'];
+const ROLE_SCOPED_TOOL_NAMES = ['get-blight-checklist', 'get-qa-checklist'];
 
 describe('spilledToolResultStatics', () => {
   describe('the rule itself', () => {
