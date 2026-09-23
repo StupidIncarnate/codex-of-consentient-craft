@@ -95,10 +95,9 @@ test.describe('Home content list — quest rows vs session rows by filter', () =
       timeout: NAV_TIMEOUT,
     });
 
-    // PRIMARY INVARIANT (was missing from the prior version of this test, which is
-    // why a partial fix shipped): "Quests Only" mode is one-to-one with quest
-    // files. One quest file on disk => exactly one row, regardless of how many
-    // sessions are tied to that quest.
+    // PRIMARY INVARIANT: "Quests Only" mode is one-to-one with quest files. One
+    // quest file on disk => exactly one row, regardless of how many sessions are
+    // tied to that quest.
     await expect(page.locator('[data-testid^="QUEST_ITEM_"]')).toHaveCount(1);
 
     // The single quest row's text is the quest title.
