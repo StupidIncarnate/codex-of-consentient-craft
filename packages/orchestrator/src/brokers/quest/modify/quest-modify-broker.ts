@@ -103,7 +103,6 @@ export const questModifyBroker = async ({
         // Tier 2: per-status input allowlist (runs BEFORE any mutation)
         const forbiddenFieldOffenders = questInputForbiddenFieldsTransformer({
           input: validated,
-          currentQuest: loadedQuest,
           currentStatus: loadedQuest.status,
           ...(validated.status === undefined ? {} : { nextStatus: validated.status }),
         });

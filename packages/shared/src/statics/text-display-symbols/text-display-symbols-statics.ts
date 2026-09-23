@@ -107,18 +107,6 @@ export const textDisplaySymbolsStatics = {
   backRef: '\u21A9',
   crossFlow: '\u2197 cross-flow',
   merge: '\u2190 MERGE',
-  // Sign-off markers: one letter per verification track, one glyph per verdict. The graph render is
-  // the surface an agent reads by DEFAULT (`format: 'text'`), and a whole quest has to fit inside
-  // `mcpToolResultStatics.maxVerbatimChars`, so a marker is two characters per track and carries
-  // the verdict alone. Evidence and questions belong to `get-quest-summary`; inlining them here
-  // would scale the render by the length of the prose instead of the size of the graph.
-  // A marker is emitted ONLY where a sign-off exists, so an unsigned unit's line carries no marker
-  // and no placeholder column.
-  signoffTrackMarks: {
-    codeweaver: 'C',
-    flowrider: 'F',
-    siegemaster: 'S',
-  },
   // Mark glyphs for verification unit outcomes: met (proved), cant-meet (unsettleable at this layer),
   // unmet (not done). Every glyph is exactly one character.
   unitMarkMarks: {

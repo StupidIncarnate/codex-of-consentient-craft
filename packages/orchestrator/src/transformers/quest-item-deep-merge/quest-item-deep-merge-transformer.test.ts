@@ -346,9 +346,9 @@ describe('questItemDeepMergeTransformer', () => {
       const existing = ItemWithIdStub({
         id: 'o1',
         description: 'redirects to dashboard',
-        siegemasterSignoff: { verdict: 'pass', at: '2026-01-01T00:00:00.000Z' },
+        draftMark: { status: 'pass', at: '2026-01-01T00:00:00.000Z' },
       });
-      const update = ItemWithIdStub({ id: 'o1', siegemasterSignoff: null });
+      const update = ItemWithIdStub({ id: 'o1', draftMark: null });
 
       const result = questItemDeepMergeTransformer({ existing, update });
 
@@ -357,7 +357,7 @@ describe('questItemDeepMergeTransformer', () => {
 
     it('VALID: {update sets a key to null that the existing item does not have} => result is unchanged and has no such key', () => {
       const existing = ItemWithIdStub({ id: 'o1', description: 'redirects to dashboard' });
-      const update = ItemWithIdStub({ id: 'o1', siegemasterSignoff: null });
+      const update = ItemWithIdStub({ id: 'o1', draftMark: null });
 
       const result = questItemDeepMergeTransformer({ existing, update });
 
@@ -368,12 +368,12 @@ describe('questItemDeepMergeTransformer', () => {
       const existing = ItemWithIdStub({
         id: 'o1',
         description: 'old description',
-        siegemasterSignoff: { verdict: 'pass', at: '2026-01-01T00:00:00.000Z' },
+        draftMark: { status: 'pass', at: '2026-01-01T00:00:00.000Z' },
       });
       const update = ItemWithIdStub({
         id: 'o1',
         description: 'new description',
-        siegemasterSignoff: null,
+        draftMark: null,
       });
 
       const result = questItemDeepMergeTransformer({ existing, update });
@@ -399,9 +399,9 @@ describe('questItemDeepMergeTransformer', () => {
         id: 'o1',
         description: 'redirects to dashboard',
         designRef: 'design/dashboard.png',
-        siegemasterSignoff: { verdict: 'pass', at: '2026-01-01T00:00:00.000Z' },
+        draftMark: { status: 'pass', at: '2026-01-01T00:00:00.000Z' },
       });
-      const update = ItemWithIdStub({ id: 'o1', siegemasterSignoff: null });
+      const update = ItemWithIdStub({ id: 'o1', draftMark: null });
 
       const result = questItemDeepMergeTransformer({ existing, update });
 
@@ -412,7 +412,7 @@ describe('questItemDeepMergeTransformer', () => {
       });
     });
 
-    it('VALID: {nested observable sets siegemasterSignoff to null} => clears that signoff through the array recursion and keeps flowriderSignoff', () => {
+    it('VALID: {nested observable sets draftMark to null} => clears that key through the array recursion and keeps the sibling finalMark', () => {
       const existing = ItemWithIdStub({
         id: 'f1',
         nodes: [
@@ -422,8 +422,8 @@ describe('questItemDeepMergeTransformer', () => {
               {
                 id: 'o1',
                 description: 'redirects to dashboard',
-                siegemasterSignoff: { verdict: 'pass', at: '2026-01-01T00:00:00.000Z' },
-                flowriderSignoff: { verdict: 'pass', at: '2026-01-02T00:00:00.000Z' },
+                draftMark: { status: 'pass', at: '2026-01-01T00:00:00.000Z' },
+                finalMark: { status: 'pass', at: '2026-01-02T00:00:00.000Z' },
               },
             ],
           },
@@ -431,7 +431,7 @@ describe('questItemDeepMergeTransformer', () => {
       });
       const update = ItemWithIdStub({
         id: 'f1',
-        nodes: [{ id: 'n1', observables: [{ id: 'o1', siegemasterSignoff: null }] }],
+        nodes: [{ id: 'n1', observables: [{ id: 'o1', draftMark: null }] }],
       });
 
       const result = questItemDeepMergeTransformer({ existing, update });
@@ -445,7 +445,7 @@ describe('questItemDeepMergeTransformer', () => {
               {
                 id: 'o1',
                 description: 'redirects to dashboard',
-                flowriderSignoff: { verdict: 'pass', at: '2026-01-02T00:00:00.000Z' },
+                finalMark: { status: 'pass', at: '2026-01-02T00:00:00.000Z' },
               },
             ],
           },

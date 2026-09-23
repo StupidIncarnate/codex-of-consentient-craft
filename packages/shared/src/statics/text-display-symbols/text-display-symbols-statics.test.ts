@@ -1,7 +1,4 @@
-import { signoffTracksStatics } from '../signoff-tracks/signoff-tracks-statics';
 import { textDisplaySymbolsStatics } from './text-display-symbols-statics';
-
-const MARKED_FIELDS = Object.keys(textDisplaySymbolsStatics.signoffTrackMarks);
 
 describe('textDisplaySymbolsStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
@@ -79,11 +76,6 @@ describe('textDisplaySymbolsStatics', () => {
       backRef: '\u21A9',
       crossFlow: '\u2197 cross-flow',
       merge: '\u2190 MERGE',
-      signoffTrackMarks: {
-        codeweaver: 'C',
-        flowrider: 'F',
-        siegemaster: 'S',
-      },
       unitMarkMarks: {
         met: '\u2713',
         'cant-meet': '?',
@@ -100,34 +92,18 @@ describe('textDisplaySymbolsStatics', () => {
     });
   });
 
-  // ONE MARK PER SIGN-OFF FIELD, and the fields are `signoffTracksStatics.fields` — never the
-  // DENOMINATOR list, which carries a third member that writes no column of its own. A field with no
-  // glyph would render nothing on a graph line that carries a real sign-off; a glyph naming no field
-  // is a column that does not exist.
-  it('VALID: {marker keys} => 1:1 with the sign-off field list, in neither direction short', () => {
-    const marked = new Set(MARKED_FIELDS);
-
-    expect([
-      signoffTracksStatics.fields.filter((field) => !marked.has(field)),
-      MARKED_FIELDS.filter((mark) => !signoffTracksStatics.fields.some((field) => field === mark)),
-    ]).toStrictEqual([[], []]);
-  });
-
-  // Every mark is exactly one character. The flow graph carries one marker per signed unit inside
+  // Every mark is exactly one character. The flow graph carries one marker per marked unit inside
   // `mcpToolResultStatics.maxVerbatimChars`, so a two-character mark doubles the cost of the
   // feature on a big quest.
-  it('VALID: {marker glyphs} => every track and unit mark is one character', () => {
+  it('VALID: {marker glyphs} => every unit mark is one character', () => {
     expect([
-      textDisplaySymbolsStatics.signoffTrackMarks.codeweaver.length,
-      textDisplaySymbolsStatics.signoffTrackMarks.flowrider.length,
-      textDisplaySymbolsStatics.signoffTrackMarks.siegemaster.length,
       textDisplaySymbolsStatics.unitMarkMarks.met.length,
       textDisplaySymbolsStatics.unitMarkMarks['cant-meet'].length,
       textDisplaySymbolsStatics.unitMarkMarks.unmet.length,
       textDisplaySymbolsStatics.unitMarkSymbols.met.length,
       textDisplaySymbolsStatics.unitMarkSymbols['cant-meet'].length,
       textDisplaySymbolsStatics.unitMarkSymbols.unmet.length,
-    ]).toStrictEqual([1, 1, 1, 1, 1, 1, 1, 1, 1]);
+    ]).toStrictEqual([1, 1, 1, 1, 1, 1]);
   });
 
   // THE TWO SLICE LEGENDS ARE ONE LEGEND WITH ONE DIFFERENCE, and this is what keeps them that way.

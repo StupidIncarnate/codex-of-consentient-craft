@@ -559,7 +559,7 @@ describe('questSummaryToTextTransformer', () => {
     });
 
     it('EDGE: {two entries past the debt cap} => the heading names the cap and the dropped count', () => {
-      const overCap = questSummaryLimitsStatics.maxUnconfirmable + 2;
+      const overCap = questSummaryLimitsStatics.maxDebt + 2;
       const lines = questSummaryToTextTransformer({
         summary: QuestSummaryStub({
           debt: Array.from({ length: overCap }, (_unused, index) =>
@@ -575,8 +575,8 @@ describe('questSummaryToTextTransformer', () => {
         lines.find((line) => line.startsWith('## DEBT')),
         lines.filter((line) => line.startsWith('      evidence:')).length,
       ]).toStrictEqual([
-        `## DEBT (${String(overCap)}) — every unit that is NOT proven — TRUNCATED at the ${String(questSummaryLimitsStatics.maxUnconfirmable)}-entry cap; 2 entry(s) NOT SHOWN`,
-        questSummaryLimitsStatics.maxUnconfirmable,
+        `## DEBT (${String(overCap)}) — every unit that is NOT proven — TRUNCATED at the ${String(questSummaryLimitsStatics.maxDebt)}-entry cap; 2 entry(s) NOT SHOWN`,
+        questSummaryLimitsStatics.maxDebt,
       ]);
     });
 
@@ -641,13 +641,11 @@ describe('questSummaryToTextTransformer', () => {
             (_unused, index) =>
               QuestSummaryObservableStub({ id: `login-flow:observable:drift-${String(index)}` }),
           ),
-          debt: Array.from(
-            { length: questSummaryLimitsStatics.maxUnconfirmable },
-            (_unused, index) =>
-              QuestSummaryDebtStub({
-                id: `login-flow:observable:hole-${String(index)}:flowrider`,
-                unitId: `login-flow:observable:hole-${String(index)}`,
-              }),
+          debt: Array.from({ length: questSummaryLimitsStatics.maxDebt }, (_unused, index) =>
+            QuestSummaryDebtStub({
+              id: `login-flow:observable:hole-${String(index)}:flowrider`,
+              unitId: `login-flow:observable:hole-${String(index)}`,
+            }),
           ),
           humanChecks: Array.from(
             { length: questSummaryLimitsStatics.maxHumanChecks },

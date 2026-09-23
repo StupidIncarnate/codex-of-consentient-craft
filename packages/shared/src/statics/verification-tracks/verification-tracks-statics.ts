@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Names the ROLES measured over verification units, in RELAY ORDER — the order the roles
- * run in. `signoffDenominatorTrackContract` builds its enum from this list; reach for this file
+ * run in. `verificationTrackContract` builds its enum from this list; reach for this file
  * anywhere else a value needs to enumerate that same role set, rather than repeating the names
  * inline.
  *

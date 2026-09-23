@@ -97,11 +97,6 @@ export const dispatchHarness = ({
     firstWorkItemId: string;
     firstWorkItemStatus?: string;
     firstWorkItemSessionId?: string;
-    // Seeds the quest's runtime flow with the Flowrider track's sign-offs already written — the
-    // state a real flowrider session reaches before it signals. Required whenever the ledger
-    // carries a `flowrider` item this spec drives to `done`, because signal-back recomputes that
-    // scope and refuses `done` while any verification unit on it is unsigned.
-    flowriderScopeSignedOff?: boolean;
     // Seeds the quest as ALREADY CARVED — the state every role after riftcarver runs in. Its
     // sessions run in the worktree, so their JSONL lands under the worktree's path encoding and
     // the server has to resolve their tails through this field rather than the guild path.
@@ -251,7 +246,6 @@ export const dispatchHarness = ({
       firstWorkItemId,
       firstWorkItemStatus,
       firstWorkItemSessionId,
-      flowriderScopeSignedOff,
       worktreePath,
     }) => {
       const created = await quests.createQuest({ guildId, title, userRequest });
@@ -264,7 +258,6 @@ export const dispatchHarness = ({
         firstWorkItemId,
         ...(firstWorkItemStatus === undefined ? {} : { firstWorkItemStatus }),
         ...(firstWorkItemSessionId === undefined ? {} : { firstWorkItemSessionId }),
-        ...(flowriderScopeSignedOff === undefined ? {} : { flowriderScopeSignedOff }),
         ...(worktreePath === undefined ? {} : { worktreePath }),
       });
       return {

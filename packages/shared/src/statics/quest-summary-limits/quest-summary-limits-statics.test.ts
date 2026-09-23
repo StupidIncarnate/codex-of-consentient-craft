@@ -9,7 +9,7 @@ describe('questSummaryLimitsStatics', () => {
       expect(questSummaryLimitsStatics).toStrictEqual({
         maxFlows: 40,
         maxMidQuestObservables: 80,
-        maxUnconfirmable: 80,
+        maxDebt: 80,
         maxHumanChecks: 80,
         maxNotesPerKind: 40,
         maxRenderChars: 48_000,

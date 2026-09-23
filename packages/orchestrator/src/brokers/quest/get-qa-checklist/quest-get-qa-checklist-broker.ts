@@ -45,7 +45,7 @@ import type {
   OperationItemId,
   QaChecklist,
   QuestId,
-  SignoffDenominatorTrack,
+  VerificationTrack,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -62,7 +62,7 @@ export const questGetQaChecklistBroker = async ({
   questId: QuestId;
   operationItemId?: OperationItemId;
   flowId?: FlowId;
-}): Promise<{ checklists: QaChecklist[]; track?: SignoffDenominatorTrack }> => {
+}): Promise<{ checklists: QaChecklist[]; track?: VerificationTrack }> => {
   const { questPath } = await questFindQuestPathBroker({ questId });
 
   const questFilePath = filePathContract.parse(

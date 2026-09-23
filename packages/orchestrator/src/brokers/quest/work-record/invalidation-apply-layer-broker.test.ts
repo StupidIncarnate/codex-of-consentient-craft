@@ -94,7 +94,7 @@ const SIGNED_TARGET_FLOW = FlowStub({
 
 describe('invalidationApplyLayerBroker', () => {
   describe('successful invalidation', () => {
-    it('VALID: {a siege fixer mid-family, step: fixHappy} => clears every siegemasterSignoff on the flow and appends a walk-reset note', async () => {
+    it('VALID: {a siege fixer mid-family, step: fixHappy} => touches no field on the flow and appends a walk-reset note', async () => {
       const proxy = invalidationApplyLayerBrokerProxy();
       const quest = QuestStub({
         id: QUEST_ID,

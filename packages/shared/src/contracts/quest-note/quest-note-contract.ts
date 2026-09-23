@@ -57,7 +57,7 @@
  * citation against to decide the hold is released.
  *
  * NO `.superRefine()` PAIRS `outcome`/`unitId` WITH `kind: 'human-verdict'`, unlike
- * `signoffContract`'s `toSettle`/`unconfirmable` pairing. This contract carries no refinement
+ * `unitObservationContract`'s `toSettle`/`cant-meet` pairing. This contract carries no refinement
  * because two live callers reach through the PLAIN `ZodObject` this export already is:
  * `modify-quest-input-contract.ts` calls `questNoteContract.extend(...)` and
  * `quest-work-input-contract.ts` reads `questNoteContract.shape.detail` — both members `zod` 3

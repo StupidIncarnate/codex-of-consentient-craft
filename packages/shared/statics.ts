@@ -50,8 +50,6 @@ export * from './src/statics/quest-summary-limits/quest-summary-limits-statics';
 // Flow slice render bound — the character ceiling get-quest's per-flow render is cut at.
 export * from './src/statics/quest-flow-slice-limits/quest-flow-slice-limits-statics';
 
-// Flow Sign-off Evidence
-
 // The wording get-quest refuses a conflicting argument pair with, shared by the input contract and
 // the MCP wrapper that extends it.
 export * from './src/statics/get-quest-input-conflicts/get-quest-input-conflicts-statics';
@@ -76,12 +74,8 @@ export * from './src/statics/graph-outcome-word/graph-outcome-word-statics';
 // calls).
 export * from './src/statics/package-build-order/package-build-order-statics';
 
-// The sign-off FIELDS a unit carries — consumed by signoffTrackContract to build its enum, and by
-// every test that enumerates the field list.
-export * from './src/statics/signoff-tracks/signoff-tracks-statics';
-
 // The ROLES measured over verification units, in relay order — consumed by
-// signoffDenominatorTrackContract to build its enum, and by every test that enumerates the role
+// verificationTrackContract to build its enum, and by every test that enumerates the role
 // set.
 export * from './src/statics/verification-tracks/verification-tracks-statics';
 

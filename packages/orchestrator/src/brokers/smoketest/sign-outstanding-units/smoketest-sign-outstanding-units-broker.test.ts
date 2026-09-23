@@ -130,7 +130,8 @@ const questFlowriderOperational = QuestStub({
 // `spiritmender` — like `warpgate` — carries no `byTrack` entry at all, so it is measured on
 // nothing: the broker's eligibility lookup returns `undefined` for it regardless of what flows or
 // packages the item declares. `codeweaver` no longer illustrates this case, since it is now one of
-// the three gated tracks (`codeweaverSignoff`) alongside flowrider and siegemaster.
+// the three verification tracks (alongside flowrider and siegemaster) that a work item marks
+// through `workItem.observations[]`.
 const questSpiritmender = QuestStub({
   id: QUEST_ID,
   flows: [OPERATIONAL_FLOW],

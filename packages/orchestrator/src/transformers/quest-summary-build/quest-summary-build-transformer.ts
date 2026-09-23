@@ -93,7 +93,7 @@ import type { PackageName, Quest, QuestSummary } from '@dungeonmaster/shared/con
 import {
   questNoteKindContract,
   questSummaryContract,
-  signoffDenominatorTrackContract,
+  verificationTrackContract,
 } from '@dungeonmaster/shared/contracts';
 
 import { stepScopeStatics } from '../../statics/step-scope/step-scope-statics';
@@ -117,7 +117,7 @@ export const questSummaryBuildTransformer = ({
   // One scope per (flow, track) the track actually measures, carrying that track's denominator on
   // that flow, its four counts and its share of the quest's debt.
   const trackScopes = enumeratedFlows.flatMap(({ flow, units }) =>
-    signoffDenominatorTrackContract.options
+    verificationTrackContract.options
       .filter((track) => {
         const familySteps = stepScopeStatics.byFamilyStep[track];
         const stepScope = 'review' in familySteps ? familySteps.review : familySteps.happyWalk;

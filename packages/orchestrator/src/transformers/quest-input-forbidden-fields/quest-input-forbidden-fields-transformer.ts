@@ -2,7 +2,7 @@
  * PURPOSE: Returns descriptions of every forbidden field a modify-quest input attempts to write for the given current/next status
  *
  * USAGE:
- * questInputForbiddenFieldsTransformer({input, currentQuest, currentStatus: 'in_progress', nextStatus: undefined});
+ * questInputForbiddenFieldsTransformer({input, currentStatus: 'in_progress', nextStatus: undefined});
  * // Returns ErrorMessage[] of forbidden top-level fields and forbidden nested flow mutations.
  * // Empty array means the input passes the per-status allowlist gate.
  *
@@ -18,20 +18,14 @@
  * - When `flows` is present and allowed at top level, the per-status flowsRule is applied:
  *     'forbidden'                -> any flows presence is rejected (defensive — usually flows is also out of allowedFields)
  *     'full'                     -> any flow shape is allowed: add, edit and delete alike, embedded
- *                                   observables included. ONE check still runs — see below.
+ *                                   observables included.
  *
- * TWO CHECKS RUN ON EVERY ALLOWED `flows` WRITE, UNDER `'full'` INCLUDED, because each polices
- * something the allowlist never did and neither becomes acceptable by opening a status up:
- *   `questSignoffUnknownUnitViolationsTransformer` — WHAT MAY BE ADDRESSED. A sign-off naming an id
- *     the graph does not hold is APPENDED by the upsert as a brand-new unit, so one logical unit
- *     gets a second, phantom home that no later read can tell from the real one.
- *   `questSignoffCoupledEditViolationsTransformer` — WHAT MAY RIDE ALONG. The session that builds an
- *     artifact is the session that signs it, so an element free to carry a sign-off and an edit in
- *     one payload can move the goalposts to whatever it produced and leave only the agreement on
- *     the quest.
- * Both are data corruption rather than an over-wide permission.
+ * UNDER `'full'`, THE PAYLOAD MAY ADD, EDIT AND DELETE FREELY. Every restriction narrower than the
+ * allowlist above has retired along with the per-element sign-off fields it used to police — a
+ * unit's mark lives on `workItem.observations[]` now, never on the flow element itself, so there is
+ * nothing left on a flow write for this transformer to refuse beyond the allowlist.
  */
-import type { QuestStatus, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStatus } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
@@ -41,19 +35,13 @@ import {
   questStatusInputAllowlistStatics,
   type QuestStatusFlowsRule,
 } from '../../statics/quest-status-input-allowlist/quest-status-input-allowlist-statics';
-import { questSignoffCoupledEditViolationsTransformer } from '../quest-signoff-coupled-edit-violations/quest-signoff-coupled-edit-violations-transformer';
-import { questSignoffUnknownUnitViolationsTransformer } from '../quest-signoff-unknown-unit-violations/quest-signoff-unknown-unit-violations-transformer';
-
-type Quest = ReturnType<typeof QuestStub>;
 
 export const questInputForbiddenFieldsTransformer = ({
   input,
-  currentQuest,
   currentStatus,
   nextStatus,
 }: {
   input: ModifyQuestInput;
-  currentQuest: Quest;
   currentStatus: QuestStatus;
   nextStatus?: QuestStatus;
 }): ErrorMessage[] => {
@@ -139,12 +127,6 @@ export const questInputForbiddenFieldsTransformer = ({
     return offenders;
   }
 
-  // flowsRule === 'full'. The payload may add, edit and delete freely; what it may not do is sign a
-  // unit the graph does not hold (the upsert would APPEND that id rather than reject it), or sign a
-  // unit and rewrite that same unit in the one call.
-  return [
-    ...offenders,
-    ...questSignoffUnknownUnitViolationsTransformer({ inputFlows, currentQuest }),
-    ...questSignoffCoupledEditViolationsTransformer({ inputFlows }),
-  ];
+  // flowsRule === 'full'. The payload may add, edit and delete freely.
+  return offenders;
 };

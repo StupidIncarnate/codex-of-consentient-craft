@@ -9,7 +9,7 @@ import {
   UnitObservationStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
-import { signoffTracksStatics } from '@dungeonmaster/shared/statics';
+import { verificationTracksStatics } from '@dungeonmaster/shared/statics';
 
 import { questSummaryBuildTransformer } from './quest-summary-build-transformer';
 
@@ -1502,7 +1502,7 @@ describe('questSummaryBuildTransformer', () => {
 
       const result = questSummaryBuildTransformer({ quest });
 
-      const totalsByTrack = signoffTracksStatics.denominators.map((wanted) =>
+      const totalsByTrack = verificationTracksStatics.roles.map((wanted) =>
         result.flows
           .flatMap((flow) => flow.tracks)
           .filter((track) => track.id === wanted)

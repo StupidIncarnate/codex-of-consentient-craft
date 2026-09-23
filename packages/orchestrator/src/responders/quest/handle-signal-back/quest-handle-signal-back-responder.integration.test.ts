@@ -738,16 +738,14 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
   }, 30_000);
 });
 
-// The flowrider/siegemaster sign-off completion gate — refusing `done` while a track's units
-// carried no sign-off, exhaustively covered at the unit level by
-// signoff-flow-outstanding-transformer.test.ts — has been removed from the responder. These prove
-// `done` now completes regardless of what the persisted flowriderSignoff/siegemasterSignoff
-// columns hold, driven against real seeded quests rather than asserted from a mock.
-describe('QuestHandleSignalBackResponder (integration) — the two sign-off tracks', () => {
+// The flowrider/siegemaster completion gate holds no per-track sign-off column to refuse `done`
+// over — a unit's mark lives on `workItem.observations[]` instead. These prove that directly,
+// driven against real seeded quests rather than asserted from a mock.
+describe('QuestHandleSignalBackResponder (integration) — the two verification tracks', () => {
   const envHarness = orchestrationEnvironmentHarness();
   const questHelper = orchestrationQuestHarness();
 
-  describe("flowrider: 'done' succeeds whether or not runtime units carry a flowriderSignoff", () => {
+  describe("flowrider: 'done' succeeds however its units are observed — there is no flowriderSignoff column left to gate on", () => {
     it('VALID: {done, one unit `confirmed` and one `unconfirmable`} => both verdicts clear the gate, operation + work item complete', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'sb-flowrider-admit' }),
@@ -833,7 +831,7 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
       }).toStrictEqual({ workItemStatus: 'complete', operationStatus: 'complete' });
     }, 30_000);
 
-    it('VALID: {done, every flow OPERATIONAL, no flowriderSignoff anywhere} => accepted, because nothing gates on sign-off any more — not because of a runtime-only filter', async () => {
+    it('VALID: {done, every flow OPERATIONAL} => accepted, because nothing gates on a sign-off column any more — not because of a runtime-only filter', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'sb-flowrider-operational' }),
       });
@@ -844,8 +842,8 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
       const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f3' });
       const flowWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
 
-      // Carries no flowriderSignoff at all — proving this accepts because nothing gates on
-      // sign-off any more, not because of a runtime-flow-only filter still running underneath.
+      // No sign-off column exists on any unit — proving this accepts because nothing gates on
+      // one, not because of a runtime-flow-only filter still running underneath.
       await questHelper.seedInProgressRelay({
         questId,
         planningNotes: QuestStub({
@@ -909,8 +907,8 @@ describe('QuestHandleSignalBackResponder (integration) — the two sign-off trac
     }, 30_000);
   });
 
-  describe("siegemaster: 'done' succeeds whether or not its units carry a siegemasterSignoff", () => {
-    it("VALID: {the same units also carry a siegemasterSignoff, siegemaster 'done'} => the gate clears", async () => {
+  describe("siegemaster: 'done' succeeds however its units are observed — there is no siegemasterSignoff column left to gate on", () => {
+    it("VALID: {siegemaster 'done', the flow's off-map families are all recorded} => the gate clears", async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'sb-tracks-both-signed' }),
       });

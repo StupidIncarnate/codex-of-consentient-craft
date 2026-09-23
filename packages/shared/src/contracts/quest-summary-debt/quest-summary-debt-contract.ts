@@ -43,8 +43,8 @@ import { flowIdContract } from '../flow-id/flow-id-contract';
 import { qaChecklistItemIdContract } from '../qa-checklist-item-id/qa-checklist-item-id-contract';
 import { qaChecklistKindContract } from '../qa-checklist-kind/qa-checklist-kind-contract';
 import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
-import { signoffDenominatorTrackContract } from '../signoff-denominator-track/signoff-denominator-track-contract';
 import { unitMarkContract } from '../unit-mark/unit-mark-contract';
+import { verificationTrackContract } from '../verification-track/verification-track-contract';
 
 export const questSummaryDebtContract = z
   .object({
@@ -56,7 +56,7 @@ export const questSummaryDebtContract = z
     unitId: qaChecklistItemIdContract,
     flowId: flowIdContract,
     kind: qaChecklistKindContract,
-    track: signoffDenominatorTrackContract,
+    track: verificationTrackContract,
     // Narrowed off `unitMarkContract` rather than re-typed, so a mark added there arrives here as a
     // compile error at the `.exclude()` call instead of silently staying out of the debt list.
     mark: unitMarkContract

@@ -33,7 +33,7 @@
  * `id` NAMES THE DENOMINATOR — which units this row is measured over — so each row narrows by its
  * own step scope and the rows partition the flow's units between them.
  *
- * `tracks` is an id-bearing array rather than a `Record<SignoffDenominatorTrack, …>`. Every other
+ * `tracks` is an id-bearing array rather than a `Record<VerificationTrack, …>`. Every other
  * per-key collection on a quest is an id-bearing array for the same reason: the quest deep-merge
  * upserts array elements by `id` and replaces a plain object value wholesale, and a reader that
  * maps over `tracks` keeps working when a further denominator lands.
@@ -50,13 +50,13 @@
 
 import { z } from 'zod';
 
-import { signoffDenominatorTrackContract } from '../signoff-denominator-track/signoff-denominator-track-contract';
+import { verificationTrackContract } from '../verification-track/verification-track-contract';
 
 const trackUnitCountContract = z.number().int().nonnegative().brand<'TrackUnitCount'>();
 
 export const questSummaryTrackCountsContract = z
   .object({
-    id: signoffDenominatorTrackContract,
+    id: verificationTrackContract,
     met: trackUnitCountContract
       .default(0)
       .describe(

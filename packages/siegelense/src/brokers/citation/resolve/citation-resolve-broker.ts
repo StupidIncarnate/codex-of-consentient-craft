@@ -7,7 +7,7 @@
  * `blocked` is a refusal it cannot yet explain but must still make, and `gaps` names every citation
  * KIND that was never checked, so an empty `references` can never be read as "nothing cites any of
  * this". `open-issue` is a permanent gap today: nothing in this repo stores an issue with a typed
- * `instanceId`/`runId` for a resolver to match — `signoffContract` carries neither and
+ * `instanceId`/`runId` for a resolver to match — a work item's own observation carries neither and
  * `questNoteKindContract` has no `issue` member — so a walker's defect lives as a failing test on
  * disk or as prose in a note. Reach for this over calling a layer directly: this is the one place
  * that loads the quest record, and two callers loading it separately could disagree about whether
@@ -41,9 +41,9 @@ const OPEN_ISSUE_GAP = citationGapContract.parse({
   kind: citationKindContract.parse('open-issue'),
   why: contentTextContract.parse(
     'not checked: no issue record exists to check. Nothing in this repo stores an issue carrying ' +
-      'a typed instanceId/runId — signoffContract has neither field and questNoteKindContract has ' +
-      'no issue member — so a walker records a defect as a failing test or as prose in a note, ' +
-      'neither of which a resolver can match an instance against.',
+      "a typed instanceId/runId — a workItem's own observation carries neither field and " +
+      'questNoteKindContract has no issue member — so a walker records a defect as a failing test ' +
+      'or as prose in a note, neither of which a resolver can match an instance against.',
   ),
 });
 

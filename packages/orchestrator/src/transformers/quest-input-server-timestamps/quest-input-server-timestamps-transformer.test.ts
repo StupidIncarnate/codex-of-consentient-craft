@@ -3,19 +3,19 @@ import {
   OperationPlanStub,
   QuestBlightLedgerEntryStub,
   QuestNoteStub,
-  SignoffStub,
+  UnitObservationStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questInputServerTimestampsTransformer } from './quest-input-server-timestamps-transformer';
 
 // The server's reading, distinguishable at a glance from every stub's own default.
-const { at: STAMPED_AT } = SignoffStub({ at: '2026-08-16T03:23:41.000Z' });
+const { at: STAMPED_AT } = UnitObservationStub({ at: '2026-08-16T03:23:41.000Z' });
 const SERVER_INSTANT = '2026-08-16T03:23:41.000Z';
 const CLIENT_INSTANT = '2020-01-01T00:00:00.000Z';
 
 describe('questInputServerTimestampsTransformer', () => {
-  describe('sign-offs on the flow graph', () => {
-    it('EMPTY: {a flow patch carrying no sign-off anywhere} => comes back unchanged', () => {
+  describe("flows are not this transformer's concern", () => {
+    it("EMPTY: {a flow patch, no planningNotes} => comes back unchanged, because a unit's mark lives on workItem.observations[], not on the flow", () => {
       const result = questInputServerTimestampsTransformer({
         input: ModifyQuestInputStub({
           questId: 'add-auth',

@@ -62,12 +62,12 @@ export const questSummaryToTextTransformer = ({
       ? ''
       : ` — TRUNCATED at the ${String(questSummaryLimitsStatics.maxMidQuestObservables)}-entry cap; ${String(observablesDropped)} entry(s) NOT SHOWN`;
 
-  const debtShown = summary.debt.slice(0, questSummaryLimitsStatics.maxUnconfirmable);
+  const debtShown = summary.debt.slice(0, questSummaryLimitsStatics.maxDebt);
   const debtDropped = summary.debt.length - debtShown.length;
   const debtNotice =
     debtDropped === 0
       ? ''
-      : ` — TRUNCATED at the ${String(questSummaryLimitsStatics.maxUnconfirmable)}-entry cap; ${String(debtDropped)} entry(s) NOT SHOWN`;
+      : ` — TRUNCATED at the ${String(questSummaryLimitsStatics.maxDebt)}-entry cap; ${String(debtDropped)} entry(s) NOT SHOWN`;
 
   const humanChecksShown = summary.humanChecks.slice(0, questSummaryLimitsStatics.maxHumanChecks);
   const humanChecksDropped = summary.humanChecks.length - humanChecksShown.length;

@@ -1,4 +1,4 @@
-import { signoffDenominatorTrackContract } from '../signoff-denominator-track/signoff-denominator-track-contract';
+import { verificationTrackContract } from '../verification-track/verification-track-contract';
 import { questSummaryDebtContract } from './quest-summary-debt-contract';
 import { QuestSummaryDebtStub } from './quest-summary-debt.stub';
 
@@ -42,7 +42,7 @@ describe('questSummaryDebtContract', () => {
       });
     });
 
-    it.each(signoffDenominatorTrackContract.options)(
+    it.each(verificationTrackContract.options)(
       'VALID: {track: %s} => every denominator track can carry debt',
       (track) => {
         expect(QuestSummaryDebtStub({ track }).track).toBe(track);
