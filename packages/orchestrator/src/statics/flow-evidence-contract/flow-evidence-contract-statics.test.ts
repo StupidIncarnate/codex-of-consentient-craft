@@ -5,7 +5,7 @@ import { flowriderReviewerStatics } from '../flowrider-reviewer/flowrider-review
 import { stepScopeStatics } from '../step-scope/step-scope-statics';
 import { flowEvidenceContractStatics } from './flow-evidence-contract-statics';
 
-// PROSE COMPARES IGNORE WRAPPING. Both halves are bound with every whitespace run — spaces,
+// PROSE COMPARES IGNORE WRAPPING. `judgingMarkdown` is bound with every whitespace run — spaces,
 // newlines, indent — collapsed to a single space, so a needle written on ONE line finds its
 // sentence however the contract happens to wrap. Re-flowing a paragraph in the statics file then
 // reds nothing that is still true, which is why no needle in this file carries an escaped newline.
@@ -14,10 +14,6 @@ import { flowEvidenceContractStatics } from './flow-evidence-contract-statics';
 const WHITESPACE_RUN = /\s+/gu;
 
 const judgingMarkdown = flowEvidenceContractStatics.judgingMarkdown.replace(WHITESPACE_RUN, ' ');
-const authoringMarkdown = flowEvidenceContractStatics.authoringMarkdown.replace(
-  WHITESPACE_RUN,
-  ' ',
-);
 
 describe('flowEvidenceContractStatics', () => {
   describe('judgingMarkdown — what a reviewer accepts or rejects an artifact against', () => {
@@ -73,99 +69,89 @@ describe('flowEvidenceContractStatics', () => {
       );
     });
 
-    it('VALID: judgingMarkdown => defines exactly two per-track verdicts over three tracks', () => {
+    // THE MECHANISM: a reviewer reads its scope via `get-quest-work`, marks every assigned unit via
+    // `quest-work` observations, and calls `signal-back` itself. There is no parent and no per-track
+    // sign-off — a unit carries exactly one of three marks, never a verdict per track.
+    it('VALID: judgingMarkdown => defines exactly three marks, with no parent and no per-track sign-off', () => {
       expect({
-        heading:
-          /^## Verdicts — a unit carries one sign-off per track, and there are three$/mu.test(
-            flowEvidenceContractStatics.judgingMarkdown,
-          ),
-        perTrack: judgingMarkdown.includes(
-          'A unit is settled PER TRACK, never once for everybody.',
+        heading: /^## Marks — every assigned unit ends the pass carrying one of three$/mu.test(
+          flowEvidenceContractStatics.judgingMarkdown,
         ),
-        codeweaverIsAUnitTest: judgingMarkdown.includes(
-          '| `codeweaver` | proven by a unit test, beside the code |',
+        noBriefingAndNoTrackOfItsOwn: judgingMarkdown.includes(
+          'nobody briefs this session and no track keeps a sign-off of its own.',
         ),
-        flowriderIsAFlowTest: judgingMarkdown.includes(
-          '| `flowrider` | proven by a flow-perspective test |',
+        metIsTheEvidenceContract: judgingMarkdown.includes(
+          '**`met`** — you settled it. The evidence is **The Evidence Contract** above, all five items,',
         ),
-        siegemasterIsMeasured: judgingMarkdown.includes(
-          '| `siegemaster` | holds when a person drives the real system |',
+        cantMeetNeedsToSettle: judgingMarkdown.includes(
+          '**A `toSettle` is REQUIRED**; the contract refuses a `cant-meet` carrying none.',
         ),
-        unconfirmableNeedsAQuestion: judgingMarkdown.includes(
-          'the contract refuses an `unconfirmable` carrying none.',
+        unmetMintsASuccessor: judgingMarkdown.includes(
+          'marking a unit this way mints a successor scoped to exactly the units you marked `unmet`.',
         ),
       }).toStrictEqual({
         heading: true,
-        perTrack: true,
-        codeweaverIsAUnitTest: true,
-        flowriderIsAFlowTest: true,
-        siegemasterIsMeasured: true,
-        unconfirmableNeedsAQuestion: true,
+        noBriefingAndNoTrackOfItsOwn: true,
+        metIsTheEvidenceContract: true,
+        cantMeetNeedsToSettle: true,
+        unmetMintsASuccessor: true,
       });
     });
 
-    // NOTHING COUNTS SIGN-OFFS, AND NOTHING OFFERS A WAY TO STOP SHORT. Those are two separate
-    // claims and this block pins both. The FALSE pins name three things this text must never say —
-    // that a blank never clears, that a completion gate refuses the parent's `done`, that a blank
-    // spends the pt chain. Each is a threat about a check nothing performs, and a session that
-    // believes one reaches for a verdict it cannot back rather than leaving the unit open. What
-    // does the work instead is the rule: never sign what you did not settle, and an unsettled unit
-    // is work remaining under an uncapped loop.
-    it('VALID: judgingMarkdown => refuses an unbacked verdict, and claims no gate', () => {
+    // A MISSING TEST IS WORK REMAINING, NEVER `cant-meet` — `cant-meet` is for a unit tried and not
+    // reached; a test nobody wrote yet is `unmet`, which is what mints the successor that writes it.
+    it('VALID: judgingMarkdown => a unit needing an unwritten test is unmet, not cant-meet', () => {
       expect({
-        neverSignUnsettled: judgingMarkdown.includes('**Never sign a unit you did not settle.**'),
-        noGateCounts: judgingMarkdown.includes('No gate counts sign-offs'),
-        everyUnitCarriesAVerdict: judgingMarkdown.includes(
-          "**EVERY UNIT ON THE TRACK'S LIST ENDS THE PASS CARRYING ONE OF THOSE TWO. A third state does not exist, and neither does a blank.**",
+        needsAnUnwrittenTestIsUnmet: judgingMarkdown.includes(
+          '**A unit that simply needs a test nobody has written yet is NOT `cant-meet`.** Mark it `unmet` — that mints the `work` successor.',
         ),
-        noWayToStopShort: judgingMarkdown.includes(
-          'A pass that stops with a unit holding neither has not finished.',
+      }).toStrictEqual({ needsAnUnwrittenTestIsUnmet: true });
+    });
+
+    // NOTHING COUNTS MARKS, AND NOTHING OFFERS A WAY TO STOP SHORT. The only gate is `signal-back`
+    // refusing an unmarked unit BY NAME — never grading a mark's value — which is what stops a
+    // session padding `met` to get past it.
+    it('VALID: judgingMarkdown => refuses an unbacked met mark, and the only gate checks presence, not value', () => {
+      expect({
+        neverMarkMetUnsettled: judgingMarkdown.includes(
+          '**Never mark `met` what you did not settle.**',
         ),
-        missingTestIsNotUnconfirmable: judgingMarkdown.includes(
-          '**A unit that simply needs a test nobody has written yet is NOT `unconfirmable`.**',
+        gateChecksPresenceNotValue: judgingMarkdown.includes(
+          'or `signal-back` refuses the call by name — but the gate checks only that a mark exists, never its VALUE.',
         ),
-        missingTestGoesToRework: judgingMarkdown.includes('put it in your `NEXT: rework` line'),
-        aVerdictClosesTheUnit: judgingMarkdown.includes('A verdict CLOSES a unit'),
-        blankNeverClears: judgingMarkdown.includes(
-          'A blank sign-off is the one thing that never clears',
+        paddingMetShipsUnprovenWork: judgingMarkdown.includes(
+          'Padding `met` over an existence-only citation gets past that gate and ships a unit nobody proved',
         ),
-        gateRefusesTheParentsDone: judgingMarkdown.includes(
-          "the completion gate refuses your parent's `done`",
+        markingUnmetThatBitesIsWasted: judgingMarkdown.includes(
+          'marking a unit `unmet` that a test genuinely bites sends it back out for nothing.',
         ),
-        blankSpendsThePtChain: judgingMarkdown.includes('the pt chain spends itself against it'),
       }).toStrictEqual({
-        neverSignUnsettled: true,
-        noGateCounts: true,
-        everyUnitCarriesAVerdict: true,
-        noWayToStopShort: true,
-        missingTestIsNotUnconfirmable: true,
-        missingTestGoesToRework: true,
-        aVerdictClosesTheUnit: true,
-        blankNeverClears: false,
-        gateRefusesTheParentsDone: false,
-        blankSpendsThePtChain: false,
+        neverMarkMetUnsettled: true,
+        gateChecksPresenceNotValue: true,
+        paddingMetShipsUnprovenWork: true,
+        markingUnmetThatBitesIsWasted: true,
       });
     });
 
-    // No third verdict exists to hold a measured defect. Signing one as a verdict would leave the
-    // unit's own positive expectation unanswered, because a defect is the INVERSE of an observable.
-    // The defect goes into the spec as its own observable, where it takes its tracks' sign-offs.
-    it('VALID: judgingMarkdown => routes a measured defect to a new observable rather than a third verdict', () => {
+    // No fourth mark exists to hold a measured defect. Signing one as a mark would leave the unit's
+    // own positive expectation unanswered, because a defect is the INVERSE of an observable. The
+    // defect goes into the spec as its own observable, where it takes its own marks.
+    it('VALID: judgingMarkdown => routes a measured defect to a new observable rather than a fourth mark', () => {
       expect({
         newObservable: judgingMarkdown.includes(
           '**A measured defect is a NEW observable, not a third verdict.**',
         ),
-        inverseExpectation: judgingMarkdown.includes(
-          'is the INVERSE expectation and belongs in the spec — name it in your findings so your parent adds it,',
+        marksTheOriginUnmet: judgingMarkdown.includes(
+          'mark the unit it came from `unmet`, naming the inverse expectation in its evidence,',
         ),
-        parentWritesTheSpec: judgingMarkdown.includes(
-          'since a reviewer writes no spec of its own.',
+        noParentToHandItTo: judgingMarkdown.includes(
+          'since a reviewer writes no spec of its own and there is no parent to hand one to.',
         ),
         noOtherVerdicts: judgingMarkdown.includes(
           '**There is no `defect`, `deferred`, `gap` or `recorded` SIGN-OFF verdict.**',
         ),
-        twoIsTheWholeVocabulary: judgingMarkdown.includes(
-          '`confirmed` and `unconfirmable` are the whole vocabulary.',
+        threeIsTheWholeVocabulary: judgingMarkdown.includes(
+          '`met`, `cant-meet` and `unmet` are the whole vocabulary.',
         ),
         provenanceIsSeparate: judgingMarkdown.includes('**Provenance is a SEPARATE axis.**'),
         // The blight ledger and its five dispositions are deleted. A reference to them here sends a
@@ -173,10 +159,10 @@ describe('flowEvidenceContractStatics', () => {
         namesTheDeletedLedger: judgingMarkdown.includes('blightLedger'),
       }).toStrictEqual({
         newObservable: true,
-        inverseExpectation: true,
-        parentWritesTheSpec: true,
+        marksTheOriginUnmet: true,
+        noParentToHandItTo: true,
         noOtherVerdicts: true,
-        twoIsTheWholeVocabulary: true,
+        threeIsTheWholeVocabulary: true,
         provenanceIsSeparate: true,
         namesTheDeletedLedger: false,
       });
@@ -190,162 +176,69 @@ describe('flowEvidenceContractStatics', () => {
     });
   });
 
-  describe('authoringMarkdown — where an author decides to assert', () => {
-    it('VALID: authoringMarkdown => picks modality per observable rather than per flow', () => {
-      expect({
-        heading: /^## Modality — chosen per OBSERVABLE, never per flow$/mu.test(
-          flowEvidenceContractStatics.authoringMarkdown,
-        ),
-        flowTypeIsOnlyAHint: authoringMarkdown.includes(
-          'It never overrides the modality you chose for a single observable.',
-        ),
-        operationalStillNeedsBrowser: authoringMarkdown.includes(
-          'An `operational` flow carrying `ui-state` observables still needs a browser for those.',
-        ),
-        // Journey-vs-matrix and `checkSurface` answer different questions. A session that reads
-        // them as competing picks one and drops the other. It writes a "journey" e2e that never
-        // asserts at the layer the claim lives on, or a matrix that flattens a branchy flow into
-        // one parameterized case.
-        shapeVersusLayer: authoringMarkdown.includes(
-          "**Two rules compose here. They never compete.** 1. Journey-vs-matrix chooses the test SHAPE. 2. The unit's CHECK SURFACES row — or its `## TERMINAL SURFACE` / `## BRANCH SURFACE` heading — chooses the LAYER.",
-        ),
-        journeyIsOneTestPerPath: authoringMarkdown.includes(
-          'A branchy flow is a JOURNEY: one test per path, driven end to end.',
-        ),
-        matrixIsParameterized: authoringMarkdown.includes(
-          'A set of independent input combinations is a MATRIX, one parameterized test over the combinations.',
-        ),
-        journeyRendersPerSurface: authoringMarkdown.includes(
-          '- A branchy flow on a web surface is a journey rendered as e2e. - A branchy flow on a non-web surface is a journey rendered as integration. - A combination matrix is integration.',
-        ),
-        neitherOverridesTheOther: authoringMarkdown.includes(
-          'Never let the shape you picked move an assertion off the surface its row names. Never let the layer you picked collapse a journey into one parameterized test.',
-        ),
-      }).toStrictEqual({
-        heading: true,
-        flowTypeIsOnlyAHint: true,
-        operationalStillNeedsBrowser: true,
-        shapeVersusLayer: true,
-        journeyIsOneTestPerPath: true,
-        matrixIsParameterized: true,
-        journeyRendersPerSurface: true,
-        neitherOverridesTheOther: true,
-      });
-    });
-
-    it('VALID: authoringMarkdown => names the wrong proof each type attracts', () => {
-      expect({
-        jsdomHasNoLayout: authoringMarkdown.includes(
-          'jsdom has no layout engine. Every measured width reads 0.',
-        ),
-        textContentIsNotPaint: authoringMarkdown.includes(
-          '`textContent` proves a string is in the DOM, never that a user can read it.',
-        ),
-        namesTheLifecycleEvents: authoringMarkdown.includes(
-          '(mount, reload, navigation, a second tab, a sweep that runs on mount)',
-        ),
-        rejectsDirectHelperCall: authoringMarkdown.includes(
-          "That call proves the helper's shape ONLY.",
-        ),
-        rejectsMockedFetch: authoringMarkdown.includes('That proves your mock, not the route'),
-        rejectsWriteSpy: authoringMarkdown.includes(
-          'The spy proves the call happened, never that what landed is correct.',
-        ),
-        rejectsMockedSpawner: authoringMarkdown.includes(
-          'A mocked spawner cannot prove the "zero processes spawned" half of the claim at all.',
-        ),
-      }).toStrictEqual({
-        jsdomHasNoLayout: true,
-        textContentIsNotPaint: true,
-        namesTheLifecycleEvents: true,
-        rejectsDirectHelperCall: true,
-        rejectsMockedFetch: true,
-        rejectsWriteSpy: true,
-        rejectsMockedSpawner: true,
-      });
-    });
-
-    it('VALID: authoringMarkdown => fits the MCP verbatim ceiling in bytes', () => {
-      expect(Buffer.byteLength(flowEvidenceContractStatics.authoringMarkdown, 'utf8')).toBeLessThan(
-        mcpToolResultStatics.maxVerbatimChars,
-      );
-    });
-  });
-
-  // A check-surface map reaches a session through `get-qa-checklist`. That tool stamps a
-  // `checkSurface` on every unit. It also prints a legend for the types that flow actually carries.
-  // An earlier version restated that map here. The copy cost 1,850 characters in each of two
-  // prompts. It was also wider and staler than the per-unit value both roles already hold. Both
-  // roles fetch that value before they author or judge anything. These tests fail if the table
+  // A check-surface map reaches a session through the `surface` field `get-quest-work` hands back
+  // on every entry in `assignedUnits`. An earlier version restated that map here as a legend keyed
+  // on `get-qa-checklist`. The copy cost characters in the served prompt and was also wider and
+  // staler than the per-unit value the reviewer already holds. These tests fail if the table
   // creeps back in.
-  describe('the check-surface map is deferred to get-qa-checklist, never restated', () => {
+  describe('the check-surface map is deferred to get-quest-work, never restated', () => {
     it.each(Object.keys(qaCheckSurfaceStatics.byOutcomeType))(
-      'VALID: {outcomeType: %s} => has no hand-rendered table row in either block',
+      'VALID: {outcomeType: %s} => has no hand-rendered table row',
       (outcomeType) => {
         const row = `| \`${outcomeType}\` |`;
 
-        expect({
-          judging: judgingMarkdown.includes(row),
-          authoring: authoringMarkdown.includes(row),
-        }).toStrictEqual({ judging: false, authoring: false });
+        expect({ hasRow: judgingMarkdown.includes(row) }).toStrictEqual({ hasRow: false });
       },
     );
 
     it.each(Object.values(qaCheckSurfaceStatics.byOutcomeType))(
-      'VALID: {surface sentence} => is not copied verbatim into either block',
+      'VALID: {surface sentence} => is not copied verbatim',
       (surface) => {
-        expect({
-          judging: judgingMarkdown.includes(surface),
-          authoring: authoringMarkdown.includes(surface),
-        }).toStrictEqual({ judging: false, authoring: false });
+        expect({ hasSurface: judgingMarkdown.includes(surface) }).toStrictEqual({
+          hasSurface: false,
+        });
       },
     );
 
-    it('VALID: judgingMarkdown => sends the reader to the checklist for the surface instead', () => {
+    it("VALID: judgingMarkdown => sends the reader to the unit's own surface field instead", () => {
       expect({
-        namesTheTool: judgingMarkdown.includes('`get-qa-checklist` prints a'),
-        showsNoArgumentsOfItsOwn: !judgingMarkdown.includes('get-qa-checklist({'),
+        namesGetQuestWork: judgingMarkdown.includes(
+          "Take it from the unit's own `surface` field on `get-quest-work`'s `assignedUnits`",
+        ),
+        namesTheRetiredTool: judgingMarkdown.includes('get-qa-checklist'),
         surfaceIsAuthoritative: judgingMarkdown.includes('and that string is authoritative'),
         disagreementIsRejection: judgingMarkdown.includes(
           'reject an assertion whose layer disagrees with it, on that disagreement alone.',
         ),
       }).toStrictEqual({
-        namesTheTool: true,
-        showsNoArgumentsOfItsOwn: true,
+        namesGetQuestWork: true,
+        namesTheRetiredTool: false,
         surfaceIsAuthoritative: true,
         disagreementIsRejection: true,
       });
     });
   });
 
-  // CROSS-FILE. Both halves above are INTERPOLATED into other files, and each consumer hands a
-  // different half to a different session. Nothing typechecks that split, and no test but these
-  // ones spans this file and the files that read it. Every needle below is READ off the value the
-  // consumer interpolates, never copied into a second place where it could drift quietly.
-  describe('the reviewer prompts that consume or withhold these halves', () => {
-    // PAIR: `flowEvidenceContractStatics` and reviewer consumers. The flowrider REVIEWER
-    // grades the suite that came back, so it takes the judging half; neither takes the authoring
-    // half, and `codeweaver-reviewer` withholds both halves.
-    it('VALID: reviewer prompts => carry each half in exactly the prompt that needs it', () => {
-      // RAW on both sides: this counts BYTE-EXACT interpolations of each half into a prompt.
-      const { judgingMarkdown: rawJudging, authoringMarkdown: rawAuthoring } =
-        flowEvidenceContractStatics;
+  // CROSS-FILE. `judgingMarkdown` is INTERPOLATED into `flowriderReviewerStatics` alone. Nothing
+  // typechecks that, and no test but these ones spans this file and the files that read it. Every
+  // needle below is READ off the value the consumer interpolates, never copied into a second place
+  // where it could drift quietly.
+  describe('the reviewer prompts that consume or withhold this block', () => {
+    // PAIR: `flowEvidenceContractStatics` and its reviewer consumers. The flowrider REVIEWER grades
+    // the suite that came back, so it takes the judging block; `codeweaver-reviewer` withholds it
+    // entirely — it opens product code, not a test suite.
+    it('VALID: reviewer prompts => carry the judging block in exactly the prompt that needs it', () => {
+      // RAW: this counts BYTE-EXACT interpolations of the block into a prompt.
+      const { judgingMarkdown: rawJudging } = flowEvidenceContractStatics;
       const templates = [
         flowriderReviewerStatics.prompt.template,
         codeweaverReviewerStatics.prompt.template,
       ];
 
       expect({
-        neitherHalfContainsTheOther: [
-          rawJudging.includes(rawAuthoring),
-          rawAuthoring.includes(rawJudging),
-        ],
         judgingPerPrompt: templates.map((template) => template.split(rawJudging).length - 1),
-        authoringPerPrompt: templates.map((template) => template.split(rawAuthoring).length - 1),
       }).toStrictEqual({
-        neitherHalfContainsTheOther: [false, false],
         judgingPerPrompt: [1, 0],
-        authoringPerPrompt: [0, 0],
       });
     });
 
@@ -369,7 +262,7 @@ describe('flowEvidenceContractStatics', () => {
 
     // PAIR: this block's track names and `stepScopeStatics.byFamilyStep`, which defines the scope
     // per family step. The names are read off the step scope, so a track/family added there and
-    // never named here would leave that track judged against a contract that does not mention it.
+    // never named here would leave that track's provenance value unrecognisable to a reviewer.
     it('VALID: judgingMarkdown => names every track the step scope statics define, and no other', () => {
       const tracks = Object.keys(stepScopeStatics.byFamilyStep).sort();
 
@@ -386,8 +279,8 @@ describe('flowEvidenceContractStatics', () => {
 
     // PAIR: this block's provenance sentence and
     // `stepScopeStatics.byFamilyStep.siegemaster.happyWalk.observableOrigins` — the only step
-    // measured over every origin, so its list is the full one. `addedBy` is a SEPARATE axis from
-    // the verdict, and a stale list here hands a reviewer an origin nothing else recognises.
+    // measured over every origin, so its list is the full one. `addedBy` is a SEPARATE axis from the
+    // mark, and a stale list here hands a reviewer an origin nothing else recognises.
     it('VALID: judgingMarkdown => lists exactly the observable origins the step scope statics carry', () => {
       const sentence = judgingMarkdown.slice(
         judgingMarkdown.indexOf('Its values are'),

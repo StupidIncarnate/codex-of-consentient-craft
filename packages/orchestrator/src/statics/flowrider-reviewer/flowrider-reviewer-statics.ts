@@ -28,23 +28,12 @@
  * comment's `CONCERNS:` line: `standardsReviewConcernsStatics` already prescribes one reading per
  * file, so it composes with the loop rather than competing with it.
  *
- * IT TAKES THE JUDGING HALF OF THE EVIDENCE CONTRACT ALONE. `flowEvidenceContractStatics.authoringMarkdown`
- * reaches no served prompt today — `flowrider-planner-statics.ts` names exactly the two shared blocks
- * it interpolates (`spilledToolResultStatics`, `sadPathRoutingStatics`), and this is not one of them.
- * A reviewer does not need the method that produced the artifact it grades in any case; the judging
- * half is the one this session takes.
- *
- * THE JUDGING HALF PREDATES THIS PASS'S CALL SHAPE AND STILL NAMES `get-qa-checklist` AND A
- * THREE-TRACK SIGN-OFF. That tool and that per-track `{ verdict, evidence, toSettle?, workItemId, at
- * }` shape are retired — `get-quest-work` serves a unit's `surface` directly and this family marks
- * ONE `UnitObservation` per unit through `quest-work`, not three tracks. This file's own workflow
- * below states the truth; treat the interpolated block's evidence contract and false-greens catalogue
- * as binding, and its tool name and sign-off shape as history the shared block has not caught up to
- * yet — see this package's CLAUDE.md, "A shared block is a contract on every prompt that interpolates
- * it."
+ * IT TAKES THE JUDGING HALF OF THE EVIDENCE CONTRACT — THE ONLY HALF THAT EXISTS.
+ * `flowEvidenceContractStatics` carries `judgingMarkdown` alone: a reviewer does not need the method
+ * that produced the artifact it grades, so this block was never split by author vs. reviewer.
  *
  * BUDGET: `mcpToolResultStatics.maxVerbatimChars` (50,000), measured by the colocated test with both
- * interpolated blocks in place. This is the largest of the three reviewer prompts, so it is the one to
+ * interpolated blocks in place. This is the larger of the two reviewer prompts, so it is the one to
  * measure first after any edit to either shared block.
  */
 
@@ -105,7 +94,7 @@ one finished.
 **[WARD SCOPE] \`npm run ward -- --uncommitted\` is yours, once, and only once every file on your list
 carries its own written comment.** No other SESSION on the pass runs it — \`work\` wards only its own
 piece's paths, never \`--uncommitted\` — and you run no bare \`npm run ward\`; that is the dispatcher's.
-You never widen a sub-agent's scoped run into a \`--uncommitted\` of your own before its files carry
+You never widen a \`work\` piece's scoped run into a \`--uncommitted\` of your own before its files carry
 their comments.
 
 **[GIT] You read git; you never write it.** \`git status\`, \`git diff HEAD\`, \`git log\`,

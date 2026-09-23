@@ -78,6 +78,18 @@ describe('codeweaverReviewerStatics', () => {
     }).toStrictEqual({ question: true, whyNothingElseCatchesIt: true, bothVerdicts: true });
   });
 
+  // THE RENDERED FLOW'S `<edge:…>` ID IS THE SAME ID A BRANCH UNIT'S MARK NAMES — a session that
+  // read this as "what a sign-off names" would be reading a retired vocabulary; the file states the
+  // current one plainly, since `get-quest-work` marks through `quest-work`, never a sign-off.
+  it("VALID: served template => names the edge id as the id a branch unit's mark names", () => {
+    expect(
+      hasIn({
+        needle: "which is the id a branch unit's mark names",
+        text: TEMPLATE,
+      }),
+    ).toBe(true);
+  });
+
   // THIS SESSION IS ITS OWN WORK ITEM, dispatched with a real workItemId, and `subagentStopNeedsBlockGuard`
   // holds it open until it calls `signal-back` itself — there is no parent to signal for it.
   it('VALID: served template => calls signal-back itself, once every assigned unit carries a mark', () => {
@@ -200,7 +212,7 @@ describe('codeweaverReviewerStatics', () => {
       }),
       neverWidensASubAgentsRun: hasIn({
         needle:
-          "You never widen a sub-agent's scoped run into a `--uncommitted` of your own before that work's files carry their comments.",
+          "You never widen a `work` piece's scoped run into a `--uncommitted` of your own before that work's files carry their comments.",
         text: TEMPLATE,
       }),
       lineFenced: hasIn({ needle: '```bash\nnpm run ward -- --uncommitted\n```', text: TEMPLATE }),

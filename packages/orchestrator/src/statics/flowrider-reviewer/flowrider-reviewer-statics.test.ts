@@ -27,7 +27,7 @@ describe('flowriderReviewerStatics', () => {
     });
   });
 
-  // MEASURED WITH BOTH SHARED BLOCKS ALREADY INTERPOLATED — the largest of the three reviewer
+  // MEASURED WITH BOTH SHARED BLOCKS ALREADY INTERPOLATED — the larger of the two reviewer
   // prompts, so it is the one to measure first after an edit to either shared block. 25,046 bytes
   // measured against a 50,000 ceiling.
   it('VALID: served template => fits the MCP verbatim ceiling in bytes', () => {
@@ -44,7 +44,7 @@ describe('flowriderReviewerStatics', () => {
       '## Workflow',
       '## The Evidence Contract — what makes an observable COVERED',
       '## Known false greens — reject on sight',
-      '## Verdicts — a unit carries one sign-off per track, and there are three',
+      '## Marks — every assigned unit ends the pass carrying one of three',
       '## The five standing concerns',
       '## The quest id',
     ]);
@@ -84,7 +84,7 @@ describe('flowriderReviewerStatics', () => {
 
   // ONE WARD, AND IT IS THIS SESSION'S ALONE — `work` wards only its own piece's paths, never
   // `--uncommitted`, so a run before this one has read the work grades what nobody read.
-  it("VALID: served template => wards once, scoped to --uncommitted, and never widens a sub-agent's run", () => {
+  it("VALID: served template => wards once, scoped to --uncommitted, and never widens a work piece's run", () => {
     expect({
       whoseItIs: hasIn({
         needle:
@@ -93,7 +93,7 @@ describe('flowriderReviewerStatics', () => {
       }),
       neverWidensASubAgentsRun: hasIn({
         needle:
-          "You never widen a sub-agent's scoped run into a `--uncommitted` of your own before its files carry\ntheir comments.",
+          "You never widen a `work` piece's scoped run into a `--uncommitted` of your own before its files carry\ntheir comments.",
         text: TEMPLATE,
       }),
       lineFenced: hasIn({ needle: '```bash\nnpm run ward -- --uncommitted\n```', text: TEMPLATE }),
@@ -337,22 +337,19 @@ describe('flowriderReviewerStatics', () => {
     });
   });
 
-  // THIS REVIEWER TAKES BOTH HALVES OF THE SHARED SURFACE ITS FAMILY OWNS: the judging half of the
-  // evidence contract (never the authoring half — that reaches no served prompt today) AND the
-  // standing concerns every reviewer takes.
-  it('VALID: served template => carries the judging evidence contract and the standing concerns, and withholds authoring', () => {
+  // THIS REVIEWER TAKES THE ONLY HALF THE SHARED SURFACE ITS FAMILY OWNS: the judging half of the
+  // evidence contract, plus the standing concerns every reviewer takes.
+  it('VALID: served template => carries the judging evidence contract and the standing concerns', () => {
     expect({
       judging: hasIn({ needle: flowEvidenceContractStatics.judgingMarkdown, text: TEMPLATE }),
       standards: hasIn({ needle: standardsReviewConcernsStatics.markdown, text: TEMPLATE }),
-      authoring: hasIn({ needle: flowEvidenceContractStatics.authoringMarkdown, text: TEMPLATE }),
-    }).toStrictEqual({ judging: true, standards: true, authoring: false });
+    }).toStrictEqual({ judging: true, standards: true });
   });
 
-  // THIS FILE'S OWN TEXT CORRECTS TWO THINGS THE INTERPOLATED JUDGING BLOCK STILL GETS WRONG: the
-  // retired `get-qa-checklist` tool name and the retired three-track `{ verdict, … }` sign-off. The
-  // shared block itself is out of this fix's reach — see the file's own PURPOSE header and this
-  // package's CLAUDE.md, "A shared block is a contract on every prompt that interpolates it."
-  it('VALID: served template => names the stale tool and sign-off shape the interpolated block still carries', () => {
+  // THE SHARED JUDGING BLOCK NO LONGER NAMES THE RETIRED TOOL OR THE RETIRED THREE-TRACK SIGN-OFF
+  // SHAPE — both were rewritten in place to the current mechanism: `get-quest-work` for scope, a
+  // single `quest-work` observation per unit.
+  it('VALID: served template => carries no stale tool name or retired sign-off shape', () => {
     expect({
       staleToolNamedInJudging: hasIn({ needle: 'get-qa-checklist', text: TEMPLATE }),
       staleSignOffShapeNamedInJudging: hasIn({
@@ -368,8 +365,8 @@ describe('flowriderReviewerStatics', () => {
         text: TEMPLATE,
       }),
     }).toStrictEqual({
-      staleToolNamedInJudging: true,
-      staleSignOffShapeNamedInJudging: true,
+      staleToolNamedInJudging: false,
+      staleSignOffShapeNamedInJudging: false,
       thisFileNamesGetQuestWorkInstead: true,
       thisFileNamesOneObservationInstead: true,
     });

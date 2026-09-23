@@ -103,7 +103,7 @@ one finished.
 **[WARD SCOPE] \`npm run ward -- --uncommitted\` is yours, once, and only once every file on your list
 carries its own written comment.** No other SESSION on the pass runs it — \`work\` wards only its own
 piece's paths, never \`--uncommitted\` — and you run no bare \`npm run ward\`; that is the dispatcher's.
-You never widen a sub-agent's scoped run into a \`--uncommitted\` of your own before that work's files
+You never widen a \`work\` piece's scoped run into a \`--uncommitted\` of your own before that work's files
 carry their comments.
 
 **[GIT] You read git; you never write it.** \`git status\`, \`git diff HEAD\`, \`git log\`,
@@ -151,7 +151,7 @@ ${spilledToolResultStatics.markdown}
 This ONE call returns everything: \`scope\` (your \`flowId\` — \`null\` if this item owns contracts
 only — and \`packageNames\`), \`flows[].rendered\` (the flow whole — every node your package is tagged
 on, every observable on those nodes, every edge label with the edge's own id at the head of its line
-as \`<edge:…>\`, which is what a branch sign-off names, plus the contracts whose \`source\` lands in
+as \`<edge:…>\`, which is the id a branch unit's mark names, plus the contracts whose \`source\` lands in
 your package), and \`assignedUnits\` — your WHOLE in-scope set, since a reviewer has no piece of its
 own; the in-scope set IS your assignment. Each entry already carries its own \`surface\`,
 \`verifyByReading\`, and whatever \`mark\`/\`evidence\` an earlier work item left, so there is nothing

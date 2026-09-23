@@ -1,71 +1,36 @@
 /**
- * PURPOSE: The single source of truth for what counts as honest flow-perspective coverage. The two
- * exports split it by who needs it. A reviewer accepts or rejects a finished artifact against
- * `judgingMarkdown`. An author reads `authoringMarkdown` to decide where to assert.
+ * PURPOSE: The single source of truth for what counts as honest flow-perspective coverage — the
+ * evidence contract a reviewer grades a finished test suite against, and the three marks a unit
+ * ends a pass carrying.
  *
  * USAGE:
  * flowEvidenceContractStatics.judgingMarkdown;
- * // Returns the evidence contract, a catalogue of known false greens, and the two verdicts a
- * // sign-off may carry
+ * // Returns the evidence contract, a catalogue of known false greens, and the three marks a unit
+ * // may carry
  *
- * TWO PROMPTS INTERPOLATE THESE HALVES, one each:
+ * ONE PROMPT INTERPOLATES THIS BLOCK: `flowriderReviewerStatics` takes `judgingMarkdown`, because it
+ * grades the test suite a flowrider pass produced. `codeweaverReviewerStatics` withholds it — that
+ * reviewer opens product code, not a test suite, and takes only `standardsReviewConcernsStatics`.
+ * A reviewer does not need the method that produced the artifact it grades, so this block carries
+ * only the judging side; no served prompt reads an authoring half.
  *
- * 1. `flowriderPromptStatics` takes `authoringMarkdown`. That session chooses the layer for every
- *    unit on its flow and briefs sub-agents against the choice, so it is the one that needs the
- *    routing.
- * 2. `flowriderReviewerStatics` takes `judgingMarkdown`, because it grades the suite that came back.
+ * THIS IS THE BUDGETED HALF. It lands in `flowriderReviewerStatics`, which also carries
+ * `standardsReviewConcernsStatics` — the larger of the two reviewer prompts, and the one to measure
+ * first after an edit to either shared block. Over `mcpToolResultStatics.maxVerbatimChars` (50,000)
+ * the MCP layer writes the prompt to a file and hands the agent an error stub instead of its
+ * instructions, which fails silently. So every sentence here must change what a reviewer DOES.
  *
- * ONE RULE DECIDES THAT SPLIT: a reviewer does not need the method that produced the artifact it
- * grades. Give it both halves and the how-to competes with the questions it is there to ask.
+ * NO CHECK-SURFACE MAP IS RESTATED HERE. `surface` is real on every entry `get-quest-work`'s
+ * `assignedUnits` hands back — for a terminal, a labelled branch, an observable and an off-map
+ * family alike — so a reviewer reads it there instead of cross-referencing a legend this block would
+ * otherwise have to keep in sync with `qaCheckSurfaceStatics.byOutcomeType`. An inline copy here
+ * would restate that value a second time, wider and staler than the field the reviewer already
+ * holds — `get-quest-work` serves it before a reviewer judges anything.
  *
- * TWO RULES HERE EXIST BECAUSE AN EARLIER TAXONOMY DROPPED WHOLE CLASSES OF OBSERVABLE.
- * `cache-state` (browser storage) appeared in no modality's signal list at all. That taxonomy
- * keyed the operational modality on a flow's `flowType`. An operational flow routinely carries
- * `ui-state` observables. A browser is the only place to check those. Both rules now key on the
- * OBSERVABLE rather than the flow, because a session picks a modality one observable at a time.
- *
- * NEITHER BLOCK RESTATES A CHECK-SURFACE MAP OF ITS OWN, AND NEITHER PROMISES A PER-UNIT FIELD.
- * `checkSurface` is real on `qaChecklistItemContract`, but `qaChecklistToTextTransformer` never
- * RENDERS it per unit: a unit's own line carries `[<observableType>]` and nothing else, and the
- * surfaces arrive once each — a `## CHECK SURFACES` legend over exactly the observable types present
- * on that flow (from `qaCheckSurfaceStatics.byOutcomeType`), plus fixed `## TERMINAL SURFACE`,
- * `## BRANCH SURFACE` and, for the one track that signs them, `## OFF-MAP SURFACE`. So both blocks
- * state the JOIN instead of sending a session to read a field it will not find. They name the first
- * two fixed headings and not the third: `off-map` is in siegemaster's `unitKinds` alone, and a
- * checklist omits every kind its track never signs, so no probe family reaches flowrider or its
- * reviewer in any form. An inline copy here would restate that legend
- * a second time, wider and staler than the one both roles already fetch. Both roles fetch that
- * checklist before they author or judge anything. Siegemaster
- * has always read the surface off that tool. Its prompts carry no table. These two blocks now match
- * that precedent.
- *
- * `judgingMarkdown` IS THE BUDGETED HALF. It lands in `flowriderReviewerStatics`, which also carries
- * `standardsReviewConcernsStatics` — the largest of the three reviewer prompts, and the one to
- * measure first after an edit to either shared block. Over
- * `mcpToolResultStatics.maxVerbatimChars` (50,000) the MCP layer writes the prompt to a file and
- * hands the agent an error stub instead of its instructions, which fails silently. So every sentence
- * in the judging half must change what a reviewer DOES, and one that only explains why a rule is
- * right lives down here instead, where it costs both readers nothing. What the trim from 5,836 moved
- * down — each an EXTRA instance of a shape the served text still states once, or a sentence that
- * reader already holds from another block:
- *
- * - AN EXISTENCE-ONLY AUDIT reads as thorough because it is exhaustive: matching every observable
- *   id against a `describe` block name covers the whole list while opening no assertion at all.
- * - LAYER BLINDNESS has two instances beyond the jsdom one the served text keeps — a
- *   storage-lifecycle claim proved by calling the read/write helper directly, and a spawn claim
- *   asserted against a mocked spawner. `authoringMarkdown` carries both in full for the author.
- * - STOPPING AT THE BROWSER costs more than the persisted row the served text names: a route that
- *   rejected a bad payload with the right status, and a downstream side effect that fired, are
- *   equally invisible from a page.
- * - A VACUOUS NEGATIVE matters because a typo'd selector otherwise passes forever.
- * - AN ASSERTION NOBODY CAN NAME A FAILING VALUE FOR is not a test yet. That is item 4 restated,
- *   and item 4 already carries it.
- * - A `confirmed` ON THE FLOWRIDER TRACK means naming the production line you broke and the
- *   assertion that went red. That is what "what makes that test fail" asks for.
- * - `Both tracks: never cite a test nobody has watched fail, never cite an adjective.` reached its
- *   reader three times over. Item 5 and the Unwitnessed-red shape carry the first half, and
- *   `standardsReviewConcernsStatics` — which every prompt taking this half also takes — spells the
- *   second one into the evidence field it hands the same session.
+ * THERE IS NO PARENT, NO THREE-TRACK SIGN-OFF, AND NO `confirmed`/`unconfirmable` PAIR. A reviewer
+ * reads its scope through `get-quest-work`, marks every assigned unit through `quest-work`
+ * observations — `met` / `cant-meet` / `unmet` — and calls `signal-back` itself; the `commit` step
+ * that follows does the committing. The three marks below are the whole vocabulary a unit can carry.
  */
 
 export const flowEvidenceContractStatics = {
@@ -84,11 +49,9 @@ file. Four out of five is a claim.
 Most false claims fail at item 4. "Fails if the text is wrong" is not an answer. "Fails if the row
 renders the older comment first, because the assertion pins the exact order \`[newer, older]\`" is one.
 
-**Never take a unit's surface from memory.** \`get-qa-checklist\` prints a \`## CHECK SURFACES\`
-legend — join the \`[type]\` tag on an observable's own line to its row there, and take a terminal or
-branch unit's surface from its \`## TERMINAL SURFACE\` / \`## BRANCH SURFACE\` heading — and that
-string is authoritative: reject an assertion whose layer disagrees with it, on that disagreement
-alone.
+**Never take a unit's surface from memory.** Take it from the unit's own \`surface\` field on
+\`get-quest-work\`'s \`assignedUnits\` — every entry carries one, for all four kinds — and that string
+is authoritative: reject an assertion whose layer disagrees with it, on that disagreement alone.
 
 ## Known false greens — reject on sight
 
@@ -116,94 +79,38 @@ Each shape below passes while the observable stays unproven. Each shipped in thi
 - **A guard for an input the product cannot produce.** Legitimate only where the test says plainly
   it is defensive, and never covers a user-facing observable.
 
-## Verdicts — a unit carries one sign-off per track, and there are three
+## Marks — every assigned unit ends the pass carrying one of three
 
-A unit is settled PER TRACK, never once for everybody. Each track holds
-\`{ verdict, evidence, toSettle?, workItemId, at }\`, and each says something the others do not:
+You read your scope through \`get-quest-work\` and mark it through \`quest-work\` — nobody briefs this
+session and no track keeps a sign-off of its own. Every unit in \`assignedUnits\` ends your pass
+carrying exactly one of these three:
 
-| Track | What it means | What its \`confirmed\` evidence is |
-|---|---|---|
-| \`codeweaver\` | proven by a unit test, beside the code | the test \`file:line\`, plus what makes it fail |
-| \`flowrider\` | proven by a flow-perspective test | the test \`file:line\`, plus what makes it fail |
-| \`siegemaster\` | holds when a person drives the real system | the value measured off that system |
+- **\`met\`** — you settled it. The evidence is **The Evidence Contract** above, all five items,
+  quoted.
+- **\`cant-meet\`** — you tried and could not settle it. \`evidence\` names what you TRIED and why
+  each attempt could not reach the unit. **A \`toSettle\` is REQUIRED**; the contract refuses a
+  \`cant-meet\` carrying none. It is the ACTION that would settle the unit, written as an instruction
+  someone can carry out — never as a question, which hands the next session something to answer
+  where it needed something to do.
+- **\`unmet\`** — work remains. \`evidence\` names what is left and what you already learned, and
+  marking a unit this way mints a successor scoped to exactly the units you marked \`unmet\`.
 
-- **\`confirmed\`** — you settled it, and the evidence above is what settles it.
-- **\`unconfirmable\`** — you could not settle it after real effort. \`evidence\` names what you TRIED
-  and why each attempt could not reach the unit. **A \`toSettle\` is REQUIRED**; the contract refuses
-  an \`unconfirmable\` carrying none. It is the ACTION that would settle the unit, written as an
-  instruction someone can carry out — never as a question, which hands the next session something to
-  answer where it needed something to do.
+**A unit that simply needs a test nobody has written yet is NOT \`cant-meet\`.** Mark it \`unmet\` —
+that mints the \`work\` successor.
 
-**EVERY UNIT ON THE TRACK'S LIST ENDS THE PASS CARRYING ONE OF THOSE TWO. A third state does not
-exist, and neither does a blank.** A pass that stops with a unit holding neither has not finished.
-
-**Never sign a unit you did not settle.** No gate counts sign-offs, so this rule is the only thing
-between a session and a verdict it cannot back — and what gets marked has to stay what somebody
-actually proved.
-
-**A unit that simply needs a test nobody has written yet is NOT \`unconfirmable\`.** It is work
-remaining: put it in your \`NEXT: rework\` line. A verdict CLOSES a unit, and a later session reads a
-signed unit as settled and moves past it.
+**Never mark \`met\` what you did not settle.** Every unit in \`assignedUnits\` needs exactly one
+mark, or \`signal-back\` refuses the call by name — but the gate checks only that a mark exists,
+never its VALUE. Padding \`met\` over an existence-only citation gets past that gate and ships a unit
+nobody proved; marking a unit \`unmet\` that a test genuinely bites sends it back out for nothing.
 
 **A measured defect is a NEW observable, not a third verdict.** An observable is a positive
 expectation, so "send it \`bleh\` and the server crashes instead of returning 400" is the INVERSE
-expectation and belongs in the spec — name it in your findings so your parent adds it, since a
-reviewer writes no spec of its own. **There is no \`defect\`, \`deferred\`, \`gap\` or
-\`recorded\` SIGN-OFF verdict.** \`confirmed\` and \`unconfirmable\` are the whole vocabulary.
+expectation and belongs in the spec — mark the unit it came from \`unmet\`, naming the inverse
+expectation in its evidence, since a reviewer writes no spec of its own and there is no parent to
+hand one to. **There is no \`defect\`, \`deferred\`, \`gap\` or \`recorded\` SIGN-OFF verdict.**
+\`met\`, \`cant-meet\` and \`unmet\` are the whole vocabulary.
 
 **Provenance is a SEPARATE axis.** \`addedBy\` records who added the observable. Its values are
 \`spec\`, \`chaoswhisperer\`, \`codeweaver\`, \`flowrider\`, \`siegemaster\` and \`operator\`. It never
 answers whether the unit is settled.`,
-
-  authoringMarkdown: `## Modality — chosen per OBSERVABLE, never per flow
-
-**A flow is not one technology. Neither is a node.** One flow routinely crosses a browser, an HTTP
-route, a persistence layer and a spawned process. You can prove each of its observables at exactly
-one of those layers. Join the \`[type]\` tag on an observable's own checklist line to its row in the
-\`## CHECK SURFACES\` legend — a terminal or branch unit takes its own \`## TERMINAL SURFACE\` /
-\`## BRANCH SURFACE\` heading instead — and assert at that surface. A
-flow's \`flowType\` is a hint about where its centre of gravity sits. It never overrides the modality
-you chose for a single observable.
-
-An \`operational\` flow carrying \`ui-state\` observables still needs a browser for those.
-
-**Two rules compose here. They never compete.**
-
-1. Journey-vs-matrix chooses the test SHAPE.
-2. The unit's CHECK SURFACES row — or its \`## TERMINAL SURFACE\` / \`## BRANCH SURFACE\` heading —
-   chooses the LAYER.
-
-The shape decides how many tests there are. It also decides what each test walks. A branchy flow is
-a JOURNEY: one test per path, driven end to end. A set of independent input combinations is a
-MATRIX, one parameterized test over the combinations. The surface decides where each assertion
-inside that shape reads its value from. The two rules cross into three cases:
-
-- A branchy flow on a web surface is a journey rendered as e2e.
-- A branchy flow on a non-web surface is a journey rendered as integration.
-- A combination matrix is integration.
-
-Never let the shape you picked move an assertion off the surface its row names. Never let the layer you
-picked collapse a journey into one parameterized test.
-
-**The wrong proof each type attracts.** That row says where to look. Each entry below
-names the shortcut that never reaches that surface:
-
-- \`ui-state\` — you reach for jsdom on a painted claim. jsdom has no layout engine. Every measured
-  width reads 0. The assertion then passes whatever the real browser would paint. \`textContent\`
-  proves a string is in the DOM, never that a user can read it. Geometry, wrapping, clipping and
-  visibility need a real browser.
-- \`cache-state\` — you call the read/write helper directly. That call proves the helper's shape
-  ONLY. It never proves the app reaches that helper on the lifecycle event the observable names
-  (mount, reload, navigation, a second tab, a sweep that runs on mount).
-- \`api-call\` — you assert that a mocked fetch was called. That proves your mock, not the route.
-  Prove it from the side that makes the claim: intercept the request for "the browser sent this
-  body", or test the server layer for "the route answered 400 with this message".
-- \`db-query\` — you spy on the write function. The spy proves the call happened, never that what
-  landed is correct. Read the persisted artifact back.
-- \`process-state\` — you mock the spawner. A mocked spawner cannot prove the "zero processes
-  spawned" half of the claim at all.
-- \`custom\` — you paraphrase the predicate into something easier to satisfy. A \`custom\` observable
-  is not automatically operational. Run what it actually asks for. When it names a content search,
-  that search's real output IS the measured value. Run that search with
-  \`discover({ grep, strict: true })\`. A bare shell \`grep\` is blocked in this repo.`,
 } as const;
