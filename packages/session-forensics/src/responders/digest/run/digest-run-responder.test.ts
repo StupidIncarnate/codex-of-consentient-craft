@@ -8,12 +8,16 @@ import {
   FlowObservableStub,
   WorkItemStub,
   UnitObservationStub,
+  OperationItemStub,
+  WardResultStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { DigestRunResponder } from './digest-run-responder';
 import { DigestRunResponderProxy } from './digest-run-responder.proxy';
 import { DigestCommandStub } from '../../../contracts/digest-command/digest-command.stub';
 import { TranscriptRecordStub } from '../../../contracts/transcript-record/transcript-record.stub';
+import { BucketMinutesStub } from '../../../contracts/bucket-minutes/bucket-minutes.stub';
+import { GapFloorSecondsStub } from '../../../contracts/gap-floor-seconds/gap-floor-seconds.stub';
 
 describe('DigestRunResponder', () => {
   describe('summary command', () => {
@@ -152,6 +156,56 @@ describe('DigestRunResponder', () => {
         ].join('\n'),
       );
     });
+
+    it('VALID: {no bucketMinutes} => a 10-minute gap between records stays inside one default 15-minute bucket', () => {
+      const proxy = DigestRunResponderProxy();
+      const target = SessionIdStub({ value: 'session-buckets-default-width' });
+      const contents = ContentTextStub({
+        value: [
+          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
+          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:10:00.000Z' })),
+        ].join('\n'),
+      });
+      proxy.setupSession({ target, contents });
+
+      const result = DigestRunResponder({
+        command: DigestCommandStub({ value: 'buckets' }),
+        target,
+      });
+
+      expect(String(result)).toBe(
+        [
+          'Window (UTC)        Replies  Tool calls   Tokens out     Tokens in  Bytes from tools  Busiest tools',
+          '19:00-19:15               2           0            0             0                 0  ',
+        ].join('\n'),
+      );
+    });
+
+    it('VALID: {command: buckets, bucketMinutes: 5} => the same 10-minute gap splits into two 5-minute buckets', () => {
+      const proxy = DigestRunResponderProxy();
+      const target = SessionIdStub({ value: 'session-buckets-minutes-flag' });
+      const contents = ContentTextStub({
+        value: [
+          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
+          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:10:00.000Z' })),
+        ].join('\n'),
+      });
+      proxy.setupSession({ target, contents });
+
+      const result = DigestRunResponder({
+        command: DigestCommandStub({ value: 'buckets' }),
+        target,
+        bucketMinutes: BucketMinutesStub({ value: 5 }),
+      });
+
+      expect(String(result)).toBe(
+        [
+          'Window (UTC)        Replies  Tool calls   Tokens out     Tokens in  Bytes from tools  Busiest tools',
+          '19:00-19:05               1           0            0             0                 0  ',
+          '19:10-19:15               1           0            0             0                 0  ',
+        ].join('\n'),
+      );
+    });
   });
 
   describe('gaps command', () => {
@@ -239,6 +293,70 @@ describe('DigestRunResponder', () => {
         ].join('\n'),
       );
     });
+
+    it('VALID: {no gapFloorSeconds} => a 90-second gap stays below the default 120-second floor and is dropped', () => {
+      const proxy = DigestRunResponderProxy();
+      const target = SessionIdStub({ value: 'session-gaps-default-floor' });
+      const contents = ContentTextStub({
+        value: [
+          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
+          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:01:30.000Z' })),
+        ].join('\n'),
+      });
+      proxy.setupSession({ target, contents });
+
+      const result = DigestRunResponder({
+        command: DigestCommandStub({ value: 'gaps' }),
+        target,
+      });
+
+      expect(String(result)).toBe(
+        [
+          'Gaps of 120 seconds or more between one model reply and the next.',
+          'A gap that names sub-agents is time the session spent waiting on a helper.',
+          'A gap marked *** NOTHING RUNNING *** had nothing happening at all.',
+          'Minutes in  Gap      Sub-agents running',
+          '',
+          'Ran for                 1.5 minutes',
+          'Spent in gaps           0.0 minutes  (0.0%)',
+          '  waiting on a sub-agent  0.0 minutes  (0.0%)',
+          '  nothing running at all  0.0 minutes  (0.0%)',
+        ].join('\n'),
+      );
+    });
+
+    it('VALID: {command: gaps, gapFloorSeconds: 30} => the same 90-second gap clears the lower floor and is listed', () => {
+      const proxy = DigestRunResponderProxy();
+      const target = SessionIdStub({ value: 'session-gaps-floor-flag' });
+      const contents = ContentTextStub({
+        value: [
+          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
+          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:01:30.000Z' })),
+        ].join('\n'),
+      });
+      proxy.setupSession({ target, contents });
+
+      const result = DigestRunResponder({
+        command: DigestCommandStub({ value: 'gaps' }),
+        target,
+        gapFloorSeconds: GapFloorSecondsStub({ value: 30 }),
+      });
+
+      expect(String(result)).toBe(
+        [
+          'Gaps of 30 seconds or more between one model reply and the next.',
+          'A gap that names sub-agents is time the session spent waiting on a helper.',
+          'A gap marked *** NOTHING RUNNING *** had nothing happening at all.',
+          'Minutes in  Gap      Sub-agents running',
+          '0.0m 90s  *** NOTHING RUNNING ***',
+          '',
+          'Ran for                 1.5 minutes',
+          'Spent in gaps           1.5 minutes  (100.0%)',
+          '  waiting on a sub-agent  0.0 minutes  (0.0%)',
+          '  nothing running at all  1.5 minutes  (100.0%)',
+        ].join('\n'),
+      );
+    });
   });
 
   describe('coverage command', () => {
@@ -322,6 +440,102 @@ describe('DigestRunResponder', () => {
           'For the exact numbers, ask get-quest-work({questId, operationItemId}).',
         ].join('\n'),
       );
+    });
+  });
+
+  describe('quest command', () => {
+    it('VALID: {quest carries one work item joined to an operation and a ward result} => renders the whole row, transcript size and sub-agent count included', () => {
+      const proxy = DigestRunResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-command-quest' });
+      const target = SessionIdStub({ value: 'session-quest-command' });
+      const contents = ContentTextStub({ value: JSON.stringify(TranscriptRecordStub()) });
+      proxy.setupSessionWithSubagents({
+        target,
+        contents,
+        agents: [{ agentId: AgentIdStub({ value: 'agent-one' }) }],
+      });
+
+      const operation = OperationItemStub({
+        id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+        text: 'core: notification adapter',
+        flowIds: ['notify-flow'],
+        packageNames: ['core'],
+      });
+      const wardResult = WardResultStub({
+        id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        exitCode: 0,
+        wardMode: 'full',
+      });
+      const workItem = WorkItemStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'complete',
+        sessionId: target,
+        startedAt: '2026-01-01T00:00:00.000Z',
+        completedAt: '2026-01-01T00:05:00.000Z',
+        relatedDataItems: [
+          'operations/a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+          'wardResults/a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        ],
+      });
+      proxy.setupQuestIndex({
+        questId,
+        questJson: {
+          userRequest: 'Add real-time notifications',
+          workItems: [workItem],
+          operations: [operation],
+          wardResults: [wardResult],
+        },
+      });
+
+      const result = DigestRunResponder({
+        command: DigestCommandStub({ value: 'quest' }),
+        target: questId,
+      });
+
+      expect(String(result)).toBe(
+        [
+          'User request: Add real-time notifications',
+          '',
+          [
+            'Work item 1 — codeweaver (complete)',
+            '  Work item id            f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            '  Session id              session-quest-command',
+            '  Wall clock              5.0 minutes',
+            '  Operation               core: notification adapter',
+            '  Flows                   notify-flow',
+            '  Packages                core',
+            `  Transcript size         ${contents.length.toLocaleString('en-US')} bytes`,
+            '  Sub-agents              1',
+            '  Ward/riftcarver         ward exit 0 (full)',
+          ].join('\n'),
+        ].join('\n'),
+      );
+    });
+
+    it("EMPTY: {quest not found} => returns ''", () => {
+      const proxy = DigestRunResponderProxy();
+      proxy.setupMissingQuestIndex();
+
+      const result = DigestRunResponder({
+        command: DigestCommandStub({ value: 'quest' }),
+        target: QuestIdStub({ value: 'ghost-quest' }),
+      });
+
+      expect(String(result)).toBe('');
+    });
+
+    it('EMPTY: {quest found with no work items} => prints only the user request line', () => {
+      const proxy = DigestRunResponderProxy();
+      const questId = QuestIdStub({ value: 'empty-work-items-quest' });
+      proxy.setupQuestIndex({ questId, questJson: { userRequest: 'Fix the bug' } });
+
+      const result = DigestRunResponder({
+        command: DigestCommandStub({ value: 'quest' }),
+        target: questId,
+      });
+
+      expect(String(result)).toBe('User request: Fix the bug');
     });
   });
 });

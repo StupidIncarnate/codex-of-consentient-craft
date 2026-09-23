@@ -51,6 +51,16 @@ export * from './src/contracts/track-coverage/track-coverage.stub';
 export * from './src/contracts/tool-brief/tool-brief-contract';
 export * from './src/contracts/tool-brief/tool-brief.stub';
 
-// The four forensic views DigestRunResponder can render for a target
+// The forensic views DigestRunResponder can render for a target
 export * from './src/contracts/digest-command/digest-command-contract';
 export * from './src/contracts/digest-command/digest-command.stub';
+
+// The `--minutes`/`--floor-seconds` CLI flags, each a validated positive integer
+export * from './src/contracts/bucket-minutes/bucket-minutes-contract';
+export * from './src/contracts/bucket-minutes/bucket-minutes.stub';
+export * from './src/contracts/gap-floor-seconds/gap-floor-seconds-contract';
+export * from './src/contracts/gap-floor-seconds/gap-floor-seconds.stub';
+
+// One row of the `quest` command's per-work-item index
+export * from './src/contracts/work-item-index-row/work-item-index-row-contract';
+export * from './src/contracts/work-item-index-row/work-item-index-row.stub';

@@ -27,8 +27,12 @@ export * from './src/transformers/records-to-gaps/records-to-gaps-transformer';
 export * from './src/transformers/quest-to-units/quest-to-units-transformer';
 export * from './src/transformers/quest-to-coverage/quest-to-coverage-transformer';
 
-// The four renderers that turn a digest shape into the ContentText a CLI command prints
+// The renderers that turn a digest shape into the ContentText a CLI command prints
 export * from './src/transformers/summary-to-text/summary-to-text-transformer';
 export * from './src/transformers/buckets-to-text/buckets-to-text-transformer';
 export * from './src/transformers/gap-report-to-text/gap-report-to-text-transformer';
 export * from './src/transformers/coverage-to-text/coverage-to-text-transformer';
+export * from './src/transformers/quest-index-to-text/quest-index-to-text-transformer';
+
+// Joins one work item to its operation/ward/riftcarver context for the `quest` command's index
+export * from './src/transformers/work-item-to-index-row/work-item-to-index-row-transformer';

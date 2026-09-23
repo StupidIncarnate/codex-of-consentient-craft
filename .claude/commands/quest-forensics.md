@@ -17,30 +17,18 @@ brief the analyzers, keep the spine, and hand off to the compiler.
 
 ## Step 1 — index the quest
 
-No single tool builds this index — there is no `quest` subcommand and no `scripts/quest-forensics.py`
-(checked: `scripts/` holds no such file). Assemble it yourself, read-only, from two real sources.
-
 `mkdir -p tmp/quest-forensics/$ARGUMENTS` first.
 
-**The ledger.** `get-quest({ questId: "$ARGUMENTS", format: 'json' })` returns the whole quest.json in
-one call: `workItems[]` (role, status, step, sessionId, agentId, createdAt/startedAt/completedAt,
-`relatedDataItems`, `lastWardRunId`), `operations[]` (each item's `text`, `flowIds`, `packageNames`),
-`wardResults[]` / `riftcarverResults[]` (the rows a work item's `relatedDataItems` or `lastWardRunId`
-point at), and the top-level `userRequest`. Join each work item to its operation item via the
-`operations/<id>` entry in `relatedDataItems` for the operation text/flow ids/package names. Wall
-clock per item is `completedAt - startedAt` (fall back to `createdAt` when `startedAt` is absent) —
-no tool computes this either; subtract the timestamps yourself.
-
-**Transcript size and sub-agent count.** Filesystem facts, not something any tool renders — `ls` is
-not blocked. Each work item's transcript is `~/.claude/projects/<encoded-cwd>/<sessionId>.jsonl`,
-where `<encoded-cwd>` is that SESSION's own working directory with every `/` replaced by `-` (see
-"Where transcripts live" below — a carved quest splits across two different `<encoded-cwd>`
-directories, so resolve each work item's own, never assume one covers the whole quest). `ls -la` that
-file for size, and `ls <that dir>/<sessionId>/subagents/ | wc -l` for sub-agent count.
-
-Write the joined table to `tmp/quest-forensics/$ARGUMENTS/index.txt` with `Write` — role, status,
-session id, wall clock, operation text, flow ids, package names, transcript size, sub-agent count,
-ward/riftcarver result, and `userRequest` once at the top. Read it back before Step 2.
+**The index.** `npx dungeonmaster-session-forensics quest $ARGUMENTS > tmp/quest-forensics/$ARGUMENTS/index.txt`,
+run from the repo root. It needs `packages/session-forensics/dist/` already built — this is
+read-only analysis, so if that is missing, stop and say so rather than building it. It prints the
+whole per-work-item index in one pass, already joined: `userRequest` once at the top, then one block
+per work item carrying work item id, role, status, session id, wall clock (`completedAt - startedAt`,
+falling back to `createdAt` when `startedAt` is absent), the joined operation's text/flow
+ids/package names (resolved through the `operations/<id>` entry in that item's `relatedDataItems`),
+transcript size, sub-agent count, and any ward/riftcarver result the item points at (via
+`relatedDataItems`, or `lastWardRunId` matching a result's own `runId`). Nothing here needs `ls`, a
+manual `get-quest` join, or subtracting timestamps by hand. Read the file back before Step 2.
 
 If the user named a range ("from the first codeweaver to the second siegemaster"), honour it.
 Otherwise analyze every work item that has a `sessionId`. Work items with `spawnerType: 'command'`
@@ -65,17 +53,20 @@ those files are in" has the full reasoning). Main session at `<sessionId>.jsonl`
 `model`, `description`, `spawnDepth`); oversized tool results spilled to `<sessionId>/tool-results/`.
 Sub-agent transcripts have the same shape as main sessions, so every command below works on both.
 
-**The tool.** `npx dungeonmaster-session-forensics <cmd> <sessionId|agent-id>`, run from the repo
-root. It needs `packages/session-forensics/dist/` already built — this is read-only analysis, so if
-that is missing, stop and say so rather than building it. It has exactly FOUR commands, none taking
-flags — a fixed shape each, no `--minutes`/`--floor-seconds`/`--max`:
+**The tool.** `npx dungeonmaster-session-forensics <cmd> <sessionId|agent-id|questId>`, run from the
+repo root. It needs `packages/session-forensics/dist/` already built — this is read-only analysis,
+so if that is missing, stop and say so rather than building it. Its commands:
 
 | Command | What it gives |
 |---|---|
 | `summary <sessionId\|agent-id>` | wall clock, record/message counts, model, token totals (input / cache_read / cache_creation / output / thinking), tool-call histogram, tool-result bytes, sub-agent count |
-| `buckets <sessionId\|agent-id>` | chronological 15-minute buckets (fixed width): API-response count, tool calls, output tokens, context-in tokens, tool-result bytes, top 4 tools |
-| `gaps <sessionId\|agent-id>` | **every gap of 120s+ (fixed floor) between assistant turns, labelled with which sub-agents were live during it** — then totals splitting wall clock into blocked-on-sub-agent versus true idle |
+| `buckets <sessionId\|agent-id> [--minutes <n>]` | chronological n-minute buckets, default 15 (fixed width): API-response count, tool calls, output tokens, context-in tokens, tool-result bytes, top 4 tools |
+| `gaps <sessionId\|agent-id> [--floor-seconds <n>]` | **every gap of n+ seconds between assistant turns, default floor 120**, labelled with which sub-agents were live during it — then totals splitting wall clock into blocked-on-sub-agent versus true idle |
 | `coverage <questId>` | per flow, per track (codeweaver/flowrider/siegemaster): required/signed/met/can't-meet/unmet/not-signed — an upper bound, not the authoritative reading (Step 7 has the caveat) |
+| `quest <questId>` | Step 1's whole per-work-item index in one pass — see Step 1 |
+
+`--minutes`/`--floor-seconds` are the only flags any command takes; every other argument shape above
+is fixed.
 
 `summary`, `buckets` and `gaps` all take a SUB-AGENT id directly (`agent-<realAgentId>`, the filename
 under `subagents/`) with no parent session needed — the tool scans every project directory's every
@@ -86,7 +77,7 @@ command. Build a roster by hand: `ls <sessionDir>/subagents/` for the list, `Rea
 
 **There is no `timeline`, `text`/`prompts`, `errors`, `result <toolRegex>`, or `grep <regex>`
 command.** None of those five was ever built — do not tell an analyzer to run one; the call fails on
-a script that is not there. For anything the four real commands above don't answer — turn-by-turn
+a script that is not there. For anything the commands above don't answer — turn-by-turn
 ordering, quoted prose, one tool's raw result payload, a pattern search — read the transcript JSONL
 directly: `Read` it in slices (`offset`/`limit` — a session can run to hundreds of megabytes, never
 load a whole one in one call), or write a short `python3` script that parses each line as JSON. The

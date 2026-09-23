@@ -34,6 +34,14 @@ describe('digestCommandContract', () => {
 
       expect(result).toBe('coverage');
     });
+
+    it('VALID: quest => parses successfully', () => {
+      const command = DigestCommandStub({ value: 'quest' });
+
+      const result = digestCommandContract.parse(command);
+
+      expect(result).toBe('quest');
+    });
   });
 
   describe('invalid commands', () => {

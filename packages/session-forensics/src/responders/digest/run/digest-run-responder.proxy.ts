@@ -1,3 +1,4 @@
+import { fsReadFileSyncAdapterProxy } from '@dungeonmaster/shared/testing';
 import { AbsoluteFilePathStub, PathSegmentStub } from '@dungeonmaster/shared/contracts';
 import type {
   SessionIdStub,
@@ -9,6 +10,7 @@ import { transcriptLoadBrokerProxy } from '../../../brokers/transcript/load/tran
 import { transcriptResolveBrokerProxy } from '../../../brokers/transcript/resolve/transcript-resolve-broker.proxy';
 import { subagentRosterLoadBrokerProxy } from '../../../brokers/subagent/roster-load/subagent-roster-load-broker.proxy';
 import { questLoadBrokerProxy } from '../../../brokers/quest/load/quest-load-broker.proxy';
+import { questIndexLoadBrokerProxy } from '../../../brokers/quest/index-load/quest-index-load-broker.proxy';
 import { SubagentMetaStub } from '../../../contracts/subagent-meta/subagent-meta.stub';
 
 type SessionId = ReturnType<typeof SessionIdStub>;
@@ -35,6 +37,8 @@ export const DigestRunResponderProxy = (): {
   setupNoTranscript: () => void;
   setupQuest: (params: { questId: QuestId; questJson: unknown }) => void;
   setupMissingQuest: () => void;
+  setupQuestIndex: (params: { questId: QuestId; questJson: unknown }) => void;
+  setupMissingQuestIndex: () => void;
 } => {
   const loadProxy = transcriptLoadBrokerProxy();
   // Not driven directly — DigestRunResponder's own second transcriptResolveBroker call runs
@@ -44,6 +48,12 @@ export const DigestRunResponderProxy = (): {
   transcriptResolveBrokerProxy();
   const rosterProxy = subagentRosterLoadBrokerProxy();
   const questProxy = questLoadBrokerProxy();
+  const questIndexProxy = questIndexLoadBrokerProxy();
+  // Not driven directly — the `quest` command's own transcript-size read runs against the SAME
+  // underlying fs mock `loadProxy`/`rosterProxy` already stage above (mocks are shared by function
+  // identity). Instantiated only to satisfy enforce-proxy-child-creation for the adapter
+  // digest-run-responder.ts imports directly.
+  fsReadFileSyncAdapterProxy();
 
   const sessionFilePathFor = ({
     target,
@@ -89,6 +99,12 @@ export const DigestRunResponderProxy = (): {
     },
     setupMissingQuest: (): void => {
       questProxy.setupMissingQuest();
+    },
+    setupQuestIndex: ({ questId, questJson }: { questId: QuestId; questJson: unknown }): void => {
+      questIndexProxy.setupQuest({ questId, questJson });
+    },
+    setupMissingQuestIndex: (): void => {
+      questIndexProxy.setupMissingQuest();
     },
   };
 };

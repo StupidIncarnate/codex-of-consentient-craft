@@ -18,3 +18,6 @@ export * from './src/brokers/quest/find/quest-find-broker';
 
 // Read just the flows out of a quest's quest.json
 export * from './src/brokers/quest/load/quest-load-broker';
+
+// Read the operations/wardResults/riftcarverResults/userRequest a work-item index join needs
+export * from './src/brokers/quest/index-load/quest-index-load-broker';
