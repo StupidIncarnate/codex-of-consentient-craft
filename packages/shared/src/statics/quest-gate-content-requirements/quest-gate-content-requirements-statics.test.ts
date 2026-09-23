@@ -6,7 +6,6 @@ describe('questGateContentRequirementsStatics', () => {
       gates: {
         flows_approved: ['flows'],
         approved: ['flows'],
-        design_approved: ['flows'],
       },
     });
   });

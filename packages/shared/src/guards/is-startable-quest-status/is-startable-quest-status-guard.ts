@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Checks if a quest status allows starting execution (approved + design_approved)
+ * PURPOSE: Checks if a quest status allows starting execution (approved)
  *
  * USAGE:
  * isStartableQuestStatusGuard({ status: 'approved' });

@@ -6,7 +6,7 @@ const STATUSES = Object.keys(
 ) as readonly (keyof typeof questStatusMetadataStatics.statuses)[];
 
 const GATE_APPROVED_STATUSES: ReadonlySet<keyof typeof questStatusMetadataStatics.statuses> =
-  new Set(['flows_approved', 'approved', 'design_approved']);
+  new Set(['flows_approved', 'approved']);
 
 describe('isGateApprovedQuestStatusGuard', () => {
   describe('state matrix', () => {

@@ -80,7 +80,6 @@ user and writes the spec via `modify-quest`, walking the status gates:
 ```
 created → explore_flows → review_flows → [user APPROVE] → flows_approved
         → explore_observables → review_observables → [user APPROVE] → approved
-        → (optional design) explore_design → review_design → [APPROVE] → design_approved
 ```
 
 It writes: **flows** (mermaid-style node/edge graphs; `flowType: runtime | operational`), **observables** (BDD
@@ -90,7 +89,7 @@ given/when/then embedded in `flows[].nodes[].observables[]`), **contracts** (bra
 **The intake role authors NO ledger at all.** `operations` is off the modify-quest allowlist entirely, for every role
 at every status — the implementation ledger is DERIVED at Start Quest instead, from the flow nodes' `packages` tags
 and the contracts' `source` paths (see §4). The **approval gate** refuses `approved` only for empty `flows`; it
-demands no ledger item. The two APPROVE buttons are the only manual gates; `approved` (or `design_approved`) is the
+demands no ledger item. The two APPROVE buttons are the only manual gates; `approved` is the
 launch-ready state.
 
 > Smoke tests usually start *here* — at `approved`, with flows + observables — because the spec phase is interactive
@@ -378,7 +377,7 @@ order:
    stripped from the MCP tool surface). The orchestrator's own runtime ledger writes go through
    `questOperationsUpdateBroker`, which bypasses the allowlist.
 2. **Status-transition guard** — the from→to hop must be legal (only when `status` is in the input).
-3. **Gate-content guard** — required content present for the target status (`flows` before `approved`/`design_approved`
+3. **Gate-content guard** — required content present for the target status (`flows` before `approved`
    — nothing else, for either quest type).
 4. **Save-invariants** (EVERY write, post-mutation) — structural integrity, lenient: no duplicate ids; `dependsOn` ids
    resolve; `relatedDataItems` reference valid collections (`operations`/`wardResults`/`riftcarverResults`/`flows`) +

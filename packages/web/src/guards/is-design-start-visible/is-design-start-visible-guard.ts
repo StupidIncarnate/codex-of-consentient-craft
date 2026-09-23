@@ -3,7 +3,7 @@
  *
  * USAGE:
  * isDesignStartVisibleGuard({quest: questData});
- * // Returns true when quest is in a startable status (approved or design_approved) and needs design prototyping
+ * // Returns true when quest is in a startable status (approved) and needs design prototyping
  */
 
 import type { Quest } from '@dungeonmaster/shared/contracts';

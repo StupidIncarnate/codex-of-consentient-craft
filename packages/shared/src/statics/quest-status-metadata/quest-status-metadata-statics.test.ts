@@ -4,7 +4,7 @@ type StatusKey = keyof typeof questStatusMetadataStatics.statuses;
 
 describe('questStatusMetadataStatics', () => {
   describe('coverage', () => {
-    it('VALID: statuses => covers all 18 quest statuses', () => {
+    it('VALID: statuses => covers all 15 quest statuses', () => {
       const statusKeys = Object.keys(questStatusMetadataStatics.statuses).sort();
 
       expect(statusKeys).toStrictEqual(
@@ -14,8 +14,6 @@ describe('questStatusMetadataStatics', () => {
           'blocked',
           'complete',
           'created',
-          'design_approved',
-          'explore_design',
           'explore_flows',
           'explore_observables',
           'flows_approved',
@@ -24,7 +22,6 @@ describe('questStatusMetadataStatics', () => {
           'merging',
           'paused',
           'pending',
-          'review_design',
           'review_flows',
           'review_observables',
         ].sort(),
@@ -142,34 +139,6 @@ describe('questStatusMetadataStatics', () => {
         nextApprovalStatus: 'approved',
         previousReviewStatus: null,
         displayHeader: 'OBSERVABLES APPROVAL',
-      });
-    });
-
-    it('VALID: review_design => matches expected metadata', () => {
-      expect(questStatusMetadataStatics.statuses.review_design).toStrictEqual({
-        isPreExecution: true,
-        isAnyAgentRunning: false,
-        isActivelyExecuting: false,
-        isUserPaused: false,
-        isQuestBlocked: false,
-        isTerminal: false,
-        isPauseable: true,
-        isResumable: false,
-        isStartable: false,
-        isRecoverable: false,
-        isAutoResumable: false,
-        isGateApproved: false,
-        isBeforeSpecApproved: false,
-        isDesignPhase: true,
-        isAbandonable: true,
-        isCompletedSuccessfully: false,
-        isFollowupChatable: false,
-        isMergeable: false,
-        shouldRenderExecutionPanel: false,
-        shouldRenderStatusBanner: false,
-        nextApprovalStatus: 'design_approved',
-        previousReviewStatus: null,
-        displayHeader: 'DESIGN APPROVAL',
       });
     });
 
@@ -479,62 +448,6 @@ describe('questStatusMetadataStatics', () => {
         nextApprovalStatus: null,
         previousReviewStatus: null,
         displayHeader: 'EXPLORING OBSERVABLES',
-      });
-    });
-
-    it('VALID: explore_design => matches expected metadata', () => {
-      expect(questStatusMetadataStatics.statuses.explore_design).toStrictEqual({
-        isPreExecution: true,
-        isAnyAgentRunning: false,
-        isActivelyExecuting: false,
-        isUserPaused: false,
-        isQuestBlocked: false,
-        isTerminal: false,
-        isPauseable: true,
-        isResumable: false,
-        isStartable: false,
-        isRecoverable: true,
-        isAutoResumable: false,
-        isGateApproved: false,
-        isBeforeSpecApproved: false,
-        isDesignPhase: true,
-        isAbandonable: true,
-        isCompletedSuccessfully: false,
-        isFollowupChatable: false,
-        isMergeable: false,
-        shouldRenderExecutionPanel: false,
-        shouldRenderStatusBanner: false,
-        nextApprovalStatus: null,
-        previousReviewStatus: null,
-        displayHeader: 'EXPLORING DESIGN',
-      });
-    });
-
-    it('VALID: design_approved => matches expected metadata', () => {
-      expect(questStatusMetadataStatics.statuses.design_approved).toStrictEqual({
-        isPreExecution: true,
-        isAnyAgentRunning: false,
-        isActivelyExecuting: false,
-        isUserPaused: false,
-        isQuestBlocked: false,
-        isTerminal: false,
-        isPauseable: true,
-        isResumable: false,
-        isStartable: true,
-        isRecoverable: false,
-        isAutoResumable: false,
-        isGateApproved: true,
-        isBeforeSpecApproved: false,
-        isDesignPhase: true,
-        isAbandonable: true,
-        isCompletedSuccessfully: false,
-        isFollowupChatable: false,
-        isMergeable: false,
-        shouldRenderExecutionPanel: false,
-        shouldRenderStatusBanner: false,
-        nextApprovalStatus: null,
-        previousReviewStatus: 'review_design',
-        displayHeader: 'DESIGN APPROVED',
       });
     });
   });

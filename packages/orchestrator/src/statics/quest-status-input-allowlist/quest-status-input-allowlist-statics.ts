@@ -128,25 +128,6 @@ export const questStatusInputAllowlistStatics = {
     flowsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
-  explore_design: {
-    allowedFields: ['designDecisions', 'status'],
-    flowsRule: 'forbidden',
-    allowedPlanningNotesFields: [],
-  },
-  review_design: {
-    allowedFields: ['status'],
-    backTransitionFields: {
-      toStatus: 'explore_design',
-      fields: ['designDecisions'],
-    },
-    flowsRule: 'forbidden',
-    allowedPlanningNotesFields: [],
-  },
-  design_approved: {
-    allowedFields: ['status'],
-    flowsRule: 'forbidden',
-    allowedPlanningNotesFields: [],
-  },
   in_progress: {
     // packagesAffected is writable here because a session repairing a gap the bucket partition
     // missed can pull in a package the spec never listed, and every later session reads that field.

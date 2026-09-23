@@ -179,7 +179,7 @@ ruleTester.run('ban-quest-status-literals', ruleBanQuestStatusLiteralsBroker(), 
 
     // === new Set([...]) with >=2 status literals ===
     {
-      code: "const recoverable = new Set(['in_progress', 'design_approved', 'paused']);",
+      code: "const recoverable = new Set(['in_progress', 'blocked', 'paused']);",
       filename: productionFixture,
       errors: [{ messageId: 'inlineStatusSet' }],
     },

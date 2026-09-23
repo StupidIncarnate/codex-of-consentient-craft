@@ -515,7 +515,7 @@ export const QuestChatContentLayerWidget = ({
                 },
               );
             }
-            // Other gate-approved statuses (approved, design_approved):
+            // The other gate-approved status, approved:
             // deliberately no follow-up message — the agent's response could
             // call modify-quest and revert the status before the user clicks
             // Begin Quest, which would race with the start POST and silently

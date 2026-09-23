@@ -26,7 +26,7 @@ test.describe('Spec-phase intake conversation streams into the chat panel', () =
   // The reported symptom: `/dumpster-create` and `/dumpster-hunt` open the quest in the browser,
   // the intake conversation runs in the user's terminal, and the chat panel stays empty for the
   // whole thing. The cause was the watcher reactor filtering quests down to
-  // approved/design_approved/in_progress, which excludes every spec-phase status — so no tail was
+  // approved/in_progress, which excludes every spec-phase status — so no tail was
   // ever started for the session the intake work item carries.
   test('VALID: {bug-hunt quest at explore_flows with a live bughunt work item} => assistant lines appended to the session JSONL render in the chat panel', async ({
     page,

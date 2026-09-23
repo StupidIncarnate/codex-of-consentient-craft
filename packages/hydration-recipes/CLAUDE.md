@@ -19,8 +19,8 @@ ingredients and recipes were built from.
 `quest` declares `transitions` on `status`, walked by `quest-reach-route-broker.ts`
 (`brokers/quest/reach-route/`). `set({ status: … })` on a quest is a WALK, never a plain field
 write, for every value on the declared `to` list: `explore_flows`, `review_flows`,
-`flows_approved`, `explore_observables`, `review_observables`, `approved`, `explore_design`,
-`review_design`, `design_approved`, `in_progress`, `complete`, `abandoned`. `created`, `pending`,
+`flows_approved`, `explore_observables`, `review_observables`, `approved`,
+`in_progress`, `complete`, `abandoned`. `created`, `pending`,
 `paused`, `blocked`, `merging` and `merged` are deliberately off the list — see
 `quest-ingredient-broker.ts`'s own header for why each one is excluded. `setRaw({ status: … })` is
 still the only way onto an excluded value, or onto a value the real gates would refuse.
@@ -30,7 +30,7 @@ call.** `@dungeonmaster-local/ban-quest-status-literals` refuses an inline array
 or more recognized status literals everywhere except the one path its allowlist names for exactly
 this list — `statics/quest-transition-target-statuses/` — so the tuple lives there instead of at the
 declaration site, and `quest-ingredient-broker.ts` imports it. `to`'s STATIC TYPE is therefore the
-twelve-member literal union the statics file declares, not the un-narrowed `QuestStatus[]` a
+nine-member literal union the statics file declares, not the un-narrowed `QuestStatus[]` a
 `.filter()` call would produce, so `set({ status: 'blocked' })` correctly FAILS TO COMPILE here,
 matching the specification. `isTransitionTargetQuestStatusGuard` still computes the same set at
 run time (and still backs `questStatusWalkPathTransformer`'s BFS pruning) — the guard's own test

@@ -10,10 +10,7 @@ describe('questStatusTransitionsStatics', () => {
       flows_approved: ['explore_observables', 'paused'],
       explore_observables: ['review_observables', 'paused'],
       review_observables: ['approved', 'explore_observables', 'paused'],
-      approved: ['in_progress', 'explore_design', 'paused'],
-      explore_design: ['review_design', 'paused'],
-      review_design: ['design_approved', 'explore_design', 'paused'],
-      design_approved: ['in_progress', 'explore_design', 'paused'],
+      approved: ['in_progress', 'paused'],
       in_progress: ['in_progress', 'paused', 'blocked', 'complete', 'abandoned'],
       paused: [
         'created',
@@ -24,9 +21,6 @@ describe('questStatusTransitionsStatics', () => {
         'explore_observables',
         'review_observables',
         'approved',
-        'explore_design',
-        'review_design',
-        'design_approved',
         'in_progress',
         'blocked',
         'merging',
@@ -83,35 +77,8 @@ describe('questStatusTransitionsStatics', () => {
       ]);
     });
 
-    it('VALID: approved transitions => exact [in_progress, explore_design, paused]', () => {
-      expect(questStatusTransitionsStatics.approved).toStrictEqual([
-        'in_progress',
-        'explore_design',
-        'paused',
-      ]);
-    });
-
-    it('VALID: explore_design transitions => exact [review_design, paused]', () => {
-      expect(questStatusTransitionsStatics.explore_design).toStrictEqual([
-        'review_design',
-        'paused',
-      ]);
-    });
-
-    it('VALID: review_design transitions => exact [design_approved, explore_design, paused]', () => {
-      expect(questStatusTransitionsStatics.review_design).toStrictEqual([
-        'design_approved',
-        'explore_design',
-        'paused',
-      ]);
-    });
-
-    it('VALID: design_approved transitions => exact [in_progress, explore_design, paused]', () => {
-      expect(questStatusTransitionsStatics.design_approved).toStrictEqual([
-        'in_progress',
-        'explore_design',
-        'paused',
-      ]);
+    it('VALID: approved transitions => exact [in_progress, paused]', () => {
+      expect(questStatusTransitionsStatics.approved).toStrictEqual(['in_progress', 'paused']);
     });
 
     it('VALID: blocked transitions => exact [blocked, in_progress, abandoned, paused, merging]', () => {
@@ -154,9 +121,6 @@ describe('questStatusTransitionsStatics', () => {
         'explore_observables',
         'review_observables',
         'approved',
-        'explore_design',
-        'review_design',
-        'design_approved',
         'in_progress',
         'blocked',
         'merging',

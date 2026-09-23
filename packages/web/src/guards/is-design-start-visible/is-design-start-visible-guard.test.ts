@@ -8,7 +8,7 @@ const STATUSES = Object.keys(
 ) as readonly (keyof typeof questStatusMetadataStatics.statuses)[];
 
 const DESIGN_START_VISIBLE_STATUSES: ReadonlySet<keyof typeof questStatusMetadataStatics.statuses> =
-  new Set(['approved', 'design_approved']);
+  new Set(['approved']);
 
 describe('isDesignStartVisibleGuard', () => {
   describe('state matrix with needsDesign true', () => {

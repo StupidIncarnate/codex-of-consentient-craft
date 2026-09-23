@@ -18,12 +18,6 @@ describe('nextApprovalQuestStatusTransformer', () => {
 
       expect(result).toBe('approved');
     });
-
-    it('VALID: {status: review_design} => returns design_approved', () => {
-      const result = nextApprovalQuestStatusTransformer({ status: 'review_design' });
-
-      expect(result).toBe('design_approved');
-    });
   });
 
   describe('state matrix — delegates to metadata', () => {

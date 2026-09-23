@@ -217,12 +217,12 @@ See `get-testing-patterns` MCP tool for full E2E testing patterns and anti-patte
 - **Quest status determines when the WS execution listener activates** — the browser's WebSocket listener for execution
   streaming (`quest-chat-widget.tsx`) is gated by `shouldRenderExecutionPanelQuestStatusGuard`, which returns `true` for
   every execution-phase status (`in_progress`, `paused`, `blocked`, `complete`, `abandoned`). The widget auto-starts
-  orchestration **only** for startable statuses (`approved` / `design_approved`) — quests past the start gate never
+  orchestration **only** for the startable status (`approved`) — quests past the start gate never
   retrigger `/start` from the browser. Starting a quest directly at `in_progress` via `writeQuestFile` will NOT seed the
   operations relay: the relay seed + status flip happen in `orchestration-start-responder`, registered either by the
   `/api/quests/:id/start` endpoint (normal flow) or by the server's startup-recovery responder (which only runs at
   boot). Tests that need the relay running against a seeded quest must:
-    1. Write the quest file with `status: 'approved'` (or `'design_approved'`), a valid `operations` ledger (for a
+    1. Write the quest file with `status: 'approved'`, a valid `operations` ledger (for a
        `feature` quest, ≥1 `role: 'codeweaver'` item), plus any prior-phase (`chaoswhisperer`) work items
        marked `complete`.
     2. POST `/api/quests/:questId/start` **before** `page.goto(...)`. This appends the verify tail as operation items,

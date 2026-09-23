@@ -66,7 +66,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('VALID: quest at review_design renders static QUEST_TITLE, ABANDON_BAR, scoped design-decisions and tooling read-mode lists, and ACTION_BAR with only APPROVE', async ({
+  test('VALID: quest at review_observables renders static QUEST_TITLE, ABANDON_BAR, scoped design-decisions and tooling read-mode lists, and ACTION_BAR with only APPROVE', async ({
     page,
     request,
   }) => {
@@ -89,7 +89,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
       title: 'Surviving Surfaces Quest',
-      status: 'review_design',
+      status: 'review_observables',
       workItems: [
         { id: 'e2e00000-0000-4000-8000-000000000001', role: 'chaoswhisperer', status: 'complete' },
       ],
@@ -225,7 +225,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
-      status: 'review_design',
+      status: 'review_observables',
       workItems: [
         { id: 'e2e00000-0000-4000-8000-000000000001', role: 'chaoswhisperer', status: 'complete' },
       ],
@@ -373,7 +373,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
       questId: String(created.questId),
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
-      status: 'review_design',
+      status: 'review_observables',
       workItems: [
         { id: 'e2e00000-0000-4000-8000-000000000001', role: 'chaoswhisperer', status: 'complete' },
       ],
@@ -398,7 +398,7 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
   });
 
   // Status-matrix coverage for ACTION_BAR's button set. The observable claims "at any quest status",
-  // but every test above exercises only review_design/review_observables. Both lists below are
+  // but every test above exercises only review_observables. Both lists below are
   // derived from questStatusMetadataStatics (never hardcoded), so a newly added status is picked up
   // automatically. Only the 11 NON-execution-phase statuses are reachable here — QuestSpecPanelWidget
   // mounts unconditionally (readOnly undefined) in that branch of QuestChatContentLayerWidget. The 5

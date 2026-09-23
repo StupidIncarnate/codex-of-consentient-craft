@@ -373,7 +373,7 @@ describe('resolveChatQuestLayerBroker', () => {
               id: questId,
               folder: questId,
               // Harmless for all three roles — none of their resolution branches reads status.
-              status: 'explore_design',
+              status: 'in_progress',
               workItems: [tavernkeeperItem, chatItem], // tavernkeeper FIRST
             }),
           });

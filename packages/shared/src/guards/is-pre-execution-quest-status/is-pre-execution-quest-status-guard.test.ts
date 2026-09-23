@@ -15,9 +15,6 @@ const PRE_EXECUTION_STATUSES: ReadonlySet<keyof typeof questStatusMetadataStatic
     'explore_observables',
     'review_observables',
     'approved',
-    'explore_design',
-    'review_design',
-    'design_approved',
   ]);
 
 describe('isPreExecutionQuestStatusGuard', () => {

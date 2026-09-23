@@ -2502,26 +2502,6 @@ describe('questModifyBroker', () => {
 
       expect(result.success).toBe(true);
     });
-
-    it('VALID: {design_approved -> in_progress} => transitions and persists', async () => {
-      const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'design_approved',
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        status: 'in_progress',
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-    });
   });
 
   describe('comment persistence and orphan cleanup', () => {

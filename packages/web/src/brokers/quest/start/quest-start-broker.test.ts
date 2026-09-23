@@ -50,12 +50,11 @@ describe('questStartBroker', () => {
       const questId = QuestIdStub({ value: 'add-auth' });
 
       proxy.setupRejected({
-        error:
-          'Quest must be in a startable status (approved or design_approved) to start execution',
+        error: 'Quest must be in a startable status (approved) to start execution',
       });
 
       await expect(questStartBroker({ questId })).rejects.toThrow(
-        /^Quest must be in a startable status \(approved or design_approved\) to start execution$/u,
+        /^Quest must be in a startable status \(approved\) to start execution$/u,
       );
     });
 

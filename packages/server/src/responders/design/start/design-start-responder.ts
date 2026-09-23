@@ -76,7 +76,7 @@ export const DesignStartResponder = async ({
         status: httpStatusStatics.clientError.badRequest,
         data: {
           error:
-            'Quest must be in an approved status (approved or design_approved) with needsDesign=true to start design',
+            'Quest must be in an approved status (approved) with needsDesign=true to start design',
         },
       });
     }

@@ -86,7 +86,7 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
           },
           after,
         }).toStrictEqual({
-          errorMessage: `Quest must be in a startable status (approved or design_approved). Current status: ${status}`,
+          errorMessage: `Quest must be in a startable status (approved). Current status: ${status}`,
           // The observable's second half, asserted directly on the post-request state. Reading it
           // off `after === before` alone would only hold while QuestStub happens to omit these
           // three keys; the day it defaults one, that inference goes quiet instead of red.

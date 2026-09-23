@@ -6,7 +6,7 @@ type StatusKey = keyof typeof questStatusMetadataStatics.statuses;
 
 const STATUSES = Object.keys(questStatusMetadataStatics.statuses) as readonly StatusKey[];
 
-const DESIGN_START_ALLOWED_STATUSES: readonly StatusKey[] = ['approved', 'design_approved'];
+const DESIGN_START_ALLOWED_STATUSES: readonly StatusKey[] = ['approved'];
 
 const DESIGN_START_ALLOWED_SET: ReadonlySet<StatusKey> = new Set(DESIGN_START_ALLOWED_STATUSES);
 
@@ -58,7 +58,7 @@ describe('DesignStartResponder', () => {
           status: 400,
           data: {
             error:
-              'Quest must be in an approved status (approved or design_approved) with needsDesign=true to start design',
+              'Quest must be in an approved status (approved) with needsDesign=true to start design',
           },
         });
       },
@@ -120,7 +120,7 @@ describe('DesignStartResponder', () => {
         status: 400,
         data: {
           error:
-            'Quest must be in an approved status (approved or design_approved) with needsDesign=true to start design',
+            'Quest must be in an approved status (approved) with needsDesign=true to start design',
         },
       });
     });

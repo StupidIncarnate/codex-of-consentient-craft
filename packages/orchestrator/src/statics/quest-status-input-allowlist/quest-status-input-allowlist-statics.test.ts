@@ -90,25 +90,6 @@ describe('questStatusInputAllowlistStatics', () => {
         flowsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
-      explore_design: {
-        allowedFields: ['designDecisions', 'status'],
-        flowsRule: 'forbidden',
-        allowedPlanningNotesFields: [],
-      },
-      review_design: {
-        allowedFields: ['status'],
-        backTransitionFields: {
-          toStatus: 'explore_design',
-          fields: ['designDecisions'],
-        },
-        flowsRule: 'forbidden',
-        allowedPlanningNotesFields: [],
-      },
-      design_approved: {
-        allowedFields: ['status'],
-        flowsRule: 'forbidden',
-        allowedPlanningNotesFields: [],
-      },
       in_progress: {
         allowedFields: [
           'contracts',
@@ -164,8 +145,6 @@ describe('questStatusInputAllowlistStatics', () => {
         'blocked',
         'complete',
         'created',
-        'design_approved',
-        'explore_design',
         'explore_flows',
         'explore_observables',
         'flows_approved',
@@ -174,7 +153,6 @@ describe('questStatusInputAllowlistStatics', () => {
         'merging',
         'paused',
         'pending',
-        'review_design',
         'review_flows',
         'review_observables',
       ].sort(),

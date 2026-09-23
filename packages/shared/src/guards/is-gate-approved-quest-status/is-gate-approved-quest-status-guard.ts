@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Checks if a quest status represents a gate-approved state (flows_approved, approved, design_approved)
+ * PURPOSE: Checks if a quest status represents a gate-approved state (flows_approved, approved)
  *
  * USAGE:
  * isGateApprovedQuestStatusGuard({ status: 'approved' });

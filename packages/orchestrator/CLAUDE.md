@@ -156,11 +156,15 @@ subagent_type), so a swapped pairing is visually indistinguishable. No tiebreake
 
 **Tests that protect this convergence:**
 
-- `chat-streaming-subagent-grouping.spec.ts` — streaming path via fake Claude CLI stdout.
-- `chat-replay-subagent-grouping.spec.ts` — file-replay path via pre-seeded JSONL on disk.
-  Two cases: completed Task (pass-1a) and in-flight Task with no completion (pass-1b).
-- `chat-history-replay-broker.test.ts` — unit-level coverage of all three reverse-map
-  population paths, including the prompt-text pairing.
+- `packages/web/src/flows/quest-chat/chat-streaming-subagent-grouping.e2e.ts` — streaming path via fake
+  Claude CLI stdout, walked in a real browser.
+- `packages/web/src/flows/session-view/chat-replay-subagent-grouping.e2e.ts` — file-replay path via
+  pre-seeded JSONL on disk. Its own header names the one difference from its streaming sibling: the
+  SOURCE of the correlation. Both e2e specs carry a `PARITY` comment pointing at each other so the two
+  chain-header assertions cannot drift apart unnoticed.
+- `chat-history-replay-broker.test.ts` (this package) — unit-level coverage of all three reverse-map
+  population paths under its `describe('two-pass sub-agent correlation', ...)` block, including the
+  prompt-text pairing (pass-1b) for an in-flight Task with no completion `tool_result`.
 
 If you touch sub-agent correlation, ALL of these tests must stay green. If one passes and
 the others fail, the two sources are drifting apart again — do NOT "fix" by adjusting
@@ -289,7 +293,7 @@ quests that can no longer hold a live session. So the SPEC PHASE is in scope: a 
 at `created` / `explore_flows` / `review_flows` has an intake work item (chaoswhisperer
 or bughunt) carrying the chat session's id, and its tail runs — which is what
 streams an intake conversation into the browser chat panel while the user is still having it
-in their terminal. Narrowing the pre-filter to `approved`/`design_approved`/`in_progress`
+in their terminal. Narrowing the pre-filter to `approved`/`in_progress`
 starts no watcher for those quests and the panel stays empty for the whole conversation.
 
 - `fsWatchTailAdapter` accepts an optional `startPosition: 'beginning' | 'end'` param.
@@ -363,32 +367,45 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
   `packages/orchestrator/src/statics/`, and the shape of that source is the design: **every prompt is ONE FILE, and its
   name says whose it is.** There is no shared template and no per-role pack.
 
-  The served roster is eleven names (`agentPromptClassificationStatics.promptNames`):
+  The served roster is `agentPromptClassificationStatics.promptNames` filtered to the names
+  `agentNameToPromptTransformer`'s `AGENT_PROMPTS` table actually carries — `promptNames` also keeps a handful of
+  retired names (`codeweaver`, `flowrider`, `siegemaster`, `siegemaster-stress`, `siegemaster-verifier`) so a quest
+  that ran under one still loads, but each of those throws `Unknown agent prompt name` if dispatched today; the
+  transformer's own test names them `UNSERVED_PROMPT_NAMES` and asserts the throw.
 
   | Name | Kind | File | Model |
   |---|---|---|---|
-  | `codeweaver` | role | `codeweaver-prompt/` | opus |
-  | `flowrider` | role | `flowrider-prompt/` | opus |
-  | `siegemaster` | role | `siegemaster-prompt/` | opus |
+  | `chaoswhisperer-gap-minion` | minion | `chaoswhisperer-gap-minion/` | sonnet |
+  | `codeweaver-planner` | step | `codeweaver-planner/` | opus |
+  | `codeweaver-worker` | step | `codeweaver-worker/` | opus |
+  | `codeweaver-reviewer` | step | `codeweaver-reviewer/` | sonnet |
+  | `flowrider-planner` | step | `flowrider-planner/` | opus |
+  | `flowrider-worker` | step | `flowrider-worker/` | opus |
+  | `flowrider-reviewer` | step | `flowrider-reviewer/` | sonnet |
+  | `siege-planner` | step | `siege-planner/` | opus |
+  | `siege-happy-walker` | step | `siege-happy-walker/` | sonnet |
+  | `siege-adversarial-walker` | step | `siege-adversarial-walker/` | sonnet |
+  | `siege-happy-fixer` | step | `siege-happy-fixer/` | sonnet |
+  | `siege-adversarial-fixer` | step | `siege-adversarial-fixer/` | sonnet |
+  | `siegemaster-reader` | step | `siegemaster-reader/` | sonnet |
+  | `recipe-maker` | step | `recipe-maker/` | opus |
   | `spiritmender` | role | `spiritmender-prompt/` | sonnet |
   | `warpgate` | role | `warpgate-prompt/` | opus |
-  | `codeweaver-reviewer` | minion | `codeweaver-reviewer/` | sonnet |
-  | `flowrider-reviewer` | minion | `flowrider-reviewer/` | sonnet |
-  | `siegemaster-reviewer` | minion | `siegemaster-reviewer/` | sonnet |
-  | `siegemaster-stress` | minion | `siegemaster-stress/` | sonnet |
-  | `siegemaster-verifier` | minion | `siegemaster-verifier/` | sonnet |
-  | `chaoswhisperer-gap-minion` | minion | `chaoswhisperer-gap-minion/` | sonnet |
 
-  **The three operator roles brief GENERIC sub-agents for the work itself.** A sub-agent that edits a file is a
-  `general-purpose` agent its operator briefs in its own words, against a map that operator wrote. Only the sub-agents
-  that must fetch a quest and read git on their own carry a served prompt: each operator's own reviewer, and
-  siegemaster's `siegemaster-verifier` / `siegemaster-stress` pair, which drive a live system by hand and need the
-  measurement discipline every round.
+  "Step" is this roster's own vocabulary (`agent-prompt-classification-statics.test.ts`'s own describe block:
+  "step prompts are in promptNames but neither role nor minion") — each is one step a family's own step graph
+  dispatches as its own session, not a sub-agent a role briefs. `roleNames` (`codeweaver`, `flowrider`, `siegemaster`,
+  `spiritmender`, `warpgate`) and `minionNames` (`chaoswhisperer-gap-minion` alone) are the two OTHER lists
+  `agentPromptClassificationStatics` carries; `codeweaver`/`flowrider`/`siegemaster` sit in `roleNames` for
+  classification purposes (a work item's scope reads its OWNING family's role) even though none of the three has a
+  prompt of its own any more — dispatch always reaches one of that family's named steps instead.
 
   Two shared blocks are interpolated into those prompts rather than repeated:
   `standardsReviewConcernsStatics.markdown` — the five standing quality concerns, in all three reviewers — and
-  `flowEvidenceContractStatics`, whose `authoringMarkdown` half goes into the flowrider PROMPT and whose judging half
-  goes into `flowrider-reviewer`.
+  `flowEvidenceContractStatics`, whose judging half (`judgingMarkdown`) goes into `flowrider-reviewer`. Its authoring
+  half (`authoringMarkdown`) reaches no served prompt today — `flowrider-planner-statics.ts` names exactly the two
+  shared blocks it interpolates (`spilledToolResultStatics`, `sadPathRoutingStatics`) and `authoringMarkdown` is not
+  one of them.
 
   The valid names are `agentPromptClassificationStatics.promptNames` — `agentPromptNameContract` brands an OPEN
   string rather than a closed enum, so a quest that ran under a renamed prompt name still loads.
@@ -429,10 +446,12 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
 
 ## Editing or Creating a Prompt in `statics/`
 
-Every statics file in this package holding agent-facing markdown — the three `<role>-prompt-statics`, the three
-`<role>-reviewer-statics`, `siegemaster-walker-statics`, `chaoswhisperer-gap-minion-statics`,
-`standards-review-concerns-statics`, `flow-evidence-contract-statics`, and the bespoke `spiritmender` / `warpgate` /
-`dumpster-*` prompts — is **TEXT INJECTED INTO A MODEL'S CONTEXT WINDOW.** It is not documentation, not a README, and
+Every statics file in this package holding agent-facing markdown — each family's `<role>-planner-statics` /
+`<role>-worker-statics` pair, the three `<role>-reviewer-statics`, siegemaster's named walk/fix/read steps
+(`siege-planner`, `siege-happy-walker`, `siege-adversarial-walker`, `siege-happy-fixer`, `siege-adversarial-fixer`,
+`siegemaster-reader`, `recipe-maker`), `chaoswhisperer-gap-minion-statics`, `standards-review-concerns-statics`,
+`flow-evidence-contract-statics`, and the bespoke `spiritmender` / `warpgate` / `tavernkeeper` / `dumpster-*`
+prompts — is **TEXT INJECTED INTO A MODEL'S CONTEXT WINDOW.** It is not documentation, not a README, and
 not a page anyone opens. Five rules follow from that. Each one cost a real defect.
 
 ### 1. No reader-interface verbs
@@ -454,8 +473,8 @@ not widen its wording.**
 
 ### 3. A shared block is a contract on every prompt that interpolates it
 
-`standardsReviewConcernsStatics` lands in all three reviewer prompts and
-`flowEvidenceContractStatics` splits across the flowrider prompt and its reviewer. An edit to either
+`standardsReviewConcernsStatics` lands in all three reviewer prompts and `flowEvidenceContractStatics`'s judging
+half lands in `flowrider-reviewer` alone — its authoring half reaches no served prompt today. An edit to either
 is unfinished until every prompt that reads it still agrees with it. A question only ONE kind of
 reviewer asks belongs in that reviewer's own prompt, never in the shared block — a block that hedges
 across three readers serves each of them answers it cannot use.
@@ -529,24 +548,27 @@ Web UI "Start Quest" button ──► server orchestration-start-responder
   │
   ▼
 User runs /dumpster-launch (long-lived dispatch loop in their session)
-  │   Loop: get-next-step() → Task() / run-riftcarver() / run-ward() → await → repeat.
+  │   Loop: get-next-step() → Task() / run-step() → await → repeat. `run-step` covers every
+  │   deterministic step of a normal quest, including the carve and the wardFull gate; the legacy
+  │   run-riftcarver() / run-ward() MCP tools answer only a work item with no step node (a hydrated
+  │   or legacy-blueprint quest).
   │   Each response dispatches ONE work item (= one agent session, or one command run) for the
   │   operation item the relay marked in_progress; on signal-back / command exit the relay advances
   │   to the next pending item.
   │
   │   The FAMILY GRAPH drives the order, and both quest types run the same one. Each family's scopes
   │   are minted the moment the relay routes to it:
-  ├─ riftcarver ──── mcp__dungeonmaster__run-riftcarver({questId, workItemId}); spawnerType: 'command'.
-  │                   Carves the branch + worktree, pins baseRef from the new tree's HEAD, mirrors
-  │                   node_modules, runs the preflight typecheck. Streams live; log persisted to
-  │                   riftcarver-results/<id>.log. Nothing else can run until it goes green.
+  ├─ riftcarver ──── run-step (carve); spawnerType: 'command'. Carves the branch + worktree, pins
+  │                   baseRef from the new tree's HEAD, mirrors node_modules, runs the preflight
+  │                   typecheck. Streams live; log persisted to riftcarver-results/<id>.log. Nothing
+  │                   else can run until it goes green.
   ├─ codeweaver ──── ONE SESSION PER (PACKAGE, FLOW) CELL — one package's half of one flow;
   │                   product code plus the unit tests that prove it
-  ├─ ward (committed) mcp__dungeonmaster__run-ward({mode: 'committed'}); spawnerType: 'command'
+  ├─ ward (committed) run-step (ward), args: ['--committed', '--uncommitted']; spawnerType: 'command'
   ├─ flowrider ───── ONE SESSION PER FLOW; the test suites that prove that flow, in the browser and
   │                   below it
   ├─ siegemaster ── ONE SESSION PER FLOW; hand-driven QA of that flow against a running system
-  ├─ ward (full) ─── mcp__dungeonmaster__run-ward({mode: 'full'}); spawnerType: 'command'
+  ├─ ward (full) ─── run-step (gate), args: []; spawnerType: 'command'
   │
   │   Each of those three agent roles is an OPERATOR: it reads code, briefs sub-agents to change it,
   │   reads what changed, and summons its own reviewer — which wards, commits and pushes.
@@ -669,8 +691,8 @@ named reviewer commits it.
 
 - **Codeweaver** (nine steps) reads the quest, explores its package, writes a MAP at
   `.quest-plans/<operationItemId>-map.md` — one line per file, grouped so that a group's files are disjoint — briefs a
-  generic sub-agent per change, reads `git diff` against the flow, then runs a `codeweaver-reviewer`. It signs
-  `codeweaverSignoff` on the observables its unit tests prove, then signals. Its cell is ONE package, and the two rules
+  generic sub-agent per change, reads `git diff` against the flow, then runs a `codeweaver-reviewer`. It writes a
+  `met` observation for each observable its unit tests prove, then signals. Its cell is ONE package, and the two rules
   that keep it there are in step 2 and step 3: it reads `git log` for what the cells before it committed (library
   packages run first, so the helper it is about to brief may already be on the branch), and where a change needs
   behaviour from a sibling it MOVES that code into a package both can call rather than copying it or importing across.
@@ -680,7 +702,8 @@ named reviewer commits it.
 - **Flowrider** (ten steps) reads the flow, takes its denominator from
   `get-qa-checklist({ questId, operationItemId })`, reads the implementation to learn the exact value each unit
   claims, chooses a LAYER per unit (in a real browser, or below one), writes the same shape of map, briefs a
-  sub-agent per test file, reads the diff, then runs a `flowrider-reviewer`. It signs `flowriderSignoff`.
+  sub-agent per test file, reads the diff, then runs a `flowrider-reviewer`. It writes an observation for each unit
+  it settles.
 - **Siegemaster** (ten steps) writes ONE shared guide, then runs ROUNDS — one per path walk off the checklist's
   `## WALK PATHS`, cheapest first. Each round dispatches a PAIR in one message — a `siegemaster-verifier` and a
   `siegemaster-stress` — each in its own isolated LANE (an API server, a Vite server and a headless Chromium, booted by
@@ -689,8 +712,9 @@ named reviewer commits it.
   found; the stress tester attacks the round's allocated off-map family the same way and signs only that family. Once
   every round has run, generic FIXER sub-agents repair what was found and a FRESH verifier re-walks the same path from
   the reset state to prove the fix — off-map is never re-walked, since each family had exactly one round. A
-  `siegemaster-reviewer` grades the repairs, only where a fixer ran. It signs `siegemasterSignoff`, and
-  `reset-flow-signoffs` is its lever when a fix moves behaviour an earlier round already cleared.
+  `siegemaster-reviewer` grades the repairs, only where a fixer ran. It writes an observation for each unit it
+  settles, and reopening a unit an earlier round already marked is a `quest-work` `invalidation` payload — a flowId
+  and a reason, refused to any work item but siegemaster's own.
 
 Eight things about that shape are load-bearing, and each is a measurement rather than a preference:
 
@@ -700,7 +724,8 @@ Eight things about that shape are load-bearing, and each is a measurement rather
   `Edit`/`Write` on any path but its own map, `npm run ward -- --uncommitted`, a bare `npm run ward` (see
   [WARD SCOPE]), and every git verb but reading are NOT. That map is the ONE path Codeweaver and Flowrider may write; Siegemaster writes no file at all —
   its record is what each round's verifier and stress tester report, in the round files they write themselves, and
-  what its reviewer commits — and `reset-flow-signoffs` is its alone, added by the section that names it.
+  what its reviewer commits — and reopening a flow through `quest-work`'s `invalidation` payload is its alone: the
+  guard refuses any work item whose linked operation item is not a siegemaster one.
 - **It reads the DIFF, never the tree.** A session that reads whole files mid-loop stops dispatching and starts
   hand-coding. Two things hold that off: the scope is one package or one flow rather than a whole repo, and the
   reading step is `git diff` plus the specific files where two pieces meet — bounded by how much changed rather than
@@ -813,11 +838,12 @@ step the router mints on that scope, one per piece inside a parallel step. `step
   HTTP seam — this repo's `server` depends on `@dungeonmaster/web` because it serves the built bundle, so
   raw depth would schedule the browser package's session before the backend route it calls exists.
 
-  **`flowrider` and `siegemaster` each fan out to ONE SCOPE PER FLOW THEIR OWN TRACK MEASURES**
+  **`flowrider` and `siegemaster` each fan out to ONE SCOPE PER FLOW THEIR OWN STEPS MEASURE**
   (`fanOutBy: 'flow'`), each carrying a single `flowId` and a text suffixed `— flow: <id>`. WHICH flows a
-  family is cut over is `signoffTrackEligibilityStatics.byTrack[role].flowTypes` — the same statics every
+  family is cut over is `stepScopeStatics.byFamilyStep[role][step].flowTypes` — the same table every
   denominator reader shares, so the ledger cannot mint a scope whose work list computes as zero:
-  siegemaster takes both flow types, flowrider `runtime` alone. With no eligible flow at all, the family
+  siegemaster's steps take `runtime` alone (an operational flow's units settle in codeweaver's reviewer
+  instead), flowrider's `review` step takes `runtime` alone too. With no eligible flow at all, the family
   keeps ONE whole-quest scope only when `off-map` is in its `unitKinds` — the probe families are
   properties of the built system rather than of any drawn flow — and flowrider gets nothing rather than a
   session dispatched against an empty denominator. A family that mints zero scopes is routed PAST by
@@ -856,13 +882,9 @@ step the router mints on that scope, one per piece inside a parallel step. `step
 
 ```
 created ──► explore_flows ──► review_flows ──► flows_approved ──► explore_observables ──► review_observables ──► approved ──► in_progress ──► complete
-                                    │                                                          │                   │                                │
-                                    └──► explore_flows (back)                                   └──► explore_observables (back)                      ├──► blocked ──► in_progress
-                                                                                                                   │                                 └──► abandoned
-                                                                                                                   ▼
-                                                                                                            explore_design ──► review_design ──► design_approved ──► in_progress
-                                                                                                                                      │
-                                                                                                                                      └──► explore_design (back)
+                                    │                                                          │                                              │
+                                    └──► explore_flows (back)                                   └──► explore_observables (back)                 ├──► blocked ──► in_progress
+                                                                                                                                                  └──► abandoned
 ```
 
 The valid transitions are `questStatusTransitionsStatics`; `paused` is reachable from every live status and restores
@@ -871,7 +893,7 @@ entirely within `in_progress`.
 
 Gate content (`questGateContentRequirementsStatics`, enforced by `has-quest-gate-content-guard`):
 
-- `flows_approved`, `approved`, and `design_approved` each require non-empty `flows` — nothing else. `approved`
+- `flows_approved` and `approved` each require non-empty `flows` — nothing else. `approved`
   demands no ledger item: the codeweaver ledger is DERIVED at Start (`fanOutBy: 'implementation'`), so coverage is
   definitional rather than checked — a quest that clears `flows_approved` already carries every input the generator
   reads. What IS checkable lives in `questSaveInvariantsTransformer` as "Contract Source Coverage": a contract's
@@ -893,10 +915,7 @@ operation state by `work-items-to-quest-status-transformer` (see "Completion").
 | `flows_approved`      | User approves flows (Gate #1)                   | Can add: observables, contracts, tooling, packagesAffected              |
 | `explore_observables` | ChaosWhisperer (Phase 4 entry)                  | Can add: observables, contracts, tooling, packagesAffected              |
 | `review_observables`  | ChaosWhisperer (Phase 4 exit)                   | User reviews observables, APPROVE visible                               |
-| `approved`            | User approves (Gate #2)                         | Spec locked. `start-quest` or `explore_design` allowed                  |
-| `explore_design`      | (no current setter)                             | Create prototypes, iterate on designs                                   |
-| `review_design`       | (no current setter)                             | User reviews designs, APPROVE button visible                            |
-| `design_approved`     | User approves designs                           | Design locked. `start-quest` allowed                                    |
+| `approved`            | User approves (Gate #2)                         | Spec locked. `start-quest` allowed                                       |
 | `in_progress`         | `start-quest` (Web UI "Start Quest")            | Relay dispatches operation items; agents may write `contracts`/`tooling`/`packagesAffected`/`designDecisions`/`flows` — `flowsRule: 'full'`, so add, edit and delete alike. The one refusal left is a sign-off naming a unit id the graph does not hold, which the upsert would append as a phantom unit |
 | `blocked`             | `quest-block-on-failure-broker`                 | Execution halted; user resumes to `in_progress`                         |
 | `complete`            | Derived when the ledger drains                  | Terminal (re-openable by appended work)                                 |
@@ -934,7 +953,8 @@ the save drops them:
 a source file — an import that must be there, a literal that must not be inlined, a symbol that must be gone, or a
 DECLARED STYLE VALUE that must be the one named. It renders as `(read-check)`, is settled by codeweaver's reviewer
 opening the file, and drops out of flowrider's and siegemaster's denominators entirely
-(`signoffTrackEligibilityStatics`). A style value earns it because the assertion reaches the value and reads back the
+(`stepScopeStatics.byFamilyStep` — no step lists `reading` outside codeweaver's `review`). A style value earns it
+because the assertion reaches the value and reads back the
 literal the source declares — green the day it is written, red on the next restyle, blind to every defect in between.
 A PAINTED OUTCOME carries no flag and stays a test: clipping, overlap and unreadable contrast are things the source
 never states. **Only ChaosWhisperer and BugHunt can set this**, and no downstream track holds a verdict meaning "this
@@ -1063,11 +1083,11 @@ take the whole quest.
 |----------------|-------------------------------------------------------------------------------------------------------------------------|------------------------------------------|--------------------------------------------------------------------------------------------------|
 | ChaosWhisperer | `/dumpster-create` (interactive)                                                                                        | N/A (spec)                               | full spec surface (flows, observables, contracts, packagesAffected) — never `operations`         |
 | Tavernkeeper   | follow-up chat (interactive, AFTER the quest ends)                                                                      | N/A (chat; no operation item)            | none                                                                                             |
-| riftcarver     | `/dumpster-launch` via `run-riftcarver` MCP tool, or the Node loop in-process (command); ALWAYS the ledger's first item | exit code (green / repairable / blocked) | none (broker writes `branchName`/`baseBranch`/`worktreePath`/`baseRef` + riftcarverResults + item status) |
-| codeweaver     | `/dumpster-launch` via Task() (ONE SESSION PER CELL). OPERATOR — product code + its unit tests                          | complete (done / blocked)                | `codeweaverSignoff` per observable it proved, plus additive spec edits                           |
-| ward           | `/dumpster-launch` via `run-ward` MCP tool (command)                                                                    | exit code (green / red)                  | none (broker writes wardResults + item status)                                                   |
-| flowrider      | `/dumpster-launch` via Task() (ONE SESSION PER FLOW). OPERATOR — the test suites that prove that flow                   | complete (done / blocked)                | `flowriderSignoff` per unit, plus additive spec edits                                            |
-| siegemaster    | `/dumpster-launch` via Task() (ONE SESSION PER FLOW). OPERATOR — hands-on QA against a running system                    | complete (done / blocked)                | `siegemasterSignoff` per unit, plus additive spec edits; `reset-flow-signoffs` appends a `walk-reset` note |
+| riftcarver     | its `carve` step is `kind: 'deterministic'`, so a normal quest reaches it via `run-step` → `stepHandlerRiftcarverBroker`; the `run-riftcarver` MCP tool / Node-loop branch (command) only fires for a work item with no step node (a hydrated or legacy-blueprint quest) — ALWAYS the ledger's first item | exit code (green / repairable / blocked) | none (broker writes `branchName`/`baseBranch`/`worktreePath`/`baseRef` + riftcarverResults + item status) |
+| codeweaver     | `/dumpster-launch` via Task() (ONE SESSION PER CELL). OPERATOR — product code + its unit tests                          | complete (done / blocked)                | an `observations[]` mark per unit it proved, plus additive spec edits                           |
+| ward           | `wardFull`'s `gate` step is `kind: 'deterministic'`, so a normal quest reaches it via `run-step` → `stepHandlerWardBroker`; the `run-ward` MCP tool / Node-loop branch (command) only fires for the same no-step-node fallback                                                                     | exit code (green / red)                  | none (broker writes wardResults + item status)                                                   |
+| flowrider      | `/dumpster-launch` via Task() (ONE SESSION PER FLOW). OPERATOR — the test suites that prove that flow                   | complete (done / blocked)                | an `observations[]` mark per unit, plus additive spec edits                                            |
+| siegemaster    | `/dumpster-launch` via Task() (ONE SESSION PER FLOW). OPERATOR — hands-on QA against a running system                    | complete (done / blocked)                | an `observations[]` mark per unit, plus additive spec edits; an `invalidation` payload appends a `walk-reset` note |
 | spiritmender   | `/dumpster-launch` via Task() (inserted on a ward red, or on a REPAIRABLE riftcarver red). Bespoke prompt                | complete (done / partial / blocked)      | none                                                                                             |
 | warpgate       | dispatched like any relay role, but its item is appended at MERGE time (see below). Bespoke prompt                       | complete (done / partial / blocked)      | none                                                                                             |
 
@@ -1208,38 +1228,47 @@ it is about to mint — the work items on this scope whose `step` equals that st
 field exists on the work item and none is to be added. Exceeding one is
 `{ kind: 'block', reason: 'max-visits' }`.
 
-**Verification is measured, not asserted.** A flow decomposes into atomic **verification units**
-(`get-qa-checklist` — every terminal, labelled branch, observable, and the seven off-map probe families),
-and each unit carries THREE independent top-level sign-offs: `codeweaverSignoff`, `flowriderSignoff` and
-`siegemasterSignoff`. Each is `{ verdict, evidence, question?, workItemId, at }` with `verdict` one of
-`confirmed | unconfirmable`. `get-qa-checklist({ questId, operationItemId })` derives the whole scope from
-the scope id — the track, the flows and the packages — through `operationSignoffScopeTransformer`.
+**Verification is measured, not asserted.** A flow decomposes into atomic **verification units** (the off-map
+probe families, every terminal, labelled branch and observable — `qaUnitEnumerateTransformer` is the single
+enumerator every reader shares). Each unit's state is ONE `UnitObservation` — `{ unitId, mark, evidence, toSettle?,
+at }` (`unitObservationContract`, `@dungeonmaster/shared`) — recorded onto whichever work item was assigned the
+unit, in that work item's own `observations[]` array, never a per-track field carried on the unit itself.
+`unitCurrentMarkTransformer` reads a unit's state right now as the observation on the LATEST work item (by array
+order) that was ever assigned it: an unmarked assignment on that latest item beats a `met` an earlier item already
+recorded, so a session that crashed before marking its units is visible instead of silently overridden by stale
+evidence. `stepInScopeUnitsTransformer` is what derives one step's own denominator from the operation item.
 
-**`track` is the DENOMINATOR, not the field.** Which units each denominator covers is
-`signoffTrackEligibilityStatics.byTrack` — flow types, unit kinds, package kinds, the flow slice rule and
-the observable provenances that track could ever have signed. Every track reads `flowScope: 'declared'`
-and `packageScope: 'intersection'`, with ONE refinement for a SEAM: a node carrying more than one package
-gives its units to the LATER-ordered cell alone — the side that can see both halves — so no unit is owned
-twice and the earlier cell reaches the far half through its piece's `contextUnitIds`. Only siegemaster
-carries `off-map` in its `unitKinds`, and flowrider alone is measured over `runtime` flows.
+**`stepScopeStatics.byFamilyStep`, keyed on (family, step), is the DENOMINATOR — never a track field.** Which
+units a STEP is measured over — flow types, unit kinds, package kinds and the observable provenances that step
+could ever settle — lives there, restated per step rather than shared, so an edit meant for one step cannot
+silently reach another. Every step reads its flows by the operation item's own `flowIds` and its packages by
+intersection against `packageNames`, with ONE refinement for a SEAM: a node carrying more than one package gives
+its units to the LATER-ordered cell alone — the side that can see both halves — so no unit is owned twice and the
+earlier cell reaches the far half through its piece's `contextUnitIds`. Only siegemaster's `happyWalk` and
+`adversarial` steps carry `off-map` in their `unitKinds`, and every step outside codeweaver's `review` is measured
+over `runtime` flows alone.
 
-**Nothing COUNTS sign-offs, and no gate may be added that does.** A check refusing a `done` over an absent
-sign-off pressures a session into a verdict it cannot back. What the sign-offs buy is a durable, per-unit
-record of what was proved and by what evidence — `confirmed` needs a `file:line` and the wrong value that
-turns it red, or the value measured off the running system; `unconfirmable` needs what was tried plus
-`toSettle`.
+**Nothing COUNTS observations, and no gate may be added that does.** A check refusing a `done` over an absent
+mark pressures a session into a verdict it cannot back. What an observation buys is a durable, per-unit record of
+what was proved and by what evidence — `met` needs a `file:line` and the wrong value that turns it red, or the
+value measured off the running system; `cant-meet` needs what was tried plus a `toSettle`; `unmet` needs what is
+left and what this session already learned, so its successor reads that note rather than starting cold.
 
-**`toSettle` is an INSTRUCTION, never a question.** It is the action that would settle the unit, and the
-contract refuses an `unconfirmable` without one.
+**`toSettle` is an INSTRUCTION, never a question.** It is the action that would settle the unit, and
+`unitObservationContract` refuses a `cant-meet` mark without one (and refuses a `toSettle` on any other mark —
+`met` has already settled the unit, and `unmet` means work remains rather than that this layer gave up).
 
-**A measured defect is a NEW observable, not a verdict.** An observable is a positive expectation, so its
-inverse is ADDED to the flow through the additive spec authority every operator holds, and then carries
-its own sign-offs. `addedBy` answers "was this in the spec at approval, or added mid-quest, and by whom";
-`observableOrigins` is what stops a track being measured on work that did not exist while it ran.
+**A measured defect is a NEW observable, not a mark.** An observable is a positive expectation, so its inverse is
+ADDED to the flow through the additive spec authority every operator holds, and then carries its own observations.
+`addedBy` answers "was this in the spec at approval, or added mid-quest, and by whom"; `observableOrigins` is what
+stops a step being measured on work that did not exist while it ran.
 
 **`quest.planningNotes.questNotes[]` is the durable side channel** — `{ id, kind: 'open-question' |
 'tooling-error' | 'out-of-scope' | 'walk-reset', role, workItemId, flowId?, unitId?, summary, detail, at }`.
-A note NEVER closes a unit; only a sign-off does.
+A note NEVER closes a unit; only an observation does. Reopening every observation on a flow is the `invalidation`
+payload on `quest-work`: a `flowId` plus a reason, refused to any work item but a siegemaster one, which appends a
+`walk-reset` note here and leaves every existing observation on disk untouched — the reopening is a consequence of
+a later work item's own assignment outranking the earlier `met`, not an edit or an erasure.
 
 **The standards-review surface has its own tool family**, and it is NOT a role's denominator. A diff
 decomposes into review units (`get-blight-checklist` — every changed impl file, its test/proxy/stub
@@ -1454,8 +1483,10 @@ The MCP `modify-quest` tool gates writes by the per-status allowlist (`quest-sta
   ledger is DERIVED at Start (`fanOutBy: 'implementation'`), not authored by ChaosWhisperer, and every runtime
   mutation goes through `questOperationsUpdateBroker`, which bypasses this allowlist.
 - `workItems` — server-only, managed by the advance / signal-back / ward / riftcarver brokers.
-- `wardResults` — server-only, written by `quest-run-ward-broker`.
-- `riftcarverResults` — server-only, written by `quest-run-riftcarver-broker`, one entry appended per carve attempt so
+- `wardResults` — server-only, written by `quest-run-ward-broker` (the no-step-node fallback) or `stepHandlerWardBroker`
+  (a normal quest's deterministic `ward` / `gate` step), which reuses the former's non-routing result-append.
+- `riftcarverResults` — server-only, written by `quest-run-riftcarver-broker` (the fallback) or
+  `stepHandlerRiftcarverBroker` (a normal quest's deterministic `carve` step), one entry appended per carve attempt so
   a re-carve chain leaves its whole history rather than overwriting the attempt that failed.
 
 **Every timestamp a modify-quest payload writes is REPLACED with the server's clock, and the caller's value is
