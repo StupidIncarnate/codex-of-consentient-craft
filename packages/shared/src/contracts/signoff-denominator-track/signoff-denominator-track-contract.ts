@@ -14,13 +14,11 @@
  * handed the other's denominator reads the exact complement of its own work. That is a denominator
  * with no field of its own, and it is what this enum exists to be able to name.
  *
- * ONE MEMBER PER `signoffTrackEligibilityStatics.byTrack` KEY. That statics object is where each
- * denominator's flow types, unit kinds, package kinds, package slice rule and observable origins
- * live; this enum is its key set, declared in `verificationTracksStatics` because a shared contract
- * cannot import an orchestrator static. The two are pinned in both directions: the eligibility
- * statics' colocated test compares its keys against that tuple, and
- * `questSummaryBuildTransformer` indexes `byTrack` with these options, so a member with no entry is
- * additionally a COMPILE error there.
+ * ONE MEMBER PER FAMILY `stepScopeStatics.byFamilyStep` (`@dungeonmaster/orchestrator`) KEYS ITS
+ * DENOMINATORS BY. That table is where each family's flow types, unit kinds, package kinds and
+ * observable origins live, per step; this enum is declared here, in `verificationTracksStatics`,
+ * because a shared contract cannot import an orchestrator static. `questSummaryBuildTransformer`
+ * indexes by these same three names, so a member with no matching family is a COMPILE error there.
  */
 
 import { z } from 'zod';

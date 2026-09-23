@@ -1,10 +1,9 @@
 /**
  * PURPOSE: The units ONE step of ONE operation item is answerable for — the item's own flows and
- * packages, narrowed again by what that step is measured over. Reach for this over
- * `signoffOutstandingTransformer` whenever the question is asked at STEP level: that sibling answers
- * for a whole TRACK and subtracts the units already carrying a sign-off, where this one is the
- * denominator itself and says nothing about whether a unit is settled —
- * `stepOutstandingUnitsTransformer` is what narrows this list down to what nothing will settle.
+ * packages, narrowed again by what that step is measured over. This is the denominator itself,
+ * settled units included and no claim made about whether any of them are — reach for
+ * `stepOutstandingUnitsTransformer` instead when the question is which of those units nothing has
+ * settled yet.
  *
  * USAGE:
  * stepInScopeUnitsTransformer({ quest, operationItemId, step: 'adversarial' });
@@ -20,11 +19,10 @@
  * caller bug, and returning `[]` for it is indistinguishable from a genuinely empty scope, which is
  * the reading that turns a gate off silently.
  *
- * THE FLOW NARROWING IS DONE HERE RATHER THAN THROUGH `operationSignoffScopeTransformer`, and the
- * difference is one field. That transformer narrows by the TRACK's `flowTypes`, and siegemaster's
- * track carries `['runtime', 'operational']` while both siege STEPS carry `['runtime']` alone — so
- * calling it would put an operational flow's siege units back into a scope `stepScopeStatics`
- * deliberately excludes them from.
+ * THE FLOW NARROWING READS `stepScopeStatics`'s OWN `flowTypes`, per (family, step) rather than per
+ * track. Both siege STEPS carry `['runtime']` alone, narrower than codeweaver's and flowrider's
+ * `['runtime', 'operational']`, because an operational flow's siege units settle in codeweaver's
+ * reviewer instead — the only family that can.
  *
  * AN ITEM DECLARING NO `flowIds` MATCHES NO FLOW. That is what keeps a flow-less quest and a
  * track-less item completable, and it is not a bug to "fix" into a whole-quest scope.
@@ -122,9 +120,9 @@ export const stepInScopeUnitsTransformer = ({
         return eligible.methods.has(unit.verifyByReading === true ? 'reading' : 'test');
       });
 
-    // The family name IS a valid track key — `signoffTrackEligibilityStatics.byTrack` holds exactly
-    // these three, and all three carry the same package kinds, so this narrowing gives the identical
-    // answer while staying additive to the track-keyed readers that still share this transformer.
+    // The family name IS a valid track key — `stepScopeStatics.byFamilyStep` holds exactly these
+    // three families, each declaring the same package kinds, so this narrowing gives the identical
+    // answer whichever family asks.
     return qaUnitsInPackageScopeTransformer({
       flow,
       units: kindAndOriginUnits,

@@ -16,9 +16,11 @@
  * //   WardResult ref to quest.wardResults, atomically applies work-item terminal status +
  * //   ledger mutation, calls advance, and returns { success, exitCode, wardResultId }.
  *
- * WHEN-TO-USE: Called by the run-ward MCP tool / Node dispatch loop when a `run-ward` step
- *   dispatches. This broker owns the ONLY failure concept in the orchestrator (ward exit-code
- *   red) — agent roles have no failure signal.
+ * WHEN-TO-USE: Called by the run-ward MCP tool / Node dispatch loop for a ward-role work item that
+ *   carries NO step node — a hydrated or legacy-blueprint quest with no `agentFlowStatics` step data.
+ *   A real quest's `wardFull` gate is a `kind: 'deterministic'` step and reaches `stepHandlerWardBroker`
+ *   through `run-step` instead (see below). This broker owns the ONLY failure concept in the
+ *   orchestrator (ward exit-code red) — agent roles have no failure signal.
  *
  * `onLine` is REQUIRED. Ward is the one work item nothing else can stream: the JSONL watcher keys
  * on `workItems[].sessionId` and tails Claude session JSONL, but a ward work item is
@@ -27,9 +29,10 @@
  * with genuinely nowhere to send it pass `() => undefined` explicitly. See
  * `packages/shared/CLAUDE.md` → "Streaming Adapters".
  *
- * IT ALWAYS GRADES THE WHOLE MONOREPO. `wardFull` is the only family whose role is `ward`, so a
- * `run-ward` dispatch is always that family's gate; a family's own committed ward is a deterministic
- * STEP and runs through `stepHandlerWardBroker` with the scope in that step's `args`.
+ * IT ALWAYS GRADES THE WHOLE MONOREPO, with no `args` to narrow it — unlike `stepHandlerWardBroker`,
+ * which runs with the scope its deterministic step's own `args` name. `wardFull` is the only family
+ * whose role is `ward`, but its `gate` step is `kind: 'deterministic'` too, so a normal quest's
+ * wardFull gate reaches `stepHandlerWardBroker`, never this broker.
  *
  * Ward runs inside the quest's own worktree (or the legacy repo root for a quest recorded before
  * worktrees existed) — the same tree its file set has to describe.
