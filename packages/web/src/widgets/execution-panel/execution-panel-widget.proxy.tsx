@@ -2,9 +2,12 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { RequestCount } from '@dungeonmaster/testing';
+import type { QuestProjectionStub } from '@dungeonmaster/shared/contracts';
 
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
 import { useElapsedTickBindingProxy } from '../../bindings/use-elapsed-tick/use-elapsed-tick-binding.proxy';
+import { useQuestProjectionBindingProxy } from '../../bindings/use-quest-projection/use-quest-projection-binding.proxy';
 import { AutoScrollContainerWidgetProxy } from '../auto-scroll-container/auto-scroll-container-widget.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 import { DumpsterCommandBannerWidgetProxy } from '../dumpster-command-banner/dumpster-command-banner-widget.proxy';
@@ -21,6 +24,8 @@ import { userEventStatics } from '../../statics/user-event/user-event-statics';
 // redeclared — both getTickIntervalCount and getClearedTickCount forward it as-is.
 type ElapsedTickProxy = ReturnType<typeof useElapsedTickBindingProxy>;
 type TickCallCount = ReturnType<ElapsedTickProxy['getTickIntervalCount']>;
+
+type QuestProjection = ReturnType<typeof QuestProjectionStub>;
 
 // Captured before QuestSpecPanelWidgetProxy() (called below) replaces Date.prototype.toISOString
 // with its own catch-all — this is the ORIGINAL method, for the re-staged implementation to call.
@@ -85,6 +90,8 @@ export const ExecutionPanelWidgetProxy = (): {
   getRowDurations: () => HTMLElement['textContent'][];
   getSubagentChainDurations: () => HTMLElement['textContent'][];
   getDurationComputeCount: () => TickCallCount;
+  setupProjection: (params: { projection: QuestProjection }) => void;
+  getProjectionRequestCount: () => RequestCount;
 } => {
   AutoScrollContainerWidgetProxy();
   DumpsterCommandBannerWidgetProxy();
@@ -95,6 +102,12 @@ export const ExecutionPanelWidgetProxy = (): {
   ExecutionRowLayerWidgetProxy();
   ExecutionWorkItemRowLayerWidgetProxy();
   ExecutionStatusBarLayerWidgetProxy();
+  // Defaults the projection endpoint to 404 — every test that never calls setupProjection() below
+  // keeps reading the LEDGER-derived progress figures, so the widget's existing ledger-only
+  // assertions need no changes just because the panel now also asks for a projection.
+  const projectionProxy = useQuestProjectionBindingProxy();
+  projectionProxy.setupConnectedChannel();
+  projectionProxy.setupNotFound();
   PixelBtnWidgetProxy();
   QuestSpecPanelWidgetProxy();
   QuestTitleBarWidgetProxy();
@@ -268,5 +281,9 @@ export const ExecutionPanelWidgetProxy = (): {
       screen.queryAllByTestId('subagent-chain-duration').map((el) => el.textContent),
     getDurationComputeCount: (): TickCallCount =>
       getTimeHandle.callsMatching([]).length / GET_TIME_CALLS_PER_ELAPSED_COMPUTE,
+    setupProjection: ({ projection }: { projection: QuestProjection }): void => {
+      projectionProxy.setupProjection({ projection });
+    },
+    getProjectionRequestCount: (): RequestCount => projectionProxy.getProjectionRequestCount(),
   };
 };

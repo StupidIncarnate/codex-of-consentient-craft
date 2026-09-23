@@ -4,12 +4,14 @@ import userEvent from '@testing-library/user-event';
 import {
   AssistantTextChatEntryStub,
   OperationItemStub,
+  QuestProjectionStub,
   QuestStub,
   QuestWorkItemIdStub,
   RiftcarverResultStub,
   SessionIdStub,
   TaskNotificationChatEntryStub,
   TaskToolUseChatEntryStub,
+  UnitObservationStub,
   WardResultStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -17,6 +19,7 @@ import {
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
+import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
 import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 import { ExecutionPanelWidget } from './execution-panel-widget';
 import { ExecutionPanelWidgetProxy } from './execution-panel-widget.proxy';
@@ -151,6 +154,83 @@ describe('ExecutionPanelWidget', () => {
 
       expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
         'EXECUTION0/2 OPERATIONS',
+      );
+    });
+
+    it('VALID: {the projection endpoint 404s} => falls back to the ledger counts, labeled OPERATIONS', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({ id: OP_ID_1, text: 'build the broker', status: 'complete' }),
+          OperationItemStub({ id: OP_ID_2, text: 'wire the flow', status: 'pending' }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
+        'EXECUTION1/2 OPERATIONS',
+      );
+    });
+  });
+
+  describe('status bar progress sourced from the projection', () => {
+    it('VALID: {a mid-quest projection} => status bar shows the projection’s completed/total count, labeled STEPS', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ id: 'q-mid-quest', status: 'in_progress' });
+      proxy.setupProjection({
+        projection: QuestProjectionStub({
+          questId: 'q-mid-quest',
+          totalPlannedSteps: 6,
+          completedSteps: 2,
+        }),
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
+            'EXECUTION2/6 STEPS',
+          );
+        },
+      });
+
+      expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
+        'EXECUTION2/6 STEPS',
+      );
+    });
+
+    it('EDGE: {completedSteps greater than totalPlannedSteps} => clamps the completed count to the total rather than reading past 100%', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ id: 'q-clamped', status: 'in_progress' });
+      proxy.setupProjection({
+        projection: QuestProjectionStub({
+          questId: 'q-clamped',
+          totalPlannedSteps: 3,
+          completedSteps: 5,
+        }),
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
+            'EXECUTION3/3 STEPS',
+          );
+        },
+      });
+
+      expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
+        'EXECUTION3/3 STEPS',
       );
     });
   });
@@ -650,6 +730,99 @@ describe('ExecutionPanelWidget', () => {
       });
 
       expect(proxy.getRowNames()).toStrictEqual(['build the broker', 'wire the flow']);
+    });
+  });
+
+  describe('scope header churn wiring (27c, T2-4)', () => {
+    it('VALID: {a unit marked unmet on one work item then met on a sibling} => expanding the header shows the churn line', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({
+            id: OP_ID_1,
+            role: 'codeweaver',
+            text: 'build the login broker',
+            status: 'in_progress',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'work',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+            observations: [
+              UnitObservationStub({
+                unitId: 'login-flow:observable:token-refreshes',
+                mark: 'unmet',
+                evidence: 'the first worker never wired the refresh',
+              }),
+            ],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'review',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+            observations: [
+              UnitObservationStub({
+                unitId: 'login-flow:observable:token-refreshes',
+                mark: 'met',
+              }),
+            ],
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const rowHeader = proxy
+        .getStepRows()[0]!
+        .querySelector('[data-testid="execution-row-header"]')!;
+
+      await userEvent.click(rowHeader, userEventStatics.options);
+
+      expect(screen.getByTestId('execution-row-scope-churn-entry').textContent).toBe(
+        'login-flow:observable:token-refreshes: unmet (work) → met (review)',
+      );
+    });
+
+    it('EMPTY: {a bare scope with a single work item} => renders no churn entry — there is no sibling to compare against', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({ id: OP_ID_1, text: 'build the broker', status: 'complete' }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+            observations: [
+              UnitObservationStub({ unitId: 'login-flow:observable:token-refreshes', mark: 'met' }),
+            ],
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const rowHeader = proxy
+        .getStepRows()[0]!
+        .querySelector('[data-testid="execution-row-header"]')!;
+
+      await userEvent.click(rowHeader, userEventStatics.options);
+
+      expect(screen.queryByTestId('execution-row-scope-churn')).toBe(null);
     });
   });
 
