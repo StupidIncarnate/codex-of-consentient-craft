@@ -1,416 +1,259 @@
 # Consolidated plan — handoff
 
-Pick up from here. `scrolls/consolidated-plan.md` is the original plan and is still the source for
-WHAT the work is; this file is what a session needs to keep RUNNING it, plus everything the plan
-turned out to be wrong about.
+Pick up from here. `scrolls/consolidated-plan.md` is the original plan. `scrolls/consolidated-plan-units.md` is the
+unit breakdown, verified against the code, with each unit's files and dependencies. This file says where the run
+stands, how to keep running it, and what the code turned out to be.
+
+Every command here runs from the worktree root, `worktrees/consolidated-plan`, never from the main checkout.
 
 ## Where you are
 
 | | |
 |---|---|
-| Branch | `consolidated-plan` |
+| Branch | `consolidated-plan`, carved from `master` at `e20c6b771` |
 | Worktree | `worktrees/consolidated-plan` |
-| Carved from | `master` at `e20c6b771` |
-| Commits landed | 18 |
-| Units finished | 31 |
-| Units remaining | roughly 42, listed below |
-| In flight | **NOTHING.** The board is empty and the tree is committed. |
+| Last commit | see `git log -1`; this session's work is everything after `e85216417` |
+| In flight | **NOTHING.** Every agent finished and every result is committed. |
 
-`packages/web` **has been built** (`npm run build --workspace=@dungeonmaster/web`), so the e2e debt
-units below can run against current code immediately. `@dungeonmaster/shared` has been built too.
+**The next session's job is the FINISH, in this order** (each step is spelled out under "Start here" below):
 
-**Package health, package-scoped — the only kind that counts:**
-
-| Package | State |
-|---|---|
-| `orchestrator`, `server`, `mcp`, `siegelense`, `hydration`, `hydration-recipes`, `local-eslint`, `session-forensics`, `shared` | green |
-| `web` | typecheck and unit clean; **40 lint errors**, 39 of them pre-existing on master |
-| the other eight | **never measured** — assume debt until a run says otherwise |
-
-Every command in this file runs from the worktree root, never from the main checkout.
+1. Run the four units that must run alone.
+2. Rebuild the whole repo, with nothing else running.
+3. Run every e2e spec that is waiting on the web build.
+4. Run a full `npm run ward` and make it exit 0.
+5. Decide the two open scope questions with the user.
 
 ## How to operate — the user's standing instructions
 
-1. **THREE sub-agents at a time. Never a fourth.** Queue instead. This is a direct user
-   instruction, not a guideline.
-2. **A 45-minute recurring ping.** The user asked for it to keep the session's cache warm. Set it
-   with `ScheduleWakeup` (`delaySeconds: 2700`) and RE-SCHEDULE IT on every firing — one call fires
-   once. Its honest value is as a heartbeat: if an agent hangs on a ward run and never notifies, the
-   ping is what wakes you.
-3. **The operator owns builds and commits. A dispatched agent does neither.** Twelve concurrent
-   commits in one worktree was measured at three landing and nine dying on `Unable to create
-   index.lock`.
-4. **FIX EVERY PRE-EXISTING FAILURE YOU FIND. This is not optional and it is not scope creep.**
-   The user's words: *"any pre-existing needs to be fixed... we're trying to get to a good state
-   with this slew of changes."*
+1. **At most FIVE sub-agents at a time.** The user raised the cap from three to five this session.
+2. **A heartbeat every 30 minutes.** Use `CronCreate` with `13,43 * * * *` (recurring). Do NOT use `/loop` or
+   `ScheduleWakeup`; the user asked for cron. It fires only while the session is idle, and dies with the session.
+3. **The operator owns builds and commits. A dispatched agent does neither.** Agents also never run `git add` or
+   `git mv`: the git index is shared, and one agent's `git mv` was swept into another unit's commit this session.
+   Before every commit, run `git diff --cached --stat` and stage explicit paths, never a whole package another
+   agent is still editing.
+4. **FIX EVERY PRE-EXISTING FAILURE YOU FIND.** The user's words: *"any pre-existing needs to be fixed... we're
+   trying to get to a good state with this slew of changes."* A full `npm run ward` must exit 0. A failure an agent
+   reports but leaves standing becomes a unit.
+5. **Commit on the branch you are on.** No new branches.
+6. The standing agent brief lives at `/tmp/claude-1001/.../scratchpad/standing-rules.md` for this session only.
+   Recreate it: the bans (no build, commit, add, mv, stash, bare ward, npm install); the fence; discover is stale,
+   so locate with it and then Read; the MCP rule tools before the first write; the mutation clause below; and a fixed
+   report shape (CHANGED, with one verbatim line each; MUTATIONS; WARD; LEFT STANDING; DECISIONS).
 
-   That means:
-   - A full `npm run ward` must exit 0 — including failures this work did not cause, in packages
-     this work never touched.
-   - When a package-scoped run surfaces something unrelated, **it becomes a unit.** Do not file it
-     as "out of scope", do not hand it back as a note, do not fence an agent away from it and move
-     on. Add it to the queue and work it.
-   - When an agent reports a failure it left standing because you fenced it, **that failure is
-     yours to own next**, not the next session's.
+### The mutation clause — put it in every brief
 
-   It also matches this repo's own `<dungeonmaster-wardDiscipline>`: an agent working directly for
-   the user makes a full `npm run ward` exit 0 and owns every failure in it, including ones it did
-   not cause.
+> Prove your tests bite, and treat a mutation that PASSES as a finding. After they pass, break the code
+> deliberately and confirm a test goes red. If a mutation passes you have found a MISSING TEST: write it,
+> re-run green, re-apply the mutation, confirm red. Report which test caught which mutation.
 
-   **Expect a lot of it.** Every package graded properly during this run carried failures that
-   scoped runs had hidden — `web` with 40 lint errors, `orchestrator` exiting 1 on a handle leak
-   while all 648 test files passed, `server` with a lint error and a broken adapter test. Fifteen
-   packages are still unmeasured. Assume they carry debt too, and go looking rather than waiting
-   for it to surface.
+This session it found about a dozen missing tests, including a quest-id filter that let every quest's broadcast
+through, a row-expansion list that was never asserted, and a planner prompt that could drop the piece name silently.
 
-5. **Commit on the branch you are on.** No new branches. This repo's `CLAUDE.md` overrides the
-   harness default that says otherwise.
+## Owner decisions — settled, do not re-litigate
 
-## The five owner decisions — settled, do not re-litigate
+1. **`workItem.observations[]` IS the sign-off record.** Marks are `met` / `cant-meet` / `unmet`. The old
+   `signoffContract`, `signoffTrackContract`, `signoffTracksStatics` and `signoffVerdictContract` retire (T1-15a/b).
+2. **The execution panel renders REAL step names**, nested: one row per scope, with indented step rows labelled
+   bare / `step` / `step - pieceName` / `step pt: N`. The owner will tweak it after seeing it run.
+3. **`verifyByHuman` is a bare optional boolean on a flow OBSERVABLE only.** Any role may set it. The enforcement is
+   the filter: a flagged observable resolves to `'human-check'` and drops out of every list.
+4. **The `recording` hydration route is deleted.** Done.
+5. **Five `docs` scopes; bare `docs` returns the overview.** Done.
+6. **The `glyphsmith` role is removed entirely** (added this session). Done.
+7. **The `explore_design`, `review_design` and `design_approved` quest statuses are deleted** (added this
+   session). Done, along with the design sandbox they served.
 
-1. **`workItem.observations[]` IS the sign-off record.** `signoffContract`, `signoffTrackContract`,
-   `signoffTracksStatics` and `signoffVerdictContract` all retire. Vocabulary is
-   `met` / `cant-meet` / `unmet`.
-2. **The execution panel renders REAL step names** from `agent-flow-statics.ts`. Flowrider has no
-   `walk` step — its rows read `work`. Four-tier label: bare, then the step, then `step - pieceName`
-   where pieces differ, then `step pt: N` where even the piece is the same.
-3. **`verifyByHuman` is a bare optional boolean.** No guard, no refinement, any role may set it.
-   **The enforcement is the FILTER** that drops flagged criteria from every LLM's observable list.
-4. **Delete the `recording` hydration route.** DONE, end to end.
-5. **Delete the `operating` and `operational` docs scopes.** Five remain. Make `about` reachable
-   with no `--for`, and say so in the help text and every prompt that reaches for `docs`.
+## What this session landed
 
-## Operator rulings made during the run
+About 70 commits. By track:
 
-Each of these changed what got built. They are decisions, not observations.
-
-| # | Ruling |
+| Area | State |
 |---|---|
-| R1 | The coverage row carries FOUR counts — `met`, `cantMeet`, `unmet`, `outstanding`. `27-ui.md:170` requires it: `unmet` had nowhere to appear. |
-| R2 | Counts attribute PER TRACK. A codeweaver's `met` does not count for flowrider. |
-| R3 | The `QuestSummary` wire shape may change; a stale browser bundle is fixed by a reload. |
-| R4 | `docs-statics.ts:27-28` becomes five scopes, and line 27 announces the bare-`docs` overview. |
-| R7 | ADD T2-0, a projection endpoint (orchestrator broker + server responder). No projection anything exists, and `27-ui.md:6` scopes story 27 to `@dungeonmaster/web`, which cannot build it — `agentFlowStatics` lives in orchestrator. Without T2-0, T2-2 and T2-4 are undeliverable. |
-| R8 | T2-8 merges into T2-7 — it has no scope of its own once the ward-mode finding lands. |
-| R11 | ADD T3-20d. The filter has more than one site. |
-| R12 | SPLIT the prompt work: T3-20c = both intake prompts (BugHunt authors observables too), T3-20e = both siege walkers. |
-| R13 | SPLIT T3-21b. The verdict panel needs a WRITE path; the browser calls no MCP tool. |
-| R17 | Name the debt contract `quest-summary-DEBT`, not `cant-meet`. It holds TWO marks. |
-| R18 | **A `packages/shared` BARREL unit RUNS ALONE.** See Traps. |
-| R19 | T1-10 also owns `packages/mcp/.../quest-summary-layer-responder.test.ts` — no unit in any track covered it. |
-| R22 | T1-5 makes both summary contracts `.strict()`. See Traps. |
-| R23 | T2-5 RETIRED — duplicate of T1-9. |
-| R24 | **A file-scoped ward run proves the FILES, never the PACKAGE.** See Traps. |
-| R25 | **DISPROVEN.** The 39 web lint errors are NOT a stale-`dist` artefact. See Traps. |
-| R26 | **The `verifyByHuman` filter has THREE sites, in two packages.** See below. |
+| Track 1 — sign-off re-homing | Done except **T1-15a/b**, the barrel deletion of the four retiring contracts (runs alone). session-forensics computes real per-track marks from work items. The raccoon e2e asserts the four-count rows and seeds real marks. |
+| Track 2 — execution panel | Done in code except **T2-9a/b** (dependency labels, auto-expand and scroll, role colour; see the units file). Built: the projection (contract, transformer, HTTP endpoint, web binding), four-tier nested row labels, piece names carried from the plan, the back-edge badge, the unmet list, the unit-marks readout, the scope churn view, the SPEC-tab recipe callout, and `partially_complete` retired. **None of it has been seen in a browser yet**; see "e2e owed". |
+| Track 3 — independent work | Done: glyphsmith gone (role, chat, prompts, design prefix); the `verifyByHuman` filter at all three sites; the prompt block in intake, workers, walkers and fixers; the human-verdict note, write path, summary section and verdict panel. |
+| Track 4 — siegelense and hydration | Done except **T4-13a** (lockfile) and **T4-15a** (the `locationsStatics` move) and the follow-ons **T4-15b/c/d/h** that depend on it. |
+| Web e2e lint debt (D1–D9) | Done. `packages/web` lints clean as a whole package; all 39 direct-I/O errors are gone. |
+| Role-path coverage (T5) | Done. Every family's step routes have behavioural integration tests in `quest-route-scope-broker.integration.test.ts`. |
 
-## Traps — every one of these was measured, not guessed
+## Production bugs found and fixed this session
 
-### A `.parse()` of an object literal is invisible to the compiler
+Each was found by a test or a docs pass, not by a user.
 
-`questSummaryBuildTransformer` wrote `confirmed: 0` and `unconfirmable: 0` into a contract that had
-neither field, and **typechecked green through an entire migration** — 1793/1793, three times. The
-cause is that `.parse()` takes `unknown`.
+| Bug | Fix |
+|---|---|
+| A red family `ward` blocked the whole quest with `no-minter` instead of repairing: `ward` mints with no units, so the repair it routed to carried no `mintedBy` to return to | `ba5f48c5e`: a plain route mint into a step with no `done` route records `mintedBy` |
+| A siege walk that folded `empty` blocked the quest the same way | `25117331e`: `happyWalk` and `adversarial` route `empty` onward |
+| Siege fixer prompts told the session to mark through `modify-quest` | `5a50bb28b` |
+| Reviewer prompts told a top-level `review` step that its "parent" signals and that it should `git commit` and `git push` itself | `37618a33f` |
+| Every step ran on its family's model; the per-step `model` in `agentFlowStatics` was never read | `bd05d9e85` |
+| The `design-start` responder wrote a status that no longer exists | `4a5ce02fa`: the design sandbox is deleted |
+| `promptNames` listed two prompt names with no prompt behind them | `866494f6a`, plus a test that fails on any such name |
+| Five orchestrator summary tests went red when the `human-verdict` note kind landed, and stayed red for several commits | `975a69d14`. Lesson: after a `shared` contract change, run the unit tests of every dependent package before committing. |
 
-Worse: the replacement fields all carry `.default(0)`, so with a loose contract the parse
-**succeeded**, stripped the stale keys, and defaulted every count to zero. Silent zeros on screen,
-no error anywhere.
+## Traps — each one measured this session
 
-Both summary contracts are now `.strict()`, and reintroducing the bug reddens 34 tests. **Every
-other `.parse()` of an object literal in this repo has the same hole.** A sweep is owed.
+### Workspace packages resolve to `dist` in three places that are not obvious
 
-### A file-scoped ward run can report a package typecheck PASS while the package is broken
+- **`server` and `mcp` typecheck `@dungeonmaster/orchestrator`'s ROOT export against its built `dist`.** Under this
+  repo's `moduleResolution: node`, a bare `@dungeonmaster/orchestrator` import reads `package.json`'s `types`, never
+  the `source` condition. A new `StartOrchestrator` method, or a widened type, is invisible to server's typecheck
+  until `npm run build --workspace=@dungeonmaster/orchestrator` runs. `shared`'s subpath barrels are unaffected,
+  because their `.ts` files sit at the package root.
+- **The Playwright test process resolves workspace packages (`shared`, `hydration-recipes`) to `dist`.** Harness
+  code imports them, so an e2e run never sees a source edit to those packages until they are rebuilt. A mutation to
+  `hydration-recipes` source passed an e2e run for this reason.
+- **Playwright serves the BUILT web bundle.** A widget change is invisible to e2e until `packages/web` is rebuilt.
 
-Measured: a scoped run reported `typecheck: PASS (1421/1421)` for `packages/web`. The
-package-scoped run found 14 errors across 7 files and discovered 1424. Once a file is ORPHANED,
-a typecheck scoped to other files never pulls it into the tsc program.
+### Never edit `agent-flow-statics.ts` while an e2e run is in flight
 
-**A package is only proven green by `npm run ward -- --only lint,typecheck,unit -- packages/<name>`.**
+The server validates that graph at boot (`graph-reachability-check-responder`). A mid-edit or a mutation test on it
+crashed other agents' e2e runs this session. Mutate the router or a test's seeded state instead.
 
-### A `packages/shared` barrel edit breaks EVERY package while it is inconsistent
+### Package-scoped ward runs do not evaluate the open-handle gate
 
-`jest.setup.js` requires `integration-environment-cleanup-all-broker` through that barrel in its
-`beforeAll`. Measured: a mid-rename dangling export failed an unrelated agent's run in a different
-package with `Cannot find module`. Serialising barrel-against-barrel is not enough — a barrel unit
-runs with **nothing else in flight**.
+A package-scoped run puts unit and integration on the parallel worker pool, which always reports zero open handles.
+Only an explicit file list, or `--committed` / `--uncommitted`, takes the in-band path that detects a leak. The
+earlier handoff said the opposite.
 
-### Compare paths WITH the separator, after resolving both sides
+### A file-scoped ward run can report typecheck PASS on a broken package
 
-`startsWith(targetRoot)` without a trailing separator let a write land in `/tmp/dm-home-evil` when
-the target was `/tmp/dm-home`. It passed every existing test and was found only by mutation. Two
-units now guard it; assume the shape exists elsewhere.
+A file orphaned from the files you passed is never pulled into the tsc program. Grade a package with
+`npm run ward -- --only lint,typecheck,unit -- packages/<name>`.
 
-### `discover`'s index goes stale in this worktree
+### MCP dispatch cannot run a deterministic step
 
-Confirmed by eleven agents. It returns pre-edit content, including for files it claims still hold
-strings deleted hours ago. Use it to LOCATE, then `Read`. After your own writes, trust `Read` and
-ward only.
+`/dumpster-launch` has no tool that runs `commit`, `ward`, `carve`, `repair` or `cleanup` on a current quest;
+`run-ward` and `run-riftcarver` are legacy fallbacks. Those steps run under the Node dispatcher only. The smoketest
+playbooks now say so.
 
-### `signoffTrackEligibilityStatics` is defined in NO file
+### A dispatched agent's own sub-agent can redo its whole job
 
-Eight files name it; zero declare it. `step-scope-statics.ts:49` is the live table. Still stale at
-`step-scope-statics.ts:4,28,37` and `step-in-scope-units-transformer.ts:117`.
+Twice this session, an agent that forked a helper "just to read the rules" got back a helper that had implemented
+the entire unit alongside it. Both agents verified the helper's work and kept one copy. Tell agents not to fork
+helpers for their core task.
 
-### The stale-`dist` trap did NOT apply to the web lint errors
+### Small traps
 
-I predicted it and was wrong. `npm run build --workspace=@dungeonmaster/shared` cleared **none** of
-them. Do not build again expecting them to clear.
-
-## Mutation testing — put this clause in every brief
-
-> Prove your tests bite, and treat a mutation that PASSES as a finding. After they pass, break the
-> code deliberately and confirm a test goes red. If a mutation passes you have found a MISSING TEST:
-> write it, re-run green, re-apply the mutation, confirm red. Report which test caught which
-> mutation, and every mutation that initially passed.
-
-It has found **ten** gaps that ordinary green suites missed, including:
-
-- a path-prefix escape letting writes land outside their target directory
-- a contract silently accepting `null`
-- a React key collision nothing could observe until a test read React's own duplicate-key warning
-- a settle call droppable on a ref branch no test covered
-- an **untestable** code path, correctly reported rather than faked: `run-chat-layer-broker` discards
-  the process id it mints, so nothing can observe it without a production change
-
-## The remaining queue
-
-### Track 1 — sign-off re-homing (13 of 15 done)
-
-Remaining: **T1-13** (session-forensics `trackVerdicts` → `unitMark`) and **T1-15** (delete the four
-retiring folders, their barrel lines, and the e2e that PINS the fiction).
-
-T1-15 must also:
-- sweep TEST files, not just source — `SignoffStub` imports survive there
-- clear three readers of `signoffTracksStatics`: `signoff-track-contract.ts:31`,
-  `text-display-symbols-statics.test.ts:1`, `quest-summary-build-transformer.test.ts:10`
-- delete `signoffTrackMarks` — T1-4 confirmed nothing needs it
-- rename `signoffDenominatorTrackContract` and `questSummaryLimitsStatics.maxUnconfirmable`
-- rewrite `quest-summary-under-raccoon.e2e.ts`, which asserts `'0 confirmed'` / `'no unconfirmable
-  verdicts'` — **rewrite it BEFORE the fix lands**, per this repo's regression-guard rule
-- fix the history sentence at `unit-mark-contract.ts:3-4`
-
-### Track 2 — the execution panel (0 of 13 done)
-
-**Entirely unstarted, and entirely blocked on `packages/web` being green.** Do not dispatch into web
-until the debt units below land — an agent sent there spends its run chasing 39 errors that are not
-its own.
-
-Order: T2-0 (the new endpoint) → T2-2 → T2-4. T2-1 → T2-11 → T2-10 → T2-3 → T2-9 is a **forced
-serial chain**; all five write `execution-row-layer-widget.tsx`. T2-6, T2-7, T2-12 are independent.
-
-`27-ui.md` is wrong in four places, all verified:
-- `:245-249` says `quest.flows[].recipes[]` does not exist. It does, at `flow-contract.ts:39`.
-- `:149-150` lists the ward-mode tag as broken. It renders today and its test asserts it.
-- `:151-153` lists the retry badge as broken. It renders today.
-- `:194-201` describes `operations-partial-continuation.e2e.ts` wrongly on every particular. **There
-  is no pt-N double-meaning trap.**
-
-### Track 3 — the independent work (6 of 16 done)
-
-Remaining: T3-13b, T3-14b, T3-14c, T3-15, T3-20a, T3-20b, T3-20c, T3-20d, T3-20e, T3-21b, T3-21c.
-
-**R26 — the filter has THREE sites, in two packages.** Each hardcodes the same ternary today, and
-that ternary is what the filter replaces: `unit.verifyByReading === true ? 'reading' : 'test'`
-
-1. `orchestrator/src/transformers/step-in-scope-units/step-in-scope-units-transformer.ts:92`
-2. `orchestrator/src/transformers/quest-summary-build/quest-summary-build-transformer.ts:121`
-3. `session-forensics/src/guards/is-track-owed-unit/is-track-owed-unit-guard.ts:49`
-
-The plan named only the first. **Miss 2 or 3 and a flagged criterion leaks back into a role's list**
-— the flag looks wired and does nothing. The filter must PRODUCE the literal `'human-check'` and
-compare; do not import the type across packages, because orchestrator publishes no `statics` subpath.
-
-`28-independent.md:26-27` claims SIX files carry glyphsmith logic, "MEASURED". The real footprint is
-11+, and five of them contain no occurrence of the string:
-`flows/design-chat-start/`, `start-orchestrator.ts:370`, the server's
-`orchestrator-start-design-chat-adapter.ts` and `design-session-responder.ts`, `design-flow.ts`, and
-`web/src/statics/chat-process-id-prefixes/chat-process-id-prefixes-statics.ts:15`.
-
-**T3-21b is load-bearing, not cosmetic.** T3-21a's citation holds a screencast past cleanup with no
-release condition, so a quest carrying a `verifyByHuman` criterion holds its instance **forever**.
-The verdict write path is what releases it — wire the release in the same pass as the panel.
-
-### Track 4 — siegelense and hydration (11 of 28 done)
-
-Remaining: T4-4b, T4-5, T4-7a, T4-7b, T4-8, T4-10b, T4-11, T4-12b, T4-13a, T4-13b, T4-13c, T4-15a,
-T4-15b, T4-15c, T4-15d, T4-16d, T4-17a–f.
-
-Two are the OPERATOR's, not an agent's:
-- **T4-13a** regenerates `package-lock.json` through `npm install`, which rewrites `node_modules`
-  under every running agent. Run it ALONE.
-- **T4-15a** changes `locations-statics.ts`. This repo's ESLint rules import
-  `@dungeonmaster/shared/statics` at load with no `source` condition, so lint cannot grade it until
-  `shared` is rebuilt.
-
-### The debt units — the COMPLETE lint picture, swept repo-wide
-
-**A repo-wide `npm run ward -- --only lint` has been run.** Do not re-derive this.
-
-> `lint: FAIL 17 packages (10540 files passed / 24 files failed, 10564 discovered)`
-> `@dungeonmaster/cli (1), @dungeonmaster/server (1), @dungeonmaster/siegelense (2), @dungeonmaster/web (40)`
-
-**44 errors, 24 files, and that is all of them.**
-
-| Count | Rule | Where |
-|---|---|---|
-| 39 | `ban-direct-io-in-test-scenarios` | 20 e2e specs, all in `web` — D1–D8 below |
-| 5 | `no-hardcoded-package-names` | 4 files in 4 DIFFERENT packages — D9 below |
-
-The 39 are PROVEN pre-existing: the rule commit `3aa2d4816` is an ancestor of master's tip, and
-zero e2e files were touched by this work. A `shared` build cleared none of them.
-
-#### D9 — `no-hardcoded-package-names`, five errors in four packages
-
-```
-packages/cli/src/responders/cli/serve/cli-serve-responder.ts                       (1)
-packages/server/src/adapters/web-bundle/dist-path/web-bundle-dist-path-adapter.ts  (1)
-packages/siegelense/src/statics/lane-spec/lane-spec-statics.ts                     (2)
-packages/web/playwright.config.ts:85                                               (1)
-```
-
-`playwright.config.ts:85` reads `command: 'npm run dev:no-watch --workspace=@dungeonmaster/server',`.
-
-**These became visible because this branch widened the rule** to catch a scoped `@scope/name` used
-as data. They are real violations, not artefacts — dungeonmaster runs inside OTHER repos, where the
-frontend may not be called `web` and the backend may not be called `server`, and where two packages
-may answer the same role.
-
-**TWO TRAPS in fixing them:**
-
-1. **The error message names the WRONG helpers for some sites.** It points at
-   `isPackageE2eEligibleGuard` and `architecturePackageE2eEligibleDetectBroker`, which answer the
-   FRONTEND question. At least two of these sites are about the http-backend. Following the message
-   there produces code that lints clean and resolves the wrong package. Find what actually exists
-   first; `packageBuildOrderStatics.tiers` in `@dungeonmaster/shared` names the kinds.
-2. **Handle a SET, never a singleton.** Each site wants one package to run or one path to read. Decide
-   deliberately what happens with NONE and with SEVERAL. Throwing and naming what it found is a good
-   answer; silently taking the first is the same bug as the hardcoded name, just later.
-
-If no resolver exists for a kind a site needs, building one may be honest and so may an exemption —
-say which and why rather than inventing a resolver that guesses.
-
-#### D1–D8 — `ban-direct-io-in-test-scenarios`, the 39
-
-```
-D1  dispatch-pause-between-specs.e2e.ts (34) · bughunt-begin-transition.e2e.ts (285)
-D2  execution-queue-streaming.e2e.ts (95,100,166) · guild-delete.e2e.ts (24,43,59)
-D3  guild-two-route-comparison.e2e.ts (8,9) · quest-start.e2e.ts (68,132)
-D4  chat-send-auto-resumes.e2e.ts (72) · elapsed-duration-finished.e2e.ts (x4)
-D5  elapsed-duration-tick.e2e.ts (x2) · execution-panel-pause-button.e2e.ts (x1)
-    · multi-widget-coexistence.e2e.ts (x2)
-D6  pause-resume-emits-lifecycle-event.e2e.ts (x1) · pause-resume-status-matrix.e2e.ts (111,132)
-    · quest-pause-resume.e2e.ts (62,118,127)
-D7  quest-ws-update.e2e.ts (75,148) · resume-execution-row-runs-again.e2e.ts (115)
-    · resume-starts-dispatch.e2e.ts (73,152)
-D8  subagent-duration-notification-arrives.e2e.ts (135,244) · ward-execution-streaming.e2e.ts (142,328)
-    · warpgate-queue-listing.e2e.ts (119,136)
-```
-
-**D1–D8 are unlike every other unit here: they need E2E verification.** Routing setup through a
-harness CHANGES what a spec does, and only a browser run proves it still passes.
-
-**`packages/web` IS ALREADY BUILT**, so dispatch these with `--only e2e -- <their own specs>`
-permitted. Ward gives each e2e run its own port pair, report path and artifact directory, so four
-can run at once; a cap of 3 is already inside that. Never let one run the whole e2e suite.
-
-Read `packages/web/test/harnesses/` first — `quest.harness.ts` and `session.harness.ts` are what the
-direct I/O has to route through.
-
-### `packages/server` — one lint error, and one this work caused
-
-Found by T3-14a's package-scoped run:
-
-- `packages/server/src/adapters/web-bundle/dist-path/web-bundle-dist-path-adapter.ts` —
-  `no-hardcoded-package-names`. Last touched by commit `8ff285587`. May be pre-existing, or may be
-  newly visible because the transformer now matches scoped specifiers used as data. **Check which,
-  then fix it.**
-- `orchestrator-get-quest-summary-adapter.test.ts` — `TS2353` on `'confirmed'`. **This one was
-  ours**, collateral from commit `51c62c417`'s track-counts rename, in a THIRD package nobody had
-  mapped. Already fixed and committed; recorded because it shows the rename's blast radius was
-  wider than every survey said.
-
-Also left standing, outside T3-14a's fence: `apiRoutesStatics.design.session`
-(`packages/server/src/statics/api-routes/api-routes-statics.ts:55`) still declares a path string no
-route registers. Remove it once `packages/web/src/brokers/design/session/design-session-broker.ts`
-is retired.
-
-### `packages/orchestrator` — FIXED, exits 0. Keep the lesson.
-
-It exited 1 while every check and all 648 test files passed. The cause was ours, and not in the way
-it looked: commit `eaeb92845` did not write the leak, it deleted two tests that were incidentally
-DRAINING one. `agent-spawn-unified-broker.proxy.ts:54` arms a ref'd `setImmediate` at STAGING time,
-and the deleted glyphsmith block sat LAST in its file awaiting two immediates — covering everything
-the block above it had armed.
-
-Fixed by draining in the four tests that stage a child's exit and abandon it. No production change.
-
-**Two things from it worth keeping:**
-
-1. **`setImmediate(...).unref()` is the wrong fix and looks right.** It clears the gate, but an
-   unref'd immediate does not hold the loop, so it fires only when something else wakes it.
-   Measured on three brokers at **42.6s against 15.9s**, tripping the slow-test gate at exactly its
-   1000ms threshold in all three. It trades one red gate for another and silently delays every
-   awaited exit.
-2. **A FILE-SCOPED WARD RUN DOES NOT EVALUATE THE OPEN-HANDLE GATE.** A two-file run passed with
-   the leak fully present. This is a second, independent confirmation that scoped runs prove files
-   and never packages.
-
-**A guard test here cannot be written honestly.** `process.getActiveResourcesInfo()` counts a ref'd
-and an unref'd Immediate identically — the same false comfort `packages/orchestrator/CLAUDE.md`
-already records — and driving the timers adapter from a test re-points its single listener and
-disables leak detection for the rest of that worker. Ward's own gate is the guard, and it was
-proven to bite by removing one drain and confirming the failure named that file alone.
-
-## In flight at handoff — NOTHING
-
-The board is empty and the working tree is committed. Every unit that ran has landed. Start clean.
-
-One agent was dispatched and stopped by the user mid-run (D9a, the cli and server hardcoded names);
-it wrote nothing. Re-dispatch it from the D9 section above.
+- `.parse()` of an object literal is invisible to the compiler; the summary contracts are `.strict()` for that reason.
+- Compare paths WITH the separator, after resolving both sides (`/tmp/dm-home-evil` passes `startsWith('/tmp/dm-home')`).
+- A test waiting one microtask for a stray refetch passes a broken filter; the refetch lands a macrotask later.
+- `errors/` may import nothing, so an error class types a route union inline rather than importing the contract.
+- `enforce-test-colocation` requires a test file to carry its implementation's exact name, so every family's route
+  coverage lives in the one broker-named integration file.
 
 ## Start here
 
-1. **Set the heartbeat first**, before dispatching anything — `ScheduleWakeup`, `delaySeconds: 2700`,
-   and re-schedule on every firing.
-2. **Three agents, never a fourth.**
-3. Highest value first: **D9** (five lint errors, four packages, unblocks four package-scoped greens)
-   and **T1-15** (the deletion sweep that finishes decision 1).
-4. `packages/web` is the biggest remaining block — 39 lint errors across D1–D8, and all of Track 2
-   waits behind it.
-5. **Run a full `npm run ward` before you believe anything is done.** Only LINT has been swept
-   repo-wide. Typecheck, unit, integration and e2e have been measured per package at best, and three
-   of the four packages measured that way carried failures scoped runs had hidden.
+### 1. The four units that must run alone
 
-A previous trio died on a session rate limit mid-run. Both predecessors' work turned out to be
-complete and correct; the resuming agents verified rather than redid it. **Ask an agent to READ what
-its predecessor left and judge it, never to assume either way.**
+Run each with nothing else in flight, one at a time. Full breakdowns are in `scrolls/consolidated-plan-units.md`.
 
-## What is owed and was not done
+| Unit | What | Why alone |
+|---|---|---|
+| **T1-15a** | Delete `signoffContract`, `signoffTrackContract`, `signoffVerdictContract` and their `shared/contracts.ts` lines; fix `quest-summary-unconfirmable-contract.ts`, their live consumer | A `shared` barrel edit breaks every package while inconsistent |
+| **T1-15b** | Delete `signoffTracksStatics` and `signoffTrackMarks`; rename `signoffDenominatorTrackContract` and `questSummaryLimitsStatics.maxUnconfirmable`. ALSO: the dead `DEFAULT_FLOWS_FLOWRIDER_SIGNED` / `flowriderScopeSignedOff` fixture in `packages/web/test/harnesses/quest/quest.harness.ts`, and the orchestrator test fixtures that still build `codeweaverSignoff` / `flowriderSignoff` / `siegemasterSignoff` (`quest-signoff-coupled-edit-violations`, `quest-signoff-unknown-unit-violations`, `signoff-element-stamp` and others) | Same |
+| **T4-13a** | `npm install` to regenerate `package-lock.json` and clear the stale `siegelense-recipes` entry | Rewrites `node_modules` under every running process |
+| **T4-15a** | Split the flat `.siegelense` literal in `packages/shared/src/statics/locations/locations-statics.ts` into a `.dungeonmaster-assets` dirname plus the link name; then `npm run build --workspace=@dungeonmaster/shared` | ESLint's own rules import `locationsStatics` from `dist` |
 
-1. **A full `npm run ward` — every check, not just lint.** Lint HAS been swept repo-wide and the
-   result is the 44 errors above. Typecheck, unit, integration and e2e have NOT. Four packages were
-   graded package-scoped during this run and THREE of them carried failures that scoped runs had
-   hidden. Assume the other thirteen do too.
-2. **Nothing writes a `.webm`.** `prune-statics.ts:39-41` marks the video step NOT STARTED. Decision
-   3's flag, filter, citation and retention are all correct, and there is no recording to cite — so
-   a `verifyByHuman` unit resolves `blocked`, loudly and by design. The person gets a question with
-   no evidence. Building the recorder was in none of the four tracks. **This is a scope decision for
-   the user, flagged and not absorbed.**
+Then T4-15b/c/d/h (siegelense install responders, path broker, CLAUDE.md and `.gitignore`, and the stub fixtures),
+which can run in parallel. The `.gitignore` trap: ignore only the `siegelense-assets` child, never the
+`.dungeonmaster-assets` parent, because the oddities file there is committed. The oddities brokers (`7c5ab8f7c`)
+take their path from the caller, so they need no edit when the root moves.
 
-## The brief template that worked
+### 2. Rebuild the whole repo
 
-Every execution brief carried, and every future one should:
+With NOTHING running: `npm run build`. Then confirm `npm run ward -- --only typecheck -- packages/server packages/mcp`
+is green. `mcp` was red on stale `dist` types at the end of this session: `orchestrator-get-quest-work-adapter.test.ts`
+and `get-quest-work-layer-responder.proxy.ts` hit `TS2719` on `QuestNote.workItemId`.
 
-- the four standing bans — no build, no commit, no bare ward, no `npm install`
-- an explicit fence naming the packages other agents hold, and that a failure there is not theirs
-- the `discover`-is-stale warning
-- `get-architecture`, `get-testing-patterns`, and `get-folder-detail` per folder type, before the
-  first write
-- the mutation-testing clause above
-- a package-scoped ward command, never file-scoped, when the deliverable is a green package
-- a fixed report shape: what changed with one VERBATIM line each, mutation evidence, the ward exit
-  line, and what it left standing for the next agent
+### 3. Run the e2e owed
 
-**The agents that reported what they LEFT BROKEN were worth more than the ones that reported what
-they fixed.** That field is what found an unowned mcp test file, a stale stub in an unrelated chat
-widget, and the three-site filter.
+Everything below was written or changed against source that Playwright could not see. Run them after the build,
+at most three runs at once, never the whole suite in one command:
+
+| Spec | Owed because |
+|---|---|
+| `flows/quest-chat/quest-summary-human-check-verdict.e2e.ts` | NEW, never run |
+| `flows/quest-chat/flow-diagram-interaction.e2e.ts` | New recipe-callout case, never run |
+| `flows/quest-chat/spec-panel-edit-mode-removed.e2e.ts` | Failed on stale `shared/dist` statuses; should pass after the build |
+| The ~15 specs asserting execution-row text (listed under T2-1 in the units file) | The row labels changed to the nested four-tier form |
+| `quest-replay-subagent-row-isolation.e2e.ts` | One count assertion was updated blind |
+| Every `elapsed-duration-*` and `subagent-duration-*` spec, `execution-panel-active-row-collapse`, `execution-panel-paused-row-expandable` | The execution row widget changed shape |
+
+New e2e coverage is also owed, with no spec yet: the back-edge badge (a codeweaver `ward` red → `repair` → fresh
+`ward`), the unmet list and unit-marks readout on a real rework, the scope churn line, and the step-based progress
+counter.
+
+### 4. Run a full `npm run ward` and make it exit 0
+
+Give it `timeout: 600000`. Only then is anything done. Every package has been graded package-scoped this session,
+but never all together, and never after the final build.
+
+### 5. Two open scope questions for the user
+
+1. **Nothing records a `.webm`.** `prune-statics.ts:39-41` marks the video step NOT STARTED. A `verifyByHuman`
+   criterion shows "no recording" in the verdict panel, and a person judges without evidence. Building the recorder
+   was never in any track.
+2. **A held screencast releases passively.** A verdict note makes it releasable, but nothing triggers the release;
+   siegelense's next `cleanup` or `prune` pass re-reads `quest.json` and lets it go. Ask whether that is enough.
+
+## Known gaps, not yet units
+
+- **quest-completed recipe** seeds work items with no `relatedDataItems` link to their operations. Nothing in
+  hydration-recipes can read an id another seed step created (the missing `attach({id})` verb).
+- **Guild delete through the framework** calls the removal broker in-process, never the HTTP route, so it skips
+  `StartOrchestrator.removeGuild`'s queue sweep.
+- **The verdict buttons' in-flight disable** has no test: `EndpointControl` in `packages/testing` cannot hold a
+  mocked request open.
+- **`instance-start-broker.proxy.ts`** clears `DUNGEONMASTER_HOME` only as a side effect of another proxy's
+  constructor. It works today, but it is fragile.
+- **`dumpster-create-prompt`** is about 60 KB. Other prompts are held to 50 KB, but it is served as a slash-command
+  body, not through `get-agent-prompt`, so no test caps it.
+- **`questSummaryObservableContract.addedBy`** carries a description written for mid-quest observables, and
+  `humanChecks` reuses the contract.
+- **`smoketest-orchastrator.md`** mentions a "Phase 0" that has no section.
+- **The smoketest playbooks' deterministic-step checkpoints** need the Node dispatcher; see the trap above.
+- **`nextActionTransformer`** still indexes `agentFlowStatics` with loosely typed parameters, where the projection
+  transformers use `routedGraphContract`. A consistency pass, not a bug.
+
+## Last units of this session
+
+The user stopped new dispatches here. These five were in flight; each landed and is committed.
+
+- **Reviewer prompts — `37618a33f`.** The codeweaver and flowrider reviewer prompts now describe a top-level
+  `review` step: read the scope through `get-quest-work`, mark every unit through `quest-work`, call `signal-back`
+  itself, and leave committing to the `commit` step. **Still stale, and it is served text:**
+  `flow-evidence-contract-statics.ts` `judgingMarkdown` (interpolated into flowrider-reviewer) still names
+  `get-qa-checklist`, a "parent", and the three-track sign-off shape. Its header names a deleted
+  `flowriderPromptStatics`. `standards-review-concerns-statics.ts` says three reviewer prompts interpolate it; there
+  are two. `agent-role-contract.test.ts:103-107` and `agent-git-permissions-statics.ts:43-47` still name
+  `siegemaster-reviewer`, which is gone. These are the next prompt-fix unit.
+- **Comment sweep.** Fixed the `operatorRoleNames`, operation-item and quest-summary-observable comments and the
+  playbook's phantom Phase 0. Two findings for the next session:
+  - **`pt N` is NOT dead everywhere.** `operation-pt-chain-transformer.ts` is live on the LEGACY path:
+    `quest-run-riftcarver-broker`, `quest-run-ward-broker`, `quest-handle-signal-back-responder` and
+    `mint-next-action-transformer` call it for a work item with no step node. Its comments are accurate. Only the
+    step graph dropped pt-N. Decide with the user whether the legacy path itself should go.
+  - **The sign-off retirement is half done in code, not just in docs.** `signoffPatchFieldsStatics.signoffFields` is
+    `[]`, and no flow contract carries a sign-off field, but `textDisplaySymbolsStatics.signoffTrackMarks`,
+    `quest-input-server-timestamps-transformer.ts:58-61` (it still recurses to stamp sign-offs through a no-op),
+    `quest-contract.ts:164,179` (`.describe()` naming the three sign-off fields), `signoff-contract.ts`,
+    `signoff-track-contract.ts`, `qa-checklist-kind-contract.ts:11`, and a dozen orchestrator test fixtures building
+    `codeweaverSignoff` / `flowriderSignoff` / `siegemasterSignoff` all remain. Fold all of it into T1-15a/b.
+- **Design leftovers — `9b8da8bda`.** `designPort`, `needsDesign`, the design-scaffold path broker and
+  `locationsStatics.designDir` are gone. An old quest.json carrying either field still loads, because `questContract`
+  is not `.strict()`. **This touched `locationsStatics`**, which this repo's own ESLint rules read from `shared/dist`,
+  so lint cannot be trusted until the rebuild in step 2 of "Start here".
+- **T2-4.** The status bar counts `N/M STEPS` from the projection, clamped to 1, and falls back to the ledger's
+  `N/M OPERATIONS` while the projection loads or errors. Scope headers receive their work items, so the churn line
+  renders. Track 2's code is complete except **T2-9a/b** (dependency labels keyed on session identity, auto-expand and
+  scroll, role colour keyed on step), which is the last link of the execution-row chain and is not started.
+- **Step models — `bd05d9e85`.** A step now spawns on the model `agentFlowStatics` declares for it, and
+  `get-agent-prompt` reports the same one. The `/dumpster-launch` slash-command body tells the session to pass
+  `model: agent.model` on every Task call. **That body is written into `.claude/commands/` by `dungeonmaster init`**,
+  so an installed copy is stale until init reruns (in this checkout: `npm run build`, `npm link --workspaces`,
+  `npm run init`). Orchestrator passed lint, typecheck, unit and integration as a whole package after this commit.
+  Also found: tests in `agent-prompt-get-broker.test.ts` and `agent-prompt-flow.integration.test.ts` named for the
+  "operation-context relay path" build a work item with no `step`, so they exercise the MINION branch instead.
+  Their titles mislead.
