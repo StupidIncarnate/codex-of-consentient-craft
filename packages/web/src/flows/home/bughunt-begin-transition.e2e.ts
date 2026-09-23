@@ -55,6 +55,16 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 
 test.describe('Bug-hunt Begin Quest transition', () => {
   test.beforeEach(async ({ request }) => {
+    const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
+
+    // POST /start now plays the dispatcher on the user's behalf (mirroring resume), so without a
+    // held queue the Node dispatcher wakes on the enqueue inside the start request and races a REAL
+    // carve against the fixture repo underneath every assertion below — its failure blocks the
+    // quest before the poll ever observes `in_progress`. Same fix as
+    // quest-begin-transition.e2e.ts's own beforeEach, which documents the identical race.
+    await dispatch.beforeEach();
+    dispatch.holdQueueWithMcpHeartbeat();
+
     await guildHarness({ request }).cleanGuilds();
     await sessions.cleanSessionDirectory();
   });
