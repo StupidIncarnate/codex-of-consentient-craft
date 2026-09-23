@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 
 import { chromium } from '@playwright/test';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { osUserHomedirAdapterProxy, pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 
 import { domReadLayerAdapterProxy } from './dom-read-layer-adapter.proxy';
 import { keyPressLayerAdapterProxy } from './key-press-layer-adapter.proxy';
@@ -100,6 +101,18 @@ export const playwrightSessionAdapterProxy = (): {
     close: () => void;
   };
 } => {
+  // The implementation's PLAYWRIGHT_BROWSERS_PATH default deliberately reads the REAL OS home
+  // (see playwright-session-adapter.ts), so this proxy stages nothing on it — called bare only
+  // to satisfy enforce-proxy-child-creation.
+  osUserHomedirAdapterProxy();
+  // Importing anything from `@dungeonmaster/shared/testing` sweeps its whole barrel into the
+  // mock graph, which auto-mocks node's `path` module too (path-join-adapter.proxy.ts mocks the
+  // SAME `join` this file's raw `path.join` calls resolve to). pathJoinAdapterProxy's own
+  // constructor stages a real-passthrough default via requireActual, so calling it bare here is
+  // what keeps every `path.join(evidencePath, 'video')` call in this file computing a genuine
+  // path instead of silently returning undefined.
+  pathJoinAdapterProxy();
+
   // Each of these three layer adapters is pure (no npm boundary of its own), so its proxy is empty
   // — called here only to satisfy enforce-proxy-child-creation, since this file's implementation
   // imports all three.

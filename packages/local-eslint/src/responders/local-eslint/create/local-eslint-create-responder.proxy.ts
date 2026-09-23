@@ -5,6 +5,7 @@ import { ruleBanLocatorPickBrokerProxy } from '../../../brokers/rule/ban-locator
 import { ruleBanSyncSeedingMethodsBrokerProxy } from '../../../brokers/rule/ban-sync-seeding-methods/rule-ban-sync-seeding-methods-broker.proxy';
 import { ruleBanDirectIoInTestScenariosBrokerProxy } from '../../../brokers/rule/ban-direct-io-in-test-scenarios/rule-ban-direct-io-in-test-scenarios-broker.proxy';
 import { ruleGraphReachabilityBrokerProxy } from '../../../brokers/rule/graph-reachability/rule-graph-reachability-broker.proxy';
+import { ruleBanBareOsHomeTmpBrokerProxy } from '../../../brokers/rule/ban-bare-os-home-tmp/rule-ban-bare-os-home-tmp-broker.proxy';
 import { LocalEslintCreateResponder } from './local-eslint-create-responder';
 
 export const LocalEslintCreateResponderProxy = (): {
@@ -17,6 +18,7 @@ export const LocalEslintCreateResponderProxy = (): {
   ruleBanSyncSeedingMethodsBrokerProxy();
   ruleBanDirectIoInTestScenariosBrokerProxy();
   ruleGraphReachabilityBrokerProxy();
+  ruleBanBareOsHomeTmpBrokerProxy();
 
   return {
     callResponder: LocalEslintCreateResponder,

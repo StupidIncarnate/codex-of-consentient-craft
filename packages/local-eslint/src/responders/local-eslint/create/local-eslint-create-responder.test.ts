@@ -7,6 +7,7 @@ describe('LocalEslintCreateResponder', () => {
       const plugin = proxy.callResponder();
 
       expect(Object.keys(plugin.rules).sort()).toStrictEqual([
+        'ban-bare-os-home-tmp',
         'ban-direct-io-in-test-scenarios',
         'ban-locator-pick',
         'ban-quest-status-literals',
@@ -115,6 +116,20 @@ describe('LocalEslintCreateResponder', () => {
       const plugin = proxy.callResponder();
 
       expect(plugin.rules['graph-reachability'].create).toStrictEqual(expect.any(Function));
+    });
+
+    it('VALID: {} => returns ban-bare-os-home-tmp rule with problem type', () => {
+      const proxy = LocalEslintCreateResponderProxy();
+      const plugin = proxy.callResponder();
+
+      expect(plugin.rules['ban-bare-os-home-tmp'].meta.type).toBe('problem');
+    });
+
+    it('VALID: {} => returns ban-bare-os-home-tmp rule with create function', () => {
+      const proxy = LocalEslintCreateResponderProxy();
+      const plugin = proxy.callResponder();
+
+      expect(plugin.rules['ban-bare-os-home-tmp'].create).toStrictEqual(expect.any(Function));
     });
   });
 });

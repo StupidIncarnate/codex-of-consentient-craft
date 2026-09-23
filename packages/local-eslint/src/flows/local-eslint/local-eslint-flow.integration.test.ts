@@ -6,6 +6,7 @@ describe('LocalEslintFlow', () => {
       const plugin = LocalEslintFlow();
 
       expect(Object.keys(plugin.rules).sort()).toStrictEqual([
+        'ban-bare-os-home-tmp',
         'ban-direct-io-in-test-scenarios',
         'ban-locator-pick',
         'ban-quest-status-literals',
