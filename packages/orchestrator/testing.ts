@@ -37,8 +37,6 @@ export { TimeoutMsStub } from '@dungeonmaster/shared/contracts';
 export { WorkItemIdStub } from './src/contracts/work-item-id/work-item-id.stub';
 export { FollowupDepthStub } from './src/contracts/followup-depth/followup-depth.stub';
 export { NextStepStub } from './src/contracts/next-step/next-step.stub';
-export { QuestRunWardResultStub } from './src/contracts/quest-run-ward-result/quest-run-ward-result.stub';
-export { QuestRunRiftcarverResultStub } from './src/contracts/quest-run-riftcarver-result/quest-run-riftcarver-result.stub';
 export { QuestGetServerConfigResultStub } from './src/contracts/quest-get-server-config-result/quest-get-server-config-result.stub';
 // The `get-quest-work` return. Exported because the MCP package's own tests have to build one:
 // its layer responder decides between raw markdown and JSON on which half of the result is null,

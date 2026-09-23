@@ -51,8 +51,6 @@ describe('orchestrator', () => {
       'questLoadBroker',
       'questModifyBroker',
       'questOutboxWatchBroker',
-      'questRunRiftcarverResultContract',
-      'questRunWardResultContract',
       'questSectionContract',
       'questStageContract',
       'questSummaryContract',
