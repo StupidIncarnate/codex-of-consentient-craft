@@ -256,14 +256,14 @@ describe('DigestRunResponder', () => {
       expect(String(result)).toBe(
         [
           'Flow bare-flow',
-          "  sign-off track         REQUIRED  signed        met     can't meet    unmet  NOT SIGNED",
+          "  sign-off track         REQUIRED  marked        met     can't meet    unmet    unmarked",
           '  codeweaver                    0       0          0              0        0           0',
           '  flowrider                     0       0          0              0        0           0',
           '  siegemaster                   7       0          0              0        0           7',
           '',
           'These counts can be too high.',
           'This reading has no operation item, so it counts rows a real checklist would leave out.',
-          'For the exact numbers, ask get-qa-checklist({questId, operationItemId}).',
+          'For the exact numbers, ask get-quest-work({questId, operationItemId}).',
         ].join('\n'),
       );
     });
@@ -312,14 +312,14 @@ describe('DigestRunResponder', () => {
       expect(String(result)).toBe(
         [
           'Flow marked-flow',
-          "  sign-off track         REQUIRED  signed        met     can't meet    unmet  NOT SIGNED",
+          "  sign-off track         REQUIRED  marked        met     can't meet    unmet    unmarked",
           '  codeweaver                    1       1          1              0        0           0',
           '  flowrider                     1       0          0              0        0           1',
           '  siegemaster                   8       0          0              0        0           8',
           '',
           'These counts can be too high.',
           'This reading has no operation item, so it counts rows a real checklist would leave out.',
-          'For the exact numbers, ask get-qa-checklist({questId, operationItemId}).',
+          'For the exact numbers, ask get-quest-work({questId, operationItemId}).',
         ].join('\n'),
       );
     });

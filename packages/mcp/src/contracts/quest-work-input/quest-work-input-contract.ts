@@ -83,7 +83,9 @@ const invalidationPayloadContract = z
       .string()
       .min(1)
       .brand<'ResetReason'>()
-      .describe('What changed underneath the sign-offs. Recorded as the walk-reset note detail.'),
+      .describe(
+        "What changed underneath the flow's already-recorded marks. Recorded as the walk-reset note detail.",
+      ),
   })
   .strict();
 

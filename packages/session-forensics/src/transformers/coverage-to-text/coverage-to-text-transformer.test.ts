@@ -4,10 +4,9 @@ import { TrackCoverageStub } from '../../contracts/track-coverage/track-coverage
 const CAVEAT_LINE_ONE = 'These counts can be too high.';
 const CAVEAT_LINE_TWO =
   'This reading has no operation item, so it counts rows a real checklist would leave out.';
-const CAVEAT_LINE_THREE =
-  'For the exact numbers, ask get-qa-checklist({questId, operationItemId}).';
+const CAVEAT_LINE_THREE = 'For the exact numbers, ask get-quest-work({questId, operationItemId}).';
 const HEADER_LINE =
-  "  sign-off track         REQUIRED  signed        met     can't meet    unmet  NOT SIGNED";
+  "  sign-off track         REQUIRED  marked        met     can't meet    unmet    unmarked";
 
 describe('coverageToTextTransformer', () => {
   describe('one flow, three rows', () => {

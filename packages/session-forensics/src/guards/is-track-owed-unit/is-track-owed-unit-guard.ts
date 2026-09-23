@@ -9,7 +9,7 @@
  * a reader should be able to see; its provenance is which role added it. The other two exclusions
  * are flow slice and package slice. Both belong to a single operation item rather than to the unit
  * or the track, and nobody hands this guard an operation item. So a `true` here is an UPPER BOUND
- * on what one session owed, never a settled count. `get-qa-checklist` stays the authority every
+ * on what one session owed, never a settled count. `get-quest-work` stays the authority every
  * caller defers to.
  *
  * USAGE:

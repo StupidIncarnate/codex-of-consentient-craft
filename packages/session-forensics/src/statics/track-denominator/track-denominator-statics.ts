@@ -25,7 +25,7 @@
  * table is also keyed by TRACK where the orchestrator's is keyed by (family, step), so
  * siegemaster's one row spans both flow types while each of its two STEPS takes `runtime` alone.
  * Every one of those gaps widens the set rather than narrowing it, so a denominator computed from
- * this table is always an upper bound on what one session owed. `get-qa-checklist` stays the
+ * this table is always an upper bound on what one session owed. `get-quest-work` stays the
  * authority.
  *
  * NO TRACK LISTS `human-check`, AND THAT ABSENCE IS WHAT DROPS A HUMAN-ONLY CRITERION FROM EVERY

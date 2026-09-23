@@ -6,7 +6,7 @@
  *
  * Its numbers are only ever an UPPER BOUND on what one session owed. `isTrackOwedUnitGuard` cannot
  * apply the flow-slice or package-slice exclusions without an operation item, and a whole-quest
- * reading has no operation item to hand it. `get-qa-checklist` stays the authority a caller defers
+ * reading has no operation item to hand it. `get-quest-work` stays the authority a caller defers
  * to.
  *
  * `workItems` is optional and threads straight to `questToUnitsTransformer` — that is the only
