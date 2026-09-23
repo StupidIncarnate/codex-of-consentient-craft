@@ -30,7 +30,6 @@
  * // mid-test, after the chain already rendered live. Omit durationMs to omit the whole tag.
  */
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
@@ -42,6 +41,7 @@ import {
   TaskToolResultStreamLineStub,
   UserTextStringStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
+import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 const KICKOFF_LEAD_MS = 1000;
@@ -142,7 +142,7 @@ export const subagentDurationHarness = ({
 } => {
   const getJsonlDir = (): AbsoluteFilePath =>
     claudePathSlugEncoderTransformer({
-      homeDir: AbsoluteFilePathStub({ value: os.homedir() }),
+      homeDir: osUserHomedirAdapter(),
       projectPath: AbsoluteFilePathStub({ value: guildPath }),
     });
 

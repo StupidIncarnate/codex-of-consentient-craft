@@ -7,7 +7,6 @@
  * // afterEach: cleans session directory
  */
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
@@ -20,6 +19,7 @@ import {
 } from '@dungeonmaster/hydration-recipes/contracts';
 import type { DmTarget } from '@dungeonmaster/hydration-recipes/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { osHomedirAdapter } from '@dungeonmaster/shared/adapters';
 import {
   AbsoluteFilePathStub,
   AskUserQuestionToolResultStreamLineStub,
@@ -275,7 +275,7 @@ export const sessionHarness = ({
     if (target !== undefined) {
       return target;
     }
-    const home = process.env.DUNGEONMASTER_HOME ?? os.homedir();
+    const home = osHomedirAdapter();
     return dmTargetContract.parse({ home, claudeHome: home });
   };
 

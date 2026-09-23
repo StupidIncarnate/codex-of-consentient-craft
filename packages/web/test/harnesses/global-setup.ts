@@ -19,6 +19,24 @@ const SIEGE_SANDBOX_PREFIX = 'dm-siege-';
 // still bounding the litter.
 const STALE_SANDBOX_MS = 21_600_000;
 
+// `git config --global` for the whole suite: HOME points at TEST_HOME (playwright.config.ts), so
+// this file — not the developer's real `~/.gitconfig` — is what every unauthored `git` call in
+// this run resolves. Covers production code that runs real git against a fixture repo (riftcarver)
+// with no author env of its own; harnesses that DO pass their own author env (see
+// environment.harness.ts's GIT_COMMIT_ENV) already work without it, but reading it costs nothing.
+const GIT_CONFIG_CONTENTS = [
+  '[user]',
+  '\tname = Dungeonmaster E2E Fixture',
+  '\temail = e2e-fixture@dungeonmaster.test',
+  '[init]',
+  '\tdefaultBranch = main',
+  '[commit]',
+  '\tgpgsign = false',
+  '[tag]',
+  '\tgpgsign = false',
+  '',
+].join('\n');
+
 export default function globalSetup(): void {
   const nowMs = Date.now();
   const tmpRoot = os.tmpdir();
@@ -47,6 +65,7 @@ export default function globalSetup(): void {
   mkdirSync(TEST_HOME, { recursive: true });
   mkdirSync(path.join(TEST_HOME, locationsStatics.siegelense.claudeQueueDir), { recursive: true });
   mkdirSync(path.join(TEST_HOME, locationsStatics.siegelense.wardQueueDir), { recursive: true });
+  writeFileSync(path.join(TEST_HOME, '.gitconfig'), GIT_CONFIG_CONTENTS);
 
   // An empty ledger stamped NOW, so the first guardrail poll after boot finds a measurement inside
   // `usageAccountingStatics.scan.minIntervalMs` and `usageLedgerScanBroker` hands this file

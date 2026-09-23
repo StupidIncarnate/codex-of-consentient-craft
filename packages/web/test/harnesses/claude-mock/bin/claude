@@ -229,9 +229,19 @@ function postSignalBack() {
 function resolveJsonlSessionPath() {
     if (!sessionId) return null;
 
+    // `bin/claude` has no file extension, so `ban-bare-os-home-tmp` never scans it — this call is
+    // exempt from the lint, not merely unflagged, and that's fine: this process only ever runs as
+    // a child the orchestrator spawns inside the API server's webServer block, which
+    // playwright.config.ts starts with HOME=TEST_HOME, so os.homedir() resolves to the e2e
+    // sandbox and never the developer's real home.
     const homeDir = os.homedir();
     const projectPath = process.cwd();
-    const encodedPath = projectPath.replace(/\//g, '-');
+    // Matches claudePathSlugEncoderTransformer / the real Claude CLI's own bundled source
+    // (`e.replace(/[^a-zA-Z0-9]/g,"-")`): every character that is not an ASCII letter or digit
+    // becomes its own literal `-`, not just `/`. A guild path containing `.` or `_` (a worktree
+    // name, a dotted repo) used to diverge from that encoding and write here to a directory no
+    // production reader (session-list, chat-history-replay) ever looks in.
+    const encodedPath = projectPath.replace(/[^a-zA-Z0-9]/g, '-');
     const jsonlDir = path.join(homeDir, '.claude', 'projects', encodedPath);
 
     fs.mkdirSync(jsonlDir, {recursive: true});

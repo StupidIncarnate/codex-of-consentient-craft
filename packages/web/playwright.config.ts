@@ -6,6 +6,7 @@ import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/stat
 import { hasHonoOrExpressAdapterGuard } from '@dungeonmaster/shared/guards';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
+import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
 
 // CI keeps one retry to absorb shared-runner infrastructure noise.
 const CI_RETRIES = 1;
@@ -29,7 +30,7 @@ const FAKE_WARD_CLI = path.resolve(
   __dirname,
   '../orchestrator/test-fixtures/fake-ward-bin/dungeonmaster-ward',
 );
-const REAL_HOME = os.homedir();
+const REAL_HOME = osUserHomedirAdapter();
 
 // The command below names the workspace this repo's own API server lives in. Hardcoding
 // '@dungeonmaster/server' there is what no-hardcoded-package-names bans: this file is this repo's
@@ -87,6 +88,15 @@ process.env.DUNGEONMASTER_HOME = TEST_HOME;
 process.env.PLAYWRIGHT_BROWSERS_PATH ??= path.join(REAL_HOME, '.cache', 'ms-playwright');
 process.env.HOME = TEST_HOME;
 process.env.E2E_SERVER_HOME ??= TEST_HOME;
+// Belt-and-suspenders alongside HOME=TEST_HOME + global-setup.ts's <TEST_HOME>/.gitconfig: a
+// developer shell that exports its own XDG_CONFIG_HOME (pointing outside TEST_HOME) would
+// otherwise still resolve to a REAL `$XDG_CONFIG_HOME/git/config`, and GIT_CONFIG_NOSYSTEM keeps
+// `/etc/gitconfig` out of the picture too. Set here (this IS the Playwright test process — its
+// workers fork after this module runs, so `process.env` is already correct for
+// environment.harness.ts's own `execFileSync('git', ...)` calls) and again in the API server's
+// webServer env below, matching every other var this file threads both ways.
+process.env.GIT_CONFIG_NOSYSTEM = '1';
+process.env.XDG_CONFIG_HOME = path.join(TEST_HOME, '.config');
 
 export default defineConfig({
   testDir: './src',
@@ -143,6 +153,11 @@ export default defineConfig({
         DUNGEONMASTER_PORT: String(TEST_PORT),
         DUNGEONMASTER_HOME: TEST_HOME,
         HOME: TEST_HOME,
+        // Git isolation for every real `git` call production code makes against a fixture repo
+        // during this run (e.g. riftcarver) — see the top-level assignment above for why both
+        // are needed alongside HOME=TEST_HOME + global-setup.ts's <TEST_HOME>/.gitconfig.
+        GIT_CONFIG_NOSYSTEM: '1',
+        XDG_CONFIG_HOME: path.join(TEST_HOME, '.config'),
         CLAUDE_CLI_PATH: FAKE_CLAUDE_CLI,
         FAKE_CLAUDE_QUEUE_DIR,
         FAKE_WARD_QUEUE_DIR,
