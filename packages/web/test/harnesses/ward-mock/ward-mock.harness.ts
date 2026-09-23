@@ -110,9 +110,11 @@ export const wardMockHarness = ({
   queueResponse: ({ response }: { response: WardQueueResponse }): void => {
     queueWardResponse({ queueDir: getScopedQueueDir({ guildPath }), response });
   },
-  // Queue into the ROOT (un-scoped) ward queue. The Node dispatcher's run-ward spawns the fake
-  // ward with `cwd = processCwdAdapter()` (the SERVER's cwd, not the guild path), so the fake
-  // ward's cwd-scoped lookup misses and it falls back to this root queue. Node-dispatch e2e
+  // Queue into the ROOT (un-scoped) ward queue. The dispatcher's deterministic `ward` step
+  // (stepHandlerWardBroker) resolves cwd via questCwdResolveBroker and spawns the fake ward there —
+  // the quest's own WORKTREE path, a subdirectory of the guild path rather than the guild path
+  // itself — so the fake ward's own cwd-scoped lookup (keyed to that worktree path) misses this
+  // harness's guild-path-scoped queue and falls back to this root queue. Node-dispatch e2e
   // (workers:1, serial dispatch, beforeEach clears both queues) uses this for ward outcomes.
   queueRootResponse: ({ response }: { response: WardQueueResponse }): void => {
     queueWardResponse({ queueDir: getRootQueueDir(), response });

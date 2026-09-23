@@ -77,13 +77,14 @@ export const environmentHarness = ({
     });
   };
 
-  // The `riftcarver` operation item (packages/orchestrator's quest-run-riftcarver-broker) resolves
-  // the quest's repo root by walking UP from the guild path looking for `.dungeonmaster.json`, then
+  // The dispatcher's deterministic `carve` step (packages/orchestrator's stepHandlerRiftcarverBroker)
+  // resolves the quest's repo root by walking UP from the guild path looking for `.dungeonmaster.json`, then
   // probes that root for a local `main`/`master` branch and — once found — runs `git worktree add`,
-  // mirrors node_modules into the new worktree, and runs the configured build command. It is the
-  // head of the relay, so it is the FIRST thing dispatched after a quest starts. Every one of those
-  // steps is a real git/fs/spawn call against the quest's GUILD path, so letting a quest get past
-  // its carve under e2e means the guild path itself has to be a real repo, not a bare temp
+  // mirrors node_modules into the new worktree, and runs `ward --only typecheck` against the new
+  // worktree as the carve's verdict. It is the head of the relay, so it is the FIRST thing
+  // dispatched after a quest starts. Every one of those steps is a real git/fs/spawn call against
+  // the quest's GUILD path, so letting a quest get past its carve under e2e means the guild path
+  // itself has to be a real repo, not a bare temp
   // directory: a `main` branch with two DIFFERENT commits (so "the tip" and "an older commit" are
   // distinguishable), a `.dungeonmaster.json` right at the guild root (so config resolution finds it
   // on the FIRST directory it checks rather than walking past `/tmp` and falling back), overriding
