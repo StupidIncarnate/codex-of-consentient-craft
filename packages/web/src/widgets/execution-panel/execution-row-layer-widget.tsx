@@ -5,7 +5,9 @@
  * duration figure. `order` is omitted by the panel for a step row nested under an operation
  * header (decision 2's NESTED ruling) — the header alone carries the list's running number, and
  * `indented` shifts the row right and drops its own `[ROLE]` badge, since the header above it
- * already names the role for every step beneath it.
+ * already names the role for every step beneath it. `isRunningFocus` (T2-9a) limits the
+ * running-row auto-expand to whichever row the panel currently hands it to, so several running
+ * rows in one scope never all auto-open at once.
  *
  * USAGE:
  * <ExecutionRowLayerWidget order={order} name={name} role={role} status={status} files={files} dependsOn={deps} isAdhoc={false} />
@@ -89,6 +91,12 @@ export interface ExecutionRowLayerWidgetProps {
   wardResults?: WardResult[];
   riftcarverResults?: RiftcarverResult[];
   questId?: QuestId;
+  // Governs the running-row auto-expand alone (T2-9a) — the manual chevron click below is never
+  // gated by it. Undefined/true keeps today's behaviour (every in_progress row with a transcript
+  // auto-expands on its own); explicit `false` means the panel already gave that focus to some
+  // OTHER row this render, so this one starts collapsed until either it becomes the focus (the
+  // panel flips this back once the current focus row stops) or the reader clicks its header.
+  isRunningFocus?: boolean;
 }
 
 const EXPANDABLE_STATUSES: ExecutionStepStatus[] = [
@@ -152,6 +160,7 @@ export const ExecutionRowLayerWidget = ({
   wardResults,
   riftcarverResults,
   questId,
+  isRunningFocus,
 }: ExecutionRowLayerWidgetProps): React.JSX.Element => {
   const { summary, attempt, maxAttempts, startedAt, completedAt, actualSignal } = workItem ?? {};
   const { colors } = emberDepthsThemeStatics;
@@ -164,8 +173,17 @@ export const ExecutionRowLayerWidget = ({
   const displayEntries = isCommandRow
     ? mergeCommandOutputEntriesTransformer({ entries: entries ?? [] })
     : (entries ?? []);
+  // Lazy initializer: the isRunningFocus check below is a branch on this callback, not on the
+  // component body, which is already at the repo's `complexity: max 50` ceiling. Only the
+  // in_progress disjunct is gated — the autoExpand disjunct (terminal-quest-with-no-operations
+  // rendering) auto-expands every row regardless of running focus, since that scenario runs no
+  // work item and the panel would otherwise hand every row an `isRunningFocus: false` it never
+  // earned.
   const [expanded, setExpanded] = useState(
-    (status === ('in_progress' as ExecutionStepStatus) && hasEntries) ||
+    () =>
+      (isRunningFocus !== false &&
+        status === ('in_progress' as ExecutionStepStatus) &&
+        hasEntries) ||
       (autoExpand === true && hasEntries),
   );
   const prevStatusRef = useRef<ExecutionStepStatus>(status);
@@ -173,6 +191,7 @@ export const ExecutionRowLayerWidget = ({
 
   useEffect(() => {
     if (
+      isRunningFocus !== false &&
       status === ('in_progress' as ExecutionStepStatus) &&
       hasEntries &&
       !expanded &&
@@ -180,7 +199,7 @@ export const ExecutionRowLayerWidget = ({
     ) {
       setExpanded(true);
     }
-  }, [status, hasEntries, expanded]);
+  }, [status, hasEntries, expanded, isRunningFocus]);
 
   // Terminal-quest rendering (autoExpand=true) auto-expands the row once entries
   // arrive — initial state computes before the WS replay delivers chat-output,

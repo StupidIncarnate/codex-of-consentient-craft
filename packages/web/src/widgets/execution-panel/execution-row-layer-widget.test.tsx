@@ -544,6 +544,45 @@ describe('ExecutionRowLayerWidget', () => {
     });
   });
 
+  describe('running focus (T2-9a)', () => {
+    it('VALID: {status: "in_progress", entries, isRunningFocus: false} => starts collapsed, and a header click still expands it', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={[AssistantTextChatEntryStub({ content: 'Working...' })]}
+            isRunningFocus={false}
+          />
+        ),
+      });
+
+      expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
+
+      await userEvent.click(screen.getByTestId('execution-row-header'));
+
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
+    });
+
+    it('VALID: {status: "in_progress", entries, isRunningFocus omitted} => auto-expands, as today', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={[AssistantTextChatEntryStub({ content: 'Working...' })]}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
+    });
+  });
+
   describe('auto-collapse on completion', () => {
     it('VALID: {in_progress → complete} => collapses expanded row', () => {
       ExecutionRowLayerWidgetProxy();

@@ -261,11 +261,6 @@ export const ExecutionPanelWidget = ({
 
   const operationsById = new Map(quest.operations.map((op) => [op.id, op]));
 
-  const workItemIdToLabel = new Map<WorkItem['id'], WorkItem['role']>();
-  for (const wi of quest.workItems) {
-    workItemIdToLabel.set(wi.id, wi.role);
-  }
-
   const wardResultsById = new Map<
     (typeof quest.wardResults)[0]['id'],
     (typeof quest.wardResults)[0]
@@ -448,12 +443,12 @@ export const ExecutionPanelWidget = ({
   // label already computed above; a bare row falls back to the identical scope-label rule
   // ExecutionWorkItemRowLayerWidget applies for its own name (operation text, or the capitalized role).
   const workItemIdToDisplayLabel = new Map<WorkItem['id'], DisplayLabel>();
+  // The dependency label's own SCOPE (T2-9a) — operation text, or the capitalized role — never the
+  // tier label, so a row can tell whether a dependency it depends on sits in ITS OWN scope or a
+  // different one. workItemIdToDisplayLabel above stays the row's own rendered name (tier label
+  // when nested, else this same scope label) and the back-edge badge's source of truth.
+  const workItemIdToScopeLabel = new Map<WorkItem['id'], DisplayLabel>();
   quest.workItems.forEach((wi) => {
-    const tierLabel = stepLabelByWorkItemId.get(wi.id);
-    if (tierLabel !== undefined) {
-      workItemIdToDisplayLabel.set(wi.id, tierLabel);
-      return;
-    }
     const operationRef = wi.relatedDataItems.find((ref) => ref.startsWith(OPERATIONS_PREFIX));
     const operation =
       operationRef === undefined
@@ -461,12 +456,12 @@ export const ExecutionPanelWidget = ({
         : operationsById.get(
             operationRef.slice(OPERATIONS_PREFIX_LENGTH) as (typeof quest.operations)[0]['id'],
           );
-    workItemIdToDisplayLabel.set(
-      wi.id,
-      operation
-        ? displayLabelContract.parse(operation.text)
-        : displayLabelContract.parse(`${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)}`),
-    );
+    const scopeLabel = operation
+      ? displayLabelContract.parse(operation.text)
+      : displayLabelContract.parse(`${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)}`);
+    workItemIdToScopeLabel.set(wi.id, scopeLabel);
+    const tierLabel = stepLabelByWorkItemId.get(wi.id);
+    workItemIdToDisplayLabel.set(wi.id, tierLabel ?? scopeLabel);
   });
   // The ONE numbered list this widget renders, built once so the JSX below is a single flat
   // `.map()`. Order is assigned only to a TOP-LEVEL row — a bare work item, an operation header, or
@@ -533,6 +528,28 @@ export const ExecutionPanelWidget = ({
   unclaimedOperations.forEach((op) => {
     renderRows.push({ kind: 'unclaimed', operation: op, order: nextRowOrder++ as RowOrder });
   });
+
+  // The running-row auto-expand "focus" (T2-9a) hands to exactly one work item — the FIRST one, in
+  // RENDER order, that is in_progress and already has a transcript of its own. Computed over
+  // renderRows rather than visibleWorkItems: a scope's nested children render together under their
+  // header, not each in its own original quest.workItems position, so only the assembled list
+  // matches what the reader actually sees first. Every OTHER work-item row below gets an explicit
+  // isRunningFocus={false}, so at most one expands without a click; the row itself keeps deciding
+  // whether IT auto-expands (its own status and entries still gate that) — this only decides which
+  // ONE candidate is even offered the choice.
+  const runningFocusRow = renderRows.find((row) => {
+    if (row.kind !== 'workItem' || row.workItem.status !== ('in_progress' as ExecutionStepStatus)) {
+      return false;
+    }
+    const ownEntries =
+      workItemEntries.get(row.workItem.id) ??
+      (row.workItem.sessionId ? sessionEntries.get(row.workItem.sessionId) : undefined);
+    return ownEntries !== undefined && ownEntries.length > 0;
+  });
+  const runningFocusWorkItemId =
+    runningFocusRow !== undefined && runningFocusRow.kind === 'workItem'
+      ? runningFocusRow.workItem.id
+      : undefined;
 
   return (
     <Stack gap={0} style={{ height: '100%' }} data-testid="execution-panel-widget">
@@ -669,10 +686,12 @@ export const ExecutionPanelWidget = ({
                   includeSkipped={includeSkipped}
                   workItemEntries={workItemEntries}
                   sessionEntries={sessionEntries}
-                  workItemIdToLabel={workItemIdToLabel}
+                  workItemIdToLabel={workItemIdToDisplayLabel}
+                  workItemIdToScopeLabel={workItemIdToScopeLabel}
                   wardResultsById={wardResultsById}
                   riftcarverResultsById={riftcarverResultsById}
                   operationsById={operationsById}
+                  isRunningFocus={row.workItem.id === runningFocusWorkItemId}
                   {...(guildSlug ? { guildSlug } : {})}
                   {...(row.order === undefined ? {} : { order: row.order })}
                   {...(row.indented === true ? { indented: true } : {})}

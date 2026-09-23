@@ -916,7 +916,7 @@ describe('ExecutionPanelWidget', () => {
   });
 
   describe('dependsOn labels', () => {
-    it('VALID: {work item with dependsOn} => subtitle shows the dependency role labels', () => {
+    it('VALID: {work item with dependsOn} => subtitle shows the dependency’s own row label, not its role', () => {
       ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'in_progress',
@@ -941,7 +941,131 @@ describe('ExecutionPanelWidget', () => {
 
       const subtitles = screen.queryAllByTestId('execution-row-subtitle');
 
-      expect(subtitles.map((s) => s.textContent)).toStrictEqual(['└─ depends on: chaoswhisperer']);
+      // The dependency is bare (no operation), so its row label IS its scope label —
+      // "Chaoswhisperer", the capitalized role, not the lowercase role string a role-only lookup
+      // used to read.
+      expect(subtitles.map((s) => s.textContent)).toStrictEqual(['└─ depends on: Chaoswhisperer']);
+    });
+
+    it('VALID: {scope A (plan, work x2) complete; scope B pending, dependsOn A’s last item} => B’s subtitle carries the cross-scope prefix "<A text> › work pt: 2"', () => {
+      ExecutionPanelWidgetProxy();
+      const aLastWorkItemId = 'a0000000-0000-0000-0000-000000000003';
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({
+            id: OP_ID_1,
+            role: 'codeweaver',
+            text: 'Build login broker',
+            status: 'complete',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'plan',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'work',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+          WorkItemStub({
+            id: aLastWorkItemId,
+            role: 'codeweaver',
+            status: 'complete',
+            step: 'work',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000004',
+            role: 'flowrider',
+            status: 'pending',
+            dependsOn: [aLastWorkItemId],
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const subtitles = screen.queryAllByTestId('execution-row-subtitle');
+
+      expect(subtitles.map((s) => s.textContent)).toStrictEqual([
+        '└─ depends on: Build login broker › work pt: 2',
+      ]);
+    });
+  });
+
+  describe('running-row auto-expand focus (T2-9a)', () => {
+    it('VALID: {two in_progress work items with entries, same scope} => only the FIRST (render order) auto-expands; rerender with the first complete hands focus to the second', () => {
+      ExecutionPanelWidgetProxy();
+      const wi1Id = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000001' });
+      const wi2Id = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000002' });
+      const workItemEntries = new Map([
+        [wi1Id, [AssistantTextChatEntryStub({ content: 'first row output' })]],
+        [wi2Id, [AssistantTextChatEntryStub({ content: 'second row output' })]],
+      ]);
+      const buildQuest = ({ firstStatus }: { firstStatus: 'in_progress' | 'complete' }): Quest =>
+        QuestStub({
+          status: 'in_progress',
+          operations: [
+            OperationItemStub({ id: OP_ID_1, text: 'Build login broker', status: 'in_progress' }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: wi1Id,
+              role: 'codeweaver',
+              status: firstStatus,
+              step: 'work',
+              relatedDataItems: [`operations/${OP_ID_1}`],
+            }),
+            WorkItemStub({
+              id: wi2Id,
+              role: 'codeweaver',
+              status: 'in_progress',
+              step: 'work',
+              relatedDataItems: [`operations/${OP_ID_1}`],
+            }),
+          ],
+        });
+
+      const isRowExpanded = (row: HTMLElement): boolean =>
+        row.querySelector('[data-testid="execution-row-expanded"]') !== null;
+
+      const { rerender } = mantineRenderAdapter({
+        ui: (
+          <ExecutionPanelWidget
+            quest={buildQuest({ firstStatus: 'in_progress' })}
+            workItemEntries={workItemEntries}
+          />
+        ),
+      });
+
+      expect(screen.getAllByTestId('execution-row-layer-widget').map(isRowExpanded)).toStrictEqual([
+        false, // header
+        true, // work pt: 1 — first in render order, claims focus
+        false, // work pt: 2 — not the focus
+      ]);
+
+      rerender(
+        <ExecutionPanelWidget
+          quest={buildQuest({ firstStatus: 'complete' })}
+          workItemEntries={workItemEntries}
+        />,
+      );
+
+      expect(screen.getAllByTestId('execution-row-layer-widget').map(isRowExpanded)).toStrictEqual([
+        false, // header
+        false, // work pt: 1 — no longer running, collapses
+        true, // work pt: 2 — now the only running row, claims focus
+      ]);
     });
   });
 
