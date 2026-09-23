@@ -32,6 +32,17 @@ describe('InstallFlow', () => {
       const recipesEntries = testbed.listDir({
         relativePath: RelativePathStub({ value: 'packages/hydration-recipes/src' }),
       });
+      // Proves the PARENT dir the link lives nested inside is real, not just implied by the
+      // link path string — listDir returns null when the directory is absent.
+      const assetsDirEntries = testbed.listDir({
+        relativePath: RelativePathStub({ value: '.dungeonmaster-assets' }),
+      });
+      // readdir follows a symlink to list the TARGET's contents, so this reads through the link
+      // rather than the stored target string — null would mean a dangling link; an empty array
+      // means it resolves to the real (freshly mkdir'd, so empty) siegelense root.
+      const linkEntries = testbed.listDir({
+        relativePath: RelativePathStub({ value: '.dungeonmaster-assets/siegelense-assets' }),
+      });
 
       testbed.cleanup();
 
@@ -39,10 +50,12 @@ describe('InstallFlow', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'created',
-        message: `Created .siegelense -> ${dungeonmasterHomePath}/siegelense; Created .gitignore with .siegelense; Created packages/hydration-recipes/src/`,
+        message: `Created .dungeonmaster-assets/siegelense-assets -> ${dungeonmasterHomePath}/siegelense; Created .gitignore with .dungeonmaster-assets/siegelense-assets; Created packages/hydration-recipes/src/`,
       });
-      expect(gitignoreContent).toBe('.siegelense\n');
+      expect(gitignoreContent).toBe('.dungeonmaster-assets/siegelense-assets\n');
       expect(recipesEntries).toStrictEqual([]);
+      expect(assetsDirEntries).toStrictEqual(['siegelense-assets']);
+      expect(linkEntries).toStrictEqual([]);
     });
 
     it('VALID: {flow run twice} => every responder reports skipped and the overall result still reads as a success', async () => {
@@ -75,6 +88,12 @@ describe('InstallFlow', () => {
       const recipesEntries = testbed.listDir({
         relativePath: RelativePathStub({ value: 'packages/hydration-recipes/src' }),
       });
+      const assetsDirEntries = testbed.listDir({
+        relativePath: RelativePathStub({ value: '.dungeonmaster-assets' }),
+      });
+      const linkEntries = testbed.listDir({
+        relativePath: RelativePathStub({ value: '.dungeonmaster-assets/siegelense-assets' }),
+      });
 
       testbed.cleanup();
 
@@ -82,10 +101,12 @@ describe('InstallFlow', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'skipped',
-        message: `.siegelense already points at ${dungeonmasterHomePath}/siegelense; .siegelense already in .gitignore; packages/hydration-recipes/ already present; left untouched`,
+        message: `.dungeonmaster-assets/siegelense-assets already points at ${dungeonmasterHomePath}/siegelense; .dungeonmaster-assets/siegelense-assets already in .gitignore; packages/hydration-recipes/ already present; left untouched`,
       });
-      expect(gitignoreContent).toBe('.siegelense\n');
+      expect(gitignoreContent).toBe('.dungeonmaster-assets/siegelense-assets\n');
       expect(recipesEntries).toStrictEqual([]);
+      expect(assetsDirEntries).toStrictEqual(['siegelense-assets']);
+      expect(linkEntries).toStrictEqual([]);
     });
   });
 });
