@@ -347,7 +347,6 @@
       "mcp__dungeonmaster__get-project-inventory",
       "mcp__dungeonmaster__create-quest",
       "mcp__dungeonmaster__get-next-step",
-      "mcp__dungeonmaster__run-ward",
       "mcp__dungeonmaster__get-server-config",
       "mcp__dungeonmaster__ask-user-question",
       "Bash(git status:*)",
@@ -358,14 +357,11 @@
       "Bash(git rm:*)",
       "Bash(git mv:*)",
       "Bash(git commit:*)",
-      "mcp__dungeonmaster__get-qa-checklist",
       "mcp__claude-in-chrome",
       "mcp__dungeonmaster__get-blight-checklist",
-      "mcp__dungeonmaster__reset-flow-signoffs",
       "mcp__dungeonmaster__get-quest-summary",
       "Bash(git checkout:*)",
       "Bash(git merge:*)",
-      "mcp__dungeonmaster__run-riftcarver",
       "Bash(git push:*)",
       "Bash(curl:*)",
       "Bash(kill:*)",
@@ -375,7 +371,9 @@
       "Bash(git rev-parse:*)",
       "Bash(git merge-base:*)",
       "mcp__dungeonmaster__create-worktree",
-      "Bash(dungeonmaster siegelense:*)"
+      "Bash(dungeonmaster siegelense:*)",
+      "mcp__dungeonmaster__quest-work",
+      "mcp__dungeonmaster__get-quest-work"
     ],
     "deny": [
       "Bash(sed:*)"

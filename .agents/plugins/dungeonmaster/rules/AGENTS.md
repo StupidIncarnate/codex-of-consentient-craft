@@ -166,7 +166,7 @@ Applies to every ward run, in any repo, by any agent.
 
 **A skip on a scoped run is not a regression.** `No tests found` on a file-scoped run becomes `status: 'skip'`; full runs still fail loudly. Never reach for `--passWithNoTests`. `DISCOVERY MISMATCH` means the check type has no counterpart for those files — narrow `--only`, never widen scope.
 
-**Who owns a FULL run.** An agent working directly for the user makes a full `npm run ward` exit 0 and owns every failure in it, including ones it did not cause. An orchestrator-dispatched role never runs the full sweep; its Operating Rules name its rung, and the dispatcher's own `run-ward` item is the regression pass.
+**Who owns a FULL run.** An agent working directly for the user makes a full `npm run ward` exit 0 and owns every failure in it, including ones it did not cause. An orchestrator-dispatched role never runs the full sweep; its Operating Rules name its rung, and the family's own `ward` step is the regression pass.
 
 ---
 

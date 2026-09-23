@@ -153,6 +153,7 @@ None of this moves the gate. Partial observables are legal at `flows_approved` �
     - `package`: the ONE package this outcome is read in, drawn from the owning node's `packages`. **Omit it when that node tags exactly one package** — the save resolves it from the node, so there is nothing for you to restate. On a node tagging MORE than one there is nothing to inherit and an omission is refused: name the side of the seam this observable sits on, and name one the node already tags.
     - `designRef` (optional): reference to a design decision
     - `verifyByReading` (optional): `true` when the criterion is about the SHAPE OF A SOURCE FILE — an import that must be there, a literal that must not be inlined, a symbol that must be gone, a STYLE VALUE that must be the one declared. Set it and a reviewer opens the file; leave it out and a session writes a test. This is the field that lets you bake in an implementation detail you have decided on, instead of dropping it or dressing it up as behaviour.
+    - `verifyByHuman` (optional): `true` when no automated check — no test, no reading of the source — could ever settle the criterion at all, because it names a judgment only a person can make, and only once the quest is done. See the `verifyByHuman` rule further down this page for the whole picture and how it composes with `verifyByReading`.
 
     Three rules go with it, and each costs something real when it is missed:
 
@@ -507,6 +508,42 @@ To maximize capture quality, write good option descriptions:
 The user sees all quest data live in their UI as you persist it via `modify-quest`. Do NOT re-render diagrams, tables, or lists in chat. Instead, after each status transition provide a **brief chat summary**:
 
 **After transitioning to `review_flows`:** "Added N flows: [names]. X nodes, Y edges. Sad paths covered: [list]. Ready for review." **After transitioning to `review_observables`:** "Embedded M observables across N flow nodes (K outcome assertions total), L contracts. Ready for review."
+
+---
+
+## `verifyByHuman`
+
+Set `verifyByHuman: true` on an observable when NO automated check — no test, no reading of the source —
+can settle it at all, because it names a judgment only a person can make, and only once the quest is done.
+
+**The flag lives on an OBSERVABLE, and nowhere else.** `flowObservableContract` is the only contract
+carrying it — a terminal node, a labelled branch edge and an off-map probe family have no such field to
+set. Where one of those, rather than an observable, is what resists every check and nothing but a
+person's own judgment could ever settle, the honest mark is `cant-meet` with a `toSettle` naming the
+person's check — never an invented flag on a unit that carries none.
+
+**Any role may set it, including one with no way to confirm the criterion itself.** A session that
+recognizes a criterion nothing available to it can verify sets the flag rather than inventing a proxy
+measurement to stand in for it.
+
+**It is a separate axis from `verifyByReading`, and the two compose.** `verifyByReading` says a criterion
+is settled by opening a file instead of running a test — a person or a model can still confirm it today,
+during the quest. `verifyByHuman` says nothing automated can confirm it AT ALL, by either method, and not
+until the quest is done. When an observable carries both, `verifyByHuman` wins: nothing is asked to settle
+it during the quest, whatever `verifyByReading` also claims.
+
+**Reach for it only when no automated check could ever settle the criterion** — not "this is hard to test"
+and not "nobody has written the test yet". A criterion a person could read the source and confirm belongs to
+`verifyByReading`. A criterion a test could assert once written belongs to a test. `verifyByHuman` is for
+the remainder: whether a transition feels smooth, whether a tone reads right, whether a judgment call was
+the correct one — each measured against the SYSTEM RUNNING for real, not against a diff or a screenshot, so
+nothing before the quest ends could possibly confirm it.
+
+**Setting it removes the observable from every role's list, from that point forward.** No codeweaver,
+flowrider or siegemaster session is handed that criterion to prove once it is set — it drops out of the
+in-scope units every one of them works from, whichever session sets it and whenever in the quest it sets it.
+The observable is not deleted and not abandoned: it reaches a person as a question once the quest is done,
+answerable only by looking at the real thing.
 
 ---
 
