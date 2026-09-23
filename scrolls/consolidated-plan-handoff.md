@@ -281,9 +281,16 @@ The user stopped new dispatches here. These five were in flight; each landed and
 
 ### Left for a later session
 
-- `nextActionTransformer` typing against `routedGraphContract`. Skipped: consistency only.
-- The `attach({id})` hydration verb. Deferred, because quest-completed no longer needs it.
-- `packages/session-forensics`:
-  - `buckets` and `gaps` take no threshold flags. The transformers accept them, but `digest-run-responder` never forwards them.
-  - There is no command that joins the per-work-item quest index that `/quest-forensics` Step 1 assembles by hand.
-- Generated files in a checkout go stale until `npm run build`, `npm link --workspaces` and `npm run init` run again: `.claude/commands/dumpster-launch.md`, `.agents/plugins/dungeonmaster/rules/AGENTS.md`, and the `run-ward` and `run-riftcarver` grants in `.claude/settings.json`.
+**Before:** five items were open here. **After:** four landed on master, and the full `npm run ward` exited 0 on run `1790187040643-208d`.
+
+| Item | State |
+|---|---|
+| `attach({id})`, the cross-plan hydration verb | Done. Hydration has a seventh op kind, `attach`, plus `Collection.attach(where, build)`. The quest ingredient gains an `attachWorkItem` extra. `quest-completed` and `quest-advances-one-step` mint their operations through the real ingredient. |
+| session-forensics threshold flags | Done. `buckets --minutes <n>` and `gaps --floor-seconds <n>`. |
+| a per-work-item quest index | Done. `quest <questId>`, which `/quest-forensics` Step 1 runs. |
+| stale generated files | Done. Build, link and init ran on master; the legacy `.siegelense` symlink was removed. |
+| `nextActionTransformer` typing against `routedGraphContract` | Not done. It is a consistency pass only, and it would mean widening a contract that `local-eslint` and the reachability check parse. |
+
+**Also known:**
+- The session-forensics `quest` integration test writes a real transcript under `os.homedir()/.claude/projects/` and cleans it up. Jest cannot redirect the home directory mid-process.
+- `attach` inherits the `TS18048` limit that `.under()` has on a child accessor whose extra ancestor comes from a generic `Ids`. The workaround, documented in `packages/hydration/CLAUDE.md`, is to reach the child through its own top-level `.under(...)`.
