@@ -5,8 +5,7 @@ End-to-end manual validation of the quest pipeline. `Riftcarver`, `Codeweaver`, 
 `ward` is not a family of its own, it is the last step of every code-changing family's own graph. Standards review is
 NOT a family and writes NOTHING to `quest.json` — it happens inside `codeweaver`'s and `flowrider`'s own `review`
 step, as guidance that step's session takes on its own initiative rather than a checked or recorded gate. The
-orchestrator (you) runs Phase 0 checks individually, then drives Phases 1–3 as a live quest and branches to fixer
-agents on red.
+orchestrator (you) drives Phases 1–3 as a live quest and branches to fixer agents on red.
 
 > **Want only to hand the user a test quest they can drive by hand?** Skip to
 > **[Fake-Quest Bootstrap](#fake-quest-bootstrap-no-chat-session)**. It is self-contained: it does not need a
@@ -1101,11 +1100,10 @@ keyed off `worktreePrepareStepStatics.classifications`. **→ PASS:** continue.
 
 ## Execution Order
 
-1. Run Phase 0 in its entirety (static checks).
-2. Run Phase 1 as a single unbroken live quest. Branch to fixers on red, restart from failing checkpoint. Enter at 1.2
+1. Run Phase 1 as a single unbroken live quest. Branch to fixers on red, restart from failing checkpoint. Enter at 1.2
    with a *Fake-Quest Bootstrap* quest when no chat session is available.
-3. Run Phase 2 scenarios one by one, each on its own quest. Branch to fixers on red.
-4. Run Phase 3.
+2. Run Phase 2 scenarios one by one, each on its own quest. Branch to fixers on red.
+3. Run Phase 3.
 
 **If the user only asked for a test quest to drive by hand, none of the above applies** — run *Fake-Quest Bootstrap*,
 hand over the URL, and stay available to read `quest.json` for them. That is the whole job.

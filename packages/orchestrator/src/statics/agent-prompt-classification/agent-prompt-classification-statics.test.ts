@@ -103,9 +103,9 @@ describe('agentPromptClassificationStatics', () => {
   });
 
   // `operatorRoleNames` is what the signal-back gates and the prompt renderer read to answer "does
-  // this role own an operation item and brief sub-agents for it". A name here that is not a role
-  // would send a gate looking for an operation item that cannot exist.
-  describe('operatorRoleNames is the three roles that brief sub-agents', () => {
+  // this role own an operation item and run its own plan/work/review step graph". A name here that
+  // is not a role would send a gate looking for an operation item that cannot exist.
+  describe('operatorRoleNames is the three roles that run an operation item end to end', () => {
     it.each(agentPromptClassificationStatics.operatorRoleNames)(
       'VALID: {operatorRole: %s} => is a dispatchable role',
       (operatorRole) => {
@@ -115,9 +115,9 @@ describe('agentPromptClassificationStatics', () => {
       },
     );
 
-    // `spiritmender` repairs a ward red and `warpgate` merges a finished branch. Neither briefs a
-    // sub-agent, so neither may appear here — a gate that treated one as an operator would demand
-    // review coverage of a session that summons nobody.
+    // `spiritmender` repairs a ward red and `warpgate` merges a finished branch — single relay
+    // steps, neither owning a scope with its own plan/work/review step graph — so neither may
+    // appear here.
     it.each(['spiritmender', 'warpgate'])(
       'VALID: {role: %s} => is a role but NOT an operator role',
       (role) => {
