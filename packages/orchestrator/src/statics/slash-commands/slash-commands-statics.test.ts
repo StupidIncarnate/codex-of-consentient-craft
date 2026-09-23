@@ -304,19 +304,23 @@ describe('slashCommandsStatics', () => {
       expect(foundSlice).toBe(needle);
     });
 
-    it('VALID: dumpsterLaunch.body => instructs calling run-ward with questId/workItemId and NO scope argument', () => {
-      const needle =
-        'mcp__dungeonmaster__run-ward({ questId: result.questId, workItemId: result.workItemId })';
+    it('VALID: dumpsterLaunch.body => no longer instructs calling run-ward', () => {
+      const removedNeedle = 'mcp__dungeonmaster__run-ward';
       const { body } = slashCommandsStatics.dumpsterLaunch;
-      const foundIndex = body.indexOf(needle);
-      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
 
-      expect(foundSlice).toBe(needle);
+      expect(body.indexOf(removedNeedle)).toBe(-1);
     });
 
-    it('VALID: dumpsterLaunch.body => instructs calling run-riftcarver with questId/workItemId and NO mode', () => {
+    it('VALID: dumpsterLaunch.body => no longer instructs calling run-riftcarver', () => {
+      const removedNeedle = 'mcp__dungeonmaster__run-riftcarver';
+      const { body } = slashCommandsStatics.dumpsterLaunch;
+
+      expect(body.indexOf(removedNeedle)).toBe(-1);
+    });
+
+    it('VALID: dumpsterLaunch.body => run-step branch tells the user a deterministic step needs the Node dispatcher, then stop', () => {
       const needle =
-        'mcp__dungeonmaster__run-riftcarver({ questId: result.questId, workItemId: result.workItemId })';
+        "waiting on a deterministic step (`result.handler`) that only the Node dispatcher can run — start it with `dungeonmaster start` or the web UI's `/queue` page play button — then STOP the loop; do not keep polling.";
       const { body } = slashCommandsStatics.dumpsterLaunch;
       const foundIndex = body.indexOf(needle);
       const foundSlice = body.slice(foundIndex, foundIndex + needle.length);

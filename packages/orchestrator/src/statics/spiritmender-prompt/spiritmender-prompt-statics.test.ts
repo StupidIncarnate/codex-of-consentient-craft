@@ -166,6 +166,33 @@ describe('spiritmenderPromptStatics', () => {
     });
   });
 
+  // The legacy pt-splice path minted spiritmender as a numbered chain continuation ("pt N:"); the
+  // step graph mints it fresh off a red `ward` step instead, and the regression pass that runs
+  // after this session is that same family's `ward` step, not an MCP `run-ward` item.
+  it('VALID: template => names the family ward step as the regression pass, never a dispatcher run-ward item', () => {
+    const needle =
+      "an orchestrator-dispatched role never runs the full sweep, and the family's own `ward` step is the regression pass that runs after you";
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(template.indexOf('run-ward')).toBe(-1);
+  });
+
+  it('VALID: template => carries no pt-chain prefix claim, and says a red ward step mints a fresh item', () => {
+    const needle =
+      'a red `ward` step mints a fresh spiritmender item every time, never a numbered continuation';
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(template.indexOf('pt N')).toBe(-1);
+  });
+
   it('VALID: template => leaves the repo-wide re-verification to the fresh ward operation item', () => {
     const needle =
       '**You do NOT re-run the whole-repo ward to prove the repo green.** A fresh ward operation item runs after you. Re-verifying the repo is ITS job, not yours.';

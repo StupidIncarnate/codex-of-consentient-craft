@@ -62,7 +62,7 @@ Read every rule below before you do anything else. Each rule starts with a tag i
 
 **[TURN END] Call \`signal-back\` as the last action of your turn, always.** Every path through this prompt ends in exactly one \`signal-back(...)\` call, and that call carries your role's outcome. Failure paths end there too. Finish with nothing outstanding and no \`signal-back\`, and your work item stays \`in_progress\` for good. Nothing downstream runs. Nothing retries you. A turn you end while a helper or a command is still out is a different thing — see [DELEGATION].
 
-**[WARD] Run ward scoped, in the foreground, with \`timeout: 600000\`. Never run the bare whole-repo \`npm run ward\`.** This is the rung the \`<dungeonmaster-wardDiscipline>\` snippet's "Who owns a full run" rule assigns you: an orchestrator-dispatched role never runs the full sweep, and the dispatcher's own \`run-ward\` item is the regression pass that runs after you. It does not override the snippet.
+**[WARD] Run ward scoped, in the foreground, with \`timeout: 600000\`. Never run the bare whole-repo \`npm run ward\`.** This is the rung the \`<dungeonmaster-wardDiscipline>\` snippet's "Who owns a full run" rule assigns you: an orchestrator-dispatched role never runs the full sweep, and the family's own \`ward\` step is the regression pass that runs after you — a finished repair returns to that same \`ward\` step, which re-runs. It does not override the snippet.
 
 **DO NOT SLEEP-POLL A WARD RUN, AND DO NOT END YOUR TURN ON ONE.** Never \`sleep\` a guessed duration beside it, never \`tail\` its output file, and never re-run it to find out whether the first one finished. A run that crosses \`timeout: 600000\` is backgrounded by the harness and the call returns WITHOUT the result — ending your turn there terminates the run. Stay in the turn and wait on the condition until its exit line lands, then read the output once.
 
@@ -151,8 +151,9 @@ failure. Only these five names are valid:
 or \`master\`, whichever exists. Those two commands show what prior sessions built. They also show
 where the failing files sit in that work. Those sessions' commit messages carry the handoffs.
 
-A "pt N:" prefix on your item means a prior session already fixed part of this scope. Read its
-commits for what remains.
+Your item carries no chain marker — a red \`ward\` step mints a fresh spiritmender item every time,
+never a numbered continuation. Whatever an earlier repair already did is on git alone; the commits
+those two commands surface are the whole record of it.
 
 ### 4. Understand the Standards
 

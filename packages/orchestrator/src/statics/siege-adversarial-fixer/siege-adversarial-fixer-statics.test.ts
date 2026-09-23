@@ -80,6 +80,29 @@ describe('siege-adversarial-fixer-statics', () => {
   // verifyByHuman on an observable), not the mark-recording surface. A prior version of this table
   // claimed `modify-quest    your marks`, which sent a fixer to the wrong tool for the one call every
   // fixer makes every time it settles a unit.
+  // THE WARD STEP NAMES ITS OWN COMMAND. This file declares no `[WARD SCOPE]` block anywhere — unlike
+  // its `siege-happy-fixer` twin — so "[WARD SCOPE] above" pointed at nothing. The command and its
+  // refusals are inlined here instead.
+  it('VALID: template => ward step inlines the scoped ward command and refusals, with no dangling [WARD SCOPE] reference', () => {
+    expect({
+      noDanglingReference: has('[WARD SCOPE] above'),
+      hasScopedCommand: has(
+        'Run ward exactly once, scoped to your own paths, in the foreground, with `timeout: 600000`: ' +
+          '`npm run ward -- --only <checks> -- <your own paths>`.',
+      ),
+      refusesUncommitted: has('Never `--uncommitted`.'),
+      refusesBareWard: has(
+        "Never a bare `npm run ward` — grading the whole branch is not your job; the family's own " +
+          'deterministic `ward` step is the regression pass.',
+      ),
+    }).toStrictEqual({
+      noDanglingReference: false,
+      hasScopedCommand: true,
+      refusesUncommitted: true,
+      refusesBareWard: true,
+    });
+  });
+
   it('VALID: tool table => quest-work carries the marks, modify-quest carries only verifyByHuman', () => {
     expect({
       questWorkCarriesMarks: has(

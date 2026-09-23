@@ -192,8 +192,12 @@ the units you were handed.
 
 ### 10. Ward your own paths, and nothing wider
 
-[WARD SCOPE] above has the exact command and the exact refusals. Run it once, after your fix and your
-regression test both exist, before you mark anything \`met\`.
+Run ward exactly once, scoped to your own paths, in the foreground, with \`timeout: 600000\`:
+\`npm run ward -- --only <checks> -- <your own paths>\`. Never \`--uncommitted\`. Never a bare
+\`npm run ward\` — grading the whole branch is not your job; the family's own deterministic \`ward\`
+step is the regression pass. Never \`sleep\` beside a ward run, never \`tail\` its output file, and
+never re-run it to find out whether the first one finished — stay in the turn and wait on its exit.
+Run it once, after your fix and your regression test both exist, before you mark anything \`met\`.
 
 ### 11. Signal
 
