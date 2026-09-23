@@ -87,8 +87,9 @@ const CLOSE_OUT = {
     maxVisits: 3,
     // `empty` is a 0-file scope: green by exit code, but nothing was graded.
     // `wall` is a CRASH — ward never reported on the code, so a spiritmender has nothing
-    // to fix and the next run crashes the same way. quest-run-ward-broker.ts:249-253
-    // already blocks on it today, for that reason.
+    // to fix and the next run crashes the same way. step-handler-ward-broker.ts classifies
+    // ward's exit code 2 as `wall` for exactly that reason, and the `@blocked` route here is
+    // what keeps a repair step from ever being dispatched into it.
     routes: { done: '@done', empty: '@done', unmet: 'repair', wall: '@blocked' },
   },
   repair: {
