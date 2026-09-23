@@ -87,17 +87,6 @@ export const questContract = z.object({
     .describe(
       'User comments queued against flow-diagram nodes and delivered to the LLM chat as a batch',
     ),
-  needsDesign: z
-    .boolean()
-    .default(false)
-    .describe('Whether quest requires UI design phase before implementation'),
-  designPort: z
-    .number()
-    .int()
-    .positive()
-    .brand<'DesignPort'>()
-    .optional()
-    .describe('Port of per-quest Vite design sandbox'),
   userRequest: z.string().min(1).brand<'UserRequest'>(),
   abandonReason: z.string().brand<'AbandonReason'>().optional(),
   pausedAtStatus: questStatusContract

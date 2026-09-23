@@ -791,16 +791,13 @@ describe('modifyQuestInputContract', () => {
     });
   });
 
-  it('VALID: {designPort} => parses successfully', () => {
-    const result = modifyQuestInputContract.parse({
-      questId: 'add-auth',
-      designPort: 5173,
-    });
-
-    expect(result).toStrictEqual({
-      questId: 'add-auth',
-      designPort: 5173,
-    });
+  it('INVALID: {designPort} => throws, the field no longer exists on this contract', () => {
+    expect(() =>
+      modifyQuestInputContract.parse({
+        questId: 'add-auth',
+        designPort: 5173,
+      }),
+    ).toThrow(/Unrecognized key/u);
   });
 
   it('VALID: {status} => parses successfully', () => {

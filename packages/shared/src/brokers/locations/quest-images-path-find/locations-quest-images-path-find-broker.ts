@@ -1,8 +1,7 @@
 /**
  * PURPOSE: Resolver the server's image-write broker composes to place a pasted
  * chat image on disk. Reach for this over locationsWardResultsPathFindBroker
- * or locationsDesignScaffoldPathFindBroker when the target is the quest's
- * images subtree, not ward or design output.
+ * when the target is the quest's images subtree, not ward output.
  *
  * USAGE:
  * locationsQuestImagesPathFindBroker({ questFolderPath: AbsoluteFilePathStub() });

@@ -72,7 +72,7 @@ export const QuestHandleResponder = async ({
   if (tool === 'modify-quest') {
     const questId = questIdContract.parse(args.questId);
 
-    // Sanitize: strip fields agents must not set via MCP. workItems/wardResults/designPort/
+    // Sanitize: strip fields agents must not set via MCP. workItems/wardResults/
     // pausedAtStatus are server-only fields the orchestrator owns end to end. comments is
     // different: it is USER-owned, not server-only — an agent may not author, edit, or delete a
     // comment via MCP, but the comment-batch route legitimately writes this same field through
@@ -83,7 +83,6 @@ export const QuestHandleResponder = async ({
     const sanitized = { ...args };
     Reflect.deleteProperty(sanitized, 'workItems');
     Reflect.deleteProperty(sanitized, 'wardResults');
-    Reflect.deleteProperty(sanitized, 'designPort');
     Reflect.deleteProperty(sanitized, 'pausedAtStatus');
     Reflect.deleteProperty(sanitized, 'comments');
 

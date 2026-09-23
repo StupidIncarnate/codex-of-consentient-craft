@@ -251,13 +251,6 @@ export const modifyQuestInputContract = z
       )
       .optional(),
     title: z.string().min(1).describe('New title for the quest').optional(),
-    designPort: z
-      .number()
-      .int()
-      .positive()
-      .brand<'DesignPort'>()
-      .describe('Port of per-quest Vite design sandbox')
-      .optional(),
     workItems: z
       .array(workItemForUpsertContract)
       .describe('Work items to upsert (existing ID updates, new ID adds)')

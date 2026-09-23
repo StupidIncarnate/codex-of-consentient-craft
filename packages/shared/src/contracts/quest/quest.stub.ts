@@ -16,7 +16,6 @@ export const QuestStub = ({ ...props }: StubArgument<Quest> = {}): Quest =>
     toolingRequirements: [],
     contracts: [],
     flows: [FlowStub()],
-    needsDesign: false,
     userRequest: 'Add authentication to the application',
     workItems: [],
     wardResults: [],

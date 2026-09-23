@@ -437,26 +437,6 @@ describe('QuestHandleResponder', () => {
       });
     });
 
-    it('EDGE: {designPort in args} => strips designPort before passing to adapter', async () => {
-      const proxy = QuestHandleResponderProxy();
-      const modifyResult = ModifyQuestResultStub();
-      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
-
-      await proxy.callResponder({
-        tool: ToolNameStub({ value: 'modify-quest' }),
-        args: {
-          questId: 'test-quest-id',
-          designPort: 5173,
-        },
-      });
-
-      const passedInput = proxy.getLastModifyInput({ questId: 'test-quest-id' });
-
-      expect(passedInput).toStrictEqual({
-        questId: 'test-quest-id',
-      });
-    });
-
     it('EDGE: {comments in args} => strips comments before passing to adapter, and still succeeds', async () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub();

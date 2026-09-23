@@ -19,7 +19,6 @@ export const modifiableQuestFieldsStatics = {
     'status',
     'pausedAtStatus',
     'title',
-    'designPort',
     'workItems',
     'wardResults',
     'planningNotes',

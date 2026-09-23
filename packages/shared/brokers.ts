@@ -79,7 +79,6 @@ export * from './src/brokers/locations/quest-folder-path-find/locations-quest-fo
 export * from './src/brokers/locations/ward-results-path-find/locations-ward-results-path-find-broker';
 export * from './src/brokers/locations/planned-work-path-find/locations-planned-work-path-find-broker';
 export * from './src/brokers/locations/quest-images-path-find/locations-quest-images-path-find-broker';
-export * from './src/brokers/locations/design-scaffold-path-find/locations-design-scaffold-path-find-broker';
 export * from './src/brokers/locations/claude-sessions-dir-find/locations-claude-sessions-dir-find-broker';
 export * from './src/brokers/locations/claude-session-file-path-find/locations-claude-session-file-path-find-broker';
 export * from './src/brokers/locations/claude-subagent-session-file-path-find/locations-claude-subagent-session-file-path-find-broker';

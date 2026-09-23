@@ -57,7 +57,6 @@ describe('questCreateBroker', () => {
       contracts: [],
       flows: [],
       comments: [],
-      needsDesign: false,
       workItems: [],
       wardResults: [],
       riftcarverResults: [],

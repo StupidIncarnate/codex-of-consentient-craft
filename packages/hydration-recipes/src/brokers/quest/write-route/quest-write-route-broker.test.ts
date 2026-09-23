@@ -37,7 +37,6 @@ describe('questWriteRouteBroker', () => {
         contracts: [],
         flows: [],
         comments: [],
-        needsDesign: false,
         userRequest: 'seeded quest 1',
         workItems: [],
         wardResults: [],
