@@ -115,6 +115,14 @@
             "command": "dungeonmaster-session-snippet generatedConfig"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-session-snippet siegelense"
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -257,6 +265,14 @@
           {
             "type": "command",
             "command": "dungeonmaster-session-snippet generatedConfig"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-session-snippet siegelense"
           }
         ]
       }
