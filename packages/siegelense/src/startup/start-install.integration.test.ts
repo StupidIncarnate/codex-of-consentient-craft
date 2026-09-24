@@ -37,7 +37,7 @@ describe('StartInstall', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'created',
-        message: `Created .dungeonmaster-assets/siegelense-assets -> ${dungeonmasterHomePath}/siegelense; Created .gitignore with .dungeonmaster-assets/siegelense-assets; Created packages/hydration-recipes/src/`,
+        message: `Created .dungeonmaster-assets/siegelense-assets -> ${dungeonmasterHomePath}/siegelense; Created .gitignore with .dungeonmaster-assets/siegelense-assets; Created packages/hydration-recipes/ (package.json, tsconfig.json, tsconfig.build.json, src/index.ts)`,
       });
     });
   });
@@ -120,7 +120,7 @@ describe('StartInstall', () => {
   });
 
   describe('the recipes scaffold', () => {
-    it('VALID: {fresh target} => packages/hydration-recipes/src exists and is empty', async () => {
+    it('VALID: {fresh target} => packages/hydration-recipes/src holds the starter index.ts and index.test.ts', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'siegelense-start-install-recipes-empty' }),
       });
@@ -143,7 +143,7 @@ describe('StartInstall', () => {
 
       testbed.cleanup();
 
-      expect(recipesEntries).toStrictEqual([]);
+      expect(recipesEntries).toStrictEqual(['index.test.ts', 'index.ts']);
     });
 
     it('VALID: {recipes folder already holds a file, install run again} => the file is left untouched', async () => {
