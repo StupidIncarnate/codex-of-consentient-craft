@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+
+// Fakes `npm install` / `npm run build --workspace=<name>` for the CliFlow/StartCli `init`
+// integration tests — see npm-command-fake.harness.ts's own header for why. Ignores every argument
+// and exits 0 immediately: every fs write earlier in the install pipeline still runs for real, and
+// only the child process a freshly scaffolded recipes package can't yet build against is faked.
+process.exit(0);

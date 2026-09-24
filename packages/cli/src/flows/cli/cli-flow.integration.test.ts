@@ -8,6 +8,7 @@ import { FileContentsStub, FilePathStub } from '@dungeonmaster/shared/contracts'
 import { siegelenseHelpStatics } from '@dungeonmaster/siegelense/statics';
 
 import { cliStatuslineHarness } from '../../../test/harnesses/cli-statusline/cli-statusline.harness';
+import { npmCommandFakeHarness } from '../../../test/harnesses/npm-command-fake/npm-command-fake.harness';
 
 import { CliSiegelenseResponder } from '../../responders/cli/siegelense/cli-siegelense-responder';
 import { CliFlow } from './cli-flow';
@@ -21,7 +22,16 @@ const BUILT_CALL_NAMES = Object.keys(siegelenseHelpStatics.calls) as readonly Bu
 
 describe('CliFlow', () => {
   describe('command routing', () => {
+    const npmFake = npmCommandFakeHarness();
+
+    // `init` routes through every discovered package's real `dist/startup/start-install.js`,
+    // `@dungeonmaster/siegelense`'s included — which scaffolds a fresh `packages/hydration-recipes`
+    // and then really runs `npm install` / `npm run build --workspace=...` against it (DEF-36). The
+    // fake keeps this test on the fs-write behaviour CliFlow itself is responsible for, the same
+    // way `packages/siegelense/src/flows/install/install-flow.integration.test.ts` fakes it for
+    // siegelense's own install-flow test.
     it('VALID: {command: "init"} => routes to init responder and runs package installers', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'cli-flow-init' }),
       });
