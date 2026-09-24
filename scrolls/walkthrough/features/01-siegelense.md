@@ -52,13 +52,13 @@ shape a recipe run actually returns, and `guild-with-three-quests` now walks its
 
 | ID | Do this | Expect | Auto coverage | Pri | Result |
 |---|---|---|---|---|---|
-| SL-001 | `dungeonmaster siegelense docs` | Prints the about-overview Markdown alone — no role section. No `NOT BUILT YET` markers in the overview text itself. | integration — `siegelense-docs-layer-flow.integration.test.ts` | P2 | pass |
-| SL-002 | `dungeonmaster siegelense docs --for walking` | Prints Markdown: title, About block, one heading for `walking` with its audience, summary and bulleted sections (starts with "READ THIS FIRST"). | integration — same file | P2 | fail DEF-26, DEF-27, DEF-28, DEF-29, DEF-30 |
-| SL-003 | `dungeonmaster siegelense docs --for planning` | Prints the planner's page (prelude/capacity/profile/recipes/testId-vs-ref/step-count sections). | integration — same file | P2 | |
+| SL-001 | `dungeonmaster siegelense docs` | Prints the about-overview Markdown alone — no role section. No `NOT BUILT YET` markers in the overview text itself. | integration — `siegelense-docs-layer-flow.integration.test.ts` | P2 | re-run after DEF-26 |
+| SL-002 | `dungeonmaster siegelense docs --for walking` | Prints Markdown: title, About block, one heading for `walking` with its audience, summary and bulleted sections (starts with "READ THIS FIRST"). | integration — same file | P2 | fail DEF-26, DEF-27, DEF-28, DEF-29, DEF-30 — re-run after the fix |
+| SL-003 | `dungeonmaster siegelense docs --for planning` | Prints the planner's page (prelude/capacity/profile/recipes/testId-vs-ref/step-count sections). | integration — same file | P2 || skip — the DEF-26 fix deleted this scope |
 | SL-004 | `dungeonmaster siegelense docs --for attacking` | Prints the stress-tester's page. | integration — same file | P2 | |
 | SL-005 | `dungeonmaster siegelense docs --for fixing` | Prints the fixer's page. | integration — same file | P2 | |
-| SL-006 | `dungeonmaster siegelense docs --for driving` | Prints the page for "a session nobody orchestrated". | integration — same file | P2 | |
-| SL-007 | `dungeonmaster siegelense docs --for reader` (unknown scope) | Exits 1: `Unknown docs scope: reader` naming the five real scopes, and saying omitting `--for` gets the overview. | integration — same file | P2 | |
+| SL-006 | `dungeonmaster siegelense docs --for driving` | Prints the page for "a session nobody orchestrated". | integration — same file | P2 || skip — the DEF-26 fix deleted this scope |
+| SL-007 | `dungeonmaster siegelense docs --for reader` (unknown scope) | Exits 1: `Unknown docs scope: reader` naming the three real scopes (`walking`, `attacking`, `fixing`), and saying omitting `--for` gets the overview. | integration — same file | P2 | |
 | SL-008 | `dungeonmaster siegelense docs --for walking --json` | Prints raw `DocsAnswer` JSON (about + one document keyed `walking`). | integration — same file | P2 | |
 | SL-009 | `dungeonmaster siegelense docs --json` (no `--for`) | Prints raw JSON with `about` populated and no per-scope document. | integration — same file | P2 | |
 | SL-010 | `dungeonmaster siegelense docs --for walking --human` | Exits 1: `Unknown flag: --human` `--human` is gone from every command. | integration — same file | P2 | |
