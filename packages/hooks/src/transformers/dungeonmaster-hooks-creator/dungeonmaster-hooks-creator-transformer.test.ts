@@ -102,6 +102,14 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
               },
             ],
           },
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'dungeonmaster-session-snippet siegelense',
+              },
+            ],
+          },
         ],
         SubagentStart: [
           {
@@ -172,6 +180,14 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
               {
                 type: 'command',
                 command: 'dungeonmaster-session-snippet generatedConfig',
+              },
+            ],
+          },
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'dungeonmaster-session-snippet siegelense',
               },
             ],
           },
@@ -283,6 +299,31 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
       expect(result.SubagentStop).toStrictEqual([
         { hooks: [{ type: 'command', command: 'dungeonmaster-subagent-stop' }] },
       ]);
+    });
+
+    // DEF-31: no snippet told a session siegelense exists. One hook entry per sessionSnippetStatics
+    // key (dungeonmasterHooksCreatorTransformer's own PURPOSE), so a siegelense key must produce one.
+    it('VALID: {} => generates a SessionStart and SubagentStart hook entry for the siegelense snippet', () => {
+      const result = dungeonmasterHooksCreatorTransformer();
+
+      const sessionStartCommands = result.SessionStart.flatMap((entry) =>
+        entry.hooks.map((hook) => hook.command),
+      );
+      const subagentStartCommands = result.SubagentStart.flatMap((entry) =>
+        entry.hooks.map((hook) => hook.command),
+      );
+
+      expect({
+        sessionStartHasSiegelense: sessionStartCommands.some(
+          (command) => command === 'dungeonmaster-session-snippet siegelense',
+        ),
+        subagentStartHasSiegelense: subagentStartCommands.some(
+          (command) => command === 'dungeonmaster-session-snippet siegelense',
+        ),
+      }).toStrictEqual({
+        sessionStartHasSiegelense: true,
+        subagentStartHasSiegelense: true,
+      });
     });
 
     it('VALID: includes PostToolUse AskUserQuestion matcher => returns correct matcher', () => {

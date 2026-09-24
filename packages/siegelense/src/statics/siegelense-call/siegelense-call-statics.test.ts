@@ -21,7 +21,7 @@ describe('siegelenseCallStatics', () => {
         ],
       },
       docs: {
-        scopes: ['planning', 'walking', 'attacking', 'fixing', 'driving'],
+        scopes: ['walking', 'attacking', 'fixing'],
       },
     });
   });

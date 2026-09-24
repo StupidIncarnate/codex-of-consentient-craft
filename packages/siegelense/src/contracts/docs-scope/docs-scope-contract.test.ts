@@ -33,6 +33,18 @@ describe('docsScopeContract', () => {
         docsScopeContract.parse('start');
       }).toThrow(/Invalid enum value/u);
     });
+
+    it('INVALID: {value: "planning"} => the planning scope is deleted, and refused like any unknown scope', () => {
+      expect(() => {
+        docsScopeContract.parse('planning');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: {value: "driving"} => the driving scope is deleted, and refused like any unknown scope', () => {
+      expect(() => {
+        docsScopeContract.parse('driving');
+      }).toThrow(/Invalid enum value/u);
+    });
   });
 
   describe('edge cases', () => {

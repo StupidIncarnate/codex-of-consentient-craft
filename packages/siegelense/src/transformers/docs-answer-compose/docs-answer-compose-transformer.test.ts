@@ -42,16 +42,28 @@ describe('docsAnswerComposeTransformer', () => {
   });
 
   describe('the preamble', () => {
-    it('VALID: {scope: walking} => the about block is served whatever the scope', () => {
+    it('EMPTY: {scope: walking} => a role page carries no About block, so about is empty', () => {
       const result = docsAnswerComposeTransformer({ scope: DocsScopeStub({ value: 'walking' }) });
+
+      expect(result.about).toStrictEqual([]);
+    });
+
+    it('EMPTY: {scope: fixing} => every role page carries no About block, not just walking', () => {
+      const result = docsAnswerComposeTransformer({ scope: DocsScopeStub({ value: 'fixing' }) });
+
+      expect(result.about).toStrictEqual([]);
+    });
+
+    it('VALID: {scope: null} => the bare call still serves the about overview in full', () => {
+      const result = docsAnswerComposeTransformer({ scope: null });
 
       expect(result.about).toStrictEqual([...docsStatics.about]);
     });
 
-    it('VALID: {scope: walking} => the about block names the 50,000-character ceiling this call routes around', () => {
-      const result = docsAnswerComposeTransformer({ scope: DocsScopeStub({ value: 'walking' }) });
+    it('VALID: {scope: null} => the about block names the 50,000-character ceiling this call routes around', () => {
+      const result = docsAnswerComposeTransformer({ scope: null });
 
-      expect(result.about[6]).toBe(
+      expect(result.about[5]).toBe(
         'These instructions are provided via a command rather than being hardcoded into agent prompts for three reasons. First, any agent can fetch them dynamically. Second, there is only one central source of documentation to maintain. Third, system prompts have character limits; serving the manual dynamically saves valuable prompt space.',
       );
     });

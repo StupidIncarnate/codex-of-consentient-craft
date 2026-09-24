@@ -1,22 +1,19 @@
 /**
  * PURPOSE: The `--help` text for every `dungeonmaster siegelense <call>` — one entry per built
  * call under `calls`, keyed exactly to `siegelenseCallStatics.calls.names`, plus the index page's
- * headline and its list of the not-yet-built names. `index.headline` carries only the fixed prose;
- * `siegelenseHelpRenderTransformer` appends the built-versus-total call count at render time, off
- * `Object.keys(calls).length` and `siegelenseCallStatics.calls.names.length`, so landing a call here
- * can never leave a stale tally behind. `refusals` carries prose lifted verbatim from the MCP tool
- * description each call is replacing, unchanged except for renaming a JSON field to the flag that
- * now carries it — smoothing that wording is how a refusal stops refusing. `internal.driver`
- * documents the driver process `start` spawns; it sits outside `calls` because nobody types
- * `driver` at a terminal. Reach for this over `siegelenseCallStatics` when you need the prose a
- * caller reads — flags, refusals, an example — rather than just the closed list of call names.
+ * headline. `index.headline` carries only the fixed prose; `siegelenseHelpRenderTransformer`
+ * appends the built-versus-total call count at render time, off `Object.keys(calls).length` and
+ * `siegelenseCallStatics.calls.names.length`, so landing a call here can never leave a stale tally
+ * behind. `refusals` carries prose lifted verbatim from the MCP tool description each call is
+ * replacing, unchanged except for renaming a JSON field to the flag that now carries it —
+ * smoothing that wording is how a refusal stops refusing. `internal.driver` documents the driver
+ * process `start` spawns; it sits outside `calls` because nobody types `driver` at a terminal.
+ * Reach for this over `siegelenseCallStatics` when you need the prose a caller reads — flags,
+ * refusals, an example — rather than just the closed list of call names.
  *
  * USAGE:
  * siegelenseHelpStatics.calls.results.refusals;
  * // Returns the one-element array holding the run-id refusal sentence
- *
- * siegelenseHelpStatics.index.notBuiltYet;
- * // Returns [] — every call in the closed set is routed
  */
 
 import { resultsStatics } from '../results/results-statics';
@@ -33,7 +30,6 @@ const JSON_FLAG = {
 export const siegelenseHelpStatics = {
   index: {
     headline: 'dungeonmaster siegelense — every built call reachable without installing anything.',
-    notBuiltYet: [],
     footer: "dungeonmaster siegelense <call> --help  for one call's flags and refusals",
   },
   calls: {
@@ -443,7 +439,7 @@ export const siegelenseHelpStatics = {
         'There is no scope for a code-reading role, and that absence is deliberate: a session that opens source files and calls nothing here would be handed the vocabulary for driving a browser.',
       ],
       output:
-        "With no --for, prints this tool's about overview alone — no role's page. With --for, formatted Markdown by default — the document title, an About block, and one heading for the requested scope with its audience, summary and bulleted sections. `--json` prints the raw DocsAnswer either way — an about preamble, and one document per scope served (none, for the bare overview form).",
+        "With no --for, prints this tool's about overview alone — no role's page. With --for, formatted Markdown by default — the document title and one heading for the requested scope with its audience, summary and bulleted sections; no About block, since a role page is written to stand alone. `--json` prints the raw DocsAnswer either way — about is the preamble for the bare overview form and empty for a role page, and scopes holds one document per scope served (none, for the bare overview form).",
       example: 'dungeonmaster siegelense docs --for walking',
     },
   },

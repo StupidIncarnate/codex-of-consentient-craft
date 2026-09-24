@@ -1,19 +1,20 @@
 /**
  * PURPOSE: Turns one `docs --for <scope>` request into the `DocsAnswer` it is served — the `about`
- * preamble every answer carries, plus one document per scope. A null scope (the bare `docs` call,
- * `--for` omitted) composes NO scope documents at all — decision 5's about-alone overview form —
- * rather than every scope in `siegelenseCallStatics.docs.scopes`, which is what this transformer
- * served before that decision. Reach for this over reading `docsStatics` directly: the scope list
- * for a named scope is iterated from the call statics rather than from the manual's own keys, so a
- * scope pinned in the closed set but missing prose fails loudly at compose time instead of silently
- * serving nothing for it.
+ * preamble, plus one document per scope. A null scope (the bare `docs` call, `--for` omitted)
+ * composes NO scope documents, but DOES carry `about` — the bare-call overview form. A named scope
+ * composes that one document and carries NO `about`: a role page is written to stand alone (the
+ * reader is the prompt that sent them, then this one page), so the tool-level preamble above it
+ * would only push the page's own rules further from the top. Reach for this over reading
+ * `docsStatics` directly: the scope list for a named scope is iterated from the call statics rather
+ * than from the manual's own keys, so a scope pinned in the closed set but missing prose fails
+ * loudly at compose time instead of silently serving nothing for it.
  *
  * USAGE:
  * docsAnswerComposeTransformer({ scope: null });
  * // Returns the about overview alone — no scope documents
  *
  * docsAnswerComposeTransformer({ scope: docsScopeContract.parse('fixing') });
- * // Returns one document, with requested: 'fixing'
+ * // Returns one document, with requested: 'fixing' and about: []
  */
 
 import {
@@ -38,7 +39,7 @@ export const docsAnswerComposeTransformer = ({
 
   return docsAnswerContract.parse({
     requested: scope,
-    about: docsStatics.about,
+    about: scope === null ? docsStatics.about : [],
     scopes: served.map((name) => ({
       scope: name,
       audience: docsStatics.scopes[name].audience,

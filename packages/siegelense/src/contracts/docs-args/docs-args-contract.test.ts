@@ -3,12 +3,12 @@ import { DocsArgsStub } from './docs-args.stub';
 
 describe('docsArgsContract', () => {
   describe('valid args', () => {
-    it('VALID: {scope: "planning", isJson: false} => one scope with markdown default parses', () => {
-      const args = DocsArgsStub({ scope: 'planning', isJson: false });
+    it('VALID: {scope: "fixing", isJson: false} => one scope with markdown default parses', () => {
+      const args = DocsArgsStub({ scope: 'fixing', isJson: false });
 
       const result = docsArgsContract.parse(args);
 
-      expect(result).toStrictEqual({ scope: 'planning', isJson: false });
+      expect(result).toStrictEqual({ scope: 'fixing', isJson: false });
     });
 
     it('VALID: {scope: "walking", isJson: true} => one scope with json parses', () => {
@@ -36,7 +36,7 @@ describe('docsArgsContract', () => {
       expect(result.error?.issues).toStrictEqual([
         {
           code: 'invalid_type',
-          expected: "'planning' | 'walking' | 'attacking' | 'fixing' | 'driving'",
+          expected: "'walking' | 'attacking' | 'fixing'",
           received: 'undefined',
           path: ['scope'],
           message: 'Required',
@@ -51,17 +51,17 @@ describe('docsArgsContract', () => {
       expect(result.error?.issues).toStrictEqual([
         {
           code: 'invalid_enum_value',
-          options: ['planning', 'walking', 'attacking', 'fixing', 'driving'],
+          options: ['walking', 'attacking', 'fixing'],
           path: ['scope'],
           received: 'reader',
           message:
-            "Invalid enum value. Expected 'planning' | 'walking' | 'attacking' | 'fixing' | 'driving', received 'reader'",
+            "Invalid enum value. Expected 'walking' | 'attacking' | 'fixing', received 'reader'",
         },
       ]);
     });
 
     it('INVALID: {missing isJson} => raises exactly one issue, scoped to isJson', () => {
-      const result = docsArgsContract.safeParse({ scope: 'planning' });
+      const result = docsArgsContract.safeParse({ scope: 'fixing' });
 
       expect(result.success).toBe(false);
       expect(result.error?.issues).toStrictEqual([
@@ -78,7 +78,7 @@ describe('docsArgsContract', () => {
     it('INVALID: {extra key "instance"} => throws Unrecognized key, because docs needs no instance', () => {
       expect(() =>
         docsArgsContract.parse({
-          scope: 'planning',
+          scope: 'fixing',
           isJson: false,
           instance: 'inst_7f3a9c21',
         } as never),

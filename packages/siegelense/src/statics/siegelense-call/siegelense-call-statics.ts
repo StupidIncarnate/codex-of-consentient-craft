@@ -10,7 +10,7 @@
  * // Returns the readonly tuple of thirteen call names, in the spec's own order
  *
  * siegelenseCallStatics.docs.scopes;
- * // Returns the readonly tuple of five `docs { for }` scopes, one per tool-using role
+ * // Returns the readonly tuple of `docs { for }` scopes, one per tool-using role
  */
 
 export const siegelenseCallStatics = {
@@ -32,6 +32,6 @@ export const siegelenseCallStatics = {
     ],
   },
   docs: {
-    scopes: ['planning', 'walking', 'attacking', 'fixing', 'driving'],
+    scopes: ['walking', 'attacking', 'fixing'],
   },
 } as const;

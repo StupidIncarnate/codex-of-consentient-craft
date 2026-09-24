@@ -431,6 +431,19 @@ describe('recipeMakerStatics', () => {
     }).toStrictEqual({ sadPaths: 1, spilled: 1, marking: false, markingHeading: false });
   });
 
+  // WITH THE PLANNING DOCS SCOPE DELETED, THE FULL STEP CATALOG LIVES ONLY ON THE WALKING PAGE — a
+  // setup batch that needs a step beyond goto/click/seed has nowhere else in this prompt to learn
+  // one exists.
+  it('VALID: served template => points at the walking docs for the full step catalog', () => {
+    expect(
+      hasIn({
+        needle:
+          'dungeonmaster siegelense docs --for walking` names every verb the step contract accepts',
+        text: TEMPLATE,
+      }),
+    ).toBe(true);
+  });
+
   it('VALID: served template => opens with `get-quest-work` as its first call', () => {
     expect({
       firstStep: hasIn({ needle: '### 1. Read the request', text: TEMPLATE }),

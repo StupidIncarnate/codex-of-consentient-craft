@@ -1,10 +1,13 @@
 /**
- * PURPOSE: Renders a `DocsAnswer` as formatted Markdown — the document title, the ABOUT block,
- * and one block per scope with headings, audience, summary, and bulleted sections. Reach for this
- * over `siegelenseHelpRenderTransformer`, which renders a different document: that one is a call's
- * flag reference, this one is a role's page of rules. The two share no section order on purpose,
- * because a reader looking for a flag and a reader looking for a rule are not scanning for the same
- * shape.
+ * PURPOSE: Renders a `DocsAnswer` as formatted Markdown — the document title, an ABOUT block ONLY
+ * when `about` carries lines (the bare-call overview; `docsAnswerComposeTransformer` leaves it
+ * empty for a named scope, since a role page stands alone), and one block per scope with headings,
+ * audience, summary, and bulleted sections. A line starting `{ "step":` is fenced as JSON — every
+ * such line in `docsStatics` is valid JSON, double-quoted keys and strings, so a reader can parse it
+ * straight off the page. Reach for this over `siegelenseHelpRenderTransformer`, which renders a
+ * different document: that one is a call's flag reference, this one is a role's page of rules. The
+ * two share no section order on purpose, because a reader looking for a flag and a reader looking
+ * for a rule are not scanning for the same shape.
  *
  * USAGE:
  * docsAnswerRenderTransformer({ answer: docsAnswerComposeTransformer({ scope: null }) });
@@ -38,7 +41,7 @@ export const docsAnswerRenderTransformer = ({ answer }: { answer: DocsAnswer }):
 
       const renderedLines = section.lines
         .map((line) => {
-          if (line.startsWith('{ step:')) {
+          if (line.startsWith('{ "step":')) {
             return `\n\`\`\`json\n${line}\n\`\`\`\n`;
           }
           if (

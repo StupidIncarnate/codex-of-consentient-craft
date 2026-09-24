@@ -479,4 +479,22 @@ describe('sessionSnippetStatics', () => {
       ungeneratedGoesToTheUser: true,
     });
   });
+
+  // DEF-31: NO SNIPPET TOLD A SESSION SIEGELENSE EXISTS. Siegelense works in every repo `dungeonmaster
+  // init` touches, the same as every other snippet here — this checks it names no repo-local path.
+  it('VALID: siegelense snippet => says what it is, when to reach for it, and where the manual lives', () => {
+    expect({
+      pointsAtDocs: sessionSnippetStatics.siegelense.includes(
+        'dungeonmaster siegelense docs --for <scope>',
+      ),
+      pointsAtCallHelp: sessionSnippetStatics.siegelense.includes(
+        'dungeonmaster siegelense <call> --help',
+      ),
+      namesNoRepoLocalPath: /packages\/|scrolls\//u.test(sessionSnippetStatics.siegelense),
+    }).toStrictEqual({
+      pointsAtDocs: true,
+      pointsAtCallHelp: true,
+      namesNoRepoLocalPath: false,
+    });
+  });
 });

@@ -1,27 +1,25 @@
 /**
  * PURPOSE: Renders one call's `--help` page in the fixed section order — headline, USAGE, FLAGS,
  * REFUSES, OUTPUT, EXAMPLE, no per-call variation — or, when `call` is `null`, the index every bare
- * `dungeonmaster siegelense --help` prints: the headline, one line per built call, the NOT BUILT
- * YET block, then the footer. An empty array omits its whole block, heading included — true of
- * `refusals` on a call and of `notBuiltYet` on the index alike, so a reader can tell "no rule to
- * load" apart from "this call refuses nothing", and a finished surface apart from a truncated page.
- * Reach for this over inlining the text in `SiegelenseFlow`'s `--help` branch: the flow's own
- * spawned-process acceptance test and this file's unit test must read the identical first line for
- * every call, and only a pure function makes that provable without a process. `SiegelenseCall` is
- * derived here as `keyof typeof siegelenseHelpStatics.calls` — the BUILT calls, narrower than
- * `siegelenseCallStatics.calls.names`'s full closed set — because no dedicated contract carries
- * that type; it is exported so a caller building a route table over the same keys, such as the
- * flow, can import it from here rather than re-deriving it. The index headline's built-versus-total
- * count is computed here, off those same two lists, rather than typed into
- * `siegelenseHelpStatics.index.headline` — a hand-typed tally goes stale the moment a call is
- * routed and nothing here catches it.
+ * `dungeonmaster siegelense --help` prints: the headline, one line per built call, then the footer.
+ * An empty `refusals` array omits its whole block, heading included, so a reader can tell "no rule
+ * to load" apart from "this call refuses nothing". Reach for this over inlining the text in
+ * `SiegelenseFlow`'s `--help` branch: the flow's own spawned-process acceptance test and this
+ * file's unit test must read the identical first line for every call, and only a pure function
+ * makes that provable without a process. `SiegelenseCall` is derived here as `keyof typeof
+ * siegelenseHelpStatics.calls` — the BUILT calls, narrower than `siegelenseCallStatics.calls.names`'s
+ * full closed set — because no dedicated contract carries that type; it is exported so a caller
+ * building a route table over the same keys, such as the flow, can import it from here rather than
+ * re-deriving it. The index headline's built-versus-total count is computed here, off those same
+ * two lists, rather than typed into `siegelenseHelpStatics.index.headline` — a hand-typed tally
+ * goes stale the moment a call is routed and nothing here catches it.
  *
  * USAGE:
  * siegelenseHelpRenderTransformer({ call: 'cleanup' });
  * // Returns the `cleanup` page: headline, USAGE, FLAGS, REFUSES, OUTPUT, EXAMPLE
  *
  * siegelenseHelpRenderTransformer({ call: null });
- * // Returns the index: headline, one line per built call, NOT BUILT YET, footer
+ * // Returns the index: headline, one line per built call, footer
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
@@ -50,17 +48,9 @@ export const siegelenseHelpRenderTransformer = ({
       'CALLS',
       ...builtNames.map((name) => `  ${siegelenseHelpStatics.calls[name].summary}`),
     ].join('\n');
-    // Same rule the REFUSES block follows below: an empty list omits the heading too. A bare
-    // NOT BUILT YET with nothing under it reads as a truncated page rather than as a finished tool.
-    // Joined rather than mapped, because `as const` over an empty list types its elements `never`,
-    // and a template literal over `never` does not compile.
-    const notBuiltList = siegelenseHelpStatics.index.notBuiltYet.join('\n  ');
-    const notBuiltBlock = notBuiltList === '' ? [] : [`NOT BUILT YET\n  ${notBuiltList}`];
 
     return contentTextContract.parse(
-      `${[headline, callsBlock, ...notBuiltBlock, siegelenseHelpStatics.index.footer].join(
-        SECTION_GAP,
-      )}\n`,
+      `${[headline, callsBlock, siegelenseHelpStatics.index.footer].join(SECTION_GAP)}\n`,
     );
   }
 

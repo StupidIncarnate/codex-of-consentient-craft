@@ -8,13 +8,13 @@ import { SiegelenseDocsResponderProxy } from './siegelense-docs-responder.proxy'
 
 describe('SiegelenseDocsResponder', () => {
   describe('one scope', () => {
-    it('VALID: {scope: planning, isJson: true} => writes that document alone as JSON, naming it in requested', async () => {
+    it('VALID: {scope: fixing, isJson: true} => writes that document alone as JSON, naming it in requested, with no about preamble', async () => {
       const proxy = SiegelenseDocsResponderProxy();
-      const scope = DocsScopeStub({ value: 'planning' });
+      const scope = DocsScopeStub({ value: 'fixing' });
 
       await SiegelenseDocsResponder({ scope, isJson: true });
 
-      expect(proxy.getStdoutLines()[1]).toBe('  "requested": "planning",');
+      expect(proxy.getStdoutLines()[1]).toBe('  "requested": "fixing",');
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(
           docsAnswerComposeTransformer({ scope }),
@@ -24,9 +24,9 @@ describe('SiegelenseDocsResponder', () => {
       ]);
     });
 
-    it('VALID: {scope: planning, isJson: false} => writes that document alone as Markdown by default', async () => {
+    it('VALID: {scope: fixing, isJson: false} => writes that document alone as Markdown by default', async () => {
       const proxy = SiegelenseDocsResponderProxy();
-      const scope = DocsScopeStub({ value: 'planning' });
+      const scope = DocsScopeStub({ value: 'fixing' });
 
       await SiegelenseDocsResponder({ scope, isJson: false });
 
@@ -39,40 +39,41 @@ describe('SiegelenseDocsResponder', () => {
   });
 
   describe('the rendered manual', () => {
-    it('VALID: {scope: driving, isJson: false} => writes Markdown opening on title', async () => {
+    it('VALID: {scope: fixing, isJson: false} => writes Markdown opening on title, with no About block', async () => {
       const proxy = SiegelenseDocsResponderProxy();
 
       await SiegelenseDocsResponder({
-        scope: DocsScopeStub({ value: 'driving' }),
+        scope: DocsScopeStub({ value: 'fixing' }),
         isJson: false,
       });
 
       expect(proxy.getStdoutLines()[0]).toBe('# Siegelense Documentation');
+      expect(proxy.getStdoutLines().some((line) => line === '## About')).toBe(false);
     });
 
-    it("VALID: {scope: driving, isJson: false} => the driving table's first row reaches stdout formatted", async () => {
+    it("VALID: {scope: fixing, isJson: false} => the fixing page's first section reaches stdout formatted", async () => {
       const proxy = SiegelenseDocsResponderProxy();
 
       await SiegelenseDocsResponder({
-        scope: DocsScopeStub({ value: 'driving' }),
+        scope: DocsScopeStub({ value: 'fixing' }),
         isJson: false,
       });
 
-      expect(proxy.getStdoutLines()[17]).toBe(
-        '### FIVE THINGS TRUE OF YOU AND OF NO DISPATCHED ROLE',
+      expect(proxy.getStdoutLines()[6]).toBe(
+        '### WHAT YOU WERE HANDED, AND WHAT THE FIRST FOUR READS COST',
       );
-      expect(proxy.getStdoutLines()[19]).toBe(
-        '- You are sharing this machine with other agents. Run capacity before starting anything. The start command will queue your request if the machine is busy, so starting multiple instances will slow down other tests.',
+      expect(proxy.getStdoutLines()[8]).toBe(
+        '- You will receive a test record containing the instance ID, the run ID, the step that failed, the setup sequence, and paths to the saved evidence.',
       );
     });
   });
 
   describe('the return', () => {
-    it('VALID: {scope: planning, isJson: false} => answers success without starting anything', async () => {
+    it('VALID: {scope: fixing, isJson: false} => answers success without starting anything', async () => {
       SiegelenseDocsResponderProxy();
 
       const result = await SiegelenseDocsResponder({
-        scope: DocsScopeStub({ value: 'planning' }),
+        scope: DocsScopeStub({ value: 'fixing' }),
         isJson: false,
       });
 

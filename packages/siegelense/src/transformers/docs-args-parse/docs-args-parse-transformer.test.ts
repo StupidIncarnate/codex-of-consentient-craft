@@ -46,7 +46,7 @@ describe('docsArgsParseTransformer', () => {
     it('INVALID: {args: ["--for", "reader"]} => refuses by name, lists the five scopes and names the bare-docs overview', () => {
       expect(() => docsArgsParseTransformer({ args: ['--for', 'reader'] })).toThrow(
         'Unknown docs scope: reader\n\n' +
-          'docs serves one scope per tool-using role. The scopes that exist are: planning, walking, attacking, fixing, driving. ' +
+          'docs serves one scope per tool-using role. The scopes that exist are: walking, attacking, fixing. ' +
           'Omit --for entirely to get the tool overview alone.\n\n' +
           'Usage: dungeonmaster siegelense docs [--for <scope>] [--json]',
       );
@@ -55,7 +55,7 @@ describe('docsArgsParseTransformer', () => {
     it('INVALID: {args: ["--for", "start"]} => a call name is refused as a scope, listing the scopes and the overview', () => {
       expect(() => docsArgsParseTransformer({ args: ['--for', 'start'] })).toThrow(
         'Unknown docs scope: start\n\n' +
-          'docs serves one scope per tool-using role. The scopes that exist are: planning, walking, attacking, fixing, driving. ' +
+          'docs serves one scope per tool-using role. The scopes that exist are: walking, attacking, fixing. ' +
           'Omit --for entirely to get the tool overview alone.\n\n' +
           'Usage: dungeonmaster siegelense docs [--for <scope>] [--json]',
       );
@@ -64,7 +64,7 @@ describe('docsArgsParseTransformer', () => {
     it('INVALID: {args: ["--for", "operating"]} => the retired operating scope is refused like any unknown scope', () => {
       expect(() => docsArgsParseTransformer({ args: ['--for', 'operating'] })).toThrow(
         'Unknown docs scope: operating\n\n' +
-          'docs serves one scope per tool-using role. The scopes that exist are: planning, walking, attacking, fixing, driving. ' +
+          'docs serves one scope per tool-using role. The scopes that exist are: walking, attacking, fixing. ' +
           'Omit --for entirely to get the tool overview alone.\n\n' +
           'Usage: dungeonmaster siegelense docs [--for <scope>] [--json]',
       );
