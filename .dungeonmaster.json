@@ -17,6 +17,39 @@
     "port": 4750,
     "webPort": 4751,
     "readinessPath": "/",
-    "readinessTimeoutMs": 45000
+    "readinessTimeoutMs": 45000,
+    "e2e": {
+      "processes": [
+        {
+          "name": "api",
+          "command": "npm run dev:no-watch --workspace=@dungeonmaster/server",
+          "portRole": "api",
+          "readyPath": "/api/guilds",
+          "env": {
+            "DUNGEONMASTER_PORT": "{apiPort}",
+            "DUNGEONMASTER_HOME": "{home}",
+            "HOME": "{home}",
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "XDG_CONFIG_HOME": "{home}/.config",
+            "CLAUDE_CLI_PATH": "packages/web/test/harnesses/claude-mock/bin/claude",
+            "WARD_CLI_PATH": "packages/orchestrator/test-fixtures/fake-ward-bin/dungeonmaster-ward",
+            "FAKE_CLAUDE_QUEUE_DIR": "{claudeQueueDir}",
+            "FAKE_WARD_QUEUE_DIR": "{wardQueueDir}",
+            "E2E_SIGNAL_BACK_HTTP": "1",
+            "DUNGEONMASTER_RATE_LIMITS_POLL_MS": "500"
+          }
+        },
+        {
+          "name": "web",
+          "command": "npx vite preview --config packages/web/vite.config.ts --strictPort --outDir packages/web/dist",
+          "portRole": "web",
+          "readyPath": "/",
+          "env": {
+            "DUNGEONMASTER_PORT": "{apiPort}",
+            "DUNGEONMASTER_WEB_PORT": "{webPort}"
+          }
+        }
+      ]
+    }
   }
 }
