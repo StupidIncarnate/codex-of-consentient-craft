@@ -5,6 +5,7 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 export const fsWriteFileAdapterProxy = (): {
   succeeds: ({ filepath, contents }: { filepath: FilePath; contents: FileContents }) => void;
   throws: ({ filepath, error }: { filepath: FilePath; error: Error }) => void;
+  getWrittenFor: ({ filepath }: { filepath: FilePath }) => unknown;
 } => {
   const mockWriteFile = registerMock({ fn: writeFile });
 
@@ -21,5 +22,8 @@ export const fsWriteFileAdapterProxy = (): {
     throws: ({ filepath, error }: { filepath: FilePath; error: Error }): void => {
       mockWriteFile.calledWith([filepath]).rejects(error);
     },
+    // Answers for this path only — never "whatever was written last".
+    getWrittenFor: ({ filepath }: { filepath: FilePath }): unknown =>
+      mockWriteFile.callsMatching([filepath]).at(-1)?.[1],
   };
 };

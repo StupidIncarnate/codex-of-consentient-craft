@@ -40,6 +40,17 @@ describe('start-install integration', () => {
               buildCommand: 'npm run build',
               readinessPath: '/',
               readinessTimeoutMs: 30000,
+              e2e: {
+                processes: [
+                  {
+                    name: 'app',
+                    command: 'npm run dev:no-watch',
+                    portRole: 'api',
+                    readyPath: '/',
+                    env: { PORT: '{apiPort}' },
+                  },
+                ],
+              },
             },
           },
           null,
