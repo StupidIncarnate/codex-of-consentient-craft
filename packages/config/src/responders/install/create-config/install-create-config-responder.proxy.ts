@@ -16,6 +16,7 @@ export const InstallCreateConfigResponderProxy = (): {
   callResponder: typeof InstallCreateConfigResponder;
   setupConfigExists: () => void;
   setupConfigNotExists: () => void;
+  getWrittenConfig: () => unknown;
 } => {
   const joinProxy = pathJoinAdapterProxy();
   const accessProxy = fsAccessAdapterProxy();
@@ -40,5 +41,7 @@ export const InstallCreateConfigResponderProxy = (): {
         contents: FileContentsStub({ value: '{}' }),
       });
     },
+
+    getWrittenConfig: (): unknown => writeProxy.getWrittenFor({ filepath: CONFIG_PATH }),
   };
 };

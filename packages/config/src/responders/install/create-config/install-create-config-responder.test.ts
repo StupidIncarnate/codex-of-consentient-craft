@@ -1,4 +1,5 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { e2eProcessPlaceholderStatics } from '../../../statics/e2e-process-placeholder/e2e-process-placeholder-statics';
 import { InstallCreateConfigResponderProxy } from './install-create-config-responder.proxy';
 
 describe('InstallCreateConfigResponder', () => {
@@ -20,6 +21,26 @@ describe('InstallCreateConfigResponder', () => {
         success: true,
         action: 'created',
         message: 'Created .dungeonmaster.json',
+      });
+    });
+
+    it('VALID: {context: no existing config} => seeds the placeholder devServer.e2e.processes entry', async () => {
+      const proxy = InstallCreateConfigResponderProxy();
+
+      proxy.setupConfigNotExists();
+
+      await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      const written = JSON.parse(String(proxy.getWrittenConfig())) as Record<PropertyKey, unknown>;
+      const devServer = written.devServer as Record<PropertyKey, unknown>;
+
+      expect(devServer.e2e).toStrictEqual({
+        processes: [e2eProcessPlaceholderStatics.process],
       });
     });
   });

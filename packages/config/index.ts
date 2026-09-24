@@ -15,13 +15,17 @@ import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { architectureFolderStatics } from './src/statics/architecture-folder/architecture-folder-statics';
 import type { Framework } from './src/contracts/framework/framework-contract';
 import type { SchemaLibrary } from './src/contracts/schema-library/schema-library-contract';
-import type { DungeonmasterConfig } from './src/contracts/dungeonmaster-config/dungeonmaster-config-contract';
+import type {
+  DungeonmasterConfig,
+  DevServerE2eProcess,
+} from './src/contracts/dungeonmaster-config/dungeonmaster-config-contract';
 import type { AllowedExternalImports } from './src/contracts/folder-config/folder-config-contract';
 import type { FrameworkPreset } from './src/contracts/framework-presets/framework-presets-contract';
 
 export { configResolveBroker };
 export { DungeonmasterConfigStub } from './src/contracts/dungeonmaster-config/dungeonmaster-config.stub';
 export { configDefaultsStatics } from './src/statics/config-defaults/config-defaults-statics';
+export { e2eProcessPlaceholderStatics } from './src/statics/e2e-process-placeholder/e2e-process-placeholder-statics';
 
 export type ArchitectureFolder =
   typeof architectureFolderStatics.folders.all extends readonly (infer U)[] ? U : never;
@@ -55,6 +59,7 @@ export type {
   Framework,
   SchemaLibrary,
   DungeonmasterConfig,
+  DevServerE2eProcess,
   AllowedExternalImports,
   FrameworkPreset,
 };

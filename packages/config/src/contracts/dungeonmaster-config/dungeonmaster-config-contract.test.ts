@@ -808,4 +808,167 @@ describe('dungeonmaster-config-contract', () => {
       expect(config.devServer?.port).toBe(4750);
     });
   });
+
+  describe('devServer.e2e configurations', () => {
+    it('VALID: config without devServer.e2e => e2e is undefined', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        devServer: {
+          devCommand: 'npm run dev',
+          port: 3000,
+        },
+      });
+
+      expect(parsed.devServer?.e2e).toBe(undefined);
+    });
+
+    it('VALID: devServer.e2e with one process => parses the process fields', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        devServer: {
+          devCommand: 'npm run dev',
+          port: 3000,
+          e2e: {
+            processes: [
+              { name: 'app', command: 'npm run dev:no-watch', portRole: 'api', readyPath: '/' },
+            ],
+          },
+        },
+      });
+
+      expect(parsed.devServer?.e2e).toStrictEqual({
+        processes: [
+          { name: 'app', command: 'npm run dev:no-watch', portRole: 'api', readyPath: '/' },
+        ],
+      });
+    });
+
+    it('VALID: devServer.e2e process with env => keeps the env map', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        devServer: {
+          devCommand: 'npm run dev',
+          port: 3000,
+          e2e: {
+            processes: [
+              {
+                name: 'api',
+                command: 'npm run dev:no-watch --workspace=@scope/server',
+                portRole: 'api',
+                readyPath: '/api/guilds',
+                env: { PORT: '{apiPort}' },
+              },
+            ],
+          },
+        },
+      });
+
+      expect(parsed.devServer?.e2e?.processes[0]?.env).toStrictEqual({ PORT: '{apiPort}' });
+    });
+
+    it('VALID: devServer.e2e with two processes => parses both, one per portRole', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        devServer: {
+          devCommand: 'npm run dev',
+          port: 3000,
+          e2e: {
+            processes: [
+              {
+                name: 'api',
+                command: 'npm run dev:no-watch --workspace=@scope/server',
+                portRole: 'api',
+                readyPath: '/api/guilds',
+              },
+              {
+                name: 'web',
+                command: 'npx vite preview --strictPort',
+                portRole: 'web',
+                readyPath: '/',
+              },
+            ],
+          },
+        },
+      });
+
+      expect(parsed.devServer?.e2e?.processes).toStrictEqual([
+        {
+          name: 'api',
+          command: 'npm run dev:no-watch --workspace=@scope/server',
+          portRole: 'api',
+          readyPath: '/api/guilds',
+        },
+        {
+          name: 'web',
+          command: 'npx vite preview --strictPort',
+          portRole: 'web',
+          readyPath: '/',
+        },
+      ]);
+    });
+
+    it('EMPTY: devServer.e2e without processes => throws validation error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          devServer: {
+            devCommand: 'npm run dev',
+            port: 3000,
+            e2e: {},
+          },
+        });
+      }).toThrow(/Required/u);
+    });
+
+    it('INVALID: devServer.e2e with empty processes array => throws validation error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          devServer: {
+            devCommand: 'npm run dev',
+            port: 3000,
+            e2e: { processes: [] },
+          },
+        });
+      }).toThrow(/too_small/u);
+    });
+
+    it('INVALID: devServer.e2e process with empty command => throws validation error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          devServer: {
+            devCommand: 'npm run dev',
+            port: 3000,
+            e2e: {
+              processes: [{ name: 'app', command: '', portRole: 'api', readyPath: '/' }],
+            },
+          },
+        });
+      }).toThrow(/too_small/u);
+    });
+
+    it('INVALID: devServer.e2e process with unknown portRole => throws validation error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          devServer: {
+            devCommand: 'npm run dev',
+            port: 3000,
+            e2e: {
+              processes: [{ name: 'app', command: 'npm run dev', portRole: 'db', readyPath: '/' }],
+            },
+          },
+        });
+      }).toThrow(/Invalid enum value/u);
+    });
+  });
 });

@@ -106,6 +106,38 @@ export const dungeonmasterConfigContract = z
           .min(configDefaultsStatics.devServer.readinessTimeoutMs.min)
           .default(configDefaultsStatics.devServer.readinessTimeoutMs.default)
           .brand<'ReadinessTimeoutMs'>(),
+        // Boots a consumer's own app for siegelense/Playwright, the way THAT repo's own e2e setup
+        // boots it — not dungeonmaster's own server. Absent means no e2e lane is configured yet.
+        e2e: z
+          .object({
+            processes: z
+              .array(
+                z.object({
+                  // 'api' | 'web' by convention — an open string so a single-server app's spec
+                  // still validates with only one process.
+                  name: z.string().min(1).brand<'E2eProcessName'>(),
+                  // A complete, already-composed, NO-WATCH shell command — may reference the same
+                  // {apiPort}/{webPort}/{apiWorkspace}/{webWorkspace} tokens
+                  // lanePlaceholderSubstituteTransformer substitutes at boot time. A free-form
+                  // string spawned through a shell, exactly like Playwright's own webServer.command.
+                  command: z.string().min(1).brand<'E2eCommand'>(),
+                  portRole: z.enum(['api', 'web']),
+                  readyPath: z.string().min(1).brand<'ReadinessPath'>(),
+                  // Per-process env, so a fake CLI (Claude/ward) is wired here rather than assumed
+                  // from the caller's shell — the orchestrator's own siege lanes set no such vars.
+                  // Values take the same placeholder tokens as `command`; a relative value resolves
+                  // against the repo root.
+                  env: z
+                    .record(
+                      z.string().brand<'E2eEnvVarName'>(),
+                      z.string().brand<'E2eEnvVarValue'>(),
+                    )
+                    .optional(),
+                }),
+              )
+              .min(1),
+          })
+          .optional(),
       })
       .optional(),
   })
@@ -124,3 +156,11 @@ export const dungeonmasterConfigContract = z
   );
 
 export type DungeonmasterConfig = z.infer<typeof dungeonmasterConfigContract>;
+
+type DevServerE2eProcesses = NonNullable<
+  NonNullable<DungeonmasterConfig['devServer']>['e2e']
+>['processes'];
+
+// One entry of devServer.e2e.processes — the shape siegelense's spec-derive broker reads and the
+// shape InstallCreateConfigResponder seeds as a placeholder.
+export type DevServerE2eProcess = DevServerE2eProcesses extends readonly (infer U)[] ? U : never;
