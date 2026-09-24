@@ -1,12 +1,12 @@
 import * as os from 'os';
 import * as path from 'path';
-import { readFileSync, readdirSync } from 'fs';
+import { readFileSync } from 'fs';
 import { defineConfig, devices } from '@playwright/test';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
-import { hasHonoOrExpressAdapterGuard } from '@dungeonmaster/shared/guards';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
+import { contentTextContract, networkPortContract } from '@dungeonmaster/shared/contracts';
+import type { ContentText, NetworkPort } from '@dungeonmaster/shared/contracts';
+import { e2eUnresolvableTokenStatics } from './src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics';
 
 // CI keeps one retry to absorb shared-runner infrastructure noise.
 const CI_RETRIES = 1;
@@ -19,68 +19,19 @@ const DEFAULT_E2E_PORT = 5737;
 const TEST_PORT = Number(process.env.DUNGEONMASTER_PORT) || DEFAULT_E2E_PORT;
 const WEB_PORT = Number(process.env.DUNGEONMASTER_WEB_PORT) || TEST_PORT + 1;
 const TEST_HOME = process.env.E2E_TEST_HOME ?? path.join(os.tmpdir(), `dm-e2e-${process.pid}`);
-// Ward builds the UI once per hash of its inputs and hands the winning directory over here. The
-// fallback is this package's own `dist`, which is what a hand-run `npx playwright test` gets after
-// `npm run build --workspace=@dungeonmaster/web` — ward never reads or writes that path.
-const BUNDLE_DIR = process.env.DUNGEONMASTER_WEB_BUNDLE_DIR ?? path.resolve(__dirname, 'dist');
-const FAKE_CLAUDE_CLI = path.resolve(__dirname, 'test/harnesses/claude-mock/bin/claude');
 const FAKE_CLAUDE_QUEUE_DIR = path.join(TEST_HOME, locationsStatics.siegelense.claudeQueueDir);
 const FAKE_WARD_QUEUE_DIR = path.join(TEST_HOME, locationsStatics.siegelense.wardQueueDir);
-const FAKE_WARD_CLI = path.resolve(
-  __dirname,
-  '../orchestrator/test-fixtures/fake-ward-bin/dungeonmaster-ward',
-);
 const REAL_HOME = osUserHomedirAdapter();
-
-// The command below names the workspace this repo's own API server lives in. Hardcoding
-// '@dungeonmaster/server' there is what no-hardcoded-package-names bans: this file is this repo's
-// OWN e2e config and never ships to a consumer, so the portability concern the rule exists for does
-// not apply to it directly — but the honest fix is the same one the rule asks for everywhere else,
-// not an eslint-disable (banned outright by eslint-comments/no-use and by the pre-edit lint hook).
-// Resolved off disk via the SAME signal `detectPackageTypeLayerBroker` uses for the 'http-backend'
-// kind, so a repo rename or a package split is caught by a clear config-load throw instead of a
-// silently stale hardcoded name. Exactly one packages/* directory must carry a hono or express
-// adapter; zero or several is a repo-authoring mistake, not a case this file guesses through.
-const PACKAGES_ROOT = path.resolve(__dirname, '..');
-
-const resolveHttpBackendWorkspaceName = (): ContentText => {
-  const packageDirNames = readdirSync(PACKAGES_ROOT, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name);
-
-  const matches = packageDirNames.flatMap((dirName) => {
-    const packageRoot = path.join(PACKAGES_ROOT, dirName);
-    const adapterDirNames = (() => {
-      try {
-        return readdirSync(path.join(packageRoot, 'src', 'adapters'), { withFileTypes: true })
-          .filter((entry) => entry.isDirectory())
-          .map((entry) => entry.name);
-      } catch {
-        return [];
-      }
-    })();
-    if (!hasHonoOrExpressAdapterGuard({ adapterDirNames })) {
-      return [];
-    }
-    const packageJson = JSON.parse(
-      readFileSync(path.join(packageRoot, 'package.json'), 'utf-8'),
-    ) as Record<PropertyKey, unknown> | undefined;
-    const packageName = packageJson?.name;
-    return typeof packageName === 'string' ? [packageName] : [];
-  });
-
-  if (matches.length !== 1) {
-    const found = matches.length === 0 ? '(none)' : matches.join(', ');
-    throw new Error(
-      `playwright.config.ts: expected exactly one packages/* directory detected as http-backend ` +
-        `(a hono or express adapter), found ${String(matches.length)}: ${found}.`,
-    );
-  }
-  const [httpBackendWorkspaceName] = matches;
-  return contentTextContract.parse(httpBackendWorkspaceName);
-};
-
-const HTTP_BACKEND_WORKSPACE = resolveHttpBackendWorkspaceName();
+// Every configured process below spawns with this as its `cwd` — the same repo root a siegelense
+// lane always spawns from (`lane-boot-broker.ts`'s own `spawnCwd`), so a relative
+// `devServer.e2e.processes[].command`/`env` value in `.dungeonmaster.json` resolves identically
+// whichever one booted the server.
+const REPO_ROOT = path.resolve(__dirname, '..', '..');
+// Ward builds the UI once per hash of its inputs and hands the winning directory over here via this
+// env var — see check-run-e2e-broker.ts. Unset (a hand-run `npx playwright test`, or a siegelense
+// lane, which never sets it) falls through to whatever `devServer.e2e.processes` names for the web
+// process, ordinarily this package's own `dist` after `npm run build --workspace=@dungeonmaster/web`.
+const WEB_BUNDLE_DIR_OVERRIDE = process.env.DUNGEONMASTER_WEB_BUNDLE_DIR;
 
 process.env.E2E_TEST_HOME = TEST_HOME;
 process.env.DUNGEONMASTER_PORT = String(TEST_PORT);
@@ -93,10 +44,158 @@ process.env.E2E_SERVER_HOME ??= TEST_HOME;
 // otherwise still resolve to a REAL `$XDG_CONFIG_HOME/git/config`, and GIT_CONFIG_NOSYSTEM keeps
 // `/etc/gitconfig` out of the picture too. Set here (this IS the Playwright test process — its
 // workers fork after this module runs, so `process.env` is already correct for
-// environment.harness.ts's own `execFileSync('git', ...)` calls) and again in the API server's
-// webServer env below, matching every other var this file threads both ways.
+// environment.harness.ts's own `execFileSync('git', ...)` calls) and again via
+// `devServer.e2e.processes[].env` in `.dungeonmaster.json` below, matching every other var this
+// file threads both ways.
 process.env.GIT_CONFIG_NOSYSTEM = '1';
 process.env.XDG_CONFIG_HOME = path.join(TEST_HOME, '.config');
+
+// Reads the SAME devServer.e2e.processes block a siegelense lane derives its spec from
+// (packages/siegelense/src/brokers/lane-spec/find/lane-spec-find-broker.ts) — one edit to
+// .dungeonmaster.json reaches both, so this suite and a `dungeonmaster siegelense start` lane can
+// never drift onto two different dev commands or two different fakes.
+interface E2eProcessConfig {
+  name: ContentText;
+  command: ContentText;
+  portRole: ContentText;
+  readyPath: ContentText;
+  env?: Record<PropertyKey, ContentText>;
+}
+
+interface DungeonmasterConfigShape {
+  devServer?: { e2e?: { processes?: E2eProcessConfig[] } };
+}
+
+const CONFIG_PATH = path.join(REPO_ROOT, locationsStatics.repoRoot.config);
+
+const readRawConfig = (): unknown => {
+  try {
+    return JSON.parse(readFileSync(CONFIG_PATH, 'utf8'));
+  } catch (error) {
+    throw new Error(
+      `playwright.config.ts could not read or parse .dungeonmaster.json at ${CONFIG_PATH}: ${String(error)}`,
+      { cause: error },
+    );
+  }
+};
+
+const processes = (readRawConfig() as DungeonmasterConfigShape).devServer?.e2e?.processes;
+
+if (!Array.isArray(processes) || processes.length === 0) {
+  throw new Error(
+    'playwright.config.ts found no devServer.e2e.processes in .dungeonmaster.json — add the ' +
+      "processes this repo's own dev server needs (name, command, portRole, readyPath, env).",
+  );
+}
+
+const PORT_BY_ROLE: Record<PropertyKey, NetworkPort> = {
+  api: networkPortContract.parse(TEST_PORT),
+  web: networkPortContract.parse(WEB_PORT),
+};
+
+// `__dirname` IS this package's own directory at runtime — never a literal `packages/web/...`
+// string, which `no-hardcoded-package-names` refuses inside an executable command.
+const WEB_VITE_CONFIG_PATH = path.join(__dirname, 'vite.config.ts');
+
+// Populated only when ward (or a hand-run `DUNGEONMASTER_WEB_BUNDLE_DIR=...`) names a prebuilt
+// bundle — keyed by portRole, like PORT_BY_ROLE above, rather than a bare `=== 'web'` branch: see
+// laneProcessPortResolveTransformer's own header for why `no-hardcoded-package-names` reads that
+// comparison as deciding something ON a package name.
+const OVERRIDE_COMMAND_BY_ROLE: Record<PropertyKey, ContentText> =
+  WEB_BUNDLE_DIR_OVERRIDE === undefined
+    ? {}
+    : {
+        web: contentTextContract.parse(
+          `npx vite preview --config ${WEB_VITE_CONFIG_PATH} --strictPort --outDir "${WEB_BUNDLE_DIR_OVERRIDE}"`,
+        ),
+      };
+
+// The five tokens `lanePlaceholderSubstituteTransformer` fills for a siegelense lane. {apiWorkspace}
+// and {webWorkspace} are deliberately NOT in this list — this repo's own config never needs them (it
+// names its workspaces literally), so a value using either refuses loudly below instead of spawning
+// a command carrying the unexpanded token text.
+const RESOLVABLE_TOKENS: Record<PropertyKey, ContentText> = {
+  '{apiPort}': contentTextContract.parse(String(TEST_PORT)),
+  '{webPort}': contentTextContract.parse(String(WEB_PORT)),
+  '{home}': contentTextContract.parse(TEST_HOME),
+  '{claudeQueueDir}': contentTextContract.parse(FAKE_CLAUDE_QUEUE_DIR),
+  '{wardQueueDir}': contentTextContract.parse(FAKE_WARD_QUEUE_DIR),
+};
+const UNRESOLVABLE_TOKENS = e2eUnresolvableTokenStatics.tokens.all;
+
+const substituteTokens = (value: string): ContentText =>
+  contentTextContract.parse(
+    Object.entries(RESOLVABLE_TOKENS).reduce(
+      (result, [token, replacement]) => result.split(token).join(replacement),
+      value,
+    ),
+  );
+
+const refuseUnresolvableToken = ({ value, field }: { value: string; field: string }): void => {
+  const token = UNRESOLVABLE_TOKENS.find((candidate) => value.includes(candidate));
+  if (token !== undefined) {
+    throw new Error(
+      `playwright.config.ts: devServer.e2e.processes[].${field} in .dungeonmaster.json uses ${token}, ` +
+        'which this file cannot resolve — write a literal value instead.',
+    );
+  }
+};
+
+// A repo-relative env value (contains "/", starts with neither "/" nor "@" — the same shape
+// `isRelativePathEnvValueGuard` matches for a siegelense lane) resolves against REPO_ROOT, exactly
+// as `laneEnvSubstituteTransformer` resolves it there — so CLAUDE_CLI_PATH/WARD_CLI_PATH read the
+// same way whichever one spawned the server.
+const isRelativePathEnvValue = (value: string): boolean =>
+  !value.startsWith('/') && !value.startsWith('@') && value.includes('/');
+
+const resolveEnvValue = (value: string): ContentText => {
+  const substituted = substituteTokens(value);
+  return isRelativePathEnvValue(substituted)
+    ? contentTextContract.parse(path.join(REPO_ROOT, substituted))
+    : substituted;
+};
+
+// `dev:no-watch`, never `dev`, for every configured process — see root CLAUDE.md's "Test isolation".
+// `dev` is `tsx watch --conditions=source`, and `--conditions=source` resolves every
+// `@dungeonmaster/*` import to TypeScript source, so ANY write anywhere in the tree restarts the
+// process mid-suite: the port is gone for ~1.5s, Vite's `/api` proxy answers with a bare 500 and an
+// empty body, and whichever spec is in flight fails on whatever it happened to be doing.
+const webServer = processes.map((entry) => {
+  const port = PORT_BY_ROLE[entry.portRole];
+  if (port === undefined) {
+    throw new Error(
+      `playwright.config.ts: devServer.e2e.processes["${entry.name}"].portRole must be "api" or ` +
+        '"web" in .dungeonmaster.json',
+    );
+  }
+
+  refuseUnresolvableToken({ value: entry.command, field: 'command' });
+
+  const env: Record<PropertyKey, ContentText> = {
+    DUNGEONMASTER_PORT: contentTextContract.parse(String(TEST_PORT)),
+    DUNGEONMASTER_WEB_PORT: contentTextContract.parse(String(WEB_PORT)),
+  };
+  for (const [key, value] of Object.entries(entry.env ?? {})) {
+    refuseUnresolvableToken({ value, field: `env.${key}` });
+    env[key] = resolveEnvValue(value);
+  }
+
+  const command = OVERRIDE_COMMAND_BY_ROLE[entry.portRole] ?? substituteTokens(entry.command);
+
+  return {
+    command,
+    cwd: REPO_ROOT,
+    // `--strictPort` on the web command (in .dungeonmaster.json) is what makes this url reachable:
+    // without it vite quietly picks the next free port and this wait dies on
+    // "Timed out waiting 60000ms from config.webServer", naming a timeout rather than the collision
+    // that caused it.
+    url: `http://${environmentStatics.hostname}:${String(port)}${substituteTokens(entry.readyPath)}`,
+    // Never reuse: a server left over from an earlier session is serving an earlier build, and the
+    // suite reports on code nobody is looking at.
+    reuseExistingServer: false,
+    env,
+  };
+});
 
 export default defineConfig({
   testDir: './src',
@@ -134,64 +233,5 @@ export default defineConfig({
     },
   ],
 
-  webServer: [
-    {
-      // `dev:no-watch`, never `dev`. The server's `dev` script is `tsx watch`, and
-      // `--conditions=source` puts every `packages/*/src/**` file in this repo into its module
-      // graph — so ANY write anywhere in the tree restarts the API server mid-suite. The port is
-      // gone for ~1.5 s while it reboots, Vite's `/api` proxy answers `ECONNREFUSED` with a bare
-      // `500` and an EMPTY body, and whichever spec is in flight fails on whatever it happened to
-      // be doing: `response.json()` on nothing (`SyntaxError: Unexpected end of JSON input`), a
-      // POST that never reaches a handler, or a panel that never mounts because its quest fetch
-      // died. Measured: an editor saving one file every ~14 s during a full run produced six such
-      // failures, each timestamp-matched to a save. The suite has no use for a watcher — Playwright
-      // starts this process once and tears it down at the end.
-      command: `npm run dev:no-watch --workspace=${HTTP_BACKEND_WORKSPACE}`,
-      port: TEST_PORT,
-      reuseExistingServer: false,
-      env: {
-        DUNGEONMASTER_PORT: String(TEST_PORT),
-        DUNGEONMASTER_HOME: TEST_HOME,
-        HOME: TEST_HOME,
-        // Git isolation for every real `git` call production code makes against a fixture repo
-        // during this run (e.g. riftcarver) — see the top-level assignment above for why both
-        // are needed alongside HOME=TEST_HOME + global-setup.ts's <TEST_HOME>/.gitconfig.
-        GIT_CONFIG_NOSYSTEM: '1',
-        XDG_CONFIG_HOME: path.join(TEST_HOME, '.config'),
-        CLAUDE_CLI_PATH: FAKE_CLAUDE_CLI,
-        FAKE_CLAUDE_QUEUE_DIR,
-        FAKE_WARD_QUEUE_DIR,
-        WARD_CLI_PATH: FAKE_WARD_CLI,
-        // Registers the env-gated POST /api/quests/:questId/signal-back route so the fake Claude CLI
-        // (which has no MCP client) can drive the operations-ledger relay over HTTP. Production never
-        // sets this, so the route is never exposed outside e2e.
-        E2E_SIGNAL_BACK_HTTP: '1',
-        // Shorten the rate-limits.json poller from the production 5 s interval
-        // so e2e tests aren't gated by the poll cycle. The orchestrator's
-        // RateLimitsBootstrapResponder reads this env var on startup.
-        DUNGEONMASTER_RATE_LIMITS_POLL_MS: '500',
-      },
-    },
-    {
-      // `preview`, never `dev`. This serves an ALREADY-BUILT directory as static files, so the
-      // bundle cannot change under a spec: there is no watcher to silence and no module graph to
-      // invalidate, and the suite skips both the dev server's startup and its per-request
-      // transform. The `preview` block in vite.config.ts carries the port and the `/api` and `/ws`
-      // proxies the specs reach the API server through.
-      //
-      // `--strictPort` because Playwright waits on exactly WEB_PORT: without it vite quietly picks
-      // the next free port and the run dies on `Timed out waiting 60000ms from config.webServer`,
-      // naming a timeout rather than the collision that caused it.
-      command: `npx vite preview --strictPort --outDir "${BUNDLE_DIR}"`,
-      port: WEB_PORT,
-      reuseExistingServer: false,
-      env: {
-        DUNGEONMASTER_PORT: String(TEST_PORT),
-        // Vite must listen on the SAME port Playwright waits for here. Both sides fall back to
-        // `API port + 1`, and those two fallbacks agree only while one launcher picks both ports.
-        // Passing it explicitly is what keeps them together when ward allocates them separately.
-        DUNGEONMASTER_WEB_PORT: String(WEB_PORT),
-      },
-    },
-  ],
+  webServer,
 });
