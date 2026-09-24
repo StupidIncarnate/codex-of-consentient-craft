@@ -67,7 +67,7 @@ export const laneSpecFindBroker = async ({
   const placeholder = e2eProcessPlaceholderStatics.process;
   const isUnedited = configuredProcesses.some((entry) => {
     const entryEnvEntries = Object.entries(entry.env ?? {}).map(
-      ([key, value]) => [String(key), String(value)] as const,
+      ([key, value]) => [key, String(value)] as const,
     );
     const placeholderEnvEntries = Object.entries(placeholder.env);
     const envMatches =
@@ -104,12 +104,12 @@ export const laneSpecFindBroker = async ({
       logFileName: {
         api: locationsStatics.siegelense.apiLog,
         web: locationsStatics.siegelense.webLog,
-      }[entry.portRole as 'api' | 'web'],
+      }[entry.portRole],
       env:
         entry.env === undefined
           ? {}
           : Object.fromEntries(
-              Object.entries(entry.env).map(([key, value]) => [String(key), String(value)]),
+              Object.entries(entry.env).map(([key, value]) => [key, String(value)]),
             ),
     })),
     browser,

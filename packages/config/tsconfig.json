@@ -7,7 +7,7 @@
   },
   "include": [
     "src/**/*",
-    "index.ts"
+    "*.ts"
   ],
   "extends": "../../tsconfig.json"
 }
