@@ -77,6 +77,7 @@
   },
   "dependencies": {
     "@dungeonmaster/cli": "*",
+    "@dungeonmaster/config": "*",
     "@dungeonmaster/shared": "*",
     "pixelmatch": "^5.3.0",
     "pngjs": "^6.0.0",
