@@ -1,16 +1,19 @@
 /**
- * PURPOSE: Creates `packages/hydration-recipes/src/` in the target repo when that package is
- * absent, so `packages/hydration-recipes/` exists in every repo siegelense is installed in — a
- * convention nothing creates is a convention half the repos will not have. An EMPTY folder is a
- * real answer where a MISSING one is not: an empty folder says "no recipes yet", an absent folder
- * can only say "something is wrong", and the tool cannot tell "you have written none" from "you
- * have not installed this". An existing package is left completely untouched — the convention
- * travels, the recipes do not.
+ * PURPOSE: Creates a complete, buildable `packages/hydration-recipes/` in the target repo when
+ * that package is absent — package.json, tsconfig.json, tsconfig.build.json, and a starter
+ * src/index.ts exporting the three names `recipesConventionStatics.exports` requires — so
+ * `recipesLocateBroker` finds a package `npm run build` can actually act on instead of a bare
+ * `src/` folder nothing can compile (`RecipesBuildMissingError` in every fresh consumer repo
+ * otherwise). An existing package is left completely untouched — the convention travels, the
+ * recipes do not. The scaffolded package.json's scope matches the target repo's OWN workspace
+ * packages, detected off its root package.json the same convention `@dungeonmaster/cli`'s own
+ * `create-package` uses.
  *
  * USAGE:
  * const result = await InstallRecipesScaffoldResponder({ context });
- * // Creates packages/hydration-recipes/src/ when the package is absent; an existing package's
- * // contents are neither read nor written
+ * // Creates packages/hydration-recipes/{package.json,tsconfig.json,tsconfig.build.json,
+ * // src/index.ts,src/index.test.ts} when the package is absent; an existing package's contents
+ * // are neither read nor written
  */
 
 import {
@@ -23,13 +26,21 @@ import {
   type InstallResult,
   filePathContract,
   installMessageContract,
+  packageJsonContract,
   packageNameContract,
+  pathSegmentContract,
 } from '@dungeonmaster/shared/contracts';
+
+import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { recipesScaffoldFilesTransformer } from '../../../transformers/recipes-scaffold-files/recipes-scaffold-files-transformer';
+import { workspaceScopeDetectTransformer } from '../../../transformers/workspace-scope-detect/workspace-scope-detect-transformer';
 
 const PACKAGE_NAME = '@dungeonmaster/siegelense';
 const PACKAGES_DIRNAME = 'packages';
 const RECIPES_PACKAGE_DIRNAME = 'hydration-recipes';
 const SRC_DIRNAME = 'src';
+const ROOT_PACKAGE_JSON_FILENAME = 'package.json';
 
 export const InstallRecipesScaffoldResponder = async ({
   context,
@@ -57,12 +68,42 @@ export const InstallRecipesScaffoldResponder = async ({
   const recipesSrcPath = pathResolveAdapter({ paths: [recipesPackagePath, SRC_DIRNAME] });
   await fsMkdirAdapter({ filepath: filePathContract.parse(recipesSrcPath) });
 
+  const rootPackageJsonPath = pathResolveAdapter({
+    paths: [context.targetProjectRoot, ROOT_PACKAGE_JSON_FILENAME],
+  });
+
+  let workspaceScope = pathSegmentContract.parse('');
+  if (fsExistsSyncAdapter({ filePath: filePathContract.parse(rootPackageJsonPath) })) {
+    const rootPackageJsonContents = await fsReadFileAdapter({ filePath: rootPackageJsonPath });
+    const rawRootPackageJson: unknown = JSON.parse(rootPackageJsonContents);
+    workspaceScope = workspaceScopeDetectTransformer({
+      rootPackageJson: packageJsonContract.parse(rawRootPackageJson),
+    });
+  }
+
+  const recipesPackageName = packageNameContract.parse(
+    workspaceScope === ''
+      ? RECIPES_PACKAGE_DIRNAME
+      : `${workspaceScope}/${RECIPES_PACKAGE_DIRNAME}`,
+  );
+
+  const scaffoldFiles = recipesScaffoldFilesTransformer({ packageName: recipesPackageName });
+
+  await Promise.all(
+    scaffoldFiles.map(async (file) =>
+      fsWriteFileAdapter({
+        filePath: pathResolveAdapter({ paths: [recipesPackagePath, file.relativePath] }),
+        contents: file.contents,
+      }),
+    ),
+  );
+
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),
     success: true,
     action: 'created',
     message: installMessageContract.parse(
-      `Created ${PACKAGES_DIRNAME}/${RECIPES_PACKAGE_DIRNAME}/${SRC_DIRNAME}/`,
+      `Created ${PACKAGES_DIRNAME}/${RECIPES_PACKAGE_DIRNAME}/ (package.json, tsconfig.json, tsconfig.build.json, ${SRC_DIRNAME}/index.ts)`,
     ),
   };
 };

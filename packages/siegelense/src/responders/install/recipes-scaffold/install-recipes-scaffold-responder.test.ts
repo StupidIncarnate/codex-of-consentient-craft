@@ -1,4 +1,6 @@
-import { FilePathStub, InstallContextStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, InstallContextStub, PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { locationsStatics, recipesConventionStatics } from '@dungeonmaster/shared/statics';
+
 import { InstallRecipesScaffoldResponderProxy } from './install-recipes-scaffold-responder.proxy';
 
 const CONTEXT = InstallContextStub({
@@ -9,8 +11,8 @@ const CONTEXT = InstallContextStub({
 });
 
 describe('InstallRecipesScaffoldResponder', () => {
-  describe('package absent', () => {
-    it('VALID: {packages/hydration-recipes absent} => created, with an empty src/', async () => {
+  describe('package absent, no root package.json', () => {
+    it('VALID: {no root package.json} => created, package.json/tsconfig.json/tsconfig.build.json/src/index.ts/src/index.test.ts written', async () => {
       const proxy = InstallRecipesScaffoldResponderProxy();
       proxy.setupPackageAbsent();
 
@@ -20,9 +22,179 @@ describe('InstallRecipesScaffoldResponder', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'created',
-        message: 'Created packages/hydration-recipes/src/',
+        message:
+          'Created packages/hydration-recipes/ (package.json, tsconfig.json, tsconfig.build.json, src/index.ts)',
       });
       expect(proxy.getCreatedDirs()).toStrictEqual(['/project/packages/hydration-recipes/src']);
+    });
+
+    it('VALID: {no root package.json} => package.json is unscoped', async () => {
+      const proxy = InstallRecipesScaffoldResponderProxy();
+      proxy.setupPackageAbsent();
+
+      await proxy.callResponder({ context: CONTEXT });
+
+      const packageJsonContents = proxy.getWrittenContents({
+        relativePath: PathSegmentStub({ value: 'package.json' }),
+      });
+
+      expect(JSON.parse(String(packageJsonContents))).toStrictEqual({
+        name: 'hydration-recipes',
+        version: '0.1.0',
+        description: 'hydration-recipes package',
+        private: true,
+        exports: {
+          '.': {
+            source: './src/index.ts',
+            import: './dist/index.js',
+            require: './dist/index.js',
+            types: './dist/index.d.ts',
+          },
+        },
+        scripts: {
+          build: 'tsc -p tsconfig.build.json',
+          'build:clean': 'rm -rf dist .ward/build.tsbuildinfo && npm run build',
+          test: 'dungeonmaster-ward --only test',
+          typecheck: 'dungeonmaster-ward --only typecheck',
+          lint: 'dungeonmaster-ward --only lint',
+          ward: 'dungeonmaster-ward',
+        },
+        devDependencies: {
+          '@types/node': '^20.11.0',
+          typescript: '^5.3.3',
+        },
+      });
+    });
+  });
+
+  describe('package absent, root package.json carries a scoped workspace dependency', () => {
+    it('VALID: {rootDependencies: {"@acme/shared": "*"}} => package.json is scoped to "@acme"', async () => {
+      const proxy = InstallRecipesScaffoldResponderProxy();
+      proxy.setupPackageAbsent({ rootDependencies: { '@acme/shared': '*' } });
+
+      await proxy.callResponder({ context: CONTEXT });
+
+      const packageJsonContents = proxy.getWrittenContents({
+        relativePath: PathSegmentStub({ value: 'package.json' }),
+      });
+
+      expect(JSON.parse(String(packageJsonContents))).toStrictEqual({
+        name: '@acme/hydration-recipes',
+        version: '0.1.0',
+        description: 'hydration-recipes package',
+        private: true,
+        exports: {
+          '.': {
+            source: './src/index.ts',
+            import: './dist/index.js',
+            require: './dist/index.js',
+            types: './dist/index.d.ts',
+          },
+        },
+        scripts: {
+          build: 'tsc -p tsconfig.build.json',
+          'build:clean': 'rm -rf dist .ward/build.tsbuildinfo && npm run build',
+          test: 'dungeonmaster-ward --only test',
+          typecheck: 'dungeonmaster-ward --only typecheck',
+          lint: 'dungeonmaster-ward --only lint',
+          ward: 'dungeonmaster-ward',
+        },
+        devDependencies: {
+          '@types/node': '^20.11.0',
+          typescript: '^5.3.3',
+        },
+      });
+    });
+
+    it('VALID: {rootDependencies: {"@acme/shared": "*"}} => tsconfig.json is written', async () => {
+      const proxy = InstallRecipesScaffoldResponderProxy();
+      proxy.setupPackageAbsent({ rootDependencies: { '@acme/shared': '*' } });
+
+      await proxy.callResponder({ context: CONTEXT });
+
+      const tsconfigContents = proxy.getWrittenContents({
+        relativePath: PathSegmentStub({ value: locationsStatics.repoRoot.tsconfig }),
+      });
+
+      expect(JSON.parse(String(tsconfigContents))).toStrictEqual({
+        extends: '../../tsconfig.json',
+        compilerOptions: {
+          typeRoots: ['../../node_modules/@types', '../../@types'],
+        },
+        include: ['src/**/*'],
+      });
+    });
+
+    it('VALID: {rootDependencies: {"@acme/shared": "*"}} => tsconfig.build.json compiles src/index.ts to dist/index.js', async () => {
+      const proxy = InstallRecipesScaffoldResponderProxy();
+      proxy.setupPackageAbsent({ rootDependencies: { '@acme/shared': '*' } });
+
+      await proxy.callResponder({ context: CONTEXT });
+
+      const tsconfigBuildContents = proxy.getWrittenContents({
+        relativePath: PathSegmentStub({ value: 'tsconfig.build.json' }),
+      });
+
+      expect(JSON.parse(String(tsconfigBuildContents))).toStrictEqual({
+        extends: './tsconfig.json',
+        compilerOptions: {
+          noEmit: false,
+          rootDir: './src',
+          outDir: './dist',
+          declaration: true,
+          declarationMap: true,
+          incremental: true,
+          tsBuildInfoFile: './.ward/build.tsbuildinfo',
+        },
+        exclude: [
+          '**/*.test.ts',
+          '**/*.proxy.ts',
+          '**/*.stub.ts',
+          '**/*.harness.ts',
+          'src/.test-tmp/**',
+          'src/_lint-testbed/**',
+        ],
+      });
+    });
+
+    it('VALID: {rootDependencies: {"@acme/shared": "*"}} => src/index.ts exports the three recipesConventionStatics names', async () => {
+      const proxy = InstallRecipesScaffoldResponderProxy();
+      proxy.setupPackageAbsent({ rootDependencies: { '@acme/shared': '*' } });
+
+      await proxy.callResponder({ context: CONTEXT });
+
+      const indexTsContents = String(
+        proxy.getWrittenContents({ relativePath: PathSegmentStub({ value: 'src/index.ts' }) }),
+      );
+
+      expect(indexTsContents).toBe(
+        `/**
+ * PURPOSE: The starter surface for this \`hydration-recipes\` package — the three names
+ * \`recipesConventionStatics.exports\` requires (\`@dungeonmaster/shared/statics\`), so
+ * \`dungeonmaster siegelense recipes\` answers with an empty listing the moment this package is
+ * built, instead of throwing \`RecipesBuildMissingError\`. Add a recipe under a sibling
+ * \`src/recipes-<name>/\` folder and wire it into ${recipesConventionStatics.exports.listing}'s
+ * return array and ${recipesConventionStatics.exports.seed}'s dispatch.
+ *
+ * USAGE:
+ * ${recipesConventionStatics.exports.listing}();
+ * // Returns []
+ */
+
+export const ${recipesConventionStatics.exports.listing} = (): readonly never[] => [];
+
+export const ${recipesConventionStatics.exports.manifest}: readonly never[] =
+  ${recipesConventionStatics.exports.listing}();
+
+export const ${recipesConventionStatics.exports.seed} = async (
+  _params: Record<string, unknown>,
+): Promise<never> => {
+  throw new Error(
+    'no recipes defined yet — add one under packages/hydration-recipes/src/recipes-<name>/',
+  );
+};
+`,
+      );
     });
   });
 
