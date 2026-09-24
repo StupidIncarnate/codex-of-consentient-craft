@@ -1,7 +1,8 @@
 /**
  * PURPOSE: Represents a boot failure the DRIVER ITSELF already diagnosed and wrote to its
- * failure marker before exiting — a `FakeAgentCliRequiredError`, a malformed spec, anything the
- * driver process catches and reports on its own — as opposed to `LaneBootFailedError`, which
+ * failure marker before exiting — a malformed spec, a process that exited before opening its
+ * port, anything the driver process catches and reports on its own — as opposed to
+ * `LaneBootFailedError`, which
  * `instanceStartBroker` throws only when the poll ran out its full deadline with NO such report to
  * read. `driverMessage` is the driver's own `.message`, carried through verbatim rather than
  * re-described, so a person reads the SAME cause the driver process actually hit — the missing

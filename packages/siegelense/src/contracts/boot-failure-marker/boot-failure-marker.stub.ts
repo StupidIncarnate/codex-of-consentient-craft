@@ -10,8 +10,7 @@ export const BootFailureMarkerStub = ({
 }: StubArgument<BootFailureMarker> = {}): BootFailureMarker =>
   bootFailureMarkerContract.parse({
     message: ContentTextStub({
-      value:
-        'Lane spec dungeonmaster-stack requires a fake agent CLI, and the environment supplies none of it: set CLAUDE_CLI_PATH to a stub Claude CLI binary; set WARD_CLI_PATH to a stub dungeonmaster-ward CLI binary.',
+      value: 'the api process exited before opening its port',
     }),
     atMs: EpochMsStub(),
     ...props,
