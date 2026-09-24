@@ -101,8 +101,6 @@ since each one boots an API server, a Vite server and a browser. Jest integratio
 **Fencing resolution to a worktree takes a `ts.resolveModuleName` host that hides paths outside it.** The
 `<dungeonmaster-worktrees>` snippet says why a worktree is not hermetic; this is the mechanism that works here.
 
-See `playbook/smoke-testing.md` for manual verification steps.
-
 ## Project Info
 
 **Tech Stack**: TypeScript, Node.js, Jest

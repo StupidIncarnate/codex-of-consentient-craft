@@ -7,7 +7,7 @@ The driver keeps this file current. `README.md` says how.
 | | |
 |---|---|
 | Feature | `features/01-siegelense.md` |
-| Next case | `SL-044` — `siegelense start --spec dungeonmaster-stack`, the first case of Phase 1 |
+| Next case | `SL-003` — `siegelense docs --for planning`. **On hold:** the user will not read SL-003 to SL-011 until a sub-agent has fixed the `docs` pages against the prompts that use them (DEF-26 to DEF-31). Skip ahead only if the user says so |
 | Rebuild owed | Check at session start. See README, step 3 |
 
 ## Feature progress
@@ -37,11 +37,37 @@ Status values:
 | `interrupted — re-dispatch` | Its sub-agent died with a session. Check for partial edits first |
 | `won't fix` | The user decided so. The reason is in the cell |
 
-Next free number: **DEF-26**. It starts there because commits and older scrolls already use DEF-01 to DEF-25
+Next free number: **DEF-36**. It starts there because commits and older scrolls already use DEF-01 to DEF-25
 for a siegelense walkthrough that finished before this one.
 
 | # | Feature · case | Defect | Status |
 |---|---|---|---|
+| DEF-26 | SL · SL-002 | `docs --for walking` prints the whole `## About` overview above the walking page. The user asks whether the overview belongs inside a role page at all | `dispatched — worktrees/def-26`. One fix covers DEF-26 to DEF-31 |
+| DEF-27 | SL · SL-002 | The `### STOPON AND EXPECT` section is unclear. It never says `--stop-on` is a flag on `run`, or that `expect: error` is a field on a step object | `dispatched — worktrees/def-26`. One fix covers DEF-26 to DEF-31 |
+| DEF-28 | SL · SL-002 | After reading the walking page, the user still does not know how to use the tool. It has no start-to-finish sequence: `start` to get an instance id, `run --instance <id> --steps '[...]'`, `results`, `kill`. It lists step shapes without the command that carries them | `dispatched — worktrees/def-26`. One fix covers DEF-26 to DEF-31 |
+| DEF-29 | SL · SL-002 | The page says "There are ten available actions", then describes `until` straight after. The step contract has more verbs than ten | `dispatched — worktrees/def-26`. One fix covers DEF-26 to DEF-31 |
+| DEF-30 | SL · SL-002 | The example blocks are fenced as `json` but are not valid JSON, for example `{ step: 'goto', path: '...' }`. An agent that copies one into `--steps` gets a parse error | `dispatched — worktrees/def-26`. One fix covers DEF-26 to DEF-31 |
+| DEF-31 | SL · SL-002 | Only the orchestrator's siege-* prompts tell an agent about siegelense. No session snippet names it, and `get-architecture` does not either. The user wants every session, inside the orchestrator or not, to get a short rundown of the tool, why to use it, and where its docs are | `dispatched — worktrees/def-26`. One fix covers DEF-26 to DEF-31 |
+| DEF-32 | SL · SL-002 | siegelense only works in this checkout. Its two lane specs, `dungeonmaster-stack` and `dungeonmaster-api`, boot dungeonmaster's own server (`readyPath: '/api/guilds'`). They also need fake Claude and ward CLIs that ship only in this repo's test folders. A consumer has no way to describe their own app. The user says it is meant to work in every repo. Evidence: `packages/siegelense/src/statics/lane-spec/lane-spec-statics.ts:19-22,39-54`, `lane-spec-find-broker.ts:17-27` | `needs decision` — investigated. In a consumer repo, `start` fails first with `FakeAgentCliRequiredError` (`lane-boot-broker.ts:111-144`), before any process spawns. The orchestrator hard-codes `specName: 'dungeonmaster-stack'` (`packages/orchestrator/src/statics/lane/lane-statics.ts:15-18`). Nothing in siegelense or the lane brokers reads `.dungeonmaster.json`. The design notes list this as open "item 17" (`scrolls/seigelense/siegelense-tooling.md:2112`), with no design. Recommended: derive a lane spec from `.dungeonmaster.json` (`devCommand`, ports, `framework`), with a hand-written spec as a fallback. The user answered (below). `dispatched` — a sub-agent is writing the design, `scrolls/siegelense-consumer-lanes.md`. The build waits for that design and for DEF-26 to leave `packages/siegelense` and `packages/orchestrator` |
+| DEF-33 | SL · SL-002 | `dungeonmaster init` does not set up a consumer repo so that each siegelense run can boot the app on its own ports. The user runs dungeonmaster on several repos with the same setup | `queued` — part of the DEF-32 design |
+| DEF-34 | SL · SL-002 | The smoke-test playbook is badly out of date. The user wants it deleted | `fixed` — the user deleted `playbook/smoketest-mcp-handoff.md` and `playbook/smoketest-mcp-orchestration.md` by hand. `smoketest-instances.md` and `smoketest-orchastrator.md` stay. Uncommitted as of 2026-09-23 |
+| DEF-35 | SL · SL-002 | `dungeonmaster init` should add a `hydration-recipes` folder to a consumer repo that has none, so siegelense can seed from it | `queued` — part of the DEF-32 design, which checks what init does today |
+
+The user's decisions for the DEF-26 fix, 2026-09-23:
+
+1. A role page (`docs --for <scope>`) shows no About block.
+2. Nothing is documented as "NOT BUILT YET". The marker and every line carrying it are removed.
+3. The `planning` and `driving` scopes are deleted, because no prompt sends any agent to them. Their useful content
+   moves into the pages that stay.
+4. The siegelense session snippet reaches every repo, because siegelense is meant to work in every repo.
+
+The user's decisions for DEF-32, 2026-09-23:
+
+1. siegelense boots and drives the consumer's own app, the same way the consumer's Playwright e2e tests boot it.
+2. Whatever siegelense needs is stored in `.dungeonmaster.json`. `dungeonmaster init` sets up the commands so each
+   run gets its own ports. It must be generic, because the user runs the same setup on other repos.
+3. siegelense has no fake-Claude mechanism of its own. It fakes exactly what the repo's Playwright setup fakes.
+4. The smoke-test playbook is deleted. `dungeonmaster init` adds a `hydration-recipes` folder when a repo has none.
 
 ## Suspected defects from the exploration
 

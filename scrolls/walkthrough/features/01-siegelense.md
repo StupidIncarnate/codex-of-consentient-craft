@@ -52,8 +52,8 @@ shape a recipe run actually returns, and `guild-with-three-quests` now walks its
 
 | ID | Do this | Expect | Auto coverage | Pri | Result |
 |---|---|---|---|---|---|
-| SL-001 | `dungeonmaster siegelense docs` | Prints the about-overview Markdown alone — no role section. No `NOT BUILT YET` markers in the overview text itself. | integration — `siegelense-docs-layer-flow.integration.test.ts` | P2 | pass (earlier session) |
-| SL-002 | `dungeonmaster siegelense docs --for walking` | Prints Markdown: title, About block, one heading for `walking` with its audience, summary and bulleted sections (starts with "READ THIS FIRST"). | integration — same file | P2 | pass (earlier session) |
+| SL-001 | `dungeonmaster siegelense docs` | Prints the about-overview Markdown alone — no role section. No `NOT BUILT YET` markers in the overview text itself. | integration — `siegelense-docs-layer-flow.integration.test.ts` | P2 | pass |
+| SL-002 | `dungeonmaster siegelense docs --for walking` | Prints Markdown: title, About block, one heading for `walking` with its audience, summary and bulleted sections (starts with "READ THIS FIRST"). | integration — same file | P2 | fail DEF-26, DEF-27, DEF-28, DEF-29, DEF-30 |
 | SL-003 | `dungeonmaster siegelense docs --for planning` | Prints the planner's page (prelude/capacity/profile/recipes/testId-vs-ref/step-count sections). | integration — same file | P2 | |
 | SL-004 | `dungeonmaster siegelense docs --for attacking` | Prints the stress-tester's page. | integration — same file | P2 | |
 | SL-005 | `dungeonmaster siegelense docs --for fixing` | Prints the fixer's page. | integration — same file | P2 | |

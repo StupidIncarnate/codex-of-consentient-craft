@@ -32,11 +32,13 @@ The user may reorder these. The cursor in `LEDGER.md` is what counts.
 
 1. Read this file, then `LEDGER.md`, then the feature doc the cursor names.
 2. Check every defect row whose status is `dispatched`. The sub-agent that held it died with the last session.
-   Look for its commit with `git log --oneline -20`, and read the files it names. Then set the row to `fixed`,
-   `fixed, not built` or `interrupted — re-dispatch`.
+   Its work sits in the worktree named in the row, under `worktrees/`. Run `git -C worktrees/<name> log --oneline -5`
+   and `git -C worktrees/<name> status`. Then merge it (see "When a sub-agent reports back"), or set the row to
+   `interrupted — re-dispatch`.
 3. Check whether a rebuild is owed. `LEDGER.md` lists fixes marked `fixed, not built`. Siegelense and the other CLIs
    run compiled output, so a fix does not reach the CLI until a build. Build only with no sub-agent in flight.
-4. Ask the user once whether you may commit sub-agents' fixes this session. The answer lasts for this session only.
+4. You may merge a sub-agent's worktree branch into `master` without asking. The user gave this permission on
+   2026-09-23, on the condition that sub-agents work in their own worktree and never build in the main checkout.
 5. Tell the user where the cursor is, how many defects are open, and what case comes next. Keep it to three lines.
 
 ## The loop, one case at a time
@@ -45,9 +47,13 @@ The user may reorder these. The cursor in `LEDGER.md` is what counts.
 2. Run it. Use the shell for CLI cases. Use the claude-in-chrome tools for UI cases, and load them all in one
    ToolSearch call first.
 3. Reply with the command you ran, what state changed, and which values you checked against the case's Expect
-   column. **Do not paste the command's stdout back.** The user already sees it in the tool call.
-4. Fill that case's Result cell in the feature doc: `pass`, `fail DEF-NN`, or `skip — <reason>`.
-5. Stop. Wait for the user. Move to the next case **only when the user says "next"** (or "next cmd").
+   column. Say what you would record: `pass`, `fail`, or `skip`. **Do not paste the command's stdout back.** The
+   user already sees it in the tool call.
+4. Stop. Wait for the user. **Do not write `pass` into the Result cell yet.** The user reads the output too, and
+   often finds a defect you did not. Not "pass (pending)", not "pass" with a note to revise it later.
+5. When the user says "next" (or "next cmd"), write that case's Result cell: `pass`, `fail DEF-NN`, or
+   `skip — <reason>`. Then move the cursor and run the next case.
+6. When the user calls out a defect instead, the case gets `fail DEF-NN` at once. See the next section.
 
 The user may ask questions, poke at state, or ask for a variant first. Answer, then wait again. If the user runs
 something that is not a listed case and it shows something worth keeping, add it as a new case row.
@@ -71,12 +77,18 @@ A call-out that needs a decision from the user first gets the status `needs deci
 ### Dispatch rules
 
 1. **At most five sub-agents at a time.** Queue the rest as `queued` in the ledger.
-2. **Never two sub-agents in the same package at once.** They would overwrite each other's work. Queue the second,
-   and name the blocker in the status cell.
-3. **Sub-agents never build, commit, `git add`, `git mv`, `git stash`, run `npm install`, or run a bare
-   `npm run ward`.** The driver owns the build and the commit. The git index is shared, and one agent's `git mv` has
-   already been swept into another agent's commit.
-4. Use `model: "sonnet"` for mechanical fixes. Use the default model for a fix that needs debugging.
+2. **Every fix sub-agent works in its own worktree.** Its first call is
+   `mcp__dungeonmaster__create-worktree({ name: "def-<NN>" })`. It edits, runs ward, and commits only inside that
+   path. The worktree has its own git index and its own compiled output. So its work cannot land in another agent's
+   commit, and nothing it does rebuilds the main checkout that the walkthrough runs from.
+3. **Never two sub-agents in the same package at once.** Worktrees stop them overwriting each other, but their
+   branches would then conflict at merge time. Queue the second, and name the blocker in the status cell.
+4. **Sub-agents never touch the main checkout.** No edit, no build, no `git` command outside their worktree. They
+   never run `npm install`, `npm rebuild` or a bare `npm run ward`. They never merge. The driver owns the merge and
+   the main checkout's build.
+5. Use `model: "sonnet"` for mechanical fixes. Use the default model for a fix that needs debugging.
+6. A read-only sub-agent, such as a review or an investigation, needs no worktree. It must edit nothing.
+7. Write the worktree name into the ledger row's status cell, like `dispatched — worktrees/def-26`.
 
 ### The brief for a fix sub-agent
 
@@ -89,17 +101,23 @@ The defect: <what the user ran, what they expected, what happened, verbatim outp
 Known leads: <file:line, if any>.
 
 Rules:
+- Your first call is mcp__dungeonmaster__create-worktree({ name: "def-<NN>" }). Work ONLY inside the path it
+  returns: every Read, Edit, ward run and git command. Never edit, build or run git in the main checkout at
+  /home/brutus-home/projects/codex-of-consentient-craft itself. A user is walking the app from there.
 - Before your first edit, call the MCP tools get-architecture and get-testing-patterns, and get-folder-detail for
   each folder type you write into. Search with get-project-map, then discover, then Read. Native grep/find are blocked.
-- Do not build, commit, git add, git mv, git stash, npm install, or run a bare `npm run ward`. Do not fork helpers
-  to do your core task.
+- Do not build, npm install, npm rebuild, or run a bare `npm run ward`. Do not merge. Do not fork helpers to do
+  your core task.
+- When ward is green, commit inside your worktree, on its own branch. Stage files by explicit path. End the commit
+  message with the line: Claude'd it up in here!
 - Write the failing test FIRST, run it, and see it go red for the reason in the defect. Then fix.
 - Prove your tests bite. After they pass, break the code on purpose and confirm a test goes red. If a mutation
   passes, you found a missing test: write it, re-run green, re-apply the mutation, confirm red.
 - Grade with `npm run ward -- --only lint,typecheck,unit,integration -- <every file you touched>`, timeout 600000.
-  Use only the check types that apply to those files.
+  Run it from your worktree root. Use only the check types that apply to those files.
 
 Report back in this shape, and nothing else:
+WORKTREE — the path, the branch name, and the commit SHA
 CHANGED — each file, with one verbatim line from it
 MUTATIONS — which mutation, which test caught it
 WARD — the command and its final summary line
@@ -109,14 +127,15 @@ LEFT STANDING — anything you could not fix, with file:line
 
 ### When a sub-agent reports back
 
-1. Read its report. Open one or two of the files it names and check the claim holds.
-2. If it touched a compiled CLI, set the ledger row to `fixed, not built`. Otherwise set it to `fixed`.
-3. If the user approved commits this session, stage the files it names by explicit path. Run
-   `git diff --cached --stat` to check that nothing else is staged. Commit on the current branch. Put the SHA in the
-   ledger row.
-4. When nothing is in flight and fixes are waiting on a build, run the build. Scope it with
+1. Read its report. Open one or two of the files it names, in its worktree, and check the claim holds.
+2. Merge its branch into `master` from the main checkout: `git merge --no-ff <branch>`. If it conflicts, stop and
+   tell the user. Do not resolve a conflict by picking a side blind.
+3. Remove the worktree once merged: `git worktree remove worktrees/<name>`, then `git branch -d <branch>`.
+4. If it touched a compiled CLI, set the ledger row to `fixed, not built`. Otherwise set it to `fixed`. Put the
+   merge SHA in the row.
+5. When nothing is in flight and fixes are waiting on a build, run the build. Scope it with
    `npm run build --workspace=@dungeonmaster/<name>` when one package changed. Then set those rows to `fixed`.
-5. Tell the user in one line that DEF-NN landed. Offer to re-run the failed case.
+6. Tell the user in one line that DEF-NN landed. Offer to re-run the failed case.
 
 ## End of every session
 
@@ -125,7 +144,8 @@ Do all of these before your final reply. A background command dies with your fin
 1. Kill every siegelense instance you started: `dungeonmaster siegelense kill --instance <id>`. Stop any dev server.
 2. Move the cursor in `LEDGER.md` to the next case to run.
 3. Add a line to the session log: the date, the cases run, and the defects opened and closed.
-4. Any sub-agent still running: set its row to `interrupted — re-dispatch`. It dies with this session.
+4. Any sub-agent still running: set its row to `interrupted — re-dispatch`, and keep the worktree name in the
+   cell. It dies with this session, but its partial work stays in that worktree.
 
 ## Things that will trip you
 
