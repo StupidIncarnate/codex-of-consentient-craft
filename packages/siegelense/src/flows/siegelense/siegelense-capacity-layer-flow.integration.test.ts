@@ -4,13 +4,16 @@
  * how `profile`'s own suite in `siegelense-flow.integration.test.ts` proves its unknown-spec refusal
  * real rather than mocked. `capacityReadBroker` reaches `profileReadBroker` third, after a real
  * `registryReadBroker`/`machineReadBroker` read, so the `siegelense/.keep` directory this suite seeds
- * up front is what lets a REAL statfs succeed before the spec check runs. Host figures
- * (`freeMemMB`/`cores`/`loadAvg1`/`diskFreeMB`) are live reads with no fixed value; each assertion
- * strips or normalises exactly that figure before comparing the remainder verbatim, the same technique
- * `siegelense-flow.integration.test.ts` uses for `status --json`'s live `machine` block.
+ * up front is what lets a REAL statfs succeed before the spec check runs, and `profileReadBroker`
+ * reaches `laneSpecFindBroker` next — which is why this testbed also carries its own
+ * `.dungeonmaster.json`, isolated from this repo's own (another agent rewrites that file
+ * concurrently). Host figures (`freeMemMB`/`cores`/`loadAvg1`/`diskFreeMB`) are live reads with no
+ * fixed value; each assertion strips or normalises exactly that figure before comparing the
+ * remainder verbatim, the same technique `siegelense-flow.integration.test.ts` uses for `status
+ * --json`'s live `machine` block.
  *
  * USAGE:
- * await SiegelenseCapacityLayerFlow({ callArgs: ['--spec', 'dungeonmaster-api'] });
+ * await SiegelenseCapacityLayerFlow({ callArgs: ['--spec', 'api'] });
  * // Writes the human CapacityAnswer summary for a spec nothing has ever run
  */
 
@@ -21,6 +24,8 @@ import {
   RelativePathStub,
 } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { DungeonmasterConfigStub, configDefaultsStatics } from '@dungeonmaster/config';
+import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts';
 
 import { SiegelenseCapacityLayerFlow } from './siegelense-capacity-layer-flow';
 
@@ -34,6 +39,7 @@ describe('SiegelenseCapacityLayerFlow', () => {
     baseName: BaseNameStub({ value: 'siegelense-capacity-layer-flow' }),
   });
   const originalHome = process.env.DUNGEONMASTER_HOME;
+  const originalCwd = process.cwd();
   process.env.DUNGEONMASTER_HOME = testbed.guildPath;
 
   beforeAll(() => {
@@ -45,9 +51,36 @@ describe('SiegelenseCapacityLayerFlow', () => {
       relativePath: RelativePathStub({ value: 'siegelense/.keep' }),
       content: FileContentStub({ value: '' }),
     });
+
+    // laneSpecFindBroker resolves devServer.e2e.processes off a real .dungeonmaster.json — this
+    // repo's own file is being rewritten by other work, so the testbed gets its own, isolated under
+    // the OS tmp dir. Two processes (api + web) so 'stack' reflects three against 'api's two, the
+    // same shape siegelense-profile-layer-flow.integration.test.ts configures.
+    testbed.writeFile({
+      relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+      content: FileContentStub({
+        value: JSON.stringify(
+          DungeonmasterConfigStub({
+            framework: 'monorepo',
+            devServer: {
+              devCommand: 'npm run dev',
+              port: configDefaultsStatics.devServer.port.default,
+              e2e: {
+                processes: [
+                  DevServerE2eProcessStub(),
+                  DevServerE2eProcessStub({ name: 'web', portRole: 'web', readyPath: '/' }),
+                ],
+              },
+            },
+          }),
+        ),
+      }),
+    });
+    process.chdir(testbed.guildPath);
   });
 
   afterAll(() => {
+    process.chdir(originalCwd);
     if (originalHome === undefined) {
       Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
     } else {
@@ -57,7 +90,7 @@ describe('SiegelenseCapacityLayerFlow', () => {
   });
 
   describe('the default human summary, --pool omitted', () => {
-    it('VALID: {callArgs: [--spec, dungeonmaster-api]} => renders the default-pair answer, the policy ceiling assumed for the never-measured spec', async () => {
+    it('VALID: {callArgs: [--spec, api]} => renders the default-pair answer, the policy ceiling assumed for the never-measured spec', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -66,7 +99,7 @@ describe('SiegelenseCapacityLayerFlow', () => {
       }) as unknown as typeof process.stdout.write;
 
       const result = await SiegelenseCapacityLayerFlow({
-        callArgs: ['--spec', 'dungeonmaster-api'],
+        callArgs: ['--spec', 'api'],
       });
 
       process.stdout.write = originalWrite;
@@ -79,8 +112,8 @@ describe('SiegelenseCapacityLayerFlow', () => {
       expect(result).toStrictEqual({ success: true });
       expect(normalized).toBe(
         'SUGGESTED: 2 instances (ceiling: 3)\n' +
-          'SPEC: dungeonmaster-api\n' +
-          'WHY: no measured profile for dungeonmaster-api, so the default pair of 2 profiles itself; ' +
+          'SPEC: api\n' +
+          'WHY: no measured profile for api, so the default pair of 2 profiles itself; ' +
           'free RAM <freeMemMB>MB less 512MB headroom; nothing else up\n' +
           'PROFILE: no profile samples recorded\n',
       );
@@ -88,7 +121,7 @@ describe('SiegelenseCapacityLayerFlow', () => {
   });
 
   describe('--pool present, the --json branch', () => {
-    it('VALID: {callArgs: [--spec, dungeonmaster-stack, --pool, 2, --json]} => writes the CapacityAnswer as one JSON document, still the default pair for the never-measured spec', async () => {
+    it('VALID: {callArgs: [--spec, stack, --pool, 2, --json]} => writes the CapacityAnswer as one JSON document, still the default pair for the never-measured spec', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -97,7 +130,7 @@ describe('SiegelenseCapacityLayerFlow', () => {
       }) as unknown as typeof process.stdout.write;
 
       const result = await SiegelenseCapacityLayerFlow({
-        callArgs: ['--spec', 'dungeonmaster-stack', '--pool', '2', '--json'],
+        callArgs: ['--spec', 'stack', '--pool', '2', '--json'],
       });
 
       process.stdout.write = originalWrite;
@@ -112,7 +145,7 @@ describe('SiegelenseCapacityLayerFlow', () => {
         '{\n' +
           '  "suggested": 2,\n' +
           '  "ceiling": 3,\n' +
-          '  "why": "no measured profile for dungeonmaster-stack, so the default pair of 2 profiles ' +
+          '  "why": "no measured profile for stack, so the default pair of 2 profiles ' +
           'itself; free RAM <freeMemMB>MB less 512MB headroom; nothing else up",\n' +
           '  "profile": null\n' +
           '}\n',
@@ -132,9 +165,7 @@ describe('SiegelenseCapacityLayerFlow', () => {
     it('INVALID: {callArgs: [--spec, no-such-spec]} => reaches the real laneSpecFindBroker check and lists the known specs', async () => {
       await expect(
         SiegelenseCapacityLayerFlow({ callArgs: ['--spec', 'no-such-spec'] }),
-      ).rejects.toThrow(
-        /^Unknown lane spec "no-such-spec"\. Known specs: dungeonmaster-stack, dungeonmaster-api$/u,
-      );
+      ).rejects.toThrow(/^Unknown lane spec "no-such-spec"\. Known specs: stack, api$/u);
     });
   });
 });

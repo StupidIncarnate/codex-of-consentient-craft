@@ -9,13 +9,16 @@
  *
  * USAGE:
  * const fleet = driverFleetHarness();
+ * fleet.ensureHomeReady({ home: testbed.guildPath });
+ * fleet.configureApiLane({ configDir: testbed.guildPath });
+ * process.chdir(testbed.guildPath); // laneSpecFindBroker resolves .dungeonmaster.json off cwd
  * const manifest = await fleet.boot({ specName: SpecNameStub({ value: 'api' }) });
  * const entry = await fleet.registryEntry({ instanceId: manifest.instanceId });
  * const result = await fleet.killViaBroker({ instanceId: manifest.instanceId });
  * // fleet.afterAll() reaps anything still alive when the suite ends
  */
 
-import { existsSync, mkdirSync, readFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { createServer } from 'net';
 import { kill } from 'process';
 import { resolve as resolvePath } from 'path';
@@ -23,6 +26,8 @@ import { resolve as resolvePath } from 'path';
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import type { AbsoluteFilePath, NetworkPort, ProcessId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { DungeonmasterConfigStub, configDefaultsStatics } from '@dungeonmaster/config';
+import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts';
 
 import { instanceKillBroker } from '../../../src/brokers/instance/kill/instance-kill-broker';
 import { instanceStartBroker } from '../../../src/brokers/instance/start/instance-start-broker';
@@ -84,8 +89,16 @@ const FAKE_WARD_CLI_PATH = resolvePath(
   'dungeonmaster-ward',
 );
 
+// This checkout's own root — one level above `packages/`. `configureApiLane` writes a
+// `.dungeonmaster.json` into an isolated OS-tmp testbed dir, never this repo's own (another agent
+// may be rewriting that file concurrently, and a consumer's config is not a test fixture), so the
+// configured command has to `cd` here itself before it can reach `npm run dev:no-watch` — the
+// driver spawns it with its cwd resolved off the TESTBED dir, not off this repo.
+const REPO_ROOT = resolvePath(__dirname, '..', '..', '..', '..', '..');
+
 export const driverFleetHarness = (): {
   ensureHomeReady: (params: { home: string }) => void;
+  configureApiLane: (params: { configDir: string }) => void;
   boot: (params: { specName: SpecName }) => Promise<InstanceManifest>;
   killViaBroker: (params: { instanceId: InstanceId }) => Promise<KillResult>;
   sigkillDriverPid: (params: { pid: ProcessId }) => void;
@@ -113,6 +126,38 @@ export const driverFleetHarness = (): {
   // lock acquire fails with a raw ENOENT before any instance-lifecycle code runs at all.
   const ensureHomeReady = ({ home }: { home: string }): void => {
     mkdirSync(`${home}/siegelense`, { recursive: true });
+  };
+
+  // Writes a `.dungeonmaster.json` naming ONE real `api` process — this checkout's own
+  // `dev:no-watch` server command, `cd`-anchored at `REPO_ROOT` so it runs correctly regardless of
+  // the driver's own cwd. `{apiPort}` is the one placeholder `laneBootBroker` must substitute for a
+  // boot to answer its readyPath; every other var (DUNGEONMASTER_HOME, CLAUDE_CLI_PATH,
+  // WARD_CLI_PATH) already reaches the spawned server through inherited env — see `boot()`'s own
+  // comment on why setting them here would be redundant.
+  const configureApiLane = ({ configDir }: { configDir: string }): void => {
+    const config = DungeonmasterConfigStub({
+      framework: 'monorepo',
+      devServer: {
+        devCommand: 'npm run dev',
+        // Required by the contract, unread by anything this harness drives — the real per-run
+        // port always comes from a freshly claimed PortPair, never this field (see 3.3 of
+        // scrolls/siegelense-consumer-lanes.md).
+        port: configDefaultsStatics.devServer.port.default,
+        e2e: {
+          processes: [
+            DevServerE2eProcessStub({
+              name: 'api',
+              command: `cd "${REPO_ROOT}" && npm run dev:no-watch --workspace=@dungeonmaster/server`,
+              portRole: 'api',
+              readyPath: '/api/guilds',
+              env: { DUNGEONMASTER_PORT: '{apiPort}' },
+            }),
+          ],
+        },
+      },
+    });
+
+    writeFileSync(`${configDir}/.dungeonmaster.json`, JSON.stringify(config));
   };
 
   const evidenceDir = ({ instanceId }: { instanceId: InstanceId }): AbsoluteFilePath =>
@@ -306,6 +351,7 @@ export const driverFleetHarness = (): {
 
   return {
     ensureHomeReady,
+    configureApiLane,
     boot,
     killViaBroker,
     sigkillDriverPid,

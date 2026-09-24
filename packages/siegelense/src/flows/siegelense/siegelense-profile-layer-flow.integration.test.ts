@@ -6,17 +6,26 @@
  * `laneSpecFindBroker` through the responder. `profileReadBroker` calls `laneSpecFindBroker` before
  * any filesystem read, so the badly-shaped-spec and unknown-spec refusals below need no fixture on
  * disk first — unlike `SiegelenseCapacityLayerFlow`'s own suite, whose `capacityReadBroker` reaches
- * a real `machineReadBroker` statfs before its spec check. Both built-in specs are exercised —
- * `dungeonmaster-api` (browserless, 1 process) and `dungeonmaster-stack` (api + web + browser, 3
- * processes) — so PROCESSES is proven to reflect the real spec rather than a fixed count.
+ * a real `machineReadBroker` statfs before its spec check. `laneSpecFindBroker` derives BOTH lane
+ * names from the SAME configured `devServer.e2e.processes`, differing only in whether a browser
+ * rides along, so this testbed's own `.dungeonmaster.json` configures two processes (api + web) and
+ * both `api` and `stack` are exercised against it — PROCESSES is proven to reflect the real spec
+ * (2 for the headless name, 3 once the browser is added) rather than a fixed count.
  *
  * USAGE:
- * await SiegelenseProfileLayerFlow({ callArgs: ['--spec', 'dungeonmaster-api'] });
+ * await SiegelenseProfileLayerFlow({ callArgs: ['--spec', 'api'] });
  * // Writes the human SpecProfile summary for a spec nothing has ever run
  */
 
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import {
+  installTestbedCreateBroker,
+  BaseNameStub,
+  RelativePathStub,
+  FileContentStub,
+} from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { DungeonmasterConfigStub, configDefaultsStatics } from '@dungeonmaster/config';
+import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts';
 
 import { SiegelenseProfileLayerFlow } from './siegelense-profile-layer-flow';
 
@@ -25,9 +34,39 @@ describe('SiegelenseProfileLayerFlow', () => {
     baseName: BaseNameStub({ value: 'siegelense-profile-layer-flow' }),
   });
   const originalHome = process.env.DUNGEONMASTER_HOME;
+  const originalCwd = process.cwd();
   process.env.DUNGEONMASTER_HOME = testbed.guildPath;
 
+  beforeAll(() => {
+    // laneSpecFindBroker resolves devServer.e2e.processes off a real .dungeonmaster.json — this
+    // repo's own file is being rewritten by other work, so the testbed gets its own, isolated
+    // under the OS tmp dir. Neither configured process is ever spawned: profile is a read, never a
+    // boot.
+    testbed.writeFile({
+      relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+      content: FileContentStub({
+        value: JSON.stringify(
+          DungeonmasterConfigStub({
+            framework: 'monorepo',
+            devServer: {
+              devCommand: 'npm run dev',
+              port: configDefaultsStatics.devServer.port.default,
+              e2e: {
+                processes: [
+                  DevServerE2eProcessStub(),
+                  DevServerE2eProcessStub({ name: 'web', portRole: 'web', readyPath: '/' }),
+                ],
+              },
+            },
+          }),
+        ),
+      }),
+    });
+    process.chdir(testbed.guildPath);
+  });
+
   afterAll(() => {
+    process.chdir(originalCwd);
     if (originalHome === undefined) {
       Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
     } else {
@@ -37,7 +76,7 @@ describe('SiegelenseProfileLayerFlow', () => {
   });
 
   describe('the default human summary, a never-measured spec', () => {
-    it('VALID: {callArgs: [--spec, dungeonmaster-api]} => renders the human SpecProfile summary, no samples recorded', async () => {
+    it('VALID: {callArgs: [--spec, api]} => renders the human SpecProfile summary, no samples recorded', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -46,7 +85,7 @@ describe('SiegelenseProfileLayerFlow', () => {
       }) as unknown as typeof process.stdout.write;
 
       const result = await SiegelenseProfileLayerFlow({
-        callArgs: ['--spec', 'dungeonmaster-api'],
+        callArgs: ['--spec', 'api'],
       });
 
       process.stdout.write = originalWrite;
@@ -55,13 +94,13 @@ describe('SiegelenseProfileLayerFlow', () => {
 
       expect(result).toStrictEqual({ success: true });
       expect(wholeOutput).toMatch(
-        /^SPEC: dungeonmaster-api\nPROCESSES: 1\nHASH: [0-9a-f]{64}\nMEASURED: never \(boot: -, runs: 0\)\nSAMPLES: none measured yet\n$/u,
+        /^SPEC: api\nPROCESSES: 2\nHASH: [0-9a-f]{64}\nMEASURED: never \(boot: -, runs: 0\)\nSAMPLES: none measured yet\n$/u,
       );
     });
   });
 
   describe('the --json branch, a never-measured spec', () => {
-    it('VALID: {callArgs: [--spec, dungeonmaster-api, --json]} => samples: [] and bootMs: null, having booted no instance to find out', async () => {
+    it('VALID: {callArgs: [--spec, api, --json]} => samples: [] and bootMs: null, having booted no instance to find out', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -70,7 +109,7 @@ describe('SiegelenseProfileLayerFlow', () => {
       }) as unknown as typeof process.stdout.write;
 
       const result = await SiegelenseProfileLayerFlow({
-        callArgs: ['--spec', 'dungeonmaster-api', '--json'],
+        callArgs: ['--spec', 'api', '--json'],
       });
 
       process.stdout.write = originalWrite;
@@ -79,8 +118,8 @@ describe('SiegelenseProfileLayerFlow', () => {
 
       expect(result).toStrictEqual({ success: true });
       expect(JSON.parse(wholeOutput!)).toStrictEqual({
-        specName: 'dungeonmaster-api',
-        processes: 1,
+        specName: 'api',
+        processes: 2,
         hash: expect.stringMatching(/^[0-9a-f]{64}$/u),
         measuredAt: null,
         fromRuns: 0,
@@ -90,8 +129,8 @@ describe('SiegelenseProfileLayerFlow', () => {
     });
   });
 
-  describe('the other built-in lane spec, dungeonmaster-stack', () => {
-    it('VALID: {callArgs: [--spec, dungeonmaster-stack, --json]} => PROCESSES reflects api + web + browser, three, never the browserless count', async () => {
+  describe('the other lane name, stack', () => {
+    it('VALID: {callArgs: [--spec, stack, --json]} => PROCESSES reflects api + web + browser, three, never the headless count', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -100,7 +139,7 @@ describe('SiegelenseProfileLayerFlow', () => {
       }) as unknown as typeof process.stdout.write;
 
       const result = await SiegelenseProfileLayerFlow({
-        callArgs: ['--spec', 'dungeonmaster-stack', '--json'],
+        callArgs: ['--spec', 'stack', '--json'],
       });
 
       process.stdout.write = originalWrite;
@@ -109,7 +148,7 @@ describe('SiegelenseProfileLayerFlow', () => {
 
       expect(result).toStrictEqual({ success: true });
       expect(JSON.parse(wholeOutput!)).toStrictEqual({
-        specName: 'dungeonmaster-stack',
+        specName: 'stack',
         processes: 3,
         hash: expect.stringMatching(/^[0-9a-f]{64}$/u),
         measuredAt: null,
@@ -140,9 +179,7 @@ describe('SiegelenseProfileLayerFlow', () => {
     it('INVALID: {callArgs: [--spec, no-such-spec]} => reaches the real laneSpecFindBroker check and lists the known specs', async () => {
       await expect(
         SiegelenseProfileLayerFlow({ callArgs: ['--spec', 'no-such-spec'] }),
-      ).rejects.toThrow(
-        /^Unknown lane spec "no-such-spec"\. Known specs: dungeonmaster-stack, dungeonmaster-api$/u,
-      );
+      ).rejects.toThrow(/^Unknown lane spec "no-such-spec"\. Known specs: stack, api$/u);
     });
   });
 });
