@@ -45,11 +45,23 @@ describe('InstallCreateConfigResponder', () => {
     });
   });
 
-  describe('config already exists', () => {
-    it('VALID: {context: config already exists} => skips installation', async () => {
+  describe('existing config already has devServer.e2e', () => {
+    it('VALID: {context: existing config with devServer.e2e configured} => skips, leaving the file untouched', async () => {
       const proxy = InstallCreateConfigResponderProxy();
 
-      proxy.setupConfigExists();
+      proxy.setupExistingConfigContent({
+        content: JSON.stringify({
+          framework: 'react',
+          schema: 'zod',
+          devServer: {
+            devCommand: 'npm run dev',
+            port: 3000,
+            e2e: {
+              processes: [{ name: 'api', command: 'npm start', portRole: 'api', readyPath: '/' }],
+            },
+          },
+        }),
+      });
 
       const result = await proxy.callResponder({
         context: {
@@ -64,6 +76,129 @@ describe('InstallCreateConfigResponder', () => {
         action: 'skipped',
         message: '.dungeonmaster.json already exists',
       });
+      expect(proxy.getWrittenConfig()).toBe(undefined);
+    });
+  });
+
+  describe('existing config without devServer.e2e', () => {
+    it('VALID: {context: existing config with a devServer block, no e2e} => adds the placeholder and keeps every other key', async () => {
+      const proxy = InstallCreateConfigResponderProxy();
+
+      proxy.setupExistingConfigContent({
+        content: JSON.stringify({
+          framework: 'monorepo',
+          schema: 'zod',
+          customTopLevelField: 'keep-me',
+          devServer: {
+            devCommand: 'custom dev command',
+            port: 4001,
+            customDevServerField: 'also-keep-me',
+          },
+        }),
+      });
+      proxy.setupWriteSucceeds();
+
+      const result = await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/config',
+        success: true,
+        action: 'merged',
+        message: 'Added the devServer.e2e.processes placeholder to existing .dungeonmaster.json',
+      });
+
+      const written = JSON.parse(String(proxy.getWrittenConfig())) as Record<PropertyKey, unknown>;
+
+      expect(written).toStrictEqual({
+        framework: 'monorepo',
+        schema: 'zod',
+        customTopLevelField: 'keep-me',
+        devServer: {
+          devCommand: 'custom dev command',
+          port: 4001,
+          customDevServerField: 'also-keep-me',
+          e2e: { processes: [e2eProcessPlaceholderStatics.process] },
+        },
+      });
+    });
+
+    it('VALID: {context: existing config with no devServer at all} => creates devServer and adds the placeholder', async () => {
+      const proxy = InstallCreateConfigResponderProxy();
+
+      proxy.setupExistingConfigContent({
+        content: JSON.stringify({ framework: 'react', schema: 'zod' }),
+      });
+      proxy.setupWriteSucceeds();
+
+      const result = await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      expect(result.action).toBe('merged');
+
+      const written = JSON.parse(String(proxy.getWrittenConfig())) as Record<PropertyKey, unknown>;
+
+      expect(written).toStrictEqual({
+        framework: 'react',
+        schema: 'zod',
+        devServer: {
+          e2e: { processes: [e2eProcessPlaceholderStatics.process] },
+        },
+      });
+    });
+  });
+
+  describe('existing config that cannot be safely edited', () => {
+    it('INVALID: {context: existing .dungeonmaster.json is not valid JSON} => leaves it untouched and reports why', async () => {
+      const proxy = InstallCreateConfigResponderProxy();
+
+      proxy.setupExistingConfigContent({ content: '{ not valid json' });
+
+      const result = await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/config',
+        success: true,
+        action: 'skipped',
+        message: '.dungeonmaster.json exists but is not valid JSON — left untouched',
+      });
+      expect(proxy.getWrittenConfig()).toBe(undefined);
+    });
+
+    it('INVALID: {context: existing .dungeonmaster.json fails the config contract} => leaves it untouched and reports why', async () => {
+      const proxy = InstallCreateConfigResponderProxy();
+
+      proxy.setupExistingConfigContent({
+        content: JSON.stringify({ framework: 'not-a-real-framework', schema: 'zod' }),
+      });
+
+      const result = await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/config',
+        success: true,
+        action: 'skipped',
+        message: '.dungeonmaster.json exists but failed config validation — left untouched',
+      });
+      expect(proxy.getWrittenConfig()).toBe(undefined);
     });
   });
 });

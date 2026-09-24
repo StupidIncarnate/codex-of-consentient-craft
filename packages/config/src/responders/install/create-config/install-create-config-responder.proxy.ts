@@ -2,6 +2,7 @@ import { FilePathStub, FileContentsStub } from '@dungeonmaster/shared/contracts'
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
 import { fsAccessAdapterProxy } from '../../../adapters/fs/access/fs-access-adapter.proxy';
+import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { InstallCreateConfigResponder } from './install-create-config-responder';
 
@@ -14,12 +15,14 @@ const CONFIG_PATH = FilePathStub({
 
 export const InstallCreateConfigResponderProxy = (): {
   callResponder: typeof InstallCreateConfigResponder;
-  setupConfigExists: () => void;
   setupConfigNotExists: () => void;
+  setupExistingConfigContent: ({ content }: { content: string }) => void;
+  setupWriteSucceeds: () => void;
   getWrittenConfig: () => unknown;
 } => {
   const joinProxy = pathJoinAdapterProxy();
   const accessProxy = fsAccessAdapterProxy();
+  const readProxy = fsReadFileAdapterProxy();
   const writeProxy = fsWriteFileAdapterProxy();
 
   // join is call-order-scoped (see THE JOIN/DIRNAME/BASENAME TRAP in
@@ -30,12 +33,22 @@ export const InstallCreateConfigResponderProxy = (): {
   return {
     callResponder: InstallCreateConfigResponder,
 
-    setupConfigExists: (): void => {
-      accessProxy.resolves({ filePath: CONFIG_PATH });
-    },
-
     setupConfigNotExists: (): void => {
       accessProxy.rejects({ filePath: CONFIG_PATH, error: new Error('ENOENT') });
+      writeProxy.succeeds({
+        filepath: CONFIG_PATH,
+        contents: FileContentsStub({ value: '{}' }),
+      });
+    },
+
+    // Stages an existing .dungeonmaster.json whose body is exactly `content` — valid JSON, invalid
+    // JSON, or JSON that fails the config contract are all the same call shape from here.
+    setupExistingConfigContent: ({ content }: { content: string }): void => {
+      accessProxy.resolves({ filePath: CONFIG_PATH });
+      readProxy.returns({ filePath: CONFIG_PATH, contents: FileContentsStub({ value: content }) });
+    },
+
+    setupWriteSucceeds: (): void => {
       writeProxy.succeeds({
         filepath: CONFIG_PATH,
         contents: FileContentsStub({ value: '{}' }),
