@@ -31,6 +31,9 @@ This is a **published npm package** (`dungeonmaster`). When users install it in 
 2. Dynamically imports and executes each package's `StartInstall` function
 3. Each package's install script sets up its own config (e.g., CLI adds devDependencies, etc.)
 
+**Every consumer repo is an npm-workspaces monorepo, with packages under `packages/*`.** This is a constraint, not
+a gap. Install scripts and runtime code may assume that layout. Do not add a fallback for a single-package repo.
+
 **Important:** Each package has a `startup/start-install.ts` that gets dynamically imported at runtime. Keep install
 logic directly in these startup files - don't move it to brokers (the CLI orchestration layer handles
 discovery/execution).

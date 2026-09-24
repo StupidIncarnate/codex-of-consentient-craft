@@ -10,6 +10,12 @@ Based on learnings and findings from repeated claude amnesia and hallucination s
 
 ## Prerequisites
 
+### Your repo must be a monorepo
+
+Dungeonmaster supports only npm-workspaces monorepos, with packages under `packages/*`. A single-package repo is
+not supported. `dungeonmaster init` scaffolds packages such as `packages/hydration-recipes`, and siegelense
+finds your app's workspaces by scanning `packages/*`.
+
 ### Install (Linux)
 - Install jq: https://jqlang.org/download/
 
