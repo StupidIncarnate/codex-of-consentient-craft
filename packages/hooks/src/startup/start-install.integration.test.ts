@@ -128,6 +128,14 @@ describe('start-install integration', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
@@ -187,6 +195,14 @@ describe('start-install integration', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
                 },
               ],
             },
@@ -326,6 +342,14 @@ describe('start-install integration', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
@@ -385,6 +409,14 @@ describe('start-install integration', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
                 },
               ],
             },
@@ -533,6 +565,14 @@ describe('start-install integration', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
@@ -592,6 +632,14 @@ describe('start-install integration', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
                 },
               ],
             },
@@ -741,6 +789,14 @@ describe('start-install integration', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
@@ -800,6 +856,14 @@ describe('start-install integration', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
                 },
               ],
             },

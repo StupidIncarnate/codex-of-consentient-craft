@@ -125,6 +125,14 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -192,6 +200,14 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
                 },
               ],
             },
@@ -338,6 +354,14 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -405,6 +429,14 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
                 },
               ],
             },
@@ -553,6 +585,14 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
@@ -612,6 +652,14 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
                 },
               ],
             },
@@ -762,6 +810,14 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -829,6 +885,14 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
                 },
               ],
             },
@@ -979,6 +1043,14 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
@@ -1038,6 +1110,14 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet generatedConfig',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet siegelense',
                 },
               ],
             },
