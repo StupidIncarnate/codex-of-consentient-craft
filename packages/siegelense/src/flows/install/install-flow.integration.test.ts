@@ -1,10 +1,15 @@
 import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+
+import { npmCommandFakeHarness } from '../../../test/harnesses/npm-command-fake/npm-command-fake.harness';
 import { InstallFlow } from './install-flow';
 
 describe('InstallFlow', () => {
   describe('delegation to responders', () => {
+    const npmFake = npmCommandFakeHarness();
+
     it('VALID: {fresh target} => creates the link, the gitignore entry, and the empty recipes package', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'siegelense-flow-fresh' }),
       });
@@ -59,6 +64,7 @@ describe('InstallFlow', () => {
     });
 
     it('VALID: {flow run twice} => every responder reports skipped and the overall result still reads as a success', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'siegelense-flow-twice' }),
       });
@@ -110,6 +116,7 @@ describe('InstallFlow', () => {
     });
 
     it('VALID: {a flat legacy .siegelense symlink from a pre-nesting install} => removes it and still creates the nested link', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'siegelense-flow-legacy-link' }),
       });
