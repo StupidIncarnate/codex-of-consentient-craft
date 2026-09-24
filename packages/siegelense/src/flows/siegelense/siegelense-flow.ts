@@ -16,11 +16,8 @@
  * stays a routing table a reader takes in at a glance however many calls it holds. Each built call's
  * own args-parse transformer owns its known-flag set (`KNOWN_FLAGS`) and refuses anything outside
  * it — this flow routes `callArgs` straight through without inspecting or refusing any flag itself.
- * `args[0]` outside `CALL_ROUTES` falls through a three-way refusal: a name
- * `siegelenseCallStatics.calls.names` holds with no route answers "not built yet" and lists the
- * built calls, so a caller who read the spec learns the truth rather than being told the spec is
- * wrong; anything else answers "unknown subcommand" with the usage line; absent routes to the bare
- * fleet listing.
+ * `args[0]` outside `CALL_ROUTES` falls through a two-way refusal: a name answers "unknown
+ * subcommand" with the usage line; absent routes to the bare fleet listing.
  *
  * USAGE:
  * await SiegelenseFlow({ args: ['--help'] });
@@ -42,7 +39,6 @@ import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { instanceIdContract } from '../../contracts/instance-id/instance-id-contract';
 import { SiegelenseDriverResponder } from '../../responders/siegelense/driver/siegelense-driver-responder';
 import { SiegelenseFleetResponder } from '../../responders/siegelense/fleet/siegelense-fleet-responder';
-import { siegelenseCallStatics } from '../../statics/siegelense-call/siegelense-call-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { flagContractParseTransformer } from '../../transformers/flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../../transformers/flag-value-read/flag-value-read-transformer';
@@ -90,8 +86,6 @@ const CALL_ROUTES = new Map<
   ['docs', async (callArgs) => SiegelenseDocsLayerFlow({ callArgs })],
 ]);
 
-const BUILT_CALL_NAMES = [...CALL_ROUTES.keys()];
-
 export const SiegelenseFlow = async ({
   args,
 }: {
@@ -138,16 +132,6 @@ export const SiegelenseFlow = async ({
     }
 
     return routeHandler(callArgs);
-  }
-
-  if (
-    callName !== undefined &&
-    siegelenseCallStatics.calls.names.some((name) => name === callName)
-  ) {
-    throw new Error(
-      `${callName} is a siegelense call but is not built yet. Built calls: ` +
-        `${BUILT_CALL_NAMES.join(', ')}.`,
-    );
   }
 
   if (callName !== undefined) {

@@ -1,96 +1,30 @@
 /**
- * PURPOSE: The prose `dungeonmaster siegelense docs` serves — the `about` preamble every answer
+ * PURPOSE: The prose `dungeonmaster siegelense docs` serves — the `about` preamble the bare call
  * carries, and one document per `siegelenseCallStatics.docs.scopes` entry, each written for one
  * tool-using role. Reach for this over `siegelenseHelpStatics` when you want the RULE a role works
  * by; `--help` is the flag reference (flags, refusals, one example) and answers a different
- * question. Two rules bind every line here. A line naming a capability the tool does not have today
- * ends with `markers.notBuilt` and, where one exists, the callable thing that does the same job.
+ * question. A role page (`docs --for <scope>`) is written to stand alone: the reader is the prompt
+ * that sent them here, then this one page, and nothing else — so a fact a role's prompt requires
+ * lives on that role's own page rather than on a sibling's.
  *
  * USAGE:
  * docsStatics.scopes.walking.sections;
  * // Returns the walker's sections, the ladder among them
- *
- * docsStatics.markers.notBuilt;
- * // Returns 'NOT BUILT YET' — the token every unavailable capability's line carries
  */
 
-const NOT_BUILT = 'NOT BUILT YET';
+import { stepStatics } from '../step/step-statics';
 
 export const docsStatics = {
-  markers: {
-    notBuilt: NOT_BUILT,
-  },
   about: [
     'Run dungeonmaster siegelense docs with no --for flag to see this overview alone. Add --for <scope> to fetch the manual for one role instead.',
     'The siegelense tool launches an instance of an application, interacts with it, and returns readings. You run it using: dungeonmaster siegelense <call>. Steps are passed as values within a run batch; they are not standalone commands.',
     'A command only returns measured readings. It does not decide if a test passes or fails. Comparing two values is a reading, but determining if the result means pass or fail is left to the user.',
-    `If a line ends with ${NOT_BUILT}, it describes a planned feature that is not implemented yet. Do not try to use it. If a different command can do the same job right now, the instructions will tell you. If a line does not have this marker, the feature is fully built and ready to use.`,
     'You can use the --for flag to show instructions for a specific role. If you omit this flag, you will see this overview alone, with no per-role instructions.',
-    'Each of the five scopes corresponds to a specific role that uses this tool. There is no scope for a code-reading role. This is intentional: an agent that only reads code does not need instructions on how to use siegelense to drive a web browser.',
+    'Each of the three scopes corresponds to a specific role that uses this tool. There is no scope for a code-reading role. This is intentional: an agent that only reads code does not need instructions on how to use siegelense to drive a web browser.',
     'These instructions are provided via a command rather than being hardcoded into agent prompts for three reasons. First, any agent can fetch them dynamically. Second, there is only one central source of documentation to maintain. Third, system prompts have character limits; serving the manual dynamically saves valuable prompt space.',
     'Running dungeonmaster siegelense <call> --help provides different information. It shows the specific flags, errors, and an example for that command. This document is the role-specific manual. Use --help to learn how to run a command, and use this document to understand the rules and concepts.',
   ],
   scopes: {
-    planning: {
-      audience:
-        'the planner — the session that writes the test sequence and proves that the application reaches its starting state.',
-      summary:
-        'This scope covers test recipes, setup sequences, performance profiles, and machine capacity. You start and stop instances to test your setup sequences, so you will experience the same failures as the test runner.',
-      sections: [
-        {
-          heading: 'WHAT A PRELUDE IS, AND WHAT PROVING ONE MEANS',
-          lines: [
-            'A prelude is the batch of steps required to reach a specific starting state in the application. You prove a prelude by running it against a real instance and confirming it reaches the correct state.',
-            'A proven prelude is marked as VERIFIED. This guarantees that the state can be reliably reproduced. A debugging agent can re-run a VERIFIED prelude exactly as written; otherwise, it would have to guess the correct steps.',
-            'Proving a prelude requires using an instance: run dungeonmaster siegelense start, then run, then kill. You must close any instance that you start.',
-            'Since you are managing instances, you must follow the same error handling rules as a test runner. If an instance crashes, you must report it back to your dispatcher with the instance ID and the status output. Do not start a replacement, do not clean up orphans, do not retry the batch, and do not report the crash as an application defect.',
-          ],
-        },
-        {
-          heading: 'ASK CAPACITY BEFORE YOU OPEN ANYTHING',
-          lines: [
-            'Run dungeonmaster siegelense capacity to see how many instances the machine can currently handle. Run this before opening a pool, and use the --pool flag to ensure it reads the correct performance profile for your intended pool size.',
-            'You are not the only session using this machine. The capacity command accounts for instances started by other sessions. The start command will completely refuse to run if the machine is full.',
-          ],
-        },
-        {
-          heading: 'PROFILE — WHAT ONE INSTANCE OF A SPEC COSTS',
-          lines: [
-            'Run dungeonmaster siegelense profile --spec <specName> to view performance data. It shows the number of processes, the application version hash, the measurement timestamp, the number of test runs used, the boot time, and performance samples grouped by pool size.',
-            'This command only reads existing measurements; it does not measure performance on demand. If an application has not been tested yet, it will return empty samples and a null boot time rather than starting an instance to check.',
-            'Performance samples are grouped by pool size and are never averaged together. Running a single instance is much faster than running many at once, so always look at the measurements that match your intended pool size.',
-            'A profile is tied to the exact application version. If the application adds a new background service, the performance will be re-measured automatically. Headless applications measure their performance the same way, and the machine can usually run more of them at once.',
-          ],
-        },
-        {
-          heading: 'RECIPES — WHAT STATES CAN BE CREATED',
-          lines: [
-            'Run dungeonmaster siegelense recipes to list all available setup recipes. The output shows what state each recipe creates, its reliability, and what parameters it requires. This command does not start any instances or use any machine capacity.',
-            'If the list is empty, it means no recipes have been created yet. If the recipes package is missing entirely, the command will return an error instead.',
-            'The seed step runs a recipe as part of a test batch and returns the IDs of any data it created, such as { step: "seed", recipe: "<name>", as: "g" }. Later steps can use these IDs, like {g.guildSlug}. Using start --seed <name> does the same thing when booting the instance and saves the IDs in the manifest.',
-            'A recipe requires specific parameters to run. You must provide these parameters directly in the step, like { step: "seed", recipe: "session-with-nested-subagent", guild: "{g.guildId}", as: "s" }. You can chain recipes together by using the IDs from one recipe as parameters for the next.',
-            "Recipes directly modify the application state; they do not click on the screen. If a recipe tries to interact with the web browser, it is doing the test runner's job.",
-          ],
-        },
-        {
-          heading: 'NAME WHAT THE PRELUDE CARRIES: TESTIDS, NEVER REFS',
-          lines: [
-            'If you need to save a test sequence, re-run it later, or give it to another agent, you must identify elements using a testId and a within scope. A ref is a temporary ID that is only valid for a single page view on a single instance.',
-            'You might think you can pass a ref between different agents or test phases, but this will always fail.',
-            'This failure is hard to detect. If you use a stale ref like 14, the tool will not show an error because ref 14 might accidentally point to a completely different element on the new page. The test will run, but it will click the wrong thing.',
-            'Therefore, any saved test sequence must use testIds and scopes, never refs. A testId and scope will accurately find the same element across any number of instances or test runs.',
-          ],
-        },
-        {
-          heading: 'WHAT A PLAN CAN PROMISE TODAY',
-          lines: [
-            `There are twenty-three available step verbs: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request, before, file, storage, paste, hold, video, snapshot, and reset. Any other verb you see in the design is ${NOT_BUILT}.`,
-            'The look command returns a list of every interactable element on the screen. This allows you to discover the correct testId to use, rather than having to know it in advance.',
-            'The seed command runs a setup recipe to prepare the application state. Run dungeonmaster siegelense recipes to see what recipes are available. You can run a recipe using { step: "seed" } and then use its generated IDs in your test steps.',
-          ],
-        },
-      ],
-    },
     walking: {
       audience:
         'the walker — the session driving a browser against one instance and recording what it reads.',
@@ -134,7 +68,7 @@ export const docsStatics = {
             'When you target an element, there are only three possible outcomes. If exactly one element matches, the action succeeds. If more than one matches, it throws an ERROR. If zero match, it throws an ERROR. The tool will never just guess and click the first match.',
             'If the target is AMBIGUOUS, the error message will list all the matching elements and suggest how you can use a within scope to narrow down your target.',
             'If there is NO MATCH, the error message will suggest similar testIds. This helps you quickly recover if you made a typo.',
-            'Sometimes, two identical elements share the same within scope, making them impossible to tell apart by name. In this case, each candidate in the error message will provide a unique ref ID. You can then use that ref ID to perform the action, like { "step": "click", "ref": N }.',
+            'Sometimes, two identical elements share the same within scope, making them impossible to tell apart by name. In this case, each candidate in the error message will provide a unique ref ID. You can then use that ref ID to perform the action, like { "step": "click", "ref": 14 }.',
           ],
         },
         {
@@ -151,23 +85,51 @@ export const docsStatics = {
         {
           heading: 'THE VERBS YOU CAN SUBMIT TODAY',
           lines: [
-            'There are ten available actions. You submit them as a list of steps in a run batch, not as individual commands:',
-            `{ step: 'goto', path: '/siege-1/session/sess-nested' }`,
-            `{ step: 'look' } or { step: 'look', within: 'SUBAGENT_CHAIN' }`,
-            `{ step: 'box', ref: 26 }`,
-            `{ step: 'dom', target: '[data-testid="subagent-chain-duration"]', fields: ['text', 'rect'] }`,
-            `{ step: 'waitFor', target: '[data-testid="SUBAGENT_CHAIN"]', state: 'visible' }`,
-            `{ step: 'click', target: '[data-testid="EXECUTION_ROW_0"]' } or { step: 'click', ref: 26 }`,
-            `{ step: 'type', target: '[data-testid="CHAT_INPUT"]', value: 'guild-alpha' } or { step: 'type', ref: 14, value: 'guild-alpha' }`,
-            `{ step: 'key', press: 'Enter' }`,
-            `{ step: 'screenshot', name: 'after-create.png' }`,
-            `{ step: 'eval', source: 'document.querySelectorAll("[data-testid=QUEST_ROW]").length' }`,
+            `The step contract accepts ${stepStatics.verbs.all.length} step verbs: ${stepStatics.verbs.all.join(', ')}. You submit them as a list of steps in a run batch, not as individual commands. This page shows a worked example for the verbs a walker reaches for most; every other verb works exactly as its name suggests.`,
+            '{ "step": "goto", "path": "/siege-1/session/sess-nested" }',
+            '{ "step": "look" }',
+            '{ "step": "look", "within": "SUBAGENT_CHAIN" }',
+            '{ "step": "box", "ref": 26 }',
+            '{ "step": "dom", "target": "[data-testid=\\"subagent-chain-duration\\"]", "fields": ["text", "rect"] }',
+            '{ "step": "waitFor", "target": "[data-testid=\\"SUBAGENT_CHAIN\\"]", "state": "visible" }',
+            '{ "step": "click", "target": "[data-testid=\\"EXECUTION_ROW_0\\"]" }',
+            '{ "step": "click", "ref": 26 }',
+            '{ "step": "type", "target": "[data-testid=\\"CHAT_INPUT\\"]", "value": "guild-alpha" }',
+            '{ "step": "key", "press": "Enter" }',
+            '{ "step": "screenshot", "name": "after-create.png" }',
+            '{ "step": "eval", "source": "document.querySelectorAll(\\"[data-testid=QUEST_ROW]\\").length" }',
             'When taking a screenshot, you must include a file extension in the name, like .png. Otherwise, the tool will throw an error.',
             'The goto, click, type, and key commands automatically take a screenshot for you. The look command also takes a screenshot. Every screenshot automatically calculates how many pixels changed on the screen.',
-            'All ten of these actions require a web browser. If you try to run them on a headless server instance, they will immediately fail with a clear error message.',
-            'The until command waits for something other than a basic element state. It has five forms: { step: "until", visible: "[data-testid=\\"SUBAGENT_CHAIN\\"]", timeoutMs: 20000 }, { step: "until", predicate: "document.querySelectorAll(\\"[data-testid=QUEST_ROW]\\").length === 3" }, { step: "until", console: "hydrated" }, { step: "until", response: { method: "POST", path: "/api/quests" } }, or { step: "until", file: "guilds/<id>/quests/<id>/quest.json" }.',
+            "Most of these verbs need a web browser — run one against a headless server instance and it fails immediately with a clear error message. The seed, request, file, snapshot and reset verbs, and until's file condition, read disk or an API directly and work on either kind of instance.",
+            'The until command waits for something other than a basic element state. It takes exactly one of five conditions:',
+            '{ "step": "until", "visible": "[data-testid=\\"SUBAGENT_CHAIN\\"]", "timeoutMs": 20000 }',
+            '{ "step": "until", "predicate": "document.querySelectorAll(\\"[data-testid=QUEST_ROW]\\").length === 3" }',
+            '{ "step": "until", "console": "hydrated" }',
+            '{ "step": "until", "response": { "method": "POST", "path": "/api/quests" }, "timeoutMs": 15000 }',
+            '{ "step": "until", "file": "guilds/<id>/quests/<id>/quest.json", "timeoutMs": 10000 }',
             "You must provide exactly one condition for the until command. Four of these conditions require a web browser. The file condition checks the server's disk, so it can be used on both browser and headless instances. Use the file condition when you need to wait for the application to save data.",
             'The console and response conditions only monitor the current test run. If you are waiting for a network request, it must be triggered by a step in the same batch. It will not detect requests that happened in previous test runs.',
+            'The seed command runs a setup recipe to prepare the application state. Run dungeonmaster siegelense recipes to see what recipes are available. Its generated ids become available to later steps, like {g.guildSlug}.',
+            '{ "step": "seed", "recipe": "session-with-nested-subagent", "guild": "{g.guildId}", "as": "s" }',
+            'The reset command returns your instance to a clean starting state before you drive a fresh path. dungeonmaster siegelense docs --for attacking names the three reset levels in full; state is the one a walker reaches for most.',
+            '{ "step": "reset", "level": "state", "to": "guild-with-quest" }',
+          ],
+        },
+        {
+          heading: 'THE SEQUENCE, START TO FINISH',
+          lines: [
+            'Every step above is a value inside a JSON array; dungeonmaster siegelense run is the command that actually drives a batch of them. If something already started your instance and handed you its id, submit steps straight away:',
+            'dungeonmaster siegelense run --instance <id> --steps \'[{"step":"goto","path":"/"}]\'',
+            'You can also load steps from a file using --steps-file <path>.',
+            'If you are managing your own instance instead, here is the whole surface in the order you will want it:',
+            'Run dungeonmaster siegelense capacity to see how many instances the machine can currently handle. You are sharing this machine, so always check this first. The start command will refuse to run if the machine is full.',
+            'Run dungeonmaster siegelense start --spec dungeonmaster-stack to boot a new instance. The command waits until the instance is ready, then returns the manifest. The manifest includes the instance ID, URL, file paths, and boot times.',
+            'Run dungeonmaster siegelense start --spec dungeonmaster-api to boot an instance without a web browser, for testing background processes.',
+            'Run dungeonmaster siegelense start --idle-timeout-ms <ms> to increase the idle timeout for your instance. Instances normally shut down after 900 seconds of inactivity. If you are testing manually, you should increase this timeout so the instance does not die while you are thinking. This only raises the limit; the timeout is necessary to prevent abandoned instances from running forever.',
+            'Run dungeonmaster siegelense run --instance <id> --steps \'[{"step":"goto","path":"/"}]\' to submit a batch of test steps. This returns a basic status summary, not the detailed test data.',
+            'Run dungeonmaster siegelense results --instance <id> --run <runId> [--step <n>] [--kind <kind>] to read the detailed test data from disk. This command does not start any instances and works even after the instance is shut down.',
+            'Run dungeonmaster siegelense status --instance <id> to see the full details of your instance, including why it crashed if it failed.',
+            'Run dungeonmaster siegelense kill --instance <id> to shut down your instance, free up network ports, and remove temporary files. The test evidence will be saved.',
           ],
         },
         {
@@ -184,9 +146,11 @@ export const docsStatics = {
         {
           heading: 'STOPON AND EXPECT',
           lines: [
-            'By default, a test batch stops immediately if any step fails. You can override this by passing --stop-on never.',
-            'If you use --stop-on never, the test will continue running even after a failure. In this case, the stoppedAt value will tell you where the test WOULD have stopped if it had been allowed to.',
-            'If you expect a specific step to fail, add expect: error to that step. If a step is marked with expect: error but it actually succeeds, the test will stop and report an error. The application accepting an action it should have refused is a bug.',
+            'The run command takes a --stop-on flag. By default (--stop-on error, the same as omitting it) a batch stops at the first step that fails.',
+            'Pass --stop-on never to push through every step regardless of failure. The stoppedAt value on the result still names the first failure location — where the batch WOULD have stopped, not where it did.',
+            'If you expect a specific step to fail, add "expect": "error" to that step\'s own object, as a field alongside its other fields:',
+            '{ "step": "click", "target": "[data-testid=\\"DELETE_DISABLED_BTN\\"]", "expect": "error" }',
+            'If a step marked "expect": "error" actually succeeds, the batch stops and reports an error anyway. The application accepting an action it should have refused is itself a bug.',
           ],
         },
         {
@@ -206,14 +170,13 @@ export const docsStatics = {
       audience:
         'the stress tester — the session running attacks against one instance and measuring what breaks.',
       summary:
-        'This scope covers the health check, the three reset levels, how to expect errors, and how to use baselines. Read the first section carefully: the features that automatically reset the instance to a clean state are not built yet.',
+        'This scope covers the health check, the three reset levels, how to expect errors, and how to use baselines. Read the first section carefully: reset and snapshot are what make each attack start from a clean instance.',
       sections: [
         {
           heading: 'READ THIS FIRST',
           lines: [
             'The reset and snapshot commands are BUILT. The health command is BUILT.',
             'If an attack changes the application state, you must start a fresh instance for it: boot the instance, run the attack, read the results, and close the instance. If you run a second attack on the same instance, you will be testing the damaged state left by the first attack.',
-            'The rules below explain how the application state works. These rules are true regardless of whether the automated reset commands are fully built yet.',
           ],
         },
         {
@@ -239,10 +202,11 @@ export const docsStatics = {
         {
           heading: 'THE THREE RESET LEVELS',
           lines: [
-            `The page level clears browser storage and reloads the document, but it keeps the disk and server memory. This takes about one second. ${NOT_BUILT}.`,
-            `The state level clears the disk and the browser, but it KEEPS SERVER MEMORY. This takes about two seconds. ${NOT_BUILT}.`,
+            'The page level clears browser storage and reloads the document, but it keeps the disk and server memory. This takes about one second.',
+            '{ "step": "reset", "level": "page" }',
+            'The state level clears the disk and the browser, but it KEEPS SERVER MEMORY. This takes about two seconds. You must specify the exact name of the snapshot you want to restore.',
+            '{ "step": "reset", "level": "state", "to": "guild-with-quest" }',
             'The instance level clears everything by starting a completely new process. This takes about twenty seconds. Right now, you can only do this manually by closing the current instance and starting a new one.',
-            'When using the state reset level, you must specify the exact name of the snapshot you want to restore. If you pick the wrong snapshot, all your following tests will be testing the wrong starting state.',
             'A snapshot only backs up the application data. Logs, screenshots, and test transcripts are completely separate and will survive any reset. Test evidence always accumulates safely.',
             'When you reset the state, the tool reports exactly what files were changed. This proves that the reset worked and acts as a damage check to ensure no corrupted files were left behind.',
             'You must declare which reset level your attack requires. Most attacks only need the state level. If your attack targets the server itself, like exhausting memory or breaking connections, you must use the instance level.',
@@ -252,9 +216,11 @@ export const docsStatics = {
         {
           heading: 'EXPECT: ERROR',
           lines: [
-            'If you expect a specific test step to fail, add expect: error to that step. This only applies to that single step; if any other step fails, the test will still stop.',
-            'If a step is marked with expect: error but it actually succeeds, the test will stop and report an error. The application accepting an action it should have refused is a bug.',
-            'If you do not include expect: error, the tool assumes the step should succeed. Any unexpected failure will stop the test batch.',
+            'The run command takes a --stop-on flag, defaulting to --stop-on error: a batch stops at the first step that fails. An attack that must keep going past an expected failure passes --stop-on never instead.',
+            'If you expect a specific test step to fail, add "expect": "error" to that step\'s own object. This only applies to that single step; if any other step fails, the test will still stop:',
+            '{ "step": "type", "target": "[data-testid=\\"AMOUNT_INPUT\\"]", "value": "-99999999999999", "expect": "error" }',
+            'If a step is marked with "expect": "error" but it actually succeeds, the test will stop and report an error. The application accepting an action it should have refused is a bug.',
+            'If you do not include "expect": "error", the tool assumes the step should succeed. Any unexpected failure will stop the test batch.',
           ],
         },
         {
@@ -263,7 +229,7 @@ export const docsStatics = {
             'You do not create your own baselines. You inherit them from the successful test run that proved the starting state. You can read these baseline screenshots using results --instance <id> --run <runId> --kind screenshots. This works even if the original instance was closed hours ago.',
             'Comparing your attack results against an already-broken baseline is dangerous. If the baseline was broken, your attack might show no difference, and you will incorrectly report that the application survived the attack.',
             'A screenshot is only approved as a baseline if every test on that screen passed AND there were no previous errors in the test run. If an error happened earlier, the screen might look correct but the application state is actually corrupted.',
-            `The system that automatically approves baselines is ${NOT_BUILT}. You will receive the instance ID and run ID, but you must manually verify that the baseline is valid.`,
+            'You will receive the instance ID and run ID for the baseline, but you must manually verify that the baseline is valid.',
             'When testing an error path, the correct result is usually an error message on the screen. If you compare an error path against a happy-path baseline, you will falsely report the error message as a visual bug. Or worse, if the application fails to show the error message, the screens will match and you will incorrectly report the test as successful.',
             'Error messages are often temporary popups. You should verify they exist by checking the screen text, not by comparing pixel differences.',
             'Pixel-perfect comparisons are reliable across different test runs. The application uses a fixed random seed, so the screen will look exactly the same every time.',
@@ -273,9 +239,8 @@ export const docsStatics = {
           heading: 'SERVER-SIDE FAILURE INJECTION',
           lines: [
             'You can test many types of bad input directly through the web browser, like typing garbage text, entering huge values, or clicking rapidly.',
-            `However, you cannot easily test server-side failures through the browser, such as server crashes, hanging requests, or dropped connections. Automated tools to simulate server-side failures are ${NOT_BUILT}.`,
             'The testing environment currently only fakes the agent CLI and the ward binary. It does not fake any other background systems.',
-            `The look command is designed to help you find important HTML attributes like maxlength and pattern, as well as live regions where error messages appear. However, automatically checking these attributes during an attack is ${NOT_BUILT}.`,
+            'The look command is designed to help you find important HTML attributes like maxlength and pattern, as well as live regions where error messages appear. Use the dom command to read these attributes directly when an attack needs to check them.',
           ],
         },
       ],
@@ -355,37 +320,6 @@ export const docsStatics = {
             'Do not try to resurrect the dead instance. Do not start a new instance just to browse around. Do not look for evidence belonging to an instance you were not assigned.',
             'Every running instance consumes machine resources. Starting unnecessary instances will block other testing agents from doing their work.',
             'However, this rule only applies to running processes. Steps 1 through 4 only read files from disk and consume no resources. The most common mistake is assuming you need to start a new instance just to read the logs from the previous failure. Doing so wastes machine capacity and gives you logs for the wrong instance.',
-          ],
-        },
-      ],
-    },
-    driving: {
-      audience:
-        'a session nobody orchestrated — no quest dispatched you, and no dispatcher is watching.',
-      summary:
-        'This scope provides the same instructions as the other roles, but addressed directly to you. You are responsible for managing your own instances and tasks.',
-      sections: [
-        {
-          heading: 'FIVE THINGS TRUE OF YOU AND OF NO DISPATCHED ROLE',
-          lines: [
-            'You are sharing this machine with other agents. Run capacity before starting anything. The start command will queue your request if the machine is busy, so starting multiple instances will slow down other tests.',
-            'You must call kill yourself. Since no operator is managing you, your instance will stay alive and leak resources until the idle timeout hits, or until another agent runs the cleanup command.',
-            'The start command provides the paths to your instance evidence. You must save these paths yourself. There is no command to look them up later, so write them down immediately.',
-            'Your instance is marked as unowned, which means its assets are not protected. They will be automatically deleted when they get old.',
-            'The cleanup command is completely safe to run. It only removes stale instances and will not interfere with active tests. Run it regularly to prevent orphan processes from building up.',
-          ],
-        },
-        {
-          heading: 'THE SURFACE, IN THE ORDER YOU WILL WANT IT',
-          lines: [
-            'Run dungeonmaster siegelense capacity to see how many instances the machine can currently handle. You are sharing this machine, so always check this first. The start command will refuse to run if the machine is full.',
-            'Run dungeonmaster siegelense start --spec dungeonmaster-stack to boot a new instance. The command waits until the instance is ready, then returns the manifest. The manifest includes the instance ID, URL, file paths, and boot times.',
-            'Run dungeonmaster siegelense start --spec dungeonmaster-api to boot an instance without a web browser, for testing background processes.',
-            'Run dungeonmaster siegelense start --idle-timeout-ms <ms> to increase the idle timeout for your instance. Instances normally shut down after 900 seconds of inactivity. If you are testing manually, you should increase this timeout so the instance does not die while you are thinking. This only raises the limit; the timeout is necessary to prevent abandoned instances from running forever.',
-            `Run dungeonmaster siegelense run --instance <id> --steps '[{"step":"goto","path":"/"}]' to submit a batch of test steps. This returns a basic status summary, not the detailed test data. You can also load steps from a file using --steps-file <path>.`,
-            'Run dungeonmaster siegelense results --instance <id> --run <runId> [--step <n>] [--kind <kind>] to read the detailed test data from disk. This command does not start any instances and works even after the instance is shut down.',
-            'Run dungeonmaster siegelense status --instance <id> to see the full details of your instance, including why it crashed if it failed.',
-            'Run dungeonmaster siegelense kill --instance <id> to shut down your instance, free up network ports, and remove temporary files. The test evidence will be saved.',
           ],
         },
       ],

@@ -77,11 +77,11 @@ describe('docsAnswerContract', () => {
       expect(result.error?.issues).toStrictEqual([
         {
           code: 'invalid_enum_value',
-          options: ['planning', 'walking', 'attacking', 'fixing', 'driving'],
+          options: ['walking', 'attacking', 'fixing'],
           path: ['requested'],
           received: 'reader',
           message:
-            "Invalid enum value. Expected 'planning' | 'walking' | 'attacking' | 'fixing' | 'driving', received 'reader'",
+            "Invalid enum value. Expected 'walking' | 'attacking' | 'fixing', received 'reader'",
         },
       ]);
     });

@@ -35,7 +35,6 @@ import { siegelenseHelpStatics } from '../../statics/siegelense-help/siegelense-
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { siegelenseHelpRenderTransformer } from '../../transformers/siegelense-help-render/siegelense-help-render-transformer';
 import { evidenceTreeHarness } from '../../../test/harnesses/evidence-tree/evidence-tree.harness';
-import { recipesRouteOutcomeHarness } from '../../../test/harnesses/recipes-route-outcome/recipes-route-outcome.harness';
 import { SiegelenseFlow } from './siegelense-flow';
 
 // Every built call, in the order `siegelenseHelpStatics.calls` declares them — every it.each
@@ -192,27 +191,7 @@ describe('SiegelenseFlow', () => {
     });
   });
 
-  // `packages/hydration-recipes/dist/index.js` is compiled output from a sibling package this
-  // chunk does not build, so `recipesLocateBroker` (C2) — real fs I/O against that exact path —
-  // resolves or rejects differently depending on that package's own build state. What holds in
-  // EITHER state, and what this test asserts: bare `recipes` always reaches the real recipes
-  // pipeline, never SiegelenseFlow's own "is a siegelense call but is not built yet" fall-through —
-  // `recipesRouteOutcomeHarness` is the one door this suite has to that distinction, since
-  // jest/no-conditional-in-test refuses the branch it needs inside an `it` body.
   describe('the recipes route', () => {
-    const recipesRouteOutcome = recipesRouteOutcomeHarness();
-
-    it('VALID: {args: ["recipes"]} => reaches the real recipes pipeline, never the flow\'s own "not built yet" refusal', async () => {
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((): boolean => true) as unknown as typeof process.stdout.write;
-
-      const [settled] = await Promise.allSettled([SiegelenseFlow({ args: ['recipes'] })]);
-
-      process.stdout.write = originalWrite;
-
-      expect(recipesRouteOutcome.reachedPipeline({ settled })).toBe(true);
-    });
-
     it('VALID: {args: ["recipes", "--help"]} => writes the recipes page, first line its summary', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
@@ -238,28 +217,6 @@ describe('SiegelenseFlow', () => {
       await expect(SiegelenseFlow({ args: ['statuss'] })).rejects.toThrow(
         /^Unknown siegelense subcommand: statuss\n\nUsage: dungeonmaster siegelense \[--help \| start \| run \| results \| kill \| capacity \| status \| cleanup \| prune \| compare \| profile \| snapshots \| recipes \| docs \| driver --instance <instanceId>\]$/u,
       );
-    });
-  });
-
-  describe('the not-built-yet branch, now unreachable', () => {
-    // The branch itself stays, as the guard for a fourteenth name added to the closed set with no
-    // route. These two assertions prove no CURRENT name reaches it — they replace the old
-    // `capacity refuses by name` case, which could only pass while capacity was unbuilt.
-    it('VALID: {every name siegelenseCallStatics defines} => has a route, so none answers "not built yet"', async () => {
-      const outcomes = await Promise.all(
-        siegelenseCallStatics.calls.names.map(async (name) =>
-          SiegelenseFlow({ args: [name, '--help'] }).then(
-            () => null,
-            () => name,
-          ),
-        ),
-      );
-
-      expect(outcomes.filter((name) => name !== null)).toStrictEqual([]);
-    });
-
-    it('VALID: {index.notBuiltYet} => empty, matching the route table it is graded against', () => {
-      expect(siegelenseHelpStatics.index.notBuiltYet).toStrictEqual([]);
     });
   });
 

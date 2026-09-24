@@ -1,38 +1,59 @@
 import { siegelenseCallStatics } from '../siegelense-call/siegelense-call-statics';
+import { stepStatics } from '../step/step-statics';
 
 import { docsStatics } from './docs-statics';
 
 describe('docsStatics', () => {
-  describe('the five scopes', () => {
+  describe('the three scopes', () => {
     it('VALID: {every pinned scope} => each has its own audience line, in the pinned order', () => {
       expect(
         siegelenseCallStatics.docs.scopes.map((name) => docsStatics.scopes[name].audience),
       ).toStrictEqual([
-        'the planner — the session that writes the test sequence and proves that the application reaches its starting state.',
         'the walker — the session driving a browser against one instance and recording what it reads.',
         'the stress tester — the session running attacks against one instance and measuring what breaks.',
         'the fixer — the session that arrives after the walk is over and the instance is gone.',
-        'a session nobody orchestrated — no quest dispatched you, and no dispatcher is watching.',
       ]);
     });
 
-    it('VALID: {markers} => the unavailable-capability token is the one every such line carries', () => {
-      expect(docsStatics.markers.notBuilt).toBe('NOT BUILT YET');
+    it('INVALID: {planning, driving} => both scopes are deleted; no prompt sends any agent to them', () => {
+      expect({
+        planning: 'planning' in docsStatics.scopes,
+        driving: 'driving' in docsStatics.scopes,
+        walking: 'walking' in docsStatics.scopes,
+        attacking: 'attacking' in docsStatics.scopes,
+        fixing: 'fixing' in docsStatics.scopes,
+      }).toStrictEqual({
+        planning: false,
+        driving: false,
+        walking: true,
+        attacking: true,
+        fixing: true,
+      });
     });
   });
 
-  describe('the preamble every answer carries', () => {
-    it('VALID: {about} => announces the bare-docs overview, names the marker rule and the absent code-reader scope', () => {
+  describe('the preamble the bare call carries', () => {
+    it('VALID: {about} => announces the bare-docs overview and the absent code-reader scope, with no NOT BUILT YET marker', () => {
       expect(docsStatics.about).toStrictEqual([
         'Run dungeonmaster siegelense docs with no --for flag to see this overview alone. Add --for <scope> to fetch the manual for one role instead.',
         'The siegelense tool launches an instance of an application, interacts with it, and returns readings. You run it using: dungeonmaster siegelense <call>. Steps are passed as values within a run batch; they are not standalone commands.',
         'A command only returns measured readings. It does not decide if a test passes or fails. Comparing two values is a reading, but determining if the result means pass or fail is left to the user.',
-        'If a line ends with NOT BUILT YET, it describes a planned feature that is not implemented yet. Do not try to use it. If a different command can do the same job right now, the instructions will tell you. If a line does not have this marker, the feature is fully built and ready to use.',
         'You can use the --for flag to show instructions for a specific role. If you omit this flag, you will see this overview alone, with no per-role instructions.',
-        'Each of the five scopes corresponds to a specific role that uses this tool. There is no scope for a code-reading role. This is intentional: an agent that only reads code does not need instructions on how to use siegelense to drive a web browser.',
+        'Each of the three scopes corresponds to a specific role that uses this tool. There is no scope for a code-reading role. This is intentional: an agent that only reads code does not need instructions on how to use siegelense to drive a web browser.',
         'These instructions are provided via a command rather than being hardcoded into agent prompts for three reasons. First, any agent can fetch them dynamically. Second, there is only one central source of documentation to maintain. Third, system prompts have character limits; serving the manual dynamically saves valuable prompt space.',
         'Running dungeonmaster siegelense <call> --help provides different information. It shows the specific flags, errors, and an example for that command. This document is the role-specific manual. Use --help to learn how to run a command, and use this document to understand the rules and concepts.',
       ]);
+    });
+  });
+
+  describe('no line anywhere carries the retired NOT BUILT YET marker', () => {
+    it('INVALID: {every scope} => no section line ends with, or contains, NOT BUILT YET', () => {
+      const scopeLines = Object.values(docsStatics.scopes).flatMap((scope) =>
+        scope.sections.flatMap((section) => section.lines),
+      );
+      const allLines = [...docsStatics.about, ...scopeLines];
+
+      expect(allLines.some((line) => line.includes('NOT BUILT YET'))).toBe(false);
     });
   });
 
@@ -64,18 +85,104 @@ describe('docsStatics', () => {
     });
   });
 
-  describe('driving says what no other scope says', () => {
-    it('VALID: {driving} => carries every row of the spec table, capacity through cleanup', () => {
-      expect(docsStatics.scopes.driving.sections[0]).toStrictEqual({
-        heading: 'FIVE THINGS TRUE OF YOU AND OF NO DISPATCHED ROLE',
-        lines: [
-          'You are sharing this machine with other agents. Run capacity before starting anything. The start command will queue your request if the machine is busy, so starting multiple instances will slow down other tests.',
-          'You must call kill yourself. Since no operator is managing you, your instance will stay alive and leak resources until the idle timeout hits, or until another agent runs the cleanup command.',
-          'The start command provides the paths to your instance evidence. You must save these paths yourself. There is no command to look them up later, so write them down immediately.',
-          'Your instance is marked as unowned, which means its assets are not protected. They will be automatically deleted when they get old.',
-          'The cleanup command is completely safe to run. It only removes stale instances and will not interfere with active tests. Run it regularly to prevent orphan processes from building up.',
-        ],
+  describe('walking teaches the whole verb catalog with no wrong count (DEF-29)', () => {
+    it('VALID: {walking, THE VERBS YOU CAN SUBMIT TODAY} => opens naming every verb the step contract accepts, derived rather than hand-typed', () => {
+      const section = docsStatics.scopes.walking.sections.find(
+        (candidate) => candidate.heading === 'THE VERBS YOU CAN SUBMIT TODAY',
+      );
+
+      expect(section?.lines[0]).toBe(
+        `The step contract accepts ${stepStatics.verbs.all.length} step verbs: ${stepStatics.verbs.all.join(', ')}. You submit them as a list of steps in a run batch, not as individual commands. This page shows a worked example for the verbs a walker reaches for most; every other verb works exactly as its name suggests.`,
+      );
+    });
+
+    it('VALID: {walking} => names no wrong verb count anywhere on the page', () => {
+      const allLines = docsStatics.scopes.walking.sections.flatMap((section) => section.lines);
+
+      expect(allLines.some((line) => line.includes('ten available actions'))).toBe(false);
+    });
+
+    it('VALID: {walking} => teaches the seed step and the reset step, which the walker prompt requires', () => {
+      const allLines = docsStatics.scopes.walking.sections.flatMap((section) => section.lines);
+
+      expect({
+        teachesSeed: allLines.some((line) => line.includes('"step": "seed"')),
+        teachesReset: allLines.some((line) => line.includes('"step": "reset"')),
+      }).toStrictEqual({
+        teachesSeed: true,
+        teachesReset: true,
       });
+    });
+  });
+
+  describe('walking shows how to use the tool, start to finish (DEF-28)', () => {
+    it('VALID: {walking} => shows a working run --instance <id> --steps example', () => {
+      const allLines = docsStatics.scopes.walking.sections.flatMap((section) => section.lines);
+
+      expect(allLines.some((line) => line.includes('run --instance <id> --steps'))).toBe(true);
+    });
+
+    it('VALID: {walking, THE SEQUENCE START TO FINISH} => carries every row of the driving surface, capacity through kill', () => {
+      const section = docsStatics.scopes.walking.sections.find(
+        (candidate) => candidate.heading === 'THE SEQUENCE, START TO FINISH',
+      );
+
+      expect(section?.lines.slice(4)).toStrictEqual([
+        'Run dungeonmaster siegelense capacity to see how many instances the machine can currently handle. You are sharing this machine, so always check this first. The start command will refuse to run if the machine is full.',
+        'Run dungeonmaster siegelense start --spec dungeonmaster-stack to boot a new instance. The command waits until the instance is ready, then returns the manifest. The manifest includes the instance ID, URL, file paths, and boot times.',
+        'Run dungeonmaster siegelense start --spec dungeonmaster-api to boot an instance without a web browser, for testing background processes.',
+        'Run dungeonmaster siegelense start --idle-timeout-ms <ms> to increase the idle timeout for your instance. Instances normally shut down after 900 seconds of inactivity. If you are testing manually, you should increase this timeout so the instance does not die while you are thinking. This only raises the limit; the timeout is necessary to prevent abandoned instances from running forever.',
+        'Run dungeonmaster siegelense run --instance <id> --steps \'[{"step":"goto","path":"/"}]\' to submit a batch of test steps. This returns a basic status summary, not the detailed test data.',
+        'Run dungeonmaster siegelense results --instance <id> --run <runId> [--step <n>] [--kind <kind>] to read the detailed test data from disk. This command does not start any instances and works even after the instance is shut down.',
+        'Run dungeonmaster siegelense status --instance <id> to see the full details of your instance, including why it crashed if it failed.',
+        'Run dungeonmaster siegelense kill --instance <id> to shut down your instance, free up network ports, and remove temporary files. The test evidence will be saved.',
+      ]);
+    });
+  });
+
+  describe('STOPON AND EXPECT names --stop-on as a run flag with a real expect example (DEF-27)', () => {
+    it('VALID: {walking} => names --stop-on as a flag on run, and shows expect as a step field', () => {
+      const section = docsStatics.scopes.walking.sections.find(
+        (candidate) => candidate.heading === 'STOPON AND EXPECT',
+      );
+      const joinedLines = section!.lines.join(' ');
+
+      expect({
+        namesStopOnAsARunFlag: joinedLines.includes('The run command takes a --stop-on flag'),
+        showsExpectAsAStepField: section!.lines.some((line) => line.startsWith('{ "step":')),
+      }).toStrictEqual({
+        namesStopOnAsARunFlag: true,
+        showsExpectAsAStepField: true,
+      });
+    });
+
+    it('VALID: {attacking} => carries the same --stop-on and expect facts the walking page does', () => {
+      const section = docsStatics.scopes.attacking.sections.find(
+        (candidate) => candidate.heading === 'EXPECT: ERROR',
+      );
+      const joinedLines = section!.lines.join(' ');
+
+      expect({
+        namesStopOnAsARunFlag: joinedLines.includes('The run command takes a --stop-on flag'),
+        showsExpectAsAStepField: section!.lines.some((line) => line.startsWith('{ "step":')),
+      }).toStrictEqual({
+        namesStopOnAsARunFlag: true,
+        showsExpectAsAStepField: true,
+      });
+    });
+  });
+
+  describe('every fenced-looking json example is valid JSON (DEF-30)', () => {
+    it('VALID: {walking, attacking, fixing} => every line starting with { "step": parses with JSON.parse, and at least one exists', () => {
+      const allLines = [
+        ...docsStatics.scopes.walking.sections,
+        ...docsStatics.scopes.attacking.sections,
+        ...docsStatics.scopes.fixing.sections,
+      ].flatMap((section) => section.lines);
+      const fencedLines = allLines.filter((line) => line.startsWith('{ "step":'));
+      const parsedLines = fencedLines.map((line) => JSON.parse(line));
+
+      expect(parsedLines.length).toBeGreaterThan(0);
     });
   });
 
@@ -86,11 +193,16 @@ describe('docsStatics', () => {
       );
     });
 
-    it('VALID: {attacking} => names all three reset levels, each declaring what it keeps', () => {
-      expect(docsStatics.scopes.attacking.sections[3].lines.slice(0, 3)).toStrictEqual([
-        'The page level clears browser storage and reloads the document, but it keeps the disk and server memory. This takes about one second. NOT BUILT YET.',
-        'The state level clears the disk and the browser, but it KEEPS SERVER MEMORY. This takes about two seconds. NOT BUILT YET.',
-        'The instance level clears everything by starting a completely new process. This takes about twenty seconds. Right now, you can only do this manually by closing the current instance and starting a new one.',
+    it('VALID: {fixing} => STEP 7 closes what the fixer opened at STEP 5', () => {
+      expect(docsStatics.scopes.fixing.sections[7].heading).toBe('STEP 7 — CLOSE WHAT YOU OPENED');
+    });
+
+    it('VALID: {attacking} => names all three reset levels, each declaring what it keeps, with a real reset example', () => {
+      expect(docsStatics.scopes.attacking.sections[3].lines.slice(0, 4)).toStrictEqual([
+        'The page level clears browser storage and reloads the document, but it keeps the disk and server memory. This takes about one second.',
+        '{ "step": "reset", "level": "page" }',
+        'The state level clears the disk and the browser, but it KEEPS SERVER MEMORY. This takes about two seconds. You must specify the exact name of the snapshot you want to restore.',
+        '{ "step": "reset", "level": "state", "to": "guild-with-quest" }',
       ]);
     });
 
@@ -103,18 +215,6 @@ describe('docsStatics', () => {
     it('VALID: {attacking} => gives the callable stand-in for the unbuilt health reading', () => {
       expect(docsStatics.scopes.attacking.sections[1].lines[3]).toBe(
         'You can perform this exact health check manually using existing commands: check results --kind console for browser errors, results --kind network for failed requests, results --kind server --where-steps a-b --where-level error for server logs, and check the blank status on your screenshots.',
-      );
-    });
-
-    it('VALID: {planning} => names the twenty-three built verbs and marks every other one', () => {
-      expect(docsStatics.scopes.planning.sections[5].lines[0]).toBe(
-        'There are twenty-three available step verbs: goto, waitFor, click, type, screenshot, eval, look, box, seed, until, dom, key, health, resize, request, before, file, storage, paste, hold, video, snapshot, and reset. Any other verb you see in the design is NOT BUILT YET.',
-      );
-    });
-
-    it('VALID: {planning} => says a prelude CAN create its own starting state, now that seed runs a recipe', () => {
-      expect(docsStatics.scopes.planning.sections[5].lines[2]).toBe(
-        'The seed command runs a setup recipe to prepare the application state. Run dungeonmaster siegelense recipes to see what recipes are available. You can run a recipe using { step: "seed" } and then use its generated IDs in your test steps.',
       );
     });
   });

@@ -104,7 +104,8 @@ Once, for orientation, run \`dungeonmaster siegelense docs --for fixing\` — ba
 four steps are free, read-only queries against evidence already on disk. **Its STEP 5, "reproduce on a fresh
 instance," does not apply to you and you do not run it** — [NO LANE OF YOUR OWN] above overrides it.
 That step describes a session that owns its own lane; you never do, and your whole brief already lives
-in \`mintingObservation\`, not on a live instance somewhere.
+in \`mintingObservation\`, not on a live instance somewhere. **Its STEP 7, "close what you opened,"
+does not apply either** — you never open an instance, so you have nothing of your own to close.
 
 ### 3. Choose the layer — RED FIRST
 

@@ -11,19 +11,11 @@ import { siegelenseCallStatics, siegelenseHelpStatics } from '@dungeonmaster/sie
 import { cliBinHarness } from '../test/harnesses/cli-bin/cli-bin.harness';
 
 type BuiltSiegelenseCall = keyof typeof siegelenseHelpStatics.calls;
-// The union of all thirteen call names, read off the `includes` method's own parameter rather than
-// an indexed-access type — the tuple's actual element union, not a second hand-typed copy of it.
-type SiegelenseCallName = Parameters<(typeof siegelenseCallStatics.calls.names)['includes']>[0];
 
-// The two lists below are the whole point of this file: every other siegelense test in this repo
-// starts at SiegelenseFlow or below, so only a spawned process above the CliSiegelenseResponder
-// gate can prove the gate itself is open. Derived from the statics, never hardcoded — a
-// hand-maintained copy of either list is the exact route-table duplication this chunk removes.
+// Derived from the statics, never hardcoded — every other siegelense test in this repo starts at
+// SiegelenseFlow or below, so only a spawned process above the CliSiegelenseResponder gate can
+// prove the gate itself is open.
 const BUILT_CALL_NAMES = Object.keys(siegelenseHelpStatics.calls) as readonly BuiltSiegelenseCall[];
-const ROUTED_CALL_NAME_SET = new Set(Object.keys(siegelenseHelpStatics.calls));
-const NOT_BUILT_CALL_NAMES = siegelenseCallStatics.calls.names.filter(
-  (name) => !ROUTED_CALL_NAME_SET.has(name),
-);
 const UNKNOWN_SUBCOMMAND_STDERR =
   'Error: Unknown siegelense subcommand: statuss\n\n' +
   'Usage: dungeonmaster siegelense [--help | start | run | results | kill | capacity | status | ' +
@@ -100,40 +92,26 @@ describe('dungeonmaster siegelense subcommand seam', () => {
   // never inside an `it`, so each assertion below only reads an already-settled value and cannot
   // itself time out.
   let helpResults: Record<BuiltSiegelenseCall, Awaited<ReturnType<typeof harness.runCommand>>>;
-  let notBuiltResults: Record<SiegelenseCallName, Awaited<ReturnType<typeof harness.runCommand>>>;
   let bareHelp: Awaited<ReturnType<typeof harness.runCommand>>;
   let unknownSubcommand: Awaited<ReturnType<typeof harness.runCommand>>;
 
   beforeAll(async () => {
-    const [helpEntries, notBuiltEntries, bareHelpResult, unknownSubcommandResult] =
-      await Promise.all([
-        Promise.all(
-          BUILT_CALL_NAMES.map(
-            async (call) =>
-              [call, await harness.runCommand({ args: ['siegelense', call, '--help'] })] as const,
-          ),
+    const [helpEntries, bareHelpResult, unknownSubcommandResult] = await Promise.all([
+      Promise.all(
+        BUILT_CALL_NAMES.map(
+          async (call) =>
+            [call, await harness.runCommand({ args: ['siegelense', call, '--help'] })] as const,
         ),
-        Promise.all(
-          NOT_BUILT_CALL_NAMES.map(
-            async (name) =>
-              [name, await harness.runCommand({ args: ['siegelense', name] })] as const,
-          ),
-        ),
-        harness.runCommand({ args: ['siegelense', '--help'] }),
-        harness.runCommand({ args: ['siegelense', 'statuss'] }),
-      ]);
+      ),
+      harness.runCommand({ args: ['siegelense', '--help'] }),
+      harness.runCommand({ args: ['siegelense', 'statuss'] }),
+    ]);
 
     helpResults = helpEntries.reduce<
       Record<BuiltSiegelenseCall, Awaited<ReturnType<typeof harness.runCommand>>>
     >(
       (accumulator, [call, result]) => ({ ...accumulator, [call]: result }),
       {} as Record<BuiltSiegelenseCall, Awaited<ReturnType<typeof harness.runCommand>>>,
-    );
-    notBuiltResults = notBuiltEntries.reduce<
-      Record<SiegelenseCallName, Awaited<ReturnType<typeof harness.runCommand>>>
-    >(
-      (accumulator, [name, result]) => ({ ...accumulator, [name]: result }),
-      {} as Record<SiegelenseCallName, Awaited<ReturnType<typeof harness.runCommand>>>,
     );
     bareHelp = bareHelpResult;
     unknownSubcommand = unknownSubcommandResult;
@@ -153,14 +131,6 @@ describe('dungeonmaster siegelense subcommand seam', () => {
       );
     },
   );
-
-  // `it.each` throws on an empty array, so the not-built seam is asserted as one case rather than
-  // one per name. What it proves is the same thing from the other side: the closed set and the
-  // route table now agree, so no name reaches the refusal at all.
-  it('VALID: {every name the spec defines} => routed, so none refuses as not built yet', () => {
-    expect(NOT_BUILT_CALL_NAMES).toStrictEqual([]);
-    expect(notBuiltResults).toStrictEqual({});
-  });
 
   it('VALID: {dungeonmaster siegelense --help} => exits 0 and prints the index page', () => {
     expect(bareHelp.exitCode).toBe(ExitCodeStub({ value: 0 }));

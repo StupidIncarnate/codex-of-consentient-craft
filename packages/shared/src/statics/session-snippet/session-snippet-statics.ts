@@ -257,4 +257,14 @@ Applies in any repo \`dungeonmaster init\` has touched.
 | anything else | the package whose \`StartInstall\` writes it |
 
 For a gated file nothing generates — an \`.env\`, a hand-written \`.mcp.json\` — write up the cause and the exact one-line diff and ask the user to apply it. Do not reach for another tool to get around the prompt.`,
+
+  siegelense: `## siegelense
+
+Applies in any repo \`dungeonmaster init\` has touched — siegelense works the same way everywhere it runs.
+
+**\`dungeonmaster siegelense\` drives a real running instance and returns what it measures, never what the code claims.** Reach for it whenever a claim needs proof against a live system: a click really fires its request, an error really shows on screen, a fix really changed what renders. \`discover\` and a code read tell you what SHOULD happen; siegelense tells you what DID.
+
+It boots a throwaway instance, drives it with a batch of steps, and reads back readings — console, network, screenshots, server logs — never a verdict. Comparing two readings to decide pass or fail is yours to do.
+
+**Start here:** \`dungeonmaster siegelense docs --for <scope>\` — \`walking\` (drive a browser and record what you see), \`attacking\` (stress it and measure what breaks), or \`fixing\` (read a finished run's evidence and reproduce it). \`dungeonmaster siegelense <call> --help\` gives one call's flags, refusals and example.`,
 } as const;

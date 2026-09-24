@@ -9,11 +9,10 @@ const CALL_KEYS = Object.keys(
 const CALL_NAME_SET = new Set(siegelenseCallStatics.calls.names);
 
 describe('siegelenseHelpStatics', () => {
-  it('VALID: {index} => toStrictEqual the headline, the not-built names and the footer', () => {
+  it('VALID: {index} => toStrictEqual the headline and the footer', () => {
     expect(siegelenseHelpStatics.index).toStrictEqual({
       headline:
         'dungeonmaster siegelense — every built call reachable without installing anything.',
-      notBuiltYet: [],
       footer: "dungeonmaster siegelense <call> --help  for one call's flags and refusals",
     });
   });
@@ -510,7 +509,7 @@ describe('siegelenseHelpStatics', () => {
           value: '<scope>',
           required: false,
           description:
-            "serve one role's page instead of the tool overview: planning, walking, attacking, fixing, driving. Omitted, docs serves the overview alone.",
+            "serve one role's page instead of the tool overview: walking, attacking, fixing. Omitted, docs serves the overview alone.",
         },
         {
           name: '--json',
@@ -524,7 +523,7 @@ describe('siegelenseHelpStatics', () => {
         'There is no scope for a code-reading role, and that absence is deliberate: a session that opens source files and calls nothing here would be handed the vocabulary for driving a browser.',
       ],
       output:
-        "With no --for, prints this tool's about overview alone — no role's page. With --for, formatted Markdown by default — the document title, an About block, and one heading for the requested scope with its audience, summary and bulleted sections. `--json` prints the raw DocsAnswer either way — an about preamble, and one document per scope served (none, for the bare overview form).",
+        "With no --for, prints this tool's about overview alone — no role's page. With --for, formatted Markdown by default — the document title and one heading for the requested scope with its audience, summary and bulleted sections; no About block, since a role page is written to stand alone. `--json` prints the raw DocsAnswer either way — about is the preamble for the bare overview form and empty for a role page, and scopes holds one document per scope served (none, for the bare overview form).",
       example: 'dungeonmaster siegelense docs --for walking',
     });
   });
@@ -545,13 +544,13 @@ describe('siegelenseHelpStatics', () => {
     expect(CALL_NAME_SET.has(call)).toBe(true);
   });
 
-  it("VALID: {siegelenseCallStatics.calls.names minus the calls object's own keys} => toStrictEqual index.notBuiltYet", () => {
+  it('VALID: {siegelenseCallStatics.calls.names} => every name has a route, so the closed set and the built calls agree', () => {
     const routedNames = new Set(Object.keys(siegelenseHelpStatics.calls));
     const namesWithoutARoute = siegelenseCallStatics.calls.names.filter(
       (name) => !routedNames.has(name),
     );
 
-    expect(namesWithoutARoute).toStrictEqual(siegelenseHelpStatics.index.notBuiltYet);
+    expect(namesWithoutARoute).toStrictEqual([]);
   });
 
   it('VALID: {calls.results.refusals} => toStrictEqual the run-id sentence, carried verbatim off the deleted MCP tool description', () => {

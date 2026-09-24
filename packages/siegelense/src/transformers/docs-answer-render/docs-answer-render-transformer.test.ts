@@ -33,13 +33,13 @@ describe('docsAnswerRenderTransformer', () => {
         about: ['Every call is: dungeonmaster siegelense <call>.'],
         scopes: [
           {
-            scope: 'planning',
+            scope: 'attacking',
             audience: 'the operator',
             summary: 'Fleet management.',
             sections: [{ heading: 'REAPING RULES', lines: ['Run cleanup at both ends.'] }],
           },
           {
-            scope: 'driving',
+            scope: 'fixing',
             audience: 'a session nobody orchestrated',
             summary: 'Everything is yours to do.',
             sections: [{ heading: 'THE SURFACE', lines: ['kill is yours to call.'] }],
@@ -56,7 +56,7 @@ describe('docsAnswerRenderTransformer', () => {
           '\n' +
           '- Every call is: dungeonmaster siegelense <call>.\n' +
           '\n' +
-          '## planning — the operator\n' +
+          '## attacking — the operator\n' +
           '\n' +
           'Fleet management.\n' +
           '\n' +
@@ -64,7 +64,7 @@ describe('docsAnswerRenderTransformer', () => {
           '\n' +
           '- Run cleanup at both ends.\n' +
           '\n' +
-          '## driving — a session nobody orchestrated\n' +
+          '## fixing — a session nobody orchestrated\n' +
           '\n' +
           'Everything is yours to do.\n' +
           '\n' +
@@ -76,7 +76,48 @@ describe('docsAnswerRenderTransformer', () => {
   });
 
   describe('formatting', () => {
-    it('VALID: {step definition} => renders as fenced json block', () => {
+    it('VALID: {step definition, valid JSON} => renders as a fenced json block that parses with JSON.parse', () => {
+      const answer = DocsAnswerStub({
+        about: [],
+        scopes: [
+          {
+            scope: 'walking',
+            audience: 'the walker',
+            summary: 'Summary',
+            sections: [
+              {
+                heading: 'VERBS',
+                lines: ['{ "step": "goto", "path": "/" }'],
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = docsAnswerRenderTransformer({ answer });
+
+      expect(result).toBe(
+        '# Siegelense Documentation\n' +
+          '\n' +
+          '## walking — the walker\n' +
+          '\n' +
+          'Summary\n' +
+          '\n' +
+          '### VERBS\n' +
+          '\n' +
+          '```json\n' +
+          '{ "step": "goto", "path": "/" }\n' +
+          '```\n',
+      );
+
+      const [, fencedBody] = result.split('```json\n');
+      const [fencedLine] = fencedBody!.split('\n```');
+      const parsed: unknown = JSON.parse(fencedLine!);
+
+      expect(parsed).toStrictEqual({ step: 'goto', path: '/' });
+    });
+
+    it('VALID: {a line that only LOOKS like a step object, unquoted keys} => renders as a plain bullet, not a fenced block', () => {
       const answer = DocsAnswerStub({
         about: [],
         scopes: [
@@ -105,9 +146,7 @@ describe('docsAnswerRenderTransformer', () => {
           '\n' +
           '### VERBS\n' +
           '\n' +
-          '```json\n' +
-          "{ step: 'goto', path: '/' }\n" +
-          '```\n',
+          "- { step: 'goto', path: '/' }\n",
       );
     });
 
@@ -151,7 +190,7 @@ describe('docsAnswerRenderTransformer', () => {
         about: [],
         scopes: [
           {
-            scope: 'planning',
+            scope: 'attacking',
             audience: 'the operator',
             summary: 'Summary',
             sections: [
@@ -171,7 +210,7 @@ describe('docsAnswerRenderTransformer', () => {
       expect(result).toBe(
         '# Siegelense Documentation\n' +
           '\n' +
-          '## planning — the operator\n' +
+          '## attacking — the operator\n' +
           '\n' +
           'Summary\n' +
           '\n' +
@@ -196,8 +235,8 @@ describe('docsAnswerRenderTransformer', () => {
         about: [],
         scopes: [
           {
-            scope: 'planning',
-            audience: 'the planner',
+            scope: 'fixing',
+            audience: 'the fixer',
             summary: 'Preludes and profiles.',
             sections: [{ heading: 'RECIPES', lines: [] }],
           },
@@ -209,7 +248,7 @@ describe('docsAnswerRenderTransformer', () => {
       expect(result).toBe(
         '# Siegelense Documentation\n' +
           '\n' +
-          '## planning — the planner\n' +
+          '## fixing — the fixer\n' +
           '\n' +
           'Preludes and profiles.\n' +
           '\n' +

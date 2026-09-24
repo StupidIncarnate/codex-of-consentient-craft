@@ -15,8 +15,8 @@
  * docsArgsParseTransformer({ args: ['--for', 'walking'] });
  * // Returns { scope: 'walking', isJson: false } as DocsArgs
  *
- * docsArgsParseTransformer({ args: ['--for', 'planning', '--json'] });
- * // Returns { scope: 'planning', isJson: true } as DocsArgs
+ * docsArgsParseTransformer({ args: ['--for', 'fixing', '--json'] });
+ * // Returns { scope: 'fixing', isJson: true } as DocsArgs
  */
 
 import { docsArgsContract, type DocsArgs } from '../../contracts/docs-args/docs-args-contract';

@@ -162,6 +162,10 @@ dungeonmaster siegelense kill --instance <id>
 **Ask capacity before you open anything.** You are not the only session on this machine, and \`start\`
 refuses outright when it is full.
 
+Where your setup batch needs a step beyond \`goto\`, \`click\` or \`seed\`, \`dungeonmaster siegelense docs
+--for walking\` names every verb the step contract accepts and the reading ladder for finding a
+testId in the first place.
+
 **Close every instance you open.** An instance whose session ends without a \`kill\` leaks: it is not
 a child process of yours, so nothing tears it down for you.
 

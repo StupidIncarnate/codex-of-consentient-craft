@@ -101,6 +101,18 @@ describe('siegeHappyFixerStatics', () => {
     ).toBe(true);
   });
 
+  // A FIXER NEVER OPENS AN INSTANCE, SO THE FIXING PAGE'S OWN STEP 7 ("CLOSE WHAT YOU OPENED") IS
+  // AS INAPPLICABLE AS ITS STEP 5 — [NO LANE OF YOUR OWN] above already forbids driving any lane,
+  // and a fixer that read STEP 7 without this disclaimer would have nothing of its own to close.
+  it('VALID: template => disclaims the fixing page\'s STEP 7, "close what you opened", alongside STEP 5', () => {
+    expect(
+      has(
+        '**Its STEP 7, "close what you opened," does not apply either** — you never open an ' +
+          'instance, so you have nothing of your own to close.',
+      ),
+    ).toBe(true);
+  });
+
   it('VALID: template => holds these ### steps, in this order, and no others', () => {
     const stepHeadings = Array.from(TEMPLATE.matchAll(/^### .+$/gmu), (match) => match[0]);
 
