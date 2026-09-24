@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+
+// Fakes `npm install` / `npm run build --workspace=<name>` for install-flow.integration.test.ts —
+// see npm-command-fake.harness.ts's own header for why. Ignores every argument and exits 0
+// immediately: the point is that InstallRecipesScaffoldResponder's real fs writes still run for
+// real in that test, and only the child process this scaffolded package can't yet build against
+// is faked.
+process.exit(0);

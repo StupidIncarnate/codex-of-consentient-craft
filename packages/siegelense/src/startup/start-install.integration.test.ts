@@ -5,11 +5,16 @@ import {
   FileContentStub,
 } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+
+import { npmCommandFakeHarness } from '../../test/harnesses/npm-command-fake/npm-command-fake.harness';
 import { StartInstall } from './start-install';
 
 describe('StartInstall', () => {
+  const npmFake = npmCommandFakeHarness();
+
   describe('wiring to install flow', () => {
     it('VALID: {fresh target} => delegates to the flow and returns the install result', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'siegelense-start-install-wiring' }),
       });
@@ -44,6 +49,7 @@ describe('StartInstall', () => {
 
   describe('the siegelense-assets link', () => {
     it('VALID: {fresh target} => .dungeonmaster-assets/siegelense-assets exists and resolves to the real siegelense root, not just to something', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'siegelense-start-install-link-resolves' }),
       });
@@ -82,6 +88,7 @@ describe('StartInstall', () => {
 
   describe('the .gitignore entry', () => {
     it('VALID: {install run twice} => the .dungeonmaster-assets/siegelense-assets line appears exactly once', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'siegelense-start-install-gitignore-twice' }),
       });
@@ -121,6 +128,7 @@ describe('StartInstall', () => {
 
   describe('the recipes scaffold', () => {
     it('VALID: {fresh target} => packages/hydration-recipes/src holds the starter index.ts and index.test.ts', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'siegelense-start-install-recipes-empty' }),
       });
@@ -147,6 +155,7 @@ describe('StartInstall', () => {
     });
 
     it('VALID: {recipes folder already holds a file, install run again} => the file is left untouched', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'siegelense-start-install-recipes-untouched' }),
       });
@@ -187,6 +196,7 @@ describe('StartInstall', () => {
 
   describe('path shape of the result', () => {
     it('VALID: {fresh target} => the resolved siegelense root embedded in the result message names the dungeonmaster home, not targetProjectRoot or context.dungeonmasterRoot', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'siegelense-start-install-absolute-path' }),
       });
@@ -212,6 +222,7 @@ describe('StartInstall', () => {
     });
 
     it('VALID: {fresh target} => every path the result message hands back is absolute', async () => {
+      npmFake.stageSucceeds();
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'siegelense-start-install-every-path-absolute' }),
       });

@@ -77,6 +77,7 @@ describe('driver teardown', () => {
       });
       const fleet = driverFleetHarness();
       const originalHome = process.env.DUNGEONMASTER_HOME;
+      const originalCwd = process.cwd();
 
       let hasAtLeastOneHeartbeatPgid: boolean;
       let everyHeartbeatPgidAliveWhileRunning: boolean;
@@ -91,6 +92,10 @@ describe('driver teardown', () => {
       beforeAll(async () => {
         process.env.DUNGEONMASTER_HOME = testbed.guildPath;
         fleet.ensureHomeReady({ home: testbed.guildPath });
+        // Real boot, this checkout's own server: .dungeonmaster.json goes into the testbed's own
+        // OS-tmp dir, never this repo's — see driver-fleet.harness.ts's own header.
+        fleet.configureApiLane({ configDir: testbed.guildPath });
+        process.chdir(testbed.guildPath);
 
         const manifest = await fleet.boot({ specName: HEADLESS_SPEC });
         const heartbeatPgids = await fleet.waitForHeartbeatPgids({
@@ -129,6 +134,7 @@ describe('driver teardown', () => {
 
       afterAll(async () => {
         await fleet.afterAll();
+        process.chdir(originalCwd);
         if (originalHome === undefined) {
           Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
         } else {
@@ -188,6 +194,7 @@ describe('driver teardown', () => {
       });
       const fleet = driverFleetHarness();
       const originalHome = process.env.DUNGEONMASTER_HOME;
+      const originalCwd = process.cwd();
 
       let reapedMatchesRecordedPgids: boolean;
       let everyOrphanDeadAfterReap: boolean;
@@ -197,6 +204,8 @@ describe('driver teardown', () => {
       beforeAll(async () => {
         process.env.DUNGEONMASTER_HOME = testbed.guildPath;
         fleet.ensureHomeReady({ home: testbed.guildPath });
+        fleet.configureApiLane({ configDir: testbed.guildPath });
+        process.chdir(testbed.guildPath);
 
         const manifest = await fleet.boot({ specName: HEADLESS_SPEC });
         const entry = await fleet.registryEntry({ instanceId: manifest.instanceId });
@@ -221,6 +230,7 @@ describe('driver teardown', () => {
 
       afterAll(async () => {
         await fleet.afterAll();
+        process.chdir(originalCwd);
         if (originalHome === undefined) {
           Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
         } else {
@@ -254,6 +264,7 @@ describe('driver teardown', () => {
       });
       const fleet = driverFleetHarness();
       const originalHome = process.env.DUNGEONMASTER_HOME;
+      const originalCwd = process.cwd();
 
       let bothSurvivorsAnsweredPing: boolean;
       let bothSurvivorsKeptEveryProcessGroup: boolean;
@@ -261,6 +272,8 @@ describe('driver teardown', () => {
       beforeAll(async () => {
         process.env.DUNGEONMASTER_HOME = testbed.guildPath;
         fleet.ensureHomeReady({ home: testbed.guildPath });
+        fleet.configureApiLane({ configDir: testbed.guildPath });
+        process.chdir(testbed.guildPath);
 
         // Promise.allSettled, never Promise.all: three real boots each carry their own
         // `instanceStartBootPollLayerBroker` retry loop, and Promise.all abandons a still-pending
@@ -314,6 +327,7 @@ describe('driver teardown', () => {
 
       afterAll(async () => {
         await fleet.afterAll();
+        process.chdir(originalCwd);
         if (originalHome === undefined) {
           Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
         } else {

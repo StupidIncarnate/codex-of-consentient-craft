@@ -5,7 +5,14 @@
  * back as TWO groups with their own numbers, never one blended row.
  */
 
-import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import {
+  installTestbedCreateBroker,
+  BaseNameStub,
+  RelativePathStub,
+  FileContentStub,
+} from '@dungeonmaster/testing';
+import { DungeonmasterConfigStub, configDefaultsStatics } from '@dungeonmaster/config';
+import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -33,6 +40,7 @@ describe('the profile sample-write path, against a real tree', () => {
     baseName: BaseNameStub({ value: 'profile-sample-record' }),
   });
   const originalHome = process.env.DUNGEONMASTER_HOME;
+  const originalCwd = process.cwd();
 
   let soloRecord: Awaited<ReturnType<typeof profileSampleRecordBroker>> = null;
   let contendedRecord: Awaited<ReturnType<typeof profileSampleRecordBroker>> = null;
@@ -41,6 +49,26 @@ describe('the profile sample-write path, against a real tree', () => {
 
   beforeAll(async () => {
     process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+
+    // laneSpecFindBroker resolves devServer.e2e.processes off a real .dungeonmaster.json — this
+    // repo's own file is being rewritten by other work, so the testbed gets its own, isolated
+    // under the OS tmp dir. Nothing here boots anything, so the process's own command is never run.
+    testbed.writeFile({
+      relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+      content: FileContentStub({
+        value: JSON.stringify(
+          DungeonmasterConfigStub({
+            framework: 'monorepo',
+            devServer: {
+              devCommand: 'npm run dev',
+              port: configDefaultsStatics.devServer.port.default,
+              e2e: { processes: [DevServerE2eProcessStub()] },
+            },
+          }),
+        ),
+      }),
+    });
+    process.chdir(testbed.guildPath);
 
     // One booted instance: every beat below is taken at pool size 1.
     await registryUpdateBroker({
@@ -132,6 +160,7 @@ describe('the profile sample-write path, against a real tree', () => {
   }, 30_000);
 
   afterAll(() => {
+    process.chdir(originalCwd);
     if (originalHome === undefined) {
       Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
     } else {
