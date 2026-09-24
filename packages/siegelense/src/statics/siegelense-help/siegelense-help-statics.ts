@@ -88,7 +88,7 @@ export const siegelenseHelpStatics = {
       ],
       output:
         'A human summary by default: instance id, spec, URLs, home and evidence paths, boot time, and one line per seeded binding — since there is no lookup call to recover any of it later. `--json` prints the InstanceManifest unabridged, seeded rows included.',
-      example: 'dungeonmaster siegelense start --spec dungeonmaster-stack',
+      example: 'dungeonmaster siegelense start --spec stack',
     },
     run: {
       summary:
@@ -261,7 +261,7 @@ export const siegelenseHelpStatics = {
       ],
       output:
         'By default, a human summary — suggested and ceiling counts, the spec, a why sentence naming every figure it reasoned from, the measured host block, and the one profile group it divided by. `--json` prints the raw CapacityAnswer (profile null for a spec nothing has run).',
-      example: 'dungeonmaster siegelense capacity --spec dungeonmaster-stack --pool 3',
+      example: 'dungeonmaster siegelense capacity --spec stack --pool 3',
     },
     profile: {
       summary:
@@ -283,7 +283,7 @@ export const siegelenseHelpStatics = {
       ],
       output:
         "By default, spec name, process count, content hash, measuredAt/boot/runs, and a box-drawing table of samples by pool size (or 'none measured yet'). `--json` prints the raw SpecProfile.",
-      example: 'dungeonmaster siegelense profile --spec dungeonmaster-stack',
+      example: 'dungeonmaster siegelense profile --spec stack',
     },
     status: {
       summary: 'siegelense status — report the fleet, or one instance in full.',
@@ -451,7 +451,7 @@ export const siegelenseHelpStatics = {
       flags: [],
       refusals: [],
       output: "internal to the instance's socket protocol; never printed by any call.",
-      example: 'dungeonmaster siegelense start --spec dungeonmaster-stack',
+      example: 'dungeonmaster siegelense start --spec stack',
     },
   },
 } as const;

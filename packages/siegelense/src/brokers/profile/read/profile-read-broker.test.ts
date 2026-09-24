@@ -9,40 +9,44 @@ import { profileReadBroker } from './profile-read-broker';
 import { profileReadBrokerProxy } from './profile-read-broker.proxy';
 
 const ROOT_PATH_VALUE = '/home/user/.dungeonmaster/siegelense';
-const WEB_SPEC = SpecNameStub({ value: 'dungeonmaster-stack' });
-const HEADLESS_SPEC = SpecNameStub({ value: 'dungeonmaster-api' });
+const WEB_SPEC = SpecNameStub({ value: 'stack' });
+const HEADLESS_SPEC = SpecNameStub({ value: 'api' });
 const BEAT_MS = 1_757_808_000_000;
 
 // The digests are REAL: laneSpecHashBrokerProxy stages nothing, so each spec's profile directory is
 // its genuine content hash — which is what makes "a changed spec reads a different directory" a
 // property of the tree rather than of a stub.
-const specHashFor = ({
+const specHashFor = async ({
   specName,
 }: {
   specName: ReturnType<typeof SpecNameStub>;
-}): ReturnType<typeof SpecHashStub> =>
-  SpecHashStub({ value: String(laneSpecHashBroker({ spec: laneSpecFindBroker({ specName }) })) });
+}): Promise<ReturnType<typeof SpecHashStub>> =>
+  SpecHashStub({
+    value: String(laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName }) })),
+  });
 
-const profilesPathFor = ({
+const profilesPathFor = async ({
   specName,
 }: {
   specName: ReturnType<typeof SpecNameStub>;
-}): ReturnType<typeof FilePathStub> =>
-  FilePathStub({ value: `${ROOT_PATH_VALUE}/profiles/${String(specHashFor({ specName }))}` });
+}): Promise<ReturnType<typeof FilePathStub>> =>
+  FilePathStub({
+    value: `${ROOT_PATH_VALUE}/profiles/${String(await specHashFor({ specName }))}`,
+  });
 
 describe('profileReadBroker', () => {
   describe('a spec nothing has ever run', () => {
     it('EMPTY: {no samples, no boots} => answers honestly rather than inventing a figure', async () => {
       const proxy = profileReadBrokerProxy();
-      const profilesPath = profilesPathFor({ specName: HEADLESS_SPEC });
+      const profilesPath = await profilesPathFor({ specName: HEADLESS_SPEC });
       proxy.setupProfileTree({ profilesPath, sampleFileNames: [], bootFileNames: [] });
 
       const result = await profileReadBroker({ specName: HEADLESS_SPEC });
 
       expect(result).toStrictEqual({
-        specName: 'dungeonmaster-api',
+        specName: 'api',
         processes: 1,
-        hash: String(specHashFor({ specName: HEADLESS_SPEC })),
+        hash: String(await specHashFor({ specName: HEADLESS_SPEC })),
         measuredAt: null,
         fromRuns: 0,
         bootMs: null,
@@ -52,17 +56,33 @@ describe('profileReadBroker', () => {
   });
 
   describe('processes counts the browser', () => {
-    it('VALID: {dungeonmaster-stack, which boots api, vite and chromium} => processes is 3', async () => {
+    it('VALID: {stack, which boots api, vite and chromium} => processes is 3', async () => {
       const proxy = profileReadBrokerProxy();
-      const profilesPath = profilesPathFor({ specName: WEB_SPEC });
+      proxy.stageLaneSpec({
+        processes: [
+          {
+            name: 'api',
+            command: 'npm run dev:no-watch --workspace=@dungeonmaster/server',
+            portRole: 'api',
+            readyPath: '/api/guilds',
+          },
+          {
+            name: 'web',
+            command: 'npx vite preview --strictPort',
+            portRole: 'web',
+            readyPath: '/',
+          },
+        ],
+      });
+      const profilesPath = await profilesPathFor({ specName: WEB_SPEC });
       proxy.setupProfileTree({ profilesPath, sampleFileNames: [], bootFileNames: [] });
 
       const result = await profileReadBroker({ specName: WEB_SPEC });
 
       expect(result).toStrictEqual({
-        specName: 'dungeonmaster-stack',
+        specName: 'stack',
         processes: 3,
-        hash: String(specHashFor({ specName: WEB_SPEC })),
+        hash: String(await specHashFor({ specName: WEB_SPEC })),
         measuredAt: null,
         fromRuns: 0,
         bootMs: null,
@@ -74,8 +94,24 @@ describe('profileReadBroker', () => {
   describe('a measured profile', () => {
     it('VALID: {two solo runs and one contended} => two sample groups, fromRuns 3, a mean bootMs and a measuredAt date', async () => {
       const proxy = profileReadBrokerProxy();
-      const profilesPath = profilesPathFor({ specName: WEB_SPEC });
-      const hash = String(specHashFor({ specName: WEB_SPEC }));
+      proxy.stageLaneSpec({
+        processes: [
+          {
+            name: 'api',
+            command: 'npm run dev:no-watch --workspace=@dungeonmaster/server',
+            portRole: 'api',
+            readyPath: '/api/guilds',
+          },
+          {
+            name: 'web',
+            command: 'npx vite preview --strictPort',
+            portRole: 'web',
+            readyPath: '/',
+          },
+        ],
+      });
+      const profilesPath = await profilesPathFor({ specName: WEB_SPEC });
+      const hash = String(await specHashFor({ specName: WEB_SPEC }));
       proxy.setupProfileTree({
         profilesPath,
         sampleFileNames: ['inst_aaaa1111.json', 'inst_bbbb2222.json', 'inst_cccc3333.json'],
@@ -138,7 +174,7 @@ describe('profileReadBroker', () => {
       const result = await profileReadBroker({ specName: WEB_SPEC });
 
       expect(result).toStrictEqual({
-        specName: 'dungeonmaster-stack',
+        specName: 'stack',
         processes: 3,
         hash,
         measuredAt: '2025-09-14',
@@ -155,8 +191,8 @@ describe('profileReadBroker', () => {
   describe('a record that will not parse', () => {
     it('ERROR: {one corrupt sample beside one good one} => folds the good one and reports the skip on stderr', async () => {
       const proxy = profileReadBrokerProxy();
-      const profilesPath = profilesPathFor({ specName: HEADLESS_SPEC });
-      const hash = String(specHashFor({ specName: HEADLESS_SPEC }));
+      const profilesPath = await profilesPathFor({ specName: HEADLESS_SPEC });
+      const hash = String(await specHashFor({ specName: HEADLESS_SPEC }));
       proxy.setupProfileTree({
         profilesPath,
         sampleFileNames: ['inst_aaaa1111.json', 'inst_bbbb2222.json'],
@@ -182,7 +218,7 @@ describe('profileReadBroker', () => {
       const result = await profileReadBroker({ specName: HEADLESS_SPEC });
 
       expect(result).toStrictEqual({
-        specName: 'dungeonmaster-api',
+        specName: 'api',
         processes: 1,
         hash,
         measuredAt: '2025-09-14',
@@ -199,8 +235,8 @@ describe('profileReadBroker', () => {
   describe('a file that is not a record', () => {
     it('EDGE: {a stray README beside one record} => reads only the .json records', async () => {
       const proxy = profileReadBrokerProxy();
-      const profilesPath = profilesPathFor({ specName: HEADLESS_SPEC });
-      const hash = String(specHashFor({ specName: HEADLESS_SPEC }));
+      const profilesPath = await profilesPathFor({ specName: HEADLESS_SPEC });
+      const hash = String(await specHashFor({ specName: HEADLESS_SPEC }));
       proxy.setupProfileTree({
         profilesPath,
         sampleFileNames: ['README.md', 'inst_aaaa1111.json'],
@@ -221,7 +257,7 @@ describe('profileReadBroker', () => {
       const result = await profileReadBroker({ specName: HEADLESS_SPEC });
 
       expect(result).toStrictEqual({
-        specName: 'dungeonmaster-api',
+        specName: 'api',
         processes: 1,
         hash,
         measuredAt: '2025-09-14',

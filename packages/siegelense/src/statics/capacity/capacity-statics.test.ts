@@ -24,8 +24,8 @@ describe('capacityStatics', () => {
   });
 
   describe('defaults', () => {
-    it('VALID: {defaults} => toStrictEqual the browsered built-in spec name', () => {
-      expect(capacityStatics.defaults).toStrictEqual({ specName: 'dungeonmaster-stack' });
+    it('VALID: {defaults} => toStrictEqual the browsered convention name', () => {
+      expect(capacityStatics.defaults).toStrictEqual({ specName: 'stack' });
     });
   });
 });

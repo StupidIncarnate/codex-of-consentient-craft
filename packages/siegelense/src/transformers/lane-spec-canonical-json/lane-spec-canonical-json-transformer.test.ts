@@ -3,11 +3,11 @@ import { LaneSpecStub } from '../../contracts/lane-spec/lane-spec.stub';
 
 describe('laneSpecCanonicalJsonTransformer', () => {
   describe('a known spec', () => {
-    it('VALID: {the default built-in-shaped stub} => returns its exact canonical JSON', () => {
+    it('VALID: {the default stub} => returns its exact canonical JSON', () => {
       const result = laneSpecCanonicalJsonTransformer({ spec: LaneSpecStub() });
 
       expect(result).toBe(
-        '{"name":"dungeonmaster-api","processes":[{"name":"api","command":"npm",' +
+        '{"name":"api","processes":[{"name":"api","command":"npm",' +
           '"args":["run","dev:no-watch","--workspace=@dungeonmaster/server"],"portRole":"api",' +
           '"readyPath":"/api/guilds","logFileName":"api-server.log",' +
           '"env":{"DUNGEONMASTER_PORT":"{apiPort}"}}],"browser":false,"bootTimeoutMs":180000,' +
@@ -41,7 +41,7 @@ describe('laneSpecCanonicalJsonTransformer', () => {
       const result = laneSpecCanonicalJsonTransformer({ spec: twoProcessSpec });
 
       expect(result).toBe(
-        '{"name":"dungeonmaster-api","processes":[{"name":"api","command":"npm",' +
+        '{"name":"api","processes":[{"name":"api","command":"npm",' +
           '"args":["run","dev:no-watch","--workspace=@dungeonmaster/server"],"portRole":"api",' +
           '"readyPath":"/api/guilds","logFileName":"api-server.log",' +
           '"env":{"DUNGEONMASTER_PORT":"{apiPort}"}},{"name":"web","command":"npm",' +

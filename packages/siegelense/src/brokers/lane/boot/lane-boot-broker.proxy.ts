@@ -19,13 +19,11 @@ import { childProcessSpawnDetachedAdapterProxy } from '../../../adapters/child-p
 import { fsCloseFdAdapterProxy } from '../../../adapters/fs/close-fd/fs-close-fd-adapter.proxy';
 import { fsOpenFdAdapterProxy } from '../../../adapters/fs/open-fd/fs-open-fd-adapter.proxy';
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
-import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import { playwrightSessionAdapterProxy } from '../../../adapters/playwright/session/playwright-session-adapter.proxy';
 import { processKillGroupAdapterProxy } from '../../../adapters/process/kill-group/process-kill-group-adapter.proxy';
 import { laneReadyWaitBrokerProxy } from '../ready-wait/lane-ready-wait-broker.proxy';
 import { laneWorkspaceResolveBrokerProxy } from '../workspace-resolve/lane-workspace-resolve-broker.proxy';
 import { serverLogReaderLayerBrokerProxy } from './server-log-reader-layer-broker.proxy';
-import { fakeAgentCliStatics } from '../../../statics/fake-agent-cli/fake-agent-cli-statics';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import type { FileDescriptor } from '../../../contracts/file-descriptor/file-descriptor-contract';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
@@ -54,10 +52,6 @@ export const laneBootBrokerProxy = (): {
   setupServerNeverReachable: (params: { url: string }) => void;
   setupBootDeadlineAlreadyPast: () => void;
   setupHomeRemoved: (params: { homePath: AbsoluteFilePath }) => void;
-  setupAgentCliFixturesFound: (params: { repoRoot: AbsoluteFilePath }) => void;
-  setupAgentCliFixturesNotFound: (params: { repoRoot: AbsoluteFilePath }) => void;
-  setupAgentCliFixtureFound: (params: { filePath: AbsoluteFilePath }) => void;
-  setupAgentCliFixtureNotFound: (params: { filePath: AbsoluteFilePath }) => void;
   // Stages laneWorkspaceResolveBroker's two fs boundaries so a spec referencing `{apiWorkspace}`
   // and/or `{webWorkspace}` resolves to a real name instead of throwing "no mock configured" — see
   // that broker's own proxy for why this stages the packages/ listing ONCE with every dir name a
@@ -87,7 +81,6 @@ export const laneBootBrokerProxy = (): {
   const openFdProxy = fsOpenFdAdapterProxy();
   const closeFdProxy = fsCloseFdAdapterProxy();
   const rmProxy = fsRmAdapterProxy();
-  const statProxy = fsStatAdapterProxy();
   const killProxy = processKillGroupAdapterProxy();
   playwrightSessionAdapterProxy();
   const readyWaitProxy = laneReadyWaitBrokerProxy();
@@ -146,34 +139,6 @@ export const laneBootBrokerProxy = (): {
     // succeeding.
     setupHomeRemoved: ({ homePath }: { homePath: AbsoluteFilePath }): void => {
       rmProxy.succeeds({ dirPath: homePath });
-    },
-
-    setupAgentCliFixturesFound: ({ repoRoot }: { repoRoot: AbsoluteFilePath }): void => {
-      fakeAgentCliStatics.requiredEnvVars.forEach(({ fixtureRelativePath }) => {
-        const fixturePath = absoluteFilePathContract.parse(`${repoRoot}/${fixtureRelativePath}`);
-        statProxy.resolves({ filePath: fixturePath, sizeBytes: 100, modifiedAtMs: 1_000 });
-      });
-    },
-
-    setupAgentCliFixturesNotFound: ({ repoRoot }: { repoRoot: AbsoluteFilePath }): void => {
-      fakeAgentCliStatics.requiredEnvVars.forEach(({ fixtureRelativePath }) => {
-        const fixturePath = absoluteFilePathContract.parse(`${repoRoot}/${fixtureRelativePath}`);
-        statProxy.rejects({
-          filePath: fixturePath,
-          error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-        });
-      });
-    },
-
-    setupAgentCliFixtureFound: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
-      statProxy.resolves({ filePath, sizeBytes: 100, modifiedAtMs: 1_000 });
-    },
-
-    setupAgentCliFixtureNotFound: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
-      statProxy.rejects({
-        filePath,
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
     },
 
     setupWorkspacesResolved: ({

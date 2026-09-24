@@ -4,11 +4,13 @@ import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub'
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
-import { FakeAgentCliRequiredError } from '../../../errors/fake-agent-cli-required/fake-agent-cli-required-error';
+import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
 
 import { SiegelenseDriverResponder } from './siegelense-driver-responder';
 import { SiegelenseDriverResponderProxy } from './siegelense-driver-responder.proxy';
+
+const SPEC_NAME = SpecNameStub({ value: 'api' });
 
 describe('SiegelenseDriverResponder', () => {
   describe('a reserved instance boots cleanly', () => {
@@ -16,7 +18,7 @@ describe('SiegelenseDriverResponder', () => {
       const proxy = SiegelenseDriverResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const entry = RegistryEntryStub({ id: instanceId, guildId });
+      const entry = RegistryEntryStub({ id: instanceId, guildId, specName: SPEC_NAME });
       const lane = LaneSessionStub();
       proxy.stageRegistryRow({ entry });
       proxy.stageBootSucceeds({ lane });
@@ -29,7 +31,7 @@ describe('SiegelenseDriverResponder', () => {
     it('VALID: {registry row exists} => stamps the row with this pid, the booted pgids and its socket path', async () => {
       const proxy = SiegelenseDriverResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
-      const entry = RegistryEntryStub({ id: instanceId });
+      const entry = RegistryEntryStub({ id: instanceId, specName: SPEC_NAME });
       const lane = LaneSessionStub();
       proxy.stageRegistryRow({ entry });
       proxy.stageBootSucceeds({ lane });
@@ -54,7 +56,7 @@ describe('SiegelenseDriverResponder', () => {
     it('ERROR: {laneBootBroker rejects} => releases boot.lock, never stamps the registry, and rethrows the same error', async () => {
       const proxy = SiegelenseDriverResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_bad60071' });
-      const entry = RegistryEntryStub({ id: instanceId });
+      const entry = RegistryEntryStub({ id: instanceId, specName: SPEC_NAME });
       const bootError = new LaneBootFailedError({
         specName: entry.specName,
         instanceId,
@@ -76,10 +78,14 @@ describe('SiegelenseDriverResponder', () => {
     it('ERROR: {laneBootBroker rejects} => writes the boot-failure marker carrying that same error message', async () => {
       const proxy = SiegelenseDriverResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_bad60071' });
-      const entry = RegistryEntryStub({ id: instanceId });
-      const bootError = new FakeAgentCliRequiredError({
+      const entry = RegistryEntryStub({ id: instanceId, specName: SPEC_NAME });
+      const bootError = new LaneBootFailedError({
         specName: entry.specName,
-        missing: [{ name: 'CLAUDE_CLI_PATH', hint: 'a stub Claude CLI binary' }],
+        instanceId,
+        unready: ['api'],
+        logPaths: [
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_bad60071/api.log',
+        ],
       });
       proxy.stageRegistryRow({ entry });
       proxy.stageBootFails({ error: bootError });
@@ -95,7 +101,7 @@ describe('SiegelenseDriverResponder', () => {
     it('ERROR: {laneBootBroker rejects, and writing the marker also throws} => still rethrows the original boot error', async () => {
       const proxy = SiegelenseDriverResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_bad60071' });
-      const entry = RegistryEntryStub({ id: instanceId });
+      const entry = RegistryEntryStub({ id: instanceId, specName: SPEC_NAME });
       const bootError = new LaneBootFailedError({
         specName: entry.specName,
         instanceId,

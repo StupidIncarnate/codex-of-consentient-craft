@@ -18,6 +18,7 @@ import {
 import type { ContentText, FilePath } from '@dungeonmaster/shared/contracts';
 import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { DevServerE2eProcess } from '@dungeonmaster/config';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
@@ -38,11 +39,14 @@ export const profileReadBrokerProxy = (): {
   }) => void;
   stageSampleRecord: (params: { profilesPath: FilePath; fileName: string; json: string }) => void;
   stageBootRecord: (params: { profilesPath: FilePath; fileName: string; json: string }) => void;
+  stageLaneSpec: (params: { processes: readonly DevServerE2eProcess[] }) => void;
   getStderrMessages: () => readonly ContentText[];
 } => {
-  // Both empty — the spec lookup is a statics read and the hash is a real digest, so the directory
-  // the tree hangs off is the genuine content hash. Constructed for enforce-proxy-child-creation.
-  laneSpecFindBrokerProxy();
+  // laneSpecFindBrokerProxy() stages a sticky default (a single headless api process) at
+  // construction, so the directory the tree hangs off is a genuine content hash of a real spec.
+  // stageLaneSpec below overrides it for a scenario needing a different process shape (e.g. the
+  // browsered spec's own processes: 3 case). laneSpecHashBrokerProxy is a real digest, never staged.
+  const laneSpecProxy = laneSpecFindBrokerProxy();
   laneSpecHashBrokerProxy();
 
   const dirsProxy = locationsProfileDirsFindBrokerProxy();
@@ -117,6 +121,10 @@ export const profileReadBrokerProxy = (): {
         }),
         content: json,
       });
+    },
+
+    stageLaneSpec: ({ processes }: { processes: readonly DevServerE2eProcess[] }): void => {
+      laneSpecProxy.setupConfiguredProcesses({ processes });
     },
 
     getStderrMessages: (): readonly ContentText[] =>

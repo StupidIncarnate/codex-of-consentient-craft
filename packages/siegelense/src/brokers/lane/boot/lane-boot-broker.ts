@@ -15,17 +15,11 @@
  *
  * This is also the only place that knows `{claudeQueueDir}`/`{wardQueueDir}`'s real values — both
  * live inside `homePath`, which only this call mints, so they are computed here and handed to the
- * substitution transformers alongside `homePath` itself. `CLAUDE_CLI_PATH`/`WARD_CLI_PATH` are NOT
- * among the tokens substituted here: the real fake-CLI binaries they would need to name live under
- * `packages/web/test/**` and `packages/orchestrator/test-fixtures/**`, neither shipped in this
- * package's published `dist/` nor a path any resolver this broker has access to can honestly build —
- * see `lane-spec-statics.ts`'s header. A caller that wants a lane to exercise a fake CLI sets
- * `CLAUDE_CLI_PATH`/`WARD_CLI_PATH` in its OWN environment before invoking siegelense, and the merge
- * below is what lets that survive. When `spec.requiresFakeAgentCli` is true and the caller supplied
- * neither, this call checks for committed in-repo fixtures on disk, populating them into the
- * inherited environment if found, and throws `FakeAgentCliRequiredError` before any mkdir or spawn
- * happens only when a variable is not provided and its fixture file is not found on disk — see
- * `fake-agent-cli-statics.ts`'s header for why that outcome is unacceptable to leave live.
+ * substitution transformers alongside `homePath` itself. siegelense knows nothing about Claude or
+ * ward: a caller that wants a lane's api process to talk to a fake CLI names it in that PROCESS'S
+ * OWN `env` (D4) — `CLAUDE_CLI_PATH`, a relative path resolved against the repo root the same way
+ * every other relative `env` value is (see `laneEnvSubstituteTransformer`'s own header) — rather
+ * than through an env var this broker discovers on its own.
  *
  * USAGE:
  * const lane = await laneBootBroker({
@@ -53,7 +47,6 @@ import { childProcessSpawnDetachedAdapter } from '../../../adapters/child-proces
 import { fsCloseFdAdapter } from '../../../adapters/fs/close-fd/fs-close-fd-adapter';
 import { fsOpenFdAdapter } from '../../../adapters/fs/open-fd/fs-open-fd-adapter';
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { playwrightSessionAdapter } from '../../../adapters/playwright/session/playwright-session-adapter';
 import { processKillGroupAdapter } from '../../../adapters/process/kill-group/process-kill-group-adapter';
 import { serverLogReaderLayerBroker } from './server-log-reader-layer-broker';
@@ -63,12 +56,10 @@ import { isLaneSpecTokenReferencedGuard } from '../../../guards/is-lane-spec-tok
 import { laneEnvSubstituteTransformer } from '../../../transformers/lane-env-substitute/lane-env-substitute-transformer';
 import { laneProcessPortResolveTransformer } from '../../../transformers/lane-process-port-resolve/lane-process-port-resolve-transformer';
 import { lanePlaceholderSubstituteTransformer } from '../../../transformers/lane-placeholder-substitute/lane-placeholder-substitute-transformer';
-import { fakeAgentCliStatics } from '../../../statics/fake-agent-cli/fake-agent-cli-statics';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { LaneSpec } from '../../../contracts/lane-spec/lane-spec-contract';
 import type { PortPair } from '../../../contracts/port-pair/port-pair-contract';
-import { FakeAgentCliRequiredError } from '../../../errors/fake-agent-cli-required/fake-agent-cli-required-error';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
 
 export const laneBootBroker = async ({
@@ -89,8 +80,7 @@ export const laneBootBroker = async ({
   // on the map callback (not a plain array literal) is what makes `Object.fromEntries` select its
   // typed overload instead of its untyped `any`-returning one; `contentTextContract.parse` accepts
   // `unknown` so a value already known non-undefined at runtime passes through with no type
-  // predicate, and a genuinely undefined one is filtered out first. Computed before any side
-  // effect below so the `requiresFakeAgentCli` check can refuse before mkdir or spawn ever runs.
+  // predicate, and a genuinely undefined one is filtered out first.
   const inheritedEnv: Record<PropertyKey, ContentText> = Object.fromEntries(
     Object.entries(process.env)
       .filter(([, value]) => value !== undefined)
@@ -100,48 +90,6 @@ export const laneBootBroker = async ({
   const cwdSeed = processCwdAdapter();
   const repoRoot = await cwdResolveBroker({ startPath: cwdSeed, kind: 'repo-root' });
   const spawnCwd = absoluteFilePathContract.parse(repoRoot);
-
-  // A spec whose processes would otherwise talk to the REAL claude/dungeonmaster-ward binaries
-  // must say so declaratively (LaneSpec's PURPOSE) — this is where that declaration is honored.
-  // When requiresFakeAgentCli is true and an environment variable is not explicitly provided, this
-  // checks whether committed fixture binaries exist on disk in the repository and populates them.
-  // Refusing here when neither the env var nor the fixture is found, before any mkdir or spawn,
-  // is what keeps a caller who forgot the env from paying for a real agent run and getting a
-  // non-deterministic reading back for it.
-  if (spec.requiresFakeAgentCli) {
-    const checks = await Promise.all(
-      fakeAgentCliStatics.requiredEnvVars.map(async (required) => {
-        if (inheritedEnv[required.name] !== undefined) {
-          return null;
-        }
-        const fixturePath = absoluteFilePathContract.parse(
-          pathJoinAdapter({ paths: [repoRoot, required.fixtureRelativePath] }),
-        );
-        const fileStat = await fsStatAdapter({ filePath: fixturePath });
-        if (fileStat !== null) {
-          return { name: required.name, path: contentTextContract.parse(fixturePath) };
-        }
-        return required;
-      }),
-    );
-    const missing: (
-      | (typeof fakeAgentCliStatics.requiredEnvVars)[0]
-      | (typeof fakeAgentCliStatics.requiredEnvVars)[1]
-    )[] = [];
-    checks.forEach((entry) => {
-      if (entry === null) {
-        return;
-      }
-      if ('path' in entry) {
-        inheritedEnv[entry.name] = entry.path;
-        return;
-      }
-      missing.push(entry);
-    });
-    if (missing.length > 0) {
-      throw new FakeAgentCliRequiredError({ specName: spec.name, missing: [...missing] });
-    }
-  }
 
   await Promise.all([
     fsMkdirAdapter({ filepath: filePathContract.parse(homePath) }),
@@ -186,6 +134,7 @@ export const laneBootBroker = async ({
     wardQueueDir,
     apiWorkspace,
     webWorkspace,
+    repoRoot: spawnCwd,
   });
 
   const booted = spec.processes.map((laneProcess) => {
@@ -213,6 +162,7 @@ export const laneBootBroker = async ({
       wardQueueDir,
       apiWorkspace,
       webWorkspace,
+      repoRoot: spawnCwd,
     });
     // A value still carrying a `{token}` after substitution is one this design has no honest answer
     // for — today that never happens for the two built-in specs (every token they declare resolves

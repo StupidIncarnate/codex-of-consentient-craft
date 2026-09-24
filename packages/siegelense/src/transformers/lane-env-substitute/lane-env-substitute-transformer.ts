@@ -1,11 +1,13 @@
 /**
  * PURPOSE: Substitutes every placeholder `lanePlaceholderSubstituteTransformer` knows into every
- * VALUE of one lane env record, keeping its keys unchanged — the per-record half of what
- * `lane-boot-broker` does to a spec's `env` before spawning: this file substitutes one record, the
- * broker merges several. Pure, so a spec's env templates are testable without a process. Built with
- * `reduce`, never `Object.fromEntries` over a `.map()` array literal — `Object.fromEntries`' tuple
- * overload only matches when TypeScript can see a literal 2-tuple, and a `.map()` callback returning
- * `[key, value]` infers a plain array instead, silently falling to its `any`-returning overload.
+ * VALUE of one lane env record, keeping its keys unchanged, then resolves any value that still
+ * looks like a repo-relative path (D4: a consumer's own `devServer.e2e.processes[].env` names a
+ * fake-CLI binary this way) against `repoRoot` — the per-record half of what `lane-boot-broker` does
+ * to a spec's `env` before spawning: this file substitutes one record, the broker merges several.
+ * Pure, so a spec's env templates are testable without a process. The `.map()` callback's return
+ * type is annotated as a literal 2-tuple — `Object.fromEntries`' typed overload only matches when
+ * TypeScript can see that; an unannotated `[key, value]` return infers a plain array instead and
+ * silently falls to the untyped, `any`-returning overload.
  *
  * USAGE:
  * laneEnvSubstituteTransformer({
@@ -16,13 +18,16 @@
  *   wardQueueDir: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1/ward-queue' }),
  *   apiWorkspace: ContentTextStub({ value: '@dungeonmaster/server' }),
  *   webWorkspace: ContentTextStub({ value: '@dungeonmaster/web' }),
+ *   repoRoot: AbsoluteFilePathStub({ value: '/repo' }),
  * });
- * // Returns the same keys, each value with every known placeholder substituted
+ * // Returns the same keys, each value with every known placeholder substituted and any relative
+ * // path resolved against /repo
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
+import { isRelativePathEnvValueGuard } from '../../guards/is-relative-path-env-value/is-relative-path-env-value-guard';
 import { lanePlaceholderSubstituteTransformer } from '../lane-placeholder-substitute/lane-placeholder-substitute-transformer';
 import type { LaneSpec } from '../../contracts/lane-spec/lane-spec-contract';
 import type { PortPair } from '../../contracts/port-pair/port-pair-contract';
@@ -35,6 +40,7 @@ export const laneEnvSubstituteTransformer = ({
   wardQueueDir,
   apiWorkspace,
   webWorkspace,
+  repoRoot,
 }: {
   env: LaneSpec['env'];
   ports: PortPair;
@@ -43,11 +49,11 @@ export const laneEnvSubstituteTransformer = ({
   wardQueueDir: AbsoluteFilePath;
   apiWorkspace: ContentText;
   webWorkspace: ContentText;
+  repoRoot: AbsoluteFilePath;
 }): Record<PropertyKey, ContentText> =>
   Object.fromEntries(
-    Object.entries(env).map(([key, value]): [PropertyKey, ContentText] => [
-      key,
-      lanePlaceholderSubstituteTransformer({
+    Object.entries(env).map(([key, value]): [PropertyKey, ContentText] => {
+      const substituted = lanePlaceholderSubstituteTransformer({
         template: value ?? contentTextContract.parse(''),
         ports,
         home,
@@ -55,6 +61,13 @@ export const laneEnvSubstituteTransformer = ({
         wardQueueDir,
         apiWorkspace,
         webWorkspace,
-      }),
-    ]),
+      });
+
+      return [
+        key,
+        isRelativePathEnvValueGuard({ value: substituted })
+          ? contentTextContract.parse(`${repoRoot}/${substituted}`)
+          : substituted,
+      ];
+    }),
   );

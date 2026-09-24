@@ -8,8 +8,8 @@
  * `boot.lock`, then serve — has to live at THIS layer regardless of which entry point reaches it.
  * The boot lock is released HERE and not by whichever broker reserved it, because the lock covers
  * the boot and the boot finishes inside the driver (siegelense-tooling.md line 1220). `laneBootBroker`
- * is wrapped in its own try/catch: it can throw `LaneBootFailedError` or `FakeAgentCliRequiredError`,
- * and this process is about to exit either way, so `boot.lock` is released on that path too rather
+ * is wrapped in its own try/catch: it can throw `LaneBootFailedError` when a process never opens its
+ * port, and this process is about to exit either way, so `boot.lock` is released on that path too rather
  * than only on success — otherwise it stays held until the TTL expires on top of the calling
  * `instanceStartBroker` already burning its own full poll deadline against a socket this process
  * never opens (spec line 1501). That same catch also writes `boot-failure.json` beside the evidence
@@ -58,16 +58,16 @@ export const SiegelenseDriverResponder = async ({
     throw new Error(`SiegelenseDriverResponder: instance ${instanceId} not found in the registry`);
   }
 
-  const spec = laneSpecFindBroker({ specName: entry.specName });
+  const spec = await laneSpecFindBroker({ specName: entry.specName });
   const homePath = locationsInstanceHomePathFindBroker({ instanceId });
   const evidencePath = locationsInstanceEvidencePathFindBroker({
     instanceId,
     guildId: entry.guildId,
   });
 
-  // `laneBootBroker` can throw `LaneBootFailedError` (unready past `bootTimeoutMs`) or
-  // `FakeAgentCliRequiredError` (before it even mkdirs) — either way this process is about to
-  // exit, and `bootLockReleaseBroker` below is otherwise only reached on a SUCCESSFUL boot. Left
+  // `laneBootBroker` can throw `LaneBootFailedError` (unready past `bootTimeoutMs`) — this process
+  // is about to exit either way, and `bootLockReleaseBroker` below is otherwise only reached on a
+  // SUCCESSFUL boot. Left
   // unreleased, the lock wedges every other pending boot until instanceLifecycleStatics' TTL
   // expires, on top of the calling `instanceStartBroker` already burning the full
   // `driverStatics.boot.defaultTimeoutMs` polling a socket this process never opens (spec line

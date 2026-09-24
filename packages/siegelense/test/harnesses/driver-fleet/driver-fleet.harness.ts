@@ -9,7 +9,7 @@
  *
  * USAGE:
  * const fleet = driverFleetHarness();
- * const manifest = await fleet.boot({ specName: SpecNameStub({ value: 'dungeonmaster-api' }) });
+ * const manifest = await fleet.boot({ specName: SpecNameStub({ value: 'api' }) });
  * const entry = await fleet.registryEntry({ instanceId: manifest.instanceId });
  * const result = await fleet.killViaBroker({ instanceId: manifest.instanceId });
  * // fleet.afterAll() reaps anything still alive when the suite ends
@@ -47,16 +47,18 @@ import { driverStatics } from '../../../src/statics/driver/driver-statics';
 // promptly without hammering the filesystem.
 const HEARTBEAT_POLL_MS = 500;
 
-// Both built-in lane specs declare `requiresFakeAgentCli: true` (lane-spec-statics.ts), and
-// laneBootBroker refuses to boot one unless CLAUDE_CLI_PATH/WARD_CLI_PATH are already in the
-// environment it inherits (fake-agent-cli-statics.ts) — a real Claude/ward run spends real API
-// usage and produces a non-deterministic reading, which is exactly what this teardown suite's
-// measurements cannot tolerate. Neither fixture ships in this package's published `dist/`, so
-// there is no locationsStatics home for either path — same reasoning as siege-lane.ts, which
-// resolves the identical two binaries the identical way. instanceStartBroker spawns the driver
-// with no `env` override, so the driver inherits process.env from THIS jest worker: setting these
-// here, before any fleet.boot() call, is what the spawned driver — and the api process ITS OWN
-// laneBootBroker call spawns in turn — sees.
+// siegelense itself knows nothing about Claude or ward — this repo's own `devServer.e2e.processes`
+// names CLAUDE_CLI_PATH/WARD_CLI_PATH in the api process's own `env` (D4), so a real boot of THIS
+// repo already resolves both against these two fixtures without this harness's help. These two
+// lines are a fallback for a checkout whose `.dungeonmaster.json` has not picked that up yet: a
+// real Claude/ward run spends real API usage and produces a non-deterministic reading, which is
+// exactly what this teardown suite's measurements cannot tolerate. Neither fixture ships in this
+// package's published `dist/`, so there is no locationsStatics home for either path — same
+// reasoning as siege-lane.ts, which resolves the identical two binaries the identical way.
+// instanceStartBroker spawns the driver with no `env` override, so the driver inherits
+// process.env from THIS jest worker: setting these here, before any fleet.boot() call, is what
+// the spawned driver — and the api process ITS OWN laneBootBroker call spawns in turn — sees, as
+// the INHERITED env a repo-config value would still override.
 const FAKE_CLAUDE_CLI_PATH = resolvePath(
   __dirname,
   '..',

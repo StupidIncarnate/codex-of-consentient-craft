@@ -21,7 +21,7 @@ import { laneSpecHashBroker } from '../../lane-spec/hash/lane-spec-hash-broker';
 
 import { profileSampleRecordBroker } from './profile-sample-record-broker';
 
-const HEADLESS_SPEC = SpecNameStub({ value: 'dungeonmaster-api' });
+const HEADLESS_SPEC = SpecNameStub({ value: 'api' });
 const SUBJECT_ID = InstanceIdStub({ value: 'inst_aaaa1111' });
 const SECOND_ID = InstanceIdStub({ value: 'inst_bbbb2222' });
 const THIRD_ID = InstanceIdStub({ value: 'inst_cccc3333' });
@@ -119,12 +119,12 @@ describe('the profile sample-write path, against a real tree', () => {
 
     await profileBootRecordBroker({
       instanceId: SUBJECT_ID,
-      specHash: laneSpecHashBroker({ spec: laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
+      specHash: laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
       bootMs: EpochMsStub({ value: 20_000 }),
     });
     await profileBootRecordBroker({
       instanceId: SECOND_ID,
-      specHash: laneSpecHashBroker({ spec: laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
+      specHash: laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
       bootMs: EpochMsStub({ value: 22_000 }),
     });
 
@@ -147,11 +147,11 @@ describe('the profile sample-write path, against a real tree', () => {
   });
 
   describe('the record on disk after the solo beats', () => {
-    it('VALID: {three solo readings, one of them inside the settle window} => one bucket at pool size 1, peak from the boot reading and steady from the two later ones', () => {
+    it('VALID: {three solo readings, one of them inside the settle window} => one bucket at pool size 1, peak from the boot reading and steady from the two later ones', async () => {
       expect(soloRecord).toStrictEqual({
         instanceId: 'inst_aaaa1111',
         specHash: String(
-          laneSpecHashBroker({ spec: laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
+          laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
         ),
         firstBeatAtMs: FIRST_BEAT_MS,
         measuredAtMs: FIRST_BEAT_MS + SETTLE_MS + 10_000,
@@ -161,11 +161,11 @@ describe('the profile sample-write path, against a real tree', () => {
   });
 
   describe('the record on disk once the pool grew', () => {
-    it('VALID: {two contended readings} => a SECOND bucket at pool size 3, the solo bucket untouched', () => {
+    it('VALID: {two contended readings} => a SECOND bucket at pool size 3, the solo bucket untouched', async () => {
       expect(contendedRecord).toStrictEqual({
         instanceId: 'inst_aaaa1111',
         specHash: String(
-          laneSpecHashBroker({ spec: laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
+          laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
         ),
         firstBeatAtMs: FIRST_BEAT_MS,
         measuredAtMs: FIRST_BEAT_MS + SETTLE_MS + 30_000,
@@ -178,11 +178,13 @@ describe('the profile sample-write path, against a real tree', () => {
   });
 
   describe('what profile reads back off that tree', () => {
-    it('VALID: {one run measured solo and contended} => two groups with their own steadyMB and peakMB, never one blended row', () => {
+    it('VALID: {one run measured solo and contended} => two groups with their own steadyMB and peakMB, never one blended row', async () => {
       expect(profile).toStrictEqual({
-        specName: 'dungeonmaster-api',
+        specName: 'api',
         processes: 1,
-        hash: String(laneSpecHashBroker({ spec: laneSpecFindBroker({ specName: HEADLESS_SPEC }) })),
+        hash: String(
+          laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
+        ),
         measuredAt: '2025-09-14',
         fromRuns: 1,
         bootMs: 21_000,

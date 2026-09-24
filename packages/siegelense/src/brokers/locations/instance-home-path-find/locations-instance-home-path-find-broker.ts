@@ -1,7 +1,8 @@
 /**
  * PURPOSE: Resolves the absolute path to one instance's THROWAWAY home — the scratch directory a
- * booted lane's own processes use as `DUNGEONMASTER_HOME`/`HOME` (`laneSpecStatics`' `{home}`
- * placeholder), and the one `laneTeardownBroker` removes on `kill`. Lives under the OS scratch
+ * booted lane's own processes use as `DUNGEONMASTER_HOME`/`HOME` (the `{home}` placeholder
+ * `lanePlaceholderSubstituteTransformer` substitutes), and the one `laneTeardownBroker` removes on
+ * `kill`. Lives under the OS scratch
  * directory rather than the siegelense root, mirroring `locationsSocketPathFindBroker` — this is
  * state a live lane owns for its own run, never evidence, so it has no business under
  * `<repoRoot>/.dungeonmaster-assets/siegelense-assets` where a reader's `Read` would go looking for something durable.

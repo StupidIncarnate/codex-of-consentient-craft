@@ -3,8 +3,9 @@
  * (registryReadBroker, laneBootBroker, registryUpdateBroker, bootLockReleaseBroker,
  * bootFailureMarkerWriteBroker) plus its sibling DriverServeLayerResponder, since each already
  * carries its own dedicated test suite. This proxy only proves the boot SEQUENCE and the values
- * handed from one step to the next. laneSpecFindBroker runs real (it is pure and only needs a real
- * spec name). The three locations resolvers share ONE underlying `pathJoinAdapter` mock, which
+ * handed from one step to the next. laneSpecFindBroker runs real against its own proxy's sticky
+ * default config (a single headless api process) — every test here passes `specName: 'api'`, which
+ * matches it. The three locations resolvers share ONE underlying `pathJoinAdapter` mock, which
  * queues each `.returns()` call as a ONE-SHOT for the NEXT real invocation
  * (`packages/testing/CLAUDE.md`) — rather than track exactly how many real pathJoin calls land
  * between staging and assertion, every one of the three is staged to the SAME path value, so

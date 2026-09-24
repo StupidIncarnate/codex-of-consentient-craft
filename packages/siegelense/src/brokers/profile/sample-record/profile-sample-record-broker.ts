@@ -69,7 +69,7 @@ export const profileSampleRecordBroker = async ({
     return null;
   }
 
-  const spec = laneSpecFindBroker({ specName });
+  const spec = await laneSpecFindBroker({ specName });
   const specHash = laneSpecHashBroker({ spec });
 
   const registry = await registryReadBroker();

@@ -6,7 +6,7 @@ import type { LaneSpec } from './lane-spec-contract';
 
 export const LaneSpecStub = ({ ...props }: StubArgument<LaneSpec> = {}): LaneSpec =>
   laneSpecContract.parse({
-    name: 'dungeonmaster-api',
+    name: 'api',
     processes: [LaneProcessStub()],
     browser: false,
     bootTimeoutMs: 180_000,

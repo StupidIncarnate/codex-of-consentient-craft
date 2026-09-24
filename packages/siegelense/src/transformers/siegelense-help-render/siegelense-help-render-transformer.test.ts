@@ -142,7 +142,7 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  A human summary by default: instance id, spec, URLs, home and evidence paths, boot time, and one line per seeded binding — since there is no lookup call to recover any of it later. `--json` prints the InstanceManifest unabridged, seeded rows included.\n' +
           '\n' +
           'EXAMPLE\n' +
-          '  dungeonmaster siegelense start --spec dungeonmaster-stack\n',
+          '  dungeonmaster siegelense start --spec stack\n',
       );
     });
   });

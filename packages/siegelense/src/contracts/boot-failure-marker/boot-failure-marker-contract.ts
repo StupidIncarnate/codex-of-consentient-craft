@@ -9,7 +9,7 @@
  *
  * USAGE:
  * bootFailureMarkerContract.parse({
- *   message: 'Lane spec dungeonmaster-stack requires a fake agent CLI...',
+ *   message: 'the api process exited before opening its port',
  *   atMs: 1700000000000,
  * });
  * // Returns a validated BootFailureMarker
