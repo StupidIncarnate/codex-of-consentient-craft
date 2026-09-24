@@ -1,4 +1,5 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts';
 
 import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
@@ -60,18 +61,18 @@ describe('profileReadBroker', () => {
       const proxy = profileReadBrokerProxy();
       proxy.stageLaneSpec({
         processes: [
-          {
+          DevServerE2eProcessStub({
             name: 'api',
             command: 'npm run dev:no-watch --workspace=@dungeonmaster/server',
             portRole: 'api',
             readyPath: '/api/guilds',
-          },
-          {
+          }),
+          DevServerE2eProcessStub({
             name: 'web',
             command: 'npx vite preview --strictPort',
             portRole: 'web',
             readyPath: '/',
-          },
+          }),
         ],
       });
       const profilesPath = await profilesPathFor({ specName: WEB_SPEC });
@@ -96,18 +97,18 @@ describe('profileReadBroker', () => {
       const proxy = profileReadBrokerProxy();
       proxy.stageLaneSpec({
         processes: [
-          {
+          DevServerE2eProcessStub({
             name: 'api',
             command: 'npm run dev:no-watch --workspace=@dungeonmaster/server',
             portRole: 'api',
             readyPath: '/api/guilds',
-          },
-          {
+          }),
+          DevServerE2eProcessStub({
             name: 'web',
             command: 'npx vite preview --strictPort',
             portRole: 'web',
             readyPath: '/',
-          },
+          }),
         ],
       });
       const profilesPath = await profilesPathFor({ specName: WEB_SPEC });

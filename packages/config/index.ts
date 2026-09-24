@@ -15,15 +15,14 @@ import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { architectureFolderStatics } from './src/statics/architecture-folder/architecture-folder-statics';
 import type { Framework } from './src/contracts/framework/framework-contract';
 import type { SchemaLibrary } from './src/contracts/schema-library/schema-library-contract';
-import type {
-  DungeonmasterConfig,
-  DevServerE2eProcess,
-} from './src/contracts/dungeonmaster-config/dungeonmaster-config-contract';
+import type { DungeonmasterConfig } from './src/contracts/dungeonmaster-config/dungeonmaster-config-contract';
+import type { DevServerE2eProcess } from './src/contracts/dev-server-e2e-process/dev-server-e2e-process-contract';
 import type { AllowedExternalImports } from './src/contracts/folder-config/folder-config-contract';
 import type { FrameworkPreset } from './src/contracts/framework-presets/framework-presets-contract';
 
 export { configResolveBroker };
 export { DungeonmasterConfigStub } from './src/contracts/dungeonmaster-config/dungeonmaster-config.stub';
+export { DevServerE2eProcessStub } from './src/contracts/dev-server-e2e-process/dev-server-e2e-process.stub';
 export { configDefaultsStatics } from './src/statics/config-defaults/config-defaults-statics';
 export { e2eProcessPlaceholderStatics } from './src/statics/e2e-process-placeholder/e2e-process-placeholder-statics';
 

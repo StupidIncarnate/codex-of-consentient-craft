@@ -3,6 +3,7 @@ import { laneSpecFindBrokerProxy } from './lane-spec-find-broker.proxy';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { E2eNotConfiguredError } from '../../../errors/e2e-not-configured/e2e-not-configured-error';
 import { e2eProcessPlaceholderStatics } from '@dungeonmaster/config';
+import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts';
 
 describe('laneSpecFindBroker', () => {
   describe('a configured repo', () => {
@@ -11,13 +12,13 @@ describe('laneSpecFindBroker', () => {
       const specName = SpecNameStub({ value: 'api' });
       proxy.setupConfiguredProcesses({
         processes: [
-          {
+          DevServerE2eProcessStub({
             name: 'api',
             command: 'npm run dev:no-watch --workspace=@dungeonmaster/server',
             portRole: 'api',
             readyPath: '/api/guilds',
             env: { PORT: '{apiPort}' },
-          },
+          }),
         ],
       });
 
@@ -31,13 +32,13 @@ describe('laneSpecFindBroker', () => {
       const specName = SpecNameStub({ value: 'stack' });
       proxy.setupConfiguredProcesses({
         processes: [
-          {
+          DevServerE2eProcessStub({
             name: 'api',
             command: 'npm run dev:no-watch --workspace=@dungeonmaster/server',
             portRole: 'api',
             readyPath: '/api/guilds',
             env: { PORT: '{apiPort}' },
-          },
+          }),
         ],
       });
 
@@ -51,18 +52,18 @@ describe('laneSpecFindBroker', () => {
       const specName = SpecNameStub({ value: 'stack' });
       proxy.setupConfiguredProcesses({
         processes: [
-          {
+          DevServerE2eProcessStub({
             name: 'api',
             command: 'npm run dev:no-watch --workspace=@dungeonmaster/server',
             portRole: 'api',
             readyPath: '/api/guilds',
-          },
-          {
+          }),
+          DevServerE2eProcessStub({
             name: 'web',
             command: 'npx vite preview --strictPort',
             portRole: 'web',
             readyPath: '/',
-          },
+          }),
         ],
       });
 
@@ -109,7 +110,13 @@ describe('laneSpecFindBroker', () => {
       )) as E2eNotConfiguredError;
 
       expect(caughtError instanceof E2eNotConfiguredError).toBe(true);
-      expect(caughtError.message).toMatch(/devServer\.e2e\.processes/u);
+      expect(caughtError.message).toBe(
+        'siegelense has no e2e lane configured for spec "api": add devServer.e2e.processes ' +
+          "to .dungeonmaster.json, naming the no-watch command(s) that boot this repo's own app — " +
+          'the same way this repo\'s own Playwright e2e setup boots it. "dungeonmaster init" seeds a ' +
+          'placeholder entry; edit devServer.e2e.processes[0].command (and portRole/readyPath) to point ' +
+          "at this repo's real no-watch dev command before running a lane.",
+      );
     });
 
     it('ERROR: {devServer itself absent from config} => throws the same named error', async () => {
@@ -125,7 +132,9 @@ describe('laneSpecFindBroker', () => {
     it('ERROR: {the seeded placeholder, unedited} => throws E2eNotConfiguredError', async () => {
       const proxy = laneSpecFindBrokerProxy();
       const specName = SpecNameStub({ value: 'api' });
-      proxy.setupConfiguredProcesses({ processes: [e2eProcessPlaceholderStatics.process] });
+      proxy.setupConfiguredProcesses({
+        processes: [DevServerE2eProcessStub(e2eProcessPlaceholderStatics.process)],
+      });
 
       await expect(laneSpecFindBroker({ specName })).rejects.toThrow(E2eNotConfiguredError);
     });

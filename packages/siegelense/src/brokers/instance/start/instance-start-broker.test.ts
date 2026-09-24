@@ -4,6 +4,7 @@ import {
   QuestIdStub,
   TimeoutMsStub,
 } from '@dungeonmaster/shared/contracts';
+import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts';
 
 import { instanceStartBroker } from './instance-start-broker';
 import { instanceStartBrokerProxy } from './instance-start-broker.proxy';
@@ -255,18 +256,18 @@ describe('instanceStartBroker', () => {
       const webProcessName = LaneProcessNameStub({ value: 'web' });
       proxy.stageLaneSpec({
         processes: [
-          {
+          DevServerE2eProcessStub({
             name: 'api',
             command: 'npm run dev:no-watch --workspace=@dungeonmaster/server',
             portRole: 'api',
             readyPath: '/api/guilds',
-          },
-          {
+          }),
+          DevServerE2eProcessStub({
             name: 'web',
             command: 'npx vite preview --strictPort',
             portRole: 'web',
             readyPath: '/',
-          },
+          }),
         ],
       });
       proxy.stageProcessReachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
@@ -320,18 +321,18 @@ describe('instanceStartBroker', () => {
       const specName = SpecNameStub({ value: 'stack' });
       proxy.stageLaneSpec({
         processes: [
-          {
+          DevServerE2eProcessStub({
             name: 'api',
             command: 'npm run dev:no-watch --workspace=@dungeonmaster/server',
             portRole: 'api',
             readyPath: '/api/guilds',
-          },
-          {
+          }),
+          DevServerE2eProcessStub({
             name: 'web',
             command: 'npx vite preview --strictPort',
             portRole: 'web',
             readyPath: '/',
-          },
+          }),
         ],
       });
       proxy.setupHappyBoot({
