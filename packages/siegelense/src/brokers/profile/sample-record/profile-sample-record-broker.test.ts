@@ -14,16 +14,16 @@ import { profileSampleRecordBroker } from './profile-sample-record-broker';
 import { profileSampleRecordBrokerProxy } from './profile-sample-record-broker.proxy';
 
 const ROOT_PATH_VALUE = '/home/user/.dungeonmaster/siegelense';
-const HEADLESS_SPEC = SpecNameStub({ value: 'dungeonmaster-api' });
+const HEADLESS_SPEC = SpecNameStub({ value: 'api' });
 const INSTANCE_ID = InstanceIdStub({ value: 'inst_7f3a9c21' });
 const FIRST_BEAT_MS = 1_700_000_000_000;
 
 // The digest is REAL — laneSpecHashBrokerProxy deliberately stages nothing, so the directory a
 // record lands in is the genuine content hash of the spec, which is what makes "a changed spec
 // re-measures" a property of the tree rather than of a stub.
-const headlessProfilesPath = (): ReturnType<typeof FilePathStub> =>
+const headlessProfilesPath = async (): Promise<ReturnType<typeof FilePathStub>> =>
   FilePathStub({
-    value: `${ROOT_PATH_VALUE}/profiles/${laneSpecHashBroker({ spec: laneSpecFindBroker({ specName: HEADLESS_SPEC }) })}`,
+    value: `${ROOT_PATH_VALUE}/profiles/${laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) })}`,
   });
 
 describe('profileSampleRecordBroker', () => {
@@ -45,7 +45,7 @@ describe('profileSampleRecordBroker', () => {
   describe('the first beat of a run', () => {
     it('VALID: {one booted instance} => opens the record at pool size 1, peak set, no steady beat yet', async () => {
       const proxy = profileSampleRecordBrokerProxy();
-      const profilesPath = headlessProfilesPath();
+      const profilesPath = await headlessProfilesPath();
       const registry = RegistryStub({
         instances: [
           RegistryEntryStub({
@@ -80,7 +80,7 @@ describe('profileSampleRecordBroker', () => {
   describe('the pool size a beat is taken at', () => {
     it('VALID: {three booted instances alive} => the bucket is keyed at pool size 3', async () => {
       const proxy = profileSampleRecordBrokerProxy();
-      const profilesPath = headlessProfilesPath();
+      const profilesPath = await headlessProfilesPath();
       const registry = RegistryStub({
         instances: [
           RegistryEntryStub({
@@ -116,7 +116,7 @@ describe('profileSampleRecordBroker', () => {
 
     it('VALID: {a reservation and a tombstone beside one booted instance} => neither counts, the pool is 1', async () => {
       const proxy = profileSampleRecordBrokerProxy();
-      const profilesPath = headlessProfilesPath();
+      const profilesPath = await headlessProfilesPath();
       const registry = RegistryStub({
         instances: [
           RegistryEntryStub({
@@ -156,7 +156,7 @@ describe('profileSampleRecordBroker', () => {
   describe('a beat onto a record already on disk', () => {
     it('VALID: {a settled beat} => merges into the existing bucket rather than replacing it', async () => {
       const proxy = profileSampleRecordBrokerProxy();
-      const profilesPath = headlessProfilesPath();
+      const profilesPath = await headlessProfilesPath();
       const specHash = String(profilesPath).split('/').at(-1);
       const registry = RegistryStub({
         instances: [
@@ -198,7 +198,7 @@ describe('profileSampleRecordBroker', () => {
 
     it('ERROR: {the record on disk is not valid JSON} => starts a fresh record and reports the discard on stderr', async () => {
       const proxy = profileSampleRecordBrokerProxy();
-      const profilesPath = headlessProfilesPath();
+      const profilesPath = await headlessProfilesPath();
       const registry = RegistryStub({
         instances: [
           RegistryEntryStub({

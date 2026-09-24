@@ -51,7 +51,7 @@ export const profileReadBroker = async ({
 }: {
   specName: SpecName;
 }): Promise<SpecProfile> => {
-  const spec = laneSpecFindBroker({ specName });
+  const spec = await laneSpecFindBroker({ specName });
   const specHash = laneSpecHashBroker({ spec });
   const { samplesDir, bootsDir } = locationsProfileDirsFindBroker({ specHash });
 

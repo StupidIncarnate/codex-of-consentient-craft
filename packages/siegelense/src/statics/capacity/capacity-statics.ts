@@ -4,8 +4,8 @@
  * answers for. Reach for this over `instanceLifecycleStatics` when the value decides HOW MANY
  * instances may exist at once; that file decides how long one of them may take to get there.
  *
- * `defaults.specName` is derived from `laneSpecStatics` rather than typed, so a renamed spec moves
- * both places at once.
+ * `defaults.specName` is derived from `laneSpecConventionStatics` rather than typed, so a renamed
+ * convention name moves both places at once.
  *
  * USAGE:
  * capacityStatics.policy.ceiling;
@@ -15,7 +15,7 @@
  * // Returns 512 — subtracted from free memory before anything is divided
  */
 
-import { laneSpecStatics } from '../lane-spec/lane-spec-statics';
+import { laneSpecConventionStatics } from '../lane-spec-convention/lane-spec-convention-statics';
 
 export const capacityStatics = {
   policy: {
@@ -40,9 +40,9 @@ export const capacityStatics = {
     suggested: 2,
   },
   defaults: {
-    // The browsered spec, and the more expensive of the two built-ins, so a bare `capacity` with
-    // no --spec answers conservatively. Read off laneSpecStatics rather than typed so the name
-    // cannot drift from the spec it points at.
-    specName: laneSpecStatics.specs['dungeonmaster-stack'].name,
+    // The browsered convention name, and the more expensive of the two, so a bare `capacity` with
+    // no --spec answers conservatively. Read off laneSpecConventionStatics rather than typed so the
+    // name cannot drift from the one `laneSpecFindBroker` decides `browser: true` for.
+    specName: laneSpecConventionStatics.browsered,
   },
 } as const;

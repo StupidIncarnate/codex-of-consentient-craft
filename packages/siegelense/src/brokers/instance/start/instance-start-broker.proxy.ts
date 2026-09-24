@@ -19,6 +19,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { FilePath, NetworkPort, TimeoutMs } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import type { DevServerE2eProcess } from '@dungeonmaster/config';
 
 import { capacityReadBroker } from '../../capacity/read/capacity-read-broker';
 import { capacityReadBrokerProxy } from '../../capacity/read/capacity-read-broker.proxy';
@@ -46,17 +47,14 @@ import { laneReadyWaitBrokerProxy } from '../../lane/ready-wait/lane-ready-wait-
 import { FileDescriptorStub } from '../../../contracts/file-descriptor/file-descriptor.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import type { LaneSpecStub } from '../../../contracts/lane-spec/lane-spec.stub';
 import type { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { driverStatics } from '../../../statics/driver/driver-statics';
-import { laneSpecStatics } from '../../../statics/lane-spec/lane-spec-statics';
 import { profileStatics } from '../../../statics/profile/profile-statics';
 
 type InstanceId = ReturnType<typeof InstanceIdStub>;
 type Registry = ReturnType<typeof RegistryStub>;
 type SpecName = ReturnType<typeof SpecNameStub>;
-type LaneSpec = ReturnType<typeof LaneSpecStub>;
 
 // Every path below is REAL `path.join` output off two sticky roots (os.homedir() and
 // processCwdAdapter()'s own built-in default) — never a one-shot `pathJoinAdapter.returns()`.
@@ -151,7 +149,7 @@ export const instanceStartBrokerProxy = (): {
   getStderrMessages: () => readonly ReturnType<typeof ContentTextStub>[];
   mintInstanceId: () => InstanceId;
   setupStaleReap: (params: { staleInstanceId: InstanceId }) => void;
-  stageLaneSpec: (params: { specName: SpecName; spec: LaneSpec }) => void;
+  stageLaneSpec: (params: { processes: readonly DevServerE2eProcess[] }) => void;
   stageProcessReachable: (params: { url: string }) => void;
   stageProcessUnreachable: (params: { url: string }) => void;
   setupCapacityRefusal: (params: { specName: SpecName; why: string }) => void;
@@ -175,7 +173,10 @@ export const instanceStartBrokerProxy = (): {
   locationsInstanceEvidencePathFindBrokerProxy();
   locationsRepoLinkPathFindBrokerProxy();
   locationsSocketPathFindBrokerProxy();
-  laneSpecFindBrokerProxy();
+  // laneSpecFindBrokerProxy() stages its own sticky default (a single headless api process) at
+  // construction, so every test in this file that leaves the spec untouched still resolves a real,
+  // valid LaneSpec — a later stageLaneSpec() call overrides that same address.
+  const laneSpecFindProxy = laneSpecFindBrokerProxy();
   laneSpecHashBrokerProxy();
   cwdResolveBrokerProxy();
   pathJoinAdapterProxy();
@@ -337,17 +338,6 @@ export const instanceStartBrokerProxy = (): {
     });
   };
 
-  // `laneSpecStatics.specs` is typed `as const` (readonly at the TYPE level only — nothing here
-  // freezes it at runtime), and `laneSpecFindBroker` itself reads through this SAME widened-type
-  // alias rather than `Reflect.set` (confined to *-guard.ts/*-contract.ts) to register the value a
-  // test builds. Adding a NEW key here — never overwriting 'dungeonmaster-stack' or
-  // 'dungeonmaster-api' — keeps every OTHER test's use of the real built-ins untouched
-  // regardless of run order within this file.
-  const registerLaneSpec = ({ specName, spec }: { specName: SpecName; spec: LaneSpec }): void => {
-    const mutableSpecs: Record<SpecName, LaneSpec> = laneSpecStatics.specs;
-    mutableSpecs[specName] = spec;
-  };
-
   return {
     setupHappyBoot: ({ instanceId, evidencePath, registry, idleTimeoutMs }): void => {
       stageBoot(
@@ -492,8 +482,8 @@ export const instanceStartBrokerProxy = (): {
     mintInstanceId: (): InstanceId =>
       InstanceIdStub({ value: `inst_${MINTED_UUID_VALUE.split('-').join('')}` }),
 
-    stageLaneSpec: ({ specName, spec }: { specName: SpecName; spec: LaneSpec }): void => {
-      registerLaneSpec({ specName, spec });
+    stageLaneSpec: ({ processes }: { processes: readonly DevServerE2eProcess[] }): void => {
+      laneSpecFindProxy.setupConfiguredProcesses({ processes });
     },
 
     stageProcessReachable: ({ url }: { url: string }): void => {

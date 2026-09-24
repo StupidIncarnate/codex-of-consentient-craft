@@ -10,15 +10,11 @@ import { instanceStartBrokerProxy } from './instance-start-broker.proxy';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { InstanceStateStub } from '../../../contracts/instance-state/instance-state.stub';
-import { LaneProcessStub } from '../../../contracts/lane-process/lane-process.stub';
 import { LaneProcessNameStub } from '../../../contracts/lane-process-name/lane-process-name.stub';
-import { LaneSpecStub } from '../../../contracts/lane-spec/lane-spec.stub';
 import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
-import { PortRoleStub } from '../../../contracts/port-role/port-role.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
-import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 import { DriverBootFailedError } from '../../../errors/driver-boot-failed/driver-boot-failed-error';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
 
@@ -40,7 +36,7 @@ describe('instanceStartBroker', () => {
       });
 
       await instanceStartBroker({
-        specName: SpecNameStub(),
+        specName: SpecNameStub({ value: 'api' }),
         questId: null,
         guildId: null,
         seed: null,
@@ -68,7 +64,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub(),
+        specName: SpecNameStub({ value: 'api' }),
         questId: null,
         guildId: null,
         seed: null,
@@ -90,7 +86,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub(),
+        specName: SpecNameStub({ value: 'api' }),
         questId: null,
         guildId: null,
         seed: null,
@@ -105,8 +101,7 @@ describe('instanceStartBroker', () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
       const nowMs = 1_700_000_000_000;
-      const specName = SpecNameStub({ value: 'test-boot-never-answers' });
-      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
+      const specName = SpecNameStub({ value: 'api' });
       proxy.stageProcessUnreachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
       proxy.setupBootNeverAnswers({
         instanceId,
@@ -131,10 +126,8 @@ describe('instanceStartBroker', () => {
     it('ERROR: {boot-failure.json appears on the first failed ping} => throws DriverBootFailedError naming the driver message, not a generic ready-path timeout', async () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
-      const specName = SpecNameStub({ value: 'test-driver-reports-failure' });
-      const driverMessage =
-        'Lane spec dungeonmaster-stack requires a fake agent CLI, and the environment supplies none of it: set CLAUDE_CLI_PATH to a stub Claude CLI binary.';
-      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
+      const specName = SpecNameStub({ value: 'api' });
+      const driverMessage = 'the api process exited before opening its port.';
       proxy.setupBootFailureMarkerAppears({
         instanceId,
         evidencePath: UNOWNED_EVIDENCE_PATH,
@@ -165,15 +158,14 @@ describe('instanceStartBroker', () => {
     it('ERROR: {driver reports a boot failure} => releases the reservation instead of leaving it alive with no boot time', async () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
-      const specName = SpecNameStub({ value: 'test-release-on-marker-failure' });
-      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
+      const specName = SpecNameStub({ value: 'api' });
       proxy.setupBootFailureMarkerAppears({
         instanceId,
         evidencePath: UNOWNED_EVIDENCE_PATH,
         registry: RegistryStub({
           instances: [RegistryEntryStub({ id: instanceId })],
         }),
-        driverMessage: 'CLAUDE_CLI_PATH is required',
+        driverMessage: 'the api process exited before opening its port',
       });
 
       await instanceStartBroker({ specName, questId: null, guildId: null, seed: null }).catch(
@@ -199,8 +191,7 @@ describe('instanceStartBroker', () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
       const nowMs = 1_700_000_000_000;
-      const specName = SpecNameStub({ value: 'test-release-on-timeout' });
-      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
+      const specName = SpecNameStub({ value: 'api' });
       proxy.stageProcessUnreachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
       proxy.setupBootNeverAnswers({
         instanceId,
@@ -234,11 +225,10 @@ describe('instanceStartBroker', () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
       const nowMs = 1_700_000_000_000;
-      const specName = SpecNameStub({ value: 'test-release-throws' });
+      const specName = SpecNameStub({ value: 'api' });
       const releaseError = Object.assign(new Error('EACCES: permission denied'), {
         code: 'EACCES',
       });
-      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
       proxy.stageProcessUnreachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
       proxy.setupBootNeverAnswers({
         instanceId,
@@ -261,21 +251,23 @@ describe('instanceStartBroker', () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
       const nowMs = 1_700_000_000_000;
-      const specName = SpecNameStub({ value: 'test-two-process-partial-failure' });
+      const specName = SpecNameStub({ value: 'stack' });
       const webProcessName = LaneProcessNameStub({ value: 'web' });
       proxy.stageLaneSpec({
-        specName,
-        spec: LaneSpecStub({
-          name: specName,
-          processes: [
-            LaneProcessStub(),
-            LaneProcessStub({
-              name: webProcessName,
-              portRole: PortRoleStub({ value: 'web' }),
-              readyPath: UrlPathStub({ value: '/' }),
-            }),
-          ],
-        }),
+        processes: [
+          {
+            name: 'api',
+            command: 'npm run dev:no-watch --workspace=@dungeonmaster/server',
+            portRole: 'api',
+            readyPath: '/api/guilds',
+          },
+          {
+            name: 'web',
+            command: 'npx vite preview --strictPort',
+            portRole: 'web',
+            readyPath: '/',
+          },
+        ],
       });
       proxy.stageProcessReachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
       proxy.stageProcessUnreachable({ url: 'http://dungeonmaster.localhost:34173/' });
@@ -305,8 +297,7 @@ describe('instanceStartBroker', () => {
     it('VALID: {spec with no process claiming the web port} => baseUrl is null', async () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
-      const specName = SpecNameStub({ value: 'test-browserless-baseurl' });
-      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
+      const specName = SpecNameStub({ value: 'api' });
       proxy.setupHappyBoot({
         instanceId,
         evidencePath: UNOWNED_EVIDENCE_PATH,
@@ -326,21 +317,22 @@ describe('instanceStartBroker', () => {
     it('VALID: {spec with a process claiming the web port} => baseUrl is the real web URL', async () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
-      const specName = SpecNameStub({ value: 'test-browsered-baseurl' });
+      const specName = SpecNameStub({ value: 'stack' });
       proxy.stageLaneSpec({
-        specName,
-        spec: LaneSpecStub({
-          name: specName,
-          processes: [
-            LaneProcessStub(),
-            LaneProcessStub({
-              name: LaneProcessNameStub({ value: 'web' }),
-              portRole: PortRoleStub({ value: 'web' }),
-              readyPath: UrlPathStub({ value: '/' }),
-            }),
-          ],
-          browser: true,
-        }),
+        processes: [
+          {
+            name: 'api',
+            command: 'npm run dev:no-watch --workspace=@dungeonmaster/server',
+            portRole: 'api',
+            readyPath: '/api/guilds',
+          },
+          {
+            name: 'web',
+            command: 'npx vite preview --strictPort',
+            portRole: 'web',
+            readyPath: '/',
+          },
+        ],
       });
       proxy.setupHappyBoot({
         instanceId,
@@ -371,8 +363,7 @@ describe('instanceStartBroker', () => {
     it('VALID: {spec whose processes include the api process} => apiUrl is the real api URL', async () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
-      const specName = SpecNameStub({ value: 'test-api-surface-apiurl' });
-      proxy.stageLaneSpec({ specName, spec: LaneSpecStub({ name: specName }) });
+      const specName = SpecNameStub({ value: 'api' });
       proxy.setupHappyBoot({
         instanceId,
         evidencePath: UNOWNED_EVIDENCE_PATH,
@@ -413,7 +404,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub(),
+        specName: SpecNameStub({ value: 'api' }),
         questId: null,
         guildId: null,
         seed: null,
@@ -440,7 +431,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub(),
+        specName: SpecNameStub({ value: 'api' }),
         questId: null,
         guildId: null,
         seed: null,
@@ -463,7 +454,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub(),
+        specName: SpecNameStub({ value: 'api' }),
         questId: null,
         guildId: null,
         seed: null,
@@ -493,7 +484,7 @@ describe('instanceStartBroker', () => {
       proxy.setupStaleReap({ staleInstanceId });
 
       await instanceStartBroker({
-        specName: SpecNameStub(),
+        specName: SpecNameStub({ value: 'api' }),
         questId: null,
         guildId: null,
         seed: null,
@@ -516,7 +507,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub(),
+        specName: SpecNameStub({ value: 'api' }),
         questId: null,
         guildId: null,
         seed: null,
@@ -544,7 +535,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub(),
+        specName: SpecNameStub({ value: 'api' }),
         questId,
         guildId,
         seed: null,
@@ -567,7 +558,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub(),
+        specName: SpecNameStub({ value: 'api' }),
         questId: null,
         guildId: null,
         seed: null,
@@ -590,14 +581,19 @@ describe('instanceStartBroker', () => {
         registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
       });
       proxy.setupCapacityRefusal({
-        specName: SpecNameStub(),
+        specName: SpecNameStub({ value: 'api' }),
         why: 'no room for one more: 2599MB available is under the 2600MB this spec peaks at',
       });
 
       await expect(
-        instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null, seed: null }),
+        instanceStartBroker({
+          specName: SpecNameStub({ value: 'api' }),
+          questId: null,
+          guildId: null,
+          seed: null,
+        }),
       ).rejects.toThrow(
-        /^Refusing to start dungeonmaster-stack: this machine cannot hold another instance right now — no room for one more: 2599MB available is under the 2600MB this spec peaks at\. Run/u,
+        /^Refusing to start api: this machine cannot hold another instance right now — no room for one more: 2599MB available is under the 2600MB this spec peaks at\. Run/u,
       );
 
       expect(proxy.getWriteOrder()).toStrictEqual([]);
@@ -612,14 +608,19 @@ describe('instanceStartBroker', () => {
         registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
       });
       proxy.setupCapacityRefusal({
-        specName: SpecNameStub(),
+        specName: SpecNameStub({ value: 'api' }),
         why: 'the policy pool of 3 is full',
       });
 
       await expect(
-        instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null, seed: null }),
+        instanceStartBroker({
+          specName: SpecNameStub({ value: 'api' }),
+          questId: null,
+          guildId: null,
+          seed: null,
+        }),
       ).rejects.toThrow(
-        /^Refusing to start dungeonmaster-stack: this machine cannot hold another instance right now — the policy pool of 3 is full\. Run/u,
+        /^Refusing to start api: this machine cannot hold another instance right now — the policy pool of 3 is full\. Run/u,
       );
 
       expect(proxy.getWriteOrder()).toStrictEqual([]);
@@ -635,7 +636,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub(),
+        specName: SpecNameStub({ value: 'api' }),
         questId: null,
         guildId: null,
         seed: null,

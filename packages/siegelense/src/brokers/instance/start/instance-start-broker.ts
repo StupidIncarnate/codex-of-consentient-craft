@@ -117,7 +117,7 @@ export const instanceStartBroker = async ({
   seed: RecipeName | null;
   idleTimeoutMs?: TimeoutMs;
 }): Promise<InstanceManifest> => {
-  const spec = laneSpecFindBroker({ specName });
+  const spec = await laneSpecFindBroker({ specName });
   const specHash = laneSpecHashBroker({ spec });
 
   const registryBeforeReserve = await registryReadBroker();
