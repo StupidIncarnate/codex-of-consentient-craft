@@ -7,7 +7,7 @@ The driver keeps this file current. `README.md` says how.
 | | |
 |---|---|
 | Feature | `features/01-siegelense.md` |
-| Next case | Re-run `SL-001` and `SL-002` against the DEF-26 fix, then `SL-004` |
+| Next case | Re-run `SL-001` and `SL-002` against the DEF-26 fix, then `SL-004`. Open question for the user: should init's `npm install` for a fresh recipes package move to the end of the install run (DEF-36 row) |
 | Rebuild owed | Check at session start. See README, step 3 |
 
 ## Feature progress
@@ -104,3 +104,4 @@ When the walkthrough reaches the matching case, confirm it and promote it to a `
 | Date | Driver's work | Cases run | Defects opened | Defects closed |
 |---|---|---|---|---|
 | 2026-09-23 | Built this folder: the process, this ledger, and eight feature docs | none | none | none |
+| 2026-09-23 | Restarted the walk at SL-001. Moved fix sub-agents into worktrees, merged by the driver. Reviewed the `docs` pages against their prompts. Designed and built siegelense lanes from `.dungeonmaster.json` (`scrolls/siegelense-consumer-lanes.md`). Fixed the hooks tests and the slow CLI init tests the changes broke. Full ward green (run `1790232218599-532f`), full build, init re-run with no changes | SL-001, SL-002 | DEF-26 to DEF-36 | DEF-26 to DEF-36 |
