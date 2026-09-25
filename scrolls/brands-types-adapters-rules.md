@@ -6,8 +6,7 @@ order of work.
 
 ## The problem in one paragraph
 
-Models keep producing brands that check nothing (`ContentText`), hand copies of library types (a 597-line copy of
-ESTree), and adapters that only pass a call along (217 of 349). Models do this
+Models keep producing brands that check nothing (`ContentText`), hand copies of library types (a 597-line copy of ESTree), and adapters that only pass a call along (217 of 349). Models do this
 because our own rules demand it, not because they misunderstand. Every rule that asks a model to judge
 whether a type or an adapter is worth having gets the answer "yes, make one". Agreeing costs the model
 less than judging.
@@ -134,7 +133,8 @@ written at the call sites instead. `fsReadFileAdapter` sits inside `try`/`catch`
 packages, and behind `.catch` at 30 sites in 6 more, written four different ways: `catch {}` with a
 comment, `catch { return []; }`, `.catch(() => null)`, and digging through `error.cause` for `ENOENT`.
 
-**One of those losses is user data.**`mcp/src/brokers/settings/permissions-add/settings-permissions-add-broker.ts:62-67`
+**One of those losses is user
+data.** `mcp/src/brokers/settings/permissions-add/settings-permissions-add-broker.ts:62-67`
 swallows every read error and leaves the settings as `{}`; line 119 writes the result. A `settings.json`
 that is unreadable, or has one JSON error, is replaced by a file holding only `permissions`, losing the
 user's other settings, including the hooks other installers wrote. Found by reading, not by running.
@@ -170,8 +170,7 @@ No rule has to be told which kind a library is. A host library's types show up i
 parameters, and nobody wraps a failure around `useState` or an AST node. The rules key on handling and
 on type-versus-value imports, and those separate the two kinds on their own.
 
-A library can be both kinds. Jest runs our tests as a host. The testing package also calls Jest's API (`jest.fn`,
-`jest.mock`) through adapters that hold real logic, such as `jest-register-mock`, which
+A library can be both kinds. Jest runs our tests as a host. The testing package also calls Jest's API (`jest.fn`, `jest.mock`) through adapters that hold real logic, such as `jest-register-mock`, which
 dispatches answers by argument. Those calls go through adapters like any outside system's.
 
 ## The rules
@@ -185,9 +184,7 @@ Words used below:
   type.
 - **Outside function**: a function brought in by a value import (not `import type`) from a package
   outside the repo. Node built-ins count. So do the platform's I/O globals, such as `fetch`,
-  `WebSocket` and `indexedDB`: the platform fixes which globals do I/O, not the repo. Pure globals
-  such as `JSON.parse` and `new RegExp` do not count, because they do no I/O. Workspace packages (`@dungeonmaster/*`, or
-  a consumer's own workspace packages) do not count.
+  `WebSocket` and `indexedDB`: the platform fixes which globals do I/O, not the repo. Pure globals such as `JSON.parse` and `new RegExp` do not count, because they do no I/O. Workspace packages (`@dungeonmaster/*`, or a consumer's own workspace packages) do not count.
 - **Handling**: code that wraps a call and decides what its failure means: a `catch`, `.catch`, a
   rejection handler, `Promise.allSettled`, a retry loop, a timeout race, or a branch on `error.code`
   inside the `catch`. Classifying an error value that arrived as data, after someone else caught it,
@@ -211,32 +208,32 @@ A value that is not a field of an object contract gets no brand of its own. A lo
 local is a plain `string` or `number`. A value taken off an object keeps its field's brand through the
 owner's type, such as `Quest['id']`. That is the field's brand travelling with the value, not a new one.
 
-```typescript
+```
 // before — some fields branded, some not, and the model picks each text
 export const workItemContract = z.object({
-    id: questWorkItemIdContract,                                            // a standalone brand
-    status: workItemStatusContract,
-    retryCount: z.number().int().nonnegative().brand<'FailCount'>(),        // work-item-contract.ts:49
-    maxAttempts: z.number().int().positive().brand<'MaxAttempts'>(),
-    createdAt: z.string().datetime().brand<'IsoTimestamp'>(),               // same text as 10 other fields
-    errorMessage: z.string().brand<'ErrorMessage'>().optional(),
-    mintedBy: questWorkItemIdContract.optional(),
+  id: questWorkItemIdContract,                                            // a standalone brand
+  status: workItemStatusContract,
+  retryCount: z.number().int().nonnegative().brand<'FailCount'>(),        // work-item-contract.ts:49
+  maxAttempts: z.number().int().positive().brand<'MaxAttempts'>(),
+  createdAt: z.string().datetime().brand<'IsoTimestamp'>(),               // same text as 10 other fields
+  errorMessage: z.string().brand<'ErrorMessage'>().optional(),
+  mintedBy: questWorkItemIdContract.optional(),
 });
 
 // after — the object and every leaf branded, every text derived
 const workItemId = z.string().uuid().brand<'WorkItemId'>();         // local, not exported (B2)
 export const workItemContract = z
-    .object({
-        id: workItemId,
-        status: z.enum(['pending', 'in_progress', 'complete']),                // enum: no brand
-        retryCount: z.number().int().nonnegative().brand<'WorkItemRetryCount'>(),
-        maxAttempts: z.number().int().positive().brand<'WorkItemMaxAttempts'>(),
-        createdAt: z.string().datetime().brand<'WorkItemCreatedAt'>(),
-        errorMessage: z.string().brand<'WorkItemErrorMessage'>().optional(),
-        mintedBy: workItemId.optional(),                                 // reuse: carries 'WorkItemId'
-        resumeOnly: z.boolean().optional(),                                    // boolean: no brand
-    })
-    .brand<'WorkItem'>();
+  .object({
+    id: workItemId,
+    status: z.enum(['pending', 'in_progress', 'complete']),                // enum: no brand
+    retryCount: z.number().int().nonnegative().brand<'WorkItemRetryCount'>(),
+    maxAttempts: z.number().int().positive().brand<'WorkItemMaxAttempts'>(),
+    createdAt: z.string().datetime().brand<'WorkItemCreatedAt'>(),
+    errorMessage: z.string().brand<'WorkItemErrorMessage'>().optional(),
+    mintedBy: workItemId.optional(),                                 // reuse: carries 'WorkItemId'
+    resumeOnly: z.boolean().optional(),                                    // boolean: no brand
+  })
+  .brand<'WorkItem'>();
 ```
 
 What gets a brand is decided by the kind of schema:
@@ -253,13 +250,13 @@ What gets a brand is decided by the kind of schema:
 | A reuse of another owner's field (B4), or of the owner's own local id const (B2)           | It keeps the source's brand                                                                                                                       |
 | A string or number that is not a field of an object contract: a parameter, return or local | No brand of its own. It stays plain, or carries a field's brand through `Owner['key']`. An object that a function returns is a contract (B9).     |
 
-```typescript
+```
 // flagged
-questContract = z.object({title: z.string().min(1).brand<'QuestTitle'>()})         // the object has no brand
-questContract = z.object({title: z.string().min(1)}).brand<'Quest'>()              // leaf with no brand
-questContract = z.object({tags: z.array(z.string())}).brand<'Quest'>()             // array leaf with no brand
-questContract = z.object({owner: z.object({name: z.string().brand<'QuestOwnerName'>()})}).brand<'Quest'>()   // nested object with no brand
-workItemContract = z.object({status: z.enum([...]).brand<'WorkItemStatus'>()}).brand<'WorkItem'>()   // enums take no brand
+questContract = z.object({ title: z.string().min(1).brand<'QuestTitle'>() })         // the object has no brand
+questContract = z.object({ title: z.string().min(1) }).brand<'Quest'>()              // leaf with no brand
+questContract = z.object({ tags: z.array(z.string()) }).brand<'Quest'>()             // array leaf with no brand
+questContract = z.object({ owner: z.object({ name: z.string().brand<'QuestOwnerName'>() }) }).brand<'Quest'>()   // nested object with no brand
+workItemContract = z.object({ status: z.enum([...]).brand<'WorkItemStatus'>() }).brand<'WorkItem'>()   // enums take no brand
 export const timeoutMsContract = z.number().brand<'TimeoutMs'>();            // not an object field: no brand
 const text = z.string().brand<'ContentText'>().parse(line);                  // not an object field: no brand
 const modulePath = source as ModulePath;       // a cast mints a standalone brand (B2): ast-get-imports-transformer.ts:28
@@ -267,17 +264,12 @@ const modulePath = source as ModulePath;       // a cast mints a standalone bran
 
 // left alone
 (): KebabCaseVariants => …                           // a returned object is a contract (B9)
-questContract = z.object({title: z.string().min(1).brand<'QuestTitle'>()}).brand<'Quest'>()
-questContract = z.object({tags: z.array(z.string().brand<'QuestTags'>())}).brand<'Quest'>()
-questContract = z.object({owner: z.object({name: z.string().brand<'QuestOwnerName'>()}).brand<'QuestOwner'>()}).brand<'Quest'>()
-workItemContract = z.object({status: z.enum([...]), resumeOnly: z.boolean()}).brand<'WorkItem'>()
-({questId}
-:
-{
-    questId: Quest['id']
-}
-)                  // the field's own brand, taken off the object
-({timeoutMs}: { timeoutMs: number })                   // loose value: plain
+questContract = z.object({ title: z.string().min(1).brand<'QuestTitle'>() }).brand<'Quest'>()
+questContract = z.object({ tags: z.array(z.string().brand<'QuestTags'>()) }).brand<'Quest'>()
+questContract = z.object({ owner: z.object({ name: z.string().brand<'QuestOwnerName'>() }).brand<'QuestOwner'>() }).brand<'Quest'>()
+workItemContract = z.object({ status: z.enum([...]), resumeOnly: z.boolean() }).brand<'WorkItem'>()
+({ questId }: { questId: Quest['id'] })                  // the field's own brand, taken off the object
+({ timeoutMs }: { timeoutMs: number })                   // loose value: plain
 const modulePath: string = source;                       // loose value: plain
 ```
 
@@ -347,7 +339,7 @@ change"). B3's naming check is the fourth row above, so it needs no separate rul
 No standalone brand contract. No exported brand type. The only way to get a brand is through the object
 that owns it.
 
-```typescript
+```
 // before — a standalone brand contract and its exported type
 // quest-id-contract.ts
 export const questIdContract = z.string().min(1).brand<'QuestId'>();
@@ -359,22 +351,21 @@ export const contentTextContract = z.string().brand<'ContentText'>();
 // after — the brand lives on its owner's field
 // quest-contract.ts
 export const questContract = z
-    .object({
-        id: z.string().min(1).brand<'QuestId'>(),
-        title: z.string().min(1).brand<'QuestTitle'>(),
-    })
-    .brand<'Quest'>();
+  .object({
+    id: z.string().min(1).brand<'QuestId'>(),
+    title: z.string().min(1).brand<'QuestTitle'>(),
+  })
+  .brand<'Quest'>();
 export type Quest = z.infer<typeof questContract>;
 
 // a function that needs one field takes it through the owner's type
-export const questPauseBroker = async ({questId}: { questId: Quest['id'] }) => { …
-};
+export const questPauseBroker = async ({ questId }: { questId: Quest['id'] }) => { … };
 
 // minting one value parses it through the owner
 const questId = questContract.shape.id.parse(rawFromUrl);
 ```
 
-```typescript
+```
 // flagged
 export const questIdContract = z.string().min(1).brand<'QuestId'>();      // standalone brand
 const label = z.string().brand<'Label'>();                                 // a local brand no owner uses as its `id`
@@ -382,19 +373,18 @@ export const workItemId = z.string().uuid().brand<'WorkItemId'>();        // the
 export type QuestId = z.infer<typeof questContract>['id'];                 // exported brand type (see B5)
 
 // left alone
-export const questContract = z.object({id: z.string().min(1).brand<'QuestId'>()}).brand<'Quest'>();
-({questId}: { questId: Quest['id'] })
+export const questContract = z.object({ id: z.string().min(1).brand<'QuestId'>() }).brand<'Quest'>();
+({ questId }: { questId: Quest['id'] })
 // the exception below: local, not exported, and used by its owner as `id`
 const workItemId = z.string().uuid().brand<'WorkItemId'>();
-export const workItemContract = z.object({id: workItemId, mintedBy: workItemId.optional()}).brand<'WorkItem'>();
+export const workItemContract = z.object({ id: workItemId, mintedBy: workItemId.optional() }).brand<'WorkItem'>();
 ```
 
 Ins and outs:
 
 - **One exception, for an owner that points at itself.** `WorkItem` holds its own id in `dependsOn`,
-  `insertedBy` and `mintedBy` (`work-item-contract.ts:27,46,71,105`). A contract cannot reference its
-  own `.shape` while it is being declared. So an owner may hold its id in a local const that is **not exported**. The
-  const's name does not matter. Its brand text follows the owner field that uses
+  `insertedBy` and `mintedBy` (`work-item-contract.ts:27,46,71,105`). A contract cannot reference its own `.shape` while it is being declared. So an owner may hold its id in a local const that is
+  **not exported**. The const's name does not matter. Its brand text follows the owner field that uses
   it as `id` (B3):
 
   ```typescript
@@ -455,32 +445,26 @@ in PascalCase, so `used_percentage` becomes `UsedPercentage`. A nested object's 
 name plus its key, and its fields add their keys after that. A local id const (B2) takes the text of
 the field that uses it as `id`.
 
-```typescript
+```
 // before — the model picks any text
 retryCount: z.number().int().nonnegative().brand<'FailCount'>(),        // work-item-contract.ts:49
-    createdAt
-:
-z.string().datetime().brand<'IsoTimestamp'>(),               // same text as 10 other fields
+createdAt: z.string().datetime().brand<'IsoTimestamp'>(),               // same text as 10 other fields
 
 // after — the text is derived
-    retryCount
-:
-z.number().int().nonnegative().brand<'WorkItemRetryCount'>(),
-    createdAt
-:
-z.string().datetime().brand<'WorkItemCreatedAt'>(),
+retryCount: z.number().int().nonnegative().brand<'WorkItemRetryCount'>(),
+createdAt: z.string().datetime().brand<'WorkItemCreatedAt'>(),
 ```
 
-```typescript
+```
 // flagged
-questContract = z.object({id: z.string().brand<'QuestId'>()}).brand<'QuestContract'>()   // must be 'Quest'
-questContract = z.object({id: z.string().brand<'Id'>()}).brand<'Quest'>()               // must be 'QuestId'
-workItemContract = z.object({retryCount: z.number().brand<'FailCount'>()}).brand<'WorkItem'>()
+questContract = z.object({ id: z.string().brand<'QuestId'>() }).brand<'QuestContract'>()   // must be 'Quest'
+questContract = z.object({ id: z.string().brand<'Id'>() }).brand<'Quest'>()               // must be 'QuestId'
+workItemContract = z.object({ retryCount: z.number().brand<'FailCount'>() }).brand<'WorkItem'>()
 
 // left alone
-questContract = z.object({id: z.string().brand<'QuestId'>()}).brand<'Quest'>()
-guildContract = z.object({id: z.string().uuid().brand<'GuildId'>()}).brand<'Guild'>()
-questContract = z.object({owner: z.object({name: z.string().brand<'QuestOwnerName'>()}).brand<'QuestOwner'>()}).brand<'Quest'>()
+questContract = z.object({ id: z.string().brand<'QuestId'>() }).brand<'Quest'>()
+guildContract = z.object({ id: z.string().uuid().brand<'GuildId'>() }).brand<'Guild'>()
+questContract = z.object({ owner: z.object({ name: z.string().brand<'QuestOwnerName'>() }).brand<'QuestOwner'>() }).brand<'Quest'>()
 ```
 
 Ins and outs:
@@ -508,44 +492,34 @@ This is the fourth row of `require-object-contract-brands` (B1).
 
 #### B4: a field or parameter that holds another object's field uses that field's type
 
-```typescript
+```
 // before — referring contracts import a standalone brand; brokers take a plain string
 // some-contract.ts
 questId: questIdContract,
 // some-broker.ts
-    ({questId}: { questId: string })                                // plain, so any string is accepted
+({ questId }: { questId: string })                                // plain, so any string is accepted
 
 // after — contracts reuse the owner's schema
 // some-contract.ts
 questId: questContract.shape.id,
 // some-broker.ts
-    ({questId}: { questId: Quest['id'] })
+({ questId }: { questId: Quest['id'] })
 ```
 
-```typescript
+```
 // flagged in a contract file, contracts/some/some-contract.ts — questContract exists and has an `id` key
-someContract = z.object({questId: z.string().min(1)}).brand<'Some'>()               // must be questContract.shape.id
-someContract = z.object({questId: z.string().brand<'SomeQuestId'>()}).brand<'Some'>()   // its own brand: still must reuse
-someContract = z.object({questId: z.string().brand<'QuestId'>()}).brand<'Some'>()   // redeclares another owner's brand
+someContract = z.object({ questId: z.string().min(1) }).brand<'Some'>()               // must be questContract.shape.id
+someContract = z.object({ questId: z.string().brand<'SomeQuestId'>() }).brand<'Some'>()   // its own brand: still must reuse
+someContract = z.object({ questId: z.string().brand<'QuestId'>() }).brand<'Some'>()   // redeclares another owner's brand
 
-    // flagged in any file: brokers, transformers, responders, widgets and the rest
-    ({questId}
-:
-{
-    questId: string
-}
-)                                    // must be Quest['id']
-({parentQuestId}: { parentQuestId: string })                        // ends with QuestId
+// flagged in any file: brokers, transformers, responders, widgets and the rest
+({ questId }: { questId: string })                                    // must be Quest['id']
+({ parentQuestId }: { parentQuestId: string })                        // ends with QuestId
 
 // left alone
-someContract = z.object({questId: questContract.shape.id}).brand<'Some'>()   // contract file
-    ({questId}
-:
-{
-    questId: Quest['id']
-}
-)                                        // any file
-({label}: { label: string })                                                 // no Label owner exists
+someContract = z.object({ questId: questContract.shape.id }).brand<'Some'>()   // contract file
+({ questId }: { questId: Quest['id'] })                                        // any file
+({ label }: { label: string })                                                 // no Label owner exists
 ```
 
 Ins and outs:
@@ -629,8 +603,8 @@ How the rule decides a name:
 2. **Turn each owner and key into a name.** `Quest` and `id` give `questId`. `WorkItem` and `id` give
    `workItemId`.
 3. **Match names on camelCase word boundaries.** `questId` matches exactly. `parentQuestId` splits into *parent*,
-   *quest*, *id*, and ends in *quest*, *id*, so it matches. `requestId` splits into *request*, *id*, so it does not
-   match `QuestId`, although its raw text ends in "questId". When two
+   *quest*, *id*, and ends in *quest*, *id*, so it matches. `requestId` splits into *request*,
+   *id*, so it does not match `QuestId`, although its raw text ends in "questId". When two
    owners match, the longest owner name wins (open decision 9).
 4. **Check the declared type.** A match must be typed `Quest['id']`. Anything else is reported, and the
    autofix writes the indexed type and its import.
@@ -645,13 +619,13 @@ code that could be reused for it.
 
 #### B5: no exported alias of a field's type
 
-```typescript
+```
 // before
 export type QuestId = Quest['id'];
 export type CliSignalAction = CliSignal['action'];     // cli-signal-contract.ts:17
 
 // after — write the indexed type where it is used
-({questId}: { questId: Quest['id'] })
+({ questId }: { questId: Quest['id'] })
 ```
 
 Ins and outs: an alias creates no new check, so it cannot drift. It is refused because it brings back
@@ -665,24 +639,24 @@ Parameters, returns and locals are plain when no object owns the value (B1). `ba
 removed, since it has nothing left to refuse, and `require-zod-on-primitives` is replaced by
 `require-object-contract-brands` (B1).
 
-```typescript
+```
 // before — loose text needs a brand, so a brand is invented
-export const summaryLineTransformer = ({quest}: { quest: Quest }): ContentText =>
-    contentTextContract.parse(`${quest.title} — ${quest.status}`);
+export const summaryLineTransformer = ({ quest }: { quest: Quest }): ContentText =>
+  contentTextContract.parse(`${quest.title} — ${quest.status}`);
 
 // after — loose text is a plain string
-export const summaryLineTransformer = ({quest}: { quest: Quest }): string =>
-    `${quest.title} — ${quest.status}`;
+export const summaryLineTransformer = ({ quest }: { quest: Quest }): string =>
+  `${quest.title} — ${quest.status}`;
 ```
 
-```typescript
+```
 // flagged
 const text = z.string().brand<'ContentText'>().parse(line);       // brands a loose value no object owns (B1, B2)
-({questId}: { questId: string })                                // a name B4 claims
+({ questId }: { questId: string })                                // a name B4 claims
 
 // left alone
-export const truncateTransformer = ({text, max}: { text: string; max: number }): string => …;
-truncateTransformer({text: quest.title, max: 80});              // a branded value into a plain parameter
+export const truncateTransformer = ({ text, max }: { text: string; max: number }): string => …;
+truncateTransformer({ text: quest.title, max: 80 });              // a branded value into a plain parameter
 ```
 
 Ins and outs:
@@ -741,7 +715,7 @@ The same holds outside transformers, from samples of real parse calls:
 A model blocked by B2 and B3 could invent an object only to get a name, such as
 `contentContract = z.object({ text: z.string().brand<'ContentText'>() }).brand<'Content'>()`.
 
-```typescript
+```
 // flagged — contentContract is never parsed or built as a whole; only its field is used
 const text = contentContract.shape.text.parse(raw);
 
@@ -757,19 +731,19 @@ used as a whole type, somewhere in production code.
 A value that carries an owner's `id` brand may not be parsed into a field with a different brand. Store
 it in a field that reuses the id schema.
 
-```typescript
+```
 // before — mintedBy has its own brand, so the id is re-branded to fit
 mintedBy: z.string().uuid().brand<'WorkItemMintedBy'>().optional(),
 …
-const next: WorkItem = {...item, mintedBy: workItemContract.shape.mintedBy.parse(parent.id)};
+const next: WorkItem = { ...item, mintedBy: workItemContract.shape.mintedBy.parse(parent.id) };
 
 // after — mintedBy reuses the id schema, so the id fits as it is
 mintedBy: workItemId.optional(),
 …
-const next: WorkItem = {...item, mintedBy: parent.id};
+const next: WorkItem = { ...item, mintedBy: parent.id };
 ```
 
-```typescript
+```
 // flagged — parent.id carries 'WorkItemId', an owner's id
 workItemContract.shape.mintedBy.parse(parent.id)
 
@@ -834,94 +808,62 @@ function is data another function receives, so it is a contract, and B1 brands i
 "Can leave a function" means: the return type of a function declared at module level, a type alias at
 module level (exported or not), a variable's type at module level, or a type argument at module level.
 
-```typescript
+```
 // before — orchestrator/src/brokers/step-handler/riftcarver/step-handler-riftcarver-broker.ts:81
 type CarveResult =
-    | { ok: true; branchName: QuestBranchName }
-    | { ok: false; error: ErrorMessage };
-export const stepHandlerRiftcarverBroker = async(…):
-Promise<CarveResult>
-=>
-{ …
-}
-;
+  | { ok: true; branchName: QuestBranchName }
+  | { ok: false; error: ErrorMessage };
+export const stepHandlerRiftcarverBroker = async (…): Promise<CarveResult> => { … };
 
 // after — contracts/carve-result/carve-result-contract.ts
 export const carveResultContract = z.discriminatedUnion('ok', [
-    z.object({ok: z.literal(true), branchName: questContract.shape.branchName}).brand<'CarveResult'>(),
-    z.object({ok: z.literal(false), error: z.string().brand<'CarveResultError'>()}).brand<'CarveResult'>(),
+  z.object({ ok: z.literal(true), branchName: questContract.shape.branchName }).brand<'CarveResult'>(),
+  z.object({ ok: z.literal(false), error: z.string().brand<'CarveResultError'>() }).brand<'CarveResult'>(),
 ]);
 export type CarveResult = z.infer<typeof carveResultContract>;
 // broker
-export const stepHandlerRiftcarverBroker = async(…):
-Promise<CarveResult>
-=>
-carveResultContract.parse({ok: true, branchName});
+export const stepHandlerRiftcarverBroker = async (…): Promise<CarveResult> =>
+  carveResultContract.parse({ ok: true, branchName });
 ```
 
-```typescript
+```
 // before — cli/src/transformers/kebab-case-variants/kebab-case-variants-transformer.ts:19
-export const kebabCaseVariantsTransformer = ({name}: { name: string }):
-    { camel: Identifier; pascal: Identifier; testId: Identifier } => …;
+export const kebabCaseVariantsTransformer = ({ name }: { name: string }):
+  { camel: Identifier; pascal: Identifier; testId: Identifier } => …;
 
 // after — contracts/kebab-case-variants/kebab-case-variants-contract.ts
 export const kebabCaseVariantsContract = z
-    .object({
-        camel: z.string().brand<'KebabCaseVariantsCamel'>(),
-        pascal: z.string().brand<'KebabCaseVariantsPascal'>(),
-        testId: z.string().brand<'KebabCaseVariantsTestId'>(),
-    })
-    .brand<'KebabCaseVariants'>();
+  .object({
+    camel: z.string().brand<'KebabCaseVariantsCamel'>(),
+    pascal: z.string().brand<'KebabCaseVariantsPascal'>(),
+    testId: z.string().brand<'KebabCaseVariantsTestId'>(),
+  })
+  .brand<'KebabCaseVariants'>();
 // transformer
-export const kebabCaseVariantsTransformer = ({name}: { name: string }): KebabCaseVariants =>
-    kebabCaseVariantsContract.parse({camel: …,
-pascal: …
-,
-testId: …
-})
-;
+export const kebabCaseVariantsTransformer = ({ name }: { name: string }): KebabCaseVariants =>
+  kebabCaseVariantsContract.parse({ camel: …, pascal: …, testId: … });
 ```
 
-```typescript
+```
 // flagged — outside contracts/ and widgets/, in implementation and test files
 type CarveResult = { ok: true } | { ok: false };                              // a module-level alias
 export type WorktreeProvisionResult = { ok: true } | { ok: false; … };        // exported from a broker
 (): { camel: string; pascal: string } => …                                    // a module-level function's return type
-const cache: { entries: Entry[] } = {entries: []};                          // a module-level variable's type
-adapters / fs / rm -
-if-exists /…
--adapter.ts
-:
-(): Promise<{ removed: boolean }> => …   // adapters/ is covered now; one fact is better as Promise<boolean>
-transformers / x / x - transformer.test.ts
-:
-type LooseHandle = Record<string, unknown> & { operations: … };
-
-interface Foo {
-    …
-}                                                            // flagged today
+const cache: { entries: Entry[] } = { entries: [] };                          // a module-level variable's type
+adapters/fs/rm-if-exists/…-adapter.ts:   (): Promise<{ removed: boolean }> => …   // adapters/ is covered now; one fact is better as Promise<boolean>
+transformers/x/x-transformer.test.ts:   type LooseHandle = Record<string, unknown> & { operations: … };
+interface Foo { … }                                                            // flagged today
 value as { type: string }                                                      // flagged today
 
 // left alone
-({questId, limit}: { questId: Quest['id']; limit: number }) => …            // a parameter's type: the repo's convention
+({ questId, limit }: { questId: Quest['id']; limit: number }) => …            // a parameter's type: the repo's convention
 (): CarveResult => …                                                           // a contract type
 (): { stop: () => void; flush: () => Promise<void> } => …                     // every member is a function: a method set
-const totals: { passed: number; failed: number } = {passed: 0, failed: 0};  // inside a function body
-items.reduce<{ seen: string[] }>(…,
-{
-    seen: []
-}
-)                             // inside a function body
+const totals: { passed: number; failed: number } = { passed: 0, failed: 0 };  // inside a function body
+items.reduce<{ seen: string[] }>(…, { seen: [] })                             // inside a function body
 type Handle = ReturnType<typeof childProcessSpawnAdapter>;                     // no object literal in it
-brokers / x / x - broker.proxy.ts
-:
-(): { setupReturns: (…) => void; child: ChildProxy } => …   // proxies are exempt
-widgets / card / card - widget.tsx
-:
-
-interface CardProps {
-    …
-}                      // widgets/ stays exempt
+brokers/x/x-broker.proxy.ts:   (): { setupReturns: (…) => void; child: ChildProxy } => …   // proxies are exempt
+widgets/card/card-widget.tsx:   interface CardProps { … }                      // widgets/ stays exempt
 ```
 
 What it flags today, measured on 2026-09-24 (`tmp/adhoc-scope2.cjs`):
@@ -972,36 +914,27 @@ function. It skips `.proxy.ts` files. `adapters` gets `disallowAdhocTypes: true`
 
 Tests and stubs do not count.
 
-```typescript
+```
 // before — a copy of a library type that nothing ever parses
 // tsestree-contract.ts (597 lines)
-export const tsestreeContract = z.object({type: z.enum(...), callee: recursiveBase.optional(), ...});
+export const tsestreeContract = z.object({ type: z.enum(...), callee: recursiveBase.optional(), ... });
 export type Tsestree = z.infer<typeof tsestreeContract>;
 // rule broker
-'CallExpression'
-:
-(node: Tsestree) => {
-    if (node.callee?.type === 'Identifier') …
-}
+'CallExpression': (node: Tsestree) => { if (node.callee?.type === 'Identifier') … }
 
 // after — the library's own type (C2)
-import type {TSESTree} from '@typescript-eslint/utils';
-
-'CallExpression'
-:
-(node: TSESTree.CallExpression) => {
-    if (node.callee.type === 'Identifier') …
-}
+import type { TSESTree } from '@typescript-eslint/utils';
+'CallExpression': (node: TSESTree.CallExpression) => { if (node.callee.type === 'Identifier') … }
 ```
 
-```typescript
+```
 // flagged — never .parse'd in production
 tsestreeContract, eslintContextContract, typescriptSourceFileContract, childProcessContract, fileStatsContract
 
 // left alone — parsed where outside data enters
 const report = jestJsonReportContract.parse(JSON.parse(stdout));
 const line = streamJsonLineContract.parse(JSON.parse(rawLine));        // Claude CLI output
-const pkg = packageJsonContract.parse(JSON.parse(await fsReadFileAdapter({filePath})));   // readFile is claimed (A2)
+const pkg = packageJsonContract.parse(JSON.parse(await fsReadFileAdapter({ filePath })));   // readFile is claimed (A2)
 ```
 
 Ins and outs:
@@ -1039,51 +972,29 @@ so C1 also requires that every type a contract file exports is `z.infer` of a sc
 same way its functions do. Under A2 and A3 an unclaimed function is imported where it is used, and a
 type can never be claimed, so types follow the same rule. Nothing gives a library type a second name.
 
-```typescript
+```
 // before — eslint-plugin/src/contracts/tsestree/tsestree-contract.ts: 597 lines copying TSESTree
-export const tsestreeContract = z.object({type: z.enum(...), callee: recursiveBase.optional(), ...});
+export const tsestreeContract = z.object({ type: z.enum(...), callee: recursiveBase.optional(), ... });
 export type Tsestree = z.infer<typeof tsestreeContract>;
-'CallExpression'
-:
-(node: Tsestree) => {
-    if (node.callee?.type === 'Identifier') …
-}
+'CallExpression': (node: Tsestree) => { if (node.callee?.type === 'Identifier') … }
 
 // after — the copy is deleted; the rule imports the library's type
-import type {TSESTree} from '@typescript-eslint/utils';
-
-'CallExpression'
-:
-(node: TSESTree.CallExpression) => {
-    if (node.callee.type === 'Identifier') { …
-    }       // no ?.: the real type says callee is always there
+import type { TSESTree } from '@typescript-eslint/utils';
+'CallExpression': (node: TSESTree.CallExpression) => {
+  if (node.callee.type === 'Identifier') { … }       // no ?.: the real type says callee is always there
 }
 ```
 
-```typescript
+```
 // flagged
-contracts / x / x - contract.ts
-:
-export type Node = { type: string; callee?: Node };        // a hand-written copy, not inferred from a schema (C1)
-contracts / x / x - contract.ts
-:
-export type EslintContext = TSESLint.RuleContext<string, []>;   // a second name for a library type
-contracts / x / x - contract.ts
-:
-export type {TSESTree} from '@typescript-eslint/utils';  // a re-export (forbid-type-reexport)
+contracts/x/x-contract.ts:   export type Node = { type: string; callee?: Node };        // a hand-written copy, not inferred from a schema (C1)
+contracts/x/x-contract.ts:   export type EslintContext = TSESLint.RuleContext<string, []>;   // a second name for a library type
+contracts/x/x-contract.ts:   export type { TSESTree } from '@typescript-eslint/utils';  // a re-export (forbid-type-reexport)
 
 // left alone
-brokers / rule / x.ts
-:
-import type {TSESTree} from '@typescript-eslint/utils';
-
-brokers / fs / x / x - broker.ts
-:
-import type {Stats} from 'node:fs';
-
-stubs / child - process / child - process.stub.ts
-:
-export const ChildProcessStub = (): ChildProcess => new ChildProcess();
+brokers/rule/x.ts:        import type { TSESTree } from '@typescript-eslint/utils';
+brokers/fs/x/x-broker.ts: import type { Stats } from 'node:fs';
+stubs/child-process/child-process.stub.ts:   export const ChildProcessStub = (): ChildProcess => new ChildProcess();
 ```
 
 Ins and outs:
@@ -1091,8 +1002,8 @@ Ins and outs:
 - **Imports are consistent.** Anything from a package, function or type, is imported where it is used.
   The one exception is a claimed function (A2), which only adapters may import. A type is never
   claimed, because nothing can be handled around a type.
-- **What models are told changes by one word.** "Every type lives in `contracts/`" becomes "every type *we define* lives
-  in `contracts/`; a library's types come from the library, like its functions".
+- **What models are told changes by one word.** "Every type lives in `contracts/`" becomes "every type *we
+  define* lives in `contracts/`; a library's types come from the library, like its functions".
 - **No alias gives a library type a second name.** `export type EslintContext = TSESLint.RuleContext<…>`
   is refused. It is a name models would learn and repeat, and the library's own name already works.
 - **Discovery still shows the library types that tests build.** Each has a stub folder under `stubs/`
@@ -1123,20 +1034,19 @@ How a machine checks it: syntax. `import type` from a package is allowed in ever
 A guard written as `(value): value is X` tells the compiler "trust me". For a library union that is
 normal narrowing. For one of our contract types it mints the type with no parse, which is a cast.
 
-```typescript
+```
 // before — hooks/src/guards/is-dungeonmaster-hooks-config/is-dungeonmaster-hooks-config-guard.ts:15
 (value: unknown): value is DungeonmasterHooksConfig =>
-    typeof value === 'object' && value !== null && 'preEditLint' in value;
+  typeof value === 'object' && value !== null && 'preEditLint' in value;
 // cli/src/guards/has-dev-dependencies/has-dev-dependencies-guard.ts:14
 (params): params is { obj: { devDependencies: DependencyMap } } => …
 
 // after — parse through the contract
 const config = dungeonmasterHooksConfigContract.safeParse(value);
-if (config.success) { … config.data …
-}
+if (config.success) { … config.data … }
 ```
 
-```typescript
+```
 // flagged — narrows to a type declared in contracts/, or to one carrying a brand
 (value: unknown): value is DungeonmasterHooksConfig => …
 (value: unknown): value is Quest['id'] => …
@@ -1144,7 +1054,7 @@ if (config.success) { … config.data …
 // left alone — narrows a library's own union
 (node: TSESTree.Node): node is TSESTree.CallExpression => node.type === AST_NODE_TYPES.CallExpression;
 // left alone — returns a plain boolean
-({error}: { error: unknown }): boolean => …
+({ error }: { error: unknown }): boolean => …
 ```
 
 Ins and outs:
@@ -1165,29 +1075,21 @@ declared under `contracts/` or carries a brand.
 The result of `JSON.parse(...)` or `response.json()` must be the direct argument of a contract's
 `.parse` or `.safeParse`. It may not be stored, cast, returned or read first.
 
-```typescript
+```
 // before — shared/src/adapters/fetch/get/fetch-get-adapter.ts:24
 return JSON.parse(text) as TResponse;
 // before — hooks/src/flows/hook-pre-edit/hook-pre-edit-flow.ts:20
 const parsed: unknown = JSON.parse(inputData);
 // before — web/src/transformers/format-tool-input/format-tool-input-transformer.ts:43-48
-try {
-    return JSON.parse(toolInput) as unknown;
-} catch {
-    return undefined;
-}
+try { return JSON.parse(toolInput) as unknown; } catch { return undefined; }
 
 // after
 return contract.parse(JSON.parse(text));                       // the caller hands the adapter its contract
 const hookInput = preEditHookInputContract.parse(JSON.parse(inputData));
-try {
-    return toolInputContract.parse(JSON.parse(toolInput));
-} catch {
-    return undefined;
-}
+try { return toolInputContract.parse(JSON.parse(toolInput)); } catch { return undefined; }
 ```
 
-```typescript
+```
 // flagged
 JSON.parse(text) as Settings                           // a cast
 const raw: unknown = JSON.parse(text);                 // stored before any check
@@ -1226,43 +1128,38 @@ deletes the copies, so its stub builds the value itself, and its return type is 
 type. The caller passes only what the test is about, as with every other stub. Production code keeps
 the library's own types.
 
-```typescript
+```
 // before — hand-built nodes through the copy; TsestreeStub is called 1,856 times in 60 test and proxy files
 const node = TsestreeStub({
-    type: TsestreeNodeType.CallExpression,
-    callee: TsestreeStub({type: TsestreeNodeType.Identifier, name: 'foo'}),
+  type: TsestreeNodeType.CallExpression,
+  callee: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'foo' }),
 });   // compiles with no `arguments`, a CallExpression the real parser never produces
 
 // after — one stub per node type; each parses its own default code with the real parser
 const node = CallExpressionStub();                         // parses 'foo()' and returns its CallExpression
-const withArgs = CallExpressionStub({code: 'bar(1, 2)'});
+const withArgs = CallExpressionStub({ code: 'bar(1, 2)' });
 // both are TSESTree.CallExpression: `arguments`, `range` and `parent` are all real
 ```
 
-```typescript
+```
 // before — a partial ESLint context through the copy; EslintContextStub is called 307 times in 21 files
-const context = EslintContextStub({getFilename: () => 'x.ts', report: jest.fn()});
+const context = EslintContextStub({ getFilename: () => 'x.ts', report: jest.fn() });
 
 // after — the stub returns a complete TSESLint.RuleContext; the compiler checks every member is there
-const context = RuleContextStub({filename: 'x.ts'});
+const context = RuleContextStub({ filename: 'x.ts' });
 ```
 
-```typescript
+```
 // flagged — a library type built by hand and cast, in a test, proxy or stub file
-const node = {type: 'CallExpression'} as TSESTree.CallExpression;
-const sourceFile = {fileName: 'x.ts'} as unknown as ts.SourceFile;
-const context = {report: jest.fn()} as Partial<TSESLint.RuleContext<string, []>>;
+const node = { type: 'CallExpression' } as TSESTree.CallExpression;
+const sourceFile = { fileName: 'x.ts' } as unknown as ts.SourceFile;
+const context = { report: jest.fn() } as Partial<TSESLint.RuleContext<string, []>>;
 
 // left alone — the stub builds it and returns the library's type
-export const CallExpressionStub = ({code = 'foo()'} = {}): TSESTree.CallExpression => …;   // the real parser
-export const SourceFileStub = ({code = ''} = {}): ts.SourceFile => ts.createSourceFile('x.ts', code, ts.ScriptTarget.Latest, true);
+export const CallExpressionStub = ({ code = 'foo()' } = {}): TSESTree.CallExpression => …;   // the real parser
+export const SourceFileStub = ({ code = '' } = {}): ts.SourceFile => ts.createSourceFile('x.ts', code, ts.ScriptTarget.Latest, true);
 export const ChildProcessStub = (): ChildProcess => new ChildProcess();
-export const RuleContextStub = (…):
-TSESLint.RuleContext<string, readonly unknown[]>
-=>
-({ …
-})
-;   // complete, no cast
+export const RuleContextStub = (…): TSESLint.RuleContext<string, readonly unknown[]> => ({ … });   // complete, no cast
 ```
 
 How each stub builds its value:
@@ -1379,62 +1276,32 @@ packages/eslint-plugin/src/stubs/tsestree/tsestree.stub.ts   CallExpressionStub 
 
 The folder type's entry in `folder-config-statics.ts`:
 
-```typescript
+```
 stubs: {
-    fileSuffix: ['.stub.ts'],
-        exportSuffix
-:
-    'Stub',
-        exportCase
-:
-    'PascalCase',
-        folderDepth
-:
-    1,
-        folderPattern
-:
-    'stubs/[domain]/[domain].stub.ts',
-        // contracts/ to parse our types; node_modules so a library stub can build a real value (C5)
-        allowedImports
-:
-    ['contracts/', 'statics/', 'stubs/', '@dungeonmaster/shared/@types', 'node_modules'],
-        requireProxy
-:
-    false,
-        requireStub
-:
-    false,
-        meta
-:
-    {
-        purpose: 'Build test values: our types through their contract parse, library types from the library itself',
-            whenToUse
-    :
-        'Test data for one of our contracts or for a library type',
-    }
-,
-}
-,
+  fileSuffix: ['.stub.ts'],
+  exportSuffix: 'Stub',
+  exportCase: 'PascalCase',
+  folderDepth: 1,
+  folderPattern: 'stubs/[domain]/[domain].stub.ts',
+  // contracts/ to parse our types; node_modules so a library stub can build a real value (C5)
+  allowedImports: ['contracts/', 'statics/', 'stubs/', '@dungeonmaster/shared/@types', 'node_modules'],
+  requireProxy: false,
+  requireStub: false,
+  meta: {
+    purpose: 'Build test values: our types through their contract parse, library types from the library itself',
+    whenToUse: 'Test data for one of our contracts or for a library type',
+  },
+},
 ```
 
-```typescript
+```
 // flagged — production code reaching a stub
-brokers / quest / x / x - broker.ts
-:
-import {QuestStub} from '@dungeonmaster/shared/stubs';
-
-contracts.ts
-:
-export {QuestStub} from './src/stubs/quest/quest.stub';   // a stub in a production barrel
+brokers/quest/x/x-broker.ts:   import { QuestStub } from '@dungeonmaster/shared/stubs';
+contracts.ts:                  export { QuestStub } from './src/stubs/quest/quest.stub';   // a stub in a production barrel
 
 // left alone
-brokers / quest / x / x - broker.test.ts
-:
-import {QuestStub} from '@dungeonmaster/shared/stubs';
-
-adapters / fs / stat / fs - stat - adapter.proxy.ts
-:
-import {StatsStub} from '../../../stubs/stats/stats.stub';
+brokers/quest/x/x-broker.test.ts:    import { QuestStub } from '@dungeonmaster/shared/stubs';
+adapters/fs/stat/fs-stat-adapter.proxy.ts:   import { StatsStub } from '../../../stubs/stats/stats.stub';
 ```
 
 Ins and outs:
@@ -1500,40 +1367,31 @@ stubs/tsestree/expression-layer.stub.ts             CallExpressionStub, MemberEx
 stubs/tsestree/statement-layer.stub.ts              ReturnStatementStub, VariableDeclarationStub, …
 ```
 
-```typescript
+```
 // contracts/quest/owner-layer-contract.ts — its brand text comes from how the parent uses it
 export const ownerLayerContract = z
-    .object({name: z.string().brand<'QuestOwnerName'>()})
-    .brand<'QuestOwner'>();
+  .object({ name: z.string().brand<'QuestOwnerName'>() })
+  .brand<'QuestOwner'>();
 
 // contracts/quest/quest-contract.ts
-import {ownerLayerContract} from './owner-layer-contract';
-
+import { ownerLayerContract } from './owner-layer-contract';
 export const questContract = z
-    .object({
-        id: z.string().min(1).brand<'QuestId'>(),
-        owner: ownerLayerContract,               // the key `owner` decides the layer's text: 'QuestOwner'
-    })
-    .brand<'Quest'>();
+  .object({
+    id: z.string().min(1).brand<'QuestId'>(),
+    owner: ownerLayerContract,               // the key `owner` decides the layer's text: 'QuestOwner'
+  })
+  .brand<'Quest'>();
 ```
 
-```typescript
+```
 // flagged
-contracts / quest / owner - layer - contract.ts
-:   .
-brand<'OwnerLayer'>()          // text must follow the parent's key: 'QuestOwner'
-brokers / x / x - broker.ts
-:
-import {ownerLayerContract} from '…/contracts/quest/owner-layer-contract';   // only the parent imports a layer
-guards / is - x / is - x - layer - guard.ts                                             // guards/ does not allow layers
+contracts/quest/owner-layer-contract.ts:   .brand<'OwnerLayer'>()          // text must follow the parent's key: 'QuestOwner'
+brokers/x/x-broker.ts:   import { ownerLayerContract } from '…/contracts/quest/owner-layer-contract';   // only the parent imports a layer
+guards/is-x/is-x-layer-guard.ts                                             // guards/ does not allow layers
 
 // left alone
-brokers / x / x - broker.ts
-:
-({owner}: { owner: Quest['owner'] })            // the nested type, reached through its owner
-contracts / quest / quest - contract.ts
-:
-owner: ownerLayerContract,
+brokers/x/x-broker.ts:   ({ owner }: { owner: Quest['owner'] })            // the nested type, reached through its owner
+contracts/quest/quest-contract.ts:   owner: ownerLayerContract,
 ```
 
 Ins and outs:
@@ -1586,25 +1444,16 @@ packages/shared/src/contracts/package-json/package-json-contract.ts    the one p
 packages/cli, ward, testing                                             import it from @dungeonmaster/shared/contracts
 ```
 
-```typescript
+```
 // flagged — shared already defines packageJsonContract
-packages / ward / src / contracts / package - json / package - json - contract.ts
-:
-export const packageJsonContract = z.object({ …
-}).
-brand<'PackageJson'>();
+packages/ward/src/contracts/package-json/package-json-contract.ts:
+  export const packageJsonContract = z.object({ … }).brand<'PackageJson'>();
 
 // left alone — a different name, even with the same shape: its brand texts differ
-packages / siegelense / src / contracts / kill - args / kill - args - contract.ts
-:
-export const killArgsContract = z.object({instanceId: …
-}).
-brand<'KillArgs'>();
-packages / siegelense / src / contracts / snapshots - args / snapshots - args - contract.ts
-:
-export const snapshotsArgsContract = z.object({instanceId: …
-}).
-brand<'SnapshotsArgs'>();
+packages/siegelense/src/contracts/kill-args/kill-args-contract.ts:
+  export const killArgsContract = z.object({ instanceId: … }).brand<'KillArgs'>();
+packages/siegelense/src/contracts/snapshots-args/snapshots-args-contract.ts:
+  export const snapshotsArgsContract = z.object({ instanceId: … }).brand<'SnapshotsArgs'>();
 ```
 
 Ins and outs:
@@ -1652,36 +1501,23 @@ our shapes is a transformer's job. `chat-line-process-transformer.ts` parses lin
 An outside function here is any function from outside the repo, not only a Node I/O call (see "Words
 used below").
 
-```typescript
+```
 // before — the same handling written differently at each caller
 // broker-a.ts
-try {
-    raw = await readFile(p, 'utf8');
-} catch {
-    raw = undefined;
-}
+try { raw = await readFile(p, 'utf8'); } catch { raw = undefined; }
 // broker-b.ts
 const raw = await readFile(p, 'utf8').catch(() => null);
 // broker-c.ts
-catch
-(error)
-{
-    if ((error as { code: unknown }).code === 'ENOENT') return [];
-    throw error;
-}
+catch (error) { if ((error as { code: unknown }).code === 'ENOENT') return []; throw error; }
 
 // after — one adapter holds it
 // adapters/fs/read-file-if-exists/fs-read-file-if-exists-adapter.ts
-export const fsReadFileIfExistsAdapter = async ({filePath}: { filePath: string }) => {
-    try {
-        return await readFile(filePath, 'utf8');
-    } catch (error) {
-        if (isNotFoundError(error)) return undefined;
-        throw error;
-    }
+export const fsReadFileIfExistsAdapter = async ({ filePath }: { filePath: string }) => {
+  try { return await readFile(filePath, 'utf8'); }
+  catch (error) { if (isNotFoundError(error)) return undefined; throw error; }
 };
 // broker-a.ts, broker-b.ts
-const raw = await fsReadFileIfExistsAdapter({filePath: p});
+const raw = await fsReadFileIfExistsAdapter({ filePath: p });
 ```
 
 This table shows A1 on its own. Moving the handling on the right into an adapter claims the function.
@@ -1739,38 +1575,26 @@ object an adapter returned. A promise handled later through a variable needs dat
 A function is **claimed** once any adapter in the repo handles its failures. From then on, that
 function may be value-imported only in `adapters/`, anywhere in the repo. Other adapters may import it.
 
-```typescript
+```
 // before — once fsReadFileIfExistsAdapter exists, a broker can still call readFile raw and skip the handling
-import {readFile} from 'fs/promises';
-
+import { readFile } from 'fs/promises';
 const raw = await readFile(p, 'utf8');                    // no one notices the missing ENOENT case
 
 // after — flagged, because readFile is claimed
-import {readFile} from 'fs/promises';
+import { readFile } from 'fs/promises';
 //      ^ readFile is claimed by adapters/fs/read-file-if-exists. Import it only in adapters/.
 //        Use fsReadFileIfExistsAdapter, or fsReadFileAdapter for a read that must fail loudly.
 ```
 
-```typescript
+```
 // flagged — readFile is claimed
-brokers / x.ts
-:
-import {readFile} from 'fs/promises';
+brokers/x.ts:       import { readFile } from 'fs/promises';
 
 // left alone
-adapters / fs / read - file / fs - read - file - adapter.ts
-:
-import {readFile} from 'fs/promises';
-
-brokers / x.ts
-:
-import {rename} from 'fs/promises';      // rename is not claimed
-widgets / x.tsx
-:
-import {useState} from 'react';          // nobody handles useState
-brokers / rule / x.ts
-:
-import type {TSESTree} from '@typescript-eslint/utils';   // types never count (C2)
+adapters/fs/read-file/fs-read-file-adapter.ts:   import { readFile } from 'fs/promises';
+brokers/x.ts:       import { rename } from 'fs/promises';      // rename is not claimed
+widgets/x.tsx:      import { useState } from 'react';          // nobody handles useState
+brokers/rule/x.ts:  import type { TSESTree } from '@typescript-eslint/utils';   // types never count (C2)
 ```
 
 Ins and outs:
@@ -1821,45 +1645,37 @@ comes back into one of our object contracts is not a pass-through, so A3 never a
 the result into a standalone scalar brand does not count: B6 removes that brand, and what is left is a
 pass-through.
 
-```typescript
+```
 // before — pass-throughs for functions no one handles, repeated per package
 // path-join-adapter.ts, in 5 packages (shared's copy: packages/shared/src/adapters/path/join/path-join-adapter.ts:14)
-export const pathJoinAdapter = ({paths}) => filePathContract.parse(join(...paths));
+export const pathJoinAdapter = ({ paths }) => filePathContract.parse(join(...paths));
 // packages/web/src/adapters/rxjs/filter/rxjs-filter-adapter.ts   (proxy file is empty)
-export const rxjsFilterAdapter = ({source, predicate}) => source.pipe(filter(predicate));
+export const rxjsFilterAdapter = ({ source, predicate }) => source.pipe(filter(predicate));
 
 // after — call it directly; the result is a plain string (B6)
-import {join} from 'path';
-
+import { join } from 'path';
 const configPath = join(root, '.dungeonmaster.json');
 ```
 
-```typescript
+```
 // flagged — rename is not claimed, so this adapter adds nothing
-export const fsRenameAdapter = async ({from, to}) => {
-    await rename(from, to);
-    return {success: true};
-};
+export const fsRenameAdapter = async ({ from, to }) => { await rename(from, to); return { success: true }; };
 
 // left alone — readFile is claimed (A2), so a plain read needs an adapter, and this is it
-export const fsReadFileAdapter = async ({filePath}) => readFile(filePath, 'utf8');
+export const fsReadFileAdapter = async ({ filePath }) => readFile(filePath, 'utf8');
 
 // left alone — not a pass-through: more than one call, arguments built, output framed
-export const childProcessSpawnStreamJsonAdapter = ({prompt, cwd, …
-}) =>
-{ …
-}
-;  // Claude CLI protocol
+export const childProcessSpawnStreamJsonAdapter = ({ prompt, cwd, … }) => { … };  // Claude CLI protocol
 
 // left alone — not a pass-through: parses outside data into our object
-export const gitLogNameOnlyAdapter = async ({range}) =>
-    gitLogContract.parse(parseGitLog(await runGit([...])));
+export const gitLogNameOnlyAdapter = async ({ range }) =>
+  gitLogContract.parse(parseGitLog(await runGit([...])));
 ```
 
 Ins and outs:
 
-- **How much goes.** 85 adapters are pure pass-throughs and 70 only forward to a workspace package (A4); those 155 go,
-  with their 155 colocated test files, about 6,078 lines. 62 more make one call and
+- **How much
+  goes.** 85 adapters are pure pass-throughs and 70 only forward to a workspace package (A4); those 155 go, with their 155 colocated test files, about 6,078 lines. 62 more make one call and
   parse the result, mostly into a standalone brand such as `fileContentsContract.parse(buffer)`. Once B6
   removes that brand they are pass-throughs too, unless they parse outside data into an object contract.
 - **Pass-throughs now exist only next to handling.** They are bounded by the number of claimed
@@ -1867,8 +1683,8 @@ Ins and outs:
 - **Protocol, payload and setup adapters are never pass-throughs,** so every adapter on the must-keep
   list passes untouched. A rule that refused every adapter without handling would refuse
   `child-process-spawn-stream-json`; A3 does not.
-- **Testing does not need the wrapper.** Proxies already mock the real function (`registerMock({ fn: readFile })`), so a
-  broker's proxy mocks `readFile` directly.
+- **Testing does not need the
+  wrapper.** Proxies already mock the real function (`registerMock({ fn: readFile })`), so a broker's proxy mocks `readFile` directly.
 - **Migration.** An unclaimed npm function is now called directly, so swapping that library touches
   every caller. The compiler finds every one. Open decision 2 covers keeping pass-throughs as a swap
   point for npm packages.
@@ -1879,19 +1695,18 @@ How a machine checks it: syntax for "is this a pass-through", plus the A2 index 
 
 A call into a workspace package is a plain call.
 
-```typescript
+```
 // before — 70 adapters that only forward to another workspace package, each with its own proxy
 // packages/server/src/adapters/orchestrator/start-quest/orchestrator-start-quest-adapter.ts
-export const orchestratorStartQuestAdapter = ({questId}) => StartOrchestrator.startQuest({questId});
+export const orchestratorStartQuestAdapter = ({ questId }) => StartOrchestrator.startQuest({ questId });
 // packages/mcp/src/adapters/orchestrator/start-quest/orchestrator-start-quest-adapter.ts  (the same again)
 
 // after — call it, and use the provider's proxy in tests
-import {StartOrchestrator} from '@dungeonmaster/orchestrator';
-
-await StartOrchestrator.startQuest({questId});
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+await StartOrchestrator.startQuest({ questId });
 // test
 const orchestrator = startOrchestratorProxy();      // from @dungeonmaster/orchestrator/testing
-orchestrator.questNotFound({questId});
+orchestrator.questNotFound({ questId });
 ```
 
 Ins and outs: in a consumer repo, "workspace package" means that repo's own `packages/*`. No list is
@@ -1902,38 +1717,29 @@ workspace package is refused.
 
 #### A5: all adapters for one outside function live in one package
 
-```typescript
+```
 // before — writeFile wrapped in 10 packages; 4 glob adapters in 3 packages, drifting apart
 // server and tooling:
 ignore: ['**/node_modulesdistbuild.git/**'],     // matches nothing; the braces are gone
 // server only:
 if (Array.isArray(result)) … else /* glob v7 fallback */   // glob 10.5.0 is installed; never runs
 // mcp:
-    return files.map((file) => pathSegmentContract.parse(file));   // absolute paths labelled as one segment
+return files.map((file) => pathSegmentContract.parse(file));   // absolute paths labelled as one segment
 
 // after — one package holds the adapters for glob; every other package imports them
 // globFindAdapter sets the ignore list and absolute paths itself, so it is not a pass-through (A3)
-import {globFindAdapter} from '@dungeonmaster/shared/adapters';   // this repo: shared is one of its workspace packages
+import { globFindAdapter } from '@dungeonmaster/shared/adapters';   // this repo: shared is one of its workspace packages
 ```
 
-```typescript
+```
 // Illustration: shared holds the readFile adapters. (Today readFile is wrapped in 9 packages, and shared is not one.)
 
 // flagged — a second package wrapping readFile
-packages / ward / src / adapters / fs / read - file / fs - read - file - adapter.ts
-:
-import {readFile} from 'fs/promises';
+packages/ward/src/adapters/fs/read-file/fs-read-file-adapter.ts:   import { readFile } from 'fs/promises';
 
 // left alone — several adapters, one package
-packages / shared / src / adapters / fs / read - file / fs - read - file - adapter.ts
-:
-import {readFile} from 'fs/promises';
-
-packages / shared / src / adapters / fs / read - file -
-if-exists /...
--adapter.ts
-:
-import {readFile} from 'fs/promises';
+packages/shared/src/adapters/fs/read-file/fs-read-file-adapter.ts:        import { readFile } from 'fs/promises';
+packages/shared/src/adapters/fs/read-file-if-exists/...-adapter.ts:       import { readFile } from 'fs/promises';
 ```
 
 Ins and outs:
@@ -1957,26 +1763,18 @@ adapters import each outside function.
 Library data types may leave an adapter (C2). A library object with methods may not. Examples are a
 Playwright `Page`, a `ChildProcess` and a `Socket`, which this doc calls handles.
 
-```typescript
+```
 // the gap — Page leaves the adapter, and the broker makes outside calls with no import at all
 // adapter
-export const playwrightOpenAdapter = async ({url}): Promise<Page> => { … return page;
-};
+export const playwrightOpenAdapter = async ({ url }): Promise<Page> => { … return page; };
 // broker: A1 and A2 see nothing, because nothing is imported
-try {
-    await page.goto(url);
-} catch { …
-}
+try { await page.goto(url); } catch { … }
 
 // after — the adapter keeps the handle and returns our object
 // adapter
-export const playwrightSessionAdapter = async ({url}) => {
-    const page = …;
-    return {
-        goto: async ({url}) => { …
-        }, readText: async ({selector}) => { …
-        }
-    };
+export const playwrightSessionAdapter = async ({ url }) => {
+  const page = …;
+  return { goto: async ({ url }) => { … }, readText: async ({ selector }) => { … } };
 };
 ```
 
@@ -1998,55 +1796,41 @@ This keeps the reason for today's ban on `void` returns: a caller must learn wha
 how that is checked. `void` is refused when the function threw away something a call told it, not
 everywhere. The same test applies in every function-exporting folder, not only adapters.
 
-```typescript
+```
 // before — 116 of 118 adapterResultContract parses are this literal
-export const fsRmIfExistsAdapter = async ({filePath}: { filePath: string }): Promise<AdapterResult> => {
-    try {
-        await rm(filePath);
-    } catch (error) {
-        if (!isNotFoundError(error)) throw error;
-    }
-    return adapterResultContract.parse({success: true});   // was the file there? the caller cannot tell
+export const fsRmIfExistsAdapter = async ({ filePath }: { filePath: string }): Promise<AdapterResult> => {
+  try { await rm(filePath); } catch (error) { if (!isNotFoundError(error)) throw error; }
+  return adapterResultContract.parse({ success: true });   // was the file there? the caller cannot tell
 };
 
 // after — return what the handling learned. One fact, so a plain boolean: no contract, no brand, no parse
-export const fsRmIfExistsAdapter = async ({filePath}: { filePath: string }): Promise<boolean> => {
-    try {
-        await rm(filePath);
-        return true;
-    } catch (error) {
-        if (isNotFoundError(error)) return false;
-        throw error;
-    }
+export const fsRmIfExistsAdapter = async ({ filePath }: { filePath: string }): Promise<boolean> => {
+  try { await rm(filePath); return true; }
+  catch (error) { if (isNotFoundError(error)) return false; throw error; }
 };
 ```
 
-```typescript
+```
 // flagged — mkdir reported the first directory it created, and the function threw that away
-export const fsEnsureDirAdapter = async ({dirPath}: { dirPath: string }): Promise<void> => {
-    await mkdir(dirPath, {recursive: true});
+export const fsEnsureDirAdapter = async ({ dirPath }: { dirPath: string }): Promise<void> => {
+  await mkdir(dirPath, { recursive: true });
 };
 // flagged — fsRmIfExistsAdapter said whether the file was there, and the broker threw that away
-export const questCleanupBroker = async ({filePath}: { filePath: string }): Promise<void> => {
-    await fsRmIfExistsAdapter({filePath});
+export const questCleanupBroker = async ({ filePath }: { filePath: string }): Promise<void> => {
+  await fsRmIfExistsAdapter({ filePath });
 };
 // flagged — a return that can hold only one value says nothing, so it counts as void
-):
-Promise<{ success: true }>
-=> …
+): Promise<{ success: true }> => …
 
 // left alone — mkdir's own answer, passed on. It sets `recursive` itself, so it is not a pass-through (A3).
-export const fsEnsureDirAdapter = async ({dirPath}: { dirPath: string }): Promise<string | undefined> =>
-    mkdir(dirPath, {recursive: true});
+export const fsEnsureDirAdapter = async ({ dirPath }: { dirPath: string }): Promise<string | undefined> =>
+  mkdir(dirPath, { recursive: true });
 // left alone — writeFile and rename both return Promise<void>, so there is nothing to report
 // (two calls, so it is not a pass-through, and A3 does not apply)
-export const fsWriteAtomicAdapter = async ({filePath, contents}: {
-    filePath: string;
-    contents: string
-}): Promise<void> => {
-    const tempPath = `${filePath}.tmp`;
-    await writeFile(tempPath, contents, 'utf8');
-    await rename(tempPath, filePath);
+export const fsWriteAtomicAdapter = async ({ filePath, contents }: { filePath: string; contents: string }): Promise<void> => {
+  const tempPath = `${filePath}.tmp`;
+  await writeFile(tempPath, contents, 'utf8');
+  await rename(tempPath, filePath);
 };
 ```
 
@@ -2094,29 +1878,22 @@ The proxy of the file that calls the function mocks it. If an adapter calls `rea
 proxy mocks `readFile`. If a broker calls `rename` directly, because A3 removed the pass-through
 adapter, the broker's proxy mocks `rename`.
 
-```typescript
+```
 // before — the broker called a pass-through adapter, so the broker's proxy composed the adapter's proxy
 // brokers/quest/archive/quest-archive-broker.proxy.ts
 const rename = fsRenameAdapterProxy();
-rename.succeeds({from, to});
+rename.succeeds({ from, to });
 
 // after — A3 removed the adapter; the broker calls rename, so the broker's proxy mocks rename
-import {rename} from 'fs/promises';
-
-const handle = registerMock({fn: rename});
+import { rename } from 'fs/promises';
+const handle = registerMock({ fn: rename });
 handle.calledWith([from, to]).resolves(undefined);
 ```
 
-```typescript
+```
 // left alone
-adapters / fs / read - file -
-if-exists /…
--adapter.proxy.ts
-:
-registerMock({fn: readFile})   // the adapter calls it
-brokers / quest / archive /…-broker.proxy.ts
-:
-registerMock({fn: rename})     // the broker calls it
+adapters/fs/read-file-if-exists/…-adapter.proxy.ts:   registerMock({ fn: readFile })   // the adapter calls it
+brokers/quest/archive/…-broker.proxy.ts:              registerMock({ fn: rename })     // the broker calls it
 ```
 
 Ins and outs:
@@ -2143,17 +1920,13 @@ The I/O trap (see "The unit-test I/O trap") fails a unit test that reaches `fs`,
 `child_process` without a staged answer (`jest.setup-io-trap.js:25`). Those calls, and any npm function
 that does I/O underneath, such as `glob`, are mocked. Everything else runs for real.
 
-```typescript
+```
 // flagged by the trap at run time — nothing staged the read
-const config = await configLoadBroker({path});   // [io-trap] unstaged fs/promises.readFile("/…/config.json")
+const config = await configLoadBroker({ path });   // [io-trap] unstaged fs/promises.readFile("/…/config.json")
 
 // left alone — pure functions run for real, in the implementation and in the proxy
-brokers / x / x - broker.ts
-:
-const configPath = join(root, 'config.json');
-brokers / x / x - broker.proxy.ts
-:
-const expected = join(root, 'config.json');   // computed, not mocked
+brokers/x/x-broker.ts:          const configPath = join(root, 'config.json');
+brokers/x/x-broker.proxy.ts:    const expected = join(root, 'config.json');   // computed, not mocked
 ```
 
 Ins and outs:
@@ -2161,8 +1934,8 @@ Ins and outs:
 - **The rule is structural.** Mock what the trap traps, and what does I/O underneath; run the rest.
 - **A test may mock a function to pin its value,** such as `randomUUID` or `Date.now`. That is allowed,
   not required.
-- **Classes are never trapped.** The trap wraps only lowercase function exports (`jest.setup-io-trap.js:85`), so
-  `new ChildProcess()` in a stub is real and does no I/O.
+- **Classes are never
+  trapped.** The trap wraps only lowercase function exports (`jest.setup-io-trap.js:85`), so `new ChildProcess()` in a stub is real and does no I/O.
 
 #### T3: an adapter's proxy offers named scenarios with recorded failures, and a broker's proxy uses them
 
@@ -2172,20 +1945,20 @@ real in the broker's test. Node's I/O gets one shared proxy per module in `@dung
 whose failures are captured once from real Node. A workspace package ships the proxy for its own API
 from its `/testing` entry point, and its own tests check each scenario against its real code.
 
-```typescript
+```
 // before — each test invents the failure; the raw call is staged under a composed but unused adapter proxy
 // siegelense/src/brokers/instance/kill/instance-kill-broker.proxy.ts:87,191-193
 fsReadFileAdapterProxy();
 readHandle.calledWith([heartbeatPath])
-    .rejects(Object.assign(new Error('ENOENT: no such file or directory'), {code: 'ENOENT'}));
+  .rejects(Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }));
 
 // after — a named scenario, recorded from real Node
 const fs = fsReadFileIfExistsAdapterProxy();
-fs.fileMissing({filePath: heartbeatPath});
+fs.fileMissing({ filePath: heartbeatPath });
 
 // after — a workspace package's own proxy, with its real failure shape
 const orchestrator = startOrchestratorProxy();      // from @dungeonmaster/orchestrator/testing
-orchestrator.questNotFound({questId});             // { success: false, error }, as the real getQuest returns
+orchestrator.questNotFound({ questId });             // { success: false, error }, as the real getQuest returns
 ```
 
 Ins and outs:
@@ -2206,22 +1979,18 @@ Ins and outs:
 
 For a function whose declared signature takes arguments.
 
-```typescript
+```
 // flagged — every unexpected read now "succeeds" with ''
 export const fsReadFileProxy = () => {
-    const mock = registerMock({fn: readFileSync});
-    mock.calledWith([]).returns('');
-    return { …
-}
-    ;
+  const mock = registerMock({ fn: readFileSync });
+  mock.calledWith([]).returns('');
+  return { … };
 };
 
 // left alone
-registerMock({fn: randomUUID}).calledWith([]).returns(uuid);                  // no arguments: [] is the only address
+registerMock({ fn: randomUUID }).calledWith([]).returns(uuid);                  // no arguments: [] is the only address
 mock.calledWith([filePath]).returns(content);                                    // addressed
-return {existsOnlyFor: ({filePaths}) => mock.calledWith([isPath]).implement(…)
-}
-;  // opt-in scenario
+return { existsOnlyFor: ({ filePaths }) => mock.calledWith([isPath]).implement(…) };  // opt-in scenario
 ```
 
 Why: a constructor default answers calls no test described, so an unexpected call becomes an invented
@@ -2234,14 +2003,14 @@ function's signature.
 
 #### T5: no invented failures in a proxy or test
 
-```typescript
+```
 // flagged — as the value given to a mock's rejects / throws / a throwing implement
-proxy.throws({filePath, error: new Error('ENOENT')});
-handle.calledWith([p]).throws(Object.assign(new Error('x'), {code: 'ENOENT'}));   // still hand-made
+proxy.throws({ filePath, error: new Error('ENOENT') });
+handle.calledWith([p]).throws(Object.assign(new Error('x'), { code: 'ENOENT' }));   // still hand-made
 
 // left alone
-fs.fileMissing({path});                                   // recorded failure
-orchestrator.questNotFound({questId});                    // provider-owned scenario
+fs.fileMissing({ path });                                   // recorded failure
+orchestrator.questNotFound({ questId });                    // provider-owned scenario
 expect(() => run()).toThrow(/^Quest not found$/u);          // asserting what the code under test throws
 ```
 
@@ -2256,17 +2025,14 @@ How a machine checks it: `ban-invented-failures`. Syntax.
 
 #### T6: no mocking another workspace package's exports
 
-```typescript
+```
 // flagged, in server or mcp
-registerMock({fn: StartOrchestrator.getQuest});
-registerModuleMock({module: '@dungeonmaster/orchestrator', factory: () => ({ …
-})
-})
-;
+registerMock({ fn: StartOrchestrator.getQuest });
+registerModuleMock({ module: '@dungeonmaster/orchestrator', factory: () => ({ … }) });
 
 // left alone
 const orchestrator = startOrchestratorProxy();   // from @dungeonmaster/orchestrator/testing
-registerMock({fn: readFile});                  // a Node function
+registerMock({ fn: readFile });                  // a Node function
 ```
 
 Why: a consumer's copy of another package's behaviour drifts from it. The real `getQuest` reports a
@@ -2282,31 +2048,15 @@ How a machine checks it: `ban-workspace-export-mocks`. The import specifier star
 A1 to A7 govern production code. A test support file may import a claimed function, handle failures
 and do real I/O. The I/O trap governs what a unit test may reach, and T1 to T6 govern how it mocks.
 
-```typescript
+```
 // left alone — in test support files
-brokers / x / x - broker.proxy.ts
-:
-registerMock({fn: spawn})                       // imports a claimed function
-brokers / x / x - broker.proxy.ts
-:
-const bytes = PNG.sync.write(png)                 // calls a library to build a fixture
-mcp / test / harnesses / mcp - server / mcp - server.harness.ts
-:
-for (…
-)
-{
-    try { …
-    } catch { …
-    }
-}   // a harness retrying a boot probe
-stubs / child - process / child - process.stub.ts
-:
-new ChildProcess()                     // a stub building a real value (C5)
+brokers/x/x-broker.proxy.ts:        registerMock({ fn: spawn })                       // imports a claimed function
+brokers/x/x-broker.proxy.ts:        const bytes = PNG.sync.write(png)                 // calls a library to build a fixture
+mcp/test/harnesses/mcp-server/mcp-server.harness.ts:   for (…) { try { … } catch { … } }   // a harness retrying a boot probe
+stubs/child-process/child-process.stub.ts:   new ChildProcess()                     // a stub building a real value (C5)
 
 // flagged — production code is still covered
-brokers / x / x - broker.ts
-:
-import {readFile} from 'fs/promises'           // readFile is claimed (A2)
+brokers/x/x-broker.ts:              import { readFile } from 'fs/promises'           // readFile is claimed (A2)
 ```
 
 Ins and outs:
@@ -2375,11 +2125,11 @@ A setup file in `@dungeonmaster/testing`, loaded by every package's Jest config,
 itself, even when the code under test catches the error, because every trapped call is recorded and
 checked after the test.
 
-```typescript
+```
 // before — an unstaged read hits the real disk; a catch-everything broker turns it into a pass
 it('VALID: {…} => returns defaults', async () => {
-    const result = await guildConfigReadBroker({guildPath});   // reads the real disk, unnoticed
-    expect(result).toStrictEqual(defaults);
+  const result = await guildConfigReadBroker({ guildPath });   // reads the real disk, unnoticed
+  expect(result).toStrictEqual(defaults);
 });
 ```
 
@@ -2405,31 +2155,26 @@ sites, not as a string, which keeps a real TypeScript compile at 502 ms against 
 
 The proxy-mock hoister keeps every function a proxy did not name trapped, instead of real:
 
-```typescript
+```
 // before — mocking readFile left stat, writeFile, mkdir … doing real I/O
-jest.mock('fs/promises', () => ({...jest.requireActual('fs/promises'), readFile: jest.fn()}));
+jest.mock('fs/promises', () => ({ ...jest.requireActual('fs/promises'), readFile: jest.fn() }));
 
 // after — trapped in unit tests, real in integration tests
 jest.mock('fs/promises', () => ({
-    ...(globalThis.__ioTrap?.('fs/promises') ?? jest.requireActual('fs/promises')),
-    readFile: jest.fn(),
+  ...(globalThis.__ioTrap?.('fs/promises') ?? jest.requireActual('fs/promises')),
+  readFile: jest.fn(),
 }));
 ```
 
 A package must do no I/O when imported. The orchestrator's six passive watchers start from
 `StartOrchestrator.bootstrap()`, which each host process calls at boot:
 
-```typescript
+```
 // before — at module scope in start-orchestrator.ts: importing the barrel started six pollers and watchers
-ExecutionQueueFlow.bootstrap();
-RateLimitsFlow.bootstrap();  // …four more
+ExecutionQueueFlow.bootstrap();  RateLimitsFlow.bootstrap();  // …four more
 
 // after
-export const StartOrchestrator = {
-    bootstrap: () => { /* the same six */
-    }, …
-}
-;
+export const StartOrchestrator = { bootstrap: () => { /* the same six */ }, … };
 // server: OrchestrationBootFlow → StartOrchestrator.bootstrap(), then the server-only normalizeDispatchBoot()
 // mcp:    StartMcpServer → OrchestrationBootFlow → StartOrchestrator.bootstrap()
 ```
@@ -2615,13 +2360,9 @@ to serve for the `stubs/` folder type, and a `stubs/` row in the folder types se
 
 1. **Reusing a field across an import cycle.** `quest-contract.ts` imports `work-item-contract.ts`. If a
    work item needs `questId`, `questContract.shape.id` would be a cycle.
-    - Option (a), my recommendation: an exception to B3 and B4. Where reuse would form a cycle, the
-      referring field redeclares the owner's brand text inline,
-      `questId: z.string().min(1).brand<'QuestId'>()`, not its own derived `'WorkItemQuestId'`. A check
-      then requires that declaration to have the same schema as the owner's field. That needs a
-      repo-wide index, but no imports.
-    - Option (b): allow each owner one extra exported id schema file that only referrers import. That
-      brings back standalone ids, which B2 removes.
+  - Option (a), my recommendation: an exception to B3 and B4. Where reuse would form a cycle, the referring field redeclares the owner's brand text inline,
+    `questId: z.string().min(1).brand<'QuestId'>()`, not its own derived `'WorkItemQuestId'`. A check then requires that declaration to have the same schema as the owner's field. That needs a repo-wide index, but no imports.
+  - Option (b): allow each owner one extra exported id schema file that only referrers import. That brings back standalone ids, which B2 removes.
 2. **A swap point for npm packages.** Under A3, an npm function no one handles is called directly, so
    swapping the library touches every caller. The alternative is to allow one pass-through per npm
    function per repo, telling npm packages from Node built-ins by Node's own
@@ -2637,15 +2378,10 @@ to serve for the `stubs/` folder type, and a `stubs/` row in the folder types se
    `@dungeonmaster/shared/adapters` for every repo.
 5. **Loose values lose their brand.** Paths built by `join` and timeouts become plain until they enter
    an owned field. That is accepted in this design. Two losses are worth weighing:
-    - **Paths are the biggest.** Production code parses into `absoluteFilePathContract` 429 times and
-      `filePathContract` 302 times. About 45% of path mints come from a join or a template. In shared,
-      paths are the largest loose value after `ContentText`.
-    - **The cwd role labels go.** `RepoRootCwd`, `ProjectRootCwd`, `GuildPathCwd` and `DungeonmasterHomeCwd`
-      are brands layered on an absolute path (`quest-cwd-resolve-broker.ts:81`:
-      `cwd: repoRootCwdContract.parse(quest.worktreePath)`). They are
-      standalone brands, so B2 removes them, and a `cwd` parameter becomes a plain `string`. They guard
-      against running a process in the wrong directory, which is a real failure here. A `cwd` that is a
-      field of an owner, such as a spawn request, keeps a brand.
+  - **Paths are the biggest.** Production code parses into `absoluteFilePathContract` 429 times and
+    `filePathContract` 302 times. About 45% of path mints come from a join or a template. In shared, paths are the largest loose value after `ContentText`.
+  - **The cwd role labels go.** `RepoRootCwd`, `ProjectRootCwd`, `GuildPathCwd` and `DungeonmasterHomeCwd`
+    are brands layered on an absolute path (`quest-cwd-resolve-broker.ts:81`: `cwd: repoRootCwdContract.parse(quest.worktreePath)`). They are standalone brands, so B2 removes them, and a `cwd` parameter becomes a plain `string`. They guard against running a process in the wrong directory, which is a real failure here. A `cwd` that is a field of an owner, such as a spawn request, keeps a brand.
 6. **An id passed through a plain parameter.** B6 lets a branded value into a plain parameter. So an
    id can travel through a parameter whose name says only its role, such as
    `({ mintedBy }: { mintedBy: string })`, and be parsed back into an id later. The brand is dropped on
@@ -2655,13 +2391,11 @@ to serve for the `stubs/` folder type, and a `stubs/` row in the folder types se
 7. **Ids with no owner.** `SessionId`, `ProcessId`, `AgentId`, `ToolUseId`, `InstanceId` and `RunId`
    are carried by many contracts, but none is any contract's own `id` (B2). Under the rules as written
    they go plain. Two costs:
-    - **Real checks go.** `InstanceId` and `RunId` carry a regex, written because a person types them at
-      a terminal (`siegelense/src/contracts/instance-id/instance-id-contract.ts:19`,
-      `ward/src/contracts/run-id/run-id-contract.ts:13`). Both are parsed straight from a CLI argument
-      into a function parameter (`start-siegelense-driver.ts:24`, `ward-list-responder.ts:25`). No owned
-      field ever checks them again.
-    - **Mix-up safety goes where it is needed most.** `chat-line-process-transformer.ts` handles
-      `agentId`, `toolUseId`, `sessionId`, `parentAgentId` and `childToolUseId` in the same functions.
+  - **Real checks
+    go.** `InstanceId` and `RunId` carry a regex, written because a person types them at a terminal (`siegelense/src/contracts/instance-id/instance-id-contract.ts:19`,
+    `ward/src/contracts/run-id/run-id-contract.ts:13`). Both are parsed straight from a CLI argument into a function parameter (`start-siegelense-driver.ts:24`, `ward-list-responder.ts:25`). No owned field ever checks them again.
+  - **Mix-up safety goes where it is needed most.** `chat-line-process-transformer.ts` handles
+    `agentId`, `toolUseId`, `sessionId`, `parentAgentId` and `childToolUseId` in the same functions.
 
    Option (a), my recommendation: give each one an owner, using records that already exist or should.
    A siegelense instance has a fleet registry entry. A ward run has its saved result. A session has
@@ -2682,18 +2416,17 @@ to serve for the `stubs/` folder type, and a `stubs/` row in the folder types se
    `{ status, data: z.unknown() }`, and all 171 parses wrap an object the same function just built. It
    passes C1 and B7, but it checks nothing about `data`. The other wrapper, `adapterResultContract`, is
    settled by A7.
-    - Option (a), my recommendation: `responderResultContract` takes the responder's own contract for
-      `data`, so the envelope checks what it carries.
-    - Option (b): keep it, and name it in the doc as an envelope, not a check.
+  - Option (a), my recommendation: `responderResultContract` takes the responder's own contract for
+    `data`, so the envelope checks what it carries.
+  - Option (b): keep it, and name it in the doc as an envelope, not a check.
 
    A related question is whether `z.unknown()` should be allowed as a field at all. It is the one leaf
    B1 cannot brand, and it hides an unchecked value inside a checked object.
 9. **How B4 matches a name when owner names overlap.** An owner called `Item` would claim
    `workItemId` as well as `itemId`, when `workItemId` belongs to `WorkItem`.
-    - Option (a), my recommendation: the longest owner name that the parameter or key ends with wins.
-      `workItemId` matches `WorkItem` before `Item`, and `itemId` matches `Item`. This needs no list.
-    - Option (b): a minimum length for owner names. That is a
-      number someone has to pick, and it still misfires on two real owners that share a suffix.
+  - Option (a), my recommendation: the longest owner name that the parameter or key ends with wins.
+    `workItemId` matches `WorkItem` before `Item`, and `itemId` matches `Item`. This needs no list.
+  - Option (b): a minimum length for owner names. That is a number someone has to pick, and it still misfires on two real owners that share a suffix.
 
 10. **Which catch-everything implementations are real bugs.** 58 implementations tested only against a
     code-less error catch every error. "Unreadable means start fresh" is right for a cache and wrong for
