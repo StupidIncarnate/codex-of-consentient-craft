@@ -12,7 +12,7 @@ Read this whole file before doing anything. Your own prompt names your task; thi
 
 Read `scrolls/adapters-to-one-place.md`. It is the agreed design. The user changed or clarified these points after it was written, and **these override the doc:**
 
-1. **Flat layout, no folder types inside the gateway.** Each subpath is a folder named exactly after the outside thing: `packages/node/fs/`, `packages/npm/@playwright/test/`. Wrapper files sit directly in that folder with a colocated `.test.ts` and `.proxy.ts`. The folder's `index.ts` is the subpath entry.
+1. **Flat layout under `src/`, no folder types inside the gateway.** Each subpath is a folder named exactly after the outside thing: `packages/node/src/fs/`, `packages/npm/src/@playwright/test/`. Wrapper files sit directly in that folder with a colocated `.test.ts` and `.proxy.ts`. The folder's `index.ts` is the subpath entry. The `src/` level exists because ward and the inventory tools only see a package's `src/`. Each gateway `package.json` uses one pattern export (`"./*"`) plus `typesVersions`. **So adding a subpath means adding a folder with an `index.ts`. Never edit a gateway `package.json` to add one.**
 2. **Names.** A wrapper keeps the outside function's own name when it keeps the same meaning and a compatible argument shape, so `readFile` from `@dungeonmaster/node/fs` is always OUR guarded version. When the arguments or the meaning change, the wrapper gets a new, descriptive name, such as `readFileIfExists` or `readJsonFile`.
 3. **Curated modules expose no raw functions.** `@dungeonmaster/node/fs` never re-exports Node's raw `readFile`. Everything that touches the outside world on the host is wrapped: Node `fs`, `child_process`, `net`, `readline`, and the browser's `fetch`, `localStorage`, `WebSocket`. Every `@dungeonmaster/bin` module is curated.
 4. **Pass-throughs for every outside npm package our code imports today.** A pass-through is `export * from 'pkg'`, plus `export { default } from 'pkg'` when the package has a default export. A package that needs setup gets wrapped, not passed through. For example, testing-library always needs app setup.
@@ -31,6 +31,7 @@ Read `scrolls/adapters-to-one-place.md`. It is the agreed design. The user chang
 
 - **Subpath equals the exact import specifier**, with any `node:` prefix dropped. So `fs/promises` becomes `@dungeonmaster/node/fs/promises`, and `react-dom/client` becomes `@dungeonmaster/npm/react-dom/client`. The mapping from a raw import to its gateway path must stay mechanical, because a lint rule and a migration script will rely on it.
 - **A global's subpath is the global's exact name:** `@dungeonmaster/node/process`, `@dungeonmaster/node/setTimeout`, `@dungeonmaster/browser/localStorage`.
+- **One `@dungeonmaster/bin` module per program, named for the program:** `bin/git`, `bin/npm`, `bin/claude`, `bin/lsof`, `bin/kill`. Never a combined module like `bin/port`. A lint rule maps each spawned command's name to its home.
 - **No root `.` export** in any gateway package. That would be a barrel.
 - **Folders mirror subpaths exactly.** TypeScript here resolves with `moduleResolution: node` (node10), which ignores `exports` and looks for real folders.
 - **Proxies for callers** are exported through a `./testing` subpath of each gateway package.

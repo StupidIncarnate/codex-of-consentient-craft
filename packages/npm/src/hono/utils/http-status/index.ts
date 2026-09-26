@@ -7,4 +7,4 @@
  * import { someExport } from '@dungeonmaster/npm/hono/utils/http-status';
  */
 
-export * from 'hono/utils/http-status';
+export type * from 'hono/utils/http-status';

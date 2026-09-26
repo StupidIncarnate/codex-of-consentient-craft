@@ -4,10 +4,21 @@
   "description": "Gateway package: everything the browser provides \u2014 globals and browser APIs",
   "exports": {
     "./testing": {
-      "source": "./testing/index.ts",
-      "require": "./dist/testing/index.js",
+      "source": "./src/testing/index.ts",
       "import": "./dist/testing/index.js",
+      "require": "./dist/testing/index.js",
       "types": "./dist/testing/index.d.ts"
+    },
+    "./*": {
+      "source": "./src/*/index.ts",
+      "import": "./dist/*/index.js",
+      "require": "./dist/*/index.js",
+      "types": "./dist/*/index.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": ["src/*/index.ts", "src/*"]
     }
   },
   "files": [

@@ -3,35 +3,22 @@
   "version": "0.1.0",
   "description": "Gateway package: everything the Node runtime provides, modules and globals alike",
   "exports": {
-    "./path": {
-      "source": "./path/index.ts",
-      "require": "./dist/path/index.js",
-      "import": "./dist/path/index.js",
-      "types": "./dist/path/index.d.ts"
-    },
-    "./events": {
-      "source": "./events/index.ts",
-      "require": "./dist/events/index.js",
-      "import": "./dist/events/index.js",
-      "types": "./dist/events/index.d.ts"
-    },
-    "./url": {
-      "source": "./url/index.ts",
-      "require": "./dist/url/index.js",
-      "import": "./dist/url/index.js",
-      "types": "./dist/url/index.d.ts"
-    },
-    "./util": {
-      "source": "./util/index.ts",
-      "require": "./dist/util/index.js",
-      "import": "./dist/util/index.js",
-      "types": "./dist/util/index.d.ts"
-    },
     "./testing": {
-      "source": "./testing/index.ts",
-      "require": "./dist/testing/index.js",
+      "source": "./src/testing/index.ts",
       "import": "./dist/testing/index.js",
+      "require": "./dist/testing/index.js",
       "types": "./dist/testing/index.d.ts"
+    },
+    "./*": {
+      "source": "./src/*/index.ts",
+      "import": "./dist/*/index.js",
+      "require": "./dist/*/index.js",
+      "types": "./dist/*/index.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": ["src/*/index.ts", "src/*"]
     }
   },
   "files": [
