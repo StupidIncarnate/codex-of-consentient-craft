@@ -1,4 +1,5 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FsErrorStub } from '@dungeonmaster/node/fs/promises';
 import { e2eProcessPlaceholderStatics } from '../../../statics/e2e-process-placeholder/e2e-process-placeholder-statics';
 import { InstallCreateConfigResponderProxy } from './install-create-config-responder.proxy';
 
@@ -156,28 +157,7 @@ describe('InstallCreateConfigResponder', () => {
     });
   });
 
-  describe('existing config that cannot be safely edited', () => {
-    it('INVALID: {context: existing .dungeonmaster.json is not valid JSON} => leaves it untouched and reports why', async () => {
-      const proxy = InstallCreateConfigResponderProxy();
-
-      proxy.setupExistingConfigContent({ content: '{ not valid json' });
-
-      const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
-      });
-
-      expect(result).toStrictEqual({
-        packageName: '@dungeonmaster/config',
-        success: true,
-        action: 'skipped',
-        message: '.dungeonmaster.json exists but is not valid JSON — left untouched',
-      });
-      expect(proxy.getWrittenConfig()).toBe(undefined);
-    });
-
+  describe('existing config that fails validation', () => {
     it('INVALID: {context: existing .dungeonmaster.json fails the config contract} => leaves it untouched and reports why', async () => {
       const proxy = InstallCreateConfigResponderProxy();
 
@@ -197,6 +177,58 @@ describe('InstallCreateConfigResponder', () => {
         success: true,
         action: 'skipped',
         message: '.dungeonmaster.json exists but failed config validation — left untouched',
+      });
+      expect(proxy.getWrittenConfig()).toBe(undefined);
+    });
+  });
+
+  describe('existing config that cannot be safely read', () => {
+    it('INVALID: {context: existing .dungeonmaster.json is not valid JSON} => leaves it untouched, reports it is corrupt, and skips the write', async () => {
+      const proxy = InstallCreateConfigResponderProxy();
+
+      proxy.setupExistingConfigContent({ content: '{ not valid json' });
+
+      const result = await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/config',
+        success: true,
+        action: 'skipped',
+        message: '.dungeonmaster.json exists but is not valid JSON — left untouched',
+        error: 'Invalid JSON in /project/.dungeonmaster.json',
+      });
+      expect(proxy.getWrittenConfig()).toBe(undefined);
+    });
+
+    it('ERROR: {context: existing .dungeonmaster.json cannot be read (EACCES)} => leaves it untouched, reports it is unreadable, and skips the write', async () => {
+      const proxy = InstallCreateConfigResponderProxy();
+
+      proxy.setupExistingConfigUnreadable({
+        error: FsErrorStub({
+          code: 'EACCES',
+          path: '/project/.dungeonmaster.json',
+          syscall: 'open',
+        }),
+      });
+
+      const result = await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/config',
+        success: true,
+        action: 'skipped',
+        message: '.dungeonmaster.json exists but could not be read — left untouched',
+        error: "EACCES: open '/project/.dungeonmaster.json'",
       });
       expect(proxy.getWrittenConfig()).toBe(undefined);
     });
