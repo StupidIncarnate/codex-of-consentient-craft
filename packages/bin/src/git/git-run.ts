@@ -1,17 +1,15 @@
 /**
  * PURPOSE: The one call every other file in this folder makes into `@dungeonmaster/node/child_process`.
  * Centralizes the `git`-not-installed detection so each git function stays a plain argument builder.
- * `run` turns a missing `git` binary into `{exitCode: 1, output: '', signal: null, timedOut: false}`
- * — the SAME shape a real git failure that happens to print nothing produces — but a real git
- * failure always writes SOMETHING to stderr (a "fatal:" line at minimum), so an empty output on
- * exit code 1 with no signal and no timeout is git missing from `$PATH`, not git refusing the
- * command.
+ * `run` throws `RunNotFoundError` when `git` never started (ENOENT and the like) — this catches that
+ * specific error and re-throws it as `GitNotInstalledError`, so a caller of `@dungeonmaster/bin/git`
+ * only ever needs to know this module's own error class.
  *
  * USAGE:
  * const { exitCode, output } = await gitRun({ args: ['rev-parse', 'HEAD'], cwd: '/repo' });
  */
 
-import { run } from '@dungeonmaster/node/child_process';
+import { run, RunNotFoundError } from '@dungeonmaster/node/child_process';
 
 import { GitNotInstalledError } from './git-not-installed-error';
 
@@ -27,13 +25,14 @@ export const gitRun = async ({
   signal: NodeJS.Signals | null;
   timedOut: boolean;
 }> => {
-  const result = await run({ command: 'git', args, cwd });
-
-  if (result.exitCode === 1 && result.output === '' && result.signal === null && !result.timedOut) {
-    throw new GitNotInstalledError(
-      `git ${args.join(' ')} produced no output and exit code 1 in ${cwd} — git is likely not installed or not on PATH`,
-    );
+  try {
+    return await run({ command: 'git', args, cwd });
+  } catch (error: unknown) {
+    if (error instanceof RunNotFoundError) {
+      throw new GitNotInstalledError(
+        `git ${args.join(' ')} could not start in ${cwd}: ${error.message}`,
+      );
+    }
+    throw error;
   }
-
-  return result;
 };

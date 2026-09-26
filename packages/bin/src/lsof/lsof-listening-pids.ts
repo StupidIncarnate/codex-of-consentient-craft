@@ -4,35 +4,44 @@
  * independently, but stay two modules per the one-module-per-program rule; see
  * `scrolls/gateway-build/followups.md` for where a combining function belongs.
  *
- * `run`'s "not installed" collapse (see `@dungeonmaster/bin/git`'s `git-run.ts` header) is
- * DELIBERATELY not detected here: `lsof`'s own "nothing is listening" case produces the identical
- * shape (`exitCode: 1`, empty output, no signal, not timed out), so there is no way to tell "lsof is
- * missing" from "nothing is on this port" without a change to `run` itself. An empty result is
- * treated as "nothing listening", which is the common and legitimate case.
+ * `lsof`'s own "nothing is listening" case exits non-zero with empty output — a normal RESOLVED
+ * result from `run`, treated as "nothing listening", the common and legitimate case. A missing
+ * `lsof` binary instead makes `run` THROW `RunNotFoundError`, so the two are told apart by whether
+ * `run` resolves or rejects, never by pattern-matching the resolved shape.
  *
  * USAGE:
  * const pids = await listeningPids({ port: 3737 });
- * // Returns [12345], or [] when nothing is listening
+ * // Returns [12345], or [] when nothing is listening; throws LsofNotInstalledError when lsof itself
+ * // is missing
  */
 
-import { run } from '@dungeonmaster/node/child_process';
+import { run, RunNotFoundError } from '@dungeonmaster/node/child_process';
+
+import { LsofNotInstalledError } from './lsof-not-installed-error';
 
 // `lsof -ti :<port>` reads no path off the working directory — a port is a machine-global
 // resource, so any fixed anchor is equivalent. `run` requires a cwd; '/' is the neutral one.
 const CWD = '/';
 
 export const listeningPids = async ({ port }: { port: number }): Promise<number[]> => {
-  const { exitCode, output } = await run({
-    command: 'lsof',
-    args: ['-ti', `:${String(port)}`],
-    cwd: CWD,
-  });
+  // Inlined at each use (never hoisted to a top-level const) because enforce-magic-arrays forbids
+  // a pure string-literal array declaration outside statics/tests/stubs/proxies.
+  const result = await run({ command: 'lsof', args: ['-ti', `:${String(port)}`], cwd: CWD }).catch(
+    (error: unknown) => {
+      if (error instanceof RunNotFoundError) {
+        throw new LsofNotInstalledError(
+          `lsof -ti :${String(port)} could not start: ${error.message}`,
+        );
+      }
+      throw error;
+    },
+  );
 
-  if (exitCode !== 0) {
+  if (result.exitCode !== 0) {
     return [];
   }
 
-  return output
+  return result.output
     .trim()
     .split('\n')
     .map((line) => line.trim())

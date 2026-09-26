@@ -19,9 +19,17 @@
  * as an ordinary lint failure if nothing names it. `timedOut` is a plain flag for the one signal
  * kill this wrapper causes itself (the `timeout` param firing `child.kill()`), so a caller does not
  * have to guess whether a `SIGTERM` came from us or from outside.
+ *
+ * A process that never STARTED at all (spawn's own `'error'` event — ENOENT, a non-executable file)
+ * is not a result to resolve — it has no exit code, no signal, nothing that happened inside a
+ * process, because no process ever existed. This THROWS `RunNotFoundError` instead of resolving
+ * `{exitCode: 1, output: '', signal: null}`, which used to be indistinguishable from a real command
+ * that exits 1 and prints nothing.
  */
 
 import { spawn } from 'child_process';
+
+import { RunNotFoundError } from './run-not-found-error';
 
 export const run = async ({
   command,
@@ -41,7 +49,7 @@ export const run = async ({
   signal: NodeJS.Signals | null;
   timedOut: boolean;
 }> =>
-  new Promise((resolve) => {
+  new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd,
       stdio: ['inherit', 'pipe', 'pipe'],
@@ -118,12 +126,12 @@ export const run = async ({
         });
     });
 
-    child.on('error', () => {
+    child.on('error', (error: NodeJS.ErrnoException) => {
       if (timeoutHandle !== null) {
         clearTimeout(timeoutHandle);
       }
-      // A spawn that never started has no signal to report — this fires when the command could
-      // not be found or the fork failed, both before any process existed to be killed.
-      resolve({ exitCode: 1, output: stdout + stderr, signal: null, timedOut: false });
+      // A spawn that never started has no exit result to resolve — this fires when the command
+      // could not be found or the fork failed, both before any process existed to be killed.
+      reject(new RunNotFoundError({ command, code: error.code, message: error.message }));
     });
   });

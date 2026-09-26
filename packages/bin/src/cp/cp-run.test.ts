@@ -12,13 +12,16 @@ describe('cpRun()', () => {
     expect(result).toStrictEqual({ exitCode: 0, output: '', signal: null, timedOut: false });
   });
 
-  it('ERROR: {exitCode: 1, output: "", signal: null, timedOut: false} => throws CpNotInstalledError', async () => {
+  it('ERROR: {run throws RunNotFoundError} => throws CpNotInstalledError', async () => {
     const proxy = cpRunProxy();
-    proxy.setupResult({ args: ['-a', '/src', '/dest'], exitCode: 1, output: '' });
+    proxy.setupNotFound({
+      args: ['-a', '/src', '/dest'],
+      message: 'spawn cp ENOENT',
+    });
 
     await expect(cpRun({ args: ['-a', '/src', '/dest'], cwd: '/repo' })).rejects.toStrictEqual(
       new CpNotInstalledError(
-        'cp -a /src /dest produced no output and exit code 1 in /repo — cp is likely not installed or not on PATH',
+        'cp -a /src /dest could not start in /repo: "cp" never started: spawn cp ENOENT',
       ),
     );
   });

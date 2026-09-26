@@ -34,7 +34,11 @@ Two corrections to the scan feed this table (rather than `npm.md`):
 | `src/adapters/dungeonmaster-eslint-plugin/get-pre-edit-rules/dungeonmaster-eslint-plugin-get-pre-edit-rules-adapter.ts` | `@dungeonmaster/shared/statics` (`dungeonmasterRuleEnforceOnStatics`) | pure filter/map over our own statics, no library call |
 | `src/adapters/eslint/calculate-config-for-file/eslint-calculate-config-for-file-adapter.ts` | calls `.calculateConfigForFile()` on a passed-in `ESLint` instance | **flagged**: this is a real `eslint` API call (type-only import today, but the method call is runtime) — added to `npm.md`'s eslint mapping table instead of staying here |
 | `src/adapters/eslint/is-path-ignored/eslint-is-path-ignored-adapter.ts` | calls `.isPathIgnored()` on a passed-in `ESLint` instance | **flagged**, same as above |
-| `src/adapters/process/hook-lint-ignored-paths/process-hook-lint-ignored-paths-adapter.ts` | nothing of ours | reads `process.env` — a Node global, not an npm package; out of this inventory's scope (belongs to whoever inventories `@dungeonmaster/node`) |
+
+**Moved to `coverage.md`:** `src/adapters/process/hook-lint-ignored-paths/process-hook-lint-ignored-paths-adapter.ts`
+reads `process.env` directly — a Node global, not "nothing outside." Per the coverage map's rule (an adapter that
+touches a Node or browser global directly does not stay), its fate is `gateway` (`@dungeonmaster/node/process`'s
+`getEnv`), not "stays."
 
 ## hydration-recipes
 
@@ -185,13 +189,17 @@ one correctly as `otherPkg`.
 
 ## web
 
-| Path | Calls instead | Reason it stays |
-|---|---|---|
-| `src/adapters/dom/composer-delete-thumbnail/dom-composer-delete-thumbnail-adapter.ts` | nothing of ours | touches `HTMLElement`/DOM Range APIs — a **browser global**, not npm; out of this inventory's scope |
-| `src/adapters/dom/composer-insert-image/dom-composer-insert-image-adapter.ts` | our own `ComposerAttachment` contract + `chatComposerStatics` | same — browser globals, out of scope here |
-| `src/adapters/dom/composer-insert-text/dom-composer-insert-text-adapter.ts` | our own `composerCaretFillerElementTransformer` | same — browser globals, out of scope here |
-| `src/adapters/dom/composer-read/dom-composer-read-adapter.ts` | our own `composerSegmentContract` + `chatComposerStatics` | same — browser globals (`HTMLElement`, `Text`, `Element`), out of scope here |
-| `src/adapters/indexed-db/draft-images-read/migrate-legacy-records-layer-adapter.ts` | our own `isLegacyComposerScopeRecordGuard` + `chatComposerStatics` | touches `IDBDatabase` — a browser global, not npm; out of scope here |
+**Moved to `coverage.md`:** every row this section used to list touches a browser global directly
+(`HTMLElement`/DOM Range APIs, `Text`, `Element`, `IDBDatabase`), so none of them stay per the coverage map's
+rule. Each is now `split` in `coverage.md`: `src/adapters/dom/composer-delete-thumbnail/dom-composer-delete-thumbnail-adapter.ts`,
+`src/adapters/dom/composer-insert-image/dom-composer-insert-image-adapter.ts`,
+`src/adapters/dom/composer-insert-text/dom-composer-insert-text-adapter.ts`,
+`src/adapters/dom/composer-read/dom-composer-read-adapter.ts` (all four → `@dungeonmaster/browser/document`,
+our-logic half stays adapter), and `src/adapters/indexed-db/draft-images-read/migrate-legacy-records-layer-adapter.ts`
+(→ `@dungeonmaster/browser/indexedDB`, migration/guard logic stays adapter).
+
+No rows remain in this section — every web adapter this inventory found either touches an npm package (`npm.md`),
+a browser global (`coverage.md`), or forwards to another package.
 
 ## Flagged: scan said "no outside call," but the file really touches something outside
 

@@ -1,5 +1,6 @@
 import { streamLines } from './stream-lines';
 import { streamLinesProxy } from './stream-lines.proxy';
+import { RunNotFoundError } from './run-not-found-error';
 
 describe('streamLines()', () => {
   describe('successful execution', () => {
@@ -105,18 +106,27 @@ describe('streamLines()', () => {
   });
 
   describe('command not found', () => {
-    it('ERROR: {spawn error without a numeric code} => returns exit code 1', async () => {
+    it('ERROR: {spawn ENOENT} => throws RunNotFoundError naming the command and carrying the code', async () => {
       const proxy = streamLinesProxy();
-      proxy.setupError({ command: 'nonexistent', error: new Error('ENOENT: not found') });
-
-      const result = await streamLines({
+      proxy.setupError({
         command: 'nonexistent',
-        args: [],
-        cwd: '/project',
-        onLine: () => undefined,
+        error: Object.assign(new Error('spawn nonexistent ENOENT'), { code: 'ENOENT' }),
       });
 
-      expect(result).toStrictEqual({ exitCode: 1, output: '', signal: null });
+      await expect(
+        streamLines({
+          command: 'nonexistent',
+          args: [],
+          cwd: '/project',
+          onLine: () => undefined,
+        }),
+      ).rejects.toStrictEqual(
+        new RunNotFoundError({
+          command: 'nonexistent',
+          code: 'ENOENT',
+          message: 'spawn nonexistent ENOENT',
+        }),
+      );
     });
   });
 

@@ -57,7 +57,6 @@ export const streamProxy = (): {
   }) => void;
   setupSignalKill: (params: { command: string; signal: NodeJS.Signals; stdout: string }) => void;
   setupError: (params: { command: string; error: Error; stdout?: string }) => void;
-  setupErrorWithCode: (params: { command: string; error: Error; exitCode: number }) => void;
   setupCloseNull: (params: { command: string; stdout: string }) => void;
   getSpawnedArgs: (params: { command: string }) => unknown;
 } => {
@@ -127,25 +126,6 @@ export const streamProxy = (): {
             for (const cb of listeners.stdoutData) cb(Buffer.from(stdout));
           }
           for (const cb of listeners.error) cb(error);
-        });
-        return child;
-      });
-    },
-
-    setupErrorWithCode: ({
-      command,
-      error,
-      exitCode,
-    }: {
-      command: string;
-      error: Error;
-      exitCode: number;
-    }): void => {
-      const errorWithCode = Object.assign(error, { code: exitCode });
-      handle.calledWith([command]).implement(() => {
-        const { child, listeners } = createMockChild();
-        process.nextTick(() => {
-          for (const cb of listeners.error) cb(errorWithCode);
         });
         return child;
       });

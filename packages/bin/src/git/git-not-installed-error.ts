@@ -1,12 +1,11 @@
 /**
- * PURPOSE: Names the one failure `run` cannot itself distinguish from an ordinary command failure —
- * `git` missing from `$PATH` collapses to `{exitCode: 1, output: '', signal: null}`, identical in
- * shape to a real git invocation that happened to fail silently. Every `@dungeonmaster/bin/git`
- * function throws this instead of returning that ambiguous shape, so a caller can tell "git is not
- * installed here" apart from "git ran and failed" with an `instanceof` check.
+ * PURPOSE: Names "git is not on this machine" for a caller of `@dungeonmaster/bin/git`, re-thrown by
+ * `gitRun` whenever `@dungeonmaster/node/child_process`'s `run` reports its own `RunNotFoundError` —
+ * so a caller can tell "git is not installed here" apart from "git ran and failed" with an
+ * `instanceof` check, without needing to know `run`'s own error type.
  *
  * USAGE:
- * throw new GitNotInstalledError('git rev-parse --abbrev-ref HEAD produced no output in /repo');
+ * throw new GitNotInstalledError('git rev-parse --abbrev-ref HEAD could not start in /repo: ...');
  */
 
 export class GitNotInstalledError extends Error {}

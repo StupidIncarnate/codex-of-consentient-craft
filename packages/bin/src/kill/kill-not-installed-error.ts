@@ -1,12 +1,10 @@
 /**
- * PURPOSE: Names the one failure `run` cannot itself distinguish from an ordinary command failure —
- * the `kill` binary missing from `$PATH` collapses to `{exitCode: 1, output: '', signal: null}`.
- * Unlike `lsof`, a real `kill` failure (no such process, permission denied) always writes something
- * to stderr, so this detection is safe here — see `lsof-listening-pids.ts`'s header for the sibling
- * module where the same shape is genuinely ambiguous.
+ * PURPOSE: Names "kill is not on this machine" for a caller of `@dungeonmaster/bin/kill`, re-thrown
+ * by `killRun` whenever `@dungeonmaster/node/child_process`'s `run` reports its own
+ * `RunNotFoundError`.
  *
  * USAGE:
- * throw new KillNotInstalledError('kill -SIGKILL 12345 produced no output');
+ * throw new KillNotInstalledError('kill -SIGKILL 12345 could not start in /repo: ...');
  */
 
 export class KillNotInstalledError extends Error {}

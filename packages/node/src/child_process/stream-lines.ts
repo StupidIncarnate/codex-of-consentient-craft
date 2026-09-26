@@ -15,10 +15,15 @@
  * nothing. Pass `() => undefined` to opt out explicitly — then the choice is on the page.
  *
  * `signal` comes off the `close` event's own second argument, same reasoning as `stream`'s header.
+ *
+ * A spawn that never started (`'error'`) throws `RunNotFoundError` rather than resolving
+ * `{exitCode: 1, ...}` — the same fix `run` and `stream` get, for the same reason.
  */
 
 import { createInterface } from 'readline';
 import { spawn } from 'child_process';
+
+import { RunNotFoundError } from './run-not-found-error';
 
 export const streamLines = async ({
   command,
@@ -34,7 +39,7 @@ export const streamLines = async ({
   onLine: (line: string) => void;
   abortSignal?: AbortSignal;
 }): Promise<{ exitCode: number | null; output: string; signal: NodeJS.Signals | null }> =>
-  new Promise((resolve) => {
+  new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd,
       stdio: ['inherit', 'pipe', 'pipe'],
@@ -73,11 +78,9 @@ export const streamLines = async ({
       }
     });
 
-    child.on('error', (error: Error) => {
+    child.on('error', (error: NodeJS.ErrnoException) => {
       rl.close();
-      const output = [...stdoutChunks, ...stderrChunks].join('\n');
-      const exitCode = 'code' in error && typeof error.code === 'number' ? error.code : 1;
-      resolve({ exitCode, output, signal: null });
+      reject(new RunNotFoundError({ command, code: error.code, message: error.message }));
     });
 
     child.on('close', (code, signal) => {

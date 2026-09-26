@@ -1,5 +1,6 @@
 import { run } from './run';
 import { runProxy } from './run.proxy';
+import { RunNotFoundError } from './run-not-found-error';
 
 describe('run()', () => {
   describe('successful execution', () => {
@@ -144,16 +145,22 @@ describe('run()', () => {
   });
 
   describe('command not found', () => {
-    it('ERROR: {spawn ENOENT} => returns exit code 1 and empty output, never throws', async () => {
+    it('ERROR: {spawn ENOENT} => throws RunNotFoundError naming the command and carrying the code', async () => {
       const proxy = runProxy();
       proxy.setupError({
         command: 'nonexistent',
         error: Object.assign(new Error('spawn nonexistent ENOENT'), { code: 'ENOENT' }),
       });
 
-      const result = await run({ command: 'nonexistent', args: [], cwd: '/project' });
-
-      expect(result).toStrictEqual({ exitCode: 1, output: '', signal: null, timedOut: false });
+      await expect(
+        run({ command: 'nonexistent', args: [], cwd: '/project' }),
+      ).rejects.toStrictEqual(
+        new RunNotFoundError({
+          command: 'nonexistent',
+          code: 'ENOENT',
+          message: 'spawn nonexistent ENOENT',
+        }),
+      );
     });
   });
 

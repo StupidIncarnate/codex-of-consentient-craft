@@ -1,13 +1,14 @@
 /**
  * PURPOSE: The one call every other file in this folder makes into `@dungeonmaster/node/child_process`.
- * Centralizes the `kill`-not-installed detection — see `kill-not-installed-error.ts`'s header for
- * why that detection is safe for this program specifically.
+ * Centralizes the `kill`-not-installed detection — catches `run`'s `RunNotFoundError` and re-throws it
+ * as `KillNotInstalledError`, so a caller of `@dungeonmaster/bin/kill` only needs this module's own
+ * error class.
  *
  * USAGE:
  * const { exitCode, output } = await killRun({ args: ['-SIGKILL', '12345'], cwd: '/repo' });
  */
 
-import { run } from '@dungeonmaster/node/child_process';
+import { run, RunNotFoundError } from '@dungeonmaster/node/child_process';
 
 import { KillNotInstalledError } from './kill-not-installed-error';
 
@@ -23,13 +24,14 @@ export const killRun = async ({
   signal: NodeJS.Signals | null;
   timedOut: boolean;
 }> => {
-  const result = await run({ command: 'kill', args, cwd });
-
-  if (result.exitCode === 1 && result.output === '' && result.signal === null && !result.timedOut) {
-    throw new KillNotInstalledError(
-      `kill ${args.join(' ')} produced no output and exit code 1 in ${cwd} — kill is likely not installed or not on PATH`,
-    );
+  try {
+    return await run({ command: 'kill', args, cwd });
+  } catch (error: unknown) {
+    if (error instanceof RunNotFoundError) {
+      throw new KillNotInstalledError(
+        `kill ${args.join(' ')} could not start in ${cwd}: ${error.message}`,
+      );
+    }
+    throw error;
   }
-
-  return result;
 };

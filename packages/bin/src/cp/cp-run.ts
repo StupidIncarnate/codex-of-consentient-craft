@@ -1,12 +1,14 @@
 /**
  * PURPOSE: The one call every other file in this folder makes into `@dungeonmaster/node/child_process`.
- * Centralizes the `cp`-not-installed detection — see `cp-not-installed-error.ts`'s header.
+ * Centralizes the `cp`-not-installed detection — catches `run`'s `RunNotFoundError` and re-throws it
+ * as `CpNotInstalledError`, so a caller of `@dungeonmaster/bin/cp` only needs this module's own error
+ * class.
  *
  * USAGE:
  * const { exitCode, output } = await cpRun({ args: ['-a', '/src', '/dest'], cwd: '/repo' });
  */
 
-import { run } from '@dungeonmaster/node/child_process';
+import { run, RunNotFoundError } from '@dungeonmaster/node/child_process';
 
 import { CpNotInstalledError } from './cp-not-installed-error';
 
@@ -22,13 +24,14 @@ export const cpRun = async ({
   signal: NodeJS.Signals | null;
   timedOut: boolean;
 }> => {
-  const result = await run({ command: 'cp', args, cwd });
-
-  if (result.exitCode === 1 && result.output === '' && result.signal === null && !result.timedOut) {
-    throw new CpNotInstalledError(
-      `cp ${args.join(' ')} produced no output and exit code 1 in ${cwd} — cp is likely not installed or not on PATH`,
-    );
+  try {
+    return await run({ command: 'cp', args, cwd });
+  } catch (error: unknown) {
+    if (error instanceof RunNotFoundError) {
+      throw new CpNotInstalledError(
+        `cp ${args.join(' ')} could not start in ${cwd}: ${error.message}`,
+      );
+    }
+    throw error;
   }
-
-  return result;
 };

@@ -87,3 +87,8 @@ export * from './src/statics/usage-accounting/usage-accounting-statics';
 // The filesystem and export-name convention siegelense and a repo's own recipes package agree on
 // to find and read each other's compiled output without either importing the other.
 export * from './src/statics/recipes-convention/recipes-convention-statics';
+
+// The four gateway packages' folder names and file globs, and the Node built-in module list
+// gatewayPathFromImportSourceTransformer reads to tell a Node module from a third-party package.
+export * from './src/statics/gateway-locations/gateway-locations-statics';
+export * from './src/statics/node-builtin/node-builtin-statics';

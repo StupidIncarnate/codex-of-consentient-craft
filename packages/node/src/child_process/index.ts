@@ -5,10 +5,12 @@
  * long the process lives.
  *
  * USAGE:
- * import { run, stream, streamLines, spawnDetached, spawnLongLived, spawnLive, runFireAndForget } from '@dungeonmaster/node/child_process';
+ * import { run, runSync, stream, streamLines, spawnDetached, spawnLongLived, spawnLive, runFireAndForget, RunNotFoundError } from '@dungeonmaster/node/child_process';
  */
 
 export * from './run';
+export * from './run-sync';
+export * from './run-not-found-error';
 export * from './stream';
 export * from './stream-lines';
 export * from './spawn-detached';

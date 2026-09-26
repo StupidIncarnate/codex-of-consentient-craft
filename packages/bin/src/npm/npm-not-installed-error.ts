@@ -1,11 +1,9 @@
 /**
- * PURPOSE: Names the one failure `run` cannot itself distinguish from an ordinary command failure —
- * `npm` missing from `$PATH` collapses to `{exitCode: 1, output: '', signal: null}`, identical in
- * shape to a real npm invocation that happened to fail silently. Every `@dungeonmaster/bin/npm`
- * function throws this instead of returning that ambiguous shape.
+ * PURPOSE: Names "npm is not on this machine" for a caller of `@dungeonmaster/bin/npm`, re-thrown by
+ * `npmRun` whenever `@dungeonmaster/node/child_process`'s `run` reports its own `RunNotFoundError`.
  *
  * USAGE:
- * throw new NpmNotInstalledError('npm install produced no output in /repo');
+ * throw new NpmNotInstalledError('npm install could not start in /repo: ...');
  */
 
 export class NpmNotInstalledError extends Error {}

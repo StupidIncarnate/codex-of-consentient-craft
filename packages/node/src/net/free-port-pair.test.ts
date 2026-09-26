@@ -11,6 +11,6 @@ describe('freePortPair', () => {
   it('VALID: {no args} => the two ports are distinct', async () => {
     const { firstPort, secondPort } = await freePortPair();
 
-    expect(firstPort).not.toBe(secondPort);
+    expect(new Set([firstPort, secondPort]).size).toBe(2);
   });
 });

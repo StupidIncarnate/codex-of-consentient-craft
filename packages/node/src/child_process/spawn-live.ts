@@ -45,7 +45,9 @@ export const spawnLive = ({
   });
 
   child.on('error', (error: Error) => {
-    process.stderr.write(`[child_process/spawnLive] "${command}" failed to start: ${String(error)}\n`);
+    process.stderr.write(
+      `[child_process/spawnLive] "${command}" failed to start: ${String(error)}\n`,
+    );
   });
 
   const { stdout } = child;

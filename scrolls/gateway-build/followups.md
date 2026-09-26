@@ -58,14 +58,3 @@ apart from a real refusal. **`netKillPortAdapter`'s callers in ward are the losi
 reconciliation** and need review at migration: moving to `killPid` per pid changes the signal sent
 (`SIGKILL` instead of the default `SIGTERM`) and makes a partial failure visible instead of silently
 swallowed — worth confirming this is what ward's e2e-artifact teardown wants before the swap.
-
-### `@dungeonmaster/bin/lsof`'s `listeningPids` does not detect "lsof not installed"
-
-Every other `@dungeonmaster/bin/*` module (`git`, `npm`, `kill`, `cp`) throws a `*NotInstalledError`
-when `run` returns `{exitCode: 1, output: '', signal: null, timedOut: false}` — the shape `run`
-produces both for a missing binary and, in every other program's case, never for a legitimate
-result. **`lsof -ti :<port>` produces that exact same shape for "nothing is listening on this
-port"** — the ordinary, common case — so `listeningPids` cannot tell "lsof is missing" from "the
-port is free" without a change to `@dungeonmaster/node/child_process`'s `run` itself (e.g. reporting
-ENOENT distinctly from an ordinary non-zero exit). Left undetected rather than risk throwing on
-every free-port check. Worth revisiting if `run` grows a distinct ENOENT signal.

@@ -1,4 +1,4 @@
-import { run } from '@dungeonmaster/node/child_process';
+import { run, RunNotFoundError } from '@dungeonmaster/node/child_process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const npmRunProxy = (): {
@@ -9,6 +9,7 @@ export const npmRunProxy = (): {
     signal?: NodeJS.Signals;
     timedOut?: boolean;
   }) => void;
+  setupNotFound: (params: { args: string[]; message: string }) => void;
 } => {
   const handle = registerMock({ fn: run });
 
@@ -32,6 +33,12 @@ export const npmRunProxy = (): {
         signal: signal ?? null,
         timedOut: timedOut ?? false,
       });
+    },
+
+    setupNotFound: ({ args, message }: { args: string[]; message: string }): void => {
+      handle
+        .calledWith([{ command: 'npm', args }])
+        .rejects(new RunNotFoundError({ command: 'npm', code: 'ENOENT', message }));
     },
   };
 };

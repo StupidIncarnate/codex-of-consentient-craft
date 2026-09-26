@@ -12,9 +12,15 @@
  * has no exit code of its own, and reporting it alongside `exitCode` (rather than dropping it, as
  * this wrapper's predecessor did) is what lets a caller tell a SIGKILL apart from a `code: null`
  * it cannot otherwise explain.
+ *
+ * A spawn that never started (`'error'`) throws `RunNotFoundError` rather than resolving
+ * `{exitCode: 1, ...}` — the same fix `run` gets, for the same reason: that shape is indistinguishable
+ * from a real command that exits 1 and prints nothing.
  */
 
 import { spawn } from 'child_process';
+
+import { RunNotFoundError } from './run-not-found-error';
 
 export const stream = async ({
   command,
@@ -27,7 +33,7 @@ export const stream = async ({
   cwd: string;
   onStderr?: (chunk: string) => void;
 }): Promise<{ exitCode: number | null; output: string; signal: NodeJS.Signals | null }> =>
-  new Promise((resolve) => {
+  new Promise((resolve, reject) => {
     const child = spawn(command, args, { cwd, stdio: ['inherit', 'pipe', 'pipe'] });
 
     const stdoutChunks: string[] = [];
@@ -42,10 +48,8 @@ export const stream = async ({
       }
     });
 
-    child.on('error', (error: Error) => {
-      const output = stdoutChunks.join('');
-      const exitCode = 'code' in error && typeof error.code === 'number' ? error.code : 1;
-      resolve({ exitCode, output, signal: null });
+    child.on('error', (error: NodeJS.ErrnoException) => {
+      reject(new RunNotFoundError({ command, code: error.code, message: error.message }));
     });
 
     child.on('close', (code, signal) => {

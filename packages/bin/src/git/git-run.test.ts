@@ -12,13 +12,13 @@ describe('gitRun()', () => {
     expect(result).toStrictEqual({ exitCode: 0, output: 'main', signal: null, timedOut: false });
   });
 
-  it('ERROR: {exitCode: 1, output: "", signal: null, timedOut: false} => throws GitNotInstalledError', async () => {
+  it('ERROR: {run throws RunNotFoundError} => throws GitNotInstalledError', async () => {
     const proxy = gitRunProxy();
-    proxy.setupResult({ args: ['status'], exitCode: 1, output: '' });
+    proxy.setupNotFound({ args: ['status'], message: 'spawn git ENOENT' });
 
     await expect(gitRun({ args: ['status'], cwd: '/repo' })).rejects.toStrictEqual(
       new GitNotInstalledError(
-        'git status produced no output and exit code 1 in /repo — git is likely not installed or not on PATH',
+        'git status could not start in /repo: "git" never started: spawn git ENOENT',
       ),
     );
   });

@@ -6,6 +6,7 @@
  */
 
 export { fetchJsonProxy } from '../fetch/fetch-json.proxy';
+export { fetchWithStatusProxy } from '../fetch/fetch-with-status.proxy';
 
 export { readItemProxy } from '../localStorage/read-item.proxy';
 export { writeItemProxy } from '../localStorage/write-item.proxy';

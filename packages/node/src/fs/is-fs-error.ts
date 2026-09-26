@@ -7,8 +7,10 @@
  * `instanceof`, because the field access alone throws on a non-object `error`.
  *
  * USAGE:
- * isFsError({ error, code: 'ENOENT' });
- * // Returns true when error is an object whose `code` field is exactly 'ENOENT'
+ * const check = { error, code: 'ENOENT' };
+ * if (isFsError(check)) {
+ *   check.error.code; // narrowed to FsError, readable without a further cast
+ * }
  */
 
 // Extends Error (not a bare shape) because FsErrorStub builds a real `Error` instance — needed so
@@ -21,5 +23,14 @@ export interface FsError extends Error {
   syscall?: string;
 }
 
-export const isFsError = ({ error, code }: { error: unknown; code: string }): boolean =>
-  typeof error === 'object' && error !== null && 'code' in error && error.code === code;
+// TypeScript refuses a type predicate on a name bound by destructuring (TS1230: "A type predicate
+// cannot reference element 'error' in a binding pattern"), so the parameter stays a single
+// identifier here — `params.error`, not a destructured `error` — even though every OTHER wrapper in
+// this package destructures its object argument in the signature.
+export const isFsError = (params: {
+  error: unknown;
+  code: string;
+}): params is { error: FsError; code: string } => {
+  const { error, code } = params;
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === code;
+};

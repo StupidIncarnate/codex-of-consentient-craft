@@ -12,13 +12,16 @@ describe('killRun()', () => {
     expect(result).toStrictEqual({ exitCode: 0, output: '', signal: null, timedOut: false });
   });
 
-  it('ERROR: {exitCode: 1, output: "", signal: null, timedOut: false} => throws KillNotInstalledError', async () => {
+  it('ERROR: {run throws RunNotFoundError} => throws KillNotInstalledError', async () => {
     const proxy = killRunProxy();
-    proxy.setupResult({ args: ['-SIGKILL', '12345'], exitCode: 1, output: '' });
+    proxy.setupNotFound({
+      args: ['-SIGKILL', '12345'],
+      message: 'spawn kill ENOENT',
+    });
 
     await expect(killRun({ args: ['-SIGKILL', '12345'], cwd: '/repo' })).rejects.toStrictEqual(
       new KillNotInstalledError(
-        'kill -SIGKILL 12345 produced no output and exit code 1 in /repo — kill is likely not installed or not on PATH',
+        'kill -SIGKILL 12345 could not start in /repo: "kill" never started: spawn kill ENOENT',
       ),
     );
   });

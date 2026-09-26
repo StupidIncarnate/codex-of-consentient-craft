@@ -1,5 +1,6 @@
 import { stream } from './stream';
 import { streamProxy } from './stream.proxy';
+import { RunNotFoundError } from './run-not-found-error';
 
 describe('stream()', () => {
   describe('successful execution', () => {
@@ -74,26 +75,22 @@ describe('stream()', () => {
   });
 
   describe('command not found', () => {
-    it('ERROR: {spawn error without a numeric code} => returns exit code 1 and collected stdout', async () => {
+    it('ERROR: {spawn ENOENT} => throws RunNotFoundError naming the command and carrying the code', async () => {
       const proxy = streamProxy();
-      proxy.setupError({ command: 'nonexistent', error: new Error('ENOENT: not found') });
-
-      const result = await stream({ command: 'nonexistent', args: [], cwd: '/project' });
-
-      expect(result).toStrictEqual({ exitCode: 1, output: '', signal: null });
-    });
-
-    it('ERROR: {spawn error with a numeric code} => returns that exit code', async () => {
-      const proxy = streamProxy();
-      proxy.setupErrorWithCode({
+      proxy.setupError({
         command: 'nonexistent',
-        error: new Error('ENOENT'),
-        exitCode: 127,
+        error: Object.assign(new Error('spawn nonexistent ENOENT'), { code: 'ENOENT' }),
       });
 
-      const result = await stream({ command: 'nonexistent', args: [], cwd: '/project' });
-
-      expect(result).toStrictEqual({ exitCode: 127, output: '', signal: null });
+      await expect(
+        stream({ command: 'nonexistent', args: [], cwd: '/project' }),
+      ).rejects.toStrictEqual(
+        new RunNotFoundError({
+          command: 'nonexistent',
+          code: 'ENOENT',
+          message: 'spawn nonexistent ENOENT',
+        }),
+      );
     });
   });
 

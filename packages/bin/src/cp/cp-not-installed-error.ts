@@ -1,11 +1,9 @@
 /**
- * PURPOSE: Names the one failure `run` cannot itself distinguish from an ordinary command failure —
- * `cp` missing from `$PATH` collapses to `{exitCode: 1, output: '', signal: null}`. A real `cp`
- * failure (missing source, cross-device link) always writes a message to stderr, so this detection
- * is safe here — see `@dungeonmaster/bin/git`'s `git-run.ts` header for the general reasoning.
+ * PURPOSE: Names "cp is not on this machine" for a caller of `@dungeonmaster/bin/cp`, re-thrown by
+ * `cpRun` whenever `@dungeonmaster/node/child_process`'s `run` reports its own `RunNotFoundError`.
  *
  * USAGE:
- * throw new CpNotInstalledError('cp -a produced no output');
+ * throw new CpNotInstalledError('cp -a /src /dest could not start in /repo: ...');
  */
 
 export class CpNotInstalledError extends Error {}

@@ -2,6 +2,7 @@ import * as browserTesting from './index';
 
 const CURATED_MODULE_PROXY_EXPORTS = [
   ['fetchJsonProxy', browserTesting.fetchJsonProxy],
+  ['fetchWithStatusProxy', browserTesting.fetchWithStatusProxy],
   ['readItemProxy', browserTesting.readItemProxy],
   ['writeItemProxy', browserTesting.writeItemProxy],
   ['removeItemProxy', browserTesting.removeItemProxy],

@@ -17,13 +17,13 @@ describe('npmRun()', () => {
     });
   });
 
-  it('ERROR: {exitCode: 1, output: "", signal: null, timedOut: false} => throws NpmNotInstalledError', async () => {
+  it('ERROR: {run throws RunNotFoundError} => throws NpmNotInstalledError', async () => {
     const proxy = npmRunProxy();
-    proxy.setupResult({ args: ['install'], exitCode: 1, output: '' });
+    proxy.setupNotFound({ args: ['install'], message: 'spawn npm ENOENT' });
 
     await expect(npmRun({ args: ['install'], cwd: '/repo' })).rejects.toStrictEqual(
       new NpmNotInstalledError(
-        'npm install produced no output and exit code 1 in /repo — npm is likely not installed or not on PATH',
+        'npm install could not start in /repo: "npm" never started: spawn npm ENOENT',
       ),
     );
   });

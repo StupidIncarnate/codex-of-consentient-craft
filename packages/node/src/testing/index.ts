@@ -71,6 +71,7 @@ export { spawnLiveProxy } from '../child_process/spawn-live.proxy';
 export { runFireAndForgetProxy } from '../child_process/run-fire-and-forget.proxy';
 
 export { resolvePackageRootProxy } from '../module/resolve-package-root.proxy';
+export { dynamicImportProxy } from '../module/dynamic-import.proxy';
 
 export { isPortFreeProxy } from '../net/is-port-free.proxy';
 export { freePortPairProxy } from '../net/free-port-pair.proxy';
@@ -82,6 +83,7 @@ export { lineReaderProxy } from '../readline/line-reader.proxy';
 
 export { fetchJsonProxy } from '../fetch/fetch-json.proxy';
 export { fetchOkProxy } from '../fetch/fetch-ok.proxy';
+export { fetchWithStatusProxy } from '../fetch/fetch-with-status.proxy';
 
 export { readStdinToEndProxy } from '../process/read-stdin-to-end.proxy';
 export { getEnvProxy } from '../process/get-env.proxy';

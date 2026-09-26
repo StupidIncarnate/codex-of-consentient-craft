@@ -8,11 +8,10 @@ describe('spawnLive()', () => {
 
     const result = spawnLive({ command: 'claude', args: ['-p', 'hi'] });
 
-    expect(result.process).toBe(child);
-    expect(result.stdout).toBe(child.stdout);
+    expect(result).toStrictEqual({ process: child, stdout: child.stdout });
   });
 
-  it('VALID: {stdout emits a chunk with no trailing newline} => the chunk is delivered as-is', () => {
+  it('VALID: {stdout emits a chunk with no trailing newline} => the chunk is delivered as-is', async () => {
     const proxy = spawnLiveProxy();
     const child = proxy.setupSuccess({ command: 'claude' });
 
@@ -24,6 +23,10 @@ describe('spawnLive()', () => {
     });
     child.stdout?.push(Buffer.from('partial line, no newline'));
     child.stdout?.push(null);
+
+    await new Promise((resolve) => {
+      setImmediate(resolve);
+    });
 
     expect(received).toStrictEqual(['partial line, no newline']);
   });

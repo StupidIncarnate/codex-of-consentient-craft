@@ -1,9 +1,10 @@
-import { run } from '@dungeonmaster/node/child_process';
+import { run, RunNotFoundError } from '@dungeonmaster/node/child_process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const lsofListeningPidsProxy = (): {
   setupPids: (params: { port: number; pids: number[] }) => void;
   setupNoneListening: (params: { port: number }) => void;
+  setupNotFound: (params: { port: number; message: string }) => void;
 } => {
   const handle = registerMock({ fn: run });
 
@@ -23,6 +24,11 @@ export const lsofListeningPidsProxy = (): {
         signal: null,
         timedOut: false,
       });
+    },
+    setupNotFound: ({ port, message }: { port: number; message: string }): void => {
+      handle
+        .calledWith([{ command: 'lsof', args: ['-ti', `:${String(port)}`] }])
+        .rejects(new RunNotFoundError({ command: 'lsof', code: 'ENOENT', message }));
     },
   };
 };

@@ -135,3 +135,9 @@ export * from './src/transformers/quest-session-cwd/quest-session-cwd-transforme
 // The graph walk both the lint rule and server boot call — a config a route cannot reach, or that
 // reaches no terminal, is a quest that silently stalls rather than one that errors.
 export * from './src/transformers/graph-reachability-violations/graph-reachability-violations-transformer';
+
+// Gateway import mapping — a raw import specifier's scope-prefixed gateway path, and the root
+// package.json name it derives the scope from. A caller-facing lint rule and a migration script
+// both depend on this staying mechanical.
+export * from './src/transformers/package-scope-from-name/package-scope-from-name-transformer';
+export * from './src/transformers/gateway-path-from-import-source/gateway-path-from-import-source-transformer';

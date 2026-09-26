@@ -23,8 +23,10 @@ const CURATED_MODULE_PROXY_EXPORTS = [
   ['lineReaderProxy', nodeTesting.lineReaderProxy],
   ['fetchJsonProxy', nodeTesting.fetchJsonProxy],
   ['fetchOkProxy', nodeTesting.fetchOkProxy],
+  ['fetchWithStatusProxy', nodeTesting.fetchWithStatusProxy],
   ['readStdinToEndProxy', nodeTesting.readStdinToEndProxy],
   ['getEnvProxy', nodeTesting.getEnvProxy],
+  ['dynamicImportProxy', nodeTesting.dynamicImportProxy],
 ] as const;
 
 describe('@dungeonmaster/node/testing', () => {
