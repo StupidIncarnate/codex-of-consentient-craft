@@ -1,5 +1,8 @@
 /**
- * PURPOSE: Reads/creates .mcp.json config and adds MCP permissions to .claude/settings.json
+ * PURPOSE: Reads/creates .mcp.json config and adds MCP permissions to .claude/settings.json. A
+ * corrupt or unreadable .mcp.json throws instead of being treated as absent — collapsing the two
+ * is the bug that overwrote every other MCP server the user had configured with a fresh file
+ * holding only dungeonmaster's own entry.
  *
  * USAGE:
  * const result = await InstallConfigCreateResponder({ context });
@@ -13,9 +16,8 @@ import {
   packageNameContract,
   fileContentsContract,
 } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { join } from '@dungeonmaster/node/path';
+import { readJsonFileIfExists, writeFile } from '@dungeonmaster/node/fs/promises';
 import type { McpConfig } from '../../../contracts/mcp-config/mcp-config-contract';
 import { dungeonmasterConfigCreatorTransformer } from '../../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 import { settingsPermissionsAddBroker } from '../../../brokers/settings/permissions-add/settings-permissions-add-broker';
@@ -31,18 +33,12 @@ export const InstallConfigCreateResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const configPath = pathJoinAdapter({
-    paths: [context.targetProjectRoot, locationsStatics.repoRoot.mcpJson],
-  });
+  const configPath = join(context.targetProjectRoot, locationsStatics.repoRoot.mcpJson);
 
-  let existingConfig: McpConfig | null = null;
-
-  try {
-    const contents = await fsReadFileAdapter({ filepath: configPath });
-    existingConfig = JSON.parse(contents) as McpConfig;
-  } catch {
-    // File doesn't exist or is invalid JSON - will create new config
-  }
+  // Rejects (invalid JSON, EACCES, …) propagate to installExecuteBroker, which reports them as a
+  // failed InstallResult naming this file — never treated as "missing", which used to fall through
+  // to the write below and silently drop every other MCP server the user configured.
+  const existingConfig = (await readJsonFileIfExists(configPath)) as McpConfig | null;
 
   // Add MCP permissions to .claude/settings.json (always, regardless of MCP config state)
   const targetProjectRoot = pathSegmentContract.parse(context.targetProjectRoot);
@@ -73,7 +69,7 @@ export const InstallConfigCreateResponder = async ({
       JSON.stringify(mergedConfig, null, JSON_INDENT_SPACES),
     );
 
-    await fsWriteFileAdapter({ filepath: configPath, contents });
+    await writeFile(configPath, contents);
 
     return {
       packageName: packageNameContract.parse(PACKAGE_NAME),
@@ -92,7 +88,7 @@ export const InstallConfigCreateResponder = async ({
 
   const contents = fileContentsContract.parse(JSON.stringify(newConfig, null, JSON_INDENT_SPACES));
 
-  await fsWriteFileAdapter({ filepath: configPath, contents });
+  await writeFile(configPath, contents);
 
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),

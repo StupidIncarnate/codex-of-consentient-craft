@@ -1,9 +1,9 @@
-import type { join } from 'path';
-import { requireActual } from '@dungeonmaster/testing/register-mock';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
-import { fsMkdirAdapterProxy } from '../../../adapters/fs/mkdir/fs-mkdir-adapter.proxy';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
+import { join } from 'path';
+import {
+  ensureDirProxy,
+  readJsonFileIfExistsProxy,
+  writeFileProxy,
+} from '@dungeonmaster/node/testing';
 import type { FileContentsStub } from '@dungeonmaster/shared/contracts';
 import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -28,21 +28,32 @@ export const settingsPermissionsAddBrokerProxy = (): {
     targetProjectRoot: FilePath;
     settingsPath: FilePath;
   }) => void;
+  setupInvalidJsonSettings: ({
+    targetProjectRoot,
+    settingsPath,
+  }: {
+    targetProjectRoot: FilePath;
+    settingsPath: FilePath;
+  }) => void;
+  setupUnreadableSettings: ({
+    targetProjectRoot,
+    settingsPath,
+    error,
+  }: {
+    targetProjectRoot: FilePath;
+    settingsPath: FilePath;
+    error: unknown;
+  }) => void;
+  wasWriteCalled: ({ settingsPath }: { settingsPath: FilePath }) => boolean;
 } => {
-  const readProxy = fsReadFileAdapterProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
-  const mkdirProxy = fsMkdirAdapterProxy();
-  // join is left on its real passthrough default (path-join-adapter.proxy.ts) — the broker
-  // builds settingsDir/settingsPath through it for real, so it is never staged here.
-  pathJoinAdapterProxy();
+  const readProxy = readJsonFileIfExistsProxy();
+  const writeProxy = writeFileProxy();
+  const ensureDirProxyHandle = ensureDirProxy();
 
-  // Mirrors the broker's own settingsDir computation so the mkdir address matches what the
+  // Mirrors the broker's own settingsDir computation so the ensureDir address matches what the
   // broker really calls join with, instead of an arbitrary stub.
-  const actualPath = requireActual<{ join: typeof join }>({ module: 'path' });
   const settingsDirFor = ({ targetProjectRoot }: { targetProjectRoot: FilePath }): FilePath =>
-    FilePathStub({
-      value: actualPath.join(targetProjectRoot, locationsStatics.repoRoot.claude.dir),
-    });
+    FilePathStub({ value: join(targetProjectRoot, locationsStatics.repoRoot.claude.dir) });
 
   return {
     setupExistingSettings: ({
@@ -54,9 +65,9 @@ export const settingsPermissionsAddBrokerProxy = (): {
       settingsPath: FilePath;
       contents: FileContents;
     }): void => {
-      mkdirProxy.succeeds({ filepath: settingsDirFor({ targetProjectRoot }) });
-      readProxy.returnsFor({ filepath: settingsPath, contents });
-      writeProxy.succeeds({ filepath: settingsPath });
+      ensureDirProxyHandle.succeeds({ path: settingsDirFor({ targetProjectRoot }) });
+      readProxy.returnsRaw({ path: settingsPath, rawContents: contents });
+      writeProxy.succeeds({ path: settingsPath });
     },
     setupNoExistingSettings: ({
       targetProjectRoot,
@@ -65,9 +76,35 @@ export const settingsPermissionsAddBrokerProxy = (): {
       targetProjectRoot: FilePath;
       settingsPath: FilePath;
     }): void => {
-      mkdirProxy.succeeds({ filepath: settingsDirFor({ targetProjectRoot }) });
-      readProxy.throwsFor({ filepath: settingsPath, error: new Error('ENOENT') });
-      writeProxy.succeeds({ filepath: settingsPath });
+      ensureDirProxyHandle.succeeds({ path: settingsDirFor({ targetProjectRoot }) });
+      readProxy.missing({ path: settingsPath });
+      writeProxy.succeeds({ path: settingsPath });
     },
+    setupInvalidJsonSettings: ({
+      targetProjectRoot,
+      settingsPath,
+    }: {
+      targetProjectRoot: FilePath;
+      settingsPath: FilePath;
+    }): void => {
+      ensureDirProxyHandle.succeeds({ path: settingsDirFor({ targetProjectRoot }) });
+      // Real invalid JSON text, so the real `readJsonFile` produces the SyntaxError itself —
+      // this proves the broker's own parse path rejects, not a stubbed rejection standing in for it.
+      readProxy.returnsRaw({ path: settingsPath, rawContents: '{ not valid json' });
+    },
+    setupUnreadableSettings: ({
+      targetProjectRoot,
+      settingsPath,
+      error,
+    }: {
+      targetProjectRoot: FilePath;
+      settingsPath: FilePath;
+      error: unknown;
+    }): void => {
+      ensureDirProxyHandle.succeeds({ path: settingsDirFor({ targetProjectRoot }) });
+      readProxy.rejects({ path: settingsPath, error });
+    },
+    wasWriteCalled: ({ settingsPath }: { settingsPath: FilePath }): boolean =>
+      writeProxy.writtenContentsFor({ path: settingsPath }) !== undefined,
   };
 };

@@ -1,7 +1,9 @@
 /**
  * PURPOSE: Adds the dungeonmaster-managed permissions to .claude/settings.json — every MCP tool
  * grant plus the git Bash grants dispatched relay agents need — creating the file and directory
- * if needed.
+ * if needed. A settings.json that exists but fails to read (invalid JSON, EACCES) is left
+ * untouched on disk and the error surfaces to the caller — this broker never treats "unreadable"
+ * as "absent" and overwrites the user's other settings with a file holding only our permissions.
  *
  * USAGE:
  * await settingsPermissionsAddBroker({ targetProjectRoot: PathSegmentStub() });
@@ -14,14 +16,11 @@
 
 import {
   fileContentsContract,
-  pathSegmentContract,
   type FileContents,
   type PathSegment,
 } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
-import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
+import { join } from '@dungeonmaster/node/path';
+import { readJsonFileIfExists, writeFile, ensureDir } from '@dungeonmaster/node/fs/promises';
 import { mcpPermissionsCreatorTransformer } from '../../../transformers/mcp-permissions-creator/mcp-permissions-creator-transformer';
 import {
   agentBrowserPermissionsStatics,
@@ -41,30 +40,23 @@ export const settingsPermissionsAddBroker = async ({
 }: {
   targetProjectRoot: PathSegment;
 }): Promise<FileContents> => {
-  const settingsDir = pathSegmentContract.parse(
-    pathJoinAdapter({ paths: [targetProjectRoot, locationsStatics.repoRoot.claude.dir] }),
-  );
-  const settingsPath = pathSegmentContract.parse(
-    pathJoinAdapter({
-      paths: [
-        targetProjectRoot,
-        locationsStatics.repoRoot.claude.dir,
-        locationsStatics.repoRoot.claude.settings,
-      ],
-    }),
+  const settingsDir = join(targetProjectRoot, locationsStatics.repoRoot.claude.dir);
+  const settingsPath = join(
+    targetProjectRoot,
+    locationsStatics.repoRoot.claude.dir,
+    locationsStatics.repoRoot.claude.settings,
   );
 
   // Ensure .claude directory exists
-  await fsMkdirAdapter({ filepath: settingsDir });
+  await ensureDir(settingsDir);
 
-  // Read existing settings or start fresh
-  let existingSettings: Record<PropertyKey, unknown> = {};
-  try {
-    const contents = await fsReadFileAdapter({ filepath: settingsPath });
-    existingSettings = JSON.parse(contents) as Record<PropertyKey, unknown>;
-  } catch {
-    // File doesn't exist or is invalid JSON - will create new settings
-  }
+  // Read existing settings, or start fresh when the file has never existed. `readJsonFileIfExists`
+  // answers `null` on ENOENT only — invalid JSON and EACCES reject, and that rejection is left to
+  // propagate, so a corrupt or unreadable settings.json is never mistaken for a missing one and
+  // overwritten.
+  const existingRaw = await readJsonFileIfExists(settingsPath);
+  const existingSettings: Record<PropertyKey, unknown> =
+    existingRaw === null ? {} : (existingRaw as Record<PropertyKey, unknown>);
 
   // Every permission dungeonmaster manages: the MCP tool grants, then the git grants that let a
   // dispatched relay agent read history, land its handoff commit and publish its round, then the
@@ -116,7 +108,7 @@ export const settingsPermissionsAddBroker = async ({
     JSON.stringify(updatedSettings, null, JSON_INDENT_SPACES),
   );
 
-  await fsWriteFileAdapter({ filepath: settingsPath, contents });
+  await writeFile(settingsPath, contents);
 
   return contents;
 };

@@ -1,5 +1,6 @@
 import { createServer, type Server } from 'net';
 import { currentBranchProxy } from '@dungeonmaster/bin/testing';
+import { cwdProxy } from '@dungeonmaster/node/testing';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { fsMkdirAdapterProxy, netFreePortPairAdapterProxy } from '@dungeonmaster/shared/testing';
 import type { FilePath, NetworkPort } from '@dungeonmaster/shared/contracts';
@@ -51,6 +52,7 @@ export const instanceReserveBrokerProxy = (): {
   const evidenceProxy = locationsInstanceEvidencePathFindBrokerProxy();
   const mkdirProxy = fsMkdirAdapterProxy();
   const branchProxy = currentBranchProxy();
+  cwdProxy();
   netFreePortPairAdapterProxy();
 
   const createServerHandle = registerMock({ fn: createServer });

@@ -1,25 +1,19 @@
 /**
- * PURPOSE: Test proxy for InstallConfigCreateResponder, mocking adapters and brokers
+ * PURPOSE: Test proxy for InstallConfigCreateResponder, staging the gateway's `.mcp.json`
+ * read/write and the still-adapter-based settings/agents brokers this responder also calls.
  *
  * USAGE:
  * const proxy = InstallConfigCreateResponderProxy();
- * proxy.setupFileRead({ content: '{"mcpServers":{}}' });
+ * proxy.setupFileRead({ targetProjectRoot, content: '{"mcpServers":{}}' });
  * const result = await proxy.callResponder({ context });
  */
 
-import type { join } from 'path';
-import { requireActual } from '@dungeonmaster/testing/register-mock';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { join } from 'path';
+import { readJsonFileIfExistsProxy, writeFileProxy } from '@dungeonmaster/node/testing';
 import { settingsPermissionsAddBrokerProxy } from '../../../brokers/settings/permissions-add/settings-permissions-add-broker.proxy';
 import { agentsPluginCreateBrokerProxy } from '../../../brokers/agents/plugin-create/agents-plugin-create-broker.proxy';
-import {
-  FileContentsStub,
-  PathSegmentStub,
-  pathSegmentContract,
-} from '@dungeonmaster/shared/contracts';
-import type { FileContents, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub, pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import type { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { InstallConfigCreateResponder } from './install-config-create-responder';
 
@@ -33,33 +27,41 @@ export const InstallConfigCreateResponderProxy = (): {
     content,
   }: {
     targetProjectRoot: FilePath;
-    content: FileContents;
+    content: string;
   }) => void;
-  setupFileReadError: ({ targetProjectRoot }: { targetProjectRoot: FilePath }) => void;
+  setupFileMissing: ({ targetProjectRoot }: { targetProjectRoot: FilePath }) => void;
+  setupCorruptFile: ({
+    targetProjectRoot,
+    rawContents,
+  }: {
+    targetProjectRoot: FilePath;
+    rawContents: string;
+  }) => void;
+  setupFileReadError: ({
+    targetProjectRoot,
+    error,
+  }: {
+    targetProjectRoot: FilePath;
+    error: unknown;
+  }) => void;
   getWrittenConfig: ({ targetProjectRoot }: { targetProjectRoot: FilePath }) => unknown;
 } => {
-  pathJoinAdapterProxy();
-  const readProxy = fsReadFileAdapterProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const readProxy = readJsonFileIfExistsProxy();
+  const writeProxy = writeFileProxy();
   const settingsProxy = settingsPermissionsAddBrokerProxy();
   const agentsProxy = agentsPluginCreateBrokerProxy();
 
-  // Mirrors the responder's own configPath/settingsPath computation — including its FilePath ->
-  // PathSegment re-brand — so the read/write/settings addresses below match what the responder
-  // really calls join with (join's real passthrough default is left in place — see
-  // path-join-adapter.proxy.ts).
-  const actualPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  // Mirrors the responder's own configPath computation so the read/write addresses below match
+  // what it really calls join with.
   const configPathFor = ({ targetProjectRoot }: { targetProjectRoot: FilePath }): PathSegment =>
-    PathSegmentStub({
-      value: actualPath.join(targetProjectRoot, locationsStatics.repoRoot.mcpJson),
-    });
+    PathSegmentStub({ value: join(targetProjectRoot, locationsStatics.repoRoot.mcpJson) });
   const claudeSettingsPathFor = ({
     targetProjectRoot,
   }: {
     targetProjectRoot: FilePath;
   }): PathSegment =>
     PathSegmentStub({
-      value: actualPath.join(
+      value: join(
         targetProjectRoot,
         locationsStatics.repoRoot.claude.dir,
         locationsStatics.repoRoot.claude.settings,
@@ -74,13 +76,10 @@ export const InstallConfigCreateResponderProxy = (): {
       content,
     }: {
       targetProjectRoot: FilePath;
-      content: FileContents;
+      content: string;
     }): void => {
-      readProxy.returnsFor({
-        filepath: configPathFor({ targetProjectRoot }),
-        contents: FileContentsStub({ value: content }),
-      });
-      writeProxy.succeeds({ filepath: configPathFor({ targetProjectRoot }) });
+      readProxy.returnsRaw({ path: configPathFor({ targetProjectRoot }), rawContents: content });
+      writeProxy.succeeds({ path: configPathFor({ targetProjectRoot }) });
       settingsProxy.setupNoExistingSettings({
         targetProjectRoot: pathSegmentContract.parse(targetProjectRoot),
         settingsPath: claudeSettingsPathFor({ targetProjectRoot }),
@@ -90,12 +89,9 @@ export const InstallConfigCreateResponderProxy = (): {
       });
     },
 
-    setupFileReadError: ({ targetProjectRoot }: { targetProjectRoot: FilePath }): void => {
-      readProxy.throwsFor({
-        filepath: configPathFor({ targetProjectRoot }),
-        error: new Error('ENOENT'),
-      });
-      writeProxy.succeeds({ filepath: configPathFor({ targetProjectRoot }) });
+    setupFileMissing: ({ targetProjectRoot }: { targetProjectRoot: FilePath }): void => {
+      readProxy.missing({ path: configPathFor({ targetProjectRoot }) });
+      writeProxy.succeeds({ path: configPathFor({ targetProjectRoot }) });
       settingsProxy.setupNoExistingSettings({
         targetProjectRoot: pathSegmentContract.parse(targetProjectRoot),
         settingsPath: claudeSettingsPathFor({ targetProjectRoot }),
@@ -103,9 +99,34 @@ export const InstallConfigCreateResponderProxy = (): {
       agentsProxy.setupSuccess({
         targetProjectRoot: pathSegmentContract.parse(targetProjectRoot),
       });
+    },
+
+    // No write/settings/agents setup here: real JSON.parse throws on this content before the
+    // responder reaches any of them, so staging those proxies would hide a regression that made
+    // the responder reach past the corrupt read.
+    setupCorruptFile: ({
+      targetProjectRoot,
+      rawContents,
+    }: {
+      targetProjectRoot: FilePath;
+      rawContents: string;
+    }): void => {
+      readProxy.returnsRaw({ path: configPathFor({ targetProjectRoot }), rawContents });
+    },
+
+    // No write/settings/agents setup here: the read rejects before the responder ever calls them,
+    // so staging those proxies would hide a regression that made the responder call them anyway.
+    setupFileReadError: ({
+      targetProjectRoot,
+      error,
+    }: {
+      targetProjectRoot: FilePath;
+      error: unknown;
+    }): void => {
+      readProxy.rejects({ path: configPathFor({ targetProjectRoot }), error });
     },
 
     getWrittenConfig: ({ targetProjectRoot }: { targetProjectRoot: FilePath }): unknown =>
-      writeProxy.getWrittenFor({ filepath: configPathFor({ targetProjectRoot }) }),
+      writeProxy.writtenContentsFor({ path: configPathFor({ targetProjectRoot }) }),
   };
 };

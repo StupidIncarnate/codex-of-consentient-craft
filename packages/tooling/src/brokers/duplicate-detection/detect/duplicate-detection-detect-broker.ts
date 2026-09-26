@@ -11,12 +11,15 @@ import type { DuplicateLiteralReport } from '../../../contracts/duplicate-litera
 import type { LiteralOccurrence } from '../../../contracts/literal-occurrence/literal-occurrence-contract';
 import type { LiteralValue } from '../../../contracts/literal-value/literal-value-contract';
 import type { OccurrenceThreshold } from '../../../contracts/occurrence-threshold/occurrence-threshold-contract';
-import { globFindAdapter } from '../../../adapters/glob/find/glob-find-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { glob } from '@dungeonmaster/npm/glob';
+import { readFile } from '@dungeonmaster/node/fs/promises';
 import { typescriptParseAdapter } from '../../../adapters/typescript/parse/typescript-parse-adapter';
+import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
+import { sourceCodeContract } from '../../../contracts/source-code/source-code-contract';
 import { duplicateLiteralReportContract } from '../../../contracts/duplicate-literal-report/duplicate-literal-report-contract';
 import { literalTypeContract } from '../../../contracts/literal-type/literal-type-contract';
 import { duplicateDetectionStatics } from '../../../statics/duplicate-detection/duplicate-detection-statics';
+import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-statics';
 import { isRegexLiteralGuard } from '../../../guards/is-regex-literal/is-regex-literal-guard';
 
 export const duplicateDetectionDetectBroker = async ({
@@ -34,7 +37,12 @@ export const duplicateDetectionDetectBroker = async ({
   const actualMinLength = minLength ?? duplicateDetectionStatics.defaults.minLength;
 
   // Find all TypeScript files
-  const filePaths = await globFindAdapter(cwd ? { pattern, cwd } : { pattern });
+  const matches = await glob(pattern, {
+    ...(cwd === undefined ? {} : { cwd }),
+    nodir: false,
+    ignore: globIgnoreStatics.defaults,
+  });
+  const filePaths = matches.map((match) => absoluteFilePathContract.parse(match));
 
   // Aggregate literals across all files
   const globalLiteralsMap = new Map<LiteralValue, LiteralOccurrence[]>();
@@ -42,7 +50,8 @@ export const duplicateDetectionDetectBroker = async ({
   // Process all files in parallel
   const fileResults = await Promise.all(
     filePaths.map(async (filePath) => {
-      const sourceCode = await fsReadFileAdapter({ filePath });
+      const rawSourceCode = await readFile(filePath);
+      const sourceCode = sourceCodeContract.parse(rawSourceCode);
       const fileLiterals = typescriptParseAdapter({
         sourceCode,
         filePath,

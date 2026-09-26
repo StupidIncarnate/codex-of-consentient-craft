@@ -58,6 +58,8 @@ rule.
 npm run ward -- --only lint,typecheck,unit -- <all 6 files above>
 ```
 
+First pass, before the gateway-fixes pass:
+
 - `typecheck`: **PASS** (1483 files).
 - `lint`: **FAIL** — one error, friction below (not fixable in this unit's lane).
 - `unit`: **FAIL** — blocked by a testing-infrastructure gap, not a logic bug; see below. Verified in
@@ -67,6 +69,24 @@ npm run ward -- --only lint,typecheck,unit -- <all 6 files above>
 npm run ward -- --only unit -- packages/siegelense/src/brokers/instance/reserve/instance-reserve-broker.test.ts
 npm run ward -- --only unit -- packages/bin/src/git/git-current-branch.test.ts   # control: PASS
 ```
+
+## Final ward result
+
+After the naming-misfire fix, cross-package proxy hoisting fix, and adding `cwdProxy()` to this
+unit's proxy (friction #1 below):
+
+```
+npm run ward -- --only lint,typecheck,unit -- packages/siegelense/src/brokers/instance/reserve/instance-reserve-broker.ts packages/siegelense/src/brokers/instance/reserve/instance-reserve-broker.proxy.ts packages/siegelense/src/brokers/instance/reserve/instance-reserve-broker.test.ts packages/siegelense/src/brokers/instance/start/instance-start-broker.proxy.ts packages/siegelense/package.json
+
+lint:      PASS  1 packages (4 files passed/0 files failed, 4 discovered)  5.8s
+typecheck: PASS  1 packages (1483 files passed/0 files failed, 1483 discovered)  7.0s
+unit:      PASS  1 packages (3 files passed/0 files failed, 529 discovered)  17.9s
+```
+
+All three git-branch scenarios are proven in `instance-reserve-broker.test.ts`: a normal branch
+(`'feat/def-04'`), a detached HEAD (`branch: null`, in the "no port collision" and "port collision"
+blocks), and a real git failure (the "git failure" describe block, asserting the reservation itself
+rejects with the git error message).
 
 ## Friction
 
@@ -86,11 +106,16 @@ two names name the same gateway export. Correct code as written; not fixable fro
 → `currentBranchProxy`, `npmInstallProxy` → `installProxy`, etc.; `@dungeonmaster/node`,
 `@dungeonmaster/npm` and `@dungeonmaster/browser` were already correctly named). This file's own
 `import { currentBranchProxy } from '@dungeonmaster/bin/testing';` now matches `currentBranch` exactly,
-so THIS misfire is gone. `enforce-proxy-child-creation` still fires here, but on a genuinely different,
+so THIS misfire is gone. `enforce-proxy-child-creation` still fired here on a genuinely different,
 real gap: the implementation also imports `cwd` from `@dungeonmaster/node/process`, and this proxy
-never composes a `cwdProxy` for it — a real (if harmless, since `cwd()` runs for real and nothing
-asserts on it) finding, left for the eslint-plugin pass fixing this rule rather than patched around
-here.
+never composed a `cwdProxy` for it — a real (if harmless, since `cwd()` runs for real and nothing
+asserts on it) finding.
+
+**Resolved here:** `cwdProxy` from `@dungeonmaster/node/process/cwd.proxy.ts` exists exactly under
+that name (exported through `@dungeonmaster/node/testing`) and is a real read with nothing to fake —
+its own body is `(): Record<PropertyKey, never> => ({})`. Composed it in this proxy alongside
+`branchProxy`, so the rule now sees both dependencies the implementation imports accounted for.
+`lint` is clean on this file.
 
 ### 2. BLOCKING: cross-package proxy mock composition does not intercept the real call
 
@@ -129,6 +154,17 @@ through `@dungeonmaster/bin/testing`, `@dungeonmaster/node/testing` or `@dungeon
 via another package's own `.proxy.ts`** — this affects every trial unit that composes a gateway
 proxy transitively (not just this one), and is worth flagging to whoever runs the lint/testing
 consumption phase before more callers migrate.
+
+**Resolved by the follow-up gateway-fixes pass — confirmed here.** Re-running this unit's tests after
+that pass landed:
+
+```
+npm run ward -- --only unit -- packages/siegelense/src/brokers/instance/reserve/instance-reserve-broker.test.ts
+```
+
+now passes every describe block, including the git-failure test added here — `run` is really mocked
+through the cross-package hop, so `currentBranch` → `gitRun` → `run` resolves to the staged
+`registerMock` dispatcher instead of hitting the real `child_process` subprocess.
 
 **Resolved by the follow-up gateway-fixes pass, in `packages/testing/src`:**
 

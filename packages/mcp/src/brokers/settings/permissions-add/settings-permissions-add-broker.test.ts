@@ -1,6 +1,7 @@
 import { settingsPermissionsAddBroker } from './settings-permissions-add-broker';
 import { settingsPermissionsAddBrokerProxy } from './settings-permissions-add-broker.proxy';
 import { FileContentsStub, PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { FsErrorStub } from '@dungeonmaster/node/fs/promises';
 
 describe('settingsPermissionsAddBroker', () => {
   describe('no existing settings file', () => {
@@ -546,6 +547,35 @@ describe('settingsPermissionsAddBroker', () => {
           ),
         }),
       );
+    });
+  });
+
+  describe('unreadable existing settings file', () => {
+    it('ERROR: {settings: invalid JSON} => rejects naming the file and never writes', async () => {
+      const proxy = settingsPermissionsAddBrokerProxy();
+      const targetProjectRoot = PathSegmentStub({ value: '/project' });
+      const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
+
+      proxy.setupInvalidJsonSettings({ targetProjectRoot, settingsPath });
+
+      await expect(settingsPermissionsAddBroker({ targetProjectRoot })).rejects.toStrictEqual(
+        new SyntaxError(`Invalid JSON in ${settingsPath}`),
+      );
+      expect(proxy.wasWriteCalled({ settingsPath })).toBe(false);
+    });
+
+    it('ERROR: {settings: EACCES} => rejects naming the file and never writes', async () => {
+      const proxy = settingsPermissionsAddBrokerProxy();
+      const targetProjectRoot = PathSegmentStub({ value: '/project' });
+      const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
+      const eaccesError = FsErrorStub({ code: 'EACCES', path: settingsPath, syscall: 'open' });
+
+      proxy.setupUnreadableSettings({ targetProjectRoot, settingsPath, error: eaccesError });
+
+      await expect(settingsPermissionsAddBroker({ targetProjectRoot })).rejects.toStrictEqual(
+        eaccesError,
+      );
+      expect(proxy.wasWriteCalled({ settingsPath })).toBe(false);
     });
   });
 });

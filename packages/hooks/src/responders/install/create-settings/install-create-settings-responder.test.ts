@@ -1,4 +1,5 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FsErrorStub } from '@dungeonmaster/node/fs/promises';
 import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 import { InstallCreateSettingsResponderProxy } from './install-create-settings-responder.proxy';
 
@@ -1128,6 +1129,47 @@ describe('InstallCreateSettingsResponder', () => {
           ],
         },
       });
+    });
+  });
+
+  describe('corrupt or unreadable settings.json', () => {
+    it('ERROR: {settings.json: invalid JSON} => rejects naming the file, and never writes', async () => {
+      const proxy = InstallCreateSettingsResponderProxy();
+
+      proxy.setupCorruptSettings();
+
+      await expect(
+        proxy.callResponder({
+          context: {
+            targetProjectRoot: FilePathStub({ value: '/project' }),
+            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+          },
+        }),
+      ).rejects.toStrictEqual(new SyntaxError('Invalid JSON in /project/.claude/settings.json'));
+
+      expect(proxy.getWrittenContent()).toBe(undefined);
+    });
+
+    it('ERROR: {settings.json: permission denied} => rejects with the raw EACCES error, and never writes', async () => {
+      const proxy = InstallCreateSettingsResponderProxy();
+
+      const error = FsErrorStub({
+        code: 'EACCES',
+        path: '/project/.claude/settings.json',
+        syscall: 'open',
+      });
+      proxy.setupUnreadableSettings({ error });
+
+      await expect(
+        proxy.callResponder({
+          context: {
+            targetProjectRoot: FilePathStub({ value: '/project' }),
+            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+          },
+        }),
+      ).rejects.toBe(error);
+
+      expect(proxy.getWrittenContent()).toBe(undefined);
     });
   });
 });

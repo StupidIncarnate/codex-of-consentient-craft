@@ -448,7 +448,7 @@ describe('duplicateDetectionDetectBroker', () => {
       const files = [file1];
       const threshold = OccurrenceThresholdStub({ value: 3 });
 
-      brokerProxy.setupFiles({ pattern, files });
+      brokerProxy.setupFiles({ pattern, cwd, files });
 
       const result = await duplicateDetectionDetectBroker({ pattern, cwd, threshold });
 

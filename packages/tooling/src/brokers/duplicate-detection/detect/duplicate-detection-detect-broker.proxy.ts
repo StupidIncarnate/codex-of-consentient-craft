@@ -1,6 +1,7 @@
-import { globFindAdapterProxy } from '../../../adapters/glob/find/glob-find-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { globProxy } from '@dungeonmaster/npm/testing';
+import { readFileProxy } from '@dungeonmaster/node/testing';
 import { typescriptParseAdapterProxy } from '../../../adapters/typescript/parse/typescript-parse-adapter.proxy';
+import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-statics';
 import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
@@ -8,26 +9,37 @@ import type { SourceCode } from '../../../contracts/source-code/source-code-cont
 export const duplicateDetectionDetectBrokerProxy = (): {
   setupFiles: (params: {
     pattern: GlobPattern;
+    cwd?: AbsoluteFilePath;
     files: readonly { filePath: AbsoluteFilePath; sourceCode: SourceCode }[];
   }) => void;
 } => {
-  const globProxy = globFindAdapterProxy();
-  const fsProxy = fsReadFileAdapterProxy();
+  const globHandle = globProxy();
+  const readFileHandle = readFileProxy();
   typescriptParseAdapterProxy();
 
   return {
     setupFiles: ({
       pattern,
+      cwd,
       files,
     }: {
       pattern: GlobPattern;
+      cwd?: AbsoluteFilePath;
       files: readonly { filePath: AbsoluteFilePath; sourceCode: SourceCode }[];
     }): void => {
       const filePaths = files.map(({ filePath }) => filePath);
-      globProxy.returns({ pattern, filePaths });
+      globHandle.returns({
+        pattern,
+        options: {
+          ...(cwd === undefined ? {} : { cwd }),
+          nodir: false,
+          ignore: globIgnoreStatics.defaults,
+        },
+        matches: [...filePaths],
+      });
 
       for (const { filePath, sourceCode } of files) {
-        fsProxy.returns({ filePath, sourceCode });
+        readFileHandle.returns({ path: filePath, contents: sourceCode });
       }
     },
   };

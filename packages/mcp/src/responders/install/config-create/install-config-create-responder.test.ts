@@ -5,7 +5,8 @@
  * npm run ward -- --only test -- packages/mcp/src/responders/install/config-create/install-config-create-responder.test.ts
  */
 
-import { FilePathStub, FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FsErrorStub } from '@dungeonmaster/node/fs/promises';
 import { dungeonmasterConfigCreatorTransformer } from '../../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 import { InstallConfigCreateResponderProxy } from './install-config-create-responder.proxy';
 
@@ -15,7 +16,7 @@ describe('InstallConfigCreateResponder', () => {
       const proxy = InstallConfigCreateResponderProxy();
       const targetProjectRoot = FilePathStub({ value: '/project' });
 
-      proxy.setupFileReadError({ targetProjectRoot });
+      proxy.setupFileMissing({ targetProjectRoot });
 
       const result = await proxy.callResponder({
         context: {
@@ -52,16 +53,14 @@ describe('InstallConfigCreateResponder', () => {
 
       proxy.setupFileRead({
         targetProjectRoot,
-        content: FileContentsStub({
-          value: JSON.stringify({
-            mcpServers: {
-              dungeonmaster: {
-                type: 'stdio',
-                command: 'node',
-                args: ['-e', "require('@dungeonmaster/mcp')"],
-              },
+        content: JSON.stringify({
+          mcpServers: {
+            dungeonmaster: {
+              type: 'stdio',
+              command: 'node',
+              args: ['-e', "require('@dungeonmaster/mcp')"],
             },
-          }),
+          },
         }),
       });
 
@@ -88,16 +87,14 @@ describe('InstallConfigCreateResponder', () => {
 
       proxy.setupFileRead({
         targetProjectRoot,
-        content: FileContentsStub({
-          value: JSON.stringify({
-            mcpServers: {
-              other: {
-                type: 'http',
-                command: 'node',
-                args: ['server.js'],
-              },
+        content: JSON.stringify({
+          mcpServers: {
+            other: {
+              type: 'http',
+              command: 'node',
+              args: ['server.js'],
             },
-          }),
+          },
         }),
       });
 
@@ -137,40 +134,46 @@ describe('InstallConfigCreateResponder', () => {
   });
 
   describe('invalid JSON config', () => {
-    it('VALID: {invalid JSON in .mcp.json} => creates new config', async () => {
+    it('ERROR: {invalid JSON in .mcp.json} => rejects naming the file and never writes', async () => {
       const proxy = InstallConfigCreateResponderProxy();
       const targetProjectRoot = FilePathStub({ value: '/project' });
 
-      proxy.setupFileRead({
-        targetProjectRoot,
-        content: FileContentsStub({ value: 'invalid json{' }),
-      });
+      proxy.setupCorruptFile({ targetProjectRoot, rawContents: 'invalid json{' });
 
-      const result = await proxy.callResponder({
-        context: {
-          targetProjectRoot,
-          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
-        },
-      });
-
-      expect(result).toStrictEqual({
-        packageName: '@dungeonmaster/mcp',
-        success: true,
-        action: 'created',
-        message: 'Created .mcp.json with dungeonmaster config and added permissions',
-      });
-
-      const writtenConfig = proxy.getWrittenConfig({ targetProjectRoot });
-
-      expect(writtenConfig).toBe(
-        JSON.stringify(
-          {
-            mcpServers: dungeonmasterConfigCreatorTransformer(),
+      await expect(
+        proxy.callResponder({
+          context: {
+            targetProjectRoot,
+            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
           },
-          null,
-          2,
-        ),
-      );
+        }),
+      ).rejects.toThrow(/Invalid JSON in .*\.mcp\.json/u);
+
+      expect(proxy.getWrittenConfig({ targetProjectRoot })).toBe(undefined);
+    });
+  });
+
+  describe('permission denied reading config', () => {
+    it('ERROR: {EACCES reading .mcp.json} => rejects naming the file and never writes', async () => {
+      const proxy = InstallConfigCreateResponderProxy();
+      const targetProjectRoot = FilePathStub({ value: '/project' });
+      const configPath = '/project/.mcp.json';
+
+      proxy.setupFileReadError({
+        targetProjectRoot,
+        error: FsErrorStub({ code: 'EACCES', path: configPath, syscall: 'open' }),
+      });
+
+      await expect(
+        proxy.callResponder({
+          context: {
+            targetProjectRoot,
+            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+          },
+        }),
+      ).rejects.toThrow(/EACCES.*\.mcp\.json/u);
+
+      expect(proxy.getWrittenConfig({ targetProjectRoot })).toBe(undefined);
     });
   });
 });

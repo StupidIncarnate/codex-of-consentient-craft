@@ -3,9 +3,16 @@
  * Re-runs are idempotent and additive: any prior dungeonmaster-* hook entries are stripped before the freshly-generated set is appended, so newly-added hook types (e.g. a new PostToolUse) land on every subsequent `dungeonmaster init` without manual cleanup.
  * Also writes the root-level session defaults from `sessionDefaultsCreatorTransformer`, configures Antigravity in .agents/ and symlinks AGENTS.md -> CLAUDE.md.
  *
+ * A corrupt or unreadable settings.json (invalid JSON, EACCES) is left on disk untouched: the read
+ * rejects, this responder does not catch it, and `installExecuteBroker` (the caller above `StartInstall`)
+ * turns the rejection into a failed `InstallResult` naming the file. Only a genuinely ABSENT file
+ * takes the 'created' branch — collapsing "unreadable" into "absent" is the data-loss bug this
+ * replaces, since 'created' writes a fresh file over whatever was really there.
+ *
  * USAGE:
  * const result = await InstallCreateSettingsResponder({ context });
  * // 'created' on fresh project, 'merged' on existing settings (preserves third-party entries).
+ * // Throws when settings.json exists but cannot be read as JSON.
  *
  * The session defaults spread UNDER the consumer's own settings, so every one of those keys lands
  * on a fresh install and yields to whatever the consumer sets afterwards. `hooks` is the opposite
@@ -21,9 +28,8 @@ import {
   fileContentsContract,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsEnsureWriteAdapter } from '../../../adapters/fs/ensure-write/fs-ensure-write-adapter';
+import path from '@dungeonmaster/node/path';
+import { readJsonFileIfExists, writeFileCreatingParent } from '@dungeonmaster/node/fs/promises';
 import { installAgentsSetupBroker } from '../../../brokers/install/agents-setup/install-agents-setup-broker';
 import type { ClaudeSettings } from '../../../contracts/claude-settings/claude-settings-contract';
 import { dungeonmasterHooksCreatorTransformer } from '../../../transformers/dungeonmaster-hooks-creator/dungeonmaster-hooks-creator-transformer';
@@ -38,19 +44,13 @@ export const InstallCreateSettingsResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const settingsPath = pathJoinAdapter({
-    paths: [
-      context.targetProjectRoot,
-      locationsStatics.repoRoot.claude.dir,
-      locationsStatics.repoRoot.claude.settings,
-    ],
-  });
+  const settingsPath = path.join(
+    context.targetProjectRoot,
+    locationsStatics.repoRoot.claude.dir,
+    locationsStatics.repoRoot.claude.settings,
+  );
 
-  const existingSettings: ClaudeSettings | null = await fsReadFileAdapter({
-    filePath: settingsPath,
-  })
-    .then((contents) => JSON.parse(contents) as ClaudeSettings)
-    .catch(() => null);
+  const existingSettings = (await readJsonFileIfExists(settingsPath)) as ClaudeSettings | null;
 
   const dungeonmasterHooks = dungeonmasterHooksCreatorTransformer();
   const sessionDefaults = sessionDefaultsCreatorTransformer();
@@ -97,7 +97,7 @@ export const InstallCreateSettingsResponder = async ({
       JSON.stringify(mergedSettings, null, JSON_INDENT_SPACES),
     );
 
-    await fsEnsureWriteAdapter({ filepath: settingsPath, contents });
+    await writeFileCreatingParent(settingsPath, contents);
 
     return {
       packageName: packageNameContract.parse(PACKAGE_NAME),
@@ -116,7 +116,7 @@ export const InstallCreateSettingsResponder = async ({
     JSON.stringify(newSettings, null, JSON_INDENT_SPACES),
   );
 
-  await fsEnsureWriteAdapter({ filepath: settingsPath, contents });
+  await writeFileCreatingParent(settingsPath, contents);
 
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),
