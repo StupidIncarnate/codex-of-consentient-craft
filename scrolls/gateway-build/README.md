@@ -84,13 +84,13 @@ Ten units, each switching 1-3 caller files from an adapter (or a raw call) to a 
 | 1 | mcp | `settings-permissions-add-broker` → `readJsonFileIfExists` | **Data-loss bug fixed**: a corrupt/unreadable `settings.json` now rejects instead of being silently replaced |
 | 2 | hooks | `install-create-settings-responder` → `readJsonFileIfExists` | **Data-loss bug fixed**: same file, second writer, same bug |
 | 3 | mcp | `install-config-create-responder` → `readJsonFileIfExists` | **Data-loss bug fixed**: a corrupt `.mcp.json` now rejects instead of dropping every configured MCP server |
-| 4 | config | `install-create-config-responder` → `pathExists`, `readJsonFileIfExists`, `writeFile` | Control case: this responder already skipped the write on bad JSON; behaviour proven byte-identical after the swap |
-| 5 | tooling | `duplicate-detection-detect-broker` → `glob`, `readFile` | A pure pass-through adapter (`fsReadFileAdapter`) disappears outright; the caller parses the gateway's result itself |
+| 4 | config | `install-create-config-responder` → `pathExists`, `readJsonFileIfExists`, `writeFile` | Control case: it already skipped the write on a bad read. It still does, and now reports missing, invalid JSON and unreadable as three separate outcomes, each with the real error text. Before, an unreadable file was reported as "not valid JSON" |
+| 5 | tooling | `duplicate-detection-detect-broker` → `glob`, `readFile` | The glob drift: tooling's copy included directories and hard-coded four ignore patterns. The broker now passes `nodir: false` and those patterns from a tooling statics file, so behaviour is identical. The pass-through `fsReadFileAdapter` simply drops out |
 | 6 | siegelense | `instance-reserve-broker` → `currentBranch` from `bin/git` | sync→async, `null`-on-detached-HEAD kept, but a real git failure now throws instead of collapsing to `null` — an intentional tightening, not a regression |
 | 7 | web | `comment-queue-state` → `readItem`/`writeItem`/`removeItem`/`keys` from `browser/localStorage` | Caller deletes its own two `try/catch` blocks; surfaced that the wrapper's `{success:false}` shape was discarding the real error (fixed, see below) |
-| 8 | web | `home-content-widget.test.tsx` → `render` from `npm/@testing-library/react` | Proves a test can consume a WRAPPED npm export (Mantine-provider render), not just a pass-through, with zero assertion changes |
+| 8 | web | `home-content-widget.test.tsx` → `render` from `npm/@testing-library/react` | Proves a web test and proxy can import testing-library through the gateway. The test renders through web's own `mantineRenderAdapter`, so the gateway's Mantine-wrapping `render` was not exercised here |
 | 9 | mcp | `claude-permission-contract` → `z` from `npm/zod` | Proves a contract, its stub and its test all resolve through a pass-through with no behaviour difference |
-| 10 | mcp | `file-scanner-broker` → `glob` from `npm/glob` | A second, independent glob caller reconciled onto the one gateway `glob` |
+| 10 | mcp | `file-scanner-broker` → `glob` from `npm/glob` | mcp's copy was the winning glob shape and moved over unchanged. It broke 9 tests in `mcp-discover-broker.test.ts`, because the gateway `globProxy` only matched exact patterns. Fixed by giving `globProxy` a default, tail matching and call inspection, like the adapter proxy it replaces |
 
 ## 6. Edge cases the design did not account for
 
@@ -118,9 +118,22 @@ Ten units, each switching 1-3 caller files from an adapter (or a raw call) to a 
   file, not integrated into `--only`/`--committed`/`--uncommitted`, and not saved to `.ward/` for
   `ward list`/`ward detail`. (`followups.md` "Platform-crossing check")
 
+- **A gateway proxy must offer what the adapter proxy it replaced offered.** Callers came to rely on
+  an adapter proxy's safe default, loose matching and call inspection. When the gateway proxy lacks
+  them, the caller's tests break, or the caller copies broker logic into its proxy. `globProxy` is
+  fixed. `followups.md` lists the other gateway proxies that still lack a default or call inspection.
+  (unit 10)
+- **The platform-crossing walk has to be memoized.** Without a cache it re-walked a shared file once per
+  path that reached it, and ran out of heap on the full repo, at about 5.4 GB. With per-file memo and
+  shared caches, one run on this tree took 3.2 seconds and about 740 MB, and reported no crossings.
+- **Open rule gaps found late**, all in `followups.md`: `parseImplementationImportsTransformer` reads a
+  per-name `type` import as a value import; `platform-globals-ban` misses a global used as an object
+  shorthand (`{ fetch }`); and it does not special-case siegelense's `page.evaluate` callbacks, which run
+  in the driven browser.
+
 ## 7. Not done, and why
 
-- **Every adapter except the ten trial units' callers is unmigrated.** `coverage.md` counts 220 adapters
+- **Every adapter except the ten trial units' callers is unmigrated.** `coverage.md`, counted on 2026-09-26, has 220 adapters
   fated `gateway`, 43 `split`, 83 `stays`, 3 `dead` — the consumption phase that switches the rest has
   not started (brief rule 6: write new gateway files, never move existing callers, until that phase).
 - **Three adapters have no gateway home yet**: `process-kill-by-port-adapter` (orchestrator),
