@@ -72,20 +72,28 @@ behavior is preserved from the existing adapters, not new.
 
 | Exported name | Signature | Built on |
 |---|---|---|
-| `resolveCliPath` | `() => AbsoluteFilePath` | `require.resolve('@anthropic-ai/claude-code')`-based lookup (see below — **this resolution does not exist today**) |
+| `resolveCliPath` | `() => AbsoluteFilePath` | `require.resolve('@anthropic-ai/claude-code')`-based lookup (see below — **this resolution did not exist at inventory time; built 2026-09-26, exported as `resolveClaudeCliPath`**) |
 | `spawnStreamJson` | `({prompt, resumeSessionId?, cwd?, stdinMode?, model, disableToolSearch?, onStderrLine?, addDir?}) => {process: ChildProcess, stdout: Readable}` | `@dungeonmaster/node/child_process`'s raw `spawn` (not `run`/`streamLines` — this needs the live `ChildProcess` handle and a readable `stdout` stream for JSONL parsing, not a captured/joined string) |
 
 Only the spawn, the CLI-path resolution, and the raw line stream belong here. Everything from
 `claudeLineNormalizeBroker` onward (session-id extraction, JSONL → `ChatEntry[]`) stays in orchestrator
 (`agentSpawnUnifiedBroker`, `chatLineProcessTransformer`), because it reads our own contracts.
 
-**Where CLI-path resolution lives today: nowhere.** `packages/orchestrator/src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.ts:104` reads
+**Where CLI-path resolution lived at inventory time: nowhere.** `packages/orchestrator/src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.ts:104` reads
 `const cliPath = process.env.CLAUDE_CLI_PATH ?? 'claude';` — a bare command name resolved off `$PATH`, with an env
-override for tests (`packages/testing`'s e2e harness points `CLAUDE_CLI_PATH` at the fake CLI). No code anywhere
-calls `require.resolve('@anthropic-ai/claude-code')`. The package is only an **optional peer dependency** of
-`@dungeonmaster/cli` (`packages/cli/package.json:36-42`) — declared so a consumer can install it, never resolved to a
-path. This is exactly the gap the brief's design closes: `resolveCliPath` is new code, not a reconciliation of two
-existing implementations, and it is what makes "how Claude is launched is going to change" (brief) land in one place.
+override for tests (`packages/testing`'s e2e harness points `CLAUDE_CLI_PATH` at the fake CLI). At the time this
+inventory was written, no code anywhere called `require.resolve('@anthropic-ai/claude-code')`. The package was only an
+**optional peer dependency** of `@dungeonmaster/cli` (`packages/cli/package.json:36-42`) — declared so a consumer can
+install it, never resolved to a path. This was exactly the gap the brief's design closed: `resolveCliPath` was new
+code, not a reconciliation of two existing implementations, and it is what makes "how Claude is launched is going to
+change" (brief) land in one place.
+
+**Update, 2026-09-26:** `resolveClaudeCliPath` and `spawnStreamJson` are now built, in
+`packages/@gateway/bin/src/claude/` (`claude-resolve-cli-path.ts`, `claude-spawn-stream-json.ts`), with
+a `ClaudeNotInstalledError` alongside them — see `scrolls/gateway-build/README.md` section 2. The
+`process.env.CLAUDE_CLI_PATH ?? 'claude'` call site named above is `orchestrator`'s own, still
+unmigrated (the trial's consumption phase has not reached it) — the gap this section describes is
+closed on the gateway side, not yet on the caller side.
 
 ### `@dungeonmaster/bin/cp`
 
@@ -262,9 +270,11 @@ fire-and-forget, e.g. opening a URL) — no raw `spawn`/`exec`/`execSync` leaves
 chat-entry translation stays in orchestrator), `@dungeonmaster/bin/cp` (1), and a combined `@dungeonmaster/bin/port`
 (lsof+kill, 3 functions) sit on top of `run`. Two real reconciliations are needed before the move: "current branch"
 (orchestrator's async vs siegelense's sync, with a different detached-HEAD convention) and `kill`'s signal/tolerance
-policy (orchestrator's `-9`/per-pid/tolerant vs ward's default-signal/batch/intolerant). The Claude CLI path
-resolution the brief describes doesn't exist yet — today it's `process.env.CLAUDE_CLI_PATH ?? 'claude'` on `$PATH`,
-never a `require.resolve('@anthropic-ai/claude-code')` — so `resolveCliPath` is new code, not a migration. Three
+policy (orchestrator's `-9`/per-pid/tolerant vs ward's default-signal/batch/intolerant). At inventory time the Claude
+CLI path resolution the brief describes did not exist — it was `process.env.CLAUDE_CLI_PATH ?? 'claude'` on `$PATH`,
+never a `require.resolve('@anthropic-ai/claude-code')`. **Update, 2026-09-26:** `resolveClaudeCliPath` is now built,
+in `packages/@gateway/bin/src/claude/`; the orchestrator call site that still reads `CLAUDE_CLI_PATH` directly is
+unmigrated, not unbuilt. Three
 hooks/orchestrator adapters are dead (0 production callers) and should be deleted rather than migrated. Proxies mock
 the wrapper (`currentBranch`, not `spawn`) for callers; inside the gateway itself, `spawn` stays the mock address,
 unchanged from today's `registerMock({fn: spawn})` convention.

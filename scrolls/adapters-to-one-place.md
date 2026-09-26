@@ -71,7 +71,8 @@ Contracts may not import a package's types, so eslint-plugin copies them:
 ## The direction
 
 1. **The gateway.** Four workspace packages: `@acme/npm` in `packages/npm`, `@acme/node` in
-   `packages/node`, `@acme/browser` in `packages/browser`, and `@acme/bin` in `packages/bin`. Each outside thing is a subpath carrying its real name: `@acme/npm/react`,
+   `packages/node`, `@acme/browser` in `packages/browser`, and `@acme/bin` in `packages/bin` (location
+   and import form updated 2026-09-26 — see "Structure" below). Each outside thing is a subpath carrying its real name: `@acme/npm/react`,
    `@acme/npm/@playwright/test`, `@acme/node/fs`, `@acme/browser/fetch`, `@acme/bin/git`.
    `dungeonmaster init` installs them.
 2. **No raw
@@ -467,6 +468,15 @@ Decided on 2026-09-25 as the obvious answers, so the discussion could focus on t
        `init`, `create-package`.
 11. **The consumer migration
     run:** `init` scaffolds the four packages, named from the repo's scope, and generates a pass-through module for every package the repo imports. It then rewrites imports and global uses and turns the rules on. Wrapping is left for later, when the repo finds a reason.
+
+    **Update, 2026-09-26:** the scaffolding half of this is built. `dungeonmaster init` creates
+    `packages/@gateway/{npm,node,browser,bin}` named from the consumer's own scope, adds them to root
+    `workspaces`, merges the four `#gateway` entries into every package's `imports`, and merges the
+    matching `paths` into every tsconfig. See `scrolls/gateway-build/README.md` section 3 decision 4
+    and `scrolls/gateway-build/followups.md` "Consumer `init`: gateway scaffolding". Generating a
+    pass-through module per package the consumer already imports, rewriting the consumer's existing
+    imports and global uses, and turning the raw-import/globals rules on are still not built — `init`
+    scaffolds an empty gateway, and a consumer still adds its own wrapper modules by hand.
 
 ## What moves where
 

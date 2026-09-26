@@ -14,11 +14,12 @@ in section 5, labeled Trial 1 and Trial 2:
   callers across web, mcp, server, siegelense, hooks, config, tooling, shared, orchestrator,
   eslint-plugin and ward.
 
-16 commits land the gateway at its original location and Trial 1, on this worktree's branch
-(`gateway-pivot`; `git log --oneline master..HEAD`). **Nothing is merged to `master`.** The move to
-`packages/@gateway/` and Trial 2 are **uncommitted** in this worktree (`git status`); this doc-update
-pass does not commit them. No adapter has been deleted. The consumption phase — moving every remaining
-caller — has not started; the two trials together switch a small slice of the eventual callers.
+Every commit through `bb6fffbdb` is on this worktree's branch (`gateway-pivot`;
+`git log --oneline master..HEAD`), and `git status` is clean — the move to `packages/@gateway/`, the
+`#gateway` import switch, Trial 2, and the consumer `init` scaffolding (section 3 decision 4) are all
+committed here. **Nothing is merged to `master`.** No adapter has been deleted. The consumption phase —
+moving every remaining caller — has not started; the two trials together switch a small slice of the
+eventual callers.
 
 ## 2. The four gateway packages
 
@@ -60,9 +61,9 @@ the way `testing` risked.
 | The `./testing` subpath is renamed `./_test_` (`src/_test_/index.ts`) in every gateway package | A leading `_` can't start an npm package name, and no Node module or browser global is called `_test_`, so it never collides with a real subpath — `testing` risked exactly that collision | `gatewayLocationsStatics.testSubpath`; e.g. `packages/@gateway/bin/src/_test_/index.ts` |
 | Every tsconfig keeps `moduleResolution: "node"` (which ignores `imports`); the root `tsconfig.json` gets a `paths` entry per gateway folder pointed at the gateway's own SOURCE, and every gateway package's `tsconfig.build.json` points the same specifier at the SIBLING gateways' `dist/*/index.d.ts` instead | `paths` is the only way `node`/`node10` resolution sees a `#`-prefixed specifier; a build config pointing at source would pull a sibling package's source into ITS OWN build program and TS6059 on `rootDir`. Switching to `moduleResolution: "bundler"` was rejected — it forces `module: "preserve"`, changing emitted JS | root `tsconfig.json`; `packages/eslint-plugin/tsconfig.json` (merges its own `paths` override); `packages/@gateway/npm/tsconfig.build.json` |
 | Tools that reason about imports learn `#gateway` alongside the old `@dungeonmaster/<folder>` form, both accepted during the transition: `@dungeonmaster/testing`'s mock-hoisting resolver, several eslint-plugin rules and guards, ward's platform-crossing check, and the lint suggestion text (fixing a `Buffer`/`buffer` capitalization bug on the way) | Callers switch one at a time, not all at once, so both import forms have to keep working while the migration is in progress | `packages/testing/src/middleware/workspace-package-import-resolve/workspace-package-import-resolve-middleware.ts`; `packages/eslint-plugin/src/brokers/rule/{enforce-import-dependencies,enforce-proxy-child-creation,gateway-import-boundary,raw-import-ban}`; `packages/eslint-plugin/src/guards/is-npm-package/is-npm-package-guard.ts`; `packages/ward/src/brokers/platform-crossing/check/gateway-package-names-read-layer-broker.ts`; `packages/shared/src/transformers/gateway-path-from-import-source/gateway-path-from-import-source-transformer.ts` |
-| A package that imports `#gateway/<folder>/...` lists `@dungeonmaster/<folder>` in its own `dependencies` (`"*"`) | The `imports` field only RENAMES a specifier; it never installs anything, so the real dependency edge still has to be declared | added to `packages/{eslint-plugin,hooks,orchestrator,server,shared,siegelense,ward}/package.json` |
+| A package that imports `#gateway/<folder>/...` lists `@dungeonmaster/<folder>` in its own `dependencies` (`"*"`) | The `imports` field only RENAMES a specifier; it never installs anything, so the real dependency edge still has to be declared | added to `packages/{eslint-plugin,hooks,orchestrator,server,shared,siegelense,ward}/package.json`; now enforced automatically by the `@dungeonmaster/gateway-dependency-declared` lint rule (section 4) |
 | A pass-through of a package whose types use `export =` (react, debug, pixelmatch, eslint-plugin-jest, `@typescript-eslint/eslint-plugin`) names what callers need explicitly (`export { default } from '<pkg>'; export { a, b } from '<pkg>'; export type { T } from '<pkg>';`) instead of `import x = require()`/`export =` or `export *` | `export *` against an `export =`-typed module is TS2498, unconditionally; `export =`/`import ... = require()` hides named exports from Vite/Rollup and fails ESM-target typecheck (TS1202/TS1203). `typescript`'s pass-through, and `path`/`events` in `@dungeonmaster/node`, keep `export =` — they are Node-only, so no bundler or ESM-target ever sees them | e.g. `packages/@gateway/npm/src/{react,debug,pixelmatch,eslint-plugin-jest,@typescript-eslint/eslint-plugin}/index.ts`; `packages/@gateway/npm/src/typescript/index.ts`; `packages/@gateway/node/src/{path,events}/index.ts` |
-| A gateway-listed package gets exactly ONE installed copy; `npm dedupe` merged the npm gateway's own nested `@mantine/core` 8.3.18 with web's 8.3.14 (and the matching `@mantine/notifications`/`hooks`/`store`) | A widget importing Mantine through the gateway couldn't see web's `MantineProvider` while two copies existed | `package-lock.json`; an unrelated bump the dedupe pulled in (`@types/node` 24.0.15 → 24.19.0) was reverted |
+| A gateway-listed package gets exactly ONE installed copy; `npm dedupe` merged the npm gateway's own nested `@mantine/core` 8.3.18 with web's 8.3.14 (and the matching `@mantine/notifications`/`hooks`/`store`) | A widget importing Mantine through the gateway couldn't see web's `MantineProvider` while two copies existed | `package-lock.json`; an unrelated bump the dedupe pulled in (`@types/node` 24.0.15 → 24.19.0) was reverted; the invariant this fixed by hand is now checked repo-wide by `npm run ward -- dedupe` (section 4/7) |
 | web's jest `moduleNameMapper` maps `elkjs`, `@tabler/icons-react` and `@xyflow/react` under both the bare name and `#gateway/npm/<name>` | A pass-through's `export *` only copies keys a mock can enumerate; the tabler mock answers any `Icon*` name on demand without listing one, so it needs to be reachable under either spelling | `packages/web/jest.config.cjs` |
 | Copy, don't reference: an agent adding a gateway module to a CONSUMER repo copies dungeonmaster's own wrapper into the consumer's `packages/@gateway/<folder>/`, never importing dungeonmaster's copy | Keeps a consumer repo's gateway self-contained the same way its other packages are | not yet wired into a tool or session snippet — recorded as a follow-up in `scrolls/gateway-build/followups.md` |
 
@@ -105,6 +106,15 @@ New rules and their measurement summary, from `lint-measurements.md` (2026-09-26
 - One real rule bug found, not fixed in that pass: `platform-globals-ban`'s message names
   `@dungeonmaster/node/Buffer` (capital B) instead of the real lowercase `buffer` subpath — flagged for
   whoever turns the rule back on.
+
+A seventh rule, `@dungeonmaster/gateway-dependency-declared`, is built and already switched ON — unlike
+the six rules above, it does not wait for the migration to finish, because it polices a package's own
+`package.json` rather than every caller's import lines. It runs `post-edit`
+(`dungeonmasterRuleEnforceOnStatics`) and fails a file that imports `#gateway/<folder>/...` unless its
+nearest `package.json` maps that specifier in `imports` and lists the mapped target package in
+`dependencies` (a test-support file may use `devDependencies` instead). It reads the target package
+name from the `imports` field itself, so it works for a consumer's own scope (`@acme/npm`) the same as
+for `@dungeonmaster/npm`. Code: `packages/eslint-plugin/src/brokers/rule/gateway-dependency-declared/`.
 
 ## 5. The trials
 
@@ -222,16 +232,22 @@ integration all PASS (e2e skipped in that run; web's e2e ran separately, above).
   `fs-read-file-adapter.ts`, etc., and `packages/siegelense/src/adapters/git/branch-read/git-branch-read-adapter.ts`
   are untouched with no remaining callers where the trial fully replaced them — per the trial rules,
   never delete or edit an adapter, only switch its caller.
-- **The platform-crossing check is not a full ward check type.** It runs as a bolted-on subcommand.
-  Full integration needs a `'platform'` member on `checkTypeContract`, a `checkRunPlatformBroker`, a
-  dispatch point that runs it once repo-wide (not per package), `--only platform` support, and folding
-  its result into `WardResult` so `ward list`/`ward detail` show it. (`followups.md` "What full
-  integration would still need")
+- **Neither the platform-crossing check nor the duplicate-install check is a full ward check type.**
+  Both run as bolted-on subcommands (`npm run ward -- platform`, `npm run ward -- dedupe`) that a bare
+  `npm run ward` does not invoke. Full integration needs a new `checkTypeContract` member per check, a
+  `checkRun*Broker` that builds a `ProjectResult` from each check's own violations, a dispatch point
+  that runs each once repo-wide (not per package), `--only platform`/`--only dedupe` support, and
+  folding each result into `WardResult` so `ward list`/`ward detail` show it. (`followups.md` "What full
+  integration would still need", "Two gateway-dependency checks")
 - **`get-project-map` and `get-project-inventory` do not show a `gateway` package type yet.** The design
   doc's "Discovery" item (a new package type listing subpaths and pass-through/wrapped status) is not
   built.
-- **Teaching text is not updated.** The design doc's migration order step "Update the teaching text and
-  the tools: map, inventory, `init`, `create-package`" has not happened.
+- **Teaching text is updated for `init` and `create-package`, not yet for `map`/`inventory`.** The
+  design doc's migration order step "Update the teaching text and the tools: map, inventory, `init`,
+  `create-package`" is done for the last two: `dungeonmaster init` scaffolds the gateway in a consumer
+  repo (section 3 decision 4), and `create-package` writes the `imports` field for a new package
+  (`packages/cli/src/transformers/package-scaffold-files/package-scaffold-files-transformer.ts`). `map`
+  and `inventory` still show no `gateway` package type — see the bullet above.
 - **`(b)` and `(c)` of `gateway-layout`'s three checks are not lint rules.** Only the case-collision half
   runs as a rule; whether an `@dungeonmaster/npm` folder matches an installed dependency, and whether a
   `node`/`browser` folder names a real builtin or global, both need a per-package unit test instead
@@ -243,6 +259,7 @@ integration all PASS (e2e skipped in that run; web's e2e ran separately, above).
 
 ```bash
 npm run ward -- platform                                            # the whole-repo platform-crossing check
+npm run ward -- dedupe                                              # the whole-repo duplicate-install check
 npm run ward -- --only lint,typecheck,unit -- packages/@gateway/node/src packages/@gateway/npm/src packages/@gateway/browser/src packages/@gateway/bin/src
 ```
 

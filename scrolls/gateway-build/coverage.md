@@ -26,6 +26,11 @@ Adapters whose fate is `gateway`/`split` but the matching gateway export does no
 
 Adapters whose gateway target sits in a package that was still being built at the time of this census (`packages/browser`, `packages/npm` wrappers, `packages/bin/src/claude`).
 
+**Update, 2026-09-26:** `packages/browser`, the `packages/npm` wrappers, and `packages/bin/src/claude`
+(now `packages/@gateway/bin/src/claude`) are all built — `resolveClaudeCliPath`, `spawnStreamJson` and
+`ClaudeNotInstalledError` are real exports there (`scrolls/gateway-build/README.md` section 2). The row
+below is left as this census recorded it; only the "pending" reason is now stale.
+
 | Adapter | Would-be gateway target | Note |
 |---|---|---|
 | `packages/orchestrator/src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.ts` | @dungeonmaster/bin/claude #spawnStreamJson | pending: builder still running (packages/bin/src/claude has no folder yet); settings-file read + --add-dir + env handling stay an orchestrator broker |

@@ -162,6 +162,10 @@ broker + a thin CLI subcommand instead, per the brief's scope limit.
    report straight to stdout and saves nothing, so `ward list`/`ward detail` never show a platform
    run. Folding it into `WardResult` so it survives a run and shows up in drill-down is the last
    piece full integration needs.
+5. `npm run ward -- dedupe` (built later, see "Two gateway-dependency checks" below) has the identical
+   gap for the identical reason — a bare `npm run ward` skips it too, since it is also a repo-wide,
+   not per-package, bolted-on subcommand with no stored result. Whoever picks up this integration
+   should fix both subcommands in the same pass rather than solving it twice.
 
 **How it runs today:** `npm run ward -- platform` (root) or `npx dungeonmaster-ward platform` from
 inside a package. It always checks the whole repo — no `--only`, no file scope, no `--onlyTests`.
