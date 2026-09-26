@@ -29,12 +29,12 @@ code.
 
 ## Four rules that cause the mess today
 
-| Today's rule                                                                                          | Where it lives                                                                                                                                                                                                                                                                         | What it forces                                                                                   | What models produce                                                                                                       |
-|-------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
-| Every `z.string()` / `z.number()` needs `.brand()`, and no function returns plain `string` / `number` | `require-zod-on-primitives`, `ban-primitives`, `packages/mcp/src/statics/folder-constraints/contracts-constraints.md:22`: "All contracts MUST use `.brand<'TypeName'>()` on primitives", and `transformers-constraints.md:36`: "All transformers MUST validate output using contracts" | A brand on every piece of text, including loose text no object owns, with a name the model picks | `ContentText`: 894 type uses counting tests (486 without), on 108 object fields under 75 different keys, checking nothing |
-| A contract may import no npm package except zod                                                       | `packages/shared/src/statics/folder-config/folder-config-statics.ts:38-45`                                                                                                                                                                                                             | A contract cannot `import type` a library's own types                                            | Hand copies of ESTree, ESLint's rule context, `ts.SourceFile`, `ChildProcess`, `fs.Stats`                                 |
-| Adapters must not return library types                                                                | `packages/mcp/src/statics/folder-constraints/adapters-constraints.md:93`: "ALL outputs MUST use contracts (no returning npm package types)"                                                                                                                                            | The same copies, plus a cast to get the library object into them                                 | About 18 of the 99 production `as unknown as` casts                                                                       |
-| Only `adapters/` may import from `node_modules`                                                       | `folder-config-statics.ts:158-166`                                                                                                                                                                                                                                                     | Every Node or npm call needs its own adapter file                                                | 85 pure pass-throughs, 62 pass-throughs plus a parse, copied into up to 10 packages each                                  |
+| Today's rule                                                                                                                                             | Where it lives                                                                                                                                                                                                                                                                         | What it forces                                                                                   | What models produce                                                                                                       |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| Every `z.string()` / `z.number()` needs `.brand()`, and no function returns plain `string` / `number`                                                    | `require-zod-on-primitives`, `ban-primitives`, `packages/mcp/src/statics/folder-constraints/contracts-constraints.md:22`: "All contracts MUST use `.brand<'TypeName'>()` on primitives", and `transformers-constraints.md:36`: "All transformers MUST validate output using contracts" | A brand on every piece of text, including loose text no object owns, with a name the model picks | `ContentText`: 894 type uses counting tests (486 without), on 108 object fields under 75 different keys, checking nothing |
+| A contract may import no npm package except zod                                                                                                          | `packages/shared/src/statics/folder-config/folder-config-statics.ts:38-45`                                                                                                                                                                                                             | A contract cannot `import type` a library's own types                                            | Hand copies of ESTree, ESLint's rule context, `ts.SourceFile`, `ChildProcess`, `fs.Stats`                                 |
+| Adapters must not return library types                                                                                                                   | `packages/mcp/src/statics/folder-constraints/adapters-constraints.md:93`: "ALL outputs MUST use contracts (no returning npm package types)"                                                                                                                                            | The same copies, plus a cast to get the library object into them                                 | About 18 of the 99 production `as unknown as` casts                                                                       |
+| Only `adapters/` may import any npm package. `contracts/`, `flows/`, `bindings/` and `widgets/` get a short named list, such as `zod`, `hono` or `react` | `folder-config-statics.ts:158-166`, and each folder's `allowedImports`                                                                                                                                                                                                                 | Every Node or npm call needs its own adapter file                                                | 85 pure pass-throughs, 62 pass-throughs plus a parse, copied into up to 10 packages each                                  |
 
 ## What we measured
 
@@ -189,10 +189,9 @@ Words used below:
   rejection handler, `Promise.allSettled`, a retry loop, a timeout race, or a branch on `error.code`
   inside the `catch`. Classifying an error value that arrived as data, after someone else caught it,
   is not handling.
-- **Claimed**: an outside function that an adapter handles. Rule A2 defines it.
+- **Claimed**: an outside function that some adapter changes: handles, configures or sets up. Rule A2 defines it.
 - **Pass-through**: an adapter that makes one outside call, passes its parameters straight through, and
-  returns the result unchanged, or wrapped only in a standalone brand that B6 removes. Many today return
-  a fixed `{ success: true }` instead, which A7 refuses.
+  returns the result unchanged, or wrapped only in a standalone brand that B6 removes. Many today return a fixed `{ success: true }` instead, which A7 refuses. An adapter that sets a fixed option itself, such as `'utf8'`, is not a pass-through (A3).
 
 ### Brands
 
@@ -311,6 +310,18 @@ Ins and outs:
   `.shape`. Both were checked against the zod 3.25 package, which also ships v4 under `zod/v4`
   (`tmp/brand-proto/proto-object-brand.ts` for v3, `proto-object-brand-v4.ts` for v4). The examples in
   this doc assume v4. The repo uses zod 3.25 today, so the upgrade comes first.
+- **The upgrade is more than a version
+  bump.** Checked on 2026-09-25 against the `zod/v4` build that ships inside zod 3.25.76 (`tmp/zod-v4-probe.cjs`, `tmp/zod-v4-uuid-scan.cjs`):
+
+  | What changes in v4 | What it hits here |
+    |---|---|
+  | `z.function()` is no longer a schema. An object with a function field throws when it is declared: "expected a Zod schema". | 22 uses in 14 contract files. B9 already puts functions outside the parse, so these fields move there. |
+  | `.uuid()` checks the version and variant digits. | 451 UUID-shaped literals in 68 files fail it, such as `'12345678-1234-1234-1234-123456789abc'`. v3 accepts them. Not every one reaches a `.uuid()` check, so 451 is an upper bound. Each becomes a real UUID, or its field uses v4's `z.guid()`, which keeps v3's looser check. |
+  | Error maps, `.superRefine` and `ZodError.errors` changed. | Not measured. |
+
+- **An object built from another needs its own
+  brand.** In zod v4, `.extend()` on a branded object returns an object without the brand. The compiler then refuses the result where the original type is expected (`tmp/zod-v4-extend-probe.ts`). 14 contract files use `.extend()` today, and a few use
+  `.pick()`, `.omit()` or `.partial()`. The new object's text comes from its own const name. The fields it keeps are reuses, so they carry their source's brands.
 
 Why: today some fields get a brand and some do not, and the model decides which. Branding every object
 and every leaf removes that decision. B3 derives every text, so branding everything adds no name anyone
@@ -319,15 +330,16 @@ writes down what models already do.
 
 How a machine checks it: the lint rule `require-object-contract-brands`, which reads only the syntax.
 
-| What the rule checks                                                                                                                                | Where                                                                                                                                                        | Message                                                                                                                 |
-|-----------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
-| Every `z.object(...)` in a contract ends in `.brand<'…'>()`                                                                                         | Every `z.object` call in `contracts/`, at any depth, including inside `z.array(...)`                                                                         | `z.object in {{file}} has no brand. Add .brand<'{{expected}}'>().`                                                      |
-| Every `z.string()` and `z.number()` leaf inside it has `.brand<'…'>()` somewhere in its chain, except a key `enforce-owner-field-reuse` claims (B4) | Each property value, through `.optional()`, `.nullable()`, `.default()`, `.min()` and other chained calls, and inside `z.array(...)`                         | `Field {{key}} has no brand. Add .brand<'{{expected}}'>().`                                                             |
-| No brand on an enum, literal or boolean                                                                                                             | `z.enum`, `z.literal`, `z.boolean` chains                                                                                                                    | `{{key}} is an enum, literal or boolean. Remove the brand.`                                                             |
-| The brand text equals the derived text (B3)                                                                                                         | Every `.brand<'…'>()` on an object or a leaf                                                                                                                 | `Brand text '{{actual}}' must be '{{expected}}'.`                                                                       |
-| A field that reuses another schema is left alone                                                                                                    | A property value that is an identifier or a `.shape.<key>` access, such as `questContract.shape.id`                                                          | none                                                                                                                    |
-| No `.brand<'…'>()` anywhere else (B2)                                                                                                               | Every `.brand(` call in any file that is not on a `z.object(...)` or inside one. The one exception is a local, unexported const that its owner uses as `id`. | `A brand sits only on an object contract or one of its fields. Move it onto the field that owns the value, or drop it.` |
-| A local id const's text is its owner's `id` text (B3)                                                                                               | The const's declaration, traced to the owner field that uses it as `id`                                                                                      | `Brand text '{{actual}}' must be '{{expected}}', the id of {{owner}}.`                                                  |
+| What the rule checks                                                                                                                                | Where                                                                                                                                                                                                                                                        | Message                                                                                                                 |
+|-----------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| Every object schema in a contract ends in `.brand<'…'>()`                                                                                           | Every `z.object` call in `contracts/`, at any depth, including inside `z.array(...)`. Also every object built from another with `.extend()`, `.pick()`, `.omit()` or `.partial()`, and zod v4's `z.strictObject()` and `z.looseObject()`                     | `z.object in {{file}} has no brand. Add .brand<'{{expected}}'>().`                                                      |
+| Every `z.string()` and `z.number()` leaf inside it has `.brand<'…'>()` somewhere in its chain, except a key `enforce-owner-field-reuse` claims (B4) | Each property value, through `.optional()`, `.nullable()`, `.default()`, `.min()` and other chained calls, and inside `z.array(...)`                                                                                                                         | `Field {{key}} has no brand. Add .brand<'{{expected}}'>().`                                                             |
+| No brand on an enum, literal or boolean                                                                                                             | `z.enum`, `z.literal`, `z.boolean` chains                                                                                                                                                                                                                    | `{{key}} is an enum, literal or boolean. Remove the brand.`                                                             |
+| The brand text equals the derived text (B3)                                                                                                         | Every `.brand<'…'>()` on an object or a leaf                                                                                                                                                                                                                 | `Brand text '{{actual}}' must be '{{expected}}'.`                                                                       |
+| A field that reuses another schema is left alone                                                                                                    | A property value that is an identifier or a `.shape.<key>` access, such as `questContract.shape.id`. It may be wrapped in `.optional()`, `.nullable()`, `.default()` or `z.array(...)`, as `workItemId.optional()` and `z.array(workItemId).default([])` are | none                                                                                                                    |
+| A reuse adds no check of its own                                                                                                                    | A reuse followed by a refinement, such as `questContract.shape.id.min(5)` or `.regex(…)`. A refinement would put a second check behind the source's brand text, which is the `FolderType` bug                                                                | `{{key}} reuses {{source}}. Add no check to it: one brand text means one check.`                                        |
+| No `.brand<'…'>()` anywhere else (B2)                                                                                                               | Every `.brand(` call in any file that is not on a `z.object(...)` or inside one. The one exception is a local, unexported const that its owner uses as `id`.                                                                                                 | `A brand sits only on an object contract or one of its fields. Move it onto the field that owns the value, or drop it.` |
+| A local id const's text is its owner's `id` text (B3)                                                                                               | The const's declaration, traced to the owner field that uses it as `id`                                                                                                                                                                                      | `Brand text '{{actual}}' must be '{{expected}}', the id of {{owner}}.`                                                  |
 
 It has an autofix. Every expected text is derived from the const name and the key path, so the fixer
 can write the missing `.brand<'…'>()` itself, and a wrong text can be replaced. Nothing is left for a
@@ -534,6 +546,9 @@ Ins and outs:
   below).
 - **Short names need a floor.** An owner called `Item` with key `id` would claim every name ending in
   `ItemId`, including `workItemId`. Open decision 9 covers it.
+- **Inside its own contract, an owner's id comes from its local const.** A key such as `parentQuestId`
+  inside `questContract` names the owner's own id. `questContract.shape.id` cannot be read while
+  `questContract` is being declared, so the key uses the local id const that B2 allows. The autofix writes that const, not the `.shape` access. No contract has such a key today.
 - **Import cycles.** `quest-contract.ts` imports `work-item-contract.ts` (line 33). If a work item ever
   needs `questId`, then `questContract.shape.id` is an import cycle. See open decision 1.
 - **Several fields of the same kind share one brand.** The brand says what kind of value it is. The
@@ -723,8 +738,9 @@ const text = contentContract.shape.text.parse(raw);
 const quest = questContract.parse(JSON.parse(raw));
 ```
 
-How a machine checks it: needs a repo-wide index. An owner contract must be `.parse`d as a whole, or
-used as a whole type, somewhere in production code.
+How a machine checks it: needs a repo-wide index, the one C1 builds. An owner contract must count as parsed as a whole, in C1's sense, somewhere in production code. C1 also counts a parse of one field, such as `contentContract.shape.text.parse(raw)`. B7 does not, and that difference is B7's whole job.
+
+A use of the owner as a type does not count. A branded object can only come from a parse (B1), so a type use adds nothing except a way out: a function typed on `Content` that nothing calls.
 
 #### B8: an id may not be re-branded into another field
 
@@ -966,6 +982,13 @@ proxy and stub files, read from the syntax tree, not from text. 1,095 of the 1,1
 every copy that carries an example. A copy written as a plain TypeScript type has no schema to parse,
 so C1 also requires that every type a contract file exports is `z.infer` of a schema in that file.
 
+A contract counts as parsed in any of three ways. A search for its own `.parse(` call finds only the first:
+
+1. Production code parses it, or one of its fields: `questContract.parse(…)`,
+   `questContract.shape.id.parse(…)`.
+2. It is a field of a contract that counts as parsed. `workItemContract` sits inside `questContract`, and a layer sits inside its parent (C7).
+3. Production code hands it to a function as a value. A caller passes its contract to a generic fetch adapter, which parses with it (C4).
+
 #### C2: a library's types are imported from the library, wherever they are used, like its functions
 
 `contracts/` holds our types. A library's types come straight from the library, in any folder, the
@@ -1015,9 +1038,8 @@ Ins and outs:
   or `ChildProcessStub(): ChildProcess` (C5).
 - **Type imports never count toward the adapter rules (A1 to A5).** A type import cannot call
   anything, so it opens no path around the adapters. A2 claims value imports only.
-- **Library data types may flow out of adapters.** An adapter may return `Stats`, as `fsStatAdapter`
-  already does (`fs-stat-adapter.ts:12`). Rule A6 covers the one exception: library objects that have
-  methods.
+- **Library types may flow out of adapters.** An adapter may return `Stats`, as `fsStatAdapter`
+  already does (`fs-stat-adapter.ts:12`), or an object with methods, such as a `Page` (A6).
 - **A library value enters our objects only through a parse.** `node.name` is a plain `string`. It
   becomes a brand only when a contract parses it into an owned field.
 
@@ -1235,7 +1257,7 @@ Ins and outs:
   `eslint-rule-tester-adapter` does today, in 72 test files with real code strings. C5 covers the guard
   and transformer tests below that. Only one file uses both, for a case `RuleTester` cannot reach.
   `brokers/rule/CLAUDE.md:109` documents the split.
-- **Our own objects are not library types.** A handle an adapter returns under A6, such as siegelense's
+- **Our own objects are not library types.** An object an adapter builds itself, such as siegelense's
   browser session, is our shape, and its stub builds it directly. `browser-session-contract.ts:2-4`
   says it describes the page's operations "without this package ever importing Playwright". Its stub
   is the most used of these (28 files, about 119 calls), and it stays as it is.
@@ -1311,9 +1333,12 @@ Ins and outs:
   232 stubs are in `packages/shared/dist`, and `dist/contracts.js` loads them. Every production import
   of `@dungeonmaster/shared/contracts` loads every stub. Checked on 2026-09-24. Under C5 a library stub
   imports its library's parser or constructor, so this would load those into production too.
-- **A separate entry point keeps them out.** Each package gets a `stubs.ts` barrel and a `./stubs`
-  export. Only test, proxy, harness and stub files may import from `stubs/` or from a `/stubs` entry
-  point. With nothing in production importing them, the build's `**/*.stub.ts` exclusion finally holds.
+- **A separate entry point keeps them out of production processes, not out
+  of `dist`.** Each package gets a `stubs.ts` barrel and a `./stubs` export. Only test, proxy, harness and stub files may import from `stubs/` or from a `/stubs` entry point. The build still compiles every stub: its `include`
+  takes every root `*.ts` file, so `stubs.ts` is built, and the compiler builds whatever it imports. The `**/*.stub.ts` exclusion never stops that. What changes is loading. `dist/contracts.js` no longer imports a stub, so no production process loads one, or the parser a library stub builds with.
+- **`@dungeonmaster/testing` ships its stubs the same way, with no build
+  change.** Its barrel imports them, so they reach `dist` despite the exclusion. `dist/src/contracts/base-name/base-name.stub.js`
+  is there today (checked on 2026-09-25).
 - **A contract still has a stub, found by domain name.** `requireStub` on `contracts/` now means
   `contracts/quest/quest-contract.ts` has a matching `stubs/quest/quest.stub.ts`. The pairing crosses
   folders, and no longer relies on the two files sitting side by side.
@@ -1403,6 +1428,9 @@ Ins and outs:
 - **Code outside the folder reaches a layer's type through its owner,** as `Quest['owner']`. A layer is
   never exported from a barrel.
 - **A layer contract is parsed when its parent is,** so it passes C1 and B7 through the parent.
+- **A layer contract is not an
+  owner.** It is a nested object that lives in its own file, so it is treated like one written inline. B4's index does not record `ownerLayerContract` as an owner called
+  `OwnerLayer`, and C8 does not compare layer names across packages. A layer is never exported from a barrel, so two packages can each have an `ownerLayerContract` without either seeing the other.
 - **A layer contract gets a test, not a stub.** Tests build the nested object through the parent's
   stub: `QuestStub({ owner: { name: 'n' } }).owner`.
 - **A stub layer is re-exported by its parent stub file,** so tests import only the parent, as the
@@ -1496,6 +1524,34 @@ The second job belongs to an adapter only when one function both fetches the dat
 our shapes is a transformer's job. `chat-line-process-transformer.ts` parses lines that
 `fsWatchTailAdapter` read, and it stays a transformer.
 
+#### What an adapter is for: the text the adapter docs must carry
+
+Decided on 2026-09-25. When the adapter docs are rewritten (`adapters-constraints.md`, served by
+`get-folder-detail`), they state this section in substance, so a model writing code picks the right granularity. A model left to guess writes an adapter for every call, which is the 349-adapter world this doc measures.
+
+**An adapter bundles handler logic around an outside package, for safety or for
+convenience.** If we could use every package without changing what it does, we would need no adapters. So a call with nothing added, such as `existsSync(p)`, stays where it is. A call we change goes into an adapter, and the change then covers every caller (A2).
+
+| Reason      | What the adapter holds                                                                                                                             | Example                                                                                                  |
+|-------------|----------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| Safety      | What a failure means: a catch, a retry, a timeout, a default                                                                                       | `fsReadFileIfExistsAdapter` returns `undefined` when the file is missing                                 |
+| Convenience | Logic or options every caller would otherwise repeat: several calls, framing, setup, or a fixed option such as `'utf8'` that a caller could forget | `childProcessSpawnStreamJsonAdapter` speaks the Claude CLI's protocol; `fsReadFileAdapter` sets `'utf8'` |
+| Translation | Turning an outside format into our structures, in one place                                                                                        | Reading Claude sessions (below)                                                                          |
+
+**Translation exists to avoid migration
+work.** The Claude CLI's session and stream output is not our format, and it changes when the CLI does. We turn it into our own structures in one place. A format change is then one fix there, not a fix in every file that reads a session. The adapter reads the lines, and a transformer turns them into our structures, as the paragraph above says.
+
+**Getting at a package is not a
+reason.** Code that calls a package directly already gets its functions, and gets them whether or not an adapter exists. So:
+
+| Situation                                                                    | What to write                                                                   |
+|------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
+| A broker needs `rename`, and nothing decides what its failure means          | Call `rename` in the broker. No adapter (A3).                                   |
+| Two brokers each catch "file not found" around `readFile`                    | One adapter holding that catch. Both brokers call it (A1).                      |
+| A caller needs a library's object, such as a Playwright `Page` or `fs.Stats` | The adapter may return the library's own type, methods and all (A6).            |
+| A caller needs another workspace package's function                          | Call it. An adapter around it adds nothing (A4).                                |
+| A caller needs the Claude CLI's output                                       | The adapter speaks the protocol; a transformer turns lines into our structures. |
+
 #### A1: handling around an outside call lives in an adapter
 
 An outside function here is any function from outside the repo, not only a Node I/O call (see "Words
@@ -1538,8 +1594,7 @@ Ins and outs:
 
 - **A `try` whose block calls no outside function is left alone.** A responder turning its own broker's
   error into a 500 is not handling an outside call.
-- **Workspace packages are not outside.** Handling around `StartOrchestrator.getQuest(...)` is the
-  caller's business. The provider ships the proxy (T6).
+- **Workspace packages are not outside.** Handling around `StartOrchestrator.getQuest(...)` is the caller's business. The provider ships the proxy (T6). An adapter that another workspace package exports is still an adapter, though. Under A5 most adapter calls in this repo cross packages, such as a ward broker calling an adapter from `@dungeonmaster/shared/adapters`, and handling around those counts (see below).
 - **`filePath: string` is plain on purpose.** No object owns a path handed to a file read (B6).
 - **Handling around an adapter's call is common today.** 142 broker, responder and flow files wrap a
   `try`/`catch` around a call to an adapter in their own package. The same two-line
@@ -1556,9 +1611,7 @@ Ins and outs:
   from `session.waitForMatch(...)`, a method on the object the Playwright session adapter returned, and
   classifies it with `isPlaywrightTimeoutErrorGuard`. The adapter should decide what a timeout means
   and return that. The same shape appears 65 times around `fsReadFileAdapter` (see "Handling, proxies and brands that do
-  work"). A call counts
-  as an adapter call when its function is imported from `adapters/`, or is a method of an object an
-  adapter returned. The second case needs the type checker.
+  work"). A call counts as an adapter call when its function is imported from `adapters/` or from another workspace package's `/adapters` entry point, or is a method of an object an adapter returned. The last case needs the type checker.
 - **Classifying an error that arrived as data is not handling.** `riftcarver-failure-classify-transformer.ts:40`
   calls `isPermissionDeniedErrorGuard` on an `error` parameter that someone else caught. It is left
   alone.
@@ -1570,10 +1623,12 @@ Ins and outs:
 How a machine checks it: syntax plus the file's imports, and the type checker for a method on an
 object an adapter returned. A promise handled later through a variable needs dataflow (open decision 11).
 
-#### A2: once an adapter handles a function, only adapters may import it
+#### A2: once an adapter changes what a function does, only adapters may import it
 
-A function is **claimed** once any adapter in the repo handles its failures. From then on, that
-function may be value-imported only in `adapters/`, anywhere in the repo. Other adapters may import it.
+A function is
+**claimed** once any adapter in the repo changes what it does: handles its failures, fixes one of its options, or sets it up (A1 lists how a machine sees each). From then on, that function may be value-imported only in `adapters/`, anywhere in the repo. Other adapters may import it. An adapter that only passes the call through claims nothing.
+
+Decided on 2026-09-25, replacing "claimed once an adapter handles its failures". The test is the one in "What an adapter is for": if a package could be used without changing what it does, it would need no adapter. So once an adapter changes it, a raw call anywhere else skips that change.
 
 ```
 // before — once fsReadFileIfExistsAdapter exists, a broker can still call readFile raw and skip the handling
@@ -1593,13 +1648,14 @@ brokers/x.ts:       import { readFile } from 'fs/promises';
 // left alone
 adapters/fs/read-file/fs-read-file-adapter.ts:   import { readFile } from 'fs/promises';
 brokers/x.ts:       import { rename } from 'fs/promises';      // rename is not claimed
-widgets/x.tsx:      import { useState } from 'react';          // nobody handles useState
+widgets/x.tsx:      import { useState } from 'react';          // no adapter changes useState
+guards/x.ts:        import { existsSync } from 'fs';           // returns a boolean; nothing changes it
 brokers/rule/x.ts:  import type { TSESTree } from '@typescript-eslint/utils';   // types never count (C2)
 ```
 
 Ins and outs:
 
-- **Why "handled", not "imported".** The first version of this rule said a function is claimed once any
+- **Why "changes", not "imported".** The first version of this rule said a function is claimed once any
   adapter imports it. That version breaks host libraries. These packages are value-imported by both
   adapters and ordinary code today:
 
@@ -1609,18 +1665,25 @@ Ins and outs:
   | `hono` | server | flows |
   | `@mantine/core` | web | widgets |
 
-  Claiming on import would stop every widget from importing React. Claiming on handling does not,
-  because nobody handles failures around `useState`.
+  Claiming on import would stop every widget from importing React. Claiming on changes does not, because no adapter changes what `useState` does. The xyflow adapters do change `ReactFlow`, which is why D1 moves them into `widgets/` before this rule is enforced.
+- **Claims this repo makes on day one, all intended:**
+
+  | Function | Claimed by | What the adapter changes |
+    |---|---|---|
+  | `readFile` | `fsReadFileAdapter`, `fsReadFileIfExistsAdapter` | Fixes `'utf8'`; decides a missing file means `undefined` |
+  | `homedir` | `osHomedirAdapter` | Answers "where is the dungeonmaster home": `DUNGEONMASTER_HOME`, else the user's home. Code that builds a path off the home goes through it too. |
+  | `spawn` | `childProcessSpawnStreamJsonAdapter` | Speaks the Claude CLI's protocol. Every other spawn, git included, goes through an adapter. |
 - **Per function, not per module.** Claiming `readFile` does not claim `rename`. A module-level claim
   would pull every `fs` call into adapters, which is today's 349-adapter world.
+- **A claimed global is refused by name, not by
+  import.** `fetch`, `WebSocket` and `indexedDB` are outside functions (see "Words used below"), but code never imports them. Once an adapter handles
+  `fetch`, such as `http-readiness-poll`, any reference to `fetch` outside `adapters/` is refused.
 - **A claimed function still needs a plain use now and then.** A read that must fail loudly cannot use
   `fsReadFileIfExistsAdapter`. A3 allows a pass-through for exactly this case.
 
-Why: once someone decided a function's failures need handling, nobody can call it raw elsewhere and
-quietly skip that handling.
+Why: once someone decided a function needs changing, nobody can call it raw elsewhere and quietly skip that change. A caller that forgets `'utf8'` gets a `Buffer`; a caller that builds its own home path ignores `DUNGEONMASTER_HOME`.
 
-How a machine checks it: needs an index, across the repo's own workspace packages, of which outside
-functions any adapter handles. Packages in `node_modules` are not read, so in a consumer repo an
+How a machine checks it: needs an index, across the repo's own workspace packages, of which outside functions any adapter changes, by A1's signals. Packages in `node_modules` are not read, so in a consumer repo an
 adapter shipped by dungeonmaster claims nothing (A5, decision 4).
 
 #### A3: a pass-through adapter is allowed only for a claimed function
@@ -1630,20 +1693,21 @@ Otherwise, call the function directly.
 A pass-through is refused while code can still call the function directly. It is allowed once A2 has
 taken direct calls away. With `readFile`:
 
-1. Nobody handles `readFile`'s failures. Brokers import `readFile` and call it. An `fsReadFileAdapter`
-   that only forwards adds nothing, and A3 refuses it.
+1. Nobody handles `readFile`'s failures. Brokers import `readFile` and call it. An adapter that only forwards `readFile(filePath)`, setting no option of its own, adds nothing, and A3 refuses it.
 2. Someone writes `fsReadFileIfExistsAdapter`, which catches "file not found". An adapter now handles
    `readFile`'s failures, so `readFile` is claimed (A2).
 3. From then on, only adapters may import `readFile`, so nothing can call it raw and skip the handling.
 4. A broker wants a read that fails loudly when the file is missing. `fsReadFileIfExistsAdapter` hides
    that failure, and the broker can no longer import `readFile`.
-5. So it needs an adapter that only calls `readFile`: `fsReadFileAdapter`. A3 allows it, because step 3
-   left no other way to reach `readFile`.
+5. So it needs an adapter that only calls `readFile`. A3 allows it, because step 3 left no other way to reach `readFile`.
 
 An adapter that makes more than one call, builds its own arguments, handles failures, or parses what
 comes back into one of our object contracts is not a pass-through, so A3 never applies to it. Parsing
 the result into a standalone scalar brand does not count: B6 removes that brand, and what is left is a
 pass-through.
+
+**A fixed option counts as building arguments.** An adapter that sets `'utf8'`, `{ recursive: true }`
+or an ignore list itself is not a pass-through. An option every caller must pass the same way belongs in one place, because a caller that forgets it gets no warning. A caller that leaves out `'utf8'` gets a `Buffer` where it expected text. Decided on 2026-09-25.
 
 ```
 // before — pass-throughs for functions no one handles, repeated per package
@@ -1661,8 +1725,11 @@ const configPath = join(root, '.dungeonmaster.json');
 // flagged — rename is not claimed, so this adapter adds nothing
 export const fsRenameAdapter = async ({ from, to }) => { await rename(from, to); return { success: true }; };
 
-// left alone — readFile is claimed (A2), so a plain read needs an adapter, and this is it
+// left alone — sets 'utf8' itself, so no caller can forget it and get a Buffer back
 export const fsReadFileAdapter = async ({ filePath }) => readFile(filePath, 'utf8');
+
+// left alone — a pure pass-through, allowed only because readFile is claimed (A2)
+export const fsReadFileBytesAdapter = async ({ filePath }) => readFile(filePath);
 
 // left alone — not a pass-through: more than one call, arguments built, output framed
 export const childProcessSpawnStreamJsonAdapter = ({ prompt, cwd, … }) => { … };  // Claude CLI protocol
@@ -1675,10 +1742,11 @@ export const gitLogNameOnlyAdapter = async ({ range }) =>
 Ins and outs:
 
 - **How much
-  goes.** 85 adapters are pure pass-throughs and 70 only forward to a workspace package (A4); those 155 go, with their 155 colocated test files, about 6,078 lines. 62 more make one call and
+  goes.** 85 adapters are pure pass-throughs and 70 only forward to a workspace package (A4); those 155 go, with their 155 colocated test files, about 6,078 lines. The sort did not record which of the 85 set a fixed option such as `'utf8'`; those stay. 62 more make one call and
   parse the result, mostly into a standalone brand such as `fileContentsContract.parse(buffer)`. Once B6
   removes that brand they are pass-throughs too, unless they parse outside data into an object contract.
-- **Pass-throughs now exist only next to handling.** They are bounded by the number of claimed
+- **Pass-throughs now exist only beside an adapter that changes the
+  function.** They are bounded by the number of claimed
   functions, not by the number of packages times functions.
 - **Protocol, payload and setup adapters are never pass-throughs,** so every adapter on the must-keep
   list passes untouched. A rule that refused every adapter without handling would refuse
@@ -1752,43 +1820,46 @@ Ins and outs:
   `@dungeonmaster/shared` sits in `node_modules`, so its adapters do not count. The consumer's one home
   is one of its own packages.
 - **So dungeonmaster ships no adapters for a consumer's production code** (decision 4). If it did,
-  A5 could not see a consumer's second adapter for the same function, and A2 could not see that the
-  shipped adapter claims it. Dungeonmaster still ships proxies and stubs, which only tests load.
+  A5 could not see a consumer's second adapter for the same function, and A2 could not see that the shipped adapter claims it. Dungeonmaster still ships test infrastructure and stubs, which only tests load ("What dungeonmaster ships for tests").
 
-How a machine checks it: needs an index, across the repo's own workspace packages, of which package's
-adapters import each outside function.
+How a machine checks it: needs an index, across the repo's own workspace packages, of which package's adapters import each outside function, or reference it when it is a global such as `fetch`.
 
-#### A6: library objects with methods do not leave an adapter
+#### A6: an adapter may return a library's own type, methods and all
 
-Library data types may leave an adapter (C2). A library object with methods may not. Examples are a
-Playwright `Page`, a `ChildProcess` and a `Socket`, which this doc calls handles.
+An adapter's return type may be any type a library declares: `Stats`, `Buffer`, a Playwright `Page`, a `ChildProcess`. It is imported from the library (C2), never renamed in `contracts/`. An adapter may also return an object of our own with callable functions on it. Its stub returns the same library type (C5).
 
 ```
-// the gap — Page leaves the adapter, and the broker makes outside calls with no import at all
-// adapter
-export const playwrightOpenAdapter = async ({ url }): Promise<Page> => { … return page; };
-// broker: A1 and A2 see nothing, because nothing is imported
-try { await page.goto(url); } catch { … }
+// before — adapters-constraints.md:93: "ALL outputs MUST use contracts (no returning npm package types)"
+// so the library type is copied into a contract, and the real object is cast into the copy
+contracts/child-process/child-process-contract.ts:   export const childProcessContract = z.object({ … });
+adapters/child-process/spawn/…-adapter.proxy.ts:     returns(childProcess as NodeChildProcess)
 
-// after — the adapter keeps the handle and returns our object
-// adapter
-export const playwrightSessionAdapter = async ({ url }) => {
-  const page = …;
-  return { goto: async ({ url }) => { … }, readText: async ({ selector }) => { … } };
-};
+// after — the library's type is the return type, and the stub builds a real one
+adapters/fs/stat/fs-stat-adapter.ts:                 (…): Promise<Stats> => …
+adapters/playwright/open/playwright-open-adapter.ts: (…): Promise<Page> => …
+stubs/stats/stats.stub.ts:                           export const StatsStub = (…): Stats => …;
+```
+
+```
+// flagged — a second name for the library's type (C2)
+contracts/page/page-contract.ts:   export type BrowserPage = Page;
+
+// left alone
+(…): Promise<Stats> => …                                       // a library type as the return type
+(…): Promise<Page> => …                                        // methods and all
+(…): BrowserSession => ({ goto: …, readText: … })              // our own object with callable functions
 ```
 
 Ins and outs:
 
-- **Siegelense already works this way.** `browser-session-contract.ts:3-9` keeps `Page` and `Browser`
-  inside `adapters/playwright/session/` on purpose.
-- **Host library objects are not covered.** ESLint's `context` and React props reach our code as
-  parameters. No adapter returned them, so A6 never applies.
-- **The alternative** is to let handles leave, and have A1 use the type checker to catch handling around
-  a method call whose type comes from a library. See open decision 3.
+- **What an adapter returns does not decide what a test may
+  reach.** A test that lets I/O escape is caught at run time by the I/O trap and MSW, for every way out of the process (T8). No lint rule watches adapters for it.
+- **A method call on a returned object is still an adapter
+  call.** A broker that wraps `page.goto(…)` in a `try`/`catch` is handling around an adapter's call, and A1 already uses the type checker to see a method of an object an adapter returned.
+- **Siegelense's browser session stays as it is.** `browser-session-contract.ts:3-9` keeps `Page`
+  inside `adapters/playwright/session/` and returns our own object. That is allowed, not required.
 
-How a machine checks it: needs the type checker. It checks whether an adapter's exported return type,
-or any field of it, is declared in a library and has callable members.
+How a machine checks it: no rule of its own. C2 refuses a second name for a library type, C5 checks a library stub's return type, A1 sees handling around a returned object's methods, and the I/O trap and MSW catch escaping I/O at run time.
 
 #### A7: a function returns what its calls told it, and `void` only when they told it nothing
 
@@ -1869,8 +1940,11 @@ Words used in this section:
 - **Test support file**: a `.test`, `.integration.test`, `.e2e`, `.proxy`, `.stub` or `.harness` file,
   or any file under a package's `test/` directory. The I/O trap already classifies callers this way
   (`TEST_INFRASTRUCTURE_FRAME` in `packages/testing/src/jest.setup-io-trap.js:31-32`).
-- **Recorded failure**: an error captured once from the real library inside a testbed, with the fields
-  it really carries, such as Node's `code`, `errno`, `syscall` and `path`.
+- **Recorded
+  failure**: an error the real library produced, with the fields it really carries, such as Node's `code`, `errno`, `syscall` and `path`. Its stub makes the failing call for real where it can, and holds a copy captured once where it cannot ("What dungeonmaster ships for tests").
+- **Unwrapped function**: an outside function that no adapter wraps, so production code calls it directly (A3).
+- **Way
+  out**: anything code in a test can use to reach the world outside the process, such as a file, a process, a socket or an HTTP request. T8 lists them.
 
 #### T1: a proxy mocks an outside function where it is called
 
@@ -1906,19 +1980,16 @@ Ins and outs:
   adapter's proxy into a broker's proxy cannot leave the module's other functions doing real I/O.
 - **`enforce-proxy-child-creation` needs no change.** It only tracks relative imports
   (`parse-implementation-imports-transformer.ts:73`), so it never asked for mocks of `fs` or `path`.
-  When A3 deletes an adapter, a leftover `xAdapterProxy()` call in a broker proxy is reported as a
-  child the implementation no longer imports, which forces the cleanup.
+  When A3 deletes an adapter, a leftover `xAdapterProxy()` call in a broker proxy is reported as a child the implementation no longer imports, which forces the cleanup. It must stay on relative imports: extended to package imports, it would demand a proxy for React (T2).
 - **A library that cannot load under Jest at all,** because it needs a canvas, a GPU or ESM, is replaced
   through Jest's `moduleNameMapper`, as web already does for `elkjs`. A proxy then mocks its functions
   as usual.
 - **A host library is not mocked.** ESLint runs through `RuleTester`, React through testing-library, and
   AST nodes come from the real parser (C5).
 
-#### T2: a unit test stages every call the I/O trap catches, and lets everything else run
+#### T2: the I/O trap and MSW decide what a unit test mocks
 
-The I/O trap (see "The unit-test I/O trap") fails a unit test that reaches `fs`, `fs/promises` or
-`child_process` without a staged answer (`jest.setup-io-trap.js:25`). Those calls, and any npm function
-that does I/O underneath, such as `glob`, are mocked. Everything else runs for real.
+A call gets a mock when it would leave the process. The I/O trap and MSW catch those calls at run time, and T8 lists every way out they cover. Everything else runs for real. So whether a function is mocked follows from what it does, not from where it is imported.
 
 ```
 // flagged by the trap at run time — nothing staged the read
@@ -1927,23 +1998,47 @@ const config = await configLoadBroker({ path });   // [io-trap] unstaged fs/prom
 // left alone — pure functions run for real, in the implementation and in the proxy
 brokers/x/x-broker.ts:          const configPath = join(root, 'config.json');
 brokers/x/x-broker.proxy.ts:    const expected = join(root, 'config.json');   // computed, not mocked
+widgets/x/x-widget.tsx:         const [open, setOpen] = useState(false);     // React never leaves the process
+```
+
+An unwrapped function gets no proxy of its own. The proxy of the file that calls it stages it with
+`registerMock` (T1), and a failure comes from a recorded-failure stub (T5):
+
+```
+// brokers/quest/archive/quest-archive-broker.proxy.ts — rename has no adapter, so the broker calls it
+const handle = registerMock({ fn: rename });
+return {
+  archives: ({ from, to }) => handle.calledWith([from, to]).resolves(undefined),
+  sourceMissing: ({ from, to }) =>
+    handle.calledWith([from, to]).rejects(FileMissingErrorStub({ syscall: 'rename', path: from })),
+};
 ```
 
 Ins and outs:
 
-- **The rule is structural.** Mock what the trap traps, and what does I/O underneath; run the rest.
-- **A test may mock a function to pin its value,** such as `randomUUID` or `Date.now`. That is allowed,
-  not required.
-- **Classes are never
-  trapped.** The trap wraps only lowercase function exports (`jest.setup-io-trap.js:85`), so `new ChildProcess()` in a stub is real and does no I/O.
+- **An import alone never asks for a mock or a
+  proxy.** React, `path`, zod and rxjs never trip the trap, so nothing mocks them and nothing ships a proxy for them. A rule keyed on imports would demand a React proxy.
+- **A proxy for an unwrapped function would be a pass-through
+  proxy.** A function with no adapter has no handling, so it has two outcomes: it returned, or it threw. `registerMock` already says both, with
+  `.resolves(…)` and `.rejects(…)`. A proxy that only renamed those calls is the same shape A3 deletes on the adapter side.
+- **Every proxy still offers methods for its own
+  test,** as `archives` and `sourceMissing` above. What T2 rules out is a separate proxy for `rename` itself, for other proxies to compose.
+- **`path` runs real, so the path passthrough proxies
+  go.** `packages/testing/CLAUDE.md` describes path adapter proxies that answer `join`, `dirname` and `basename` through `requireActual`. A3 deletes those adapters, and `path` does no I/O, so nothing replaces their proxies.
+- **A test may mock a function to pin its value,** such as `randomUUID` or `Date.now`. That is allowed, not required. Neither the trap nor MSW sees them, because they do no I/O.
+- **Classes are not trapped
+  today.** The trap wraps only lowercase function exports (`jest.setup-io-trap.js:85`), so `new ChildProcess()` in a stub is real and does no I/O. T8 names the constructors and methods that do leave the process, and how to cover them.
 
-#### T3: an adapter's proxy offers named scenarios with recorded failures, and a broker's proxy uses them
+How a machine checks it: at run time. The trap and MSW fail the test. No lint rule asks for a mock or a proxy because of an import.
 
-An adapter's proxy stages the outside function with recorded failures and names each scenario. A
-broker's proxy composes that adapter proxy and calls its scenarios, so the adapter's handling runs for
-real in the broker's test. Node's I/O gets one shared proxy per module in `@dungeonmaster/testing`,
-whose failures are captured once from real Node. A workspace package ships the proxy for its own API
-from its `/testing` entry point, and its own tests check each scenario against its real code.
+#### T3: named scenarios live on adapter proxies and on a workspace package's `/testing` proxy
+
+An adapter's proxy stages the outside function with recorded failures and names each scenario, such as
+`fileMissing`. The name says what the adapter's handling decides. So a proxy that other proxies compose for its scenarios exists only where handling exists: beside an adapter, or at a workspace package's
+`/testing` entry point. A broker's proxy composes that adapter proxy and calls its scenarios, so the adapter's handling runs for real in the broker's test. A workspace package ships the proxy for its own API from its `/testing` entry point, and its own tests check each scenario against its real code (T6).
+
+Node and npm functions get no shared proxy. Their failures ship as recorded-failure stubs in
+`@dungeonmaster/testing`, and the file that calls one stages it with `registerMock` (T2).
 
 ```
 // before — each test invents the failure; the raw call is staged under a composed but unused adapter proxy
@@ -1963,17 +2058,18 @@ orchestrator.questNotFound({ questId });             // { success: false, error 
 
 Ins and outs:
 
-- **Scenario names are not shared today.** 347 adapter proxies define 359 distinct method names, so
-  each test learns a new vocabulary. Shared proxies with named scenarios give one.
-- **The hoister follows imports of every `@dungeonmaster/*/testing` entry point** and of the shared
-  proxies, so their `registerMock` calls are hoisted like any `.proxy.ts` file's.
+- **Scenario names are not shared today.** 347 adapter proxies define 359 distinct method names, so each test learns a new vocabulary. Under these rules a test meets composed scenarios only beside handling. Everywhere else it meets `registerMock`'s own words: `calledWith`, `resolves`, `rejects`,
+  `returns` and `throws`.
+- **The hoister follows imports of every workspace package's `/testing` entry point,** so their
+  `registerMock` calls are hoisted like any `.proxy.ts` file's. In this repo those are the
+  `@dungeonmaster/*/testing` entry points. In a consumer repo they are the consumer's own packages', read from its root `package.json` `workspaces`, not from a name prefix.
 - **Failure cases move with the handling.** When A1 moves handling from a broker into an adapter, the
   broker's tests of each failure move to the adapter's tests, and the broker's tests call the adapter
   proxy's scenarios.
 - **A proxy that builds a fake library handle does it in one place.** 12 broker and responder proxies
   build their own fake `ChildProcess`, `Socket` or `FSWatcher` to mock a raw `spawn`
-  (`tmp/adaptermove-proxies-fake-handles.txt`). Under A6 the handle stays inside the adapter, so only
-  the adapter's proxy builds it, from a stub (C5).
+  (`tmp/adaptermove-proxies-fake-handles.txt`). Each one uses the library's stub instead, such as
+  `ChildProcessStub` (C5), so no proxy invents its own shape of a `ChildProcess`.
 
 #### T4: no match-everything default in a proxy constructor
 
@@ -2009,7 +2105,8 @@ proxy.throws({ filePath, error: new Error('ENOENT') });
 handle.calledWith([p]).throws(Object.assign(new Error('x'), { code: 'ENOENT' }));   // still hand-made
 
 // left alone
-fs.fileMissing({ path });                                   // recorded failure
+fs.fileMissing({ path });                                   // an adapter proxy's scenario, built on a recorded failure
+handle.calledWith([p]).rejects(FileMissingErrorStub({ syscall: 'open', path: p }));   // recorded failure, unwrapped function (T2)
 orchestrator.questNotFound({ questId });                    // provider-owned scenario
 expect(() => run()).toThrow(/^Quest not found$/u);          // asserting what the code under test throws
 ```
@@ -2021,7 +2118,7 @@ without Node's `code` 193 times, and with it 70 times. Of the 92 implementations
 error, 64 catch errors themselves, and 58 of those catch everything, the only shape that passes such a
 test.
 
-How a machine checks it: `ban-invented-failures`. Syntax.
+How a machine checks it: `ban-invented-failures`. Syntax. Its message names the recorded-failure stub to use.
 
 #### T6: no mocking another workspace package's exports
 
@@ -2040,13 +2137,11 @@ missing quest as `{ success: false }` (`quest-get-broker.ts:77-80`), but consume
 error 40 times and `success: false` 4 times, so `quest-pause-responder.ts:40`, the "Quest not found"
 branch the real system takes, has no test.
 
-How a machine checks it: `ban-workspace-export-mocks`. The import specifier starts with
-`@dungeonmaster/`, is not a `/testing` subpath, and is not the file's own package.
+How a machine checks it: `ban-workspace-export-mocks`. The import specifier names one of the repo's own workspace packages, is not a `/testing` subpath, and is not the file's own package. The package names come from the root `package.json` `workspaces`, so the rule works unchanged in a consumer repo. In this repo they happen to share the `@dungeonmaster/` prefix; the rule does not rely on it.
 
 #### T7: test support files are outside the adapter rules
 
-A1 to A7 govern production code. A test support file may import a claimed function, handle failures
-and do real I/O. The I/O trap governs what a unit test may reach, and T1 to T6 govern how it mocks.
+A1 to A7 govern production code. A test support file may import a claimed function, handle failures and do real I/O. The I/O trap and MSW govern what a unit test may reach (T8), and T1 to T6 govern how it mocks.
 
 ```
 // left alone — in test support files
@@ -2080,20 +2175,138 @@ Ins and outs:
 How a machine checks it: every adapter rule skips test support files, classified by the same pattern
 the I/O trap uses.
 
+#### T8: every way out of the process is covered by the I/O trap or by MSW
+
+Node and the browser fix the ways out, not the repo. So the list below is the platform's. It is the same in every repo, and a model cannot grow it to get past an error.
+
+Two kinds of cover:
+
+| Cover        | What it does                                                                                                               | Used for                                                               |
+|--------------|----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
+| The I/O trap | Fails the test on any call nothing staged, even one the code caught                                                        | Ways out with no contract on the other side: files, processes, sockets |
+| MSW          | Fails the test on any request or connection no handler took, and checks each staged response against the server's contract | HTTP and WebSocket, where the other side is a server with a contract   |
+
+| Way out                          | Node or browser surface                                       | Cover                                   | State on 2026-09-25                                                                                                                                         |
+|----------------------------------|---------------------------------------------------------------|-----------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Files                            | `fs`, `fs/promises`                                           | Trap                                    | Built                                                                                                                                                       |
+| Starting processes               | `child_process`                                               | Trap                                    | Built                                                                                                                                                       |
+| Signalling another process       | `process.kill`                                                | Trap                                    | Not covered                                                                                                                                                 |
+| Outgoing HTTP                    | `http`, `https`, and the globals `fetch` and `XMLHttpRequest` | MSW                                     | Loaded only in `web` and `testing`                                                                                                                          |
+| HTTP/2                           | `http2`                                                       | Trap                                    | Not covered                                                                                                                                                 |
+| Outgoing WebSocket               | the global `WebSocket`                                        | MSW's `ws` API                          | Not set up                                                                                                                                                  |
+| Raw sockets, opening a port, DNS | `net`, `tls`, `dgram`, `dns`, `dns/promises`                  | Trap                                    | Not covered                                                                                                                                                 |
+| Code in another thread           | `worker_threads`                                              | Trap, on the `Worker` constructor       | Not covered                                                                                                                                                 |
+| Native code                      | a package's compiled `.node` addon                            | None: its calls happen below JavaScript | No workspace package imports one. The installed addons belong to build tools (`rollup`, the import resolver) and to `node-pty`, which nothing here imports. |
+
+```
+// flagged at run time
+await fetch('https://api.example.com/x');        // [msw] no handler took GET https://api.example.com/x
+new WebSocket('ws://localhost:4000/stream');      // [msw] no handler took the connection
+process.kill(pid, 'SIGTERM');                     // [io-trap] unstaged process.kill(1234)
+
+// left alone
+const endpoint = questGetEndpoint.returns({ quest });          // a contract-checked handler (see below)
+registerSpyOn({ object: process, method: 'kill' }).calledWith([pid, 'SIGTERM']).returns(true);   // staged in the calling file's proxy (T2)
+```
+
+Ins and outs:
+
+- **The trap covers what goes through Jest's module registry. MSW covers the globals.** Node's global
+  `fetch` and `WebSocket` reach the real `net` module from inside Node itself, where Jest's mocks never reach. So trapping `net` cannot catch them, and MSW is their only cover.
+- **The trap wraps module functions, so constructors and methods get past
+  it.** It wraps lowercase function exports only (`jest.setup-io-trap.js:85`). `new Worker(…)`, `new net.Socket().connect(…)`,
+  `server.listen(…)` and `process.kill(…)` all leave the process without calling one. Covering them means wrapping `process.kill`, the `Worker` constructor, and the `connect` and `listen` methods on the socket and server prototypes.
+- **Some functions in the network modules do no
+  I/O,** such as `net.isIP`. The trap passes them by name, as it already passes fixture reads by name (`READ_ONLY_FUNCTIONS`, `jest.setup-io-trap.js:38`). That list names Node's API, so it changes only when Node's does.
+- **MSW loads for every package, from the root Jest base config.** Today only
+  `packages/web/jest.config.cjs:30` and `packages/testing/jest.config.js:11` load
+  `start-endpoint-mock-setup.ts`. In every other package, a `fetch` in a unit test reaches the network. MSW ships as ESM, and server's Jest does not transform it (see the gotchas under "The unit-test I/O trap"; `packages/hydration-recipes/jest.config.js:10` notes the same). That transform comes first.
+- **An unhandled request fails the test even when the code catches it.** `onUnhandledRequest: 'error'`
+  (`endpoint-mock-setup-responder.ts:17`) only makes the request fail, and code that catches every error swallows that. The setup records each unhandled request and fails the test in `afterEach`, as the trap does. MSW accepts a function as its `onUnhandledRequest` option, and the recording goes there. The network recorder's `afterEach` does not do this today. It only writes the requests it saw to stderr and never fails the test (`network-record-lifecycle-responder.ts`, checked on 2026-09-25).
+- **An unhandled WebSocket connection goes out for real today.** In the installed msw 2.12.10, when no
+  `ws` handler is registered, MSW reports the connection as unhandled and then connects it to the real server anyway (`node_modules/msw/lib/core/ws/handleWebSocketEvent.mjs:24-37`). The `error` strategy only adds an error event on the client socket. When any `ws` handler is registered, MSW gives every connection to the handlers instead (lines 8-16). So the base setup registers a `ws` handler that fails any connection no test's handler took.
+- **Handlers are checked against the server's
+  contracts.** A staged response is parsed through the server's contract for that endpoint, so a test cannot stage a response the real server could never send. This is T6 applied to HTTP: the package that serves the API ships its handlers from its
+  `/testing` entry point, and client tests use them. In a consumer repo, the consumer's own server package does this. Dungeonmaster ships the mechanism: a function that builds a handler from an endpoint's contract.
+- **Native code has no
+  cover.** An addon does its I/O below JavaScript, where neither the trap nor MSW can see. A unit test that reaches one needs it mocked by hand, and nothing enforces that.
+
+How a machine checks it: at run time, by the trap and MSW. Neither needs a lint rule.
+
 #### What dungeonmaster ships for tests, and how models find it
 
-Dungeonmaster ships proxies and stubs, never adapters (decision 4). In a consumer repo they live in
-`node_modules/@dungeonmaster/*`, which the search tools a model uses do not index. They reach a model
-the way `registerMock` already does:
+Dungeonmaster ships the cover and the test data. It ships no adapters (decision 4). It ships no proxies for Node or npm functions (T2, T3).
 
-| Channel                | When the model sees it                                          | What it carries                                                       |
-|------------------------|-----------------------------------------------------------------|-----------------------------------------------------------------------|
-| The lint error (T5)    | when it writes a hand-made failure                              | the exact proxy scenario to use instead                               |
-| `get-testing-patterns` | at session start                                                | a catalog of every shipped proxy and stub: name, purpose, import path |
-| A session snippet      | every session start, in every repo `dungeonmaster init` touched | a pointer to the catalog                                              |
+| Piece                     | What it is                                                                                                                  | Examples                                                                                                                              |
+|---------------------------|-----------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
+| The I/O trap              | Fails a unit test on any trapped call nothing staged (T8)                                                                   | `jest.setup-io-trap.js`, loaded by every package's Jest setup                                                                         |
+| The MSW setup             | Fails a unit test on any HTTP request or WebSocket connection no handler took (T8)                                          | `start-endpoint-mock-setup.ts`, loaded from the root Jest base config                                                                 |
+| Recorded-failure stubs    | Real errors with Node's real fields                                                                                         | `FileMissingErrorStub`, and stubs for `ECONNREFUSED`, `EADDRINUSE`, `ENOTFOUND` and `ESRCH`                                           |
+| Library object stubs (C5) | Real instances built from the library's own class                                                                           | `ChildProcessStub`, `SocketStub`, `WorkerStub`                                                                                        |
+| Contract-checked handlers | A function that builds an MSW handler from an endpoint's contract and parses each staged response through it                | The consumer's server package supplies the contracts                                                                                  |
+| The mocking API           | `registerMock`, `registerSpyOn` and the proxy-mock hoister                                                                  | `@dungeonmaster/testing/register-mock`                                                                                                |
+| The home sandbox          | Points `HOME` and git's config at a temp directory for every test and every process a test spawns ("The Jest home sandbox") | `jest.setup-global.js` and `jest.setup-global-teardown.js`, set as `globalSetup` and `globalTeardown` in the shipped Jest base config |
+
+Inside this repo, each workspace package also ships a proxy for its own API from its `/testing` entry point (T6). A consumer's packages do the same for their own APIs.
+
+A recorded-failure stub makes the failing call for real where it can, such as reading a path that cannot exist. The trap lets `.stub` files do real I/O, so the error always matches the installed Node. A failure that cannot be triggered offline, such as a DNS miss, is a copy captured once.
+
+In a consumer repo all of this lives in `node_modules/@dungeonmaster/*`, which the search tools a model uses do not index. It reaches a model the way `registerMock` already does:
+
+| Channel                                   | When the model sees it                                          | What it carries                                                                               |
+|-------------------------------------------|-----------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| The trap's and MSW's failure message (T8) | when a unit test makes a call nothing staged                    | the call, and what to stage it with: `registerMock` in the calling file's proxy, or a handler |
+| The lint error (T5)                       | when it writes a hand-made failure                              | the recorded-failure stub to use instead                                                      |
+| `get-testing-patterns`                    | at session start                                                | a catalog of every shipped stub and piece of test infrastructure: name, purpose, import path  |
+| A session snippet                         | every session start, in every repo `dungeonmaster init` touched | a pointer to the catalog                                                                      |
 
 The catalog is generated from the `@dungeonmaster/testing` entry points and each file's PURPOSE header,
 and the lint messages read the same list, so neither can drift from the code.
+
+#### The Jest home sandbox: what a test sees when code calls `os` or `git`
+
+No lint rule exists to isolate tests from the real home (see `ban-bare-os-home-tmp` under "Existing rules that change"). Jest points the home directory somewhere safe before any test runs, so code under test is isolated wherever it reads the home from. Production code still reaches the home through `osHomedirAdapter`, and runs git through an adapter, because both functions are claimed (A2). That is about what production code means by "home", not about tests.
+
+Built on 2026-09-23, before this doc. Today it is written down only in `packages/testing/CLAUDE.md:90-107`
+and `packages/server/CLAUDE.md:184-188`. A session reads those only when it works inside those two packages. Nothing served to every session says the sandbox exists, and `get-testing-patterns:623`
+lists `os.homedir` among functions to mock.
+
+**How it works.** Three files, all in `packages/testing/src/`:
+
+| File                            | When it runs                                                     | What it does                                                                                                                                                                                                                                                 |
+|---------------------------------|------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `jest.setup-global.js`          | Once per run, in Jest's parent process, before any worker starts | Sets `HOME` to `<tmp>/dungeonmaster-jest-sandbox-<pid>`. Writes a `.gitconfig` there with a test identity, `main` as the default branch, and signing off. Sets `XDG_CONFIG_HOME`, `XDG_CACHE_HOME` and `GIT_CONFIG_NOSYSTEM=1`. Removes `CLAUDE_CONFIG_DIR`. |
+| `jest.setup-home.js`            | Once per worker                                                  | Sets `DUNGEONMASTER_HOME` to `<tmp>/dungeonmaster-jest-home-<worker pid>`, holding a `config.json` with no guilds                                                                                                                                            |
+| `jest.setup-global-teardown.js` | Once per run, after every worker exits                           | Fails the run if a new directory appeared under the developer's real `~/.claude/projects`, and names it. Deletes the sandbox.                                                                                                                                |
+
+`HOME` has to be set in the parent process. Jest gives each test file a copy of `process.env`, so an assignment inside a test never reaches `os.homedir()` or a spawned process.
+
+**What a test sees:**
+
+| Code under test does                                | In a unit test                                               | In an integration test                                                                        |
+|-----------------------------------------------------|--------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| Calls `os.homedir()`                                | The sandbox path                                             | The sandbox path                                                                              |
+| Reads or writes a file under that path              | The I/O trap fails the test unless the proxy staged the call | Real, inside the sandbox                                                                      |
+| Reads `DUNGEONMASTER_HOME`                          | The worker's sandbox home                                    | The worker's sandbox home                                                                     |
+| Runs `git` through `spawn` or `execFile`            | The I/O trap fails the test unless the proxy staged the call | Real git, with the sandbox identity and no user or system config                              |
+| Spawns another process, such as the fake Claude CLI | The I/O trap fails the test unless staged                    | The child inherits the sandbox `HOME`, so its `~/.claude/projects` writes land in the sandbox |
+
+**What a test author does:** nothing to turn it on. It covers every Jest run. The rules:
+
+1. Do not mock `os.homedir()` for isolation. It already returns the sandbox. Mock it only to pin a value (T2).
+2. A proxy that needs an expected path under the home calls the real `homedir()`, as it calls `join`.
+3. The sandbox `HOME` is one directory for the whole run, shared by every worker. Never assume it is empty. Write under a directory the test owns, such as a testbed from `installTestbedCreateBroker`.
+4. To give a spawned process a different home, pass it in that spawn's options:
+   `env: { ...process.env, HOME: dir }`. Assigning `process.env.HOME` inside a test does nothing.
+5. A test that changes `DUNGEONMASTER_HOME` restores it and never deletes it (see the gotchas under
+   "The unit-test I/O trap").
+
+Playwright e2e runs use their own mechanism: the Playwright config points `HOME` and
+`DUNGEONMASTER_HOME` at `/tmp/dm-e2e-<pid>` (`packages/testing/CLAUDE.md:76-85`).
+
+**Consumers do not get it
+today.** `packages/testing/jest-config-base.js`, the base config a consumer spreads, sets no `globalSetup` or `globalTeardown`. So a consumer's tests run in the developer's real home. It gains both, pointing at `jest.setup-global.js` and `jest.setup-global-teardown.js`.
+`jest.setup-home.js` stays this repo's own: `DUNGEONMASTER_HOME` is dungeonmaster's data directory, and a consumer's code never reads it.
 
 ### Folders
 
@@ -2118,12 +2331,11 @@ because the "adapters" there are components and test helpers, not outside calls.
 How a machine checks it: syntax. A `JSXElement` or `JSXFragment` in a file outside `widgets/` and
 `flows/` is refused. The rules about which of our folders may import which stay as they are.
 
-## The unit-test I/O trap (built, not committed)
+## The unit-test I/O trap (committed in `fe456add9`)
 
 A setup file in `@dungeonmaster/testing`, loaded by every package's Jest config, traps `fs`,
 `fs/promises` and `child_process` in every unit test. A call nothing staged fails the test and names
-itself, even when the code under test catches the error, because every trapped call is recorded and
-checked after the test.
+itself, even when the code under test catches the error, because every trapped call is recorded and checked after the test. T8 lists the ways out it does not cover yet, and which of them MSW covers instead.
 
 ```
 // before — an unstaged read hits the real disk; a catch-everything broker turns it into a pass
@@ -2181,8 +2393,11 @@ export const StartOrchestrator = { bootstrap: () => { /* the same six */ }, … 
 
 ### Status
 
-As of 2026-09-24 these changes are **staged in git and not committed**. A full `npm run ward` passed
-with them (run `1790294805205-6478`: lint, typecheck, unit 3,757 files, integration 182, e2e 133).
+Committed on `master` as `fe456add9` on 2026-09-25. Three checks back it:
+
+1. A full `npm run ward` passed with the code changes (run `1790294805205-6478`: lint, typecheck, unit 3,757 files, integration 182, e2e 133).
+2. The edits made after that run were comments only. `npm run ward -- --uncommitted` passed on them (run `1790404418094-caa0`: lint, typecheck, unit and integration in the five touched packages).
+3. A worktree run of the old `fs-exists-sync-adapter.test.ts` proves the trap fires. That old version checks real files, and all four of its tests failed with `[io-trap] unstaged fs.existsSync(…)`. The recorder added its own "Test did real I/O that nothing staged" failure to each one.
 
 | File                                                                                                                                                                                                                                                                  | Change                                                                                                                                                                                                                                         |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -2199,12 +2414,13 @@ with them (run `1790294805205-6478`: lint, typecheck, unit 3,757 files, integrat
 | `packages/mcp/src/startup/start-mcp-server.ts`                                                                                                                                                                                                                        | Calls `OrchestrationBootFlow.bootstrap()` before `McpServerFlow`.                                                                                                                                                                              |
 | `orchestrator/CLAUDE.md`, `timer-set-interval-adapter.ts`, `graph-reachability-check-broker.ts`, `process-stale-watch-flow.ts`, five bootstrap responders, `local-eslint/…/rule-graph-reachability-broker.ts`, `server/…/reconcile-watchers-layer-responder.proxy.ts` | Comments that described import-time bootstraps, reworded to the present behaviour.                                                                                                                                                             |
 | `packages/testing/src/adapters/fs/exists-sync/*`, `middleware/import-path-resolver/*`, `adapters/typescript/source-file-getter/*`, `middleware/proxy-mock-collector/*`                                                                                                | Testing-package tests that did real I/O, now staged through their proxies. `jsx-extension-test-stub.jsx` is deleted.                                                                                                                           |
+| `jest.config.base.js`, `packages/testing/src/jest.setup-home.js`                                                                                                                                                                                                      | Comments that gave the import-time bootstraps as the reason `jest.setup-home.js` runs before a test file's imports, reworded to the present reason.                                                                                            |
+
+This work was built under today's rules, so part of it is the shape these rules remove. The new server and mcp `orchestrator-bootstrap` adapters only forward to `StartOrchestrator.bootstrap()`, which A4 deletes. `bootstrap()` returns `{ success: true }`, which A7 counts as `void`. When A4 and A7 land, the bootstrap responders call `StartOrchestrator.bootstrap()` directly, and `bootstrap()` may return `void`.
 
 Outside git: `packages/orchestrator/dist/` was rebuilt so server and mcp typecheck the new `bootstrap()`.
 
-To undo all of it: `git restore --staged --worktree` the modified files, delete the new files and
-directories listed above, restore `jsx-extension-test-stub.jsx` with `git restore`, then rebuild
-orchestrator so its `dist` matches the source again.
+To undo it: `git revert fe456add9`, then rebuild orchestrator so its `dist` matches the source again.
 
 What the trap found when it first ran, 149 unit tests in 7 packages, and what cleared them:
 
@@ -2227,33 +2443,56 @@ Gotchas the next session will meet:
 - The adapters `get-folder-detail` doc teaches `new Error('ENOENT: …')` with no `code`, the likely
   origin of the code-less failures. It changes with T5.
 
+### Holes
+
+The trap wraps `fs`, `fs/promises` and `child_process` (`TRAPPED_MODULES`,
+`jest.setup-io-trap.js:25`). These get through it as of `fe456add9`:
+
+| Hole                                     | Where it matters today                                                                                                                                                                                                                          | What a unit test does                                                                                                                                |
+|------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `net` sockets and servers                | `orchestrator/…/net-check-port-free-adapter.ts`, `shared/…/net-free-port-pair-adapter.ts`, `siegelense/…/net-unix-request-adapter.ts`, `siegelense/…/net-unix-serve-adapter.ts`                                                                 | Opens a real socket or port                                                                                                                          |
+| `fetch` over HTTP                        | The fetch adapters in hooks, hydration, hydration-recipes, orchestrator, shared, siegelense and web                                                                                                                                             | Sends a real request, unless that package's Jest setup loads MSW. Only `web` and `testing` list `start-endpoint-mock-setup.ts` in their Jest config. |
+| `process.kill`                           | `orchestrator/…/process-signal-adapter.ts`, `orchestrator/…/proc-check-alive-adapter.ts`, `siegelense/…/process-is-alive-adapter.ts`, `siegelense/…/process-kill-group-adapter.ts`                                                              | Sends a real signal                                                                                                                                  |
+| Class exports of the trapped modules     | `trapObject` passes any export whose name starts with a capital letter (`jest.setup-io-trap.js:85`), so `new fs.ReadStream(path)` and `new fs.WriteStream(path)` open real files                                                                | Reads or writes a real file                                                                                                                          |
+| A blocked call made after its test ended | The recorder is drained in `afterEach` (`jest.setup-io-trap.js:146`). A timer or late promise that makes a blocked call after its test finished is reported against the next test in the file. After the file's last test it is never reported. | The wrong test fails, or nothing fails                                                                                                               |
+
+The first three are the ways out T8 lists, and the `TRAPPED_MODULES` row in "Today's rules and docs that change" adds them to the trap.
+
+One effect is not a hole but changes things for consumers. The published `jest-config-base.js`
+loads `src/jest.setup.js`, which loads the trap. After the next publish, a consumer repo whose Jest config spreads that base gets the trap too. Its unit tests that touch real files will start failing.
+
 ## Today's rules and docs that change
 
-| Where                                                       | Today                                                                                                                                                                                                                                                       | After                                                                                                                                                                                                                                                                                                        |
-|-------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `require-zod-on-primitives`                                 | Every `z.string()` / `z.number()` needs `.brand()`, and the model picks the text                                                                                                                                                                            | Replaced by `require-object-contract-brands` (B1): every object, nested object and leaf in a contract is branded, the text is derived (B3), and loose values take no brand (B1, B6)                                                                                                                          |
-| `zod` dependency                                            | 3.25, used through the v3 API                                                                                                                                                                                                                               | v4, so a branded object keeps `.shape` (B1)                                                                                                                                                                                                                                                                  |
-| `ban-primitives`                                            | Plain `string` / `number` refused in return types                                                                                                                                                                                                           | Removed: it has nothing left to refuse (B6). See "Lint rules and teaching text".                                                                                                                                                                                                                             |
-| `contracts-constraints.md:22`                               | "All contracts MUST use `.brand<'TypeName'>()` on primitives"                                                                                                                                                                                               | Every leaf of an object contract is branded, inline, with the owner-plus-key text (B1, B2, B3)                                                                                                                                                                                                               |
-| `adapters-constraints.md:92-94`                             | "ALL inputs MUST use contracts (no raw string, number)" and "ALL outputs MUST use contracts (no returning npm package types)"                                                                                                                               | Loose inputs are plain (B6). Library data types may leave; handles may not (A6).                                                                                                                                                                                                                             |
-| `transformers-constraints.md:34-46`                         | "All transformers MUST validate output using contracts", with `return dateStringContract.parse(formatted);` as the right way and returning `formatted` as "WRONG ... not branded". Lines 137-152 teach `return contentTextContract.parse(config.purpose);`. | A transformer that returns one of our objects builds it through the object's contract parse (B1). A loose string or number is returned plain (B6). Both examples become the "before".                                                                                                                        |
-| `responders-constraints.md:150`                             | "ALL inputs from external sources MUST use `unknown` type and validate through contracts"                                                                                                                                                                   | Unchanged. C4 makes the JSON half of it checkable.                                                                                                                                                                                                                                                           |
-| `enforce-folder-return-types`                               | Bans `void` and `Promise<void>` returns in function-exporting folders; its message points at `AdapterResult`                                                                                                                                                | Changed by A7. `void` is allowed exactly when every call the function discards returned `void`. A return that can hold only one value counts as `void`. `AdapterResult` goes.                                                                                                                                |
-| `@typescript-eslint/no-magic-numbers`                       | On outside tests, stubs and e2e specs. Ignores `-1`, `0`, `1`, default values and enums; `detectObjects: false` skips numbers written as object property values. ESLint's own `no-magic-numbers` is off.                                                    | Unchanged. `detectObjects: false` lets a literal sit in the object handed to a root parse (B1). A loose number passed to a call still needs a name in `statics/`; B6 only drops the brand parse around it.                                                                                                   |
-| No magic-strings rule                                       | String literals are not linted. Today many are wrapped in a brand parse, such as `pathSegmentContract.parse('package.json')`.                                                                                                                               | Unchanged. Under B6 those become plain literals, and no rule moves them to statics.                                                                                                                                                                                                                          |
-| `enforce-magic-arrays`                                      | Refuses an inline array whose elements are all string or number literals, outside statics, tests, stubs and proxies                                                                                                                                         | Unchanged. Wrapping each element in a brand parse hides an array from it today; one case exists (`tsconfig-discover-patterns-transformer.ts:17`, `[globPatternContract.parse('node_modules'), globPatternContract.parse('dist')]`). B6 removes the wrapping, so the rule catches it and moves it to statics. |
-| `enforce-regex-usage`                                       | Regex literals only in `contracts/`, `guards/` and `transformers/`                                                                                                                                                                                          | `statics/` allows regex too (`allowRegex: true` in `folder-config-statics.ts`), so a shared pattern can live there (B2)                                                                                                                                                                                      |
-| `folder-config-statics.ts` `allowsLayerFiles`               | `true` only for `flows`, `adapters`, `brokers`, `responders` and `widgets`                                                                                                                                                                                  | Also `true` for `contracts`, `stubs`, `transformers`, `statics` and `bindings` (C7). `get-architecture` lists the allowed folders from this flag, so its text follows.                                                                                                                                       |
-| `folder-config-statics.ts`                                  | `contracts/` accepts `.stub.ts` files beside its contracts                                                                                                                                                                                                  | A new `stubs/` folder type holds every stub (C6). `contracts/` drops `.stub.ts` from its `fileSuffix`; `requireStub` pairs a contract with `stubs/<domain>/` by name.                                                                                                                                        |
-| Package barrels (`contracts.ts`) and `package.json` exports | `contracts.ts` exports stubs beside contracts: 232 in shared                                                                                                                                                                                                | Stubs go to a `stubs.ts` barrel and a `./stubs` export that only test, proxy, harness and stub files may import (C6)                                                                                                                                                                                         |
-| `session-snippet-statics.ts` folder types table             | No `stubs/` row                                                                                                                                                                                                                                             | Gains a `stubs/` row, so every session and every consumer repo learns the folder type (C6)                                                                                                                                                                                                                   |
-| `enforce-implementation-colocation`                         | Every implementation file needs a colocated test, statics included. All 324 statics files have one, and 178 of those tests are a single `toStrictEqual` that restates the whole object.                                                                     | A statics file needs a test only when it holds a regex                                                                                                                                                                                                                                                       |
-| `folder-config-statics.ts` `allowedImports`                 | Only `adapters/` may import `node_modules`; `contracts/` gets only zod                                                                                                                                                                                      | `import type` from a package is allowed in every folder (C2). Value imports follow A2. `stubs/` may import packages to build real values (C6).                                                                                                                                                               |
-| `forbid-type-reexport`                                      | Refuses re-exporting an imported type through an export specifier, outside `index.ts`                                                                                                                                                                       | Unchanged. It sits beside C2's refusal of aliases that give a library type a second name.                                                                                                                                                                                                                    |
-| `ban-adhoc-types`                                           | "Define types in contracts/ and import them"; refuses `interface` and `as { … }` only; `adapters/`, `contracts/` and `widgets/` exempt                                                                                                                      | Extended by B9 to `type` aliases and return types built from an object literal that can leave a function; `adapters/` is covered; the message says "our types" (C2)                                                                                                                                          |
-| `architecture-overview-broker.ts:274`                       | Prose: "take it as `User['id']`"                                                                                                                                                                                                                            | Enforced by B4                                                                                                                                                                                                                                                                                               |
-| `ban-flattened-contract-params`                             | Allows one indexed property per block                                                                                                                                                                                                                       | Unchanged. It still stops a block taking several fields off one owner.                                                                                                                                                                                                                                       |
-| `eslint-plugin/src/brokers/rule/CLAUDE.md`                  | "Use the shared Tsestree contract"                                                                                                                                                                                                                          | Use `TSESTree` from `@typescript-eslint/utils`, and the node stubs in `stubs/tsestree/` (C2, C5, C6)                                                                                                                                                                                                         |
+| Where                                                                         | Today                                                                                                                                                                                                                                                       | After                                                                                                                                                                                                                                                                                                        |
+|-------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `require-zod-on-primitives`                                                   | Every `z.string()` / `z.number()` needs `.brand()`, and the model picks the text                                                                                                                                                                            | Replaced by `require-object-contract-brands` (B1): every object, nested object and leaf in a contract is branded, the text is derived (B3), and loose values take no brand (B1, B6)                                                                                                                          |
+| `zod` dependency                                                              | 3.25, used through the v3 API                                                                                                                                                                                                                               | v4, so a branded object keeps `.shape` (B1)                                                                                                                                                                                                                                                                  |
+| `ban-primitives`                                                              | Plain `string` / `number` refused in return types                                                                                                                                                                                                           | Removed: it has nothing left to refuse (B6). See "Lint rules and teaching text".                                                                                                                                                                                                                             |
+| `contracts-constraints.md:22`                                                 | "All contracts MUST use `.brand<'TypeName'>()` on primitives"                                                                                                                                                                                               | Every leaf of an object contract is branded, inline, with the owner-plus-key text (B1, B2, B3)                                                                                                                                                                                                               |
+| `adapters-constraints.md:92-94`                                               | "ALL inputs MUST use contracts (no raw string, number)" and "ALL outputs MUST use contracts (no returning npm package types)"                                                                                                                               | Loose inputs are plain (B6). Any library type may be returned, imported from the library (A6).                                                                                                                                                                                                               |
+| `transformers-constraints.md:34-46`                                           | "All transformers MUST validate output using contracts", with `return dateStringContract.parse(formatted);` as the right way and returning `formatted` as "WRONG ... not branded". Lines 137-152 teach `return contentTextContract.parse(config.purpose);`. | A transformer that returns one of our objects builds it through the object's contract parse (B1). A loose string or number is returned plain (B6). Both examples become the "before".                                                                                                                        |
+| `responders-constraints.md:150`                                               | "ALL inputs from external sources MUST use `unknown` type and validate through contracts"                                                                                                                                                                   | Unchanged. C4 makes the JSON half of it checkable.                                                                                                                                                                                                                                                           |
+| `enforce-folder-return-types`                                                 | Bans `void` and `Promise<void>` returns in function-exporting folders; its message points at `AdapterResult`                                                                                                                                                | Changed by A7. `void` is allowed exactly when every call the function discards returned `void`. A return that can hold only one value counts as `void`. `AdapterResult` goes.                                                                                                                                |
+| `@typescript-eslint/no-magic-numbers`                                         | On outside tests, stubs and e2e specs. Ignores `-1`, `0`, `1`, default values and enums; `detectObjects: false` skips numbers written as object property values. ESLint's own `no-magic-numbers` is off.                                                    | Unchanged. `detectObjects: false` lets a literal sit in the object handed to a root parse (B1). A loose number passed to a call still needs a name in `statics/`; B6 only drops the brand parse around it.                                                                                                   |
+| No magic-strings rule                                                         | String literals are not linted. Today many are wrapped in a brand parse, such as `pathSegmentContract.parse('package.json')`.                                                                                                                               | Unchanged. Under B6 those become plain literals, and no rule moves them to statics.                                                                                                                                                                                                                          |
+| `enforce-magic-arrays`                                                        | Refuses an inline array whose elements are all string or number literals, outside statics, tests, stubs and proxies                                                                                                                                         | Unchanged. Wrapping each element in a brand parse hides an array from it today; one case exists (`tsconfig-discover-patterns-transformer.ts:17`, `[globPatternContract.parse('node_modules'), globPatternContract.parse('dist')]`). B6 removes the wrapping, so the rule catches it and moves it to statics. |
+| `enforce-regex-usage`                                                         | Regex literals only in `contracts/`, `guards/` and `transformers/`                                                                                                                                                                                          | `statics/` allows regex too (`allowRegex: true` in `folder-config-statics.ts`), so a shared pattern can live there (B2)                                                                                                                                                                                      |
+| `folder-config-statics.ts` `allowsLayerFiles`                                 | `true` only for `flows`, `adapters`, `brokers`, `responders` and `widgets`                                                                                                                                                                                  | Also `true` for `contracts`, `stubs`, `transformers`, `statics` and `bindings` (C7). `get-architecture` lists the allowed folders from this flag, so its text follows.                                                                                                                                       |
+| `folder-config-statics.ts`                                                    | `contracts/` accepts `.stub.ts` files beside its contracts                                                                                                                                                                                                  | A new `stubs/` folder type holds every stub (C6). `contracts/` drops `.stub.ts` from its `fileSuffix`; `requireStub` pairs a contract with `stubs/<domain>/` by name.                                                                                                                                        |
+| Package barrels (`contracts.ts`) and `package.json` exports                   | `contracts.ts` exports stubs beside contracts: 232 in shared                                                                                                                                                                                                | Stubs go to a `stubs.ts` barrel and a `./stubs` export that only test, proxy, harness and stub files may import (C6)                                                                                                                                                                                         |
+| `packages/testing/jest-config-base.js`, the Jest base config consumers spread | Loads `jest.setup.js` only. No home sandbox, so a consumer's tests run in the developer's real home.                                                                                                                                                        | Sets `globalSetup` and `globalTeardown` to `jest.setup-global.js` and `jest.setup-global-teardown.js` ("The Jest home sandbox")                                                                                                                                                                              |
+| `session-snippet-statics.ts` folder types table                               | No `stubs/` row                                                                                                                                                                                                                                             | Gains a `stubs/` row, so every session and every consumer repo learns the folder type (C6)                                                                                                                                                                                                                   |
+| `enforce-implementation-colocation`                                           | Every implementation file needs a colocated test, statics included. All 324 statics files have one, and 178 of those tests are a single `toStrictEqual` that restates the whole object.                                                                     | A statics file needs a test only when it holds a regex                                                                                                                                                                                                                                                       |
+| `folder-config-statics.ts` `allowedImports`                                   | Only `adapters/` may import `node_modules`; `contracts/` gets only zod                                                                                                                                                                                      | `import type` from a package is allowed in every folder (C2). Value imports follow A2. `stubs/` may import packages to build real values (C6).                                                                                                                                                               |
+| `forbid-type-reexport`                                                        | Refuses re-exporting an imported type through an export specifier, outside `index.ts`                                                                                                                                                                       | Unchanged. It sits beside C2's refusal of aliases that give a library type a second name.                                                                                                                                                                                                                    |
+| `ban-adhoc-types`                                                             | "Define types in contracts/ and import them"; refuses `interface` and `as { … }` only; `adapters/`, `contracts/` and `widgets/` exempt                                                                                                                      | Extended by B9 to `type` aliases and return types built from an object literal that can leave a function; `adapters/` is covered; the message says "our types" (C2)                                                                                                                                          |
+| `architecture-overview-broker.ts:274`                                         | Prose: "take it as `User['id']`"                                                                                                                                                                                                                            | Enforced by B4                                                                                                                                                                                                                                                                                               |
+| `ban-flattened-contract-params`                                               | Allows one indexed property per block                                                                                                                                                                                                                       | Unchanged. It still stops a block taking several fields off one owner.                                                                                                                                                                                                                                       |
+| `eslint-plugin/src/brokers/rule/CLAUDE.md`                                    | "Use the shared Tsestree contract"                                                                                                                                                                                                                          | Use `TSESTree` from `@typescript-eslint/utils`, and the node stubs in `stubs/tsestree/` (C2, C5, C6)                                                                                                                                                                                                         |
+| `jest.setup-io-trap.js` `TRAPPED_MODULES` and its failure message             | Traps `fs`, `fs/promises` and `child_process`. The message says "Stage it through a proxy, or move the test to an integration test".                                                                                                                        | Also traps `net`, `tls`, `dgram`, `dns`, `dns/promises`, `http2` and `process.kill`, the `Worker` constructor, and the socket and server `connect` and `listen` methods. The message names `registerMock` in the calling file's proxy, and the recorded-failure stubs (T2, T8).                              |
+| `jest.config.base.js`                                                         | Loads the home sandbox and `jest.setup.js`. MSW loads only where a package adds `start-endpoint-mock-setup.ts` itself: `web` and `testing`.                                                                                                                 | Also loads `start-endpoint-mock-setup.ts`, once every package's Jest transforms MSW's ESM (T8).                                                                                                                                                                                                              |
+| `endpoint-mock-setup-responder.ts:17`                                         | `onUnhandledRequest: 'error'`, which code that catches every error swallows. No `ws` handler is registered, so an unhandled WebSocket connection goes out for real.                                                                                         | Records each unhandled request and fails the test in `afterEach`. Registers a `ws` handler that fails any connection no test's handler took (T8).                                                                                                                                                            |
+| Proxies for Node and npm functions                                            | One adapter proxy per wrapped function, in each package that wraps it                                                                                                                                                                                       | No proxy for an unwrapped function. The calling file's proxy stages it with `registerMock`, and failures come from recorded-failure stubs (T2, T3).                                                                                                                                                          |
 
 ## Lint rules and teaching text: the work
 
@@ -2266,22 +2505,22 @@ too. The audits are in `tmp/lint-audit-1.tsv`, `lint-audit-2.tsv`, `lint-audit-3
 
 57 of the 71 rules keep their behaviour. These 14 change:
 
-| Rule                                            | Today                                                                                                                                                                                                           | Change                                                                                                                                                                                                                                                                                                                                                                   | Doc rule   |
-|-------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
-| `ban-primitives`                                | Refuses a plain `string` or `number` return (this repo sets `allowPrimitiveReturns: false`). Its message says "If none fits, create a new contract".                                                            | **Remove.** Plain returns are allowed (B6), and plain inputs already were, so it has nothing left to refuse. B4 refuses the parameters that matter, such as `questId: string`. Its message is what mints `ContentText`.                                                                                                                                                  | B6, B4     |
-| `require-zod-on-primitives`                     | Every `z.string()` and `z.number()` anywhere needs `.brand()`. Its test asserts that a loose `const schema = z.string()` is invalid (`rule-require-zod-on-primitives-broker.test.ts:47`).                       | **Replaced by `require-object-contract-brands`.** Keeps the brand-in-chain check and the enum skip. Drops the loose `z.string()` case. Adds the object brand, the derived text, the `contracts/` scope and the autofix.                                                                                                                                                  | B1, B2, B3 |
-| `ban-adhoc-types`                               | Refuses `interface` and `as { … }` casts. Skips `contracts/`, `adapters/` and `widgets/`. Misses `type X = { … }` aliases and inline object return types. Message: "Define types in contracts/ and import them" | Extended by B9: also refuses an object type literal in a module-level function's return type, a module-level alias, variable type or type argument, unless every member is a function. Skips `.proxy.ts` files. `adapters/` gets `disallowAdhocTypes: true`. Message: "Define our types in contracts/ and import them. A library's types are imported from the library." | B9, C2     |
-| `enforce-import-dependencies`                   | Treats `import type` like a value import. Its stub allowance keys on the `contracts` folder type (`rule-enforce-import-dependencies-broker.ts:161`, `validate-external-import-layer-broker.ts:93`).             | Let every `import type` from a package through. Key the stub allowance on `stubs`, for test, proxy, harness and stub files. Refuse `stubs/` and `/stubs` imports from everything else.                                                                                                                                                                                   | C2, C6     |
-| `enforce-implementation-colocation`             | Pairs a contract with the stub in its own folder. Requires a test for every statics file.                                                                                                                       | Pair `contracts/<domain>/` with `stubs/<domain>/` by name. Require a statics test only when the file holds a regex, which means reading the file's content.                                                                                                                                                                                                              | C6, B2     |
-| `enforce-project-structure`                     | Reads the folder config                                                                                                                                                                                         | No code change. The `stubs/` folder type is added to the config.                                                                                                                                                                                                                                                                                                         | C6         |
-| `enforce-stub-patterns`                         | Every stub takes `{ ...props }: StubArgument<T> = {}` and calls `contract.parse()` (`rule-enforce-stub-patterns-broker.ts:93-98`)                                                                               | **Conflicts today.** Accept a second shape in `stubs/`: a stub that builds a library value and declares the library's type as its return type.                                                                                                                                                                                                                           | C5         |
-| `enforce-contract-usage-in-tests`               | Suggests the stub path `./<name>.stub` beside the contract (line 158, and `contract-path-to-stub-path-transformer.ts:18`). Its message points at `@dungeonmaster/shared/contracts`.                             | Suggest `stubs/<domain>/<domain>.stub`, and point at the `/stubs` entry point.                                                                                                                                                                                                                                                                                           | C6         |
-| `enforce-stub-usage`                            | Checks `.test.ts` files only (line 38)                                                                                                                                                                          | Also check `.proxy.ts` and `.stub.ts` files. Add C5's check: no object literal cast to a type imported from a package.                                                                                                                                                                                                                                                   | C5         |
-| `enforce-folder-return-types`                   | Always refuses `void`; its message recommends `AdapterResult` (line 28)                                                                                                                                         | **Rewrite.** Allow `void` exactly when every discarded call returned `void`; a single-value return counts as `void`. Needs the type checker.                                                                                                                                                                                                                             | A7         |
-| `enforce-regex-usage`                           | Reads `allowRegex` from the folder config                                                                                                                                                                       | No code change. `statics/` gets `allowRegex: true`.                                                                                                                                                                                                                                                                                                                      | B2         |
-| `require-validation-on-untyped-property-access` | Catches `JSON.parse(...).field` read before a parse. Exempts every `-adapter.ts` file (line 46).                                                                                                                | Becomes C4: also `response.json()`, casts, storing the value, and returning it. Drop the adapter exemption: C4's own "before" example, `return JSON.parse(text) as TResponse`, sits in an adapter.                                                                                                                                                                       | C4         |
-| `ban-bare-os-home-tmp` (local-eslint)           | Allows `homedir()` and `tmpdir()` only in `adapters/os/`                                                                                                                                                        | Absorbed by A2, which generalises it. A2 keeps its message naming the adapter to use, and its exemptions for harnesses and `playwright.config.ts`.                                                                                                                                                                                                                       | A2         |
-| `no-bare-process-cwd`                           | Imports the `GlobPattern` and `PathSegment` brands                                                                                                                                                              | Those are standalone brands (B2), so the values become plain `string`.                                                                                                                                                                                                                                                                                                   | B2, B6     |
+| Rule                                            | Today                                                                                                                                                                                                           | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Doc rule   |
+|-------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| `ban-primitives`                                | Refuses a plain `string` or `number` return (this repo sets `allowPrimitiveReturns: false`). Its message says "If none fits, create a new contract".                                                            | **Remove.** Plain returns are allowed (B6), and plain inputs already were, so it has nothing left to refuse. B4 refuses the parameters that matter, such as `questId: string`. Its message is what mints `ContentText`.                                                                                                                                                                                                                                                                                                                                                                                                                            | B6, B4     |
+| `require-zod-on-primitives`                     | Every `z.string()` and `z.number()` anywhere needs `.brand()`. Its test asserts that a loose `const schema = z.string()` is invalid (`rule-require-zod-on-primitives-broker.test.ts:47`).                       | **Replaced by `require-object-contract-brands`.** Keeps the brand-in-chain check and the enum skip. Drops the loose `z.string()` case. Adds the object brand, the derived text, the `contracts/` scope and the autofix.                                                                                                                                                                                                                                                                                                                                                                                                                            | B1, B2, B3 |
+| `ban-adhoc-types`                               | Refuses `interface` and `as { … }` casts. Skips `contracts/`, `adapters/` and `widgets/`. Misses `type X = { … }` aliases and inline object return types. Message: "Define types in contracts/ and import them" | Extended by B9: also refuses an object type literal in a module-level function's return type, a module-level alias, variable type or type argument, unless every member is a function. Skips `.proxy.ts` files. `adapters/` gets `disallowAdhocTypes: true`. Message: "Define our types in contracts/ and import them. A library's types are imported from the library."                                                                                                                                                                                                                                                                           | B9, C2     |
+| `enforce-import-dependencies`                   | Treats `import type` like a value import. Its stub allowance keys on the `contracts` folder type (`rule-enforce-import-dependencies-broker.ts:161`, `validate-external-import-layer-broker.ts:93`).             | Let every `import type` from a package through. Key the stub allowance on `stubs`, for test, proxy, harness and stub files. Refuse `stubs/` and `/stubs` imports from everything else.                                                                                                                                                                                                                                                                                                                                                                                                                                                             | C2, C6     |
+| `enforce-implementation-colocation`             | Pairs a contract with the stub in its own folder. Requires a test for every statics file.                                                                                                                       | Pair `contracts/<domain>/` with `stubs/<domain>/` by name. Require a statics test only when the file holds a regex, which means reading the file's content.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | C6, B2     |
+| `enforce-project-structure`                     | Reads the folder config                                                                                                                                                                                         | No code change. The `stubs/` folder type is added to the config.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | C6         |
+| `enforce-stub-patterns`                         | Every stub takes `{ ...props }: StubArgument<T> = {}` and calls `contract.parse()` (`rule-enforce-stub-patterns-broker.ts:93-98`)                                                                               | **Conflicts today.** Accept a second shape in `stubs/`: a stub that builds a library value and declares the library's type as its return type.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | C5         |
+| `enforce-contract-usage-in-tests`               | Suggests the stub path `./<name>.stub` beside the contract (line 158, and `contract-path-to-stub-path-transformer.ts:18`). Its message points at `@dungeonmaster/shared/contracts`.                             | Suggest `stubs/<domain>/<domain>.stub`, and point at the `/stubs` entry point.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | C6         |
+| `enforce-stub-usage`                            | Checks `.test.ts` files only (line 38)                                                                                                                                                                          | Also check `.proxy.ts` and `.stub.ts` files. Add C5's check: no object literal cast to a type imported from a package.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | C5         |
+| `enforce-folder-return-types`                   | Always refuses `void`; its message recommends `AdapterResult` (line 28)                                                                                                                                         | **Rewrite.** Allow `void` exactly when every discarded call returned `void`; a single-value return counts as `void`. Needs the type checker.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | A7         |
+| `enforce-regex-usage`                           | Reads `allowRegex` from the folder config                                                                                                                                                                       | No code change. `statics/` gets `allowRegex: true`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | B2         |
+| `require-validation-on-untyped-property-access` | Catches `JSON.parse(...).field` read before a parse. Exempts every `-adapter.ts` file (line 46).                                                                                                                | Becomes C4: also `response.json()`, casts, storing the value, and returning it. Drop the adapter exemption: C4's own "before" example, `return JSON.parse(text) as TResponse`, sits in an adapter.                                                                                                                                                                                                                                                                                                                                                                                                                                                 | C4         |
+| `ban-bare-os-home-tmp` (local-eslint)           | Allows `homedir()` and `tmpdir()` only in `adapters/os/`                                                                                                                                                        | **Remove.** It forced every `homedir()` and `tmpdir()` call through an adapter a proxy could mock, which was the only way to isolate a test from the real home before the Jest home sandbox existed. The sandbox and the I/O trap now isolate every test ("The Jest home sandbox"). The claim rule keeps the part that matters in production: `osHomedirAdapter` changes what `homedir()` answers (`DUNGEONMASTER_HOME` first), so `homedir()` is claimed and `osUserHomedirAdapter` stays as its plain read (A2, A3). No adapter changes `tmpdir()`, so the two `osTmpdirAdapter`s only pass the call through and go (A3). Decided on 2026-09-25. | A2, A3     |
+| `no-bare-process-cwd`                           | Imports the `GlobPattern` and `PathSegment` brands                                                                                                                                                              | Those are standalone brands (B2), so the values become plain `string`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | B2, B6     |
 
 **Every rule in both packages also changes mechanically.** Each one imports the copied `Tsestree` and
 `EslintContext` types, directly in `eslint-plugin` and through its exports in `local-eslint`. C2 deletes
@@ -2307,14 +2546,14 @@ real type requires needs fixing, such as reading `node.callee` before narrowing 
 | C8         | `enforce-unique-contract-names`: a contract name is defined in one workspace package only                                                                                              | New, sharing the index B4 and A5 use                                                                                                                                                                                                     | A repo-wide index of exported contract names                                    |
 | C7         | Layer files in five more folder types                                                                                                                                                  | Config in `folder-config-statics.ts`; `enforce-implementation-colocation` applies each folder type's own test and proxy rules to its layers; `require-object-contract-brands` derives a layer contract's text from its use in the parent | Syntax                                                                          |
 | A1         | `require-handling-in-adapters`                                                                                                                                                         | New                                                                                                                                                                                                                                      | Syntax and imports; the type checker for methods on objects an adapter returned |
-| A2         | `enforce-claimed-imports`                                                                                                                                                              | New, absorbing `ban-bare-os-home-tmp`                                                                                                                                                                                                    | A repo-wide index of handled functions                                          |
+| A2         | `enforce-claimed-imports`                                                                                                                                                              | New                                                                                                                                                                                                                                      | A repo-wide index of the functions adapters change                              |
 | A3         | `ban-unclaimed-pass-through-adapters`                                                                                                                                                  | New, sharing A2's index                                                                                                                                                                                                                  | Syntax and A2's index                                                           |
 | A4         | `ban-workspace-forwarding-adapters`                                                                                                                                                    | New                                                                                                                                                                                                                                      | Syntax and imports                                                              |
 | A5         | `enforce-single-adapter-home`                                                                                                                                                          | New                                                                                                                                                                                                                                      | A repo-wide index                                                               |
-| A6         | `ban-library-handles-from-adapters`                                                                                                                                                    | New                                                                                                                                                                                                                                      | The type checker                                                                |
+| A6         | None: C2, C5, A1 and the I/O trap cover it                                                                                                                                             | —                                                                                                                                                                                                                                        | —                                                                               |
 | A7         | Returns say what happened                                                                                                                                                              | Rewriting `enforce-folder-return-types`                                                                                                                                                                                                  | The type checker                                                                |
 | T4         | `ban-proxy-catch-all-defaults`: no `calledWith([])` answer in a proxy constructor for a function that takes arguments                                                                  | New                                                                                                                                                                                                                                      | Syntax, and the type checker for the function's signature                       |
-| T5         | `ban-invented-failures`: no hand-made `Error` given to a mock's `rejects`, `throws` or a throwing `implement` in a proxy or test                                                       | New                                                                                                                                                                                                                                      | Syntax                                                                          |
+| T5         | `ban-invented-failures`: no hand-made `Error` given to a mock's `rejects`, `throws` or a throwing `implement` in a proxy or test. Its message names the recorded-failure stub to use   | New                                                                                                                                                                                                                                      | Syntax                                                                          |
 | D1         | `ban-jsx-outside-widgets-and-flows`: no JSX outside `widgets/` and `flows/`                                                                                                            | New                                                                                                                                                                                                                                      | Syntax                                                                          |
 | T6         | `ban-workspace-export-mocks`: no `registerMock` of another workspace package's export, and no `registerModuleMock` of an `@dungeonmaster/*` package outside its `/testing` entry point | New                                                                                                                                                                                                                                      | Syntax and imports                                                              |
 
@@ -2323,35 +2562,57 @@ may run in ward only. Open decision 12 covers this.
 
 ### Teaching text that changes
 
-Models learn these rules from text that the MCP tools and the session hooks serve, not only from lint.
-23 sentences in 10 sources contradict this doc. Each must change with its rule, or the text keeps
-teaching the old rule while the lint refuses it.
+Models learn these rules from text that the MCP tools and the session hooks serve, not only from lint. The audit on 2026-09-24 found 23 sentences in 10 sources that contradict this doc. The rows for T1, T2, T5 and T8 were added on 2026-09-25. So was every row after the `packages/testing/CLAUDE.md:23`
+row, found on a second read the same day that also checked the text `get-architecture` and
+`get-testing-patterns` serve. Each must change with its rule, or the text keeps teaching the old rule while the lint refuses it.
 
-| Where                                                                                                                                    | Says today                                                                                                  | Change to                                                                                                                                                                             | Doc rule |
-|------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
-| `mcp/src/transformers/folder-constraints/folder-constraints-transformer.ts:39`, served by `get-folder-detail` for about ten folder types | "All types must come from contracts/"                                                                       | "Our own types come from contracts/. A library's types are imported from the library."                                                                                                | C2       |
-| Same line, a "must not" item                                                                                                             | "Use raw primitives (string, number) in signatures"                                                         | "A field of an object contract is branded. A parameter, return or local is plain, unless it is a field taken through `Owner['key']`."                                                 | B1, B6   |
-| `mcp/src/brokers/architecture/folder-detail/architecture-folder-detail-broker.ts:152`                                                    | "Ad-hoc Types Forbidden: All types must come from contracts"                                                | "Ad-hoc types forbidden: our own types come from contracts/, and a library's types from the library."                                                                                 | C2       |
-| `shared/src/statics/session-snippet/session-snippet-statics.ts:104`, in every session in every repo                                      | "Returns must be branded Zod contracts — inputs MAY take a raw `string`. The asymmetry is deliberate"       | "Every object contract and every string and number field in it is branded. A loose parameter, return or local is plain."                                                              | B1, B6   |
-| Same file, line 103                                                                                                                      | "Tests import `.stub.ts`, never `-contract.ts`; Stubs import contract to parse with"                        | "Tests import stubs from `stubs/`, never contracts. A stub for our type parses through its contract. A stub for a library type builds the real value and returns the library's type." | C5, C6   |
-| `shared/src/brokers/architecture/overview/architecture-overview-broker.ts:264`, served by `get-architecture`                             | "`ban-primitives` is asymmetric on purpose: an input MAY take a raw `string`, a return MUST be branded."    | "Brands live on object contracts: every object and every field there is branded, and nothing else is."                                                                                | B1, B6   |
-| `mcp/src/brokers/architecture/testing-patterns/architecture-testing-patterns-broker.ts:734`, served by `get-testing-patterns`            | "Raw primitives: return types must be branded"                                                              | Drop the return rule. Keep "to test an invalid input, use `as never`".                                                                                                                | B6       |
-| Same file, line 732                                                                                                                      | "define types in contracts/ and import them"                                                                | "define our types in contracts/ and import them"                                                                                                                                      | C2       |
-| Same file, line 581                                                                                                                      | "Complete stub patterns in contracts/ folder detail - Use `get-folder-detail({ folderType: "contracts" })`" | "Complete stub patterns are in the stubs/ folder detail: `get-folder-detail({ folderType: "stubs" })`"                                                                                | C6       |
-| `mcp/src/statics/folder-constraints/contracts-constraints.md:22`                                                                         | "All contracts MUST use `.brand<'TypeName'>()` on primitives"                                               | "Every object contract, every object nested in it, and every string and number field carries `.brand<'…'>()`, with the text derived from the owner and the key."                      | B1, B3   |
-| Same file, line 134                                                                                                                      | "Import colocated contract from same directory"                                                             | "A stub in `stubs/<domain>/` imports the contract of the same domain from `contracts/`."                                                                                              | C6       |
-| `mcp/src/statics/folder-constraints/adapters-constraints.md:34`                                                                          | "MUST return a meaningful value … Side-effect adapters … return `AdapterResult`"                            | "Return what the calls reported. Return `void` only when every call you discard returned `void`."                                                                                     | A7       |
-| Same file, line 92                                                                                                                       | "ALL inputs MUST use contracts (no raw string, number)"                                                     | "An input is plain unless it is a field of one of our objects."                                                                                                                       | B6       |
-| Same file, line 93                                                                                                                       | "ALL outputs MUST use contracts (no returning npm package types)"                                           | "A library's data types may be returned. A library object with methods may not."                                                                                                      | C2, A6   |
-| `mcp/src/statics/folder-constraints/transformers-constraints.md:36`                                                                      | "All transformers MUST validate output using contracts"                                                     | "A transformer that returns one of our objects builds it through the object's contract parse. Loose text and numbers are returned plain."                                             | B1, B6   |
-| Same file, line 152                                                                                                                      | `return contentTextContract.parse(config.purpose);`                                                         | `return config.purpose;`                                                                                                                                                              | B6       |
-| `shared/src/statics/folder-config/folder-config-statics.ts:22`, the statics entry                                                        | `allowRegex: false`                                                                                         | `allowRegex: true`                                                                                                                                                                    | B2       |
-| Same file, line 55, the contracts `purpose`                                                                                              | "All data structures must be defined here with branded types."                                              | "Type definitions and validation schemas for the data we define. Every object and every field in it is branded."                                                                      | B1, C2   |
-| Same file, line 177, the adapters `whenToUse`                                                                                            | "Wrap npm package"                                                                                          | "Hold the handling an outside function needs, or speak an outside system's protocol"                                                                                                  | A1, A3   |
-| Same file, line 38, the contracts `allowedImports`                                                                                       | No npm package except zod, beside our own statics, errors, contracts and two workspace packages             | Unchanged for values. `import type` from a package is allowed in every folder through `enforce-import-dependencies`.                                                                  | C2       |
-| `eslint-plugin/src/brokers/rule/CLAUDE.md:7`                                                                                             | "Use the shared `Tsestree` contract."                                                                       | "Import `TSESTree` from `@typescript-eslint/utils`. Never copy it."                                                                                                                   | C1, C2   |
-| Same file, line 58                                                                                                                       | "All AST nodes in rule brokers must use `Tsestree` type."                                                   | "AST nodes in rule brokers use the library's `TSESTree` types."                                                                                                                       | C2       |
-| Same file, line 127                                                                                                                      | `const node = TsestreeStub({type: TsestreeNodeType.Program});`                                              | `const node = ProgramStub({ code: '…' });`, from `stubs/tsestree/`                                                                                                                    | C5, C6   |
+| Where                                                                                                                                                  | Says today                                                                                                                                                                                                            | Change to                                                                                                                                                                             | Doc rule                       |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|
+| `mcp/src/transformers/folder-constraints/folder-constraints-transformer.ts:39`, served by `get-folder-detail` for about ten folder types               | "All types must come from contracts/"                                                                                                                                                                                 | "Our own types come from contracts/. A library's types are imported from the library."                                                                                                | C2                             |
+| Same line, a "must not" item                                                                                                                           | "Use raw primitives (string, number) in signatures"                                                                                                                                                                   | "A field of an object contract is branded. A parameter, return or local is plain, unless it is a field taken through `Owner['key']`."                                                 | B1, B6                         |
+| `mcp/src/brokers/architecture/folder-detail/architecture-folder-detail-broker.ts:152`                                                                  | "Ad-hoc Types Forbidden: All types must come from contracts"                                                                                                                                                          | "Ad-hoc types forbidden: our own types come from contracts/, and a library's types from the library."                                                                                 | C2                             |
+| `shared/src/statics/session-snippet/session-snippet-statics.ts:104`, in every session in every repo                                                    | "Returns must be branded Zod contracts — inputs MAY take a raw `string`. The asymmetry is deliberate"                                                                                                                 | "Every object contract and every string and number field in it is branded. A loose parameter, return or local is plain."                                                              | B1, B6                         |
+| Same file, line 103                                                                                                                                    | "Tests import `.stub.ts`, never `-contract.ts`; Stubs import contract to parse with"                                                                                                                                  | "Tests import stubs from `stubs/`, never contracts. A stub for our type parses through its contract. A stub for a library type builds the real value and returns the library's type." | C5, C6                         |
+| `shared/src/brokers/architecture/overview/architecture-overview-broker.ts:264`, served by `get-architecture`                                           | "`ban-primitives` is asymmetric on purpose: an input MAY take a raw `string`, a return MUST be branded."                                                                                                              | "Brands live on object contracts: every object and every field there is branded, and nothing else is."                                                                                | B1, B6                         |
+| `mcp/src/brokers/architecture/testing-patterns/architecture-testing-patterns-broker.ts:734`, served by `get-testing-patterns`                          | "Raw primitives: return types must be branded"                                                                                                                                                                        | Drop the return rule. Keep "to test an invalid input, use `as never`".                                                                                                                | B6                             |
+| Same file, line 732                                                                                                                                    | "define types in contracts/ and import them"                                                                                                                                                                          | "define our types in contracts/ and import them"                                                                                                                                      | C2                             |
+| Same file, line 581                                                                                                                                    | "Complete stub patterns in contracts/ folder detail - Use `get-folder-detail({ folderType: "contracts" })`"                                                                                                           | "Complete stub patterns are in the stubs/ folder detail: `get-folder-detail({ folderType: "stubs" })`"                                                                                | C6                             |
+| `mcp/src/statics/folder-constraints/contracts-constraints.md:22`                                                                                       | "All contracts MUST use `.brand<'TypeName'>()` on primitives"                                                                                                                                                         | "Every object contract, every object nested in it, and every string and number field carries `.brand<'…'>()`, with the text derived from the owner and the key."                      | B1, B3                         |
+| Same file, line 134                                                                                                                                    | "Import colocated contract from same directory"                                                                                                                                                                       | "A stub in `stubs/<domain>/` imports the contract of the same domain from `contracts/`."                                                                                              | C6                             |
+| `mcp/src/statics/folder-constraints/adapters-constraints.md:34`                                                                                        | "MUST return a meaningful value … Side-effect adapters … return `AdapterResult`"                                                                                                                                      | "Return what the calls reported. Return `void` only when every call you discard returned `void`."                                                                                     | A7                             |
+| Same file, line 92                                                                                                                                     | "ALL inputs MUST use contracts (no raw string, number)"                                                                                                                                                               | "An input is plain unless it is a field of one of our objects."                                                                                                                       | B6                             |
+| Same file, line 93                                                                                                                                     | "ALL outputs MUST use contracts (no returning npm package types)"                                                                                                                                                     | "A library's own type may be returned, imported from the library. Never copy or rename it in contracts/."                                                                             | C2, A6                         |
+| `mcp/src/statics/folder-constraints/transformers-constraints.md:36`                                                                                    | "All transformers MUST validate output using contracts"                                                                                                                                                               | "A transformer that returns one of our objects builds it through the object's contract parse. Loose text and numbers are returned plain."                                             | B1, B6                         |
+| Same file, line 152                                                                                                                                    | `return contentTextContract.parse(config.purpose);`                                                                                                                                                                   | `return config.purpose;`                                                                                                                                                              | B6                             |
+| `shared/src/statics/folder-config/folder-config-statics.ts:22`, the statics entry                                                                      | `allowRegex: false`                                                                                                                                                                                                   | `allowRegex: true`                                                                                                                                                                    | B2                             |
+| Same file, line 55, the contracts `purpose`                                                                                                            | "All data structures must be defined here with branded types."                                                                                                                                                        | "Type definitions and validation schemas for the data we define. Every object and every field in it is branded."                                                                      | B1, C2                         |
+| Same file, line 177, the adapters `whenToUse`                                                                                                          | "Wrap npm package"                                                                                                                                                                                                    | "Hold the handling an outside function needs, or speak an outside system's protocol"                                                                                                  | A1, A3                         |
+| Same file, line 38, the contracts `allowedImports`                                                                                                     | No npm package except zod, beside our own statics, errors, contracts and two workspace packages                                                                                                                       | Unchanged for values. `import type` from a package is allowed in every folder through `enforce-import-dependencies`.                                                                  | C2                             |
+| `eslint-plugin/src/brokers/rule/CLAUDE.md:7`                                                                                                           | "Use the shared `Tsestree` contract."                                                                                                                                                                                 | "Import `TSESTree` from `@typescript-eslint/utils`. Never copy it."                                                                                                                   | C1, C2                         |
+| Same file, line 58                                                                                                                                     | "All AST nodes in rule brokers must use `Tsestree` type."                                                                                                                                                             | "AST nodes in rule brokers use the library's `TSESTree` types."                                                                                                                       | C2                             |
+| Same file, line 127                                                                                                                                    | `const node = TsestreeStub({type: TsestreeNodeType.Program});`                                                                                                                                                        | `const node = ProgramStub({ code: '…' });`, from `stubs/tsestree/`                                                                                                                    | C5, C6                         |
+| `mcp/src/brokers/architecture/testing-patterns/architecture-testing-patterns-broker.ts:225`, served by `get-testing-patterns`                          | "**Adapters** - Mock npm dependencies (axios, fs, etc.) at adapter boundary"                                                                                                                                          | "Mock a call the I/O trap or MSW catches, in the proxy of the file that makes it. Everything else runs real."                                                                         | T1, T2                         |
+| Same file, line 252                                                                                                                                    | "Compose adapter proxies, provide semantic setup"                                                                                                                                                                     | "Compose adapter proxies, and stage with `registerMock` any outside function the broker calls directly."                                                                              | T1, T2                         |
+| `shared/src/brokers/architecture/overview/architecture-overview-broker.ts:393`, served by `get-architecture`                                           | "An adapter mocks its own npm package"                                                                                                                                                                                | "The proxy of the file that makes an I/O call mocks it. MSW answers HTTP and WebSocket."                                                                                              | T1, T8                         |
+| `mcp/src/transformers/folder-constraints/folder-constraints-transformer.ts:32`, and `mcp/src/statics/folder-constraints/responders-constraints.md:219` | "Mock only I/O boundaries (adapters)"                                                                                                                                                                                 | "Mock only what the I/O trap or MSW catches."                                                                                                                                         | T2                             |
+| `mcp/src/statics/folder-constraints/adapters-constraints.md:374`                                                                                       | `proxy.throws({filePath, error: new Error('ENOENT: no such file or directory')});`                                                                                                                                    | A named scenario built on a recorded-failure stub, such as `proxy.fileMissing({ filePath })`                                                                                          | T5                             |
+| `packages/testing/CLAUDE.md:23`                                                                                                                        | "Path adapter proxies: real passthrough via `requireActual`"                                                                                                                                                          | Removed. `path` runs real, and A3 deletes the path adapters.                                                                                                                          | A3, T2                         |
+| `shared/src/statics/session-snippet/session-snippet-statics.ts:105`, in every session in every repo                                                    | "No `as unknown as` on a brand mismatch — re-parse it: `dagNodeIdContract.parse(stepId)`"                                                                                                                             | "No `as unknown as` on a brand mismatch. A field that holds another object's id reuses that id's schema. Never parse one id into another brand."                                      | B4, B8                         |
+| `mcp/src/brokers/architecture/testing-patterns/architecture-testing-patterns-broker.ts:297`                                                            | A constructor-level `calledWith([])` catch-all is allowed "when a parent proxy builds this adapter without describing any call of its own"                                                                            | Drop the exception. A function that takes arguments never gets a constructor default; the parent proxy describes the call.                                                            | T4                             |
+| Same file, line 38                                                                                                                                     | `handle.calledWith([]).resolves(FileContentsStub({value: 'content'}))`                                                                                                                                                | `handle.calledWith([filePath]).resolves('content')`: an addressed call, and a plain value                                                                                             | T4, B6                         |
+| `eslint-plugin/src/brokers/rule/enforce-proxy-patterns/rule-enforce-proxy-patterns-broker.ts:41`, the `adapterProxyMustSetupMocks` message             | "This sets up default mock behavior when proxy is created."                                                                                                                                                           | Drop that sentence. Only the check for a `jest.mocked` proxy with no staging stays.                                                                                                   | T4                             |
+| `mcp/src/statics/folder-constraints/adapters-constraints.md:262-328`, served by `get-folder-detail` in every repo                                      | Teaches importing `runtimeDynamicImportAdapter` from `@dungeonmaster/shared/adapters` and its proxy from `@dungeonmaster/shared/testing`. Line 320 stages `new Error('Cannot find module')`.                          | An example built on the repo's own adapter and a recorded-failure stub. Dungeonmaster ships no adapters to other repos.                                                               | Decision 4, T5                 |
+| Same file, lines 336-337 and 383                                                                                                                       | `FilePathStub` and `FileContentsStub` wrap loose values; line 383 stages `new Error('EACCES: permission denied')`                                                                                                     | Plain values, and a recorded-failure stub for the permission error                                                                                                                    | B6, T5                         |
+| Same file, lines 25-36, the "CRITICAL CONSTRAINTS" list                                                                                                | "MUST add project-specific configuration - Add timeout, auth headers, retry logic, logging, etc. to npm package calls". That makes configuration a requirement on every adapter, where it is one reason to write one. | The "What an adapter is for" section of this doc: the three reasons, "getting at a package is not a reason", and the table of situations                                              | A1, A3, A6                     |
+| `mcp/src/brokers/architecture/testing-patterns/architecture-testing-patterns-broker.ts`, served by `get-testing-patterns` in every repo                | Says nothing about the home sandbox. Line 623 lists `os.homedir` among no-argument functions to mock.                                                                                                                 | A short section with the five author rules from "The Jest home sandbox". Line 623 adds: "`os.homedir` needs no mock for isolation; it already returns the sandbox."                   | T2                             |
+| `packages/testing/CLAUDE.md:105-107`                                                                                                                   | Calls the teardown leak check "the one guard left for code the lint rule `ban-bare-os-home-tmp` can't see"                                                                                                            | The leak check is the guard that the sandbox held. The lint rule is gone.                                                                                                             | `ban-bare-os-home-tmp` removal |
+| `shared/src/brokers/architecture/overview/architecture-overview-broker.ts:279`, served by `get-architecture`                                           | `const dagNodeId = dagNodeIdContract.parse(stepId);  // ✅ re-brands through validation`                                                                                                                              | Removed. A field that holds another object's id reuses that id's schema (B4), and parsing one id into another brand is refused (B8).                                                  | B4, B8                         |
+| Same file, line 336                                                                                                                                    | `const data = JSON.parse(response) as ApiResponse;  // ✅ you know what the compiler cannot`                                                                                                                          | `const data = apiResponseContract.parse(JSON.parse(response));`                                                                                                                       | C4                             |
+| Same file, line 352                                                                                                                                    | `const indexMap = new Map<ChatEntry, number>();  // ❌ raw number trips ban-primitives`                                                                                                                               | The `number` form is the right one; drop the ❌ line                                                                                                                                  | B6                             |
+| Same file, line 250                                                                                                                                    | "Types supporting the file's one export may sit beside it"                                                                                                                                                            | "An object type that leaves a function is a contract in `contracts/`. A type used only inside one function body stays inline."                                                        | B9                             |
+| `mcp/src/brokers/architecture/testing-patterns/architecture-testing-patterns-broker.ts:586`, served by `get-testing-patterns`                          | "Branded Strings: Use single `value` property + `contract.parse(value)`"                                                                                                                                              | Removed. No standalone brand contract exists (B2), so no stub wraps one string.                                                                                                       | B2, B6                         |
+| Same file, lines 408 and 432                                                                                                                           | EndpointMock is not for "server-side tests", and a package enables it by adding `start-endpoint-mock-setup.ts` to its own `setupFilesAfterEnv`                                                                        | MSW loads in every package from the root Jest base config, server included                                                                                                            | T8                             |
+| Same file, line 242                                                                                                                                    | "Only 2 things mocked: I/O npm dependencies + global functions", under a diagram where `httpAdapter` runs real and `axios` is mocked                                                                                  | "Mocked: what the I/O trap or MSW catches, and globals a test pins. Everything else runs real."                                                                                       | T1, T2                         |
 
 Two new pieces of teaching text are needed as well: a `stubs-constraints.md` for `get-folder-detail`
 to serve for the `stubs/` folder type, and a `stubs/` row in the folder types session snippet.
@@ -2368,13 +2629,10 @@ to serve for the `stubs/` folder type, and a `stubs/` row in the folder types se
    function per repo, telling npm packages from Node built-ins by Node's own
    `require('module').builtinModules`. The one win on record is glob v7 to v10, where the return type
    changed. My recommendation is no: the compiler finds every caller.
-3. **Handles leaving adapters.** Choose A6 (handles stay inside), or let them leave and give A1 the type
-   checker. A6 is simpler to explain. The type-checker route keeps adapters smaller, but it may be too
-   slow for the pre-edit hook (open decision 12).
+3. **Settled: library objects with methods may leave
+   adapters.** An adapter may return any library type, such as `Stats` or a Playwright `Page`, imported from the library, and its stub returns the same type. Escaping I/O in a test is the I/O trap's and MSW's job, not a lint rule on what adapters return. A1 already uses the type checker to see handling around a returned object's methods. Decided on 2026-09-25, replacing a rule that kept such objects inside their adapter.
 4. **Settled: dungeonmaster ships no adapters for other repos.** Each repo keeps its adapters in one
-   package of its own (A5). A dev tool does not become a runtime dependency of a consumer's production
-   code, and A2 and A5 read only the repo's own workspace packages. Dungeonmaster ships proxies and
-   stubs, which only tests load. It replaces an earlier plan to ship adapters from
+   package of its own (A5). A dev tool does not become a runtime dependency of a consumer's production code, and A2 and A5 read only the repo's own workspace packages. Dungeonmaster ships the test infrastructure and stubs listed under "What dungeonmaster ships for tests", which only tests load. It replaces an earlier plan to ship adapters from
    `@dungeonmaster/shared/adapters` for every repo.
 5. **Loose values lose their brand.** Paths built by `join` and timeouts become plain until they enter
    an owned field. That is accepted in this design. Two losses are worth weighing:
@@ -2434,19 +2692,19 @@ to serve for the `stubs/` folder type, and a `stubs/` row in the folder types se
 11. **Handling A1 cannot see by syntax.** A promise handled later through a variable
     (`const p = readFile(x); … p.catch(…)`) needs dataflow. A caller wrapping a function that returns an
     I/O promise needs type information across functions.
-12. **Whether the index and type-checker rules are fast enough for the pre-edit hook.** B4, B7, B8, C1,
-    C3, C8, A2, A3, A5, A6 and A7 need a repo-wide index or the type checker. They may run in ward only.
+12. **Whether the index and type-checker rules are fast enough for the pre-edit hook.** B4, B7, B8, C1, C3, C8, A1's method check, A2, A3, A5 and A7 need a repo-wide index or the type checker. They may run in ward only.
     Not measured.
-13. **`http` and `net` are not trapped yet.** Trapping them may interfere with MSW's interceptors.
-14. **Whether `discover`, `get-project-map` and `get-project-inventory` skip `node_modules` in a
-    consumer repo.** That decides whether shipped proxies and stubs are visible to a consumer's models
-    only through the catalog. Not checked.
+13. **Whether trapping `net`, `tls` and `dns` interferes with MSW's own
+    interceptors.** T8 traps those modules and gives HTTP and WebSocket to MSW. MSW's Node interceptors sit on top of `http`, and whether they call into a trapped module themselves is not checked.
+14. **Settled: the search tools never show a consumer the shipped test pieces.** `discover` skips
+    `node_modules` in every repo, whatever its `.gitignore` says (`file-discovery-statics.ts:38`,
+    `discover-ignore-init-broker.ts:7-8`). `get-project-map` and `get-project-inventory` take a workspace package's name and read only that package. So a consumer's models meet the shipped stubs and test infrastructure only through the channels in "What dungeonmaster ships for tests". Checked on 2026-09-25.
 
 ## Status and order of work
 
 1. **Done:** the trap experiment. A setup file can trap Node's built-in modules for every unit test.
-2. **Done, not committed:** the unit-test I/O trap and `StartOrchestrator.bootstrap()` (see "The
-   unit-test I/O trap").
+2. **Done, committed in `fe456add9`:** the unit-test I/O trap and `StartOrchestrator.bootstrap()`
+   (see "The unit-test I/O trap"). It covers files and processes only; its "Holes" list says what it lets through.
 3. **Upgrade zod to v4.** B1 needs a branded object to keep `.shape`.
 4. **Stubs and library types:** the `stubs/` folder type and `/stubs` entry points (C6); library stubs
    built by the library (C5); delete the copied library types and retype every lint rule to `TSESTree`
@@ -2454,8 +2712,9 @@ to serve for the `stubs/` folder type, and a `stubs/` row in the folder types se
 5. **Brands:** `require-object-contract-brands` with its autofix (B1, B2, B3); B4 with the shared index;
    B5, B7, B8, B9; remove `ban-primitives`; delete the standalone scalar brands.
 6. **Contracts:** C3, C4, C7, C8.
-7. **Tests:** T1 to T7; shared Node proxies with recorded failures in `@dungeonmaster/testing`; each
-   workspace package's `/testing` proxy with its real failure shapes; the catalog.
+7.
+**Tests:** T1 to T8. In order: MSW in the root Jest base config, which first needs every package's Jest to transform MSW's ESM; unhandled requests recorded and failed in `afterEach`, and a `ws`
+handler that fails any connection no test took; the trap extended to every way out T8 lists; recorded-failure stubs and library object stubs in `@dungeonmaster/testing`; contract-checked handlers; each workspace package's `/testing` proxy with its real failure shapes; the catalog.
 8. **Adapters:** A1 to A7. Move the repeated read-file handling into `fsReadFileIfExistsAdapter` first,
    then delete pass-through and forwarding adapters in batches.
 9. **Folders:** D1.
@@ -2463,8 +2722,7 @@ to serve for the `stubs/` folder type, and a `stubs/` row in the folder types se
 
 What it costs:
 
-- A large migration: most adapters that only forward are deleted with their proxies and tests (A3, A4),
-  and broker proxies compose shared proxies in place of per-package adapter proxies (T3).
+- A large migration: most adapters that only forward are deleted with their proxies and tests (A3, A4), and broker proxies stage the functions their broker calls directly with `registerMock` and recorded-failure stubs, in place of per-package adapter proxies (T1, T2).
 - About 244 object shapes become contracts (B9), and about 1,000 lines of scalar stub wrapping leave the
   largest tests (B6).
 - A function returning text or a number that no object owns returns a plain `string` or `number`. The
