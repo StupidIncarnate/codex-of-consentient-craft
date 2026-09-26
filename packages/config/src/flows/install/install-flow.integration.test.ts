@@ -264,6 +264,7 @@ describe('install-flow integration', () => {
         success: true,
         action: 'skipped',
         message: '.dungeonmaster.json exists but is not valid JSON — left untouched',
+        error: `Invalid JSON in ${testbed.guildPath}/.dungeonmaster.json`,
       });
 
       const configContent = testbed.readFile({

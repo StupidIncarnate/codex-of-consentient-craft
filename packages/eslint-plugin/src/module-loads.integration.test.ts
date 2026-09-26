@@ -20,6 +20,7 @@ describe('ESLint Plugin Module Loading', () => {
 
     expect(Object.keys(config).sort()).toStrictEqual([
       'fileOverrides',
+      'gateway',
       'ruleEnforceOn',
       'test',
       'typescript',
@@ -37,6 +38,7 @@ describe('ESLint Plugin Module Loading', () => {
 
     expect(Object.keys(config).sort()).toStrictEqual([
       'fileOverrides',
+      'gateway',
       'ruleEnforceOn',
       'test',
       'typescript',
