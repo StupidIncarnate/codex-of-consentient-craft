@@ -12,15 +12,13 @@ describe('removeItem', () => {
     expect(readItem({ key: 'remove-item-valid' })).toBe(null);
   });
 
-  it('ERROR: {storage disabled, removeItem throws} => returns { success: false } rather than throwing', () => {
+  it('ERROR: {storage disabled, removeItem throws} => returns { success: false, error } carrying the real error rather than throwing', () => {
     const proxy = removeItemProxy();
-    proxy.setupRemoveFails({
-      key: 'remove-item-blocked',
-      error: Object.assign(new Error('access denied'), { name: 'SecurityError' }),
-    });
+    const securityError = Object.assign(new Error('access denied'), { name: 'SecurityError' });
+    proxy.setupRemoveFails({ key: 'remove-item-blocked', error: securityError });
 
     const result = removeItem({ key: 'remove-item-blocked' });
 
-    expect(result).toStrictEqual({ success: false });
+    expect(result).toStrictEqual({ success: false, error: securityError });
   });
 });

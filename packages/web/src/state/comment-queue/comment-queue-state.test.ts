@@ -40,6 +40,15 @@ describe('commentQueueState', () => {
       expect(commentQueueState.read({ questId })).toStrictEqual([]);
     });
 
+    it('EMPTY: {localStorage refuses the read} => returns empty array', () => {
+      const proxy = commentQueueStateProxy();
+      proxy.setupEmptyStorage();
+      const questId = QuestIdStub({ value: 'quest-a' });
+      proxy.setupReadRejected({ questId });
+
+      expect(commentQueueState.read({ questId })).toStrictEqual([]);
+    });
+
     it('EMPTY: {key holds a JSON object rather than an array} => returns empty array', () => {
       const proxy = commentQueueStateProxy();
       proxy.setupEmptyStorage();
@@ -130,39 +139,44 @@ describe('commentQueueState', () => {
       const existing = CommentQueueEntryStub({ nodeId: 'login-page' });
       const added = CommentQueueEntryStub({ nodeId: 'dashboard' });
       proxy.seedQueue({ questId, entries: [existing] });
-      proxy.setupWriteRejected({ questId });
+      proxy.setupWriteRejected({
+        questId,
+        error: Object.assign(new Error('quota exceeded'), { name: 'QuotaExceededError' }),
+      });
 
       commentQueueState.queue({ questId, entry: added });
 
       expect(commentQueueState.read({ questId })).toStrictEqual([existing]);
     });
 
-    it('ERROR: {localStorage refuses the write} => reports the failure rather than swallowing it', () => {
+    it('ERROR: {localStorage refuses the write} => reports the failure with the real error rather than swallowing it', () => {
       const proxy = commentQueueStateProxy();
       proxy.setupEmptyStorage();
       const questId = QuestIdStub({ value: 'quest-a' });
       const added = CommentQueueEntryStub({ nodeId: 'dashboard' });
-      proxy.setupWriteRejected({ questId });
+      const quotaError = Object.assign(new Error('quota exceeded'), { name: 'QuotaExceededError' });
+      proxy.setupWriteRejected({ questId, error: quotaError });
 
       commentQueueState.queue({ questId, entry: added });
 
       expect(proxy.writeFailureLogs()).toStrictEqual([
-        ['[comment-queue] failed to persist the queue', new Error('QuotaExceededError')],
+        ['[comment-queue] failed to persist the queue', quotaError],
       ]);
     });
   });
 
   describe('storage the browser refuses', () => {
-    it('ERROR: {localStorage refuses the removal} => clearQueue reports it instead of throwing', () => {
+    it('ERROR: {localStorage refuses the removal} => clearQueue reports it with the real error instead of throwing', () => {
       const proxy = commentQueueStateProxy();
       proxy.setupEmptyStorage();
       const questId = QuestIdStub({ value: 'quest-a' });
-      proxy.setupRemoveRejected({ questId });
+      const securityError = Object.assign(new Error('access denied'), { name: 'SecurityError' });
+      proxy.setupRemoveRejected({ questId, error: securityError });
 
       commentQueueState.clearQueue({ questId });
 
       expect(proxy.writeFailureLogs()).toStrictEqual([
-        ['[comment-queue] failed to persist the queue', new Error('SecurityError')],
+        ['[comment-queue] failed to persist the queue', securityError],
       ]);
     });
 
@@ -172,25 +186,13 @@ describe('commentQueueState', () => {
       const questId = QuestIdStub({ value: 'quest-a' });
       const entry = CommentQueueEntryStub({ createdAt: '2026-07-27T00:00:00.000Z' });
       proxy.seedQueue({ questId, entries: [entry] });
-      proxy.setupScanRejected();
+      proxy.setupScanRejected({
+        error: Object.assign(new Error('access denied'), { name: 'SecurityError' }),
+      });
 
       commentQueueState.sweepExpired({ nowMs: NOW_MS });
 
       expect(commentQueueState.read({ questId })).toStrictEqual([entry]);
-    });
-
-    it('ERROR: {localStorage cannot be enumerated} => reports the scan failure rather than swallowing it', () => {
-      const proxy = commentQueueStateProxy();
-      proxy.setupEmptyStorage();
-      const questId = QuestIdStub({ value: 'quest-a' });
-      proxy.seedQueue({ questId, entries: [CommentQueueEntryStub({})] });
-      proxy.setupScanRejected();
-
-      commentQueueState.sweepExpired({ nowMs: NOW_MS });
-
-      expect(proxy.scanFailureLogs()).toStrictEqual([
-        ['[comment-queue] failed to scan storage for expiry', new Error('SecurityError')],
-      ]);
     });
 
     it('ERROR: {localStorage cannot be enumerated} => an entry that would have expired survives the skipped sweep', () => {
@@ -201,11 +203,28 @@ describe('commentQueueState', () => {
         createdAt: new Date(NOW_MS - 8 * DAY_MS).toISOString(),
       });
       proxy.seedQueue({ questId, entries: [stale] });
-      proxy.setupScanRejected();
+      proxy.setupScanRejected({
+        error: Object.assign(new Error('access denied'), { name: 'SecurityError' }),
+      });
 
       commentQueueState.sweepExpired({ nowMs: NOW_MS });
 
       expect(commentQueueState.read({ questId })).toStrictEqual([stale]);
+    });
+
+    it('ERROR: {localStorage cannot be enumerated} => logs the scan failure with the real error', () => {
+      const proxy = commentQueueStateProxy();
+      proxy.setupEmptyStorage();
+      const questId = QuestIdStub({ value: 'quest-a' });
+      proxy.seedQueue({ questId, entries: [CommentQueueEntryStub({})] });
+      const scanError = Object.assign(new Error('access denied'), { name: 'SecurityError' });
+      proxy.setupScanRejected({ error: scanError });
+
+      commentQueueState.sweepExpired({ nowMs: NOW_MS });
+
+      expect(proxy.scanFailureLogs()).toStrictEqual([
+        ['[comment-queue] failed to scan storage for expiry', scanError],
+      ]);
     });
   });
 
@@ -254,7 +273,10 @@ describe('commentQueueState', () => {
       const kept = CommentQueueEntryStub({ nodeId: 'dashboard' });
       const removed = CommentQueueEntryStub({ nodeId: 'login-page' });
       proxy.seedQueue({ questId, entries: [kept, removed] });
-      proxy.setupWriteRejected({ questId });
+      proxy.setupWriteRejected({
+        questId,
+        error: Object.assign(new Error('quota exceeded'), { name: 'QuotaExceededError' }),
+      });
 
       commentQueueState.remove({ questId, anchor: CommentAnchorStub({ nodeId: 'login-page' }) });
 

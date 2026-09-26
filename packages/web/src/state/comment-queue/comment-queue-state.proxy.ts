@@ -1,3 +1,9 @@
+import {
+  keysProxy,
+  readItemProxy,
+  removeItemProxy,
+  writeItemProxy,
+} from '@dungeonmaster/browser/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';
@@ -15,9 +21,10 @@ export const commentQueueStateProxy = (): {
   seedQueue: (params: { questId: QuestId; entries: CommentQueueEntry[] }) => void;
   seedRawValue: (params: { questId: QuestId; value: string }) => void;
   seedPrefixOnlyKey: (params: { value: string }) => void;
-  setupWriteRejected: (params: { questId: QuestId }) => void;
-  setupRemoveRejected: (params: { questId: QuestId }) => void;
-  setupScanRejected: () => void;
+  setupReadRejected: (params: { questId: QuestId }) => void;
+  setupWriteRejected: (params: { questId: QuestId; error: Error }) => void;
+  setupRemoveRejected: (params: { questId: QuestId; error: Error }) => void;
+  setupScanRejected: (params: { error: Error }) => void;
   writeFailureLogs: () => unknown[];
   scanFailureLogs: () => unknown[];
   readRawValue: (params: { questId: QuestId }) => unknown;
@@ -31,6 +38,10 @@ export const commentQueueStateProxy = (): {
     method: 'error',
     passthrough: true,
   });
+  const readProxy = readItemProxy();
+  const writeProxy = writeItemProxy();
+  const removeProxy = removeItemProxy();
+  const scanProxy = keysProxy();
 
   return {
     setupEmptyStorage: (): void => {
@@ -56,44 +67,40 @@ export const commentQueueStateProxy = (): {
       localStorage.setItem(commentQueueStatics.storage.keyPrefix, value);
     },
 
-    // A storage that reads fine but refuses this quest's WRITE — the shape a full 5MB quota and a
-    // private-browsing/embedded-webview storage both take. Addressed to the one key so the proxy's
-    // own seeding still works; passthrough leaves every other key writable.
-    setupWriteRejected: ({ questId }: { questId: QuestId }): void => {
-      // Storage.prototype, not the localStorage instance: jsdom exposes localStorage as an exotic
-      // object whose own properties cannot be redefined, so a spy has to go on the prototype.
-      const setItemHandle = registerSpyOn({
-        object: Storage.prototype,
-        method: 'setItem',
-        passthrough: true,
+    // A storage that throws reading this quest's key — the shape private browsing / a locked-down
+    // embedded webview takes. readItem's own guard is what turns this into a degrade-to-empty-array
+    // instead of a crash; this only proves the gateway wrapper is really wired in under the caller.
+    setupReadRejected: ({ questId }: { questId: QuestId }): void => {
+      readProxy.setupReadFails({
+        key: `${commentQueueStatics.storage.keyPrefix}${questId}`,
+        error: new Error('SecurityError'),
       });
-      setItemHandle
-        .calledWith([`${commentQueueStatics.storage.keyPrefix}${questId}`])
-        .throws(new Error('QuotaExceededError'));
+    },
+
+    // A storage that reads fine but refuses this quest's WRITE — the shape a full 5MB quota and a
+    // private-browsing/embedded-webview storage both take. writeItemProxy addresses by key alone
+    // (a prefix match against the real setItem(key, value) call), so the caller supplies only the
+    // error it wants thrown back, and the test can assert that exact instance was logged.
+    setupWriteRejected: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+      writeProxy.setupWriteFails({
+        key: `${commentQueueStatics.storage.keyPrefix}${questId}`,
+        error,
+      });
     },
 
     // A storage that refuses removal — the same disabled-storage environment seen from the
     // clearQueue / emptied-queue side, where the write is a removeItem rather than a setItem.
-    setupRemoveRejected: ({ questId }: { questId: QuestId }): void => {
-      const removeItemHandle = registerSpyOn({
-        object: Storage.prototype,
-        method: 'removeItem',
-        passthrough: true,
+    setupRemoveRejected: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+      removeProxy.setupRemoveFails({
+        key: `${commentQueueStatics.storage.keyPrefix}${questId}`,
+        error,
       });
-      removeItemHandle
-        .calledWith([`${commentQueueStatics.storage.keyPrefix}${questId}`])
-        .throws(new Error('SecurityError'));
     },
 
     // A storage that cannot even be enumerated. This is the shape a cookies-blocked Chrome takes,
     // and it matters because the expiry sweep scans every key at route mount.
-    setupScanRejected: (): void => {
-      const keyHandle = registerSpyOn({
-        object: Storage.prototype,
-        method: 'key',
-        passthrough: true,
-      });
-      keyHandle.calledWith([0]).throws(new Error('SecurityError'));
+    setupScanRejected: ({ error }: { error: Error }): void => {
+      scanProxy.setupEnumerationFails({ error });
     },
 
     writeFailureLogs: (): unknown[] => consoleErrorHandle.callsMatching([WRITE_FAILURE_LOG_PREFIX]),

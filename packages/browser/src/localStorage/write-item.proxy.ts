@@ -1,7 +1,7 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 export const writeItemProxy = (): {
-  setupWriteFails: (params: { key: string; value: string; error: Error }) => void;
+  setupWriteFails: (params: { key: string; error: Error }) => void;
 } => {
   const handle = registerSpyOn({
     object: Storage.prototype,
@@ -10,16 +10,11 @@ export const writeItemProxy = (): {
   });
 
   return {
-    setupWriteFails: ({
-      key,
-      value,
-      error,
-    }: {
-      key: string;
-      value: string;
-      error: Error;
-    }): void => {
-      handle.calledWith([key, value]).throws(error);
+    // Matches on key alone, a prefix match against the real setItem(key, value) call — like
+    // readItemProxy/removeItemProxy/keysProxy, so a caller can fail a write without predicting
+    // the exact value it is about to serialize.
+    setupWriteFails: ({ key, error }: { key: string; error: Error }): void => {
+      handle.calledWith([key]).throws(error);
     },
   };
 };

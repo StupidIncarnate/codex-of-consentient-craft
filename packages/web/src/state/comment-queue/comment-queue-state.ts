@@ -15,6 +15,7 @@
  * // unsubscribe() stops further notifications for that listener
  */
 
+import { keys, readItem, removeItem, writeItem } from '@dungeonmaster/browser/localStorage';
 import { questIdContract } from '@dungeonmaster/shared/contracts';
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 
@@ -29,9 +30,13 @@ const state = {
   subscribers: new Map<QuestId, Set<() => void>>(),
 
   readEntries: ({ key }: { key: string }): CommentQueueEntry[] => {
+    // readItem already degrades a disabled/unreadable storage (private browsing, a locked-down
+    // embedded webview) to null, the same shape as an absent key — nothing here needs to guard
+    // against that any more. JSON.parse still throws on hand-edited/corrupt JSON, which readItem
+    // never sees since it returns the raw string, so that one case still needs a catch.
+    const raw = readItem({ key });
+    if (raw === null) return [];
     try {
-      const raw = localStorage.getItem(key);
-      if (raw === null) return [];
       const parsed: unknown = JSON.parse(raw);
       if (!Array.isArray(parsed)) return [];
       // Array.from breaks the direct JSON.parse alias so the untyped-property-access lint rule
@@ -44,28 +49,22 @@ const state = {
         return survivors;
       }, []);
     } catch {
-      // localStorage can be disabled (private browsing, restrictive embedded webview) or hold
-      // hand-edited/corrupt JSON — degrade to an empty queue instead of crashing the render,
-      // mirroring chat-input-widget's localStorage try/catch convention.
       return [];
     }
   },
 
   write: ({ key, entries }: { key: string; entries: CommentQueueEntry[] }): void => {
-    try {
-      if (entries.length === 0) {
-        localStorage.removeItem(key);
-        return;
-      }
-      localStorage.setItem(key, JSON.stringify(entries));
-    } catch (error: unknown) {
-      // A storage that reads fine can still refuse a write: the ~5MB quota is shared across every
-      // quest's queue, and private browsing / restrictive embedded webviews reject writes outright.
-      // readEntries already degrades instead of crashing on those environments, and the write side
-      // has to match — an escaping error here unwinds the React keydown handler mid-flight and
-      // takes the queue bar's own re-render with it. The draft stays in the open editor, so the
-      // comment is not lost, and the queue on screen keeps matching what is actually stored.
-      globalThis.console.error('[comment-queue] failed to persist the queue', error);
+    // writeItem/removeItem already guard the storage-refuses-the-write case (a full ~5MB quota,
+    // private browsing / a restrictive embedded webview) and answer { success: false, error }
+    // instead of throwing, so an escaping error can no longer unwind the React keydown handler
+    // mid-flight and take the queue bar's own re-render with it. `error` carries the native
+    // QuotaExceededError/SecurityError as-is, so the caught value is what gets logged.
+    const result =
+      entries.length === 0
+        ? removeItem({ key })
+        : writeItem({ key, value: JSON.stringify(entries) });
+    if (!result.success) {
+      globalThis.console.error('[comment-queue] failed to persist the queue', result.error);
     }
   },
 
@@ -110,32 +109,27 @@ export const commentQueueState = {
   },
 
   sweepExpired: ({ nowMs }: { nowMs: number }): void => {
-    // Collect every key BEFORE mutating any of them: removeItem re-indexes localStorage, so
-    // deleting mid-iteration shifts the remaining keys down and silently skips one. A key equal
-    // to the bare prefix carries no questId, so it addresses no quest and is skipped — parsing
-    // its empty suffix would throw and take the whole route mount down with it.
-    const keys = [];
-    try {
-      for (let index = 0; index < localStorage.length; index += 1) {
-        const key = localStorage.key(index);
-        if (
-          key !== null &&
-          key.startsWith(commentQueueStatics.storage.keyPrefix) &&
-          key.length > commentQueueStatics.storage.keyPrefix.length
-        ) {
-          keys.push(key);
-        }
-      }
-    } catch (error: unknown) {
-      // A storage that cannot even be enumerated — cookies blocked, private browsing — would
-      // otherwise throw straight out of the route mount that calls this and white-screen the quest
-      // page before any comment UI exists. Skipping the sweep only leaves expired entries in place
-      // one session longer, which is the far cheaper failure.
-      globalThis.console.error('[comment-queue] failed to scan storage for expiry', error);
+    // keys() distinguishes a storage that cannot be enumerated at all (cookies blocked, private
+    // browsing) from a genuinely empty one, so that failure is logged here and the sweep is
+    // skipped rather than folded silently into "nothing to sweep" — a route mount that calls this
+    // never white-screens over it, and skipping only leaves expired entries in place one session
+    // longer. A successful scan returns a full snapshot rather than a live view, which is what
+    // this filter needs: removeItem re-indexes localStorage, so mutating mid-enumeration would
+    // shift the remaining keys down and silently skip one. A key equal to the bare prefix carries
+    // no questId, so it addresses no quest and is skipped — parsing its empty suffix would throw
+    // and take the whole route mount down with it.
+    const scan = keys();
+    if (!scan.success) {
+      globalThis.console.error('[comment-queue] failed to scan storage for expiry', scan.error);
       return;
     }
+    const matchingKeys = scan.keys.filter(
+      (key) =>
+        key.startsWith(commentQueueStatics.storage.keyPrefix) &&
+        key.length > commentQueueStatics.storage.keyPrefix.length,
+    );
 
-    keys.forEach((key) => {
+    matchingKeys.forEach((key) => {
       const existing = state.readEntries({ key });
       const survivors = commentQueueSweepTransformer({ entries: existing, nowMs });
       if (survivors.length === existing.length) return;

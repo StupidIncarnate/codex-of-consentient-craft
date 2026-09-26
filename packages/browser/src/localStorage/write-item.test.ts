@@ -10,29 +10,23 @@ describe('writeItem', () => {
     expect(readItem({ key: 'write-item-valid' })).toBe('stored-value');
   });
 
-  it('ERROR: {quota exceeded} => returns { success: false } rather than throwing', () => {
+  it('ERROR: {quota exceeded} => returns { success: false, error } carrying the real error rather than throwing', () => {
     const proxy = writeItemProxy();
-    proxy.setupWriteFails({
-      key: 'write-item-quota',
-      value: 'x',
-      error: Object.assign(new Error('quota exceeded'), { name: 'QuotaExceededError' }),
-    });
+    const quotaError = Object.assign(new Error('quota exceeded'), { name: 'QuotaExceededError' });
+    proxy.setupWriteFails({ key: 'write-item-quota', error: quotaError });
 
     const result = writeItem({ key: 'write-item-quota', value: 'x' });
 
-    expect(result).toStrictEqual({ success: false });
+    expect(result).toStrictEqual({ success: false, error: quotaError });
   });
 
-  it('ERROR: {storage disabled for writes} => returns { success: false } rather than throwing', () => {
+  it('ERROR: {storage disabled for writes} => returns { success: false, error } carrying the real error rather than throwing', () => {
     const proxy = writeItemProxy();
-    proxy.setupWriteFails({
-      key: 'write-item-blocked',
-      value: 'x',
-      error: Object.assign(new Error('access denied'), { name: 'SecurityError' }),
-    });
+    const securityError = Object.assign(new Error('access denied'), { name: 'SecurityError' });
+    proxy.setupWriteFails({ key: 'write-item-blocked', error: securityError });
 
     const result = writeItem({ key: 'write-item-blocked', value: 'x' });
 
-    expect(result).toStrictEqual({ success: false });
+    expect(result).toStrictEqual({ success: false, error: securityError });
   });
 });
