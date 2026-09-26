@@ -1,10 +1,10 @@
 /**
- * PURPOSE: Pass-through for the npm package 'glob'. Code outside the gateway imports glob
- * through here instead of the raw package, so a future guard or override on glob lands in
- * this one file and reaches every caller.
+ * PURPOSE: Gateway entry for the npm package 'glob'. Every export passes through except `glob`
+ * itself, which this subpath overrides with OUR guarded version — see `./glob`.
  *
  * USAGE:
- * import { someExport } from '@dungeonmaster/npm/glob';
+ * import { glob } from '@dungeonmaster/npm/glob';
  */
 
 export * from 'glob';
+export { glob } from './glob';

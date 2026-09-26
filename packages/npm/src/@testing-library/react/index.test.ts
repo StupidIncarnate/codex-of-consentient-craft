@@ -4,9 +4,23 @@ import * as ourModule from './index';
 // against that synthetic shape would fail every pass-through. `import x = require(...)` compiles
 // straight to `require(...)`, so pkgModule is the package's own real runtime shape.
 import pkgModule = require('@testing-library/react');
+import { render } from './render';
+
+const OVERRIDDEN_NAME = 'render';
 
 describe('@dungeonmaster/npm/@testing-library/react', () => {
-  it('VALID: {module} => re-exports the same runtime bindings as @testing-library/react', () => {
-    expect(Object.keys(ourModule).sort()).toStrictEqual(Object.keys(pkgModule).sort());
+  it('VALID: {module} => re-exports every @testing-library/react export except the overridden name', () => {
+    const ourKeys = Object.keys(ourModule)
+      .filter((key) => key !== OVERRIDDEN_NAME)
+      .sort();
+    const pkgKeys = Object.keys(pkgModule)
+      .filter((key) => key !== OVERRIDDEN_NAME)
+      .sort();
+
+    expect(ourKeys).toStrictEqual(pkgKeys);
+  });
+
+  it('VALID: {module} => overrides render with our own MantineProvider-wrapped version', () => {
+    expect(ourModule.render).toBe(render);
   });
 });

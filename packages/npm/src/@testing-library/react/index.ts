@@ -1,10 +1,13 @@
 /**
- * PURPOSE: Pass-through for the npm package '@testing-library/react'. Code outside the gateway imports @testing-library/react
- * through here instead of the raw package, so a future guard or override on @testing-library/react lands in
- * this one file and reaches every caller.
+ * PURPOSE: Gateway entry for the npm package '@testing-library/react'. Every export passes
+ * through except `render`, which this subpath overrides with OUR version wrapped in
+ * MantineProvider — see `./render`. `renderHook` stays a plain pass-through: no hook in this repo
+ * reads Mantine context today, matching `testingLibraryRenderHookAdapter`
+ * (`packages/web/src/adapters/testing-library/render-hook/`).
  *
  * USAGE:
- * import { someExport } from '@dungeonmaster/npm/@testing-library/react';
+ * import { render, renderHook, screen } from '@dungeonmaster/npm/@testing-library/react';
  */
 
 export * from '@testing-library/react';
+export { render } from './render';

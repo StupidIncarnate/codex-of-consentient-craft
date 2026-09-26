@@ -60,3 +60,20 @@ Use the "Handing a Find Back" format from your session context: ANSWER first, th
 - anything you could not finish, and why
 
 Keep the report short. The orchestrator reads files itself when it needs detail.
+
+## Known lint noise while the lint phase is pending
+
+`@dungeonmaster/enforce-project-structure` fires "Unknown folder" on every gateway subpath folder. It is expected until the lint phase teaches the config about the gateway. Ignore that one message, and never work around it. Every other lint error on a file you wrote is either a real problem to fix in your code, or a rule that misfires on correct gateway code. Report the misfires with the rule name, file and exact message. Never dodge them.
+
+## Shared pieces inside `@dungeonmaster/node`
+
+- `isFsError({ error, code })` lives in `packages/node/src/fs/is-fs-error.ts`. The fs async-reads agent writes it; the other fs agents import it. It is a realm-safe guard. Jest's sandbox breaks `instanceof Error` for Node's own errors, so the guard checks the shape: an object with a string `code`. `fs/index.ts` exports it, and `fs/promises/index.ts` re-exports it.
+- A gateway file may import another gateway file, relatively inside the same package, or through `@dungeonmaster/node/...` from `bin` or `npm`. It never imports our other workspace packages.
+
+## Orchestrator rulings made during the build
+
+1. **Calling shape.** A wrapper that keeps the outside function's name also keeps its calling shape, positional arguments included. A wrapper with a new name takes one destructured object argument.
+2. **Case collisions.** When a global is also exported by a Node module whose name matches ignoring case, the global has no subpath of its own. `URL` and `URLSearchParams` come from `@dungeonmaster/node/url`. Two sibling folders must never differ only by case.
+3. **Staging a Node-style error in a proxy:** use `.implement(() => { throw error; })`. The testing package's `.throws()` rewrites a non-`Error` value into a new `Error` and loses `code`.
+4. **Known lint misfires on gateway code**, which the lint phase fixes: `enforce-project-structure` (flat folders), `ban-primitives` (plain values), `enforce-object-destructuring-params` (same-name wrappers), and `enforce-proxy-child-creation` (flat file names). Report any other rule that fires.
+5. **A `bin` function never hides a failure as an empty value.** A missing program, a non-zero exit, or a folder that is not a repo is either thrown with the command and its output, or returned as an explicit value.

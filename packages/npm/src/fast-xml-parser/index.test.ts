@@ -5,8 +5,14 @@ import * as ourModule from './index';
 // straight to `require(...)`, so pkgModule is the package's own real runtime shape.
 import pkgModule = require('fast-xml-parser');
 
+const ADDED_NAME = 'parseXml';
+
 describe('@dungeonmaster/npm/fast-xml-parser', () => {
-  it('VALID: {module} => re-exports the same runtime bindings as fast-xml-parser', () => {
-    expect(Object.keys(ourModule).sort()).toStrictEqual(Object.keys(pkgModule).sort());
+  it('VALID: {module} => re-exports every fast-xml-parser export, plus our own parseXml', () => {
+    const ourKeys = Object.keys(ourModule)
+      .filter((key) => key !== ADDED_NAME)
+      .sort();
+
+    expect(ourKeys).toStrictEqual(Object.keys(pkgModule).sort());
   });
 });

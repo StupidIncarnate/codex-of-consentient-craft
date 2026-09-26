@@ -4,9 +4,23 @@ import * as ourModule from './index';
 // against that synthetic shape would fail every pass-through. `import x = require(...)` compiles
 // straight to `require(...)`, so pkgModule is the package's own real runtime shape.
 import pkgModule = require('glob');
+import { glob } from './glob';
+
+const OVERRIDDEN_NAME = 'glob';
 
 describe('@dungeonmaster/npm/glob', () => {
-  it('VALID: {module} => re-exports the same runtime bindings as glob', () => {
-    expect(Object.keys(ourModule).sort()).toStrictEqual(Object.keys(pkgModule).sort());
+  it('VALID: {module} => re-exports every glob export except the overridden name', () => {
+    const ourKeys = Object.keys(ourModule)
+      .filter((key) => key !== OVERRIDDEN_NAME)
+      .sort();
+    const pkgKeys = Object.keys(pkgModule)
+      .filter((key) => key !== OVERRIDDEN_NAME)
+      .sort();
+
+    expect(ourKeys).toStrictEqual(pkgKeys);
+  });
+
+  it('VALID: {module} => overrides glob with our own guarded wrapper', () => {
+    expect(ourModule.glob).toBe(glob);
   });
 });
