@@ -3,9 +3,8 @@
  *
  * Every caller is a background poller inside a process something else keeps alive — the HTTP
  * server's listening socket, the MCP child's stdin. So the interval is `.unref()`-ed: it must
- * never be the reason a process cannot exit. Without it `start-orchestrator.ts`'s module-load
- * bootstraps hold the loop open in every process that imports the barrel, and the mcp package's
- * jest runs reported them as leaks in every batch — one cause, 38 findings in a single sweep.
+ * never be the reason a process cannot exit. Without it the pollers `StartOrchestrator.bootstrap()`
+ * starts hold the loop open in every process that runs them, and jest reports each as a leak.
  * A caller that genuinely needs an interval to hold the loop open needs a different adapter.
  *
  * USAGE:

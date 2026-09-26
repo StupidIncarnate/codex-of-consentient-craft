@@ -3,6 +3,7 @@
  *
  * USAGE:
  * import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+ * StartOrchestrator.bootstrap(); // once, from the host process's startup
  * const guilds = await StartOrchestrator.listGuilds();
  * const quests = await StartOrchestrator.listQuests({guildId});
  * const quest = await StartOrchestrator.loadQuest({questId});
@@ -75,31 +76,28 @@ import { SmoketestFlow } from '../flows/smoketest/smoketest-flow';
 import { StartupRecoveryFlow } from '../flows/startup-recovery/startup-recovery-flow';
 import { WorktreeFlow } from '../flows/worktree/worktree-flow';
 
-// Bootstrap the cross-guild execution-queue runner on module load. Idempotent.
-ExecutionQueueFlow.bootstrap();
-
-// Bootstrap the queue sync listener on module load. Keeps queue entries in sync with
-// quest file changes (abandon/complete/delete) so the runner can always advance. Idempotent.
-ExecutionQueueFlow.bootstrapSyncListener();
-
-// Bootstrap the Node dispatch runner on module load. Normalizes the persisted play/pause
-// state to paused (never auto-plays across a restart) and wires the runner's wake sources.
-// Idempotent.
-OrchestrationDispatchFlow.bootstrap();
-
-// Bootstrap the smoketest post-terminal listener on module load. Idempotent.
-SmoketestFlow.bootstrap();
-
-// Bootstrap the rate-limits.json watcher on module load. Idempotent.
-RateLimitsFlow.bootstrap();
-
-// Bootstrap the stale-process watchdog on module load. Idempotent.
-// Scans the orchestration-processes registry every 30s and emits a [dev] WARN line
-// to stderr for any registered process whose stdout has been silent past the 60s
-// threshold. Includes OS-level kill(pid, 0) liveness probe when an osPid is known.
-ProcessStaleWatchFlow.bootstrap();
-
 export const StartOrchestrator = {
+  // The passive watchers, started by each host process's own startup — never at import, because
+  // they start real timers and file watchers that a module import cannot undo: importing this file
+  // must do no I/O. Every bootstrap is idempotent, so a second call is a no-op.
+  bootstrap: (): AdapterResult => {
+    // The cross-guild execution-queue change broadcast.
+    ExecutionQueueFlow.bootstrap();
+    // Keeps queue entries in sync with quest file changes (abandon/complete/delete) so the
+    // runner can always advance.
+    ExecutionQueueFlow.bootstrapSyncListener();
+    // The Node dispatch runner's wake sources. Boot normalization is NOT here; it is
+    // normalizeDispatchBoot, which only the HTTP server calls.
+    OrchestrationDispatchFlow.bootstrap();
+    // The smoketest post-terminal listener.
+    SmoketestFlow.bootstrap();
+    // The rate-limit guardrail poller.
+    RateLimitsFlow.bootstrap();
+    // Scans the orchestration-processes registry every 30s and emits a [dev] WARN line to stderr
+    // for any registered process whose stdout has been silent past the 60s threshold.
+    return ProcessStaleWatchFlow.bootstrap();
+  },
+
   // Guild methods
   listGuilds: async (): Promise<GuildListItem[]> => GuildFlow.list(),
 

@@ -4,14 +4,14 @@
  * `dispatch-state-changed` bus event so the server broadcasts it to WS clients. Boot
  * normalization (node-playing → paused) is deliberately NOT here — it lives in
  * OrchestrationDispatchNormalizeBootResponder, called only by the HTTP server's boot, because
- * this bootstrap also runs inside every MCP stdio child at StartOrchestrator module load and a
- * child spawned mid-play must not flip the shared file back to paused.
+ * this bootstrap also runs inside every MCP stdio child, through `StartOrchestrator.bootstrap()`,
+ * and a child spawned mid-play must not flip the shared file back to paused.
  *
  * USAGE:
  * OrchestrationDispatchBootstrapResponder();
  * // Runner is now kicked on play-press, queue changes, and quest-outbox-driven queue syncs.
  *
- * WHEN-TO-USE: Called once from StartOrchestrator module load.
+ * WHEN-TO-USE: Called once from `StartOrchestrator.bootstrap()`.
  * WHEN-NOT-TO-USE: Not for request-scoped invocation.
  */
 

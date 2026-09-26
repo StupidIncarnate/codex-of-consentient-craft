@@ -1,4 +1,3 @@
-import { pathResolveAdapter } from '../../adapters/path/resolve/path-resolve-adapter';
 import { importPathResolverMiddleware } from './import-path-resolver-middleware';
 import { importPathResolverMiddlewareProxy } from './import-path-resolver-middleware.proxy';
 import { FilePathStub } from '../../contracts/file-path/file-path.stub';
@@ -6,34 +5,26 @@ import { ImportPathStub } from '../../contracts/import-path/import-path.stub';
 
 describe('importPathResolverMiddleware', () => {
   describe('relative imports', () => {
-    it('VALID: {relative import to existing proxy file} => returns FilePath', () => {
-      importPathResolverMiddlewareProxy();
-
-      // Use the actual proxy file that exists alongside this test
-      const sourceFilePath = FilePathStub({ value: __filename });
-      const importPath = ImportPathStub({ value: './import-path-resolver-middleware.proxy' });
-      const expectedPath = FilePathStub({
-        value: `${__dirname}/import-path-resolver-middleware.proxy.ts`,
-      });
+    it('VALID: {relative import to an existing .ts proxy file} => returns FilePath', () => {
+      const proxy = importPathResolverMiddlewareProxy();
+      proxy.setupFilesOnDisk({ filePaths: ['/repo/src/widget/widget.proxy.ts'] });
+      const sourceFilePath = FilePathStub({ value: '/repo/src/widget/widget.test.ts' });
+      const importPath = ImportPathStub({ value: './widget.proxy' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(expectedPath);
+      expect(result).toStrictEqual(FilePathStub({ value: '/repo/src/widget/widget.proxy.ts' }));
     });
 
-    it('VALID: {relative import with .ts extension exists} => returns FilePath', () => {
-      importPathResolverMiddlewareProxy();
-
-      // Use the actual middleware file
-      const sourceFilePath = FilePathStub({ value: __filename });
-      const importPath = ImportPathStub({ value: './import-path-resolver-middleware.ts' });
-      const expectedPath = FilePathStub({
-        value: `${__dirname}/import-path-resolver-middleware.ts`,
-      });
+    it('VALID: {relative import that already carries its .ts extension} => returns FilePath as-is', () => {
+      const proxy = importPathResolverMiddlewareProxy();
+      proxy.setupFilesOnDisk({ filePaths: ['/repo/src/widget/widget.ts'] });
+      const sourceFilePath = FilePathStub({ value: '/repo/src/widget/widget.test.ts' });
+      const importPath = ImportPathStub({ value: './widget.ts' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(expectedPath);
+      expect(result).toStrictEqual(FilePathStub({ value: '/repo/src/widget/widget.ts' }));
     });
   });
 
@@ -51,8 +42,9 @@ describe('importPathResolverMiddleware', () => {
 
   describe('package barrel imports', () => {
     it('VALID: {@dungeonmaster/shared/testing} => returns testing.ts barrel path', () => {
-      importPathResolverMiddlewareProxy();
-      const sourceFilePath = FilePathStub({ value: __filename });
+      const proxy = importPathResolverMiddlewareProxy();
+      proxy.setupFilesOnDiskMatching({ pattern: /\/packages\/shared\/testing\.ts$/u });
+      const sourceFilePath = FilePathStub({ value: '/repo/src/widget/widget.test.ts' });
       const importPath = ImportPathStub({ value: '@dungeonmaster/shared/testing' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
@@ -62,49 +54,39 @@ describe('importPathResolverMiddleware', () => {
   });
 
   describe('tsx extension', () => {
-    it('VALID: {relative import to .tsx proxy file} => returns FilePath with .tsx', () => {
-      importPathResolverMiddlewareProxy();
-
-      // Use web widget proxy which is a .tsx file — derive path from __dirname for worktree compatibility
-      const webWidgetsDir = pathResolveAdapter({
-        paths: [__dirname, '..', '..', '..', '..', 'web', 'src', 'widgets', 'pixel-btn'],
-      });
-      const sourceFilePath = FilePathStub({
-        value: `${webWidgetsDir}/pixel-btn-widget.test.tsx`,
-      });
-      const importPath = ImportPathStub({ value: './pixel-btn-widget.proxy' });
-      const expectedPath = FilePathStub({
-        value: `${webWidgetsDir}/pixel-btn-widget.proxy.tsx`,
-      });
+    it('VALID: {relative import to a .tsx proxy file} => returns FilePath with .tsx', () => {
+      const proxy = importPathResolverMiddlewareProxy();
+      proxy.setupFilesOnDisk({ filePaths: ['/repo/src/widgets/btn/btn-widget.proxy.tsx'] });
+      const sourceFilePath = FilePathStub({ value: '/repo/src/widgets/btn/btn-widget.test.tsx' });
+      const importPath = ImportPathStub({ value: './btn-widget.proxy' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(expectedPath);
+      expect(result).toStrictEqual(
+        FilePathStub({ value: '/repo/src/widgets/btn/btn-widget.proxy.tsx' }),
+      );
     });
   });
 
   describe('jsx extension', () => {
-    it('VALID: {relative import to .jsx file} => returns FilePath with .jsx', () => {
-      importPathResolverMiddlewareProxy();
-
-      // Use the stub jsx file in this directory
-      const sourceFilePath = FilePathStub({ value: __filename });
-      const importPath = ImportPathStub({ value: './jsx-extension-test-stub' });
-      const expectedPath = FilePathStub({
-        value: `${__dirname}/jsx-extension-test-stub.jsx`,
-      });
+    it('VALID: {relative import to a .jsx file} => returns FilePath with .jsx', () => {
+      const proxy = importPathResolverMiddlewareProxy();
+      proxy.setupFilesOnDisk({ filePaths: ['/repo/src/widget/legacy.jsx'] });
+      const sourceFilePath = FilePathStub({ value: '/repo/src/widget/widget.test.ts' });
+      const importPath = ImportPathStub({ value: './legacy' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(expectedPath);
+      expect(result).toStrictEqual(FilePathStub({ value: '/repo/src/widget/legacy.jsx' }));
     });
   });
 
   describe('file not found', () => {
-    it('VALID: {file does not exist} => returns null', () => {
-      importPathResolverMiddlewareProxy();
-      const sourceFilePath = FilePathStub({ value: __filename });
-      const importPath = ImportPathStub({ value: './nonexistent-file-that-does-not-exist.proxy' });
+    it('VALID: {no candidate file exists} => returns null', () => {
+      const proxy = importPathResolverMiddlewareProxy();
+      proxy.setupFilesOnDisk({ filePaths: [] });
+      const sourceFilePath = FilePathStub({ value: '/repo/src/widget/widget.test.ts' });
+      const importPath = ImportPathStub({ value: './missing.proxy' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 

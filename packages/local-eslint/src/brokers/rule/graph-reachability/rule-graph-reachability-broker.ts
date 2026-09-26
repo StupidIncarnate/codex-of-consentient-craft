@@ -3,7 +3,7 @@
  * `questFlowStatics` half of story 06's safety net. The step-graph half (`agentFlowStatics`) is
  * checked at server boot instead: this package depends on `@dungeonmaster/eslint-plugin`,
  * `@dungeonmaster/shared` and `zod` only, and `agentFlowStatics` lives in
- * `@dungeonmaster/orchestrator`, whose barrel runs six live bootstraps at module load — see
+ * `@dungeonmaster/orchestrator`, which this package does not depend on — see
  * `scrolls/orcha-changes/06-graph-reachability.md`'s `OPEN` for the full reasoning.
  *
  * USAGE:

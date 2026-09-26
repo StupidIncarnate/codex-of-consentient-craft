@@ -271,7 +271,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       );
 
       expect(outputs).toStrictEqual([
-        '// Auto-hoisted from: test.proxy.ts\njest.mock("fs/promises", () => ({ ...jest.requireActual("fs/promises"), readFile: jest.fn() }));',
+        '// Auto-hoisted from: test.proxy.ts\njest.mock("fs/promises", () => ({ ...(globalThis.__ioTrap?.("fs/promises") ?? jest.requireActual("fs/promises")), readFile: jest.fn() }));',
       ]);
     });
 
@@ -328,7 +328,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       );
 
       expect(outputs).toStrictEqual([
-        '// Auto-hoisted from: test.proxy.ts\njest.mock("fs/promises", () => ({ ...jest.requireActual("fs/promises"), readFile: jest.fn(), writeFile: jest.fn() }));',
+        '// Auto-hoisted from: test.proxy.ts\njest.mock("fs/promises", () => ({ ...(globalThis.__ioTrap?.("fs/promises") ?? jest.requireActual("fs/promises")), readFile: jest.fn(), writeFile: jest.fn() }));',
       ]);
     });
   });

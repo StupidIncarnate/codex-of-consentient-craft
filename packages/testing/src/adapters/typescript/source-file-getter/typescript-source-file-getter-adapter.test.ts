@@ -7,7 +7,8 @@ import { TypescriptProgramStub } from '../../../contracts/typescript-program/typ
 describe('typescriptSourceFileGetterAdapter', () => {
   describe('valid source file retrieval', () => {
     it('VALID: {program with real file, filePath} => returns source file', () => {
-      typescriptSourceFileGetterAdapterProxy();
+      const proxy = typescriptSourceFileGetterAdapterProxy();
+      proxy.readsRealFiles();
 
       // Use this actual test file as input - it's a real .ts file
       const filePath = FilePathStub({ value: __filename });
@@ -35,34 +36,32 @@ describe('typescriptSourceFileGetterAdapter', () => {
 
   describe('file not in program', () => {
     it('EDGE: {program without file, file exists on disk} => parses directly', () => {
-      typescriptSourceFileGetterAdapterProxy();
-
-      // Create an empty program that doesn't include any files
-      const tsProgram = ts.createProgram({
-        rootNames: [],
-        options: {},
+      const proxy = typescriptSourceFileGetterAdapterProxy();
+      const filePath = FilePathStub({ value: '/repo/packages/other/src/cross-package.ts' });
+      proxy.fileContains({ filePath, content: 'export const crossPackage = 1;' });
+      const program = TypescriptProgramStub({
+        value: {
+          getSourceFile: (): undefined => undefined,
+        },
       });
-      const program = TypescriptProgramStub({ value: tsProgram });
-
-      // Use this actual test file which exists on disk but is not in the program
-      const filePath = FilePathStub({ value: __filename });
 
       const result = typescriptSourceFileGetterAdapter({ program, filePath });
 
-      // Should parse the file directly since it exists on disk
-      expect(result?.fileName).toBe(filePath);
+      expect({ fileName: result?.fileName, text: result?.text }).toStrictEqual({
+        fileName: filePath,
+        text: 'export const crossPackage = 1;',
+      });
     });
 
     it('INVALID: {program, nonexistent filePath} => returns undefined', () => {
-      typescriptSourceFileGetterAdapterProxy();
-
-      const tsProgram = ts.createProgram({
-        rootNames: [],
-        options: {},
-      });
-      const program = TypescriptProgramStub({ value: tsProgram });
-
+      const proxy = typescriptSourceFileGetterAdapterProxy();
       const filePath = FilePathStub({ value: '/nonexistent.ts' });
+      proxy.fileMissing({ filePath });
+      const program = TypescriptProgramStub({
+        value: {
+          getSourceFile: (): undefined => undefined,
+        },
+      });
 
       const result = typescriptSourceFileGetterAdapter({ program, filePath });
 

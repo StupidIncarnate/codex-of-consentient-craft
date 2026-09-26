@@ -5,8 +5,7 @@
  * `agentFlowStatics` (it lives here, in `@dungeonmaster/orchestrator`, which local-eslint does not
  * depend on), so the step graphs are checked HERE instead. `packages/server` reaches this broker
  * via the `@dungeonmaster/orchestrator/brokers` subpath rather than the main barrel — that barrel
- * re-exports `StartOrchestrator`, which runs six live bootstraps at module load a short-lived
- * caller has no use for.
+ * loads the whole package, which a short-lived caller has no use for.
  *
  * USAGE:
  * const violations = graphReachabilityCheckBroker();

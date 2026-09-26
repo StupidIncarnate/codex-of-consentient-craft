@@ -9,7 +9,7 @@
  * // drains from the listener registry, the active-run flag clears so a fresh
  * // POST /api/tooling/smoketest/run can kick off another suite.
  *
- * WHEN-TO-USE: Called once from StartOrchestrator module load (via SmoketestFlow.bootstrap).
+ * WHEN-TO-USE: Called once from `StartOrchestrator.bootstrap()` (via SmoketestFlow.bootstrap).
  * WHEN-NOT-TO-USE: Not for request-scoped invocation.
  *
  * WHY the outbox watcher (not orchestrationEventsState): `quest-modified` events flow through

@@ -88,7 +88,27 @@ export const typescriptMockCallsToStatementsAdapter = ({
         );
         args.push(factoryArrow);
       } else {
-        const spreadActual = tsNodeFactory.createSpreadAssignment(requireActualCall);
+        // Spread `globalThis.__ioTrap?.(m) ?? jest.requireActual(m)`, never the bare requireActual:
+        // for a module the unit-test I/O trap covers (jest.setup-io-trap.js), a real spread would
+        // leave every function the proxies did not name doing real I/O. `__ioTrap` returns
+        // undefined for any other module, and is absent in integration tests.
+        const ioTrapCall = tsNodeFactory.createCallChain(
+          tsNodeFactory.createPropertyAccessExpression(
+            tsNodeFactory.createIdentifier('globalThis'),
+            tsNodeFactory.createIdentifier('__ioTrap'),
+          ),
+          tsNodeFactory.createToken(ts.SyntaxKind.QuestionDotToken),
+          undefined,
+          [tsNodeFactory.createStringLiteral(mock.moduleName)],
+        );
+        const trappedOrActual = tsNodeFactory.createParenthesizedExpression(
+          tsNodeFactory.createBinaryExpression(
+            ioTrapCall,
+            ts.SyntaxKind.QuestionQuestionToken,
+            requireActualCall,
+          ),
+        );
+        const spreadActual = tsNodeFactory.createSpreadAssignment(trappedOrActual);
         const objectLiteral = tsNodeFactory.createObjectLiteralExpression(
           [spreadActual, ...mockProperties],
           false,

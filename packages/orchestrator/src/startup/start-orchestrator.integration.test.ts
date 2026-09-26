@@ -8,6 +8,23 @@ import { StartOrchestrator } from './start-orchestrator';
 describe('StartOrchestrator', () => {
   const envHarness = orchestrationEnvironmentHarness();
 
+  describe('bootstrap wiring', () => {
+    it('VALID: {called twice} => starts the passive watchers and returns success both times', () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'start-orch-bootstrap' }),
+      });
+      const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const first = StartOrchestrator.bootstrap();
+      const second = StartOrchestrator.bootstrap();
+
+      restore();
+
+      expect(first).toStrictEqual({ success: true });
+      expect(second).toStrictEqual({ success: true });
+    });
+  });
+
   describe('guild wiring', () => {
     it('VALID: {listGuilds} => delegates to GuildFlow.list and returns array', async () => {
       const testbed = installTestbedCreateBroker({

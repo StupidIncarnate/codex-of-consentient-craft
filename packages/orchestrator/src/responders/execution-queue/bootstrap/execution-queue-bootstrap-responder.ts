@@ -8,7 +8,7 @@
  * ExecutionQueueBootstrapResponder();
  * // Every questExecutionQueueState mutation now emits `execution-queue-updated`.
  *
- * WHEN-TO-USE: Called once from StartOrchestrator module load.
+ * WHEN-TO-USE: Called once from `StartOrchestrator.bootstrap()`.
  * WHEN-NOT-TO-USE: Not for request-scoped invocation.
  */
 

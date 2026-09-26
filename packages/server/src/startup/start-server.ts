@@ -37,9 +37,9 @@ export const StartServer = ({
   // is the on-disk quest files — no global "monitor session" file is consulted.
   QuestDrivenWatchersFlow.bootstrap();
 
-  // Normalize the Node-dispatcher state at server boot: a persisted 'node-playing' mode is
-  // rewritten to 'paused' so a restarted server never auto-plays. Server-process only — MCP
-  // children load StartOrchestrator too and must not run this.
+  // Start the orchestrator's passive watchers, then normalize the Node-dispatcher state: a
+  // persisted 'node-playing' mode is rewritten to 'paused' so a restarted server never auto-plays.
+  // The normalization is server-process only — MCP children start the watchers but must not run it.
   OrchestrationBootFlow.bootstrap();
 
   return ServerFlow({

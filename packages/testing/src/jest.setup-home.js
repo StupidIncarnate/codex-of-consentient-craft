@@ -1,9 +1,8 @@
 // Gives every jest WORKER its own sandbox `DUNGEONMASTER_HOME`, one per worker pid, reused across
 // every test file that worker runs. Runs as a `setupFiles` entry, not `setupFilesAfterEnv`, because
-// that is the only hook that lands BEFORE the test file's own imports: `@dungeonmaster/orchestrator`'s
-// barrel runs six bootstraps at MODULE LOAD, one of which is the rate-limit guardrail poller, and
-// its first pass reads whatever `DUNGEONMASTER_HOME` names at that moment — a harness that only
-// sets the env var inside a test body sets it too late for that first pass.
+// that is the only hook that lands BEFORE the test file's own imports: a module that reads
+// `DUNGEONMASTER_HOME` while it loads reads whatever it names at that moment, and a harness that
+// only sets the env var inside a test body sets it too late for that read.
 //
 // This sandbox holds `DUNGEONMASTER_HOME` only — the dungeonmaster-specific data dir (guild
 // configs, the usage ledger, dispatch state). It is separate from, and complementary to, the

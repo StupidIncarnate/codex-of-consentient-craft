@@ -6,9 +6,10 @@ import { TypescriptProgramStub } from '../../contracts/typescript-program/typesc
 describe('proxyMockCollectorMiddleware', () => {
   describe('invalid program', () => {
     it('VALID: {program with no source file} => returns empty array', () => {
-      proxyMockCollectorMiddlewareProxy();
-
+      const proxy = proxyMockCollectorMiddlewareProxy();
       const proxyFilePath = FilePathStub({ value: '/nonexistent.proxy.ts' });
+      proxy.setupProxyFileMissing({ proxyFilePath });
+
       const program = TypescriptProgramStub({
         value: {
           getSourceFile: (): undefined => undefined,

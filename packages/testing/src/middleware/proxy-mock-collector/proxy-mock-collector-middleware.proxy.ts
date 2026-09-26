@@ -1,9 +1,10 @@
 /**
- * PURPOSE: Empty proxy for proxy-mock-collector-middleware
+ * PURPOSE: Proxy for proxy-mock-collector-middleware — TypeScript AST operations run real; the
+ * source-file fallback read for a proxy file the program does not hold is staged
  *
  * USAGE:
  * const proxy = proxyMockCollectorMiddlewareProxy();
- * // Empty proxy - TypeScript AST operations run real in tests
+ * proxy.setupProxyFileMissing({ proxyFilePath: '/nonexistent.proxy.ts' });
  */
 
 import { typescriptSourceFileGetterAdapterProxy } from '../../adapters/typescript/source-file-getter/typescript-source-file-getter-adapter.proxy';
@@ -14,8 +15,10 @@ import { importPathResolverMiddlewareProxy } from '../import-path-resolver/impor
 import { pathDirnameAdapterProxy } from '../../adapters/path/dirname/path-dirname-adapter.proxy';
 import { pathResolveAdapterProxy } from '../../adapters/path/resolve/path-resolve-adapter.proxy';
 
-export const proxyMockCollectorMiddlewareProxy = (): Record<PropertyKey, never> => {
-  typescriptSourceFileGetterAdapterProxy();
+export const proxyMockCollectorMiddlewareProxy = (): {
+  setupProxyFileMissing: ({ proxyFilePath }: { proxyFilePath: string }) => void;
+} => {
+  const sourceFileProxy = typescriptSourceFileGetterAdapterProxy();
   typescriptAstToMockCallsAdapterProxy();
   typescriptAstToModuleMockCallsAdapterProxy();
   typescriptAstToProxyImportsAdapterProxy();
@@ -23,5 +26,9 @@ export const proxyMockCollectorMiddlewareProxy = (): Record<PropertyKey, never> 
   pathDirnameAdapterProxy();
   pathResolveAdapterProxy();
 
-  return {};
+  return {
+    setupProxyFileMissing: ({ proxyFilePath }: { proxyFilePath: string }): void => {
+      sourceFileProxy.fileMissing({ filePath: proxyFilePath });
+    },
+  };
 };

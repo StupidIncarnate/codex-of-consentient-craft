@@ -14,9 +14,8 @@ module.exports = {
   globalSetup: '<rootDir>/../../packages/testing/src/jest.setup-global.js',
   globalTeardown: '<rootDir>/../../packages/testing/src/jest.setup-global-teardown.js',
   // `setupFiles`, not `setupFilesAfterEnv`: this one has to run before the test file's own imports,
-  // because the orchestrator barrel bootstraps a guardrail poller at module load that reads
-  // `DUNGEONMASTER_HOME` on its first pass. The file itself says what that costs when it resolves to
-  // the developer's real home.
+  // so a module that reads `DUNGEONMASTER_HOME` while it loads sees the sandbox. The file itself
+  // says what that costs when it resolves to the developer's real home.
   setupFiles: ['<rootDir>/../../packages/testing/src/jest.setup-home.js'],
   setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
   testMatch: ['**/src/**/*.test.[jt]s', '**/bin/**/*.test.[jt]s'],

@@ -8,9 +8,9 @@
  * // Returns the effective DispatchState after normalization
  *
  * WHEN-TO-USE: Called once from the HTTP server's StartServer boot — and ONLY there. Every MCP
- * stdio child also loads StartOrchestrator, and a child spawned while the Node dispatcher is
- * playing must NOT flip the shared file back to paused mid-run.
- * WHEN-NOT-TO-USE: Never from module-load bootstraps or request-scoped code.
+ * stdio child also runs `StartOrchestrator.bootstrap()`, and a child spawned while the Node
+ * dispatcher is playing must NOT flip the shared file back to paused mid-run.
+ * WHEN-NOT-TO-USE: Never from `StartOrchestrator.bootstrap()` or request-scoped code.
  */
 
 import type { DispatchState } from '@dungeonmaster/shared/contracts';

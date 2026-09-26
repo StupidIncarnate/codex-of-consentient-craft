@@ -1552,39 +1552,28 @@ to the work-item branch, because a minion carrying a `workItemId` is held by `su
 calls `signal-back`, and the only item it could signal on is its PARENT's operation item — completing the parent's
 scope while the parent is still working.
 
-## Importing the barrel in a unit test leaks real timers
+## Importing the barrel does no I/O; the host process calls `StartOrchestrator.bootstrap()`
 
-`startup/start-orchestrator.ts` runs its passive-watcher bootstraps (rate-limits poller,
-stale-process watchdog, execution-queue runner) at MODULE LOAD via `setInterval`. Any unit test that
-imports the barrel (`./index` → `start-orchestrator`) starts ~3 REAL interval timers plus 2 fs
-watchers.
+The passive watchers — the execution-queue broadcast and sync listener, the Node dispatch runner's
+wake sources, the smoketest listener, the rate-limits poller and the stale-process watchdog — start
+ONLY when a host process calls `StartOrchestrator.bootstrap()`. The HTTP server calls it from
+`OrchestrationBootFlow`; the MCP stdio child calls it from its own `OrchestrationBootFlow` in
+`StartMcpServer`. Every bootstrap is idempotent.
 
-Real Node timers live in the worker's libuv event loop, NOT the module registry — so jest's
-per-test-FILE module reset does not stop them. They keep firing for the whole worker's lifetime. The
-rate-limits poller reads `~/.dungeonmaster/rate-limits.json` every 5s and, on a transient non-ENOENT
-read failure (concurrent processes during a full ward run), writes `rate-limits-watch read error: …`
-to `process.stderr` — landing inside a LATER test file's stderr spy window and failing it.
+**Never move a bootstrap back to module scope.** They start real `setInterval` timers and fs
+watchers, which live in the worker's libuv event loop, not in jest's module registry, so a per-file
+module reset cannot stop them. Run at import, they start inside every unit test that touches the
+barrel, keep firing for the worker's whole lifetime, and do real disk I/O (a home `mkdir`, a
+`usage-ledger.json` read, a `~/.claude/projects` scan) that the unit-test I/O trap reports.
 
-`index.test.ts` imports `./index.proxy` FIRST and the barrel second, and that ORDER is the whole
-mechanism. `index.proxy.ts` spies `globalThis.setInterval`/`clearInterval` at MODULE SCOPE, so the
-spies are already installed by the time a CJS require reaches the barrel and its bootstraps run.
-Verified rather than assumed: make that implementation throw, and the barrel import dies with the
-thrown message. **Any new unit test that imports the orchestrator barrel must import that proxy above
-it.**
+`OrchestrationDispatchNormalizeBootResponder` stays outside `bootstrap()` on purpose: only the HTTP
+server may normalize the shared dispatch-state file, because an MCP child spawned mid-play must not
+flip it back to paused.
 
-The barrel import is STATIC for a second reason. `./index` pulls the whole package, so a dynamic
+The barrel import in `index.test.ts` is STATIC. `./index` pulls the whole package, so a dynamic
 `await import('./index')` transforms 1,467 files INSIDE the test body, and ward's slow-test gate then
 reads a compile as a slow test — measured at 13.1s on a cold cache against 5ms warm, the same work
 either way. A static import is transformed when jest requires the test file, before any test starts.
-
-**There is no leak-guard test here, and that is a finding rather than a gap.** A
-`process.getActiveResourcesInfo()` Timeout count taken either side of the import comes back unchanged
-whether the spies are installed or not — measured both ways — so it passed for every tree and proved
-nothing about the mock it was written to protect. Guarding this for real means first finding what the
-bootstraps actually register.
-
-`start-orchestrator.integration.test.ts` imports `StartOrchestrator` without neutralizing and carries
-the same latent leak.
 
 ## Headless spawns get no browser tools
 

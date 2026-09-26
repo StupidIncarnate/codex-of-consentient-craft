@@ -1,11 +1,14 @@
+import { serverAppHarness } from '../../../test/harnesses/server-app/server-app.harness';
+
 import { OrchestrationBootFlow } from './orchestration-boot-flow';
 
 describe('OrchestrationBootFlow', () => {
+  const harness = serverAppHarness();
+
   it('VALID: {bootstrap twice} => idempotent across repeat calls', () => {
-    // Point the home at a nonexistent dir so normalization reads the paused default and
-    // never touches the developer's real ~/.dungeonmaster. Subsequent bootstrap calls
-    // must no-op once the first normalization has been kicked.
-    process.env.DUNGEONMASTER_HOME = '/tmp/dm-orchestration-boot-flow-nonexistent';
+    // setupTestHome restores the previous home rather than deleting it: the watchers this starts
+    // keep ticking, and a deleted variable would send their later ticks to the real ~/.dungeonmaster.
+    const restore = harness.setupTestHome({ baseName: 'orchestration-boot-flow' });
     let threw = false;
     try {
       OrchestrationBootFlow.bootstrap();
@@ -13,7 +16,7 @@ describe('OrchestrationBootFlow', () => {
     } catch {
       threw = true;
     }
-    Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+    restore();
 
     expect(threw).toBe(false);
   });

@@ -8,7 +8,7 @@
  * // workItem drains to a terminal state — its queue entry is automatically cleaned up so the
  * // runner can advance.
  *
- * WHEN-TO-USE: Called once from StartOrchestrator module load (via ExecutionQueueFlow.bootstrapSyncListener).
+ * WHEN-TO-USE: Called once from `StartOrchestrator.bootstrap()` (via ExecutionQueueFlow.bootstrapSyncListener).
  * WHEN-NOT-TO-USE: Not for request-scoped invocation.
  *
  * WHY the outbox watcher (not orchestrationEventsState): `quest-modified` events flow through

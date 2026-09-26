@@ -25,6 +25,9 @@ if (typeof process.env.NODE_OPTIONS === 'string') {
   }
 }
 
+// The unit-test I/O trap: registers module mocks, so it must run before the test file's imports.
+require('./jest.setup-io-trap');
+
 // Wire harness lifecycle hooks — called by the harness-lifecycle-transformer
 // when it wraps *Harness() calls in integration test files
 globalThis.__wireHarnessLifecycle = (harness) => {
