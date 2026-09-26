@@ -6,7 +6,7 @@
  * // Returns array of FileMetadata for all matched files with optional metadata enrichment
  */
 
-import { globFindAdapter } from '../../../adapters/glob/find/glob-find-adapter';
+import { glob as globFind } from '@dungeonmaster/npm/glob';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { sharedPackageResolveAdapter } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter';
 import { metadataExtractorTransformer } from '../../../transformers/metadata-extractor/metadata-extractor-transformer';
@@ -67,7 +67,9 @@ export const fileScannerBroker = async ({
     glob: globSuffix,
   });
 
-  const projectFiles = await globFindAdapter({ pattern, cwd: cwdPath, ignore });
+  const projectFiles = (await globFind(pattern, { cwd: cwdPath, ignore })).map((foundPath) =>
+    pathSegmentContract.parse(foundPath),
+  );
 
   // Also scan @dungeonmaster/shared for broad (unscoped) globs starting with **
   const isBroadGlob = globSuffix.startsWith('**');
@@ -76,11 +78,9 @@ export const fileScannerBroker = async ({
   const sharedBasePathStr = sharedPath ? pathSegmentContract.parse(sharedPath) : null;
   if (sharedBasePathStr !== null) {
     const sharedPattern = globPatternContract.parse(`${sharedBasePathStr}/${globSuffix}`);
-    const foundSharedFiles = await globFindAdapter({
-      pattern: sharedPattern,
-      cwd: sharedBasePathStr,
-      ignore,
-    });
+    const foundSharedFiles = (
+      await globFind(sharedPattern, { cwd: sharedBasePathStr, ignore })
+    ).map((foundPath) => pathSegmentContract.parse(foundPath));
     sharedFilePaths.push(...foundSharedFiles);
   }
 

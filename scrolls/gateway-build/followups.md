@@ -254,3 +254,53 @@ swallowed — worth confirming this is what ward's e2e-artifact teardown wants b
 ## `parseImplementationImportsTransformer` reads a per-name `type` import as a value import
 
 In a mixed import such as `import { walkBroker, type WalkMemo } from './walk-broker'`, the transformer in `packages/eslint-plugin` does not strip the per-name `type` modifier. `enforce-proxy-child-creation` then expects a `<Type>Proxy` for a type. The platform-crossing check worked around it by deriving types through `Parameters<typeof broker>[0]['field']`. The fix belongs in the transformer: skip specifiers whose `importKind` is `type`.
+
+## A gateway proxy must match the adapter proxy it replaces, or callers duplicate broker logic into their own proxy
+
+`packages/npm/src/glob/glob.proxy.ts` only matched one exact staged pattern string, with no
+catch-all and no way to read back a real call — `packages/mcp/src/adapters/glob/find/glob-find-adapter.proxy.ts`
+(the adapter it replaced) auto-staged `calledWith([]).resolves([])` in its constructor AND matched
+by the pattern's TAIL (tolerating a cwd prefix the staging side never saw), plus exposed
+`getOptionsFor` to read back what a call really sent. Losing those meant every composing caller
+proxy (`file-scanner-broker.proxy.ts`, `mcp-discover-broker.proxy.ts`) either had to stage every
+possible call explicitly or reconstruct the broker's own ignore-list computation inside its test
+double — real coupling the adapter never forced. **Checklist for every future gateway wrapper
+proxy, before calling it done:**
+
+- [ ] Does the outside function get called MORE THAN ONCE per business operation (a broad scan
+      that also sweeps a second root, a probe issued only on the empty-result path)? If so, add a
+      safe default (a constructor-time `calledWith([]).resolves(...)`/`.returns(...)`) so an
+      unaddressed second call resolves empty/no-op instead of throwing.
+- [ ] Does the real call get built by joining a value the CALLER doesn't fully control (a resolved
+      cwd, a joined path) onto the value a test naturally wants to stage (the glob/pattern/command
+      the caller asked for)? If so, offer a tolerant address — a tail/suffix match, or accept a raw
+      predicate function — alongside the exact-match default, so a composing proxy can stage
+      without reproducing the join.
+- [ ] Does ANY existing adapter proxy for this same npm package/Node module already expose a
+      `getOptionsFor`/`getCallsFor`-shaped read-back? If so, the gateway replacement needs the same
+      call-inspection surface, not just `returns`/`throws`.
+- [ ] Is the replaced adapter's own address narrower than the full real-call argument list (e.g.
+      matched on `nodir`/`cwd` but never `ignore`)? Offer a PARTIAL options address (only named
+      keys checked) as well as the full exact one, so a caller that cannot know a data-dependent
+      option value in advance (an ignore list built by a transformer) can still stage the call.
+
+**Other gateway proxies visibly missing a default and/or call inspection** (found by grepping every
+`packages/{npm,node,browser,bin}/src/**/*.proxy.ts` for `calledWith([])` and `callsMatching`; not
+fixed here, per this unit's scope):
+
+- Every `packages/bin/git/*.proxy.ts` (all ~18: `git-run`, `git-commit`, `git-current-branch`,
+  `git-worktree-add`, etc.) — none stage a catch-all or expose a calls-made read-back.
+- `packages/bin/cp/cp-run.proxy.ts`, `packages/bin/cp/cp-copy-recursive.proxy.ts`
+- `packages/bin/kill/kill-pid.proxy.ts`, `packages/bin/kill/kill-group.proxy.ts`,
+  `packages/bin/kill/kill-run.proxy.ts`
+- `packages/bin/lsof/lsof-listening-pids.proxy.ts`
+- `packages/bin/npm/npm-run.proxy.ts`, `npm-install.proxy.ts`, `npm-run-build.proxy.ts`,
+  `npm-run-script.proxy.ts`
+- The read-oriented `packages/node/fs/promises/*.proxy.ts` files (`read-file`, `read-json-file`,
+  `readdir`, `readdir-entries`, `realpath`, `readlink`, `stat`, `path-exists`, …) — the write-shaped
+  siblings in the same folder (`write-file*`, `append-file*`) already expose `callsMatching`
+  read-back; the read-shaped ones do not.
+- `packages/node/net/free-port-pair.proxy.ts`, `packages/node/net/is-port-free.proxy.ts`
+- `packages/node/readline/line-reader.proxy.ts`, `packages/node/readline/question.proxy.ts`
+- `packages/browser/fetch/*.proxy.ts`, `packages/browser/indexedDB/*.proxy.ts`,
+  `packages/browser/localStorage/*.proxy.ts`

@@ -1,10 +1,14 @@
 import * as ourModule from './index';
 
 describe('@dungeonmaster/npm/testing', () => {
-  it('VALID: {module} => globProxy returns its returns/throws methods', () => {
+  it('VALID: {module} => globProxy returns its full scenario-staging surface', () => {
     expect(ourModule.globProxy()).toStrictEqual({
       returns: expect.any(Function),
       throws: expect.any(Function),
+      returnsMatchingTail: expect.any(Function),
+      throwsMatchingTail: expect.any(Function),
+      getOptionsFor: expect.any(Function),
+      getCallsFor: expect.any(Function),
     });
   });
 

@@ -41,7 +41,7 @@ describe('mcpDiscoverBroker', () => {
         value:
           '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};',
       });
-      const pattern = GlobPatternStub({ value: `${process.cwd()}/**/*.ts` });
+      const pattern = GlobPatternStub({ value: '**/*.ts' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
@@ -63,7 +63,7 @@ describe('mcpDiscoverBroker', () => {
         value:
           "/**\n * PURPOSE: Checks file access\n */\nexport const fsAccessAdapter = () => {};\nif (error.code === 'ENOENT') {\n  throw error;\n}",
       });
-      const pattern = GlobPatternStub({ value: `${process.cwd()}/**/*` });
+      const pattern = GlobPatternStub({ value: '**/*' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
@@ -84,7 +84,7 @@ describe('mcpDiscoverBroker', () => {
         value:
           '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};',
       });
-      const pattern = GlobPatternStub({ value: `${process.cwd()}/**/*.ts` });
+      const pattern = GlobPatternStub({ value: '**/*.ts' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
@@ -104,7 +104,7 @@ describe('mcpDiscoverBroker', () => {
         value:
           '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};',
       });
-      const pattern = GlobPatternStub({ value: `${process.cwd()}/**/*` });
+      const pattern = GlobPatternStub({ value: '**/*' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
@@ -123,7 +123,7 @@ describe('mcpDiscoverBroker', () => {
       const contents = FileContentsStub({
         value: '/**\n * PURPOSE: standalone guard\n */\nexport const standaloneGuard = () => {};',
       });
-      const pattern = GlobPatternStub({ value: `${process.cwd()}/**/*` });
+      const pattern = GlobPatternStub({ value: '**/*' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
@@ -147,7 +147,7 @@ describe('mcpDiscoverBroker', () => {
         value:
           '/**\n * PURPOSE: Validates permission\n * USAGE: hasPermissionGuard({ user })\n */\nexport const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;',
       });
-      const pattern = GlobPatternStub({ value: '/default/cwd/**/*' });
+      const pattern = GlobPatternStub({ value: '**/*' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
@@ -179,7 +179,7 @@ describe('mcpDiscoverBroker', () => {
         value:
           "/**\n * PURPOSE: Checks file access\n *\n * USAGE:\n * fsAccessAdapter({ filepath })\n */\nexport const fsAccessAdapter = () => {};\nif (error.code === 'ENOENT') {\n  throw error;\n}",
       });
-      const pattern = GlobPatternStub({ value: '/default/cwd/**/*' });
+      const pattern = GlobPatternStub({ value: '**/*' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
@@ -329,7 +329,7 @@ describe('mcpDiscoverBroker', () => {
           '/**\n * PURPOSE: Proxy for user fetch broker\n *\n * USAGE:\n * userFetchBrokerProxy()\n */\nexport const userFetchBrokerProxy = () => {};',
       });
 
-      const pattern = GlobPatternStub({ value: '/default/cwd/**/*' });
+      const pattern = GlobPatternStub({ value: '**/*' });
 
       brokerProxy.setupMultipleFileDiscovery({
         files: [
@@ -388,7 +388,7 @@ describe('mcpDiscoverBroker', () => {
       const contents = FileContentsStub({
         value: `export const orchestrationEventTypeContract = z.enum(['x', 'y']);`,
       });
-      const pattern = GlobPatternStub({ value: `${process.cwd()}/**/*.ts` });
+      const pattern = GlobPatternStub({ value: '**/*.ts' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
@@ -444,7 +444,7 @@ describe('mcpDiscoverBroker', () => {
         value: '/repo/worktrees/siegelense/src/brokers/step/step-run-broker.ts',
       });
       const pattern = GlobPatternStub({
-        value: '/repo/worktrees/siegelense/packages/siegelense/src/brokers/step/**',
+        value: 'packages/siegelense/src/brokers/step/**',
       });
       const contents = FileContentsStub({ value: 'export const stepRunBroker = () => true;' });
 

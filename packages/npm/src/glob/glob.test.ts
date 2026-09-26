@@ -83,4 +83,70 @@ describe('glob', () => {
       new Error('glob failed for pattern "**/*.ts": EACCES: permission denied', { cause: error }),
     );
   });
+
+  describe('safe default', () => {
+    it('EMPTY: {no call staged} => the constructor-time catch-all resolves an empty array', async () => {
+      globProxy();
+
+      await expect(glob('**/*.ts', { cwd: '/repo', ignore: [] })).resolves.toStrictEqual([]);
+    });
+  });
+
+  describe('tail-tolerant staging', () => {
+    it('VALID: {staged from a bare suffix, called with a different cwd prefix} => matches by pattern tail', async () => {
+      const proxy = globProxy();
+      proxy.returnsMatchingTail({
+        pattern: '**/*.ts',
+        matches: ['/real/repo/src/a.ts'],
+      });
+
+      await expect(
+        glob('/mocked/cwd/**/*.ts', { cwd: '/mocked/cwd', ignore: [] }),
+      ).resolves.toStrictEqual(['/real/repo/src/a.ts']);
+    });
+
+    it('VALID: {options address names only cwd} => ignore list the real call sends is never checked', async () => {
+      const proxy = globProxy();
+      proxy.returnsMatchingTail({
+        pattern: '**/*.ts',
+        options: { cwd: '/repo' },
+        matches: ['/repo/src/a.ts'],
+      });
+
+      await expect(
+        glob('/repo/**/*.ts', { cwd: '/repo', ignore: ['**/node_modules/**', '**/tmp/**'] }),
+      ).resolves.toStrictEqual(['/repo/src/a.ts']);
+    });
+
+    it('ERROR: {throwsMatchingTail} => rejects the tail-matched call with the staged error', async () => {
+      const proxy = globProxy();
+      const error = new Error('EACCES: permission denied');
+      proxy.throwsMatchingTail({ pattern: '**/*.ts', error });
+
+      await expect(glob('/mocked/cwd/**/*.ts', { cwd: '/mocked/cwd', ignore: [] })).rejects.toThrow(
+        /^glob failed for pattern "\/mocked\/cwd\/\*\*\/\*\.ts": EACCES: permission denied$/u,
+      );
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getOptionsFor and getCallsFor read it back', async () => {
+      const proxy = globProxy();
+      proxy.returnsMatchingTail({ pattern: '**/*.ts', matches: [] });
+
+      await glob('/repo/**/*.ts', { cwd: '/repo', ignore: ['**/node_modules/**'] });
+
+      const resolvedOptions = {
+        cwd: '/repo',
+        absolute: true,
+        nodir: true,
+        ignore: ['**/node_modules/**'],
+      };
+
+      expect(proxy.getOptionsFor({ pattern: '**/*.ts' })).toStrictEqual(resolvedOptions);
+      expect(proxy.getCallsFor({ pattern: '**/*.ts' })).toStrictEqual([
+        ['/repo/**/*.ts', resolvedOptions],
+      ]);
+    });
+  });
 });

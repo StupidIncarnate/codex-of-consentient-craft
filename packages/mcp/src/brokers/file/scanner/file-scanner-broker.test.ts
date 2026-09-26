@@ -841,65 +841,83 @@ export const orphanGuard = (): boolean => true;`,
   });
 
   describe('ignore patterns', () => {
+    // The gateway's globProxy stages an EXACT options object per call, ignore list included, with
+    // no zero-arg catch-all — so a mismatched ignore list makes the real call fall through
+    // unaddressed and throw, rather than let a test read the args back afterwards. These three
+    // tests prove the broker computed the right ignore list by staging the sentinel file ONLY
+    // under the exact, filtered address the broker's own computation must produce: the broker
+    // rejects (never returning the sentinel) unless it truly sent that ignore list to glob.
     it('VALID: {ignorePatterns} => hands that list to glob in place of the static rules', async () => {
       const proxy = fileScannerBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*' });
-
-      proxy.setupFiles({ files: [], pattern });
-
-      await fileScannerBroker({
-        ignorePatterns: [
-          GlobPatternStub({ value: '**/node_modules/**' }),
-          GlobPatternStub({ value: '**/tmp/**' }),
-          GlobPatternStub({ value: '**/worktrees/**' }),
-        ],
+      const ignorePatterns = [
+        GlobPatternStub({ value: '**/node_modules/**' }),
+        GlobPatternStub({ value: '**/tmp/**' }),
+        GlobPatternStub({ value: '**/worktrees/**' }),
+      ];
+      const filepath = PathSegmentStub({ value: '/project/src/guards/sentinel-guard.ts' });
+      const contents = FileContentsStub({
+        value: `export const sentinelGuard = (): boolean => true;`,
       });
 
-      expect(proxy.getGlobOptionsFor({ pattern })).toStrictEqual({
-        cwd: '/default/cwd',
-        absolute: true,
-        nodir: true,
-        ignore: ['**/node_modules/**', '**/tmp/**', '**/worktrees/**'],
-      });
+      proxy.setupFiles({ files: [{ filepath, contents }], pattern, ignorePatterns });
+
+      const results = await fileScannerBroker({ ignorePatterns });
+
+      expect(results.map((r) => r.path)).toStrictEqual(['/project/src/guards/sentinel-guard.ts']);
     });
 
     it('VALID: {glob naming an ignored dir} => drops that rule before glob sees it', async () => {
       const proxy = fileScannerBrokerProxy();
       const pattern = GlobPatternStub({ value: 'tmp/**/*' });
       const { glob } = DiscoverInputStub({ glob: 'tmp' });
-
-      proxy.setupFiles({ files: [], pattern });
-
-      await fileScannerBroker({
-        glob: glob!,
-        ignorePatterns: [
-          GlobPatternStub({ value: '**/node_modules/**' }),
-          GlobPatternStub({ value: '**/tmp/**' }),
-        ],
+      const ignorePatterns = [
+        GlobPatternStub({ value: '**/node_modules/**' }),
+        GlobPatternStub({ value: '**/tmp/**' }),
+      ];
+      const filepath = PathSegmentStub({ value: '/project/tmp/src/guards/sentinel-guard.ts' });
+      const contents = FileContentsStub({
+        value: `export const sentinelGuard = (): boolean => true;`,
       });
 
-      expect(proxy.getGlobOptionsFor({ pattern })).toStrictEqual({
-        cwd: '/default/cwd',
-        absolute: true,
-        nodir: true,
-        ignore: ['**/node_modules/**'],
-      });
+      proxy.setupFiles({ files: [{ filepath, contents }], pattern, ignorePatterns });
+
+      const results = await fileScannerBroker({ glob: glob!, ignorePatterns });
+
+      expect(results.map((r) => r.path)).toStrictEqual([
+        '/project/tmp/src/guards/sentinel-guard.ts',
+      ]);
     });
 
     it('EMPTY: {no ignorePatterns} => falls back to the static rules', async () => {
       const proxy = fileScannerBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*' });
-
-      proxy.setupFiles({ files: [], pattern });
-
-      await fileScannerBroker({});
-
-      expect(proxy.getGlobOptionsFor({ pattern })).toStrictEqual({
-        cwd: '/default/cwd',
-        absolute: true,
-        nodir: true,
-        ignore: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**'],
+      const filepath = PathSegmentStub({ value: '/project/src/guards/sentinel-guard.ts' });
+      const contents = FileContentsStub({
+        value: `export const sentinelGuard = (): boolean => true;`,
       });
+
+      proxy.setupFiles({ files: [{ filepath, contents }], pattern });
+
+      const results = await fileScannerBroker({});
+
+      expect(results.map((r) => r.path)).toStrictEqual(['/project/src/guards/sentinel-guard.ts']);
+    });
+  });
+
+  describe('glob failure', () => {
+    it('ERROR: {glob rejects} => broker rejects with the gateway wrapper error naming the pattern', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const pattern = GlobPatternStub({ value: '**/*' });
+
+      proxy.setupGlobFailure({
+        pattern,
+        error: new Error('EACCES: permission denied'),
+      });
+
+      await expect(fileScannerBroker({})).rejects.toThrow(
+        /^glob failed for pattern "\/default\/cwd\/\*\*\/\*": EACCES: permission denied$/u,
+      );
     });
   });
 
