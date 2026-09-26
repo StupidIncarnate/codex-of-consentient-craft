@@ -326,6 +326,63 @@ beforeEach(() => {
         });
       }
 
+      // Gateway implementation (node): imports two wrapped fs/promises exports at a deep
+      // subpath, reproducing the exact misfire found in the mcp config-create trial unit.
+      if (
+        filePath.includes('install-config-create-responder.ts') ||
+        filePath.includes('install-config-create-no-proxy-responder.ts')
+      ) {
+        return FileContentsStub({
+          value: `
+        import { join } from '@dungeonmaster/node/path';
+        import { readJsonFileIfExists, writeFile } from '@dungeonmaster/node/fs/promises';
+
+        export const installConfigCreateResponder = async () => {
+          const configPath = join('/repo', '.mcp.json');
+          const existing = await readJsonFileIfExists(configPath);
+          await writeFile(configPath, JSON.stringify(existing));
+        };
+      `,
+        });
+      }
+
+      // Gateway implementation (npm pass-through): imports zod's own `z`, which is never
+      // wrapped, so it needs no proxy at all.
+      if (filePath.includes('zod-import-broker.ts')) {
+        return FileContentsStub({
+          value: `
+        import { z } from '@dungeonmaster/npm/zod';
+
+        export const zodImportBroker = () => {
+          return z.string();
+        };
+      `,
+        });
+      }
+
+      // The node gateway package's own testing barrel: lists every WRAPPED node export's proxy.
+      // 'join' from @scope/node/path is never in here — path does no I/O and is a pure
+      // pass-through, unlike fs/promises's readJsonFileIfExists and writeFile.
+      if (filePath.includes('packages/node/src/testing/index.ts')) {
+        return FileContentsStub({
+          value: `
+        export { readJsonFileIfExistsProxy } from '../fs/promises/read-json-file-if-exists.proxy';
+        export { writeFileProxy } from '../fs/promises/write-file.proxy';
+      `,
+        });
+      }
+
+      // The npm gateway package's own testing barrel: lists every WRAPPED npm export's proxy.
+      // 'z' from zod is never in here, because zod is a pure pass-through.
+      if (filePath.includes('packages/npm/src/testing/index.ts')) {
+        return FileContentsStub({
+          value: `
+        export { globProxy } from '../glob/glob.proxy';
+        export { renderProxy } from '../@testing-library/react/render.proxy';
+      `,
+        });
+      }
+
       // Default empty implementation
       return FileContentsStub({ value: `export const placeholder = () => {};` });
     },
@@ -639,6 +696,37 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         };
       `,
       filename: '/project/src/widgets/button/button-widget.proxy.tsx',
+    },
+    // ✅ CORRECT - Gateway import at a deep subpath (@scope/node/fs/promises): proxy imports and
+    // creates both proxies from the package's own @scope/node/testing barrel, not a barrel
+    // scoped to the exact "fs/promises" subpath.
+    {
+      code: `
+        import { readJsonFileIfExistsProxy, writeFileProxy } from '@dungeonmaster/node/testing';
+
+        export const installConfigCreateResponderProxy = () => {
+          const readProxy = readJsonFileIfExistsProxy();
+          const writeProxy = writeFileProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename:
+        '/repo/packages/mcp/src/responders/install/config-create/install-config-create-responder.proxy.ts',
+    },
+    // ✅ CORRECT - Gateway pass-through import (@scope/npm/zod): the npm testing barrel has no
+    // `zProxy`, so no proxy is required at all.
+    {
+      code: `
+        export const zodImportBrokerProxy = () => {
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/repo/packages/mcp/src/brokers/zod-import/zod-import-broker.proxy.ts',
     },
   ],
   invalid: [
@@ -993,6 +1081,36 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           data: {
             implementationName: 'inkBoxAdapter',
             proxyPath: '../../adapters/ink/box/ink-box-adapter.proxy',
+          },
+        },
+      ],
+    },
+    // ❌ WRONG - Gateway import at a deep subpath (@scope/node/fs/promises), no proxy import or
+    // creation at all — the exact misfire this rule silently missed before, reproduced from the
+    // mcp config-create trial unit's readJsonFileIfExists/writeFile pair.
+    {
+      code: `
+        export const installConfigCreateNoProxyResponderProxy = () => {
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename:
+        '/repo/packages/mcp/src/responders/install/config-create/install-config-create-no-proxy-responder.proxy.ts',
+      errors: [
+        {
+          messageId: 'missingProxyImport',
+          data: {
+            implementationName: 'readJsonFileIfExists',
+            proxyPath: '@dungeonmaster/node/testing',
+          },
+        },
+        {
+          messageId: 'missingProxyImport',
+          data: {
+            implementationName: 'writeFile',
+            proxyPath: '@dungeonmaster/node/testing',
           },
         },
       ],

@@ -17,7 +17,9 @@ import type { FileContents, Identifier, ModulePath } from '@dungeonmaster/shared
 import { identifierContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { proxyNameToImplementationNameTransformer } from '../../../transformers/proxy-name-to-implementation-name/proxy-name-to-implementation-name-transformer';
 import { proxyPathToImplementationPathTransformer } from '../../../transformers/proxy-path-to-implementation-path/proxy-path-to-implementation-path-transformer';
-import { fileExtensionsStatics } from '@dungeonmaster/shared/statics';
+import { gatewayTestingBarrelPathTransformer } from '../../../transformers/gateway-testing-barrel-path/gateway-testing-barrel-path-transformer';
+import { gatewayTestingBarrelProxyNamesTransformer } from '../../../transformers/gateway-testing-barrel-proxy-names/gateway-testing-barrel-proxy-names-transformer';
+import { fileExtensionsStatics, gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 
 export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -165,7 +167,58 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
           // For scoped package imports (@scope/pkg/folderType), proxy is exported from @scope/pkg/testing
           // For relative imports, proxy is at path.proxy
           const isScopedPackageImport = importPath.startsWith('@');
+
+          // A gateway import (any depth: @scope/node/fs/promises, @scope/npm/zod, ...) always
+          // resolves its proxy through the PACKAGE's own testing barrel — the first two path
+          // segments — never a barrel scoped to the exact imported subpath the way an ordinary
+          // scoped package's folder-type subpath does (@scope/shared/brokers -> @scope/shared/testing).
+          const importPathSegments = isScopedPackageImport ? importPath.split('/') : [];
+          const [, gatewayFolderSegment] = importPathSegments;
+          const isGatewayImport =
+            gatewayFolderSegment !== undefined &&
+            Object.values(gatewayLocationsStatics.folders).some(
+              (folder) => folder === gatewayFolderSegment,
+            );
+
+          if (isGatewayImport) {
+            // Every gateway package holds pass-throughs alongside its wrapped exports — not
+            // only npm (zod's `z`, react's `useState`, ...), but node too (`join` from
+            // @scope/node/path is Node's own `path.join`, untouched, because `path` does no I/O
+            // and needs no guard). A pass-through export has no proxy at all, so only a name the
+            // package's own testing barrel actually re-exports as `<name>Proxy` is held to this
+            // check.
+            const barrelPath = gatewayTestingBarrelPathTransformer({
+              callerFilePath: filePathContract.parse(String(filename ?? '')),
+              gatewayFolder: gatewayFolderSegment,
+            });
+
+            const wrappedNames = ((): Set<Identifier> => {
+              if (barrelPath === null) {
+                return new Set<Identifier>();
+              }
+              const barrelContent = ((): FileContents | null => {
+                try {
+                  return fsEnsureReadFileSyncAdapter({ filePath: barrelPath, encoding: 'utf-8' });
+                } catch {
+                  return null;
+                }
+              })();
+              return barrelContent === null
+                ? new Set<Identifier>()
+                : gatewayTestingBarrelProxyNamesTransformer({ content: barrelContent });
+            })();
+
+            if (!wrappedNames.has(expectedProxyName)) {
+              // Pass-through: no proxy exists, or is expected, for this name.
+              continue;
+            }
+          }
+
           const expectedProxyPath = ((): ModulePath => {
+            if (isGatewayImport) {
+              const [scopeSegment, packageFolder] = importPathSegments;
+              return `${scopeSegment}/${packageFolder}/testing` as ModulePath;
+            }
             if (isScopedPackageImport) {
               const lastSlashIndex = importPath.lastIndexOf('/');
               const basePath =

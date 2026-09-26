@@ -318,6 +318,35 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
+  it('VALID: {content: gateway import at a deep subpath} => parses imports regardless of depth', () => {
+    const content = `
+      import { readJsonFileIfExists, writeFile } from '@dungeonmaster/node/fs/promises';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result.size).toBe(2);
+    expect(result.get(IdentifierStub({ value: 'readJsonFileIfExists' }))).toStrictEqual(
+      ModulePathStub({ value: '@dungeonmaster/node/fs/promises' }),
+    );
+    expect(result.get(IdentifierStub({ value: 'writeFile' }))).toStrictEqual(
+      ModulePathStub({ value: '@dungeonmaster/node/fs/promises' }),
+    );
+  });
+
+  it('VALID: {content: gateway pass-through import} => parses the import even though it needs no proxy', () => {
+    const content = `
+      import { z } from '@dungeonmaster/npm/zod';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result.size).toBe(1);
+    expect(result.get(IdentifierStub({ value: 'z' }))).toStrictEqual(
+      ModulePathStub({ value: '@dungeonmaster/npm/zod' }),
+    );
+  });
+
   it('VALID: {content: multiple imports from different scoped packages} => parses all proxy-requiring', () => {
     const content = `
       import { userBroker, authBroker } from '@acme/core/brokers';

@@ -12,8 +12,14 @@
  */
 import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
 import { identifierContract, modulePathContract } from '@dungeonmaster/shared/contracts';
-import { fileExtensionsStatics, folderConfigStatics } from '@dungeonmaster/shared/statics';
+import {
+  fileExtensionsStatics,
+  folderConfigStatics,
+  gatewayLocationsStatics,
+} from '@dungeonmaster/shared/statics';
 import { folderConfigTransformer } from '../folder-config/folder-config-transformer';
+
+const gatewayFolderNames = Object.values(gatewayLocationsStatics.folders);
 
 export const parseImplementationImportsTransformer = ({
   content,
@@ -40,6 +46,35 @@ export const parseImplementationImportsTransformer = ({
   let match = importRegex.exec(contentWithoutComments);
   while (match !== null) {
     const [, namedImports, defaultImport, importPath] = match;
+
+    // Handle gateway package imports at ANY depth (e.g. '@scope/node/fs/promises',
+    // '@scope/npm/zod', '@scope/npm/@playwright/test'). A gateway subpath's own folder segment
+    // (npm/node/browser/bin) is never a member of folderConfigStatics, so the folder-type
+    // matcher below never recognizes it — this is a separate, depth-agnostic match keyed on
+    // gatewayLocationsStatics instead, checked first so a 3-segment gateway import
+    // (`@scope/npm/zod`) is caught here rather than falling into the folder-type matcher and
+    // being silently dropped for having an unrecognized "folder type".
+    const gatewayMatch = importPath?.match(/^@[\w-]+\/([\w-]+)(?:\/.+)?$/u);
+    const gatewayFolderSegment = gatewayMatch?.[1];
+    if (
+      gatewayFolderSegment !== undefined &&
+      gatewayFolderNames.some((folder) => folder === gatewayFolderSegment)
+    ) {
+      if (namedImports !== undefined) {
+        const names = namedImports
+          .split(',')
+          .map((n) => {
+            const [trimmed] = n.trim().split(/\s+as\s+/u);
+            return trimmed;
+          })
+          .filter((n): n is Exclude<typeof n, undefined> => Boolean(n));
+        for (const name of names) {
+          imports.set(identifierContract.parse(name), modulePathContract.parse(importPath ?? ''));
+        }
+      }
+      match = importRegex.exec(contentWithoutComments);
+      continue;
+    }
 
     // Handle scoped package imports with folder type subpath (e.g., '@scope/pkg/brokers')
     // Pattern: @scope/package/folderType where folderType is a known folder type
