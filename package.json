@@ -54,12 +54,16 @@
     }
   },
   "dependencies": {
+    "@dungeonmaster/bin": "*",
+    "@dungeonmaster/browser": "*",
     "@dungeonmaster/cli": "*",
     "@dungeonmaster/config": "*",
     "@dungeonmaster/eslint-plugin": "*",
     "@dungeonmaster/hooks": "*",
     "@dungeonmaster/hydration": "*",
     "@dungeonmaster/mcp": "*",
+    "@dungeonmaster/node": "*",
+    "@dungeonmaster/npm": "*",
     "@dungeonmaster/orchestrator": "*",
     "@dungeonmaster/server": "*",
     "@dungeonmaster/shared": "*",

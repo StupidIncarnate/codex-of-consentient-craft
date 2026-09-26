@@ -1,0 +1,32 @@
+{
+  "name": "@dungeonmaster/bin",
+  "version": "0.1.0",
+  "description": "Gateway package: programs installed on the machine, run through spawn",
+  "exports": {
+    "./testing": {
+      "source": "./testing/index.ts",
+      "require": "./dist/testing/index.js",
+      "import": "./dist/testing/index.js",
+      "types": "./dist/testing/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:clean": "rm -rf dist .ward/build.tsbuildinfo && npm run build",
+    "test": "dungeonmaster-ward --only test",
+    "typecheck": "dungeonmaster-ward --only typecheck",
+    "lint": "dungeonmaster-ward --only lint",
+    "ward": "dungeonmaster-ward"
+  },
+  "devDependencies": {
+    "@dungeonmaster/testing": "*",
+    "@types/node": "^24.0.15",
+    "typescript": "^5.8.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
