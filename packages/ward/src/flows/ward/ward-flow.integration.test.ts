@@ -135,6 +135,27 @@ describe('WardFlow', () => {
     });
   });
 
+  describe('platform command routing', () => {
+    it('VALID: {args: ["node", "ward", "platform"]} with no workspace packages => routes to WardPlatformResponder and resolves', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'ward-flow-platform' }),
+      });
+      process.exitCode = 0;
+
+      const result = await WardFlow({
+        args: ['node', 'ward', 'platform'],
+        rootPath: AbsoluteFilePathStub({ value: testbed.guildPath }),
+      });
+
+      testbed.cleanup();
+
+      expect({ result, exitCode: process.exitCode }).toStrictEqual({
+        result: { success: true },
+        exitCode: 0,
+      });
+    });
+  });
+
   // A NAME NOBODY ROUTES RAN NOTHING, so it may not report the exit code of a clean run. Every
   // caller of ward reads the exit code as the verdict, and a CI job still naming a subcommand that
   // no longer exists would otherwise go green having checked nothing.

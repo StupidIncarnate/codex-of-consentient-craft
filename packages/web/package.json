@@ -18,6 +18,7 @@
     "ward": "dungeonmaster-ward"
   },
   "dependencies": {
+    "@dungeonmaster/npm": "*",
     "@dungeonmaster/shared": "*",
     "@mantine/core": "^8.0.0",
     "@mantine/hooks": "^8.0.0",

@@ -1,0 +1,129 @@
+import { FilePathStub, FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { walkGatewayCrossingsLayerBroker } from './walk-gateway-crossings-layer-broker';
+import { walkGatewayCrossingsLayerBrokerProxy } from './walk-gateway-crossings-layer-broker.proxy';
+import { GatewayPackageNameStub } from '../../../contracts/gateway-package-name/gateway-package-name.stub';
+
+describe('walkGatewayCrossingsLayerBroker', () => {
+  describe('direct crossing', () => {
+    it('VALID: {entry file imports the gateway directly} => reports one chain of one hop', async () => {
+      walkGatewayCrossingsLayerBrokerProxy();
+      const entryPath = FilePathStub({ value: '/repo/entry.ts' });
+
+      const result = await walkGatewayCrossingsLayerBroker({
+        filePath: entryPath,
+        content: FileContentsStub({ value: "import { readFile } from '@dungeonmaster/node/fs';" }),
+        requestedNames: 'all',
+        pathHistory: [entryPath],
+        chainLabels: [],
+        knownPackages: [],
+        forbiddenPackageNames: [GatewayPackageNameStub()],
+      });
+
+      expect(result).toStrictEqual([['@dungeonmaster/node/fs']]);
+    });
+
+    it('EMPTY: {entry file imports nothing forbidden} => reports no chains', async () => {
+      walkGatewayCrossingsLayerBrokerProxy();
+      const entryPath = FilePathStub({ value: '/repo/entry.ts' });
+
+      const result = await walkGatewayCrossingsLayerBroker({
+        filePath: entryPath,
+        content: FileContentsStub({ value: "import { z } from 'zod';" }),
+        requestedNames: 'all',
+        pathHistory: [entryPath],
+        chainLabels: [],
+        knownPackages: [],
+        forbiddenPackageNames: [GatewayPackageNameStub()],
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+  });
+
+  describe('multi-hop crossing through a relative file', () => {
+    it('VALID: {entry imports a helper that imports the gateway} => reports the two-hop chain', async () => {
+      const proxy = walkGatewayCrossingsLayerBrokerProxy();
+      proxy.setupFile({
+        filePath: FilePathStub({ value: '/repo/helper.ts' }),
+        content:
+          "import { readFile } from '@dungeonmaster/node/fs';\nexport const helper = () => readFile();",
+      });
+      const entryPath = FilePathStub({ value: '/repo/entry.ts' });
+
+      const result = await walkGatewayCrossingsLayerBroker({
+        filePath: entryPath,
+        content: FileContentsStub({ value: "import { helper } from './helper';" }),
+        requestedNames: 'all',
+        pathHistory: [entryPath],
+        chainLabels: [],
+        knownPackages: [],
+        forbiddenPackageNames: [GatewayPackageNameStub()],
+      });
+
+      expect(result).toStrictEqual([['./helper', '@dungeonmaster/node/fs']]);
+    });
+  });
+
+  describe('barrel narrowing', () => {
+    it("VALID: {named import through a barrel reaches only the requested export's crossing} => reports only that one chain", async () => {
+      const proxy = walkGatewayCrossingsLayerBrokerProxy();
+      proxy.setupFile({
+        filePath: FilePathStub({ value: '/repo/brokers.ts' }),
+        content: "export * from './user-fetch-broker';\nexport * from './other-broker';",
+      });
+      proxy.setupFile({
+        filePath: FilePathStub({ value: '/repo/user-fetch-broker.ts' }),
+        content:
+          "import { readFile } from '@dungeonmaster/node/fs';\nexport const userFetchBroker = () => readFile();",
+      });
+      proxy.setupFile({
+        filePath: FilePathStub({ value: '/repo/other-broker.ts' }),
+        content:
+          "import { fetchOther } from '@dungeonmaster/node/fetch-other';\nexport const otherBroker = () => fetchOther();",
+      });
+      const entryPath = FilePathStub({ value: '/repo/entry.ts' });
+
+      const result = await walkGatewayCrossingsLayerBroker({
+        filePath: entryPath,
+        content: FileContentsStub({ value: "import { userFetchBroker } from './brokers';" }),
+        requestedNames: 'all',
+        pathHistory: [entryPath],
+        chainLabels: [],
+        knownPackages: [],
+        forbiddenPackageNames: [GatewayPackageNameStub()],
+      });
+
+      expect(result).toStrictEqual([
+        ['./brokers', './user-fetch-broker', '@dungeonmaster/node/fs'],
+      ]);
+    });
+  });
+
+  describe('cycle guard', () => {
+    it('EDGE: {two files import each other, neither crosses the gateway} => reports no chains and terminates', async () => {
+      const proxy = walkGatewayCrossingsLayerBrokerProxy();
+      const entryPath = FilePathStub({ value: '/repo/a.ts' });
+      const entryContent = "import { b } from './b';\nexport const a = 1;";
+      // The walk re-reads a file's content when checking whether following an edge back to it
+      // would be a cycle, even though it then discards the read and skips recursing — so the
+      // entry's own content must be staged too, not only handed to the top-level call.
+      proxy.setupFile({ filePath: entryPath, content: entryContent });
+      proxy.setupFile({
+        filePath: FilePathStub({ value: '/repo/b.ts' }),
+        content: "import { a } from './a';\nexport const b = () => a;",
+      });
+
+      const result = await walkGatewayCrossingsLayerBroker({
+        filePath: entryPath,
+        content: FileContentsStub({ value: entryContent }),
+        requestedNames: 'all',
+        pathHistory: [entryPath],
+        chainLabels: [],
+        knownPackages: [],
+        forbiddenPackageNames: [GatewayPackageNameStub()],
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+  });
+});

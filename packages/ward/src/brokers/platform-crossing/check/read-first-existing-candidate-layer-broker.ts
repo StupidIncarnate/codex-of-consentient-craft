@@ -1,0 +1,39 @@
+/**
+ * PURPOSE: Tries each candidate file path in order and returns the first one that reads
+ * successfully, mirroring node10 resolution's own "try `.ts`, then `.tsx`, then `index.ts`" order.
+ * Recursion rather than a loop: `no-await-in-loop` (error, repo-wide) forbids the loop-statement
+ * form of this same short-circuiting sequential read, and each candidate genuinely depends on the
+ * previous one having failed.
+ *
+ * USAGE:
+ * await readFirstExistingCandidateLayerBroker({ candidates: [filePathContract.parse('/repo/x.ts')] });
+ * // Returns: { filePath: '/repo/x.ts', content: '...' } or undefined when every candidate is absent
+ */
+
+import type { FilePath, FileContents } from '@dungeonmaster/shared/contracts';
+
+import { isNodeErrorWithCodeGuard } from '../../../guards/is-node-error-with-code/is-node-error-with-code-guard';
+import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+
+export const readFirstExistingCandidateLayerBroker = async ({
+  candidates,
+}: {
+  candidates: readonly FilePath[];
+}): Promise<{ filePath: FilePath; content: FileContents } | undefined> => {
+  const [firstCandidate, ...remainingCandidates] = candidates;
+  if (firstCandidate === undefined) {
+    return undefined;
+  }
+
+  const content = await fsReadFileAdapter({ filePath: firstCandidate }).catch((error: unknown) => {
+    if (isNodeErrorWithCodeGuard({ error, code: 'ENOENT' })) {
+      return undefined;
+    }
+    throw error;
+  });
+  if (content !== undefined) {
+    return { filePath: firstCandidate, content };
+  }
+
+  return readFirstExistingCandidateLayerBroker({ candidates: remainingCandidates });
+};

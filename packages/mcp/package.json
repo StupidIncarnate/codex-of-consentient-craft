@@ -42,6 +42,8 @@
   },
   "dependencies": {
     "@dungeonmaster/eslint-plugin": "*",
+    "@dungeonmaster/node": "*",
+    "@dungeonmaster/npm": "*",
     "@dungeonmaster/orchestrator": "*",
     "@dungeonmaster/shared": "*",
     "@dungeonmaster/ward": "*",

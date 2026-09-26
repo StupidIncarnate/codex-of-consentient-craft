@@ -17,6 +17,7 @@ import { WardRunResponder } from '../../responders/ward/run/ward-run-responder';
 import { WardListResponder } from '../../responders/ward/list/ward-list-responder';
 import { WardDetailResponder } from '../../responders/ward/detail/ward-detail-responder';
 import { WardRawResponder } from '../../responders/ward/raw/ward-raw-responder';
+import { WardPlatformResponder } from '../../responders/ward/platform/ward-platform-responder';
 
 const COMMAND_ARG_INDEX = 2;
 
@@ -25,6 +26,7 @@ const COMMANDS = {
   list: 'list',
   detail: 'detail',
   raw: 'raw',
+  platform: 'platform',
 } as const;
 
 export const WardFlow = async ({
@@ -62,11 +64,16 @@ export const WardFlow = async ({
     return result;
   }
 
+  if (command === COMMANDS.platform) {
+    await WardPlatformResponder({ args, rootPath });
+    return result;
+  }
+
   // A NAME NOBODY ROUTES MUST NOT EXIT 0. Every caller of ward — a CI job, a pre-push gate, a
   // dispatched agent — reads the exit code as the verdict, so a subcommand that was renamed or
   // never existed comes back as a silent pass while nothing was checked at all.
   process.stderr.write(`Unknown command: ${command}\n`);
-  process.stderr.write('Available commands: run, list, detail, raw\n');
+  process.stderr.write('Available commands: run, list, detail, raw, platform\n');
   process.exitCode = wardExitCodeStatics.exitCodes.failing;
   return result;
 };

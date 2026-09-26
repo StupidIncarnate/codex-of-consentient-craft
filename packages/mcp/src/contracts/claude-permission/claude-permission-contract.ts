@@ -12,7 +12,7 @@
  *   `mcpPermissionContract`, re-branded through this contract at the merge boundary.
  */
 
-import { z } from 'zod';
+import { z } from '@dungeonmaster/npm/zod';
 
 export const claudePermissionContract = z.string().brand<'ClaudePermission'>();
 

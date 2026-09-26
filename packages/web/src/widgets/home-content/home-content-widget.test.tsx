@@ -2,7 +2,7 @@
  * PURPOSE: Tests for HomeContentWidget - guild selection and session list rendering
  */
 
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@dungeonmaster/npm/@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import {
   GuildIdStub,
