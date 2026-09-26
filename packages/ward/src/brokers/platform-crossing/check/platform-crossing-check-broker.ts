@@ -25,6 +25,8 @@ import {
 } from '../../../contracts/platform-crossing-violation/platform-crossing-violation-contract';
 import { gatewayPackageNameContract } from '../../../contracts/gateway-package-name/gateway-package-name-contract';
 import type { GatewayPackageName } from '../../../contracts/gateway-package-name/gateway-package-name-contract';
+import type { PlatformCrossingChainHop } from '../../../contracts/platform-crossing-chain-hop/platform-crossing-chain-hop-contract';
+import type { PlatformCrossingWalkMemoKey } from '../../../contracts/platform-crossing-walk-memo-key/platform-crossing-walk-memo-key-contract';
 import { workspaceDiscoverBroker } from '../../workspace/discover/workspace-discover-broker';
 import { specifierMatchesPackageGuard } from '../../../guards/specifier-matches-package/specifier-matches-package-guard';
 import { isImplementationSourceFileGuard } from '../../../guards/is-implementation-source-file/is-implementation-source-file-guard';
@@ -47,6 +49,26 @@ export const platformCrossingCheckBroker = async ({
   const folders = (await workspaceDiscoverBroker({ rootPath: rootAbsolute })) ?? [];
   const gatewayNames = await gatewayPackageNamesReadLayerBroker({ rootPath });
 
+  // Parsing and specifier resolution are platform-independent, so one pair of caches serves every
+  // folder's walk. The chain memo is NOT platform-independent (a crossing is only a crossing
+  // relative to a `forbiddenPackageNames` set), so it is split one-per-platform rather than shared
+  // outright — the two platforms this broker ever computes (`browser`, `node`) never disagree with
+  // each other about which files exist, only about which gateway packages are forbidden. Sharing
+  // each cache across every folder (not just within one folder's own files) is what keeps the walk
+  // linear in the repo's total file count rather than in (file count × discovered entry files): a
+  // file every package imports (a shared broker, a common utility) is parsed, resolved and walked
+  // once per (platform, requested-names) pair for the whole run, not once per entry file that
+  // happens to reach it.
+  const moduleShapeCache: Parameters<
+    typeof walkGatewayCrossingsLayerBroker
+  >[0]['moduleShapeCache'] = new Map();
+  const resolveCache: Parameters<typeof walkGatewayCrossingsLayerBroker>[0]['resolveCache'] =
+    new Map();
+  const chainMemoByPlatform = new Map<
+    'browser' | 'node',
+    Map<PlatformCrossingWalkMemoKey, Promise<readonly PlatformCrossingChainHop[][]>>
+  >();
+
   const violationsPerFolder = await Promise.all(
     folders.map(async (folder): Promise<readonly PlatformCrossingViolation[]> => {
       const packageRoot = absoluteFilePathContract.parse(folder.path);
@@ -59,6 +81,15 @@ export const platformCrossingCheckBroker = async ({
           : ('node' as const);
       if (platform === undefined) {
         return [];
+      }
+
+      const memo: Map<
+        PlatformCrossingWalkMemoKey,
+        Promise<readonly PlatformCrossingChainHop[][]>
+      > = chainMemoByPlatform.get(platform) ??
+      new Map<PlatformCrossingWalkMemoKey, Promise<readonly PlatformCrossingChainHop[][]>>();
+      if (!chainMemoByPlatform.has(platform)) {
+        chainMemoByPlatform.set(platform, memo);
       }
 
       const forbiddenPackageNames: readonly GatewayPackageName[] = (
@@ -91,6 +122,9 @@ export const platformCrossingCheckBroker = async ({
             chainLabels: [],
             knownPackages: folders,
             forbiddenPackageNames,
+            memo,
+            moduleShapeCache,
+            resolveCache,
           });
 
           return chains.map((chain) => {

@@ -1,0 +1,67 @@
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { resolveSpecifierCachedLayerBroker } from './resolve-specifier-cached-layer-broker';
+import { resolveSpecifierCachedLayerBrokerProxy } from './resolve-specifier-cached-layer-broker.proxy';
+import { ModuleSpecifierStub } from '../../../contracts/module-specifier/module-specifier.stub';
+import type { ResolveSpecifierCache } from './resolve-specifier-cached-layer-broker';
+
+describe('resolveSpecifierCachedLayerBroker', () => {
+  describe('same containing file and specifier', () => {
+    it('VALID: {called twice with the same key} => resolves once and caches one entry', async () => {
+      const proxy = resolveSpecifierCachedLayerBrokerProxy();
+      const containingFilePath = FilePathStub({ value: '/repo/entry.ts' });
+      const specifier = ModuleSpecifierStub({ value: './helper' });
+      proxy.setupFile({
+        filePath: FilePathStub({ value: '/repo/helper.ts' }),
+        content: 'export const helper = () => 1;',
+      });
+      const resolveCache: ResolveSpecifierCache = new Map();
+
+      const first = await resolveSpecifierCachedLayerBroker({
+        specifier,
+        containingFilePath,
+        knownPackages: [],
+        resolveCache,
+      });
+      const second = await resolveSpecifierCachedLayerBroker({
+        specifier,
+        containingFilePath,
+        knownPackages: [],
+        resolveCache,
+      });
+
+      expect(second).toStrictEqual(first);
+      expect(resolveCache.size).toBe(1);
+    });
+  });
+
+  describe('different specifiers on the same containing file', () => {
+    it('VALID: {called with two distinct specifiers} => caches two separate entries', async () => {
+      const proxy = resolveSpecifierCachedLayerBrokerProxy();
+      const containingFilePath = FilePathStub({ value: '/repo/entry.ts' });
+      proxy.setupFile({
+        filePath: FilePathStub({ value: '/repo/a.ts' }),
+        content: 'export const a = 1;',
+      });
+      proxy.setupFile({
+        filePath: FilePathStub({ value: '/repo/b.ts' }),
+        content: 'export const b = 1;',
+      });
+      const resolveCache: ResolveSpecifierCache = new Map();
+
+      await resolveSpecifierCachedLayerBroker({
+        specifier: ModuleSpecifierStub({ value: './a' }),
+        containingFilePath,
+        knownPackages: [],
+        resolveCache,
+      });
+      await resolveSpecifierCachedLayerBroker({
+        specifier: ModuleSpecifierStub({ value: './b' }),
+        containingFilePath,
+        knownPackages: [],
+        resolveCache,
+      });
+
+      expect(resolveCache.size).toBe(2);
+    });
+  });
+});

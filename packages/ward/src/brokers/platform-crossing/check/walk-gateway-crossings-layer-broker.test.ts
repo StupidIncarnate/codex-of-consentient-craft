@@ -126,4 +126,41 @@ describe('walkGatewayCrossingsLayerBroker', () => {
       expect(result).toStrictEqual([]);
     });
   });
+
+  describe('diamond', () => {
+    it('VALID: {two files both import the same shared file that crosses the gateway} => reports one chain per incoming path and terminates', async () => {
+      const proxy = walkGatewayCrossingsLayerBrokerProxy();
+      proxy.setupFile({
+        filePath: FilePathStub({ value: '/repo/a.ts' }),
+        content: "import { shared } from './shared';\nexport const a = () => shared();",
+      });
+      proxy.setupFile({
+        filePath: FilePathStub({ value: '/repo/b.ts' }),
+        content: "import { shared } from './shared';\nexport const b = () => shared();",
+      });
+      proxy.setupFile({
+        filePath: FilePathStub({ value: '/repo/shared.ts' }),
+        content:
+          "import { readFile } from '@dungeonmaster/node/fs';\nexport const shared = () => readFile();",
+      });
+      const entryPath = FilePathStub({ value: '/repo/entry.ts' });
+
+      const result = await walkGatewayCrossingsLayerBroker({
+        filePath: entryPath,
+        content: FileContentsStub({
+          value: "import { a } from './a';\nimport { b } from './b';",
+        }),
+        requestedNames: 'all',
+        pathHistory: [entryPath],
+        chainLabels: [],
+        knownPackages: [],
+        forbiddenPackageNames: [GatewayPackageNameStub()],
+      });
+
+      expect(result).toStrictEqual([
+        ['./a', './shared', '@dungeonmaster/node/fs'],
+        ['./b', './shared', '@dungeonmaster/node/fs'],
+      ]);
+    });
+  });
 });

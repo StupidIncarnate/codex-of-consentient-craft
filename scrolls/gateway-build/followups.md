@@ -250,3 +250,7 @@ apart from a real refusal. **`netKillPortAdapter`'s callers in ward are the losi
 reconciliation** and need review at migration: moving to `killPid` per pid changes the signal sent
 (`SIGKILL` instead of the default `SIGTERM`) and makes a partial failure visible instead of silently
 swallowed — worth confirming this is what ward's e2e-artifact teardown wants before the swap.
+
+## `parseImplementationImportsTransformer` reads a per-name `type` import as a value import
+
+In a mixed import such as `import { walkBroker, type WalkMemo } from './walk-broker'`, the transformer in `packages/eslint-plugin` does not strip the per-name `type` modifier. `enforce-proxy-child-creation` then expects a `<Type>Proxy` for a type. The platform-crossing check worked around it by deriving types through `Parameters<typeof broker>[0]['field']`. The fix belongs in the transformer: skip specifiers whose `importKind` is `type`.
